@@ -883,7 +883,9 @@
     "coverImageField": "Cover image",
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
-    "syncData": "Sync data"
+    "syncData": "Sync data",
+    "syncDataModalTitle" : "Sync Data will release soon",
+    "syncDataModalSubtitle" : "Register the services you are interested in by selecting them"
   },
   "activity": {
     "hideWeekends": "Hide weekends",

@@ -1165,7 +1165,8 @@
     "changeIconColour": "Change icon colour",
     "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page",
-    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported",
+    "roleInheritedFromWorkspace": "Role inherited from workspace"
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",

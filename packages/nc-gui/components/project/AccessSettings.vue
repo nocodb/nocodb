@@ -357,6 +357,7 @@ const customRow = (record: Record<string, any>) => ({
                   ? WorkspaceRolesToProjectRoles[record.workspace_roles]
                   : null
               "
+              show-inherit
               :description="false"
               :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
             />

@@ -71,7 +71,11 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json') => {
 <template>
   <GeneralModal v-model:visible="visible" width="35rem">
     <div class="flex flex-col px-8 pt-6 pb-9">
-      <div class="text-lg font-medium mb-6">{{ $t('general.import') }}</div>
+      <div class="flex items-center gap-3 mb-6">
+        <GeneralIcon icon="download" class="flex-none !text-orange-700 !w-4 !h-4" />
+
+        <div class="text-base font-weight-700">{{ $t('general.import') }}</div>
+      </div>
       <div class="row mb-10">
         <div class="nc-base-view-import-sub-btn" @click="onClick('airtable')">
           <GeneralIcon icon="airtable" />

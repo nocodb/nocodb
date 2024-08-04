@@ -3,7 +3,7 @@ import tinycolor from 'tinycolor2'
 
 const props = withDefaults(
   defineProps<{
-    type?: NcProjectType | string
+    type?: typeof NcProjectType | string
     modelValue?: string
     size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge'
     readonly?: boolean

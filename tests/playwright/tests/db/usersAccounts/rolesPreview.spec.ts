@@ -2,12 +2,12 @@ import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
-import { SettingsPage, SettingTab } from '../../../pages/Dashboard/Settings';
 import { Api } from 'nocodb-sdk';
 import { AccountUsersPage } from '../../../pages/Account/Users';
 import { AccountPage } from '../../../pages/Account';
 import { LoginPage } from '../../../pages/LoginPage';
 import { isEE } from '../../../setup/db';
+import { DataSourcePage } from '../../../pages/Dashboard/ProjectView/DataSourcePage';
 let api: Api<any>;
 
 const roles = ['Editor', 'Commenter', 'Viewer'];
@@ -17,7 +17,7 @@ test.describe('Preview Mode', () => {
 
   let dashboard: DashboardPage;
   let toolbar: ToolbarPage;
-  let settings: SettingsPage;
+  let dataSources: DataSourcePage;
   let accountPage: AccountPage;
   let accountUsersPage: AccountUsersPage;
   let loginPage: LoginPage;
@@ -29,7 +29,7 @@ test.describe('Preview Mode', () => {
     context = await setup({ page, isEmptyProject: false });
     dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
-    settings = dashboard.settings;
+    dataSources = dashboard.baseView.dataSources;
     accountPage = new AccountPage(page);
     accountUsersPage = new AccountUsersPage(accountPage);
     loginPage = new LoginPage(accountPage.rootPage);
@@ -88,34 +88,32 @@ test.describe('Preview Mode', () => {
 
     // configure ACL
     // configure access control
-    await dashboard.gotoSettings();
-    await settings.selectTab({
-      tab: SettingTab.DataSources,
-    });
-    await settings.dataSources.openAcl({ dataSourceName: 'Default' });
-    await settings.dataSources.acl.toggle({ table: 'Language', role: 'editor' });
-    await settings.dataSources.acl.toggle({ table: 'Language', role: 'commenter' });
-    await settings.dataSources.acl.toggle({ table: 'Language', role: 'viewer' });
-    await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'editor' });
-    await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'commenter' });
-    await settings.dataSources.acl.toggle({ table: 'CustomerList', role: 'viewer' });
-    await settings.dataSources.acl.save();
-    await settings.close();
+    await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.baseView.tab_dataSources.click();
 
-    await dashboard.gotoSettings();
-    await settings.selectTab({
-      tab: SettingTab.DataSources,
-    });
-    await settings.dataSources.openAcl({ dataSourceName: 'Default' });
+    await dataSources.openAcl({ dataSourceName: 'Default' });
+    await dataSources.acl.toggle({ table: 'Language', role: 'editor' });
+    await dataSources.acl.toggle({ table: 'Language', role: 'commenter' });
+    await dataSources.acl.toggle({ table: 'Language', role: 'viewer' });
+    await dataSources.acl.toggle({ table: 'CustomerList', role: 'editor' });
+    await dataSources.acl.toggle({ table: 'CustomerList', role: 'commenter' });
+    await dataSources.acl.toggle({ table: 'CustomerList', role: 'viewer' });
+    await dataSources.acl.save();
+    await dataSources.closeDsDetailsModal();
 
-    await settings.dataSources.acl.verify({ table: 'Language', role: 'editor', expectedValue: false });
-    await settings.dataSources.acl.verify({ table: 'Language', role: 'commenter', expectedValue: false });
-    await settings.dataSources.acl.verify({ table: 'Language', role: 'viewer', expectedValue: false });
-    await settings.dataSources.acl.verify({ table: 'CustomerList', role: 'editor', expectedValue: false });
-    await settings.dataSources.acl.verify({ table: 'CustomerList', role: 'commenter', expectedValue: false });
-    await settings.dataSources.acl.verify({ table: 'CustomerList', role: 'viewer', expectedValue: false });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.baseView.tab_dataSources.click();
 
-    await settings.close();
+    await dataSources.openAcl({ dataSourceName: 'Default' });
+
+    await dataSources.acl.verify({ table: 'Language', role: 'editor', expectedValue: false });
+    await dataSources.acl.verify({ table: 'Language', role: 'commenter', expectedValue: false });
+    await dataSources.acl.verify({ table: 'Language', role: 'viewer', expectedValue: false });
+    await dataSources.acl.verify({ table: 'CustomerList', role: 'editor', expectedValue: false });
+    await dataSources.acl.verify({ table: 'CustomerList', role: 'commenter', expectedValue: false });
+    await dataSources.acl.verify({ table: 'CustomerList', role: 'viewer', expectedValue: false });
+
+    await dataSources.closeDsDetailsModal();
     await dashboard.signOut();
 
     await loginPage.signIn({

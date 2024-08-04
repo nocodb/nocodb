@@ -20,7 +20,9 @@ const props = withDefaults(
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, destroyOnClose, maskClosable, wrapClassName: _wrapClassName, showSeparator } = props
+const { width: propWidth, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
+
+const { maskClosable } = toRefs(props)
 
 const { isMobileMode } = useGlobal()
 

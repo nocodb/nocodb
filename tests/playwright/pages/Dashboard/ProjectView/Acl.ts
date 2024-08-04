@@ -1,17 +1,17 @@
 import BasePage from '../../Base';
-import { DataSourcesPage } from './DataSources';
 import { expect } from '@playwright/test';
+import { DataSourcePage } from './DataSourcePage';
 
 export class AclPage extends BasePage {
-  readonly dataSources: DataSourcesPage;
+  readonly dataSources: DataSourcePage;
 
-  constructor(dataSources: DataSourcesPage) {
+  constructor(dataSources: DataSourcePage) {
     super(dataSources.rootPage);
     this.dataSources = dataSources;
   }
 
   get() {
-    return this.dataSources.get();
+    return this.dataSources.getDsDetailsModal();
   }
 
   async toggle({ table, role }: { table: string; role: string }) {

@@ -8,7 +8,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed, isDataReadOnly } = useRoles()
+const { isUIAllowed } = useRoles()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())

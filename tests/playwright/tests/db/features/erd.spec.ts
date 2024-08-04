@@ -45,10 +45,12 @@ test.describe('Erd', () => {
   };
 
   const openProjectErd = async () => {
-    await dashboard.treeView.baseSettings({ title: context.base.title });
-    await dashboard.settings.selectTab({ tab: 'dataSources' });
-    await dashboard.settings.dataSources.openErd({ rowIndex: 0 });
-    // await dashboard.baseView.dataSources.openERD({ rowIndex: 0 });
+    await dashboard.baseView.tab_dataSources.click();
+    await dashboard.baseView.dataSources.openERD({ rowIndex: 0 });
+
+    // await dashboard.treeView.baseSettings({ title: context.base.title });
+    // await dashboard.settings.selectTab({ tab: 'dataSources' });
+    // await dashboard.settings.dataSources.openErd({ rowIndex: 0 });
   };
 
   const openErdOfATable = async (tableName: string) => {

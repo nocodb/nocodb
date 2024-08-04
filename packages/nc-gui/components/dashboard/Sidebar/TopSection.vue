@@ -8,9 +8,9 @@ const { appInfo } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 
-const { isWorkspaceLoading, isWorkspaceSettingsPageOpened } = storeToRefs(workspaceStore)
+const { isWorkspaceLoading, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened } = storeToRefs(workspaceStore)
 
-const { navigateToWorkspaceSettings } = workspaceStore
+const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrations } = workspaceStore
 
 const { isSharedBase } = storeToRefs(baseStore)
 
@@ -26,6 +26,12 @@ const navigateToSettings = () => {
   //   window.location.href = `https://app.${appInfo.value.baseHostName}/dashboard`
   // } else {
   // }
+}
+
+const navigateToIntegrations = () => {
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  _navigateToIntegrations('', cmdOrCtrl)
 }
 </script>
 
@@ -72,6 +78,30 @@ const navigateToSettings = () => {
         >
           <GeneralIcon icon="settings" class="!h-4" />
           <div>{{ $t('title.teamAndSettings') }}</div>
+        </div>
+      </NcButton>
+      <NcButton
+        v-if="isUIAllowed('workspaceSettings')"
+        v-e="['c:integrations']"
+        type="text"
+        size="xsmall"
+        class="nc-sidebar-top-button !xs:hidden my-0.5 !h-7"
+        data-testid="nc-sidebar-integrations-btn"
+        :centered="false"
+        :class="{
+          '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': isIntegrationsPageOpened,
+          '!hover:(bg-gray-200 text-gray-700)': !isIntegrationsPageOpened,
+        }"
+        @click="navigateToIntegrations"
+      >
+        <div
+          class="flex items-center gap-2"
+          :class="{
+            'font-semibold': isIntegrationsPageOpened,
+          }"
+        >
+          <GeneralIcon icon="integration" class="!h-4" />
+          <div>{{ $t('general.integrations') }}</div>
         </div>
       </NcButton>
       <WorkspaceCreateProjectBtn

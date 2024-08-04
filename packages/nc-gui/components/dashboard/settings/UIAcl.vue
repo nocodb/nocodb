@@ -153,9 +153,9 @@ const columns = [
         <span> UI ACL : {{ base.title }} </span>
       </NcTooltip>
       <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
-        <a-input v-model:value="searchInput" :placeholder="$t('placeholder.searchModels')" class="nc-acl-search !w-[400px]">
+        <a-input v-model:value="searchInput" :placeholder="$t('placeholder.searchModels')" allow-clear class="nc-acl-search nc-input-border-on-value !w-[400px] nc-input-sm">
           <template #prefix>
-            <component :is="iconMap.search" />
+            <component :is="iconMap.search" class="text-gray-600"/>
           </template>
         </a-input>
         <div class="flex">
@@ -180,7 +180,7 @@ const columns = [
         :data="filteredTables"
         row-height="44px"
         header-row-height="44px"
-        class="h-[calc(100%_-_102px)] w-full"
+        class="h-[calc(100%_-_88px)] w-full"
       >
         <template #headerCell="{ column }">
           <template v-if="column.key === 'name'">

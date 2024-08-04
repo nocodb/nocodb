@@ -35,7 +35,7 @@ export class SourcesController {
     });
 
     if (source.isMeta()) {
-      delete source.config;
+      source.config = undefined;
     }
 
     return source;
@@ -78,7 +78,7 @@ export class SourcesController {
 
     for (const source of sources) {
       if (source.isMeta()) {
-        delete source.config;
+        source.config = undefined;
       }
     }
 

@@ -41,6 +41,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
 
+  const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
+
   const isWorkspaceLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
@@ -223,6 +225,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  // Todo: write logic to navigate to integrations
+  const navigateToIntegrations = async (_?: string, cmdOrCtrl?: boolean) => {
+    if (cmdOrCtrl) {
+      await navigateTo('/nc/integrations', {
+        open: navigateToBlankTargetOpenOption,
+      })
+    } else {
+      await navigateTo('/nc/integrations')
+    }
+  }
+
   const auditLogsQuery = ref<Partial<AuditLogsQuery>>(defaultAuditLogsQuery)
 
   const audits = ref<null | Array<AuditType>>(null)
@@ -312,6 +325,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     auditPaginationData,
 
     loadAudits,
+    isIntegrationsPageOpened,
+    navigateToIntegrations,
   }
 })
 

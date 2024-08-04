@@ -62,6 +62,10 @@ const onChange = (value: string) => {
       <GeneralLoader v-if="loading" />
       <GeneralIcon v-else class="text-gray-800 nc-select-expand-btn" :icon="suffixIcon" />
     </template>
+
+    <template v-if="$slots.dropdownRender" #dropdownRender="{ menuNode }">
+      <slot name="dropdownRender" :menu-node="menuNode" />
+    </template>
     <slot />
   </a-select>
 </template>
@@ -96,6 +100,14 @@ const onChange = (value: string) => {
   }
   .ant-select-selection-item-remove {
     @apply text-gray-800 !pb-1;
+  }
+
+  .ant-select-clear {
+    @apply flex;
+
+    svg {
+      @apply flex-none;
+    }
   }
 }
 .nc-select.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {

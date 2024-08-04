@@ -40,6 +40,7 @@ const rolePermissions = {
       baseReorder: true,
       orgAdminPanel: true,
       workspaceAuditList: true,
+      workspaceIntegrations: true,
     },
   },
   [OrgUserRoles.VIEWER]: {

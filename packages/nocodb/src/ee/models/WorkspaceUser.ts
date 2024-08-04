@@ -153,7 +153,7 @@ export default class WorkspaceUser {
       workspaceUser = null;
     }
 
-    return workspaceUser;
+    return workspaceUser && new WorkspaceUser(workspaceUser);
   }
 
   static async workspaceList(

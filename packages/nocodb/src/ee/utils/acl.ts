@@ -112,8 +112,12 @@ const permissionScopes = {
     'workspaceInvitationTokenRead',
     'duplicateSharedBase',
     'workspaceUpgrade',
-
     'orgWorkspaceUpgrade',
+    'integrationGet',
+    'integrationCreate',
+    'integrationDelete',
+    'integrationUpdate',
+    'integrationList',
   ],
   base: [
     'formViewGet',
@@ -196,6 +200,7 @@ const permissionScopes = {
 
     'createBase',
     'baseDelete',
+    'sourceCreate',
 
     'pageGet',
     'pageList',
@@ -220,6 +225,8 @@ const permissionScopes = {
     'widgetFilterCreate',
 
     'jobList',
+    // it's an extended scoped permission which is prefixed with the main scope
+    'workspace_integrationList',
   ],
 };
 

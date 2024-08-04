@@ -19,9 +19,10 @@ import * as nc_018_sql_executor from './v3/nc_018_sql_executor';
 import * as nc_019_model_stat_extra from './v3/nc_019_model_stat_extra';
 import * as nc_020_sso_client from './v3/nc_020_sso_client';
 import * as nc_021_org from './v3/nc_021_org';
-import * as nc_o22_org_image from './v3/nc_o22_org_image';
+import * as nc_o22_org_image from './v3/nc_022_org_image';
 import * as nc_023_tenant_isolation from './v3/nc_023_tenant_isolation';
 import * as nc_024_junction_pk from './v3/nc_024_junction_pk';
+import * as nc_025_integration from './v3/nc_025_integration';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -55,6 +56,7 @@ export default class XcMigrationSourcev3 {
       'nc_o22_org_image',
       'nc_023_tenant_isolation',
       'nc_024_junction_pk',
+      'nc_025_integration',
     ]);
   }
 
@@ -112,6 +114,8 @@ export default class XcMigrationSourcev3 {
         return nc_023_tenant_isolation;
       case 'nc_024_junction_pk':
         return nc_024_junction_pk;
+      case 'nc_025_integration':
+        return nc_025_integration;
     }
   }
 }

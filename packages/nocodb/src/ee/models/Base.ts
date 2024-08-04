@@ -141,14 +141,16 @@ export default class Base extends BaseCE {
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
-    return this.getWithInfo(context, baseId, ncMeta).then(async (base) => {
-      await NocoCache.appendToList(
-        CacheScope.PROJECT,
-        [base.fk_workspace_id],
-        `${CacheScope.PROJECT}:${baseId}`,
-      );
-      return base;
-    });
+    return this.getWithInfo(context, baseId, true, ncMeta).then(
+      async (base) => {
+        await NocoCache.appendToList(
+          CacheScope.PROJECT,
+          [base.fk_workspace_id],
+          `${CacheScope.PROJECT}:${baseId}`,
+        );
+        return base;
+      },
+    );
   }
 
   // @ts-ignore
@@ -223,9 +225,15 @@ export default class Base extends BaseCE {
   static async getWithInfo(
     context: NcContext,
     baseId: string,
+    includeConfig = true,
     ncMeta = Noco.ncMeta,
   ): Promise<BaseCE> {
-    let base: Base = await super.getWithInfo(context, baseId, ncMeta);
+    let base: Base = await super.getWithInfo(
+      context,
+      baseId,
+      includeConfig,
+      ncMeta,
+    );
 
     if (base && base.type === ProjectTypes.DASHBOARD) {
       base = this.castType(base);
@@ -370,12 +378,12 @@ export default class Base extends BaseCE {
   ) {
     const base = await this.get(context, baseId, ncMeta);
     if (base) {
-      const sources = await base.getSources(ncMeta);
+      const sources = await base.getSources(false, ncMeta);
       for (const source of sources) {
         // clear connection pool for this instance
         await NcConnectionMgrv2.deleteAwait(source);
         // remove sql executor binding & clear connection pool for other instances
-        await Source.updateBase(context, source.id, {
+        await Source.update(context, source.id, {
           fk_sql_executor_id: null,
         });
       }
@@ -463,7 +471,7 @@ export default class Base extends BaseCE {
         .map((p) => {
           const base = this.castType(p);
           base.meta = parseMetaProp(base);
-          promises.push(base.getSources(ncMeta));
+          promises.push(base.getSources(false, ncMeta));
           return base;
         });
 
@@ -496,7 +504,7 @@ export default class Base extends BaseCE {
         .map((p) => {
           const base = this.castType(p);
           base.meta = parseMetaProp(base);
-          promises.push(base.getSources(ncMeta));
+          promises.push(base.getSources(false, ncMeta));
           return base;
         });
 

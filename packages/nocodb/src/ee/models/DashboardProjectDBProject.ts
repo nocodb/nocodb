@@ -77,7 +77,10 @@ export default class DashboardProjectDBProject {
   }
 
   public static async getDbProjectsList(
-    _: {
+    _params: // dashboard_project_id,
+    // limit = 25,
+    // offset = 0,
+    {
       dashboard_project_id: string;
       limit?: number;
       offset?: number;

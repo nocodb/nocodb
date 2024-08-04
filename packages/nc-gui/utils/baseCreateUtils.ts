@@ -1,4 +1,4 @@
-import { SSLUsage } from 'nocodb-sdk'
+import { SSLUsage, type BoolType } from 'nocodb-sdk'
 import { ClientType } from '~/lib/enums'
 
 // todo: move to noco-sdk
@@ -19,6 +19,10 @@ interface ProjectCreateForm {
   }
   sslUse?: SSLUsage
   extraParameters: { key: string; value: string }[]
+  is_private?: BoolType
+  is_schema_readonly?: BoolType
+  is_data_readonly?: BoolType
+  fk_integration_id?: string
 }
 
 interface DefaultConnection {
@@ -58,19 +62,7 @@ interface DatabricksConnection {
 
 const defaultHost = 'localhost'
 
-const testDataBaseNames = {
-  [ClientType.MYSQL]: null,
-  mysql: null,
-  [ClientType.PG]: 'postgres',
-  oracledb: 'xe',
-  [ClientType.MSSQL]: undefined,
-  [ClientType.SQLITE]: 'a.sqlite',
-}
-
-export const getTestDatabaseName = (db: { client: ClientType; connection?: { database?: string } }) => {
-  if (db.client === ClientType.PG || db.client === ClientType.SNOWFLAKE) return db.connection?.database
-  return testDataBaseNames[db.client as keyof typeof testDataBaseNames]
-}
+export { getTestDatabaseName } from 'nocodb-sdk'
 
 export const clientTypes = [
   {
@@ -98,6 +90,11 @@ export const clientTypes = [
     value: ClientType.DATABRICKS,
   },
 ]
+
+export const clientTypesMap = clientTypes.reduce((acc, curr) => {
+  acc[curr.value] = curr
+  return acc
+}, {} as Record<string, (typeof clientTypes)[0]>)
 
 const homeDir = ''
 

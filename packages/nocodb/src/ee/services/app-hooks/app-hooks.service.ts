@@ -8,6 +8,7 @@ import type {
   BaseEvent,
   FormColumnEvent,
   GridColumnEvent,
+  IntegrationEvent,
   MetaDiffEvent,
   OrgUserInviteEvent,
   PluginEvent,
@@ -136,6 +137,13 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.COMMENT_UPDATE
       | AppEvents.COMMENT_DELETE,
     listener: (data: RowCommentEvent) => void,
+  ): () => void;
+  on(
+    event:
+      | AppEvents.INTEGRATION_UPDATE
+      | AppEvents.INTEGRATION_DELETE
+      | AppEvents.INTEGRATION_CREATE,
+    listener: (data: IntegrationEvent) => void,
   ): () => void;
   on(event, listener): () => void {
     return super.on(event, listener);
@@ -280,6 +288,13 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.COMMENT_UPDATE
       | AppEvents.COMMENT_DELETE,
     data: RowCommentEvent,
+  ): void;
+  emit(
+    event:
+      | AppEvents.INTEGRATION_CREATE
+      | AppEvents.INTEGRATION_DELETE
+      | AppEvents.INTEGRATION_UPDATE,
+    data: IntegrationEvent,
   ): void;
   emit(event, data): void {
     return super.emit(event, data);

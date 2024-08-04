@@ -35,7 +35,7 @@ const nameValidationRules = [
     required: true,
     message: 'Base name is required',
   },
-  baseTitleValidator,
+  baseTitleValidator(),
 ] as RuleObject[]
 
 const availableDbProjects: ComputedRef<Array<IdAndTitle>> = computed(() => {

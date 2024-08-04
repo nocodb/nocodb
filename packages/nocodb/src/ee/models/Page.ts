@@ -14,7 +14,10 @@ export default class Page {
     Object.assign(this, attr);
   }
 
-  public static async tableName(_: { baseId: string; workspaceId?: string }) {
+  public static async tableName(_params: {
+    baseId: string;
+    workspaceId?: string;
+  }) {
     throw new Error('Not implemented.');
     /* const prefix = 'nc_d_page_';
     if (workspaceId) return `${prefix}${workspaceId}`;
@@ -24,7 +27,7 @@ export default class Page {
   }
 
   static async createPageTable(
-    _: { baseId: string; workspaceId?: string },
+    _params: { baseId: string; workspaceId?: string },
     _ncMeta = Noco.ncMeta,
   ) {
     throw new Error('Not implemented.');

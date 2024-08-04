@@ -263,7 +263,7 @@ onKeyStroke('ArrowDown', onDown)
           ref="tableWrapper"
           class="nc-audit-logs-table h-full max-h-[calc(100%_-_40px)] relative nc-scrollbar-thin !overflow-auto"
         >
-          <table class="!sticky top-0 z-10">
+          <table class="!sticky top-0 z-5">
             <thead>
               <tr>
                 <th
@@ -630,11 +630,9 @@ onKeyStroke('ArrowDown', onDown)
     tr {
       @apply cursor-pointer;
 
-      .td {
-        @apply text-small leading-[18px] text-gray-600;
-      }
-
       td {
+        @apply text-sm text-gray-600;
+
         &.cell-user {
           @apply sticky left-0 z-4 bg-white;
         }

@@ -61,6 +61,7 @@ export const nocoModuleEeMetadata = {
     OrgWorkspacesService,
     OrgSSOClientService,
     OrgsService,
+
     /** DAOs */
     // PageDao,
     // PageSnapshotDao,
@@ -89,7 +90,6 @@ export const nocoModuleEeMetadata = {
     // DocsPagesHistoryController,
     // DocsPagesController,
     // DocsPublicController,
-
     // WidgetsController,
     // LayoutsController,
     // LayoutFilterController,

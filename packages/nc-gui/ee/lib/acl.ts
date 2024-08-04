@@ -98,6 +98,7 @@ const rolePermissions = {
       jsonImport: true,
       excelImport: true,
       workspaceAuditList: true,
+      workspaceIntegrations: true,
     },
   },
   [WorkspaceUserRoles.EDITOR]: {

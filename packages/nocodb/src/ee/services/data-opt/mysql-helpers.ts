@@ -1416,7 +1416,7 @@ export async function isMysqlVersionSupported(
         .raw('select version() as version')
         .then((res) => res[0][0].version);
 
-      Source.updateBase(context, source.id, {
+      Source.update(context, source.id, {
         meta,
       })
         .then(() => {

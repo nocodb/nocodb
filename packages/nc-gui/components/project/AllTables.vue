@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import type { SourceType, TableType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
+import NcTooltip from '~/components/nc/Tooltip.vue'
 
 const { activeTables } = storeToRefs(useTablesStore())
 const { openTable } = useTablesStore()
-const { openedProject } = storeToRefs(useBases())
+const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
 
 const { base } = storeToRefs(useBase())
+
+const isNewBaseModalOpen = ref(false)
 
 const { isUIAllowed } = useRoles()
 
@@ -15,6 +18,8 @@ const { $e } = useNuxtApp()
 const { t } = useI18n()
 
 const isImportModalOpen = ref(false)
+
+const syncDataModalOpen = ref(false)
 
 const defaultBase = computed(() => {
   return openedProject.value?.sources?.[0]
@@ -99,12 +104,18 @@ const customRow = (record: Record<string, any>) => ({
     openTable(record as TableType)
   },
 })
+
+const onCreateBaseClick = () => {
+  if (isDataSourceLimitReached.value) return
+
+  isNewBaseModalOpen.value = true
+}
 </script>
 
 <template>
   <div class="nc-all-tables-view">
     <div
-      class="flex flex-row gap-x-6 pb-3 pt-6"
+      class="flex flex-row gap-x-6 pt-6 pb-2 overflow-x-auto nc-scrollbar-thin"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"
@@ -116,9 +127,14 @@ const customRow = (record: Record<string, any>) => ({
         data-testid="proj-view-btn__add-new-table"
         @click="openTableCreateDialog()"
       >
-        <GeneralIcon icon="addOutlineBox" />
-        <div class="label">{{ $t('general.new') }} {{ $t('objects.table') }}</div>
+        <div class="flex items-center gap-3">
+          <GeneralIcon icon="addOutlineBox" class="!text-brand-500 !h-5 !w-5" />
+
+          <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
+        </div>
+        <div class="subtext">Start from scratch by creating a new table.</div>
       </div>
+
       <div
         v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
         v-e="['c:table:import']"
@@ -127,14 +143,15 @@ const customRow = (record: Record<string, any>) => ({
         data-testid="proj-view-btn__import-data"
         @click="isImportModalOpen = true"
       >
-        <GeneralIcon icon="download" />
-        <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
+        <div class="flex items-center gap-3">
+          <GeneralIcon icon="download" class="!text-orange-700 !h-5 !w-5" />
+          <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
+        </div>
+        <div class="subtext">Quickly bring in existing data from various files & external sources.</div>
       </div>
-      <!--      <component :is="isDataSourceLimitReached ? NcTooltip : 'div'" v-if="isUIAllowed('sourceCreate')">
+      <NcTooltip v-if="isUIAllowed('sourceCreate')" placement="bottom" :disabled="!isDataSourceLimitReached" class="flex-none flex">
         <template #title>
-          <div>
-            {{ $t('tooltip.reachedSourceLimit') }}
-          </div>
+          {{ $t('tooltip.reachedSourceLimit') }}
         </template>
         <div
           v-e="['c:table:create-source']"
@@ -146,14 +163,32 @@ const customRow = (record: Record<string, any>) => ({
           }"
           @click="onCreateBaseClick"
         >
-          <GeneralIcon icon="dataSource" />
-          <div class="label">{{ $t('labels.connectDataSource') }}</div>
+          <div class="flex items-center gap-3">
+            <GeneralIcon icon="server1" class="!text-green-700 !h-5 !w-5" />
+            <div class="label">{{ $t('labels.connectDataSource') }}</div>
+          </div>
+          <div class="subtext">Connect directly in realtime to external databases.</div>
         </div>
-      </component> -->
+      </NcTooltip>
+
+      <div
+        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+        v-e="['c:table:create-source']"
+        role="button"
+        class="nc-base-view-all-table-btn"
+        data-testid="proj-view-btn__create-source"
+        @click="syncDataModalOpen = true"
+      >
+        <div class="flex items-center gap-3">
+          <GeneralIcon icon="refresh" class="!text-blue-700 !h-5 !w-5" />
+          <div class="label capitalize">{{ $t('labels.syncData') }}</div>
+        </div>
+        <div class="subtext">Keep your data updated and in sync across multiple sources.</div>
+      </div>
     </div>
     <div
       v-if="base?.isLoading"
-      class="flex items-center justify-center text-center"
+      class="flex items-center justify-center text-center mt-4"
       :style="{
         height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
       }"
@@ -168,7 +203,7 @@ const customRow = (record: Record<string, any>) => ({
 
     <div
       v-else-if="activeTables.length"
-      class="flex mt-2"
+      class="flex mt-4"
       :style="{
         height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
       }"
@@ -238,24 +273,36 @@ const customRow = (record: Record<string, any>) => ({
     </div>
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
-    <!--    <LazyDashboardSettingsDataSourcesCreateBase v-model:open="isNewBaseModalOpen" /> -->
+    <ProjectSyncDataModal v-if="defaultBase" v-model:open="syncDataModalOpen" />
+    <LazyDashboardSettingsDataSourcesCreateBase v-if="isNewBaseModalOpen" v-model:open="isNewBaseModalOpen" is-modal />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .nc-base-view-all-table-btn {
-  @apply flex flex-col gap-y-6 p-4 bg-gray-100 rounded-xl w-56 cursor-pointer text-gray-600 hover:(bg-gray-200 text-black);
+  @apply flex-none flex flex-col gap-y-3 px-3 py-5 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[230px] max-w-[245px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
+  &:hover {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
 
   .nc-icon {
-    @apply h-10 w-10;
+    @apply h-6 w-6;
   }
 
   .label {
-    @apply text-base font-medium;
+    @apply text-base font-bold whitespace-nowrap text-gray-800;
+  }
+
+  .subtext {
+    @apply text-xs text-gray-600;
   }
 }
 
 .nc-base-view-all-table-btn.disabled {
   @apply bg-gray-50 text-gray-400 hover:(bg-gray-50 text-gray-400) cursor-not-allowed;
+}
+
+.nc-text-icon {
+  @apply flex-none w-5 h-5 rounded bg-white text-gray-800 text-[6px] leading-4 font-weight-800 flex items-center justify-center;
 }
 </style>

@@ -26,3 +26,8 @@ export const clientTypes = [
     value: ClientType.DATABRICKS,
   },
 ]
+
+export const clientTypesMap = clientTypes.reduce((acc, curr) => {
+  acc[curr.value] = curr
+  return acc
+}, {} as Record<string, (typeof clientTypes)[0]>)

@@ -29,7 +29,7 @@ const nameValidationRules = [
     required: true,
     message: 'Database name is required',
   },
-  baseTitleValidator,
+  baseTitleValidator(),
 ] as RuleObject[]
 
 const form = ref<typeof Form>()

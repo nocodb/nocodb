@@ -184,7 +184,7 @@ export default class DbMux {
 
       await Promise.all([
         ...sources.map((source) =>
-          Source.updateBase(
+          Source.update(
             {
               workspace_id: source.fk_workspace_id,
               base_id: source.base_id,
@@ -218,7 +218,7 @@ export default class DbMux {
     );
 
     for (const source of sources) {
-      await Source.updateBase(
+      await Source.update(
         {
           workspace_id: source.fk_workspace_id,
           base_id: source.base_id,
@@ -255,7 +255,7 @@ export default class DbMux {
 
     if (!source) NcError.sourceNotFound(sourceId);
 
-    await Source.updateBase(
+    await Source.update(
       context,
       sourceId,
       {

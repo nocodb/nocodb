@@ -256,7 +256,7 @@ export class BasesService extends BasesServiceCE {
           req: param.req,
         });
 
-        delete source.config;
+        source.config = undefined;
       }
     }
 

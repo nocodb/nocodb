@@ -1281,7 +1281,7 @@
         "description": "List workspaces"
       },
       "post": {
-        "summary": "List workspaces",
+        "summary": "Create workspace",
         "operationId": "workspace-create",
         "responses": {
           "200": {
@@ -1327,7 +1327,7 @@
         "tags": [
           "Workspace"
         ],
-        "description": "List workspaces"
+        "description": "Create workspace"
       },
       "parameters": []
     },
@@ -2900,10 +2900,9 @@
         }
       }
     },
-
     "/api/v2/sso": {
       "post": {
-      "summary": "Get SSO Client",
+        "summary": "Get SSO Client",
         "tags": [
           "Org SSO Client"
         ],
@@ -3766,6 +3765,195 @@
           "Base"
         ]
       }
+    },
+    "/api/v2/meta/integrations": {},
+    "/api/v2/meta/workspaces/{workspaceId}/integrations": {
+      "get": {
+        "summary": "List integrations",
+        "operationId": "integration-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "List integrations",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Integrations"
+            },
+            "name": "type",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeDatabaseInfo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create itegration",
+        "operationId": "integration-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Create integration"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/integrations/{integrationId}": {
+      "get": {
+        "summary": "Read integration",
+        "operationId": "integration-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Read integration",
+        "parameters": [
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeConfig",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeSources",
+            "in": "query"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update integration",
+        "operationId": "integration-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationReq"
+              }
+            }
+          }
+        },
+        "description": "Update integration"
+      },
+      "delete": {
+        "summary": "Delete integration",
+        "operationId": "integration-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Delete integration"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "integrationId",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "components": {
@@ -5522,8 +5710,6 @@
           }
         }
       },
-
-
       "FormColumn": {
         "description": "Model for Form Column",
         "examples": [
@@ -6166,7 +6352,6 @@
           "id": "psbv6c6y9qvbu"
         }
       },
-
       "Org": {
         "description": "Model for Organisation",
         "type": "object",
@@ -6291,6 +6476,80 @@
             }
           }
         }
+      },
+      "IntegrationList": {
+        "description": "Model for Integration List",
+        "examples": [
+          {
+            "list": [
+              {
+                "title": "string",
+                "config": null,
+                "created_at": "2023-03-01 14:27:36",
+                "enabled": true,
+                "id": "string",
+                "order": 1,
+                "type": "database",
+                "sub_type": "mysql2",
+                "updated_at": "2023-03-01 14:27:36"
+              }
+            ],
+            "pageInfo": {
+              "isFirstPage": true,
+              "isLastPage": true,
+              "page": 1,
+              "pageSize": 10,
+              "totalRows": 1
+            }
+          }
+        ],
+        "title": "Integration List Model",
+        "type": "object",
+        "x-examples": {
+          "example-1": {
+            "sources": {
+              "list": [
+                {
+                  "title": "string",
+                  "config": null,
+                  "created_at": "2023-03-01 14:27:36",
+                  "enabled": true,
+                  "id": "string",
+                  "order": 1,
+                  "type": "database",
+                  "sub_type": "mysql2",
+                  "updated_at": "2023-03-01 14:27:36"
+                }
+              ],
+              "pageInfo": {
+                "isFirstPage": true,
+                "isLastPage": true,
+                "pageSize": 0,
+                "sort": "string",
+                "totalRows": 0
+              }
+            }
+          }
+        },
+        "properties": {
+          "list": {
+            "description": "List of Integration Models",
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/Integration"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Pagination Info"
+          }
+        },
+        "required": [
+          "list",
+          "pageInfo"
+        ]
       }
     },
     "responses": {

@@ -835,7 +835,7 @@ const getSource = (sourceId: string) => {
                           </div>
                           <div
                             v-else
-                            class="source-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
+                            class="source-context flex flex-grow items-center gap-1 text-gray-800 min-w-1/20 max-w-full"
                             @contextmenu="setMenuContext('source', source)"
                           >
                             <NcTooltip
@@ -848,10 +848,12 @@ const getSource = (sourceId: string) => {
                               <template #title>
                                 <component :is="getSourceTooltip(source)" />
                               </template>
-                              <GeneralBaseLogo
-                                :color="getSourceIconColor(source)"
-                                class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)"
-                              />
+                              <div class="flex-none w-6 flex items-center justify-center">
+                                <GeneralBaseLogo
+                                  :color="getSourceIconColor(source)"
+                                  class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)"
+                                />
+                              </div>
                             </NcTooltip>
 
                             <input
@@ -1076,7 +1078,7 @@ const getSource = (sourceId: string) => {
   @apply ml-0.5 mr-1;
 }
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-8.75 h-7 !xs:(pl-7 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
+  @apply !mx-0 !pl-7.5 h-7 !xs:(pl-6 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
 
   .ant-collapse-arrow {
     @apply !right-1 !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);

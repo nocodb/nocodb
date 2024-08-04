@@ -72,6 +72,7 @@ export enum MetaTable {
   USER_COMMENTS_NOTIFICATIONS_PREFERENCE = 'nc_user_comment_notifications_preference',
   COMMENTS_REACTIONS = 'nc_comment_reactions',
   JOBS = 'nc_jobs',
+  INTEGRATIONS = 'nc_integrations_v2',
 }
 
 export const orderedMetaTables = [
@@ -195,6 +196,7 @@ export enum CacheScope {
   ORG_DOMAIN = 'orgDomain',
   ORG_WORKSPACE = 'orgWorkspace',
   EXTENSION = 'uiExtension',
+  INTEGRATION = 'integration',
 }
 
 export const RootScopeTables = {
@@ -218,7 +220,12 @@ export const RootScopeTables = {
     MetaTable.SSO_CLIENT,
     MetaTable.SSO_CLIENT_DOMAIN,
   ],
-  [RootScopes.WORKSPACE]: [MetaTable.WORKSPACE, MetaTable.WORKSPACE_USER],
+  [RootScopes.WORKSPACE]: [
+    MetaTable.WORKSPACE,
+    MetaTable.WORKSPACE_USER,
+    MetaTable.INTEGRATIONS,
+    MetaTable.BASES,
+  ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };
 

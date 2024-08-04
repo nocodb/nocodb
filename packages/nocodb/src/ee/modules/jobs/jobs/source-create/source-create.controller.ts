@@ -32,7 +32,7 @@ export class SourceCreateController {
     '/api/v2/meta/bases/:baseId/sources',
   ])
   @HttpCode(200)
-  @Acl('baseCreate')
+  @Acl('sourceCreate')
   async baseCreate(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,

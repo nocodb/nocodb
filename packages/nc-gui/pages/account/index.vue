@@ -69,7 +69,6 @@ const logout = async () => {
                   <div class="select-none">{{ $t('labels.profile') }}</div>
                 </div>
               </NcMenuItem>
-
               <NcMenuItem
                 key="tokens"
                 class="item"

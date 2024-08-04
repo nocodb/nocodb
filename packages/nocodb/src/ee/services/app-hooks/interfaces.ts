@@ -22,4 +22,10 @@ export type AppEventPayload =
   | WorkspaceInviteEvent
   | WorkspaceEvent;
 
+export interface IntegrationEvent extends NcBaseEvent {
+  integration: IntegrationType;
+  user: UserType;
+  ip?: string;
+}
+
 export * from 'src/services/app-hooks/interfaces';

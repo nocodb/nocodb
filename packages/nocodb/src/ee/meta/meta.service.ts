@@ -73,6 +73,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.COMMENTS_REACTIONS]: 'cre',
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
       [MetaTable.JOBS]: 'job',
+      [MetaTable.INTEGRATIONS]: 'int',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -104,6 +105,10 @@ export class MetaService extends MetaServiceCE {
     }
 
     query.where('fk_workspace_id', workspace_id);
+
+    if (base_id === RootScopes.WORKSPACE) {
+      return;
+    }
 
     if (target !== MetaTable.PROJECT) {
       query.where('base_id', base_id);
@@ -156,15 +161,15 @@ export class MetaService extends MetaServiceCE {
         });
       }
 
-      if (!base_id) {
+      insertObj.fk_workspace_id = workspace_id;
+
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
         });
       }
-
-      insertObj.fk_workspace_id = workspace_id;
-      insertObj.base_id = base_id;
+      if (base_id !== RootScopes.WORKSPACE) insertObj.base_id = base_id;
     }
 
     const qb = this.knexConnection(target).insert({
@@ -296,7 +301,7 @@ export class MetaService extends MetaServiceCE {
         });
       }
 
-      if (!base_id) {
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -665,7 +670,10 @@ export class MetaService extends MetaServiceCE {
         }
       }
     } else {
-      if (!qStr.includes('fk_workspace_id') || !qStr.includes('base_id')) {
+      if (
+        !qStr.includes('fk_workspace_id') ||
+        (base_id !== RootScopes.WORKSPACE && !qStr.includes('base_id'))
+      ) {
         if (!(workspace_id in RootScopeTables)) {
           console.log(`Missing tenant isolation (${workspace_id}): ${qStr}`);
           console.log(new Error().stack);

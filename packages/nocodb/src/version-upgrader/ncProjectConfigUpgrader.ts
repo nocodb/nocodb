@@ -36,7 +36,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
       // Update the base config with the new secret key
       actions.push(
-        Source.updateBase(
+        Source.update(
           context,
           source.id,
           {

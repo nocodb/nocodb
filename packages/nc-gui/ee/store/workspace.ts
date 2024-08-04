@@ -64,6 +64,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
 
+  const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
+
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>
     Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at),
@@ -457,6 +459,22 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const navigateToIntegrations = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
+    workspaceId = workspaceId || activeWorkspaceId.value!
+
+    if (!workspaceId) {
+      throw new Error('Workspace not selected')
+    }
+
+    if (cmdOrCtrl) {
+      await navigateTo(router.resolve({ name: 'index-typeOrId-integrations', params: { typeOrId: workspaceId }, query }).href, {
+        open: navigateToBlankTargetOpenOption,
+      })
+    } else {
+      router.push({ name: 'index-typeOrId-integrations', params: { typeOrId: workspaceId }, query })
+    }
+  }
+
   const auditLogsQuery = ref<AuditLogsQuery>(defaultAuditLogsQuery)
 
   const audits = ref<null | Array<AuditType>>(null)
@@ -563,6 +581,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     audits,
     auditPaginationData,
     loadAudits,
+    isIntegrationsPageOpened,
+    navigateToIntegrations,
   }
 })
 

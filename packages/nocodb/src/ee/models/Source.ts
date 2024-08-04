@@ -3,13 +3,13 @@ import { Source as SourceCE } from 'src/models';
 import type { BoolType, SourceType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
-import { CacheScope, MetaTable } from '~/utils/globals';
+import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { stringifyMetaProp } from '~/utils/modelUtils';
+import { NcError } from '~/helpers/catchError';
 
-// todo: hide credentials
 export default class Source extends SourceCE implements SourceType {
   is_local?: BoolType;
   meta?: any;
@@ -23,7 +23,11 @@ export default class Source extends SourceCE implements SourceType {
 
   public static async createBase(
     context: NcContext,
-    source: SourceType & { baseId: string; created_at?; updated_at? },
+    source: SourceType & {
+      baseId: string;
+      created_at?;
+      updated_at?;
+    },
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(source, [
@@ -40,6 +44,7 @@ export default class Source extends SourceCE implements SourceType {
       'meta',
       'is_schema_readonly',
       'is_data_readonly',
+      'fk_integration_id',
     ]);
     insertObj.config = CryptoJS.AES.encrypt(
       JSON.stringify(source.config),
@@ -113,5 +118,38 @@ export default class Source extends SourceCE implements SourceType {
     } else {
       return this.is_meta || this.is_local;
     }
+  }
+
+  async softDelete(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+    { force }: { force?: boolean } = {},
+  ) {
+    const sources = await Source.list(
+      context,
+      { baseId: this.base_id },
+      ncMeta,
+    );
+
+    if ((sources[0].id === this.id || this.isMeta()) && !force) {
+      NcError.badRequest('Cannot delete first base');
+    }
+
+    await Source.update(
+      context,
+      this.id,
+      { deleted: true, fk_sql_executor_id: null },
+      ncMeta,
+    );
+
+    await NocoCache.deepDel(
+      `${CacheScope.BASE}:${this.id}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+  }
+
+  protected static extendQb(qb: any, context: NcContext) {
+    qb.where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id);
+    return super.extendQb(qb, context);
   }
 }

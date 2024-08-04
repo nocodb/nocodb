@@ -93,7 +93,7 @@
     "none": "None"
   },
   "general": {
-    "addLookupField": "Add {count} lookup fields",
+    "addLookupField": "Add {count} lookup field",
     "role": "Role",
     "general": "General",
     "quit": "Quit",
@@ -277,7 +277,7 @@
     "connection": "Connection",
     "connections": "Connections",
     "private": "Private",
-    "request" : "Request"
+    "request": "Request"
   },
   "objects": {
     "files": "files",
@@ -342,7 +342,7 @@
       "extra": "Extra"
     },
     "externalDb": "External Database",
-    "syncData":{
+    "syncData": {
       "appleNumbers": "Apple numbers",
       "asana": "Asana",
       "box": "Box",
@@ -558,7 +558,7 @@
   },
   "labels": {
     "changeDisplayValueField": "Change display value field",
-    "selectYourNewTitleFor": "Select your new display value field for ",
+    "selectYourNewTitleFor": "Select your new title field for ",
     "searchDisplayValue": "Select display value field",
     "changeTitleField": "Change title field",
     "clearAll": "Clear all",
@@ -910,7 +910,7 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle" : "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
   },
   "activity": {
     "hideWeekends": "Hide weekends",

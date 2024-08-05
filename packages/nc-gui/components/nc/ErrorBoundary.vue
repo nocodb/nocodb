@@ -24,6 +24,8 @@ export default {
       prevError.value = error.value
       error.value = null
       key.value++
+      // destroy the toast message
+      message.destroy(MESSAGE_KEY)
     }
 
     const navigateToHome = () => {

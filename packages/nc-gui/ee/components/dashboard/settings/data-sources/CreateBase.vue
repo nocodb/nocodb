@@ -621,8 +621,7 @@ const isModalClosable = computed(() => {
           <GeneralIcon icon="server1" class="!text-green-700 !h-5 !w-5" />
         </div>
         <div class="flex-1">
-          <div class="flex-1 text-base font-weight-700">New Source</div>
-          <div class="text-xs text-gray-600">Connect with a new external data source, directly in real time.</div>
+          <div class="flex-1 text-base font-weight-700">Add Data Source</div>
         </div>
 
         <div class="flex items-center gap-3">
@@ -683,11 +682,10 @@ const isModalClosable = computed(() => {
                 class="flex flex-col gap-5.5"
               >
                 <div class="nc-form-section">
-                  <div class="nc-form-section-title">Source details</div>
                   <div class="nc-form-section-body">
                     <a-row :gutter="24">
                       <a-col :span="12">
-                        <a-form-item label="Source name" v-bind="validateInfos.title">
+                        <a-form-item label="Data Source Name" v-bind="validateInfos.title">
                           <a-input v-model:value="formState.title" />
                         </a-form-item>
                       </a-col>
@@ -748,9 +746,6 @@ const isModalClosable = computed(() => {
                 </div>
 
                 <div class="nc-form-section">
-                  <div class="flex items-center justify-between">
-                    <div class="nc-form-section-title">Connection details</div>
-                  </div>
                   <div class="nc-form-section-body">
                     <!-- SQLite File -->
                     <template v-if="formState.dataSource.client === ClientType.SQLITE"> </template>
@@ -845,26 +840,22 @@ const isModalClosable = computed(() => {
                 <template
                   v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
                 >
-                  <a-collapse
-                  v-model:active-key="advancedOptionsExpansionPanel" 
-                    ghost
-                    class="nc-source-advanced-options !mt-4"
-                  >
+                  <a-collapse v-model:active-key="advancedOptionsExpansionPanel" ghost class="nc-source-advanced-options !mt-4">
                     <template #expandIcon="{ isActive }">
                       <NcButton
-                      type="text"
-                      size="small"
-                      class="!-ml-1.5"
-                      @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
-                    >
-                      <div class="nc-form-section-title">Advanced options</div>
+                        type="text"
+                        size="small"
+                        class="!-ml-1.5"
+                        @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
+                      >
+                        <div class="nc-form-section-title">Advanced options</div>
 
-                      <GeneralIcon
-                        icon="chevronDown"
-                        class="ml-2 flex-none cursor-pointer transform transition-transform duration-500"
-                        :class="{ '!rotate-180': isActive }"
-                      />
-                    </NcButton>
+                        <GeneralIcon
+                          icon="chevronDown"
+                          class="ml-2 flex-none cursor-pointer transform transition-transform duration-500"
+                          :class="{ '!rotate-180': isActive }"
+                        />
+                      </NcButton>
                     </template>
                     <a-collapse-panel key="1" collapsible="disabled">
                       <template #header>
@@ -979,7 +970,7 @@ const isModalClosable = computed(() => {
         <div class="nc-add-source-right-panel">
           <DashboardSettingsDataSourcesInfo varient="new" />
           <NcDivider />
-          <DashboardSettingsDataSourcesSupportedDocs/>
+          <DashboardSettingsDataSourcesSupportedDocs />
           <NcDivider />
         </div>
       </div>

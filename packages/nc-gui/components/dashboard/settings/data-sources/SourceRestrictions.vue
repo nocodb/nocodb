@@ -12,7 +12,7 @@ const metaWrite = useVModel(props, 'allowMetaWrite', emits)
 
 <template>
   <a-form-item class="nc-source-restictions-card">
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-1">
       <div class="flex items-center gap-3">
         <NcTooltip :disabled="!metaWrite" placement="topLeft" class="flex">
           <template #title>
@@ -30,7 +30,7 @@ const metaWrite = useVModel(props, 'allowMetaWrite', emits)
     </div>
   </a-form-item>
   <a-form-item class="nc-source-restictions-card">
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-1">
       <div class="flex items-center gap-3">
         <a-switch
           v-model:checked="metaWrite"

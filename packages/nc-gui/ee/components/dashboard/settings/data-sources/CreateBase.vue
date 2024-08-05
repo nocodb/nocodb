@@ -544,7 +544,7 @@ const allowDataWrite = computed({
 })
 
 const changeIntegration = () => {
-  if (formState.value.fk_integration_id) {
+  if (formState.value.fk_integration_id && selectedIntegration.value) {
     formState.value.dataSource = {
       connection: {
         client: selectedIntegration.value.sub_type,

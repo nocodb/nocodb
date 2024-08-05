@@ -139,16 +139,10 @@ const validators = computed(() => {
   }
 })
 
-const { validate, validateInfos } = useForm(formState.value, validators)
-
-const populateName = (v: string) => {
-  if (selectedIntegration.value) return
-  formState.value.dataSource.connection.database = `${v.trim()}_noco`
-}
+const { validate, validateInfos, clearValidate } = useForm(formState.value, validators)
 
 const onClientChange = () => {
   formState.value.dataSource = { ...getDefaultConnectionConfig(formState.value.dataSource.client) }
-  populateName(formState.value.title)
 }
 
 const inflectionTypes = ['camelize', 'none']
@@ -322,7 +316,6 @@ watch(
 onMounted(async () => {
   await loadIntegrations(true, base.value?.id)
   formState.value.title = await generateUniqueName()
-  populateName(formState.value.title)
 
   nextTick(() => {
     // todo: replace setTimeout and follow better approach
@@ -354,7 +347,7 @@ const allowDataWrite = computed({
   },
 })
 const changeIntegration = () => {
-  if (formState.value.fk_integration_id) {
+  if (formState.value.fk_integration_id && selectedIntegration.value) {
     formState.value.dataSource = {
       connection: {
         client: selectedIntegration.value.sub_type,
@@ -365,6 +358,7 @@ const changeIntegration = () => {
   } else {
     onClientChange()
   }
+  clearValidate()
 }
 
 const handleAddNewConnection = () => {
@@ -489,7 +483,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
                   <a-row :gutter="24">
                     <a-col :span="12">
                       <a-form-item label="Data Source Name" v-bind="validateInfos.title">
-                        <a-input v-model:value="formState.title" @input="populateName(formState.title)" />
+                        <a-input v-model:value="formState.title" />
                       </a-form-item>
                     </a-col>
                   </a-row>

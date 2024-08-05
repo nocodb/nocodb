@@ -557,6 +557,7 @@
     "directlyInRealTime": "Directly in real time"
   },
   "labels": {
+    "defaultView": "Default view",
     "changeDisplayValueField": "Change display value field",
     "selectYourNewTitleFor": "Select your new display value field for ",
     "searchDisplayValue": "Select display value field",

@@ -177,7 +177,7 @@ export async function serializeCellValue(
         .filter((attachment) => attachment)
         .map(
           (attachment) =>
-            `${encodeURI(attachment.title || 'Attachment')}(${encodeURI(
+            `${attachment.title || 'Attachment'}(${encodeURI(
               attachment.signedPath
                 ? `${siteUrl}/${attachment.signedPath}`
                 : attachment.signedUrl,

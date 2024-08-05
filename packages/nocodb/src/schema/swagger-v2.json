@@ -12765,6 +12765,9 @@
               "databricks"
             ],
             "type": "string"
+          },
+          "fk_integration_id": {
+            "type": "string"
           }
         },
         "title": "Source Request",

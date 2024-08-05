@@ -271,7 +271,13 @@
     "colour": "Colour",
     "use": "Use",
     "stack": "Stack",
-    "ipAddress": "IP Address"
+    "ipAddress": "IP Address",
+    "integration": "Integration",
+    "integrations": "Integrations",
+    "connection": "Connection",
+    "connections": "Connections",
+    "private": "Private",
+    "request": "Request"
   },
   "objects": {
     "files": "files",
@@ -335,7 +341,33 @@
       "tall": "Tall",
       "extra": "Extra"
     },
-    "externalDb": "External Database"
+    "externalDb": "External Database",
+    "syncData": {
+      "appleNumbers": "Apple numbers",
+      "asana": "Asana",
+      "box": "Box",
+      "github": "Github",
+      "gitlab": "Gitlab",
+      "googleCalendar": "Google Calendar",
+      "googleDrive": "Google Drive",
+      "googleSheets": "Google Sheets",
+      "hubspot": "Hubspot",
+      "jira": "Jira",
+      "mailchimp": "Mailchimp",
+      "microsoftAccess": "Microsoft Access",
+      "microsoftExcel": "Microsoft Excel",
+      "microsoftOutlook": "Microsoft Outlook",
+      "miro": "Miro",
+      "salesforce": "Salesforce",
+      "snowflake": "Snowflake",
+      "stripe": "Stripe",
+      "surveyMonkey": "SurveyMonkey",
+      "tableau": "Tableau",
+      "trello": "Trello",
+      "typeform": "Typeform",
+      "workday": "Workday",
+      "zendesk": "Zendesk"
+    }
   },
   "datatype": {
     "ID": "Id.",
@@ -405,7 +437,7 @@
     "parameterName": "Parameter Name",
     "currencyLocale": "Currency Locale",
     "currencyCode": "Currency Code",
-    "searchMembers": "Search Members",
+    "searchMembers": "Search members",
     "noMembersFound": "No members found",
     "dateJoined": "Date Joined",
     "tokenName": "Token name",
@@ -519,7 +551,10 @@
     "noOptionsFound": "No options found",
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?",
     "noResultsMatchedYourSearch": "Your search did not yield any matching results.",
-    "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
+    "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records",
+    "fromScratch": "From scratch",
+    "fromFileAndExternalSources": "From files & external sources",
+    "directlyInRealTime": "Directly in real time"
   },
   "labels": {
     "changeDisplayValueField": "Change display value field",
@@ -544,11 +579,12 @@
     "dropHere": "Drop here",
     "addMore": "Add more",
     "clearAllFiles": "Clear all files",
+    "integration": "Integration",
     "notRecommended": "Not recommended",
     "allowMetaWrite": "Allow Schema Edit",
     "allowDataWrite": "Allow Data Edit",
     "selectView": "Select a View",
-    "connectionDetails": "Connection Details",
+    "connectionDetails": "Source Connection Details",
     "metaSync": "Meta Sync",
     "mention": "Mention",
     "today": "Today",
@@ -674,7 +710,7 @@
     "allTables": "All Tables",
     "members": "Members",
     "dataSources": "Data Sources",
-    "connectDataSource": "Connect a Data Source",
+    "connectDataSource": "Connect External Data",
     "searchProjects": "Search Bases",
     "createdBy": "Created By",
     "viewingAttachmentsOf": "Viewing Attachments of",
@@ -715,8 +751,8 @@
     "dbType": "Databasetype",
     "servername": "servername / hostAddr",
     "sqliteFile": "SQLite-fil",
-    "hostAddress": "Vertsadresse",
-    "port": "Portnummer",
+    "hostAddress": "Host address",
+    "port": "Port number",
     "username": "Brukernavn",
     "password": "Passord",
     "schemaName": "Schema name",
@@ -872,7 +908,9 @@
     "signUpForFree": "Sign up for free",
     "coverImageField": "Cover image field",
     "fitImage": "Fit image",
-    "coverImageArea": "Cover image"
+    "coverImageArea": "Cover image",
+    "syncData": "Sync data",
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
   },
   "activity": {
     "hideWeekends": "Hide weekends",
@@ -1129,11 +1167,14 @@
     "group": "Group"
   },
   "tooltip": {
+    "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
+    "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",
+    "optionalSchemaName": "Optional. Uses default schema \"{schema}\" if left blank.",
     "schemaChangeDisabled": "Schema editing is disabled for this data source.",
     "typeNotAllowed": "This datatype is not allowed.",
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "This option allows modification of database schema, including adding, altering, or deleting tables and columns. Use with caution, as changes may impact the structural integrity of your database.",
-    "allowDataWrite": "This option allows create, update, or delete of records within database tables. Ideal for administrative users need to change data directly.",
+    "allowDataWrite": "This option allows creating, updating, or deleting records within database tables. Ideal for administrative users needing to change data directly.",
     "reachedSourceLimit": "Limited to only one data source for the moment",
     "saveChanges": "Lagre endringer",
     "xcDB": "Opprett et nytt prosjekt",
@@ -1165,7 +1206,8 @@
     "changeIconColour": "Change icon colour",
     "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page",
-    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported",
+    "roleInheritedFromWorkspace": "Role inherited from workspace"
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",
@@ -1340,7 +1382,7 @@
       "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
       "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
       "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
-      "dbValid": "Please make sure database you are trying to connect is valid! This operation can cause schema loss!!",
+      "dbValid": "Ensure database validity to prevent schema loss",
       "barcode": {
         "renderError": "Barcode error - please check compatibility between input and barcode type"
       },
@@ -1615,8 +1657,8 @@
       "duplicateSystemColumnName": "Name already used for system field",
       "uiDataTypeRequired": "UI data type is required",
       "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
-      "projectNameExceeds50Characters": "Project name exceeds 50 characters",
-      "projectNameCannotStartWithSpace": "Project name cannot start with space",
+      "projectNameExceeds50Characters": "{title} name exceeds 50 characters",
+      "projectNameCannotStartWithSpace": "{title} name cannot start with space",
       "requiredField": "Required field",
       "ipNotAllowed": "IP not allowed",
       "targetFileIsNotAnAcceptedFileType": "Target file is not an accepted file type",
@@ -1688,7 +1730,9 @@
       "columnCreated": "Column created",
       "passwordChanged": "Password changed successfully. Please login again.",
       "settingsSaved": "Settings saved successfully",
-      "roleUpdated": "Role updated successfully"
+      "roleUpdated": "Role updated successfully",
+      "connectionAdded": "Connection Successfully Created",
+      "connectionAddedDesc": "All Base owners & creators in this Workspace can now use this connection to easily add a new Data Source to their Base."
     }
   }
 }

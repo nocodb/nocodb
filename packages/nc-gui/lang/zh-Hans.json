@@ -271,7 +271,13 @@
     "colour": "颜色",
     "use": "Use",
     "stack": "Stack",
-    "ipAddress": "IP 地址"
+    "ipAddress": "IP 地址",
+    "integration": "Integration",
+    "integrations": "Integrations",
+    "connection": "Connection",
+    "connections": "Connections",
+    "private": "Private",
+    "request": "Request"
   },
   "objects": {
     "files": "文件",
@@ -335,7 +341,33 @@
       "tall": "高",
       "extra": "备注"
     },
-    "externalDb": "外部数据库"
+    "externalDb": "外部数据库",
+    "syncData": {
+      "appleNumbers": "Apple numbers",
+      "asana": "Asana",
+      "box": "Box",
+      "github": "Github",
+      "gitlab": "Gitlab",
+      "googleCalendar": "Google Calendar",
+      "googleDrive": "Google Drive",
+      "googleSheets": "Google Sheets",
+      "hubspot": "Hubspot",
+      "jira": "Jira",
+      "mailchimp": "Mailchimp",
+      "microsoftAccess": "Microsoft Access",
+      "microsoftExcel": "Microsoft Excel",
+      "microsoftOutlook": "Microsoft Outlook",
+      "miro": "Miro",
+      "salesforce": "Salesforce",
+      "snowflake": "Snowflake",
+      "stripe": "Stripe",
+      "surveyMonkey": "SurveyMonkey",
+      "tableau": "Tableau",
+      "trello": "Trello",
+      "typeform": "Typeform",
+      "workday": "Workday",
+      "zendesk": "Zendesk"
+    }
   },
   "datatype": {
     "ID": "ID",
@@ -405,7 +437,7 @@
     "parameterName": "参数名称",
     "currencyLocale": "货币地区",
     "currencyCode": "货币代码",
-    "searchMembers": "搜索成员",
+    "searchMembers": "Search members",
     "noMembersFound": "未找到成员",
     "dateJoined": "加入日期",
     "tokenName": "Token 名称",
@@ -519,7 +551,10 @@
     "noOptionsFound": "未找到选项",
     "surveyFormSubmitConfirmMsg": "您确定要提交吗？",
     "noResultsMatchedYourSearch": "您的搜索没有任何匹配结果",
-    "looksLikeThisStackIsEmpty": "看起来这个堆栈没有任何记录"
+    "looksLikeThisStackIsEmpty": "看起来这个堆栈没有任何记录",
+    "fromScratch": "From scratch",
+    "fromFileAndExternalSources": "From files & external sources",
+    "directlyInRealTime": "Directly in real time"
   },
   "labels": {
     "changeDisplayValueField": "更改显示值字段",
@@ -544,11 +579,12 @@
     "dropHere": "拖放到此处",
     "addMore": "添加更多",
     "clearAllFiles": "清除所有文件",
+    "integration": "Integration",
     "notRecommended": "不推荐",
     "allowMetaWrite": "允许模式编辑",
     "allowDataWrite": "允许编辑数据",
     "selectView": "选择视图",
-    "connectionDetails": "链接明细",
+    "connectionDetails": "Source Connection Details",
     "metaSync": "元同步",
     "mention": "提及",
     "today": "今天",
@@ -674,7 +710,7 @@
     "allTables": "所有表格",
     "members": "成员",
     "dataSources": "数据源",
-    "connectDataSource": "连接数据源",
+    "connectDataSource": "Connect External Data",
     "searchProjects": "搜索项目",
     "createdBy": "创建自",
     "viewingAttachmentsOf": "查看附件",
@@ -715,8 +751,8 @@
     "dbType": "数据库类型",
     "servername": "服务器地址",
     "sqliteFile": "SQLite 文件",
-    "hostAddress": "服务器地址",
-    "port": "端口号",
+    "hostAddress": "Host address",
+    "port": "Port number",
     "username": "用户名",
     "password": "密码",
     "schemaName": "模式名",
@@ -872,7 +908,9 @@
     "signUpForFree": "免费注册",
     "coverImageField": "封面图片字段",
     "fitImage": "适配图像",
-    "coverImageArea": "封面图片"
+    "coverImageArea": "封面图片",
+    "syncData": "Sync data",
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
   },
   "activity": {
     "hideWeekends": "隐藏周末",
@@ -1129,11 +1167,14 @@
     "group": "分组"
   },
   "tooltip": {
+    "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
+    "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",
+    "optionalSchemaName": "Optional. Uses default schema \"{schema}\" if left blank.",
     "schemaChangeDisabled": "此数据源已禁用模式编辑。",
     "typeNotAllowed": "此数据类型不允许。",
     "dataWriteOptionDisabled": "数据编辑只有在“模式编辑”也被禁用时才能被禁用。",
     "allowMetaWrite": "此选项允许修改数据库架构，包括添加、更改或删除表和列。请谨慎使用，因为更改可能会影响数据库的结构完整性。",
-    "allowDataWrite": "此选项允许在数据库表中创建、更新或删除记录。适用于需要直接更改数据的管理用户。",
+    "allowDataWrite": "This option allows creating, updating, or deleting records within database tables. Ideal for administrative users needing to change data directly.",
     "reachedSourceLimit": "暂时只限于一个数据源",
     "saveChanges": "保存更改",
     "xcDB": "新建项目",
@@ -1165,7 +1206,8 @@
     "changeIconColour": "更改图标颜色",
     "preFillFormInfo": "要获取预填的链接，请确保您已填写表单视图生成器中的必填字段。",
     "surveyFormInfo": "单页单表单字段模式",
-    "useFieldEditMenuToConfigFieldType": "在导入文件后，使用字段编辑菜单进行类型转换。"
+    "useFieldEditMenuToConfigFieldType": "在导入文件后，使用字段编辑菜单进行类型转换。",
+    "roleInheritedFromWorkspace": "Role inherited from workspace"
   },
   "placeholder": {
     "selectSlackChannels": "选择 Slack 频道",
@@ -1340,7 +1382,7 @@
       "calendarNoFields": "日历视图需要设置日期或日期时间字段。请尝试在添加日期/日期时间字段后设置日历视图！",
       "kanbanNoFields": "看板视图需要添加一个选择字段",
       "mapNoFields": "地图视图需要添加一个位置字段",
-      "dbValid": "请确保您尝试连接的数据库有效！此操作可能导致模式丢失",
+      "dbValid": "Ensure database validity to prevent schema loss",
       "barcode": {
         "renderError": "条形码错误 - 请注意输入数据和条形码类型之间的兼容性"
       },
@@ -1615,8 +1657,8 @@
       "duplicateSystemColumnName": "字段名称已被系统使用",
       "uiDataTypeRequired": "需要 UI 数据类型",
       "columnNameExceedsCharacters": "列名的长度超过了 {value} 字符的限制",
-      "projectNameExceeds50Characters": "项目名称超过 50 个字符",
-      "projectNameCannotStartWithSpace": "项目名称不能以空格开头",
+      "projectNameExceeds50Characters": "{title} name exceeds 50 characters",
+      "projectNameCannotStartWithSpace": "{title} name cannot start with space",
       "requiredField": "必填字段",
       "ipNotAllowed": "被禁止的 IP",
       "targetFileIsNotAnAcceptedFileType": "目标文件不是可接受的文件类型",
@@ -1688,7 +1730,9 @@
       "columnCreated": "已创建列",
       "passwordChanged": "密码修改成功。请重新登录。",
       "settingsSaved": "设置保存成功",
-      "roleUpdated": "权限已更新"
+      "roleUpdated": "权限已更新",
+      "connectionAdded": "Connection Successfully Created",
+      "connectionAddedDesc": "All Base owners & creators in this Workspace can now use this connection to easily add a new Data Source to their Base."
     }
   }
 }

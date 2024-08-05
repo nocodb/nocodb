@@ -80,7 +80,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         path: request.path,
       });
 
-      NocoCache.get(`THROTTLER:${key}`, CacheGetType.TYPE_OBJECT)
+      const cacheKey = `throttler:${key}`;
+
+      NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT)
         .then((data) => {
           if (!data) {
             this.logger.warn(
@@ -91,14 +93,21 @@ export class GlobalExceptionFilter implements ExceptionFilter {
               }`,
             );
 
-            NocoCache.setExpiring(key, { value: true, count: 1 }, 300).catch(
-              (err) => {
-                this.logger.error(err);
-              },
-            );
+            NocoCache.setExpiring(
+              cacheKey,
+              { value: true, count: 1, timestamp: Date.now() },
+              300,
+            ).catch((err) => {
+              this.logger.error(err);
+            });
           } else {
             data.count += 1;
-            NocoCache.setExpiring(key, data, 'KEEPTTL').catch((err) => {
+
+            const ttlInSeconds = Math.floor(
+              (data.timestamp + 300000 - Date.now()) / 1000,
+            );
+
+            NocoCache.setExpiring(cacheKey, data, ttlInSeconds).catch((err) => {
               this.logger.error(err);
             });
 
@@ -109,7 +118,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
                   request.path
                 }, Workspace ID: ${(request as any).ncWorkspaceId}, Base ID: ${
                   (request as any).ncBaseId
-                }, Request in last 5 minutes: ${data.count}`,
+                }, Requests in last 5 minutes: ${data.count}`,
               );
             }
           }

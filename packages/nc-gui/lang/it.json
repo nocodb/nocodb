@@ -271,7 +271,13 @@
     "colour": "Colour",
     "use": "Use",
     "stack": "Stack",
-    "ipAddress": "IP Address"
+    "ipAddress": "IP Address",
+    "integration": "Integration",
+    "integrations": "Integrations",
+    "connection": "Connection",
+    "connections": "Connections",
+    "private": "Private",
+    "request": "Request"
   },
   "objects": {
     "files": "files",
@@ -335,7 +341,33 @@
       "tall": "Alto",
       "extra": "Extra"
     },
-    "externalDb": "Database esterno"
+    "externalDb": "Database esterno",
+    "syncData": {
+      "appleNumbers": "Apple numbers",
+      "asana": "Asana",
+      "box": "Box",
+      "github": "Github",
+      "gitlab": "Gitlab",
+      "googleCalendar": "Google Calendar",
+      "googleDrive": "Google Drive",
+      "googleSheets": "Google Sheets",
+      "hubspot": "Hubspot",
+      "jira": "Jira",
+      "mailchimp": "Mailchimp",
+      "microsoftAccess": "Microsoft Access",
+      "microsoftExcel": "Microsoft Excel",
+      "microsoftOutlook": "Microsoft Outlook",
+      "miro": "Miro",
+      "salesforce": "Salesforce",
+      "snowflake": "Snowflake",
+      "stripe": "Stripe",
+      "surveyMonkey": "SurveyMonkey",
+      "tableau": "Tableau",
+      "trello": "Trello",
+      "typeform": "Typeform",
+      "workday": "Workday",
+      "zendesk": "Zendesk"
+    }
   },
   "datatype": {
     "ID": "Numero",
@@ -405,7 +437,7 @@
     "parameterName": "Nome Parametro",
     "currencyLocale": "Valuta Locale",
     "currencyCode": "Codice valuta",
-    "searchMembers": "Cerca membri",
+    "searchMembers": "Search members",
     "noMembersFound": "Nessun membro trovato",
     "dateJoined": "Data iscrizione",
     "tokenName": "Nome token",
@@ -519,7 +551,10 @@
     "noOptionsFound": "No options found",
     "surveyFormSubmitConfirmMsg": "Are you sure you want to submit this form?",
     "noResultsMatchedYourSearch": "Your search did not yield any matching results.",
-    "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records"
+    "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records",
+    "fromScratch": "From scratch",
+    "fromFileAndExternalSources": "From files & external sources",
+    "directlyInRealTime": "Directly in real time"
   },
   "labels": {
     "changeDisplayValueField": "Change display value field",
@@ -544,11 +579,12 @@
     "dropHere": "Rilascia qui",
     "addMore": "Add more",
     "clearAllFiles": "Clear all files",
+    "integration": "Integration",
     "notRecommended": "Not recommended",
     "allowMetaWrite": "Allow Schema Edit",
     "allowDataWrite": "Allow Data Edit",
     "selectView": "Select a View",
-    "connectionDetails": "Connection Details",
+    "connectionDetails": "Source Connection Details",
     "metaSync": "Meta Sync",
     "mention": "Mention",
     "today": "Today",
@@ -674,7 +710,7 @@
     "allTables": "Tutte le tabelle",
     "members": "Membri",
     "dataSources": "Sorgenti dei dati",
-    "connectDataSource": "Collega sorgenti dati",
+    "connectDataSource": "Connect External Data",
     "searchProjects": "Cerca Basi",
     "createdBy": "Creato da",
     "viewingAttachmentsOf": "Vedi allegati di",
@@ -715,8 +751,8 @@
     "dbType": "Tipo di database",
     "servername": "servername / hostAddr",
     "sqliteFile": "File di SQLite",
-    "hostAddress": "Indirizzo dell'host",
-    "port": "Numero di porta",
+    "hostAddress": "Host address",
+    "port": "Port number",
     "username": "Nome utente",
     "password": "Password",
     "schemaName": "Nome schema",
@@ -872,7 +908,9 @@
     "signUpForFree": "Sign up for free",
     "coverImageField": "Cover image field",
     "fitImage": "Fit image",
-    "coverImageArea": "Cover image"
+    "coverImageArea": "Cover image",
+    "syncData": "Sync data",
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
   },
   "activity": {
     "hideWeekends": "Hide weekends",
@@ -1129,11 +1167,14 @@
     "group": "Group"
   },
   "tooltip": {
+    "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
+    "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",
+    "optionalSchemaName": "Optional. Uses default schema \"{schema}\" if left blank.",
     "schemaChangeDisabled": "Schema editing is disabled for this data source.",
     "typeNotAllowed": "This datatype is not allowed.",
     "dataWriteOptionDisabled": "Data editing can only be disabled when 'Schema editing' is also disabled.",
     "allowMetaWrite": "This option allows modification of database schema, including adding, altering, or deleting tables and columns. Use with caution, as changes may impact the structural integrity of your database.",
-    "allowDataWrite": "This option allows create, update, or delete of records within database tables. Ideal for administrative users need to change data directly.",
+    "allowDataWrite": "This option allows creating, updating, or deleting records within database tables. Ideal for administrative users needing to change data directly.",
     "reachedSourceLimit": "Limitato a una sola sorgente dati per il momento",
     "saveChanges": "Salva le modifiche",
     "xcDB": "Crea un nuovo progetto",
@@ -1165,7 +1206,8 @@
     "changeIconColour": "Change icon colour",
     "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page",
-    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported"
+    "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported",
+    "roleInheritedFromWorkspace": "Role inherited from workspace"
   },
   "placeholder": {
     "selectSlackChannels": "Seleziona un canale Slack",
@@ -1340,7 +1382,7 @@
       "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
       "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
       "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
-      "dbValid": "Assicurati che il database che stai cercando di connetterti sia valido! Questa operazione può causare la perdita dello schema!!",
+      "dbValid": "Ensure database validity to prevent schema loss",
       "barcode": {
         "renderError": "Errore del codice a barre - verificare la compatibilità tra l'input e il tipo di codice a barre"
       },
@@ -1615,8 +1657,8 @@
       "duplicateSystemColumnName": "Nome già utilizzato per il campo di sistema",
       "uiDataTypeRequired": "Il tipo di dati UI è richiesto",
       "columnNameExceedsCharacters": "The length of column name exceeds the max {value} characters",
-      "projectNameExceeds50Characters": "Il nome del progetto supera i 50 caratteri",
-      "projectNameCannotStartWithSpace": "Il nome del progetto non può iniziare con uno spazio",
+      "projectNameExceeds50Characters": "{title} name exceeds 50 characters",
+      "projectNameCannotStartWithSpace": "{title} name cannot start with space",
       "requiredField": "Campo obbligatorio",
       "ipNotAllowed": "IP non consentito",
       "targetFileIsNotAnAcceptedFileType": "Il file di destinazione non è un tipo di file accettato",
@@ -1688,7 +1730,9 @@
       "columnCreated": "Colonna creata",
       "passwordChanged": "La password è stata modificata con successo. Effettui nuovamente il login.",
       "settingsSaved": "Impostazioni salvate con successo",
-      "roleUpdated": "Ruolo aggiornato con successo"
+      "roleUpdated": "Ruolo aggiornato con successo",
+      "connectionAdded": "Connection Successfully Created",
+      "connectionAddedDesc": "All Base owners & creators in this Workspace can now use this connection to easily add a new Data Source to their Base."
     }
   }
 }

@@ -10,17 +10,18 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { BaseReqType } from 'nocodb-sdk';
+import { BaseReqType, getTestDatabaseName, IntegrationsType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
-import { Base } from '~/models';
+import { Base, Integration } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { deepMerge } from '~/utils';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
 
 @Controller()
 @UseGuards(GlobalGuard)
@@ -78,16 +79,45 @@ export class SourceCreateController {
       );
     }
 
+    let config = {
+      ...body.config,
+    };
+
+    if (body.fk_integration_id) {
+      const integration = await Integration.get(
+        {
+          workspace_id: req.ncWorkspaceId,
+        },
+        body.fk_integration_id,
+      );
+
+      if (!integration || integration.type !== IntegrationsType.Database) {
+        NcError.integrationNotFound(body.fk_integration_id);
+      }
+
+      if (integration.is_private && integration.created_by !== req.user.id) {
+        NcError.forbidden('You do not have access to this integration');
+      }
+
+      config = await integration.getConfig();
+
+      if (config?.connection?.database) {
+        config.connection.database = getTestDatabaseName(config);
+      }
+
+      deepMerge(config, body.config);
+    }
+
     if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS !== 'true') {
       if (
-        body.config.client !== 'snowflake' &&
-        (!body.config?.connection || !body.config?.connection.host)
+        config.client !== 'snowflake' &&
+        (!config?.connection || !config?.connection.host)
       ) {
         NcError.badRequest('Connection missing host name or IP address');
       }
-      if (body.config?.client && !body.config?.client.includes('sqlite')) {
-        const host = body.config?.connection?.host;
-        const port = body.config?.connection?.port;
+      if (config?.client && !config?.client.includes('sqlite')) {
+        const host = config?.connection?.host;
+        const port = config?.connection?.port;
         if (host && port) {
           const url = `${host.includes('://') ? '' : 'http://'}${host}:${port}`;
           await axios(url, {

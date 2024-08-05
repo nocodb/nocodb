@@ -120,14 +120,14 @@ export class UtilsController extends UtilsControllerCE {
 
     if (process.env.NC_ALLOW_LOCAL_EXTERNAL_DBS !== 'true') {
       if (
-        body.client !== 'snowflake' &&
-        (!body?.connection || !body?.connection.host)
+        config.client !== 'snowflake' &&
+        (!config?.connection || !config?.connection.host)
       ) {
         NcError.badRequest('Connection missing host name or IP address');
       }
-      if (body?.client && !body.client.includes('sqlite')) {
-        const host = body.connection.host;
-        const port = body.connection.port;
+      if (config?.client && !config.client.includes('sqlite')) {
+        const host = config.connection.host;
+        const port = config.connection.port;
         if (host && port) {
           const url = `${host.includes('://') ? '' : 'http://'}${host}:${port}`;
           await axios(url, {
@@ -149,9 +149,9 @@ export class UtilsController extends UtilsControllerCE {
 
     if (config.connection?.ssl) {
       config.connection.ssl = validateAndExtractSSLProp(
-        body.connection,
-        body.sslUse,
-        body.client,
+        config.connection,
+        config.sslUse,
+        config.client,
       );
     }
 

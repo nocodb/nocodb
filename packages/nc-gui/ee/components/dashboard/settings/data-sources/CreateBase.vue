@@ -620,9 +620,7 @@ const isModalClosable = computed(() => {
         <div class="flex items-center">
           <GeneralIcon icon="server1" class="!text-green-700 !h-5 !w-5" />
         </div>
-        <div class="flex-1">
-          <div class="flex-1 text-base font-weight-700">Add Data Source</div>
-        </div>
+        <div class="flex-1 text-base font-weight-700">Add Data Source</div>
 
         <div class="flex items-center gap-3">
           <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
@@ -668,7 +666,7 @@ const isModalClosable = computed(() => {
           </NcButton>
         </div>
       </div>
-      <div class="h-[calc(100%_-_66px)] flex">
+      <div class="h-[calc(100%_-_58px)] flex">
         <div class="nc-add-source-left-panel nc-scrollbar-thin">
           <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
             <template v-if="step === 1">

@@ -986,7 +986,7 @@ const isModalClosable = computed(() => {
   @apply p-6 flex-1 flex justify-center;
 }
 .nc-add-source-right-panel {
-  @apply p-5 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
+  @apply p-4 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
 }
 :deep(.ant-collapse-header) {
   @apply !-mt-4 !p-0 flex items-center !cursor-default children:first:flex;

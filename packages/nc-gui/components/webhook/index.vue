@@ -525,12 +525,12 @@ onMounted(async () => {
 
   onNotificationTypeChange()
 
-  setTimeout(() => {
-    if (hookRef.id === '') {
-      titleDomRef.value?.click()
+  until(() => titleDomRef.value as HTMLInputElement)
+    .toBeTruthy()
+    .then(() => {
+      titleDomRef.value?.focus()
       titleDomRef.value?.select()
-    }
-  }, 50)
+    })
 })
 </script>
 

@@ -855,7 +855,7 @@ onMounted(async () => {
               <div class="w-full cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                 <NcSwitch :checked="Boolean(hookRef.condition)">
                   <span class="!text-gray-700 font-semibold">
-                    {{ `${$t('general.condition')}s` }}
+                   {{ $t('general.trigger') }} {{ $t('activity.onCondition') }}
                   </span>
                 </NcSwitch>
               </div>

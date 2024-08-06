@@ -48,6 +48,8 @@ const easterEgg = ref(false)
 
 const easterEggCount = ref(0)
 
+const advancedOptionsExpansionPanel = ref<string[]>([])
+
 const onEasterEgg = () => {
   easterEggCount.value += 1
   if (easterEggCount.value >= 2) {
@@ -335,8 +337,17 @@ const allowDataWrite = computed({
   },
 })
 
+const handleUpdateAdvancedOptionsExpansionPanel = (open: boolean) => {
+  if (open) {
+    advancedOptionsExpansionPanel.value = ['1']
+    handleAutoScroll(true, 'nc-source-advanced-options')
+  } else {
+    advancedOptionsExpansionPanel.value = []
+  }
+}
+
 let timer: any
-const handleAutoScroll = (scroll: boolean, className: string) => {
+function handleAutoScroll(scroll: boolean, className: string) {
   if (scroll) {
     if (timer) {
       clearTimeout(timer)
@@ -369,11 +380,10 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
           class="flex flex-col gap-5.5"
         >
           <div class="nc-form-section">
-            <div class="nc-form-section-title">Source details</div>
             <div class="nc-form-section-body">
               <a-row :gutter="24">
                 <a-col :span="12">
-                  <a-form-item label="Source name" v-bind="validateInfos.title">
+                  <a-form-item label="Data Source Name" v-bind="validateInfos.title">
                     <a-input v-model:value="formState.title" class="nc-extdb-proj-name" />
                   </a-form-item>
                 </a-col>
@@ -420,8 +430,6 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
           </div>
 
           <div class="nc-form-section">
-            <div class="nc-form-section-title">Connection details</div>
-
             <div class="nc-form-section-body">
               <!-- SQLite File -->
               <template v-if="formState.dataSource.client === ClientType.SQLITE"> </template>
@@ -515,14 +523,14 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
           <template
             v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
           >
-            <a-collapse
-              ghost
-              expand-icon-position="right"
-              class="nc-source-advanced-options !mt-4"
-              @change="handleAutoScroll(!!$event?.length, 'nc-source-advanced-options')"
-            >
+            <a-collapse v-model:active-key="advancedOptionsExpansionPanel" ghost class="nc-source-advanced-options !mt-4">
               <template #expandIcon="{ isActive }">
-                <NcButton type="text" size="xsmall">
+                <NcButton
+                  type="text"
+                  size="small"
+                  class="!-ml-1.5"
+                  @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
+                >
                   <GeneralIcon
                     icon="chevronDown"
                     class="flex-none cursor-pointer transform transition-transform duration-500"
@@ -530,11 +538,9 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
                   />
                 </NcButton>
               </template>
-              <a-collapse-panel key="1">
+              <a-collapse-panel key="1" collapsible="disabled">
                 <template #header>
-                  <div class="flex">
-                    <div class="nc-form-section-title">Advanced options</div>
-                  </div>
+                 <span></span>
                 </template>
 
                 <div class="flex flex-col gap-4">
@@ -631,7 +637,7 @@ const handleAutoScroll = (scroll: boolean, className: string) => {
   @apply p-5 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
 }
 :deep(.ant-collapse-header) {
-  @apply !-mt-4 !p-0 flex items-center;
+  @apply !-mt-4 !p-0 flex items-center !cursor-default children:first:flex;
 }
 :deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
   @apply !right-0;

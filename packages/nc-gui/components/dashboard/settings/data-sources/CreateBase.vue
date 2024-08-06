@@ -435,10 +435,7 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
         <div class="h-6 self-start flex items-center">
           <GeneralIcon icon="server1" class="!text-green-700 !h-4 !w-4" />
         </div>
-        <div class="flex-1">
-          <div class="flex-1 text-base font-weight-700">New Source</div>
-          <div class="text-xs text-gray-600">Connect with a new external data source, directly in real time.</div>
-        </div>
+        <div class="flex-1 text-base font-weight-700">Add Data Source</div>
 
         <div class="flex items-center gap-3">
           <div class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEasterEgg"></div>
@@ -483,7 +480,7 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
           </NcButton>
         </div>
       </div>
-      <div class="h-[calc(100%_-_66px)] flex">
+      <div class="h-[calc(100%_-_58px)] flex">
         <div class="nc-add-source-left-panel nc-scrollbar-thin">
           <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
             <a-form
@@ -496,11 +493,10 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
               class="flex flex-col gap-5.5"
             >
               <div class="nc-form-section">
-                <div class="nc-form-section-title">Source details</div>
                 <div class="nc-form-section-body">
                   <a-row :gutter="24">
                     <a-col :span="12">
-                      <a-form-item label="Source name" v-bind="validateInfos.title">
+                      <a-form-item label="Data Source Name" v-bind="validateInfos.title">
                         <a-input v-model:value="formState.title" @input="populateName(formState.title)" />
                       </a-form-item>
                     </a-col>
@@ -562,9 +558,6 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
 
               <template v-if="selectedIntegration">
                 <div class="nc-form-section">
-                  <div class="flex items-center justify-between">
-                    <div class="nc-form-section-title">Connection details</div>
-                  </div>
                   <div class="nc-form-section-body">
                     <!-- SQLite File -->
                     <template v-if="formState.dataSource.client === ClientType.SQLITE"> </template>

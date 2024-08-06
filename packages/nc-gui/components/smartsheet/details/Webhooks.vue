@@ -179,7 +179,8 @@ const columns: NcTableColumnProps[] = [
     title: t('general.type'),
     basis: '25%',
     minWidth: 200,
-    showOrderBy: false,
+    showOrderBy: true,
+    dataIndex: 'webhook-operation-type'
   },
   {
     key: 'created_at',

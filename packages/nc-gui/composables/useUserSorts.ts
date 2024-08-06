@@ -148,6 +148,13 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
             return b[sortsConfig.field] - a[sortsConfig.field]
           }
         }
+        case 'webhook-operation-type':{
+          if (sortsConfig.direction === 'asc') {
+            return `${a?.event} ${a?.operation}`?.localeCompare(`${b?.event} ${b?.operation}`)
+          } else {
+            return `${b?.event} ${b?.operation}`?.localeCompare(`${a?.event} ${a?.operation}`)
+          }
+        }
         case 'created_at':
         case 'updated_at': {
           if (sortsConfig.direction === 'asc') {

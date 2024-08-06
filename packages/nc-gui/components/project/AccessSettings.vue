@@ -286,7 +286,7 @@ const customRow = (record: Record<string, any>) => ({
         :placeholder="$t('title.searchMembers')"
         :disabled="isLoading"
         allow-clear
-        class="nc-project-collaborator-list-search-input !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+        class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
       >
         <template #prefix>
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
@@ -386,12 +386,6 @@ const customRow = (record: Record<string, any>) => ({
 <style scoped lang="scss">
 :deep(.ant-input::placeholder) {
   @apply text-gray-500;
-}
-
-:deep(.ant-input-affix-wrapper.nc-project-collaborator-list-search-input) {
-  &:not(:has(.ant-input-clear-icon-hidden)):has(.ant-input-clear-icon) {
-    @apply border-[var(--ant-primary-5)];
-  }
 }
 
 .color-band {

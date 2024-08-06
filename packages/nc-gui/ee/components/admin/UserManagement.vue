@@ -119,7 +119,6 @@ watch(selected, () => {
               field="email"
               :toggle-sort="toggleSort"
             />
-
             <LazyAccountHeaderWithSorter
               :active-sort="sorts"
               :header="$t('objects.workspaces')"
@@ -127,6 +126,7 @@ watch(selected, () => {
               class="text-gray-700 w-full flex-1 px-6 py-3 flex items-center space-x-2"
               field="workspaceCount"
             />
+
             <div class="text-gray-700 w-full flex-1 px-6 py-3">{{ $t('labels.dateAdded') }}</div>
             <div class="text-gray-700 w-full flex-1 px-6 py-3">{{ $t('labels.lastActive') }}</div>
             <div class="text-gray-700 w-full flex-1 px-6 text-right py-3">{{ $t('labels.actions') }}</div>

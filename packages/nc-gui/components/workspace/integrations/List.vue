@@ -225,7 +225,7 @@ onKeyStroke('ArrowDown', onDown)
     <div class="flex justify-between gap-12">
       <div class="text-sm font-normal text-gray-600">
         <div>
-          Connections simplify managing stored configurations for different integrations.
+          Manage connections for your integrations.
           <a target="_blank" rel="noopener noreferrer"> Learn more </a>
         </div>
       </div>

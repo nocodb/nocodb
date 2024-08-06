@@ -130,7 +130,7 @@ const onCreateBaseClick = () => {
 
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
         </div>
-        <div class="subtext">Start from scratch by creating a new table.</div>
+        <div class="subtext">Start from scratch.</div>
       </div>
 
       <div
@@ -145,9 +145,14 @@ const onCreateBaseClick = () => {
           <GeneralIcon icon="download" class="!text-orange-700 !h-5 !w-5" />
           <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
         </div>
-        <div class="subtext">Quickly bring in existing data from various files & external sources.</div>
+        <div class="subtext">From files & external sources</div>
       </div>
-      <NcTooltip v-if="isUIAllowed('sourceCreate')" placement="bottom" :disabled="!isDataSourceLimitReached" class="flex-none flex">
+      <NcTooltip
+        v-if="isUIAllowed('sourceCreate')"
+        placement="bottom"
+        :disabled="!isDataSourceLimitReached"
+        class="flex-none flex"
+      >
         <template #title>
           {{ $t('tooltip.reachedSourceLimit') }}
         </template>
@@ -165,24 +170,24 @@ const onCreateBaseClick = () => {
             <GeneralIcon icon="server1" class="!text-green-700 !h-5 !w-5" />
             <div class="label">{{ $t('labels.connectDataSource') }}</div>
           </div>
-          <div class="subtext">Connect directly in realtime to external databases.</div>
+          <div class="subtext">In realtime to external databases.</div>
         </div>
       </NcTooltip>
 
-      <div
-        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-        v-e="['c:table:create-source']"
-        role="button"
-        class="nc-base-view-all-table-btn"
-        data-testid="proj-view-btn__create-source"
-        @click="syncDataModalOpen = true"
-      >
-        <div class="flex items-center gap-3">
-          <GeneralIcon icon="refresh" class="!text-blue-700 !h-5 !w-5" />
-          <div class="label capitalize">{{ $t('labels.syncData') }}</div>
-        </div>
-        <div class="subtext">Keep your data updated and in sync across multiple sources.</div>
-      </div>
+      <!--      <div-->
+      <!--        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"-->
+      <!--        v-e="['c:table:create-source']"-->
+      <!--        role="button"-->
+      <!--        class="nc-base-view-all-table-btn"-->
+      <!--        data-testid="proj-view-btn__create-source"-->
+      <!--        @click="syncDataModalOpen = true"-->
+      <!--      >-->
+      <!--        <div class="flex items-center gap-3">-->
+      <!--          <GeneralIcon icon="refresh" class="!text-blue-700 !h-5 !w-5" />-->
+      <!--          <div class="label capitalize">{{ $t('labels.syncData') }}</div>-->
+      <!--        </div>-->
+      <!--        <div class="subtext">Keep your data updated and in sync across multiple sources.</div>-->
+      <!--      </div>-->
     </div>
     <div
       v-if="base?.isLoading"

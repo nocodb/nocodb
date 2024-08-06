@@ -24,7 +24,7 @@ export class WebhookFormPage extends BasePage {
   }
 
   get() {
-    return this.dashboard.get().locator(`.nc-modal-webhook-create-edit`);
+    return this.rootPage.locator(`.nc-modal-webhook-create-edit`);
   }
 
   async create({ title, event, url = 'http://localhost:9090/hook' }: { title: string; event: string; url?: string }) {
@@ -164,8 +164,8 @@ export class WebhookFormPage extends BasePage {
       .locator(`.ant-select-item:has-text("${key}")`)
       .click({ force: true });
 
-    await this.get().locator('.nc-input-hook-header-value').clear();
-    await this.get().locator('.nc-input-hook-header-value').type(value);
+    await this.get().locator('.nc-webhook-header-value-input').clear();
+    await this.get().locator('.nc-webhook-header-value-input').type(value);
     await this.get().press('Enter');
 
     // find out if the checkbox is already checked

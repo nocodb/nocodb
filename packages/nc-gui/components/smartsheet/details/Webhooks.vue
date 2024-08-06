@@ -180,7 +180,7 @@ const columns: NcTableColumnProps[] = [
     basis: '25%',
     minWidth: 200,
     showOrderBy: true,
-    dataIndex: 'webhook-operation-type'
+    dataIndex: 'webhook-operation-type',
   },
   {
     key: 'created_at',
@@ -249,6 +249,7 @@ const getHookTypeText = (hook: HookType) => {
             size="small"
             class="!text-brand-500 !hover:text-brand-600"
             @click="createWebhook"
+            data-testid="nc-new-webhook"
           >
             <div class="flex gap-2 items-center">
               <GeneralIcon icon="plus" />
@@ -264,7 +265,7 @@ const getHookTypeText = (hook: HookType) => {
           >
             <div class="text-gray-700 font-bold text-center text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
             <div class="text-gray-700 text-center max-w-[24rem]">{{ $t('msg.createWebhookMsg2') }}</div>
-            <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" size="small" @click="createWebhook()">
+            <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" size="small" @click="createWebhook">
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="plus" class="flex-none" />
                 <span>{{ $t('activity.newWebhook') }}</span>

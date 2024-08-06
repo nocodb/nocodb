@@ -500,6 +500,27 @@ const getDefaultHookName = (hooks: HookType[]) => {
   return extractNextDefaultName([...hooks.map((el) => el?.title || '')], defaultHookName)
 }
 
+const getNotificationIconName = (type: string): keyof typeof iconMap => {
+  switch(type){
+    case "URL": 
+      return 'link2'
+    case "Email": 
+      return 'mail'
+    case "Slack": 
+      return 'slack'
+    case "Microsoft Teams": 
+      return 'microsoftTeams'
+    case "Discord": 
+      return 'discord'
+    case "Mattermost": 
+      return 'mattermost'
+    case "Twilio": 
+      return 'twilio'
+    case "Whatsapp Twilio": 
+      return 'whatsapp'
+  }
+}
+
 watch(
   () => hookRef.eventOperation,
   () => {
@@ -662,21 +683,8 @@ onMounted(async () => {
                       :value="notificationOption.type"
                     >
                       <div class="flex items-center w-full gap-2">
-                        <component :is="iconMap.link" v-if="notificationOption.type === 'URL'" class="mr-2" />
-
-                        <component :is="iconMap.email" v-if="notificationOption.type === 'Email'" class="mr-2" />
-
-                        <MdiSlack v-if="notificationOption.type === 'Slack'" class="mr-2" />
-
-                        <MdiMicrosoftTeams v-if="notificationOption.type === 'Microsoft Teams'" class="mr-2" />
-
-                        <MdiDiscord v-if="notificationOption.type === 'Discord'" class="mr-2" />
-
-                        <MdiChat v-if="notificationOption.type === 'Mattermost'" class="mr-2" />
-
-                        <MdiWhatsapp v-if="notificationOption.type === 'Whatsapp Twilio'" class="mr-2" />
-
-                        <MdiCellphoneMessage v-if="notificationOption.type === 'Twilio'" class="mr-2" />
+                        <GeneralIcon :icon="getNotificationIconName(notificationOption.type)" class="mr-2 stroke-transparent" />
+                      
 
                         <div class="flex-1">{{ notificationOption.text }}</div>
                         <component

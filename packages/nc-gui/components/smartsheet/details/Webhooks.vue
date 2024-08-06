@@ -87,6 +87,12 @@ watch(showDeleteModal, () => {
   })
 })
 
+watch(isWebhookModalOpen, (val) => {
+  if (!val) {
+    selectedHook.value = undefined
+  }
+})
+
 watch(
   () => activeTable.value?.id,
   async () => {
@@ -268,7 +274,7 @@ onMounted(async () => {
           </template>
         </GeneralDeleteModal>
 
-        <Webhook v-model:value="isWebhookModalOpen" :hook="selectedHook" @close="onModalClose" />
+        <Webhook v-if="isWebhookModalOpen" v-model:value="isWebhookModalOpen" :hook="selectedHook" @close="onModalClose" />
       </div>
       <div
         v-else

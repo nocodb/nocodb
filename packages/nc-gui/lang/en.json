@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "on": "On",
+    "onMultiple": "On Multiple",
     "addLookupField": "Add {count} lookup fields",
     "role": "Role",
     "general": "General",
@@ -558,6 +560,9 @@
     "directlyInRealTime": "Directly in real time"
   },
   "labels": {
+    "recordInsert": "Record Insert",
+    "recordUpdate": "Record Update",
+    "recordDelete": "Record Delete",
     "supportDocs": "Support Docs",
     "addedOn": "Added on",
     "changeDisplayValueField": "Change display value field",
@@ -916,6 +921,7 @@
     "syncDataModalSubtitle" : "Register the services you are interested in to get notified when they become available"
   },
   "activity": {
+    "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
     "renameWorkspace": "Rename workspace",

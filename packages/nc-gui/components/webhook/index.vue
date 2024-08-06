@@ -172,12 +172,12 @@ const formInput = ref({
 })
 
 const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.after'), t('general.insert')], value: ['after', 'insert'] },
-  { text: [t('general.after'), t('general.update')], value: ['after', 'update'] },
-  { text: [t('general.after'), t('general.delete')], value: ['after', 'delete'] },
-  { text: [t('general.after'), t('general.bulkInsert')], value: ['after', 'bulkInsert'] },
-  { text: [t('general.after'), t('general.bulkUpdate')], value: ['after', 'bulkUpdate'] },
-  { text: [t('general.after'), t('general.bulkDelete')], value: ['after', 'bulkDelete'] },
+  { text: [t('general.on'), t('labels.recordInsert')], value: ['after', 'insert'] },
+  { text: [t('general.on'), t('labels.recordUpdate')], value: ['after', 'update'] },
+  { text: [t('general.on'), t('labels.recordDelete')], value: ['after', 'delete'] },
+  { text: [t('general.onMultiple'), t('labels.recordInsert')], value: ['after', 'bulkInsert'] },
+  { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
+  { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
 ])
 
 const notificationList = computed(() => {
@@ -510,7 +510,7 @@ onMounted(async () => {
         <div class="flex items-center gap-3">
           <GeneralIcon class="text-gray-900 text-2xl" icon="webhook" />
           <span class="text-gray-900 font-semibold text-2xl">
-            {{ $t('activity.newWebhook') }}
+            {{ !hook ? $t('activity.newWebhook') : $t('activity.webhookDetails') }}
           </span>
         </div>
 
@@ -520,118 +520,49 @@ onMounted(async () => {
       </div>
     </template>
     <div class="flex">
-      <div style="height: 600px" class="flex-1 flex flex-col gap-8 overflow-y-auto px-12 py-6 mx-auto">
-        <a-form-item v-bind="validateInfos.title">
-          <div
-            class="flex flex-grow px-2 py-1 border-b-1 border-b-brand-500 items-center rounded-t-md border-gray-200 bg-gray-100"
-            @keydown.enter.prevent="titleDomRef?.focus()"
-          >
-            <input
-              ref="titleDomRef"
-              v-model="hookRef.title"
-              class="flex flex-grow text-lg px-2 font-medium capitalize outline-none bg-inherit nc-text-field-hook-title"
-              :placeholder="$t('placeholder.webhookTitle')"
-              :contenteditable="true"
-            />
-            <GeneralIcon icon="edit" />
-          </div>
-        </a-form-item>
+      <div style="height: 600px" class="flex-1 flex flex-col overflow-y-auto px-12 py-6 mx-auto">
+        <div style="max-width: 740px; min-width: 624px" class="mx-auto gap-8 flex flex-col">
+          <a-form-item v-bind="validateInfos.title">
+            <div
+              class="flex flex-grow px-2 py-1 border-b-1 border-b-brand-500 items-center rounded-t-md border-gray-200 bg-gray-100"
+              @keydown.enter.prevent="titleDomRef?.focus()"
+            >
+              <input
+                ref="titleDomRef"
+                v-model="hookRef.title"
+                class="flex flex-grow text-lg px-2 font-medium capitalize outline-none bg-inherit nc-text-field-hook-title"
+                :placeholder="$t('placeholder.webhookTitle')"
+                :contenteditable="true"
+              />
+              <GeneralIcon icon="edit" />
+            </div>
+          </a-form-item>
 
-        <a-form class="flex flex-col gap-4" :model="hookRef" name="create-or-edit-webhook">
-          <div class="flex w-full gap-3">
-            <a-form-item class="w-1/3" v-bind="validateInfos.eventOperation">
-              <a-select
-                v-model:value="hookRef.eventOperation"
-                size="large"
-                :placeholder="$t('general.event')"
-                class="nc-text-field-hook-event capitalize"
-                dropdown-class-name="nc-dropdown-webhook-event"
-              >
-                <template #suffixIcon>
-                  <GeneralIcon icon="arrowDown" class="text-gray-700" />
-                </template>
-                <a-select-option
-                  v-for="(event, i) in eventList"
-                  :key="i"
-                  class="capitalize"
-                  :value="event.value.join(' ')"
-                  :disabled="hookRef.version === 'v1' && ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(event.value[1])"
-                >
-                  <div class="flex items-center w-full gap-2 justify-between">
-                    <div>{{ event.text.join(' ') }}</div>
-                    <component
-                      :is="iconMap.check"
-                      v-if="hookRef.eventOperation === event.value.join(' ')"
-                      id="nc-selected-item-icon"
-                      class="text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-            <a-form-item class="w-2/3" v-bind="validateInfos['notification.type']">
-              <a-select
-                v-model:value="hookRef.notification.type"
-                size="large"
-                :disabled="isEeUI"
-                class="nc-select-hook-notification-type"
-                :placeholder="$t('general.notification')"
-                dropdown-class-name="nc-dropdown-webhook-notification"
-                @change="onNotificationTypeChange(true)"
-              >
-                <template #suffixIcon>
-                  <GeneralIcon icon="arrowDown" class="text-gray-700" />
-                </template>
-                <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
-                  <div class="flex items-center w-full gap-2">
-                    <component :is="iconMap.link" v-if="notificationOption.type === 'URL'" class="mr-2" />
-
-                    <component :is="iconMap.email" v-if="notificationOption.type === 'Email'" class="mr-2" />
-
-                    <MdiSlack v-if="notificationOption.type === 'Slack'" class="mr-2" />
-
-                    <MdiMicrosoftTeams v-if="notificationOption.type === 'Microsoft Teams'" class="mr-2" />
-
-                    <MdiDiscord v-if="notificationOption.type === 'Discord'" class="mr-2" />
-
-                    <MdiChat v-if="notificationOption.type === 'Mattermost'" class="mr-2" />
-
-                    <MdiWhatsapp v-if="notificationOption.type === 'Whatsapp Twilio'" class="mr-2" />
-
-                    <MdiCellphoneMessage v-if="notificationOption.type === 'Twilio'" class="mr-2" />
-
-                    <div class="flex-1">{{ notificationOption.text }}</div>
-                    <component
-                      :is="iconMap.check"
-                      v-if="hookRef.notification.type === notificationOption.type"
-                      id="nc-selected-item-icon"
-                      class="text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </a-select>
-            </a-form-item>
-          </div>
-
-          <div v-if="hookRef.notification.type === 'URL'" class="flex flex-col w-full gap-3">
+          <a-form class="flex flex-col gap-4" :model="hookRef" name="create-or-edit-webhook">
             <div class="flex w-full gap-3">
-              <a-form-item class="w-1/3">
+              <a-form-item class="w-1/3" v-bind="validateInfos.eventOperation">
                 <a-select
-                  v-model:value="hookRef.notification.payload.method"
+                  v-model:value="hookRef.eventOperation"
                   size="large"
-                  class="nc-select-hook-url-method"
-                  dropdown-class-name="nc-dropdown-hook-notification-url-method"
+                  :placeholder="$t('general.event')"
+                  class="nc-text-field-hook-event capitalize"
+                  dropdown-class-name="nc-dropdown-webhook-event"
                 >
                   <template #suffixIcon>
                     <GeneralIcon icon="arrowDown" class="text-gray-700" />
                   </template>
-
-                  <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
-                    <div class="flex items-center gap-2 justify-between">
-                      <div>{{ method.title }}</div>
+                  <a-select-option
+                    v-for="(event, i) in eventList"
+                    :key="i"
+                    class="capitalize"
+                    :value="event.value.join(' ')"
+                    :disabled="hookRef.version === 'v1' && ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(event.value[1])"
+                  >
+                    <div class="flex items-center w-full gap-2 justify-between">
+                      <div>{{ event.text.join(' ') }}</div>
                       <component
                         :is="iconMap.check"
-                        v-if="hookRef.notification.payload.method === method.title"
+                        v-if="hookRef.eventOperation === event.value.join(' ')"
                         id="nc-selected-item-icon"
                         class="text-primary w-4 h-4"
                       />
@@ -639,118 +570,212 @@ onMounted(async () => {
                   </a-select-option>
                 </a-select>
               </a-form-item>
-
-              <a-form-item class="w-2/3" v-bind="validateInfos['notification.payload.path']">
-                <a-input
-                  v-model:value="hookRef.notification.payload.path"
+              <a-form-item class="w-2/3" v-bind="validateInfos['notification.type']">
+                <a-select
+                  v-model:value="hookRef.notification.type"
                   size="large"
-                  placeholder="http://example.com"
-                  class="nc-text-field-hook-url-path !rounded-md"
+                  :disabled="isEeUI"
+                  class="nc-select-hook-notification-type"
+                  :placeholder="$t('general.notification')"
+                  dropdown-class-name="nc-dropdown-webhook-notification"
+                  @change="onNotificationTypeChange(true)"
+                >
+                  <template #suffixIcon>
+                    <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                  </template>
+                  <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
+                    <div class="flex items-center w-full gap-2">
+                      <component :is="iconMap.link" v-if="notificationOption.type === 'URL'" class="mr-2" />
+
+                      <component :is="iconMap.email" v-if="notificationOption.type === 'Email'" class="mr-2" />
+
+                      <MdiSlack v-if="notificationOption.type === 'Slack'" class="mr-2" />
+
+                      <MdiMicrosoftTeams v-if="notificationOption.type === 'Microsoft Teams'" class="mr-2" />
+
+                      <MdiDiscord v-if="notificationOption.type === 'Discord'" class="mr-2" />
+
+                      <MdiChat v-if="notificationOption.type === 'Mattermost'" class="mr-2" />
+
+                      <MdiWhatsapp v-if="notificationOption.type === 'Whatsapp Twilio'" class="mr-2" />
+
+                      <MdiCellphoneMessage v-if="notificationOption.type === 'Twilio'" class="mr-2" />
+
+                      <div class="flex-1">{{ notificationOption.text }}</div>
+                      <component
+                        :is="iconMap.check"
+                        v-if="hookRef.notification.type === notificationOption.type"
+                        id="nc-selected-item-icon"
+                        class="text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </a-select>
+              </a-form-item>
+            </div>
+
+            <div v-if="hookRef.notification.type === 'URL'" class="flex flex-col w-full gap-3">
+              <div class="flex w-full gap-3">
+                <a-form-item class="w-1/3">
+                  <a-select
+                    v-model:value="hookRef.notification.payload.method"
+                    size="large"
+                    class="nc-select-hook-url-method"
+                    dropdown-class-name="nc-dropdown-hook-notification-url-method"
+                  >
+                    <template #suffixIcon>
+                      <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                    </template>
+
+                    <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
+                      <div class="flex items-center gap-2 justify-between">
+                        <div>{{ method.title }}</div>
+                        <component
+                          :is="iconMap.check"
+                          v-if="hookRef.notification.payload.method === method.title"
+                          id="nc-selected-item-icon"
+                          class="text-primary w-4 h-4"
+                        />
+                      </div>
+                    </a-select-option>
+                  </a-select>
+                </a-form-item>
+
+                <a-form-item class="w-2/3" v-bind="validateInfos['notification.payload.path']">
+                  <a-input
+                    v-model:value="hookRef.notification.payload.path"
+                    size="large"
+                    placeholder="http://example.com"
+                    class="nc-text-field-hook-url-path !rounded-md"
+                  />
+                </a-form-item>
+              </div>
+              <div class="my-8">
+                <NcTabs v-model:activeKey="urlTabKey">
+                  <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
+                    <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />
+                  </a-tab-pane>
+
+                  <a-tab-pane key="headers" :tab="$t('title.headers')" class="nc-tab-headers">
+                    <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
+                  </a-tab-pane>
+
+                  <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
+                    <LazyMonacoEditor
+                      v-model="hookRef.notification.payload.body"
+                      disable-deep-compare
+                      :validate="false"
+                      class="min-h-60 max-h-80"
+                      :monaco-config="{
+                        'minimap': {
+                          enabled: false,
+                        },
+                        'fontSize': 14.5,
+                        'overviewRulerBorder': false,
+                        'overviewRulerLanes': 0,
+                        'hideCursorInOverviewRuler': true,
+                        'lineDecorationsWidth': 8,
+                        'lineNumbersMinChars': 0,
+                        'roundedSelection': false,
+                        'selectOnLineNumbers': false,
+                        'scrollBeyondLastLine': false,
+                        'contextmenu': false,
+                        'glyphMargin': false,
+                        'folding': false,
+                        'bracketPairColorization.enabled': false,
+                        'wordWrap': 'on',
+                        'scrollbar': {
+                          horizontal: 'hidden',
+                        },
+                        'wrappingStrategy': 'advanced',
+                        'renderLineHighlight': 'none',
+                      }"
+                    />
+                  </a-tab-pane>
+                </NcTabs>
+              </div>
+            </div>
+
+            <div v-if="hookRef.notification.type === 'Slack'" class="flex flex-col w-full gap-3">
+              <a-form-item v-bind="validateInfos['notification.payload.channels']">
+                <LazyWebhookChannelMultiSelect
+                  v-model="hookRef.notification.payload.channels"
+                  :selected-channel-list="hookRef.notification.payload.channels"
+                  :available-channel-list="slackChannels"
+                  :placeholder="$t('placeholder.selectSlackChannels')"
                 />
               </a-form-item>
             </div>
-            <div class="my-8">
-              <NcTabs v-model:activeKey="urlTabKey">
-                <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
-                  <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />
-                </a-tab-pane>
 
-                <a-tab-pane key="headers" :tab="$t('title.headers')" class="nc-tab-headers">
-                  <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
-                </a-tab-pane>
-
-                <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
-                  <LazyMonacoEditor
-                    v-model="hookRef.notification.payload.body"
-                    disable-deep-compare
-                    :validate="false"
-                    class="min-h-60 max-h-80"
-                  />
-                </a-tab-pane>
-              </NcTabs>
-            </div>
-          </div>
-
-          <div v-if="hookRef.notification.type === 'Slack'" class="flex flex-col w-full gap-3">
-            <a-form-item v-bind="validateInfos['notification.payload.channels']">
-              <LazyWebhookChannelMultiSelect
-                v-model="hookRef.notification.payload.channels"
-                :selected-channel-list="hookRef.notification.payload.channels"
-                :available-channel-list="slackChannels"
-                :placeholder="$t('placeholder.selectSlackChannels')"
-              />
-            </a-form-item>
-          </div>
-
-          <div v-if="hookRef.notification.type === 'Microsoft Teams'" class="flex flex-col w-full gap-3">
-            <a-form-item v-bind="validateInfos['notification.payload.channels']">
-              <LazyWebhookChannelMultiSelect
-                v-model="hookRef.notification.payload.channels"
-                :selected-channel-list="hookRef.notification.payload.channels"
-                :available-channel-list="teamsChannels"
-                :placeholder="$t('placeholder.selectTeamsChannels')"
-              />
-            </a-form-item>
-          </div>
-
-          <div v-if="hookRef.notification.type === 'Discord'" class="flex flex-col w-full gap-3">
-            <a-form-item v-bind="validateInfos['notification.payload.channels']">
-              <LazyWebhookChannelMultiSelect
-                v-model="hookRef.notification.payload.channels"
-                :selected-channel-list="hookRef.notification.payload.channels"
-                :available-channel-list="discordChannels"
-                :placeholder="$t('placeholder.selectDiscordChannels')"
-              />
-            </a-form-item>
-          </div>
-
-          <div v-if="hookRef.notification.type === 'Mattermost'" class="flex flex-col w-full gap-3">
-            <a-form-item v-bind="validateInfos['notification.payload.channels']">
-              <LazyWebhookChannelMultiSelect
-                v-model="hookRef.notification.payload.channels"
-                :selected-channel-list="hookRef.notification.payload.channels"
-                :available-channel-list="mattermostChannels"
-                :placeholder="$t('placeholder.selectMattermostChannels')"
-              />
-            </a-form-item>
-          </div>
-
-          <div v-show="isConditionSupport">
-            <div class="w-full cursor-pointer" @click.prevent="hookRef.condition = !hookRef.condition">
-              <NcSwitch :checked="Boolean(hookRef.condition)">
-                <span class="!text-gray-700 font-semibold">
-                  {{ `${$t('general.condition')}s` }}
-                </span>
-              </NcSwitch>
+            <div v-if="hookRef.notification.type === 'Microsoft Teams'" class="flex flex-col w-full gap-3">
+              <a-form-item v-bind="validateInfos['notification.payload.channels']">
+                <LazyWebhookChannelMultiSelect
+                  v-model="hookRef.notification.payload.channels"
+                  :selected-channel-list="hookRef.notification.payload.channels"
+                  :available-channel-list="teamsChannels"
+                  :placeholder="$t('placeholder.selectTeamsChannels')"
+                />
+              </a-form-item>
             </div>
 
-            <LazySmartsheetToolbarColumnFilter
-              v-if="hookRef.condition"
-              ref="filterRef"
-              class="w-full"
-              :auto-save="false"
-              :show-loading="false"
-              :hook-id="hookRef.id"
-              :web-hook="true"
-              @update:filters-length="hookRef.condition = $event > 0"
+            <div v-if="hookRef.notification.type === 'Discord'" class="flex flex-col w-full gap-3">
+              <a-form-item v-bind="validateInfos['notification.payload.channels']">
+                <LazyWebhookChannelMultiSelect
+                  v-model="hookRef.notification.payload.channels"
+                  :selected-channel-list="hookRef.notification.payload.channels"
+                  :available-channel-list="discordChannels"
+                  :placeholder="$t('placeholder.selectDiscordChannels')"
+                />
+              </a-form-item>
+            </div>
+
+            <div v-if="hookRef.notification.type === 'Mattermost'" class="flex flex-col w-full gap-3">
+              <a-form-item v-bind="validateInfos['notification.payload.channels']">
+                <LazyWebhookChannelMultiSelect
+                  v-model="hookRef.notification.payload.channels"
+                  :selected-channel-list="hookRef.notification.payload.channels"
+                  :available-channel-list="mattermostChannels"
+                  :placeholder="$t('placeholder.selectMattermostChannels')"
+                />
+              </a-form-item>
+            </div>
+
+            <div v-show="isConditionSupport">
+              <div class="w-full cursor-pointer" @click.prevent="hookRef.condition = !hookRef.condition">
+                <NcSwitch :checked="Boolean(hookRef.condition)">
+                  <span class="!text-gray-700 font-semibold">
+                    {{ `${$t('general.condition')}s` }}
+                  </span>
+                </NcSwitch>
+              </div>
+
+              <LazySmartsheetToolbarColumnFilter
+                v-if="hookRef.condition"
+                ref="filterRef"
+                class="w-full"
+                :auto-save="false"
+                :show-loading="false"
+                :hook-id="hookRef.id"
+                :web-hook="true"
+                @update:filters-length="hookRef.condition = $event > 0"
+              />
+            </div>
+
+            <LazyWebhookTest
+              ref="webhookTestRef"
+              :hook="{
+                ...hookRef,
+                notification: {
+                  ...hookRef.notification,
+                  payload: hookRef.notification.payload,
+                },
+              }"
+              @error="testSuccess = false"
+              @success="testSuccess = true"
             />
-          </div>
 
-          <LazyWebhookTest
-            ref="webhookTestRef"
-            :hook="{
-              ...hookRef,
-              notification: {
-                ...hookRef.notification,
-                payload: hookRef.notification.payload,
-              },
-            }"
-            @error="testSuccess = false"
-            @success="testSuccess = true"
-          />
-
-          <!--       <a-form-item>
-                     <a-row v-if="formInput[hookRef.notification.type] && hookRef.notification.payload" type="flex">
+            <a-form-item>
+              <a-row v-if="formInput[hookRef.notification.type] && hookRef.notification.payload" type="flex">
                 <a-col v-for="(input, i) in formInput[hookRef.notification.type]" :key="i" :span="24">
                   <a-form-item v-if="input.type === 'LongText'" v-bind="validateInfos[`notification.payload.${input.key}`]">
                     <a-textarea v-model:value="hookRef.notification.payload[input.key]" :placeholder="input.label" size="large" />
@@ -761,14 +786,29 @@ onMounted(async () => {
                   </a-form-item>
                 </a-col>
               </a-row>
-          </a-form-item> -->
-        </a-form>
+            </a-form-item>
+          </a-form>
+        </div>
       </div>
 
       <div class="bg-gray-50 border-l-1 w-80 p-5 border-gray-200">
         <h1 class="text-gray-900 font-semibold">
           {{ $t('labels.supportDocs') }}
         </h1>
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-1">
+            <GeneralIcon class="text-gray-700" icon="book" />
+            Configure a URL webhooks
+          </div>
+          <div class="flex items-center gap-1">
+            <GeneralIcon class="text-gray-700" icon="book" />
+            Getting started with webhooks
+          </div>
+          <div class="flex items-center gap-1">
+            <GeneralIcon class="text-gray-700" icon="book" />
+            Testing webhook connections
+          </div>
+        </div>
       </div>
     </div>
 
@@ -783,7 +823,7 @@ onMounted(async () => {
       </NcButton>
 
       <NcButton :loading="loading" :disabled="!testSuccess" type="primary" size="small" @click="saveHooks">
-        {{ $t('activity.createWebhook') }}
+        {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
       </NcButton>
     </div>
   </NcModal>

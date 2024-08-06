@@ -144,7 +144,7 @@ onMounted(async () => {
               allow-clear
             >
               <template #prefix>
-                <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
+                <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
               </template>
             </a-input>
             <NcButton
@@ -161,7 +161,7 @@ onMounted(async () => {
             </NcButton>
           </div>
 
-          <NcButton v-e="['c:actions:webhook']" type="secondary" size="small" @click="createWebhook">
+          <NcButton v-e="['c:actions:webhook']" type="secondary" size="small" class="!text-brand-500 !hover:text-brand-600" @click="createWebhook">
             <div class="flex gap-2 items-center">
               <GeneralIcon icon="plus" />
               {{ $t('activity.newWebhook') }}
@@ -170,13 +170,13 @@ onMounted(async () => {
         </div>
 
         <div style="height: calc(100vh - (var(--topbar-height) * 3.5))" class="border-1 rounded-xl border-gray-200">
-          <div v-if="!hooks.length" class="flex-col flex items-center gap-2 justify-center w-full h-full">
+          <div v-if="!hooks.length" class="flex-col flex items-center gap-6 justify-center w-full h-full py-12 px-4">
             <div class="text-gray-700 font-bold text-center text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
             <div class="text-gray-700 text-center max-w-[24rem]">{{ $t('msg.createWebhookMsg2') }}</div>
             <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" size="small" @click="createWebhook()">
-              <div class="flex flex-row items-center justify-between w-full">
-                <span class="ml-1">{{ $t('activity.newWebhook') }}</span>
-                <GeneralIcon icon="plus" />
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="plus" class="flex-none"/>
+                <span>{{ $t('activity.newWebhook') }}</span>
               </div>
             </NcButton>
           </div>

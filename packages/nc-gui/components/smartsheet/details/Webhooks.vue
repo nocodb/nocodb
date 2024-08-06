@@ -280,6 +280,7 @@ const getHookTypeText = (hook: HookType) => {
             :data="sortedHooks"
             :custom-row="customRow"
             class="h-full"
+            body-row-class-name="nc-view-sidebar-webhook-item"
           >
             <template #bodyCell="{ column, record: hook }">
               <div v-if="column.key === 'active'" v-e="['c:actions:webhook']" @click.stop>
@@ -301,8 +302,8 @@ const getHookTypeText = (hook: HookType) => {
                 {{ dayjs(hook.created_at).format('DD MMM YYYY') }}
               </template>
               <template v-if="column.key === 'action'">
-                <NcDropdown>
-                  <NcButton type="secondary" size="small" class="!w-8 !h-8" @click.stop>
+                <NcDropdown overlay-class-name="nc-webhook-item-action-dropdown">
+                  <NcButton type="secondary" size="small" class="!w-8 !h-8" @click.stop data-testid="nc-webhook-item-action">
                     <component :is="iconMap.threeDotVertical" class="text-gray-700" />
                   </NcButton>
                   <template #overlay>

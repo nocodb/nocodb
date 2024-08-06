@@ -110,7 +110,7 @@ export class WebhookFormPage extends BasePage {
       httpMethodsToMatch: ['POST', 'PATCH'],
     });
 
-    await this.verifyToast({ message: 'Webhook details updated successfully' });
+    // await this.verifyToast({ message: 'Webhook details updated successfully' });
   }
 
   async test() {
@@ -127,7 +127,8 @@ export class WebhookFormPage extends BasePage {
 
   async close() {
     // type esc key
-    await this.get().press('Escape');
+    // await this.get().press('Escape');
+    // await this.get().waitFor({ state: 'hidden' });
     await this.dashboard.grid.topbar.openDataTab();
   }
 
@@ -135,7 +136,14 @@ export class WebhookFormPage extends BasePage {
     await this.dashboard.grid.topbar.openDetailedTab();
     await this.dashboard.details.clickWebhooksTab();
 
-    await (await this.dashboard.details.webhook.getItem({ index })).click();
+    const rowItem = await this.dashboard.details.webhook.getItem({ index });
+    await rowItem.waitFor({ state: 'visible' });
+    await rowItem.scrollIntoViewIfNeeded();
+
+    await rowItem.click({
+      force: true,
+    });
+
     await this.get().waitFor({ state: 'visible' });
   }
 

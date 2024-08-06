@@ -28,7 +28,7 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
         <a-input
           v-model:value="headerRow.value"
           :placeholder="$t('placeholder.value')"
-          class="!border-x-0 hover:!border-x-0 !border-gray-200 !rounded-none"
+          class="nc-webhook-header-value-input !border-x-0 hover:!border-x-0 !border-gray-200 !rounded-none"
         />
       </a-form-item>
 
@@ -44,7 +44,7 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
     </div>
 
     <div>
-      <NcButton size="small" type="text" @click="addHeaderRow">
+      <NcButton size="small" type="text" @click="addHeaderRow" class="nc-btn-focus">
         <div class="flex flex-row items-center gap-x-2">
           <component :is="iconMap.plus" class="flex-none" />
           <div data-rec="true">{{ $t('general.add') }}</div>
@@ -55,16 +55,16 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
 </template>
 
 <style scoped lang="scss">
-.nc-button:not([disabled]) {
-  @apply !text-gray-500;
-}
-
 .ant-input {
   box-shadow: none !important;
 
   &:hover {
     @apply !hover:bg-gray-50;
   }
+}
+
+.delete-btn:not([disabled]) {
+  @apply !text-gray-500;
 }
 
 .ant-input::placeholder {
@@ -75,7 +75,15 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
   @apply text-gray-500 !text-md;
 }
 
+:deep(.ant-input.nc-webhook-header-value-input){
+  @apply !border-x-0;
+}
+
 .ant-input-affix-wrapper {
   @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+}
+
+.nc-btn-focus:focus {
+  @apply !text-brand-500 !shadow-none;
 }
 </style>

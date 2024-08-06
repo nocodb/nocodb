@@ -29,7 +29,7 @@ const deleteParamRow = (i: number) => {
         <a-input
           v-model:value="paramRow.value"
           :placeholder="$t('placeholder.value')"
-          class="!border-x-0 !border-gray-200 !rounded-none"
+          class="nc-webhook-parameters-value-input !border-x-0 !border-gray-200 !rounded-none"
         />
       </a-form-item>
 
@@ -45,7 +45,7 @@ const deleteParamRow = (i: number) => {
     </div>
 
     <div>
-      <NcButton size="small" type="text" @click="addParamRow">
+      <NcButton size="small" type="text" @click="addParamRow" class="nc-btn-focus">
         <div class="flex flex-row items-center gap-x-2">
           <component :is="iconMap.plus" class="flex-none" />
           <div data-rec="true">{{ $t('general.add') }}</div>
@@ -64,7 +64,7 @@ const deleteParamRow = (i: number) => {
   }
 }
 
-.nc-button:not([disabled]) {
+.delete-btn:not([disabled]) {
   @apply !text-gray-500;
 }
 
@@ -76,7 +76,15 @@ const deleteParamRow = (i: number) => {
   @apply text-gray-500 !text-md;
 }
 
+:deep(.ant-input.nc-webhook-parameters-value-input){
+  @apply !border-x-0;
+}
+
 .ant-input-affix-wrapper {
   @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+}
+
+.nc-btn-focus:focus {
+  @apply !text-brand-500 !shadow-none;
 }
 </style>

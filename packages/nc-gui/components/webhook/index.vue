@@ -538,6 +538,14 @@ onMounted(async () => {
     }
   }, 50)
 })
+
+const editorRef = ref()
+
+const formatJson = () => {
+  if (editorRef.value) {
+    editorRef.value?.format()
+  }
+}
 </script>
 
 <template>
@@ -735,32 +743,36 @@ onMounted(async () => {
                         :validate="false"
                         class="min-h-60 max-h-80 !rounded-lg"
                         :monaco-config="{
-                          'minimap': {
+                          minimap: {
                             enabled: false,
                           },
-                          'padding': {
+                          padding: {
                             top: 8,
                             bottom: 8,
                           },
-                          'fontSize': 14.5,
-                          'overviewRulerBorder': false,
-                          'overviewRulerLanes': 0,
-                          'hideCursorInOverviewRuler': true,
-                          'lineDecorationsWidth': 8,
-                          'lineNumbersMinChars': 0,
-                          'roundedSelection': false,
-                          'selectOnLineNumbers': false,
-                          'scrollBeyondLastLine': false,
-                          'contextmenu': false,
-                          'glyphMargin': false,
-                          'folding': false,
-                          'bracketPairColorization.enabled': false,
-                          'wordWrap': 'on',
-                          'scrollbar': {
-                            horizontal: 'hidden',
+                          fontSize: 14.5,
+                          overviewRulerBorder: false,
+                          overviewRulerLanes: 0,
+                          hideCursorInOverviewRuler: true,
+                          lineDecorationsWidth: 8,
+                          lineNumbersMinChars: 0,
+                          roundedSelection: false,
+                          selectOnLineNumbers: false,
+                          scrollBeyondLastLine: false,
+                          contextmenu: false,
+                          glyphMargin: false,
+                          folding: false,
+                          bracketPairColorization: {
+                            enabled: false,
                           },
-                          'wrappingStrategy': 'advanced',
-                          'renderLineHighlight': 'none',
+                          wordWrap: 'on',
+                          scrollbar: {
+                            horizontal: 'hidden',
+                            verticalScrollbarSize: 6,
+                          },
+                          wrappingStrategy: 'advanced',
+                          renderLineHighlight: 'none',
+                          tabSize: 4,
                         }"
                       />
                     </div>
@@ -858,70 +870,74 @@ onMounted(async () => {
               </div>
             </a-form-item>
 
-          <div>
+            <div>
+              <div class="flex items-center justify-between">
+                <NcButton type="text" class="mb-3" size="small" @click="toggleSamplePayload()">
+                  <div class="flex items-center gap-3">
+                    Sample Payload
 
-         
-            <NcButton type="text" class="mb-3" size="small" @click="toggleSamplePayload()">
-              <div class="flex items-center gap-3">
-                Sample Payload
-
-                <GeneralIcon
-                  class="transition-transform"
-                  :class="{
-                    'transform rotate-180': isVisible,
+                    <GeneralIcon
+                      class="transition-transform"
+                      :class="{
+                        'transform rotate-180': isVisible,
+                      }"
+                      icon="arrowDown"
+                    />
+                  </div>
+                </NcButton>
+                <NcButton v-if="isVisible" size="xsmall" type="secondary" class="!px-2" @click="formatJson"> Beatufy </NcButton>
+              </div>
+              <div v-show="isVisible">
+                <LazyMonacoEditor
+                  ref="editorRef"
+                  v-model="sampleData"
+                  :monaco-config="{
+                    minimap: {
+                      enabled: false,
+                    },
+                    fontSize: 14.5,
+                    overviewRulerBorder: false,
+                    overviewRulerLanes: 0,
+                    hideCursorInOverviewRuler: true,
+                    lineDecorationsWidth: 12,
+                    lineNumbersMinChars: 0,
+                    roundedSelection: false,
+                    selectOnLineNumbers: false,
+                    scrollBeyondLastLine: false,
+                    contextmenu: false,
+                    glyphMargin: false,
+                    folding: false,
+                    bracketPairColorization: { enabled: false },
+                    wordWrap: 'on',
+                    scrollbar: {
+                      horizontal: 'hidden',
+                      verticalScrollbarSize: 6,
+                    },
+                    wrappingStrategy: 'advanced',
+                    renderLineHighlight: 'none',
+                    tabSize: 4,
                   }"
-                  icon="arrowDown"
+                  :monaco-custom-theme="{
+                    base: 'vs',
+                    inherit: true,
+                    rules: [
+                      { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
+                      { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
+                      { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
+                      { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
+                      { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
+                    ],
+                    colors: {},
+                  }"
+                  class="transition-all border-1 rounded-lg"
+                  style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                  :class="{
+                    'w-0 min-w-0': !isVisible,
+                    'min-h-60 max-h-80': isVisible,
+                  }"
                 />
               </div>
-            </NcButton>
-            <div v-show="isVisible">
-              <LazyMonacoEditor
-                v-model="sampleData"
-                :monaco-config="{
-                  'minimap': {
-                    enabled: false,
-                  },
-                  'fontSize': 14.5,
-                  'overviewRulerBorder': false,
-                  'overviewRulerLanes': 0,
-                  'hideCursorInOverviewRuler': true,
-                  'lineDecorationsWidth': 8,
-                  'lineNumbersMinChars': 0,
-                  'roundedSelection': false,
-                  'selectOnLineNumbers': false,
-                  'scrollBeyondLastLine': false,
-                  'contextmenu': false,
-                  'glyphMargin': false,
-                  'folding': false,
-                  'bracketPairColorization.enabled': false,
-                  'wordWrap': 'on',
-                  'scrollbar': {
-                    horizontal: 'hidden',
-                  },
-                  'wrappingStrategy': 'advanced',
-                  'renderLineHighlight': 'none',
-                }"
-                :monaco-custom-theme="{
-                  base: 'vs',
-                  inherit: true,
-                  rules: [
-                    { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
-                    { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
-                    { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
-                    { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
-                    { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
-                  ],
-                  colors: {},
-                }"
-                class="transition-all border-1 rounded-lg"
-                style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-                :class="{
-                  'w-0 min-w-0': !isVisible,
-                  'min-h-60 max-h-80': isVisible,
-                }"
-              />
             </div>
-          </div>
           </a-form>
         </div>
       </div>

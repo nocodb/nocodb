@@ -12,7 +12,7 @@ interface Props {
   disableDeepCompare?: boolean
   readOnly?: boolean
   autoFocus?: boolean
-  monacoConfig?: Partial<MonacoEditor.IEditorOptions>
+  monacoConfig?: Partial<MonacoEditor.IStandaloneEditorConstructionOptions>
   monacoCustomTheme?: Partial<MonacoEditor.IStandaloneThemeData>
 }
 
@@ -22,8 +22,8 @@ const props = withDefaults(defineProps<Props>(), {
   validate: true,
   disableDeepCompare: false,
   autoFocus: true,
-  monacoConfig: {} as Partial<MonacoEditor.IEditorOptions>,
-  monacoCustomTheme: {} as Partial<MonacoEditor.IStandaloneThemeData>,
+  monacoConfig: () => ({} as Partial<MonacoEditor.IStandaloneEditorConstructionOptions>),
+  monacoCustomTheme: () => ({} as Partial<MonacoEditor.IStandaloneThemeData>),
 })
 
 const emits = defineEmits(['update:modelValue'])
@@ -59,8 +59,13 @@ const root = ref<HTMLDivElement>()
 
 let editor: MonacoEditor.IStandaloneCodeEditor
 
-const format = () => {
-  editor.setValue(JSON.stringify(JSON.parse(editor?.getValue() as string), null, 2))
+const format = (space = monacoConfig.tabSize || 2) => {
+  try {
+    const parsedValue = JSON.parse(editor?.getValue() as string)
+    editor.setValue(JSON.stringify(parsedValue, null, space))
+  } catch (error: unknown) {
+    console.error('Failed to parse and format JSON:', error)
+  }
 }
 
 defineExpose({
@@ -100,7 +105,7 @@ onMounted(async () => {
         horizontalScrollbarSize: 1,
       },
       lineNumbers: 'off',
-      tabSize: 2,
+      tabSize: monacoConfig.tabSize || 2,
       automaticLayout: true,
       readOnly,
       bracketPairColorization: {
@@ -110,6 +115,7 @@ onMounted(async () => {
       minimap: {
         enabled: !hideMinimap,
       },
+      ...(lang === 'json' ? { detectIndentation: false, insertSpaces: true } : {}),
       ...monacoConfig,
     })
 
@@ -133,6 +139,10 @@ onMounted(async () => {
     if (!isDrawerOrModalExist() && autoFocus) {
       // auto focus on json cells only
       editor.focus()
+    }
+
+    if (lang === 'json') {
+      format()
     }
   }
 })

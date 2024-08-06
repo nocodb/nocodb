@@ -25,7 +25,11 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
         />
       </a-form-item>
       <a-form-item class="form-item w-3/6">
-        <a-input v-model:value="headerRow.value" :placeholder="$t('placeholder.value')" class="!border-x-0 border-gray-200 !rounded-none" />
+        <a-input
+          v-model:value="headerRow.value"
+          :placeholder="$t('placeholder.value')"
+          class="!border-x-0 border-gray-200 !rounded-none"
+        />
       </a-form-item>
 
       <NcButton

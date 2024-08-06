@@ -509,7 +509,7 @@ onMounted(async () => {
       <div class="flex w-full items-center p-4 justify-between">
         <div class="flex items-center gap-3">
           <GeneralIcon class="text-gray-900 text-2xl" icon="webhook" />
-          <span class="text-gray-900 font-semibold text-2xl">
+          <span class="text-gray-900 font-semibold text-xl">
             {{ !hook ? $t('activity.newWebhook') : $t('activity.webhookDetails') }}
           </span>
         </div>
@@ -544,7 +544,7 @@ onMounted(async () => {
               <a-form-item class="w-1/3" v-bind="validateInfos.eventOperation">
                 <a-select
                   v-model:value="hookRef.eventOperation"
-                  size="large"
+                  size="medium"
                   :placeholder="$t('general.event')"
                   class="nc-text-field-hook-event !h-9 capitalize"
                   dropdown-class-name="nc-dropdown-webhook-event"
@@ -574,7 +574,7 @@ onMounted(async () => {
               <a-form-item class="w-2/3" v-bind="validateInfos['notification.type']">
                 <a-select
                   v-model:value="hookRef.notification.type"
-                  size="large"
+                  size="medium"
                   :disabled="isEeUI"
                   class="nc-select-hook-notification-type !h-9"
                   :placeholder="$t('general.notification')"
@@ -621,7 +621,7 @@ onMounted(async () => {
                   <a-form-item class="w-1/3">
                     <a-select
                       v-model:value="hookRef.notification.payload.method"
-                      size="large"
+                      size="medium"
                       class="nc-select-hook-url-method"
                       dropdown-class-name="nc-dropdown-hook-notification-url-method"
                     >
@@ -646,7 +646,7 @@ onMounted(async () => {
                   <a-form-item class="w-2/3" v-bind="validateInfos['notification.payload.path']">
                     <a-input
                       v-model:value="hookRef.notification.payload.path"
-                      size="large"
+                      size="medium"
                       placeholder="http://example.com"
                       class="nc-text-field-hook-url-path h-9 !rounded-md"
                     />

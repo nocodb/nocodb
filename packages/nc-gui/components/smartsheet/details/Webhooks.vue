@@ -270,8 +270,8 @@ const customRow = (hook: HookType) => {
             class="h-full"
           >
             <template #bodyCell="{ column, record: hook }">
-              <div v-if="column.key === 'active'" @click.stop>
-                <NcSwitch v-e="['c:actions:webhook']" size="small" :checked="!!hook.active" @change="toggleHook(hook)" />
+              <div v-if="column.key === 'active'" v-e="['c:actions:webhook']" @click.stop >
+                <NcSwitch size="small" :checked="!!hook.active" @change="toggleHook(hook)" />
               </div>
               <template v-if="column.key === 'name'">
                 <NcTooltip class="truncate max-w-full text-gray-800 font-semibold text-sm" show-on-truncate-only>

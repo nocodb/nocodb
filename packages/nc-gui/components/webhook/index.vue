@@ -538,14 +538,6 @@ onMounted(async () => {
     }
   }, 50)
 })
-
-const editorRef = ref()
-
-const formatJson = () => {
-  if (editorRef.value) {
-    editorRef.value?.format()
-  }
-}
 </script>
 
 <template>
@@ -885,11 +877,9 @@ const formatJson = () => {
                     />
                   </div>
                 </NcButton>
-                <NcButton v-if="isVisible" size="xsmall" type="secondary" class="!px-2" @click="formatJson"> Beatufy </NcButton>
               </div>
               <div v-show="isVisible">
                 <LazyMonacoEditor
-                  ref="editorRef"
                   v-model="sampleData"
                   :monaco-config="{
                     minimap: {
@@ -1102,5 +1092,8 @@ const formatJson = () => {
 :deep(input::placeholder),
 :deep(textarea::placeholder) {
   @apply text-gray-500;
+}
+:deep(.nc-tabs .ant-tabs-nav){
+  @apply pl-0;
 }
 </style>

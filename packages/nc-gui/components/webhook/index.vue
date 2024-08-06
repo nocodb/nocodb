@@ -1136,4 +1136,8 @@ onMounted(async () => {
 :deep(.ant-select-multiple .ant-select-selection-item-remove>.anticon){
   vertical-align: 0px !important;
 }
+
+:deep(.mtk1){
+  @apply text-[#000000D9];
+}
 </style>

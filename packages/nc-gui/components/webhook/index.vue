@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import type { HookReqType, HookType } from 'nocodb-sdk'
+import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
-import { Form, iconMap, ref } from '#imports'
 
 interface Props {
   value: boolean
@@ -16,7 +15,7 @@ const emits = defineEmits(['close'])
 
 const { t } = useI18n()
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
 
@@ -29,8 +28,6 @@ const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
 
 const defaultHookName = t('labels.webhook')
-
-const webhookTestRef = ref()
 
 const testSuccess = ref()
 
@@ -442,16 +439,55 @@ async function saveHooks() {
 
 const isTestLoading = ref(false)
 
+const sampleData = ref()
+
+const containerElem = ref()
+
+const [isVisible, toggleVisibility] = useToggle()
+
+const toggleSamplePayload = () => {
+  toggleVisibility()
+  nextTick(() => {
+    if (isVisible.value) {
+      containerElem.value.scrollTop = containerElem.value.scrollHeight
+    }
+  })
+}
+
 async function testWebhook() {
   try {
     testSuccess.value = false
     isTestLoading.value = true
-    await webhookTestRef.value.testWebhook()
+    await $api.dbTableWebhook.test(
+      meta.value?.id as string,
+      {
+        hook: hookRef,
+        payload: sampleData.value,
+      } as HookTestReqType,
+    )
+    testSuccess.value = true
+
+    message.success(t('msg.success.webhookTested'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isTestLoading.value = false
   }
+}
+
+watch(
+  () => hookRef?.operation,
+  async () => {
+    await loadSampleData()
+  },
+)
+
+async function loadSampleData() {
+  sampleData.value = await $api.dbTableWebhook.samplePayloadGet(
+    meta?.value?.id as string,
+    hookRef?.operation || 'insert',
+    hookRef.version!,
+  )
 }
 
 const getDefaultHookName = (hooks: HookType[]) => {
@@ -514,13 +550,32 @@ onMounted(async () => {
           </span>
         </div>
 
-        <NcButton type="text" size="small" @click="modalVisible = false">
-          <GeneralIcon icon="close" />
-        </NcButton>
+        <div class="flex justify-end items-center gap-3">
+          <NcButton :loading="isTestLoading" type="secondary" size="small" @click="testWebhook">
+            <div class="flex items-center gap-2">
+              <GeneralIcon v-if="testSuccess" icon="circleCheck" class="text-primary mr-2" style="color: green" />
+              <span :style="testSuccess ? 'color: green;' : ''">
+                {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
+              </span>
+            </div>
+          </NcButton>
+
+          <NcButton :loading="loading" :disabled="!testSuccess" type="primary" size="small" @click="saveHooks">
+            {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
+          </NcButton>
+
+          <NcButton type="text" size="small" @click="modalVisible = false">
+            <GeneralIcon icon="close" />
+          </NcButton>
+        </div>
       </div>
     </template>
-    <div class="flex bg-white">
-      <div style="height: calc(min(68vh, 800px))" class="flex-1 flex flex-col overflow-y-auto px-12 py-6 mx-auto">
+    <div class="flex bg-white rounded-b-2xl">
+      <div
+        ref="containerElem"
+        style="height: calc(min(68vh, 800px))"
+        class="flex-1 flex flex-col overflow-y-auto scroll-smooth px-12 py-6 mx-auto"
+      >
         <div style="max-width: 700px; min-width: 684px" class="mx-auto gap-8 flex flex-col">
           <a-form-item v-bind="validateInfos.title">
             <div
@@ -664,15 +719,19 @@ onMounted(async () => {
                   </a-tab-pane>
 
                   <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
-                    <div class="border-1 rounded-md">
+                    <div class="border-1 mt-1 !rounded-md">
                       <LazyMonacoEditor
                         v-model="hookRef.notification.payload.body"
                         disable-deep-compare
                         :validate="false"
-                        class="min-h-60 max-h-80"
+                        class="min-h-60 max-h-80 !rounded-md"
                         :monaco-config="{
                           'minimap': {
                             enabled: false,
+                          },
+                          'padding': {
+                            top: 8,
+                            bottom: 8,
                           },
                           'fontSize': 14.5,
                           'overviewRulerBorder': false,
@@ -789,74 +848,111 @@ onMounted(async () => {
                 </div>
               </div>
             </a-form-item>
+            <NcButton class="!w-full justify-between" type="text" size="small" @click="toggleSamplePayload()">
+              <div class="flex items-center min-w-full justify-between">
+                Sample Payload
 
-            <LazyWebhookTest
-              ref="webhookTestRef"
-              :hook="{
-                ...hookRef,
-                notification: {
-                  ...hookRef.notification,
-                  payload: hookRef.notification.payload,
+                <GeneralIcon
+                  class="transition-transform"
+                  :class="{
+                    'transform rotate-180': isVisible,
+                  }"
+                  icon="arrowDown"
+                />
+              </div>
+            </NcButton>
+            <LazyMonacoEditor
+              v-show="isVisible"
+              v-model="sampleData"
+              :monaco-config="{
+                'minimap': {
+                  enabled: false,
                 },
+                'fontSize': 14.5,
+                'overviewRulerBorder': false,
+                'overviewRulerLanes': 0,
+                'hideCursorInOverviewRuler': true,
+                'lineDecorationsWidth': 8,
+                'lineNumbersMinChars': 0,
+                'roundedSelection': false,
+                'selectOnLineNumbers': false,
+                'scrollBeyondLastLine': false,
+                'contextmenu': false,
+                'glyphMargin': false,
+                'folding': false,
+                'bracketPairColorization.enabled': false,
+                'wordWrap': 'on',
+                'scrollbar': {
+                  horizontal: 'hidden',
+                },
+                'wrappingStrategy': 'advanced',
+                'renderLineHighlight': 'none',
               }"
-              @error="testSuccess = false"
-              @success="testSuccess = true"
+              :monaco-custom-theme="{
+                base: 'vs',
+                inherit: true,
+                rules: [
+                  { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
+                  { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
+                  { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
+                  { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
+                  { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
+                ],
+                colors: {},
+              }"
+              class="transition-all border-1 rounded-lg"
+              :class="{
+                'w-0 min-w-0': !isVisible,
+                'min-h-60 max-h-80': isVisible,
+              }"
             />
           </a-form>
         </div>
       </div>
 
-      <div class="bg-gray-50 border-l-1 w-80 p-5 border-gray-200">
+      <div class="bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
         <h1 class="text-gray-900 font-semibold">
           {{ $t('labels.supportDocs') }}
         </h1>
         <div class="flex flex-col gap-1">
-          <div class="flex items-center gap-1">
-            <GeneralIcon class="text-gray-700" icon="book" />
-            Configure a URL webhooks
-          </div>
-          <div class="flex items-center gap-1">
-            <GeneralIcon class="text-gray-700" icon="book" />
-            Getting started with webhooks
-          </div>
-          <div class="flex items-center gap-1">
-            <GeneralIcon class="text-gray-700" icon="book" />
-            Testing webhook connections
-          </div>
+          <NuxtLink target="_blank" href="https://docs.nocodb.com/automation/webhook/webhook-overview">
+            <div class="flex items-center gap-1">
+              <GeneralIcon class="text-gray-700" icon="book" />
+              Configure a URL webhooks
+            </div>
+          </NuxtLink>
+          <NuxtLink target="_blank" href="https://docs.nocodb.com/automation/webhook/create-webhook/">
+            <div class="flex items-center gap-1">
+              <GeneralIcon class="text-gray-700" icon="book" />
+              Getting started with webhooks
+            </div>
+          </NuxtLink>
         </div>
       </div>
-    </div>
-
-    <div class="flex w-full justify-end rounded-b-2xl gap-2 bg-white border-t-1 border-gray-200 items-center p-4">
-      <NcButton :loading="isTestLoading" type="secondary" size="small" @click="testWebhook">
-        <div class="flex items-center gap-2">
-          <GeneralIcon v-if="testSuccess" icon="circleCheck" class="text-primary mr-2" style="color: green" />
-          <span :style="testSuccess ? 'color: green;' : ''">
-            {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
-          </span>
-        </div>
-      </NcButton>
-
-      <NcButton :loading="loading" :disabled="!testSuccess" type="primary" size="small" @click="saveHooks">
-        {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
-      </NcButton>
     </div>
   </NcModal>
 </template>
 
 <style lang="scss">
 .nc-modal-webhook-create-edit {
+  a {
+    @apply !no-underline !text-gray-700 !hover:text-primary;
+  }
   .nc-modal {
     @apply !p-0;
   }
 
   .nc-modal-header {
-    @apply !mb-0;
+    @apply !mb-0 !pb-0;
   }
 }
 </style>
 
 <style scoped lang="scss">
+.nc-button :not(.nc-icon):not(.material-symbols) {
+  @apply !w-full;
+}
+
 .title-input {
   &:focus-within {
     @apply transition-all duration-0.3s border-b-brand-500;

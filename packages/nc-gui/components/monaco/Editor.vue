@@ -164,4 +164,13 @@ watch(
   <div ref="root"></div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+:deep(.monaco-editor) {
+  background-color: transparent !important;
+  border-radius: 8px !important;
+}
+
+:deep(.overflow-guard) {
+  border-radius: 8px !important;
+}
+</style>

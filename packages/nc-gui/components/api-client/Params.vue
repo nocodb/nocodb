@@ -59,6 +59,10 @@ const deleteParamRow = (i: number) => {
   }
 }
 
+.nc-button:not([disabled]) {
+  @apply !text-gray-500;
+}
+
 .ant-input::placeholder {
   @apply text-gray-500;
 }

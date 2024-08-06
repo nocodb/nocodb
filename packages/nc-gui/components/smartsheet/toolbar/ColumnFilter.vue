@@ -665,13 +665,12 @@ const changeToDynamic = async (filter, i) => {
               v-model:value="filter.logical_op"
               v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
               :dropdown-match-select-width="false"
-              class="h-full !max-w-18 capitalize"
+              class="h-full !max-w-18 !min-w-18 capitalize"
               hide-details
               :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
               :class="{
                 'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed),
-                '!min-w-18': !webHook,
               }"
               @change="onLogicalOpUpdate(filter, i)"
               @click.stop

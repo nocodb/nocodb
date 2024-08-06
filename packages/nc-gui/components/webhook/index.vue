@@ -619,7 +619,7 @@ onMounted(async () => {
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-12 py-6 mx-auto"
       >
-        <div style="max-width: 700px; min-width: 684px" class="mx-auto gap-8 flex flex-col">
+        <div style="max-width: 700px; min-width: 640px" class="mx-auto gap-8 flex flex-col">
           <a-form-item v-bind="validateInfos.title">
             <div
               class="flex flex-grow px-2 py-1 title-input items-center border-b-1 rounded-t-md border-gray-200 bg-gray-100"

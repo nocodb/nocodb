@@ -854,9 +854,7 @@ onMounted(async () => {
             <div v-if="isConditionSupport">
               <div class="w-full cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                 <NcSwitch :checked="Boolean(hookRef.condition)">
-                  <span class="!text-gray-700 font-semibold">
-                   {{ $t('general.trigger') }} {{ $t('activity.onCondition') }}
-                  </span>
+                  <span class="!text-gray-700 font-semibold"> {{ $t('general.trigger') }} {{ $t('activity.onCondition') }} </span>
                 </NcSwitch>
               </div>
 
@@ -1133,11 +1131,11 @@ onMounted(async () => {
     @apply pt-1 pb-1.5;
   }
 }
-:deep(.ant-select-multiple .ant-select-selection-item-remove>.anticon){
+:deep(.ant-select-multiple .ant-select-selection-item-remove > .anticon) {
   vertical-align: 0px !important;
 }
 
-:deep(.mtk1){
+:deep(.mtk1) {
   @apply text-[#000000D9];
 }
 </style>

@@ -24,7 +24,7 @@ export class WebhookFormPage extends BasePage {
   }
 
   get() {
-    return this.dashboard.get().locator(`.nc-view-sidebar-webhook`);
+    return this.dashboard.get().locator(`.nc-modal-webhook-create-edit`);
   }
 
   async create({ title, event, url = 'http://localhost:9090/hook' }: { title: string; event: string; url?: string }) {

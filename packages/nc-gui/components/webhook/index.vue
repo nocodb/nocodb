@@ -558,8 +558,8 @@ onMounted(async () => {
             </template>
             <NcButton :loading="isTestLoading" type="secondary" size="small" icon-position="right" @click="testWebhook">
               <template #icon>
-                <GeneralIcon v-if="testSuccess" icon="circleCheck2" class="!text-green-500 w-4 h-4 flex-none" />
-                <GeneralIcon v-else-if="testConnectionError" icon="info" class="!text-red-500 w-4 h-4 flex-none" />
+                <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4 flex-none" />
+                <GeneralIcon v-else-if="testConnectionError" icon="alertTriangleSolid" class="!text-red-700 w-4 h-4 flex-none" />
               </template>
               <span>
                 {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
@@ -567,7 +567,7 @@ onMounted(async () => {
             </NcButton>
           </NcTooltip>
 
-          <NcButton :loading="loading" :disabled="!testSuccess" type="primary" size="small" @click="saveHooks">
+          <NcButton :loading="loading" type="primary" size="small" @click="saveHooks">
             {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
           </NcButton>
 
@@ -596,7 +596,7 @@ onMounted(async () => {
                 :contenteditable="true"
                 @keydown.enter="titleDomRef?.blur()"
               />
-              <GeneralIcon icon="edit" class="cursor-text" @click="titleDomRef?.focus()" />
+              <GeneralIcon icon="rename" class="cursor-text" @click="titleDomRef?.focus()" />
             </div>
           </a-form-item>
 
@@ -709,7 +709,7 @@ onMounted(async () => {
                       v-model:value="hookRef.notification.payload.path"
                       size="medium"
                       placeholder="http://example.com"
-                      class="nc-text-field-hook-url-path h-9 !rounded-md"
+                      class="nc-text-field-hook-url-path nc-input-shadow h-9 !rounded-md"
                     />
                   </a-form-item>
                 </div>

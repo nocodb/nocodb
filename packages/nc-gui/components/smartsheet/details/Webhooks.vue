@@ -5,7 +5,13 @@ import dayjs from 'dayjs'
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Webhook')
+const {
+  sorts,
+  sortDirection,
+  loadSorts,
+  handleGetSortedData,
+  saveOrUpdate: saveOrUpdateSort,
+} = useUserSorts('Webhook')
 
 const selectedHook = ref<undefined | HookType>()
 
@@ -14,6 +20,8 @@ const { hooks, isHooksLoading } = storeToRefs(useWebhooksStore())
 const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks } = useWebhooksStore()
 
 const { activeView } = storeToRefs(useViewsStore())
+
+const { t } = useI18n()
 
 const isWebhookModalOpen = ref(false)
 
@@ -128,6 +136,69 @@ const onModalClose = () => {
 onMounted(async () => {
   loadSorts()
 })
+
+const orderBy = computed<Record<string, SordDirectionType>>({
+  get: () => {
+    return sortDirection.value
+  },
+  set: (value: Record<string, SordDirectionType>) => {
+    // Check if value is an empty object
+    if (Object.keys(value).length === 0) {
+      saveOrUpdateSort({})
+      return
+    }
+
+    const [field, direction] = Object.entries(value)[0]
+
+    saveOrUpdateSort({
+      field,
+      direction,
+    })
+  },
+})
+
+const columns: NcTableColumnProps[] = [
+  {
+    key: 'active',
+    title: t('general.active'),
+    width: 90,
+    minWidth: 90,
+  },
+  {
+    key: 'name',
+    title: t('general.name'),
+    minWidth: 252,
+    showOrderBy: true,
+    dataIndex: 'title',
+  },
+  {
+    key: 'type',
+    title: t('general.type'),
+    width: 240,
+    minWidth: 240,
+    showOrderBy: false,
+  },
+  {
+    key: 'created_at',
+    title: t('labels.addedOn'),
+    width: 180,
+    minWidth: 180,
+    showOrderBy: true,
+    dataIndex: 'created_at',
+  },
+  {
+    key: 'action',
+    title: '',
+    width: 80,
+    minWidth: 80,
+  },
+]
+
+const customRow = (hook: HookType) => {
+  return {
+    onClick: () => editHook(hook),
+  }
+}
 </script>
 
 <template>
@@ -161,7 +232,13 @@ onMounted(async () => {
             </NcButton>
           </div>
 
-          <NcButton v-e="['c:actions:webhook']" type="secondary" size="small" class="!text-brand-500 !hover:text-brand-600" @click="createWebhook">
+          <NcButton
+            v-e="['c:actions:webhook']"
+            type="secondary"
+            size="small"
+            class="!text-brand-500 !hover:text-brand-600"
+            @click="createWebhook"
+          >
             <div class="flex gap-2 items-center">
               <GeneralIcon icon="plus" />
               {{ $t('activity.newWebhook') }}
@@ -169,70 +246,51 @@ onMounted(async () => {
           </NcButton>
         </div>
 
-        <div style="height: calc(100vh - (var(--topbar-height) * 3.5))" class="border-1 rounded-xl border-gray-200">
-          <div v-if="!hooks.length" class="flex-col flex items-center gap-6 justify-center w-full h-full py-12 px-4">
+        <div style="height: calc(100vh - (var(--topbar-height) * 3.5))" class="">
+          <div
+            v-if="!hooks.length"
+            class="flex-col flex items-center gap-6 justify-center w-full h-full py-12 px-4 border-1 rounded-xl border-gray-200"
+          >
             <div class="text-gray-700 font-bold text-center text-2xl">{{ $t('msg.createWebhookMsg1') }}</div>
             <div class="text-gray-700 text-center max-w-[24rem]">{{ $t('msg.createWebhookMsg2') }}</div>
             <NcButton v-e="['c:actions:webhook']" class="flex max-w-40" type="primary" size="small" @click="createWebhook()">
               <div class="flex items-center gap-2">
-                <GeneralIcon icon="plus" class="flex-none"/>
+                <GeneralIcon icon="plus" class="flex-none" />
                 <span>{{ $t('activity.newWebhook') }}</span>
               </div>
             </NcButton>
           </div>
 
-          <div v-else style="height: calc(100vh - (var(--topbar-height) * 3.5))" class="nc-scrollbar-md overflow-y-auto">
-            <div class="sticky rounded-t-xl border-b-1 flex h-13.5 bg-gray-50">
-              <div class="py-3 w-19 px-6"></div>
-              <LazyAccountHeaderWithSorter
-                :active-sort="sorts"
-                :header="$t('general.name')"
-                :toggle-sort="toggleSort"
-                class="text-gray-500 w-full flex-1 px-6 py-3 flex items-center space-x-2"
-                field="title"
-              />
-
-              <div class="text-gray-500 w-full flex-1 px-6 py-3 flex items-center space-x-2">
-                {{ $t('general.type') }}
-              </div>
-
-              <LazyAccountHeaderWithSorter
-                :active-sort="sorts"
-                :header="$t('labels.addedOn')"
-                :toggle-sort="toggleSort"
-                class="text-gray-500 w-full flex-1 px-6 py-3 flex items-center space-x-2"
-                field="created_at"
-              />
-              <div class="py-3 w-20 px-6"></div>
-            </div>
-
-            <div
-              v-for="hook in sortedHooks"
-              :key="hook.id"
-              class="flex max-h-13.5 border-gray-100 border-b-1 transition cursor-pointer hover:bg-gray-50"
-            >
-              <div class="py-3 w-19 px-6">
+          <NcTable
+            v-else
+            :columns="columns"
+            :data="sortedHooks"
+            v-model:order-by="orderBy"
+            :custom-row="customRow"
+            class="h-full"
+          >
+            <template #bodyCell="{ column, record: hook }">
+              <div v-if="column.key === 'active'" @click.stop>
                 <NcSwitch v-e="['c:actions:webhook']" size="small" :checked="!!hook.active" @change="toggleHook(hook)" />
               </div>
-              <div class="text-gray-800 font-semibold w-full flex-1 px-6 py-3 flex items-center space-x-2">
-                <NcTooltip class="truncate whitespace-no-wrap max-w-58 overflow-hidden" show-on-truncate-only>
+              <template v-if="column.key === 'name'">
+                <NcTooltip class="truncate max-w-full text-gray-800 font-semibold text-sm" show-on-truncate-only>
                   {{ hook.title }}
 
                   <template #title>
                     {{ hook.title }}
                   </template>
                 </NcTooltip>
-              </div>
-              <div class="text-gray-600 w-full capitalize flex-1 px-6 py-3 flex items-center space-x-2">
+              </template>
+              <template v-if="column.key === 'type'">
                 {{ hook.event === 'after' ? $t('general.on') : 'before' }} {{ hook.operation }}
-              </div>
-
-              <div class="text-gray-600 w-full capitalize flex-1 px-6 py-3 flex items-center space-x-2">
+              </template>
+              <template v-if="column.key === 'created_at'">
                 {{ dayjs(hook.created_at).format('DD MMM YYYY') }}
-              </div>
-              <div class="py-3 w-20 px-6">
+              </template>
+              <template v-if="column.key === 'action'">
                 <NcDropdown>
-                  <NcButton type="secondary" size="small" class="!w-8 !h-8">
+                  <NcButton type="secondary" size="small" class="!w-8 !h-8" @click.stop>
                     <component :is="iconMap.threeDotVertical" class="text-gray-700" />
                   </NcButton>
                   <template #overlay>
@@ -262,9 +320,9 @@ onMounted(async () => {
                     </NcMenu>
                   </template>
                 </NcDropdown>
-              </div>
-            </div>
-          </div>
+              </template>
+            </template>
+          </NcTable>
         </div>
         <GeneralDeleteModal v-model:visible="showDeleteModal" :entity-name="$t('objects.webhook')" :on-delete="deleteHook">
           <template #entity-preview>

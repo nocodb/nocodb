@@ -125,7 +125,7 @@ const onCreateBaseClick = () => {
         data-testid="proj-view-btn__add-new-table"
         @click="openTableCreateDialog()"
       >
-        <GeneralIcon icon="addOutlineBox" class="!text-brand-500" />
+        <GeneralIcon icon="addOutlineBox" class="!w-8 !h-8 !text-brand-500" />
 
         <div class="flex flex-col gap-1">
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
@@ -141,7 +141,7 @@ const onCreateBaseClick = () => {
         data-testid="proj-view-btn__import-data"
         @click="isImportModalOpen = true"
       >
-        <GeneralIcon icon="download" class="!text-orange-700" />
+        <GeneralIcon icon="download" class="!w-7.5 !h-7.5 !text-orange-700" />
         <div class="flex flex-col gap-1">
           <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
 
@@ -167,7 +167,7 @@ const onCreateBaseClick = () => {
           }"
           @click="onCreateBaseClick"
         >
-          <GeneralIcon icon="server1" class="!text-green-700" />
+          <GeneralIcon icon="server1" class="!w-7 !h-7 !text-green-700" />
           <div class="flex flex-col gap-1">
             <div class="label">{{ $t('labels.connectDataSource') }}</div>
             <div class="subtext">In realtime to external databases.</div>

@@ -531,16 +531,18 @@ function handleAutoScroll(scroll: boolean, className: string) {
                   class="!-ml-1.5"
                   @click="handleUpdateAdvancedOptionsExpansionPanel(!advancedOptionsExpansionPanel.length)"
                 >
+                  <div class="nc-form-section-title">Advanced options</div>
+
                   <GeneralIcon
                     icon="chevronDown"
-                    class="flex-none cursor-pointer transform transition-transform duration-500"
+                    class="ml-2 flex-none cursor-pointer transform transition-transform duration-500"
                     :class="{ '!rotate-180': isActive }"
                   />
                 </NcButton>
               </template>
               <a-collapse-panel key="1" collapsible="disabled">
                 <template #header>
-                 <span></span>
+                  <span></span>
                 </template>
 
                 <div class="flex flex-col gap-4">

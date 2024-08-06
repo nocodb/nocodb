@@ -844,6 +844,7 @@ onMounted(async () => {
                 :show-loading="false"
                 :hook-id="hookRef.id"
                 :web-hook="true"
+                action-btn-type="secondary"
                 @update:filters-length="hookRef.condition = $event > 0"
               />
             </div>

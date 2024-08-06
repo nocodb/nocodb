@@ -43,8 +43,8 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
       </NcButton>
     </div>
 
-    <div>
-      <NcButton size="small" type="text" @click="addHeaderRow" class="nc-btn-focus">
+    <div class="mt-1.5">
+      <NcButton size="small" type="secondary" @click="addHeaderRow" class="nc-btn-focus">
         <div class="flex flex-row items-center gap-x-2">
           <component :is="iconMap.plus" class="flex-none" />
           <div data-rec="true">{{ $t('general.add') }}</div>

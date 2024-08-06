@@ -15,6 +15,7 @@ interface Props {
   isOpen?: boolean
   rootMeta?: any
   linkColId?: string
+  actionBtnType?: 'text' | 'secondary'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -26,6 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
   webHook: false,
   link: false,
   linkColId: undefined,
+  actionBtnType: 'text',
 })
 
 const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue'])
@@ -896,7 +898,7 @@ const changeToDynamic = async (filter, i) => {
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton size="small" type="text" class="nc-btn-focus" @click.stop="addFilter()">
+          <NcButton size="small" :type="actionBtnType" class="nc-btn-focus" @click.stop="addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
@@ -904,7 +906,7 @@ const changeToDynamic = async (filter, i) => {
             </div>
           </NcButton>
 
-          <NcButton v-if="nestedLevel < 5" class="nc-btn-focus" type="text" size="small" @click.stop="addFilterGroup()">
+          <NcButton v-if="nestedLevel < 5" class="nc-btn-focus" :type="actionBtnType" size="small" @click.stop="addFilterGroup()">
             <div class="flex items-center gap-1">
               <!-- Add Filter Group -->
               <component :is="iconMap.plus" />
@@ -922,7 +924,7 @@ const changeToDynamic = async (filter, i) => {
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton class="nc-btn-focus" size="small" type="text" @click.stop="addFilter()">
+          <NcButton class="nc-btn-focus" size="small" :type="actionBtnType" @click.stop="addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
@@ -933,7 +935,7 @@ const changeToDynamic = async (filter, i) => {
           <NcButton
             v-if="!link && !webHook && nestedLevel < 5"
             class="nc-btn-focus"
-            type="text"
+            :type="actionBtnType"
             size="small"
             @click.stop="addFilterGroup()"
           >

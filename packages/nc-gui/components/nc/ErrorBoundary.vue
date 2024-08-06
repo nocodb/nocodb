@@ -93,14 +93,12 @@ export default {
               ],
             ),
           ]),
-          duration: 10,
-          // type: 'error',
-          // prefixCls?: string;
-          // rootPrefixCls?: string;
-          // getPopupContainer?: (triggerNode: HTMLElement) => HTMLElement;
-          // style?: CSSProperties;
-          // class?: string;
-          // onClick?: (e: MouseEvent) => void;
+          duration: 5,
+          style: {
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+          },
         })
         return false
       }

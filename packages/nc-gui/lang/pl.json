@@ -93,6 +93,8 @@
     "none": "Brak"
   },
   "general": {
+    "on": "On",
+    "onMultiple": "On Multiple",
     "addLookupField": "Add {count} lookup fields",
     "role": "Rola",
     "general": "Ogólne",
@@ -272,6 +274,7 @@
     "use": "Użyj",
     "stack": "Stos",
     "ipAddress": "Adres IP",
+    "trigger": "Trigger",
     "integration": "Integration",
     "integrations": "Integrations",
     "connection": "Connection",
@@ -422,6 +425,7 @@
     "isNotNull": "Nie jest null"
   },
   "title": {
+    "searchWebhook": "Search webhook",
     "webcam": "Webcam",
     "uploadViaUrl": "Upload via URL",
     "localFiles": "Local Files",
@@ -557,6 +561,11 @@
     "directlyInRealTime": "Directly in real time"
   },
   "labels": {
+    "recordInsert": "Record Insert",
+    "recordUpdate": "Record Update",
+    "recordDelete": "Record Delete",
+    "supportDocs": "Support Docs",
+    "addedOn": "Added on",
     "changeDisplayValueField": "Change display value field",
     "selectYourNewTitleFor": "Select your new display value field for ",
     "searchDisplayValue": "Select display value field",
@@ -913,6 +922,7 @@
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
   },
   "activity": {
+    "webhookDetails": "Webhook Details",
     "hideWeekends": "Ukryj weekendy",
     "renameBase": "Zmień nazwę tabeli",
     "renameWorkspace": "Zmień nazwę przestrzeni roboczej",
@@ -1088,6 +1098,7 @@
     "addWebhook": "Dodaj nowy webhook",
     "enableWebhook": "Włącz webhook",
     "testWebhook": "Testuj webhook",
+    "createWebhook": "Create Webhook",
     "copyWebhook": "Kopiuj webhook",
     "deleteWebhook": "Usuń webhook",
     "newToken": "Dodaj nowy token",

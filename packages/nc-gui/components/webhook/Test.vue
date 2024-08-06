@@ -80,10 +80,43 @@ onMounted(async () => {
   <LazyMonacoEditor
     v-show="isVisible"
     v-model="sampleData"
-    monaco-config="{
-
-"
-    class="transition-all"
+    :monaco-config="{
+      'minimap': {
+        enabled: false,
+      },
+      'fontSize': 14.5,
+      'overviewRulerBorder': false,
+      'overviewRulerLanes': 0,
+      'hideCursorInOverviewRuler': true,
+      'lineDecorationsWidth': 8,
+      'lineNumbersMinChars': 0,
+      'roundedSelection': false,
+      'selectOnLineNumbers': false,
+      'scrollBeyondLastLine': false,
+      'contextmenu': false,
+      'glyphMargin': false,
+      'folding': false,
+      'bracketPairColorization.enabled': false,
+      'wordWrap': 'on',
+      'scrollbar': {
+        horizontal: 'hidden',
+      },
+      'wrappingStrategy': 'advanced',
+      'renderLineHighlight': 'none',
+    }"
+    :monaco-custom-theme="{
+      base: 'vs',
+      inherit: true,
+      rules: [
+        { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
+        { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
+        { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
+        { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
+        { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
+      ],
+      colors: {},
+    }"
+    class="transition-all border-1 rounded-lg"
     :class="{
       'w-0 min-w-0': !isVisible,
       'min-h-60 max-h-80': isVisible,

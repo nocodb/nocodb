@@ -12,7 +12,8 @@ interface Props {
   disableDeepCompare?: boolean
   readOnly?: boolean
   autoFocus?: boolean
-  monacoConfig?: MonacoEditor.IEditorOptions
+  monacoConfig?: Partial<MonacoEditor.IEditorOptions>
+  monacoCustomTheme?: Partial<MonacoEditor.IStandaloneThemeData>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -21,14 +22,15 @@ const props = withDefaults(defineProps<Props>(), {
   validate: true,
   disableDeepCompare: false,
   autoFocus: true,
-  monacoConfig: {},
+  monacoConfig: {} as Partial<MonacoEditor.IEditorOptions>,
+  monacoCustomTheme: {} as Partial<MonacoEditor.IStandaloneThemeData>,
 })
 
 const emits = defineEmits(['update:modelValue'])
 
 const { modelValue } = toRefs(props)
 
-const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus, monacoConfig } = props
+const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus, monacoConfig, monacoCustomTheme } = props
 
 const vModel = computed<string>({
   get: () => {
@@ -79,10 +81,17 @@ onMounted(async () => {
       })
     }
 
+    let isCustomTheme = false
+
+    if (Object.keys(monacoCustomTheme).length) {
+      monacoEditor.defineTheme('custom', monacoCustomTheme)
+      isCustomTheme = true
+    }
+
     editor = monacoEditor.create(root.value, {
       model,
       contextmenu: false,
-      theme: 'vs',
+      theme: isCustomTheme ? 'custom' : 'vs',
       foldingStrategy: 'indentation',
       selectOnLineNumbers: true,
       language: props.lang,

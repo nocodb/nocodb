@@ -858,8 +858,11 @@ onMounted(async () => {
               </div>
             </a-form-item>
 
-            <NcButton class="!w-full justify-between" type="text" size="small" @click="toggleSamplePayload()">
-              <div class="flex items-center min-w-full justify-between">
+          <div>
+
+         
+            <NcButton type="text" class="mb-3" size="small" @click="toggleSamplePayload()">
+              <div class="flex items-center gap-3">
                 Sample Payload
 
                 <GeneralIcon
@@ -871,9 +874,8 @@ onMounted(async () => {
                 />
               </div>
             </NcButton>
-            <div>
+            <div v-show="isVisible">
               <LazyMonacoEditor
-                v-show="isVisible"
                 v-model="sampleData"
                 :monaco-config="{
                   'minimap': {
@@ -919,6 +921,7 @@ onMounted(async () => {
                 }"
               />
             </div>
+          </div>
           </a-form>
         </div>
       </div>

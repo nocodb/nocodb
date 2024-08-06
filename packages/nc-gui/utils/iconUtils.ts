@@ -243,6 +243,12 @@ import NcZendesk from '~icons/nc-icons/zendesk'
 import NcBookOpen from '~icons/nc-icons/book-open'
 import NcCircleCheckSolid from '~icons/nc-icons/check-circle-solid'
 import NcAlertTriangleSolid from '~icons/nc-icons/alert-triangle-solid'
+import NcMail from '~icons/nc-icons/mail'
+import NcSlack from '~icons/nc-icons/slack'
+import NcMicrosoftTeams from '~icons/nc-icons/microsoft-teams'
+import NcMattermost from '~icons/nc-icons/mattermost'
+import NcTwilio from '~icons/nc-icons/twilio'
+import NcWhatsapp from '~icons/nc-icons/whatsapp'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -712,7 +718,13 @@ export const iconMap = {
   zendesk: NcZendesk,
   bookOpen: NcBookOpen,
   circleCheckSolid: NcCircleCheckSolid,
-  alertTriangleSolid: NcAlertTriangleSolid
+  alertTriangleSolid: NcAlertTriangleSolid,
+  mail: NcMail,
+  slack: NcSlack,
+  microsoftTeams: NcMicrosoftTeams,
+  mattermost: NcMattermost,
+  twilio: NcTwilio,
+  whatsapp: NcWhatsapp,
 }
 
 export const getMdiIcon = (type: string): any => {

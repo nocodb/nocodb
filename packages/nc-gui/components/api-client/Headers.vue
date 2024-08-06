@@ -44,7 +44,7 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
     </div>
 
     <div class="mt-1.5">
-      <NcButton size="small" type="secondary" @click="addHeaderRow" class="nc-btn-focus">
+      <NcButton size="small" type="secondary" class="nc-btn-focus" @click="addHeaderRow">
         <div class="flex flex-row items-center gap-x-2">
           <component :is="iconMap.plus" class="flex-none" />
           <div data-rec="true">{{ $t('general.add') }}</div>
@@ -75,7 +75,7 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
   @apply text-gray-500 !text-md;
 }
 
-:deep(.ant-input.nc-webhook-header-value-input){
+:deep(.ant-input.nc-webhook-header-value-input) {
   @apply !border-x-0;
 }
 

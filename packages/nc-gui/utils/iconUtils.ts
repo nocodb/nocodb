@@ -712,7 +712,7 @@ export const iconMap = {
   zendesk: NcZendesk,
   bookOpen: NcBookOpen,
   circleCheckSolid: NcCircleCheckSolid,
-  alertTriangleSolid: NcAlertTriangleSolid
+  alertTriangleSolid: NcAlertTriangleSolid,
 }
 
 export const getMdiIcon = (type: string): any => {

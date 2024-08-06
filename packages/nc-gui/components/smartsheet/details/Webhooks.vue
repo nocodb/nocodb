@@ -177,7 +177,7 @@ const columns: NcTableColumnProps[] = [
   {
     key: 'type',
     title: t('general.type'),
-    basis: "25%",
+    basis: '25%',
     minWidth: 200,
     showOrderBy: false,
   },
@@ -273,9 +273,9 @@ const getHookTypeText = (hook: HookType) => {
 
           <NcTable
             v-else
+            v-model:order-by="orderBy"
             :columns="columns"
             :data="sortedHooks"
-            v-model:order-by="orderBy"
             :custom-row="customRow"
             class="h-full"
           >

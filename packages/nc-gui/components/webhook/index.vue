@@ -483,12 +483,20 @@ async function testWebhook() {
 
 const supportedDocs = [
   {
-    title: 'Configure a URL webhooks',
+    title: 'Getting started',
+    href: 'https://docs.nocodb.com/automation/webhook/create-webhook/',
+  },
+  {
+    title: 'Create webhook',
     href: 'https://docs.nocodb.com/automation/webhook/webhook-overview',
   },
   {
-    title: 'Getting started with webhooks',
-    href: 'https://docs.nocodb.com/automation/webhook/create-webhook/',
+    title: 'Custom payload',
+    href: 'https://docs.nocodb.com/automation/webhook/create-webhook#webhook-with-custom-payload-',
+  },
+  {
+    title: 'Trigger on condition',
+    href: 'https://docs.nocodb.com/automation/webhook/create-webhook#webhook-with-conditions',
   },
 ]
 
@@ -965,17 +973,17 @@ onMounted(async () => {
 
       <div class="h-full bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
         <div class="w-full flex flex-col gap-3">
-          <h2 class="text-sm text-gray-800 font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
+          <h2 class="text-sm text-gray-700 font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
           <div>
             <div v-for="doc of supportedDocs" class="flex items-center gap-1">
               <div class="h-7 w-7 flex items-center justify-center">
-                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
+                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-500" />
               </div>
               <NuxtLink
                 :href="doc.href"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="!text-gray-700 text-sm !no-underline !hover:underline"
+                class="!text-gray-500 text-sm !no-underline !hover:underline"
               >
                 {{ doc.title }}
               </NuxtLink>

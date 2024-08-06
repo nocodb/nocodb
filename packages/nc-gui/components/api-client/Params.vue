@@ -68,12 +68,8 @@ const deleteParamRow = (i: number) => {
   @apply !text-gray-500;
 }
 
-.ant-input::placeholder {
-  @apply text-gray-500;
-}
-
-.ant-input:placeholder-shown {
-  @apply text-gray-500 !text-md;
+:deep(.ant-input) {
+  @apply !placeholder-gray-500;
 }
 
 :deep(.ant-input.nc-webhook-parameters-value-input) {

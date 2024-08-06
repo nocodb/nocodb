@@ -3,25 +3,77 @@ const props = defineProps<{
   modelValue: any[]
 }>()
 
+interface Option {
+  value: string
+}
+
 const emits = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emits)
 
+const headerList = ref<Option[]>([
+  { value: 'A-IM' },
+  { value: 'Accept' },
+  { value: 'Accept-Charset' },
+  { value: 'Accept-Encoding' },
+  { value: 'Accept-Language' },
+  { value: 'Accept-Datetime' },
+  { value: 'Access-Control-Request-Method' },
+  { value: 'Access-Control-Request-Headers' },
+  { value: 'Authorization' },
+  { value: 'Cache-Control' },
+  { value: 'Connection' },
+  { value: 'Content-Length' },
+  { value: 'Content-Type' },
+  { value: 'Cookie' },
+  { value: 'Date' },
+  { value: 'Expect' },
+  { value: 'Forwarded' },
+  { value: 'From' },
+  { value: 'Host' },
+  { value: 'If-Match' },
+  { value: 'If-Modified-Since' },
+  { value: 'If-None-Match' },
+  { value: 'If-Range' },
+  { value: 'If-Unmodified-Since' },
+  { value: 'Max-Forwards' },
+  { value: 'Origin' },
+  { value: 'Pragma' },
+  { value: 'Proxy-Authorization' },
+  { value: 'Range' },
+  { value: 'Referer' },
+  { value: 'TE' },
+  { value: 'User-Agent' },
+  { value: 'Upgrade' },
+  { value: 'Via' },
+  { value: 'Warning' },
+  { value: 'Non-standard headers' },
+  { value: 'Dnt' },
+  { value: 'X-Requested-With' },
+  { value: 'X-CSRF-Token' },
+])
+
 const addHeaderRow = () => vModel.value.push({})
+
 const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
+
+const filterOption = (input: string, option: Option) => option.value.toUpperCase().includes(input.toUpperCase())
 </script>
 
 <template>
   <div class="flex flex-col py-3 gap-1.5 w-full">
     <div v-for="(headerRow, idx) in vModel" :key="idx" class="flex relative items-center w-full">
       <a-form-item class="form-item w-8">
-        <NcCheckbox v-model:checked="headerRow.enabled" size="large" />
+        <NcCheckbox v-model:checked="headerRow.enabled" size="large" class="nc-hook-header-checkbox" />
       </a-form-item>
       <a-form-item class="form-item w-3/6">
-        <a-input
+        <a-auto-complete
           v-model:value="headerRow.name"
+          class="!rounded-l-lg !rounded-r-0 nc-input-hook-header-key hover:!border-x-0 !border-gray-200"
+          :options="headerList"
           :placeholder="$t('placeholder.key')"
-          class="!rounded-l-lg nc-input-hook-header-key !border-gray-200"
+          :filter-option="filterOption"
+          dropdown-class-name="border-1 border-gray-200"
         />
       </a-form-item>
       <a-form-item class="form-item w-3/6">
@@ -67,12 +119,9 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
   @apply !text-gray-500;
 }
 
-.ant-input::placeholder {
-  @apply text-gray-500;
-}
-
-.ant-input:placeholder-shown {
-  @apply text-gray-500 !text-md;
+:deep(.ant-input),
+:deep(.ant-select-selection-search-input) {
+  @apply !placeholder-gray-500;
 }
 
 :deep(.ant-input.nc-webhook-header-value-input) {
@@ -85,5 +134,37 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
 
 .nc-btn-focus:focus {
   @apply !text-brand-500 !shadow-none;
+}
+
+:deep(.nc-input-hook-header-key.ant-select.ant-select-auto-complete) {
+  @apply !text-sm;
+
+  &.ant-select-focused {
+    .ant-select-selector {
+      @apply !shadow-none !border-gray-200;
+    }
+  }
+  :deep(.ant-select-selector) {
+    @apply !rounded-l-lg !rounded-r-none !border-gray-200;
+    .ant-select-selection-search .ant-select-selection-search-input::placeholder {
+      @apply !text-gray-500 !text-sm;
+    }
+  }
+  .ant-select-selector {
+    @apply !rounded-l-lg !rounded-r-none !border-gray-200;
+   .ant-select-selection-search-input {
+      @apply !text-sm !placeholder-gray-500;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-input-hook-header-key {
+  .ant-select-selection-search-input {
+    &:placeholder-shown {
+      @apply !text-gray-500;
+    }
+  }
 }
 </style>

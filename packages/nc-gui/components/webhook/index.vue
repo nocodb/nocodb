@@ -719,7 +719,10 @@ onMounted(async () => {
                   </a-tab-pane>
 
                   <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
-                    <div class="border-1 mt-1 !rounded-md">
+                    <div
+                      style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                      class="border-1 mt-1 !rounded-md"
+                    >
                       <LazyMonacoEditor
                         v-model="hookRef.notification.payload.body"
                         disable-deep-compare
@@ -901,6 +904,7 @@ onMounted(async () => {
                 colors: {},
               }"
               class="transition-all border-1 rounded-lg"
+              style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
               :class="{
                 'w-0 min-w-0': !isVisible,
                 'min-h-60 max-h-80': isVisible,

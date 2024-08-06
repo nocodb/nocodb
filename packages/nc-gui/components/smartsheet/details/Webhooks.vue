@@ -218,7 +218,7 @@ onMounted(async () => {
                 </NcTooltip>
               </div>
               <div class="text-gray-600 w-full capitalize flex-1 px-6 py-3 flex items-center space-x-2">
-                {{ hook.event }} {{ hook.operation }}
+                {{ hook.event === 'after' ? $t('general.on') : 'before' }} {{ hook.operation }}
               </div>
 
               <div class="text-gray-600 w-full capitalize flex-1 px-6 py-3 flex items-center space-x-2">

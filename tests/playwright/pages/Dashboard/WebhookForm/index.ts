@@ -19,7 +19,7 @@ export class WebhookFormPage extends BasePage {
     this.toolbar = dashboard.grid.toolbar;
     this.topbar = dashboard.grid.topbar;
     this.addNewButton = this.dashboard.get().locator('.nc-btn-create-webhook');
-    this.saveButton = this.get().locator('button:has-text("Save")');
+    this.saveButton = this.get().getByTestId('nc-save-webhook');
     this.testButton = this.get().locator('button:has-text("Test Webhook")');
   }
 
@@ -30,6 +30,8 @@ export class WebhookFormPage extends BasePage {
   async create({ title, event, url = 'http://localhost:9090/hook' }: { title: string; event: string; url?: string }) {
     await this.dashboard.grid.topbar.openDetailedTab();
     await this.dashboard.details.clickWebhooksTab();
+    // wait for tab transition
+    await this.rootPage.waitForTimeout(200);
     await this.dashboard.details.clickAddWebhook();
     await this.get().waitFor({ state: 'visible' });
 
@@ -170,11 +172,10 @@ export class WebhookFormPage extends BasePage {
 
     // find out if the checkbox is already checked
     const isChecked = await this.get()
-      .locator('.nc-hook-header-tab-checkbox')
+      .locator('.nc-hook-header-checkbox')
       .locator('input.ant-checkbox-input')
       .isChecked();
-    if (!isChecked)
-      await this.get().locator('.nc-hook-header-tab-checkbox').locator('input.ant-checkbox-input').click();
+    if (!isChecked) await this.get().locator('.nc-hook-header-checkbox').locator('input.ant-checkbox-input').click();
   }
 
   async verifyForm({

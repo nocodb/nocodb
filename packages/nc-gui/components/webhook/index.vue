@@ -604,11 +604,11 @@ onMounted(async () => {
             </NcButton>
           </NcTooltip>
 
-          <NcButton :loading="loading" type="primary" size="small" @click="saveHooks">
+          <NcButton :loading="loading" type="primary" size="small" @click="saveHooks" data-testid="nc-save-webhook">
             {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
           </NcButton>
 
-          <NcButton type="text" size="small" @click="modalVisible = false">
+          <NcButton type="text" size="small" @click="modalVisible = false" data-testid="nc-close-webhook-modal">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>

@@ -134,19 +134,25 @@ onMounted(async () => {
   <div class="nc-webhook-wrapper w-full p-4">
     <div class="max-w-250 h-full w-full mx-auto">
       <div v-if="activeView && !isHooksLoading">
-        <div class="w-full mb-4 flex justify-between">
-          <div class="flex gap-2">
+        <div class="w-full mb-4 flex justify-between gap-3">
+          <div class="flex-1 flex gap-2">
             <a-input
               v-model:value="webHookSearch"
-              class="w-full h-8 flex-1"
+              class="w-full nc-input-sm nc-input-border-on-value !max-w-84"
               size="small"
               :placeholder="$t('title.searchWebhook')"
+              allow-clear
             >
               <template #prefix>
                 <component :is="iconMap.search" class="w-4 text-gray-500 h-4" />
               </template>
             </a-input>
-            <NcButton class="px-2" type="text" size="small">
+            <NcButton
+              class="px-2"
+              type="text"
+              size="small"
+              @click="navigateTo('https://docs.nocodb.com/category/webhook/', { open: navigateToBlankTargetOpenOption })"
+            >
               <div class="flex items-center gap-2">
                 {{ $t('title.docs') }}
 
@@ -288,15 +294,7 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-.ant-input::placeholder {
+:deep(.ant-input::placeholder) {
   @apply text-gray-500;
-}
-
-.ant-input:placeholder-shown {
-  @apply text-gray-500 !text-md;
-}
-
-.ant-input-affix-wrapper {
-  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
 }
 </style>

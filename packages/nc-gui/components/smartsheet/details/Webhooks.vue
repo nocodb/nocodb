@@ -5,13 +5,7 @@ import dayjs from 'dayjs'
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const {
-  sorts,
-  sortDirection,
-  loadSorts,
-  handleGetSortedData,
-  saveOrUpdate: saveOrUpdateSort,
-} = useUserSorts('Webhook')
+const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook')
 
 const selectedHook = ref<undefined | HookType>()
 
@@ -157,6 +151,15 @@ const orderBy = computed<Record<string, SordDirectionType>>({
   },
 })
 
+const eventList = ref<Record<string, any>[]>([
+  { text: [t('general.on'), t('labels.recordInsert')], value: ['after', 'insert'] },
+  { text: [t('general.on'), t('labels.recordUpdate')], value: ['after', 'update'] },
+  { text: [t('general.on'), t('labels.recordDelete')], value: ['after', 'delete'] },
+  { text: [t('general.onMultiple'), t('labels.recordInsert')], value: ['after', 'bulkInsert'] },
+  { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
+  { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
+])
+
 const columns: NcTableColumnProps[] = [
   {
     key: 'active',
@@ -174,8 +177,8 @@ const columns: NcTableColumnProps[] = [
   {
     key: 'type',
     title: t('general.type'),
-    width: 240,
-    minWidth: 240,
+    basis: "25%",
+    minWidth: 200,
     showOrderBy: false,
   },
   {
@@ -198,6 +201,13 @@ const customRow = (hook: HookType) => {
   return {
     onClick: () => editHook(hook),
   }
+}
+
+const getHookTypeText = (hook: HookType) => {
+  return (
+    eventList.value.find((e) => e.value.includes(hook.event) && e.value.includes(hook.operation))?.text?.join(' ') ||
+    `Before ${hook.operation}`
+  )
 }
 </script>
 
@@ -270,7 +280,7 @@ const customRow = (hook: HookType) => {
             class="h-full"
           >
             <template #bodyCell="{ column, record: hook }">
-              <div v-if="column.key === 'active'" v-e="['c:actions:webhook']" @click.stop >
+              <div v-if="column.key === 'active'" v-e="['c:actions:webhook']" @click.stop>
                 <NcSwitch size="small" :checked="!!hook.active" @change="toggleHook(hook)" />
               </div>
               <template v-if="column.key === 'name'">
@@ -283,7 +293,7 @@ const customRow = (hook: HookType) => {
                 </NcTooltip>
               </template>
               <template v-if="column.key === 'type'">
-                {{ hook.event === 'after' ? $t('general.on') : 'before' }} {{ hook.operation }}
+                {{ getHookTypeText(hook) }}
               </template>
               <template v-if="column.key === 'created_at'">
                 {{ dayjs(hook.created_at).format('DD MMM YYYY') }}
@@ -338,7 +348,13 @@ const customRow = (hook: HookType) => {
           </template>
         </GeneralDeleteModal>
 
-        <Webhook v-if="isWebhookModalOpen" v-model:value="isWebhookModalOpen" :hook="selectedHook" @close="onModalClose" />
+        <Webhook
+          v-if="isWebhookModalOpen"
+          v-model:value="isWebhookModalOpen"
+          :hook="selectedHook"
+          :event-list="eventList"
+          @close="onModalClose"
+        />
       </div>
       <div
         v-else

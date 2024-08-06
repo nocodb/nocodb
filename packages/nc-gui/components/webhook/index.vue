@@ -6,12 +6,15 @@ import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
 interface Props {
   value: boolean
+  eventList: Record<string, any>[]
   hook?: HookType
 }
 
+const emits = defineEmits(['close'])
+
 const props = defineProps<Props>()
 
-const emits = defineEmits(['close'])
+const { eventList } = toRefs(props)
 
 const { t } = useI18n()
 
@@ -169,15 +172,6 @@ const formInput = ref({
     },
   ],
 })
-
-const eventList = ref<Record<string, any>[]>([
-  { text: [t('general.on'), t('labels.recordInsert')], value: ['after', 'insert'] },
-  { text: [t('general.on'), t('labels.recordUpdate')], value: ['after', 'update'] },
-  { text: [t('general.on'), t('labels.recordDelete')], value: ['after', 'delete'] },
-  { text: [t('general.onMultiple'), t('labels.recordInsert')], value: ['after', 'bulkInsert'] },
-  { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
-  { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
-])
 
 const notificationList = computed(() => {
   return isEeUI
@@ -1093,7 +1087,7 @@ onMounted(async () => {
 :deep(textarea::placeholder) {
   @apply text-gray-500;
 }
-:deep(.nc-tabs .ant-tabs-nav){
+:deep(.nc-tabs .ant-tabs-nav) {
   @apply pl-0;
 }
 </style>

@@ -519,7 +519,7 @@ const changeToDynamic = async (filter, i) => {
     class="menu-filter-dropdown w-min"
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
-      '!min-w-full !w-full': !nested && hookId,
+      '!min-w-full !w-full !pl-0': !nested && webHook,
       'min-w-full': nested,
     }"
   >
@@ -580,7 +580,7 @@ const changeToDynamic = async (filter, i) => {
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
-      :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested }"
+      :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested, '!pr-0': webHook && !nested }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">
@@ -617,8 +617,8 @@ const changeToDynamic = async (filter, i) => {
                         :disabled="i > 1 && !isLogicalOpChangeAllowed"
                         :class="{
                           'nc-disabled-logical-op': filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed),
-                          '!max-w-18': !hookId,
-                          '!w-full': hookId,
+                          '!max-w-18': !webHook,
+                          '!w-full': webHook,
                         }"
                         @click.stop
                         @change="onLogicalOpUpdate(filter, i)"
@@ -665,13 +665,13 @@ const changeToDynamic = async (filter, i) => {
               v-model:value="filter.logical_op"
               v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
               :dropdown-match-select-width="false"
-              class="h-full !min-w-18 capitalize"
+              class="h-full !max-w-18 capitalize"
               hide-details
               :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
               :class="{
                 'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed),
-                '!max-w-18': !hookId,
+                '!min-w-18': !webHook,
               }"
               @change="onLogicalOpUpdate(filter, i)"
               @click.stop
@@ -693,8 +693,8 @@ const changeToDynamic = async (filter, i) => {
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
               :class="{
-                'max-w-32': !hookId,
-                '!w-full': hookId,
+                'max-w-32': !webHook,
+                '!w-full': webHook,
               }"
               class="nc-filter-field-select min-w-32 max-h-8"
               :columns="fieldsToFilter"
@@ -711,8 +711,8 @@ const changeToDynamic = async (filter, i) => {
               class="caption nc-filter-operation-select !min-w-26.75 max-h-8"
               :placeholder="$t('labels.operation')"
               :class="{
-                '!max-w-26.75': !hookId,
-                '!w-full': hookId,
+                '!max-w-26.75': !webHook,
+                '!w-full': webHook,
               }"
               density="compact"
               variant="solo"
@@ -749,8 +749,7 @@ const changeToDynamic = async (filter, i) => {
               class="caption nc-filter-sub_operation-select min-w-28"
               :class="{
                 'flex-grow w-full': !showFilterInput(filter),
-                'max-w-28': showFilterInput(filter) && !hookId,
-                '!w-full': hookId,
+                'max-w-28': showFilterInput(filter) && !webHook,
               }"
               :placeholder="$t('labels.operationSub')"
               density="compact"
@@ -805,7 +804,8 @@ const changeToDynamic = async (filter, i) => {
                   v-if="showFilterInput(filter)"
                   class="nc-filter-value-select rounded-md min-w-34"
                   :class="{
-                    '!w-full !w-18': hookId,
+                    '!w-full': webHook,
+                    '!w-18': !webHook,
                   }"
                   :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
                   :filter="filter"

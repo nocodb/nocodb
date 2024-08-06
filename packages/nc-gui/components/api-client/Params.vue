@@ -30,9 +30,10 @@ const deleteParamRow = (i: number) => {
       </a-form-item>
 
       <NcButton
-        class="!rounded-l-none"
+        class="!rounded-l-none delete-btn !border-gray-200"
         type="secondary"
         size="small"
+        style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08) !important"
         :disabled="vModel.length === 1"
         @click="deleteParamRow(idx)"
       >
@@ -50,9 +51,12 @@ const deleteParamRow = (i: number) => {
 </template>
 
 <style lang="scss" scoped>
-.ant-input:hover {
-  @apply !hover:bg-gray-50
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+.ant-input {
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08) !important;
+
+  &:hover {
+    @apply !hover:bg-gray-50;
+  }
 }
 
 .ant-input::placeholder {

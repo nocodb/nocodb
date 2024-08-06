@@ -29,9 +29,10 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
       </a-form-item>
 
       <NcButton
-        class="!rounded-l-none"
+        class="!rounded-l-none delete-btn !border-gray-200"
         type="secondary"
         size="small"
+        style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08) !important"
         :disabled="vModel.length === 1"
         @click="deleteHeaderRow(idx)"
       >
@@ -48,10 +49,13 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
   </div>
 </template>
 
-<style lang="scss" scoped>
-.ant-input:hover {
-  @apply !hover:bg-gray-50
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+<style scoped lang="scss">
+.ant-input {
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08) !important;
+
+  &:hover {
+    @apply !hover:bg-gray-50;
+  }
 }
 
 .ant-input::placeholder {

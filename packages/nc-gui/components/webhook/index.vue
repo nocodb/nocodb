@@ -519,13 +519,13 @@ onMounted(async () => {
         </NcButton>
       </div>
     </template>
-    <div class="flex">
-      <div style="height: 600px" class="flex-1 flex flex-col overflow-y-auto px-12 py-6 mx-auto">
-        <div style="max-width: 740px; min-width: 624px" class="mx-auto gap-8 flex flex-col">
+    <div class="flex bg-white">
+      <div style="height: calc(min(68vh, 800px))" class="flex-1 flex flex-col overflow-y-auto px-12 py-6 mx-auto">
+        <div style="max-width: 700px; min-width: 684px" class="mx-auto gap-8 flex flex-col">
           <a-form-item v-bind="validateInfos.title">
             <div
-              class="flex flex-grow px-2 py-1 border-b-1 border-b-brand-500 items-center rounded-t-md border-gray-200 bg-gray-100"
-              @keydown.enter.prevent="titleDomRef?.focus()"
+              class="flex flex-grow px-2 py-1 title-input items-center border-b-1 rounded-t-md border-gray-200 bg-gray-100"
+              @click.prevent="titleDomRef?.focus()"
             >
               <input
                 ref="titleDomRef"
@@ -533,19 +533,20 @@ onMounted(async () => {
                 class="flex flex-grow text-lg px-2 font-medium capitalize outline-none bg-inherit nc-text-field-hook-title"
                 :placeholder="$t('placeholder.webhookTitle')"
                 :contenteditable="true"
+                @keydown.enter="titleDomRef?.blur()"
               />
-              <GeneralIcon icon="edit" />
+              <GeneralIcon icon="edit" class="cursor-text" @click="titleDomRef?.focus()" />
             </div>
           </a-form-item>
 
           <a-form class="flex flex-col gap-4" :model="hookRef" name="create-or-edit-webhook">
-            <div class="flex w-full gap-3">
+            <div class="flex w-full gap-3 custom-select">
               <a-form-item class="w-1/3" v-bind="validateInfos.eventOperation">
                 <a-select
                   v-model:value="hookRef.eventOperation"
                   size="large"
                   :placeholder="$t('general.event')"
-                  class="nc-text-field-hook-event capitalize"
+                  class="nc-text-field-hook-event !h-9 capitalize"
                   dropdown-class-name="nc-dropdown-webhook-event"
                 >
                   <template #suffixIcon>
@@ -575,7 +576,7 @@ onMounted(async () => {
                   v-model:value="hookRef.notification.type"
                   size="large"
                   :disabled="isEeUI"
-                  class="nc-select-hook-notification-type"
+                  class="nc-select-hook-notification-type !h-9"
                   :placeholder="$t('general.notification')"
                   dropdown-class-name="nc-dropdown-webhook-notification"
                   @change="onNotificationTypeChange(true)"
@@ -614,43 +615,45 @@ onMounted(async () => {
               </a-form-item>
             </div>
 
-            <div v-if="hookRef.notification.type === 'URL'" class="flex flex-col w-full gap-3">
-              <div class="flex w-full gap-3">
-                <a-form-item class="w-1/3">
-                  <a-select
-                    v-model:value="hookRef.notification.payload.method"
-                    size="large"
-                    class="nc-select-hook-url-method"
-                    dropdown-class-name="nc-dropdown-hook-notification-url-method"
-                  >
-                    <template #suffixIcon>
-                      <GeneralIcon icon="arrowDown" class="text-gray-700" />
-                    </template>
+            <template v-if="hookRef.notification.type === 'URL'">
+              <div class="flex flex-col custom-select w-full gap-4">
+                <div class="flex w-full gap-3">
+                  <a-form-item class="w-1/3">
+                    <a-select
+                      v-model:value="hookRef.notification.payload.method"
+                      size="large"
+                      class="nc-select-hook-url-method"
+                      dropdown-class-name="nc-dropdown-hook-notification-url-method"
+                    >
+                      <template #suffixIcon>
+                        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                      </template>
 
-                    <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
-                      <div class="flex items-center gap-2 justify-between">
-                        <div>{{ method.title }}</div>
-                        <component
-                          :is="iconMap.check"
-                          v-if="hookRef.notification.payload.method === method.title"
-                          id="nc-selected-item-icon"
-                          class="text-primary w-4 h-4"
-                        />
-                      </div>
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
+                      <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
+                        <div class="flex items-center gap-2 justify-between">
+                          <div>{{ method.title }}</div>
+                          <component
+                            :is="iconMap.check"
+                            v-if="hookRef.notification.payload.method === method.title"
+                            id="nc-selected-item-icon"
+                            class="text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
+                    </a-select>
+                  </a-form-item>
 
-                <a-form-item class="w-2/3" v-bind="validateInfos['notification.payload.path']">
-                  <a-input
-                    v-model:value="hookRef.notification.payload.path"
-                    size="large"
-                    placeholder="http://example.com"
-                    class="nc-text-field-hook-url-path !rounded-md"
-                  />
-                </a-form-item>
+                  <a-form-item class="w-2/3" v-bind="validateInfos['notification.payload.path']">
+                    <a-input
+                      v-model:value="hookRef.notification.payload.path"
+                      size="large"
+                      placeholder="http://example.com"
+                      class="nc-text-field-hook-url-path h-9 !rounded-md"
+                    />
+                  </a-form-item>
+                </div>
               </div>
-              <div class="my-8">
+              <div class="my-4">
                 <NcTabs v-model:activeKey="urlTabKey">
                   <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
                     <LazyApiClientParams v-model="hookRef.notification.payload.parameters" />
@@ -661,40 +664,42 @@ onMounted(async () => {
                   </a-tab-pane>
 
                   <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
-                    <LazyMonacoEditor
-                      v-model="hookRef.notification.payload.body"
-                      disable-deep-compare
-                      :validate="false"
-                      class="min-h-60 max-h-80"
-                      :monaco-config="{
-                        'minimap': {
-                          enabled: false,
-                        },
-                        'fontSize': 14.5,
-                        'overviewRulerBorder': false,
-                        'overviewRulerLanes': 0,
-                        'hideCursorInOverviewRuler': true,
-                        'lineDecorationsWidth': 8,
-                        'lineNumbersMinChars': 0,
-                        'roundedSelection': false,
-                        'selectOnLineNumbers': false,
-                        'scrollBeyondLastLine': false,
-                        'contextmenu': false,
-                        'glyphMargin': false,
-                        'folding': false,
-                        'bracketPairColorization.enabled': false,
-                        'wordWrap': 'on',
-                        'scrollbar': {
-                          horizontal: 'hidden',
-                        },
-                        'wrappingStrategy': 'advanced',
-                        'renderLineHighlight': 'none',
-                      }"
-                    />
+                    <div class="border-1 rounded-md">
+                      <LazyMonacoEditor
+                        v-model="hookRef.notification.payload.body"
+                        disable-deep-compare
+                        :validate="false"
+                        class="min-h-60 max-h-80"
+                        :monaco-config="{
+                          'minimap': {
+                            enabled: false,
+                          },
+                          'fontSize': 14.5,
+                          'overviewRulerBorder': false,
+                          'overviewRulerLanes': 0,
+                          'hideCursorInOverviewRuler': true,
+                          'lineDecorationsWidth': 8,
+                          'lineNumbersMinChars': 0,
+                          'roundedSelection': false,
+                          'selectOnLineNumbers': false,
+                          'scrollBeyondLastLine': false,
+                          'contextmenu': false,
+                          'glyphMargin': false,
+                          'folding': false,
+                          'bracketPairColorization.enabled': false,
+                          'wordWrap': 'on',
+                          'scrollbar': {
+                            horizontal: 'hidden',
+                          },
+                          'wrappingStrategy': 'advanced',
+                          'renderLineHighlight': 'none',
+                        }"
+                      />
+                    </div>
                   </a-tab-pane>
                 </NcTabs>
               </div>
-            </div>
+            </template>
 
             <div v-if="hookRef.notification.type === 'Slack'" class="flex flex-col w-full gap-3">
               <a-form-item v-bind="validateInfos['notification.payload.channels']">
@@ -761,6 +766,30 @@ onMounted(async () => {
               />
             </div>
 
+            <a-form-item>
+              <div v-if="formInput[hookRef.notification.type] && hookRef.notification.payload" class="flex flex-col gap-2">
+                <div v-for="(input, i) in formInput[hookRef.notification.type]" :key="i">
+                  <a-form-item v-if="input.type === 'LongText'" v-bind="validateInfos[`notification.payload.${input.key}`]">
+                    <a-textarea
+                      v-model:value="hookRef.notification.payload[input.key]"
+                      class="!rounded-md"
+                      :placeholder="input.label"
+                      size="large"
+                    />
+                  </a-form-item>
+
+                  <a-form-item v-else v-bind="validateInfos[`notification.payload.${input.key}`]">
+                    <a-input
+                      v-model:value="hookRef.notification.payload[input.key]"
+                      class="!rounded-md"
+                      :placeholder="input.label"
+                      size="large"
+                    />
+                  </a-form-item>
+                </div>
+              </div>
+            </a-form-item>
+
             <LazyWebhookTest
               ref="webhookTestRef"
               :hook="{
@@ -773,20 +802,6 @@ onMounted(async () => {
               @error="testSuccess = false"
               @success="testSuccess = true"
             />
-
-            <a-form-item>
-              <a-row v-if="formInput[hookRef.notification.type] && hookRef.notification.payload" type="flex">
-                <a-col v-for="(input, i) in formInput[hookRef.notification.type]" :key="i" :span="24">
-                  <a-form-item v-if="input.type === 'LongText'" v-bind="validateInfos[`notification.payload.${input.key}`]">
-                    <a-textarea v-model:value="hookRef.notification.payload[input.key]" :placeholder="input.label" size="large" />
-                  </a-form-item>
-
-                  <a-form-item v-else v-bind="validateInfos[`notification.payload.${input.key}`]">
-                    <a-input v-model:value="hookRef.notification.payload[input.key]" :placeholder="input.label" size="large" />
-                  </a-form-item>
-                </a-col>
-              </a-row>
-            </a-form-item>
           </a-form>
         </div>
       </div>
@@ -842,6 +857,13 @@ onMounted(async () => {
 </style>
 
 <style scoped lang="scss">
+.title-input {
+  &:focus-within {
+    @apply transition-all duration-0.3s border-b-brand-500;
+    box-shadow: 0px 2px 0px 0px rgba(51, 102, 255, 0.24);
+  }
+}
+
 :deep(.ant-radio-group .ant-radio-wrapper) {
   @apply transition-all duration-0.3s;
 
@@ -867,19 +889,29 @@ onMounted(async () => {
   }
 }
 
-:deep(.ant-select) {
-  &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
-  &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
-  }
+.custom-select {
+  :deep(.ant-select) {
+    .ant-select-selector {
+      @apply !h-9;
+    }
 
-  &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
-    @apply border-gray-300;
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
-  }
+    .ant-select-selection-item {
+      @apply !h-9;
+    }
 
-  &.ant-select-disabled .ant-select-selector {
-    box-shadow: none;
+    &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+    &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+    }
+
+    &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
+      @apply border-gray-300;
+      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+    }
+
+    &.ant-select-disabled .ant-select-selector {
+      box-shadow: none;
+    }
   }
 }
 

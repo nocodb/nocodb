@@ -241,6 +241,17 @@ const isValid = computed(() => {
   return hookRef && check(validateInfos)
 })
 
+const getChannelsArray = (val: unknown) => {
+  if (val) {
+    if (Array.isArray(val)) {
+      return val
+    } else if (typeof val === 'object' && Object.keys(val)) {
+      return [val]
+    }
+  }
+  return []
+}
+
 function onNotificationTypeChange(reset = false) {
   if (reset) {
     hookRef.notification.payload = {} as Record<string, any>
@@ -251,19 +262,19 @@ function onNotificationTypeChange(reset = false) {
   }
 
   if (hookRef.notification.type === 'Slack') {
-    slackChannels.value = (apps.value && apps.value.Slack && apps.value.Slack.parsedInput) || []
+    slackChannels.value = getChannelsArray(apps?.value?.Slack?.parsedInput)
   }
 
   if (hookRef.notification.type === 'Microsoft Teams') {
-    teamsChannels.value = (apps.value && apps.value['Microsoft Teams'] && apps.value['Microsoft Teams'].parsedInput) || []
+    teamsChannels.value = getChannelsArray(apps?.value?.['Microsoft Teams']?.parsedInput)
   }
 
   if (hookRef.notification.type === 'Discord') {
-    discordChannels.value = (apps.value && apps.value.Discord && apps.value.Discord.parsedInput) || []
+    discordChannels.value = getChannelsArray(apps?.value?.Discord?.parsedInput)
   }
 
   if (hookRef.notification.type === 'Mattermost') {
-    mattermostChannels.value = (apps.value && apps.value.Mattermost && apps.value.Mattermost.parsedInput) || []
+    mattermostChannels.value = getChannelsArray(apps?.value?.Mattermost?.parsedInput)
   }
 
   if (hookRef.notification.type === 'URL') {
@@ -501,22 +512,22 @@ const getDefaultHookName = (hooks: HookType[]) => {
 }
 
 const getNotificationIconName = (type: string): keyof typeof iconMap => {
-  switch(type){
-    case "URL": 
+  switch (type) {
+    case 'URL':
       return 'link2'
-    case "Email": 
+    case 'Email':
       return 'mail'
-    case "Slack": 
+    case 'Slack':
       return 'slack'
-    case "Microsoft Teams": 
+    case 'Microsoft Teams':
       return 'microsoftTeams'
-    case "Discord": 
+    case 'Discord':
       return 'discord'
-    case "Mattermost": 
+    case 'Mattermost':
       return 'mattermost'
-    case "Twilio": 
+    case 'Twilio':
       return 'twilio'
-    case "Whatsapp Twilio": 
+    case 'Whatsapp Twilio':
       return 'whatsapp'
   }
 }
@@ -684,7 +695,6 @@ onMounted(async () => {
                     >
                       <div class="flex items-center w-full gap-2">
                         <GeneralIcon :icon="getNotificationIconName(notificationOption.type)" class="mr-2 stroke-transparent" />
-                      
 
                         <div class="flex-1">{{ notificationOption.text }}</div>
                         <component
@@ -871,7 +881,6 @@ onMounted(async () => {
                       v-model:value="hookRef.notification.payload[input.key]"
                       class="!rounded-lg !min-h-[120px] nc-scrollbar-thin nc-input-shadow"
                       :placeholder="input.label"
-                     
                     />
                   </a-form-item>
 
@@ -1123,5 +1132,8 @@ onMounted(async () => {
   .ant-tabs-tab {
     @apply pt-1 pb-1.5;
   }
+}
+:deep(.ant-select-multiple .ant-select-selection-item-remove>.anticon){
+  vertical-align: 0px !important;
 }
 </style>

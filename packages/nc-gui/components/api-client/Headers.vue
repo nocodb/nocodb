@@ -12,7 +12,7 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
 </script>
 
 <template>
-  <div class="flex flex-col py-4 gap-3 w-full">
+  <div class="flex flex-col py-3 gap-3 w-full">
     <div v-for="(headerRow, idx) in vModel" :key="idx" class="flex relative items-center w-full">
       <a-form-item class="form-item w-8">
         <NcCheckbox v-model:checked="headerRow.enabled" size="large" />
@@ -21,22 +21,22 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
         <a-input
           v-model:value="headerRow.name"
           :placeholder="$t('placeholder.key')"
-          class="!rounded-l-lg nc-input-hook-header-key"
+          class="!rounded-l-lg nc-input-hook-header-key border-gray-200"
         />
       </a-form-item>
       <a-form-item class="form-item w-3/6">
-        <a-input v-model:value="headerRow.value" :placeholder="$t('placeholder.value')" class="!border-x-0 !rounded-none" />
+        <a-input v-model:value="headerRow.value" :placeholder="$t('placeholder.value')" class="!border-x-0 border-gray-200 !rounded-none" />
       </a-form-item>
 
       <NcButton
-        class="!rounded-l-none delete-btn !border-gray-200"
+        class="!rounded-l-none delete-btn !border-gray-200 !shadow-none"
         type="secondary"
         size="small"
         style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08) !important"
         :disabled="vModel.length === 1"
         @click="deleteHeaderRow(idx)"
       >
-        <component :is="iconMap.delete" />
+        <component :is="iconMap.deleteListItem" />
       </NcButton>
     </div>
 
@@ -55,7 +55,7 @@ const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
 }
 
 .ant-input {
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: none !important;
 
   &:hover {
     @apply !hover:bg-gray-50;

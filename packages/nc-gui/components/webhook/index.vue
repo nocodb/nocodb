@@ -31,6 +31,8 @@ const defaultHookName = t('labels.webhook')
 
 const testSuccess = ref()
 
+const testConnectionError = ref('')
+
 const useForm = Form.useForm
 
 let hookRef = reactive<
@@ -456,6 +458,7 @@ const toggleSamplePayload = () => {
 
 async function testWebhook() {
   try {
+    testConnectionError.value = ''
     testSuccess.value = false
     isTestLoading.value = true
     await $api.dbTableWebhook.test(
@@ -466,10 +469,8 @@ async function testWebhook() {
       } as HookTestReqType,
     )
     testSuccess.value = true
-
-    message.success(t('msg.success.webhookTested'))
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    testConnectionError.value = await extractSdkResponseErrorMsg(e)
   } finally {
     isTestLoading.value = false
   }
@@ -551,14 +552,20 @@ onMounted(async () => {
         </div>
 
         <div class="flex justify-end items-center gap-3">
-          <NcButton :loading="isTestLoading" type="secondary" size="small" @click="testWebhook">
-            <div class="flex items-center gap-2">
-              <GeneralIcon v-if="testSuccess" icon="circleCheck" class="text-primary mr-2" style="color: green" />
-              <span :style="testSuccess ? 'color: green;' : ''">
+          <NcTooltip :disabled="!testConnectionError">
+            <template #title>
+              {{ testConnectionError }}
+            </template>
+            <NcButton :loading="isTestLoading" type="secondary" size="small" icon-position="right" @click="testWebhook">
+              <template #icon>
+                <GeneralIcon v-if="testSuccess" icon="circleCheck2" class="!text-green-500 w-4 h-4 flex-none" />
+                <GeneralIcon v-else-if="testConnectionError" icon="info" class="!text-red-500 w-4 h-4 flex-none" />
+              </template>
+              <span>
                 {{ testSuccess ? 'Test Successful' : $t('activity.testWebhook') }}
               </span>
-            </div>
-          </NcButton>
+            </NcButton>
+          </NcTooltip>
 
           <NcButton :loading="loading" :disabled="!testSuccess" type="primary" size="small" @click="saveHooks">
             {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
@@ -570,11 +577,10 @@ onMounted(async () => {
         </div>
       </div>
     </template>
-    <div class="flex bg-white rounded-b-2xl">
+    <div class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
       <div
         ref="containerElem"
-        style="height: calc(min(68vh, 800px))"
-        class="flex-1 flex flex-col overflow-y-auto scroll-smooth px-12 py-6 mx-auto"
+        class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-12 py-6 mx-auto"
       >
         <div style="max-width: 700px; min-width: 684px" class="mx-auto gap-8 flex flex-col">
           <a-form-item v-bind="validateInfos.title">
@@ -721,13 +727,13 @@ onMounted(async () => {
                   <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
                     <div
                       style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-                      class="border-1 mt-1 !rounded-md"
+                      class="my-3 mx-1 rounded-lg overflow-hidden"
                     >
                       <LazyMonacoEditor
                         v-model="hookRef.notification.payload.body"
                         disable-deep-compare
                         :validate="false"
-                        class="min-h-60 max-h-80 !rounded-md"
+                        class="min-h-60 max-h-80 !rounded-lg"
                         :monaco-config="{
                           'minimap': {
                             enabled: false,
@@ -808,7 +814,7 @@ onMounted(async () => {
             </div>
 
             <div v-show="isConditionSupport">
-              <div class="w-full cursor-pointer" @click.prevent="hookRef.condition = !hookRef.condition">
+              <div class="w-full cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                 <NcSwitch :checked="Boolean(hookRef.condition)">
                   <span class="!text-gray-700 font-semibold">
                     {{ `${$t('general.condition')}s` }}
@@ -851,6 +857,7 @@ onMounted(async () => {
                 </div>
               </div>
             </a-form-item>
+
             <NcButton class="!w-full justify-between" type="text" size="small" @click="toggleSamplePayload()">
               <div class="flex items-center min-w-full justify-between">
                 Sample Payload
@@ -864,57 +871,59 @@ onMounted(async () => {
                 />
               </div>
             </NcButton>
-            <LazyMonacoEditor
-              v-show="isVisible"
-              v-model="sampleData"
-              :monaco-config="{
-                'minimap': {
-                  enabled: false,
-                },
-                'fontSize': 14.5,
-                'overviewRulerBorder': false,
-                'overviewRulerLanes': 0,
-                'hideCursorInOverviewRuler': true,
-                'lineDecorationsWidth': 8,
-                'lineNumbersMinChars': 0,
-                'roundedSelection': false,
-                'selectOnLineNumbers': false,
-                'scrollBeyondLastLine': false,
-                'contextmenu': false,
-                'glyphMargin': false,
-                'folding': false,
-                'bracketPairColorization.enabled': false,
-                'wordWrap': 'on',
-                'scrollbar': {
-                  horizontal: 'hidden',
-                },
-                'wrappingStrategy': 'advanced',
-                'renderLineHighlight': 'none',
-              }"
-              :monaco-custom-theme="{
-                base: 'vs',
-                inherit: true,
-                rules: [
-                  { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
-                  { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
-                  { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
-                  { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
-                  { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
-                ],
-                colors: {},
-              }"
-              class="transition-all border-1 rounded-lg"
-              style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-              :class="{
-                'w-0 min-w-0': !isVisible,
-                'min-h-60 max-h-80': isVisible,
-              }"
-            />
+            <div>
+              <LazyMonacoEditor
+                v-show="isVisible"
+                v-model="sampleData"
+                :monaco-config="{
+                  'minimap': {
+                    enabled: false,
+                  },
+                  'fontSize': 14.5,
+                  'overviewRulerBorder': false,
+                  'overviewRulerLanes': 0,
+                  'hideCursorInOverviewRuler': true,
+                  'lineDecorationsWidth': 8,
+                  'lineNumbersMinChars': 0,
+                  'roundedSelection': false,
+                  'selectOnLineNumbers': false,
+                  'scrollBeyondLastLine': false,
+                  'contextmenu': false,
+                  'glyphMargin': false,
+                  'folding': false,
+                  'bracketPairColorization.enabled': false,
+                  'wordWrap': 'on',
+                  'scrollbar': {
+                    horizontal: 'hidden',
+                  },
+                  'wrappingStrategy': 'advanced',
+                  'renderLineHighlight': 'none',
+                }"
+                :monaco-custom-theme="{
+                  base: 'vs',
+                  inherit: true,
+                  rules: [
+                    { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
+                    { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
+                    { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
+                    { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
+                    { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
+                  ],
+                  colors: {},
+                }"
+                class="transition-all border-1 rounded-lg"
+                style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                :class="{
+                  'w-0 min-w-0': !isVisible,
+                  'min-h-60 max-h-80': isVisible,
+                }"
+              />
+            </div>
           </a-form>
         </div>
       </div>
 
-      <div class="bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
+      <div class="h-full bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
         <h1 class="text-gray-900 font-semibold">
           {{ $t('labels.supportDocs') }}
         </h1>
@@ -944,6 +953,8 @@ onMounted(async () => {
   }
   .nc-modal {
     @apply !p-0;
+    height: min(calc(100vh - 100px), 1024px);
+    max-height: min(calc(100vh - 100px), 1024px) !important;
   }
 
   .nc-modal-header {

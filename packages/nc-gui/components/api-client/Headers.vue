@@ -119,8 +119,7 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
   @apply !text-gray-500;
 }
 
-:deep(.ant-input),
-:deep(.ant-select-selection-search-input) {
+:deep(.ant-input) {
   @apply !placeholder-gray-500;
 }
 
@@ -153,16 +152,9 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
   .ant-select-selector {
     @apply !rounded-l-lg !rounded-r-none !border-gray-200;
    .ant-select-selection-search-input {
-      @apply !text-sm !placeholder-gray-500;
+      @apply !text-sm ;
     }
-  }
-}
-</style>
-
-<style lang="scss">
-.nc-input-hook-header-key {
-  .ant-select-selection-search-input {
-    &:placeholder-shown {
+    .ant-select-selection-placeholder{
       @apply !text-gray-500;
     }
   }

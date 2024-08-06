@@ -470,6 +470,17 @@ async function testWebhook() {
   }
 }
 
+const supportedDocs = [
+  {
+    title: 'Configure a URL webhooks',
+    href: 'https://docs.nocodb.com/automation/webhook/webhook-overview',
+  },
+  {
+    title: 'Getting started with webhooks',
+    href: 'https://docs.nocodb.com/automation/webhook/create-webhook/',
+  },
+]
+
 watch(
   () => hookRef?.operation,
   async () => {
@@ -615,12 +626,17 @@ onMounted(async () => {
                     :disabled="hookRef.version === 'v1' && ['bulkInsert', 'bulkUpdate', 'bulkDelete'].includes(event.value[1])"
                   >
                     <div class="flex items-center w-full gap-2 justify-between">
-                      <div>{{ event.text.join(' ') }}</div>
+                      <NcTooltip class="truncate" show-on-truncate-only>
+                        <template #title>
+                          {{ event.text.join(' ') }}
+                        </template>
+                        {{ event.text.join(' ') }}
+                      </NcTooltip>
                       <component
                         :is="iconMap.check"
                         v-if="hookRef.eventOperation === event.value.join(' ')"
                         id="nc-selected-item-icon"
-                        class="text-primary w-4 h-4"
+                        class="text-primary w-4 h-4 flex-none"
                       />
                     </div>
                   </a-select-option>
@@ -662,7 +678,7 @@ onMounted(async () => {
                         :is="iconMap.check"
                         v-if="hookRef.notification.type === notificationOption.type"
                         id="nc-selected-item-icon"
-                        class="text-primary w-4 h-4"
+                        class="text-primary w-4 h-4 flex-none"
                       />
                     </div>
                   </a-select-option>
@@ -685,13 +701,13 @@ onMounted(async () => {
                       </template>
 
                       <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
-                        <div class="flex items-center gap-2 justify-between">
+                        <div class="flex items-center gap-2 justify-between w-full">
                           <div>{{ method.title }}</div>
                           <component
                             :is="iconMap.check"
                             v-if="hookRef.notification.payload.method === method.title"
                             id="nc-selected-item-icon"
-                            class="text-primary w-4 h-4"
+                            class="text-primary w-4 h-4 flex-none"
                           />
                         </div>
                       </a-select-option>
@@ -703,7 +719,7 @@ onMounted(async () => {
                       v-model:value="hookRef.notification.payload.path"
                       size="medium"
                       placeholder="http://example.com"
-                      class="nc-text-field-hook-url-path nc-input-shadow h-9 !rounded-md"
+                      class="nc-text-field-hook-url-path nc-input-shadow h-9 !rounded-lg"
                     />
                   </a-form-item>
                 </div>
@@ -811,7 +827,7 @@ onMounted(async () => {
               </a-form-item>
             </div>
 
-            <div v-show="isConditionSupport">
+            <div v-if="isConditionSupport">
               <div class="w-full cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                 <NcSwitch :checked="Boolean(hookRef.condition)">
                   <span class="!text-gray-700 font-semibold">
@@ -832,8 +848,8 @@ onMounted(async () => {
               />
             </div>
 
-            <a-form-item>
-              <div v-if="formInput[hookRef.notification.type] && hookRef.notification.payload" class="flex flex-col gap-2">
+            <a-form-item v-if="formInput[hookRef.notification.type] && hookRef.notification.payload">
+              <div class="flex flex-col gap-2">
                 <div v-for="(input, i) in formInput[hookRef.notification.type]" :key="i">
                   <a-form-item v-if="input.type === 'LongText'" v-bind="validateInfos[`notification.payload.${input.key}`]">
                     <a-textarea
@@ -927,22 +943,23 @@ onMounted(async () => {
       </div>
 
       <div class="h-full bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
-        <h1 class="text-gray-900 font-semibold">
-          {{ $t('labels.supportDocs') }}
-        </h1>
-        <div class="flex flex-col gap-1">
-          <NuxtLink target="_blank" href="https://docs.nocodb.com/automation/webhook/webhook-overview">
-            <div class="flex items-center gap-1">
-              <GeneralIcon class="text-gray-700" icon="book" />
-              Configure a URL webhooks
+        <div class="w-full flex flex-col gap-3">
+          <h2 class="text-sm text-gray-800 font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
+          <div>
+            <div v-for="doc of supportedDocs" class="flex items-center gap-1">
+              <div class="h-7 w-7 flex items-center justify-center">
+                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
+              </div>
+              <NuxtLink
+                :href="doc.href"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="!text-gray-700 text-sm !no-underline !hover:underline"
+              >
+                {{ doc.title }}
+              </NuxtLink>
             </div>
-          </NuxtLink>
-          <NuxtLink target="_blank" href="https://docs.nocodb.com/automation/webhook/create-webhook/">
-            <div class="flex items-center gap-1">
-              <GeneralIcon class="text-gray-700" icon="book" />
-              Getting started with webhooks
-            </div>
-          </NuxtLink>
+          </div>
         </div>
       </div>
     </div>
@@ -1089,5 +1106,8 @@ onMounted(async () => {
 }
 :deep(.nc-tabs .ant-tabs-nav) {
   @apply pl-0;
+  .ant-tabs-tab{
+    @apply pt-1 pb-1.5;
+  }
 }
 </style>

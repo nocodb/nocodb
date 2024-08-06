@@ -519,6 +519,7 @@ const changeToDynamic = async (filter, i) => {
     class="menu-filter-dropdown w-min"
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
+      '!min-w-full !w-full': !nested && hookId,
       'min-w-full': nested,
     }"
   >
@@ -610,11 +611,15 @@ const changeToDynamic = async (filter, i) => {
                         v-model:value="filter.logical_op"
                         v-e="['c:filter:logical-op:select']"
                         :dropdown-match-select-width="false"
-                        class="min-w-18 max-w-18 capitalize"
+                        class="min-w-18 capitalize"
                         placeholder="Group op"
                         dropdown-class-name="nc-dropdown-filter-logical-op-group"
                         :disabled="i > 1 && !isLogicalOpChangeAllowed"
-                        :class="{ 'nc-disabled-logical-op': filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed) }"
+                        :class="{
+                          'nc-disabled-logical-op': filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed),
+                          '!max-w-18': !hookId,
+                          '!w-full': hookId,
+                        }"
                         @click.stop
                         @change="onLogicalOpUpdate(filter, i)"
                       >
@@ -660,12 +665,13 @@ const changeToDynamic = async (filter, i) => {
               v-model:value="filter.logical_op"
               v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
               :dropdown-match-select-width="false"
-              class="h-full !min-w-18 !max-w-18 capitalize"
+              class="h-full !min-w-18 capitalize"
               hide-details
               :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
               :class="{
                 'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed),
+                '!max-w-18': !hookId,
               }"
               @change="onLogicalOpUpdate(filter, i)"
               @click.stop
@@ -686,7 +692,11 @@ const changeToDynamic = async (filter, i) => {
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
-              class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
+              :class="{
+                'max-w-32': !hookId,
+                '!w-full': hookId,
+              }"
+              class="nc-filter-field-select min-w-32 max-h-8"
               :columns="fieldsToFilter"
               :disabled="filter.readOnly"
               :meta="meta"
@@ -698,8 +708,12 @@ const changeToDynamic = async (filter, i) => {
               v-model:value="filter.comparison_op"
               v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-operation-select !min-w-26.75 !max-w-26.75 max-h-8"
+              class="caption nc-filter-operation-select !min-w-26.75 max-h-8"
               :placeholder="$t('labels.operation')"
+              :class="{
+                '!max-w-26.75': !hookId,
+                '!w-full': hookId,
+              }"
               density="compact"
               variant="solo"
               :disabled="filter.readOnly"
@@ -735,7 +749,8 @@ const changeToDynamic = async (filter, i) => {
               class="caption nc-filter-sub_operation-select min-w-28"
               :class="{
                 'flex-grow w-full': !showFilterInput(filter),
-                'max-w-28': showFilterInput(filter),
+                'max-w-28': showFilterInput(filter) && !hookId,
+                '!w-full': hookId,
               }"
               :placeholder="$t('labels.operationSub')"
               density="compact"
@@ -789,6 +804,9 @@ const changeToDynamic = async (filter, i) => {
                 <SmartsheetToolbarFilterInput
                   v-if="showFilterInput(filter)"
                   class="nc-filter-value-select rounded-md min-w-34"
+                  :class="{
+                    '!w-full !w-18': hookId,
+                  }"
                   :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
                   :filter="filter"
                   @update-filter-value="(value) => updateFilterValue(value, filter, i)"

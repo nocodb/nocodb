@@ -12,6 +12,7 @@ interface Props {
   disableDeepCompare?: boolean
   readOnly?: boolean
   autoFocus?: boolean
+  monacoConfig?: MonacoEditor.IEditorOptions
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,13 +21,14 @@ const props = withDefaults(defineProps<Props>(), {
   validate: true,
   disableDeepCompare: false,
   autoFocus: true,
+  monacoConfig: {},
 })
 
 const emits = defineEmits(['update:modelValue'])
 
 const { modelValue } = toRefs(props)
 
-const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus } = props
+const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus, monacoConfig } = props
 
 const vModel = computed<string>({
   get: () => {
@@ -99,6 +101,7 @@ onMounted(async () => {
       minimap: {
         enabled: !hideMinimap,
       },
+      ...monacoConfig,
     })
 
     editor.onDidChangeModelContent(async () => {

@@ -125,12 +125,12 @@ const onCreateBaseClick = () => {
         data-testid="proj-view-btn__add-new-table"
         @click="openTableCreateDialog()"
       >
-        <div class="flex items-center gap-3">
-          <GeneralIcon icon="addOutlineBox" class="!text-brand-500 !h-5 !w-5" />
+        <GeneralIcon icon="addOutlineBox" class="!text-brand-500" />
 
+        <div class="flex flex-col gap-1">
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
+          <div class="subtext">Start from scratch.</div>
         </div>
-        <div class="subtext">Start from scratch.</div>
       </div>
 
       <div
@@ -141,11 +141,12 @@ const onCreateBaseClick = () => {
         data-testid="proj-view-btn__import-data"
         @click="isImportModalOpen = true"
       >
-        <div class="flex items-center gap-3">
-          <GeneralIcon icon="download" class="!text-orange-700 !h-5 !w-5" />
+        <GeneralIcon icon="download" class="!text-orange-700" />
+        <div class="flex flex-col gap-1">
           <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
+
+          <div class="subtext">From files & external sources</div>
         </div>
-        <div class="subtext">From files & external sources</div>
       </div>
       <NcTooltip
         v-if="isUIAllowed('sourceCreate')"
@@ -166,29 +167,30 @@ const onCreateBaseClick = () => {
           }"
           @click="onCreateBaseClick"
         >
-          <div class="flex items-center gap-3">
-            <GeneralIcon icon="server1" class="!text-green-700 !h-5 !w-5" />
+          <GeneralIcon icon="server1" class="!text-green-700" />
+          <div class="flex flex-col gap-1">
             <div class="label">{{ $t('labels.connectDataSource') }}</div>
+            <div class="subtext">In realtime to external databases.</div>
           </div>
-          <div class="subtext">In realtime to external databases.</div>
         </div>
       </NcTooltip>
 
-      <!--      <div-->
-      <!--        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"-->
-      <!--        v-e="['c:table:create-source']"-->
-      <!--        role="button"-->
-      <!--        class="nc-base-view-all-table-btn"-->
-      <!--        data-testid="proj-view-btn__create-source"-->
-      <!--        @click="syncDataModalOpen = true"-->
-      <!--      >-->
-      <!--        <div class="flex items-center gap-3">-->
-      <!--          <GeneralIcon icon="refresh" class="!text-blue-700 !h-5 !w-5" />-->
-      <!--          <div class="label capitalize">{{ $t('labels.syncData') }}</div>-->
-      <!--        </div>-->
-      <!--        <div class="subtext">Keep your data updated and in sync across multiple sources.</div>-->
-      <!--      </div>-->
-    </div>
+      <!--
+        <div
+        v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+        v-e="['c:table:create-source']"
+        role="button"
+        class="nc-base-view-all-table-btn"
+        data-testid="proj-view-btn__create-source"
+        @click="syncDataModalOpen = true"
+      >
+        <div class="flex items-center gap-3">
+          <GeneralIcon icon="refresh" class="!text-blue-700 !h-5 !w-5" />
+          <div class="label capitalize">{{ $t('labels.syncData') }}</div>
+        </div>
+        <div class="subtext">Keep your data updated and in sync across multiple sources.</div>
+      </div>
+    --></div>
     <div
       v-if="base?.isLoading"
       class="flex items-center justify-center text-center mt-4"
@@ -282,13 +284,13 @@ const onCreateBaseClick = () => {
 
 <style lang="scss" scoped>
 .nc-base-view-all-table-btn {
-  @apply flex-none flex flex-col gap-y-3 px-3 py-5 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[230px] max-w-[245px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
+  @apply flex-none flex flex-col gap-y-3 p-4 bg-gray-50 rounded-xl border-1 border-gray-100 min-w-[230px] max-w-[245px] cursor-pointer text-gray-800 hover:(bg-gray-100 border-gray-200) transition-all duration-300;
   &:hover {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
 
   .nc-icon {
-    @apply h-6 w-6;
+    @apply h-10 w-10;
   }
 
   .label {

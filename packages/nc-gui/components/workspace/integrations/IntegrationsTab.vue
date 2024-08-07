@@ -119,54 +119,54 @@ const handleUpvote = (syncDataType: SyncDataType) => {
 <template>
   <div class="h-full">
     <a-layout>
-      <a-layout-sider class="nc-integration-layout-sidebar">
-        <div class="h-full flex flex-col gap-3">
-          <div class="px-3 pt-3 text-sm text-gray-700 font-bold">
-            {{ $t('title.categories') }}
-          </div>
-          <div class="px-3 pb-3 flex-1 flex flex-col gap-1 overflow-y-auto nc-scrollbar-thin">
-            <div
-              class="nc-integration-category-item"
-              :class="{
-                active: activeCategory === null,
-              }"
-              data-testid="all-integrations"
-              @click="activeCategory = null"
-            >
-              <div class="nc-integration-category-item-icon-wrapper bg-gray-200">
-                <GeneralIcon icon="globe" class="stroke-transparent !text-gray-700" />
-              </div>
-              <div class="nc-integration-category-item-content-wrapper">
-                <div class="nc-integration-category-item-title">All Integrations</div>
-                <div class="nc-integration-category-item-subtitle">Content needed</div>
-              </div>
-            </div>
-            <div
-              v-for="category of integrationCategories"
-              :key="category.value"
-              class="nc-integration-category-item"
-              :class="{
-                active: activeCategory === category,
-              }"
-              :data-testid="category.value"
-              @click="activeCategory = category"
-            >
-              <div
-                class="nc-integration-category-item-icon-wrapper"
-                :style="{
-                  backgroundColor: category.iconBgColor,
-                }"
-              >
-                <component :is="category.icon" class="nc-integration-category-item-icon" :style="category.iconStyle" />
-              </div>
-              <div class="nc-integration-category-item-content-wrapper">
-                <div class="nc-integration-category-item-title">{{ $t(category.title) }}</div>
-                <div class="nc-integration-category-item-subtitle">{{ $t(category.subtitle) }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </a-layout-sider>
+      <!--      <a-layout-sider class="nc-integration-layout-sidebar">-->
+      <!--        <div class="h-full flex flex-col gap-3">-->
+      <!--          <div class="px-5 pt-3 text-sm text-gray-500 font-bold">-->
+      <!--            {{ $t('title.categories') }}-->
+      <!--          </div>-->
+      <!--          <div class="px-3 pb-3 flex-1 flex flex-col gap-1 overflow-y-auto nc-scrollbar-thin">-->
+      <!--            <div-->
+      <!--              class="nc-integration-category-item"-->
+      <!--              :class="{-->
+      <!--                active: activeCategory === null,-->
+      <!--              }"-->
+      <!--              data-testid="all-integrations"-->
+      <!--              @click="activeCategory = null"-->
+      <!--            >-->
+      <!--              <div class="nc-integration-category-item-icon-wrapper bg-gray-200">-->
+      <!--                <GeneralIcon icon="globe" class="stroke-transparent !text-gray-700" />-->
+      <!--              </div>-->
+      <!--              <div class="nc-integration-category-item-content-wrapper">-->
+      <!--                <div class="nc-integration-category-item-title">All Integrations</div>-->
+      <!--                &lt;!&ndash;                <div class="nc-integration-category-item-subtitle">Content needed</div>&ndash;&gt;-->
+      <!--              </div>-->
+      <!--            </div>-->
+      <!--            <div-->
+      <!--              v-for="category of integrationCategories"-->
+      <!--              :key="category.value"-->
+      <!--              class="nc-integration-category-item"-->
+      <!--              :class="{-->
+      <!--                active: activeCategory === category,-->
+      <!--              }"-->
+      <!--              :data-testid="category.value"-->
+      <!--              @click="activeCategory = category"-->
+      <!--            >-->
+      <!--              <div-->
+      <!--                class="nc-integration-category-item-icon-wrapper"-->
+      <!--                :style="{-->
+      <!--                  backgroundColor: category.iconBgColor,-->
+      <!--                }"-->
+      <!--              >-->
+      <!--                <component :is="category.icon" class="nc-integration-category-item-icon" :style="category.iconStyle" />-->
+      <!--              </div>-->
+      <!--              <div class="nc-integration-category-item-content-wrapper">-->
+      <!--                <div class="nc-integration-category-item-title">{{ $t(category.title) }}</div>-->
+      <!--                &lt;!&ndash;                <div class="nc-integration-category-item-subtitle">{{ $t(category.subtitle) }}</div>&ndash;&gt;-->
+      <!--              </div>-->
+      <!--            </div>-->
+      <!--          </div>-->
+      <!--        </div>-->
+      <!--      </a-layout-sider>-->
       <a-layout-content class="nc-integration-layout-content">
         <div class="h-full flex flex-col gap-6">
           <div class="px-6 pt-6">

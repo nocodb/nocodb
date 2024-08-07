@@ -172,7 +172,7 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
         v-model:value="userSearchText"
         allow-clear
         :disabled="isCollaboratorsLoading"
-        class="nc-collaborator-list-search-input !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+        class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
         placeholder="Search members"
       >
         <template #prefix>
@@ -313,12 +313,6 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
 <style scoped lang="scss">
 :deep(.ant-input::placeholder) {
   @apply text-gray-500;
-}
-
-:deep(.ant-input-affix-wrapper.nc-collaborator-list-search-input) {
-  &:not(:has(.ant-input-clear-icon-hidden)):has(.ant-input-clear-icon) {
-    @apply border-[var(--ant-primary-5)];
-  }
 }
 
 .badge-text {

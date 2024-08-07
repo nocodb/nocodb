@@ -12,6 +12,8 @@ interface Props {
   disableDeepCompare?: boolean
   readOnly?: boolean
   autoFocus?: boolean
+  monacoConfig?: Partial<MonacoEditor.IStandaloneEditorConstructionOptions>
+  monacoCustomTheme?: Partial<MonacoEditor.IStandaloneThemeData>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -20,13 +22,15 @@ const props = withDefaults(defineProps<Props>(), {
   validate: true,
   disableDeepCompare: false,
   autoFocus: true,
+  monacoConfig: () => ({} as Partial<MonacoEditor.IStandaloneEditorConstructionOptions>),
+  monacoCustomTheme: () => ({} as Partial<MonacoEditor.IStandaloneThemeData>),
 })
 
 const emits = defineEmits(['update:modelValue'])
 
 const { modelValue } = toRefs(props)
 
-const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus } = props
+const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus, monacoConfig, monacoCustomTheme } = props
 
 const vModel = computed<string>({
   get: () => {
@@ -55,8 +59,13 @@ const root = ref<HTMLDivElement>()
 
 let editor: MonacoEditor.IStandaloneCodeEditor
 
-const format = () => {
-  editor.setValue(JSON.stringify(JSON.parse(editor?.getValue() as string), null, 2))
+const format = (space = monacoConfig.tabSize || 2) => {
+  try {
+    const parsedValue = JSON.parse(editor?.getValue() as string)
+    editor.setValue(JSON.stringify(parsedValue, null, space))
+  } catch (error: unknown) {
+    console.error('Failed to parse and format JSON:', error)
+  }
 }
 
 defineExpose({
@@ -77,10 +86,17 @@ onMounted(async () => {
       })
     }
 
+    let isCustomTheme = false
+
+    if (Object.keys(monacoCustomTheme).length) {
+      monacoEditor.defineTheme('custom', monacoCustomTheme)
+      isCustomTheme = true
+    }
+
     editor = monacoEditor.create(root.value, {
       model,
       contextmenu: false,
-      theme: 'vs',
+      theme: isCustomTheme ? 'custom' : 'vs',
       foldingStrategy: 'indentation',
       selectOnLineNumbers: true,
       language: props.lang,
@@ -89,7 +105,7 @@ onMounted(async () => {
         horizontalScrollbarSize: 1,
       },
       lineNumbers: 'off',
-      tabSize: 2,
+      tabSize: monacoConfig.tabSize || 2,
       automaticLayout: true,
       readOnly,
       bracketPairColorization: {
@@ -99,6 +115,8 @@ onMounted(async () => {
       minimap: {
         enabled: !hideMinimap,
       },
+      ...(lang === 'json' ? { detectIndentation: false, insertSpaces: true } : {}),
+      ...monacoConfig,
     })
 
     editor.onDidChangeModelContent(async () => {
@@ -121,6 +139,10 @@ onMounted(async () => {
     if (!isDrawerOrModalExist() && autoFocus) {
       // auto focus on json cells only
       editor.focus()
+    }
+
+    if (lang === 'json') {
+      format()
     }
   }
 })
@@ -152,4 +174,13 @@ watch(
   <div ref="root"></div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+:deep(.monaco-editor) {
+  background-color: transparent !important;
+  border-radius: 8px !important;
+}
+
+:deep(.overflow-guard) {
+  border-radius: 8px !important;
+}
+</style>

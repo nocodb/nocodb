@@ -167,16 +167,17 @@ export async function serializeCellValue(
         }
 
         if (!Array.isArray(data)) {
-          data = undefined;
+          data = [data];
         }
       } catch {
         data = undefined;
       }
 
       return (data || [])
+        .filter((attachment) => attachment)
         .map(
           (attachment) =>
-            `${encodeURI(attachment.title)}(${encodeURI(
+            `${attachment.title || 'Attachment'}(${encodeURI(
               attachment.signedPath
                 ? `${siteUrl}/${attachment.signedPath}`
                 : attachment.signedUrl,

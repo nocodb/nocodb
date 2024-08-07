@@ -233,7 +233,7 @@ onKeyStroke('ArrowDown', onDown)
       <div class="text-sm font-normal text-gray-600">
         <div>
           Manage connections for your integrations.
-          <a target="_blank" rel="noopener noreferrer"> Learn more </a>
+          <a href="https://docs.nocodb.com/integrations/actions-on-connection" rel="noopener noreferrer"> Learn more </a>
         </div>
       </div>
       <div class="flex items-center gap-3">

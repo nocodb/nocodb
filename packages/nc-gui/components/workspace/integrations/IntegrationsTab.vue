@@ -100,17 +100,17 @@ const isAddNewIntegrationModalOpen = computed({
   },
 })
 
-const handleUpvote = (syncDataType: SyncDataType) => {
+const handleUpvote = (category: IntegrationCategoryType, syncDataType: SyncDataType) => {
   if (upvotesData.value.has(syncDataType)) return
 
-  $e(`a:integration-request:${syncDataType}`)
+  $e(`a:integration-request:${category}:${syncDataType}`)
 
   updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
 }
 
 const handleAddIntegration = (category: IntegrationCategoryType, integration: IntegrationItemType) => {
   if (!integration.isAvailable) {
-    handleUpvote(integration.value)
+    handleUpvote(category, integration.value)
     return
   }
 

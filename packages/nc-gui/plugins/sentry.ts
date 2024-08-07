@@ -42,8 +42,7 @@ export default defineNuxtPlugin((nuxtApp) => {
             // set additional context
             const appInfo = (nuxtApp.$state as ReturnType<typeof useGlobal>).appInfo.value
             event.extra.version = appInfo?.version
-
-          }catch {
+          } catch {
             // ignore
           }
           return event
@@ -57,7 +56,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   // load sentry only if enabled
   watch(
-    () => (nuxtApp.$state as ReturnType<typeof useGlobal>).appInfo?.value?.sentryEnabled,
+    () => (nuxtApp.$state as ReturnType<typeof useGlobal>).appInfo?.value?.errorReportingEnabled,
     (enabled) => {
       try {
         if (enabled) init()
@@ -65,5 +64,6 @@ export default defineNuxtPlugin((nuxtApp) => {
         // ignore
       }
     },
+    { immediate: true },
   )
 })

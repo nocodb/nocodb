@@ -15787,6 +15787,7 @@
                       "defaultLimit": 25,
                       "ncMin": false,
                       "teleEnabled": false,
+                      "errorReportingEnabled": true,
                       "auditEnabled": true,
                       "ncSiteUrl": "http://localhost:8080",
                       "ee": false,
@@ -15829,6 +15830,9 @@
                       "type": "boolean"
                     },
                     "teleEnabled": {
+                      "type": "boolean"
+                    },
+                    "errorReportingEnabled": {
                       "type": "boolean"
                     },
                     "auditEnabled": {
@@ -15881,6 +15885,7 @@
                       "defaultLimit": 25,
                       "ncMin": false,
                       "teleEnabled": false,
+                      "errorReportingEnabled": true,
                       "auditEnabled": true,
                       "ncSiteUrl": "http://localhost:8080",
                       "ee": false,

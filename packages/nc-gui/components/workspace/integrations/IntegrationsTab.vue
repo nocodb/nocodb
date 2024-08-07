@@ -495,6 +495,7 @@ const handleOpenRequestIntegration = () => {
               @apply text-gray-500;
             }
           }
+          
           &:hover {
             .name {
               @apply text-gray-800;

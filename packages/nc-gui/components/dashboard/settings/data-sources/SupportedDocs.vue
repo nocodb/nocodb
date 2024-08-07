@@ -2,15 +2,15 @@
 const supportedDocs = [
   {
     title: 'Integrations',
-    href: '',
+    href: 'https://docs.nocodb.com/category/integrations',
   },
   {
     title: 'Create new connection',
-    href: '',
+    href: 'https://docs.nocodb.com/integrations/create-connection',
   },
   {
-    title: 'Add new data source',
-    href: '',
+    title: 'Add new Data source',
+    href: 'https://docs.nocodb.com/data-sources/connect-to-data-source',
   },
 ] as {
   title: string

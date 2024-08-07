@@ -375,7 +375,19 @@
       "sqlServer": "SQL Server",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
-      "oracle": "Oracle"
+      "oracle": "Oracle",
+      "telegram": "Telegram",
+      "whatsapp": "Whatsapp",
+      "gmail": "Gmail",
+      "pipedrive": "Pipedrive",
+      "microsoftDynamics365": "Microsoft Dynamics 365",
+      "zohoCrm": "Zoho CRM",
+      "greenhouse": "Greenhouse",
+      "lever": "Lever",
+      "bitbucket": "BitBucket",
+      "quickbooks": "Quickbooks",
+      "intercom": "Intercom",
+      "dropbox": "Dropbox"
     },
     "integrationCategories" :{
       "allIntegrations": "All Integrations",

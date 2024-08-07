@@ -1,10 +1,10 @@
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
-import { SyncDataType, IntegrationCategoryType } from '~/lib/enums'
+import { ClientType, SyncDataType, IntegrationCategoryType } from '~/lib/enums'
 
 export interface IntegrationItemType {
   title: string
   icon: FunctionalComponent<SVGAttributes, {}, any, {}>
-  value: SyncDataType
+  value: SyncDataType | ClientType
   categories: IntegrationCategoryType[]
   isAvailable?: boolean
   iconStyle?: CSSProperties
@@ -136,7 +136,7 @@ export const allIntegrations: IntegrationItemType[] = [
   // Database
   {
     title: 'objects.syncData.mysql',
-    value: SyncDataType.MICROSOFT_ACCESS,
+    value: ClientType.MYSQL,
     icon: iconMap.mysql,
     categories: [IntegrationCategoryType.DATABASE],
     isAvailable: true,
@@ -147,20 +147,20 @@ export const allIntegrations: IntegrationItemType[] = [
   },
   {
     title: 'objects.syncData.postgreSQL',
-    value: SyncDataType.MICROSOFT_ACCESS,
+    value:  ClientType.PG,
     icon: iconMap.postgreSql,
     categories: [IntegrationCategoryType.DATABASE],
     isAvailable: true,
   },
   {
     title: 'objects.syncData.snowflake',
-    value: SyncDataType.SNOWFLAKE,
+    value: ClientType.SNOWFLAKE,
     icon: iconMap.snowflake,
     categories: [IntegrationCategoryType.DATABASE],
   },
   {
     title: 'objects.syncData.dataBricks',
-    value: SyncDataType.MICROSOFT_ACCESS,
+    value: ClientType.DATABRICKS,
     icon: iconMap.dataBricks,
     categories: [IntegrationCategoryType.DATABASE],
   },
@@ -172,7 +172,7 @@ export const allIntegrations: IntegrationItemType[] = [
   },
   {
     title: 'objects.syncData.mssqlServer',
-    value: SyncDataType.MICROSOFT_ACCESS,
+    value: ClientType.MSSQL,
     icon: iconMap.mssqlServer,
     categories: [IntegrationCategoryType.DATABASE],
   },
@@ -191,9 +191,56 @@ export const allIntegrations: IntegrationItemType[] = [
 
   // Communication
   {
+    title: 'general.slack',
+    value: SyncDataType.SLACK,
+    icon: iconMap.slack,
+    categories: [IntegrationCategoryType.COMMUNICATION],
+  },
+  {
+    title: 'general.discord',
+    value: SyncDataType.DISCORD,
+    icon: iconMap.ncDiscord,
+    categories: [IntegrationCategoryType.COMMUNICATION],
+    iconStyle:{
+      width: "32px",
+      height:"32px"
+    }
+  },
+  {
+    title: 'general.twilio',
+    value: SyncDataType.TWILLO,
+    icon: iconMap.twilio,
+    categories: [IntegrationCategoryType.COMMUNICATION],
+  },
+ 
+  {
     title: 'objects.syncData.microsoftOutlook',
     value: SyncDataType.MICROSOFT_OUTLOOK,
     icon: iconMap.microsoftOutlook,
+    categories: [IntegrationCategoryType.COMMUNICATION],
+  },
+  {
+    title: 'general.microsoftTeams',
+    value: SyncDataType.MICROSOFT_TEAMS,
+    icon: iconMap.microsoftTeams,
+    categories: [IntegrationCategoryType.COMMUNICATION],
+  },
+  {
+    title: 'objects.syncData.gmail',
+    value: SyncDataType.GMAIL,
+    icon: iconMap.gmail,
+    categories: [IntegrationCategoryType.COMMUNICATION],
+  },
+  {
+    title: 'objects.syncData.telegram',
+    value: SyncDataType.TELEGRAM,
+    icon: iconMap.telegram,
+    categories: [IntegrationCategoryType.COMMUNICATION],
+  },
+  {
+    title: 'objects.syncData.whatsapp',
+    value: SyncDataType.WHATSAPP,
+    icon: iconMap.whatsapp,
     categories: [IntegrationCategoryType.COMMUNICATION],
   },
 
@@ -226,19 +273,31 @@ export const allIntegrations: IntegrationItemType[] = [
 
   // CRM
   {
+    title: 'objects.syncData.microsoftDynamics365',
+    value: SyncDataType.MICROSOFT_DYNAMICS_365,
+    icon: iconMap.microsoftDynamics365,
+    categories: [IntegrationCategoryType.CRM],
+  },
+  {
+    title: 'objects.syncData.pipedrive',
+    value: SyncDataType.PIPEDRIVE,
+    icon: iconMap.pipedrive,
+    categories: [IntegrationCategoryType.CRM],
+  },
+  {
     title: 'objects.syncData.salesforce',
     value: SyncDataType.SALESFORCE,
     icon: iconMap.salesforce,
     categories: [IntegrationCategoryType.CRM],
   },
+  {
+    title: 'objects.syncData.zohoCrm',
+    value: SyncDataType.ZOHO_CRM,
+    icon: iconMap.zohoCrm,
+    categories: [IntegrationCategoryType.CRM],
+  },
 
   // Marketing
-  {
-    title: 'objects.syncData.salesforce',
-    value: SyncDataType.SALESFORCE,
-    icon: iconMap.salesforce,
-    categories: [IntegrationCategoryType.MARKETING],
-  },
   {
     title: 'objects.syncData.hubspot',
     value: SyncDataType.HUBSPOT,
@@ -271,8 +330,26 @@ export const allIntegrations: IntegrationItemType[] = [
     icon: iconMap.workday,
     categories: [IntegrationCategoryType.ATS],
   },
+  {
+    title: 'objects.syncData.greenhouse',
+    value: SyncDataType.GREENHOUSE,
+    icon: iconMap.greenhouse,
+    categories: [IntegrationCategoryType.ATS],
+  },
+  {
+    title: 'objects.syncData.lever',
+    value: SyncDataType.LEVER,
+    icon: iconMap.lever,
+    categories: [IntegrationCategoryType.ATS],
+  },
 
   // Development
+  {
+    title: 'objects.syncData.bitbucket',
+    value: SyncDataType.BITBUCKET,
+    icon: iconMap.bitbucket,
+    categories: [IntegrationCategoryType.DEVELOPMENT],
+  },
   {
     title: 'objects.syncData.github',
     value: SyncDataType.GITHUB,
@@ -293,8 +370,20 @@ export const allIntegrations: IntegrationItemType[] = [
     icon: iconMap.stripe,
     categories: [IntegrationCategoryType.FINANCE],
   },
+  {
+    title: 'objects.syncData.quickbooks',
+    value: SyncDataType.QUICKBOOKS,
+    icon: iconMap.quickbooks,
+    categories: [IntegrationCategoryType.FINANCE],
+  },
 
   // Ticketing
+  {
+    title: 'objects.syncData.intercom',
+    value: SyncDataType.INTERCOM,
+    icon: iconMap.intercom,
+    categories: [IntegrationCategoryType.TICKETING],
+  },
   {
     title: 'objects.syncData.zendesk',
     value: SyncDataType.ZENDESK,
@@ -304,6 +393,7 @@ export const allIntegrations: IntegrationItemType[] = [
 
   // Storage
   { title: 'objects.syncData.box', value: SyncDataType.BOX, icon: iconMap.box, categories: [IntegrationCategoryType.STORAGE] },
+  { title: 'objects.syncData.dropbox', value: SyncDataType.DROPBOX, icon: iconMap.dropbox, categories: [IntegrationCategoryType.STORAGE] },
   {
     title: 'objects.syncData.googleDrive',
     value: SyncDataType.GOOGLE_DRIVE,
@@ -311,6 +401,7 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.STORAGE],
   },
 
+  // Others
   {
     title: 'objects.syncData.appleNumbers',
     value: SyncDataType.APPLE_NUMBERS,

@@ -250,6 +250,21 @@ import NcMattermost from '~icons/nc-icons/mattermost'
 import NcTwilio from '~icons/nc-icons/twilio'
 import NcWhatsapp from '~icons/nc-icons/whatsapp'
 
+// View icons
+import NcViewGantt from '~icons/nc-icons/view-gantt'
+
+import NcDollerSign from '~icons/nc-icons/doller-sign'
+import NcMultiFile from '~icons/nc-icons/multi-file'
+import NcHeart from '~icons/nc-icons/heart'
+import NcSave from '~icons/nc-icons/save'
+
+import NcMySql from '~icons/logos/mysql-icon'
+import NcPostgreSql from '~icons/nc-icons/postgresql'
+import NcSqlServer from '~icons/nc-icons/sql-server'
+import NcDataBricks from '~icons/nc-icons/data-bricks'
+import NcMssqlServer from '~icons/nc-icons/mssql-server'
+import NcOracle from '~icons/nc-icons/oracle'
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -725,6 +740,17 @@ export const iconMap = {
   mattermost: NcMattermost,
   twilio: NcTwilio,
   whatsapp: NcWhatsapp,
+  viewGannt: NcViewGantt,
+  dollerSign: NcDollerSign,
+  multiFile: NcMultiFile,
+  heart: NcHeart,
+  ncSave: NcSave,
+  mysql: NcMySql,
+  postgreSql: NcPostgreSql,
+  sqlServer: NcSqlServer,
+  dataBricks: NcDataBricks,
+  mssqlServer: NcMssqlServer,
+  oracle: NcOracle,
 }
 
 export const getMdiIcon = (type: string): any => {

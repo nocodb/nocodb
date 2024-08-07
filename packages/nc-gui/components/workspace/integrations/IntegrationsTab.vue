@@ -85,11 +85,11 @@ const handleUpvote = (syncDataType: SyncDataType) => {
   <div class="h-full">
     <a-layout>
       <a-layout-sider class="nc-integration-layout-sidebar">
-        <div class="p-3 flex flex-col gap-3 overflow-y-auto nc-scrollbar-thin">
-          <div class="text-sm text-gray-700 font-bold">
+        <div class="h-full flex flex-col gap-3">
+          <div class="px-3 pt-3 text-sm text-gray-700 font-bold">
             {{ $t('title.categories') }}
           </div>
-          <div class="flex flex-col gap-1">
+          <div class="px-3 pb-3 flex-1 flex flex-col gap-1 overflow-y-auto nc-scrollbar-thin">
             <div
               class="nc-integration-category-item"
               :class="{
@@ -98,19 +98,8 @@ const handleUpvote = (syncDataType: SyncDataType) => {
               data-testid="all-integrations"
               @click="activeCategory = null"
             >
-              <div
-                class="nc-integration-category-item-icon-wrapper"
-                :style="{
-                  backgroundColor: '',
-                }"
-              >
-                <GeneralIcon
-                  :icon="'microsoftAccess'"
-                  class="stroke-transparent !grayscale"
-                  :style="{
-                    filter: 'grayscale(100%) brightness(115%)',
-                  }"
-                />
+              <div class="nc-integration-category-item-icon-wrapper bg-gray-200">
+                <GeneralIcon icon="globe" class="stroke-transparent !text-gray-700" />
               </div>
               <div class="nc-integration-category-item-content-wrapper">
                 <div class="nc-integration-category-item-title">All Integrations</div>
@@ -130,10 +119,10 @@ const handleUpvote = (syncDataType: SyncDataType) => {
               <div
                 class="nc-integration-category-item-icon-wrapper"
                 :style="{
-                  backgroundColor: '',
+                  backgroundColor: category.iconBgColor,
                 }"
               >
-                <component :is="category.icon" class="nc-integration-category-item-icon" />
+                <component :is="category.icon" class="nc-integration-category-item-icon" :style="category.iconStyle" />
               </div>
               <div class="nc-integration-category-item-content-wrapper">
                 <div class="nc-integration-category-item-title">{{ $t(category.title) }}</div>
@@ -187,7 +176,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
                           @click="handleAddIntegration(key, integration)"
                         >
                           <div class="integration-icon-wrapper">
-                            <component :is="integration.icon" class="integration-icon" />
+                            <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                           </div>
                           <div class="name flex-1">{{ $t(integration.title) }}</div>
                           <div v-if="integration?.isAvailable" class="action-btn">+</div>
@@ -195,7 +184,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
                             <NcButton
                               type="secondary"
                               size="xs"
-                              class="integration-upvote-btn !rounded-lg !px-2 !py-0"
+                              class="integration-upvote-btn !rounded-lg !px-1 !py-0"
                               :class="{
                                 selected: upvotesData.has(integration.value),
                               }"
@@ -276,7 +265,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
 
 <style lang="scss" scoped>
 .nc-integration-layout-sidebar {
-  @apply !bg-white border-r-1 border-gray-200 !min-w-[260px] !max-w-[260px] !overflow-y-auto nc-scrollbar-thin;
+  @apply !bg-white border-r-1 border-gray-200 !min-w-[260px] !max-w-[260px];
 
   flex: 1 1 260px !important;
 
@@ -366,17 +355,21 @@ const handleUpvote = (syncDataType: SyncDataType) => {
         &.is-available {
           @apply cursor-pointer;
 
+          &:hover {
+            @apply bg-gray-50;
+
+            box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
+
+            .action-btn {
+              @apply block;
+            }
+          }
+
           .integration-icon-wrapper {
             @apply bg-gray-100;
           }
           .name {
             @apply text-gray-800;
-          }
-
-          &:hover {
-            .action-btn {
-              @apply block;
-            }
           }
         }
 

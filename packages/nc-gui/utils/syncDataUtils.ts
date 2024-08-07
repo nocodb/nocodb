@@ -16,6 +16,7 @@ export interface CategoryItemType {
   value: IntegrationCategoryType
   icon: FunctionalComponent<SVGAttributes, {}, any, {}>
   iconBgColor?: string
+  iconStyle?: CSSProperties
 }
 
 export const integrationCategories: CategoryItemType[] = [
@@ -24,82 +25,152 @@ export const integrationCategories: CategoryItemType[] = [
     subtitle: 'objects.integrationCategories.databaseSubtitle',
     value: IntegrationCategoryType.DATABASE,
     icon: iconMap.database,
-    iconBgColor: '',
+    iconBgColor: '#D4F7E0',
+    iconStyle: {
+      color: '#17803D',
+    },
   },
   {
     title: 'objects.integrationCategories.communication',
     subtitle: 'objects.integrationCategories.communicationSubtitle',
     value: IntegrationCategoryType.COMMUNICATION,
-    icon: iconMap.database,
-    iconBgColor: '',
+    icon: iconMap.messageCircle,
+    iconBgColor: '#FFF0F7',
+    iconStyle: {
+      color: '#801044',
+    },
   },
   {
     title: 'objects.integrationCategories.projectManagement',
     subtitle: 'objects.integrationCategories.projectManagementSubtitle',
     value: IntegrationCategoryType.PROJECT_MANAGEMENT,
-    icon: iconMap.database,
-    iconBgColor: '',
+    icon: iconMap.viewGannt,
+    iconBgColor: '#FFF0D1',
+    iconStyle: {
+      color: '#977223',
+    },
   },
   {
     title: 'objects.integrationCategories.crm',
     subtitle: 'objects.integrationCategories.crmSubtitle',
     value: IntegrationCategoryType.CRM,
-    icon: iconMap.database,
-    iconBgColor: '',
+    icon: iconMap.users,
+    iconBgColor: '#D7F2FF',
+    iconStyle: {
+      color: '#207399',
+    },
   },
   {
     title: 'objects.integrationCategories.marketing',
     subtitle: 'objects.integrationCategories.marketingSubtitle',
     value: IntegrationCategoryType.MARKETING,
-    icon: iconMap.database,
-    iconBgColor: '',
+    icon: iconMap.heart,
+    iconBgColor: '#FED8F4',
+    iconStyle: {
+      color: '#972377',
+    },
   },
   {
     title: 'objects.integrationCategories.ats',
     subtitle: 'objects.integrationCategories.atsSubtitle',
     value: IntegrationCategoryType.ATS,
-    icon: iconMap.database,
-    iconBgColor: '',
+    icon: iconMap.multiFile,
+    iconBgColor: '#FEE6D6',
+    iconStyle: {
+      color: '#C86827',
+    },
   },
   {
     title: 'objects.integrationCategories.development',
     subtitle: 'objects.integrationCategories.developmentSubtitle',
     value: IntegrationCategoryType.DEVELOPMENT,
-    icon: iconMap.database,
-    iconBgColor: '',
+    icon: iconMap.code,
+    iconBgColor: '#E5D4F5',
+    iconStyle: {
+      color: '#4B177B',
+    },
   },
   {
     title: 'objects.integrationCategories.finance',
     subtitle: 'objects.integrationCategories.financeSubtitle',
     value: IntegrationCategoryType.FINANCE,
-    icon: iconMap.database,
-    iconBgColor: '',
+    icon: iconMap.dollerSign,
+    iconBgColor: '#D4F7E0',
+    iconStyle: {
+      color: '#17803D',
+    },
   },
   {
     title: 'objects.integrationCategories.ticketing',
     subtitle: 'objects.integrationCategories.ticketingSubtitle',
     value: IntegrationCategoryType.TICKETING,
-    icon: iconMap.database,
-    iconBgColor: '',
+    icon: iconMap.globe,
+    iconBgColor: '#FFF0D1',
+    iconStyle: {
+      color: '#977223',
+    },
   },
   {
     title: 'labels.storage',
     subtitle: 'objects.integrationCategories.storageSubtitle',
     value: IntegrationCategoryType.STORAGE,
-    icon: iconMap.database,
-    iconBgColor: '',
+    icon: iconMap.ncSave,
+    iconBgColor: '#E7E7E9',
+    iconStyle: {
+      color: '#374151',
+    },
   },
   {
     title: 'objects.integrationCategories.others',
     subtitle: 'objects.integrationCategories.othersSubtitle',
     value: IntegrationCategoryType.OTHERS,
-    icon: iconMap.database,
-    iconBgColor: '',
+    icon: iconMap.plusSquare,
+    iconBgColor: 'white',
+    iconStyle: {
+      color: '#374151',
+    },
   },
 ]
 
 export const allIntegrations: IntegrationItemType[] = [
   // Database
+  {
+    title: 'objects.syncData.mysql',
+    value: SyncDataType.MICROSOFT_ACCESS,
+    icon: iconMap.mysql,
+    categories: [IntegrationCategoryType.DATABASE],
+    isAvailable: true,
+    iconStyle: {
+      width: '32px',
+      height: '32px',
+    },
+  },
+  {
+    title: 'objects.syncData.postgreSQL',
+    value: SyncDataType.MICROSOFT_ACCESS,
+    icon: iconMap.postgreSql,
+    categories: [IntegrationCategoryType.DATABASE],
+    isAvailable: true,
+  },
+
+  {
+    title: 'objects.syncData.sqlServer',
+    value: SyncDataType.MICROSOFT_ACCESS,
+    icon: iconMap.sqlServer,
+    categories: [IntegrationCategoryType.DATABASE],
+  },
+  {
+    title: 'objects.syncData.snowflake',
+    value: SyncDataType.SNOWFLAKE,
+    icon: iconMap.snowflake,
+    categories: [IntegrationCategoryType.DATABASE],
+  },
+  {
+    title: 'objects.syncData.dataBricks',
+    value: SyncDataType.MICROSOFT_ACCESS,
+    icon: iconMap.dataBricks,
+    categories: [IntegrationCategoryType.DATABASE],
+  },
   {
     title: 'objects.syncData.microsoftAccess',
     value: SyncDataType.MICROSOFT_ACCESS,
@@ -107,9 +178,21 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.DATABASE],
   },
   {
-    title: 'objects.syncData.snowflake',
-    value: SyncDataType.SNOWFLAKE,
-    icon: iconMap.snowflake,
+    title: 'objects.syncData.mssqlServer',
+    value: SyncDataType.MICROSOFT_ACCESS,
+    icon: iconMap.mssqlServer,
+    categories: [IntegrationCategoryType.DATABASE],
+  },
+  {
+    title: 'objects.syncData.oracle',
+    value: SyncDataType.MICROSOFT_ACCESS,
+    icon: iconMap.oracle,
+    categories: [IntegrationCategoryType.DATABASE],
+  },
+  {
+    title: 'objects.syncData.tableau',
+    value: SyncDataType.TABLEAU,
+    icon: iconMap.tableau,
     categories: [IntegrationCategoryType.DATABASE],
   },
 
@@ -140,10 +223,11 @@ export const allIntegrations: IntegrationItemType[] = [
     icon: iconMap.miro,
     categories: [IntegrationCategoryType.PROJECT_MANAGEMENT],
   },
+
   {
-    title: 'objects.syncData.tableau',
-    value: SyncDataType.TABLEAU,
-    icon: iconMap.tableau,
+    title: 'objects.syncData.trello',
+    value: SyncDataType.TRELLO,
+    icon: iconMap.trello,
     categories: [IntegrationCategoryType.PROJECT_MANAGEMENT],
   },
 
@@ -260,7 +344,7 @@ export const allIntegrations: IntegrationItemType[] = [
   },
 ]
 
-export const syncDataTypes = [{ title: 'objects.syncData.trello', value: SyncDataType.TRELLO, icon: iconMap.trello }] as {
+export const syncDataTypes = [] as {
   title: string
   icon: FunctionalComponent<SVGAttributes, {}, any, {}>
   value: SyncDataType

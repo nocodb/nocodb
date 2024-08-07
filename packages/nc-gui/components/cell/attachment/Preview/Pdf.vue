@@ -26,7 +26,7 @@ const openMethod = ref<'browser' | 'google' | undefined>()
     <div class="flex items-center justify-center gap-2">
       <NcButton class="!w-52" type="secondary" @click="openMethod = 'browser'">
         <div class="flex items-center gap-1">
-          <GeneralIcon icon="globe" />
+          <GeneralIcon icon="globe" class="!text-gray-700"/>
           Open in browser
         </div>
       </NcButton>

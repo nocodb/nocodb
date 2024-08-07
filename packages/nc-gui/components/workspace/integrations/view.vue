@@ -65,8 +65,8 @@ onBeforeMount(() => {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div class="h-[calc(100vh-92px)] p-6">
-            <WorkspaceIntegrationsNewAvailableList />
+          <div class="h-[calc(100vh-92px)]">
+            <WorkspaceIntegrationsTab />
           </div>
         </a-tab-pane>
       </template>
@@ -89,7 +89,7 @@ onBeforeMount(() => {
             </div>
           </template>
           <div class="h-[calc(100vh-92px)] p-6">
-            <WorkspaceIntegrationsList />
+            <WorkspaceIntegrationsConnectionsTab />
           </div>
         </a-tab-pane>
       </template>

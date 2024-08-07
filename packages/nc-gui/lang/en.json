@@ -370,6 +370,30 @@
       "typeform": "Typeform",
       "workday": "Workday",
       "zendesk": "Zendesk"
+    },
+    "integrationCategories" :{
+      "allIntegrations": "All Integrations",
+      "allIntegrationsSubtitle": "",
+      "databaseSubtitle": "Seamlessly connect and manage your databases with NocoDB.",
+      "communication": "Communication",
+      "communicationSubtitle": "Get notified on changes and streamline team communication with NocoDB.",
+      "projectManagement": "Project Management",
+      "projectManagementSubtitle": "Enhance project workflows and task management with NocoDB.",
+      "crm": "CRM",
+      "crmSubtitle": "Optimize customer relationship management through NocoDB integrations.",
+      "marketing": "Marketing",
+      "marketingSubtitle": "Boost your marketing efforts with NocoDB's powerful integrations.",
+      "ats": "ATS",
+      "atsSubtitle": "Streamline your applicant tracking system with NocoDB.",
+      "development": "Development",
+      "developmentSubtitle": "Accelerate development processes with NocoDB integrations.",
+      "finance": "Finance",
+      "financeSubtitle": "Simplify financial operations and data management with NocoDB.",
+      "ticketing": "Ticketing",
+      "ticketingSubtitle": "Manage and track support tickets efficiently with NocoDB.",
+      "storageSubtitle": "Integrate and organize your storage solutions seamlessly with NocoDB.",
+      "others": "Others",
+      "othersSubtitle": "Discover additional versatile integrations to enhance your NocoDB experience."
     }
   },
   "datatype": {
@@ -558,7 +582,8 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records",
     "fromScratch": "From scratch",
     "fromFileAndExternalSources": "From files & external sources",
-    "directlyInRealTime": "Directly in real time"
+    "directlyInRealTime": "Directly in real time",
+    "categories": "Categories"
   },
   "labels": {
     "defaultView": "Default view",

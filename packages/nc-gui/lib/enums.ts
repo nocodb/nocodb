@@ -179,7 +179,7 @@ export enum IntegrationStoreEvents {
 }
 
 export enum SyncDataType {
-  // APPLE_NUMBERS = 'apple-numbers',
+  APPLE_NUMBERS = 'apple-numbers',
   ASANA = 'asana',
   BOX = 'box',
   GITHUB = 'github',
@@ -203,4 +203,18 @@ export enum SyncDataType {
   TYPEFORM = 'typeform',
   WORKDAY = 'workday',
   ZENDESK = 'zendesk',
+}
+
+export enum IntegrationCategoryType {
+  DATABASE = 'database',
+  COMMUNICATION = 'communication',
+  PROJECT_MANAGEMENT = 'project-management',
+  CRM = 'crm',
+  MARKETING = 'marketing',
+  ATS = 'ats',
+  DEVELOPMENT = 'development',
+  FINANCE = 'finance',
+  TICKETING = 'ticketing',
+  STORAGE = 'storage',
+  OTHERS = 'others',
 }

@@ -17,11 +17,11 @@ export default {
     const prevError = ref()
     const errModal = computed(() => !!error.value)
     const key = ref(0)
+    const repeated: Record<string, number> = {}
     const isErrorExpanded = ref(false)
     const { copy } = useCopy()
 
     const reload = () => {
-      prevError.value = error.value
       error.value = null
       key.value++
       // destroy the toast message
@@ -29,10 +29,15 @@ export default {
     }
 
     const navigateToHome = () => {
-      prevError.value = error.value
       error.value = null
       location.hash = '/'
       location.reload()
+    }
+
+    const close = () => {
+      error.value = null
+      // destroy the toast message
+      message.destroy(MESSAGE_KEY)
     }
 
     onErrorCaptured((err) => {
@@ -41,11 +46,19 @@ export default {
         emit('error', err)
         error.value = err
 
+        repeated[err.message] = (repeated[err.message] || 0) + 1
+
+        // reset repeated count after 30 seconds
+        setTimeout(() => {
+          repeated[err.message] = 0
+        }, 30000)
+
         try {
           Sentry.captureException(err)
         } catch {
           // ignore
         }
+
         // destroy any previous toast message to avoid duplicate messages
         message.destroy(MESSAGE_KEY)
 
@@ -55,45 +68,57 @@ export default {
             h(
               'div',
               {
-                class: 'flex items-center gap-2',
+                class: 'flex gap-3 py-1.5',
               },
               [
-                h(resolveComponent('GeneralIcon'), { icon: 'error', class: 'text-2xl text-red-500' }),
-                h('div', { class: 'text-left' }, [
-                  h('div', { class: 'font-weight-bold' }, 'Error'),
-                  h('div', [h('span', 'Some error occurred while loading the page. Please reload.')]),
+                h(resolveComponent('GeneralIcon'), { icon: 'error', class: 'text-2xl text-red-500 -mt-1' }),
+                h('div', { class: 'text-left flex flex-col gap-1' }, [
+                  h('div', { class: 'font-weight-bold' }, 'Page Loading Error'),
+                  h('div', [h('span', { class: 'text-sm text-gray-500' }, 'Something went wrong while loading page!')]),
                 ]),
                 h(
                   'div',
                   {
-                    class: 'flex items-center gap-1 justify-end',
+                    class: 'flex gap-1 justify-end',
                   },
                   [
+                    repeated[err.message] > 2
+                      ? h(
+                          resolveComponent('NcButton'),
+                          {
+                            onClick: navigateToHome,
+                            type: 'text',
+                            size: 'xsmall',
+                            class: '!text-sm !px-2 !text-primary',
+                          },
+                          'Home',
+                        )
+                      : h(
+                          resolveComponent('NcButton'),
+                          {
+                            onClick: reload,
+                            type: 'text',
+                            size: 'xsmall',
+                            class: '!text-sm !px-2 !text-primary',
+                          },
+                          'Reload',
+                        ),
                     h(
                       resolveComponent('NcButton'),
                       {
-                        onClick: reload,
-                        type: 'secondary',
-                        size: 'small',
-                      },
-                      'Reload',
-                    ),
-                    h(
-                      resolveComponent('NcButton'),
-                      {
-                        onClick: navigateToHome,
-                        type: 'secondary',
-                        size: 'small',
+                        onClick: close,
+                        type: 'text',
+                        size: 'xsmall',
                         class: 'flex items-center gap-1',
                       },
-                      'Home',
+                      [h(resolveComponent('GeneralIcon'), { icon: 'close', class: '' })],
                     ),
                   ],
                 ),
               ],
             ),
           ]),
-          duration: 5,
+          duration: 500,
           style: {
             position: 'fixed',
             bottom: '20px',

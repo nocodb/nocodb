@@ -1,15 +1,15 @@
 <script lang="ts" setup>
 const supportedDocs = [
   {
-    title: 'Configure a PostgreSQL Integration',
+    title: 'Integrations',
     href: '',
   },
   {
-    title: 'Getting started with Integrations',
+    title: 'Create new connection',
     href: '',
   },
   {
-    title: 'Troubleshoot database connection',
+    title: 'Add new data source',
     href: '',
   },
 ] as {
@@ -25,12 +25,17 @@ const supportedDocs = [
 
       <div>
         <div v-for="doc of supportedDocs" class="flex items-center gap-1">
-            <div class="h-7 w-7 flex items-center justify-center">
-                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600"/>
-            </div>
-            <a :href="doc.href" target="_blank" rel="noopener noreferrer" class="!text-gray-700 text-sm !no-underline !hover:underline">
-                {{ doc.title }}
-            </a>
+          <div class="h-7 w-7 flex items-center justify-center">
+            <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-500" />
+          </div>
+          <a
+            :href="doc.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="!text-gray-600 text-sm !no-underline !hover:underline"
+          >
+            {{ doc.title }}
+          </a>
         </div>
       </div>
     </div>

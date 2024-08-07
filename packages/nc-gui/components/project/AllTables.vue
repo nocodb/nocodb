@@ -19,8 +19,6 @@ const { t } = useI18n()
 
 const isImportModalOpen = ref(false)
 
-const syncDataModalOpen = ref(false)
-
 const defaultBase = computed(() => {
   return openedProject.value?.sources?.[0]
 })
@@ -273,7 +271,6 @@ const onCreateBaseClick = () => {
     </div>
 
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
-    <ProjectSyncDataModal v-if="defaultBase" v-model:open="syncDataModalOpen" />
     <LazyDashboardSettingsDataSourcesCreateBase v-if="isNewBaseModalOpen" v-model:open="isNewBaseModalOpen" is-modal />
   </div>
 </template>

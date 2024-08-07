@@ -83,10 +83,7 @@ const handleAddIntegration = (type: typeof integrationType) => {
                 'max-w-[740px]': !isModal,
               }"
             >
-              <div>
-                Centralise your operations by aggregating information from various external platforms into NocoDB. Select from the
-                available integrations below to get started. <a target="_blank" rel="noopener noreferrer"> Learn more </a>
-              </div>
+              <div>Connect integrations with NocoDB. <a target="_blank" rel="noopener noreferrer"> Learn more </a></div>
             </div>
 
             <div class="integration-type-wrapper">

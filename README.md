@@ -84,8 +84,8 @@ docker run -d --name nocodb \
 -v "$(pwd)"/nocodb:/usr/app/data/ \
 -p 8080:8080 \
 nocodb/nocodb:latest
-> If `/usr/app/data/` is not mounted and containers are recreated - data will be LOST!
- 
+```
+
 ## Binaries
 🚥 Binaries are intended for ONLY quick trials or testing purposes and are not recommended for production use.
   | OS      | Architecture | Command                                                                                      |
@@ -97,7 +97,6 @@ nocodb/nocodb:latest
   | Windows | x64          | `iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe &&.\Noco-win-x64.exe`             |
   | Windows | arm64        | `iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe && .\Noco-win-arm64.exe`      |
   
-
 
 ## Docker Compose
 

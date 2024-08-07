@@ -94,16 +94,16 @@ export class DataExportProcessor {
       if (!url) {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: path.join(destPath.replace('nc/uploads/', '')),
-          expireSeconds: 3 * 60 * 60, // 3 hours
           filename: `${model.title} (${getViewTitle(view)}).csv`,
+          expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype: 'text/csv',
         });
       } else {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: url,
-          expireSeconds: 3 * 60 * 60, // 3 hours
           filename: `${model.title} (${getViewTitle(view)}).csv`,
+          expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype: 'text/csv',
         });

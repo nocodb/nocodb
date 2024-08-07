@@ -56,6 +56,7 @@ onUnmounted(() => {
     >
       <DashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
+    <GeneralGift />
     <div v-if="!isSharedBase" class="border-t-1">
       <DashboardSidebarBeforeUserInfo />
       <DashboardSidebarUserInfo />

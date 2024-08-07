@@ -352,6 +352,20 @@ const handleClickRow = (source: SourceType, tab?: string) => {
           </div>
 
           <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full h-[calc(100%_-_58px)] max-h-[calc(100%_-_58px)]">
+            <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
+              <template #tab>
+                <div class="tab" data-testid="nc-connection-tab">
+                  <div>{{ $t('labels.connectionDetails') }}</div>
+                </div>
+              </template>
+              <div class="h-full">
+                <LazyDashboardSettingsDataSourcesEditBase
+                  :source-id="activeSource.id"
+                  @source-updated="loadBases(true)"
+                  @close="activeSource = null"
+                />
+              </div>
+            </a-tab-pane>
             <a-tab-pane key="erd">
               <template #tab>
                 <div class="tab" data-testid="nc-erd-tab">
@@ -377,21 +391,6 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                 <LazyDashboardSettingsBaseAudit :source-id="activeSource.id" />
               </div>
             </a-tab-pane>
-            <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
-              <template #tab>
-                <div class="tab" data-testid="nc-connection-tab">
-                  <div>{{ $t('labels.connectionDetails') }}</div>
-                </div>
-              </template>
-              <div class="h-full">
-                <LazyDashboardSettingsDataSourcesEditBase
-                  :source-id="activeSource.id"
-                  @source-updated="loadBases(true)"
-                  @close="activeSource = null"
-                />
-              </div>
-            </a-tab-pane>
-
             <a-tab-pane key="acl">
               <template #tab>
                 <div class="tab" data-testid="nc-acl-tab">
@@ -499,7 +498,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                   :class="{
                     '!hidden': !source?.alias?.toLowerCase()?.includes(searchQuery.toLowerCase()),
                   }"
-                  @click="activeSource = source"
+                  @click="handleClickRow(source, 'edit')"
                 >
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>

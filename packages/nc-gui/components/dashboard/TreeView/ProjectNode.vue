@@ -739,7 +739,7 @@ async function openAudit(source: SourceType) {
                     v-e="['c:source:toggle-expand']"
                     class="!mx-0 !px-0 nc-sidebar-source-node"
                     :class="[{ hidden: searchActive && !!filterQuery }]"
-                    expand-icon-position="left"
+                    expand-icon-position="right"
                     :bordered="false"
                     ghost
                   >

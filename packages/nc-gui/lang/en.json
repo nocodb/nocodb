@@ -93,7 +93,9 @@
     "none": "None"
   },
   "general": {
-    "addLookupField": "Add {count} lookup fields",
+    "on": "On",
+    "onMultiple": "On Multiple",
+    "addLookupField": "Add {count} lookup field",
     "role": "Role",
     "general": "General",
     "quit": "Quit",
@@ -272,12 +274,13 @@
     "use": "Use",
     "stack": "Stack",
     "ipAddress": "IP Address",
+    "trigger": "Trigger",
     "integration": "Integration",
     "integrations": "Integrations",
     "connection": "Connection",
     "connections": "Connections",
     "private": "Private",
-    "request" : "Request"
+    "request": "Request"
   },
   "objects": {
     "files": "files",
@@ -342,7 +345,7 @@
       "extra": "Extra"
     },
     "externalDb": "External Database",
-    "syncData":{
+    "syncData": {
       "appleNumbers": "Apple numbers",
       "asana": "Asana",
       "box": "Box",
@@ -422,6 +425,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "searchWebhook": "Search webhook",
     "webcam": "Webcam",
     "uploadViaUrl": "Upload via URL",
     "localFiles": "Local files",
@@ -558,8 +562,13 @@
   },
   "labels": {
     "defaultView": "Default view",
+    "recordInsert": "Record Insert",
+    "recordUpdate": "Record Update",
+    "recordDelete": "Record Delete",
+    "supportDocs": "Support Docs",
+    "addedOn": "Added on",
     "changeDisplayValueField": "Change display value field",
-    "selectYourNewTitleFor": "Select your new display value field for ",
+    "selectYourNewTitleFor": "Select your new title field for ",
     "searchDisplayValue": "Select display value field",
     "changeTitleField": "Change title field",
     "clearAll": "Clear all",
@@ -911,9 +920,10 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle" : "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
   },
   "activity": {
+    "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
     "renameWorkspace": "Rename workspace",
@@ -1089,6 +1099,7 @@
     "addWebhook": "Add New Webhook",
     "enableWebhook": "Enable Webhook",
     "testWebhook": "Test Webhook",
+    "createWebhook": "Create Webhook",
     "copyWebhook": "Copy Webhook",
     "deleteWebhook": "Delete Webhook",
     "newToken": "Add New Token",

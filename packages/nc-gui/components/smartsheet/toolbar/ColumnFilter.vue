@@ -15,6 +15,7 @@ interface Props {
   isOpen?: boolean
   rootMeta?: any
   linkColId?: string
+  actionBtnType?: 'text' | 'secondary'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -26,6 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
   webHook: false,
   link: false,
   linkColId: undefined,
+  actionBtnType: 'text',
 })
 
 const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue'])
@@ -519,6 +521,7 @@ const changeToDynamic = async (filter, i) => {
     class="menu-filter-dropdown w-min"
     :class="{
       'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
+      '!min-w-full !w-full !pl-0': !nested && webHook,
       'min-w-full': nested,
     }"
   >
@@ -579,7 +582,7 @@ const changeToDynamic = async (filter, i) => {
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
-      :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested }"
+      :class="{ 'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 my-2 py-1': !nested, '!pr-0': webHook && !nested }"
       @click.stop
     >
       <template v-for="(filter, i) in filters" :key="i">
@@ -610,11 +613,15 @@ const changeToDynamic = async (filter, i) => {
                         v-model:value="filter.logical_op"
                         v-e="['c:filter:logical-op:select']"
                         :dropdown-match-select-width="false"
-                        class="min-w-18 max-w-18 capitalize"
+                        class="min-w-18 capitalize"
                         placeholder="Group op"
                         dropdown-class-name="nc-dropdown-filter-logical-op-group"
                         :disabled="i > 1 && !isLogicalOpChangeAllowed"
-                        :class="{ 'nc-disabled-logical-op': filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed) }"
+                        :class="{
+                          'nc-disabled-logical-op': filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed),
+                          '!max-w-18': !webHook,
+                          '!w-full': webHook,
+                        }"
                         @click.stop
                         @change="onLogicalOpUpdate(filter, i)"
                       >
@@ -660,7 +667,7 @@ const changeToDynamic = async (filter, i) => {
               v-model:value="filter.logical_op"
               v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
               :dropdown-match-select-width="false"
-              class="h-full !min-w-18 !max-w-18 capitalize"
+              class="h-full !max-w-18 !min-w-18 capitalize"
               hide-details
               :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
               dropdown-class-name="nc-dropdown-filter-logical-op"
@@ -686,7 +693,11 @@ const changeToDynamic = async (filter, i) => {
             <SmartsheetToolbarFieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
-              class="nc-filter-field-select min-w-32 max-w-32 max-h-8"
+              :class="{
+                'max-w-32': !webHook,
+                '!w-full': webHook,
+              }"
+              class="nc-filter-field-select min-w-32 max-h-8"
               :columns="fieldsToFilter"
               :disabled="filter.readOnly"
               :meta="meta"
@@ -698,8 +709,12 @@ const changeToDynamic = async (filter, i) => {
               v-model:value="filter.comparison_op"
               v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
               :dropdown-match-select-width="false"
-              class="caption nc-filter-operation-select !min-w-26.75 !max-w-26.75 max-h-8"
+              class="caption nc-filter-operation-select !min-w-26.75 max-h-8"
               :placeholder="$t('labels.operation')"
+              :class="{
+                '!max-w-26.75': !webHook,
+                '!w-full': webHook,
+              }"
               density="compact"
               variant="solo"
               :disabled="filter.readOnly"
@@ -735,7 +750,7 @@ const changeToDynamic = async (filter, i) => {
               class="caption nc-filter-sub_operation-select min-w-28"
               :class="{
                 'flex-grow w-full': !showFilterInput(filter),
-                'max-w-28': showFilterInput(filter),
+                'max-w-28': showFilterInput(filter) && !webHook,
               }"
               :placeholder="$t('labels.operationSub')"
               density="compact"
@@ -789,6 +804,10 @@ const changeToDynamic = async (filter, i) => {
                 <SmartsheetToolbarFilterInput
                   v-if="showFilterInput(filter)"
                   class="nc-filter-value-select rounded-md min-w-34"
+                  :class="{
+                    '!w-full': webHook,
+                    '!w-18': !webHook,
+                  }"
                   :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
                   :filter="filter"
                   @update-filter-value="(value) => updateFilterValue(value, filter, i)"
@@ -879,7 +898,7 @@ const changeToDynamic = async (filter, i) => {
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton size="small" type="text" class="nc-btn-focus" @click.stop="addFilter()">
+          <NcButton size="small" :type="actionBtnType" class="nc-btn-focus" @click.stop="addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
@@ -887,7 +906,7 @@ const changeToDynamic = async (filter, i) => {
             </div>
           </NcButton>
 
-          <NcButton v-if="nestedLevel < 5" class="nc-btn-focus" type="text" size="small" @click.stop="addFilterGroup()">
+          <NcButton v-if="nestedLevel < 5" class="nc-btn-focus" :type="actionBtnType" size="small" @click.stop="addFilterGroup()">
             <div class="flex items-center gap-1">
               <!-- Add Filter Group -->
               <component :is="iconMap.plus" />
@@ -905,7 +924,7 @@ const changeToDynamic = async (filter, i) => {
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton class="nc-btn-focus" size="small" type="text" @click.stop="addFilter()">
+          <NcButton class="nc-btn-focus" size="small" :type="actionBtnType" @click.stop="addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
@@ -916,7 +935,7 @@ const changeToDynamic = async (filter, i) => {
           <NcButton
             v-if="!link && !webHook && nestedLevel < 5"
             class="nc-btn-focus"
-            type="text"
+            :type="actionBtnType"
             size="small"
             @click.stop="addFilterGroup()"
           >

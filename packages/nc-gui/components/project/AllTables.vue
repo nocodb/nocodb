@@ -278,7 +278,7 @@ const onCreateBaseClick = () => {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
 
-  .icon-wrapper{
+  .icon-wrapper {
     @apply w-8 h-8 flex items-center;
   }
 

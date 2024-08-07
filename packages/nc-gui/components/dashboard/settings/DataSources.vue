@@ -692,7 +692,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
     height: min(calc(100vh - 100px), 1024px);
     max-height: min(calc(100vh - 100px), 1024px) !important;
   }
-  .ant-tabs-nav{
+  .ant-tabs-nav {
     @apply pl-3;
   }
 }

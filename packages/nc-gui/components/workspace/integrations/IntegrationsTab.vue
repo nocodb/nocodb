@@ -479,19 +479,26 @@ const handleOpenRequestIntegration = () => {
           }
         }
 
-        &:not(.is-available):not(:hover) {
-          .integration-icon-wrapper {
-            // @apply bg-gray-50;
+        &:not(.is-available) {
+          &:not(:hover) {
+            .integration-icon-wrapper {
+              // @apply bg-gray-50;
 
-            .integration-icon {
-              @apply !grayscale;
+              .integration-icon {
+                @apply !grayscale;
 
-              filter: grayscale(100%) brightness(115%);
+                filter: grayscale(100%) brightness(115%);
+              }
+            }
+
+            .name {
+              @apply text-gray-500;
             }
           }
-
-          .name {
-            @apply text-gray-500;
+          &:hover {
+            .name {
+              @apply text-gray-800;
+            }
           }
 
           .integration-upvote-btn {

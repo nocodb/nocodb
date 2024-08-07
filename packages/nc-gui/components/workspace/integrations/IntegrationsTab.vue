@@ -479,7 +479,7 @@ const handleOpenRequestIntegration = () => {
           }
         }
 
-        &:not(.is-available) {
+        &:not(.is-available):not(:hover) {
           .integration-icon-wrapper {
             // @apply bg-gray-50;
 

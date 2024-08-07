@@ -363,7 +363,7 @@ export const allIntegrations: IntegrationItemType[] = [
   {
     title: 'objects.syncData.bitbucket',
     value: SyncDataType.BITBUCKET,
-    icon: iconMap.bitbucket,
+    icon: iconMap.bitBucket,
     categories: [IntegrationCategoryType.DEVELOPMENT],
   },
   {

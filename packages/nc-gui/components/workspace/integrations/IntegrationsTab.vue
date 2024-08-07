@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import { IntegrationCategoryType, SyncDataType } from '#imports'
 
@@ -11,20 +12,19 @@ const props = withDefaults(
   },
 )
 
-const { isModal } = props
-
 const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
 const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 
-const { pageMode, IntegrationsPageMode, integrationType, requestIntegration, addIntegration, saveIntegraitonRequest } =
-  useIntegrationStore()
+const { requestIntegration, addIntegration, saveIntegraitonRequest } = useIntegrationStore()
 
 const activeCategory = ref<CategoryItemType | null>(null)
 
 const searchQuery = ref<string>('')
+
+const requestNewIntegrationRef = ref<HTMLDivElement>()
 
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
@@ -65,6 +65,20 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
   }
 
   addIntegration(integration.value)
+}
+
+const handleSetRequestIntegrationRef = (node) => {
+  requestNewIntegrationRef.value = node as HTMLDivElement
+
+  return node
+}
+
+const handleOpenRequestIntegration = () => {
+  requestIntegration.value.isOpen = true
+
+  nextTick(() => {
+    requestNewIntegrationRef.value?.scrollIntoView?.({ behavior: 'smooth' })
+  })
 }
 
 const upvotesData = computed(() => {
@@ -155,7 +169,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
 
           <div class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin">
             <div class="w-full flex justify-center">
-              <div class="flex flex-col gap-6 w-full">
+              <div class="flex flex-col gap-4 w-full">
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div v-if="category.list.length" :key="key" class="integration-type-wrapper">
                     <div class="category-type-title">{{ $t(category.title) }}</div>
@@ -200,60 +214,62 @@ const handleUpvote = (syncDataType: SyncDataType) => {
                       </NcTooltip>
                     </div>
                   </div>
-                </template>
-
-                <div class="integration-type-wrapper">
-                  <div>
-                    <div class="category-type-title">Others</div>
-                  </div>
-                  <div>
-                    <div
-                      class="source-card-request-integration"
-                      :class="{
-                        active: requestIntegration.isOpen,
-                      }"
-                    >
+                  <div
+                    :ref="handleSetRequestIntegrationRef"
+                    v-if="key === IntegrationCategoryType.OTHERS"
+                    class="integration-type-wrapper"
+                  >
+                    <div>
                       <div
-                        v-if="!requestIntegration.isOpen"
-                        class="source-card-item border-none"
-                        @click="requestIntegration.isOpen = true"
+                        class="source-card-request-integration"
+                        :class="{
+                          active: requestIntegration.isOpen,
+                        }"
                       >
-                        <WorkspaceIntegrationsIcon integration-type="request" size="md" />
-                        <div class="name">Request New Integration</div>
-                      </div>
-                      <div v-show="requestIntegration.isOpen" class="flex flex-col gap-4">
-                        <div class="flex items-center justify-between gap-4">
-                          <div class="text-base font-bold text-gray-800">Request Integration</div>
-                          <NcButton size="xsmall" type="text" @click="requestIntegration.isOpen = false">
-                            <GeneralIcon icon="close" class="text-gray-600" />
-                          </NcButton>
+                        <div
+                          v-if="!requestIntegration.isOpen"
+                          class="source-card-item border-none"
+                          @click="handleOpenRequestIntegration"
+                        >
+                          <div class="p-1 flex items-center justify-center rounded-lg bg-gray-100 w-[52px] h-[52px]">
+                            <GeneralIcon icon="plusSquare" class="flex-none w-8 h-8 !text-gray-600" />
+                          </div>
+                          <div class="name">Request New Integration</div>
                         </div>
-                        <div class="flex flex-col gap-2">
-                          <a-textarea
-                            v-model:value="requestIntegration.msg"
-                            class="!rounded-md !text-sm !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
-                            size="large"
-                            hide-details
-                            placeholder="Provide integration name and your use-case."
-                          />
-                        </div>
-                        <div class="flex items-center justify-end gap-3">
-                          <NcButton size="small" type="secondary" @click="requestIntegration.isOpen = false">
-                            {{ $t('general.cancel') }}
-                          </NcButton>
-                          <NcButton
-                            :disabled="!requestIntegration.msg?.trim()"
-                            :loading="requestIntegration.isLoading"
-                            size="small"
-                            @click="saveIntegraitonRequest(requestIntegration.msg)"
-                          >
-                            {{ $t('general.submit') }}
-                          </NcButton>
+                        <div v-show="requestIntegration.isOpen" class="flex flex-col gap-4">
+                          <div class="flex items-center justify-between gap-4">
+                            <div class="text-base font-bold text-gray-800">Request Integration</div>
+                            <NcButton size="xsmall" type="text" @click="requestIntegration.isOpen = false">
+                              <GeneralIcon icon="close" class="text-gray-600" />
+                            </NcButton>
+                          </div>
+                          <div class="flex flex-col gap-2">
+                            <a-textarea
+                              v-model:value="requestIntegration.msg"
+                              class="!rounded-md !text-sm !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
+                              size="large"
+                              hide-details
+                              placeholder="Provide integration name and your use-case."
+                            />
+                          </div>
+                          <div class="flex items-center justify-end gap-3">
+                            <NcButton size="small" type="secondary" @click="requestIntegration.isOpen = false">
+                              {{ $t('general.cancel') }}
+                            </NcButton>
+                            <NcButton
+                              :disabled="!requestIntegration.msg?.trim()"
+                              :loading="requestIntegration.isLoading"
+                              size="small"
+                              @click="saveIntegraitonRequest(requestIntegration.msg)"
+                            >
+                              {{ $t('general.submit') }}
+                            </NcButton>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </template>
               </div>
             </div>
           </div>
@@ -302,7 +318,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
   @apply !bg-white;
 }
 .source-card-request-integration {
-  @apply flex flex-col gap-4 border-1 rounded-xl p-3 w-[352px] overflow-hidden transition-all duration-300 max-w-[720px];
+  @apply flex flex-col gap-4 border-1 rounded-xl p-3 w-[312px] overflow-hidden transition-all duration-300 max-w-[640px];
 
   &.active {
     @apply w-full;
@@ -312,10 +328,10 @@ const handleUpvote = (syncDataType: SyncDataType) => {
   }
 
   .source-card-item {
-    @apply flex items-center;
+    @apply flex items-center gap-4;
 
     .name {
-      @apply ml-4 text-md font-semibold;
+      @apply text-base font-semibold text-gray-800;
     }
   }
 }

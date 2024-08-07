@@ -71,10 +71,9 @@ export class DataSourcePage extends BasePage {
 
     await row.click();
 
-    await this.getDsDetailsModal().waitFor({ state: 'visible' });
+    // kludge: only in testing it's not rendering all tables
+    await this.getDsDetailsModal().getByTestId('nc-acl-tab').click();
     await this.getDsDetailsModal().getByTestId('nc-erd-tab').click();
-
-    // await row.getByTestId('nc-data-sources-view-erd').click();
   }
 
   async openAudit({ rowIndex }: { rowIndex: number }) {

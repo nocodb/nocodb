@@ -10605,6 +10605,7 @@ export class Api<
   defaultLimit?: number,
   ncMin?: boolean,
   teleEnabled?: boolean,
+  errorReportingEnabled?: boolean,
   auditEnabled?: boolean,
   ncSiteUrl?: string,
   ee?: boolean,
@@ -10636,6 +10637,7 @@ export class Api<
           defaultLimit?: number;
           ncMin?: boolean;
           teleEnabled?: boolean;
+          errorReportingEnabled?: boolean;
           auditEnabled?: boolean;
           ncSiteUrl?: string;
           ee?: boolean;

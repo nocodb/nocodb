@@ -78,6 +78,8 @@ const handleOpenRequestIntegration = () => {
 
   nextTick(() => {
     requestNewIntegrationRef.value?.scrollIntoView?.({ behavior: 'smooth' })
+
+    requestNewIntegrationRef.value?.querySelector('textarea')?.focus?.()
   })
 }
 
@@ -169,7 +171,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
 
           <div class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin">
             <div class="w-full flex justify-center">
-              <div class="flex flex-col gap-4 w-full">
+              <div class="flex flex-col space-y-6 w-full">
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div v-if="category.list.length" :key="key" class="integration-type-wrapper">
                     <div class="category-type-title">{{ $t(category.title) }}</div>
@@ -217,7 +219,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
                   <div
                     :ref="handleSetRequestIntegrationRef"
                     v-if="key === IntegrationCategoryType.OTHERS"
-                    class="integration-type-wrapper"
+                    class="integration-type-wrapper !mt-4"
                   >
                     <div>
                       <div

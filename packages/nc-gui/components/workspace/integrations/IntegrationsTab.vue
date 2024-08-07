@@ -26,6 +26,26 @@ const searchQuery = ref<string>('')
 
 const requestNewIntegrationRef = ref<HTMLDivElement>()
 
+const integrationListRef = ref<HTMLDivElement>()
+
+const { width: integrationListContainerWidth } = useElementBounding(integrationListRef)
+
+const listWrapperMaxWidth = computed(() => {
+  if (integrationListContainerWidth.value <= 328 || integrationListContainerWidth.value < 624) {
+    return '328px'
+  }
+
+  if (integrationListContainerWidth.value < 920) {
+    return '576px'
+  }
+
+  if (integrationListContainerWidth.value < 1216) {
+    return '872px'
+  }
+
+  return '1168px'
+})
+
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
     return i.categories.includes(category) && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
@@ -88,7 +108,6 @@ const upvotesData = computed(() => {
 })
 
 const handleUpvote = (syncDataType: SyncDataType) => {
-  console.log('syncDataType', syncDataType, upvotesData.value.has(syncDataType))
   if (upvotesData.value.has(syncDataType)) return
 
   $e(`a:integration-request:${syncDataType}`)
@@ -151,7 +170,12 @@ const handleUpvote = (syncDataType: SyncDataType) => {
       <a-layout-content class="nc-integration-layout-content">
         <div class="h-full flex flex-col gap-6">
           <div class="px-6 pt-6">
-            <div class="flex items-center justify-between gap-3 max-w-[918px]">
+            <div
+              class="flex items-center justify-between flex-wrap gap-3 m-auto"
+              :style="{
+                maxWidth: listWrapperMaxWidth,
+              }"
+            >
               <div class="text-sm font-normal text-gray-600">
                 <div>Connect integrations with NocoDB. <a target="_blank" rel="noopener noreferrer"> Learn more </a></div>
               </div>
@@ -169,9 +193,17 @@ const handleUpvote = (syncDataType: SyncDataType) => {
             </div>
           </div>
 
-          <div class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin">
+          <div
+            ref="integrationListRef"
+            class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin"
+          >
             <div class="w-full flex justify-center">
-              <div class="flex flex-col space-y-6 w-full">
+              <div
+                class="flex flex-col space-y-6 w-full"
+                :style="{
+                  maxWidth: listWrapperMaxWidth,
+                }"
+              >
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div v-if="category.list.length" :key="key" class="integration-type-wrapper">
                     <div class="category-type-title">{{ $t(category.title) }}</div>
@@ -352,7 +384,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
       @apply flex gap-4 flex-wrap;
 
       .source-card {
-        @apply flex items-center gap-4 border-1 border-gray-200 rounded-xl p-3 w-[312px];
+        @apply flex items-center gap-4 border-1 border-gray-200 rounded-xl p-3 w-[280px];
 
         .integration-icon-wrapper {
           @apply flex-none h-[52px] w-[52px] rounded-lg p-1 flex items-center justify-center;
@@ -367,7 +399,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
         }
 
         .action-btn {
-          @apply hidden text-2xl text-gray-500;
+          @apply hidden text-2xl text-gray-500 w-7 h-7 text-center;
         }
 
         &.is-available {

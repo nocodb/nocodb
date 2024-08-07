@@ -316,46 +316,46 @@ const onFilterLabelClick = () => {
       </a-form-item>
     </template>
 
-    <template v-if="isEeUI">
-      <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView }">
-        <a-switch
-          v-model:checked="limitRecToView"
-          v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
-          size="small"
-          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
-          @change="onLimitRecToViewChange"
-        ></a-switch>
-        <span
-          v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
-          class="text-s"
-          data-testid="nc-limit-record-view"
-          @click="onViewLabelClick"
-          >Limit record selection to a view</span
-        >
-      </div>
-      <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
-        <NcSelect
-          v-model:value="vModel.childViewId"
-          :placeholder="$t('labels.selectView')"
-          show-search
-          :filter-option="filterOption"
-          dropdown-class-name="nc-dropdown-ltar-child-view"
-        >
-          <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
-            <div class="flex w-full items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralViewIcon :meta="view" class="text-gray-500" />
-              </div>
+    <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView }">
+      <a-switch
+        v-model:checked="limitRecToView"
+        v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
+        size="small"
+        :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
+        @change="onLimitRecToViewChange"
+      ></a-switch>
+      <span
+        v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
+        class="text-s"
+        data-testid="nc-limit-record-view"
+        @click="onViewLabelClick"
+        >Limit record selection to a view</span
+      >
+    </div>
+    <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
+      <NcSelect
+        v-model:value="vModel.childViewId"
+        :placeholder="$t('labels.selectView')"
+        show-search
+        :filter-option="filterOption"
+        dropdown-class-name="nc-dropdown-ltar-child-view"
+      >
+        <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
+          <div class="flex w-full items-center gap-2">
+            <div class="min-w-5 flex items-center justify-center">
+              <GeneralViewIcon :meta="view" class="text-gray-500" />
+            </div>
               <span v-if="view.is_default">{{ $t('labels.defaultView') }}</span>
               <NcTooltip v-else class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ view.title }}</template>
-                <span>{{ view.title }}</span>
-              </NcTooltip>
-            </div>
-          </a-select-option>
-        </NcSelect>
-      </a-form-item>
+              <template #title>{{ view.title }}</template>
+              <span>{{ view.title }}</span>
+            </NcTooltip>
+          </div>
+        </a-select-option>
+      </NcSelect>
+    </a-form-item>
 
+    <template v-if="isEeUI">
       <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond }">
         <a-switch
           v-model:checked="limitRecToCond"

@@ -3,7 +3,7 @@ import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import { AppEvents } from 'nocodb-sdk';
+import {AppEvents, IntegrationsType} from 'nocodb-sdk';
 import type { ProjectReqType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { populateMeta, validatePayload } from '~/helpers';
@@ -12,7 +12,7 @@ import syncMigration from '~/helpers/syncMigration';
 import {
   Base,
   BaseUser,
-  DashboardProjectDBProject,
+  DashboardProjectDBProject, Integration,
   Workspace,
   WorkspaceUser,
 } from '~/models';
@@ -195,6 +195,26 @@ export class BasesService extends BasesServiceCE {
       if (process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED) {
         NcError.badRequest('Connecting to external db is disabled');
       }
+
+      for (const source of baseBody.sources || []) {
+        if (!source.fk_integration_id) {
+          const integration = await Integration.createIntegration({
+            title: source.alias || baseBody.title,
+            type: IntegrationsType.Database,
+            sub_type: source.config?.client,
+            is_private: !!param.req.user?.id,
+            config: source.config,
+            workspaceId: param.req?.ncWorkspaceId,
+            created_by: param.req.user?.id,
+          });
+
+          source.fk_integration_id = integration.id;
+          source.config = {
+            client: baseBody.config?.client,
+          };
+        }
+      }
+
       baseBody.is_meta = false;
     }
 

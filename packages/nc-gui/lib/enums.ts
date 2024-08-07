@@ -184,6 +184,7 @@ export enum SyncDataType {
   SNOWFLAKE = 'snowflake',
   MICROSOFT_ACCESS = 'microsoft-access',
   TABLEAU = 'tableau',
+  ORACLE = 'oracle',
   // Communication
   SLACK = 'slack',
   DISCORD = 'discord',

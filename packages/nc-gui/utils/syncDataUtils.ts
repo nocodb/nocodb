@@ -10,7 +10,7 @@ export interface IntegrationItemType {
   iconStyle?: CSSProperties
 }
 
-export interface CategoryItemType {
+export interface IntegrationCategoryItemType {
   title: string
   subtitle: string
   value: IntegrationCategoryType
@@ -19,7 +19,7 @@ export interface CategoryItemType {
   iconStyle?: CSSProperties
 }
 
-export const integrationCategories: CategoryItemType[] = [
+export const integrationCategories: IntegrationCategoryItemType[] = [
   {
     title: 'labels.database',
     subtitle: 'objects.integrationCategories.databaseSubtitle',
@@ -178,7 +178,7 @@ export const allIntegrations: IntegrationItemType[] = [
   },
   {
     title: 'objects.syncData.oracle',
-    value: SyncDataType.MICROSOFT_ACCESS,
+    value: SyncDataType.ORACLE,
     icon: iconMap.oracle,
     categories: [IntegrationCategoryType.DATABASE],
   },

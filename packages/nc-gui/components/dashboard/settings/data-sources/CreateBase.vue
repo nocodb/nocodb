@@ -415,6 +415,9 @@ function handleAutoScroll(scroll: boolean, className: string) {
     })
   }
 }
+
+const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [IntegrationCategoryType.DATABASE, IntegrationCategoryType.OTHERS].includes(c.value)
+const filterIntegration = (c: IntegrationItemType) => c.categories.includes(IntegrationCategoryType.DATABASE)
 </script>
 
 <template>
@@ -719,7 +722,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
               </div>
             </a-form>
 
-            <WorkspaceIntegrationsNewAvailableList is-modal />
+            <WorkspaceIntegrationsTab is-modal :filter-category="filterIntegrationCategory" :filter-integration="filterIntegration" />
             <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
           </div>
         </div>

@@ -1,16 +1,22 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
+import NcModal from '~/components/nc/Modal.vue'
 /* eslint-disable @typescript-eslint/consistent-type-imports */
-import { IntegrationCategoryType, SyncDataType } from '#imports'
+import { IntegrationCategoryType, SyncDataType, type IntegrationItemType } from '#imports'
 
 const props = withDefaults(
   defineProps<{
     isModal?: boolean
+    filterCategory?: (c: IntegrationCategoryItemType) => boolean
+    filterIntegration?: (i: IntegrationItemType) => boolean
   }>(),
   {
     isModal: false,
+    filterCategory: () => true,
+    filterIntegration: () => true,
   },
 )
+
+const { isModal, filterCategory, filterIntegration } = props
 
 const { $e } = useNuxtApp()
 
@@ -18,9 +24,9 @@ const { t } = useI18n()
 
 const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 
-const { requestIntegration, addIntegration, saveIntegraitonRequest } = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, requestIntegration, addIntegration, saveIntegraitonRequest } = useIntegrationStore()
 
-const activeCategory = ref<CategoryItemType | null>(null)
+const activeCategory = ref<IntegrationCategoryItemType | null>(null)
 
 const searchQuery = ref<string>('')
 
@@ -28,7 +34,7 @@ const requestNewIntegrationRef = ref<HTMLDivElement>()
 
 const integrationListRef = ref<HTMLDivElement>()
 
-const { width: integrationListContainerWidth } = useElementBounding(integrationListRef)
+const { width: integrationListContainerWidth } = useElementSize(integrationListRef)
 
 const listWrapperMaxWidth = computed(() => {
   if (integrationListContainerWidth.value <= 328 || integrationListContainerWidth.value < 624) {
@@ -52,12 +58,15 @@ const upvotesData = computed(() => {
 
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
-    return i.categories.includes(category) && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+    return (
+      filterIntegration(i) && i.categories.includes(category) && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+    )
   })
 }
 
 const integrationsMapByCategory = computed(() => {
   return integrationCategories
+    .filter(filterCategory)
     .filter((c) => (activeCategory.value ? c.value === activeCategory.value.value : true))
     .reduce(
       (acc, curr) => {
@@ -76,6 +85,19 @@ const integrationsMapByCategory = computed(() => {
         }
       >,
     )
+})
+
+const isAddNewIntegrationModalOpen = computed({
+  get: () => {
+    return pageMode.value === IntegrationsPageMode.LIST
+  },
+  set: (value: boolean) => {
+    if (value) {
+      pageMode.value = IntegrationsPageMode.LIST
+    } else {
+      pageMode.value = null
+    }
+  },
 })
 
 const handleUpvote = (syncDataType: SyncDataType) => {
@@ -119,7 +141,17 @@ const handleOpenRequestIntegration = () => {
 </script>
 
 <template>
-  <div class="h-full">
+  <component
+    :is="isModal ? NcModal : 'div'"
+    v-model:visible="isAddNewIntegrationModalOpen"
+    centered
+    size="large"
+    :class="{
+      'h-full': !isModal,
+    }"
+    wrap-class-name="nc-modal-available-integrations-list"
+    @keydown.esc="isAddNewIntegrationModalOpen = false"
+  >
     <a-layout>
       <!--      <a-layout-sider class="nc-integration-layout-sidebar">-->
       <!--        <div class="h-full flex flex-col gap-3">-->
@@ -170,7 +202,25 @@ const handleOpenRequestIntegration = () => {
       <!--        </div>-->
       <!--      </a-layout-sider>-->
       <a-layout-content class="nc-integration-layout-content">
-        <div class="h-full flex flex-col gap-6">
+        <div v-if="isModal" class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
+          <NcButton type="text" size="small" @click="isAddNewIntegrationModalOpen = false">
+            <GeneralIcon icon="arrowLeft" />
+          </NcButton>
+          <GeneralIcon icon="gitCommit" class="flex-none h-5 w-5" />
+          <div class="flex-1 text-base font-weight-700">New Connection</div>
+          <div class="flex items-center gap-3">
+            <NcButton size="small" type="text" @click="isAddNewIntegrationModalOpen = false">
+              <GeneralIcon icon="close" class="text-gray-600" />
+            </NcButton>
+          </div>
+        </div>
+        <div
+          class="w-full flex flex-col gap-6"
+          :class="{
+            'h-[calc(100%_-_66px)]': isModal,
+            'h-full': !isModal,
+          }"
+        >
           <div class="px-6 pt-6">
             <div
               class="flex items-center justify-between flex-wrap gap-3 m-auto"
@@ -184,7 +234,7 @@ const handleOpenRequestIntegration = () => {
               <a-input
                 v-model:value="searchQuery"
                 type="text"
-                class="nc-search-integration-input !min-w-[300px] !max-w-[400px] nc-input-sm flex-none"
+                class="nc-input-border-on-value nc-search-integration-input !min-w-[300px] !max-w-[400px] nc-input-sm flex-none"
                 placeholder="Search integration..."
                 allow-clear
               >
@@ -314,7 +364,7 @@ const handleOpenRequestIntegration = () => {
         </div>
       </a-layout-content>
     </a-layout>
-  </div>
+  </component>
 </template>
 
 <style lang="scss" scoped>
@@ -364,7 +414,7 @@ const handleOpenRequestIntegration = () => {
   &:not(.active) {
     @apply cursor-pointer hover:bg-gray-50;
 
-    &:hover{
+    &:hover {
       box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
     }
   }
@@ -456,6 +506,19 @@ const handleOpenRequestIntegration = () => {
     .category-type-title {
       @apply text-sm text-gray-700 font-weight-700;
     }
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-modal-available-integrations-list {
+  .nc-modal {
+    @apply !p-0;
+    height: min(calc(100vh - 100px), 1024px);
+    max-height: min(calc(100vh - 100px), 1024px) !important;
+  }
+  .ant-modal-content {
+    overflow: hidden;
   }
 }
 </style>

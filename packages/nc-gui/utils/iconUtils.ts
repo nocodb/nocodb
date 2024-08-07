@@ -249,6 +249,7 @@ import NcMicrosoftTeams from '~icons/nc-icons/microsoft-teams'
 import NcMattermost from '~icons/nc-icons/mattermost'
 import NcTwilio from '~icons/nc-icons/twilio'
 import NcWhatsapp from '~icons/nc-icons/whatsapp'
+import NcWhatsappSolid from '~icons/nc-icons/whatsapp-solid'
 
 // View icons
 import NcViewGantt from '~icons/nc-icons/view-gantt'
@@ -751,6 +752,7 @@ export const iconMap = {
   mattermost: NcMattermost,
   twilio: NcTwilio,
   whatsapp: NcWhatsapp,
+  whatsappSolid: NcWhatsappSolid,
   viewGannt: NcViewGantt,
   dollerSign: NcDollerSign,
   multiFile: NcMultiFile,

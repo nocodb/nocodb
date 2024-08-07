@@ -17,6 +17,7 @@ export interface IntegrationCategoryItemType {
   icon: FunctionalComponent<SVGAttributes, {}, any, {}>
   iconBgColor?: string
   iconStyle?: CSSProperties
+  isAvailable?: boolean
 }
 
 export const integrationCategories: IntegrationCategoryItemType[] = [
@@ -29,6 +30,7 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     iconStyle: {
       color: '#17803D',
     },
+    isAvailable: true
   },
   {
     title: 'objects.integrationCategories.communication',
@@ -252,7 +254,7 @@ export const allIntegrations: IntegrationItemType[] = [
   {
     title: 'objects.syncData.whatsapp',
     value: SyncDataType.WHATSAPP,
-    icon: iconMap.whatsapp,
+    icon: iconMap.whatsappSolid,
     categories: [IntegrationCategoryType.COMMUNICATION],
     iconStyle: {
       width: '32px',

@@ -55,7 +55,7 @@ onBeforeMount(() => {
 
     <NcTabs v-model:activeKey="activeViewTab">
       <template #leftExtra>
-        <div class="w-6"></div>
+        <div class="w-3"></div>
       </template>
       <template v-if="isUIAllowed('workspaceIntegrations')">
         <a-tab-pane key="integrations" class="w-full">

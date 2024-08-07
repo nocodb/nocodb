@@ -152,13 +152,6 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.DATABASE],
     isAvailable: true,
   },
-
-  {
-    title: 'objects.syncData.sqlServer',
-    value: SyncDataType.MICROSOFT_ACCESS,
-    icon: iconMap.sqlServer,
-    categories: [IntegrationCategoryType.DATABASE],
-  },
   {
     title: 'objects.syncData.snowflake',
     value: SyncDataType.SNOWFLAKE,

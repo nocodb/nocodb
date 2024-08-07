@@ -46,6 +46,10 @@ const listWrapperMaxWidth = computed(() => {
   return '1168px'
 })
 
+const upvotesData = computed(() => {
+  return new Set(syncDataUpvotes.value)
+})
+
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
     return i.categories.includes(category) && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
@@ -74,8 +78,17 @@ const integrationsMapByCategory = computed(() => {
     )
 })
 
+const handleUpvote = (syncDataType: SyncDataType) => {
+  if (upvotesData.value.has(syncDataType)) return
+
+  $e(`a:integration-request:${syncDataType}`)
+
+  updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
+}
+
 const handleAddIntegration = (category: IntegrationCategoryType, integration: IntegrationItemType) => {
   if (!integration.isAvailable) {
+    handleUpvote(integration.value)
     return
   }
 
@@ -100,19 +113,8 @@ const handleOpenRequestIntegration = () => {
     requestNewIntegrationRef.value?.scrollIntoView?.({ behavior: 'smooth' })
 
     requestNewIntegrationRef.value?.querySelector('textarea')?.focus?.()
+    requestNewIntegrationRef.value?.querySelector('textarea')?.select?.()
   })
-}
-
-const upvotesData = computed(() => {
-  return new Set(syncDataUpvotes.value)
-})
-
-const handleUpvote = (syncDataType: SyncDataType) => {
-  if (upvotesData.value.has(syncDataType)) return
-
-  $e(`a:integration-request:${syncDataType}`)
-
-  updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
 }
 </script>
 
@@ -205,9 +207,13 @@ const handleUpvote = (syncDataType: SyncDataType) => {
                 }"
               >
                 <template v-for="(category, key) in integrationsMapByCategory">
-                  <div v-if="category.list.length" :key="key" class="integration-type-wrapper">
+                  <div
+                    v-if="category.list.length || key === IntegrationCategoryType.OTHERS"
+                    :key="key"
+                    class="integration-type-wrapper"
+                  >
                     <div class="category-type-title">{{ $t(category.title) }}</div>
-                    <div class="integration-type-list">
+                    <div v-if="category.list.length" class="integration-type-list">
                       <NcTooltip
                         v-for="integration of category.list"
                         :key="integration.value"
@@ -236,8 +242,6 @@ const handleUpvote = (syncDataType: SyncDataType) => {
                               :class="{
                                 selected: upvotesData.has(integration.value),
                               }"
-                              @mouseover.stop
-                              @click="handleUpvote(integration.value)"
                             >
                               <div class="flex items-center gap-2">
                                 <GeneralIcon icon="ncArrowUp" />
@@ -265,8 +269,8 @@ const handleUpvote = (syncDataType: SyncDataType) => {
                           class="source-card-item border-none"
                           @click="handleOpenRequestIntegration"
                         >
-                          <div class="p-1 flex items-center justify-center rounded-lg bg-gray-100 w-[52px] h-[52px]">
-                            <GeneralIcon icon="plusSquare" class="flex-none w-8 h-8 !text-gray-600" />
+                          <div class="flex items-center justify-center rounded-lg w-[44px] h-[44px]">
+                            <GeneralIcon icon="plusSquare" class="flex-none w-8 h-8 !text-brand-500" />
                           </div>
                           <div class="name">Request New Integration</div>
                         </div>
@@ -352,13 +356,17 @@ const handleUpvote = (syncDataType: SyncDataType) => {
   @apply !bg-white;
 }
 .source-card-request-integration {
-  @apply flex flex-col gap-4 border-1 rounded-xl p-3 w-[312px] overflow-hidden transition-all duration-300 max-w-[640px];
+  @apply flex flex-col gap-4 border-1 rounded-xl p-3 w-[280px] overflow-hidden transition-all duration-300 max-w-[576px];
 
   &.active {
     @apply w-full;
   }
   &:not(.active) {
     @apply cursor-pointer hover:bg-gray-50;
+
+    &:hover{
+      box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
+    }
   }
 
   .source-card-item {
@@ -384,10 +392,10 @@ const handleUpvote = (syncDataType: SyncDataType) => {
       @apply flex gap-4 flex-wrap;
 
       .source-card {
-        @apply flex items-center gap-4 border-1 border-gray-200 rounded-xl p-3 w-[280px];
+        @apply flex items-center gap-4 border-1 border-gray-200 rounded-xl p-3 w-[280px] cursor-pointer;
 
         .integration-icon-wrapper {
-          @apply flex-none h-[52px] w-[52px] rounded-lg p-1 flex items-center justify-center;
+          @apply flex-none h-[44px] w-[44px] rounded-lg flex items-center justify-center;
 
           .integration-icon {
             @apply flex-none stroke-transparent;
@@ -395,7 +403,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
         }
 
         .name {
-          @apply text-base font-weight-700;
+          @apply text-base font-bold;
         }
 
         .action-btn {
@@ -403,8 +411,6 @@ const handleUpvote = (syncDataType: SyncDataType) => {
         }
 
         &.is-available {
-          @apply cursor-pointer;
-
           &:hover {
             @apply bg-gray-50;
 
@@ -415,9 +421,9 @@ const handleUpvote = (syncDataType: SyncDataType) => {
             }
           }
 
-          .integration-icon-wrapper {
-            @apply bg-gray-100;
-          }
+          // .integration-icon-wrapper {
+          //   @apply bg-gray-100;
+          // }
           .name {
             @apply text-gray-800;
           }
@@ -425,7 +431,7 @@ const handleUpvote = (syncDataType: SyncDataType) => {
 
         &:not(.is-available) {
           .integration-icon-wrapper {
-            @apply bg-gray-50;
+            // @apply bg-gray-50;
 
             .integration-icon {
               @apply !grayscale;

@@ -30,7 +30,7 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     iconStyle: {
       color: '#17803D',
     },
-    isAvailable: true
+    isAvailable: true,
   },
   {
     title: 'objects.integrationCategories.communication',
@@ -288,7 +288,7 @@ export const allIntegrations: IntegrationItemType[] = [
     title: 'objects.syncData.hubspot',
     value: SyncDataType.HUBSPOT,
     icon: iconMap.hubspot,
-    categories: [IntegrationCategoryType.MARKETING],
+    categories: [IntegrationCategoryType.CRM],
   },
   {
     title: 'objects.syncData.pipedrive',

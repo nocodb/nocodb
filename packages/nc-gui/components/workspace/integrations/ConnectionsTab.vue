@@ -229,18 +229,18 @@ onKeyStroke('ArrowDown', onDown)
 
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections">
-    <div class="flex justify-between gap-12">
+    <div class="flex flex-col justify-between gap-2 mx-1">
       <div class="text-sm font-normal text-gray-600">
         <div>
           Manage connections for your integrations.
           <a target="_blank" rel="noopener noreferrer"> Learn more </a>
         </div>
       </div>
-      <div class="flex items-center justify-end gap-3 mx-1">
+      <div class="flex items-center gap-3">
         <a-input
           v-model:value="searchQuery"
           type="text"
-          class="nc-search-integration-input !min-w-[300px] nc-input-sm flex-none"
+          class="nc-search-integration-input !min-w-[300px] !max-w-[400px] nc-input-sm flex-none"
           :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
           allow-clear
           @input="handleSearchConnection"

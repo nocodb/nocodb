@@ -437,7 +437,7 @@ export class UtilsService {
       timezone: defaultConnectionConfig.timezone,
       ncMin: !!process.env.NC_MIN,
       teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
-      sentryEnabled: process.env.NC_DISABLE_SENTRY !== 'true',
+      errorReportingEnabled: process.env.NC_DISABLE_ERR_REPORTS !== 'true',
       auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
       ncSiteUrl: (param.req as any).ncSiteUrl,
       ee: Noco.isEE(),

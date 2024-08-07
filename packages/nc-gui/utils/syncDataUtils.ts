@@ -167,12 +167,6 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.DATABASE],
   },
   {
-    title: 'objects.syncData.microsoftAccess',
-    value: SyncDataType.MICROSOFT_ACCESS,
-    icon: iconMap.microsoftAccess,
-    categories: [IntegrationCategoryType.DATABASE],
-  },
-  {
     title: 'objects.syncData.mssqlServer',
     value: ClientType.MSSQL,
     icon: iconMap.mssqlServer,
@@ -182,12 +176,6 @@ export const allIntegrations: IntegrationItemType[] = [
     title: 'objects.syncData.oracle',
     value: SyncDataType.ORACLE,
     icon: iconMap.oracle,
-    categories: [IntegrationCategoryType.DATABASE],
-  },
-  {
-    title: 'objects.syncData.tableau',
-    value: SyncDataType.TABLEAU,
-    icon: iconMap.tableau,
     categories: [IntegrationCategoryType.DATABASE],
   },
 
@@ -291,10 +279,16 @@ export const allIntegrations: IntegrationItemType[] = [
 
   // CRM
   {
-    title: 'objects.syncData.microsoftDynamics365',
-    value: SyncDataType.MICROSOFT_DYNAMICS_365,
-    icon: iconMap.microsoftDynamics365,
+    title: 'objects.syncData.salesforce',
+    value: SyncDataType.SALESFORCE,
+    icon: iconMap.salesforce,
     categories: [IntegrationCategoryType.CRM],
+  },
+  {
+    title: 'objects.syncData.hubspot',
+    value: SyncDataType.HUBSPOT,
+    icon: iconMap.hubspot,
+    categories: [IntegrationCategoryType.MARKETING],
   },
   {
     title: 'objects.syncData.pipedrive',
@@ -303,9 +297,9 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.CRM],
   },
   {
-    title: 'objects.syncData.salesforce',
-    value: SyncDataType.SALESFORCE,
-    icon: iconMap.salesforce,
+    title: 'objects.syncData.microsoftDynamics365',
+    value: SyncDataType.MICROSOFT_DYNAMICS_365,
+    icon: iconMap.microsoftDynamics365,
     categories: [IntegrationCategoryType.CRM],
   },
   {

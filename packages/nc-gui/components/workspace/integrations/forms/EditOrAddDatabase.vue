@@ -1087,7 +1087,7 @@ watch(
                     </template>
 
                     <div class="flex flex-col gap-2">
-                      <div>Connection JSON</div>
+                      <div>Edit Connection JSON</div>
                       <div class="border-1 border-gray-200 !rounded-lg shadow-sm overflow-hidden">
                         <MonacoEditor v-model="customJsonFormState" class="nc-connection-json-editor h-[400px] w-full" />
                       </div>

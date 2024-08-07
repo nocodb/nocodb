@@ -191,6 +191,13 @@ const isUserDeleted = (userId?: string) => {
   }
 }
 
+const getUserNameByCreatedBy = (createdBy: string) => {
+  return (
+    collaboratorsMap.value.get(createdBy)?.display_name ||
+    collaboratorsMap.value.get(createdBy)?.email?.slice(0, collaboratorsMap.value.get(createdBy)?.email?.indexOf('@'))
+  )
+}
+
 useEventListener(tableWrapper, 'scroll', () => {
   const stickyHeaderCell = tableWrapper.value?.querySelector('th.cell-title')
   const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-type')
@@ -225,7 +232,7 @@ onKeyStroke('ArrowDown', onDown)
     <div class="flex justify-between gap-12">
       <div class="text-sm font-normal text-gray-600">
         <div>
-          Connections simplify managing stored configurations for different integrations.
+          Manage connections for your integrations.
           <a target="_blank" rel="noopener noreferrer"> Learn more </a>
         </div>
       </div>
@@ -390,7 +397,7 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
                 <td class="cell-type">
                   <div>
-                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate">
+                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate !border-transparent">
                       <WorkspaceIntegrationsIcon
                         v-if="integration.sub_type"
                         :integration-type="integration.sub_type"
@@ -456,19 +463,9 @@ onKeyStroke('ArrowDown', onDown)
                               placement="bottom"
                             >
                               <template #title>
-                                {{
-                                  collaboratorsMap.get(integration.created_by)?.display_name ||
-                                  collaboratorsMap
-                                    .get(integration.created_by)
-                                    ?.email?.slice(0, collaboratorsMap.get(integration.created_by)?.email.indexOf('@'))
-                                }}
+                                {{ getUserNameByCreatedBy(integration.created_by) }}
                               </template>
-                              {{
-                                collaboratorsMap.get(integration.created_by)?.display_name ||
-                                collaboratorsMap
-                                  .get(integration.created_by)
-                                  ?.email?.slice(0, collaboratorsMap.get(integration.created_by)?.email.indexOf('@'))
-                              }}
+                              {{ getUserNameByCreatedBy(integration.created_by) }}
                             </NcTooltip>
                           </div>
                           <NcTooltip
@@ -488,7 +485,7 @@ onKeyStroke('ArrowDown', onDown)
                           </NcTooltip>
                         </div>
                       </div>
-                      <div v-else class="w-full truncate text-gray-500">{{ integration.created_by }} </div>
+                      <div v-else class="w-full truncate text-gray-500">{{ integration.created_by }}</div>
                     </NcTooltip>
                   </div>
                 </td>

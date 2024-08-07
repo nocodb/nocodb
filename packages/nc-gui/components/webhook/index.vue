@@ -612,11 +612,11 @@ onMounted(async () => {
             </NcButton>
           </NcTooltip>
 
-          <NcButton :loading="loading" type="primary" size="small" @click="saveHooks" data-testid="nc-save-webhook">
+          <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click="saveHooks">
             {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
           </NcButton>
 
-          <NcButton type="text" size="small" @click="modalVisible = false" data-testid="nc-close-webhook-modal">
+          <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click="modalVisible = false">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>
@@ -975,7 +975,7 @@ onMounted(async () => {
         <div class="w-full flex flex-col gap-3">
           <h2 class="text-sm text-gray-700 font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
           <div>
-            <div v-for="doc of supportedDocs" class="flex items-center gap-1">
+            <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">
               <div class="h-7 w-7 flex items-center justify-center">
                 <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-500" />
               </div>

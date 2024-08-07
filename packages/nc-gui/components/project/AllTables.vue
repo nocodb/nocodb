@@ -125,7 +125,9 @@ const onCreateBaseClick = () => {
         data-testid="proj-view-btn__add-new-table"
         @click="openTableCreateDialog()"
       >
-        <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
+        <div class="icon-wrapper">
+          <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-brand-500" />
+        </div>
         <div class="flex flex-col gap-1">
           <div class="label">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.table') }}</div>
           <div class="subtext">Start from scratch.</div>
@@ -140,7 +142,9 @@ const onCreateBaseClick = () => {
         data-testid="proj-view-btn__import-data"
         @click="isImportModalOpen = true"
       >
-        <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-orange-700" />
+        <div class="icon-wrapper">
+          <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-orange-700" />
+        </div>
         <div class="flex flex-col gap-1">
           <div class="label">{{ $t('activity.import') }} {{ $t('general.data') }}</div>
 
@@ -166,7 +170,9 @@ const onCreateBaseClick = () => {
           }"
           @click="onCreateBaseClick"
         >
-          <GeneralIcon icon="server1" class="!h-7 !w-7 !text-green-700" />
+          <div class="icon-wrapper">
+            <GeneralIcon icon="server1" class="!h-7 !w-7 !text-green-700" />
+          </div>
           <div class="flex flex-col gap-1">
             <div class="label">{{ $t('labels.connectDataSource') }}</div>
             <div class="subtext">In realtime to external databases.</div>
@@ -272,8 +278,12 @@ const onCreateBaseClick = () => {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
 
+  .icon-wrapper {
+    @apply w-8 h-8 flex items-center;
+  }
+
   .nc-icon {
-    @apply h-10 w-10;
+    @apply flex-none h-10 w-10;
   }
 
   .label {

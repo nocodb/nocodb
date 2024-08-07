@@ -316,7 +316,7 @@ const onFilterLabelClick = () => {
       </a-form-item>
     </template>
 
-      <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-2">
       <div class="flex gap-2 items-center">
         <a-switch
           v-model:checked="limitRecToView"
@@ -346,8 +346,8 @@ const onFilterLabelClick = () => {
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralViewIcon :meta="view" class="text-gray-500" />
               </div>
-                <span v-if="view.is_default">{{ $t('labels.defaultView') }}</span>
-                <NcTooltip v-else class="flex-1 truncate" show-on-truncate-only>
+              <span v-if="view.is_default">{{ $t('labels.defaultView') }}</span>
+              <NcTooltip v-else class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ view.title }}</template>
                 <span>{{ view.title }}</span>
               </NcTooltip>
@@ -355,7 +355,7 @@ const onFilterLabelClick = () => {
           </a-select-option>
         </NcSelect>
       </a-form-item>
-      </div>
+    </div>
 
     <template v-if="isEeUI">
       <div class="flex flex-col gap-2">

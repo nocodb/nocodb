@@ -118,7 +118,7 @@ export default {
               ],
             ),
           ]),
-          duration: 500,
+          duration: 5,
           style: {
             position: 'fixed',
             bottom: '20px',

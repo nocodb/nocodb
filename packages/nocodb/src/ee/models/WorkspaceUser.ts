@@ -329,7 +329,10 @@ export default class WorkspaceUser {
   }
 
   static async count(
-    { workspaceId }: { workspaceId: any },
+    {
+      workspaceId,
+      include_deleted = false,
+    }: { workspaceId: any; include_deleted?: boolean },
     ncMeta = Noco.ncMeta,
   ) {
     const key = `${CacheScope.WORKSPACE}:${workspaceId}:userCount`;
@@ -343,7 +346,7 @@ export default class WorkspaceUser {
         {
           condition: {
             fk_workspace_id: workspaceId,
-            deleted: false,
+            ...(!include_deleted ? { deleted: false } : {}),
           },
           aggField: 'fk_user_id',
         },

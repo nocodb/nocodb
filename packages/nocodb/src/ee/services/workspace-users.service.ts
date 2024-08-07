@@ -38,9 +38,10 @@ export class WorkspaceUsersService {
     private config: ConfigService<AppConfig>,
   ) {}
 
-  async list(param: { workspaceId }) {
+  async list(param: { workspaceId; includeDeleted?: boolean }) {
     const users = await WorkspaceUser.userList({
       fk_workspace_id: param.workspaceId,
+      include_deleted: param.includeDeleted,
     });
 
     // todo: pagination
@@ -49,9 +50,10 @@ export class WorkspaceUsersService {
     });
   }
 
-  async count(param: { workspaceId }) {
+  async count(param: { workspaceId; includeDeleted?: boolean }) {
     return await WorkspaceUser.count({
       workspaceId: param.workspaceId,
+      include_deleted: param.includeDeleted,
     });
   }
 

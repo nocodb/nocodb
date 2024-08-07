@@ -7,6 +7,7 @@ import NcModal from '~/components/nc/Modal.vue'
 import {
   ClientType,
   type DatabricksConnection,
+  type IntegrationItemType,
   JobStatus,
   type ProjectCreateForm,
   SSLUsage,
@@ -543,7 +544,7 @@ const allowDataWrite = computed({
   },
 })
 
-const changeIntegration = () => {
+const changeIntegration = (triggerTestConnection = false) => {
   if (formState.value.fk_integration_id && selectedIntegration.value) {
     formState.value.dataSource = {
       connection: {
@@ -556,6 +557,12 @@ const changeIntegration = () => {
     onClientChange()
   }
   clearValidate()
+
+  if (triggerTestConnection) {
+    setTimeout(() => {
+      testConnection()
+    }, 300)
+  }
 }
 
 const handleAddNewConnection = () => {
@@ -568,7 +575,7 @@ eventBus.on((event, payload) => {
     until(() => selectedIntegration.value?.id === payload.id)
       .toBeTruthy()
       .then(() => {
-        changeIntegration()
+        changeIntegration(true)
       })
   }
 })
@@ -603,6 +610,10 @@ function handleAutoScroll(scroll: boolean, className: string) {
 const isModalClosable = computed(() => {
   return !creatingSource.value && !goToDashboard.value
 })
+
+const filterIntegrationCategory = (c: IntegrationCategoryItemType) =>
+  [IntegrationCategoryType.DATABASE, IntegrationCategoryType.OTHERS].includes(c.value)
+const filterIntegration = (c: IntegrationItemType) => c.categories.includes(IntegrationCategoryType.DATABASE)
 </script>
 
 <template>
@@ -699,7 +710,7 @@ const isModalClosable = computed(() => {
                             allow-clear
                             show-search
                             dropdown-match-select-width
-                            @change="changeIntegration"
+                            @change="changeIntegration()"
                           >
                             <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
                               <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
@@ -902,7 +913,11 @@ const isModalClosable = computed(() => {
                 </div>
               </a-form>
 
-              <WorkspaceIntegrationsNewAvailableList is-modal />
+              <WorkspaceIntegrationsTab
+                is-modal
+                :filter-category="filterIntegrationCategory"
+                :filter-integration="filterIntegration"
+              />
               <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
             </template>
             <template v-else>

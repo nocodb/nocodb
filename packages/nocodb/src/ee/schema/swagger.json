@@ -1468,6 +1468,13 @@
           "name": "workspaceId",
           "in": "path",
           "required": true
+        },
+        {
+          "schema": {
+            "type": "boolean"
+          },
+          "name": "includeDeleted",
+          "in": "query"
         }
       ]
     },

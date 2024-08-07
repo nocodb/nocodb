@@ -346,7 +346,7 @@ const allowDataWrite = computed({
     $e('c:source:data-write-toggle', { allowed: !v })
   },
 })
-const changeIntegration = () => {
+const changeIntegration = (triggerTestConnection = false) => {
   if (formState.value.fk_integration_id && selectedIntegration.value) {
     formState.value.dataSource = {
       connection: {
@@ -359,6 +359,11 @@ const changeIntegration = () => {
     onClientChange()
   }
   clearValidate()
+  if (triggerTestConnection) {
+    setTimeout(() => {
+      testConnection()
+    }, 300)
+  }
 }
 
 const handleAddNewConnection = () => {
@@ -371,7 +376,7 @@ eventBus.on((event, payload) => {
     until(() => selectedIntegration.value?.id === payload.id)
       .toBeTruthy()
       .then(() => {
-        changeIntegration()
+        changeIntegration(true)
       })
   }
 })
@@ -403,6 +408,10 @@ function handleAutoScroll(scroll: boolean, className: string) {
     })
   }
 }
+
+const filterIntegrationCategory = (c: IntegrationCategoryItemType) =>
+  [IntegrationCategoryType.DATABASE, IntegrationCategoryType.OTHERS].includes(c.value)
+const filterIntegration = (c: IntegrationItemType) => c.categories.includes(IntegrationCategoryType.DATABASE)
 </script>
 
 <template>
@@ -498,7 +507,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
                           allow-clear
                           show-search
                           dropdown-match-select-width
-                          @change="changeIntegration"
+                          @change="changeIntegration()"
                         >
                           <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
                             <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
@@ -697,7 +706,11 @@ function handleAutoScroll(scroll: boolean, className: string) {
               </div>
             </a-form>
 
-            <WorkspaceIntegrationsNewAvailableList is-modal />
+            <WorkspaceIntegrationsTab
+              is-modal
+              :filter-category="filterIntegrationCategory"
+              :filter-integration="filterIntegration"
+            />
             <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
           </div>
         </div>

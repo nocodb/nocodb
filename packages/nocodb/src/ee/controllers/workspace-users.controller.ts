@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -24,9 +25,13 @@ export class WorkspaceUsersController {
   @Acl('workspaceUserList', {
     scope: 'workspace',
   })
-  async list(@Param('workspaceId') workspaceId: string) {
+  async list(
+    @Param('workspaceId') workspaceId: string,
+    @Query('includeDeleted') includeDeleted?: string,
+  ) {
     return await this.workspaceUsersService.list({
       workspaceId,
+      includeDeleted: includeDeleted === 'true',
     });
   }
 

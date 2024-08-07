@@ -38,7 +38,7 @@ const copyIp = async () => {
 
       <div class="flex items-center gap-4 cursor-pointer text-gray-800 text-sm font-bold" @click="copyIp">
         52.15.226.51
-        <NcButton size="xsmall" type="text">
+        <NcButton size="xs" type="text" class="!px-1">
           <GeneralIcon
             :icon="isCopied ? 'circleCheck2' : 'copy'"
             class="h-4 w-4"

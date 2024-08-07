@@ -42,6 +42,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const collaborators = ref<WorkspaceUserType[] | null>()
 
+  const allCollaborators = ref<WorkspaceUserType[] | null>()
+
   const lastPopulatedWorkspaceId = ref<string | null>(null)
 
   const router = useRouter()
@@ -193,7 +195,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const loadCollaborators = async (
-    params?: { offset?: number; limit?: number; ignoreLoading: boolean },
+    params?: { offset?: number; limit?: number; ignoreLoading?: boolean; includeDeleted?: boolean },
     workspaceId?: string,
   ) => {
     if (!workspaceId && !activeWorkspace.value?.id) {
@@ -204,14 +206,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
     try {
       // todo: pagination
-      const { list, pageInfo } = await $api.workspaceUser.list(workspaceId ?? activeWorkspace.value.id!, {
-        query: params,
-        baseURL: appInfo.value.baseHostName
-          ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
-          : undefined,
-      })
+      const { list, pageInfo } = await $api.workspaceUser.list(
+        workspaceId ?? activeWorkspace.value.id!,
+        { ...params },
+        {
+          baseURL: appInfo.value.baseHostName
+            ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
+            : undefined,
+        },
+      )
 
-      collaborators.value = list
+      allCollaborators.value = list
+      collaborators.value = (list || [])?.filter((u) => !u?.deleted)
       workspaceUserCount.value = pageInfo.totalRows
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -552,6 +558,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removeCollaborator,
     updateCollaborator,
     collaborators,
+    allCollaborators,
     isInvitingCollaborators,
     isCollaboratorsLoading,
     addToFavourite,

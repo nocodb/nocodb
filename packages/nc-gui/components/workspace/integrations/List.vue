@@ -20,7 +20,7 @@ const {
 
 const { $api, $e } = useNuxtApp()
 
-const { collaborators } = storeToRefs(useWorkspace())
+const { allCollaborators } = storeToRefs(useWorkspace())
 
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
@@ -50,7 +50,7 @@ const { width } = useElementBounding(titleHeaderCellRef)
 const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User | UserType>>(() => {
   const map = new Map()
 
-  ;(isEeUI ? collaborators.value : localCollaborators.value)?.forEach((coll) => {
+  ;(isEeUI ? allCollaborators.value : localCollaborators.value)?.forEach((coll) => {
     if (coll?.id) {
       map.set(coll.id, coll)
     }
@@ -410,19 +410,38 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
                 <td class="cell-added-by">
                   <div>
-                    <div
+                    <NcTooltip
                       v-if="integration.created_by && collaboratorsMap.get(integration.created_by)?.email"
+                      :disabled="!collaboratorsMap.get(integration.created_by)?.deleted"
                       class="w-full flex gap-3 items-center"
                     >
+                      <template #title>
+                        {{ `User not part of this ${isEeUI ? 'workspace' : 'organisation'} anymore` }}
+                      </template>
                       <GeneralUserIcon
                         :email="collaboratorsMap.get(integration.created_by)?.email"
                         size="base"
                         class="flex-none"
+                        :class="{
+                          '!grayscale': collaboratorsMap.get(integration.created_by)?.deleted,
+                        }"
+                        :style="
+                          collaboratorsMap.get(integration.created_by)?.deleted
+                            ? {
+                                filter: 'grayscale(100%) brightness(115%)',
+                              }
+                            : {}
+                        "
                       />
                       <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
                         <div class="w-full flex gap-3">
                           <NcTooltip
-                            class="text-sm !leading-5 text-gray-800 capitalize font-semibold truncate"
+                            class="text-sm !leading-5 capitalize font-semibold truncate"
+                            :class="{
+                              'text-gray-800': !collaboratorsMap.get(integration.created_by)?.deleted,
+                              'text-gray-500': collaboratorsMap.get(integration.created_by)?.deleted,
+                            }"
+                             :disabled="collaboratorsMap.get(integration.created_by)?.deleted"
                             show-on-truncate-only
                             placement="bottom"
                           >
@@ -442,14 +461,23 @@ onKeyStroke('ArrowDown', onDown)
                             }}
                           </NcTooltip>
                         </div>
-                        <NcTooltip class="text-xs !leading-4 text-gray-600 truncate" show-on-truncate-only placement="bottom">
+                        <NcTooltip
+                          class="text-xs !leading-4 truncate"
+                          :class="{
+                            'text-gray-600': !collaboratorsMap.get(integration.created_by)?.deleted,
+                            'text-gray-500': collaboratorsMap.get(integration.created_by)?.deleted,
+                          }"
+                           :disabled="collaboratorsMap.get(integration.created_by)?.deleted"
+                          show-on-truncate-only
+                          placement="bottom"
+                        >
                           <template #title>
                             {{ collaboratorsMap.get(integration.created_by)?.email }}
                           </template>
                           {{ collaboratorsMap.get(integration.created_by)?.email }}
                         </NcTooltip>
                       </div>
-                    </div>
+                    </NcTooltip>
                     <template v-else>{{ integration.created_by }} </template>
                   </div>
                 </td>

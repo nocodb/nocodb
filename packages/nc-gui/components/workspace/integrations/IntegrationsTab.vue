@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /* eslint-disable @typescript-eslint/consistent-type-imports */
-import { IntegrationCategoryType, IntegrationItemType } from '#imports'
+import { IntegrationCategoryType, SyncDataType } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -13,10 +13,14 @@ const props = withDefaults(
 
 const { isModal } = props
 
-const { pageMode, IntegrationsPageMode, integrationType, requestIntegration, addIntegration, saveIntegraitonRequest } =
-  useIntegrationStore()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
+
+const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
+
+const { pageMode, IntegrationsPageMode, integrationType, requestIntegration, addIntegration, saveIntegraitonRequest } =
+  useIntegrationStore()
 
 const activeCategory = ref<CategoryItemType | null>(null)
 
@@ -24,7 +28,6 @@ const searchQuery = ref<string>('')
 
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
-    console.log('i', query, t(i.title), t(i.title).toLowerCase().includes(query.trim().toLowerCase()))
     return i.categories.includes(category) && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
   })
 }
@@ -62,6 +65,19 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
   }
 
   addIntegration(integration.value)
+}
+
+const upvotesData = computed(() => {
+  return new Set(syncDataUpvotes.value)
+})
+
+const handleUpvote = (syncDataType: SyncDataType) => {
+  console.log('syncDataType', syncDataType, upvotesData.value.has(syncDataType))
+  if (upvotesData.value.has(syncDataType)) return
+
+  $e(`a:integration-request:${syncDataType}`)
+
+  updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
 }
 </script>
 
@@ -128,8 +144,8 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
         </div>
       </a-layout-sider>
       <a-layout-content class="nc-integration-layout-content">
-        <div class="p-6 h-full flex flex-col gap-6">
-          <div>
+        <div class="h-full flex flex-col gap-6">
+          <div class="px-6 pt-6">
             <div class="flex items-center justify-between gap-3 max-w-[918px]">
               <div class="text-sm font-normal text-gray-600">
                 <div>Connect integrations with NocoDB. <a target="_blank" rel="noopener noreferrer"> Learn more </a></div>
@@ -148,31 +164,58 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
             </div>
           </div>
 
-          <div class="flex flex-col nc-workspace-settings-integrations-list h-full">
+          <div class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin">
             <div class="w-full flex justify-center">
               <div class="flex flex-col gap-6 w-full">
                 <template v-for="(category, key) in integrationsMapByCategory">
                   <div v-if="category.list.length" :key="key" class="integration-type-wrapper">
-                    <div class="integration-type-title">{{ $t(category.title) }}</div>
+                    <div class="category-type-title">{{ $t(category.title) }}</div>
                     <div class="integration-type-list">
-                      <div
+                      <NcTooltip
                         v-for="integration of category.list"
                         :key="integration.value"
-                        class="source-card"
-                        @click="handleAddIntegration(key, integration)"
+                        :disabled="integration?.isAvailable"
+                        placement="bottom"
                       >
-                        <WorkspaceIntegrationsIcon :integration-type="integrationType.MySQL" size="md" />
-                        <div class="name flex-1">{{ $t(integration.title) }}</div>
-                        <div class="action-btn">+</div>
-                      </div>
+                        <template #title>{{ $t('tooltip.comingSoonIntegration') }}</template>
+
+                        <div
+                          class="source-card"
+                          :class="{
+                            'is-available': integration?.isAvailable,
+                          }"
+                          @click="handleAddIntegration(key, integration)"
+                        >
+                          <div class="integration-icon-wrapper">
+                            <component :is="integration.icon" class="integration-icon" />
+                          </div>
+                          <div class="name flex-1">{{ $t(integration.title) }}</div>
+                          <div v-if="integration?.isAvailable" class="action-btn">+</div>
+                          <div v-else class="">
+                            <NcButton
+                              type="secondary"
+                              size="xs"
+                              class="integration-upvote-btn !rounded-lg !px-2 !py-0"
+                              :class="{
+                                selected: upvotesData.has(integration.value),
+                              }"
+                              @mouseover.stop
+                              @click="handleUpvote(integration.value)"
+                            >
+                              <div class="flex items-center gap-2">
+                                <GeneralIcon icon="ncArrowUp" />
+                              </div>
+                            </NcButton>
+                          </div>
+                        </div>
+                      </NcTooltip>
                     </div>
                   </div>
                 </template>
 
                 <div class="integration-type-wrapper">
                   <div>
-                    <div class="integration-type-title">Others</div>
-                    <div class="integration-type-subtitle"></div>
+                    <div class="category-type-title">Others</div>
                   </div>
                   <div>
                     <div
@@ -267,7 +310,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
 }
 
 .nc-integration-layout-content {
-  @apply !bg-white overflow-y-auto nc-scrollbar-thin;
+  @apply !bg-white;
 }
 .source-card-request-integration {
   @apply flex flex-col gap-4 border-1 rounded-xl p-3 w-[352px] overflow-hidden transition-all duration-300 max-w-[720px];
@@ -294,46 +337,76 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
   }
 }
 
-.source-card {
-  @apply flex items-center border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50;
-  width: 352px;
-  .name {
-    @apply ml-4 text-md font-semibold;
-  }
-}
-
 .nc-workspace-settings-integrations-list {
   .integration-type-wrapper {
     @apply flex flex-col gap-3;
 
-    .source-card:hover {
-      .action-btn {
-        @apply block;
+    .integration-type-list {
+      @apply flex gap-4 flex-wrap;
+
+      .source-card {
+        @apply flex items-center gap-4 border-1 border-gray-200 rounded-xl p-3 w-[312px];
+
+        .integration-icon-wrapper {
+          @apply flex-none h-[52px] w-[52px] rounded-lg p-1 flex items-center justify-center;
+
+          .integration-icon {
+            @apply flex-none stroke-transparent;
+          }
+        }
+
+        .name {
+          @apply text-base font-weight-700;
+        }
+
+        .action-btn {
+          @apply hidden text-2xl text-gray-500;
+        }
+
+        &.is-available {
+          @apply cursor-pointer;
+
+          .integration-icon-wrapper {
+            @apply bg-gray-100;
+          }
+          .name {
+            @apply text-gray-800;
+          }
+
+          &:hover {
+            .action-btn {
+              @apply block;
+            }
+          }
+        }
+
+        &:not(.is-available) {
+          .integration-icon-wrapper {
+            @apply bg-gray-50;
+
+            .integration-icon {
+              @apply !grayscale;
+
+              filter: grayscale(100%) brightness(115%);
+            }
+          }
+
+          .name {
+            @apply text-gray-500;
+          }
+
+          .integration-upvote-btn {
+            &.selected {
+              @apply shadow-selected !text-brand-500 !border-brand-500 !cursor-not-allowed pointer-events-none;
+            }
+          }
+        }
       }
     }
 
-    .integration-type-title {
-      @apply text-sm text-gray-500 font-weight-700;
+    .category-type-title {
+      @apply text-sm text-gray-700 font-weight-700;
     }
-    .integration-type-subtitle {
-      @apply text-sm text-gray-500 font-weight-700;
-    }
-    .integration-type-list {
-      @apply flex gap-4 flex-wrap;
-    }
-    .action-btn {
-      @apply hidden text-2xl text-gray-500;
-    }
-  }
-}
-</style>
-
-<style lang="scss">
-.nc-modal-available-integrations-list {
-  .nc-modal {
-    @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
   }
 }
 </style>

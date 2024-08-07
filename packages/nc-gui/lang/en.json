@@ -1244,7 +1244,8 @@
     "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page",
     "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported",
-    "roleInheritedFromWorkspace": "Role inherited from workspace"
+    "roleInheritedFromWorkspace": "Role inherited from workspace",
+    "comingSoonIntegration": "Coming Soon : Please upvote the integrations you need in NocoDB"
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",

@@ -9,7 +9,7 @@ const supportedDocs = [
     href: 'https://docs.nocodb.com/integrations/create-connection',
   },
   {
-    title: 'Add new data source',
+    title: 'Add new Data source',
     href: 'https://docs.nocodb.com/data-sources/connect-to-data-source',
   },
 ] as {

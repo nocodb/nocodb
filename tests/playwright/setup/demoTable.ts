@@ -217,7 +217,7 @@ async function createDemoTable({
       }
       break;
     case 'numberBased':
-      for (let i = 0; i < 400; i++) {
+      for (let i = 0; i < recordCnt; i++) {
         const row = {
           Number: rowMixedValue(columns.numberBased[1], i),
           Decimal: rowMixedValue(columns.numberBased[2], i),

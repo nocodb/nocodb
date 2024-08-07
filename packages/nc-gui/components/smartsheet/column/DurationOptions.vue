@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, durationOptions } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -30,7 +30,7 @@ vModel.value.meta = {
         <a-select v-model:value="vModel.meta.duration" class="w-52" dropdown-class-name="nc-dropdown-duration-option">
           <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
 
-          <a-select-option v-for="(duration, i) of durationOptionList" :key="i" :value="duration.id">
+          <a-select-option v-for="(duration, i) of durationOptionList" :key="i" :value="duration.type">
             <div class="flex gap-2 w-full truncate items-center" :data-testid="duration.title">
               <NcTooltip show-on-truncate-only class="flex-1 truncate">
                 <template #title> {{ duration.title }}</template>
@@ -39,7 +39,7 @@ vModel.value.meta = {
 
               <component
                 :is="iconMap.check"
-                v-if="vModel.meta.duration === duration.id"
+                v-if="vModel.meta.duration === duration.type"
                 id="nc-selected-item-icon"
                 class="text-primary w-4 h-4"
               />

@@ -9348,8 +9348,29 @@ class BaseModelSqlv2 {
     rowId;
     columns?: Column[];
   }): Promise<any> {
-    const { filters, qb } = params;
-    await conditionV2(this, filters, qb);
+    const { filters, qb, view } = params;
+    await conditionV2(
+      this,
+      [
+        ...(view
+          ? [
+              new Filter({
+                children:
+                  (await Filter.rootFilterList(this.context, {
+                    viewId: view.id,
+                  })) || [],
+                is_group: true,
+              }),
+            ]
+          : []),
+        new Filter({
+          children: filters,
+          is_group: true,
+          logical_op: 'and',
+        }),
+      ],
+      qb,
+    );
   }
 }
 

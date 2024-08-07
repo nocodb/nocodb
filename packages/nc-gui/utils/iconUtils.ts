@@ -264,6 +264,18 @@ import NcSqlServer from '~icons/nc-icons/sql-server'
 import NcDataBricks from '~icons/nc-icons/data-bricks'
 import NcMssqlServer from '~icons/nc-icons/mssql-server'
 import NcOracle from '~icons/nc-icons/oracle'
+import NcGmail from '~icons/nc-icons/gmail'
+import NcTelegram from '~icons/nc-icons/telegram'
+import NcMicrosoftDynamics365 from '~icons/nc-icons/microsoft-dynamics-365'
+import NcPipedrive from '~icons/nc-icons/pipedrive'
+import NcZohoCrm from '~icons/nc-icons/zoho-crm'
+import NcGreenhouse from '~icons/nc-icons/greenhouse'
+import NcLever from '~icons/nc-icons/lever'
+import NcBitBucket from '~icons/nc-icons/bit-bucket'
+import NcQuickbooks from '~icons/nc-icons/quickbooks'
+import NcIntercom from '~icons/nc-icons/intercom'
+import NcDropbox from '~icons/nc-icons/dropbox'
+
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -751,6 +763,17 @@ export const iconMap = {
   dataBricks: NcDataBricks,
   mssqlServer: NcMssqlServer,
   oracle: NcOracle,
+  gmail: NcGmail, 
+  telegram: NcTelegram,
+  microsoftDynamics365: NcMicrosoftDynamics365,
+  pipedrive: NcPipedrive,
+  zohoCrm: NcZohoCrm,
+  greenhouse: NcGreenhouse,
+  lever: NcLever,
+  bitBucket: NcBitBucket,
+  quickbooks: NcQuickbooks,
+  intercom: NcIntercom,
+  dropbox: NcDropbox,
 }
 
 export const getMdiIcon = (type: string): any => {

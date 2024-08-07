@@ -195,6 +195,10 @@ export const allIntegrations: IntegrationItemType[] = [
     value: SyncDataType.SLACK,
     icon: iconMap.slack,
     categories: [IntegrationCategoryType.COMMUNICATION],
+     iconStyle:{
+      width: "32px",
+      height:"32px"
+    }
   },
   {
     title: 'general.discord',
@@ -211,6 +215,10 @@ export const allIntegrations: IntegrationItemType[] = [
     value: SyncDataType.TWILLO,
     icon: iconMap.twilio,
     categories: [IntegrationCategoryType.COMMUNICATION],
+    iconStyle:{
+      width: "32px",
+      height:"32px"
+    }
   },
  
   {
@@ -224,6 +232,10 @@ export const allIntegrations: IntegrationItemType[] = [
     value: SyncDataType.MICROSOFT_TEAMS,
     icon: iconMap.microsoftTeams,
     categories: [IntegrationCategoryType.COMMUNICATION],
+    iconStyle:{
+      width: "32px",
+      height:"32px"
+    }
   },
   {
     title: 'objects.syncData.gmail',
@@ -242,6 +254,10 @@ export const allIntegrations: IntegrationItemType[] = [
     value: SyncDataType.WHATSAPP,
     icon: iconMap.whatsapp,
     categories: [IntegrationCategoryType.COMMUNICATION],
+    iconStyle:{
+      width: "32px",
+      height:"32px"
+    }
   },
 
   // Project Management

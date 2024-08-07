@@ -485,11 +485,11 @@ const handleOpenRequestIntegration = () => {
             .integration-icon-wrapper {
               // @apply bg-gray-50;
 
-              .integration-icon {
-                @apply !grayscale;
+              // .integration-icon {
+              //   @apply !grayscale;
 
-                filter: grayscale(100%) brightness(115%);
-              }
+              //   filter: grayscale(100%) brightness(115%);
+              // }
             }
 
             .name {

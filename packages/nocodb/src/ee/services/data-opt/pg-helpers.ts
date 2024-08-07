@@ -1,7 +1,10 @@
 // eslint-disable-file no-fallthrough
 import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
-import { shouldSkipCache } from './common-helpers';
+import {
+  checkForStaticDateValFilters,
+  shouldSkipCache,
+} from './common-helpers';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
@@ -1050,7 +1053,7 @@ export async function singleQueryRead(
     throw new Error('Single query only supported in postgres');
   }
 
-  const skipCache = shouldSkipCache(ctx, false);
+  let skipCache = shouldSkipCache(ctx, false);
 
   // get knex connection
   const knex = await NcConnectionMgrv2.get(ctx.source);
@@ -1109,14 +1112,21 @@ export async function singleQueryRead(
     aliasColObjMap,
   );
 
+  const viewFilters = ctx.view?.id
+    ? await Filter.rootFilterList(context, {
+        viewId: ctx.view?.id,
+      })
+    : [];
+
+  if (viewFilters?.length && checkForStaticDateValFilters(viewFilters)) {
+    skipCache = true;
+  }
+
   const aggrConditionObj = [
     ...(ctx.view?.id
       ? [
           new Filter({
-            children:
-              (await Filter.rootFilterList(context, {
-                viewId: ctx.view.id,
-              })) || [],
+            children: viewFilters,
             is_group: true,
           }),
         ]
@@ -1371,7 +1381,7 @@ export async function singleQueryList(
           new Filter({
             children:
               (await Filter.rootFilterList(context, {
-                viewId: ctx.view.id,
+                viewId: ctx.view?.id,
               })) || [],
             is_group: true,
           }),

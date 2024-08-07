@@ -31,3 +31,34 @@ export function shouldSkipCache(
     ctx.customConditions?.length
   );
 }
+
+export const checkForStaticDateValFilters = (filters) => {
+  return filters.some((filter) => {
+    if (Array.isArray(filter.children)) {
+      return checkForStaticDateValFilters(filter.children);
+    }
+    return (
+      filter.comparison_sub_op &&
+      [
+        'today',
+        'tomorrow',
+        'yesterday',
+        'oneWeekAgo',
+        'oneWeekFromNow',
+        'oneMonthAgo',
+        'oneMonthFromNow',
+        'daysAgo',
+        'daysFromNow',
+        'exactDate',
+        'pastWeek',
+        'pastMonth',
+        'pastYear',
+        'nextWeek',
+        'nextMonth',
+        'nextYear',
+        'pastNumberOfDays',
+        'nextNumberOfDays',
+      ].includes(filter.comparison_sub_op)
+    );
+  });
+};

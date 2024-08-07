@@ -22,6 +22,7 @@ export interface AppInfo {
   oneClick: boolean
   baseHasAdmin: boolean
   teleEnabled: boolean
+  sentryEnabled: boolean
   auditEnabled: boolean
   type: string
   version: string

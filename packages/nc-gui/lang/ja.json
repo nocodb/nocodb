@@ -561,6 +561,7 @@
     "directlyInRealTime": "Directly in real time"
   },
   "labels": {
+    "defaultView": "Default view",
     "recordInsert": "Record Insert",
     "recordUpdate": "Record Update",
     "recordDelete": "Record Delete",

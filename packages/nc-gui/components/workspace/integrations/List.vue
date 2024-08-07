@@ -181,6 +181,16 @@ const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
 
+const isUserDeleted = (userId?: string) => {
+  if (!userId) return false
+
+  if (isEeUI) {
+    return !!collaboratorsMap.value.get(userId)?.deleted
+  } else {
+    return !collaboratorsMap.value.get(userId)?.email
+  }
+}
+
 useEventListener(tableWrapper, 'scroll', () => {
   const stickyHeaderCell = tableWrapper.value?.querySelector('th.cell-title')
   const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-type')
@@ -410,75 +420,76 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
                 <td class="cell-added-by">
                   <div>
-                    <NcTooltip
-                      v-if="integration.created_by && collaboratorsMap.get(integration.created_by)?.email"
-                      :disabled="!collaboratorsMap.get(integration.created_by)?.deleted"
-                      class="w-full flex gap-3 items-center"
-                    >
+                    <NcTooltip :disabled="!isUserDeleted(integration.created_by)" class="w-full">
                       <template #title>
                         {{ `User not part of this ${isEeUI ? 'workspace' : 'organisation'} anymore` }}
                       </template>
-                      <GeneralUserIcon
-                        :email="collaboratorsMap.get(integration.created_by)?.email"
-                        size="base"
-                        class="flex-none"
-                        :class="{
-                          '!grayscale': collaboratorsMap.get(integration.created_by)?.deleted,
-                        }"
-                        :style="
-                          collaboratorsMap.get(integration.created_by)?.deleted
-                            ? {
-                                filter: 'grayscale(100%) brightness(115%)',
-                              }
-                            : {}
-                        "
-                      />
-                      <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
-                        <div class="w-full flex gap-3">
-                          <NcTooltip
-                            class="text-sm !leading-5 capitalize font-semibold truncate"
-                            :class="{
-                              'text-gray-800': !collaboratorsMap.get(integration.created_by)?.deleted,
-                              'text-gray-500': collaboratorsMap.get(integration.created_by)?.deleted,
-                            }"
-                             :disabled="collaboratorsMap.get(integration.created_by)?.deleted"
-                            show-on-truncate-only
-                            placement="bottom"
-                          >
-                            <template #title>
+                      <div
+                        v-if="integration.created_by && collaboratorsMap.get(integration.created_by)?.email"
+                        class="w-full flex gap-3 items-center"
+                      >
+                        <GeneralUserIcon
+                          :email="collaboratorsMap.get(integration.created_by)?.email"
+                          size="base"
+                          class="flex-none"
+                          :class="{
+                            '!grayscale': isUserDeleted(integration.created_by),
+                          }"
+                          :style="
+                            isUserDeleted(integration.created_by)
+                              ? {
+                                  filter: 'grayscale(100%) brightness(115%)',
+                                }
+                              : {}
+                          "
+                        />
+                        <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+                          <div class="w-full flex gap-3">
+                            <NcTooltip
+                              class="text-sm !leading-5 capitalize font-semibold truncate"
+                              :class="{
+                                'text-gray-800': !isUserDeleted(integration.created_by),
+                                'text-gray-500': isUserDeleted(integration.created_by),
+                              }"
+                              :disabled="isUserDeleted(integration.created_by)"
+                              show-on-truncate-only
+                              placement="bottom"
+                            >
+                              <template #title>
+                                {{
+                                  collaboratorsMap.get(integration.created_by)?.display_name ||
+                                  collaboratorsMap
+                                    .get(integration.created_by)
+                                    ?.email?.slice(0, collaboratorsMap.get(integration.created_by)?.email.indexOf('@'))
+                                }}
+                              </template>
                               {{
                                 collaboratorsMap.get(integration.created_by)?.display_name ||
                                 collaboratorsMap
                                   .get(integration.created_by)
                                   ?.email?.slice(0, collaboratorsMap.get(integration.created_by)?.email.indexOf('@'))
                               }}
+                            </NcTooltip>
+                          </div>
+                          <NcTooltip
+                            class="text-xs !leading-4 truncate"
+                            :class="{
+                              'text-gray-600': !isUserDeleted(integration.created_by),
+                              'text-gray-500': isUserDeleted(integration.created_by),
+                            }"
+                            :disabled="isUserDeleted(integration.created_by)"
+                            show-on-truncate-only
+                            placement="bottom"
+                          >
+                            <template #title>
+                              {{ collaboratorsMap.get(integration.created_by)?.email }}
                             </template>
-                            {{
-                              collaboratorsMap.get(integration.created_by)?.display_name ||
-                              collaboratorsMap
-                                .get(integration.created_by)
-                                ?.email?.slice(0, collaboratorsMap.get(integration.created_by)?.email.indexOf('@'))
-                            }}
+                            {{ collaboratorsMap.get(integration.created_by)?.email }}
                           </NcTooltip>
                         </div>
-                        <NcTooltip
-                          class="text-xs !leading-4 truncate"
-                          :class="{
-                            'text-gray-600': !collaboratorsMap.get(integration.created_by)?.deleted,
-                            'text-gray-500': collaboratorsMap.get(integration.created_by)?.deleted,
-                          }"
-                           :disabled="collaboratorsMap.get(integration.created_by)?.deleted"
-                          show-on-truncate-only
-                          placement="bottom"
-                        >
-                          <template #title>
-                            {{ collaboratorsMap.get(integration.created_by)?.email }}
-                          </template>
-                          {{ collaboratorsMap.get(integration.created_by)?.email }}
-                        </NcTooltip>
                       </div>
+                      <div v-else class="w-full truncate text-gray-500">{{ integration.created_by }} </div>
                     </NcTooltip>
-                    <template v-else>{{ integration.created_by }} </template>
                   </div>
                 </td>
                 <td class="cell-usage">

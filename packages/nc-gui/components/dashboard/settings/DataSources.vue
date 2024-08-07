@@ -337,7 +337,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
       >
         <div v-if="activeSource" class="h-full">
           <div class="px-4 pt-4 pb-2 flex items-center justify-between gap-3">
-            <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold">
+            <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold !ml-1">
               <a-breadcrumb-item @click="activeSource = null">
                 <a class="!no-underline text-base">Data Sources</a>
               </a-breadcrumb-item>
@@ -691,6 +691,9 @@ const handleClickRow = (source: SourceType, tab?: string) => {
     @apply !p-0;
     height: min(calc(100vh - 100px), 1024px);
     max-height: min(calc(100vh - 100px), 1024px) !important;
+  }
+  .ant-tabs-nav{
+    @apply pl-3;
   }
 }
 </style>

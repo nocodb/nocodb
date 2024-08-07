@@ -276,7 +276,6 @@ import NcQuickbooks from '~icons/nc-icons/quickbooks'
 import NcIntercom from '~icons/nc-icons/intercom'
 import NcDropbox from '~icons/nc-icons/dropbox'
 
-
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -763,7 +762,7 @@ export const iconMap = {
   dataBricks: NcDataBricks,
   mssqlServer: NcMssqlServer,
   oracle: NcOracle,
-  gmail: NcGmail, 
+  gmail: NcGmail,
   telegram: NcTelegram,
   microsoftDynamics365: NcMicrosoftDynamics365,
   pipedrive: NcPipedrive,

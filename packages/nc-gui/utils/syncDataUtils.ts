@@ -1,5 +1,5 @@
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
-import { ClientType, SyncDataType, IntegrationCategoryType } from '~/lib/enums'
+import { ClientType, IntegrationCategoryType, SyncDataType } from '~/lib/enums'
 
 export interface IntegrationItemType {
   title: string
@@ -147,7 +147,7 @@ export const allIntegrations: IntegrationItemType[] = [
   },
   {
     title: 'objects.syncData.postgreSQL',
-    value:  ClientType.PG,
+    value: ClientType.PG,
     icon: iconMap.postgreSql,
     categories: [IntegrationCategoryType.DATABASE],
     isAvailable: true,
@@ -195,32 +195,32 @@ export const allIntegrations: IntegrationItemType[] = [
     value: SyncDataType.SLACK,
     icon: iconMap.slack,
     categories: [IntegrationCategoryType.COMMUNICATION],
-     iconStyle:{
-      width: "32px",
-      height:"32px"
-    }
+    iconStyle: {
+      width: '32px',
+      height: '32px',
+    },
   },
   {
     title: 'general.discord',
     value: SyncDataType.DISCORD,
     icon: iconMap.ncDiscord,
     categories: [IntegrationCategoryType.COMMUNICATION],
-    iconStyle:{
-      width: "32px",
-      height:"32px"
-    }
+    iconStyle: {
+      width: '32px',
+      height: '32px',
+    },
   },
   {
     title: 'general.twilio',
     value: SyncDataType.TWILLO,
     icon: iconMap.twilio,
     categories: [IntegrationCategoryType.COMMUNICATION],
-    iconStyle:{
-      width: "32px",
-      height:"32px"
-    }
+    iconStyle: {
+      width: '32px',
+      height: '32px',
+    },
   },
- 
+
   {
     title: 'objects.syncData.microsoftOutlook',
     value: SyncDataType.MICROSOFT_OUTLOOK,
@@ -232,10 +232,10 @@ export const allIntegrations: IntegrationItemType[] = [
     value: SyncDataType.MICROSOFT_TEAMS,
     icon: iconMap.microsoftTeams,
     categories: [IntegrationCategoryType.COMMUNICATION],
-    iconStyle:{
-      width: "32px",
-      height:"32px"
-    }
+    iconStyle: {
+      width: '32px',
+      height: '32px',
+    },
   },
   {
     title: 'objects.syncData.gmail',
@@ -254,10 +254,10 @@ export const allIntegrations: IntegrationItemType[] = [
     value: SyncDataType.WHATSAPP,
     icon: iconMap.whatsapp,
     categories: [IntegrationCategoryType.COMMUNICATION],
-    iconStyle:{
-      width: "32px",
-      height:"32px"
-    }
+    iconStyle: {
+      width: '32px',
+      height: '32px',
+    },
   },
 
   // Project Management
@@ -409,7 +409,12 @@ export const allIntegrations: IntegrationItemType[] = [
 
   // Storage
   { title: 'objects.syncData.box', value: SyncDataType.BOX, icon: iconMap.box, categories: [IntegrationCategoryType.STORAGE] },
-  { title: 'objects.syncData.dropbox', value: SyncDataType.DROPBOX, icon: iconMap.dropbox, categories: [IntegrationCategoryType.STORAGE] },
+  {
+    title: 'objects.syncData.dropbox',
+    value: SyncDataType.DROPBOX,
+    icon: iconMap.dropbox,
+    categories: [IntegrationCategoryType.STORAGE],
+  },
   {
     title: 'objects.syncData.googleDrive',
     value: SyncDataType.GOOGLE_DRIVE,

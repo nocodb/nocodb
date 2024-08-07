@@ -24,7 +24,7 @@ const supportedDocs = [
       <div class="text-sm text-gray-800 font-semibold">Supported Docs</div>
 
       <div>
-        <div v-for="doc of supportedDocs" class="flex items-center gap-1">
+        <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">
           <div class="h-7 w-7 flex items-center justify-center">
             <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
           </div>

@@ -248,8 +248,8 @@ const getHookTypeText = (hook: HookType) => {
             type="secondary"
             size="small"
             class="!text-brand-500 !hover:text-brand-600"
-            @click="createWebhook"
             data-testid="nc-new-webhook"
+            @click="createWebhook"
           >
             <div class="flex gap-2 items-center">
               <GeneralIcon icon="plus" />
@@ -303,7 +303,7 @@ const getHookTypeText = (hook: HookType) => {
               </template>
               <template v-if="column.key === 'action'">
                 <NcDropdown overlay-class-name="nc-webhook-item-action-dropdown">
-                  <NcButton type="secondary" size="small" class="!w-8 !h-8" @click.stop data-testid="nc-webhook-item-action">
+                  <NcButton type="secondary" size="small" class="!w-8 !h-8" data-testid="nc-webhook-item-action" @click.stop>
                     <component :is="iconMap.threeDotVertical" class="text-gray-700" />
                   </NcButton>
                   <template #overlay>

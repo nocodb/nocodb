@@ -3,11 +3,11 @@ const props = defineProps<{
   modelValue: any[]
 }>()
 
+const emits = defineEmits(['update:modelValue'])
+
 interface Option {
   value: string
 }
-
-const emits = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -151,10 +151,10 @@ const filterOption = (input: string, option: Option) => option.value.toUpperCase
   }
   .ant-select-selector {
     @apply !rounded-l-lg !rounded-r-none !border-gray-200;
-   .ant-select-selection-search-input {
-      @apply !text-sm ;
+    .ant-select-selection-search-input {
+      @apply !text-sm;
     }
-    .ant-select-selection-placeholder{
+    .ant-select-selection-placeholder {
       @apply !text-gray-500;
     }
   }

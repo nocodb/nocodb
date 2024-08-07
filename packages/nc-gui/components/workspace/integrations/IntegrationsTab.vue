@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
 import NcModal from '~/components/nc/Modal.vue'
 /* eslint-disable @typescript-eslint/consistent-type-imports */
 import { IntegrationCategoryType, type IntegrationItemType, SyncDataType } from '#imports'
@@ -26,11 +27,11 @@ const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 
 const { pageMode, IntegrationsPageMode, requestIntegration, addIntegration, saveIntegraitonRequest } = useIntegrationStore()
 
+const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
+
 const activeCategory = ref<IntegrationCategoryItemType | null>(null)
 
 const searchQuery = ref<string>('')
-
-const requestNewIntegrationRef = ref<HTMLDivElement>()
 
 const integrationListRef = ref<HTMLDivElement>()
 
@@ -73,6 +74,7 @@ const integrationsMapByCategory = computed(() => {
         acc[curr.value] = {
           title: curr.title,
           list: getIntegrationsByCategory(curr.value, searchQuery.value),
+          isAvailable: curr.isAvailable,
         }
 
         return acc
@@ -82,6 +84,7 @@ const integrationsMapByCategory = computed(() => {
         {
           title: string
           list: IntegrationItemType[]
+          isAvailable?: boolean
         }
       >,
     )
@@ -121,23 +124,6 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
 
   addIntegration(integration.value)
 }
-
-const handleSetRequestIntegrationRef = (node) => {
-  requestNewIntegrationRef.value = node as HTMLDivElement
-
-  return node
-}
-
-const handleOpenRequestIntegration = () => {
-  requestIntegration.value.isOpen = true
-
-  nextTick(() => {
-    requestNewIntegrationRef.value?.scrollIntoView?.({ behavior: 'smooth' })
-
-    requestNewIntegrationRef.value?.querySelector('textarea')?.focus?.()
-    requestNewIntegrationRef.value?.querySelector('textarea')?.select?.()
-  })
-}
 </script>
 
 <template>
@@ -153,54 +139,6 @@ const handleOpenRequestIntegration = () => {
     @keydown.esc="isAddNewIntegrationModalOpen = false"
   >
     <a-layout>
-      <!--      <a-layout-sider class="nc-integration-layout-sidebar"> -->
-      <!--        <div class="h-full flex flex-col gap-3"> -->
-      <!--          <div class="px-5 pt-3 text-sm text-gray-500 font-bold"> -->
-      <!--            {{ $t('title.categories') }} -->
-      <!--          </div> -->
-      <!--          <div class="px-3 pb-3 flex-1 flex flex-col gap-1 overflow-y-auto nc-scrollbar-thin"> -->
-      <!--            <div -->
-      <!--              class="nc-integration-category-item" -->
-      <!--              :class="{ -->
-      <!--                active: activeCategory === null, -->
-      <!--              }" -->
-      <!--              data-testid="all-integrations" -->
-      <!--              @click="activeCategory = null" -->
-      <!--            > -->
-      <!--              <div class="nc-integration-category-item-icon-wrapper bg-gray-200"> -->
-      <!--                <GeneralIcon icon="globe" class="stroke-transparent !text-gray-700" /> -->
-      <!--              </div> -->
-      <!--              <div class="nc-integration-category-item-content-wrapper"> -->
-      <!--                <div class="nc-integration-category-item-title">All Integrations</div> -->
-      <!--                &lt;!&ndash;                <div class="nc-integration-category-item-subtitle">Content needed</div>&ndash;&gt; -->
-      <!--              </div> -->
-      <!--            </div> -->
-      <!--            <div -->
-      <!--              v-for="category of integrationCategories" -->
-      <!--              :key="category.value" -->
-      <!--              class="nc-integration-category-item" -->
-      <!--              :class="{ -->
-      <!--                active: activeCategory === category, -->
-      <!--              }" -->
-      <!--              :data-testid="category.value" -->
-      <!--              @click="activeCategory = category" -->
-      <!--            > -->
-      <!--              <div -->
-      <!--                class="nc-integration-category-item-icon-wrapper" -->
-      <!--                :style="{ -->
-      <!--                  backgroundColor: category.iconBgColor, -->
-      <!--                }" -->
-      <!--              > -->
-      <!--                <component :is="category.icon" class="nc-integration-category-item-icon" :style="category.iconStyle" /> -->
-      <!--              </div> -->
-      <!--              <div class="nc-integration-category-item-content-wrapper"> -->
-      <!--                <div class="nc-integration-category-item-title">{{ $t(category.title) }}</div> -->
-      <!--                &lt;!&ndash;                <div class="nc-integration-category-item-subtitle">{{ $t(category.subtitle) }}</div>&ndash;&gt; -->
-      <!--              </div> -->
-      <!--            </div> -->
-      <!--          </div> -->
-      <!--        </div> -->
-      <!--      </a-layout-sider> -->
       <a-layout-content class="nc-integration-layout-content">
         <div v-if="isModal" class="p-4 w-full flex items-center justify-between gap-3 border-b-1 border-gray-200">
           <NcButton type="text" size="small" @click="isAddNewIntegrationModalOpen = false">
@@ -223,25 +161,30 @@ const handleOpenRequestIntegration = () => {
         >
           <div class="px-6 pt-6">
             <div
-              class="flex items-center justify-between flex-wrap gap-3 m-auto"
+              class="flex items-end justify-end flex-wrap gap-3 m-auto"
               :style="{
                 maxWidth: listWrapperMaxWidth,
               }"
             >
-              <div class="text-sm font-normal text-gray-600">
-                <div>Connect integrations with NocoDB. <a target="_blank" rel="noopener noreferrer"> Learn more </a></div>
+              <div class="flex-1">
+                <div class="text-sm font-normal text-gray-600 mb-2">
+                  <div>Connect integrations with NocoDB. <a target="_blank" rel="noopener noreferrer"> Learn more </a></div>
+                </div>
+                <a-input
+                  v-model:value="searchQuery"
+                  type="text"
+                  class="nc-input-border-on-value nc-search-integration-input !min-w-[300px] !max-w-[400px] nc-input-sm flex-none"
+                  placeholder="Search integration"
+                  allow-clear
+                >
+                  <template #prefix>
+                    <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
+                  </template>
+                </a-input>
               </div>
-              <a-input
-                v-model:value="searchQuery"
-                type="text"
-                class="nc-input-border-on-value nc-search-integration-input !min-w-[300px] !max-w-[400px] nc-input-sm flex-none"
-                placeholder="Search integration..."
-                allow-clear
-              >
-                <template #prefix>
-                  <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
-                </template>
-              </a-input>
+              <NcButton type="ghost" size="small" class="!text-primary" @click="requestIntegration.isOpen = true">
+                Request integration
+              </NcButton>
             </div>
           </div>
 
@@ -262,7 +205,15 @@ const handleOpenRequestIntegration = () => {
                     :key="key"
                     class="integration-type-wrapper"
                   >
-                    <div class="category-type-title">{{ $t(category.title) }}</div>
+                    <div class="category-type-title flex gap-2">
+                      {{ $t(category.title) }}
+                      <NcBadge
+                        v-if="!category.isAvailable"
+                        :border="false"
+                        class="text-brand-500 !h-5 bg-brand-50 text-xs font-normal px-2"
+                        >{{ $t('msg.toast.futureRelease') }}</NcBadge
+                      >
+                    </div>
                     <div v-if="category.list.length" class="integration-type-list">
                       <NcTooltip
                         v-for="integration of category.list"
@@ -302,67 +253,49 @@ const handleOpenRequestIntegration = () => {
                       </NcTooltip>
                     </div>
                   </div>
-                  <div
-                    v-if="key === IntegrationCategoryType.OTHERS"
-                    :key="`${key}-request-integration`"
-                    :ref="handleSetRequestIntegrationRef"
-                    class="integration-type-wrapper !mt-4"
-                  >
-                    <div>
-                      <div
-                        class="source-card-request-integration"
-                        :class="{
-                          active: requestIntegration.isOpen,
-                        }"
-                      >
-                        <div
-                          v-if="!requestIntegration.isOpen"
-                          class="source-card-item border-none"
-                          @click="handleOpenRequestIntegration"
-                        >
-                          <div class="flex items-center justify-center rounded-lg w-[44px] h-[44px]">
-                            <GeneralIcon icon="plusSquare" class="flex-none w-8 h-8 !text-brand-500" />
-                          </div>
-                          <div class="name">Request New Integration</div>
-                        </div>
-                        <div v-show="requestIntegration.isOpen" class="flex flex-col gap-4">
-                          <div class="flex items-center justify-between gap-4">
-                            <div class="text-base font-bold text-gray-800">Request Integration</div>
-                            <NcButton size="xsmall" type="text" @click="requestIntegration.isOpen = false">
-                              <GeneralIcon icon="close" class="text-gray-600" />
-                            </NcButton>
-                          </div>
-                          <div class="flex flex-col gap-2">
-                            <a-textarea
-                              v-model:value="requestIntegration.msg"
-                              class="!rounded-md !text-sm !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
-                              size="large"
-                              hide-details
-                              placeholder="Provide integration name and your use-case."
-                            />
-                          </div>
-                          <div class="flex items-center justify-end gap-3">
-                            <NcButton size="small" type="secondary" @click="requestIntegration.isOpen = false">
-                              {{ $t('general.cancel') }}
-                            </NcButton>
-                            <NcButton
-                              :disabled="!requestIntegration.msg?.trim()"
-                              :loading="requestIntegration.isLoading"
-                              size="small"
-                              @click="saveIntegraitonRequest(requestIntegration.msg)"
-                            >
-                              {{ $t('general.submit') }}
-                            </NcButton>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                 </template>
               </div>
             </div>
           </div>
         </div>
+        <NcModal
+          v-model:visible="requestIntegration.isOpen"
+          centered
+          size="medium"
+          @keydown.esc="requestIntegration.isOpen = false"
+        >
+          <div v-show="requestIntegration.isOpen" class="flex flex-col gap-4">
+            <div class="flex items-center justify-between gap-4">
+              <div class="text-base font-bold text-gray-800">Request Integration</div>
+              <NcButton size="small" type="text" @click="requestIntegration.isOpen = false">
+                <GeneralIcon icon="close" class="text-gray-600" />
+              </NcButton>
+            </div>
+            <div class="flex flex-col gap-2">
+              <a-textarea
+                :ref="focusTextArea"
+                v-model:value="requestIntegration.msg"
+                class="!rounded-md !text-sm !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
+                size="large"
+                hide-details
+                placeholder="Provide integration name and your use-case."
+              />
+            </div>
+            <div class="flex items-center justify-end gap-3">
+              <NcButton size="small" type="secondary" @click="requestIntegration.isOpen = false">
+                {{ $t('general.cancel') }}
+              </NcButton>
+              <NcButton
+                :disabled="!requestIntegration.msg?.trim()"
+                :loading="requestIntegration.isLoading"
+                size="small"
+                @click="saveIntegraitonRequest(requestIntegration.msg)"
+              >
+                {{ $t('general.submit') }}
+              </NcButton>
+            </div>
+          </div>
+        </NcModal>
       </a-layout-content>
     </a-layout>
   </component>
@@ -493,7 +426,7 @@ const handleOpenRequestIntegration = () => {
             }
 
             .name {
-              @apply text-gray-500;
+              @apply text-gray-800;
             }
           }
 

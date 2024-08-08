@@ -289,7 +289,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       return true
     } catch (e: any) {
       console.error('Error occurred while validating all fields:', e)
-      
+
       if (e?.errorFields?.length) {
         message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
         return false

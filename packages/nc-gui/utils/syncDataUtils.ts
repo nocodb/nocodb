@@ -1,5 +1,6 @@
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
-import { ClientType, IntegrationCategoryType, SyncDataType } from '~/lib/enums'
+import { IntegrationCategoryType, SyncDataType } from 'nocodb-sdk'
+import { ClientType } from '~/lib/enums'
 
 export interface IntegrationItemType {
   title: string

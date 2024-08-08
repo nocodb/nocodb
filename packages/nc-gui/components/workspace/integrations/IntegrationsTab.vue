@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import NcModal from '~/components/nc/Modal.vue'
 /* eslint-disable @typescript-eslint/consistent-type-imports */
-import { IntegrationCategoryType, type IntegrationItemType, SyncDataType } from '#imports'
+import { IntegrationCategoryType, SyncDataType } from 'nocodb-sdk'
+import NcModal from '~/components/nc/Modal.vue'
+import type { IntegrationItemType } from '#imports'
 
 const props = withDefaults(
   defineProps<{

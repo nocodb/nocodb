@@ -28,6 +28,10 @@ export class IntegrationsService {
   ) {
     const integration = await Integration.get(context, param.integrationId);
 
+    if (!integration) {
+      NcError.integrationNotFound(param.integrationId);
+    }
+
     integration.config = await integration.getConnectionConfig();
 
     if (param.includeSources) {
@@ -108,6 +112,10 @@ export class IntegrationsService {
         ncMeta,
       );
 
+      if (!integration) {
+        NcError.integrationNotFound(param.integrationId);
+      }
+
       // get linked sources
       const sourceListQb = ncMeta
         .knex(MetaTable.BASES)
@@ -177,6 +185,9 @@ export class IntegrationsService {
   ) {
     try {
       const integration = await Integration.get(context, param.integrationId);
+      if (!integration) {
+        NcError.integrationNotFound(param.integrationId);
+      }
       await integration.softDelete();
     } catch (e) {
       NcError.badRequest(e);

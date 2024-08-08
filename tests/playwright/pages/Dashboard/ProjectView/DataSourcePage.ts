@@ -95,6 +95,8 @@ export class DataSourcePage extends BasePage {
 
     await this.getDsDetailsModal().waitFor({ state: 'visible' });
     await this.getDsDetailsModal().getByTestId('nc-connection-tab').click();
+
+    await this.getDsDetailsModal().locator('.nc-general-overlay').first().waitFor({ state: 'hidden' });
   }
 
   async openAcl({ dataSourceName = defaultBaseName }: { dataSourceName?: string } = {}) {

@@ -20,6 +20,8 @@ export class SourcePage extends BasePage {
   async openEditWindow({ sourceName }: { sourceName: string }) {
     await this.get().locator('.ds-table-row', { hasText: sourceName }).click();
     await this.getDsDetailsModal().getByTestId('nc-connection-tab').click();
+
+    await this.getDsDetailsModal().locator('.nc-general-overlay').first().waitFor({ state: 'hidden' });
   }
 
   async updateSchemaReadOnly({ sourceName, readOnly }: { sourceName: string; readOnly: boolean }) {

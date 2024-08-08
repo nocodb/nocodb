@@ -105,7 +105,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       if (!col.title) return
       
       if (fieldMappings.value[col.title] === undefined) {
-        console.error('Missing mapping field for:', col.title)
+        console.warn('Missing mapping field for:', col.title)
         return
       }
 

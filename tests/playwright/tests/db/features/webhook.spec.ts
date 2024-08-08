@@ -158,7 +158,7 @@ test.describe.serial('Webhook', () => {
     // after insert hook
     await webhook.create({
       title: 'hook-1',
-      event: 'After Insert',
+      event: 'On Record Insert',
     });
     await clearServerData({ request });
     await dashboard.grid.addNewRow({
@@ -191,7 +191,7 @@ test.describe.serial('Webhook', () => {
     // after update hook
     await webhook.create({
       title: 'hook-2',
-      event: 'After Update',
+      event: 'On Record Update',
     });
 
     await clearServerData({ request });
@@ -226,7 +226,7 @@ test.describe.serial('Webhook', () => {
     // after delete hook
     await webhook.create({
       title: 'hook-3',
-      event: 'After Delete',
+      event: 'On Record Delete',
     });
     await clearServerData({ request });
     await dashboard.grid.addNewRow({
@@ -262,14 +262,14 @@ test.describe.serial('Webhook', () => {
     await webhook.open({ index: 0 });
     await webhook.configureWebhook({
       title: 'hook-1-modified',
-      event: 'After Delete',
+      event: 'On Record Delete',
     });
     await webhook.save();
     await webhook.close();
     await webhook.open({ index: 1 });
     await webhook.configureWebhook({
       title: 'hook-2-modified',
-      event: 'After Delete',
+      event: 'On Record Delete',
     });
     await webhook.save();
     await webhook.close();
@@ -333,17 +333,17 @@ test.describe.serial('Webhook', () => {
     // after insert hook
     await webhook.create({
       title: 'hook-1',
-      event: 'After Insert',
+      event: 'On Record Insert',
     });
     // after insert hook
     await webhook.create({
       title: 'hook-2',
-      event: 'After Update',
+      event: 'On Record Update',
     });
     // after insert hook
     await webhook.create({
       title: 'hook-3',
-      event: 'After Delete',
+      event: 'On Record Delete',
     });
 
     await webhook.open({ index: 0 });
@@ -521,15 +521,15 @@ test.describe.serial('Webhook', () => {
     // create after insert webhook
     await webhook.create({
       title: 'hook-1',
-      event: 'After Bulk Insert',
+      event: 'On Multiple Record Insert',
     });
     await webhook.create({
       title: 'hook-1',
-      event: 'After Bulk Update',
+      event: 'On Multiple Record Update',
     });
     await webhook.create({
       title: 'hook-1',
-      event: 'After Bulk Delete',
+      event: 'On Multiple Record Delete',
     });
 
     await clearServerData({ request });
@@ -694,7 +694,7 @@ test.describe.serial('Webhook', () => {
     // after update hook
     await webhook.create({
       title: 'hook-2',
-      event: 'After Update',
+      event: 'On Record Update',
     });
 
     // clear server data
@@ -793,12 +793,12 @@ test.describe.serial('Webhook', () => {
     // after insert hook
     await webhook.create({
       title: 'hook-1',
-      event: 'After Delete',
+      event: 'On Record Delete',
     });
     // after insert hook
     await webhook.create({
       title: 'hook-2',
-      event: 'After Bulk Delete',
+      event: 'On Multiple Record Delete',
     });
 
     const titles = ['Poole', 'Delaware', 'Pabalo', 'John', 'Vicky', 'Tom'];

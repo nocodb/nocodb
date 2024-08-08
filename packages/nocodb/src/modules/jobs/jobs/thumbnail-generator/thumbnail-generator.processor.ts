@@ -3,10 +3,10 @@ import { Readable } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
-import sharp from 'sharp';
 import type { IStorageAdapterV2 } from 'nc-plugin';
 import type { AttachmentResType } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
+import type Sharp from 'sharp';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 
@@ -40,6 +40,21 @@ export class ThumbnailGeneratorProcessor {
   private async generateThumbnail(
     attachment: AttachmentResType,
   ): Promise<{ [key: string]: string }> {
+    let sharp: typeof Sharp;
+
+    try {
+      sharp = (await import('sharp')).default;
+    } catch {
+      // ignore
+    }
+
+    if (!sharp) {
+      this.logger.warn(
+        `Thumbnail generation is not supported in this platform at the moment.`,
+      );
+      return;
+    }
+
     try {
       const storageAdapter = await NcPluginMgrv2.storageAdapter();
 

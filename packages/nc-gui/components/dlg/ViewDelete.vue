@@ -52,7 +52,10 @@ async function onDelete() {
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
-          {{ view.title }}
+          <span v-if="view.is_default">{{ $t('labels.defaultView') }}</span>
+          <span v-else>
+            {{ view.title }}
+          </span>
         </div>
       </div>
     </template>

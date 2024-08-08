@@ -110,6 +110,7 @@ import NcIconsRowHeightMedium from '~icons/nc-icons/row-height-medium'
 import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
 import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
+import NcIconsGift from '~icons/nc-icons/gift'
 import NcArticle from '~icons/nc-icons/article'
 import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
@@ -243,6 +244,39 @@ import NcZendesk from '~icons/nc-icons/zendesk'
 import NcBookOpen from '~icons/nc-icons/book-open'
 import NcCircleCheckSolid from '~icons/nc-icons/check-circle-solid'
 import NcAlertTriangleSolid from '~icons/nc-icons/alert-triangle-solid'
+import NcMail from '~icons/nc-icons/mail'
+import NcSlack from '~icons/nc-icons/slack'
+import NcMicrosoftTeams from '~icons/nc-icons/microsoft-teams'
+import NcMattermost from '~icons/nc-icons/mattermost'
+import NcTwilio from '~icons/nc-icons/twilio'
+import NcWhatsapp from '~icons/nc-icons/whatsapp'
+import NcWhatsappSolid from '~icons/nc-icons/whatsapp-solid'
+
+// View icons
+import NcViewGantt from '~icons/nc-icons/view-gantt'
+
+import NcDollerSign from '~icons/nc-icons/doller-sign'
+import NcMultiFile from '~icons/nc-icons/multi-file'
+import NcHeart from '~icons/nc-icons/heart'
+import NcSave from '~icons/nc-icons/save'
+
+import NcMySql from '~icons/logos/mysql-icon'
+import NcPostgreSql from '~icons/nc-icons/postgresql'
+import NcSqlServer from '~icons/nc-icons/sql-server'
+import NcDataBricks from '~icons/nc-icons/data-bricks'
+import NcMssqlServer from '~icons/nc-icons/mssql-server'
+import NcOracle from '~icons/nc-icons/oracle'
+import NcGmail from '~icons/nc-icons/gmail'
+import NcTelegram from '~icons/nc-icons/telegram'
+import NcMicrosoftDynamics365 from '~icons/nc-icons/microsoft-dynamics-365'
+import NcPipedrive from '~icons/nc-icons/pipedrive'
+import NcZohoCrm from '~icons/nc-icons/zoho-crm'
+import NcGreenhouse from '~icons/nc-icons/greenhouse'
+import NcLever from '~icons/nc-icons/lever'
+import NcBitBucket from '~icons/nc-icons/bit-bucket'
+import NcQuickbooks from '~icons/nc-icons/quickbooks'
+import NcIntercom from '~icons/nc-icons/intercom'
+import NcDropbox from '~icons/nc-icons/dropbox'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -712,7 +746,37 @@ export const iconMap = {
   zendesk: NcZendesk,
   bookOpen: NcBookOpen,
   circleCheckSolid: NcCircleCheckSolid,
-  alertTriangleSolid: NcAlertTriangleSolid
+  alertTriangleSolid: NcAlertTriangleSolid,
+  mail: NcMail,
+  slack: NcSlack,
+  microsoftTeams: NcMicrosoftTeams,
+  mattermost: NcMattermost,
+  twilio: NcTwilio,
+  whatsapp: NcWhatsapp,
+  whatsappSolid: NcWhatsappSolid,
+  viewGannt: NcViewGantt,
+  dollerSign: NcDollerSign,
+  multiFile: NcMultiFile,
+  heart: NcHeart,
+  ncSave: NcSave,
+  mysql: NcMySql,
+  postgreSql: NcPostgreSql,
+  sqlServer: NcSqlServer,
+  dataBricks: NcDataBricks,
+  mssqlServer: NcMssqlServer,
+  oracle: NcOracle,
+  gmail: NcGmail,
+  telegram: NcTelegram,
+  microsoftDynamics365: NcMicrosoftDynamics365,
+  pipedrive: NcPipedrive,
+  zohoCrm: NcZohoCrm,
+  greenhouse: NcGreenhouse,
+  lever: NcLever,
+  bitBucket: NcBitBucket,
+  quickbooks: NcQuickbooks,
+  intercom: NcIntercom,
+  dropbox: NcDropbox,
+  gift: NcIconsGift,
 }
 
 export const getMdiIcon = (type: string): any => {

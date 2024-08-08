@@ -20,7 +20,7 @@ const {
 
 const { $api, $e } = useNuxtApp()
 
-const { collaborators } = storeToRefs(useWorkspace())
+const { allCollaborators } = storeToRefs(useWorkspace())
 
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
@@ -50,7 +50,7 @@ const { width } = useElementBounding(titleHeaderCellRef)
 const collaboratorsMap = computed<Map<string, (WorkspaceUserType & { id: string }) | User | UserType>>(() => {
   const map = new Map()
 
-  ;(isEeUI ? collaborators.value : localCollaborators.value)?.forEach((coll) => {
+  ;(isEeUI ? allCollaborators.value : localCollaborators.value)?.forEach((coll) => {
     if (coll?.id) {
       map.set(coll.id, coll)
     }
@@ -181,6 +181,23 @@ const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
 
+const isUserDeleted = (userId?: string) => {
+  if (!userId) return false
+
+  if (isEeUI) {
+    return !!collaboratorsMap.value.get(userId)?.deleted
+  } else {
+    return !collaboratorsMap.value.get(userId)?.email
+  }
+}
+
+const getUserNameByCreatedBy = (createdBy: string) => {
+  return (
+    collaboratorsMap.value.get(createdBy)?.display_name ||
+    collaboratorsMap.value.get(createdBy)?.email?.slice(0, collaboratorsMap.value.get(createdBy)?.email?.indexOf('@'))
+  )
+}
+
 useEventListener(tableWrapper, 'scroll', () => {
   const stickyHeaderCell = tableWrapper.value?.querySelector('th.cell-title')
   const nonStickyHeaderFirstCell = tableWrapper.value?.querySelector('th.cell-type')
@@ -212,18 +229,20 @@ onKeyStroke('ArrowDown', onDown)
 
 <template>
   <div class="h-full flex flex-col gap-6 nc-workspace-connections">
-    <div class="flex justify-between gap-12">
+    <div class="flex flex-col justify-between gap-2 mx-1">
       <div class="text-sm font-normal text-gray-600">
         <div>
-          Connections simplify managing stored configurations for different integrations.
-          <a target="_blank" rel="noopener noreferrer"> Learn more </a>
+          Manage connections for your integrations.
+          <a target="_blank" href="https://docs.nocodb.com/integrations/actions-on-connection" rel="noopener noreferrer">
+            Learn more
+          </a>
         </div>
       </div>
-      <div class="flex items-center justify-end gap-3 mx-1">
+      <div class="flex items-center gap-3">
         <a-input
           v-model:value="searchQuery"
           type="text"
-          class="nc-search-integration-input !min-w-[300px] nc-input-sm flex-none"
+          class="nc-search-integration-input !min-w-[300px] !max-w-[400px] nc-input-sm flex-none"
           :placeholder="`${$t('general.search')} ${$t('general.connections').toLowerCase()}`"
           allow-clear
           @input="handleSearchConnection"
@@ -380,7 +399,7 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
                 <td class="cell-type">
                   <div>
-                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate">
+                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate !border-transparent">
                       <WorkspaceIntegrationsIcon
                         v-if="integration.sub_type"
                         :integration-type="integration.sub_type"
@@ -410,47 +429,66 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
                 <td class="cell-added-by">
                   <div>
-                    <div
-                      v-if="integration.created_by && collaboratorsMap.get(integration.created_by)?.email"
-                      class="w-full flex gap-3 items-center"
-                    >
-                      <GeneralUserIcon
-                        :email="collaboratorsMap.get(integration.created_by)?.email"
-                        size="base"
-                        class="flex-none"
-                      />
-                      <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
-                        <div class="w-full flex gap-3">
+                    <NcTooltip :disabled="!isUserDeleted(integration.created_by)" class="w-full">
+                      <template #title>
+                        {{ `User not part of this ${isEeUI ? 'workspace' : 'organisation'} anymore` }}
+                      </template>
+                      <div
+                        v-if="integration.created_by && collaboratorsMap.get(integration.created_by)?.email"
+                        class="w-full flex gap-3 items-center"
+                      >
+                        <GeneralUserIcon
+                          :email="collaboratorsMap.get(integration.created_by)?.email"
+                          size="base"
+                          class="flex-none"
+                          :class="{
+                            '!grayscale': isUserDeleted(integration.created_by),
+                          }"
+                          :style="
+                            isUserDeleted(integration.created_by)
+                              ? {
+                                  filter: 'grayscale(100%) brightness(115%)',
+                                }
+                              : {}
+                          "
+                        />
+                        <div class="flex-1 flex flex-col max-w-[calc(100%_-_44px)]">
+                          <div class="w-full flex gap-3">
+                            <NcTooltip
+                              class="text-sm !leading-5 capitalize font-semibold truncate"
+                              :class="{
+                                'text-gray-800': !isUserDeleted(integration.created_by),
+                                'text-gray-500': isUserDeleted(integration.created_by),
+                              }"
+                              :disabled="isUserDeleted(integration.created_by)"
+                              show-on-truncate-only
+                              placement="bottom"
+                            >
+                              <template #title>
+                                {{ getUserNameByCreatedBy(integration.created_by) }}
+                              </template>
+                              {{ getUserNameByCreatedBy(integration.created_by) }}
+                            </NcTooltip>
+                          </div>
                           <NcTooltip
-                            class="text-sm !leading-5 text-gray-800 capitalize font-semibold truncate"
+                            class="text-xs !leading-4 truncate"
+                            :class="{
+                              'text-gray-600': !isUserDeleted(integration.created_by),
+                              'text-gray-500': isUserDeleted(integration.created_by),
+                            }"
+                            :disabled="isUserDeleted(integration.created_by)"
                             show-on-truncate-only
                             placement="bottom"
                           >
                             <template #title>
-                              {{
-                                collaboratorsMap.get(integration.created_by)?.display_name ||
-                                collaboratorsMap
-                                  .get(integration.created_by)
-                                  ?.email?.slice(0, collaboratorsMap.get(integration.created_by)?.email.indexOf('@'))
-                              }}
+                              {{ collaboratorsMap.get(integration.created_by)?.email }}
                             </template>
-                            {{
-                              collaboratorsMap.get(integration.created_by)?.display_name ||
-                              collaboratorsMap
-                                .get(integration.created_by)
-                                ?.email?.slice(0, collaboratorsMap.get(integration.created_by)?.email.indexOf('@'))
-                            }}
+                            {{ collaboratorsMap.get(integration.created_by)?.email }}
                           </NcTooltip>
                         </div>
-                        <NcTooltip class="text-xs !leading-4 text-gray-600 truncate" show-on-truncate-only placement="bottom">
-                          <template #title>
-                            {{ collaboratorsMap.get(integration.created_by)?.email }}
-                          </template>
-                          {{ collaboratorsMap.get(integration.created_by)?.email }}
-                        </NcTooltip>
                       </div>
-                    </div>
-                    <template v-else>{{ integration.created_by }} </template>
+                      <div v-else class="w-full truncate text-gray-500">{{ integration.created_by }}</div>
+                    </NcTooltip>
                   </div>
                 </td>
                 <td class="cell-usage">

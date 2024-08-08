@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "on": "On",
+    "onMultiple": "On Multiple",
     "addLookupField": "添加{count}个查找字段",
     "role": "角色",
     "general": "通用",
@@ -272,6 +274,7 @@
     "use": "Use",
     "stack": "Stack",
     "ipAddress": "IP 地址",
+    "trigger": "Trigger",
     "integration": "Integration",
     "integrations": "Integrations",
     "connection": "Connection",
@@ -366,7 +369,49 @@
       "trello": "Trello",
       "typeform": "Typeform",
       "workday": "Workday",
-      "zendesk": "Zendesk"
+      "zendesk": "Zendesk",
+      "mysql": "MySQL",
+      "postgreSQL": "PostgreSQL",
+      "sqlServer": "SQL Server",
+      "dataBricks": "DataBricks",
+      "mssqlServer": "MSSQL Server",
+      "oracle": "Oracle",
+      "telegram": "Telegram",
+      "whatsapp": "Whatsapp",
+      "gmail": "Gmail",
+      "pipedrive": "Pipedrive",
+      "microsoftDynamics365": "Microsoft Dynamics 365",
+      "zohoCrm": "Zoho CRM",
+      "greenhouse": "Greenhouse",
+      "lever": "Lever",
+      "bitbucket": "BitBucket",
+      "quickbooks": "Quickbooks",
+      "intercom": "Intercom",
+      "dropbox": "Dropbox"
+    },
+    "integrationCategories": {
+      "allIntegrations": "All Integrations",
+      "allIntegrationsSubtitle": "",
+      "databaseSubtitle": "Seamlessly connect and manage your databases with NocoDB.",
+      "communication": "Communication",
+      "communicationSubtitle": "Get notified on changes and streamline team communication with NocoDB.",
+      "projectManagement": "Project Management",
+      "projectManagementSubtitle": "Enhance project workflows and task management with NocoDB.",
+      "crm": "CRM",
+      "crmSubtitle": "Optimize customer relationship management through NocoDB integrations.",
+      "marketing": "Marketing",
+      "marketingSubtitle": "Boost your marketing efforts with NocoDB's powerful integrations.",
+      "ats": "ATS",
+      "atsSubtitle": "Streamline your applicant tracking system with NocoDB.",
+      "development": "Development",
+      "developmentSubtitle": "Accelerate development processes with NocoDB integrations.",
+      "finance": "Finance",
+      "financeSubtitle": "Simplify financial operations and data management with NocoDB.",
+      "ticketing": "Ticketing",
+      "ticketingSubtitle": "Manage and track support tickets efficiently with NocoDB.",
+      "storageSubtitle": "Integrate and organize your storage solutions seamlessly with NocoDB.",
+      "others": "Others",
+      "othersSubtitle": "Discover additional versatile integrations to enhance your NocoDB experience."
     }
   },
   "datatype": {
@@ -422,6 +467,7 @@
     "isNotNull": "不为空（Not Null）"
   },
   "title": {
+    "searchWebhook": "Search webhook",
     "webcam": "网络摄像头",
     "uploadViaUrl": "通过URL上传",
     "localFiles": "本地文件",
@@ -554,9 +600,16 @@
     "looksLikeThisStackIsEmpty": "看起来这个堆栈没有任何记录",
     "fromScratch": "From scratch",
     "fromFileAndExternalSources": "From files & external sources",
-    "directlyInRealTime": "Directly in real time"
+    "directlyInRealTime": "Directly in real time",
+    "categories": "Categories"
   },
   "labels": {
+    "defaultView": "Default view",
+    "recordInsert": "Record Insert",
+    "recordUpdate": "Record Update",
+    "recordDelete": "Record Delete",
+    "supportDocs": "Support Docs",
+    "addedOn": "Added on",
     "changeDisplayValueField": "更改显示值字段",
     "selectYourNewTitleFor": "选择您的新显示值字段为 ",
     "searchDisplayValue": "选择显示数值字段",
@@ -913,6 +966,7 @@
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
   },
   "activity": {
+    "webhookDetails": "Webhook Details",
     "hideWeekends": "隐藏周末",
     "renameBase": "重命名项目",
     "renameWorkspace": "重命名工作区",
@@ -1088,6 +1142,7 @@
     "addWebhook": "添加新的 Webhook",
     "enableWebhook": "启用 Webhook",
     "testWebhook": "测试Webhook",
+    "createWebhook": "Create Webhook",
     "copyWebhook": "复制 Webhook",
     "deleteWebhook": "删除 Webhook",
     "newToken": "添加新 Token",
@@ -1207,7 +1262,8 @@
     "preFillFormInfo": "要获取预填的链接，请确保您已填写表单视图生成器中的必填字段。",
     "surveyFormInfo": "单页单表单字段模式",
     "useFieldEditMenuToConfigFieldType": "在导入文件后，使用字段编辑菜单进行类型转换。",
-    "roleInheritedFromWorkspace": "Role inherited from workspace"
+    "roleInheritedFromWorkspace": "Role inherited from workspace",
+    "comingSoonIntegration": "Coming soon! Click to upvote for the integration you need in NocoDB."
   },
   "placeholder": {
     "selectSlackChannels": "选择 Slack 频道",
@@ -1731,8 +1787,8 @@
       "passwordChanged": "密码修改成功。请重新登录。",
       "settingsSaved": "设置保存成功",
       "roleUpdated": "权限已更新",
-      "connectionAdded": "Connection Successfully Created",
-      "connectionAddedDesc": "All Base owners & creators in this Workspace can now use this connection to easily add a new Data Source to their Base."
+      "connectionAdded": "Integration connected successfully",
+      "connectionAddedDesc": "Base owners and creators can now add a data source without re-entering credentials."
     }
   }
 }

@@ -256,8 +256,12 @@ export interface AuditRowUpdateReqType {
  * Model for Source
  */
 export interface SourceType {
-  /** Source Name - Default BASE will be null by default */
+  /** Source Name */
   alias?: StringOrNullType;
+  /** Integration Name */
+  integration_title?: StringOrNullType;
+  /** Integration Id */
+  fk_integration_id?: StringOrNullType;
   /** Source Configuration */
   config?: any;
   /** Is this source enabled */
@@ -302,6 +306,43 @@ export interface SourceType {
     | 'snowflake'
     | 'sqlite3'
     | 'databricks';
+}
+
+/**
+ * Model for Integration
+ */
+export interface IntegrationType {
+  /** Source Name - Default BASE will be null by default */
+  title?: StringOrNullType;
+  /** Source Configuration */
+  config?: any;
+  /** Is this Intgration enabled */
+  enabled?: BoolType;
+  /** Unique Integration ID */
+  id?: string;
+  /** Unique Workspace ID */
+  fk_workspace_id?: string;
+  /**
+   * The order of the list of sources
+   * @example 1
+   */
+  order?: number;
+  /** The base ID that this source belongs to */
+  base_id?: string;
+  /** Model for Bool */
+  is_private?: BoolType;
+  /** Integration Type */
+  type?: IntegrationsType;
+  /**
+   * DB Type
+   * @example mysql2
+   */
+  sub_type?: string;
+  /**
+   * DB Type
+   * @example mysql2
+   */
+  created_by?: string;
 }
 
 /**
@@ -353,6 +394,35 @@ export interface BaseReqType {
     | 'snowflake'
     | 'sqlite3'
     | 'databricks';
+  fk_integration_id?: string;
+}
+
+/**
+ * Integration Type
+ */
+export enum IntegrationsType {
+  Database = 'database',
+}
+
+/**
+ * Model for Integration Request
+ */
+export interface IntegrationReqType {
+  /**
+   * Integration Name - Default BASE will be null by default
+   * @example Integration
+   */
+  title: string;
+  /** Source Configuration */
+  config: any;
+  /** Integration metas */
+  meta?: any;
+  /** Integration Type */
+  type: IntegrationsType;
+  /** Sub Type */
+  sub_type?: string;
+  /** ID of integration to be copied from. Used in Copy Integration. */
+  copy_from_id?: StringOrNullType;
 }
 
 /**
@@ -10535,6 +10605,7 @@ export class Api<
   defaultLimit?: number,
   ncMin?: boolean,
   teleEnabled?: boolean,
+  errorReportingEnabled?: boolean,
   auditEnabled?: boolean,
   ncSiteUrl?: string,
   ee?: boolean,
@@ -10566,6 +10637,7 @@ export class Api<
           defaultLimit?: number;
           ncMin?: boolean;
           teleEnabled?: boolean;
+          errorReportingEnabled?: boolean;
           auditEnabled?: boolean;
           ncSiteUrl?: string;
           ee?: boolean;
@@ -12276,6 +12348,118 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+  };
+  integration = {
+    /**
+     * @description List integrations
+     *
+     * @tags Integration
+     * @name List
+     * @summary List integrations
+     * @request GET:/api/v2/meta/integrations
+     * @response `200` `any` OK
+     */
+    list: (
+      query?: {
+        /** Integration Type */
+        type?: IntegrationsType;
+        includeDatabaseInfo?: boolean;
+        limit?: number;
+        offset?: number;
+        baseId?: string;
+        query?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v2/meta/integrations`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create integration
+     *
+     * @tags Integration
+     * @name Create
+     * @summary Create integration
+     * @request POST:/api/v2/meta/integrations
+     * @response `200` `IntegrationType` OK
+     */
+    create: (data: IntegrationReqType, params: RequestParams = {}) =>
+      this.request<IntegrationType, any>({
+        path: `/api/v2/meta/integrations`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Read integration
+     *
+     * @tags Integration
+     * @name Read
+     * @summary Read integration
+     * @request GET:/api/v2/meta/integrations/{integrationId}
+     * @response `200` `IntegrationType` OK
+     */
+    read: (
+      integrationId: string,
+      query?: {
+        includeConfig?: boolean;
+        includeSources?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<IntegrationType, any>({
+        path: `/api/v2/meta/integrations/${integrationId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update integration
+     *
+     * @tags Integration
+     * @name Update
+     * @summary Update integration
+     * @request PATCH:/api/v2/meta/integrations/{integrationId}
+     * @response `200` `void` OK
+     */
+    update: (
+      integrationId: string,
+      data: IntegrationReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v2/meta/integrations/${integrationId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete integration
+     *
+     * @tags Integration
+     * @name Delete
+     * @summary Delete integration
+     * @request DELETE:/api/v2/meta/integrations/{integrationId}
+     * @response `200` `void` OK
+     */
+    delete: (integrationId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v2/meta/integrations/${integrationId}`,
+        method: 'DELETE',
         ...params,
       }),
   };

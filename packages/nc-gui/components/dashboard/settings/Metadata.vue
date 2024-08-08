@@ -128,7 +128,7 @@ const customRow = (record: Record<string, any>) => ({
           <div v-else>
             <!--        Tables metadata is in sync -->
             <span>
-              <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon class="!rounded-md"/>
+              <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon class="!rounded-md" />
             </span>
           </div>
         </div>

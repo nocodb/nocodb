@@ -64,6 +64,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     },
     isAddNewRecordGridMode: true,
     syncDataUpvotes: [],
+    giftBannerDismissedCount: 0,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
@@ -98,6 +99,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     oneClick: false,
     baseHasAdmin: false,
     teleEnabled: true,
+    errorReportingEnabled: false,
     auditEnabled: true,
     type: 'nocodb',
     version: '0.0.0',
@@ -108,6 +110,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     disableEmailAuth: false,
     dashboardPath: '/dashboard',
     inviteOnlySignup: false,
+    giftUrl: '',
   })
 
   /** reactive token payload */

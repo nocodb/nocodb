@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "on": "On",
+    "onMultiple": "On Multiple",
     "addLookupField": "Add {count} lookup fields",
     "role": "Role",
     "general": "General",
@@ -272,6 +274,7 @@
     "use": "Use",
     "stack": "Stack",
     "ipAddress": "IP Address",
+    "trigger": "Trigger",
     "integration": "Integration",
     "integrations": "Integrations",
     "connection": "Connection",
@@ -366,7 +369,49 @@
       "trello": "Trello",
       "typeform": "Typeform",
       "workday": "Workday",
-      "zendesk": "Zendesk"
+      "zendesk": "Zendesk",
+      "mysql": "MySQL",
+      "postgreSQL": "PostgreSQL",
+      "sqlServer": "SQL Server",
+      "dataBricks": "DataBricks",
+      "mssqlServer": "MSSQL Server",
+      "oracle": "Oracle",
+      "telegram": "Telegram",
+      "whatsapp": "Whatsapp",
+      "gmail": "Gmail",
+      "pipedrive": "Pipedrive",
+      "microsoftDynamics365": "Microsoft Dynamics 365",
+      "zohoCrm": "Zoho CRM",
+      "greenhouse": "Greenhouse",
+      "lever": "Lever",
+      "bitbucket": "BitBucket",
+      "quickbooks": "Quickbooks",
+      "intercom": "Intercom",
+      "dropbox": "Dropbox"
+    },
+    "integrationCategories": {
+      "allIntegrations": "All Integrations",
+      "allIntegrationsSubtitle": "",
+      "databaseSubtitle": "Seamlessly connect and manage your databases with NocoDB.",
+      "communication": "Communication",
+      "communicationSubtitle": "Get notified on changes and streamline team communication with NocoDB.",
+      "projectManagement": "Project Management",
+      "projectManagementSubtitle": "Enhance project workflows and task management with NocoDB.",
+      "crm": "CRM",
+      "crmSubtitle": "Optimize customer relationship management through NocoDB integrations.",
+      "marketing": "Marketing",
+      "marketingSubtitle": "Boost your marketing efforts with NocoDB's powerful integrations.",
+      "ats": "ATS",
+      "atsSubtitle": "Streamline your applicant tracking system with NocoDB.",
+      "development": "Development",
+      "developmentSubtitle": "Accelerate development processes with NocoDB integrations.",
+      "finance": "Finance",
+      "financeSubtitle": "Simplify financial operations and data management with NocoDB.",
+      "ticketing": "Ticketing",
+      "ticketingSubtitle": "Manage and track support tickets efficiently with NocoDB.",
+      "storageSubtitle": "Integrate and organize your storage solutions seamlessly with NocoDB.",
+      "others": "Others",
+      "othersSubtitle": "Discover additional versatile integrations to enhance your NocoDB experience."
     }
   },
   "datatype": {
@@ -422,6 +467,7 @@
     "isNotNull": "ni null"
   },
   "title": {
+    "searchWebhook": "Search webhook",
     "webcam": "Webcam",
     "uploadViaUrl": "Upload via URL",
     "localFiles": "Local Files",
@@ -554,9 +600,16 @@
     "looksLikeThisStackIsEmpty": "Looks like this stack does not have any records",
     "fromScratch": "From scratch",
     "fromFileAndExternalSources": "From files & external sources",
-    "directlyInRealTime": "Directly in real time"
+    "directlyInRealTime": "Directly in real time",
+    "categories": "Categories"
   },
   "labels": {
+    "defaultView": "Default view",
+    "recordInsert": "Record Insert",
+    "recordUpdate": "Record Update",
+    "recordDelete": "Record Delete",
+    "supportDocs": "Support Docs",
+    "addedOn": "Added on",
     "changeDisplayValueField": "Change display value field",
     "selectYourNewTitleFor": "Select your new display value field for ",
     "searchDisplayValue": "Select display value field",
@@ -913,6 +966,7 @@
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
   },
   "activity": {
+    "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
     "renameWorkspace": "Rename workspace",
@@ -1088,6 +1142,7 @@
     "addWebhook": "Dodaj novo Webhook.",
     "enableWebhook": "Enable Webhook",
     "testWebhook": "Test Webhook",
+    "createWebhook": "Create Webhook",
     "copyWebhook": "Copy Webhook",
     "deleteWebhook": "Delete Webhook",
     "newToken": "Dodajte nov žeton",
@@ -1207,7 +1262,8 @@
     "preFillFormInfo": "Generate share form URL with pre-filled field data. To get a pre-filled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page",
     "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported",
-    "roleInheritedFromWorkspace": "Role inherited from workspace"
+    "roleInheritedFromWorkspace": "Role inherited from workspace",
+    "comingSoonIntegration": "Coming soon! Click to upvote for the integration you need in NocoDB."
   },
   "placeholder": {
     "selectSlackChannels": "Select Slack channels",
@@ -1731,8 +1787,8 @@
       "passwordChanged": "Geslo je bilo uspešno spremenjeno. Ponovno se prijavite.",
       "settingsSaved": "Nastavitve so bile uspešno shranjene",
       "roleUpdated": "Vloga je bila uspešno posodobljena",
-      "connectionAdded": "Connection Successfully Created",
-      "connectionAddedDesc": "All Base owners & creators in this Workspace can now use this connection to easily add a new Data Source to their Base."
+      "connectionAdded": "Integration connected successfully",
+      "connectionAddedDesc": "Base owners and creators can now add a data source without re-entering credentials."
     }
   }
 }

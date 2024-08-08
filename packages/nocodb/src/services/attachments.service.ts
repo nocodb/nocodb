@@ -6,11 +6,11 @@ import { nanoid } from 'nanoid';
 import slash from 'slash';
 import PQueue from 'p-queue';
 import axios from 'axios';
-import sharp from 'sharp';
 import hash from 'object-hash';
 import moment from 'moment';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import type Sharp from 'sharp';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
@@ -83,17 +83,29 @@ export class AttachmentsService {
           } = {};
 
           if (file.mimetype.includes('image')) {
-            try {
-              const metadata = await sharp(file.path, {
-                limitInputPixels: false,
-              }).metadata();
+            let sharp: typeof Sharp;
 
-              if (metadata.width && metadata.height) {
-                tempMetadata.width = metadata.width;
-                tempMetadata.height = metadata.height;
-              }
+            try {
+              sharp = (await import('sharp')).default;
             } catch (e) {
-              this.logger.error(`${file.path} is not an image file`);
+              this.logger.warn(
+                `Thumbnail generation is not supported in this platform at the moment. Error: ${e.message}`,
+              );
+            }
+
+            if (sharp) {
+              try {
+                const metadata = await sharp(file.path, {
+                  limitInputPixels: false,
+                }).metadata();
+
+                if (metadata.width && metadata.height) {
+                  tempMetadata.width = metadata.width;
+                  tempMetadata.height = metadata.height;
+                }
+              } catch (e) {
+                this.logger.error(`${file.path} is not an image file`);
+              }
             }
           }
 
@@ -222,17 +234,30 @@ export class AttachmentsService {
           } = {};
 
           if (mimeType.includes('image')) {
+            let sharp: typeof Sharp;
             try {
-              const metadata = await sharp(file, {
-                limitInputPixels: true,
-              }).metadata();
+              sharp = (await import('sharp')).default;
+            } catch {
+              // ignore
+            }
 
-              if (metadata.width && metadata.height) {
-                tempMetadata.width = metadata.width;
-                tempMetadata.height = metadata.height;
+            if (sharp) {
+              try {
+                const metadata = await sharp(file, {
+                  limitInputPixels: true,
+                }).metadata();
+
+                if (metadata.width && metadata.height) {
+                  tempMetadata.width = metadata.width;
+                  tempMetadata.height = metadata.height;
+                }
+              } catch (e) {
+                this.logger.error(`${file.path} is not an image file`);
               }
-            } catch (e) {
-              this.logger.error(`${file.path} is not an image file`);
+            } else {
+              this.logger.warn(
+                `Thumbnail generation is not supported in this platform at the moment.`,
+              );
             }
           }
 

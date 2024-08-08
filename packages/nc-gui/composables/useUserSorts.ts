@@ -1,5 +1,6 @@
 import rfdc from 'rfdc'
 import { OrderedOrgRoles, OrderedProjectRoles, OrderedWorkspaceRoles } from 'nocodb-sdk'
+import dayjs from 'dayjs'
 import type { UsersSortType } from '~/lib/types'
 
 /**
@@ -8,7 +9,7 @@ import type { UsersSortType } from '~/lib/types'
  * @param {string} roleType - The type of role for which user sorts are managed ('Workspace', 'Org', or 'Project').
  * @returns {object} An object containing reactive values and functions related to user sorts.
  */
-export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organization') {
+export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organization' | 'Webhook') {
   const clone = rfdc()
 
   const { user } = useGlobal()
@@ -145,6 +146,21 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
             return a[sortsConfig.field] - b[sortsConfig.field]
           } else {
             return b[sortsConfig.field] - a[sortsConfig.field]
+          }
+        }
+        case 'webhook-operation-type': {
+          if (sortsConfig.direction === 'asc') {
+            return `${a?.event} ${a?.operation}`?.localeCompare(`${b?.event} ${b?.operation}`)
+          } else {
+            return `${b?.event} ${b?.operation}`?.localeCompare(`${a?.event} ${a?.operation}`)
+          }
+        }
+        case 'created_at':
+        case 'updated_at': {
+          if (sortsConfig.direction === 'asc') {
+            return dayjs(a[sortsConfig.field]).isAfter(dayjs(b[sortsConfig.field])) ? 1 : -1
+          } else {
+            return dayjs(a[sortsConfig.field]).isBefore(dayjs(b[sortsConfig.field])) ? 1 : -1
           }
         }
       }

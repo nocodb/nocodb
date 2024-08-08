@@ -36,7 +36,7 @@ onMounted(() => {
   until(() => currentWorkspace.value?.id)
     .toMatch((v) => !!v)
     .then(async () => {
-      await Promise.all([loadCollaborators({} as any, currentWorkspace.value!.id), loadIntegrations()])
+      await Promise.all([loadCollaborators({ includeDeleted: true }, currentWorkspace.value!.id), loadIntegrations()])
     })
 })
 
@@ -55,7 +55,7 @@ onBeforeMount(() => {
 
     <NcTabs v-model:activeKey="activeViewTab">
       <template #leftExtra>
-        <div class="w-6"></div>
+        <div class="w-3"></div>
       </template>
       <template v-if="isUIAllowed('workspaceIntegrations')">
         <a-tab-pane key="integrations" class="w-full">
@@ -65,8 +65,8 @@ onBeforeMount(() => {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div class="h-[calc(100vh-92px)] p-6">
-            <WorkspaceIntegrationsNewAvailableList />
+          <div class="h-[calc(100vh-92px)]">
+            <WorkspaceIntegrationsTab />
           </div>
         </a-tab-pane>
       </template>
@@ -89,7 +89,7 @@ onBeforeMount(() => {
             </div>
           </template>
           <div class="h-[calc(100vh-92px)] p-6">
-            <WorkspaceIntegrationsList />
+            <WorkspaceIntegrationsConnectionsTab />
           </div>
         </a-tab-pane>
       </template>

@@ -337,12 +337,12 @@ const handleClickRow = (source: SourceType, tab?: string) => {
       >
         <div v-if="activeSource" class="h-full">
           <div class="px-4 pt-4 pb-2 flex items-center justify-between gap-3">
-            <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold">
+            <a-breadcrumb separator=">" class="flex-1 cursor-pointer font-weight-bold !ml-1">
               <a-breadcrumb-item @click="activeSource = null">
-                <a class="!no-underline">Data Sources</a>
+                <a class="!no-underline text-base">Data Sources</a>
               </a-breadcrumb-item>
               <a-breadcrumb-item v-if="activeSource">
-                <span class="capitalize">{{ activeSource.alias || 'Default Source' }}</span>
+                <span class="capitalize text-base">{{ activeSource.alias || 'Default Source' }}</span>
               </a-breadcrumb-item>
             </a-breadcrumb>
 
@@ -352,6 +352,20 @@ const handleClickRow = (source: SourceType, tab?: string) => {
           </div>
 
           <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full h-[calc(100%_-_58px)] max-h-[calc(100%_-_58px)]">
+            <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
+              <template #tab>
+                <div class="tab" data-testid="nc-connection-tab">
+                  <div>{{ $t('labels.connectionDetails') }}</div>
+                </div>
+              </template>
+              <div class="h-full">
+                <LazyDashboardSettingsDataSourcesEditBase
+                  :source-id="activeSource.id"
+                  @source-updated="loadBases(true)"
+                  @close="activeSource = null"
+                />
+              </div>
+            </a-tab-pane>
             <a-tab-pane key="erd">
               <template #tab>
                 <div class="tab" data-testid="nc-erd-tab">
@@ -377,21 +391,6 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                 <LazyDashboardSettingsBaseAudit :source-id="activeSource.id" />
               </div>
             </a-tab-pane>
-            <a-tab-pane v-if="!activeSource.is_meta && !activeSource.is_local" key="edit">
-              <template #tab>
-                <div class="tab" data-testid="nc-connection-tab">
-                  <div>{{ $t('labels.connectionDetails') }}</div>
-                </div>
-              </template>
-              <div class="h-full">
-                <LazyDashboardSettingsDataSourcesEditBase
-                  :source-id="activeSource.id"
-                  @source-updated="loadBases(true)"
-                  @close="activeSource = null"
-                />
-              </div>
-            </a-tab-pane>
-
             <a-tab-pane key="acl">
               <template #tab>
                 <div class="tab" data-testid="nc-acl-tab">
@@ -499,7 +498,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                   :class="{
                     '!hidden': !source?.alias?.toLowerCase()?.includes(searchQuery.toLowerCase()),
                   }"
-                  @click="activeSource = source"
+                  @click="handleClickRow(source, 'edit')"
                 >
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>
@@ -538,8 +537,8 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                   </div>
 
                   <div class="ds-table-col ds-table-type">
-                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate">
-                      <GeneralBaseLogo :source-type="source.type" class="flex-none" />
+                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate !border-transparent">
+                      <GeneralBaseLogo :source-type="source.type" class="flex-none !w-4 !h-4" />
                       <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
                         <template #title> {{ clientTypesMap[source.type]?.text || source.type }}</template>
 
@@ -692,6 +691,9 @@ const handleClickRow = (source: SourceType, tab?: string) => {
     @apply !p-0;
     height: min(calc(100vh - 100px), 1024px);
     max-height: min(calc(100vh - 100px), 1024px) !important;
+  }
+  .ant-tabs-nav {
+    @apply pl-3;
   }
 }
 </style>

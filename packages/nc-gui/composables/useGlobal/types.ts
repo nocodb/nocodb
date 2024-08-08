@@ -38,6 +38,7 @@ export interface AppInfo {
   inviteOnlySignup: boolean
   samlAuthEnabled: boolean
   samlProviderName: string | null
+  giftUrl: string
 }
 
 export interface StoredState {
@@ -60,6 +61,7 @@ export interface StoredState {
   }
   isAddNewRecordGridMode: boolean
   syncDataUpvotes: string[]
+  giftBannerDismissedCount: number
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {

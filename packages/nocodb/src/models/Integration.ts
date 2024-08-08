@@ -175,7 +175,7 @@ export default class Integration implements IntegrationType {
       limit?: number;
       offset?: number;
       includeSourceCount?: boolean;
-      query?: string
+      query?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<PagedResponseImpl<Integration>> {

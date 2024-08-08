@@ -110,6 +110,7 @@ import NcIconsRowHeightMedium from '~icons/nc-icons/row-height-medium'
 import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
 import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
+import NcIconsGift from '~icons/nc-icons/gift'
 import NcArticle from '~icons/nc-icons/article'
 import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
@@ -775,6 +776,7 @@ export const iconMap = {
   quickbooks: NcQuickbooks,
   intercom: NcIntercom,
   dropbox: NcDropbox,
+  gift: NcIconsGift,
 }
 
 export const getMdiIcon = (type: string): any => {

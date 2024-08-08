@@ -185,6 +185,11 @@ export enum SyncDataType {
   MICROSOFT_ACCESS = 'microsoft-access',
   TABLEAU = 'tableau',
   ORACLE = 'oracle',
+  // AI
+  OPENAI = 'openai',
+  CLAUDE = 'claude',
+  OLLAMA = 'ollama',
+  GROQ = 'groq',
   // Communication
   SLACK = 'slack',
   DISCORD = 'discord',
@@ -236,6 +241,7 @@ export enum SyncDataType {
 
 export enum IntegrationCategoryType {
   DATABASE = 'database',
+  AI = 'ai',
   COMMUNICATION = 'communication',
   PROJECT_MANAGEMENT = 'project-management',
   CRM = 'crm',

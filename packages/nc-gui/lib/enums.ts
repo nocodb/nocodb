@@ -1,4 +1,4 @@
-export { ClientType } from 'nocodb-sdk'
+export { ClientType, IntegrationCategoryType, SyncDataType } from 'nocodb-sdk'
 
 export enum Language {
   ar = 'العربية',

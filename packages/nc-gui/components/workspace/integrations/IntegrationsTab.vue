@@ -1,28 +1,21 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-/* eslint-disable @typescript-eslint/consistent-type-imports */
-import { IntegrationCategoryType, SyncDataType } from 'nocodb-sdk'
 import NcModal from '~/components/nc/Modal.vue'
-import type { IntegrationItemType } from '#imports'
+/* eslint-disable @typescript-eslint/consistent-type-imports */
+import { IntegrationCategoryType, type IntegrationItemType, SyncDataType } from '#imports'
 
 const props = withDefaults(
   defineProps<{
     isModal?: boolean
-    isOpen?: boolean
     filterCategory?: (c: IntegrationCategoryItemType) => boolean
     filterIntegration?: (i: IntegrationItemType) => boolean
   }>(),
   {
     isModal: false,
-    isOpen: false,
     filterCategory: () => true,
     filterIntegration: () => true,
   },
 )
-
-const emits = defineEmits(['update:isOpen'])
-
-const isOpen = useVModel(props, 'isOpen', emits)
 
 const { isModal, filterCategory, filterIntegration } = props
 
@@ -109,11 +102,10 @@ const isEmptyList = computed(() => {
 
 const isAddNewIntegrationModalOpen = computed({
   get: () => {
-    return isOpen.value || pageMode.value === IntegrationsPageMode.LIST
+    return pageMode.value === IntegrationsPageMode.LIST
   },
   set: (value: boolean) => {
     if (!value) {
-      isOpen.value = false
       pageMode.value = null
     }
   },
@@ -138,7 +130,6 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
     return
   }
 
-  isOpen.value = false
   addIntegration(integration.value)
 }
 </script>

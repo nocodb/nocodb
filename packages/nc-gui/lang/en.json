@@ -389,7 +389,7 @@
       "intercom": "Intercom",
       "dropbox": "Dropbox"
     },
-    "integrationCategories" :{
+    "integrationCategories": {
       "allIntegrations": "All Integrations",
       "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Seamlessly connect and manage your databases with NocoDB.",

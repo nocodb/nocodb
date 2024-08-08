@@ -527,7 +527,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                       {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
                     </NcTooltip>
                   </div>
-                  <div class="ds-table-col ds-table-integration-name font-medium w-full">
+                  <div class="ds-table-col ds-table-integration-name w-full">
                     <NcTooltip class="truncate" show-on-truncate-only>
                       <template #title>
                         {{ source?.integration_title || '-' }}

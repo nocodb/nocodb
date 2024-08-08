@@ -154,7 +154,7 @@ export class AuthController {
     // set new refresh token
     await this.setRefreshToken({ req, res });
 
-    return { msg: 'Password has been updated successfully' };
+    res.json({ msg: 'Password has been updated successfully' });
   }
 
   @Post([

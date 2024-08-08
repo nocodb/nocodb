@@ -90,6 +90,18 @@ const integrationsMapByCategory = computed(() => {
     )
 })
 
+const isEmptyList = computed(() => {
+  const categories = Object.keys(integrationsMapByCategory.value);
+  
+  if (!categories.length) {
+    return true;
+  }
+  console.log('cate', categories, integrationsMapByCategory.value)
+  
+  return !categories.some(category => integrationsMapByCategory.value[category].list.length > 0);
+});
+
+
 const isAddNewIntegrationModalOpen = computed({
   get: () => {
     return pageMode.value === IntegrationsPageMode.LIST
@@ -197,7 +209,9 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
             ref="integrationListRef"
             class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin"
           >
-            <div class="w-full flex justify-center">
+            <div class="w-full flex justify-center" :class="{
+              'flex-1': isEmptyList
+            }">
               <div
                 class="flex flex-col space-y-6 w-full"
                 :style="{
@@ -205,11 +219,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                 }"
               >
                 <template v-for="(category, key) in integrationsMapByCategory">
-                  <div
-                    v-if="category.list.length || key === IntegrationCategoryType.OTHERS"
-                    :key="key"
-                    class="integration-type-wrapper"
-                  >
+                  <div v-if="category.list.length" :key="key" class="integration-type-wrapper">
                     <div class="category-type-title flex gap-2">
                       {{ $t(category.title) }}
                       <NcBadge
@@ -259,6 +269,10 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                     </div>
                   </div>
                 </template>
+
+                <div v-if="isEmptyList" class="h-full text-center flex items-center justify-center gap-3">
+                  <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
+                </div>
               </div>
             </div>
           </div>

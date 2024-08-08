@@ -18,7 +18,11 @@ dayjs.extend(isBetween);
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 
-Handlebars.registerHelper('json', function (context) {
+Handlebars.registerHelper('json', function (context, pretty = false) {
+  if (pretty === true || pretty === 'true') {
+    // Pretty print with 2-space indentation
+    return JSON.stringify(context, null, 2);
+  }
   return JSON.stringify(context);
 });
 

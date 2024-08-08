@@ -10286,6 +10286,7 @@
                       "defaultLimit": 25,
                       "ncMin": false,
                       "teleEnabled": false,
+                      "errorReportingEnabled": true,
                       "auditEnabled": true,
                       "ncSiteUrl": "http://localhost:8080",
                       "ee": false,
@@ -10328,6 +10329,9 @@
                       "type": "boolean"
                     },
                     "teleEnabled": {
+                      "type": "boolean"
+                    },
+                    "errorReportingEnabled": {
                       "type": "boolean"
                     },
                     "auditEnabled": {
@@ -10380,6 +10384,7 @@
                       "defaultLimit": 25,
                       "ncMin": false,
                       "teleEnabled": false,
+                      "errorReportingEnabled": true,
                       "auditEnabled": true,
                       "ncSiteUrl": "http://localhost:8080",
                       "ee": false,
@@ -12531,7 +12536,15 @@
         "properties": {
           "alias": {
             "$ref": "#/components/schemas/StringOrNull",
-            "description": "Source Name - Default BASE will be null by default"
+            "description": "Source Name"
+          },
+          "integration_title": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Integration Name"
+          },
+          "fk_integration_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Integration Id"
           },
           "config": {
             "description": "Source Configuration"
@@ -12756,6 +12769,9 @@
               "sqlite3",
               "databricks"
             ],
+            "type": "string"
+          },
+          "fk_integration_id": {
             "type": "string"
           }
         },

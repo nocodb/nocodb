@@ -1,28 +1,19 @@
-import path from 'path';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { nanoid } from 'nanoid';
-import { populateUniqueFileName, UITypes, ViewTypes } from 'nocodb-sdk';
-import slash from 'slash';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { nocoExecute } from 'nc-help';
-
-import sharp from 'sharp';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { Column, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
-import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { getColumnByIdOrName } from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { mimeIcons } from '~/utils/mimeTypes';
-import { utf8ify } from '~/helpers/stringHelpers';
 import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
 import { Filter } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
-import { JobTypes } from '~/interface/Jobs';
-import { RootScopes } from '~/utils/globals';
 import { DatasService } from '~/services/datas.service';
+import { AttachmentsService } from '~/services/attachments.service';
 
 // todo: move to utils
 export function sanitizeUrlPath(paths) {
@@ -35,6 +26,7 @@ export class PublicDatasService {
     protected datasService: DatasService,
     @Inject(forwardRef(() => 'JobsService'))
     protected readonly jobsService: IJobsService,
+    protected readonly attachmentsService: AttachmentsService,
   ) {}
 
   async dataList(
@@ -354,8 +346,6 @@ export class PublicDatasService {
       NcError.sourceDataReadOnly(source.alias);
     }
 
-    const base = await source.getProject(context);
-
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -389,7 +379,6 @@ export class PublicDatasService {
     }, {});
 
     const attachments = {};
-    const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
     for (const file of param.files || []) {
       // remove `_` prefix and `[]` suffix
@@ -397,66 +386,17 @@ export class PublicDatasService {
         .toString('utf-8')
         .replace(/^_|\[\d*]$/g, '');
 
-      const filePath = sanitizeUrlPath([
-        'noco',
-        base.title,
-        model.title,
-        fieldName,
-      ]);
-
       if (
         fieldName in fields &&
         fields[fieldName].uidt === UITypes.Attachment
       ) {
         attachments[fieldName] = attachments[fieldName] || [];
-        let originalName = utf8ify(file.originalname);
 
-        originalName = populateUniqueFileName(
-          originalName,
-          attachments[fieldName].map((att) => att?.title),
+        attachments[fieldName].push(
+          ...(await this.attachmentsService.upload({
+            files: [file],
+          })),
         );
-
-        const tempMeta: {
-          width?: number;
-          height?: number;
-        } = {};
-
-        if (file.mimetype.startsWith('image')) {
-          try {
-            const meta = await sharp(file.path, {
-              limitInputPixels: false,
-            }).metadata();
-            tempMeta.width = meta.width;
-            tempMeta.height = meta.height;
-          } catch (e) {
-            // Ignore-if file is not image
-          }
-        }
-
-        const fileName = `${nanoid(18)}${path.extname(originalName)}`;
-
-        const url = await storageAdapter.fileCreate(
-          slash(path.join('nc', 'uploads', ...filePath, fileName)),
-          file,
-        );
-        let attachmentPath;
-
-        // if `url` is null, then it is local attachment
-        if (!url) {
-          // then store the attachment path only
-          // url will be constructed in `useAttachmentCell`
-          attachmentPath = `download/${filePath.join('/')}/${fileName}`;
-        }
-
-        attachments[fieldName].push({
-          ...(url ? { url } : {}),
-          ...(attachmentPath ? { path: attachmentPath } : {}),
-          title: originalName,
-          mimetype: file.mimetype,
-          size: file.size,
-          icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
-          ...tempMeta,
-        });
       }
     }
 
@@ -477,77 +417,17 @@ export class PublicDatasService {
     }
 
     for (const file of uploadByUrlAttachments) {
-      const filePath = sanitizeUrlPath([
-        'noco',
-        base.title,
-        model.title,
-        file.fieldName,
-      ]);
-
       attachments[file.fieldName] = attachments[file.fieldName] || [];
 
-      const fileName = `${nanoid(18)}${path.extname(
-        file?.fileName || file.url.split('/').pop(),
-      )}`;
-
-      const { url, data } = await storageAdapter.fileCreateByUrl(
-        slash(path.join('nc', 'uploads', ...filePath, fileName)),
-        file.url,
-      );
-
-      const tempMetadata: {
-        width?: number;
-        height?: number;
-      } = {};
-
-      try {
-        const metadata = await sharp(data, {
-          limitInputPixels: true,
-        }).metadata();
-
-        if (metadata.width && metadata.height) {
-          tempMetadata.width = metadata.width;
-          tempMetadata.height = metadata.height;
-        }
-      } catch (e) {
-        // Might be invalid image - ignore
-      }
-
-      let attachmentPath: string | undefined;
-
-      // if `attachmentUrl` is null, then it is local attachment
-      if (!url) {
-        // then store the attachment path only
-        // url will be constructed in `useAttachmentCell`
-        attachmentPath = `download/${filePath.join('/')}/${fileName}`;
-      }
-
-      // add attachement in uploaded order
-      attachments[file.fieldName].splice(
-        file.uploadIndex ?? attachments[file.fieldName].length,
-        0,
-        {
-          ...(url ? { url: url } : {}),
-          ...(attachmentPath ? { path: attachmentPath } : {}),
-          title: file.fileName,
-          mimetype: file.mimetype,
-          size: file.size,
-          icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
-          ...tempMetadata,
-        },
+      attachments[file.fieldName].unshift(
+        ...(await this.attachmentsService.uploadViaURL({
+          urls: [file.url],
+        })),
       );
     }
 
     for (const [column, data] of Object.entries(attachments)) {
       insertObject[column] = JSON.stringify(data);
-
-      await this.jobsService.add(JobTypes.ThumbnailGenerator, {
-        attachments: data,
-        context: {
-          base_id: RootScopes.ROOT,
-          workspace_id: RootScopes.ROOT,
-        },
-      });
     }
 
     return await baseModel.nestedInsert(insertObject, null);

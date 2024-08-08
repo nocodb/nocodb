@@ -11,54 +11,56 @@ const metaWrite = useVModel(props, 'allowMetaWrite', emits)
 </script>
 
 <template>
-  <a-form-item>
-    <template #help>
-      <span class="text-small">
-        {{ $t('tooltip.allowDataWrite') }}
-      </span>
-    </template>
-    <template #label>
-      <div class="flex gap-1 justify-end">
-        <span>
+  <a-form-item class="nc-source-restictions-card">
+    <div class="flex flex-col gap-1">
+      <div class="flex items-center gap-3">
+        <NcTooltip :disabled="!metaWrite" placement="topLeft" class="flex">
+          <template #title>
+            {{ $t('tooltip.dataWriteOptionDisabled') }}
+          </template>
+          <a-switch v-model:checked="dataWrite" :disabled="metaWrite" data-testid="nc-allow-data-write" size="small"></a-switch>
+        </NcTooltip>
+        <span class="cursor-pointer" @click="!metaWrite ? (dataWrite = !dataWrite) : undefined">
           {{ $t('labels.allowDataWrite') }}
         </span>
       </div>
-    </template>
-    <div class="flex justify-start">
-      <NcTooltip :disabled="!metaWrite" placement="topLeft">
-        <template #title>
-          {{ $t('tooltip.dataWriteOptionDisabled') }}
-        </template>
-        <a-switch v-model:checked="dataWrite" :disabled="metaWrite" data-testid="nc-allow-data-write" size="small"></a-switch>
-      </NcTooltip>
+      <div class="ml-10 text-small leading-[18px] text-gray-500">
+        {{ $t('tooltip.allowDataWrite') }}
+      </div>
     </div>
   </a-form-item>
-  <a-form-item>
-    <template #help>
-      <span class="text-small">
-        <span class="font-weight-medium" :class="{ 'nc-allow-meta-write-help': metaWrite }">
-          {{ $t('labels.notRecommended') }}:
-        </span>
-        {{ $t('tooltip.allowMetaWrite') }}
-      </span>
-    </template>
-    <template #label>
-      <div class="flex gap-1 justify-end">
-        <span>
+  <a-form-item class="nc-source-restictions-card">
+    <div class="flex flex-col gap-1">
+      <div class="flex items-center gap-3">
+        <a-switch
+          v-model:checked="metaWrite"
+          data-testid="nc-allow-meta-write"
+          class="nc-allow-meta-write"
+          size="small"
+        ></a-switch>
+
+        <span class="cursor-pointer" @click="metaWrite = !metaWrite">
           {{ $t('labels.allowMetaWrite') }}
         </span>
       </div>
-    </template>
-    <a-switch v-model:checked="metaWrite" data-testid="nc-allow-meta-write" class="nc-allow-meta-write" size="small"></a-switch>
+      <div class="ml-10 text-small leading-[18px] text-gray-500" :class="{ 'nc-allow-meta-write-help': metaWrite }">
+        {{ $t('labels.notRecommended') }}:
+        {{ $t('tooltip.allowMetaWrite') }}
+      </div>
+    </div>
   </a-form-item>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .nc-allow-meta-write.ant-switch-checked {
-  background: #b33870;
+  background: #b33771;
 }
 
 .nc-allow-meta-write-help {
-  color: #b33870;
+  color: #b33771;
+}
+
+.nc-source-restictions-card {
+  @apply border-1 border-gray-200 rounded-lg px-3 py-2;
 }
 </style>

@@ -147,7 +147,10 @@ watch(showShareModal, (val) => {
             class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
           >
-            {{ activeView.title }}
+            <span v-if="activeView.is_default">{{ $t('labels.defaultView') }}</span>
+            <span v-else>
+              {{ activeView.title }}
+            </span>
           </div>
         </div>
         <DlgShareAndCollaborateSharePage />

@@ -198,7 +198,7 @@ onKeyStroke('ArrowDown', onDown)
 </script>
 
 <template>
-  <div class="h-full flex flex-col" :class="{ 'gap-6 pb-6': !baseId, 'gap-4': baseId }">
+  <div class="h-full flex flex-col px-1" :class="{ 'gap-6 pb-6': !baseId, 'gap-4': baseId }">
     <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
 
     <div class="flex flex-col" :class="{ 'gap-6': !baseId, 'gap-4': baseId }">
@@ -263,7 +263,7 @@ onKeyStroke('ArrowDown', onDown)
           ref="tableWrapper"
           class="nc-audit-logs-table h-full max-h-[calc(100%_-_40px)] relative nc-scrollbar-thin !overflow-auto"
         >
-          <table class="!sticky top-0 z-10">
+          <table class="!sticky top-0 z-5">
             <thead>
               <tr>
                 <th
@@ -630,11 +630,9 @@ onKeyStroke('ArrowDown', onDown)
     tr {
       @apply cursor-pointer;
 
-      .td {
-        @apply text-small leading-[18px] text-gray-600;
-      }
-
       td {
+        @apply text-sm text-gray-600;
+
         &.cell-user {
           @apply sticky left-0 z-4 bg-white;
         }

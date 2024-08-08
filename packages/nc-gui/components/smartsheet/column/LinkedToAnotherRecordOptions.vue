@@ -316,8 +316,8 @@ const onFilterLabelClick = () => {
       </a-form-item>
     </template>
 
-    <template v-if="isEeUI">
-      <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToView }">
+    <div class="flex flex-col gap-2">
+      <div class="flex gap-2 items-center">
         <a-switch
           v-model:checked="limitRecToView"
           v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
@@ -346,7 +346,8 @@ const onFilterLabelClick = () => {
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralViewIcon :meta="view" class="text-gray-500" />
               </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+              <span v-if="view.is_default">{{ $t('labels.defaultView') }}</span>
+              <NcTooltip v-else class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ view.title }}</template>
                 <span>{{ view.title }}</span>
               </NcTooltip>
@@ -354,33 +355,37 @@ const onFilterLabelClick = () => {
           </a-select-option>
         </NcSelect>
       </a-form-item>
+    </div>
 
-      <div class="flex gap-2 items-center" :class="{ 'mb-2': limitRecToCond }">
-        <a-switch
-          v-model:checked="limitRecToCond"
-          v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-          :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
-          size="small"
-        ></a-switch>
-        <span
-          v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
-          data-testid="nc-limit-record-filters"
-          @click="onFilterLabelClick"
-        >
-          Limit record selection to filters
-        </span>
-      </div>
-      <div v-if="limitRecToCond" class="overflow-auto">
-        <LazySmartsheetToolbarColumnFilter
-          ref="filterRef"
-          v-model="vModel.filters"
-          class="!pl-8 !p-0 max-w-620px"
-          :auto-save="false"
-          :show-loading="false"
-          :link="true"
-          :root-meta="meta"
-          :link-col-id="vModel.id"
-        />
+    <template v-if="isEeUI">
+      <div class="flex flex-col gap-2">
+        <div class="flex gap-2 items-center">
+          <a-switch
+            v-model:checked="limitRecToCond"
+            v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+            :disabled="!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)"
+            size="small"
+          ></a-switch>
+          <span
+            v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
+            data-testid="nc-limit-record-filters"
+            @click="onFilterLabelClick"
+          >
+            Limit record selection to filters
+          </span>
+        </div>
+        <div v-if="limitRecToCond" class="overflow-auto">
+          <LazySmartsheetToolbarColumnFilter
+            ref="filterRef"
+            v-model="vModel.filters"
+            class="!pl-8 !p-0 max-w-620px"
+            :auto-save="false"
+            :show-loading="false"
+            :link="true"
+            :root-meta="meta"
+            :link-col-id="vModel.id"
+          />
+        </div>
       </div>
     </template>
     <template v-if="(!isXcdbBase && !isEdit) || isLinks">

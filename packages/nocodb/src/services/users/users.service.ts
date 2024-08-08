@@ -201,6 +201,9 @@ export class UsersService {
       token_version: randomTokenString(),
     });
 
+    // delete all refresh token and populate a new one
+    await UserRefreshToken.deleteAllUserToken(user.id);
+
     this.appHooksService.emit(AppEvents.USER_PASSWORD_CHANGE, {
       user: user,
       ip: param.req?.clientIp,

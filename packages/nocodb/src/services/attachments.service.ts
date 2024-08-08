@@ -6,12 +6,13 @@ import { nanoid } from 'nanoid';
 import slash from 'slash';
 import PQueue from 'p-queue';
 import axios from 'axios';
-import sharp from 'sharp';
+import hash from 'object-hash';
+import moment from 'moment';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
+import type Sharp from 'sharp';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import Local from '~/plugins/storage/Local';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
 import { PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
@@ -19,6 +20,7 @@ import { NcError } from '~/helpers/catchError';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
+import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 
 interface AttachmentObject {
   url?: string;
@@ -31,6 +33,8 @@ interface AttachmentObject {
   signedUrl?: string;
 }
 
+const thumbnailMimes = ['image/'];
+
 @Injectable()
 export class AttachmentsService {
   protected logger = new Logger(AttachmentsService.name);
@@ -41,7 +45,12 @@ export class AttachmentsService {
     private readonly jobsService: IJobsService,
   ) {}
 
-  async upload(param: { path?: string; files: FileType[]; req: NcRequest }) {
+  async upload(param: { files: FileType[]; req?: NcRequest; path?: string }) {
+    const userId = param.req?.user.id || 'anonymous';
+
+    param.path =
+      param.path || `${moment().format('YYYY/MM/DD')}/${hash(userId)}`;
+
     // TODO: add getAjvValidatorMw
     const filePath = this.sanitizeUrlPath(
       param.path?.toString()?.split('/') || [''],
@@ -74,17 +83,29 @@ export class AttachmentsService {
           } = {};
 
           if (file.mimetype.includes('image')) {
-            try {
-              const metadata = await sharp(file.path, {
-                limitInputPixels: false,
-              }).metadata();
+            let sharp: typeof Sharp;
 
-              if (metadata.width && metadata.height) {
-                tempMetadata.width = metadata.width;
-                tempMetadata.height = metadata.height;
-              }
+            try {
+              sharp = (await import('sharp')).default;
             } catch (e) {
-              // Might be invalid image - ignore
+              this.logger.warn(
+                `Thumbnail generation is not supported in this platform at the moment. Error: ${e.message}`,
+              );
+            }
+
+            if (sharp) {
+              try {
+                const metadata = await sharp(file.path, {
+                  limitInputPixels: false,
+                }).metadata();
+
+                if (metadata.width && metadata.height) {
+                  tempMetadata.width = metadata.width;
+                  tempMetadata.height = metadata.height;
+                }
+              } catch (e) {
+                this.logger.error(`${file.path} is not an image file`);
+              }
             }
           }
 
@@ -106,7 +127,7 @@ export class AttachmentsService {
             ...tempMetadata,
           };
 
-          await this.signAttachment({ attachment });
+          await PresignedUrl.signAttachment({ attachment });
 
           attachments.push(attachment);
         } catch (e) {
@@ -124,13 +145,19 @@ export class AttachmentsService {
       throw errors[0];
     }
 
-    await this.jobsService.add(JobTypes.ThumbnailGenerator, {
-      context: {
-        base_id: RootScopes.ROOT,
-        workspace_id: RootScopes.ROOT,
-      },
-      attachments,
-    });
+    const generateThumbnail = attachments.filter((attachment) =>
+      thumbnailMimes.some((type) => attachment.mimetype.startsWith(type)),
+    );
+
+    if (generateThumbnail.length) {
+      await this.jobsService.add(JobTypes.ThumbnailGenerator, {
+        context: {
+          base_id: RootScopes.ROOT,
+          workspace_id: RootScopes.ROOT,
+        },
+        attachments: generateThumbnail,
+      });
+    }
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'file',
@@ -141,10 +168,15 @@ export class AttachmentsService {
   }
 
   async uploadViaURL(param: {
-    path?: string;
     urls: AttachmentReqType[];
-    req: NcRequest;
+    req?: NcRequest;
+    path?: string;
   }) {
+    const userId = param.req?.user.id || 'anonymous';
+
+    param.path =
+      param.path || `${moment().format('YYYY/MM/DD')}/${hash(userId)}`;
+
     const filePath = this.sanitizeUrlPath(
       param?.path?.toString()?.split('/') || [''],
     );
@@ -177,10 +209,23 @@ export class AttachmentsService {
             5,
           )}${path.extname(fileNameWithExt)}`;
 
+          let mimeType = response.headers['content-type']?.split(';')[0];
+          const size = response.headers['content-length'];
+
+          if (!mimeType) {
+            mimeType = mimetypes[path.extname(fileNameWithExt).slice(1)];
+          }
+
           const { url: attachmentUrl, data: file } =
             await storageAdapter.fileCreateByUrl(
               slash(path.join(destPath, fileName)),
               finalUrl,
+              {
+                fetchOptions: {
+                  // The sharp requires image to be passed as buffer.);
+                  buffer: mimeType.includes('image'),
+                },
+              },
             );
 
           const tempMetadata: {
@@ -188,24 +233,32 @@ export class AttachmentsService {
             height?: number;
           } = {};
 
-          try {
-            const metadata = await sharp(file, {
-              limitInputPixels: true,
-            }).metadata();
-
-            if (metadata.width && metadata.height) {
-              tempMetadata.width = metadata.width;
-              tempMetadata.height = metadata.height;
+          if (mimeType.includes('image')) {
+            let sharp: typeof Sharp;
+            try {
+              sharp = (await import('sharp')).default;
+            } catch {
+              // ignore
             }
-          } catch (e) {
-            // Might be invalid image - ignore
-          }
 
-          let mimeType = response.headers['content-type']?.split(';')[0];
-          const size = response.headers['content-length'];
+            if (sharp) {
+              try {
+                const metadata = await sharp(file, {
+                  limitInputPixels: true,
+                }).metadata();
 
-          if (!mimeType) {
-            mimeType = mimetypes[path.extname(fileNameWithExt).slice(1)];
+                if (metadata.width && metadata.height) {
+                  tempMetadata.width = metadata.width;
+                  tempMetadata.height = metadata.height;
+                }
+              } catch (e) {
+                this.logger.error(`${file.path} is not an image file`);
+              }
+            } else {
+              this.logger.warn(
+                `Thumbnail generation is not supported in this platform at the moment.`,
+              );
+            }
           }
 
           const attachment: AttachmentObject = {
@@ -222,7 +275,7 @@ export class AttachmentsService {
             ...tempMetadata,
           };
 
-          await this.signAttachment({ attachment });
+          await PresignedUrl.signAttachment({ attachment });
 
           attachments.push(attachment);
         } catch (e) {
@@ -238,13 +291,19 @@ export class AttachmentsService {
       throw errors[0];
     }
 
-    await this.jobsService.add(JobTypes.ThumbnailGenerator, {
-      context: {
-        base_id: RootScopes.ROOT,
-        workspace_id: RootScopes.ROOT,
-      },
-      attachments,
-    });
+    const generateThumbnail = attachments.filter((attachment) =>
+      thumbnailMimes.some((type) => attachment.mimetype.startsWith(type)),
+    );
+
+    if (generateThumbnail.length) {
+      await this.jobsService.add(JobTypes.ThumbnailGenerator, {
+        context: {
+          base_id: RootScopes.ROOT,
+          workspace_id: RootScopes.ROOT,
+        },
+        attachments: generateThumbnail,
+      });
+    }
 
     this.appHooksService.emit(AppEvents.ATTACHMENT_UPLOAD, {
       type: 'url',
@@ -258,16 +317,11 @@ export class AttachmentsService {
     path: string;
     type: string;
   }> {
-    // get the local storage adapter to display local attachments
-    const storageAdapter = new Local();
     const type =
       mimetypes[path.extname(param.path).split('/').pop().slice(1)] ||
       'text/plain';
 
-    const filePath = storageAdapter.validateAndNormalisePath(
-      slash(param.path),
-      true,
-    );
+    const filePath = validateAndNormaliseLocalPath(param.path, true);
     return { path: filePath, type };
   }
 
@@ -292,7 +346,7 @@ export class AttachmentsService {
       NcError.genericNotFound('Attachment', urlOrPath);
     }
 
-    await this.signAttachment({
+    await PresignedUrl.signAttachment({
       attachment: fileObject,
       preview: false,
       filename: fileObject.title,
@@ -306,31 +360,6 @@ export class AttachmentsService {
             url: fileObject.signedUrl,
           }),
     };
-  }
-
-  async signAttachment(param: {
-    attachment: AttachmentObject;
-    preview?: boolean;
-    filename?: string;
-    expireSeconds?: number;
-  }) {
-    const { attachment, preview = true, ...extra } = param;
-
-    if (attachment?.path) {
-      attachment.signedPath = await PresignedUrl.getSignedUrl({
-        pathOrUrl: attachment.path.replace(/^download\//, ''),
-        preview,
-        mimetype: attachment.mimetype,
-        ...(extra ? { ...extra } : {}),
-      });
-    } else if (attachment?.url) {
-      attachment.signedUrl = await PresignedUrl.getSignedUrl({
-        pathOrUrl: attachment.url,
-        preview,
-        mimetype: attachment.mimetype,
-        ...(extra ? { ...extra } : {}),
-      });
-    }
   }
 
   sanitizeUrlPath(paths) {

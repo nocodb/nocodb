@@ -266,7 +266,6 @@ export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => v
     table,
     tables,
     base,
-
     createTable,
     generateUniqueTitle,
     deleteTable,

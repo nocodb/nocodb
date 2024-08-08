@@ -171,6 +171,10 @@ export function useGlobalActions(state: State): Actions {
     state.isAddNewRecordGridMode.value = isGridMode
   }
 
+  const updateSyncDataUpvotes = (upvotes: string[]) => {
+    state.syncDataUpvotes.value = upvotes
+  }
+
   return {
     signIn,
     signOut,
@@ -184,5 +188,6 @@ export function useGlobalActions(state: State): Actions {
     setGridViewPageSize,
     setLeftSidebarSize,
     setAddNewRecordGridMode,
+    updateSyncDataUpvotes,
   }
 }

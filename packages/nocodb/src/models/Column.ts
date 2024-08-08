@@ -1565,13 +1565,13 @@ export default class Column<T = any> implements ColumnType {
     const insertGroups = new Map<UITypes, Record<string, any>[]>();
 
     for (const column of columns) {
-      let insertArr = insertGroups.get(
+      const groupKey =
         column.uidt === UITypes.MultiSelect
           ? UITypes.SingleSelect
-          : column.uidt,
-      );
+          : column.uidt;
+      let insertArr = insertGroups.get(groupKey);
       if (!insertArr) {
-        insertGroups.set(column.uidt, (insertArr = []));
+        insertGroups.set(groupKey, (insertArr = []));
       }
       switch (column.uidt || column.ui_data_type) {
         case UITypes.Lookup:

@@ -770,7 +770,7 @@ class BaseModelSqlv2 {
       column_name: string;
       filterArr?: Filter[];
     }[],
-    view: View,
+    _view: View,
   ) {
     try {
       const columns = await this.model.getColumns(this.context);
@@ -1011,10 +1011,7 @@ class BaseModelSqlv2 {
               )
               .from(count.as(getAlias()));
             selectors.push(
-              this.dbDriver.raw(`(??) as "??"`, [
-                subQuery,
-                this.dbDriver.raw(f.alias),
-              ]),
+              this.dbDriver.raw(`(??) as ??`, [subQuery, `${f.alias}`]),
             );
             break;
           case 'mysql2':
@@ -1072,7 +1069,7 @@ class BaseModelSqlv2 {
       filterArr?: Filter[];
       sortArr?: Sort[];
     }[],
-    view: View,
+    _view: View,
   ) {
     const columns = await this.model.getColumns(this.context);
     const aliasColObjMap = await this.model.getAliasColObjMap(
@@ -1391,10 +1388,7 @@ class BaseModelSqlv2 {
               )
               .from(tQb.as(getAlias()));
             selectors.push(
-              this.dbDriver.raw(`(??) as "??"`, [
-                subQuery,
-                this.dbDriver.raw(f.alias),
-              ]),
+              this.dbDriver.raw(`(??) as ??`, [subQuery, `${f.alias}`]),
             );
             break;
           case 'mysql2':
@@ -1597,12 +1591,7 @@ class BaseModelSqlv2 {
 
         tQb.select(jsonBuildObject);
 
-        selectors.push(
-          this.dbDriver.raw(`(??) as ??`, [
-            tQb,
-            this.dbDriver.raw(`"${f.alias}"`),
-          ]),
-        );
+        selectors.push(this.dbDriver.raw(`(??) as ??`, [tQb, `${f.alias}`]));
       }
 
       qb.select(...selectors);
@@ -7916,18 +7905,11 @@ class BaseModelSqlv2 {
               if (Array.isArray(attachment)) {
                 for (const lookedUpAttachment of attachment) {
                   if (lookedUpAttachment?.path) {
-                    let relativePath = lookedUpAttachment.path.replace(
-                      /^download\//,
-                      '',
-                    );
-
                     promises.push(
-                      PresignedUrl.getSignedUrl({
-                        pathOrUrl: relativePath,
-                        preview: true,
-                        mimetype: lookedUpAttachment.mimetype,
+                      PresignedUrl.signAttachment({
+                        attachment: lookedUpAttachment,
                         filename: lookedUpAttachment.title,
-                      }).then((r) => (lookedUpAttachment.signedPath = r)),
+                      }),
                     );
 
                     if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
@@ -7940,58 +7922,39 @@ class BaseModelSqlv2 {
                       card_cover: {},
                     };
 
-                    relativePath = `thumbnails/${relativePath}`;
+                    const thumbnailPath = `thumbnails/${lookedUpAttachment.path.replace(
+                      /^download\//,
+                      '',
+                    )}`;
 
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        pathOrUrl: `${relativePath}/tiny.jpg`,
-                        preview: true,
-                        mimetype: 'image/jpeg',
-                        filename: lookedUpAttachment.title,
-                      }).then(
-                        (r) =>
-                          (lookedUpAttachment.thumbnails.tiny.signedPath = r),
-                      ),
-                    );
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        pathOrUrl: `${relativePath}/small.jpg`,
-                        preview: true,
-                        mimetype: 'image/jpeg',
-                        filename: lookedUpAttachment.title,
-                      }).then(
-                        (r) =>
-                          (lookedUpAttachment.thumbnails.small.signedPath = r),
-                      ),
-                    );
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        pathOrUrl: `${relativePath}/card_cover.jpg`,
-                        preview: true,
-                        mimetype: 'image/jpeg',
-                        filename: lookedUpAttachment.title,
-                      }).then(
-                        (r) =>
-                          (lookedUpAttachment.thumbnails.card_cover.signedPath =
-                            r),
-                      ),
-                    );
+                    for (const key of Object.keys(
+                      lookedUpAttachment.thumbnails,
+                    )) {
+                      promises.push(
+                        PresignedUrl.signAttachment({
+                          attachment: {
+                            ...lookedUpAttachment,
+                            path: `${thumbnailPath}/${key}.jpg`,
+                          },
+                          filename: lookedUpAttachment.title,
+                          mimetype: 'image/jpeg',
+                          nestedKeys: ['thumbnails', key],
+                        }),
+                      );
+                    }
                   } else if (lookedUpAttachment?.url) {
-                    let relativePath = lookedUpAttachment.url;
                     promises.push(
-                      PresignedUrl.getSignedUrl({
-                        pathOrUrl: relativePath,
-                        preview: true,
-                        mimetype: lookedUpAttachment.mimetype,
+                      PresignedUrl.signAttachment({
+                        attachment: lookedUpAttachment,
                         filename: lookedUpAttachment.title,
-                      }).then((r) => (lookedUpAttachment.signedUrl = r)),
+                      }),
                     );
 
                     if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
                       continue;
                     }
 
-                    relativePath = relativePath.replace(
+                    const thumbnailUrl = lookedUpAttachment.url.replace(
                       'nc/uploads',
                       'nc/thumbnails',
                     );
@@ -8002,59 +7965,40 @@ class BaseModelSqlv2 {
                       card_cover: {},
                     };
 
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        pathOrUrl: `${relativePath}/tiny.jpg`,
-                        preview: true,
-                        mimetype: 'image/jpeg',
-                        filename: lookedUpAttachment.title,
-                      }).then(
-                        (r) =>
-                          (lookedUpAttachment.thumbnails.tiny.signedUrl = r),
-                      ),
-                    );
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        pathOrUrl: `${relativePath}/small.jpg`,
-                        preview: true,
-                        mimetype: 'image/jpeg',
-                        filename: lookedUpAttachment.title,
-                      }).then(
-                        (r) =>
-                          (lookedUpAttachment.thumbnails.small.signedUrl = r),
-                      ),
-                    );
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        pathOrUrl: `${relativePath}/card_cover.jpg`,
-                        preview: true,
-                        mimetype: 'image/jpeg',
-                        filename: lookedUpAttachment.title,
-                      }).then(
-                        (r) =>
-                          (lookedUpAttachment.thumbnails.card_cover.signedUrl =
-                            r),
-                      ),
-                    );
+                    for (const key of Object.keys(
+                      lookedUpAttachment.thumbnails,
+                    )) {
+                      promises.push(
+                        PresignedUrl.signAttachment({
+                          attachment: {
+                            ...lookedUpAttachment,
+                            url: `${thumbnailUrl}/${key}.jpg`,
+                          },
+                          filename: lookedUpAttachment.title,
+                          mimetype: 'image/jpeg',
+                          nestedKeys: ['thumbnails', key],
+                        }),
+                      );
+                    }
                   }
                 }
               } else {
                 if (attachment?.path) {
-                  let relativePath = attachment.path.replace(/^download\//, '');
-
                   promises.push(
-                    PresignedUrl.getSignedUrl({
-                      pathOrUrl: relativePath,
-                      preview: true,
-                      mimetype: attachment.mimetype,
+                    PresignedUrl.signAttachment({
+                      attachment,
                       filename: attachment.title,
-                    }).then((r) => (attachment.signedPath = r)),
+                    }),
                   );
+
                   if (!attachment.mimetype?.startsWith('image/')) {
                     continue;
                   }
 
-                  relativePath = `thumbnails/${relativePath}`;
+                  const thumbnailPath = `thumbnails/${attachment.path.replace(
+                    /^download\//,
+                    '',
+                  )}`;
 
                   attachment.thumbnails = {
                     tiny: {},
@@ -8062,82 +8006,51 @@ class BaseModelSqlv2 {
                     card_cover: {},
                   };
 
-                  promises.push(
-                    PresignedUrl.getSignedUrl({
-                      pathOrUrl: `${relativePath}/tiny.jpg`,
-                      preview: true,
-                      mimetype: 'image/jpeg',
-                      filename: attachment.title,
-                    }).then((r) => (attachment.thumbnails.tiny.signedPath = r)),
-                  );
-                  promises.push(
-                    PresignedUrl.getSignedUrl({
-                      pathOrUrl: `${relativePath}/small.jpg`,
-                      preview: true,
-                      mimetype: 'image/jpeg',
-                      filename: attachment.title,
-                    }).then(
-                      (r) => (attachment.thumbnails.small.signedPath = r),
-                    ),
-                  );
-                  promises.push(
-                    PresignedUrl.getSignedUrl({
-                      pathOrUrl: `${relativePath}/card_cover.jpg`,
-                      preview: true,
-                      mimetype: 'image/jpeg',
-                      filename: attachment.title,
-                    }).then(
-                      (r) => (attachment.thumbnails.card_cover.signedPath = r),
-                    ),
-                  );
+                  for (const key of Object.keys(attachment.thumbnails)) {
+                    promises.push(
+                      PresignedUrl.signAttachment({
+                        attachment: {
+                          ...attachment,
+                          path: `${thumbnailPath}/${key}.jpg`,
+                        },
+                        filename: attachment.title,
+                        mimetype: 'image/jpeg',
+                        nestedKeys: ['thumbnails', key],
+                      }),
+                    );
+                  }
                 } else if (attachment?.url) {
-                  let relativePath = attachment.url;
-
                   promises.push(
-                    PresignedUrl.getSignedUrl({
-                      pathOrUrl: relativePath,
-                      preview: true,
-                      mimetype: attachment.mimetype,
+                    PresignedUrl.signAttachment({
+                      attachment,
                       filename: attachment.title,
-                    }).then((r) => (attachment.signedUrl = r)),
+                    }),
                   );
 
-                  relativePath = relativePath.replace(
+                  const thumbhailUrl = attachment.url.replace(
                     'nc/uploads',
                     'nc/thumbnails',
                   );
+
                   attachment.thumbnails = {
                     tiny: {},
                     small: {},
                     card_cover: {},
                   };
 
-                  promises.push(
-                    PresignedUrl.getSignedUrl({
-                      pathOrUrl: `${relativePath}/tiny.jpg`,
-                      preview: true,
-                      mimetype: 'image/jpeg',
-                      filename: attachment.title,
-                    }).then((r) => (attachment.thumbnails.tiny.signedUrl = r)),
-                  );
-                  promises.push(
-                    PresignedUrl.getSignedUrl({
-                      pathOrUrl: `${relativePath}/small.jpg`,
-                      preview: true,
-                      mimetype: 'image/jpeg',
-                      filename: attachment.title,
-                    }).then((r) => (attachment.thumbnails.small.signedUrl = r)),
-                  );
-                  promises.push(
-                    PresignedUrl.getSignedUrl({
-                      pathOrUrl: `${relativePath}/card_cover.jpg`,
-                      preview: true,
-                      mimetype: 'image/jpeg',
-                      filename: attachment.title,
-                    }).then(
-                      (r) => (attachment.thumbnails.card_cover.signedUrl = r),
-                    ),
-                  );
+                  for (const key of Object.keys(attachment.thumbnails)) {
+                    promises.push(
+                      PresignedUrl.signAttachment({
+                        attachment: {
+                          ...attachment,
+                          url: `${thumbhailUrl}/${key}.jpg`,
+                        },
+                        filename: attachment.title,
+                        mimetype: 'image/jpeg',
+                        nestedKeys: ['thumbnails', key],
+                      }),
+                    );
+                  }
                 }
               }
             }
@@ -9435,8 +9348,29 @@ class BaseModelSqlv2 {
     rowId;
     columns?: Column[];
   }): Promise<any> {
-    const { filters, qb } = params;
-    await conditionV2(this, filters, qb);
+    const { filters, qb, view } = params;
+    await conditionV2(
+      this,
+      [
+        ...(view
+          ? [
+              new Filter({
+                children:
+                  (await Filter.rootFilterList(this.context, {
+                    viewId: view.id,
+                  })) || [],
+                is_group: true,
+              }),
+            ]
+          : []),
+        new Filter({
+          children: filters,
+          is_group: true,
+          logical_op: 'and',
+        }),
+      ],
+      qb,
+    );
   }
 }
 

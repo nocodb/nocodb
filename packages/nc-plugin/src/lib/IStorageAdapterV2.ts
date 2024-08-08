@@ -13,19 +13,23 @@ import IStorageAdapter from './IStorageAdapter';
     The methods are not used in current codebase, but will be used in future.
 */
 
-export default interface IStorageAdapterV2 extends IStorageAdapter {
+export default interface IStorageAdapterV2<
+  FileCreateByUrlOptions extends {
+    fetchOptions?: {
+      buffer?: boolean;
+    };
+  } = {
+    fetchOptions?: {
+      buffer?: boolean;
+    };
+  }
+> extends IStorageAdapter {
   fileCreateByUrl(
     destPath: string,
     url: string,
-    fileMeta?: FileMeta
+    options?: FileCreateByUrlOptions
   ): Promise<any>;
   fileCreateByStream(destPath: string, readStream: Readable): Promise<void>;
   fileReadByStream(key: string): Promise<Readable>;
   getDirectoryList(path: string): Promise<string[]>;
-}
-
-interface FileMeta {
-  fileName?: string;
-  mimetype?: string;
-  size?: number | string;
 }

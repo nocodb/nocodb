@@ -36,7 +36,7 @@ export class ImportTemplatePage extends BasePage {
   async getImportColumnList() {
     // return an array
     const columnList: { type: string; name: string }[] = [];
-    const tr = this.get().locator(`tr.ant-table-row-level-0:visible`);
+    const tr = this.get().locator(`tr.nc-table-row:visible`);
     const rowCount = await tr.count();
     for (let i = 0; i < rowCount; i++) {
       // replace \n and \t from innerText

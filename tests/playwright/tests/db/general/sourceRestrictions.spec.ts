@@ -2,11 +2,11 @@ import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { NcContext, unsetup } from '../../../setup';
 import { Api } from 'nocodb-sdk';
-import { SettingsPage } from '../../../pages/Dashboard/Settings';
+import { DataSourcePage } from '../../../pages/Dashboard/ProjectView/DataSourcePage';
 
 test.describe('Source Restrictions', () => {
   let dashboard: DashboardPage;
-  let settingsPage: SettingsPage;
+  let dataSourcesPage: DataSourcePage;
   let context: NcContext;
   let api: Api<any>;
   test.setTimeout(150000);
@@ -15,7 +15,7 @@ test.describe('Source Restrictions', () => {
     page.setDefaultTimeout(70000);
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.base);
-    settingsPage = new SettingsPage(dashboard);
+    dataSourcesPage = dashboard.baseView.dataSources;
     api = new Api({
       baseURL: `http://localhost:8080/`,
       headers: {
@@ -29,14 +29,13 @@ test.describe('Source Restrictions', () => {
   });
 
   test('Readonly data source', async () => {
-    await dashboard.treeView.openProjectSourceSettings({ title: context.base.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.baseView.tab_dataSources.click();
 
-    await settingsPage.selectTab({ tab: 'dataSources' });
     await dashboard.rootPage.waitForTimeout(300);
 
-    await settingsPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
-    await settingsPage.source.updateDataReadOnly({ sourceName: 'Default', readOnly: true });
-    await settingsPage.close();
+    await dataSourcesPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
+    await dataSourcesPage.source.updateDataReadOnly({ sourceName: 'Default', readOnly: true });
 
     // reload page to reflect source changes
     await dashboard.rootPage.reload();
@@ -56,14 +55,12 @@ test.describe('Source Restrictions', () => {
   });
 
   test('Readonly schema source', async () => {
-    await dashboard.treeView.openProjectSourceSettings({ title: context.base.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.baseView.tab_dataSources.click();
 
-    await settingsPage.selectTab({ tab: 'dataSources' });
     await dashboard.rootPage.waitForTimeout(300);
 
-    await settingsPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
-    await settingsPage.close();
-
+    await dataSourcesPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
     // reload page to reflect source changes
     await dashboard.rootPage.reload();
 
@@ -98,14 +95,12 @@ test.describe('Source Restrictions', () => {
       type: 'Rating',
     });
 
-    await dashboard.treeView.openProjectSourceSettings({ title: context.base.title, context });
+    await dashboard.treeView.openProject({ title: context.base.title, context });
+    await dashboard.baseView.tab_dataSources.click();
 
-    await settingsPage.selectTab({ tab: 'dataSources' });
     await dashboard.rootPage.waitForTimeout(300);
 
-    await settingsPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
-    await settingsPage.close();
-
+    await dataSourcesPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
     // reload page to reflect source changes
     await dashboard.rootPage.reload();
 

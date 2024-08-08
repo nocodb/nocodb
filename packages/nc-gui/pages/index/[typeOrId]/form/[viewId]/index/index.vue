@@ -79,6 +79,21 @@ const onDecode = async (scannedCodeValue: string) => {
     console.error(error)
   }
 }
+
+const validateField = async (title: string) => {
+  if (fieldMappings.value[title] === undefined) {
+    console.warn('Missing mapping field for:', title)
+    return false
+  }
+
+  try {
+    await validate(fieldMappings.value[title])
+
+    return true
+  } catch (_e: any) {
+    return false
+  }
+}
 </script>
 
 <template>
@@ -232,7 +247,7 @@ const onDecode = async (scannedCodeValue: string) => {
                               :read-only="field?.read_only"
                               @update:model-value="
                                 () => {
-                                  validate(fieldMappings[field.title])
+                                  validateField(field.title)
                                 }
                               "
                             />
@@ -267,7 +282,6 @@ const onDecode = async (scannedCodeValue: string) => {
                   </NcButton>
 
                   <NcButton
-                    html-type="submit"
                     :disabled="progress"
                     type="primary"
                     :size="isMobileMode ? 'medium' : 'small'"

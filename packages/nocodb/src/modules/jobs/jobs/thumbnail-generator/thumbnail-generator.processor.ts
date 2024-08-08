@@ -3,20 +3,16 @@ import { Readable } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
-import sharp from 'sharp';
-import axios from 'axios';
+import type { IStorageAdapterV2 } from 'nc-plugin';
 import type { AttachmentResType } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
+import type Sharp from 'sharp';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import { PresignedUrl } from '~/models';
-import { AttachmentsService } from '~/services/attachments.service';
-
-const attachmentPreviews = ['image/'];
 
 @Processor(JOBS_QUEUE)
 export class ThumbnailGeneratorProcessor {
-  constructor(private readonly attachmentsService: AttachmentsService) {}
+  constructor() {}
 
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
 
@@ -25,41 +21,58 @@ export class ThumbnailGeneratorProcessor {
     try {
       const { attachments } = job.data;
 
-      const thumbnailPromises = attachments
-        .filter((attachment) =>
-          attachmentPreviews.some((type) =>
-            attachment.mimetype.startsWith(type),
-          ),
-        )
-        .map(async (attachment) => {
-          const thumbnail = await this.generateThumbnail(attachment);
-          return {
-            path: attachment.path ?? attachment.url,
-            card_cover: thumbnail?.card_cover,
-            small: thumbnail?.small,
-            tiny: thumbnail?.tiny,
-          };
-        });
+      const thumbnailPromises = attachments.map(async (attachment) => {
+        const thumbnail = await this.generateThumbnail(attachment);
+        return {
+          path: attachment.path ?? attachment.url,
+          card_cover: thumbnail?.card_cover,
+          small: thumbnail?.small,
+          tiny: thumbnail?.tiny,
+        };
+      });
 
       return await Promise.all(thumbnailPromises);
     } catch (error) {
-      this.logger.error('Failed to generate thumbnails', error);
+      this.logger.error('Failed to generate thumbnails', error.stack as string);
     }
   }
 
   private async generateThumbnail(
     attachment: AttachmentResType,
   ): Promise<{ [key: string]: string }> {
-    const { file, relativePath } = await this.getFileData(attachment);
+    let sharp: typeof Sharp;
 
-    const thumbnailPaths = {
-      card_cover: path.join('nc', 'thumbnails', relativePath, 'card_cover.jpg'),
-      small: path.join('nc', 'thumbnails', relativePath, 'small.jpg'),
-      tiny: path.join('nc', 'thumbnails', relativePath, 'tiny.jpg'),
-    };
+    try {
+      sharp = (await import('sharp')).default;
+    } catch {
+      // ignore
+    }
+
+    if (!sharp) {
+      this.logger.warn(
+        `Thumbnail generation is not supported in this platform at the moment.`,
+      );
+      return;
+    }
 
     try {
       const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+      const { file, relativePath } = await this.getFileData(
+        attachment,
+        storageAdapter,
+      );
+
+      const thumbnailPaths = {
+        card_cover: path.join(
+          'nc',
+          'thumbnails',
+          relativePath,
+          'card_cover.jpg',
+        ),
+        small: path.join('nc', 'thumbnails', relativePath, 'small.jpg'),
+        tiny: path.join('nc', 'thumbnails', relativePath, 'tiny.jpg'),
+      };
 
       await Promise.all(
         Object.entries(thumbnailPaths).map(async ([size, thumbnailPath]) => {
@@ -101,51 +114,37 @@ export class ThumbnailGeneratorProcessor {
       return thumbnailPaths;
     } catch (error) {
       this.logger.error(
-        `Failed to generate thumbnails for ${attachment.path}`,
-        error,
+        `Failed to generate thumbnails for ${
+          attachment.path ?? attachment.url
+        }`,
+        error.stack as string,
       );
     }
   }
 
   private async getFileData(
     attachment: AttachmentResType,
+    storageAdapter: IStorageAdapterV2,
   ): Promise<{ file: Buffer; relativePath: string }> {
-    let url, signedUrl, file;
     let relativePath;
 
     if (attachment.path) {
-      relativePath = attachment.path.replace(/^download\//, '');
-      url = await PresignedUrl.getSignedUrl({
-        pathOrUrl: relativePath,
-        preview: false,
-        filename: attachment.title,
-        mimetype: attachment.mimetype,
-      });
-
-      const fullPath = await PresignedUrl.getPath(`${url}`);
-      const [fpath] = fullPath.split('?');
-      const tempPath = await this.attachmentsService.getFile({
-        path: path.join('nc', 'uploads', fpath),
-      });
-      relativePath = fpath;
-      file = tempPath.path;
+      relativePath = path.join(
+        'nc',
+        'uploads',
+        attachment.path.replace(/^download\//, ''),
+      );
     } else if (attachment.url) {
-      relativePath = decodeURI(new URL(attachment.url).pathname);
-
-      signedUrl = await PresignedUrl.getSignedUrl({
-        pathOrUrl: relativePath,
-        preview: false,
-        filename: attachment.title,
-        mimetype: attachment.mimetype,
-      });
-
-      file = (await axios({ url: signedUrl, responseType: 'arraybuffer' }))
-        .data as Buffer;
+      relativePath = decodeURI(new URL(attachment.url).pathname).replace(
+        /^\/+/,
+        '',
+      );
     }
 
-    if (relativePath.startsWith('/nc/uploads/')) {
-      relativePath = relativePath.replace('/nc/uploads/', '');
-    }
+    const file = await storageAdapter.fileRead(relativePath);
+
+    // remove everything before 'nc/uploads/' (including nc/uploads/) in relativePath
+    relativePath = relativePath.replace(/.*?nc\/uploads\//, '');
 
     return { file, relativePath };
   }

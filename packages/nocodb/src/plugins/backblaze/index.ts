@@ -5,7 +5,7 @@ import type { XcPluginConfig } from 'nc-plugin';
 const config: XcPluginConfig = {
   builder: BackblazePlugin,
   title: 'Backblaze B2',
-  version: '0.0.2',
+  version: '0.0.3',
   logo: 'plugins/backblaze.jpeg',
   tags: 'Storage',
   description:
@@ -40,6 +40,13 @@ const config: XcPluginConfig = {
         placeholder: 'i.e. applicationKey in App Keys',
         type: XcType.Password,
         required: true,
+      },
+      {
+        key: 'acl',
+        label: 'Access Control Lists (ACL)',
+        placeholder: 'Default set to public-read',
+        type: XcType.SingleLineText,
+        required: false,
       },
     ],
     actions: [

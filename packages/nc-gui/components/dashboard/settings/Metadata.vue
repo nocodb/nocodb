@@ -87,24 +87,28 @@ onMounted(async () => {
   }
 })
 
-const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gray-500' }, label)
-
 const columns = [
   {
     // Models
-    title: tableHeaderRenderer(t('labels.models')),
+    title: t('labels.models'),
     key: 'table_name',
+    name: 'table_name',
+    minWidth: 200,
+    padding: '0px 12px',
   },
   {
     // Sync state
-    title: tableHeaderRenderer(t('labels.syncState')),
+    title: t('labels.syncState'),
     dataIndex: 'syncState',
     key: 'syncState',
-    // No change identified
-    customRender: (value: { text: string }) =>
-      h('div', { style: { color: value.text ? 'red' : 'gray' } }, value.text || t('msg.info.metaNoChange')),
+    minWidth: 200,
+    padding: '0px 12px',
   },
 ]
+
+const customRow = (record: Record<string, any>) => ({
+  class: `nc-metasync-row nc-metasync-row-${record.table_name}`,
+})
 </script>
 
 <template>
@@ -124,7 +128,7 @@ const columns = [
           <div v-else>
             <!--        Tables metadata is in sync -->
             <span>
-              <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon />
+              <a-alert :message="$t('msg.info.tablesMetadataInSync')" type="success" show-icon class="!rounded-md" />
             </span>
           </div>
         </div>
@@ -140,38 +144,45 @@ const columns = [
           </div>
         </a-button>
       </div>
-      <div class="h-auto max-h-[calc(100%_-_72px)] overflow-y-auto nc-scrollbar-thin">
-        <a-table
-          class="nc-metasync-table w-full"
-          size="small"
-          :custom-row="
-            (record) => ({
-              class: `nc-metasync-row nc-metasync-row-${record.table_name}`,
-            })
-          "
-          :data-source="metadiff ?? []"
-          :columns="columns"
-          :pagination="false"
-          :loading="isLoading"
-          sticky
-          bordered
-        >
-          <template #emptyText>
-            <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-          </template>
-
-          <template #bodyCell="{ record, column }">
-            <div v-if="column.key === 'table_name'">
-              <div class="flex items-center gap-1">
-                <div class="min-w-5 flex items-center justify-center">
-                  <GeneralTableIcon :meta="record" class="text-gray-500" />
-                </div>
-                <span class="overflow-ellipsis min-w-0 shrink-1">{{ record.title || record.table_name }}</span>
+      <NcTable
+        :columns="columns"
+        :data="metadiff ?? []"
+        row-height="44px"
+        header-row-height="44px"
+        :is-data-loading="isLoading"
+        :custom-row="customRow"
+        class="nc-metasync-table h-[calc(100%_-_58px)] w-full"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'table_name'">
+            <div class="flex items-center gap-2 max-w-full">
+              <div class="min-w-5 flex items-center justify-center">
+                <GeneralTableIcon :meta="record" class="text-gray-500" />
               </div>
+
+              <NcTooltip class="truncate" show-on-truncate-only>
+                <template #title>{{ record.title || record.table_name }}</template>
+                {{ record.title || record.table_name }}
+              </NcTooltip>
             </div>
           </template>
-        </a-table>
-      </div>
+          <template v-if="column.key === 'syncState'">
+            <div class="flex items-center gap-2 max-w-full">
+              <NcTooltip class="truncate" show-on-truncate-only>
+                <template #title> {{ record?.syncState || $t('msg.info.metaNoChange') }} </template>
+                <span
+                  :class="{
+                    'text-red-500': record?.syncState,
+                    'text-gray-500': !record?.syncState,
+                  }"
+                >
+                  {{ record?.syncState || $t('msg.info.metaNoChange') }}
+                </span>
+              </NcTooltip>
+            </div>
+          </template>
+        </template>
+      </NcTable>
     </div>
 
     <div class="flex place-content-center item-center">

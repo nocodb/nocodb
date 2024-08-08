@@ -199,8 +199,14 @@ async function submitForm() {
   }
 
   try {
-    await validate(Object.keys(formState.value).map((title) => fieldMappings.value[title]))
+    await validate(
+      Object.keys(formState.value)
+        .map((title) => fieldMappings.value[title])
+        .filter((v) => v !== undefined),
+    )
   } catch (e: any) {
+    console.error(e)
+
     if (e?.errorFields?.length) {
       message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
       return
@@ -587,7 +593,11 @@ watch(
     updatePreFillFormSearchParams()
 
     try {
-      await validate(Object.keys(formState.value).map((title) => fieldMappings.value[title]))
+      await validate(
+        Object.keys(formState.value)
+          .map((title) => fieldMappings.value[title])
+          .filter((v) => v !== undefined),
+      )
     } catch {}
   },
   {
@@ -1164,7 +1174,6 @@ useEventListener(
                         </NcButton>
 
                         <NcButton
-                          html-type="submit"
                           type="primary"
                           size="small"
                           :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"

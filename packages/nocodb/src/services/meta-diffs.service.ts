@@ -429,7 +429,8 @@ export class MetaDiffsService {
           .find(
             (t) =>
               t.table_name ===
-              (colOpt.type === RelationTypes.BELONGS_TO
+              (colOpt.type === RelationTypes.BELONGS_TO ||
+              (colOpt.type === RelationTypes.ONE_TO_ONE && relationCol.meta?.bt)
                 ? childModel.table_name
                 : parentModel.table_name),
           )
@@ -447,7 +448,10 @@ export class MetaDiffsService {
     }
 
     for (const relation of relationList) {
-      if (!relation?.found?.[RelationTypes.BELONGS_TO]) {
+      if (
+        !relation?.found?.[RelationTypes.BELONGS_TO] &&
+        !relation?.found?.[RelationTypes.ONE_TO_ONE]
+      ) {
         changes
           .find((t) => t.table_name === relation.tn)
           ?.detectedChanges.push({
@@ -461,7 +465,10 @@ export class MetaDiffsService {
             cstn: relation.cstn,
           });
       }
-      if (!relation?.found?.[RelationTypes.HAS_MANY]) {
+      if (
+        !relation?.found?.[RelationTypes.HAS_MANY] &&
+        !relation?.found?.[RelationTypes.ONE_TO_ONE]
+      ) {
         changes
           .find((t) => t.table_name === relation.rtn)
           ?.detectedChanges.push({

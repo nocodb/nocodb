@@ -76,8 +76,11 @@ export class AccountUsersPage extends BasePage {
     // ensure page is loaded
     email = this.prefixEmail(email);
 
-    await this.get().waitFor();
-    return this.get().locator(`[data-testid="nc-token-list"]:has-text("${email}")`);
+    const userRow = this.get().locator(`.nc-table-row:has-text("${email}")`).first();
+
+    await userRow.waitFor({ state: 'visible' });
+
+    return userRow.first();
   }
 
   async updateRole({ email, role }: { email: string; role: string }) {
@@ -99,8 +102,9 @@ export class AccountUsersPage extends BasePage {
 
   async deleteUser({ email }: { email: string }) {
     await this.openRowActionMenu({ email });
-    await this.rootPage.locator('.nc-menu-item:has-text("Remove user")').click();
+    await this.rootPage.locator('.nc-menu-item:visible:has-text("Remove user")').click();
     await this.rootPage.locator('.ant-modal.active button:has-text("Delete User")').click();
     await this.verifyToast({ message: 'User deleted successfully' });
+    await this.get().locator(`.nc-table-row:has-text("${email}")`).first().waitFor({ state: 'hidden' });
   }
 }

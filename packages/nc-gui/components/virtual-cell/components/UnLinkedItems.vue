@@ -152,10 +152,7 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return (relatedTableMeta.value.columns ?? [])
     .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
     .sort((a, b) => {
-      if (a.meta?.defaultViewColOrder !== undefined && b.meta?.defaultViewColOrder !== undefined) {
-        return a.meta.defaultViewColOrder - b.meta.defaultViewColOrder
-      }
-      return 0
+      return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
     })
     .slice(0, isMobileMode.value ? 1 : 3)
 })
@@ -467,6 +464,7 @@ const onFilterChange = () => {
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"
         use-meta-fields
+        maintain-default-view-order
         :skip-reload="true"
         new-record-submit-btn-text="Create & Link"
         @created-record="onCreatedRecord"

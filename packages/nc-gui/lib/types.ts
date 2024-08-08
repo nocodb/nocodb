@@ -1,3 +1,5 @@
+import type { CSSProperties } from '@vue/runtime-dom'
+
 import type {
   AuditOperationTypes,
   BaseType,
@@ -219,7 +221,7 @@ interface SidebarTableNode extends TableType {
 }
 
 interface UsersSortType {
-  field?: 'email' | 'roles' | 'title' | 'id' | 'memberCount' | 'baseCount' | 'workspaceCount'
+  field?: 'email' | 'roles' | 'title' | 'id' | 'memberCount' | 'baseCount' | 'workspaceCount' | 'created_at'
   direction?: 'asc' | 'desc'
 }
 
@@ -255,6 +257,28 @@ interface AuditLogsQuery {
   }
 }
 
+interface NcTableColumnProps {
+  key: 'name' | 'action' | string
+  // title is column header cell value and we can also pass i18n value as this is just used to render in UI
+  title: string
+  // minWidth is required to fix overflow col issue
+  minWidth: number
+  // provide width if we want col to be fixed width or provide basis value
+  width?: number
+  basis?: CSSProperties['flex-basis']
+  padding?: CSSProperties['padding']
+  align?: 'items-center' | 'items-start' | 'items-end'
+  justify?: 'justify-center' | 'justify-start' | 'justify-end'
+  showOrderBy?: boolean
+  // dataIndex is used as key to extract data from row object
+  dataIndex?: string
+  // name can be used as value, which will be used to display in header if title is absent and in data-test-id
+  name?: string
+  [key: string]: any
+}
+
+type SordDirectionType = 'asc' | 'desc' | undefined
+
 export type {
   User,
   ProjectMetaInfo,
@@ -286,4 +310,6 @@ export type {
   FormFieldsLimitOptionsType,
   ImageCropperConfig,
   AuditLogsQuery,
+  NcTableColumnProps,
+  SordDirectionType,
 }

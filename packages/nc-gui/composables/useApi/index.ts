@@ -1,5 +1,5 @@
 import type { AxiosError, AxiosResponse } from 'axios'
-import { Api } from 'nocodb-sdk'
+import { Api, type Api as BaseAPI } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { CreateApiOptions, UseApiProps, UseApiReturn } from './types'
 import { addAxiosInterceptors } from './interceptors'
@@ -58,7 +58,7 @@ export function useApi<Data = any, RequestConfig = any>({
   const nuxtApp = useNuxtApp()
 
   /** api instance - with interceptors for token refresh already bound */
-  const api = useGlobalInstance && !!nuxtApp.$api ? nuxtApp.$api : createApiInstance(apiOptions)
+  const api: BaseAPI<any> = useGlobalInstance && !!nuxtApp.$api ? nuxtApp.$api : createApiInstance(apiOptions)
 
   /** set loading to true and increment local and global request counter */
   // Long Polling causes the loading spinner to never stop

@@ -80,7 +80,7 @@ export class IntegrationsService {
     type?: IntegrationsType;
     limit?: number;
     offset?: number;
-    query?: string
+    query?: string;
   }) {
     const integrations = await Integration.list({
       userId: param.req.user?.id,
@@ -89,7 +89,7 @@ export class IntegrationsService {
       limit: param.limit,
       offset: param.offset,
       includeSourceCount: true,
-      query: param.query
+      query: param.query,
     });
 
     return integrations;

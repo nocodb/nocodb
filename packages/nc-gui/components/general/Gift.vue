@@ -84,10 +84,8 @@ const closeModal = () => {
           width="100%"
           style="height: max(600px, 90vh)"
           :src="appInfo.giftUrl"
-          title="YouTube video player"
+          title="Gifts Unlocked!"
           frameborder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowfullscreen
         ></iframe>
       </div>
     </NcModal>

@@ -776,7 +776,7 @@ export const iconMap = {
   quickbooks: NcQuickbooks,
   intercom: NcIntercom,
   dropbox: NcDropbox,
-  gift: NcIconsGift
+  gift: NcIconsGift,
 }
 
 export const getMdiIcon = (type: string): any => {

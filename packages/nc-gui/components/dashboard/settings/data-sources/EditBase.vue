@@ -281,7 +281,9 @@ watch(
 onMounted(async () => {
   isLoading.value = true
 
-  await loadIntegrations(true, base.value?.id)
+  if (!integrations.value.length) {
+    await loadIntegrations(true, base.value?.id)
+  }
 
   if (base.value?.id) {
     const definedParameters = ['host', 'port', 'user', 'password', 'database']

@@ -318,7 +318,9 @@ watch(
 onMounted(async () => {
   isLoading.value = true
 
-  await loadIntegrations(true, base.value?.id)
+  if (!integrations.value.length) {
+    await loadIntegrations(true, base.value?.id)
+  }
 
   formState.value.title = await generateUniqueName()
 

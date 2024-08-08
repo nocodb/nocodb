@@ -5,7 +5,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Base, Integration } from '~/models';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError'
 import { Source } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -174,6 +174,7 @@ export class IntegrationsService {
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       NcError.badRequest(e);
     }
     return true;

@@ -118,11 +118,11 @@ function integrationTests() {
       .expect(200)
 
     const response = await request(context.app)
-      .get(`/api/v2/meta/integrations`)
+      .get(`/api/v2/meta/integrations/${integration.body.id}`)
       .set('xc-auth', context.token)
       .expect(200)
 
-    if (response.body.list[0].title !== 'Sakila02') {
+    if (response.body.title !== 'Sakila02') {
       throw new Error('Integration update failed')
     }
   })
@@ -195,11 +195,11 @@ function integrationTests() {
       .expect(200)
 
     const response = await request(context.app)
-      .get(`/api/v2/meta/integrations`)
+      .get(`/api/v2/meta/integrations/${integration.body.id}`)
       .set('xc-auth', context.token)
       .expect(200)
 
-    if (response.body.list[0].title !== 'Sakila02') {
+    if (response.body.title !== 'Sakila02') {
       throw new Error('Integration update failed')
     }
   })
@@ -228,11 +228,11 @@ function integrationTests() {
       .expect(200)
 
     const response = await request(context.app)
-      .get(`/api/v2/meta/integrations`)
+      .get(`/api/v2/meta/integrations/${integration.body.id}`)
       .set('xc-auth', context.token)
       .expect(200)
 
-    if (response.body.list[0].title !== 'Sakila02') {
+    if (response.body.title !== 'Sakila02') {
       throw new Error('Integration update failed')
     }
   })

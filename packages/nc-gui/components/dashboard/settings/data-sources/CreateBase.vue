@@ -52,6 +52,8 @@ const advancedOptionsExpansionPanel = ref<string[]>([])
 
 const isLoading = ref<boolean>(false)
 
+const isOpenIntegratonList = ref<boolean>(false)
+
 const defaultFormState = (client = ClientType.MYSQL) => {
   return {
     title: '',
@@ -375,6 +377,7 @@ const changeIntegration = (triggerTestConnection = false) => {
 
 const handleAddNewConnection = () => {
   pageMode.value = IntegrationsPageMode.LIST
+  isOpenIntegratonList.value = true
 }
 
 eventBus.on((event, payload) => {
@@ -541,7 +544,7 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
                             <a-divider style="margin: 4px 0" />
                             <div
                               class="px-1.5 flex items-center text-brand-500 text-sm cursor-pointer"
-                              @click="handleAddNewConnection"
+                              @click="() => handleAddNewConnection()"
                             >
                               <div class="w-full flex items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
                                 <GeneralIcon icon="plus" class="flex-none" />
@@ -711,7 +714,11 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
               </div>
             </a-form>
 
-            <WorkspaceIntegrationsTab is-modal :filter-category="filterIntegrationCategory" />
+            <WorkspaceIntegrationsTab
+              v-model:is-open="isOpenIntegratonList"
+              is-modal
+              :filter-category="filterIntegrationCategory"
+            />
             <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
           </div>
           <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">

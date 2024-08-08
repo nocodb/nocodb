@@ -7,15 +7,21 @@ import { IntegrationCategoryType, type IntegrationItemType, SyncDataType } from 
 const props = withDefaults(
   defineProps<{
     isModal?: boolean
+    isOpen?: boolean
     filterCategory?: (c: IntegrationCategoryItemType) => boolean
     filterIntegration?: (i: IntegrationItemType) => boolean
   }>(),
   {
     isModal: false,
+    isOpen: false,
     filterCategory: () => true,
     filterIntegration: () => true,
   },
 )
+
+const emits = defineEmits(['update:isOpen'])
+
+const isOpen = useVModel(props, 'isOpen', emits)
 
 const { isModal, filterCategory, filterIntegration } = props
 
@@ -91,25 +97,22 @@ const integrationsMapByCategory = computed(() => {
 })
 
 const isEmptyList = computed(() => {
-  const categories = Object.keys(integrationsMapByCategory.value);
-  
-  if (!categories.length) {
-    return true;
-  }
-  console.log('cate', categories, integrationsMapByCategory.value)
-  
-  return !categories.some(category => integrationsMapByCategory.value[category].list.length > 0);
-});
+  const categories = Object.keys(integrationsMapByCategory.value)
 
+  if (!categories.length) {
+    return true
+  }
+
+  return !categories.some((category) => integrationsMapByCategory.value[category].list.length > 0)
+})
 
 const isAddNewIntegrationModalOpen = computed({
   get: () => {
-    return pageMode.value === IntegrationsPageMode.LIST
+    return isOpen.value || pageMode.value === IntegrationsPageMode.LIST
   },
   set: (value: boolean) => {
-    if (value) {
-      pageMode.value = IntegrationsPageMode.LIST
-    } else {
+    if (!value) {
+      isOpen.value = false
       pageMode.value = null
     }
   },
@@ -209,9 +212,12 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
             ref="integrationListRef"
             class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin"
           >
-            <div class="w-full flex justify-center" :class="{
-              'flex-1': isEmptyList
-            }">
+            <div
+              class="w-full flex justify-center"
+              :class="{
+                'flex-1': isEmptyList,
+              }"
+            >
               <div
                 class="flex flex-col space-y-6 w-full"
                 :style="{

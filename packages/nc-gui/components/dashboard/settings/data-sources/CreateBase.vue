@@ -50,6 +50,8 @@ const creatingSource = ref(false)
 
 const advancedOptionsExpansionPanel = ref<string[]>([])
 
+const isLoading = ref<boolean>(false)
+
 const defaultFormState = (client = ClientType.MYSQL) => {
   return {
     title: '',
@@ -314,7 +316,10 @@ watch(
 
 // select and focus title field on load
 onMounted(async () => {
+  isLoading.value = true
+
   await loadIntegrations(true, base.value?.id)
+
   formState.value.title = await generateUniqueName()
 
   nextTick(() => {
@@ -325,6 +330,8 @@ onMounted(async () => {
       input?.focus()
     }, 500)
   })
+
+  isLoading.value = false
 })
 
 const allowMetaWrite = computed({
@@ -442,7 +449,7 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
               size="small"
               class="nc-extdb-btn-test-connection"
               :class="{ 'pointer-events-none': testSuccess }"
-              :disabled="!selectedIntegration"
+              :disabled="!selectedIntegration || isLoading"
               :loading="testingConnection"
               icon-position="right"
               @click="testConnection"
@@ -461,7 +468,7 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
           <NcButton
             size="small"
             type="primary"
-            :disabled="!testSuccess || !selectedIntegration"
+            :disabled="!testSuccess || !selectedIntegration || isLoading"
             :loading="creatingSource"
             class="nc-extdb-btn-submit"
             @click="createSource"
@@ -474,7 +481,7 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
         </div>
       </div>
       <div class="h-[calc(100%_-_58px)] flex">
-        <div class="nc-add-source-left-panel nc-scrollbar-thin">
+        <div class="nc-add-source-left-panel nc-scrollbar-thin relative">
           <div class="create-source bg-white relative flex flex-col gap-2 w-full max-w-[768px]">
             <a-form
               ref="form"
@@ -707,6 +714,11 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
             <WorkspaceIntegrationsTab is-modal :filter-category="filterIntegrationCategory" />
             <WorkspaceIntegrationsEditOrAdd load-datasource-info :base-id="baseId" />
           </div>
+          <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
+            <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+              <a-spin size="large" />
+            </div>
+          </general-overlay>
         </div>
         <div class="nc-add-source-right-panel">
           <DashboardSettingsDataSourcesSupportedDocs />

@@ -376,7 +376,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
 <template>
   <div class="edit-source bg-white relative h-full flex flex-col w-full">
     <div class="h-full max-h-[calc(100%_-_65px)] flex">
-      <div class="nc-edit-source-left-panel nc-scrollbar-thin">
+      <div class="nc-edit-source-left-panel nc-scrollbar-thin relative">
         <div class="h-full max-w-[768px] mx-auto">
           <a-form
             ref="form"

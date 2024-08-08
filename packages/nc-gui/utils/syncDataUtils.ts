@@ -481,14 +481,3 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.OTHERS],
   },
 ]
-
-export const syncDataTypes = [] as {
-  title: string
-  icon: FunctionalComponent<SVGAttributes, {}, any, {}>
-  value: SyncDataType
-}[]
-
-export const syncDataTypesMap = allIntegrations.reduce((acc, curr) => {
-  acc[curr.value] = curr
-  return acc
-}, {} as Record<string, IntegrationItemType>)

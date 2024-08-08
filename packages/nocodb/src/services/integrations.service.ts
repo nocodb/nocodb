@@ -108,32 +108,22 @@ export class IntegrationsService {
         ncMeta,
       );
 
-      // check linked sources
-      const sources = await ncMeta.metaList2(
-        RootScopes.WORKSPACE,
-        RootScopes.WORKSPACE,
-        MetaTable.BASES,
-        {
-          condition: {
-            fk_workspace_id: integration.fk_workspace_id,
-            fk_integration_id: integration.id,
-          },
-          xcCondition: {
-            _or: [
-              {
-                deleted: {
-                  eq: false,
-                },
-              },
-              {
-                deleted: {
-                  eq: null,
-                },
-              },
-            ],
-          },
-        },
-      );
+      // get linked sources
+      const sourceListQb = ncMeta
+        .knex(MetaTable.BASES)
+        .where({
+          fk_integration_id: integration.id,
+        })
+        .where((qb) => {
+          qb.where('deleted', false).orWhere('deleted', null);
+        });
+
+      if (integration.fk_workspace_id) {
+        sourceListQb.where('fk_workspace_id', integration.fk_workspace_id);
+      }
+
+      const sources: Pick<Source, 'id' | 'base_id'>[] =
+        await sourceListQb.select('id', 'base_id');
 
       if (sources.length > 0 && !param.force) {
         const bases = await Promise.all(

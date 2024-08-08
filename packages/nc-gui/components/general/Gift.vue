@@ -5,6 +5,7 @@ const { appInfo, giftBannerDismissedCount, user } = useGlobal()
 
 const isBannerClosed = ref(true)
 const isModalOpen = ref(false)
+const confirmDialog = ref(false)
 
 const isAvailable = computed(() => {
   return (
@@ -27,32 +28,38 @@ if (giftBannerDismissedCount.value) {
 const open = () => {
   isModalOpen.value = true
 }
-const close = () => {
-  isBannerClosed.value = true
+
+const closeBanner = () => {
   if (!giftBannerDismissedCount.value || giftBannerDismissedCount.value < 4) {
-    const modal = Modal.confirm({
-      title: 'Do you want to remind later on your next visit?',
-      okText: 'Yes',
-      onOk: () => {
-        modal.destroy()
-        isBannerClosed.value = true
-        giftBannerDismissedCount.value++
-      },
-      onCancel: () => {
-        modal.destroy()
-        isBannerClosed.value = false
-        giftBannerDismissedCount.value = 5
-      },
-      cancelText: 'Don’t show again',
-    })
+    confirmDialog.value = true
   } else {
+    isBannerClosed.value = true
     giftBannerDismissedCount.value++
   }
+}
+
+const dontShowAgain = () => {
+  isBannerClosed.value = true
+  giftBannerDismissedCount.value = 5
+  confirmDialog.value = false
+}
+
+const closeAndShowAgain = () => {
+  isBannerClosed.value = true
+  giftBannerDismissedCount.value++
+  confirmDialog.value = false
 }
 
 const closeModal = () => {
   isModalOpen.value = false
   giftBannerDismissedCount.value++
+  isBannerClosed.value = true
+}
+
+const onVisibleChange = (visible: boolean) => {
+  if (!visible) {
+    closeModal()
+  }
 }
 </script>
 
@@ -69,11 +76,11 @@ const closeModal = () => {
       <img src="~assets/img/giftCard.svg" />
     </div>
 
-    <NcButton type="text" size="small" class="close-icon" @click.stop="close">
+    <NcButton type="text" size="small" class="close-icon" @click.stop="closeBanner">
       <GeneralIcon icon="close" size="xlarge" />
     </NcButton>
 
-    <NcModal v-model:visible="isModalOpen" size="large" @ok="closeModal">
+    <NcModal v-model:visible="isModalOpen" size="large" @update:visible="onVisibleChange">
       <div class="absolute top-4 right-4 cursor-pointer">
         <NcButton type="text" class="absolute top-3 right-3 cursor-pointer" @click="closeModal">
           <GeneralIcon icon="close" size="small" />
@@ -82,11 +89,20 @@ const closeModal = () => {
       <div class="overflow-auto">
         <iframe
           width="100%"
-          style="height: max(600px, 90vh)"
+          style="height: max(800px, 90vh)"
           :src="appInfo.giftUrl"
           title="Gifts Unlocked!"
           frameborder="0"
         ></iframe>
+      </div>
+    </NcModal>
+    <NcModal v-model:visible="confirmDialog" size="small">
+      <div>
+        <div class="mt-1 text-sm">Do you want to remind later on your next visit?</div>
+        <div class="flex justify-end mt-7 gap-x-2">
+          <NcButton type="secondary" size="small" @click="dontShowAgain"> Don’t show again </NcButton>
+          <NcButton type="primary" size="small" @click="closeAndShowAgain"> Yes </NcButton>
+        </div>
       </div>
     </NcModal>
   </div>

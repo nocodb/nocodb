@@ -39,6 +39,10 @@ export default class GenericS3 implements IStorageAdapterV2 {
     // Placeholder, should be initalized in child class
   }
 
+  protected patchKey(key: string): string {
+    return key;
+  }
+
   public async test(): Promise<boolean> {
     try {
       const tempFile = generateTempFilePath();
@@ -59,7 +63,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
   public async fileRead(key: string): Promise<any> {
     const command = new GetObjectCommand({
-      Key: key,
+      Key: this.patchKey(key),
       Bucket: this.input.bucket,
     });
 
@@ -155,7 +159,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
     pathParameters?: { [key: string]: string },
   ) {
     const command = new GetObjectCommand({
-      Key: key,
+      Key: this.patchKey(key),
       Bucket: this.input.bucket,
       ...pathParameters,
     });

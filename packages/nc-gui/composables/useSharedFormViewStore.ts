@@ -279,13 +279,18 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     handleAddMissingRequiredFieldDefaultState()
 
     try {
-      await validate([
-        ...Object.keys(formState.value).map((title) => fieldMappings.value[title]),
-        ...Object.keys(additionalState.value).map((title) => fieldMappings.value[title]),
-      ])
+      // filter `undefined` keys which is hidden prefilled fields
+      await validate(
+        [
+          ...Object.keys(formState.value).map((title) => fieldMappings.value[title]),
+          ...Object.keys(additionalState.value).map((title) => fieldMappings.value[title]),
+        ].filter((v) => v !== undefined),
+      )
       return true
     } catch (e: any) {
-      if (e.errorFields.length) {
+      console.error('Error occurred while validating all fields:', e)
+      
+      if (e.errorFields?.length) {
         message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
         return false
       }
@@ -325,7 +330,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       submitted.value = true
       progress.value = false
     } catch (e: any) {
-      console.log(e)
+      console.error(e)
       await message.error(await extractSdkResponseErrorMsg(e))
     }
     progress.value = false
@@ -643,7 +648,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     additionalState,
     async () => {
       try {
-        await validate(Object.keys(additionalState.value).map((title) => fieldMappings.value[title]))
+        await validate(
+          Object.keys(additionalState.value)
+            .map((title) => fieldMappings.value[title])
+            .filter((v) => v !== undefined),
+        )
       } catch {}
     },
     {

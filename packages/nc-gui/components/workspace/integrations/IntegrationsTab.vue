@@ -137,6 +137,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
     return
   }
 
+  isOpen.value = false
   addIntegration(integration.value)
 }
 </script>

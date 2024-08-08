@@ -381,7 +381,7 @@ const handleAddNewConnection = () => {
 }
 
 eventBus.on((event, payload) => {
-  if (event === IntegrationStoreEvents.INTEGRATION_ADD && pageMode.value === IntegrationsPageMode.ADD && payload?.id) {
+  if (event === IntegrationStoreEvents.INTEGRATION_ADD && payload?.id) {
     formState.value.fk_integration_id = payload.id
     until(() => selectedIntegration.value?.id === payload.id)
       .toBeTruthy()

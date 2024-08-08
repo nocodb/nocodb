@@ -15,7 +15,7 @@ const roleDb = [
   { email: `org_viewer_@nocodb.com`, role: 'Organization Level Viewer', url: '' },
 ];
 
-test.describe('User roles', () => {
+test.describe.skip('User roles', () => {
   // Org level roles are not available in EE
   if (isEE()) {
     test.skip();

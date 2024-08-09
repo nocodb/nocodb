@@ -530,7 +530,7 @@ watch(isHooksLoading, () => {
   }
 
   &.light {
-    @apply text-gray-800;
+    @apply text-gray-700;
 
     &[class*='brand'] {
       @apply bg-brand-200;

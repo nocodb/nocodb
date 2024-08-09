@@ -37,6 +37,7 @@ import type {
   ViewColumnEvent,
   ViewEvent,
   WebhookEvent,
+  WebhookTriggerEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
 import type { IntegrationEvent } from '~/services/app-hooks/interfaces';
@@ -133,6 +134,10 @@ export class AppHooksService {
       | AppEvents.INTEGRATION_CREATE,
     listener: (data: IntegrationEvent) => void,
   ): () => void;
+  on(
+    event: AppEvents.WEBHOOK_TRIGGER,
+    listener: (data: WebhookTriggerEvent) => void,
+  ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);
 
@@ -222,6 +227,7 @@ export class AppHooksService {
       | AppEvents.WEBHOOK_TEST,
     data: WebhookEvent,
   ): void;
+  emit(event: AppEvents.WEBHOOK_TRIGGER, data: WebhookTriggerEvent): void;
   emit(
     event:
       | AppEvents.SYNC_SOURCE_UPDATE

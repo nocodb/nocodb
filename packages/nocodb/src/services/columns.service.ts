@@ -2298,6 +2298,7 @@ export class ColumnsService {
       case UITypes.Rollup:
       case UITypes.QrCode:
       case UITypes.Barcode:
+      case UITypes.Button:
         await Column.delete(context, param.columnId, ncMeta);
         break;
 

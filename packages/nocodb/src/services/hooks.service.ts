@@ -160,22 +160,26 @@ export class HooksService {
 
     const model = await Model.get(context, hook.fk_model_id);
 
-    await invokeWebhook(context, {
-      hook: hook,
-      model: model,
-      view: null,
-      prevData: null,
-      newData: row,
-      user: param.req.user,
-      testFilters: (hook as any)?.filters,
-      throwErrorOnFailure: true,
-      testHook: false,
-    });
-
-    /*    this.appHooksService.emit(AppEvents.WEBHOOK_TRIGGER, {
-      hook,
-      req: param.req,
-    });*/
+    try {
+      await invokeWebhook(context, {
+        hook: hook,
+        model: model,
+        view: null,
+        prevData: null,
+        newData: row,
+        user: param.req.user,
+        testFilters: (hook as any)?.filters,
+        throwErrorOnFailure: true,
+        testHook: false,
+      });
+    } catch (e) {
+      throw e;
+    } finally {
+      /*this.appHooksService.emit(AppEvents.WEBHOOK_TRIGGER, {
+        hook,
+        req: param.req,
+      });*/
+    }
 
     return true;
   }

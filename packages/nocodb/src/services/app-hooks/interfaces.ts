@@ -164,6 +164,11 @@ export interface WebhookEvent extends NcBaseEvent {
   hook: HookType;
 }
 
+export interface WebhookTriggerEvent extends NcBaseEvent {
+  hook: HookType;
+  data: any;
+}
+
 export interface ApiTokenCreateEvent extends NcBaseEvent {
   userId: string;
   tokenBody: ApiTokenReqType;
@@ -224,6 +229,7 @@ export type AppEventPayload =
   | FilterEvent
   | SortEvent
   | RowCommentEvent
+  | WebhookTriggerEvent
   | ColumnEvent;
 
 export interface IntegrationEvent extends NcBaseEvent {

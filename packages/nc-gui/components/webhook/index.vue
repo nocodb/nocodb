@@ -782,6 +782,7 @@ onMounted(async () => {
                       >
                         <LazyMonacoEditor
                           v-model="hookRef.notification.payload.body"
+                          lang="handlebars"
                           disable-deep-compare
                           :validate="false"
                           class="min-h-60 max-h-80 !rounded-lg"

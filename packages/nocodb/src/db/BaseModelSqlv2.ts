@@ -9282,12 +9282,10 @@ class BaseModelSqlv2 {
             }
           }
 
-          if (oldData && oldData[column.column_name]) {
+          if (oldData && oldData[column.title]) {
             try {
-              if (typeof oldData[column.column_name] === 'string') {
-                oldData[column.column_name] = JSON.parse(
-                  oldData[column.column_name],
-                );
+              if (typeof oldData[column.title] === 'string') {
+                oldData[column.title] = JSON.parse(oldData[column.title]);
               }
             } catch (e) {}
           }
@@ -9300,9 +9298,9 @@ class BaseModelSqlv2 {
               { url?: string; path?: string }
             >(
               oldData &&
-              oldData[column.column_name] &&
-              Array.isArray(oldData[column.column_name])
-                ? oldData[column.column_name]
+              oldData[column.title] &&
+              Array.isArray(oldData[column.title])
+                ? oldData[column.title]
                     .filter((att) => att.id)
                     .map((att) => [att.id, att])
                 : [],

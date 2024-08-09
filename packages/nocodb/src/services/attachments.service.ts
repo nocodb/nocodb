@@ -35,6 +35,10 @@ interface AttachmentObject {
 
 const thumbnailMimes = ['image/'];
 
+const normalizeFilename = (filename: string) => {
+  return filename.replace(/[\\/:*?"<>'`|%]/g, '_');
+};
+
 @Injectable()
 export class AttachmentsService {
   protected logger = new Logger(AttachmentsService.name);
@@ -73,9 +77,9 @@ export class AttachmentsService {
       param.files?.map((file) => async () => {
         try {
           const originalName = utf8ify(file.originalname);
-          const fileName = `${path.parse(originalName).name}_${nanoid(
-            5,
-          )}${path.extname(originalName)}`;
+          const fileName = `${normalizeFilename(
+            path.parse(originalName).name,
+          )}_${nanoid(5)}${path.extname(originalName)}`;
 
           const tempMetadata: {
             width?: number;
@@ -220,9 +224,9 @@ export class AttachmentsService {
           const decodedPath = decodeURIComponent(parsedUrl.pathname);
           const fileNameWithExt = _fileName || path.basename(decodedPath);
 
-          const fileName = `${path.parse(fileNameWithExt).name}_${nanoid(
-            5,
-          )}${path.extname(fileNameWithExt)}`;
+          const fileName = `${normalizeFilename(
+            path.parse(fileNameWithExt).name,
+          )}_${nanoid(5)}${path.extname(fileNameWithExt)}`;
 
           let mimeType = response.headers['content-type']?.split(';')[0];
           const size = response.headers['content-length'];

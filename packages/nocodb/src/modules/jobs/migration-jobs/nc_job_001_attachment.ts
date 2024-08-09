@@ -1,47 +1,25 @@
 import path from 'path';
 import debug from 'debug';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
 import { UITypes } from 'nocodb-sdk';
-import { forwardRef, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { FileReference, Source } from '~/models';
-import { JOBS_QUEUE, MigrationJobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model } from '~/models';
-import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { extractProps } from '~/helpers/extractProps';
 import mimetypes from '~/utils/mimeTypes';
-import {
-  setMigrationJobsStallInterval,
-  updateMigrationJobsState,
-} from '~/helpers/migrationJobs';
 
-const MIGRATION_JOB_VERSION = '1';
-
-@Processor(JOBS_QUEUE)
-export class AttachmentMigrationProcessor {
+@Injectable()
+export class AttachmentMigration {
   private readonly debugLog = debug('nc:migration-jobs:attachment');
-
-  constructor(
-    @Inject(forwardRef(() => 'JobsService'))
-    private readonly jobsService: IJobsService,
-  ) {}
 
   log = (...msgs: string[]) => {
     console.log('[nc_job_001_attachment]: ', ...msgs);
   };
 
-  @Process(MigrationJobTypes.Attachment)
-  async job(job: Job) {
-    this.debugLog(`job started for ${job.id}`);
-
-    const interval = setMigrationJobsStallInterval();
-
-    let err = null;
-
+  async job() {
     try {
       const ncMeta = Noco.ncMeta;
 
@@ -99,6 +77,8 @@ export class AttachmentMigrationProcessor {
       const insertPromises = [];
 
       let filesCount = 0;
+
+      let err = null;
 
       fileScanStream.on('data', async (file) => {
         fileReferenceBuffer.push({ file_path: file });
@@ -493,29 +473,12 @@ export class AttachmentMigrationProcessor {
           );
         }
       }
-
-      // bump the version
-      await updateMigrationJobsState({
-        version: MIGRATION_JOB_VERSION,
-      });
     } catch (e) {
       this.log(`There was an error while processing attachment migration job`);
       this.log(e);
-      err = e;
+      return false;
     }
 
-    clearInterval(interval);
-
-    await updateMigrationJobsState({
-      locked: false,
-      stall_check: Date.now(),
-    });
-
-    // call init migration job again if there is no error
-    if (!err) {
-      await this.jobsService.add(MigrationJobTypes.InitMigrationJobs, {});
-    }
-
-    this.debugLog(`job completed for ${job.id}`);
+    return true;
   }
 }

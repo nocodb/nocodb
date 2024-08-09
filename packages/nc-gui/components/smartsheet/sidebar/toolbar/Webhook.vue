@@ -26,11 +26,6 @@ const toBeDeleteHook = computed(() => {
 })
 
 const selectedHookId = ref<string | undefined>(undefined)
-const selectedHook = computed(() => {
-  if (!selectedHookId.value) return undefined
-
-  return hooks.value.find((hook) => hook.id === selectedHookId.value)
-})
 
 const showDeleteModal = ref(false)
 const isDeleting = ref(false)

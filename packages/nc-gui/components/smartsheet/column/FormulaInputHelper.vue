@@ -259,6 +259,7 @@ onMounted(async () => {
         let inQuote = false
 
         let match
+        // eslint-disable-next-line no-cond-assign
         while ((match = formulaRegex.exec(text)) !== null) {
           if (match.index > offset) break
 

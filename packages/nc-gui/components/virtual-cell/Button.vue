@@ -26,7 +26,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 const { $api } = useNuxtApp()
 
 const rowId = computed(() => {
-  return extractPkFromRow(currentRow.value?.row, meta.value?.columns!)
+  return extractPkFromRow(currentRow.value?.row, meta.value!.columns!)
 })
 
 const isLoading = ref(false)

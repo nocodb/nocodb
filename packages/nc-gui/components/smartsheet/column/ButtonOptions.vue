@@ -227,12 +227,13 @@ const colorClass = {
   },
 }
 
+const isDropdownOpen = ref(false)
+
 const updateButtonTheme = (type: string, name: string) => {
   vModel.value.theme = type
   vModel.value.color = name
+  isDropdownOpen.value = false
 }
-
-const isDropdownOpen = ref(false)
 
 const isWebHookSelectionDropdownOpen = ref(false)
 

@@ -15,17 +15,19 @@ const up = async (knex: Knex) => {
 
     table.string('color');
 
+    table.string('icon');
+
     table.text('formula');
 
     table.text('formula_raw');
 
     table.string('error');
 
-    table.string('webhook_id', 20);
+    table.text('parsed_tree');
+
+    table.string('fk_webhook_id', 20);
 
     table.string('fk_column_id', 20);
-
-    table.text('parsed_tree');
 
     table.timestamps(true, true);
   });

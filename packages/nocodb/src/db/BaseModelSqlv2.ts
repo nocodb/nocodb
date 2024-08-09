@@ -5293,9 +5293,7 @@ class BaseModelSqlv2 {
         await this.model.getColumns(this.context);
 
         await Promise.all(
-          insertDatas.map(
-            async (d) => await this.prepareNocoData(d, true, cookie),
-          ),
+          insertDatas.map((d) => this.prepareNocoData(d, true, cookie)),
         );
       }
 
@@ -6006,10 +6004,21 @@ class BaseModelSqlv2 {
           for (const c of attachmentColumns) {
             if (row[c.column_name]) {
               try {
-                const attachments = JSON.parse(row[c.column_name]);
-                for (const attachment of attachments) {
-                  if (attachment.id) {
-                    fileReferenceIds.push(attachment.id);
+                let attachments;
+                if (typeof row[c.column_name] === 'string') {
+                  attachments = JSON.parse(row[c.column_name]);
+                  for (const attachment of attachments) {
+                    if (attachment.id) {
+                      fileReferenceIds.push(attachment.id);
+                    }
+                  }
+                }
+
+                if (Array.isArray(attachments)) {
+                  for (const attachment of attachments) {
+                    if (attachment.id) {
+                      fileReferenceIds.push(attachment.id);
+                    }
                   }
                 }
               } catch (e) {

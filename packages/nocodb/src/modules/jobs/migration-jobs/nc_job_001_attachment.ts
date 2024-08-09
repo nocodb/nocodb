@@ -140,19 +140,19 @@ export class AttachmentMigrationProcessor {
         }
       });
 
-      await new Promise((resolve, reject) => {
-        fileScanStream.on('end', resolve);
-        fileScanStream.on('error', reject);
-      })
-        .then(() => {
-          filesCount += fileReferenceBuffer.length;
-          this.log(`Completed scanning with ${filesCount} files`);
-        })
-        .catch((e) => {
-          this.log(`There was an error while scanning files`);
-          this.log(e);
-          err = e;
+      try {
+        await new Promise((resolve, reject) => {
+          fileScanStream.on('end', resolve);
+          fileScanStream.on('error', reject);
         });
+      } catch (e) {
+        this.log(`There was an error while scanning files`);
+        this.log(e);
+        throw e;
+      }
+
+      filesCount += fileReferenceBuffer.length;
+      this.log(`Completed scanning with ${filesCount} files`);
 
       if (err) {
         throw err;

@@ -387,7 +387,11 @@
       "bitbucket": "BitBucket",
       "quickbooks": "Quickbooks",
       "intercom": "Intercom",
-      "dropbox": "Dropbox"
+      "dropbox": "Dropbox",
+      "openai": "OpenAI",
+      "claude": "Claude",
+      "ollama": "Ollama",
+      "groq": "Groq"
     },
     "integrationCategories": {
       "allIntegrations": "All Integrations",
@@ -411,7 +415,8 @@
       "ticketingSubtitle": "Manage and track support tickets efficiently with NocoDB.",
       "storageSubtitle": "Integrate and organize your storage solutions seamlessly with NocoDB.",
       "others": "Others",
-      "othersSubtitle": "Discover additional versatile integrations to enhance your NocoDB experience."
+      "othersSubtitle": "Discover additional versatile integrations to enhance your NocoDB experience.",
+      "ai": "AI"
     }
   },
   "datatype": {

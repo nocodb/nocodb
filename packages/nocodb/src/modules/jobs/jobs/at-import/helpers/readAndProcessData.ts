@@ -126,6 +126,7 @@ export async function importData(
     ncLinkMappingTable,
     idMap,
     idCounter,
+    req,
   }: {
     baseName: string;
     table: { title?: string; id?: string };
@@ -149,6 +150,7 @@ export async function importData(
     services: AirtableImportContext;
     idMap: Map<string, number>;
     idCounter: Record<string, number>;
+    req: any;
   },
 ): Promise<{
   nestedLinkCount: number;
@@ -243,7 +245,7 @@ export async function importData(
                       baseName,
                       tableName: table.id,
                       body: insertArray,
-                      cookie: {},
+                      cookie: req,
                       skip_hooks: true,
                       foreign_key_checks: !!source.isMeta(),
                       allowSystemColumn: true,
@@ -290,7 +292,7 @@ export async function importData(
               baseName,
               tableName: table.id,
               body: tempData,
-              cookie: {},
+              cookie: req,
               skip_hooks: true,
               foreign_key_checks: !!source.isMeta(),
               allowSystemColumn: true,

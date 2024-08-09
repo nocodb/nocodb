@@ -199,6 +199,7 @@ class BaseModelSqlv2 {
   protected viewId: string;
   protected _proto: any;
   protected _columns = {};
+  protected source: Source;
   public model: Model;
   public context: NcContext;
 
@@ -4440,7 +4441,7 @@ class BaseModelSqlv2 {
   async delByPk(id, _trx?, cookie?) {
     let trx: Knex.Transaction = _trx;
     try {
-      const source = await Source.get(this.context, this.model.source_id);
+      const source = await this.getSource();
       // retrieve data for handling params in hook
       const data = await this.readRecord({
         idOrRecord: id,
@@ -4761,7 +4762,7 @@ class BaseModelSqlv2 {
   async nestedInsert(data, _trx = null, cookie?) {
     // const driver = trx ? trx : await this.dbDriver.transaction();
     try {
-      const source = await Source.get(this.context, this.model.source_id);
+      const source = await this.getSource();
       await populatePk(this.context, this.model, data);
 
       const columns = await this.model.getColumns(this.context);
@@ -5753,7 +5754,7 @@ class BaseModelSqlv2 {
         ids: any[],
       ) => Promise<any>)[] = [];
 
-      const base = await Source.get(this.context, this.model.source_id);
+      const base = await this.getSource();
 
       for (const column of this.model.columns) {
         if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
@@ -5953,7 +5954,7 @@ class BaseModelSqlv2 {
         }
       }
 
-      const source = await Source.get(this.context, this.model.source_id);
+      const source = await this.getSource();
 
       // remove FileReferences for attachments
       const attachmentColumns = columns.filter(
@@ -9371,6 +9372,7 @@ class BaseModelSqlv2 {
                 !sanitizedAttachment.id ||
                 regenerateIds.includes(sanitizedAttachment.id)
               ) {
+                const source = await this.getSource();
                 sanitizedAttachment.id = await FileReference.insert(
                   this.context,
                   {
@@ -9378,8 +9380,10 @@ class BaseModelSqlv2 {
                       sanitizedAttachment.url ?? sanitizedAttachment.path,
                     file_size: sanitizedAttachment.size,
                     fk_user_id: cookie?.user?.id ?? 'anonymous',
+                    source_id: source.id,
                     fk_model_id: this.model.id,
                     fk_column_id: column.id,
+                    is_external: !!source.isMeta(),
                   },
                 );
               }
@@ -9564,6 +9568,11 @@ class BaseModelSqlv2 {
       ],
       qb,
     );
+  }
+
+  async getSource() {
+    // return this.source if defined or fetch and return
+    return this.source || (this.source = await Source.get(this.context, this.model.source_id));
   }
 
   protected async clearFileReferences(args: {

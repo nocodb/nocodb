@@ -300,13 +300,29 @@ const selectIcon = (icon: string) => {
 
 <template>
   <div class="relative">
-    <a-form-item v-bind="validateInfos.label" class="mt-4" :label="$t('general.label')">
-      <a-input v-model:value="vModel.label" class="nc-column-label-input !rounded-lg" placeholder="Button" />
-    </a-form-item>
-    <a-row class="mt-4" :gutter="8">
+    <a-row :gutter="8">
       <a-col :span="12">
+        <a-form-item v-bind="validateInfos.label" class="mt-4" :label="$t('general.label')">
+          <a-input v-model:value="vModel.label" class="nc-column-label-input !rounded-lg" placeholder="Button" />
+        </a-form-item>
+      </a-col>
+      <a-col :span="6">
         <a-form-item :label="$t('general.style')" v-bind="validateInfos.theme">
           <NcDropdown v-model:visible="isDropdownOpen" class="nc-color-picker-dropdown-trigger">
+            <div
+              :class="{
+                '!border-brand-500 shadow-selected nc-button-style-dropdown ': isDropdownOpen,
+              }"
+              class="flex items-center justify-between border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
+            >
+              <div
+                :class="`${vModel.color ?? 'brand'} ${vModel.theme ?? 'solid'}`"
+                class="flex items-center justify-center nc-cell-button rounded-md h-6 w-6 gap-2"
+              >
+                <component :is="iconMap.cellText" class="w-4 h-4" />
+              </div>
+              <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            </div>
             <template #overlay>
               <div class="bg-white space-y-2 p-2 rounded-lg">
                 <div v-for="[type, colors] in Object.entries(colorClass)" :key="type" class="flex gap-2">
@@ -325,37 +341,10 @@ const selectIcon = (icon: string) => {
                 </div>
               </div>
             </template>
-
-            <div
-              :class="{
-                '!border-brand-500 shadow-selected nc-button-style-dropdown ': isDropdownOpen,
-              }"
-              class="flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
-            >
-              <div class="flex w-full items-center gap-2">
-                <div class="flex gap-2 items-center w-full">
-                  <div
-                    :class="`${vModel.color ?? 'brand'} ${vModel.theme ?? 'solid'}`"
-                    class="flex items-center justify-center nc-cell-button rounded-md h-6 w-6 gap-2"
-                  >
-                    <component :is="iconMap.cellText" class="w-4 h-4" />
-                  </div>
-                  <div class="flex items-center gap-1 text-gray-800">
-                    <span class="capitalize">
-                      {{ vModel.theme }}
-                    </span>
-                    <span class="capitalize">
-                      {{ vModel.color === 'brand' ? $t('general.default') : vModel.color }}
-                    </span>
-                  </div>
-                </div>
-                <GeneralIcon icon="arrowDown" class="text-gray-700" />
-              </div>
-            </div>
           </NcDropdown>
         </a-form-item>
       </a-col>
-      <a-col :span="12">
+      <a-col :span="6">
         <a-form-item :label="$t('labels.icon')" v-bind="validateInfos.icon">
           <NcDropdown v-model:visible="isButtonIconDropdownOpen" class="nc-color-picker-dropdown-trigger">
             <div
@@ -435,7 +424,9 @@ const selectIcon = (icon: string) => {
     <div v-if="vModel?.type === 'url'" class="!mt-4">
       <SmartsheetColumnFormulaInputHelper
         v-model:value="vModel.formula_raw"
-        suggestion-height="small"
+        suggestion-height="medium"
+        editor-height="50px"
+        disable-suggestion-headers
         :label="$t('labels.urlFormula')"
         :error="validateInfos.formula_raw?.validateStatus === 'error'"
       />

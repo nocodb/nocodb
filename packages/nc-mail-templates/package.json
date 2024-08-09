@@ -13,11 +13,11 @@
   "license": "ISC",
   "dependencies": {
     "html-entities-decoder": "^1.0.5",
-    "typescript": "^5.3.3",
+    "typescript": "^5.5.4",
     "vue-extensible-mail": "^0.0.3 "
   },
   "devDependencies": {
-    "tsx": "^4.10.4",
+    "tsx": "^4.17.0",
     "@types/html-entities-decoder": "^1.0.2"
   }
 }

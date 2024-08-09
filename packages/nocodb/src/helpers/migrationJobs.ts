@@ -1,6 +1,6 @@
+import { v4 as uuidv4 } from 'uuid';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
-import { v4 as uuidv4 } from 'uuid';
 
 export const MIGRATION_JOBS_STORE_KEY = 'NC_MIGRATION_JOBS';
 
@@ -73,7 +73,7 @@ export const updateMigrationJobsState = async (
 ) => {
   const ncMeta = Noco.ncMeta;
 
-  const migrationJobsState = oldState || await getMigrationJobsState();
+  const migrationJobsState = oldState || (await getMigrationJobsState());
 
   if (!migrationJobsState) {
     const updatedState = {

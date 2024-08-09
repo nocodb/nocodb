@@ -9572,7 +9572,10 @@ class BaseModelSqlv2 {
 
   async getSource() {
     // return this.source if defined or fetch and return
-    return this.source || (this.source = await Source.get(this.context, this.model.source_id));
+    return (
+      this.source ||
+      (this.source = await Source.get(this.context, this.model.source_id))
+    );
   }
 
   protected async clearFileReferences(args: {

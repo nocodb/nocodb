@@ -129,11 +129,7 @@ export class ThumbnailGeneratorProcessor {
     let relativePath;
 
     if (attachment.path) {
-      relativePath = path.join(
-        'nc',
-        'uploads',
-        attachment.path.replace(/^download\//, ''),
-      );
+      relativePath = attachment.path.replace(/^download\//, '');
     } else if (attachment.url) {
       relativePath = decodeURI(new URL(attachment.url).pathname).replace(
         /^\/+/,

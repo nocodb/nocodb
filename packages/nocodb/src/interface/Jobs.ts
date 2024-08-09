@@ -5,6 +5,7 @@ export const JOBS_QUEUE = 'jobs';
 export enum MigrationJobTypes {
   InitMigrationJobs = 'init-migration-jobs',
   Attachment = 'attachment',
+  Thumbnail = 'thumbnail',
 }
 
 export enum JobTypes {

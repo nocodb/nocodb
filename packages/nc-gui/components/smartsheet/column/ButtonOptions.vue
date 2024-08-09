@@ -304,9 +304,6 @@ onMounted(async () => {
     vModel.value.color = 'brand'
     updateValidations('url')
   }
-  await nextTick(() => {
-    mountMonaco()
-  })
 })
 </script>
 

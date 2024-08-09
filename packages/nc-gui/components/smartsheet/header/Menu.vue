@@ -493,7 +493,7 @@ const changeTitleField = () => {
           <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
 
           <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
-            <NcMenuItem :disabled="isSortSupported" @click="sortByColumn('asc')">
+            <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('asc')">
               <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
                 <component
                   :is="iconMap.sortDesc"
@@ -507,7 +507,7 @@ const changeTitleField = () => {
                 {{ $t('general.sortAsc') }}
               </div>
             </NcMenuItem>
-            <NcMenuItem :disabled="isSortSupported" @click="sortByColumn('desc')">
+            <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('desc')">
               <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
                 <!-- Sort Descending -->
                 <component :is="iconMap.sortDesc" class="text-gray-500 !w-4.25 !h-4.25" />

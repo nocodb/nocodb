@@ -180,6 +180,7 @@ export function isVirtualCol(
     UITypes.LastModifiedTime,
     UITypes.CreatedBy,
     UITypes.LastModifiedBy,
+    UITypes.Button,
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
@@ -269,6 +270,7 @@ export const readonlyMetaAllowedTypes = [
   UITypes.Lookup,
   UITypes.Rollup,
   UITypes.Formula,
+  UITypes.Button,
   UITypes.Barcode,
   UITypes.QrCode,
 ];

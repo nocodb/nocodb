@@ -109,8 +109,9 @@ watch(
 )
 
 const toggleHook = async (hook: HookType) => {
+  const ogHook = Object.assign({}, hook)
   hook.active = !hook.active
-  await saveHooks({ hook })
+  await saveHooks({ hook, ogHook })
 }
 
 const createWebhook = async () => {
@@ -158,6 +159,7 @@ const eventList = ref<Record<string, any>[]>([
   { text: [t('general.onMultiple'), t('labels.recordInsert')], value: ['after', 'bulkInsert'] },
   { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
   { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
+  { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
 ])
 
 const columns: NcTableColumnProps[] = [

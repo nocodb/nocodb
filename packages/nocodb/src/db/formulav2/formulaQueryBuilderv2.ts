@@ -21,7 +21,7 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheScope } from '~/utils/globals';
 import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
-import { BaseUser } from '~/models';
+import { BaseUser, ButtonColumn } from '~/models';
 import { getRefColumnIfAlias } from '~/helpers';
 
 const logger = new Logger('FormulaQueryBuilderv2');
@@ -117,14 +117,25 @@ async function _formulaQueryBuilder(params: {
 
     // populate and save parsedTree to column if not exist
     if (column) {
-      FormulaColumn.update(context, column.id, { parsed_tree: tree }).then(
-        () => {
-          // ignore
-        },
-        (err) => {
-          logger.error(err);
-        },
-      );
+      if (column.uidt === UITypes.Formula) {
+        FormulaColumn.update(context, column.id, { parsed_tree: tree }).then(
+          () => {
+            // ignore
+          },
+          (err) => {
+            logger.error(err);
+          },
+        );
+      } else {
+        ButtonColumn.update(context, column.id, { parsed_tree: tree }).then(
+          () => {
+            // ignore
+          },
+          (err) => {
+            logger.error(err);
+          },
+        );
+      }
     }
   }
 
@@ -136,11 +147,12 @@ async function _formulaQueryBuilder(params: {
     if (col.id in aliasToColumn) continue;
     switch (col.uidt) {
       case UITypes.Formula:
+      case UITypes.Button:
         {
           aliasToColumn[col.id] = async () => {
-            const formulOption = await col.getColOptions<FormulaColumn>(
-              context,
-            );
+            const formulOption = await col.getColOptions<
+              FormulaColumn | ButtonColumn
+            >(context);
             const { builder } = await _formulaQueryBuilder({
               baseModelSqlv2,
               _tree: formulOption.formula,
@@ -1313,7 +1325,7 @@ export default async function formulaQueryBuilderv2(
       parsedTree:
         parsedTree ??
         (await column
-          ?.getColOptions<FormulaColumn>(context)
+          ?.getColOptions<FormulaColumn | ButtonColumn>(context)
           .then((formula) => formula?.getParsedTree())),
       baseUsers,
     });
@@ -1332,12 +1344,20 @@ export default async function formulaQueryBuilderv2(
 
     // if column is provided, i.e. formula has been created
     if (column) {
-      const formula = await column.getColOptions<FormulaColumn>(context);
+      const formula = await column.getColOptions<FormulaColumn | ButtonColumn>(
+        context,
+      );
       // clean the previous formula error if the formula works this time
       if (formula.error) {
-        await FormulaColumn.update(context, column.id, {
-          error: null,
-        });
+        if (formula.constructor.name === 'ButtonColumn') {
+          await ButtonColumn.update(context, column.id, {
+            error: null,
+          });
+        } else {
+          await FormulaColumn.update(context, column.id, {
+            error: null,
+          });
+        }
       }
     }
   } catch (e) {
@@ -1345,14 +1365,25 @@ export default async function formulaQueryBuilderv2(
 
     console.error(e);
     if (column) {
-      // add formula error to show in UI
-      await FormulaColumn.update(context, column.id, {
-        error: e.message,
-      });
-      // update cache to reflect the error in UI
-      await NocoCache.update(`${CacheScope.COL_FORMULA}:${column.id}`, {
-        error: e.message,
-      });
+      if (column?.uidt === UITypes.Button) {
+        await ButtonColumn.update(context, column.id, {
+          error: null,
+        });
+        // update cache to reflect the error in UI
+        await NocoCache.update(`${CacheScope.COL_BUTTON}:${column.id}`, {
+          error: e.message,
+        });
+      } else {
+        // add formula error to show in UI
+        await FormulaColumn.update(context, column.id, {
+          error: e.message,
+        });
+
+        // update cache to reflect the error in UI
+        await NocoCache.update(`${CacheScope.COL_FORMULA}:${column.id}`, {
+          error: e.message,
+        });
+      }
     }
     throw new Error(`Formula error: ${e.message}`);
   }

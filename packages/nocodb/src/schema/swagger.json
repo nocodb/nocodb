@@ -18490,10 +18490,53 @@
         }
       ]
     },
-
-
-
-
+    "/api/v2/meta/hooks/{hookId}/trigger/{rowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "hookId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Hook ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Row ID"
+        }
+      ],
+      "post": {
+        "summary": "Trigger Manual Hook",
+        "operationId": "db-table-webhook-trigger",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Webhook"
+        ],
+        "description": "Trigger the manual WebHook",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v2/meta/integrations": {
       "get": {
         "summary": "List integrations",
@@ -19982,6 +20025,9 @@
           {
             "anyOf": [
               {
+                "$ref": "#/components/schemas/ButtonColumnReq"
+              },
+              {
                 "$ref": "#/components/schemas/FormulaColumnReq"
               },
               {
@@ -21071,6 +21117,183 @@
           "id": "syn5ameyiipp7"
         }
       },
+      "Button": {
+        "description": "Model for Button",
+        "examples": [
+          {
+            "error": "Error Message shows here",
+            "fk_column_id": "cl_h2micb4jdnmsh1",
+            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "formula_raw": "CONCAT(\"FOO\", {Title})",
+            "id": "fm_1lo8wqtvvipdns",
+            "base_id": "pj34mdkvjfdnkf",
+            "label": "Click Me",
+            "theme": "solid",
+            "color": "green",
+            "icon": "plus"
+          }
+        ],
+        "title": "Button Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "type": {
+            "description": "Whether button is webhook or url",
+            "enum": [
+              "webhook",
+              "url"
+            ]
+          },
+          "label": {
+            "description": "Label of Button",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "theme": {
+            "description": "Button Theme",
+            "enum": [
+              "solid",
+              "text",
+              "light"
+            ]
+          },
+          "color": {
+            "description": "Button color",
+            "enum": [
+              "brand",
+              "red",
+              "green",
+              "maroon",
+              "blue",
+              "orange",
+              "pink",
+              "purple",
+              "yellow",
+              "gray"
+            ]
+          },
+          "icon": {
+            "description": "Button Icon",
+            "type": "string"
+          },
+          "formula": {
+            "description": "Formula with column ID replaced",
+            "example": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "type": "string"
+          },
+          "formula_raw": {
+            "description": "Original Formula inputted in UI",
+            "example": "CONCAT(\"FOO\", {Title})",
+            "type": "string"
+          },
+          "error": {
+            "description": "Error Message",
+            "type": "string"
+          },
+          "parsed_tree": {
+            "description": "Parsed Formula Tree",
+            "type": "object"
+          },
+          "fk_webhook_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Webhook ID"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          }
+        },
+        "x-stoplight": {
+          "id": "syn5ameyiipp7"
+        }
+      },
+      "ButtonColumnReq": {
+        "description": "Model for Button Column Request",
+        "examples": [
+          {
+            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "formula_raw": "CONCAT(\"FOO\", {Title})",
+            "title": "Formula",
+            "uidt": "Formula"
+          }
+        ],
+        "title": "Button Column Request Model",
+        "type": "object",
+        "properties": {
+          "title": {
+            "description": "Formula Title",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "uidt": {
+            "description": "UI Data Type",
+            "enum": [
+              "Formula"
+            ],
+            "type": "string"
+          },
+          "type": {
+            "description": "Whether button is webhook or url",
+            "enum": [
+              "webhook",
+              "url"
+            ]
+          },
+          "theme": {
+            "description": "Button Theme",
+            "enum": [
+              "solid",
+              "text",
+              "light"
+            ]
+          },
+          "color": {
+            "description": "Button color",
+            "enum": [
+              "brand",
+              "red",
+              "green",
+              "maroon",
+              "blue",
+              "orange",
+              "pink",
+              "purple",
+              "yellow",
+              "gray"
+            ]
+          },
+          "label": {
+            "description": "Label of Button",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "icon": {
+            "description": "Button Icon",
+            "type": "string"
+          },
+          "fk_webhook_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Webhook ID"
+          },
+          "formula": {
+            "description": "Formula with column ID replaced",
+            "type": "string"
+          },
+          "formula_raw": {
+            "description": "Original Formula inputted in UI",
+            "type": "string"
+          }
+        },
+        "x-stoplight": {
+          "id": "tvczns7x7nj73"
+        }
+      },
       "FormulaColumnReq": {
         "description": "Model for Formula Column Request",
         "examples": [
@@ -21764,7 +21987,8 @@
           "event": {
             "enum": [
               "after",
-              "before"
+              "before",
+              "manual"
             ],
             "type": "string",
             "description": "Event Type for the operation",
@@ -21793,7 +22017,8 @@
               "delete",
               "bulkInsert",
               "bulkUpdate",
-              "bulkDelete"
+              "bulkDelete",
+              "trigger"
             ],
             "type": "string",
             "description": "Hook Operation",
@@ -21884,7 +22109,8 @@
           "event": {
             "enum": [
               "after",
-              "before"
+              "before",
+              "manual"
             ],
             "type": "string",
             "description": "Event Type for the operation",
@@ -21913,7 +22139,8 @@
               "delete",
               "bulkInsert",
               "bulkUpdate",
-              "bulkDelete"
+              "bulkDelete",
+              "trigger"
             ],
             "type": "string",
             "description": "Hook Operation",
@@ -22097,7 +22324,8 @@
             "example": "after",
             "enum": [
               "after",
-              "before"
+              "before",
+              "manual"
             ]
           },
           "execution_time": {
@@ -22126,7 +22354,8 @@
               "delete",
               "bulkInsert",
               "bulkUpdate",
-              "bulkDelete"
+              "bulkDelete",
+              "trigger"
             ],
             "example": "insert"
           },

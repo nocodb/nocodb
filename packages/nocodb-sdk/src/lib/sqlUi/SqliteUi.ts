@@ -859,6 +859,7 @@ export class SqliteUi {
         ];
 
       case 'Formula':
+      case 'Button':
         return ['text', 'varchar'];
 
       case 'Rollup':

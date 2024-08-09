@@ -60,6 +60,7 @@ const rolePermissions = {
       baseCreate: true,
       fieldUpdate: true,
       hookList: true,
+      hookCreate: true,
       tableCreate: true,
       tableRename: true,
       tableDelete: true,
@@ -99,6 +100,7 @@ const rolePermissions = {
       viewFieldEdit: true,
       csvTableImport: true,
       excelTableImport: true,
+      hookTrigger: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

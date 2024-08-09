@@ -120,6 +120,7 @@ export enum AppEvents {
   WEBHOOK_UPDATE = 'webhook.update',
   WEBHOOK_DELETE = 'webhook.delete',
   WEBHOOK_TEST = 'webhook.test',
+  WEBHOOK_TRIGGER = 'webhook.trigger',
 
   UI_ACL_UPDATE = 'ui.acl.update',
 

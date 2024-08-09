@@ -1,5 +1,6 @@
 import type { Source } from '~/models';
 import type { NcContext } from '~/interface/config';
+import { Hook } from '~/models';
 
 export async function generateBaseIdMap(
   context: NcContext,
@@ -15,6 +16,12 @@ export async function generateBaseIdMap(
     await md.getColumns(context);
     for (const column of md.columns) {
       idMap.set(column.id, `${idMap.get(md.id)}::${column.id}`);
+    }
+
+    const hooks = await Hook.list(context, { fk_model_id: md.id });
+
+    for (const hook of hooks) {
+      idMap.set(hook.id, `${idMap.get(md.id)}::${hook.id}`);
     }
   }
 

@@ -44,6 +44,7 @@ const options = computed<SelectProps['options']>(() =>
           return false
         }
       }
+      if (c.uidt === UITypes.Button) return false
       return true
     }) ||
     meta.value?.columns?.filter((c: ColumnType) => {
@@ -71,7 +72,7 @@ const options = computed<SelectProps['options']>(() =>
           /** hide system columns if not enabled */
           showSystemFields.value
         )
-      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
+      } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID || c.uidt === UITypes.Button) {
         return false
       } else if (isSort) {
         /** ignore hasmany and manytomany relations if it's using within sort menu */

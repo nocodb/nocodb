@@ -1,12 +1,13 @@
 import jsep from 'jsep';
 import type FormulaColumn from '~/models/FormulaColumn';
+import type { ButtonColumn } from '~/models';
 
 export default function addFormulaErrorIfMissingColumn({
   formula,
   columnId,
   title,
 }: {
-  formula: FormulaColumn;
+  formula: FormulaColumn | ButtonColumn;
   columnId: string;
   title?: string;
 }): void | boolean {

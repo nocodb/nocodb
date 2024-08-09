@@ -500,6 +500,10 @@ const errorHelpers: {
     message: (id: string) => `Field '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.HOOK_NOT_FOUND]: {
+    message: (id: string) => `Hook '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.RECORD_NOT_FOUND]: {
     message: (...ids: string[]) => {
       const isMultiple = Array.isArray(ids) && ids.length > 1;
@@ -686,6 +690,13 @@ export class NcError {
 
   static viewNotFound(id: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.VIEW_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
+  static hookNotFound(id: string, args?: NcErrorArgs): never {
+    throw new NcBaseErrorv2(NcErrorType.HOOK_NOT_FOUND, {
       params: id,
       ...args,
     });

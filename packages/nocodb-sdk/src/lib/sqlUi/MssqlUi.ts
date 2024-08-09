@@ -916,6 +916,7 @@ export class MssqlUi {
         ];
 
       case 'Formula':
+      case 'Button':
         return ['text', 'ntext', 'varchar', 'nvarchar'];
 
       case 'Rollup':
@@ -948,7 +949,6 @@ export class MssqlUi {
       case 'Geometry':
         return ['geometry'];
 
-      case 'Button':
       default:
         return dbTypes;
     }

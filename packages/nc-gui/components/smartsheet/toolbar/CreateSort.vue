@@ -36,7 +36,12 @@ const options = computed<ColumnType[]>(
             /** hide system columns if not enabled */
             showSystemFields.value
           )
-        } else if (c.uidt === UITypes.QrCode || c.uidt === UITypes.Barcode || c.uidt === UITypes.ID) {
+        } else if (
+          c.uidt === UITypes.QrCode ||
+          c.uidt === UITypes.Barcode ||
+          c.uidt === UITypes.ID ||
+          c.uidt === UITypes.Button
+        ) {
           return false
         } else {
           /** ignore hasmany and manytomany relations if it's using within sort menu */

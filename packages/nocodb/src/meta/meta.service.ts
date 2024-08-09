@@ -252,6 +252,7 @@ export class MetaService {
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
       [MetaTable.JOBS]: 'job',
       [MetaTable.INTEGRATIONS]: 'int',
+      [MetaTable.COL_BUTTON]: 'btn',
     };
 
     const prefix = prefixMap[target] || 'nc';

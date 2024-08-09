@@ -156,6 +156,10 @@ const permissionScopes = {
     'jobList',
 
     'org_integrationList',
+
+    // Webhooks
+
+    'hookTrigger',
   ],
 };
 
@@ -273,6 +277,7 @@ const rolePermissions:
       // TODO add ACL with base scope
       // upload: true,
       // uploadViaURL: true,
+      hookTrigger: true,
     },
   },
   [ProjectRoles.CREATOR]: {

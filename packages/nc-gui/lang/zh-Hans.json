@@ -387,7 +387,11 @@
       "bitbucket": "BitBucket",
       "quickbooks": "快速手册",
       "intercom": "Intercom",
-      "dropbox": "Dropbox"
+      "dropbox": "Dropbox",
+      "openai": "OpenAI",
+      "claude": "Claude",
+      "ollama": "Ollama",
+      "groq": "Groq"
     },
     "integrationCategories": {
       "allIntegrations": "集成中心",
@@ -411,7 +415,8 @@
       "ticketingSubtitle": "使用NocoDB高效管理和跟踪支持工单。",
       "storageSubtitle": "使用 NocoDB 无缝整合和组织您的存储解决方案。",
       "others": "其他",
-      "othersSubtitle": "发现额外的多功能集成来增强您的 NocoDB 体验。"
+      "othersSubtitle": "发现额外的多功能集成来增强您的 NocoDB 体验。",
+      "ai": "AI"
     }
   },
   "datatype": {

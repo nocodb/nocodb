@@ -46,42 +46,6 @@ export default class FileReference {
     return id;
   }
 
-  public static async bulkInsert(
-    context: NcContext,
-    fileRefObjs: Partial<FileReference>[],
-    ncMeta = Noco.ncMeta,
-  ) {
-    let insertObjs = fileRefObjs.map((fileRefObj) =>
-      extractProps(fileRefObj, [
-        'storage',
-        'file_url',
-        'file_size',
-        'fk_user_id',
-        'fk_model_id',
-        'fk_column_id',
-        'deleted',
-      ]),
-    );
-
-    // insertObj.id = await ncMeta.genNanoid(MetaTable.FILE_REFERENCES);
-    // use promise.all to populate the ids
-    insertObjs = await Promise.all(
-      insertObjs.map(async (insertObj) => {
-        insertObj.id = await ncMeta.genNanoid(MetaTable.FILE_REFERENCES);
-        return insertObj;
-      }),
-    );
-
-    await ncMeta.bulkMetaInsert(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.FILE_REFERENCES,
-      insertObjs,
-    );
-
-    return insertObjs;
-  }
-
   public static async update(
     context: NcContext,
     fileReferenceId: string | string[],

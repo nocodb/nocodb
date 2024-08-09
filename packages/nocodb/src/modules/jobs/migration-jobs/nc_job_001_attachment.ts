@@ -4,13 +4,13 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { UITypes } from 'nocodb-sdk';
 import { forwardRef, Inject } from '@nestjs/common';
-import { Source } from '~/models';
+import { FileReference, Source } from '~/models';
 import { JOBS_QUEUE, MigrationJobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { FileReference, Model } from '~/models';
+import { Model } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { extractProps } from '~/helpers/extractProps';
 import mimetypes from '~/utils/mimeTypes';
@@ -85,6 +85,8 @@ export class AttachmentMigrationProcessor {
 
       // get all file references
       const storageAdapter = await NcPluginMgrv2.storageAdapter(ncMeta);
+
+      const storageAdapterType = storageAdapter.constructor.name;
 
       const fileScanStream = await storageAdapter.scanFiles('nc/uploads/**');
 
@@ -312,13 +314,17 @@ export class AttachmentMigrationProcessor {
                       if (!isReferenced) {
                         // file is from another storage adapter
                         this.log(
-                          `file not found in file references table ${attachment.path || attachment.url}`,
+                          `file not found in file references table ${
+                            attachment.path || attachment.url
+                          }`,
                         );
                         continue;
                       } else if (isReferenced.referenced === false) {
                         const fileNameWithExt = path.basename(filePath);
 
-                        const mimetype = attachment.mimetype || mimetypes[path.extname(fileNameWithExt).slice(1)];
+                        const mimetype =
+                          attachment.mimetype ||
+                          mimetypes[path.extname(fileNameWithExt).slice(1)];
 
                         await ncMeta
                           .knexConnection(temp_file_references_table)
@@ -327,6 +333,30 @@ export class AttachmentMigrationProcessor {
                             mimetype,
                             referenced: true,
                           });
+
+                        // insert file reference if not exists
+                        const fileReference = await ncMeta
+                          .knexConnection(MetaTable.FILE_REFERENCES)
+                          .where('file_url', attachment.path || attachment.url)
+                          .andWhere('storage', storageAdapterType)
+                          .first();
+
+                        if (!fileReference) {
+                          await FileReference.insert(
+                            {
+                              workspace_id: RootScopes.ROOT,
+                              base_id: RootScopes.ROOT,
+                            },
+                            {
+                              storage: storageAdapterType,
+                              file_url: attachment.path || attachment.url,
+                              file_size: attachment.size,
+                              deleted: true,
+                            },
+                          );
+
+                          updateRequired = true;
+                        }
                       }
 
                       if (!('id' in attachment)) {
@@ -335,7 +365,9 @@ export class AttachmentMigrationProcessor {
                           fk_column_id: column.id,
                           file_url: attachment.path || attachment.url,
                           file_size: attachment.size,
+                          deleted: false,
                         });
+
                         updateRequired = true;
                       }
                     }

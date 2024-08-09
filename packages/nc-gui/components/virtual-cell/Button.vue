@@ -55,7 +55,8 @@ const triggerAction = async () => {
 
       await $api.dbTableWebhook.trigger(props.modelValue, rowId.value)
     } catch (e) {
-      console.error(e)
+      console.log(e)
+      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isLoading.value = false
     }

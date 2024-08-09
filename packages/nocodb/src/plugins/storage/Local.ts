@@ -96,9 +96,8 @@ export default class Local implements IStorageAdapterV2 {
     return fs.promises.readdir(destDir);
   }
 
-  // todo: implement
-  fileDelete(_path: string): Promise<any> {
-    return Promise.resolve(undefined);
+  fileDelete(path: string): Promise<any> {
+    return fs.promises.unlink(validateAndNormaliseLocalPath(path));
   }
 
   public async fileRead(filePath: string): Promise<any> {

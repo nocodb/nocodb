@@ -605,7 +605,7 @@ export class DuplicateProcessor {
                             baseName: destProject.id,
                             tableName: model.id,
                             body: chunk,
-                            cookie: null,
+                            cookie: req,
                             raw: true,
                           },
                         );
@@ -629,7 +629,7 @@ export class DuplicateProcessor {
                       baseName: destProject.id,
                       tableName: model.id,
                       body: chunk,
-                      cookie: null,
+                      cookie: req,
                       raw: true,
                     });
                   }

@@ -5513,6 +5513,8 @@ class BaseModelSqlv2 {
             }
           }
         } else {
+          await this.prepareNocoData(d, false, cookie);
+
           const wherePk = await this._wherePk(pkValues, true);
 
           toBeUpdated.push({ d, wherePk });
@@ -9299,7 +9301,7 @@ class BaseModelSqlv2 {
             oldData &&
             oldData[column.column_name] &&
             Array.isArray(oldData[column.column_name])
-              ? oldData[column.column_name].map((att) => [att.id, att])
+              ? oldData[column.column_name].filter((att) => att.id).map((att) => [att.id, att])
               : [],
           );
 
@@ -9308,7 +9310,7 @@ class BaseModelSqlv2 {
             { url?: string; path?: string }
           >(
             data[column.column_name] && Array.isArray(data[column.column_name])
-              ? data[column.column_name].map((att) => [att.id, att])
+              ? data[column.column_name].filter((att) => att.id).map((att) => [att.id, att])
               : [],
           );
 

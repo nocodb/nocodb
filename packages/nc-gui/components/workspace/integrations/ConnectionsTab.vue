@@ -687,7 +687,7 @@ onKeyStroke('ArrowDown', onDown)
           </div>
 
           <!-- Todo: add link  -->
-          <a target="_blank" rel="noopener noreferrer"> Learn more </a>
+          <a target="_blank" href="https://docs.nocodb.com/data-sources/connect-to-data-source/" rel="noopener noreferrer"> Learn more </a>
         </div>
       </div>
     </NcModal>

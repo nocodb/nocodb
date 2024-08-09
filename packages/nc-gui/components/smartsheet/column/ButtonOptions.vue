@@ -43,11 +43,24 @@ const { loadHooksList } = webhooksStore
 
 await loadHooksList()
 
-const { hooks, isHooksLoading } = toRefs(webhooksStore)
+const { hooks } = toRefs(webhooksStore)
+
+const selectedWebhook = ref<HookType>()
 
 const manualHooks = computed(() => {
   return hooks.value.filter((hook) => hook.event === 'manual' && hook.active)
 })
+
+const buttonTypes = [
+  {
+    label: t('labels.openUrl'),
+    value: 'url',
+  },
+  {
+    label: t('labels.runWebHook'),
+    value: 'webhook',
+  },
+]
 
 const supportedColumns = computed(
   () =>
@@ -101,26 +114,12 @@ const validators = {
     {
       validator: (_: any, label: any) => {
         return new Promise<void>((resolve, reject) => {
-          label.length > 0 ? resolve() : reject(new Error(t('msg.invalidLabel')))
+          label.length > 0 ? resolve() : !vModel.value.icon ? reject(new Error(t('msg.invalidLabel'))) : resolve()
           resolve()
         })
       },
     },
   ],
-}
-
-setAdditionalValidations({
-  ...validators,
-})
-
-// set default value
-if ((column.value?.colOptions as any)?.formula_raw) {
-  vModel.value.formula_raw =
-    substituteColumnIdWithAliasInFormula(
-      (column.value?.colOptions as ButtonType)?.formula,
-      meta?.value?.columns as ColumnType[],
-      (column.value?.colOptions as any)?.formula_raw,
-    ) || ''
 }
 
 const updateValidations = (type?: 'webhook' | 'url') => {
@@ -157,16 +156,37 @@ const updateValidations = (type?: 'webhook' | 'url') => {
   }
 }
 
-const buttonTypes = [
-  {
-    label: t('labels.openUrl'),
-    value: 'url',
-  },
-  {
-    label: t('labels.runWebHook'),
-    value: 'webhook',
-  },
-]
+if (isEdit.value) {
+  const colOptions = vModel.value.colOptions as ButtonType
+  vModel.value.type = colOptions?.type
+  vModel.value.theme = colOptions?.theme
+  vModel.value.label = colOptions?.label
+  vModel.value.color = colOptions?.color
+  vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
+  vModel.value.icon = colOptions?.icon
+  updateValidations(colOptions?.type)
+  selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
+} else {
+  vModel.value.type = buttonTypes[0].value
+  vModel.value.theme = 'solid'
+  vModel.value.label = 'Button'
+  vModel.value.color = 'brand'
+  updateValidations('url')
+}
+
+setAdditionalValidations({
+  ...validators,
+})
+
+// set default value
+if ((column.value?.colOptions as any)?.formula_raw) {
+  vModel.value.formula_raw =
+    substituteColumnIdWithAliasInFormula(
+      (column.value?.colOptions as ButtonType)?.formula,
+      meta?.value?.columns as ColumnType[],
+      (column.value?.colOptions as any)?.formula_raw,
+    ) || ''
+}
 
 const colorClass = {
   solid: {
@@ -318,8 +338,6 @@ const eventList = ref<Record<string, any>[]>([
   { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
 ])
 
-const selectedWebhook = ref<HookType>()
-
 const newWebhook = () => {
   selectedWebhook.value = undefined
   isWebhookCreateModalOpen.value = true
@@ -351,34 +369,8 @@ const selectIcon = (icon: string) => {
 
 onMounted(async () => {
   jsep.plugins.register(jsepCurlyHook)
-
-  if (isEdit.value) {
-    const colOptions = vModel.value.colOptions as ButtonType
-    vModel.value.type = colOptions?.type
-    vModel.value.theme = colOptions?.theme
-    vModel.value.label = colOptions?.label
-    vModel.value.color = colOptions?.color
-    vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
-    vModel.value.icon = colOptions?.icon
-    updateValidations(colOptions?.type)
-    selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
-  } else {
-    vModel.value.type = buttonTypes[0].value
-    vModel.value.theme = 'solid'
-    vModel.value.label = 'Button'
-    vModel.value.color = 'brand'
-    updateValidations('url')
-  }
-
   if (fromTableExplorer.value) {
     mountMonaco()
-  }
-})
-
-watch(isHooksLoading, () => {
-  if (!isHooksLoading) {
-    if (vModel.value.fk_webhook_id) {
-    }
   }
 })
 </script>
@@ -458,7 +450,7 @@ watch(isHooksLoading, () => {
           </div>
           <template #overlay>
             <div class="bg-white w-80 space-y-3 h-70 overflow-y-auto rounded-lg">
-              <div class="!sticky top-0 flex gap-2 bg-white px-2 pt-2">
+              <div class="!sticky top-0 flex gap-2 bg-white px-2 py-2">
                 <a-input
                   ref="inputRef"
                   v-model:value="iconSearchQuery"
@@ -467,8 +459,10 @@ watch(isHooksLoading, () => {
                 >
                   <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
                 ></a-input>
-                <NcButton size="small" type="text" @click="removeIcon">
-                  {{ $t('general.remove') }}
+                <NcButton size="small" class="!px-4" type="text" @click="removeIcon">
+                  <span class="text-[13px]">
+                    {{ $t('general.remove') }}
+                  </span>
                 </NcButton>
               </div>
 

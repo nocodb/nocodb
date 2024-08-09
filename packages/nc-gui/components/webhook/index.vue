@@ -374,7 +374,7 @@ async function loadPluginList() {
 }
 
 const isConditionSupport = computed(() => {
-  return hookRef.eventOperation && !hookRef.eventOperation.includes('bulk')
+  return hookRef.eventOperation && !(hookRef.eventOperation.includes('bulk') || hookRef.eventOperation.includes('manual'))
 })
 
 async function saveHooks() {
@@ -661,6 +661,7 @@ onMounted(async () => {
                   <a-select
                     v-model:value="hookRef.eventOperation"
                     size="medium"
+                    :disabled="eventList.length === 1"
                     :placeholder="$t('general.event')"
                     class="nc-text-field-hook-event !h-9 capitalize"
                     dropdown-class-name="nc-dropdown-webhook-event"

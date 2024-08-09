@@ -45,3 +45,4 @@ export { default as Extension } from './Extension';
 export { default as Comment } from './Comment';
 export { default as Job } from './Job';
 export { default as Integration } from './Integration';
+export { default as FileReference } from './FileReference';

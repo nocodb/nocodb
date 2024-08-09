@@ -185,7 +185,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -251,6 +251,7 @@ export class MetaService {
       [MetaTable.COMMENTS_REACTIONS]: 'cre',
       [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
       [MetaTable.JOBS]: 'job',
+      [MetaTable.INTEGRATIONS]: 'int',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -297,7 +298,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -370,7 +371,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -453,7 +454,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -527,7 +528,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -588,7 +589,7 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',

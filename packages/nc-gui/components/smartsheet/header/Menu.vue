@@ -493,27 +493,38 @@ const changeTitleField = () => {
           <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
 
           <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
-            <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('asc')">
-              <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-                <component
-                  :is="iconMap.sortDesc"
-                  class="text-gray-500 !rotate-180 !w-4.25 !h-4.25"
-                  :style="{
-                    transform: 'rotate(180deg)',
-                  }"
-                />
+            <NcTooltip :disabled="isSortSupported">
+              <template #title>
+                {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+              </template>
+              <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('asc')">
+                <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
+                  <component
+                    :is="iconMap.sortDesc"
+                    class="text-gray-500 !rotate-180 !w-4.25 !h-4.25"
+                    :style="{
+                      transform: 'rotate(180deg)',
+                    }"
+                  />
 
-                <!-- Sort Ascending -->
-                {{ $t('general.sortAsc') }}
-              </div>
-            </NcMenuItem>
-            <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('desc')">
-              <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
-                <!-- Sort Descending -->
-                <component :is="iconMap.sortDesc" class="text-gray-500 !w-4.25 !h-4.25" />
-                {{ $t('general.sortDesc').trim() }}
-              </div>
-            </NcMenuItem>
+                  <!-- Sort Ascending -->
+                  {{ $t('general.sortAsc') }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
+
+            <NcTooltip :disabled="isSortSupported">
+              <template #title>
+                {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+              </template>
+              <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('desc')">
+                <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
+                  <!-- Sort Descending -->
+                  <component :is="iconMap.sortDesc" class="text-gray-500 !w-4.25 !h-4.25" />
+                  {{ $t('general.sortDesc').trim() }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
           </template>
 
           <a-divider class="!my-0" />

@@ -1829,13 +1829,13 @@ export class ColumnsService {
           }
         } else if (colBody.type === 'webhook') {
           if (!colBody.fk_webhook_id) {
-            NcError.badRequest('Webhook not found');
+            colBody.fk_webhook_id = null;
           }
 
           const hook = await Hook.get(context, colBody.fk_webhook_id);
 
           if (!hook || !hook.active || hook.event !== 'manual') {
-            NcError.badRequest('Webhook not found');
+            colBody.fk_webhook_id = null;
           }
         }
 

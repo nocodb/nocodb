@@ -73,7 +73,7 @@ const triggerAction = async () => {
     <button
       :class="`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`"
       class="nc-cell-button max-w-28 h-6 min-w-20"
-      :disabled="isLoading || isPublic || !isUIAllowed('hookTrigger')"
+      :disabled="disableButton"
       @click="triggerAction"
     >
       <GeneralLoader

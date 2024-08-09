@@ -19,23 +19,19 @@ export class ThumbnailGeneratorProcessor {
 
   @Process(JobTypes.ThumbnailGenerator)
   async job(job: Job<ThumbnailGeneratorJobData>) {
-    try {
-      const { attachments } = job.data;
+    const { attachments } = job.data;
 
-      const thumbnailPromises = attachments.map(async (attachment) => {
-        const thumbnail = await this.generateThumbnail(attachment);
-        return {
-          path: attachment.path ?? attachment.url,
-          card_cover: thumbnail?.card_cover,
-          small: thumbnail?.small,
-          tiny: thumbnail?.tiny,
-        };
-      });
+    const thumbnailPromises = attachments.map(async (attachment) => {
+      const thumbnail = await this.generateThumbnail(attachment);
+      return {
+        path: attachment.path ?? attachment.url,
+        card_cover: thumbnail?.card_cover,
+        small: thumbnail?.small,
+        tiny: thumbnail?.tiny,
+      };
+    });
 
-      return await Promise.all(thumbnailPromises);
-    } catch (error) {
-      this.logger.error('Failed to generate thumbnails', error.stack as string);
-    }
+    return await Promise.all(thumbnailPromises);
   }
 
   private async generateThumbnail(

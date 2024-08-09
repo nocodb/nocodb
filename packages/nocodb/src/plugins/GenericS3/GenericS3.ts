@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { promisify } from 'util';
 import { Readable } from 'stream';
+import path from 'path';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import {
@@ -193,9 +194,17 @@ export default class GenericS3 implements IStorageAdapterV2 {
     return Promise.resolve(undefined);
   }
 
-  // TODO - implement
-  getDirectoryList(_path: string): Promise<string[]> {
-    return Promise.resolve(undefined);
+  public async getDirectoryList(prefix: string): Promise<string[]> {
+    return this.s3Client
+      .listObjectsV2({
+        Prefix: prefix,
+        Bucket: this.input.bucket,
+      })
+      .then((response) => {
+        return response.Contents.map((content) => {
+          return path.basename(content.Key);
+        });
+      });
   }
 
   public async fileDelete(key: string): Promise<any> {

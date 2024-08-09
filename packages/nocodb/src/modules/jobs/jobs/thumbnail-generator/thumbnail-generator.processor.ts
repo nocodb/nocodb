@@ -131,10 +131,9 @@ export class ThumbnailGeneratorProcessor {
     if (attachment.path) {
       relativePath = attachment.path.replace(/^download\//, '');
     } else if (attachment.url) {
-      relativePath = decodeURI(new URL(attachment.url).pathname).replace(
-        /^\/+/,
-        '',
-      );
+      relativePath = decodeURI(
+        new URL(encodeURI(attachment.url)).pathname,
+      ).replace(/^\/+/, '');
     }
 
     const file = await storageAdapter.fileRead(relativePath);

@@ -329,12 +329,7 @@ export class AttachmentMigration {
                       if ('path' in attachment || 'url' in attachment) {
                         const filePath = `nc/uploads/${
                           attachment.path?.replace(/^download\//, '') ||
-                          decodeURI(
-                            `${new URL(attachment.url).pathname.replace(
-                              /.*?nc\/uploads\//,
-                              '',
-                            )}`,
-                          )
+                          this.normalizeUrl(attachment.url)
                         }`;
 
                         const isReferenced = await ncMeta
@@ -347,9 +342,8 @@ export class AttachmentMigration {
                           this.log(
                             `file not found in file references table ${
                               attachment.path || attachment.url
-                            }`,
+                            }, ${filePath}`,
                           );
-                          continue;
                         } else if (isReferenced.referenced === false) {
                           const fileNameWithExt = path.basename(filePath);
 
@@ -485,5 +479,10 @@ export class AttachmentMigration {
     }
 
     return true;
+  }
+
+  normalizeUrl(url: string) {
+    const newUrl = new URL(encodeURI(url));
+    return decodeURI(newUrl.pathname.replace(/.*?nc\/uploads\//, ''));
   }
 }

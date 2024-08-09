@@ -99,6 +99,7 @@ const rolePermissions = {
       viewFieldEdit: true,
       csvTableImport: true,
       excelTableImport: true,
+      hookTrigger: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

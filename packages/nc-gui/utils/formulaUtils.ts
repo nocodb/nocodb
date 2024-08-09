@@ -52,4 +52,33 @@ function GetCaretPosition(ctrl: typeof AntInput) {
   return CaretPos
 }
 
-export { formulaList, formulas, getWordUntilCaret, insertAtCursor }
+// Function to check if cursor is inside Strings
+function isCursorInsideString(text: string, offset: number) {
+  let inSingleQuoteString = false
+  let inDoubleQuoteString = false
+  let escapeNextChar = false
+
+  for (let i = 0; i < offset; i++) {
+    const char = text[i]
+
+    if (escapeNextChar) {
+      escapeNextChar = false
+      continue
+    }
+
+    if (char === '\\') {
+      escapeNextChar = true
+      continue
+    }
+
+    if (char === "'" && !inDoubleQuoteString) {
+      inSingleQuoteString = !inSingleQuoteString
+    } else if (char === '"' && !inSingleQuoteString) {
+      inDoubleQuoteString = !inDoubleQuoteString
+    }
+  }
+
+  return inDoubleQuoteString || inSingleQuoteString
+}
+
+export { formulaList, formulas, getWordUntilCaret, insertAtCursor, isCursorInsideString }

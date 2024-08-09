@@ -6,7 +6,7 @@ import { Injectable } from '@nestjs/common';
 import { elapsedTime, initTime } from '../../helpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
-import type { ButtonColumn, LinkToAnotherRecordColumn } from '~/models';
+import type { LinkToAnotherRecordColumn } from '~/models';
 import { Base, Filter, Hook, Model, Source, View } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
@@ -570,6 +570,7 @@ export class ExportService {
                 break;
               case UITypes.Formula:
               case UITypes.Lookup:
+              case UITypes.Button:
               case UITypes.Rollup:
               case UITypes.Barcode:
               case UITypes.QrCode:

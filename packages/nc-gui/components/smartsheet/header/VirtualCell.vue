@@ -10,6 +10,7 @@ import {
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
+import { isColumnInvalid } from '../../../utils/columnUtils'
 
 const props = defineProps<{
   column: ColumnType
@@ -213,6 +214,13 @@ const onClick = (e: Event) => {
 
       <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
 
+      <NcTooltip>
+        <GeneralIcon v-if="isColumnInvalid(column)" class="text-orange-500 ml-2" icon="alertTriangle" />
+
+        <template #title>
+          {{ $t('msg.invalidColumnConfiguration') }}
+        </template>
+      </NcTooltip>
       <GeneralIcon
         v-if="isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm"
         icon="arrowDown"

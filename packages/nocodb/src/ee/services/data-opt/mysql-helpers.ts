@@ -1175,7 +1175,7 @@ export async function singleQueryList(
     throw new Error('Source is not mysql');
   }
 
-  const skipCache = shouldSkipCache(ctx);
+  let skipCache = shouldSkipCache(ctx);
 
   const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
 
@@ -1250,14 +1250,21 @@ export async function singleQueryList(
     sorts = await Sort.list(context, { viewId: ctx.view.id });
   }
 
+  const viewFilters = ctx.view?.id
+    ? await Filter.rootFilterList(context, {
+        viewId: ctx.view?.id,
+      })
+    : [];
+
+  if (viewFilters?.length && checkForStaticDateValFilters(viewFilters)) {
+    skipCache = true;
+  }
+
   const aggrConditionObj = [
     ...(ctx.view
       ? [
           new Filter({
-            children:
-              (await Filter.rootFilterList(context, {
-                viewId: ctx.view?.id,
-              })) || [],
+            children: viewFilters,
             is_group: true,
           }),
         ]

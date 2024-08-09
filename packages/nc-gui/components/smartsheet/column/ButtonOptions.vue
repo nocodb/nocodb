@@ -32,8 +32,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, removeAdditionalValidation, isWebhookCreateModalOpen } =
-  useColumnCreateStoreOrThrow()
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen } = useColumnCreateStoreOrThrow()
 
 const webhooksStore = useWebhooksStore()
 
@@ -76,6 +75,48 @@ const supportedColumns = computed(
 )
 
 const validators = {
+  formula_raw: [
+    {
+      required: vModel.value.type === 'url',
+      validator: (_: any, formula: any) => {
+        return (async () => {
+          if (vModel.value.type === 'url') {
+            if (!formula?.trim()) throw new Error('Required')
+
+            try {
+              await validateFormulaAndExtractTreeWithType({
+                column: column.value,
+                formula,
+                columns: supportedColumns.value,
+                clientOrSqlUi: sqlUi.value,
+                getMeta,
+              })
+            } catch (e: any) {
+              if (e instanceof FormulaError && e.extra?.key) {
+                throw new Error(t(e.extra.key, e.extra))
+              }
+
+              throw new Error(e.message)
+            }
+          }
+        })()
+      },
+    },
+  ],
+  fk_webhook_id: [
+    {
+      required: vModel.value.type === 'webhook',
+      validator: (_: any, fk_webhook_id: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (vModel.value.type === 'webhook') {
+            fk_webhook_id ? resolve() : reject(new Error(t('msg.required')))
+          } else {
+            resolve()
+          }
+        })
+      },
+    },
+  ],
   color: [
     {
       validator: (_: any, color: any) => {
@@ -120,40 +161,6 @@ const validators = {
   ],
 }
 
-const updateValidations = (type?: 'webhook' | 'url') => {
-  if (type === 'url') {
-    setAdditionalValidations({
-      formula_raw: [
-        {
-          validator: (_: any, formula: any) => {
-            return (async () => {
-              if (!formula?.trim()) throw new Error('Required')
-
-              try {
-                await validateFormulaAndExtractTreeWithType({
-                  column: column.value,
-                  formula,
-                  columns: supportedColumns.value,
-                  clientOrSqlUi: sqlUi.value,
-                  getMeta,
-                })
-              } catch (e: any) {
-                if (e instanceof FormulaError && e.extra?.key) {
-                  throw new Error(t(e.extra.key, e.extra))
-                }
-
-                throw new Error(e.message)
-              }
-            })()
-          },
-        },
-      ],
-    })
-  } else if (type === 'webhook') {
-    removeAdditionalValidation('formula_raw')
-  }
-}
-
 if (isEdit.value) {
   const colOptions = vModel.value.colOptions as ButtonType
   vModel.value.type = colOptions?.type
@@ -162,14 +169,13 @@ if (isEdit.value) {
   vModel.value.color = colOptions?.color
   vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
   vModel.value.icon = colOptions?.icon
-  updateValidations(colOptions?.type)
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
 } else {
   vModel.value.type = buttonTypes[0].value
   vModel.value.theme = 'solid'
   vModel.value.label = 'Button'
   vModel.value.color = 'brand'
-  updateValidations('url')
+  vModel.value.formula_raw = ''
 }
 
 setAdditionalValidations({
@@ -313,7 +319,6 @@ useResizeObserver(monacoRoot, (entries) => {
 watch(
   () => vModel.value?.type,
   async (val) => {
-    updateValidations(val)
     await nextTick(() => {
       mountMonaco()
     })
@@ -344,9 +349,7 @@ const newWebhook = () => {
 const onClose = (hook: HookType) => {
   selectedWebhook.value = hook
   vModel.value.fk_webhook_id = hook.id
-  setTimeout(() => {
-    isWebhookCreateModalOpen.value = false
-  }, 50)
+  isWebhookCreateModalOpen.value = false
 }
 
 const onSelectWebhook = (hook: HookType) => {
@@ -358,6 +361,12 @@ const onSelectWebhook = (hook: HookType) => {
 const removeIcon = () => {
   vModel.value.icon = null
   isButtonIconDropdownOpen.value = false
+}
+
+const editWebhook = () => {
+  if (selectedWebhook.value) {
+    isWebhookCreateModalOpen.value = true
+  }
 }
 
 const selectIcon = (icon: string) => {
@@ -481,7 +490,11 @@ onMounted(async () => {
   <a-row :gutter="8">
     <a-col :span="24">
       <a-form-item :label="$t('labels.onClick')" v-bind="validateInfos.type">
-        <a-select v-model:value="vModel.type" class="w-52" dropdown-class-name="nc-dropdown-button-cell-type">
+        <a-select
+          v-model:value="vModel.type"
+          class="w-52 nc-button-type-select"
+          dropdown-class-name="nc-dropdown-button-cell-type"
+        >
           <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
 
           <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
@@ -512,56 +525,67 @@ onMounted(async () => {
   </a-form-item>
 
   <a-form-item v-if="vModel?.type === 'webhook'" class="mt-4">
-    <NcDropdown v-model:visible="isWebHookSelectionDropdownOpen" :trigger="['click']" class="nc-color-picker-dropdown-trigger">
-      <div
-        :class="{
-          '!border-brand-500 shadow-selected nc-button-style-dropdown ': isWebHookSelectionDropdownOpen,
-        }"
-        class="nc-button-style-dropdown-not-focus flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
-      >
-        <div class="flex w-full items-center gap-2">
-          <div
-            :key="selectedWebhook?.id"
-            class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
-          >
-            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-              <template #title>
-                {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
-              </template>
-              {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
-            </NcTooltip>
-          </div>
-          <GeneralIcon icon="arrowDown" class="text-gray-700" />
-        </div>
-      </div>
-      <template #overlay>
-        <NcListWithSearch
-          v-if="isWebHookSelectionDropdownOpen"
-          :is-parent-open="isWebHookSelectionDropdownOpen"
-          :search-input-placeholder="$t('placeholder.searchFields')"
-          :option-config="{ selectOptionEvent: ['c:actions:webhook'], optionClassName: '' }"
-          :options="manualHooks"
-          disable-mascot
-          class="max-h-72 max-w-85"
-          filter-field="title"
-          show-selected-option
-          @selected="onSelectWebhook"
+    <div class="flex gap-2">
+      <NcDropdown v-model:visible="isWebHookSelectionDropdownOpen" :trigger="['click']" class="nc-color-picker-dropdown-trigger">
+        <div
+          :class="{
+            '!border-brand-500 shadow-selected nc-button-style-dropdown ': isWebHookSelectionDropdownOpen,
+          }"
+          class="nc-button-style-dropdown-not-focus nc-button-webhook-select flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
         >
-          <template v-if="isUIAllowed('hookCreate')" #bottom>
-            <a-divider style="margin: 4px 0" />
-            <div class="flex items-center text-brand-500 text-sm cursor-pointer" @click="newWebhook">
-              <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
-                {{ $t('general.create') }} {{ $t('objects.webhook').toLowerCase() }}
-                <GeneralIcon icon="plus" class="flex-none" />
-              </div>
+          <div class="flex w-full items-center gap-2">
+            <div
+              :key="selectedWebhook?.id"
+              class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
+            >
+              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                <template #title>
+                  {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
+                </template>
+                {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
+              </NcTooltip>
             </div>
-          </template>
-        </NcListWithSearch>
-      </template>
-    </NcDropdown>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </div>
+        </div>
+        <template #overlay>
+          <NcListWithSearch
+            v-if="isWebHookSelectionDropdownOpen"
+            :is-parent-open="isWebHookSelectionDropdownOpen"
+            :search-input-placeholder="$t('placeholder.searchFields')"
+            :option-config="{ selectOptionEvent: ['c:actions:webhook'], optionClassName: '' }"
+            :options="manualHooks"
+            disable-mascot
+            class="max-h-72 max-w-85"
+            filter-field="title"
+            show-selected-option
+            @selected="onSelectWebhook"
+          >
+            <template v-if="isUIAllowed('hookCreate')" #bottom>
+              <a-divider style="margin: 4px 0" />
+              <div class="flex items-center text-brand-500 text-sm cursor-pointer" @click="newWebhook">
+                <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
+                  {{ $t('general.create') }} {{ $t('objects.webhook').toLowerCase() }}
+                  <GeneralIcon icon="plus" class="flex-none" />
+                </div>
+              </div>
+            </template>
+          </NcListWithSearch>
+        </template>
+      </NcDropdown>
+      <NcButton size="small" type="secondary" :disabled="!selectedWebhook" @click="editWebhook">
+        <GeneralIcon icon="ncEdit" />
+      </NcButton>
+    </div>
   </a-form-item>
 
-  <Webhook v-if="isWebhookCreateModalOpen" v-model:value="isWebhookCreateModalOpen" :event-list="eventList" @close="onClose" />
+  <Webhook
+    v-if="isWebhookCreateModalOpen"
+    v-model:value="isWebhookCreateModalOpen"
+    :hook="selectedWebhook"
+    :event-list="eventList"
+    @close="onClose"
+  />
 </template>
 
 <style scoped lang="scss">

@@ -75,6 +75,8 @@ export class ColumnPageObject extends BasePage {
     ltarView,
     custom = false,
     refColumn,
+    buttonType,
+    webhookIndex = 0,
   }: {
     title: string;
     type?: string;
@@ -96,6 +98,8 @@ export class ColumnPageObject extends BasePage {
     ltarView?: string;
     custom?: boolean;
     refColumn?: string;
+    buttonType?: string;
+    webhookIndex?: number;
   }) {
     if (insertBeforeColumnTitle) {
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"]`).scrollIntoViewIfNeeded();
@@ -144,6 +148,19 @@ export class ColumnPageObject extends BasePage {
         break;
       case 'Formula':
         await this.get().locator('.inputarea').fill(formula);
+        break;
+      case 'Button':
+        await this.get().locator('.nc-button-type-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${buttonType}"`).click();
+
+        await this.get().locator('.nc-button-webhook-select').click();
+
+        await this.rootPage.waitForSelector('.nc-list-with-search', {
+          state: 'visible',
+        });
+
+        await this.rootPage.locator(`.nc-unified-list-option-${webhookIndex}`).click();
+
         break;
       case 'QrCode':
         await this.get().locator('.ant-select-single').nth(1).click();

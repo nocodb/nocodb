@@ -4324,7 +4324,7 @@ class BaseModelSqlv2 {
                       `JSON_OBJECT('label', ?, 'fk_webhook_id', ?) as ??`,
                       [
                         `${colOption.label}`,
-                        `${colOption.fk_webhook_id}`,
+                        colOption.fk_webhook_id,
                         column.id,
                       ],
                     ),
@@ -4336,7 +4336,7 @@ class BaseModelSqlv2 {
                       `json_build_object('label', ?, 'fk_webhook_id', ?) as ??`,
                       [
                         `${colOption.label}`,
-                        `${colOption.fk_webhook_id}`,
+                        colOption.fk_webhook_id,
                         column.id,
                       ],
                     ),
@@ -4348,7 +4348,7 @@ class BaseModelSqlv2 {
                       `json_object('label', ?, 'fk_webhook_id', ?) as ??`,
                       [
                         `${colOption.label}`,
-                        `${colOption.fk_webhook_id}`,
+                        colOption.fk_webhook_id,
                         column.id,
                       ],
                     ),

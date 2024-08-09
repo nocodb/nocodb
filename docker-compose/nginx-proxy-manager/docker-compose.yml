@@ -46,7 +46,7 @@ services:
         - "-h"
         - localhost
       timeout: 20s
-    image: "mysql:8.3.0"
+    image: "mysql:9.0.1"
     networks: 
       - default
     restart: always

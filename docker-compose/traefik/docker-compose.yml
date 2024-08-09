@@ -34,7 +34,7 @@ services:
       retries: 10
       test: "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"
       timeout: 2s
-    image: "postgres:12.17-alpine"
+    image: "postgres:16.4-alpine"
     networks: 
       - traefik_proxy
     restart: always
@@ -71,7 +71,7 @@ services:
         - "-c"
         - "http://localhost:8081/ping"
       timeout: 3s
-    image: "traefik:v2.11"
+    image: "traefik:v3.1"
     networks: 
       - default
       - traefik_proxy

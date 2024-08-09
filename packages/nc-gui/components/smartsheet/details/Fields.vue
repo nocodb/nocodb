@@ -263,6 +263,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:
+    case UITypes.Button:
       return message.info(t('msg.info.notAvailableAtTheMoment'))
     case UITypes.SingleSelect:
     case UITypes.MultiSelect:
@@ -536,6 +537,12 @@ const isColumnValid = (column: TableExplorerColumn) => {
       return false
     }
   }
+
+  if (column.uidt === UITypes.Button && isNew) {
+    if (column.type === 'url' && !column.formula_raw) return false
+    if (column.type === 'webhook' && !column.fk_webhook_id) return false
+  }
+
   return true
 }
 
@@ -590,6 +597,7 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
     column.color = colOptions?.color
     column.fk_webhook_id = colOptions?.fk_webhook_id
     column.icon = colOptions?.icon
+    column.formula_raw = column.colOptions?.formula_raw
   }
 
   return column

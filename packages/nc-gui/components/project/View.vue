@@ -6,7 +6,7 @@ const props = defineProps<{
   baseId?: string
 }>()
 
-useProvideIntegrationViewStore()
+const { integrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
 
@@ -92,6 +92,18 @@ watch(
   },
   {
     immediate: true,
+  },
+)
+
+watch(
+  () => currentBase.value?.id,
+  () => {
+    /**
+     * When the current base ID changes, reset the integrations array.
+     * This ensures that the integration data is cleared, allowing it to be reloaded
+     * properly when opening the create/edit source modal with the updated base.
+     */
+    integrations.value = []
   },
 )
 </script>

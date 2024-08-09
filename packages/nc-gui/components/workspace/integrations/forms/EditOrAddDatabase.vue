@@ -81,6 +81,8 @@ const useSslExpansionPanel = ref<string[]>([])
 
 const advancedOptionsExpansionPanel = ref<string[]>([])
 
+const isLoading = ref<boolean>(false)
+
 const isDisabledSubmitBtn = computed(() => {
   if (isEditMode.value) {
     return !testSuccess.value && !isEnabledSaveChangesBtn.value
@@ -444,6 +446,8 @@ watch(
 
 // select and focus title field on load
 onMounted(async () => {
+  isLoading.value = true
+
   if (pageMode.value === IntegrationsPageMode.ADD) {
     formState.value.title = await generateUniqueName()
   } else {
@@ -474,6 +478,8 @@ onMounted(async () => {
       input?.focus()
     }, 500)
   })
+
+  isLoading.value = false
 })
 
 watch(
@@ -519,6 +525,7 @@ watch(
             class="nc-extdb-btn-test-connection"
             :class="{ 'pointer-events-none': testSuccess }"
             :loading="testingConnection"
+            :disabled="isLoading"
             icon-position="right"
             @click="testConnection"
           >
@@ -536,7 +543,7 @@ watch(
         <NcButton
           size="small"
           type="primary"
-          :disabled="isDisabledSubmitBtn"
+          :disabled="isDisabledSubmitBtn || isLoading"
           :loading="creatingSource"
           class="nc-extdb-btn-submit"
           @click="createOrUpdateIntegration"
@@ -550,7 +557,7 @@ watch(
     </div>
 
     <div class="h-[calc(100%_-_66px)] flex">
-      <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin">
+      <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin relative">
         <div class="w-full gap-8 max-w-[768px]">
           <div class="nc-edit-or-add-connection bg-white relative flex flex-col justify-center gap-2 w-full">
             <a-form
@@ -1100,6 +1107,11 @@ watch(
             <div class="mt-10"></div>
           </div>
         </div>
+        <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
+          <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+            <a-spin size="large" />
+          </div>
+        </general-overlay>
       </div>
       <div class="nc-edit-or-add-integration-right-panel">
         <template v-if="isEeUI">

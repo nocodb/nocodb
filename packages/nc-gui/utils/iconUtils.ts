@@ -277,6 +277,10 @@ import NcBitBucket from '~icons/nc-icons/bit-bucket'
 import NcQuickbooks from '~icons/nc-icons/quickbooks'
 import NcIntercom from '~icons/nc-icons/intercom'
 import NcDropbox from '~icons/nc-icons/dropbox'
+import NcOpenai from '~icons/nc-icons/openai'
+import NcClaude from '~icons/nc-icons/claude'
+import NcOllama from '~icons/nc-icons/ollama'
+import NcGroq from '~icons/nc-icons/groq'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -777,6 +781,10 @@ export const iconMap = {
   intercom: NcIntercom,
   dropbox: NcDropbox,
   gift: NcIconsGift,
+  openai: NcOpenai,
+  claude: NcClaude,
+  ollama: NcOllama,
+  groq: NcGroq,
 }
 
 export const getMdiIcon = (type: string): any => {

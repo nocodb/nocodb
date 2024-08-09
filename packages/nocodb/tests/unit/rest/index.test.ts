@@ -20,7 +20,7 @@ let ssoTest = () => {};
 let cloudOrgTest = () => {};
 let bulkAggregationTest = () => {};
 let columnTest = () => {};
-let integrationTest = () => {};
+let integrationTest = require('./tests/integration.test').default;
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
   ssoTest = require('./tests/ee/sso.test').default;

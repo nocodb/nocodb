@@ -1,4 +1,4 @@
-export { ClientType } from 'nocodb-sdk'
+export { ClientType, IntegrationCategoryType, SyncDataType } from 'nocodb-sdk'
 
 export enum Language {
   ar = 'العربية',
@@ -176,74 +176,4 @@ export enum ExtensionsEvents {
 
 export enum IntegrationStoreEvents {
   INTEGRATION_ADD = 'integration-add',
-}
-
-// Move this to nocodb-sdk
-export enum SyncDataType {
-  // Database
-  SNOWFLAKE = 'snowflake',
-  MICROSOFT_ACCESS = 'microsoft-access',
-  TABLEAU = 'tableau',
-  ORACLE = 'oracle',
-  // Communication
-  SLACK = 'slack',
-  DISCORD = 'discord',
-  TWILLO = 'twillo',
-  MICROSOFT_OUTLOOK = 'microsoft-outlook',
-  MICROSOFT_TEAMS = 'microsoft-teams',
-  TELEGRAM = 'telegram',
-  GMAIL = 'gmail',
-  WHATSAPP = 'whatsapp',
-  // Project Management
-  ASANA = 'asana',
-  JIRA = 'jira',
-  MIRO = 'miro',
-  TRELLO = 'trello',
-  // CRM
-  SALESFORCE = 'salesforce',
-  PIPEDRIVE = 'pipedrive',
-  MICROSOFT_DYNAMICS_365 = 'microsoft-dynamics-365',
-  ZOHO_CRM = 'zoho-crm',
-  // Marketing
-  HUBSPOT = 'hubspot',
-  MAILCHIMP = 'mailchimp',
-  SURVEYMONKEY = 'surveymonkey',
-  TYPEFORM = 'typeform',
-  // ATS
-  WORKDAY = 'workday',
-  GREENHOUSE = 'greenhouse',
-  LEVER = 'lever',
-  // Development
-  GITHUB = 'github',
-  GITLAB = 'gitlab',
-  BITBUCKET = 'bitbucket',
-  // Finance
-  STRIPE = 'stripe',
-  QUICKBOOKS = 'quickbooks',
-  // Ticketing
-  INTERCOM = 'intercom',
-  ZENDESK = 'zendesk',
-  // Storage
-  BOX = 'box',
-  GOOGLE_DRIVE = 'google-drive',
-  DROPBOX = 'dropbox',
-  // Others
-  APPLE_NUMBERS = 'apple-numbers',
-  GOOGLE_CALENDAR = 'google-calendar',
-  MICROSOFT_EXCEL = 'microsoft-excel',
-  GOOGLE_SHEETS = 'google-sheets',
-}
-
-export enum IntegrationCategoryType {
-  DATABASE = 'database',
-  COMMUNICATION = 'communication',
-  PROJECT_MANAGEMENT = 'project-management',
-  CRM = 'crm',
-  MARKETING = 'marketing',
-  ATS = 'ats',
-  DEVELOPMENT = 'development',
-  FINANCE = 'finance',
-  TICKETING = 'ticketing',
-  STORAGE = 'storage',
-  OTHERS = 'others',
 }

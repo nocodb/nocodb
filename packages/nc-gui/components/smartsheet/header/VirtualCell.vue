@@ -148,7 +148,7 @@ const openDropDown = (e: Event) => {
 
 const onVisibleChange = () => {
   editColumnDropdown.value = true
-  if (!editOrAddProviderRef.value?.isWebhookCreateModalOpen) {
+  if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
     editColumnDropdown.value = false
   }
 }

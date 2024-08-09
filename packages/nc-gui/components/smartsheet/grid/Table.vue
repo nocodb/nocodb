@@ -1150,6 +1150,16 @@ const loadColumn = (title: string, tp: string, colOptions?: any) => {
   persistMenu.value = false
 }
 
+const editOrAddProviderRef = ref()
+
+const onVisibilityChange = () => {
+  addColumnDropdown.value = true
+  if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
+    addColumnDropdown.value = false
+    // persistMenu.value = altModifier
+  }
+}
+
 // Virtual scroll
 
 const maxGridWidth = computed(() => {
@@ -1819,7 +1829,7 @@ onKeyStroke('ArrowDown', onDown)
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
                       overlay-class-name="nc-dropdown-grid-add-column"
-                      @visible-change="persistMenu = altModifier"
+                      @visible-change="onVisibilityChange"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
                         <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
@@ -1912,6 +1922,7 @@ onKeyStroke('ArrowDown', onDown)
                         <div class="nc-edit-or-add-provider-wrapper">
                           <LazySmartsheetColumnEditOrAddProvider
                             v-if="addColumnDropdown"
+                            ref="editOrAddProviderRef"
                             :preload="preloadColumn"
                             :column-position="columnOrder"
                             :class="{ hidden: isJsonExpand }"

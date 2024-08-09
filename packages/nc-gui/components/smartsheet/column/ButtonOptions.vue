@@ -355,7 +355,7 @@ const selectIcon = (icon: string) => {
             >
               <div class="flex w-full items-center justify-between gap-2">
                 <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4" />
-                <span v-else>
+                <span v-else class="text-sm">
                   {{ $t('labels.selectIcon') }}
                 </span>
                 <GeneralIcon icon="arrowDown" class="text-gray-700" />

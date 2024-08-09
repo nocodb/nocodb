@@ -50,11 +50,8 @@ const triggerAction = async () => {
   const modelValue = props.modelValue
 
   if (colOptions.type === 'url') {
-    const fullUrl = /^(https?|ftp|mailto|file):\/\//.test(modelValue.url)
-      ? modelValue.url
-      : modelValue.url.trim()
-      ? `http://${modelValue.url}`
-      : ''
+    const url = `${modelValue.url}`
+    const fullUrl = /^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `http://${url}` : ''
 
     window.open(fullUrl, '_blank')
   } else if (colOptions.type === 'webhook') {

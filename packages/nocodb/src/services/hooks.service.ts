@@ -11,10 +11,14 @@ import {
 } from '~/helpers/populateSamplePayload';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
 import { Hook, HookLog, Model } from '~/models';
+import { DatasService } from '~/services/datas.service';
 
 @Injectable()
 export class HooksService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly dataService: DatasService,
+  ) {}
 
   validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
     let notification: { type?: string } = {};
@@ -114,6 +118,53 @@ export class HooksService {
     });
 
     return res;
+  }
+
+  async hookTrigger(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      hookId: string;
+      rowId: string;
+    },
+  ) {
+    const hook = await Hook.get(context, param.hookId);
+
+    if (!hook && hook.event !== 'manual') {
+      NcError.badRequest('Hook not found');
+    }
+
+    const row = await this.dataService.dataRead(context, {
+      rowId: param.rowId,
+      query: {},
+      baseName: hook.base_id,
+      tableName: hook.fk_model_id,
+    });
+
+    if (!row) {
+      NcError.badRequest('Row not found');
+    }
+
+    const model = await Model.get(context, hook.fk_model_id);
+
+    await invokeWebhook(context, {
+      hook: hook,
+      model: model,
+      view: null,
+      prevData: null,
+      newData: row,
+      user: param.req.user,
+      testFilters: (hook as any)?.filters,
+      throwErrorOnFailure: true,
+      testHook: false,
+    });
+
+    /*    this.appHooksService.emit(AppEvents.WEBHOOK_TRIGGER, {
+      hook,
+      req: param.req,
+    });*/
+
+    return true;
   }
 
   async hookTest(

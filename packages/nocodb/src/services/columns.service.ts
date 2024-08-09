@@ -33,6 +33,7 @@ import {
   CalendarRange,
   Column,
   FormulaColumn,
+  Hook,
   KanbanView,
   Model,
   Source,
@@ -295,6 +296,7 @@ export class ColumnsService {
       formula_raw?: string;
       parsed_tree?: any;
       colOptions?: any;
+      fk_webhook_id?: string;
       type?: 'webhook' | 'url';
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
 
@@ -413,11 +415,16 @@ export class ColumnsService {
               NcError.badRequest('Invalid Formula');
             }
           } else if (colBody.type === 'webhook') {
-            // Fetch Webhook with Manual Trigger for the Model
-            // If not Found throw badRequest
-          }
+            if (!colBody.fk_webhook_id) {
+              NcError.badRequest('Webhook not found');
+            }
 
-          console.log(colBody);
+            const hook = await Hook.get(context, colBody.fk_webhook_id);
+
+            if (!hook || !hook.active || hook.event !== 'manual') {
+              NcError.badRequest('Webhook not found');
+            }
+          }
 
           await Column.update(context, column.id, {
             // title: colBody.title,
@@ -1821,8 +1828,15 @@ export class ColumnsService {
             NcError.badRequest('Invalid URL Formula');
           }
         } else if (colBody.type === 'webhook') {
-          // Fetch Webhook with Manual Trigger for the Model
-          // If not Found throw badRequest
+          if (!colBody.fk_webhook_id) {
+            NcError.badRequest('Webhook not found');
+          }
+
+          const hook = await Hook.get(context, colBody.fk_webhook_id);
+
+          if (!hook || !hook.active || hook.event !== 'manual') {
+            NcError.badRequest('Webhook not found');
+          }
         }
 
         await Column.insert(context, {

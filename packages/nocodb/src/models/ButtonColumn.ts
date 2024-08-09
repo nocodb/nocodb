@@ -9,8 +9,9 @@ export default class ButtonColumn {
   type: 'webhook' | 'url';
   label: string;
   theme: 'solid' | 'light' | 'text';
+  icon?: string;
   color: string;
-  webhook_id?: string;
+  fk_webhook_id?: string;
   formula?: string;
   formula_raw?: string;
   fk_workspace_id?: string;
@@ -32,7 +33,7 @@ export default class ButtonColumn {
   ) {
     const urlProps = ['formula_raw', 'formula', 'error', 'parsed_tree'];
 
-    const webhookProps = ['webhook_id'];
+    const webhookProps = ['fk_webhook_id'];
 
     const insertObj = extractProps(buttonColumn, [
       ...(buttonColumn.type === 'url' ? urlProps : webhookProps),
@@ -40,6 +41,7 @@ export default class ButtonColumn {
       'color',
       'label',
       'type',
+      'icon',
       'fk_column_id',
     ]);
 
@@ -102,13 +104,14 @@ export default class ButtonColumn {
       'parsed_tree',
     ];
 
-    const webhookProps = ['webhook_id'];
+    const webhookProps = ['fk_webhook_id'];
 
     const updateObj = extractProps(button, [
       ...(button.type === 'url' ? urlProps : webhookProps),
       'theme',
       'color',
       'type',
+      'icon',
       'label',
     ]);
 

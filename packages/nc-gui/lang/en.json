@@ -95,6 +95,8 @@
   "general": {
     "on": "On",
     "onMultiple": "On Multiple",
+    "manual": "Manual",
+    "trigger": "Trigger",
     "addLookupField": "Add {count} lookup field",
     "style": "Style",
     "label": "Label",
@@ -611,6 +613,7 @@
     "categories": "Categories"
   },
   "labels": {
+    "selectAWebhook": "--select a webhook--",
     "openUrl": "Open URL",
     "runWebHook": "Run Webhook",
     "onClick": "On click",

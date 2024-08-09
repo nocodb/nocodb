@@ -3,6 +3,7 @@ import {
   type ButtonType,
   type ColumnType,
   FormulaError,
+  type HookType,
   UITypes,
   isHiddenCol,
   jsepCurlyHook,
@@ -29,6 +30,18 @@ const meta = inject(MetaInj, ref())
 
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, removeAdditionalValidation } =
   useColumnCreateStoreOrThrow()
+
+const webhooksStore = useWebhooksStore()
+
+const { loadHooksList } = webhooksStore
+
+await loadHooksList()
+
+const { hooks, isHooksLoading } = toRefs(webhooksStore)
+
+const manualHooks = computed(() => {
+  return hooks.value.filter((hook) => hook.event === 'manual' && hook.active)
+})
 
 const supportedColumns = computed(
   () =>
@@ -105,7 +118,7 @@ if ((column.value?.colOptions as any)?.formula_raw) {
     ) || ''
 }
 
-const updateValidations = (type: 'webhook' | 'url') => {
+const updateValidations = (type?: 'webhook' | 'url') => {
   if (type === 'url') {
     setAdditionalValidations({
       formula_raw: [
@@ -287,22 +300,41 @@ watch(
 
 const isDropdownOpen = ref(false)
 
+const isWebHookSelectionDropdownOpen = ref(false)
+
+const selectedWebhook = ref<HookType>()
+
+const onSelectWebhook = (hook: HookType) => {
+  vModel.value.fk_webhook_id = hook.id
+  selectedWebhook.value = hook
+  isWebHookSelectionDropdownOpen.value = false
+}
+
 onMounted(async () => {
   jsep.plugins.register(jsepCurlyHook)
 
   if (isEdit.value) {
-    const colOptions = vModel.value.colOptions as any
+    const colOptions = vModel.value.colOptions as ButtonType
     vModel.value.type = colOptions?.type
     vModel.value.theme = colOptions?.theme
     vModel.value.label = colOptions?.label
     vModel.value.color = colOptions?.color
+    vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
     updateValidations(colOptions?.type)
+    selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
   } else {
     vModel.value.type = buttonTypes[0].value
     vModel.value.theme = 'solid'
     vModel.value.label = 'Button'
     vModel.value.color = 'brand'
     updateValidations('url')
+  }
+})
+
+watch(isHooksLoading, () => {
+  if (!isHooksLoading) {
+    if (vModel.value.fk_webhook_id) {
+    }
   }
 })
 </script>
@@ -398,9 +430,42 @@ onMounted(async () => {
       class="formula-monaco"
     ></div>
   </a-form-item>
+
+  <a-form-item v-if="vModel?.type === 'webhook'" class="mt-4">
+    <NcDropdown v-model:visible="isWebHookSelectionDropdownOpen" :trigger="['click']" class="nc-color-picker-dropdown-trigger">
+      <div
+        :class="{
+          '!border-brand-500 shadow-selected nc-button-style-dropdown ': isWebHookSelectionDropdownOpen,
+        }"
+        class="nc-button-style-dropdown-not-focus flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
+      >
+        <div class="flex w-full items-center gap-2">
+          <div :key="selectedWebhook?.id" class="flex items-center w-full gap-1 text-gray-800">
+            {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
+          </div>
+          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+        </div>
+      </div>
+      <template #overlay>
+        <NcListWithSearch
+          :is-parent-open="isDropdownOpen"
+          :search-input-placeholder="$t('placeholder.searchFields')"
+          :option-config="{ selectOptionEvent: ['c:actions:webhook'], optionClassName: '' }"
+          :options="manualHooks"
+          filter-field="title"
+          show-selected-option
+          @selected="onSelectWebhook"
+        />
+      </template>
+    </NcDropdown>
+  </a-form-item>
 </template>
 
 <style scoped lang="scss">
+.nc-list-with-search {
+  @apply w-full;
+}
+
 .formula-monaco {
   @apply rounded-md nc-scrollbar-md border-gray-200 border-1 overflow-y-auto overflow-x-hidden resize-y;
   min-height: 100px;

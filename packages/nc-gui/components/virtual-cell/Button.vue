@@ -11,7 +11,19 @@ const column = inject(ColumnInj) as Ref<
   }
 >
 
-const triggerAction = () => {
+const { currentRow } = useSmartsheetRowStoreOrThrow()
+
+const meta = inject(MetaInj, ref())
+
+const { $api } = useNuxtApp()
+
+const rowId = computed(() => {
+  return extractPkFromRow(currentRow.value?.row, meta.value?.columns!)
+})
+
+const isLoading = ref(false)
+
+const triggerAction = async () => {
   const colOptions = column.value.colOptions
 
   if (colOptions.type === 'url') {
@@ -23,7 +35,15 @@ const triggerAction = () => {
 
     window.open(fullUrl, '_blank')
   } else if (colOptions.type === 'webhook') {
-    // Call webhook
+    try {
+      isLoading.value = true
+
+      await $api.dbTableWebhook.trigger(props.modelValue, rowId.value)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      isLoading.value = false
+    }
   }
 }
 </script>

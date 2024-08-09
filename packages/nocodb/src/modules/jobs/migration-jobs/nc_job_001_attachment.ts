@@ -62,7 +62,7 @@ export class AttachmentMigrationProcessor {
           temp_file_references_table,
           (table) => {
             table.increments('id').primary();
-            table.string('file_path').notNullable();
+            table.text('file_path').notNullable();
             table.string('mimetype');
             table.boolean('referenced').defaultTo(false);
             table.boolean('thumbnail_generated').defaultTo(false);

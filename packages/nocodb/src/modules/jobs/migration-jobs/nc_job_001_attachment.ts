@@ -548,6 +548,8 @@ export class AttachmentMigration {
         }
       }
 
+      await queue.onIdle();
+
       this.log(
         `Processed total of ${numberOfModelsToBeProcessed} models with attachments`,
       );

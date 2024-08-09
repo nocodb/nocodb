@@ -71,6 +71,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const setAdditionalValidations = (validations: ValidationsObj) => {
       additionalValidations.value = { ...additionalValidations.value, ...validations }
     }
+
+    const removeAdditionalValidation = (key: string) => {
+      delete additionalValidations.value[key]
+    }
+
     const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
       postSaveOrUpdateCbk = cbk
     }
@@ -399,6 +404,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       onDataTypeChange,
       onUidtOrIdTypeChange,
       setAdditionalValidations,
+      removeAdditionalValidation,
       resetFields,
       validate,
       validateInfos,

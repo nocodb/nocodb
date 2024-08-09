@@ -295,6 +295,7 @@ export class ColumnsService {
       formula_raw?: string;
       parsed_tree?: any;
       colOptions?: any;
+      type?: 'webhook' | 'url';
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
 
     if (
@@ -310,6 +311,7 @@ export class ColumnsService {
         UITypes.Barcode,
         UITypes.ForeignKey,
         UITypes.Links,
+        UITypes.Button,
       ].includes(column.uidt)
     ) {
       if (column.uidt === colBody.uidt) {
@@ -359,6 +361,63 @@ export class ColumnsService {
             console.error(e);
             NcError.badRequest('Invalid Formula');
           }
+
+          await Column.update(context, column.id, {
+            // title: colBody.title,
+            ...column,
+            ...colBody,
+          });
+        } else if (column.uidt === UITypes.Button) {
+          if (colBody.type === 'url') {
+            colBody.formula = await substituteColumnAliasWithIdInFormula(
+              colBody.formula_raw || colBody.formula,
+              table.columns,
+            );
+            colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+              formula: colBody.formula || colBody.formula_raw,
+              columns: table.columns,
+              column,
+              clientOrSqlUi: source.type as any,
+              getMeta: async (modelId) => {
+                const model = await Model.get(context, modelId);
+                await model.getColumns(context);
+                return model;
+              },
+            });
+
+            try {
+              const baseModel = await reuseOrSave(
+                'baseModel',
+                reuse,
+                async () =>
+                  Model.getBaseModelSQL(context, {
+                    id: table.id,
+                    dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                      NcConnectionMgrv2.get(source),
+                    ),
+                  }),
+              );
+              await formulaQueryBuilderv2(
+                baseModel,
+                colBody.formula,
+                null,
+                table,
+                null,
+                {},
+                null,
+                true,
+                colBody.parsed_tree,
+              );
+            } catch (e) {
+              console.error(e);
+              NcError.badRequest('Invalid Formula');
+            }
+          } else if (colBody.type === 'webhook') {
+            // Fetch Webhook with Manual Trigger for the Model
+            // If not Found throw badRequest
+          }
+
+          console.log(colBody);
 
           await Column.update(context, column.id, {
             // title: colBody.title,
@@ -1716,6 +1775,63 @@ export class ColumnsService {
         });
 
         break;
+      case UITypes.Button: {
+        if (colBody.type === 'url') {
+          colBody.formula = await substituteColumnAliasWithIdInFormula(
+            colBody.formula_raw || colBody.formula,
+            table.columns,
+          );
+          colBody.parsed_tree = await validateFormulaAndExtractTreeWithType({
+            formula: colBody.formula,
+            columns: table.columns,
+            column: {
+              ...colBody,
+              colOptions: colBody,
+            },
+            clientOrSqlUi: source.type as any,
+            getMeta: async (modelId) => {
+              const model = await Model.get(context, modelId);
+              await model.getColumns(context);
+              return model;
+            },
+          });
+
+          try {
+            const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+              Model.getBaseModelSQL(context, {
+                id: table.id,
+                dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                  NcConnectionMgrv2.get(source),
+                ),
+              }),
+            );
+            await formulaQueryBuilderv2(
+              baseModel,
+              colBody.formula,
+              null,
+              table,
+              null,
+              {},
+              null,
+              true,
+              colBody.parsed_tree,
+            );
+          } catch (e) {
+            console.error(e);
+            NcError.badRequest('Invalid URL Formula');
+          }
+        } else if (colBody.type === 'webhook') {
+          // Fetch Webhook with Manual Trigger for the Model
+          // If not Found throw badRequest
+        }
+
+        await Column.insert(context, {
+          ...colBody,
+          fk_model_id: table.id,
+        });
+        break;
+      }
+
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
       case UITypes.CreatedBy:

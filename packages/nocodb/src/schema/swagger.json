@@ -19982,6 +19982,9 @@
           {
             "anyOf": [
               {
+                "$ref": "#/components/schemas/ButtonColumnReq"
+              },
+              {
                 "$ref": "#/components/schemas/FormulaColumnReq"
               },
               {
@@ -21069,6 +21072,154 @@
         },
         "x-stoplight": {
           "id": "syn5ameyiipp7"
+        }
+      },
+      "Button": {
+        "description": "Model for Button",
+        "examples": [
+          {
+            "error": "Error Message shows here",
+            "fk_column_id": "cl_h2micb4jdnmsh1",
+            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "formula_raw": "CONCAT(\"FOO\", {Title})",
+            "id": "fm_1lo8wqtvvipdns"
+          }
+        ],
+        "title": "Button Model",
+        "type": "object",
+        "properties": {
+          "error": {
+            "description": "Error Message",
+            "type": "string"
+          },
+          "type": {
+            "description": "Whether button is webhook or url",
+            "enum": [
+              "webhook",
+              "url"
+            ]
+          },
+          "theme": {
+            "description": "Button Theme",
+            "enum": [
+              "solid",
+              "text",
+              "light"
+            ]
+          },
+          "color": {
+            "description": "Button color",
+            "enum": [
+              "brand",
+              "red",
+              "green",
+              "maroon",
+              "blue",
+              "orange",
+              "pink",
+              "purple",
+              "yellow",
+              "gray"
+            ]
+          },
+          "webhook_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Webhook ID"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          },
+          "formula": {
+            "description": "Formula with column ID replaced",
+            "example": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "type": "string"
+          },
+          "formula_raw": {
+            "description": "Original Formula inputted in UI",
+            "example": "CONCAT(\"FOO\", {Title})",
+            "type": "string"
+          },
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          }
+        },
+        "x-stoplight": {
+          "id": "syn5ameyiipp7"
+        }
+      },
+      "ButtonColumnReq": {
+        "description": "Model for Button Column Request",
+        "examples": [
+          {
+            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "formula_raw": "CONCAT(\"FOO\", {Title})",
+            "title": "Formula",
+            "uidt": "Formula"
+          }
+        ],
+        "title": "Button Column Request Model",
+        "type": "object",
+        "properties": {
+          "formula": {
+            "description": "Formula with column ID replaced",
+            "type": "string"
+          },
+          "formula_raw": {
+            "description": "Original Formula inputted in UI",
+            "type": "string"
+          },
+          "title": {
+            "description": "Formula Title",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "uidt": {
+            "description": "UI Data Type",
+            "enum": [
+              "Formula"
+            ],
+            "type": "string"
+          },
+          "type": {
+            "description": "Whether button is webhook or url",
+            "enum": [
+              "webhook",
+              "url"
+            ]
+          },
+          "theme": {
+            "description": "Button Theme",
+            "enum": [
+              "solid",
+              "text",
+              "light"
+            ]
+          },
+          "color": {
+            "description": "Button color",
+            "enum": [
+              "brand",
+              "red",
+              "green",
+              "maroon",
+              "blue",
+              "orange",
+              "pink",
+              "purple",
+              "yellow",
+              "gray"
+            ]
+          },
+          "webhook_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Webhook ID"
+          }
+        },
+        "x-stoplight": {
+          "id": "tvczns7x7nj73"
         }
       },
       "FormulaColumnReq": {

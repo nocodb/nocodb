@@ -17,7 +17,7 @@ services:
         limits:
           memory: 500M
   mssql:
-    image: "mcr.microsoft.com/mssql/server:2017-latest"
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
     environment:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: Password123.
@@ -31,7 +31,7 @@ services:
       MYSQL_PASSWORD: password
       MYSQL_ROOT_PASSWORD: password
       MYSQL_USER: noco
-    image: "mysql:8.3.0"
+    image: "mysql:9.0.1"
     deploy:
       resources:
         limits:

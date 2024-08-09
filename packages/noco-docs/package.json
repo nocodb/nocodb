@@ -34,21 +34,21 @@
     "@docusaurus/plugin-sitemap": "3.1.1",
     "@docusaurus/preset-classic": "3.1.1",
     "@mdx-js/react": "^3.0.1",
-    "clsx": "^1.2.1",
+    "clsx": "^2.1.1",
     "dayjs": "^1.11.11",
     "docusaurus-plugin-sass": "^0.2.5",
     "docusaurus-theme-search-typesense": "^0.16.0",
     "nc-analytics": "^0.0.9",
     "plugin-image-zoom": "github:flexanalytics/plugin-image-zoom",
-    "prism-react-renderer": "^1.3.5",
+    "prism-react-renderer": "^2.3.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sass": "^1.71.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.1.1",
-    "@tsconfig/docusaurus": "^1.0.7",
-    "typescript": "^4.9.5"
+    "@tsconfig/docusaurus": "^2.0.3",
+    "typescript": "^5.5.4"
   },
   "browserslist": {
     "production": [
@@ -63,6 +63,6 @@
     ]
   },
   "engines": {
-    "node": ">=16.20.2"
+    "node": ">=20.16.0"
   }
 }

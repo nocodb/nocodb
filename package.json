@@ -17,8 +17,8 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "fs": "0.0.1-security",
-    "lerna": "^7.4.2",
-    "husky": "^8.0.3",
+    "lerna": "^8.1.8",
+    "husky": "^9.1.4",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "husky": {

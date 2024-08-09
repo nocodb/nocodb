@@ -113,6 +113,7 @@ export class DuplicateProcessor {
           destProject: dupProject,
           destBase: dupBase,
           hrTime,
+          req,
         });
       }
 
@@ -241,6 +242,7 @@ export class DuplicateProcessor {
         hrTime,
         modelFieldIds: fields,
         externalModels: relatedModels,
+        req,
       });
 
       elapsedTime(hrTime, 'import model data', 'duplicateModel');
@@ -381,6 +383,7 @@ export class DuplicateProcessor {
           sourceModel,
           ...relatedModels.filter((m) => m.id !== sourceModel.id),
         ],
+        req,
       });
 
       elapsedTime(hrTime, 'import model data', 'duplicateColumn');
@@ -420,6 +423,7 @@ export class DuplicateProcessor {
       hrTime: { hrTime: [number, number] };
       modelFieldIds?: Record<string, string[]>;
       externalModels?: Model[];
+      req: any;
     },
   ) {
     const {
@@ -431,6 +435,7 @@ export class DuplicateProcessor {
       hrTime,
       modelFieldIds,
       externalModels,
+      req,
     } = param;
 
     let handledLinks = [];
@@ -474,6 +479,7 @@ export class DuplicateProcessor {
         destProject,
         destBase,
         destModel: model,
+        req,
       });
 
       handledLinks = await this.importService.importLinkFromCsvStream(

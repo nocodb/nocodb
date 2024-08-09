@@ -2,6 +2,12 @@ import type { AttachmentResType, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';
 
+export enum MigrationJobTypes {
+  InitMigrationJobs = 'init-migration-jobs',
+  Attachment = 'attachment',
+  Thumbnail = 'thumbnail',
+}
+
 export enum JobTypes {
   DuplicateBase = 'duplicate-base',
   DuplicateModel = 'duplicate-model',
@@ -18,6 +24,7 @@ export enum JobTypes {
   CleanUp = 'clean-up',
   DataExport = 'data-export',
   ThumbnailGenerator = 'thumbnail-generator',
+  AttachmentCleanUp = 'attachment-clean-up',
 }
 
 export enum JobStatus {

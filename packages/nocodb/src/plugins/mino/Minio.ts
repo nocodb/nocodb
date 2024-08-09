@@ -15,6 +15,8 @@ interface MinioObjectStorageInput {
 }
 
 export default class Minio implements IStorageAdapterV2 {
+  name = 'Minio';
+
   private minioClient: MinioClient;
   private input: MinioObjectStorageInput;
 
@@ -190,6 +192,10 @@ export default class Minio implements IStorageAdapterV2 {
   }
 
   public async fileDelete(_path: string): Promise<any> {
+    throw new Error('Method not implemented.');
+  }
+
+  public async scanFiles(_globPattern: string): Promise<Readable> {
     return Promise.resolve(undefined);
   }
 }

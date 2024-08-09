@@ -9,8 +9,10 @@ import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-
 import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
 import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export.processor';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
-import { JobStatus, JobTypes } from '~/interface/Jobs';
+import { JobStatus, JobTypes, MigrationJobTypes } from '~/interface/Jobs';
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
+import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
+import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
 
 export interface Job {
   id: string;
@@ -21,7 +23,7 @@ export interface Job {
 
 @Injectable()
 export class QueueService {
-  static queue = new PQueue({ concurrency: 1 });
+  static queue = new PQueue({ concurrency: 2 });
   static queueIdCounter = 1;
   static processed = 0;
   static queueMemory: Job[] = [];
@@ -37,6 +39,8 @@ export class QueueService {
     protected readonly webhookHandlerProcessor: WebhookHandlerProcessor,
     protected readonly dataExportProcessor: DataExportProcessor,
     protected readonly thumbnailGeneratorProcessor: ThumbnailGeneratorProcessor,
+    protected readonly attachmentCleanUpProcessor: AttachmentCleanUpProcessor,
+    protected readonly initMigrationJobs: InitMigrationJobs,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((job) => job.id === data.job.id);
@@ -105,6 +109,14 @@ export class QueueService {
     [JobTypes.ThumbnailGenerator]: {
       this: this.thumbnailGeneratorProcessor,
       fn: this.thumbnailGeneratorProcessor.job,
+    },
+    [JobTypes.AttachmentCleanUp]: {
+      this: this.attachmentCleanUpProcessor,
+      fn: this.attachmentCleanUpProcessor.job,
+    },
+    [MigrationJobTypes.InitMigrationJobs]: {
+      this: this.initMigrationJobs,
+      fn: this.initMigrationJobs.job,
     },
   };
 

@@ -13,6 +13,8 @@ interface BackblazeObjectStorageInput {
 }
 
 export default class Backblaze extends GenericS3 implements IStorageAdapterV2 {
+  name = 'Backblaze';
+
   protected input: BackblazeObjectStorageInput;
 
   constructor(input: unknown) {

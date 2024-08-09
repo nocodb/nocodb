@@ -235,6 +235,7 @@ async function sync() {
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
     })
+    listeningForUpdates.value = false
     listenForUpdates(jobData.id)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

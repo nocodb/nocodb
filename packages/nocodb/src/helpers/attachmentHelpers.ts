@@ -54,3 +54,13 @@ export function validateAndNormaliseLocalPath(
 
   return absolutePath;
 }
+
+export function getPathFromUrl(url: string, removePrefix = false) {
+  const newUrl = new URL(encodeURI(url));
+
+  const pathName = removePrefix
+    ? newUrl.pathname.replace(/.*?nc\/uploads\//, '')
+    : newUrl.pathname;
+
+  return decodeURI(`${pathName}${newUrl.search}${newUrl.hash}`);
+}

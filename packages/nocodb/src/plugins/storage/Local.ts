@@ -1,15 +1,16 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
+import { Readable } from 'stream';
 import mkdirp from 'mkdirp';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
+import { globStream } from 'glob';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
-import type { Readable } from 'stream';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 
 export default class Local implements IStorageAdapterV2 {
-  constructor() {}
+  name = 'Local';
 
   public async fileCreate(key: string, file: XcFile): Promise<any> {
     const destPath = validateAndNormaliseLocalPath(key);
@@ -95,9 +96,8 @@ export default class Local implements IStorageAdapterV2 {
     return fs.promises.readdir(destDir);
   }
 
-  // todo: implement
-  fileDelete(_path: string): Promise<any> {
-    return Promise.resolve(undefined);
+  fileDelete(path: string): Promise<any> {
+    return fs.promises.unlink(validateAndNormaliseLocalPath(path));
   }
 
   public async fileRead(filePath: string): Promise<any> {
@@ -109,6 +109,25 @@ export default class Local implements IStorageAdapterV2 {
     } catch (e) {
       throw e;
     }
+  }
+
+  public async scanFiles(globPattern: string) {
+    // remove all dots from the glob pattern
+    globPattern = globPattern.replace(/\./g, '');
+
+    // remove the leading slash
+    globPattern = globPattern.replace(/^\//, '');
+
+    // make sure pattern starts with nc/uploads/
+    if (!globPattern.startsWith('nc/uploads/')) {
+      globPattern = `nc/uploads/${globPattern}`;
+    }
+
+    const stream = globStream(globPattern, {
+      nodir: true,
+    });
+
+    return Readable.from(stream);
   }
 
   init(): Promise<any> {

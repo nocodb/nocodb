@@ -1688,6 +1688,7 @@ export class ImportService {
                 destProject,
                 destBase,
                 destModel: model,
+                req,
               });
 
               elapsedTime(
@@ -1735,9 +1736,10 @@ export class ImportService {
       destProject: Base;
       destBase: Source;
       destModel: Model;
+      req: any;
     },
   ): Promise<void> {
-    const { idMap, dataStream, destBase, destProject, destModel } = param;
+    const { idMap, dataStream, destBase, destProject, destModel, req } = param;
 
     const headers: string[] = [];
     let chunk = [];
@@ -1804,7 +1806,7 @@ export class ImportService {
                     baseName: destProject.id,
                     tableName: destModel.id,
                     body: chunk,
-                    cookie: null,
+                    cookie: req,
                     chunkSize: chunk.length + 1,
                     foreign_key_checks: !!destBase.isMeta(),
                     raw: true,
@@ -1825,7 +1827,7 @@ export class ImportService {
                 baseName: destProject.id,
                 tableName: destModel.id,
                 body: chunk,
-                cookie: null,
+                cookie: req,
                 chunkSize: chunk.length + 1,
                 foreign_key_checks: !!destBase.isMeta(),
                 raw: true,

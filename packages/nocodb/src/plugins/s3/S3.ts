@@ -15,6 +15,8 @@ interface S3Input {
 }
 
 export default class S3 extends GenericS3 implements IStorageAdapterV2 {
+  name = 'S3';
+
   protected input: S3Input;
 
   constructor(input: any) {

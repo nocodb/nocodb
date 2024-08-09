@@ -13,6 +13,8 @@ interface VultrObjectStorageInput {
 }
 
 export default class Vultr extends GenericS3 implements IStorageAdapterV2 {
+  name = 'Vultr';
+
   protected input: VultrObjectStorageInput;
 
   constructor(input: unknown) {

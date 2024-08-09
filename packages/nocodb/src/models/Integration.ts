@@ -237,8 +237,8 @@ export default class Integration implements IntegrationType {
       integration.meta = parseMetaProp(integration, 'meta');
     }
 
-    const integrations = integrationList?.map((baseData) => {
-      return this.castType(baseData);
+    const integrations = integrationList?.map((integrationData) => {
+      return this.castType(integrationData);
     });
 
     // if includeDatabaseInfo is true then get the database info for each integration
@@ -280,7 +280,7 @@ export default class Integration implements IntegrationType {
     force = false,
     ncMeta = Noco.ncMeta,
   ): Promise<Integration> {
-    const baseData = await ncMeta.metaGet2(
+    const integrationData = await ncMeta.metaGet2(
       context.workspace_id,
       context.workspace_id === RootScopes.BYPASS
         ? RootScopes.BYPASS
@@ -308,11 +308,11 @@ export default class Integration implements IntegrationType {
           },
     );
 
-    if (baseData) {
-      baseData.meta = parseMetaProp(baseData, 'meta');
+    if (integrationData) {
+      integrationData.meta = parseMetaProp(integrationData, 'meta');
     }
 
-    return this.castType(baseData);
+    return this.castType(integrationData);
   }
 
   public async getConnectionConfig(): Promise<any> {

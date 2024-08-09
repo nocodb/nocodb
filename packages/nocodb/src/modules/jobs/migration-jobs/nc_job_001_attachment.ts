@@ -312,7 +312,7 @@ export class AttachmentMigrationProcessor {
                       if (!isReferenced) {
                         // file is from another storage adapter
                         this.log(
-                          `file not found in file references table ${filePath}`,
+                          `file not found in file references table ${attachment.path || attachment.url}`,
                         );
                         continue;
                       } else if (isReferenced.referenced === false) {

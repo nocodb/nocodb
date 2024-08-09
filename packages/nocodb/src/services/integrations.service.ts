@@ -5,7 +5,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Base, Integration } from '~/models';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError'
 import { Source } from '~/models';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -27,6 +27,10 @@ export class IntegrationsService {
     param: { integrationId: any; includeSources?: boolean },
   ) {
     const integration = await Integration.get(context, param.integrationId);
+
+    if (!integration) {
+      NcError.integrationNotFound(param.integrationId);
+    }
 
     integration.config = await integration.getConnectionConfig();
 
@@ -108,32 +112,26 @@ export class IntegrationsService {
         ncMeta,
       );
 
-      // check linked sources
-      const sources = await ncMeta.metaList2(
-        RootScopes.WORKSPACE,
-        RootScopes.WORKSPACE,
-        MetaTable.BASES,
-        {
-          condition: {
-            fk_workspace_id: integration.fk_workspace_id,
-            fk_integration_id: integration.id,
-          },
-          xcCondition: {
-            _or: [
-              {
-                deleted: {
-                  eq: false,
-                },
-              },
-              {
-                deleted: {
-                  eq: null,
-                },
-              },
-            ],
-          },
-        },
-      );
+      if (!integration) {
+        NcError.integrationNotFound(param.integrationId);
+      }
+
+      // get linked sources
+      const sourceListQb = ncMeta
+        .knex(MetaTable.BASES)
+        .where({
+          fk_integration_id: integration.id,
+        })
+        .where((qb) => {
+          qb.where('deleted', false).orWhere('deleted', null);
+        });
+
+      if (integration.fk_workspace_id) {
+        sourceListQb.where('fk_workspace_id', integration.fk_workspace_id);
+      }
+
+      const sources: Pick<Source, 'id' | 'base_id'>[] =
+        await sourceListQb.select('id', 'base_id');
 
       if (sources.length > 0 && !param.force) {
         const bases = await Promise.all(
@@ -176,6 +174,7 @@ export class IntegrationsService {
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       NcError.badRequest(e);
     }
     return true;
@@ -187,6 +186,9 @@ export class IntegrationsService {
   ) {
     try {
       const integration = await Integration.get(context, param.integrationId);
+      if (!integration) {
+        NcError.integrationNotFound(param.integrationId);
+      }
       await integration.softDelete();
     } catch (e) {
       NcError.badRequest(e);

@@ -116,11 +116,15 @@ export const updateMigrationJobsState = async (
 export const setMigrationJobsStallInterval = () => {
   // update stall check every 5 mins
   const interval = setInterval(async () => {
-    const migrationJobsState = await getMigrationJobsState();
+    try {
+      const migrationJobsState = await getMigrationJobsState();
 
-    migrationJobsState.stall_check = Date.now();
+      migrationJobsState.stall_check = Date.now();
 
-    await updateMigrationJobsState(migrationJobsState);
+      await updateMigrationJobsState(migrationJobsState);
+    } catch (e) {
+      console.error('Error updating stall check for migration job', e);
+    }
   }, 5 * 60 * 1000);
 
   return interval;

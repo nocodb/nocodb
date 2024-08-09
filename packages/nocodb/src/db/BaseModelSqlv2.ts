@@ -4292,24 +4292,40 @@ class BaseModelSqlv2 {
                 case 'mysql2':
                   qb.select(
                     this.dbDriver.raw(
-                      `JSON_OBJECT('label', ?, 'url', ??) as ??`,
-                      [`${colOption.label}`, selectQb.builder, column.id],
+                      `JSON_OBJECT('type', ? , 'label', ?, 'url', ??) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        column.id,
+                      ],
                     ),
                   );
                   break;
                 case 'pg':
                   qb.select(
                     this.dbDriver.raw(
-                      `json_build_object('label', ?, 'url', ??) as ??`,
-                      [`${colOption.label}`, selectQb.builder, column.id],
+                      `json_build_object('type', ? ,'label', ?, 'url', ??) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        column.id,
+                      ],
                     ),
                   );
                   break;
                 case 'sqlite3':
                   qb.select(
                     this.dbDriver.raw(
-                      `json_object('label', ?, 'url', ??) as ??`,
-                      [`${colOption.label}`, selectQb.builder, column.id],
+                      `json_object('type', ?, 'label', ?, 'url', ??) as ??`,
+                      [
+                        colOption.type,
+                        ,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        column.id,
+                      ],
                     ),
                   );
                   break;
@@ -4321,8 +4337,9 @@ class BaseModelSqlv2 {
                 case 'mysql2':
                   qb.select(
                     this.dbDriver.raw(
-                      `JSON_OBJECT('label', ?, 'fk_webhook_id', ?) as ??`,
+                      `JSON_OBJECT('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
                       [
+                        colOption.type,
                         `${colOption.label}`,
                         colOption.fk_webhook_id,
                         column.id,
@@ -4333,8 +4350,9 @@ class BaseModelSqlv2 {
                 case 'pg':
                   qb.select(
                     this.dbDriver.raw(
-                      `json_build_object('label', ?, 'fk_webhook_id', ?) as ??`,
+                      `json_build_object('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
                       [
+                        colOption.type,
                         `${colOption.label}`,
                         colOption.fk_webhook_id,
                         column.id,
@@ -4345,8 +4363,9 @@ class BaseModelSqlv2 {
                 case 'sqlite3':
                   qb.select(
                     this.dbDriver.raw(
-                      `json_object('label', ?, 'fk_webhook_id', ?) as ??`,
+                      `json_object('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
                       [
+                        colOption.type,
                         `${colOption.label}`,
                         colOption.fk_webhook_id,
                         column.id,

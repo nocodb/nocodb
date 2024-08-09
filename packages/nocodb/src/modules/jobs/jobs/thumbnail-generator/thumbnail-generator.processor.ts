@@ -9,6 +9,7 @@ import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import type Sharp from 'sharp';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 
 @Processor(JOBS_QUEUE)
 export class ThumbnailGeneratorProcessor {
@@ -131,9 +132,7 @@ export class ThumbnailGeneratorProcessor {
     if (attachment.path) {
       relativePath = attachment.path.replace(/^download\//, '');
     } else if (attachment.url) {
-      relativePath = decodeURI(
-        new URL(encodeURI(attachment.url)).pathname,
-      ).replace(/^\/+/, '');
+      relativePath = getPathFromUrl(attachment.url).replace(/^\/+/, '');
     }
 
     const file = await storageAdapter.fileRead(relativePath);

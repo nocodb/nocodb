@@ -15,6 +15,8 @@ interface MinioObjectStorageInput {
 }
 
 export default class Minio implements IStorageAdapterV2 {
+  name = 'Minio';
+
   private minioClient: MinioClient;
   private input: MinioObjectStorageInput;
 

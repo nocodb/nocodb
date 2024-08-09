@@ -21,7 +21,7 @@ export class AttachmentCleanUpProcessor {
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-    const storageAdapterName = storageAdapter.constructor.name;
+    const storageAdapterName = storageAdapter.name;
 
     const orphanedFilesQueryBuilder = ncMeta
       .knexConnection(MetaTable.FILE_REFERENCES)

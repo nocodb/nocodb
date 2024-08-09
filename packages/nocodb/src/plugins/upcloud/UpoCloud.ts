@@ -13,6 +13,8 @@ interface UpoCloudStorgeInput {
 }
 
 export default class UpoCloud extends GenericS3 implements IStorageAdapterV2 {
+  name = 'UpoCloud';
+
   protected input: UpoCloudStorgeInput;
 
   constructor(input: unknown) {

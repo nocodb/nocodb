@@ -10,7 +10,7 @@ import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 
 export default class Local implements IStorageAdapterV2 {
-  constructor() {}
+  name = 'Local';
 
   public async fileCreate(key: string, file: XcFile): Promise<any> {
     const destPath = validateAndNormaliseLocalPath(key);

@@ -90,7 +90,7 @@ export class AttachmentMigrationProcessor {
       // get all file references
       const storageAdapter = await NcPluginMgrv2.storageAdapter(ncMeta);
 
-      const storageAdapterType = storageAdapter.constructor.name;
+      const storageAdapterType = storageAdapter.name;
 
       const fileScanStream = await storageAdapter.scanFiles('nc/uploads/**');
 

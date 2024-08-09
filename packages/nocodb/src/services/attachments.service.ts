@@ -120,7 +120,7 @@ export class AttachmentsService {
               base_id: RootScopes.ROOT,
             },
             {
-              storage: storageAdapter.constructor.name,
+              storage: storageAdapter.name,
               file_url:
                 url ?? path.join('download', filePath.join('/'), fileName),
               file_size: file.size,
@@ -282,7 +282,7 @@ export class AttachmentsService {
               base_id: RootScopes.ROOT,
             },
             {
-              storage: storageAdapter.constructor.name,
+              storage: storageAdapter.name,
               file_url:
                 attachmentUrl ??
                 path.join('download', filePath.join('/'), fileName),

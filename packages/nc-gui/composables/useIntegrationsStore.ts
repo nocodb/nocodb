@@ -217,7 +217,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
       await loadIntegrations(loadDatasourceInfo, baseId)
 
-      eventBus.emit(IntegrationStoreEvents.INTEGRATION_ADD, response)
+      if (mode === 'create') {
+        eventBus.emit(IntegrationStoreEvents.INTEGRATION_ADD, response)
+      }
 
       pageMode.value = null
       activeIntegration.value = null

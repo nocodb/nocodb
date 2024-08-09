@@ -202,17 +202,6 @@ export class AttachmentMigrationProcessor {
             base_id,
           };
 
-          const attachmentColumns = await ncMeta
-            .knexConnection(MetaTable.COLUMNS)
-            .select('id', 'title', 'column_name')
-            .where('uidt', UITypes.Attachment)
-            .where('fk_model_id', fk_model_id);
-
-          if (!attachmentColumns?.length) {
-            this.log(`no attachment columns found for ${fk_model_id}`);
-            continue;
-          }
-
           const source = await Source.get(context, source_id);
 
           if (!source) {
@@ -228,6 +217,10 @@ export class AttachmentMigrationProcessor {
           }
 
           await model.getColumns(context);
+
+          const attachmentColumns = model.columns.filter(
+            (c) => c.uidt === UITypes.Attachment,
+          );
 
           const dbDriver = await NcConnectionMgrv2.get(source);
 

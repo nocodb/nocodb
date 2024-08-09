@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { promisify } from 'util';
+import { Readable } from 'stream';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import {
@@ -10,7 +11,6 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { Upload } from '@aws-sdk/lib-storage';
 import type { PutObjectRequest, S3 as S3Client } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
-import type { Readable } from 'stream';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 
 interface GenerocObjectStorageInput {
@@ -200,7 +200,53 @@ export default class GenericS3 implements IStorageAdapterV2 {
     return Promise.resolve(undefined);
   }
 
-  public async scanFiles(_globPattern: string): Promise<Readable> {
-    return Promise.resolve(undefined);
+  public async scanFiles(globPattern: string): Promise<Readable> {
+    // remove all dots from the glob pattern
+    globPattern = globPattern.replace(/\./g, '');
+
+    // remove the leading slash
+    globPattern = globPattern.replace(/^\//, '');
+
+    // make sure pattern starts with nc/uploads/
+    if (!globPattern.startsWith('nc/uploads/')) {
+      globPattern = `nc/uploads/${globPattern}`;
+    }
+
+    // S3 does not support glob so remove *
+    globPattern = globPattern.replace(/\*/g, '');
+
+    const stream = new Readable({
+      read() {},
+    });
+
+    stream.setEncoding('utf8');
+
+    const listObjects = async (continuationToken?: string) => {
+      this.s3Client
+        .listObjectsV2({
+          Bucket: this.input.bucket,
+          Prefix: globPattern,
+          ...(continuationToken
+            ? { ContinuationToken: continuationToken }
+            : {}),
+        })
+        .then((response) => {
+          response.Contents.forEach((content) => {
+            stream.push(content.Key);
+          });
+
+          if (response.IsTruncated) {
+            listObjects(response.NextContinuationToken);
+          } else {
+            stream.push(null);
+          }
+        });
+    };
+
+    listObjects().catch((error) => {
+      stream.emit('error', error);
+    });
+
+    return stream;
   }
 }

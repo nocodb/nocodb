@@ -9,7 +9,7 @@ import {
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import type { ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
@@ -580,6 +580,16 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
 
   if (column.uidt === UITypes.Formula && column.colOptions?.formula_raw && !column?.formula_raw) {
     column.formula_raw = column.colOptions?.formula_raw
+  }
+
+  if (column.uidt === UITypes.Button) {
+    const colOptions = column.colOptions as ButtonType
+    column.type = colOptions?.type
+    column.theme = colOptions?.theme
+    column.label = colOptions?.label
+    column.color = colOptions?.color
+    column.fk_webhook_id = colOptions?.fk_webhook_id
+    column.icon = colOptions?.icon
   }
 
   return column

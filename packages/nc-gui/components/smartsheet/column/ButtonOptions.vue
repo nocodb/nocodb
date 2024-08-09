@@ -13,6 +13,7 @@ import {
 import { type editor as MonacoEditor, languages, editor as monacoEditor } from 'monaco-editor'
 import jsep from 'jsep'
 import formulaLanguage from '../../monaco/formula'
+import { searchIcons } from '../../../utils/iconUtils'
 
 const props = defineProps<{
   value: any
@@ -302,12 +303,25 @@ const isDropdownOpen = ref(false)
 
 const isWebHookSelectionDropdownOpen = ref(false)
 
+const isButtonIconDropdownOpen = ref(false)
+
+const iconSearchQuery = ref('')
+
+const icons = computed(() => {
+  return searchIcons(iconSearchQuery.value)
+})
+
 const selectedWebhook = ref<HookType>()
 
 const onSelectWebhook = (hook: HookType) => {
   vModel.value.fk_webhook_id = hook.id
   selectedWebhook.value = hook
   isWebHookSelectionDropdownOpen.value = false
+}
+
+const selectIcon = (icon: string) => {
+  vModel.value.icon = icon
+  isButtonIconDropdownOpen.value = false
 }
 
 onMounted(async () => {
@@ -320,6 +334,7 @@ onMounted(async () => {
     vModel.value.label = colOptions?.label
     vModel.value.color = colOptions?.color
     vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
+    vModel.value.icon = colOptions?.icon
     updateValidations(colOptions?.type)
     selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
   } else {
@@ -340,12 +355,10 @@ watch(isHooksLoading, () => {
 </script>
 
 <template>
+  <a-form-item v-bind="validateInfos.label" :label="$t('general.label')">
+    <a-input v-model:value="vModel.label" class="nc-column-name-input !rounded-lg" placeholder="Button" />
+  </a-form-item>
   <a-row :gutter="8">
-    <a-col :span="12">
-      <a-form-item v-bind="validateInfos.label" :label="$t('general.label')">
-        <a-input v-model:value="vModel.label" class="nc-column-name-input !rounded-lg" placeholder="Button" />
-      </a-form-item>
-    </a-col>
     <a-col :span="12">
       <a-form-item :label="$t('general.style')" v-bind="validateInfos.theme">
         <NcDropdown v-model:visible="isDropdownOpen" class="nc-color-picker-dropdown-trigger">
@@ -391,6 +404,52 @@ watch(isHooksLoading, () => {
                   </span>
                 </div>
               </div>
+              <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            </div>
+          </div>
+        </NcDropdown>
+      </a-form-item>
+    </a-col>
+    <a-col :span="12">
+      <a-form-item :label="$t('labels.icon')" v-bind="validateInfos.icon">
+        <NcDropdown v-model:visible="isButtonIconDropdownOpen" class="nc-color-picker-dropdown-trigger">
+          <template #overlay>
+            <div class="bg-white w-80 space-y-3 h-70 overflow-y-auto rounded-lg">
+              <div class="!sticky top-0 bg-white px-2 pt-2">
+                <a-input
+                  ref="inputRef"
+                  v-model:value="iconSearchQuery"
+                  :placeholder="$t('placeholder.searchIcons')"
+                  class="nc-dropdown-search-unified-input z-10"
+                >
+                  <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
+                ></a-input>
+              </div>
+
+              <div class="grid px-3 auto-rows-max pb-2 nc-scrollbar-md gap-3 grid-cols-10">
+                <component
+                  :is="icon"
+                  v-for="({ icon, name }, i) in icons"
+                  :key="i"
+                  :icon="icon"
+                  class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
+                  @click="selectIcon(name)"
+                />
+              </div>
+            </div>
+          </template>
+
+          <div
+            :class="{
+              '!border-brand-500 shadow-selected nc-button-style-dropdown ': isButtonIconDropdownOpen,
+            }"
+            class="nc-button-style-dropdown-not-focus flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
+          >
+            <div class="flex w-full items-center justify-between gap-2">
+              <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4" />
+              <span v-else>
+                {{ $t('labels.selectIcon') }}
+              </span>
               <GeneralIcon icon="arrowDown" class="text-gray-700" />
             </div>
           </div>

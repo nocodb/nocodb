@@ -337,81 +337,90 @@ export class AttachmentMigrationProcessor {
                   );
 
                   for (const attachment of attachmentArr) {
-                    if ('path' in attachment || 'url' in attachment) {
-                      const filePath = `nc/uploads/${
-                        attachment.path?.replace(/^download\//, '') ||
-                        decodeURI(
-                          `${new URL(attachment.url).pathname.replace(
-                            /.*?nc\/uploads\//,
-                            '',
-                          )}`,
-                        )
-                      }`;
+                    try {
+                      if ('path' in attachment || 'url' in attachment) {
+                        const filePath = `nc/uploads/${
+                          attachment.path?.replace(/^download\//, '') ||
+                          decodeURI(
+                            `${new URL(attachment.url).pathname.replace(
+                              /.*?nc\/uploads\//,
+                              '',
+                            )}`,
+                          )
+                        }`;
 
-                      const isReferenced = await ncMeta
-                        .knexConnection(temp_file_references_table)
-                        .where('file_path', filePath)
-                        .first();
-
-                      if (!isReferenced) {
-                        // file is from another storage adapter
-                        this.log(
-                          `file not found in file references table ${
-                            attachment.path || attachment.url
-                          }`,
-                        );
-                        continue;
-                      } else if (isReferenced.referenced === false) {
-                        const fileNameWithExt = path.basename(filePath);
-
-                        const mimetype =
-                          attachment.mimetype ||
-                          mimetypes[path.extname(fileNameWithExt).slice(1)];
-
-                        await ncMeta
+                        const isReferenced = await ncMeta
                           .knexConnection(temp_file_references_table)
                           .where('file_path', filePath)
-                          .update({
-                            mimetype,
-                            referenced: true,
-                          });
-
-                        // insert file reference if not exists
-                        const fileReference = await ncMeta
-                          .knexConnection(MetaTable.FILE_REFERENCES)
-                          .where('file_url', attachment.path || attachment.url)
-                          .andWhere('storage', storageAdapterType)
                           .first();
 
-                        if (!fileReference) {
-                          await FileReference.insert(
-                            {
-                              workspace_id: RootScopes.ROOT,
-                              base_id: RootScopes.ROOT,
-                            },
-                            {
-                              storage: storageAdapterType,
-                              file_url: attachment.path || attachment.url,
-                              file_size: attachment.size,
-                              deleted: true,
-                            },
+                        if (!isReferenced) {
+                          // file is from another storage adapter
+                          this.log(
+                            `file not found in file references table ${
+                              attachment.path || attachment.url
+                            }`,
                           );
+                          continue;
+                        } else if (isReferenced.referenced === false) {
+                          const fileNameWithExt = path.basename(filePath);
+
+                          const mimetype =
+                            attachment.mimetype ||
+                            mimetypes[path.extname(fileNameWithExt).slice(1)];
+
+                          await ncMeta
+                            .knexConnection(temp_file_references_table)
+                            .where('file_path', filePath)
+                            .update({
+                              mimetype,
+                              referenced: true,
+                            });
+
+                          // insert file reference if not exists
+                          const fileReference = await ncMeta
+                            .knexConnection(MetaTable.FILE_REFERENCES)
+                            .where(
+                              'file_url',
+                              attachment.path || attachment.url,
+                            )
+                            .andWhere('storage', storageAdapterType)
+                            .first();
+
+                          if (!fileReference) {
+                            await FileReference.insert(
+                              {
+                                workspace_id: RootScopes.ROOT,
+                                base_id: RootScopes.ROOT,
+                              },
+                              {
+                                storage: storageAdapterType,
+                                file_url: attachment.path || attachment.url,
+                                file_size: attachment.size,
+                                deleted: true,
+                              },
+                            );
+                          }
+                        }
+
+                        if (!('id' in attachment)) {
+                          attachment.id = await FileReference.insert(context, {
+                            source_id: source.id,
+                            fk_model_id,
+                            fk_column_id: column.id,
+                            file_url: attachment.path || attachment.url,
+                            file_size: attachment.size,
+                            is_external: !source.isMeta(),
+                            deleted: false,
+                          });
+
+                          updateRequired = true;
                         }
                       }
-
-                      if (!('id' in attachment)) {
-                        attachment.id = await FileReference.insert(context, {
-                          source_id: source.id,
-                          fk_model_id,
-                          fk_column_id: column.id,
-                          file_url: attachment.path || attachment.url,
-                          file_size: attachment.size,
-                          is_external: !source.isMeta(),
-                          deleted: false,
-                        });
-
-                        updateRequired = true;
-                      }
+                    } catch (e) {
+                      this.log(`Error processing attachment ${attachment}`);
+                      this.log(e);
+                      throw e;
                     }
                   }
                 }

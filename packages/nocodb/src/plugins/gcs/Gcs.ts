@@ -179,4 +179,8 @@ export default class Gcs implements IStorageAdapterV2 {
 
     return url;
   }
+
+  public async scanFiles(_globPattern: string): Promise<Readable> {
+    return Promise.resolve(undefined);
+  }
 }

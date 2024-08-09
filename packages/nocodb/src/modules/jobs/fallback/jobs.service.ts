@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
 import { QueueService } from '~/modules/jobs/fallback/fallback-queue.service';
-import { JobStatus } from '~/interface/Jobs';
+import { JobStatus, MigrationJobTypes } from '~/interface/Jobs';
 import { Job } from '~/models';
 import { RootScopes } from '~/utils/globals';
 
@@ -9,7 +9,9 @@ import { RootScopes } from '~/utils/globals';
 export class JobsService implements OnModuleInit {
   constructor(private readonly fallbackQueueService: QueueService) {}
 
-  async onModuleInit() {}
+  async onModuleInit() {
+    await this.add(MigrationJobTypes.InitMigrationJobs, {});
+  }
 
   async add(name: string, data: any) {
     const context = {

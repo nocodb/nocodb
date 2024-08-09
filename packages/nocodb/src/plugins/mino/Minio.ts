@@ -192,4 +192,8 @@ export default class Minio implements IStorageAdapterV2 {
   public async fileDelete(_path: string): Promise<any> {
     return Promise.resolve(undefined);
   }
+
+  public async scanFiles(_globPattern: string): Promise<Readable> {
+    return Promise.resolve(undefined);
+  }
 }

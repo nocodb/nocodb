@@ -7,7 +7,6 @@ import {
   type PutObjectCommandInput,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-
 import { Upload } from '@aws-sdk/lib-storage';
 import type { PutObjectRequest, S3 as S3Client } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
@@ -198,6 +197,10 @@ export default class GenericS3 implements IStorageAdapterV2 {
   }
 
   public async fileDelete(_path: string): Promise<any> {
+    return Promise.resolve(undefined);
+  }
+
+  public async scanFiles(_globPattern: string): Promise<Readable> {
     return Promise.resolve(undefined);
   }
 }

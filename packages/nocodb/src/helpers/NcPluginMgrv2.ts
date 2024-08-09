@@ -138,6 +138,7 @@ class NcPluginMgrv2 {
           access_key: process.env.NC_S3_ACCESS_KEY,
           access_secret: process.env.NC_S3_ACCESS_SECRET,
           force_path_style: process.env.NC_S3_FORCE_PATH_STYLE === 'true',
+          acl: process.env.NC_S3_ACL,
         }),
       });
     }

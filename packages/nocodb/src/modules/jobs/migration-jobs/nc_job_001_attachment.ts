@@ -364,7 +364,7 @@ export class AttachmentMigrationProcessor {
                           fk_column_id: column.id,
                           file_url: attachment.path || attachment.url,
                           file_size: attachment.size,
-                          is_external: !!source.isMeta(),
+                          is_external: !source.isMeta(),
                           deleted: false,
                         });
 

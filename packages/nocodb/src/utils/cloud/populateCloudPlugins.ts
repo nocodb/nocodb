@@ -8,7 +8,8 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
     !process.env.NC_CLOUD_S3_ACCESS_KEY ||
     !process.env.NC_CLOUD_S3_ACCESS_SECRET ||
     !process.env.NC_CLOUD_S3_BUCKET_NAME ||
-    !process.env.NC_CLOUD_S3_REGION
+    !process.env.NC_CLOUD_S3_REGION ||
+    !process.env.NC_CLOUD_S3_ACL
   ) {
     throw new Error('S3 env variables not found');
   }
@@ -28,6 +29,7 @@ export const populatePluginsForCloud = async ({ ncMeta = Noco.ncMeta }) => {
     access_secret: process.env.NC_CLOUD_S3_ACCESS_SECRET,
     bucket: process.env.NC_CLOUD_S3_BUCKET_NAME,
     region: process.env.NC_CLOUD_S3_REGION,
+    acl: process.env.NC_CLOUD_S3_ACL,
   };
 
   const isS3PluginUpdateNeeded = Object.keys(s3PluginFromEnv).some(

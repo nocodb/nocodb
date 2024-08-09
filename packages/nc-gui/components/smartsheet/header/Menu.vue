@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { type ColumnReqType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import { SmartsheetStoreEvents } from '#imports'
+import { SmartsheetStoreEvents, isColumnInvalid } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
 
@@ -412,9 +412,25 @@ const changeTitleField = () => {
     overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl "
     @click.stop="isOpen = !isOpen"
   >
-    <div @dblclick.stop>
+    <div class="flex items-center gap-2" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
-      <GeneralIcon v-else icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
+
+      <NcTooltip class="flex items-center">
+        <GeneralIcon
+          v-if="isColumnInvalid(column) && !isExpandedForm"
+          class="text-orange-500 w-3.5 h-3.5 ml-2"
+          icon="alertTriangle"
+        />
+
+        <template #title>
+          {{ $t('msg.invalidColumnConfiguration') }}
+        </template>
+      </NcTooltip>
+      <GeneralIcon
+        v-if="!isExpandedForm"
+        icon="arrowDown"
+        class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
+      />
     </div>
     <template #overlay>
       <NcMenu

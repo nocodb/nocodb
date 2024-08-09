@@ -265,22 +265,18 @@ export default class Hook implements HookType {
     );
   }
 
-  static async isWebHookUsed(
+  static async hookUsages(
     context: NcContext,
     hookId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    return (
-      (
-        await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_BUTTON,
-          {
-            condition: { fk_webhook_id: hookId },
-          },
-        )
-      ).length > 0
+    return await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_BUTTON,
+      {
+        condition: { fk_webhook_id: hookId },
+      },
     );
   }
 }

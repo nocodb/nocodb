@@ -405,7 +405,11 @@ export class AttachmentMigration {
                         }
                       }
                     } catch (e) {
-                      this.log(`Error processing attachment ${attachment}`);
+                      this.log(
+                        `Error processing attachment ${JSON.stringify(
+                          attachment,
+                        )}`,
+                      );
                       this.log(e);
                       throw e;
                     }

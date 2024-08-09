@@ -26,13 +26,15 @@ const { fromTableExplorer } = toRefs(props)
 
 const { t } = useI18n()
 
+const { isUIAllowed } = useRoles()
+
 const { getMeta } = useMetas()
 
 const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, removeAdditionalValidation } =
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, removeAdditionalValidation, isWebhookCreateModalOpen } =
   useColumnCreateStoreOrThrow()
 
 const webhooksStore = useWebhooksStore()
@@ -113,7 +115,6 @@ setAdditionalValidations({
 
 // set default value
 if ((column.value?.colOptions as any)?.formula_raw) {
-  console.log(column.value?.colOptions)
   vModel.value.formula_raw =
     substituteColumnIdWithAliasInFormula(
       (column.value?.colOptions as ButtonType)?.formula,
@@ -313,7 +314,24 @@ const icons = computed(() => {
   return searchIcons(iconSearchQuery.value)
 })
 
+const eventList = ref<Record<string, any>[]>([
+  { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
+])
+
 const selectedWebhook = ref<HookType>()
+
+const newWebhook = () => {
+  selectedWebhook.value = undefined
+  isWebhookCreateModalOpen.value = true
+}
+
+const onClose = (hook: HookType) => {
+  selectedWebhook.value = hook
+  vModel.value.fk_webhook_id = hook.id
+  setTimeout(() => {
+    isWebhookCreateModalOpen.value = false
+  }, 50)
+}
 
 const onSelectWebhook = (hook: HookType) => {
   vModel.value.fk_webhook_id = hook.id
@@ -527,10 +545,22 @@ watch(isHooksLoading, () => {
           filter-field="title"
           show-selected-option
           @selected="onSelectWebhook"
-        />
+        >
+          <template v-if="isUIAllowed('hookCreate')" #bottom>
+            <a-divider style="margin: 4px 0" />
+            <div class="flex items-center text-brand-500 text-sm cursor-pointer" @click="newWebhook">
+              <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
+                {{ $t('general.create') }} {{ $t('objects.webhook').toLowerCase() }}
+                <GeneralIcon icon="plus" class="flex-none" />
+              </div>
+            </div>
+          </template>
+        </NcListWithSearch>
       </template>
     </NcDropdown>
   </a-form-item>
+
+  <Webhook v-model:value="isWebhookCreateModalOpen" :event-list="eventList" @close="onClose" />
 </template>
 
 <style scoped lang="scss">

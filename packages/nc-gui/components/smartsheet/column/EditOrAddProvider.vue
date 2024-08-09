@@ -20,6 +20,16 @@ const meta = inject(MetaInj, ref())
 const { column, preload, tableExplorerColumns, fromTableExplorer, isColumnValid } = toRefs(props)
 
 useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplorer, isColumnValid)
+
+const { isWebhookCreateModalOpen } = useColumnCreateStoreOrThrow()
+
+const isWebhookModalOpen = () => {
+  return isWebhookCreateModalOpen.value
+}
+
+defineExpose({
+  isWebhookModalOpen,
+})
 </script>
 
 <template>

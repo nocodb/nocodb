@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { onKeyDown } from '@vueuse/core'
 
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
 
@@ -12,7 +13,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['close'])
+const emits = defineEmits(['close', 'update:value'])
 
 const { eventList } = toRefs(props)
 
@@ -430,18 +431,22 @@ async function saveHooks() {
       return h
     })
 
-    emits('close')
+    $e('a:webhook:add', {
+      operation: hookRef.operation,
+      condition: hookRef.condition,
+      notification: hookRef.notification.type,
+    })
+
+    emits('close', hookRef)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     loading.value = false
   }
+}
 
-  $e('a:webhook:add', {
-    operation: hookRef.operation,
-    condition: hookRef.condition,
-    notification: hookRef.notification.type,
-  })
+const closeModal = () => {
+  modalVisible.value = false
 }
 
 const isTestLoading = ref(false)
@@ -540,6 +545,10 @@ const getNotificationIconName = (type: string): keyof typeof iconMap => {
   }
 }
 
+onKeyDown('Escape', () => {
+  modalVisible.value = false
+})
+
 watch(
   () => hookRef.eventOperation,
   () => {
@@ -612,11 +621,11 @@ onMounted(async () => {
             </NcButton>
           </NcTooltip>
 
-          <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click="saveHooks">
+          <NcButton :loading="loading" type="primary" size="small" data-testid="nc-save-webhook" @click.stop="saveHooks">
             {{ hook ? $t('labels.multiField.saveChanges') : $t('activity.createWebhook') }}
           </NcButton>
 
-          <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click="modalVisible = false">
+          <NcButton type="text" size="small" data-testid="nc-close-webhook-modal" @click.stop="closeModal">
             <GeneralIcon icon="close" />
           </NcButton>
         </div>
@@ -997,6 +1006,7 @@ onMounted(async () => {
 
 <style lang="scss">
 .nc-modal-webhook-create-edit {
+  z-index: 3000;
   a {
     @apply !no-underline !text-gray-700 !hover:text-primary;
   }

@@ -17,6 +17,7 @@ const emits = defineEmits<{ selected: [T] }>()
 
 defineSlots<{
   default: (props: { option: T }) => any
+  bottom: () => any
 }>()
 
 const { isParentOpen, searchInputPlaceholder, selectedOptionId, showSelectedOption, filterField, options, optionConfig } =
@@ -157,6 +158,8 @@ watch(
           class="flex-none text-primary w-4 h-4"
         />
       </div>
+
+      <slot name="bottom" />
     </div>
   </div>
 </template>

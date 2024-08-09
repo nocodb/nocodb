@@ -121,6 +121,26 @@ export default class FileReference {
     );
   }
 
+  public static async bulkDelete(
+    context: NcContext,
+    condition: {
+      workspace_id?: string;
+      base_id?: string;
+      fk_model_id?: string;
+      fk_column_id?: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.bulkMetaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FILE_REFERENCES,
+      { deleted: true },
+      null,
+      condition,
+    );
+  }
+
   public static async hardDelete(
     context: NcContext,
     fileReferenceId: string,

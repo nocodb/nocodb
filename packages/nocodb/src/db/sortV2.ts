@@ -66,12 +66,26 @@ export default async function sortV2(
         break;
       case UITypes.Formula:
         {
+          const formulaOptions = await column.getColOptions<FormulaColumn>(
+            context,
+          );
+
+          const parsedTree = formulaOptions.getParsedTree();
+
+          // if static value order by a static number to avoid error
+          if (parsedTree?.type === 'Literal') {
+            qb.orderBy(
+              knex.raw('?', [1]) as any,
+              sort.direction || 'asc',
+              nulls,
+            );
+            break;
+          }
+
           const builder = (
             await formulaQueryBuilderv2(
               baseModelSqlv2,
-              (
-                await column.getColOptions<FormulaColumn>(context)
-              ).formula,
+              formulaOptions.formula,
               null,
               model,
               column,

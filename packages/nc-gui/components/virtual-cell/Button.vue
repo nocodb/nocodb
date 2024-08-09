@@ -96,7 +96,7 @@ const triggerAction = async () => {
           [`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`]: true,
           '!w-7': !column.colOptions.label,
         }"
-        class="nc-cell-button btn-cell-colors truncate flex items-center h-7"
+        class="nc-cell-button btn-cell-colors truncate flex items-center h-6"
         :disabled="disableButton || isButtonInValid"
         @click="triggerAction"
       >
@@ -135,7 +135,9 @@ const triggerAction = async () => {
 <style scoped lang="scss">
 .nc-cell-button {
   @apply rounded-lg px-2 flex items-center gap-2 transition-all justify-center;
-  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  &:not([class*='text']) {
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  }
   &:focus-within {
     box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
   }
@@ -277,7 +279,7 @@ const triggerAction = async () => {
 
   &.text {
     &:hover {
-      @apply bg-white;
+      @apply bg-gray-200;
     }
     &:focus {
       box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;

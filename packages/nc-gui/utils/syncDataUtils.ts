@@ -33,6 +33,16 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     isAvailable: true,
   },
   {
+    title: 'objects.integrationCategories.ai',
+    subtitle: 'objects.integrationCategories.ai',
+    value: IntegrationCategoryType.AI,
+    icon: iconMap.openai,
+    iconBgColor: '#FFF0F7',
+    iconStyle: {
+      color: '#801044',
+    },
+  },
+  {
     title: 'objects.integrationCategories.communication',
     subtitle: 'objects.integrationCategories.communicationSubtitle',
     value: IntegrationCategoryType.COMMUNICATION,
@@ -177,6 +187,32 @@ export const allIntegrations: IntegrationItemType[] = [
     value: SyncDataType.ORACLE,
     icon: iconMap.oracle,
     categories: [IntegrationCategoryType.DATABASE],
+  },
+
+  // AI
+  {
+    title: 'objects.syncData.openai',
+    value: SyncDataType.OPENAI,
+    icon: iconMap.openai,
+    categories: [IntegrationCategoryType.AI],
+  },
+  {
+    title: 'objects.syncData.claude',
+    value: SyncDataType.CLAUDE,
+    icon: iconMap.claude,
+    categories: [IntegrationCategoryType.AI],
+  },
+  {
+    title: 'objects.syncData.ollama',
+    value: SyncDataType.OLLAMA,
+    icon: iconMap.ollama,
+    categories: [IntegrationCategoryType.AI],
+  },
+  {
+    title: 'objects.syncData.groq',
+    value: SyncDataType.GROQ,
+    icon: iconMap.groq,
+    categories: [IntegrationCategoryType.AI],
   },
 
   // Communication
@@ -444,14 +480,3 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.OTHERS],
   },
 ]
-
-export const syncDataTypes = [] as {
-  title: string
-  icon: FunctionalComponent<SVGAttributes, {}, any, {}>
-  value: SyncDataType
-}[]
-
-export const syncDataTypesMap = allIntegrations.reduce((acc, curr) => {
-  acc[curr.value] = curr
-  return acc
-}, {} as Record<string, IntegrationItemType>)

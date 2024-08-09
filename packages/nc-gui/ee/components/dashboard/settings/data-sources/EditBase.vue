@@ -51,6 +51,8 @@ const easterEggCount = ref(0)
 
 const advancedOptionsExpansionPanel = ref<string[]>([])
 
+const isLoading = ref<boolean>(false)
+
 const onEasterEgg = () => {
   easterEggCount.value += 1
   if (easterEggCount.value >= 2) {
@@ -306,7 +308,11 @@ function checkDifference() {
 
 // load source config
 onMounted(async () => {
-  await loadIntegrations(true, base.value?.id)
+  isLoading.value = true
+
+  if (!integrations.value.length) {
+    await loadIntegrations(true, base.value?.id)
+  }
 
   if (base.value?.id) {
     const definedParameters = ['host', 'port', 'user', 'password', 'database']
@@ -335,6 +341,8 @@ onMounted(async () => {
 
     updateSSLUse()
   }
+
+  isLoading.value = false
 })
 
 // if searchPath is null/undefined reset it to empty array when necessary
@@ -402,7 +410,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
 <template>
   <div class="edit-source bg-white relative h-full flex flex-col w-full">
     <div class="h-full max-h-[calc(100%_-_65px)] flex">
-      <div class="nc-edit-source-left-panel nc-scrollbar-thin">
+      <div class="nc-edit-source-left-panel nc-scrollbar-thin relative">
         <div class="h-full max-w-[768px] mx-auto">
           <a-form
             ref="form"
@@ -615,6 +623,11 @@ function handleAutoScroll(scroll: boolean, className: string) {
             </div>
           </a-form>
         </div>
+        <general-overlay :model-value="isLoading" inline transition class="!bg-opacity-15">
+          <div class="flex items-center justify-center h-full w-full !bg-white !bg-opacity-85 z-1000">
+            <a-spin size="large" />
+          </div>
+        </general-overlay>
       </div>
       <div class="nc-edit-source-right-panel">
         <DashboardSettingsDataSourcesInfo varient="new" />
@@ -643,6 +656,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
             class="nc-extdb-btn-test-connection"
             :class="{ 'pointer-events-none': testSuccess }"
             :loading="testingConnection"
+            :disabled="isLoading"
             icon-position="right"
             @click="testConnection"
           >
@@ -660,7 +674,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
         <NcButton
           size="small"
           type="primary"
-          :disabled="isDisabledSubmitBtn"
+          :disabled="isDisabledSubmitBtn || isLoading"
           :loading="editingSource"
           class="nc-extdb-btn-submit"
           @click="editBase"

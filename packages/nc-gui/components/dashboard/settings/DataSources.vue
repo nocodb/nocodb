@@ -527,7 +527,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                       {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
                     </NcTooltip>
                   </div>
-                  <div class="ds-table-col ds-table-integration-name font-medium w-full">
+                  <div class="ds-table-col ds-table-integration-name w-full">
                     <NcTooltip class="truncate" show-on-truncate-only>
                       <template #title>
                         {{ source?.integration_title || '-' }}
@@ -537,7 +537,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                   </div>
 
                   <div class="ds-table-col ds-table-type">
-                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate !border-transparent">
+                    <NcBadge rounded="lg" class="flex items-center gap-2 px-0 py-1 !h-7 truncate !border-transparent">
                       <GeneralBaseLogo :source-type="source.type" class="flex-none !w-4 !h-4" />
                       <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
                         <template #title> {{ clientTypesMap[source.type]?.text || source.type }}</template>

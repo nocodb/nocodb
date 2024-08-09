@@ -96,7 +96,7 @@ export class AttachmentMigration {
               .knexConnection(temp_file_references_table)
               .whereIn(
                 'file_path',
-                fileReferenceBuffer.map((f) => f.file_path),
+                processBuffer.map((f) => f.file_path),
               );
 
             const toSkipPaths = toSkip.map((f) => f.file_path);
@@ -305,7 +305,7 @@ export class AttachmentMigration {
                     if ('path' in attachment || 'url' in attachment) {
                       const filePath = `nc/uploads/${
                         attachment.path?.replace(/^download\//, '') ||
-                        getPathFromUrl(attachment.url)
+                        getPathFromUrl(attachment.url, true)
                       }`;
 
                       const isReferenced = await ncMeta
@@ -477,11 +477,6 @@ export class AttachmentMigration {
 
       const wrapper = async (model) => {
         try {
-          processingModels.push({
-            fk_model_id: model.fk_model_id,
-            processing: true,
-          });
-
           await processModel(model);
 
           this.log(
@@ -539,6 +534,11 @@ export class AttachmentMigration {
         }
 
         for (const model of models) {
+          processingModels.push({
+            fk_model_id: model.fk_model_id,
+            processing: true,
+          });
+
           queue
             .add(() => wrapper(model))
             .catch((e) => {

@@ -23,7 +23,7 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
 
   get defaultParams() {
     return {
-      ACL: this.input.acl || 'private',
+      ...(this.input.acl ? { ACL: this.input.acl } : {}),
       Bucket: this.input.bucket,
     };
   }

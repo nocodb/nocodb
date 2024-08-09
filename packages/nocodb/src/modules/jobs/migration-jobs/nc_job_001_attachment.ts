@@ -152,326 +152,335 @@ export class AttachmentMigration {
           .insert(fileReferenceBuffer);
       }
 
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const modelLimit = 100;
+      let processedModelsCount = 0;
 
-        let modelOffset = 0;
+      const processModel = async (modelData) => {
+        const { fk_workspace_id, base_id, source_id, fk_model_id } = modelData;
 
-        const modelsWithAttachmentColumns = [];
+        const context = {
+          workspace_id: fk_workspace_id,
+          base_id,
+        };
 
-        // get models that have at least one attachment column, and not processed
+        const source = await Source.get(context, source_id);
+
+        if (!source) {
+          this.log(`source not found for ${source_id}`);
+          return;
+        }
+
+        const model = await Model.get(context, fk_model_id);
+
+        if (!model) {
+          this.log(`model not found for ${fk_model_id}`);
+          return;
+        }
+
+        await model.getColumns(context);
+
+        const attachmentColumns = model.columns.filter(
+          (c) => c.uidt === UITypes.Attachment,
+        );
+
+        const dbDriver = await NcConnectionMgrv2.get(source);
+
+        if (!dbDriver) {
+          this.log(`connection can't achieved for ${source_id}`);
+          return;
+        }
+
+        const baseModel = await Model.getBaseModelSQL(context, {
+          model,
+          dbDriver,
+        });
+
+        const processedModel = await ncMeta
+          .knexConnection(temp_processed_models_table)
+          .where('fk_model_id', fk_model_id)
+          .first();
+
+        const dataLimit = 10;
+        let dataOffset = 0;
+
+        if (!processedModel) {
+          await ncMeta
+            .knexConnection(temp_processed_models_table)
+            .insert({ fk_model_id, offset: 0 });
+        } else {
+          dataOffset = processedModel.offset;
+        }
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
-          const selectFields = [
-            ...(Noco.isEE() ? ['fk_workspace_id'] : []),
-            'base_id',
-            'source_id',
-            'fk_model_id',
-          ];
+          const data = await baseModel.list(
+            {
+              fieldsSet: new Set(
+                model.primaryKeys
+                  .map((c) => c.title)
+                  .concat(attachmentColumns.map((c) => c.title)),
+              ),
+              sort: model.primaryKeys.map((c) => c.title),
+              limit: dataLimit,
+              offset: dataOffset,
+            },
+            {
+              ignoreViewFilterAndSort: true,
+            },
+          );
 
-          const models = await ncMeta
-            .knexConnection(MetaTable.COLUMNS)
-            .select(selectFields)
-            .where('uidt', UITypes.Attachment)
-            .whereNotIn(
-              'fk_model_id',
-              ncMeta
-                .knexConnection(temp_processed_models_table)
-                .select('fk_model_id')
-                .where('completed', true),
-            )
-            .groupBy(selectFields)
-            .limit(modelLimit)
-            .offset(modelOffset);
+          dataOffset += dataLimit;
 
-          modelOffset += modelLimit;
-
-          if (!models?.length) {
+          if (!data?.length) {
             break;
           }
 
-          modelsWithAttachmentColumns.push(...models);
-        }
+          const updatePayload = [];
 
-        if (!modelsWithAttachmentColumns?.length) {
-          break;
-        }
+          for (const row of data) {
+            const updateData = {};
 
-        this.log(
-          `Found ${modelsWithAttachmentColumns.length} models with attachment columns`,
-        );
+            let updateRequired = false;
 
-        let processedModelsCount = 0;
+            for (const column of attachmentColumns) {
+              let attachmentArr = row[column.title];
 
-        for (const modelData of modelsWithAttachmentColumns) {
-          const { fk_workspace_id, base_id, source_id, fk_model_id } =
-            modelData;
-
-          const context = {
-            workspace_id: fk_workspace_id,
-            base_id,
-          };
-
-          const source = await Source.get(context, source_id);
-
-          if (!source) {
-            this.log(`source not found for ${source_id}`);
-            continue;
-          }
-
-          const model = await Model.get(context, fk_model_id);
-
-          if (!model) {
-            this.log(`model not found for ${fk_model_id}`);
-            continue;
-          }
-
-          await model.getColumns(context);
-
-          const attachmentColumns = model.columns.filter(
-            (c) => c.uidt === UITypes.Attachment,
-          );
-
-          const dbDriver = await NcConnectionMgrv2.get(source);
-
-          if (!dbDriver) {
-            this.log(`connection can't achieved for ${source_id}`);
-            continue;
-          }
-
-          const baseModel = await Model.getBaseModelSQL(context, {
-            model,
-            dbDriver,
-          });
-
-          const processedModel = await ncMeta
-            .knexConnection(temp_processed_models_table)
-            .where('fk_model_id', fk_model_id)
-            .first();
-
-          const dataLimit = 10;
-          let dataOffset = 0;
-
-          if (!processedModel) {
-            await ncMeta
-              .knexConnection(temp_processed_models_table)
-              .insert({ fk_model_id, offset: 0 });
-          } else {
-            dataOffset = processedModel.offset;
-          }
-
-          // eslint-disable-next-line no-constant-condition
-          while (true) {
-            const data = await baseModel.list(
-              {
-                fieldsSet: new Set(
-                  model.primaryKeys
-                    .map((c) => c.title)
-                    .concat(attachmentColumns.map((c) => c.title)),
-                ),
-                sort: model.primaryKeys.map((c) => c.title),
-                limit: dataLimit,
-                offset: dataOffset,
-              },
-              {
-                ignoreViewFilterAndSort: true,
-              },
-            );
-
-            dataOffset += dataLimit;
-
-            if (!data?.length) {
-              break;
-            }
-
-            const updatePayload = [];
-
-            for (const row of data) {
-              const updateData = {};
-
-              let updateRequired = false;
-
-              for (const column of attachmentColumns) {
-                let attachmentArr = row[column.title];
-
-                if (!attachmentArr?.length) {
-                  continue;
-                }
-
-                try {
-                  if (typeof attachmentArr === 'string') {
-                    attachmentArr = JSON.parse(attachmentArr);
-                  }
-                } catch (e) {
-                  this.log(`error parsing attachment data ${attachmentArr}`);
-                  continue;
-                }
-
-                if (Array.isArray(attachmentArr)) {
-                  attachmentArr = attachmentArr.map((a) =>
-                    extractProps(a, [
-                      'id',
-                      'url',
-                      'path',
-                      'title',
-                      'mimetype',
-                      'size',
-                      'icon',
-                      'width',
-                      'height',
-                    ]),
-                  );
-
-                  for (const attachment of attachmentArr) {
-                    try {
-                      if ('path' in attachment || 'url' in attachment) {
-                        const filePath = `nc/uploads/${
-                          attachment.path?.replace(/^download\//, '') ||
-                          this.normalizeUrl(attachment.url)
-                        }`;
-
-                        const isReferenced = await ncMeta
-                          .knexConnection(temp_file_references_table)
-                          .where('file_path', filePath)
-                          .first();
-
-                        if (!isReferenced) {
-                          // file is from another storage adapter
-                          this.log(
-                            `file not found in file references table ${
-                              attachment.path || attachment.url
-                            }, ${filePath}`,
-                          );
-                        } else if (isReferenced.referenced === false) {
-                          const fileNameWithExt = path.basename(filePath);
-
-                          const mimetype =
-                            attachment.mimetype ||
-                            mimetypes[path.extname(fileNameWithExt).slice(1)];
-
-                          await ncMeta
-                            .knexConnection(temp_file_references_table)
-                            .where('file_path', filePath)
-                            .update({
-                              mimetype,
-                              referenced: true,
-                            });
-
-                          // insert file reference if not exists
-                          const fileReference = await ncMeta
-                            .knexConnection(MetaTable.FILE_REFERENCES)
-                            .where(
-                              'file_url',
-                              attachment.path || attachment.url,
-                            )
-                            .andWhere('storage', storageAdapterType)
-                            .first();
-
-                          if (!fileReference) {
-                            await FileReference.insert(
-                              {
-                                workspace_id: RootScopes.ROOT,
-                                base_id: RootScopes.ROOT,
-                              },
-                              {
-                                storage: storageAdapterType,
-                                file_url: attachment.path || attachment.url,
-                                file_size: attachment.size,
-                                deleted: true,
-                              },
-                            );
-                          }
-                        }
-
-                        if (!('id' in attachment)) {
-                          attachment.id = await FileReference.insert(context, {
-                            source_id: source.id,
-                            fk_model_id,
-                            fk_column_id: column.id,
-                            file_url: attachment.path || attachment.url,
-                            file_size: attachment.size,
-                            is_external: !source.isMeta(),
-                            deleted: false,
-                          });
-
-                          updateRequired = true;
-                        }
-                      }
-                    } catch (e) {
-                      this.log(
-                        `Error processing attachment ${JSON.stringify(
-                          attachment,
-                        )}`,
-                      );
-                      this.log(e);
-                      throw e;
-                    }
-                  }
-                }
-
-                if (updateRequired) {
-                  updateData[column.column_name] =
-                    JSON.stringify(attachmentArr);
-                }
-              }
-
-              if (Object.keys(updateData).length === 0) {
+              if (!attachmentArr?.length) {
                 continue;
               }
 
-              for (const pk of model.primaryKeys) {
-                updateData[pk.column_name] = row[pk.title];
-              }
-
-              updatePayload.push(updateData);
-            }
-
-            if (updatePayload.length > 0) {
-              for (const updateData of updatePayload) {
-                const wherePk = await baseModel._wherePk(
-                  baseModel._extractPksValues(updateData),
-                );
-
-                if (!wherePk) {
-                  this.log(`where pk not found for ${updateData}`);
-                  continue;
+              try {
+                if (typeof attachmentArr === 'string') {
+                  attachmentArr = JSON.parse(attachmentArr);
                 }
+              } catch (e) {
+                this.log(`error parsing attachment data ${attachmentArr}`);
+                continue;
+              }
 
-                await baseModel.execAndParse(
-                  baseModel
-                    .dbDriver(baseModel.tnPath)
-                    .update(updateData)
-                    .where(wherePk),
-                  null,
-                  {
-                    raw: true,
-                  },
+              if (Array.isArray(attachmentArr)) {
+                attachmentArr = attachmentArr.map((a) =>
+                  extractProps(a, [
+                    'id',
+                    'url',
+                    'path',
+                    'title',
+                    'mimetype',
+                    'size',
+                    'icon',
+                    'width',
+                    'height',
+                  ]),
                 );
+
+                for (const attachment of attachmentArr) {
+                  try {
+                    if ('path' in attachment || 'url' in attachment) {
+                      const filePath = `nc/uploads/${
+                        attachment.path?.replace(/^download\//, '') ||
+                        this.normalizeUrl(attachment.url)
+                      }`;
+
+                      const isReferenced = await ncMeta
+                        .knexConnection(temp_file_references_table)
+                        .where('file_path', filePath)
+                        .first();
+
+                      if (!isReferenced) {
+                        // file is from another storage adapter
+                        this.log(
+                          `file not found in file references table ${
+                            attachment.path || attachment.url
+                          }, ${filePath}`,
+                        );
+                      } else if (isReferenced.referenced === false) {
+                        const fileNameWithExt = path.basename(filePath);
+
+                        const mimetype =
+                          attachment.mimetype ||
+                          mimetypes[path.extname(fileNameWithExt).slice(1)];
+
+                        await ncMeta
+                          .knexConnection(temp_file_references_table)
+                          .where('file_path', filePath)
+                          .update({
+                            mimetype,
+                            referenced: true,
+                          });
+
+                        // insert file reference if not exists
+                        const fileReference = await ncMeta
+                          .knexConnection(MetaTable.FILE_REFERENCES)
+                          .where('file_url', attachment.path || attachment.url)
+                          .andWhere('storage', storageAdapterType)
+                          .first();
+
+                        if (!fileReference) {
+                          await FileReference.insert(
+                            {
+                              workspace_id: RootScopes.ROOT,
+                              base_id: RootScopes.ROOT,
+                            },
+                            {
+                              storage: storageAdapterType,
+                              file_url: attachment.path || attachment.url,
+                              file_size: attachment.size,
+                              deleted: true,
+                            },
+                          );
+                        }
+                      }
+
+                      if (!('id' in attachment)) {
+                        attachment.id = await FileReference.insert(context, {
+                          source_id: source.id,
+                          fk_model_id,
+                          fk_column_id: column.id,
+                          file_url: attachment.path || attachment.url,
+                          file_size: attachment.size,
+                          is_external: !source.isMeta(),
+                          deleted: false,
+                        });
+
+                        updateRequired = true;
+                      }
+                    }
+                  } catch (e) {
+                    this.log(
+                      `Error processing attachment ${JSON.stringify(
+                        attachment,
+                      )}`,
+                    );
+                    this.log(e);
+                    throw e;
+                  }
+                }
+              }
+
+              if (updateRequired) {
+                updateData[column.column_name] = JSON.stringify(attachmentArr);
               }
             }
 
-            // update offset
-            await ncMeta
-              .knexConnection(temp_processed_models_table)
-              .where('fk_model_id', fk_model_id)
-              .update({ offset: dataOffset });
+            if (Object.keys(updateData).length === 0) {
+              continue;
+            }
+
+            for (const pk of model.primaryKeys) {
+              updateData[pk.column_name] = row[pk.title];
+            }
+
+            updatePayload.push(updateData);
           }
 
-          // mark model as processed
+          if (updatePayload.length > 0) {
+            for (const updateData of updatePayload) {
+              const wherePk = await baseModel._wherePk(
+                baseModel._extractPksValues(updateData),
+              );
+
+              if (!wherePk) {
+                this.log(`where pk not found for ${updateData}`);
+                continue;
+              }
+
+              await baseModel.execAndParse(
+                baseModel
+                  .dbDriver(baseModel.tnPath)
+                  .update(updateData)
+                  .where(wherePk),
+                null,
+                {
+                  raw: true,
+                },
+              );
+            }
+          }
+
+          // update offset
           await ncMeta
             .knexConnection(temp_processed_models_table)
             .where('fk_model_id', fk_model_id)
-            .update({ completed: true });
+            .update({ offset: dataOffset });
+        }
 
-          processedModelsCount += 1;
+        // mark model as processed
+        await ncMeta
+          .knexConnection(temp_processed_models_table)
+          .where('fk_model_id', fk_model_id)
+          .update({ completed: true });
 
-          this.log(
-            `Processed ${processedModelsCount} of ${modelsWithAttachmentColumns.length} models`,
-          );
+        processedModelsCount += 1;
+      };
+
+      const selectFields = [
+        ...(Noco.isEE() ? ['fk_workspace_id'] : []),
+        'base_id',
+        'source_id',
+        'fk_model_id',
+      ];
+
+      const numberOfModelsToBeProcessed = (
+        await ncMeta.knexConnection
+          .from(
+            ncMeta
+              .knexConnection(MetaTable.COLUMNS)
+              .where('uidt', UITypes.Attachment)
+              .whereNotIn(
+                'fk_model_id',
+                ncMeta
+                  .knexConnection(temp_processed_models_table)
+                  .select('fk_model_id')
+                  .where('completed', true),
+              )
+              .groupBy(selectFields)
+              .count('*', { as: 'count' })
+              .as('t'),
+          )
+          .sum('count as count')
+          .first()
+      )?.count;
+
+      const processModelLimit = 100;
+
+      // get models that have at least one attachment column, and not processed
+
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        // this will return until all models marked as processed
+        const models = await ncMeta
+          .knexConnection(MetaTable.COLUMNS)
+          .select(selectFields)
+          .where('uidt', UITypes.Attachment)
+          .whereNotIn(
+            'fk_model_id',
+            ncMeta
+              .knexConnection(temp_processed_models_table)
+              .select('fk_model_id')
+              .where('completed', true),
+          )
+          .groupBy(selectFields)
+          .limit(processModelLimit);
+
+        if (!models?.length) {
+          break;
+        }
+
+        for (const model of models) {
+          try {
+            await processModel(model);
+            this.log(
+              `Processed ${processedModelsCount} of ${numberOfModelsToBeProcessed} models`,
+            );
+          } catch (e) {
+            this.log(`Error processing model ${model.fk_model_id}`);
+            this.log(e);
+          }
         }
       }
+
+      this.log(
+        `Processed total of ${numberOfModelsToBeProcessed} models with attachments`,
+      );
     } catch (e) {
       this.log(`There was an error while processing attachment migration job`);
       this.log(e);

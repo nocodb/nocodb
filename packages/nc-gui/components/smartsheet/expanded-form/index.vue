@@ -1066,12 +1066,12 @@ export default {
   @apply !rounded-lg;
   transition: all 0.3s;
 
-  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell) {
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
-  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button) {
     @apply !border-1;
-    &:not(.nc-attachment-cell) {
+    &:not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
       box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
     }
   }

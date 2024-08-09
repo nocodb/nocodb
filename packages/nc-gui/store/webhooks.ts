@@ -92,7 +92,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     }
   }
 
-  async function saveHooks({ hook: _hook }: { hook: HookType }) {
+  async function saveHooks({ hook: _hook, ogHook }: { hook: HookType; ogHook: HookType }) {
     const { activeTable } = useTablesStore()
     if (!activeTable) throw new Error('activeTable is not defined')
 
@@ -145,7 +145,15 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       console.error(e)
-      throw e
+
+      if (ogHook) {
+        hooks.value = hooks.value.map((h) => {
+          if (h.id === ogHook.id) {
+            return ogHook
+          }
+          return h
+        })
+      }
     }
 
     $e('a:webhook:add', {

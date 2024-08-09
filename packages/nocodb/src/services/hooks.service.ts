@@ -78,7 +78,13 @@ export class HooksService {
     const hook = await Hook.get(context, param.hookId);
 
     if (!hook) {
-      NcError.badRequest('Hook not found');
+      NcError.hookNotFound(param.hookId);
+    }
+
+    const isHookUsed = await Hook.isWebHookUsed(context, param.hookId);
+
+    if (isHookUsed) {
+      NcError.badRequest('Webhook is used in some Button or Automation');
     }
 
     await Hook.delete(context, param.hookId);
@@ -102,10 +108,17 @@ export class HooksService {
     const hook = await Hook.get(context, param.hookId);
 
     if (!hook) {
-      NcError.badRequest('Hook not found');
+      NcError.hookNotFound(param.hookId);
     }
 
     this.validateHookPayload(param.hook.notification);
+
+    if (hook.active && !param.hook.active) {
+      const isHookUsed = await Hook.isWebHookUsed(context, param.hookId);
+      if (isHookUsed) {
+        NcError.badRequest('Webhook is used in some Button or Automation');
+      }
+    }
 
     const res = await Hook.update(context, param.hookId, param.hook);
 

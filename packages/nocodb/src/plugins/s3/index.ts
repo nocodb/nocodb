@@ -5,7 +5,7 @@ import type { XcPluginConfig } from 'nc-plugin';
 const config: XcPluginConfig = {
   builder: S3Plugin,
   title: 'S3',
-  version: '0.0.4',
+  version: '0.0.5',
   logo: 'plugins/s3.png',
   description:
     'Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading scalability, data availability, security, and performance.',
@@ -50,7 +50,7 @@ const config: XcPluginConfig = {
       {
         key: 'acl',
         label: 'Access Control Lists (ACL)',
-        placeholder: 'Default set to private',
+        placeholder: '',
         type: XcType.SingleLineText,
         required: false,
       },

@@ -19,7 +19,7 @@ export class InitMigrationJobs {
     {
       version: '1',
       job: MigrationJobTypes.Attachment,
-      fn: this.attachmentMigration.job,
+      service: this.attachmentMigration,
     },
     /* {
       version: '2',
@@ -101,8 +101,8 @@ export class InitMigrationJobs {
         // set stall interval
         const stallInterval = setMigrationJobsStallInterval();
 
-        // run migration
-        await migration.fn();
+        // run migration (pass service as this context)
+        await migration.service.job();
 
         // update migration state
         migrationJobsState.version = migration.version;

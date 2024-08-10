@@ -101,7 +101,9 @@ export default class PresignedUrl {
     const isUrl = /^https?:\/\//i.test(param.pathOrUrl);
 
     let path = (
-      isUrl ? decodeURI(new URL(param.pathOrUrl).pathname) : param.pathOrUrl
+      isUrl
+        ? decodeURI(new URL(encodeURI(param.pathOrUrl)).pathname)
+        : param.pathOrUrl
     ).replace(/^\/+/, '');
 
     const {

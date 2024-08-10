@@ -42,7 +42,7 @@ export class AttachmentCleanUpProcessor {
       if (storageAdapterName === 'Local') {
         relativePath = file.file_url.replace(/^\/?nc\/uploads\//, '');
       } else {
-        relativePath = new URL(file.file_url).pathname.replace(
+        relativePath = new URL(encodeURI(file.file_url)).pathname.replace(
           /^\/?nc\/uploads\//,
           '',
         );

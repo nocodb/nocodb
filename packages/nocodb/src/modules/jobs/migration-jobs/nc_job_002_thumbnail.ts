@@ -37,6 +37,8 @@ export class ThumbnailMigrationProcessor {
 
     const interval = setMigrationJobsStallInterval();
 
+    let err = null;
+
     try {
       const ncMeta = Noco.ncMeta;
 
@@ -110,7 +112,14 @@ export class ThumbnailMigrationProcessor {
         await new Promise((resolve, reject) => {
           fileScanStream.on('end', resolve);
           fileScanStream.on('error', reject);
+        }).catch((e) => {
+          this.log(`error scanning files:`, e);
+          err = e;
         });
+
+        if (err) {
+          throw err;
+        }
 
         if (fileReferenceBuffer.length > 0) {
           await ncMeta
@@ -183,7 +192,10 @@ export class ThumbnailMigrationProcessor {
         version: MIGRATION_JOB_VERSION,
       });
     } catch (e) {
-      this.log(`error processing attachment migration job:`, e);
+      this.log(
+        `There was an error while generating thumbnails for old attachments`,
+      );
+      this.log(e);
     }
 
     clearInterval(interval);

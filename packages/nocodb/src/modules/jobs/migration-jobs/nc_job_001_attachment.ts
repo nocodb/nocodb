@@ -40,6 +40,8 @@ export class AttachmentMigrationProcessor {
 
     const interval = setMigrationJobsStallInterval();
 
+    let err = null;
+
     try {
       const ncMeta = Noco.ncMeta;
 
@@ -129,7 +131,14 @@ export class AttachmentMigrationProcessor {
       await new Promise((resolve, reject) => {
         fileScanStream.on('end', resolve);
         fileScanStream.on('error', reject);
+      }).catch((e) => {
+        this.log(`error scanning files:`, e);
+        err = e;
       });
+
+      if (err) {
+        throw err;
+      }
 
       if (fileReferenceBuffer.length > 0) {
         await ncMeta
@@ -451,7 +460,9 @@ export class AttachmentMigrationProcessor {
         version: MIGRATION_JOB_VERSION,
       });
     } catch (e) {
-      this.log(`error processing attachment migration job:`, e);
+      this.log(`There was an error while processing attachment migration job`);
+      this.log(e);
+      err = e;
     }
 
     clearInterval(interval);
@@ -461,8 +472,10 @@ export class AttachmentMigrationProcessor {
       stall_check: Date.now(),
     });
 
-    // call init migration job again
-    await this.jobsService.add(MigrationJobTypes.InitMigrationJobs, {});
+    // call init migration job again if there is no error
+    if (!err) {
+      await this.jobsService.add(MigrationJobTypes.InitMigrationJobs, {});
+    }
 
     this.debugLog(`job completed for ${job.id}`);
   }

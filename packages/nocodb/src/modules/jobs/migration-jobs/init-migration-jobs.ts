@@ -4,24 +4,37 @@ import { Job } from 'bull';
 import { forwardRef, Inject } from '@nestjs/common';
 import { JOBS_QUEUE, MigrationJobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { AttachmentMigration } from '~/modules/jobs/migration-jobs/nc_job_001_attachment';
+import { ThumbnailMigration } from '~/modules/jobs/migration-jobs/nc_job_002_thumbnail';
 import {
   getMigrationJobsState,
   instanceUuid,
+  setMigrationJobsStallInterval,
   updateMigrationJobsState,
 } from '~/helpers/migrationJobs';
 
-const migrationJobsList = [
-  { version: '1', job: MigrationJobTypes.Attachment },
-  // { version: '2', job: MigrationJobTypes.Thumbnail },
-];
-
 @Processor(JOBS_QUEUE)
 export class InitMigrationJobs {
+  migrationJobsList = [
+    {
+      version: '1',
+      job: MigrationJobTypes.Attachment,
+      fn: this.attachmentMigration.job,
+    },
+    /* {
+      version: '2',
+      job: MigrationJobTypes.Thumbnail,
+      fn: this.thumbnailMigration.job,
+    }, */
+  ];
+
   private readonly debugLog = debug('nc:migration-jobs:init');
 
   constructor(
     @Inject(forwardRef(() => 'JobsService'))
     private readonly jobsService: IJobsService,
+    private readonly attachmentMigration: AttachmentMigration,
+    private readonly thumbnailMigration: ThumbnailMigration,
   ) {}
 
   log = (...msgs: string[]) => {
@@ -60,7 +73,7 @@ export class InitMigrationJobs {
     }
 
     // get migrations need to be applied
-    const migrations = migrationJobsList.filter(
+    const migrations = this.migrationJobsList.filter(
       (m) => +m.version > +migrationJobsState.version,
     );
 
@@ -75,15 +88,36 @@ export class InitMigrationJobs {
     // try to take lock
     await updateMigrationJobsState(migrationJobsState, migrationJobsState);
 
-    // wait for 2 seconds to confirm lock
+    // wait for 5 seconds to confirm lock
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const confirmState = await getMigrationJobsState();
 
     // check if lock is taken by this instance
     if (confirmState.locked && confirmState.instance === instanceUuid) {
-      // run first migration job
-      await this.jobsService.add(migrations[0].job, {});
+      // run first migration in the list
+      const migration = migrations[0];
+      try {
+        // set stall interval
+        const stallInterval = setMigrationJobsStallInterval();
+
+        // run migration
+        await migration.fn();
+
+        // update migration state
+        migrationJobsState.version = migration.version;
+        migrationJobsState.locked = false;
+        migrationJobsState.stall_check = Date.now();
+        await updateMigrationJobsState(migrationJobsState);
+
+        // clear stall interval
+        clearInterval(stallInterval);
+
+        // run the job again
+        await this.jobsService.add(MigrationJobTypes.InitMigrationJobs, {});
+      } catch (e) {
+        this.log('Error running migration: ', e);
+      }
     }
 
     this.debugLog(`job completed for ${job.id}`);

@@ -1,29 +1,19 @@
 import path from 'path';
 import debug from 'debug';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
-import { forwardRef, Inject } from '@nestjs/common';
-import { JOBS_QUEUE, MigrationJobTypes } from '~/interface/Jobs';
+import { Process } from '@nestjs/bull';
+import { Injectable } from '@nestjs/common';
+import { MigrationJobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
-import { IJobsService } from '~/modules/jobs/jobs-service.interface';
-import {
-  setMigrationJobsStallInterval,
-  updateMigrationJobsState,
-} from '~/helpers/migrationJobs';
 import mimetypes from '~/utils/mimeTypes';
 import { RootScopes } from '~/utils/globals';
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 
-const MIGRATION_JOB_VERSION = '2';
-
-@Processor(JOBS_QUEUE)
-export class ThumbnailMigrationProcessor {
+@Injectable()
+export class ThumbnailMigration {
   private readonly debugLog = debug('nc:migration-jobs:attachment');
 
   constructor(
-    @Inject(forwardRef(() => 'JobsService'))
-    private readonly jobsService: IJobsService,
     private readonly thumbnailGeneratorProcessor: ThumbnailGeneratorProcessor,
   ) {}
 
@@ -32,13 +22,7 @@ export class ThumbnailMigrationProcessor {
   };
 
   @Process(MigrationJobTypes.Thumbnail)
-  async job(job: Job) {
-    this.debugLog(`job started for ${job.id}`);
-
-    const interval = setMigrationJobsStallInterval();
-
-    let err = null;
-
+  async job() {
     try {
       const ncMeta = Noco.ncMeta;
 
@@ -108,6 +92,8 @@ export class ThumbnailMigrationProcessor {
             fileScanStream.resume();
           }
         });
+
+        let err = null;
 
         await new Promise((resolve, reject) => {
           fileScanStream.on('end', resolve);
@@ -186,28 +172,14 @@ export class ThumbnailMigrationProcessor {
           this.log(`error while generating thumbnail:`, e);
         }
       }
-
-      // bump the version
-      await updateMigrationJobsState({
-        version: MIGRATION_JOB_VERSION,
-      });
     } catch (e) {
       this.log(
         `There was an error while generating thumbnails for old attachments`,
       );
       this.log(e);
+      return false;
     }
 
-    clearInterval(interval);
-
-    await updateMigrationJobsState({
-      locked: false,
-      stall_check: Date.now(),
-    });
-
-    // call init migration job again
-    await this.jobsService.add(MigrationJobTypes.InitMigrationJobs, {});
-
-    this.debugLog(`job completed for ${job.id}`);
+    return true;
   }
 }

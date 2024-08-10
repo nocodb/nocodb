@@ -7,6 +7,7 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import {
   getMigrationJobsState,
   updateMigrationJobsState,
+  instanceUuid,
 } from '~/helpers/migrationJobs';
 
 const migrationJobsList = [{ version: '1', job: MigrationJobTypes.Attachment }];
@@ -63,10 +64,19 @@ export class InitMigrationJobs {
     migrationJobsState.locked = true;
     migrationJobsState.stall_check = Date.now();
 
-    await updateMigrationJobsState(migrationJobsState);
+    // try to take lock
+    await updateMigrationJobsState(migrationJobsState, migrationJobsState);
 
-    // run first migration job
-    await this.jobsService.add(migrations[0].job, {});
+    // wait for 2 seconds to confirm lock
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const confirmState = await getMigrationJobsState();
+
+    // check if lock is taken by this instance
+    if (confirmState.locked && confirmState.instance === instanceUuid) {
+      // run first migration job
+      await this.jobsService.add(migrations[0].job, {});
+    }
 
     this.debugLog(`job completed for ${job.id}`);
   }

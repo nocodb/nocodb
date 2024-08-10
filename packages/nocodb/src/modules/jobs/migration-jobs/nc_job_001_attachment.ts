@@ -430,8 +430,7 @@ export class AttachmentMigration {
             updatePayload.push(updateData);
           }
 
-          // TODO: enable external updates for production
-          if (updatePayload.length > 0 && !isExternal) {
+          if (updatePayload.length > 0) {
             for (const updateData of updatePayload) {
               const wherePk = await baseModel._wherePk(
                 baseModel.extractPksValues(updateData),

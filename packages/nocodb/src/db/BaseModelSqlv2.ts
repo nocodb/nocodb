@@ -5828,7 +5828,7 @@ class BaseModelSqlv2 {
 
       await this.clearFileReferences({
         oldData: deleted,
-        columns: this.model.columns,
+        columns: columns,
       });
 
       if (isSingleRecordDeletion) {

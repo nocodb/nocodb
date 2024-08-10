@@ -12,6 +12,7 @@ import initAdminFromEnv from '~/helpers/initAdminFromEnv';
 import { User } from '~/models';
 import { NcConfig, prepareEnv } from '~/utils/nc-config';
 import { MetaTable, RootScopes } from '~/utils/globals';
+import { updateMigrationJobsState } from '~/helpers/migrationJobs';
 
 export const InitMetaServiceProvider: FactoryProvider = {
   // initialize app,
@@ -29,6 +30,9 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     // set version
     process.env.NC_VERSION = '0111005';
+
+    // set migration jobs version
+    process.env.NC_MIGRATION_JOBS_VERSION = '1';
 
     // init cache
     await NocoCache.init();
@@ -78,6 +82,13 @@ export const InitMetaServiceProvider: FactoryProvider = {
     Noco._ncMeta = metaService;
     Noco.config = config;
     Noco.eventEmitter = eventEmitter;
+
+    if (!instanceConfig) {
+      // bump to latest version for fresh install
+      await updateMigrationJobsState({
+        version: process.env.NC_MIGRATION_JOBS_VERSION,
+      });
+    }
 
     // init jwt secret
     await Noco.initJwt();

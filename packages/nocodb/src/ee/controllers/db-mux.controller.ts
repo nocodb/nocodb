@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Inject,
   Param,
   Patch,
@@ -16,6 +17,12 @@ import { DbMux } from '~/models';
 @Controller()
 export class DbMuxController {
   constructor(@Inject('JobsService') protected readonly jobsService) {}
+
+  @Get('/internal/db-mux')
+  @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
+  async listMux() {
+    return DbMux.list();
+  }
 
   @Patch('/internal/db-mux/:dbMuxId')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))

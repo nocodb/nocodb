@@ -73,6 +73,7 @@ export enum MetaTable {
   COMMENTS_REACTIONS = 'nc_comment_reactions',
   JOBS = 'nc_jobs',
   INTEGRATIONS = 'nc_integrations_v2',
+  FILE_REFERENCES = 'nc_file_references',
 }
 
 export const orderedMetaTables = [
@@ -210,6 +211,7 @@ export const RootScopeTables = {
     MetaTable.STORE,
     MetaTable.NOTIFICATION,
     MetaTable.JOBS,
+    MetaTable.FILE_REFERENCES,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
   ],

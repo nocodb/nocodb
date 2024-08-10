@@ -7,3 +7,4 @@ packages:
   - 'packages/nc-sql-executor'
   - 'tests/playwright'
   - 'packages/nc-mail-templates'
+  - 'packages/nc-plugin'

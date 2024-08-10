@@ -52,7 +52,7 @@ function build_image() {
     # backup package.json
     cp ${SCRIPT_DIR}/packages/nocodb/package.json ${SCRIPT_DIR}/packages/nocodb/package.json.bak 
     # temporarily uninstall local dependencies
-    pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
+    pnpm uninstall --save-prod nocodb-sdk nc-plugin knex-snowflake knex-databricks
     # build docker
     docker build . -f ./src/ee-cloud/Dockerfile-cloud -t nocodb-local || ERROR="build_image failed"
     # restore package.json

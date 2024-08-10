@@ -136,7 +136,7 @@ jobs:
           cd packages/nocodb &&
           EE=true pnpm exec webpack --config webpack.ee-cloud.config.js &&
           # remove bundled libraries (nocodb-sdk, knex-snowflake)
-          pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
+          pnpm uninstall --save-prod nocodb-sdk nc-plugin knex-snowflake knex-databricks
 
       - name: Move files to release version folder
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}

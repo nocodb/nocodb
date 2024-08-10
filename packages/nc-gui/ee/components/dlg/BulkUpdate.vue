@@ -63,6 +63,7 @@ const fields = computed(() => {
     (col) =>
       !isSystemColumn(col) &&
       !isVirtualCol(col) &&
+      col.uidt !== UITypes.Attachment &&
       !col.pk &&
       !col.unique &&
       editColumns.value.find((c) => c.id === col.id) === undefined,

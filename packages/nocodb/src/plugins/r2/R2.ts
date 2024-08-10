@@ -13,6 +13,8 @@ interface R2ObjectStorageInput {
 }
 
 export default class R2 extends GenericS3 implements IStorageAdapterV2 {
+  name = 'R2';
+
   protected input: R2ObjectStorageInput;
 
   constructor(input: unknown) {

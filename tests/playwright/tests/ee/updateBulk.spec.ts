@@ -275,11 +275,8 @@ test.describe('Bulk update 3', () => {
     await unsetup(context);
   });
 
-  test('Miscellaneous (Checkbox, attachment)', async () => {
-    const fields = [
-      { title: 'Checkbox', value: 'true', type: 'checkbox' },
-      { title: 'Attachment', value: `${process.cwd()}/fixtures/sampleFiles/1.json`, type: 'attachment' },
-    ];
+  test('Miscellaneous (Checkbox)', async () => {
+    const fields = [{ title: 'Checkbox', value: 'true', type: 'checkbox' }];
 
     await updateBulkFields(bulkUpdateForm, fields);
 
@@ -290,13 +287,13 @@ test.describe('Bulk update 3', () => {
           index: 5,
           columnHeader: fields[i].title,
         });
-      } else {
+      } /* else {
         await dashboard.grid.cell.attachment.verifyFileCount({
           index: 5,
           columnHeader: fields[i].title,
           count: 1,
         });
-      }
+      } */
     }
 
     // verify api response
@@ -304,8 +301,8 @@ test.describe('Bulk update 3', () => {
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(+updatedRecords[i]['Checkbox']).toBe(1);
-        expect(updatedRecords[i]['Attachment'][0].title).toBe('1.json');
-        expect(updatedRecords[i]['Attachment'][0].mimetype).toBe('application/json');
+        /* expect(updatedRecords[i]['Attachment'][0].title).toBe('1.json');
+        expect(updatedRecords[i]['Attachment'][0].mimetype).toBe('application/json'); */
       }
     }
   });

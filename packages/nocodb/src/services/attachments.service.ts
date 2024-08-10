@@ -14,7 +14,7 @@ import type Sharp from 'sharp';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
-import { PresignedUrl } from '~/models';
+import { FileReference, PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -112,6 +112,21 @@ export class AttachmentsService {
           const url = await storageAdapter.fileCreate(
             slash(path.join(destPath, fileName)),
             file,
+          );
+
+          await FileReference.insert(
+            {
+              workspace_id: RootScopes.ROOT,
+              base_id: RootScopes.ROOT,
+            },
+            {
+              storage: storageAdapter.constructor.name,
+              file_url:
+                url ?? path.join('download', filePath.join('/'), fileName),
+              file_size: file.size,
+              fk_user_id: userId,
+              deleted: true, // root file references are always deleted as they are not associated with any record
+            },
           );
 
           const attachment: AttachmentObject = {
@@ -227,6 +242,22 @@ export class AttachmentsService {
                 },
               },
             );
+
+          await FileReference.insert(
+            {
+              workspace_id: RootScopes.ROOT,
+              base_id: RootScopes.ROOT,
+            },
+            {
+              storage: storageAdapter.constructor.name,
+              file_url:
+                attachmentUrl ??
+                path.join('download', filePath.join('/'), fileName),
+              file_size: file.size,
+              fk_user_id: userId,
+              deleted: true, // root file references are always deleted as they are not associated with any record
+            },
+          );
 
           const tempMetadata: {
             width?: number;

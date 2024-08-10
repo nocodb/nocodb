@@ -14,6 +14,7 @@ import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-gener
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
 import { AttachmentMigrationProcessor } from '~/modules/jobs/migration-jobs/nc_job_001_attachment';
+import { ThumbnailMigrationProcessor } from '~/modules/jobs/migration-jobs/nc_job_002_thumbnail';
 
 export interface Job {
   id: string;
@@ -43,6 +44,7 @@ export class QueueService {
     protected readonly attachmentCleanUpProcessor: AttachmentCleanUpProcessor,
     protected readonly initMigrationJobs: InitMigrationJobs,
     protected readonly attachmentMigrationProcessor: AttachmentMigrationProcessor,
+    protected readonly thumbnailMigrationProcessor: ThumbnailMigrationProcessor,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((job) => job.id === data.job.id);
@@ -123,6 +125,10 @@ export class QueueService {
     [MigrationJobTypes.Attachment]: {
       this: this.attachmentMigrationProcessor,
       fn: this.attachmentMigrationProcessor.job,
+    },
+    [MigrationJobTypes.Thumbnail]: {
+      this: this.thumbnailMigrationProcessor,
+      fn: this.thumbnailMigrationProcessor.job,
     },
   };
 

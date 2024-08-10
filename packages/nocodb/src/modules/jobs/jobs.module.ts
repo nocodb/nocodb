@@ -24,6 +24,7 @@ import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean
 // Migration Jobs
 import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
 import { AttachmentMigrationProcessor } from '~/modules/jobs/migration-jobs/nc_job_001_attachment';
+import { ThumbnailMigrationProcessor } from '~/modules/jobs/migration-jobs/nc_job_002_thumbnail';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -90,6 +91,7 @@ export const JobsModuleMetadata = {
     // Migration Jobs
     InitMigrationJobs,
     AttachmentMigrationProcessor,
+    ThumbnailMigrationProcessor,
   ],
   exports: ['JobsService'],
 };

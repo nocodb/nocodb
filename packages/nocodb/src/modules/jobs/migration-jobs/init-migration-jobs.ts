@@ -6,11 +6,14 @@ import { JOBS_QUEUE, MigrationJobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import {
   getMigrationJobsState,
-  updateMigrationJobsState,
   instanceUuid,
+  updateMigrationJobsState,
 } from '~/helpers/migrationJobs';
 
-const migrationJobsList = [{ version: '1', job: MigrationJobTypes.Attachment }];
+const migrationJobsList = [
+  { version: '1', job: MigrationJobTypes.Attachment },
+  // { version: '2', job: MigrationJobTypes.Thumbnail },
+];
 
 @Processor(JOBS_QUEUE)
 export class InitMigrationJobs {

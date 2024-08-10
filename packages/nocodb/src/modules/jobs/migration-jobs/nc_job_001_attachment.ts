@@ -77,6 +77,8 @@ export class AttachmentMigrationProcessor {
           (table) => {
             table.increments('id').primary();
             table.string('fk_model_id').notNullable();
+            table.integer('offset').defaultTo(0);
+            table.boolean('completed').defaultTo(false);
 
             table.index('fk_model_id');
           },
@@ -162,7 +164,8 @@ export class AttachmentMigrationProcessor {
               'fk_model_id',
               ncMeta
                 .knexConnection(temp_processed_models_table)
-                .select('fk_model_id'),
+                .select('fk_model_id')
+                .where('completed', true),
             )
             .groupBy(selectFields)
             .limit(modelLimit)
@@ -229,8 +232,21 @@ export class AttachmentMigrationProcessor {
             dbDriver,
           });
 
+          const processedModel = await ncMeta
+            .knexConnection(temp_processed_models_table)
+            .where('fk_model_id', fk_model_id)
+            .first();
+
           const dataLimit = 10;
           let dataOffset = 0;
+
+          if (!processedModel) {
+            await ncMeta
+              .knexConnection(temp_processed_models_table)
+              .insert({ fk_model_id, offset: 0 });
+          } else {
+            dataOffset = processedModel.offset;
+          }
 
           // eslint-disable-next-line no-constant-condition
           while (true) {
@@ -414,11 +430,19 @@ export class AttachmentMigrationProcessor {
                 );
               }
             }
+
+            // update offset
+            await ncMeta
+              .knexConnection(temp_processed_models_table)
+              .where('fk_model_id', fk_model_id)
+              .update({ offset: dataOffset });
           }
 
+          // mark model as processed
           await ncMeta
             .knexConnection(temp_processed_models_table)
-            .insert({ fk_model_id });
+            .where('fk_model_id', fk_model_id)
+            .update({ completed: true });
         }
       }
 

@@ -31,7 +31,7 @@ export class ThumbnailMigrationProcessor {
     console.log('[nc_job_002_thumbnail]: ', ...msgs);
   };
 
-  @Process(MigrationJobTypes.Attachment)
+  @Process(MigrationJobTypes.Thumbnail)
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 

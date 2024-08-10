@@ -207,6 +207,7 @@ export class AttachmentMigration {
 
         if (isExternal) {
           try {
+            this.log(`Checking connection for ${source_id} (${source.alias})`);
             // run SELECT 1 to check if connection is working
             // return if no response in 10 seconds
             await Promise.race([
@@ -215,6 +216,10 @@ export class AttachmentMigration {
                 setTimeout(() => reject(new Error('timeout')), 10000),
               ),
             ]);
+
+            this.log(
+              `External source ${source_id} (${source.alias}) is accessible`,
+            );
           } catch (e) {
             this.log(
               `External source ${source_id} (${source.alias}) is not accessible`,
@@ -425,7 +430,8 @@ export class AttachmentMigration {
             updatePayload.push(updateData);
           }
 
-          if (updatePayload.length > 0) {
+          // TODO: enable external updates for production
+          if (updatePayload.length > 0 && !isExternal) {
             for (const updateData of updatePayload) {
               const wherePk = await baseModel._wherePk(
                 baseModel._extractPksValues(updateData),

@@ -9377,7 +9377,7 @@ class BaseModelSqlv2 {
                     file_url:
                       sanitizedAttachment.url ?? sanitizedAttachment.path,
                     file_size: sanitizedAttachment.size,
-                    fk_user_id: cookie?.user?.id,
+                    fk_user_id: cookie?.user?.id ?? 'anonymous',
                     fk_model_id: this.model.id,
                     fk_column_id: column.id,
                   },

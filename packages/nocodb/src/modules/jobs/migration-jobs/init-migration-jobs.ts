@@ -120,8 +120,12 @@ export class InitMigrationJobs {
         // clear stall interval
         clearInterval(stallInterval);
 
-        // run the job again
-        await this.jobsService.add(MigrationJobTypes.InitMigrationJobs, {});
+        // run the job again if successful
+        if (migrated) {
+          await this.jobsService.add(MigrationJobTypes.InitMigrationJobs, {});
+        } else {
+          this.log('A migration job failed!');
+        }
       } catch (e) {
         this.log('Error running migration: ', e);
       }

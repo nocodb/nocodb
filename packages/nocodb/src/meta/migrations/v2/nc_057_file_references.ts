@@ -10,8 +10,10 @@ const up = async (knex: Knex) => {
     table.string('fk_user_id', 20);
     table.string('fk_workspace_id', 20);
     table.string('base_id', 20);
+    table.string('source_id', 20);
     table.string('fk_model_id', 20);
     table.string('fk_column_id', 20);
+    table.boolean('is_external').defaultTo(false);
     table.boolean('deleted').defaultTo(false);
     table.timestamps(true, true);
 

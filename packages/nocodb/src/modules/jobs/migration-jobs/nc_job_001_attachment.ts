@@ -354,17 +354,17 @@ export class AttachmentMigrationProcessor {
                               deleted: true,
                             },
                           );
-
-                          updateRequired = true;
                         }
                       }
 
                       if (!('id' in attachment)) {
                         attachment.id = await FileReference.insert(context, {
+                          source_id: source.id,
                           fk_model_id,
                           fk_column_id: column.id,
                           file_url: attachment.path || attachment.url,
                           file_size: attachment.size,
+                          is_external: !!source.isMeta(),
                           deleted: false,
                         });
 

@@ -86,8 +86,13 @@ export class AttachmentMigration {
         fileReferenceBuffer.push({ file_path: file });
 
         if (fileReferenceBuffer.length >= 100) {
+          fileScanStream.pause();
+
           try {
-            const processBuffer = fileReferenceBuffer.splice(0);
+            const processBuffer = fileReferenceBuffer.splice(
+              0,
+              fileReferenceBuffer.length,
+            );
 
             filesCount += processBuffer.length;
 
@@ -124,6 +129,8 @@ export class AttachmentMigration {
             this.log(e);
             err = e;
           }
+
+          fileScanStream.resume();
         }
       });
 
@@ -370,6 +377,24 @@ export class AttachmentMigration {
                         });
 
                         updateRequired = true;
+                      } else {
+                        const fileReference = await FileReference.get(
+                          context,
+                          attachment.id,
+                        );
+
+                        if (!fileReference) {
+                          await FileReference.insert(context, {
+                            id: attachment.id,
+                            source_id: source.id,
+                            fk_model_id,
+                            fk_column_id: column.id,
+                            file_url: attachment.path || attachment.url,
+                            file_size: attachment.size,
+                            is_external: !source.isMeta(),
+                            deleted: false,
+                          });
+                        }
                       }
                     }
                   } catch (e) {

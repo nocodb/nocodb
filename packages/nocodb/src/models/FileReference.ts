@@ -29,6 +29,7 @@ export default class FileReference {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(fileRefObj, [
+      'id',
       'storage',
       'file_url',
       'file_size',

@@ -149,7 +149,7 @@ export default class Gcs implements IStorageAdapterV2 {
   }
 
   fileDelete(_path: string): Promise<any> {
-    return Promise.resolve(undefined);
+    throw new Error('Method not implemented.');
   }
 
   // TODO - implement

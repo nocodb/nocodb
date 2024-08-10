@@ -198,8 +198,15 @@ export default class GenericS3 implements IStorageAdapterV2 {
     return Promise.resolve(undefined);
   }
 
-  public async fileDelete(_path: string): Promise<any> {
-    return Promise.resolve(undefined);
+  public async fileDelete(key: string): Promise<any> {
+    return this.s3Client
+      .deleteObject({
+        Key: this.patchKey(key),
+        Bucket: this.input.bucket,
+      })
+      .then(() => {
+        return true;
+      });
   }
 
   public async scanFiles(globPattern: string): Promise<Readable> {

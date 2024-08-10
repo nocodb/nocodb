@@ -24,6 +24,7 @@ export default interface IStorageAdapterV2<
     };
   }
 > extends IStorageAdapter {
+  name: string;
   fileCreateByUrl(
     destPath: string,
     url: string,

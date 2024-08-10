@@ -12,6 +12,8 @@ interface SpacesObjectStorageInput {
 }
 
 export default class Spaces extends GenericS3 implements IStorageAdapterV2 {
+  name = 'Spaces';
+
   protected input: SpacesObjectStorageInput;
 
   constructor(input: unknown) {

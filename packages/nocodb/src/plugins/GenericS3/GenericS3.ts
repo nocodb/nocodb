@@ -21,6 +21,8 @@ interface GenerocObjectStorageInput {
 }
 
 export default class GenericS3 implements IStorageAdapterV2 {
+  public name;
+
   protected s3Client: S3Client;
   protected input: GenerocObjectStorageInput;
 

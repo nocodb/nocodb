@@ -15,6 +15,8 @@ export default class LinodeObjectStorage
   extends GenericS3
   implements IStorageAdapterV2
 {
+  name = 'LinodeObjectStorage';
+
   protected input: LinodeObjectStorageInput;
   constructor(input: unknown) {
     super(input as LinodeObjectStorageInput);

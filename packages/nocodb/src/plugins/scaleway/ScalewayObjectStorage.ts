@@ -16,6 +16,8 @@ export default class ScalewayObjectStorage
   extends GenericS3
   implements IStorageAdapterV2
 {
+  name = 'ScalewayObjectStorage';
+
   protected input: ScalewayObjectStorageInput;
 
   constructor(input: unknown) {

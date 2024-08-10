@@ -16,6 +16,8 @@ interface GoogleCloudStorageInput {
 }
 
 export default class Gcs implements IStorageAdapterV2 {
+  name = 'Gcs';
+
   private storageClient: Storage;
   private bucketName: string;
   private input: GoogleCloudStorageInput;

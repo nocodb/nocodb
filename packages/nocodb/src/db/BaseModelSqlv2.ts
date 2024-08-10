@@ -5953,6 +5953,86 @@ class BaseModelSqlv2 {
 
       const source = await Source.get(this.context, this.model.source_id);
 
+      // remove FileReferences for attachments
+      const attachmentColumns = columns.filter(
+        (c) => c.uidt === UITypes.Attachment,
+      );
+
+      // paginate all the records and find file reference ids
+      const selectQb = qb
+        .clone()
+        .select(
+          attachmentColumns
+            .map((c) => c.column_name)
+            .concat(this.model.primaryKeys.map((pk) => pk.column_name)),
+        );
+
+      const response = [];
+
+      let offset = 0;
+      const limit = 100;
+
+      const fileReferenceIds: string[] = [];
+
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const rows = await this.execAndParse(
+          selectQb
+            .clone()
+            .offset(offset)
+            .limit(limit + 1),
+          null,
+          {
+            raw: true,
+          },
+        );
+
+        if (rows.length === 0) {
+          break;
+        }
+
+        let lastPage = false;
+
+        if (rows.length > limit) {
+          rows.pop();
+        } else {
+          lastPage = true;
+        }
+
+        for (const row of rows) {
+          for (const c of attachmentColumns) {
+            if (row[c.column_name]) {
+              try {
+                const attachments = JSON.parse(row[c.column_name]);
+                for (const attachment of attachments) {
+                  if (attachment.id) {
+                    fileReferenceIds.push(attachment.id);
+                  }
+                }
+              } catch (e) {
+                continue;
+              }
+            }
+          }
+
+          const primaryData = {};
+
+          for (const pk of this.model.primaryKeys) {
+            primaryData[pk.title] = row[pk.column_name];
+          }
+
+          response.push(primaryData);
+        }
+
+        if (lastPage) {
+          break;
+        }
+
+        offset += limit;
+      }
+
+      await FileReference.delete(this.context, fileReferenceIds);
+
       trx = await this.dbDriver.transaction();
 
       // unlink LTAR data
@@ -5962,15 +6042,13 @@ class BaseModelSqlv2 {
         }
       }
 
-      const deleteQb = qb.clone().transacting(trx).del();
-
-      const count = (await deleteQb) as any;
+      await qb.clone().transacting(trx).del();
 
       await trx.commit();
 
-      await this.afterBulkDelete(count, this.dbDriver, cookie, true);
+      await this.afterBulkDelete(response.length, this.dbDriver, cookie, true);
 
-      return count;
+      return response;
     } catch (e) {
       throw e;
     }

@@ -295,7 +295,7 @@ export class AttachmentMigrationProcessor {
                   for (const attachment of attachmentArr) {
                     if ('path' in attachment || 'url' in attachment) {
                       const filePath = `nc/uploads/${
-                        attachment.path.replace(/^download\//, '') ||
+                        attachment.path?.replace(/^download\//, '') ||
                         decodeURI(
                           `${new URL(attachment.url).pathname.replace(
                             /.*?nc\/uploads\//,

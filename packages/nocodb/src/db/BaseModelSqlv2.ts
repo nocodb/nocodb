@@ -5590,6 +5590,13 @@ class BaseModelSqlv2 {
       if (!args.skipValidationAndHooks)
         await this.validate(updateData, columns);
 
+      // if attachment provided error out
+      for (const col of columns) {
+        if (col.uidt === UITypes.Attachment && updateData[col.column_name]) {
+          NcError.notImplemented(`Attachment bulk update all`);
+        }
+      }
+
       await this.prepareNocoData(updateData, false, cookie);
 
       const pkValues = this._extractPksValues(updateData);

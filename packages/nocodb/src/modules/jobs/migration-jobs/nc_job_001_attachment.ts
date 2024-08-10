@@ -169,6 +169,8 @@ export class AttachmentMigration {
           return;
         }
 
+        const isExternal = !source.isMeta();
+
         const model = await Model.get(context, fk_model_id);
 
         if (!model) {
@@ -187,6 +189,24 @@ export class AttachmentMigration {
         if (!dbDriver) {
           this.log(`connection can't achieved for ${source_id}`);
           return;
+        }
+
+        if (isExternal) {
+          try {
+            // run SELECT 1 to check if connection is working
+            // return if no response in 10 seconds
+            await Promise.race([
+              dbDriver.raw('SELECT 1'),
+              new Promise((resolve, reject) =>
+                setTimeout(() => reject(new Error('timeout')), 10000),
+              ),
+            ]);
+          } catch (e) {
+            this.log(
+              `External source ${source_id} (${source.alias}) is not accessible`,
+            );
+            return;
+          }
         }
 
         const baseModel = await Model.getBaseModelSQL(context, {

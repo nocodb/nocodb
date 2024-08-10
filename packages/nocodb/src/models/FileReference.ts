@@ -141,19 +141,6 @@ export default class FileReference {
     );
   }
 
-  public static async hardDelete(
-    context: NcContext,
-    fileReferenceId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    await ncMeta.metaDelete(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.FILE_REFERENCES,
-      fileReferenceId,
-    );
-  }
-
   public static async get(context: NcContext, id: any, ncMeta = Noco.ncMeta) {
     const fileReferenceData = await ncMeta.metaGet2(
       context.workspace_id,

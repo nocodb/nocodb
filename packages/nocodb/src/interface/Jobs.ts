@@ -18,6 +18,7 @@ export enum JobTypes {
   CleanUp = 'clean-up',
   DataExport = 'data-export',
   ThumbnailGenerator = 'thumbnail-generator',
+  AttachmentCleanUp = 'attachment-clean-up',
 }
 
 export enum JobStatus {

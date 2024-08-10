@@ -8,6 +8,7 @@ import Noco from '~/Noco';
 import mimetypes from '~/utils/mimeTypes';
 import { RootScopes } from '~/utils/globals';
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
+import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 
 @Injectable()
 export class ThumbnailMigration {
@@ -26,11 +27,14 @@ export class ThumbnailMigration {
     try {
       const ncMeta = Noco.ncMeta;
 
+      const storageAdapter = await NcPluginMgrv2.storageAdapter(ncMeta);
+
       const temp_file_references_table = 'nc_temp_file_references';
 
       const fileReferencesTableExists =
         await ncMeta.knexConnection.schema.hasTable(temp_file_references_table);
 
+      // fallback scanning all files if temp table is not generated from previous migration
       if (!fileReferencesTableExists) {
         // create temp file references table if not exists
         await ncMeta.knexConnection.schema.createTable(
@@ -45,9 +49,6 @@ export class ThumbnailMigration {
             table.index('file_path');
           },
         );
-
-        // fallback scanning all files if temp table is not generated from previous migration
-        const storageAdapter = await NcPluginMgrv2.storageAdapter(ncMeta);
 
         const fileScanStream = await storageAdapter.scanFiles('nc/uploads/**');
 
@@ -160,6 +161,49 @@ export class ThumbnailMigration {
         }
 
         try {
+          // check if thumbnails exist
+          for (const fileReference of fileReferences) {
+            let relativePath;
+
+            const isUrl = /^https?:\/\//i.test(fileReference.file_path);
+            if (isUrl) {
+              relativePath = getPathFromUrl(fileReference.file_path).replace(
+                /^\/+/,
+                '',
+              );
+            } else {
+              relativePath = fileReference.file_path;
+            }
+
+            const thumbnailRoot = relativePath.replace(
+              /nc\/uploads/,
+              'nc/thumbnails',
+            );
+
+            try {
+              const thumbnails = await storageAdapter.getDirectoryList(
+                thumbnailRoot,
+              );
+
+              if (
+                ['card_cover.jpg', 'small.jpg', 'tiny.jpg'].every((t) =>
+                  thumbnails.includes(t),
+                )
+              ) {
+                await ncMeta
+                  .knexConnection(temp_file_references_table)
+                  .where('file_path', fileReference.file_path)
+                  .update({
+                    thumbnail_generated: true,
+                  });
+
+                fileReference.thumbnail_generated = true;
+              }
+            } catch (e) {
+              // ignore error
+            }
+          }
+
           // manually call thumbnail generator job to control the concurrency
           await this.thumbnailGeneratorProcessor.job({
             data: {
@@ -167,20 +211,25 @@ export class ThumbnailMigration {
                 base_id: RootScopes.ROOT,
                 workspace_id: RootScopes.ROOT,
               },
-              attachments: fileReferences.map((f) => {
-                const isUrl = /^https?:\/\//i.test(f.file_path);
-                if (isUrl) {
-                  return {
-                    url: f.file_path,
-                    mimetype: f.mimetype,
-                  };
-                } else {
-                  return {
-                    path: path.join('download', f.file_path),
-                    mimetype: f.mimetype,
-                  };
-                }
-              }),
+              attachments: fileReferences
+                .filter((f) => !f.thumbnail_generated)
+                .map((f) => {
+                  const isUrl = /^https?:\/\//i.test(f.file_path);
+                  if (isUrl) {
+                    return {
+                      url: f.file_path,
+                      mimetype: f.mimetype,
+                    };
+                  } else {
+                    return {
+                      path: path.join(
+                        'download',
+                        f.file_path.replace(/^nc\/uploads\//, ''),
+                      ),
+                      mimetype: f.mimetype,
+                    };
+                  }
+                }),
             },
           } as any);
 

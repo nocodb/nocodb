@@ -11,6 +11,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import mimetypes from '~/utils/mimeTypes';
+import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 
 @Injectable()
 export class AttachmentMigration {
@@ -304,7 +305,7 @@ export class AttachmentMigration {
                     if ('path' in attachment || 'url' in attachment) {
                       const filePath = `nc/uploads/${
                         attachment.path?.replace(/^download\//, '') ||
-                        this.normalizeUrl(attachment.url)
+                        getPathFromUrl(attachment.url)
                       }`;
 
                       const isReferenced = await ncMeta
@@ -560,10 +561,5 @@ export class AttachmentMigration {
     }
 
     return true;
-  }
-
-  normalizeUrl(url: string) {
-    const newUrl = new URL(encodeURI(url));
-    return decodeURI(newUrl.pathname.replace(/.*?nc\/uploads\//, ''));
   }
 }

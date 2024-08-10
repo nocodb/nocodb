@@ -36,7 +36,7 @@ interface AttachmentObject {
 const thumbnailMimes = ['image/'];
 
 const normalizeFilename = (filename: string) => {
-  return filename.replace(/[\\/:*?"<>'`|%]/g, '_');
+  return filename.replace(/[\\/:*?"<>'`#|%]/g, '_');
 };
 
 @Injectable()

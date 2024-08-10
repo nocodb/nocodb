@@ -6,6 +6,7 @@ import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 
 @Processor(JOBS_QUEUE)
 export class AttachmentCleanUpProcessor {
@@ -42,10 +43,7 @@ export class AttachmentCleanUpProcessor {
       if (storageAdapterName === 'Local') {
         relativePath = file.file_url.replace(/^\/?nc\/uploads\//, '');
       } else {
-        relativePath = new URL(encodeURI(file.file_url)).pathname.replace(
-          /^\/?nc\/uploads\//,
-          '',
-        );
+        relativePath = getPathFromUrl(file.file_url, true);
       }
 
       await storageAdapter.fileDelete(path.join('nc', 'uploads', relativePath));

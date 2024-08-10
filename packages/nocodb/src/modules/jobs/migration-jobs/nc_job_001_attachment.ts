@@ -1,3 +1,4 @@
+import path from 'path';
 import debug from 'debug';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
@@ -12,6 +13,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { FileReference, Model } from '~/models';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { extractProps } from '~/helpers/extractProps';
+import mimetypes from '~/utils/mimeTypes';
 import {
   setMigrationJobsStallInterval,
   updateMigrationJobsState,
@@ -59,6 +61,7 @@ export class AttachmentMigrationProcessor {
           (table) => {
             table.increments('id').primary();
             table.string('file_path').notNullable();
+            table.string('mimetype');
             table.boolean('referenced').defaultTo(false);
             table.boolean('thumbnail_generated').defaultTo(false);
 
@@ -142,9 +145,16 @@ export class AttachmentMigrationProcessor {
 
         // eslint-disable-next-line no-constant-condition
         while (true) {
+          const selectFields = [
+            ...(Noco.isEE() ? ['fk_workspace_id'] : []),
+            'base_id',
+            'source_id',
+            'fk_model_id',
+          ];
+
           const models = await ncMeta
             .knexConnection(MetaTable.COLUMNS)
-            .select('fk_workspace_id', 'base_id', 'source_id', 'fk_model_id')
+            .select(selectFields)
             .where('uidt', UITypes.Attachment)
             .whereNotIn(
               'fk_model_id',
@@ -152,7 +162,7 @@ export class AttachmentMigrationProcessor {
                 .knexConnection(temp_processed_models_table)
                 .select('fk_model_id'),
             )
-            .groupBy('fk_workspace_id', 'base_id', 'source_id', 'fk_model_id')
+            .groupBy(selectFields)
             .limit(modelLimit)
             .offset(modelOffset);
 
@@ -284,7 +294,7 @@ export class AttachmentMigrationProcessor {
 
                   for (const attachment of attachmentArr) {
                     if ('path' in attachment || 'url' in attachment) {
-                      const path = `nc/uploads/${
+                      const filePath = `nc/uploads/${
                         attachment.path.replace(/^download\//, '') ||
                         decodeURI(
                           `${new URL(attachment.url).pathname.replace(
@@ -296,20 +306,25 @@ export class AttachmentMigrationProcessor {
 
                       const isReferenced = await ncMeta
                         .knexConnection(temp_file_references_table)
-                        .where('file_path', path)
+                        .where('file_path', filePath)
                         .first();
 
                       if (!isReferenced) {
                         // file is from another storage adapter
                         this.log(
-                          `file not found in file references table ${path}`,
+                          `file not found in file references table ${filePath}`,
                         );
                         continue;
                       } else if (isReferenced.referenced === false) {
+                        const fileNameWithExt = path.basename(filePath);
+
+                        const mimetype = attachment.mimetype || mimetypes[path.extname(fileNameWithExt).slice(1)];
+
                         await ncMeta
                           .knexConnection(temp_file_references_table)
-                          .where('file_path', path)
+                          .where('file_path', filePath)
                           .update({
+                            mimetype,
                             referenced: true,
                           });
                       }

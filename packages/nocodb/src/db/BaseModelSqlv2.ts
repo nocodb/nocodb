@@ -9383,7 +9383,7 @@ class BaseModelSqlv2 {
                     source_id: source.id,
                     fk_model_id: this.model.id,
                     fk_column_id: column.id,
-                    is_external: !!source.isMeta(),
+                    is_external: !source.isMeta(),
                   },
                 );
               }

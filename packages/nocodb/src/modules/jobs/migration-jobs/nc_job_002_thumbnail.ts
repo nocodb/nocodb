@@ -53,6 +53,12 @@ export class ThumbnailMigration {
 
         const fileReferenceBuffer = [];
 
+        const insertPromises = [];
+
+        let filesCount = 0;
+
+        let err = null;
+
         fileScanStream.on('data', async (file) => {
           const fileNameWithExt = path.basename(file);
 
@@ -65,44 +71,64 @@ export class ThumbnailMigration {
           });
 
           if (fileReferenceBuffer.length >= 100) {
-            fileScanStream.pause();
+            try {
+              const processBuffer = fileReferenceBuffer.splice(0);
 
-            const processBuffer = fileReferenceBuffer.splice(0);
+              filesCount += processBuffer.length;
 
-            // skip or insert file references
-            const toSkip = await ncMeta
-              .knexConnection(temp_file_references_table)
-              .whereIn(
-                'file_path',
-                fileReferenceBuffer.map((f) => f.file_path),
+              // skip or insert file references
+              const toSkip = await ncMeta
+                .knexConnection(temp_file_references_table)
+                .whereIn(
+                  'file_path',
+                  fileReferenceBuffer.map((f) => f.file_path),
+                );
+
+              const toSkipPaths = toSkip.map((f) => f.file_path);
+
+              const toInsert = processBuffer.filter(
+                (f) => !toSkipPaths.includes(f.file_path),
               );
 
-            const toSkipPaths = toSkip.map((f) => f.file_path);
+              if (toInsert.length > 0) {
+                insertPromises.push(
+                  ncMeta
+                    .knexConnection(temp_file_references_table)
+                    .insert(toInsert)
+                    .catch((e) => {
+                      this.log(`Error inserting file references`);
+                      this.log(e);
+                      err = e;
+                    }),
+                );
+              }
 
-            const toInsert = processBuffer.filter(
-              (f) => !toSkipPaths.includes(f.file_path),
-            );
-
-            if (toInsert.length > 0) {
-              await ncMeta
-                .knexConnection(temp_file_references_table)
-                .insert(toInsert);
+              this.log(`Scanned ${filesCount} files`);
+            } catch (e) {
+              this.log(`There was an error while scanning files`);
+              this.log(e);
+              err = e;
             }
-
-            fileScanStream.resume();
           }
         });
 
-        let err = null;
+        try {
+          await new Promise((resolve, reject) => {
+            fileScanStream.on('end', resolve);
+            fileScanStream.on('error', reject);
+          });
 
-        await new Promise((resolve, reject) => {
-          fileScanStream.on('end', resolve);
-          fileScanStream.on('error', reject);
-        }).catch((e) => {
-          this.log(`error scanning files:`, e);
-          err = e;
-        });
+          await Promise.all(insertPromises);
+        } catch (e) {
+          this.log(`There was an error while scanning files`);
+          this.log(e);
+          throw e;
+        }
 
+        filesCount += fileReferenceBuffer.length;
+        this.log(`Completed scanning with ${filesCount} files`);
+
+        // throw if there was an async error while scanning files
         if (err) {
           throw err;
         }

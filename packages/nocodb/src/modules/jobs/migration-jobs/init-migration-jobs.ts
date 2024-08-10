@@ -102,12 +102,19 @@ export class InitMigrationJobs {
         const stallInterval = setMigrationJobsStallInterval();
 
         // run migration (pass service as this context)
-        await migration.service.job();
+        const migrated = await migration.service.job();
 
-        // update migration state
-        migrationJobsState.version = migration.version;
-        migrationJobsState.locked = false;
-        migrationJobsState.stall_check = Date.now();
+        // prepare state
+        if (migrated) {
+          migrationJobsState.version = migration.version;
+          migrationJobsState.locked = false;
+          migrationJobsState.stall_check = Date.now();
+        } else {
+          migrationJobsState.locked = false;
+          migrationJobsState.stall_check = Date.now();
+        }
+
+        // update state
         await updateMigrationJobsState(migrationJobsState);
 
         // clear stall interval

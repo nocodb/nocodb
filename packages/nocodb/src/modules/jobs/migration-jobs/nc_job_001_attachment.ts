@@ -111,7 +111,7 @@ export class AttachmentMigration {
                   .catch((e) => {
                     this.log(`Error inserting file references`);
                     this.log(e);
-                    throw e;
+                    err = e;
                   }),
               );
             }
@@ -141,6 +141,7 @@ export class AttachmentMigration {
       filesCount += fileReferenceBuffer.length;
       this.log(`Completed scanning with ${filesCount} files`);
 
+      // throw if there was an async error while scanning files
       if (err) {
         throw err;
       }

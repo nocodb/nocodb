@@ -5288,6 +5288,14 @@ class BaseModelSqlv2 {
 
         aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
         agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
+      } else {
+        await this.model.getColumns(this.context);
+
+        await Promise.all(
+          insertDatas.map(
+            async (d) => await this.prepareNocoData(d, true, cookie),
+          ),
+        );
       }
 
       if ('beforeBulkInsert' in this) {
@@ -5344,10 +5352,8 @@ class BaseModelSqlv2 {
       } else {
         const returningObj: Record<string, string> = {};
 
-        if (!raw) {
-          for (const col of this.model.primaryKeys) {
-            returningObj[col.title] = col.column_name;
-          }
+        for (const col of this.model.primaryKeys) {
+          returningObj[col.title] = col.column_name;
         }
 
         responses =

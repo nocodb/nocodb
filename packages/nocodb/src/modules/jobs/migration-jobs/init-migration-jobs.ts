@@ -46,6 +46,11 @@ export class InitMigrationJobs {
 
     // check for lock
     if (migrationJobsState.locked) {
+      if (migrationJobsState.instance === instanceUuid) {
+        // lock taken by this instance
+        return;
+      }
+
       // migration job is running, make sure it's not stalled by checking after 10 mins
       // stall check is updated every 5 mins
       setTimeout(() => {
@@ -71,7 +76,7 @@ export class InitMigrationJobs {
     await updateMigrationJobsState(migrationJobsState, migrationJobsState);
 
     // wait for 2 seconds to confirm lock
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const confirmState = await getMigrationJobsState();
 

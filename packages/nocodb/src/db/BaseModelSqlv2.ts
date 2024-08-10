@@ -5457,7 +5457,7 @@ class BaseModelSqlv2 {
       for (const [i, d] of updateDatas.entries()) {
         const pkValues = getCompositePkValue(
           this.model.primaryKeys,
-          this._extractPksValues(d),
+          this.extractPksValues(d),
         );
         if (!pkValues) {
           // throw or skip if no pk provided
@@ -5489,7 +5489,7 @@ class BaseModelSqlv2 {
 
             for (const record of tempToRead) {
               const oldRecord = oldRecords.find((r) =>
-                this.comparePks(this._extractPksValues(r), record.pk),
+                this.comparePks(this.extractPksValues(r), record.pk),
               );
 
               if (!oldRecord) {
@@ -5600,7 +5600,7 @@ class BaseModelSqlv2 {
 
       await this.prepareNocoData(updateData, false, cookie);
 
-      const pkValues = this._extractPksValues(updateData);
+      const pkValues = this.extractPksValues(updateData);
       if (pkValues) {
         // pk is specified - by pass
       } else {
@@ -5699,7 +5699,7 @@ class BaseModelSqlv2 {
       for (const [i, d] of deleteIds.entries()) {
         const pkValues = getCompositePkValue(
           this.model.primaryKeys,
-          this._extractPksValues(d),
+          this.extractPksValues(d),
         );
         if (!pkValues) {
           // throw or skip if no pk provided
@@ -5729,7 +5729,7 @@ class BaseModelSqlv2 {
           } else {
             for (const { pk, data } of tempToRead) {
               const oldRecord = oldRecords.find((r) =>
-                this.comparePks(this._extractPksValues(r), pk),
+                this.comparePks(this.extractPksValues(r), pk),
               );
 
               if (!oldRecord) {
@@ -6080,7 +6080,7 @@ class BaseModelSqlv2 {
 
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
-    const id = this._extractPksValues(data);
+    const id = this.extractPksValues(data);
 
     let details = '';
 
@@ -6227,7 +6227,7 @@ class BaseModelSqlv2 {
     req,
     updateObj?: Record<string, any>,
   ): Promise<void> {
-    const id = this._extractPksValues(newData);
+    const id = this.extractPksValues(newData);
     let desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
     let details = '';
     if (updateObj) {
@@ -6279,7 +6279,7 @@ class BaseModelSqlv2 {
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
-    const id = this._extractPksValues(data);
+    const id = this.extractPksValues(data);
     await Audit.insert({
       fk_workspace_id: this.model.fk_workspace_id,
       base_id: this.model.base_id,
@@ -6316,7 +6316,7 @@ class BaseModelSqlv2 {
   protected async errorUpdate(_e, _data, _trx, _cookie) {}
 
   // todo: handle composite primary key
-  _extractPksValues(data: any) {
+  public extractPksValues(data: any) {
     // data can be still inserted without PK
 
     // if composite primary key return an object with all the primary keys
@@ -6721,7 +6721,7 @@ class BaseModelSqlv2 {
             const oldChildRowId = prevData[column.title]
               ? getCompositePkValue(
                   parentTable.primaryKeys,
-                  this._extractPksValues(prevData[column.title]),
+                  this.extractPksValues(prevData[column.title]),
                 )
               : null;
 
@@ -6910,7 +6910,7 @@ class BaseModelSqlv2 {
             if (linkedOoRowObj) {
               const oldRowId = getCompositePkValue(
                 childTable.primaryKeys,
-                this._extractPksValues(linkedOoRowObj),
+                this.extractPksValues(linkedOoRowObj),
               );
 
               if (oldRowId) {
@@ -6962,7 +6962,7 @@ class BaseModelSqlv2 {
             if (linkedCurrentOoRowObj) {
               const oldChildRowId = getCompositePkValue(
                 childTable.primaryKeys,
-                this._extractPksValues(linkedCurrentOoRowObj),
+                this.extractPksValues(linkedCurrentOoRowObj),
               );
 
               if (oldChildRowId) {

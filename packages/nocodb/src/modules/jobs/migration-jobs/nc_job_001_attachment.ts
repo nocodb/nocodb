@@ -434,7 +434,7 @@ export class AttachmentMigration {
           if (updatePayload.length > 0 && !isExternal) {
             for (const updateData of updatePayload) {
               const wherePk = await baseModel._wherePk(
-                baseModel._extractPksValues(updateData),
+                baseModel.extractPksValues(updateData),
               );
 
               if (!wherePk) {

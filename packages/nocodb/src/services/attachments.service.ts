@@ -243,22 +243,6 @@ export class AttachmentsService {
               },
             );
 
-          await FileReference.insert(
-            {
-              workspace_id: RootScopes.ROOT,
-              base_id: RootScopes.ROOT,
-            },
-            {
-              storage: storageAdapter.constructor.name,
-              file_url:
-                attachmentUrl ??
-                path.join('download', filePath.join('/'), fileName),
-              file_size: file.size,
-              fk_user_id: userId,
-              deleted: true, // root file references are always deleted as they are not associated with any record
-            },
-          );
-
           const tempMetadata: {
             width?: number;
             height?: number;
@@ -291,6 +275,22 @@ export class AttachmentsService {
               );
             }
           }
+
+          await FileReference.insert(
+            {
+              workspace_id: RootScopes.ROOT,
+              base_id: RootScopes.ROOT,
+            },
+            {
+              storage: storageAdapter.constructor.name,
+              file_url:
+                attachmentUrl ??
+                path.join('download', filePath.join('/'), fileName),
+              file_size: size ? parseInt(size) : urlMeta.size,
+              fk_user_id: userId,
+              deleted: true, // root file references are always deleted as they are not associated with any record
+            },
+          );
 
           const attachment: AttachmentObject = {
             ...(attachmentUrl

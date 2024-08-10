@@ -193,12 +193,17 @@ export class AttachmentMigration {
           return;
         }
 
+        const baseModel = await Model.getBaseModelSQL(context, {
+          model,
+          dbDriver,
+        });
+
         if (isExternal) {
           try {
             // run SELECT 1 to check if connection is working
             // return if no response in 10 seconds
             await Promise.race([
-              dbDriver.raw('SELECT 1'),
+              baseModel.execAndParse('SELECT 1', null, { raw: true }),
               new Promise((resolve, reject) =>
                 setTimeout(() => reject(new Error('timeout')), 10000),
               ),
@@ -210,11 +215,6 @@ export class AttachmentMigration {
             throw e;
           }
         }
-
-        const baseModel = await Model.getBaseModelSQL(context, {
-          model,
-          dbDriver,
-        });
 
         const processedModel = await ncMeta
           .knexConnection(temp_processed_models_table)

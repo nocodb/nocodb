@@ -6306,7 +6306,7 @@ class BaseModelSqlv2 {
   protected async errorUpdate(_e, _data, _trx, _cookie) {}
 
   // todo: handle composite primary key
-  protected _extractPksValues(data: any) {
+  _extractPksValues(data: any) {
     // data can be still inserted without PK
 
     // if composite primary key return an object with all the primary keys

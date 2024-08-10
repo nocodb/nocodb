@@ -21,6 +21,10 @@ import { DataExportController } from '~/modules/jobs/jobs/data-export/data-expor
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 
+// Migration Jobs
+import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
+import { AttachmentMigrationProcessor } from '~/modules/jobs/migration-jobs/nc_job_001_attachment';
+
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 // import { JobsGateway } from '~/modules/jobs/jobs.gateway';
@@ -82,6 +86,10 @@ export const JobsModuleMetadata = {
     DataExportProcessor,
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
+
+    // Migration Jobs
+    InitMigrationJobs,
+    AttachmentMigrationProcessor,
   ],
   exports: ['JobsService'],
 };

@@ -223,6 +223,7 @@ export class MetaService {
     target: string,
     data: any | any[],
     ids: string[],
+    condition?: { [key: string]: any },
   ): Promise<any> {
     if (Array.isArray(data) ? !data.length : !data) {
       return [];
@@ -253,8 +254,6 @@ export class MetaService {
           sql: '',
         });
       }
-
-      this.contextCondition(query, workspace_id, base_id, target);
     }
 
     const updateObj = {
@@ -262,7 +261,25 @@ export class MetaService {
       updated_at: at,
     };
 
-    query.whereIn('id', ids).update(updateObj);
+    if (!condition) {
+      query.whereIn('id', ids).update(updateObj);
+    } else {
+      if (![MetaTable.FILE_REFERENCES].includes(target as MetaTable)) {
+        NcError.metaError({
+          message: 'This table does not support conditional bulk update',
+          sql: '',
+        });
+      }
+
+      query.where(condition);
+
+      // Check if a condition is present in the query builder and throw an error if not.
+      this.checkConditionPresent(query, 'update');
+
+      query.update(updateObj);
+    }
+
+    this.contextCondition(query, workspace_id, base_id, target);
 
     return query;
   }

@@ -17,7 +17,7 @@ import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import QrCodeColumn from '~/models/QrCodeColumn';
 import BarcodeColumn from '~/models/BarcodeColumn';
-import { GalleryView, KanbanView, LinksColumn } from '~/models';
+import { FileReference, GalleryView, KanbanView, LinksColumn } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import addFormulaErrorIfMissingColumn from '~/helpers/addFormulaErrorIfMissingColumn';
@@ -983,6 +983,9 @@ export default class Column<T = any> implements ColumnType {
     for (const ltarColumn of ltarColumns) {
       await Column.delete(context, ltarColumn.fk_column_id, ncMeta);
     }
+
+    // Delete FileReference
+    await FileReference.bulkDelete(context, { fk_column_id: col.id }, ncMeta);
 
     // Columns
     await ncMeta.metaDelete(

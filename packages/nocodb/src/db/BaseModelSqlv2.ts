@@ -9271,121 +9271,129 @@ class BaseModelSqlv2 {
         }
       }
       if (column.uidt === UITypes.Attachment) {
-        if (data && data[column.column_name]) {
-          try {
-            if (typeof data[column.column_name] === 'string') {
-              data[column.column_name] = JSON.parse(data[column.column_name]);
-            }
-          } catch (e) {
-            NcError.invalidAttachmentJson(data[column.column_name]);
-          }
-        }
-
-        if (oldData && oldData[column.column_name]) {
-          try {
-            if (typeof oldData[column.column_name] === 'string') {
-              oldData[column.column_name] = JSON.parse(
-                oldData[column.column_name],
-              );
-            }
-          } catch (e) {}
-        }
-
-        const regenerateIds = [];
-
-        if (!isInsertData) {
-          const oldAttachmentMap = new Map<
-            string,
-            { url?: string; path?: string }
-          >(
-            oldData &&
-            oldData[column.column_name] &&
-            Array.isArray(oldData[column.column_name])
-              ? oldData[column.column_name].filter((att) => att.id).map((att) => [att.id, att])
-              : [],
-          );
-
-          const newAttachmentMap = new Map<
-            string,
-            { url?: string; path?: string }
-          >(
-            data[column.column_name] && Array.isArray(data[column.column_name])
-              ? data[column.column_name].filter((att) => att.id).map((att) => [att.id, att])
-              : [],
-          );
-
-          for (const [oldId, oldAttachment] of oldAttachmentMap) {
-            if (!newAttachmentMap.has(oldId)) {
-              await FileReference.delete(this.context, oldId);
-            } else if (
-              (oldAttachment.url &&
-                oldAttachment.url !== newAttachmentMap.get(oldId).url) ||
-              (oldAttachment.path &&
-                oldAttachment.path !== newAttachmentMap.get(oldId).path)
-            ) {
-              await FileReference.delete(this.context, oldId);
-              regenerateIds.push(oldId);
+        if (column.column_name in data) {
+          if (data && data[column.column_name]) {
+            try {
+              if (typeof data[column.column_name] === 'string') {
+                data[column.column_name] = JSON.parse(data[column.column_name]);
+              }
+            } catch (e) {
+              NcError.invalidAttachmentJson(data[column.column_name]);
             }
           }
 
-          for (const [newId, newAttachment] of newAttachmentMap) {
-            if (!oldAttachmentMap.has(newId)) {
-              regenerateIds.push(newId);
-            } else if (
-              (newAttachment.url &&
-                newAttachment.url !== oldAttachmentMap.get(newId).url) ||
-              (newAttachment.path &&
-                newAttachment.path !== oldAttachmentMap.get(newId).path)
-            ) {
-              regenerateIds.push(newId);
+          if (oldData && oldData[column.column_name]) {
+            try {
+              if (typeof oldData[column.column_name] === 'string') {
+                oldData[column.column_name] = JSON.parse(
+                  oldData[column.column_name],
+                );
+              }
+            } catch (e) {}
+          }
+
+          const regenerateIds = [];
+
+          if (!isInsertData) {
+            const oldAttachmentMap = new Map<
+              string,
+              { url?: string; path?: string }
+            >(
+              oldData &&
+              oldData[column.column_name] &&
+              Array.isArray(oldData[column.column_name])
+                ? oldData[column.column_name]
+                    .filter((att) => att.id)
+                    .map((att) => [att.id, att])
+                : [],
+            );
+
+            const newAttachmentMap = new Map<
+              string,
+              { url?: string; path?: string }
+            >(
+              data[column.column_name] &&
+              Array.isArray(data[column.column_name])
+                ? data[column.column_name]
+                    .filter((att) => att.id)
+                    .map((att) => [att.id, att])
+                : [],
+            );
+
+            for (const [oldId, oldAttachment] of oldAttachmentMap) {
+              if (!newAttachmentMap.has(oldId)) {
+                await FileReference.delete(this.context, oldId);
+              } else if (
+                (oldAttachment.url &&
+                  oldAttachment.url !== newAttachmentMap.get(oldId).url) ||
+                (oldAttachment.path &&
+                  oldAttachment.path !== newAttachmentMap.get(oldId).path)
+              ) {
+                await FileReference.delete(this.context, oldId);
+                regenerateIds.push(oldId);
+              }
+            }
+
+            for (const [newId, newAttachment] of newAttachmentMap) {
+              if (!oldAttachmentMap.has(newId)) {
+                regenerateIds.push(newId);
+              } else if (
+                (newAttachment.url &&
+                  newAttachment.url !== oldAttachmentMap.get(newId).url) ||
+                (newAttachment.path &&
+                  newAttachment.path !== oldAttachmentMap.get(newId).path)
+              ) {
+                regenerateIds.push(newId);
+              }
             }
           }
-        }
 
-        const sanitizedAttachments = [];
-        if (Array.isArray(data[column.column_name])) {
-          for (const attachment of data[column.column_name]) {
-            if (!('url' in attachment) && !('path' in attachment)) {
-              NcError.unprocessableEntity(
-                'Attachment object must contain either url or path',
-              );
+          const sanitizedAttachments = [];
+          if (Array.isArray(data[column.column_name])) {
+            for (const attachment of data[column.column_name]) {
+              if (!('url' in attachment) && !('path' in attachment)) {
+                NcError.unprocessableEntity(
+                  'Attachment object must contain either url or path',
+                );
+              }
+              const sanitizedAttachment = extractProps(attachment, [
+                'id',
+                'url',
+                'path',
+                'title',
+                'mimetype',
+                'size',
+                'icon',
+                'width',
+                'height',
+              ]);
+
+              if (
+                isInsertData ||
+                !sanitizedAttachment.id ||
+                regenerateIds.includes(sanitizedAttachment.id)
+              ) {
+                sanitizedAttachment.id = await FileReference.insert(
+                  this.context,
+                  {
+                    file_url:
+                      sanitizedAttachment.url ?? sanitizedAttachment.path,
+                    file_size: sanitizedAttachment.size,
+                    fk_user_id: cookie?.user?.id,
+                    fk_model_id: this.model.id,
+                    fk_column_id: column.id,
+                  },
+                );
+              }
+
+              sanitizedAttachments.push(sanitizedAttachment);
             }
-            const sanitizedAttachment = extractProps(attachment, [
-              'id',
-              'url',
-              'path',
-              'title',
-              'mimetype',
-              'size',
-              'icon',
-              'width',
-              'height',
-            ]);
-
-            if (
-              isInsertData ||
-              !sanitizedAttachment.id ||
-              regenerateIds.includes(sanitizedAttachment.id)
-            ) {
-              sanitizedAttachment.id = await FileReference.insert(
-                this.context,
-                {
-                  file_url: sanitizedAttachment.url ?? sanitizedAttachment.path,
-                  file_size: sanitizedAttachment.size,
-                  fk_user_id: cookie?.user?.id,
-                  fk_model_id: this.model.id,
-                  fk_column_id: column.id,
-                },
-              );
-            }
-
-            sanitizedAttachments.push(sanitizedAttachment);
           }
-        }
 
-        data[column.column_name] = sanitizedAttachments.length
-          ? JSON.stringify(sanitizedAttachments)
-          : null;
+          data[column.column_name] = sanitizedAttachments.length
+            ? JSON.stringify(sanitizedAttachments)
+            : null;
+        }
       } else if (
         [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
           column.uidt,

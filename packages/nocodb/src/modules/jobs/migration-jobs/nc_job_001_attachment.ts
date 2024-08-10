@@ -96,14 +96,14 @@ export class AttachmentMigrationProcessor {
 
       const fileReferenceBuffer = [];
 
+      const insertPromises = [];
+
       let filesCount = 0;
 
       fileScanStream.on('data', async (file) => {
         fileReferenceBuffer.push({ file_path: file });
 
         if (fileReferenceBuffer.length >= 100) {
-          fileScanStream.pause();
-
           try {
             const processBuffer = fileReferenceBuffer.splice(0);
 
@@ -124,9 +124,16 @@ export class AttachmentMigrationProcessor {
             );
 
             if (toInsert.length > 0) {
-              await ncMeta
-                .knexConnection(temp_file_references_table)
-                .insert(toInsert);
+              insertPromises.push(
+                ncMeta
+                  .knexConnection(temp_file_references_table)
+                  .insert(toInsert)
+                  .catch((e) => {
+                    this.log(`Error inserting file references`);
+                    this.log(e);
+                    throw e;
+                  }),
+              );
             }
 
             this.log(`Scanned ${filesCount} files`);
@@ -135,8 +142,6 @@ export class AttachmentMigrationProcessor {
             this.log(e);
             err = e;
           }
-
-          fileScanStream.resume();
         }
       });
 
@@ -145,6 +150,8 @@ export class AttachmentMigrationProcessor {
           fileScanStream.on('end', resolve);
           fileScanStream.on('error', reject);
         });
+
+        await Promise.all(insertPromises);
       } catch (e) {
         this.log(`There was an error while scanning files`);
         this.log(e);

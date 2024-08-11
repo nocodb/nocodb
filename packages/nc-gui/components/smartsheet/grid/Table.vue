@@ -1158,7 +1158,7 @@ const maxGridWidth = computed(() => {
 
 const maxGridHeight = computed(() => {
   // 2 extra rows for the add new row and the sticky header
-  return dataRef.value.length * rowHeightInPx[`${props.rowHeight}`]
+  return dataRef.value.length * (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeight}`])
 })
 
 const colSlice = ref({

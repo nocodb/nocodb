@@ -2492,7 +2492,7 @@ onKeyStroke('ArrowDown', onDown)
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             :disabled="isPaginationLoading"
-            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            class="nc-grid-add-new-row"
             size="small"
             type="secondary"
             @click.stop="onNewRecordToFormClick()"
@@ -2503,6 +2503,7 @@ onKeyStroke('ArrowDown', onDown)
             </div>
           </NcButton>
           <NcButton
+            v-else
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             :disabled="isPaginationLoading"
             class="!rounded-r-none !border-r-0 nc-grid-add-new-row"

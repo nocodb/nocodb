@@ -113,7 +113,7 @@ function prewarm_asg(){
 
 # calls api to perform pause and exit the worker pods. the worker pods will pause and wait till any inflight jobs which are in progress
 # once the instance exits, ecs takes care of adding new instance with new image 
-function pause_workers_and_gracefully_shutdown(){    
+function pause_workers_and_gracefully_shutdown(){
     echo "pause_workers_and_gracefully_shutdown: Expected varibles to be set CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS=$([[ ! -z "$API_CREDENTIALS" ]] && echo "***value-set***" || echo "Empty")"
 
     if [[ ! "${CLUSTER}" || ! "${WORKERS_SERVICE_NAME}" || ! "${HOST_NAME}" || ! "${API_CREDENTIALS}" ]]; then log_and_exit "CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS variables must be set" ; fi
@@ -130,6 +130,20 @@ function pause_workers_and_gracefully_shutdown(){
     # Update the service with the new desired count
     # aws ecs update-service --cluster $CLUSTER --service $WORKERS_SERVICE_NAME --desired-count $NEW_DESIRED_COUNT
     message "${ENVIRONMENT}: workers pod rollout triggered"
+}
+
+# calls api to perform pause so that old workers are not accepting new jobs
+function pause_workers(){    
+    echo "pause_workers: Expected varibles to be set CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS=$([[ ! -z "$API_CREDENTIALS" ]] && echo "***value-set***" || echo "Empty")"
+
+    if [[ ! "${CLUSTER}" || ! "${WORKERS_SERVICE_NAME}" || ! "${HOST_NAME}" || ! "${API_CREDENTIALS}" ]]; then log_and_exit "CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS variables must be set" ; fi
+
+    HOST_NAME=${HOST_NAME:-https://staging.noco.to}
+
+    # 1. trigger pause
+    curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/pause -XPOST || exit 1
+
+    message "${ENVIRONMENT}: workers pods paused"
 }
 
 function perform_rollout(){

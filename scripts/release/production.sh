@@ -22,6 +22,8 @@ HOST_NAME="https://app.nocodb.com"
 API_CREDENTIALS=${API_CREDENTIALS}
 ASG_NAME=nocohub-nocodb_ai_main
 
+pause_workers
+
 # prewarm_asg
 # function call in rollout_util.sh file
 perform_rollout "${PROMOTE_IMAGE_BEFORE_ROLLOUT}"

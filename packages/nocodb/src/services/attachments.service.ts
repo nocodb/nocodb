@@ -35,8 +35,9 @@ interface AttachmentObject {
 
 const thumbnailMimes = ['image/'];
 
+// ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
 const normalizeFilename = (filename: string) => {
-  return filename.replace(/[\\/:*?"<>'`#|%]/g, '_');
+  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
 };
 
 @Injectable()

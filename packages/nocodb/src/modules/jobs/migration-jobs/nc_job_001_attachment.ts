@@ -164,6 +164,7 @@ export class AttachmentMigration {
       let processedModelsCount = 0;
 
       const processModel = async (modelData) => {
+        // we increment on start of processing as getting a rough progress is enough
         const { fk_workspace_id, base_id, source_id, fk_model_id } = modelData;
 
         const context = {
@@ -330,7 +331,9 @@ export class AttachmentMigration {
                         this.log(
                           `file not found in file references table ${
                             attachment.path || attachment.url
-                          }, ${filePath}`,
+                          } | ${filePath} | ${model.fk_workspace_id} - ${
+                            model.base_id
+                          } - ${model.id}`,
                         );
                       } else if (isReferenced.referenced === false) {
                         const fileNameWithExt = path.basename(filePath);
@@ -466,8 +469,6 @@ export class AttachmentMigration {
           .knexConnection(temp_processed_models_table)
           .where('fk_model_id', fk_model_id)
           .update({ completed: true });
-
-        processedModelsCount += 1;
       };
 
       const selectFields = [
@@ -482,6 +483,7 @@ export class AttachmentMigration {
           .from(
             ncMeta
               .knexConnection(MetaTable.COLUMNS)
+              .select(selectFields)
               .where('uidt', UITypes.Attachment)
               .whereNotIn(
                 'fk_model_id',
@@ -491,10 +493,9 @@ export class AttachmentMigration {
                   .where('completed', true),
               )
               .groupBy(selectFields)
-              .count('*', { as: 'count' })
               .as('t'),
           )
-          .sum('count as count')
+          .count('*', { as: 'count' })
           .first()
       )?.count;
 
@@ -524,6 +525,12 @@ export class AttachmentMigration {
           if (item) {
             item.processing = false;
           }
+
+          processedModelsCount += 1;
+
+          this.log(
+            `Processed ${processedModelsCount} of ${numberOfModelsToBeProcessed} models`,
+          );
         }
       };
 

@@ -21,6 +21,8 @@ HOST_NAME="https://staging.noco.to"
 API_CREDENTIALS=${API_CREDENTIALS}
 ASG_NAME=nocohub-noco_to_main
 
+pause_workers
+
 # prewarm_asg
 # function call in rollout_util.sh file
 perform_rollout

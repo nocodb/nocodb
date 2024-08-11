@@ -155,6 +155,8 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
+    expandedFormRow.value = undefined
+    
     router.push({
       query: {
         ...route.value.query,

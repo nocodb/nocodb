@@ -2402,7 +2402,7 @@ onKeyStroke('ArrowDown', onDown)
               class="nc-grid-add-new-row"
               type="secondary"
               :disabled="isPaginationLoading"
-              @click="onNewRecordToFormClick()"
+              @click.stop="onNewRecordToFormClick()"
             >
               {{ $t('activity.newRecord') }}
             </NcButton>
@@ -2412,7 +2412,7 @@ onKeyStroke('ArrowDown', onDown)
               class="nc-grid-add-new-row"
               placement="top"
               :disabled="isPaginationLoading"
-              @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+              @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
             >
               <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
                 <span>

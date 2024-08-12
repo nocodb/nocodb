@@ -12,6 +12,7 @@ interface MinioObjectStorageInput {
   useSSL?: boolean;
   endPoint: string;
   port: number;
+  ca?: string;
 }
 
 export default class Minio implements IStorageAdapterV2 {
@@ -32,6 +33,12 @@ export default class Minio implements IStorageAdapterV2 {
     };
 
     this.minioClient = new MinioClient(minioOptions);
+
+    if (this.input.useSSL && this.input.ca) {
+      this.minioClient.setRequestOptions({
+        ca: this.input.useSSL ? this.input.ca : undefined,
+      });
+    }
   }
 
   public async test(): Promise<boolean> {

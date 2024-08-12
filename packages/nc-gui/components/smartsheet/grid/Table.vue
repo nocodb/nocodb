@@ -1158,7 +1158,7 @@ const maxGridWidth = computed(() => {
 
 const maxGridHeight = computed(() => {
   // 2 extra rows for the add new row and the sticky header
-  return dataRef.value.length * rowHeightInPx[`${props.rowHeight}`]
+  return dataRef.value.length * (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeight}`])
 })
 
 const colSlice = ref({
@@ -2402,7 +2402,7 @@ onKeyStroke('ArrowDown', onDown)
               class="nc-grid-add-new-row"
               type="secondary"
               :disabled="isPaginationLoading"
-              @click="onNewRecordToFormClick()"
+              @click.stop="onNewRecordToFormClick()"
             >
               {{ $t('activity.newRecord') }}
             </NcButton>
@@ -2412,7 +2412,7 @@ onKeyStroke('ArrowDown', onDown)
               class="nc-grid-add-new-row"
               placement="top"
               :disabled="isPaginationLoading"
-              @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+              @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
             >
               <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
                 <span>
@@ -2492,7 +2492,7 @@ onKeyStroke('ArrowDown', onDown)
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             :disabled="isPaginationLoading"
-            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            class="nc-grid-add-new-row"
             size="small"
             type="secondary"
             @click.stop="onNewRecordToFormClick()"
@@ -2503,6 +2503,7 @@ onKeyStroke('ArrowDown', onDown)
             </div>
           </NcButton>
           <NcButton
+            v-else
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             :disabled="isPaginationLoading"
             class="!rounded-r-none !border-r-0 nc-grid-add-new-row"

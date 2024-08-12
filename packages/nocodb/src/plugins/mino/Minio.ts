@@ -36,7 +36,7 @@ export default class Minio implements IStorageAdapterV2 {
 
     if (this.input.useSSL && this.input.ca) {
       this.minioClient.setRequestOptions({
-        ca: this.input.useSSL ? this.input.ca : undefined,
+        ca: this.input.ca,
       });
     }
   }

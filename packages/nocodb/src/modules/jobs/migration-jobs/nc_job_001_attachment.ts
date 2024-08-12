@@ -502,7 +502,7 @@ export class AttachmentMigration {
       const skipModels = new Set(['placeholder']);
       let processingModels = [{ fk_model_id: 'placeholder', processing: true }];
 
-      const parallelLimit = 5;
+      const parallelLimit = 1;
 
       const queue = new PQueue({ concurrency: parallelLimit });
 

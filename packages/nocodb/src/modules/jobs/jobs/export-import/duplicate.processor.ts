@@ -45,6 +45,11 @@ export class DuplicateProcessor {
 
     const baseId = context.base_id;
 
+    // workspace templates placeholder user
+    if (req.user?.id === '1') {
+      delete req.user;
+    }
+
     const excludeData = options?.excludeData || false;
     const excludeHooks = options?.excludeHooks || false;
     const excludeViews = options?.excludeViews || false;

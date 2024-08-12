@@ -2,7 +2,12 @@ import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
-import { InstanceCommands, JOBS_QUEUE, JobStatus } from '~/interface/Jobs';
+import {
+  InstanceCommands,
+  JOBS_QUEUE,
+  JobStatus,
+  MigrationJobTypes,
+} from '~/interface/Jobs';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { Job } from '~/models';
 import { RootScopes } from '~/utils/globals';
@@ -29,6 +34,8 @@ export class JobsService implements OnModuleInit {
       this.logger.log('Pausing local queue');
       await this.jobsQueue.pause(true);
     };
+
+    await this.add(MigrationJobTypes.InitMigrationJobs, {});
   }
 
   async toggleQueue() {

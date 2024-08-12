@@ -12,6 +12,8 @@ interface OvhCloudStorageInput {
 }
 
 export default class OvhCloud extends GenericS3 implements IStorageAdapterV2 {
+  name = 'OvhCloud';
+
   protected input: OvhCloudStorageInput;
 
   constructor(input: unknown) {

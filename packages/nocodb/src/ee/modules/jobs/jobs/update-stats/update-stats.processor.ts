@@ -4,6 +4,8 @@ import { Job } from 'bull';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { Base, Model, ModelStat, Source, Workspace } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import NocoCache from '~/cache/NocoCache';
+import { CacheGetType, CacheScope, RootScopes } from '~/utils/globals';
 
 @Processor(JOBS_QUEUE)
 export class UpdateStatsProcessor {
@@ -28,8 +30,9 @@ export class UpdateStatsProcessor {
       return false;
     }
 
+    const model = await Model.get(context, fk_model_id);
+
     if (row_count === undefined) {
-      const model = await Model.get(context, fk_model_id);
       const source = await Source.get(context, model.source_id);
 
       const baseModel = await Model.getBaseModelSQL(context, {
@@ -69,7 +72,7 @@ export class UpdateStatsProcessor {
       `Start updating stats for workspace ${job.data.fk_workspace_id}`,
     );
 
-    const { context, fk_workspace_id, updatedModels } = job.data;
+    const { fk_workspace_id, force } = job.data;
 
     const workspace = await Workspace.get(fk_workspace_id);
 
@@ -78,11 +81,31 @@ export class UpdateStatsProcessor {
       return false;
     }
 
-    if (updatedModels) {
-      for (const fk_model_id of updatedModels) {
-        const model = await Model.get(context, fk_model_id);
+    const updatedModels = await NocoCache.get(
+      `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}:models`,
+      CacheGetType.TYPE_ARRAY,
+    );
 
-        const source = await Source.get(context, model.source_id);
+    if (updatedModels?.length && !force) {
+      for (const fk_model_id of updatedModels) {
+        const model = await Model.get(
+          {
+            workspace_id: RootScopes.BYPASS,
+            base_id: RootScopes.BYPASS,
+          },
+          fk_model_id,
+        );
+
+        if (!model) {
+          continue;
+        }
+
+        const modelContext = {
+          workspace_id: model.fk_workspace_id,
+          base_id: model.base_id,
+        };
+
+        const source = await Source.get(modelContext, model.source_id);
 
         if (!source || !source.isMeta()) {
           continue;
@@ -91,22 +114,34 @@ export class UpdateStatsProcessor {
         try {
           await this.updateModelStat({
             data: {
+              context: modelContext,
               fk_workspace_id,
               fk_model_id,
+              updated_at: new Date().toISOString(),
             },
           } as any);
         } catch (e) {
           this.debugLog(`Failed to update stats for model ${fk_model_id}`);
         }
       }
+
+      await NocoCache.del(
+        `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}:models`,
+      );
     } else {
       const bases = await Base.listByWorkspace(workspace.id);
 
       for (const base of bases) {
-        const models = await Model.list(context, {
-          base_id: base.id,
-          source_id: base.sources[0].id,
-        });
+        const models = await Model.list(
+          {
+            workspace_id: base.fk_workspace_id,
+            base_id: base.id,
+          },
+          {
+            base_id: base.id,
+            source_id: base.sources[0].id,
+          },
+        );
 
         try {
           for (const model of models) {
@@ -114,6 +149,7 @@ export class UpdateStatsProcessor {
               data: {
                 fk_workspace_id,
                 fk_model_id: model.id,
+                updated_at: new Date().toISOString(),
               },
             } as any);
           }

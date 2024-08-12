@@ -9,6 +9,7 @@ import { extractProps } from '~/helpers/extractProps';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
+import { ModelStat } from '~/models';
 
 export default class Source extends SourceCE implements SourceType {
   is_local?: BoolType;
@@ -146,6 +147,31 @@ export default class Source extends SourceCE implements SourceType {
       `${CacheScope.BASE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+  }
+
+  async delete(
+    context: NcContext,
+    ncMeta = Noco.ncMeta,
+    { force }: { force?: boolean } = {},
+  ) {
+    const models = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.MODELS,
+      {
+        condition: {
+          base_id: this.base_id,
+        },
+      },
+    );
+
+    await Promise.all(
+      models.map((model) =>
+        ModelStat.delete(context, this.fk_workspace_id, model.id),
+      ),
+    );
+
+    return super.delete(context, ncMeta, { force });
   }
 
   protected static extendQb(qb: any, context: NcContext) {

@@ -142,14 +142,15 @@ export default class ModelStat {
     if (!statData) {
       const row_count = await ncMeta
         .knexConnection(MetaTable.MODEL_STAT)
-        .sum('row_count')
+        .sum('row_count', { as: 'sum' })
         .where({
           fk_workspace_id: workspaceId,
           is_external: false,
-        });
+        })
+        .first();
 
       statData = {
-        row_count: row_count[0].sum,
+        row_count: row_count.sum,
       };
 
       if (statData) {

@@ -13,7 +13,7 @@ import {
 import DashboardProjectDBProject from '~/models/DashboardProjectDBProject';
 import Noco from '~/Noco';
 
-import { BaseUser, ModelStat, Source } from '~/models';
+import { BaseUser, Source } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
@@ -321,23 +321,6 @@ export default class Base extends BaseCE {
     const base = (await this.get(context, baseId, ncMeta)) as Base;
 
     await this.clearConnectionPool(context, baseId, ncMeta);
-
-    const models = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.MODELS,
-      {
-        condition: {
-          base_id: baseId,
-        },
-      },
-    );
-
-    await Promise.all(
-      models.map((model) =>
-        ModelStat.delete(context, base.fk_workspace_id, model.id),
-      ),
-    );
 
     if (base) {
       // delete <scope>:<id>

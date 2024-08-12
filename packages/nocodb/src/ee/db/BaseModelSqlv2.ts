@@ -5,6 +5,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isVirtualCol,
+  PlanLimitTypes,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -44,11 +45,13 @@ import { canUseOptimisedQuery } from '~/utils';
 import {
   UPDATE_MODEL_STAT,
   UPDATE_WORKSPACE_COUNTER,
+  UPDATE_WORKSPACE_STAT,
 } from '~/services/update-stats.service';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
+import { getLimit } from '~/plan-limits';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -621,43 +624,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
-    /*
-    const modelStats = await ModelStat.get(workspaceId, this.model.id);
-
-    const workspaceStats = await ModelStat.getWorkspaceSum(workspaceId);
-
-    const rowCount = modelStats ? modelStats.row_count : 0;
-
-    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
-
-    const modelRowLimit = await getLimit(
-      PlanLimitTypes.TABLE_ROW_LIMIT,
-      workspaceId,
-    );
-
-    const workspaceRowLimit = await getLimit(
-      PlanLimitTypes.WORKSPACE_ROW_LIMIT,
-      workspaceId,
-    );
-
-    if (workspaceRowCount >= workspaceRowLimit) {
-      NcError.badRequest(
-        `Only ${workspaceRowLimit} records are allowed in your workspace, for more please upgrade your plan`,
-      );
-    }
-
-    if (rowCount >= modelRowLimit) {
-      NcError.badRequest(
-        `Only ${modelRowLimit} records are allowed in your table, for more please upgrade your plan`,
-      );
-    }
-    */
-
-    await this.handleHooks('before.insert', null, data, req);
-  }
-
-  public async beforeBulkInsert(data: any, _trx: any, req): Promise<void> {
-    /* const modelStats = await ModelStat.get(
+    const modelStats = await ModelStat.get(
       this.context,
       this.model.fk_workspace_id,
       this.model.id,
@@ -667,9 +634,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       this.model.fk_workspace_id,
     );
 
-    const rowCount = modelStats ? modelStats.row_count : 0;
+    const rowCount = modelStats ? modelStats.row_count : await this.count();
 
-    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
+    let workspaceRowCount = workspaceStats ? workspaceStats.row_count : null;
+
+    // initial case
+    if (workspaceRowCount === null) {
+      Noco.eventEmitter.emit(UPDATE_WORKSPACE_STAT, {
+        context: this.context,
+        fk_workspace_id: this.model.fk_workspace_id,
+        force: true,
+      });
+
+      workspaceRowCount = 0;
+    }
 
     const modelRowLimit = await getLimit(
       PlanLimitTypes.TABLE_ROW_LIMIT,
@@ -691,7 +669,58 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       NcError.badRequest(
         `Only ${modelRowLimit} records are allowed in your table, for more please upgrade your plan`,
       );
-    } */
+    }
+
+    await this.handleHooks('before.insert', null, data, req);
+  }
+
+  public async beforeBulkInsert(data: any, _trx: any, req): Promise<void> {
+    const modelStats = await ModelStat.get(
+      this.context,
+      this.model.fk_workspace_id,
+      this.model.id,
+    );
+
+    const workspaceStats = await ModelStat.getWorkspaceSum(
+      this.model.fk_workspace_id,
+    );
+
+    const rowCount = modelStats ? modelStats.row_count : await this.count();
+
+    let workspaceRowCount = workspaceStats ? workspaceStats.row_count : null;
+
+    // initial case
+    if (workspaceRowCount === null) {
+      Noco.eventEmitter.emit(UPDATE_WORKSPACE_STAT, {
+        context: this.context,
+        fk_workspace_id: this.model.fk_workspace_id,
+        force: true,
+      });
+
+      workspaceRowCount = 0;
+    }
+
+    const modelRowLimit = await getLimit(
+      PlanLimitTypes.TABLE_ROW_LIMIT,
+      this.model.fk_workspace_id,
+    );
+
+    const workspaceRowLimit = await getLimit(
+      PlanLimitTypes.WORKSPACE_ROW_LIMIT,
+      this.model.fk_workspace_id,
+    );
+
+    if (workspaceRowCount + data.length >= workspaceRowLimit) {
+      NcError.badRequest(
+        `Only ${workspaceRowLimit} records are allowed in your workspace, for more please upgrade your plan`,
+      );
+    }
+
+    if (rowCount + data.length >= modelRowLimit) {
+      NcError.badRequest(
+        `Only ${modelRowLimit} records are allowed in your table, for more please upgrade your plan`,
+      );
+    }
 
     await this.handleHooks('before.bulkInsert', null, data, req);
   }
@@ -714,15 +743,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
-
-    /*
-    const modelStats = await ModelStat.get(workspaceId, this.model.id);
-    if (modelStats) {
-      await ModelStat.upsert(workspaceId, this.model.id, {
-        row_count: modelStats.row_count + 1,
-      });
-    }
-    */
 
     Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
       context: this.context,
@@ -753,32 +773,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       user: req?.user?.email,
     });
 
-    /*
-    const modelStats = await ModelStat.get(workspaceId, this.model.id);
-    if (modelStats) {
-      await ModelStat.upsert(workspaceId, this.model.id, {
-        row_count: modelStats.row_count + data.length,
-      });
-    }
-    */
-
-    // TODO env
-    if (data.length > 500) {
-      Noco.eventEmitter.emit(UPDATE_MODEL_STAT, {
-        context: this.context,
-        fk_workspace_id: this.model.fk_workspace_id,
-        base_id: this.model.base_id,
-        fk_model_id: this.model.id,
-      });
-    } else {
-      Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
-        context: this.context,
-        fk_workspace_id: this.model.fk_workspace_id,
-        base_id: this.model.base_id,
-        fk_model_id: this.model.id,
-        count: data.length,
-      });
-    }
+    Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+      context: this.context,
+      fk_workspace_id: this.model.fk_workspace_id,
+      base_id: this.model.base_id,
+      fk_model_id: this.model.id,
+      count: data.length,
+    });
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
@@ -805,24 +806,42 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       this.model.fk_workspace_id,
       this.model.id,
     );
-    if (modelStats) {
-      await ModelStat.upsert(
-        this.context,
-        this.model.fk_workspace_id,
-        this.model.id,
-        {
-          row_count: modelStats.row_count - 1,
-        },
-      );
-    }
 
-    Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
-      context: this.context,
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      fk_model_id: this.model.id,
-      count: 1,
-    });
+    const workspaceStats = await ModelStat.getWorkspaceSum(
+      this.model.fk_workspace_id,
+    );
+
+    const rowCount = modelStats ? modelStats.row_count : await this.count();
+
+    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
+
+    const modelRowLimit = await getLimit(
+      PlanLimitTypes.TABLE_ROW_LIMIT,
+      this.model.fk_workspace_id,
+    );
+
+    const workspaceRowLimit = await getLimit(
+      PlanLimitTypes.WORKSPACE_ROW_LIMIT,
+      this.model.fk_workspace_id,
+    );
+
+    // force update workspace stat on delete if already over limit
+    if (workspaceRowCount >= workspaceRowLimit || rowCount >= modelRowLimit) {
+      Noco.eventEmitter.emit(UPDATE_MODEL_STAT, {
+        context: this.context,
+        fk_workspace_id: this.model.fk_workspace_id,
+        fk_model_id: this.model.id,
+        updated_at: new Date().toISOString(),
+      });
+    } else {
+      Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
+        context: this.context,
+        fk_workspace_id: this.model.fk_workspace_id,
+        base_id: this.model.base_id,
+        fk_model_id: this.model.id,
+        count: 1,
+      });
+    }
   }
 
   public async afterBulkDelete(
@@ -859,24 +878,32 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       this.model.fk_workspace_id,
       this.model.id,
     );
-    if (modelStats) {
-      await ModelStat.upsert(
-        this.context,
-        this.model.fk_workspace_id,
-        this.model.id,
-        {
-          row_count: modelStats.row_count - noOfDeletedRecords,
-        },
-      );
-    }
 
-    // TODO env
-    if (noOfDeletedRecords > 500) {
+    const workspaceStats = await ModelStat.getWorkspaceSum(
+      this.model.fk_workspace_id,
+    );
+
+    const rowCount = modelStats ? modelStats.row_count : await this.count();
+
+    const workspaceRowCount = workspaceStats ? workspaceStats.row_count : 0;
+
+    const modelRowLimit = await getLimit(
+      PlanLimitTypes.TABLE_ROW_LIMIT,
+      this.model.fk_workspace_id,
+    );
+
+    const workspaceRowLimit = await getLimit(
+      PlanLimitTypes.WORKSPACE_ROW_LIMIT,
+      this.model.fk_workspace_id,
+    );
+
+    // force update workspace stat on delete if already over limit
+    if (workspaceRowCount >= workspaceRowLimit || rowCount >= modelRowLimit) {
       Noco.eventEmitter.emit(UPDATE_MODEL_STAT, {
         context: this.context,
         fk_workspace_id: this.model.fk_workspace_id,
-        base_id: this.model.base_id,
         fk_model_id: this.model.id,
+        updated_at: new Date().toISOString(),
       });
     } else {
       Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {

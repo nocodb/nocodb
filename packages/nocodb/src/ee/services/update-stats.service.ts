@@ -1,12 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
-import { CacheGetType, CacheScope } from '~/utils/globals';
+import { CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { JobTypes } from '~/interface/Jobs';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 export const UPDATE_MODEL_STAT = '__nc_update_modal_stat';
+export const UPDATE_WORKSPACE_STAT = '__nc_update_workspace_stat';
 export const UPDATE_WORKSPACE_COUNTER = '__nc_update_workspace_counter';
 
 @Injectable()
@@ -24,11 +25,13 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
       fk_workspace_id,
       fk_model_id,
       row_count,
+      updated_at,
     }: {
       fk_workspace_id?: string;
       base_id?: string;
       fk_model_id: string;
       row_count?: number;
+      updated_at?: string;
     },
   ): Promise<void> {
     await this.jobsService.add(JobTypes.UpdateModelStat, {
@@ -36,7 +39,22 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
       fk_workspace_id,
       fk_model_id,
       row_count,
-      updated_at: new Date().toISOString(),
+      updated_at: updated_at || new Date().toISOString(),
+    });
+  }
+
+  private async updateWorkspaceStat(
+    context: NcContext,
+    {
+      fk_workspace_id,
+    }: {
+      fk_workspace_id?: string;
+    },
+  ): Promise<void> {
+    await this.jobsService.add(JobTypes.UpdateWsStat, {
+      context,
+      fk_workspace_id,
+      force: true,
     });
   }
 
@@ -53,43 +71,26 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
       count?: number;
     },
   ): Promise<void> {
-    await NocoCache.incrby(
+    const updatedCount = await NocoCache.incrby(
       `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}`,
       count,
     );
 
-    const updatedCount = await NocoCache.get(
-      `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}`,
-      CacheGetType.TYPE_STRING,
-    );
-
-    const updatedModels = await NocoCache.get(
-      `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}:models`,
-      CacheGetType.TYPE_ARRAY,
-    );
-
-    if (!updatedModels.includes(fk_model_id)) {
-      updatedModels.push(fk_model_id);
+    if (fk_model_id) {
       await NocoCache.set(
         `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}:models`,
-        updatedModels,
+        [fk_model_id],
       );
     }
 
     // TODO env
-    if (+updatedCount > 1000) {
+    if (+updatedCount > 500) {
       await NocoCache.del(
         `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}`,
       );
 
-      await NocoCache.del(
-        `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}:models`,
-      );
-
       await this.jobsService.add(JobTypes.UpdateWsStat, {
-        context,
         fk_workspace_id,
-        updatedModels,
       });
     }
   }
@@ -99,6 +100,10 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
       this.eventEmitter.on(UPDATE_MODEL_STAT, (arg) => {
         const { context, ...rest } = arg;
         return this.updateModelStat(context, rest);
+      }),
+      this.eventEmitter.on(UPDATE_WORKSPACE_STAT, (arg) => {
+        const { context, ...rest } = arg;
+        return this.updateWorkspaceStat(context, rest);
       }),
       this.eventEmitter.on(UPDATE_WORKSPACE_COUNTER, (arg) => {
         const { context, ...rest } = arg;

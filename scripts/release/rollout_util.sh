@@ -119,8 +119,8 @@ function pause_workers_and_gracefully_shutdown(){
     if [[ ! "${CLUSTER}" || ! "${WORKERS_SERVICE_NAME}" || ! "${HOST_NAME}" || ! "${API_CREDENTIALS}" ]]; then log_and_exit "CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS variables must be set" ; fi
     # 0. fetch capacity details
     # Replace these placeholders with your values
-    CURRENT_DESIRED_COUNT=$(aws ecs describe-services --cluster $CLUSTER --services $WORKERS_SERVICE_NAME --query 'services[0].desiredCount' --output text)
-    NEW_DESIRED_COUNT=$((CURRENT_DESIRED_COUNT + 1 ))
+    # CURRENT_DESIRED_COUNT=$(aws ecs describe-services --cluster $CLUSTER --services $WORKERS_SERVICE_NAME --query 'services[0].desiredCount' --output text)
+    # NEW_DESIRED_COUNT=$((CURRENT_DESIRED_COUNT + 1 ))
     HOST_NAME=${HOST_NAME:-https://staging.noco.to}
 
     # 1. trigger pause and exit 
@@ -130,20 +130,6 @@ function pause_workers_and_gracefully_shutdown(){
     # Update the service with the new desired count
     # aws ecs update-service --cluster $CLUSTER --service $WORKERS_SERVICE_NAME --desired-count $NEW_DESIRED_COUNT
     message "${ENVIRONMENT}: workers pod rollout triggered"
-}
-
-# calls api to perform pause so that old workers are not accepting new jobs
-function pause_workers(){    
-    echo "pause_workers: Expected varibles to be set CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS=$([[ ! -z "$API_CREDENTIALS" ]] && echo "***value-set***" || echo "Empty")"
-
-    if [[ ! "${CLUSTER}" || ! "${WORKERS_SERVICE_NAME}" || ! "${HOST_NAME}" || ! "${API_CREDENTIALS}" ]]; then log_and_exit "CLUSTER=${CLUSTER} WORKERS_SERVICE_NAME=${WORKERS_SERVICE_NAME} HOST_NAME=${HOST_NAME} API_CREDENTIALS variables must be set" ; fi
-
-    HOST_NAME=${HOST_NAME:-https://staging.noco.to}
-
-    # 1. trigger pause
-    curl -u ${API_CREDENTIALS} ${HOST_NAME}/internal/workers/pause -XPOST || exit 1
-
-    message "${ENVIRONMENT}: workers pods paused"
 }
 
 function perform_rollout(){
@@ -162,6 +148,9 @@ function perform_rollout(){
 
     latest_remote_digest=$(aws ecr batch-get-image --region us-east-2 --repository-name ${REPO_NAME:-nocohub} --image-ids imageTag=${STAGE_TAG} --output text --query images[].imageId )
     message "${ENVIRONMENT}: Image with tag:${STAGE_TAG} will be launched. digest: ${latest_remote_digest}"
+
+    # image is promoted so we can update workers and other services
+    pause_workers_and_gracefully_shutdown
 
     # TODO: prewarm ASG to have additional instances. update only desired 
     ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER}  --region=us-east-2  | jq -r '.serviceArns[] | split("/") | .[2]')

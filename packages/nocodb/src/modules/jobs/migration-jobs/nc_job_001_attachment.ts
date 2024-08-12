@@ -234,7 +234,7 @@ export class AttachmentMigration {
           .where('fk_model_id', fk_model_id)
           .first();
 
-        const dataLimit = 10;
+        const dataLimit = 50;
         let dataOffset = 0;
 
         if (!processedModel) {
@@ -502,7 +502,7 @@ export class AttachmentMigration {
       const skipModels = new Set(['placeholder']);
       let processingModels = [{ fk_model_id: 'placeholder', processing: true }];
 
-      const parallelLimit = 1;
+      const parallelLimit = 5;
 
       const queue = new PQueue({ concurrency: parallelLimit });
 

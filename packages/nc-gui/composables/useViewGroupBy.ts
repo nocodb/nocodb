@@ -765,7 +765,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel].column, group.displayValueProp)
           )
         })
-        console.log(child)
 
         if (child) {
           return findGroupForRow(row, child, nestLevel + 1)

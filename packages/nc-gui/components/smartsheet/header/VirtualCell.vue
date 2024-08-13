@@ -115,7 +115,11 @@ const addField = async (payload: any) => {
   editColumnDropdown.value = true
 }
 
+const editOrAddProviderRef = ref()
+
 const closeAddColumnDropdown = () => {
+  const isWebhookModalOpen = editOrAddProviderRef.value?.isWebhookModalOpen()
+  if (isWebhookModalOpen) return
   columnOrder.value = null
   editColumnDropdown.value = false
 }
@@ -142,6 +146,14 @@ const openDropDown = (e: Event) => {
   e.stopPropagation()
 
   isDropDownOpen.value = !isDropDownOpen.value
+}
+
+const onVisibleChange = () => {
+  editColumnDropdown.value = true
+  const isWebhookModalOpen = editOrAddProviderRef.value?.isWebhookModalOpen()
+  if (!isWebhookModalOpen) {
+    editColumnDropdown.value = false
+  }
 }
 
 const onClick = (e: Event) => {
@@ -233,6 +245,7 @@ const onClick = (e: Event) => {
       :trigger="['click']"
       :placement="isExpandedForm && !isExpandedBulkUpdateForm ? 'bottomLeft' : 'bottomRight'"
       :overlay-class-name="`nc-dropdown-edit-column ${editColumnDropdown ? 'active' : ''}`"
+      @visibleChange="onVisibleChange"
     >
       <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>
       <div v-else />
@@ -240,6 +253,7 @@ const onClick = (e: Event) => {
         <div class="nc-edit-or-add-provider-wrapper">
           <LazySmartsheetColumnEditOrAddProvider
             v-if="editColumnDropdown"
+            ref="editOrAddProviderRef"
             :column="columnOrder ? null : column"
             :column-position="columnOrder"
             class="w-full"

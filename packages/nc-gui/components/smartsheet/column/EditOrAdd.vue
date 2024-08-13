@@ -32,6 +32,7 @@ const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 
 const {
   formState,
+  isWebhookCreateModalOpen,
   generateNewColumnMeta,
   addOrUpdate,
   onAlter,
@@ -295,7 +296,7 @@ onMounted(() => {
 })
 
 const handleEscape = (event: KeyboardEvent): void => {
-  if (isColumnTypeOpen.value) return
+  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value) return
 
   if (event.key === 'Escape') emit('cancel')
 }

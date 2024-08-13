@@ -1174,7 +1174,7 @@ export const iconMap = {
   ncImage: NcImageIcon,
   ncMaximize2: NcMaximize2Icon,
   ncCheckCircle: NcCheckCircleIcon,
-  ncSave: NcSaveIcon,
+  ncSave2: NcSaveIcon,
   ncSmile: NcSmileIcon,
   ncNavigation: NcNavigationIcon,
   ncPaperclip: NcPaperclipIcon,
@@ -3218,7 +3218,7 @@ export const searchableMap = {
     icon: NcCheckCircleIcon,
     keywords: ['Approved', 'Confirmation', 'Verified', 'Success', 'Validated'],
   },
-  ncSave: {
+  ncSave2: {
     icon: NcSaveIcon,
     keywords: ['Save', 'Disk', 'Download', 'Storage', 'Backup'],
   },

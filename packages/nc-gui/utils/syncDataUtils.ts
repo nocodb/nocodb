@@ -63,6 +63,16 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     },
   },
   {
+    title: 'objects.integrationCategories.ticketing',
+    subtitle: 'objects.integrationCategories.ticketingSubtitle',
+    value: IntegrationCategoryType.TICKETING,
+    icon: iconMap.globe,
+    iconBgColor: '#FFF0D1',
+    iconStyle: {
+      color: '#977223',
+    },
+  },
+  {
     title: 'objects.integrationCategories.crm',
     subtitle: 'objects.integrationCategories.crmSubtitle',
     value: IntegrationCategoryType.CRM,
@@ -110,16 +120,6 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     iconBgColor: '#D4F7E0',
     iconStyle: {
       color: '#17803D',
-    },
-  },
-  {
-    title: 'objects.integrationCategories.ticketing',
-    subtitle: 'objects.integrationCategories.ticketingSubtitle',
-    value: IntegrationCategoryType.TICKETING,
-    icon: iconMap.globe,
-    iconBgColor: '#FFF0D1',
-    iconStyle: {
-      color: '#977223',
     },
   },
   {

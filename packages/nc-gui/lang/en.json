@@ -616,7 +616,7 @@
   },
   "labels": {
     "urlFormula": "URL Formula",
-    "selectIcon": "-no icon-",
+    "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",
     "openUrl": "Open URL",
     "runWebHook": "Run Webhook",

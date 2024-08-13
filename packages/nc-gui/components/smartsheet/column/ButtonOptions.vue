@@ -341,21 +341,27 @@ const eventList = ref<Record<string, any>[]>([
   { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
 ])
 
+const isWebhookModal = ref(false)
+
 const newWebhook = () => {
   selectedWebhook.value = undefined
   isWebhookCreateModalOpen.value = true
+  isWebhookModal.value = true
 }
 
 const onClose = (hook: HookType) => {
   selectedWebhook.value = hook
   vModel.value.fk_webhook_id = hook.id
-  isWebhookCreateModalOpen.value = false
+  isWebhookModal.value = false
+  setTimeout(() => {
+    isWebhookCreateModalOpen.value = false
+  }, 500)
 }
 
 const onSelectWebhook = (hook: HookType) => {
   vModel.value.fk_webhook_id = hook.id
   selectedWebhook.value = hook
-  isWebHookSelectionDropdownOpen.value = false
+  isWebhookModal.value = false
 }
 
 const removeIcon = () => {
@@ -366,6 +372,7 @@ const removeIcon = () => {
 const editWebhook = () => {
   if (selectedWebhook.value) {
     isWebhookCreateModalOpen.value = true
+    isWebhookModal.value = true
   }
 }
 
@@ -580,8 +587,8 @@ onMounted(async () => {
   </a-form-item>
 
   <Webhook
-    v-if="isWebhookCreateModalOpen"
-    v-model:value="isWebhookCreateModalOpen"
+    v-if="isWebhookModal"
+    v-model:value="isWebhookModal"
     :hook="selectedWebhook"
     :event-list="eventList"
     @close="onClose"

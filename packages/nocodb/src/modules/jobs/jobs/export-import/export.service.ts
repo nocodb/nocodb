@@ -170,6 +170,9 @@ export class ExportService {
                   (match) => idMap.get(match),
                 );
                 break;
+              case 'fk_webhook_id':
+                column.colOptions[k] = idMap.get(v as string);
+                break;
               case 'id':
               case 'created_at':
               case 'updated_at':

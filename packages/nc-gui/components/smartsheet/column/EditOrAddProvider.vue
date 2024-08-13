@@ -23,12 +23,8 @@ useProvideColumnCreateStore(meta, column, tableExplorerColumns, fromTableExplore
 
 const { isWebhookCreateModalOpen } = useColumnCreateStoreOrThrow()
 
-const isWebhookModalOpen = () => {
-  return isWebhookCreateModalOpen.value
-}
-
 defineExpose({
-  isWebhookModalOpen,
+  isWebhookCreateModalOpen,
 })
 </script>
 

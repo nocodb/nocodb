@@ -34,7 +34,7 @@ const isLoading = ref(false)
 const disableButton = computed(() => {
   if (column.value.colOptions.type === 'url') return false
   else {
-    return isPublic.value || !isUIAllowed('hookTrigger') || isLoading.value
+    return isPublic.value || !isUIAllowed('hookTrigger') || isLoading.value || !column.value.colOptions.fk_webhook_id
   }
 })
 
@@ -70,31 +70,37 @@ const triggerAction = async () => {
     }"
     class="w-full flex items-center"
   >
-    <button
-      data-testid="nc-button-cell"
-      :class="{
-        [`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`]: true,
-        '!w-7': !column.colOptions.label,
-      }"
-      class="nc-cell-button btn-cell-colors truncate flex items-center h-7"
-      :disabled="disableButton"
-      @click="triggerAction"
-    >
-      <GeneralLoader
-        v-if="isLoading"
+    <NcTooltip :disabled="!(column.colOptions.type === 'webhook' && !column.colOptions.fk_webhook_id)">
+      <template #title>
+        {{ column.colOptions.type === 'webhook' && !column.colOptions.fk_webhook_id ? $t('msg.invalidConfiguration') : '' }}
+      </template>
+
+      <button
+        data-testid="nc-button-cell"
         :class="{
-          solid: column.colOptions.theme === 'solid',
-          text: column.colOptions.theme === 'text',
-          light: column.colOptions.theme === 'light',
+          [`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`]: true,
+          '!w-7': !column.colOptions.label,
         }"
-        class="flex btn-cell-colors !bg-transparent w-4 h-4"
-        size="medium"
-      />
-      <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
-      <span v-if="column.colOptions.label" class="text-[13px] truncate font-medium">
-        {{ column.colOptions.label }}
-      </span>
-    </button>
+        class="nc-cell-button btn-cell-colors truncate flex items-center h-7"
+        :disabled="disableButton"
+        @click="triggerAction"
+      >
+        <GeneralLoader
+          v-if="isLoading"
+          :class="{
+            solid: column.colOptions.theme === 'solid',
+            text: column.colOptions.theme === 'text',
+            light: column.colOptions.theme === 'light',
+          }"
+          class="flex btn-cell-colors !bg-transparent w-4 h-4"
+          size="medium"
+        />
+        <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
+        <span v-if="column.colOptions.label" class="text-[13px] truncate font-medium">
+          {{ column.colOptions.label }}
+        </span>
+      </button>
+    </NcTooltip>
   </div>
 </template>
 

@@ -446,7 +446,7 @@ async function saveHooks() {
 }
 
 const closeModal = () => {
-  modalVisible.value = false
+  emits('close', hookRef)
 }
 
 const isTestLoading = ref(false)

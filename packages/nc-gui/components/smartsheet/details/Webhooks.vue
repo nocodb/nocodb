@@ -109,8 +109,9 @@ watch(
 )
 
 const toggleHook = async (hook: HookType) => {
+  const ogHook = Object.assign({}, hook)
   hook.active = !hook.active
-  await saveHooks({ hook })
+  await saveHooks({ hook, ogHook })
 }
 
 const createWebhook = async () => {

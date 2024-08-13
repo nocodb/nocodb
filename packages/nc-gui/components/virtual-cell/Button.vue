@@ -15,6 +15,10 @@ const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const meta = inject(MetaInj, ref())
 
+const isGrid = inject(IsGridInj, ref(false))
+
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+
 const { $api } = useNuxtApp()
 
 const rowId = computed(() => {
@@ -49,7 +53,12 @@ const triggerAction = async () => {
 </script>
 
 <template>
-  <div class="w-full flex items-center justify-center">
+  <div
+    :class="{
+      'justify-center': isGrid && !isExpandedForm,
+    }"
+    class="w-full flex items-center"
+  >
     <button
       :class="`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`"
       class="nc-cell-button max-w-28 h-6 min-w-20"
@@ -73,6 +82,19 @@ const triggerAction = async () => {
     </button>
   </div>
 </template>
+
+<style lang="scss">
+.nc-data-cell {
+  &:has(.nc-virtual-cell-button) {
+    @apply !border-none;
+    box-shadow: none !important;
+  }
+
+  .nc-cell-attachment {
+    @apply !border-none;
+  }
+}
+</style>
 
 <style scoped lang="scss">
 .nc-cell-button {

@@ -44,6 +44,7 @@ const options = computed<SelectProps['options']>(() =>
           return false
         }
       }
+      if (c.uidt === UITypes.Button) return false
       return true
     }) ||
     meta.value?.columns?.filter((c: ColumnType) => {

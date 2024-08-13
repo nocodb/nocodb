@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { editor as MonacoEditor } from 'monaco-editor'
+import { languages, editor as monacoEditor } from 'monaco-editor'
+
 import PlaceholderContentWidget from './Placeholder'
 
 interface Props {
@@ -74,8 +76,6 @@ defineExpose({
 })
 
 onMounted(async () => {
-  const { editor: monacoEditor, languages } = await import('monaco-editor')
-
   if (root.value && lang) {
     const model = monacoEditor.createModel(vModel.value, lang)
 

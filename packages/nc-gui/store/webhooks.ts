@@ -70,7 +70,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
       const newHook = await $api.dbTableWebhook.create(hook.fk_model_id!, {
         ...hook,
         title: `${hook.title} - Copy`,
-        active: false,
+        active: hook.event === 'manual',
       } as HookReqType)
 
       if (newHook) {

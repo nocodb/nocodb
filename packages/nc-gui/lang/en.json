@@ -1659,6 +1659,7 @@
       "preventHideAllOptions": "You cannot hide all options if field is required"
     },
     "error": {
+      "manualTriggerHook": "Manual hooks can't be disabled",
       "errorLoadingRecord": "Error loading record data",
       "fetchingCalendarData": "Error fetching calendar data",
       "fetchingActiveDates": "Error fetching active dates",

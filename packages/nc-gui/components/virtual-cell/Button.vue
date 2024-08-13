@@ -47,18 +47,12 @@ const isButtonInValid = computed(() => {
 
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
-  const modelValue = props.modelValue
 
-  if (colOptions.type === 'url') {
-    const url = `${modelValue.url}`
-    const fullUrl = /^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `http://${url}` : ''
-
-    window.open(fullUrl, '_blank')
-  } else if (colOptions.type === 'webhook') {
+  if (colOptions.type === 'webhook') {
     try {
       isLoading.value = true
 
-      await $api.dbTableWebhook.trigger(modelValue.fk_webhook_id, rowId.value)
+      await $api.dbTableWebhook.trigger(props.modelValue.fk_webhook_id, rowId.value)
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -87,31 +81,49 @@ const triggerAction = async () => {
         }}
       </template>
 
-      <button
-        data-testid="nc-button-cell"
-        :class="{
-          [`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`]: true,
-          '!w-7': !column.colOptions.label,
+      <component
+        :is="column.colOptions.type === 'url' ? 'a' : 'div'"
+        v-bind="{
+          ...(column.colOptions.type === 'url'
+            ? {
+                href: encodeURI(
+                  /^(https?|ftp|mailto|file):\/\//.test(modelValue.url)
+                    ? modelValue.url
+                    : modelValue.url.trim()
+                    ? `http://${modelValue.url}`
+                    : '',
+                ),
+                target: '_blank',
+              }
+            : {}),
         }"
-        class="nc-cell-button btn-cell-colors truncate flex items-center h-6"
-        :disabled="disableButton || isButtonInValid"
-        @click="triggerAction"
       >
-        <GeneralLoader
-          v-if="isLoading"
+        <button
+          data-testid="nc-button-cell"
           :class="{
-            solid: column.colOptions.theme === 'solid',
-            text: column.colOptions.theme === 'text',
-            light: column.colOptions.theme === 'light',
+            [`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`]: true,
+            '!w-7': !column.colOptions.label,
           }"
-          class="flex btn-cell-colors !bg-transparent w-4 h-4"
-          size="medium"
-        />
-        <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
-        <span v-if="column.colOptions.label" class="text-[13px] truncate font-medium">
-          {{ column.colOptions.label }}
-        </span>
-      </button>
+          class="nc-cell-button btn-cell-colors truncate flex items-center h-6"
+          :disabled="disableButton || isButtonInValid"
+          @click="triggerAction"
+        >
+          <GeneralLoader
+            v-if="isLoading"
+            :class="{
+              solid: column.colOptions.theme === 'solid',
+              text: column.colOptions.theme === 'text',
+              light: column.colOptions.theme === 'light',
+            }"
+            class="flex btn-cell-colors !bg-transparent w-4 h-4"
+            size="medium"
+          />
+          <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
+          <span v-if="column.colOptions.label" class="text-[13px] truncate font-medium">
+            {{ column.colOptions.label }}
+          </span>
+        </button>
+      </component>
     </NcTooltip>
   </div>
 </template>
@@ -130,6 +142,9 @@ const triggerAction = async () => {
 </style>
 
 <style scoped lang="scss">
+a {
+  @apply !no-underline;
+}
 .nc-cell-button {
   @apply rounded-lg px-2 flex items-center gap-2 transition-all justify-center;
   &:not([class*='text']) {

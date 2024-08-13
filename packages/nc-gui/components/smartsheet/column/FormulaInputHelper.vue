@@ -543,7 +543,7 @@ onMounted(() => {
         const monacoDivPosition = monacoRoot.value?.getBoundingClientRect()
         if (!monacoDivPosition) return
 
-        suggestionPreviewPostion.value.top = `${monacoDivPosition.top}px`
+        suggestionPreviewPostion.value.top = `${monacoDivPosition.top - 75}px`
 
         if (fromTableExplorer?.value || monacoDivPosition.left > 352) {
           suggestionPreviewPostion.value.left = `${monacoDivPosition.left - 344}px`
@@ -643,7 +643,7 @@ const handleKeydown = (e: KeyboardEvent) => {
   <div
     :class="{
       'h-[250px]': suggestionHeight === 'large',
-      'h-[200px]': suggestionHeight === 'medium',
+      'h-[175px]': suggestionHeight === 'medium',
       'h-[125px]': suggestionHeight === 'small',
     }"
     class="overflow-auto flex flex-col nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4"

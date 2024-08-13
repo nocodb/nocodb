@@ -360,7 +360,7 @@ const selectIcon = (icon: string) => {
               class="flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
             >
               <div class="flex w-full items-center justify-between gap-2">
-                <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4" />
+                <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4 text-gray-700" />
                 <span v-else class="text-sm">
                   {{ $t('labels.selectIcon') }}
                 </span>
@@ -412,7 +412,7 @@ const selectIcon = (icon: string) => {
             <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
 
             <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
-              <div class="flex gap-2 w-full capitalize truncate items-center">
+              <div class="flex gap-2 w-full capitalize text-gray-800 truncate items-center">
                 {{ type.label }}
 
                 <component
@@ -439,7 +439,7 @@ const selectIcon = (icon: string) => {
     </div>
 
     <a-form-item v-if="vModel?.type === 'webhook'" class="!mt-4">
-      <div class="mb-2 text-gray-700 text-[13px] flex justify-between">
+      <div class="mb-2 text-gray-800 text-[13px] flex justify-between">
         {{ $t('labels.webhook') }}
         <a
           class="font-medium"
@@ -536,6 +536,10 @@ const selectIcon = (icon: string) => {
 </template>
 
 <style scoped lang="scss">
+:deep(.ant-form-item-label > label) {
+  @apply !text-small !leading-[18px] mb-2 !text-gray-800 flex;
+}
+
 .nc-list-with-search {
   @apply w-full;
 }

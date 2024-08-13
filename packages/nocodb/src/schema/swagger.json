@@ -21082,15 +21082,20 @@
             "fk_column_id": "cl_h2micb4jdnmsh1",
             "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
             "formula_raw": "CONCAT(\"FOO\", {Title})",
-            "id": "fm_1lo8wqtvvipdns"
+            "id": "fm_1lo8wqtvvipdns",
+            "base_id": "pj34mdkvjfdnkf",
+            "label": "Click Me",
+            "theme": "solid",
+            "color": "green",
+            "icon": "plus"
           }
         ],
         "title": "Button Model",
         "type": "object",
         "properties": {
-          "error": {
-            "description": "Error Message",
-            "type": "string"
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
           },
           "type": {
             "description": "Whether button is webhook or url",
@@ -21098,6 +21103,12 @@
               "webhook",
               "url"
             ]
+          },
+          "label": {
+            "description": "Label of Button",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
           },
           "theme": {
             "description": "Button Theme",
@@ -21122,13 +21133,9 @@
               "gray"
             ]
           },
-          "webhook_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Webhook ID"
-          },
-          "fk_column_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Column"
+          "icon": {
+            "description": "Button Icon",
+            "type": "string"
           },
           "formula": {
             "description": "Formula with column ID replaced",
@@ -21140,9 +21147,21 @@
             "example": "CONCAT(\"FOO\", {Title})",
             "type": "string"
           },
-          "id": {
+          "error": {
+            "description": "Error Message",
+            "type": "string"
+          },
+          "parsed_tree": {
+            "description": "Parsed Formula Tree",
+            "type": "object"
+          },
+          "fk_webhook_id": {
             "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
+            "description": "Webhook ID"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
           }
         },
         "x-stoplight": {
@@ -21162,14 +21181,6 @@
         "title": "Button Column Request Model",
         "type": "object",
         "properties": {
-          "formula": {
-            "description": "Formula with column ID replaced",
-            "type": "string"
-          },
-          "formula_raw": {
-            "description": "Original Formula inputted in UI",
-            "type": "string"
-          },
           "title": {
             "description": "Formula Title",
             "maxLength": 255,
@@ -21213,9 +21224,27 @@
               "gray"
             ]
           },
-          "webhook_id": {
+          "label": {
+            "description": "Label of Button",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "icon": {
+            "description": "Button Icon",
+            "type": "string"
+          },
+          "fk_webhook_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Webhook ID"
+          },
+          "formula": {
+            "description": "Formula with column ID replaced",
+            "type": "string"
+          },
+          "formula_raw": {
+            "description": "Original Formula inputted in UI",
+            "type": "string"
           }
         },
         "x-stoplight": {

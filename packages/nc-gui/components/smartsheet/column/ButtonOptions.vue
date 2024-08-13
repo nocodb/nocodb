@@ -485,7 +485,7 @@ const newWebhook = () => {
 }
 
 const onClose = (hook: HookType) => {
-  selectedWebhook.value = hook
+  selectedWebhook.value = hook.id ? hook : undefined
   vModel.value.fk_webhook_id = hook.id
   isWebhookModal.value = false
   setTimeout(() => {
@@ -753,12 +753,12 @@ onMounted(async () => {
     </a-form-item>
 
     <a-form-item v-if="vModel?.type === 'webhook'" class="!mt-4">
-      <div class="flex">
-        <NcDropdown
-          v-model:visible="isWebHookSelectionDropdownOpen"
-          :trigger="['click']"
-          class="nc-color-picker-dropdown-trigger"
-        >
+      <div class="mb-2 text-gray-700 text-[13px] flex justify-between">
+        {{ $t('labels.webhook') }}
+        <a class="font-medium" href="https://docs.nocodb.com/automation/webhook/create-webhook/" target="_blank"> Docs </a>
+      </div>
+      <div class="flex rounded-lg nc-color-picker-dropdown-trigger">
+        <NcDropdown v-model:visible="isWebHookSelectionDropdownOpen" :trigger="['click']">
           <template #overlay>
             <NcListWithSearch
               v-if="isWebHookSelectionDropdownOpen"
@@ -819,10 +819,15 @@ onMounted(async () => {
             '!border-t-brand-500 !border-b-brand-500 remove-left-shadow !border-r-brand-500  !shadow-selected nc-button-style-dropdown':
               isWebHookSelectionDropdownOpen,
           }"
-          :disabled="!selectedWebhook"
           @click="editWebhook"
         >
-          <GeneralIcon icon="ncEdit" />
+          <GeneralIcon
+            :class="{
+              'text-gray-400': !selectedWebhook,
+              'text-gray-700': selectedWebhook,
+            }"
+            icon="ncEdit"
+          />
         </NcButton>
       </div>
     </a-form-item>

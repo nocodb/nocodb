@@ -3,7 +3,7 @@ import { Readable } from 'stream';
 import { Client as MinioClient } from 'minio';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
-import type { ClientOptions } from 'minio/src/internal/client';
+import type { ClientOptions } from 'minio';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 
 interface MinioObjectStorageInput {

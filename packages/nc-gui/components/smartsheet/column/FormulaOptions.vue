@@ -18,6 +18,7 @@ import {
 } from 'nocodb-sdk'
 import type { ColumnType, FormulaType } from 'nocodb-sdk'
 import formulaLanguage from '../../monaco/formula'
+import { isCursorInsideString } from '../../../utils/formulaUtils'
 
 const props = defineProps<{
   value: any
@@ -471,35 +472,6 @@ function isCursorBetweenParenthesis() {
   const closeParenthesis = (cursorLine.match(/\)/g) || []).length
 
   return openParenthesis > closeParenthesis
-}
-
-// Function to check if cursor is inside Strings
-function isCursorInsideString(text: string, offset: number) {
-  let inSingleQuoteString = false
-  let inDoubleQuoteString = false
-  let escapeNextChar = false
-
-  for (let i = 0; i < offset; i++) {
-    const char = text[i]
-
-    if (escapeNextChar) {
-      escapeNextChar = false
-      continue
-    }
-
-    if (char === '\\') {
-      escapeNextChar = true
-      continue
-    }
-
-    if (char === "'" && !inDoubleQuoteString) {
-      inSingleQuoteString = !inSingleQuoteString
-    } else if (char === '"' && !inSingleQuoteString) {
-      inDoubleQuoteString = !inDoubleQuoteString
-    }
-  }
-
-  return inDoubleQuoteString || inSingleQuoteString
 }
 
 function handleInput() {

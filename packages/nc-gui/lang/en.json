@@ -615,6 +615,7 @@
     "categories": "Categories"
   },
   "labels": {
+    "urlFormula": "URL Formula",
     "selectIcon": "-no icon-",
     "selectAWebhook": "--select a webhook--",
     "openUrl": "Open URL",
@@ -1338,6 +1339,7 @@
   },
   "msg": {
     "invalidConfiguration": "Invalid Button configuration",
+    "invalidColumnConfiguration": "Invalid Column configuration",
     "invalidTheme": "Select a valid theme",
     "invalidColor": "Select a valid color",
     "invalidType": "Button type can be either 'webhook' or 'url'",

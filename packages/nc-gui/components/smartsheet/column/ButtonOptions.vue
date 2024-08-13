@@ -14,6 +14,7 @@ import { type editor as MonacoEditor, languages, editor as monacoEditor } from '
 import jsep from 'jsep'
 import formulaLanguage from '../../monaco/formula'
 import { searchIcons } from '../../../utils/iconUtils'
+import { isCursorInsideString } from '../../../utils/formulaUtils'
 
 const props = defineProps<{
   value: any
@@ -48,16 +49,7 @@ const manualHooks = computed(() => {
   return hooks.value.filter((hook) => hook.event === 'manual' && hook.active)
 })
 
-const buttonTypes = [
-  {
-    label: t('labels.openUrl'),
-    value: 'url',
-  },
-  {
-    label: t('labels.runWebHook'),
-    value: 'webhook',
-  },
-]
+const suggestionPreviewed = ref<Record<any, string> | undefined>()
 
 const supportedColumns = computed(
   () =>
@@ -73,6 +65,49 @@ const supportedColumns = computed(
       return true
     }) || [],
 )
+
+const suggestionsList = computed(() => {
+  const unsupportedFnList = sqlUi.value.getUnsupportedFnList()
+  return (
+    [
+      ...formulaList.map((fn: string) => ({
+        text: `${fn}()`,
+        type: 'function',
+        description: formulas[fn].description,
+        syntax: formulas[fn].syntax,
+        examples: formulas[fn].examples,
+        docsUrl: formulas[fn].docsUrl,
+        unsupported: unsupportedFnList.includes(fn),
+      })),
+    ]
+      // move unsupported functions to the end
+      .sort((a: Record<string, any>, b: Record<string, any>) => {
+        if (a.unsupported && !b.unsupported) {
+          return 1
+        }
+        if (!a.unsupported && b.unsupported) {
+          return -1
+        }
+        return 0
+      })
+  )
+})
+
+const suggestionPreviewPostion = ref({
+  top: '0px',
+  left: '344px',
+})
+
+const buttonTypes = [
+  {
+    label: t('labels.openUrl'),
+    value: 'url',
+  },
+  {
+    label: t('labels.runWebHook'),
+    value: 'webhook',
+  },
+]
 
 const validators = {
   formula_raw: [
@@ -303,6 +338,106 @@ const mountMonaco = () => {
     editor.onDidChangeModelContent(async () => {
       vModel.value.formula_raw = editor.getValue()
     })
+
+    editor.onDidChangeCursorPosition(() => {
+      const position = editor.getPosition()
+      const model = editor.getModel()
+
+      if (!position || !model) return
+
+      const text = model.getValue()
+      const offset = model.getOffsetAt(position)
+
+      // IF cursor is inside string, don't show any suggestions
+      if (isCursorInsideString(text, offset)) {
+      }
+
+      const findEnclosingFunction = (text: string, offset: number) => {
+        const formulaRegex = /\b(?<!['"])(\w+)\s*\(/g // Regular expression to match function names
+        const quoteRegex = /"/g // Regular expression to match quotes
+
+        const functionStack = [] // Stack to keep track of functions
+        let inQuote = false
+
+        let match
+        while ((match = formulaRegex.exec(text)) !== null) {
+          if (match.index > offset) break
+
+          if (!inQuote) {
+            const functionData = {
+              name: match[1],
+              start: match.index,
+              end: formulaRegex.lastIndex,
+            }
+
+            let parenBalance = 1
+            let childValueStart = -1
+            let childValueEnd = -1
+            for (let i = formulaRegex.lastIndex; i < text.length; i++) {
+              if (text[i] === '(') {
+                parenBalance++
+              } else if (text[i] === ')') {
+                parenBalance--
+                if (parenBalance === 0) {
+                  functionData.end = i + 1
+                  break
+                }
+              }
+
+              // Child value handling
+              if (childValueStart === -1 && ['(', ',', '{'].includes(text[i])) {
+                childValueStart = i
+              } else if (childValueStart !== -1 && ['(', ',', '{'].includes(text[i])) {
+                childValueStart = i
+              } else if (childValueStart !== -1 && ['}', ',', ')'].includes(text[i])) {
+                childValueEnd = i
+                childValueStart = -1
+              }
+
+              if (i >= offset) {
+                // If we've reached the offset and parentheses are still open, consider the current position as the end of the function
+                if (parenBalance > 0) {
+                  functionData.end = i + 1
+                  break
+                }
+
+                // Check for nested functions
+                const nestedFunction = findEnclosingFunction(
+                  text.substring(functionData.start + match[1].length + 1, i),
+                  offset - functionData.start - match[1].length - 1,
+                )
+                if (nestedFunction) {
+                  return nestedFunction
+                } else {
+                  functionStack.push(functionData)
+                  break
+                }
+              }
+            }
+
+            // If child value ended before offset, use child value end as function end
+            if (childValueEnd !== -1 && childValueEnd < offset) {
+              functionData.end = childValueEnd + 1
+            }
+
+            functionStack.push(functionData)
+          }
+
+          // Check for quotes
+          let quoteMatch
+          while ((quoteMatch = quoteRegex.exec(text)) !== null && quoteMatch.index < match.index) {
+            inQuote = !inQuote
+          }
+        }
+
+        const enclosingFunctions = functionStack.filter((func) => func.start <= offset && func.end >= offset)
+        return enclosingFunctions.length > 0 ? enclosingFunctions[enclosingFunctions.length - 1].name : null
+      }
+      const lastFunction = findEnclosingFunction(text, offset)
+
+      suggestionPreviewed.value =
+        (suggestionsList.value.find((s) => s.text === `${lastFunction}()`) as Record<any, string>) || undefined
+    })
     editor.focus()
   }
 }
@@ -379,7 +514,9 @@ const editWebhook = () => {
 
 watch(isWebhookModal, (newVal) => {
   if (!newVal) {
-    isWebhookCreateModalOpen.value = false
+    setTimeout(() => {
+      isWebhookCreateModalOpen.value = false
+    }, 500)
   }
 })
 
@@ -391,215 +528,297 @@ const selectIcon = (icon: string) => {
 onMounted(async () => {
   jsep.plugins.register(jsepCurlyHook)
   mountMonaco()
+
+  until(() => monacoRoot.value as HTMLDivElement)
+    .toBeTruthy()
+    .then(() => {
+      setTimeout(() => {
+        const monacoDivPosition = monacoRoot.value?.getBoundingClientRect()
+        if (!monacoDivPosition) return
+
+        suggestionPreviewPostion.value.top = `${monacoDivPosition.top}px`
+
+        if (props.fromTableExplorer?.value || monacoDivPosition.left > 352) {
+          suggestionPreviewPostion.value.left = `${monacoDivPosition.left - 344}px`
+        } else {
+          suggestionPreviewPostion.value.left = `${monacoDivPosition.right + 8}px`
+        }
+      }, 250)
+    })
 })
 </script>
 
 <template>
-  <a-form-item v-bind="validateInfos.label" :label="$t('general.label')">
-    <a-input v-model:value="vModel.label" class="nc-column-name-input !rounded-lg" placeholder="Button" />
-  </a-form-item>
-  <a-row :gutter="8">
-    <a-col :span="12">
-      <a-form-item :label="$t('general.style')" v-bind="validateInfos.theme">
-        <NcDropdown v-model:visible="isDropdownOpen" class="nc-color-picker-dropdown-trigger">
-          <template #overlay>
-            <div class="bg-white space-y-2 p-2 rounded-lg">
-              <div v-for="[type, colors] in Object.entries(colorClass)" :key="type" class="flex gap-2">
-                <div v-for="[name, color] in Object.entries(colors)" :key="name">
-                  <button
-                    :class="{
-                      [color]: true,
-                      '!border-transparent': type !== 'text',
-                    }"
-                    class="border-1 border-gray-200 flex items-center justify-center rounded h-6 w-6"
-                    @click="updateButtonTheme(type, name)"
-                  >
-                    <component :is="iconMap.cellText" class="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </template>
-
-          <div
-            :class="{
-              '!border-brand-500 shadow-selected nc-button-style-dropdown ': isDropdownOpen,
-            }"
-            class="nc-button-style-dropdown-not-focus flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
-          >
-            <div class="flex w-full items-center gap-2">
-              <div class="flex gap-2 items-center w-full">
-                <div
-                  :class="`${vModel.color ?? 'brand'} ${vModel.theme ?? 'solid'}`"
-                  class="flex items-center justify-center nc-cell-button rounded-md h-6 w-6 gap-2"
-                >
-                  <component :is="iconMap.cellText" class="w-4 h-4" />
-                </div>
-                <div class="flex items-center gap-1 text-gray-800">
-                  <span class="capitalize">
-                    {{ vModel.theme }}
-                  </span>
-                  <span class="capitalize">
-                    {{ vModel.color === 'brand' ? $t('general.default') : vModel.color }}
-                  </span>
-                </div>
-              </div>
-              <GeneralIcon icon="arrowDown" class="text-gray-700" />
-            </div>
-          </div>
-        </NcDropdown>
-      </a-form-item>
-    </a-col>
-    <a-col :span="12">
-      <a-form-item :label="$t('labels.icon')" v-bind="validateInfos.icon">
-        <NcDropdown v-model:visible="isButtonIconDropdownOpen" class="nc-color-picker-dropdown-trigger">
-          <div
-            :class="{
-              '!border-brand-500 shadow-selected nc-button-style-dropdown ': isButtonIconDropdownOpen,
-            }"
-            class="nc-button-style-dropdown-not-focus flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
-          >
-            <div class="flex w-full items-center justify-between gap-2">
-              <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4" />
-              <span v-else>
-                {{ $t('labels.selectIcon') }}
-              </span>
-              <GeneralIcon icon="arrowDown" class="text-gray-700" />
-            </div>
-          </div>
-          <template #overlay>
-            <div class="bg-white w-80 space-y-3 h-70 overflow-y-auto rounded-lg">
-              <div class="!sticky top-0 flex gap-2 bg-white px-2 py-2">
-                <a-input
-                  ref="inputRef"
-                  v-model:value="iconSearchQuery"
-                  :placeholder="$t('placeholder.searchIcons')"
-                  class="nc-dropdown-search-unified-input z-10"
-                >
-                  <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
-                ></a-input>
-                <NcButton size="small" class="!px-4" type="text" @click="removeIcon">
-                  <span class="text-[13px]">
-                    {{ $t('general.remove') }}
-                  </span>
-                </NcButton>
-              </div>
-
-              <div class="grid px-3 auto-rows-max pb-2 nc-scrollbar-md gap-3 grid-cols-10">
-                <component
-                  :is="icon"
-                  v-for="({ icon, name }, i) in icons"
-                  :key="i"
-                  :icon="icon"
-                  class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
-                  @click="selectIcon(name)"
-                />
-              </div>
-            </div>
-          </template>
-        </NcDropdown>
-      </a-form-item>
-    </a-col>
-  </a-row>
-  <a-row :gutter="8">
-    <a-col :span="24">
-      <a-form-item :label="$t('labels.onClick')" v-bind="validateInfos.type">
-        <a-select
-          v-model:value="vModel.type"
-          class="w-52 nc-button-type-select"
-          dropdown-class-name="nc-dropdown-button-cell-type"
-        >
-          <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
-
-          <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
-            <div class="flex gap-2 w-full capitalize truncate items-center">
-              {{ type.label }}
-
-              <component
-                :is="iconMap.check"
-                v-if="vModel.type === type.value"
-                id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
-              />
-            </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-    </a-col>
-  </a-row>
-  <a-form-item v-if="vModel?.type === 'url'" class="mt-4" v-bind="validateInfos.formula_raw" required>
+  <div class="relative">
     <div
-      ref="monacoRoot"
-      :class="{
-        '!border-red-500 formula-error': validateInfos.formula_raw?.validateStatus === 'error',
-        '!focus-within:border-brand-500 formula-success': validateInfos.formula_raw?.validateStatus !== 'error',
+      v-if="
+        suggestionPreviewed &&
+        !suggestionPreviewed.unsupported &&
+        suggestionPreviewed.type === 'function' &&
+        vModel.type === 'url'
+      "
+      class="w-84 fixed bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
+      :style="{
+        left: suggestionPreviewPostion.left,
+        top: suggestionPreviewPostion.top,
       }"
-      class="formula-monaco"
-    ></div>
-  </a-form-item>
-
-  <a-form-item v-if="vModel?.type === 'webhook'" class="mt-4">
-    <div class="flex gap-2">
-      <NcDropdown v-model:visible="isWebHookSelectionDropdownOpen" :trigger="['click']" class="nc-color-picker-dropdown-trigger">
-        <div
-          :class="{
-            '!border-brand-500 shadow-selected nc-button-style-dropdown ': isWebHookSelectionDropdownOpen,
-          }"
-          class="nc-button-style-dropdown-not-focus nc-button-webhook-select flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
-        >
-          <div class="flex w-full items-center gap-2">
-            <div
-              :key="selectedWebhook?.id"
-              class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
-            >
-              <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-                <template #title>
-                  {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
-                </template>
-                {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
-              </NcTooltip>
-            </div>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+    >
+      <div class="pr-3">
+        <div class="flex flex-row w-full justify-between pb-2 border-b-1">
+          <div class="flex items-center gap-x-1 font-semibold text-lg text-gray-600">
+            <component :is="iconMap.function" class="text-lg" />
+            {{ suggestionPreviewed.text }}
           </div>
+          <NcButton type="text" size="small" class="!h-7 !w-7 !min-w-0" @click="suggestionPreviewed = undefined">
+            <GeneralIcon icon="close" />
+          </NcButton>
         </div>
-        <template #overlay>
-          <NcListWithSearch
-            v-if="isWebHookSelectionDropdownOpen"
-            :is-parent-open="isWebHookSelectionDropdownOpen"
-            :search-input-placeholder="$t('placeholder.searchFields')"
-            :option-config="{ selectOptionEvent: ['c:actions:webhook'], optionClassName: '' }"
-            :options="manualHooks"
-            disable-mascot
-            class="max-h-72 max-w-85"
-            filter-field="title"
-            show-selected-option
-            @selected="onSelectWebhook"
-          >
-            <template v-if="isUIAllowed('hookCreate')" #bottom>
-              <a-divider style="margin: 4px 0" />
-              <div class="flex items-center text-brand-500 text-sm cursor-pointer" @click="newWebhook">
-                <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
-                  {{ $t('general.create') }} {{ $t('objects.webhook').toLowerCase() }}
-                  <GeneralIcon icon="plus" class="flex-none" />
+      </div>
+      <div class="flex flex-col max-h-120 nc-scrollbar-thin pr-2">
+        <div class="flex mt-3 text-[13px] leading-6">{{ suggestionPreviewed.description }}</div>
+
+        <div class="text-gray-500 uppercase text-[11px] mt-3 mb-2">Syntax</div>
+        <div class="bg-white rounded-md py-1 text-[13px] mono-font leading-6 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
+        <div class="text-gray-500 uppercase text-[11px] mt-3 mb-2">Examples</div>
+        <div
+          v-for="(example, index) of suggestionPreviewed.examples"
+          :key="example"
+          class="bg-gray-100 mono-font text-[13px] leading-6 py-1 px-2"
+          :class="{
+            'border-t-1  border-gray-200': index !== 0,
+            'rounded-b-md': index === suggestionPreviewed.examples.length - 1 && suggestionPreviewed.examples.length !== 1,
+            'rounded-t-md': index === 0 && suggestionPreviewed.examples.length !== 1,
+            'rounded-md': suggestionPreviewed.examples.length === 1,
+          }"
+        >
+          {{ example }}
+        </div>
+      </div>
+      <div class="flex flex-row mt-3 mb-3 justify-end pr-3">
+        <a v-if="suggestionPreviewed.docsUrl" target="_blank" rel="noopener noreferrer" :href="suggestionPreviewed.docsUrl">
+          <NcButton type="text" size="small" class="!text-gray-400 !hover:text-gray-700 !text-xs"
+            >View in Docs
+            <GeneralIcon icon="openInNew" class="ml-1" />
+          </NcButton>
+        </a>
+      </div>
+    </div>
+    <a-form-item v-bind="validateInfos.label" class="mt-4" :label="$t('general.label')">
+      <a-input v-model:value="vModel.label" class="nc-column-name-input !rounded-lg" placeholder="Button" />
+    </a-form-item>
+    <a-row class="mt-4" :gutter="8">
+      <a-col :span="12">
+        <a-form-item :label="$t('general.style')" v-bind="validateInfos.theme">
+          <NcDropdown v-model:visible="isDropdownOpen" class="nc-color-picker-dropdown-trigger">
+            <template #overlay>
+              <div class="bg-white space-y-2 p-2 rounded-lg">
+                <div v-for="[type, colors] in Object.entries(colorClass)" :key="type" class="flex gap-2">
+                  <div v-for="[name, color] in Object.entries(colors)" :key="name">
+                    <button
+                      :class="{
+                        [color]: true,
+                        '!border-transparent': type !== 'text',
+                      }"
+                      class="border-1 border-gray-200 flex items-center justify-center rounded h-6 w-6"
+                      @click="updateButtonTheme(type, name)"
+                    >
+                      <component :is="iconMap.cellText" class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </template>
-          </NcListWithSearch>
-        </template>
-      </NcDropdown>
-      <NcButton size="small" type="secondary" :disabled="!selectedWebhook" @click="editWebhook">
-        <GeneralIcon icon="ncEdit" />
-      </NcButton>
-    </div>
-  </a-form-item>
 
-  <Webhook
-    v-if="isWebhookModal"
-    v-model:value="isWebhookModal"
-    :hook="selectedWebhook"
-    :event-list="eventList"
-    @close="onClose"
-  />
+            <div
+              :class="{
+                '!border-brand-500 shadow-selected nc-button-style-dropdown ': isDropdownOpen,
+              }"
+              class="nc-button-style-dropdown-not-focus flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
+            >
+              <div class="flex w-full items-center gap-2">
+                <div class="flex gap-2 items-center w-full">
+                  <div
+                    :class="`${vModel.color ?? 'brand'} ${vModel.theme ?? 'solid'}`"
+                    class="flex items-center justify-center nc-cell-button rounded-md h-6 w-6 gap-2"
+                  >
+                    <component :is="iconMap.cellText" class="w-4 h-4" />
+                  </div>
+                  <div class="flex items-center gap-1 text-gray-800">
+                    <span class="capitalize">
+                      {{ vModel.theme }}
+                    </span>
+                    <span class="capitalize">
+                      {{ vModel.color === 'brand' ? $t('general.default') : vModel.color }}
+                    </span>
+                  </div>
+                </div>
+                <GeneralIcon icon="arrowDown" class="text-gray-700" />
+              </div>
+            </div>
+          </NcDropdown>
+        </a-form-item>
+      </a-col>
+      <a-col :span="12">
+        <a-form-item :label="$t('labels.icon')" v-bind="validateInfos.icon">
+          <NcDropdown v-model:visible="isButtonIconDropdownOpen" class="nc-color-picker-dropdown-trigger">
+            <div
+              :class="{
+                '!border-brand-500 shadow-selected nc-button-style-dropdown ': isButtonIconDropdownOpen,
+              }"
+              class="nc-button-style-dropdown-not-focus flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
+            >
+              <div class="flex w-full items-center justify-between gap-2">
+                <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4" />
+                <span v-else>
+                  {{ $t('labels.selectIcon') }}
+                </span>
+                <GeneralIcon icon="arrowDown" class="text-gray-700" />
+              </div>
+            </div>
+            <template #overlay>
+              <div class="bg-white w-80 space-y-3 h-70 overflow-y-auto rounded-lg">
+                <div class="!sticky top-0 flex gap-2 bg-white px-2 py-2">
+                  <a-input
+                    ref="inputRef"
+                    v-model:value="iconSearchQuery"
+                    :placeholder="$t('placeholder.searchIcons')"
+                    class="nc-dropdown-search-unified-input z-10"
+                  >
+                    <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
+                  ></a-input>
+                  <NcButton size="small" class="!px-4" type="text" @click="removeIcon">
+                    <span class="text-[13px]">
+                      {{ $t('general.remove') }}
+                    </span>
+                  </NcButton>
+                </div>
+
+                <div class="grid px-3 auto-rows-max pb-2 nc-scrollbar-md gap-3 grid-cols-10">
+                  <component
+                    :is="icon"
+                    v-for="({ icon, name }, i) in icons"
+                    :key="i"
+                    :icon="icon"
+                    class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
+                    @click="selectIcon(name)"
+                  />
+                </div>
+              </div>
+            </template>
+          </NcDropdown>
+        </a-form-item>
+      </a-col>
+    </a-row>
+    <a-row class="mt-4" :gutter="8">
+      <a-col :span="24">
+        <a-form-item :label="$t('labels.onClick')" v-bind="validateInfos.type">
+          <a-select
+            v-model:value="vModel.type"
+            class="w-52 nc-button-type-select"
+            dropdown-class-name="nc-dropdown-button-cell-type"
+          >
+            <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
+
+            <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
+              <div class="flex gap-2 w-full capitalize truncate items-center">
+                {{ type.label }}
+
+                <component
+                  :is="iconMap.check"
+                  v-if="vModel.type === type.value"
+                  id="nc-selected-item-icon"
+                  class="text-primary w-4 h-4"
+                />
+              </div>
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+      </a-col>
+    </a-row>
+    <a-form-item
+      v-if="vModel?.type === 'url'"
+      class="!mt-4"
+      v-bind="validateInfos.formula_raw"
+      :label="$t('labels.urlFormula')"
+      required
+    >
+      <div
+        ref="monacoRoot"
+        :class="{
+          '!border-red-500 formula-error': validateInfos.formula_raw?.validateStatus === 'error',
+          '!focus-within:border-brand-500 formula-success': validateInfos.formula_raw?.validateStatus !== 'error',
+        }"
+        class="formula-monaco"
+      ></div>
+    </a-form-item>
+
+    <a-form-item v-if="vModel?.type === 'webhook'" class="!mt-4">
+      <div class="flex gap-2">
+        <NcDropdown
+          v-model:visible="isWebHookSelectionDropdownOpen"
+          :trigger="['click']"
+          class="nc-color-picker-dropdown-trigger"
+        >
+          <div
+            :class="{
+              '!border-brand-500 shadow-selected nc-button-style-dropdown ': isWebHookSelectionDropdownOpen,
+            }"
+            class="nc-button-style-dropdown-not-focus nc-button-webhook-select flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
+          >
+            <div class="flex w-full items-center gap-2">
+              <div
+                :key="selectedWebhook?.id"
+                class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
+              >
+                <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                  <template #title>
+                    {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
+                  </template>
+                  {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
+                </NcTooltip>
+              </div>
+              <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            </div>
+          </div>
+          <template #overlay>
+            <NcListWithSearch
+              v-if="isWebHookSelectionDropdownOpen"
+              :is-parent-open="isWebHookSelectionDropdownOpen"
+              :search-input-placeholder="$t('placeholder.searchFields')"
+              :option-config="{ selectOptionEvent: ['c:actions:webhook'], optionClassName: '' }"
+              :options="manualHooks"
+              disable-mascot
+              class="max-h-72 max-w-85"
+              filter-field="title"
+              show-selected-option
+              @selected="onSelectWebhook"
+            >
+              <template v-if="isUIAllowed('hookCreate')" #bottom>
+                <a-divider style="margin: 4px 0" />
+                <div class="flex items-center text-brand-500 text-sm cursor-pointer" @click="newWebhook">
+                  <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
+                    {{ $t('general.create') }} {{ $t('objects.webhook').toLowerCase() }}
+                    <GeneralIcon icon="plus" class="flex-none" />
+                  </div>
+                </div>
+              </template>
+            </NcListWithSearch>
+          </template>
+        </NcDropdown>
+        <NcButton size="small" type="secondary" :disabled="!selectedWebhook" @click="editWebhook">
+          <GeneralIcon icon="ncEdit" />
+        </NcButton>
+      </div>
+    </a-form-item>
+
+    <Webhook
+      v-if="isWebhookModal"
+      v-model:value="isWebhookModal"
+      :hook="selectedWebhook"
+      :event-list="eventList"
+      @close="onClose"
+    />
+  </div>
 </template>
 
 <style scoped lang="scss">

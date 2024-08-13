@@ -3,7 +3,6 @@ import { Readable } from 'stream';
 import { Client as MinioClient } from 'minio';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
-import type { ClientOptions } from 'minio';
 import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
 
 interface MinioObjectStorageInput {
@@ -24,7 +23,7 @@ export default class Minio implements IStorageAdapterV2 {
   }
 
   public async init(): Promise<any> {
-    const minioOptions: ClientOptions = {
+    const minioOptions = {
       port: +this.input.port || 9000,
       endPoint: this.input.endPoint,
       useSSL: this.input.useSSL === true,

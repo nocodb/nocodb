@@ -10,7 +10,7 @@ import {
   populateSamplePayloadV2,
 } from '~/helpers/populateSamplePayload';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
-import { Hook, HookLog, Model } from '~/models';
+import { ButtonColumn, Hook, HookLog, Model } from '~/models';
 import { DatasService } from '~/services/datas.service';
 
 @Injectable()
@@ -81,10 +81,14 @@ export class HooksService {
       NcError.hookNotFound(param.hookId);
     }
 
-    const isHookUsed = await Hook.isWebHookUsed(context, param.hookId);
+    const buttonCols = await Hook.hookUsages(context, param.hookId);
 
-    if (isHookUsed) {
-      NcError.badRequest('Webhook is used in some Button or Automation');
+    if (buttonCols.length) {
+      for (const button of buttonCols) {
+        await ButtonColumn.update(context, button.fk_column_id, {
+          fk_webhook_id: null,
+        });
+      }
     }
 
     await Hook.delete(context, param.hookId);
@@ -114,9 +118,13 @@ export class HooksService {
     this.validateHookPayload(param.hook.notification);
 
     if (hook.active && !param.hook.active) {
-      const isHookUsed = await Hook.isWebHookUsed(context, param.hookId);
-      if (isHookUsed) {
-        NcError.badRequest('Webhook is used in some Button or Automation');
+      const buttonCols = await Hook.hookUsages(context, param.hookId);
+      if (buttonCols.length) {
+        for (const button of buttonCols) {
+          await ButtonColumn.update(context, button.fk_column_id, {
+            fk_webhook_id: null,
+          });
+        }
       }
     }
 

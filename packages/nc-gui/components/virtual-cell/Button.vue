@@ -38,14 +38,26 @@ const disableButton = computed(() => {
   }
 })
 
+const isButtonInValid = ref(false)
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
+  let modelValue = props.modelValue
+
+  if (typeof modelValue === 'string') {
+    try {
+      modelValue = JSON.parse(modelValue)
+    } catch (e) {
+      isButtonInValid.value = true
+      console.log(e)
+      return
+    }
+  }
 
   if (colOptions.type === 'url') {
-    const fullUrl = /^(https?|ftp|mailto|file):\/\//.test(props.modelValue)
-      ? props.modelValue
-      : props.modelValue.trim()
-      ? `http://${props.modelValue}`
+    const fullUrl = /^(https?|ftp|mailto|file):\/\//.test(modelValue.url)
+      ? modelValue.url
+      : modelValue.url.trim()
+      ? `http://${modelValue.url}`
       : ''
 
     window.open(fullUrl, '_blank')
@@ -53,7 +65,7 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      await $api.dbTableWebhook.trigger(props.modelValue, rowId.value)
+      await $api.dbTableWebhook.trigger(modelValue.fk_webhook_id, rowId.value)
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -83,7 +95,7 @@ const triggerAction = async () => {
           '!w-7': !column.colOptions.label,
         }"
         class="nc-cell-button btn-cell-colors truncate flex items-center h-7"
-        :disabled="disableButton"
+        :disabled="disableButton || isButtonInValid"
         @click="triggerAction"
       >
         <GeneralLoader

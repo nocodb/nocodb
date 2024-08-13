@@ -4290,18 +4290,75 @@ class BaseModelSqlv2 {
                 validateFormula,
                 aliasToColumnBuilder,
               );
-              qb.select(
-                this.dbDriver.raw(`?? as ??`, [selectQb.builder, column.id]),
-              );
+              switch (this.dbDriver.client.config.client) {
+                case 'mysql2':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `JSON_OBJECT('label', ?, 'url', ??) as ??`,
+                      [`${colOption.label}`, selectQb.builder, column.id],
+                    ),
+                  );
+                  break;
+                case 'pg':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_build_object('label', ?, 'url', ??) as ??`,
+                      [`${colOption.label}`, selectQb.builder, column.id],
+                    ),
+                  );
+                  break;
+                case 'sqlite3':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_object('label', ?, 'url', ??) as ??`,
+                      [`${colOption.label}`, selectQb.builder, column.id],
+                    ),
+                  );
+                  break;
+                default:
+                  qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+              }
             } else if (colOption.type === 'webhook') {
-              qb.select(
-                this.dbDriver.raw(`? as ??`, [
-                  `${colOption.fk_webhook_id}`,
-                  column.id,
-                ]),
-              );
-            } else {
-              qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+              switch (this.dbDriver.client.config.client) {
+                case 'mysql2':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `JSON_OBJECT('label', ?, 'fk_webhook_id', ?) as ??`,
+                      [
+                        `${colOption.label}`,
+                        `${colOption.fk_webhook_id}`,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                case 'pg':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_build_object('label', ?, 'fk_webhook_id', ?) as ??`,
+                      [
+                        `${colOption.label}`,
+                        `${colOption.fk_webhook_id}`,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                case 'sqlite3':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_object('label', ?, 'fk_webhook_id', ?) as ??`,
+                      [
+                        `${colOption.label}`,
+                        `${colOption.fk_webhook_id}`,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                default:
+                  qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+              }
             }
           } catch (e) {
             logger.log(e);

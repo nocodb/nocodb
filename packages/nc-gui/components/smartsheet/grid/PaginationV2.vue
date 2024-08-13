@@ -139,7 +139,10 @@ const renderAltOrOptlKey = () => {
             >
               <div
                 v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
-                class="text-gray-500 opacity-0 transition group-hover:opacity-100"
+                :class="{
+                  'group-hover:opacity-100': ![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(displayFieldComputed.column?.uidt!)
+                }"
+                class="text-gray-500 opacity-0 transition"
               >
                 <GeneralIcon class="text-gray-500" icon="arrowDown" />
                 <span class="text-[10px] font-semibold"> Summary </span>
@@ -226,10 +229,13 @@ const renderAltOrOptlKey = () => {
             'width': width,
           }"
         >
-          <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey].includes(column?.uidt!)">
+          <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)">
             <div
               v-if="field?.aggregation === 'none' || field?.aggregation === null"
-              class="text-gray-500 opacity-0 transition group-hover:opacity-100"
+              :class="{
+                  'group-hover:opacity-100': ![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)
+                }"
+              class="text-gray-500 opacity-0 transition"
             >
               <GeneralIcon class="text-gray-500" icon="arrowDown" />
               <span class="text-[10px] font-semibold"> Summary </span>

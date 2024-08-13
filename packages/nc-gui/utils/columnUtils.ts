@@ -136,6 +136,10 @@ const uiTypes = [
     icon: iconMap.cellUser,
   },
   {
+    name: UITypes.Button,
+    icon: iconMap.cellButton,
+  },
+  {
     name: UITypes.CreatedTime,
     icon: iconMap.cellSystemDate,
   },
@@ -150,10 +154,6 @@ const uiTypes = [
   {
     name: UITypes.LastModifiedBy,
     icon: iconMap.cellSystemUser,
-  },
-  {
-    name: UITypes.Button,
-    icon: iconMap.cellButton,
   },
 ]
 

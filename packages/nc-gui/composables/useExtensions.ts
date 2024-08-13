@@ -21,6 +21,7 @@ interface ExtensionManifest {
   publisherName: string
   publisherEmail: string
   publisherUrl: string
+  disabled?: boolean
 }
 
 abstract class ExtensionType {
@@ -334,11 +335,24 @@ export const useExtensions = createSharedComposable(() => {
 
   onMounted(() => {
     const modules = import.meta.glob('../extensions/*/*.json')
+
+    const extensionCount = modules ? Object.keys(modules).length : 0
+
+    let disabledCount = 0
+
     for (const path in modules) {
       modules[path]().then((mod: any) => {
         const manifest = mod.default as ExtensionManifest
-        availableExtensions.value.push(manifest)
-        if (Object.keys(modules).length === availableExtensions.value.length) {
+
+        if (manifest?.disabled !== true) {
+          availableExtensions.value.push(manifest)
+        } else {
+          disabledCount++
+        }
+
+        if (availableExtensions.value.length + disabledCount === extensionCount) {
+          availableExtensions.value.sort((a, b) => a.title.localeCompare(b.title))
+
           extensionsLoaded.value = true
         }
       })

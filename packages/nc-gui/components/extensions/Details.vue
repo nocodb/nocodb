@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { marked } from 'marked'
+
 interface Prop {
   modelValue: boolean
   extensionId: string
@@ -26,6 +28,8 @@ const onAddExtension = (ext: any) => {
 const activeExtension = computed(() => {
   return availableExtensions.value.find((ext) => ext.id === props.extensionId)
 })
+
+const detailsBody = activeExtension.value?.description ? marked.parse(activeExtension.value.description) : '<p></p>'
 </script>
 
 <template>
@@ -59,7 +63,7 @@ const activeExtension = computed(() => {
             </div>
           </div>
 
-          <div class="whitespace-pre-line text-base text-gray-600">{{ activeExtension.description }}</div>
+          <div class="text-base text-gray-600" v-html="detailsBody"></div>
         </div>
         <div class="extension-details-right">
           <NcButton class="w-full" @click="onAddExtension(activeExtension)">

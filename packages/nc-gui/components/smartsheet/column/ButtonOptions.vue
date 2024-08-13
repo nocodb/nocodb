@@ -15,6 +15,7 @@ import jsep from 'jsep'
 import formulaLanguage from '../../monaco/formula'
 import { searchIcons } from '../../../utils/iconUtils'
 import { isCursorInsideString } from '../../../utils/formulaUtils'
+import PlaceholderContentWidget from '../../monaco/Placeholder'
 
 const props = defineProps<{
   value: any
@@ -334,6 +335,9 @@ const mountMonaco = () => {
       width: 339,
       height: 120,
     })
+
+    // eslint-disable-next-line no-new
+    new PlaceholderContentWidget('CONCAT({URL-field})', editor)
 
     editor.onDidChangeModelContent(async () => {
       vModel.value.formula_raw = editor.getValue()
@@ -842,6 +846,13 @@ onMounted(async () => {
   </div>
 </template>
 
+<style lang="scss">
+.formula-placeholder {
+  @apply !text-gray-500 !text-xs !font-medium;
+  font-family: 'Manrope';
+}
+</style>
+
 <style scoped lang="scss">
 .nc-list-with-search {
   @apply w-full;
@@ -870,7 +881,6 @@ onMounted(async () => {
     width: auto !important;
   }
 }
-
 .mono-font {
   font-family: 'JetBrainsMono', monospace;
 }

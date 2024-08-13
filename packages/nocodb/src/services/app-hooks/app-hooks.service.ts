@@ -134,10 +134,6 @@ export class AppHooksService {
       | AppEvents.INTEGRATION_CREATE,
     listener: (data: IntegrationEvent) => void,
   ): () => void;
-  on(
-    event: AppEvents.WEBHOOK_TRIGGER,
-    listener: (data: WebhookTriggerEvent) => void,
-  ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);
 
@@ -224,10 +220,10 @@ export class AppHooksService {
       | AppEvents.WEBHOOK_UPDATE
       | AppEvents.WEBHOOK_CREATE
       | AppEvents.WEBHOOK_DELETE
+      | AppEvents.WEBHOOK_TRIGGER
       | AppEvents.WEBHOOK_TEST,
     data: WebhookEvent,
   ): void;
-  emit(event: AppEvents.WEBHOOK_TRIGGER, data: WebhookTriggerEvent): void;
   emit(
     event:
       | AppEvents.SYNC_SOURCE_UPDATE

@@ -31,6 +31,10 @@ const { base } = storeToRefs(useBase())
 
 const meta = inject(MetaInj, ref())
 
+const { getMeta } = useMetas()
+
+const { activeTable } = toRefs(useTablesStore())
+
 const defaultHookName = t('labels.webhook')
 
 const testSuccess = ref()
@@ -423,6 +427,7 @@ async function saveHooks() {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
+    getMeta(activeTable.value.id, true)
     loading.value = false
   }
 }

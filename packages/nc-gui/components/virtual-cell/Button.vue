@@ -49,14 +49,9 @@ const triggerAction = async () => {
 
 const componentProps = computed(() => {
   if (column.value.colOptions.type === 'url') {
+    const url = `${cellValue.value?.url}`
     return {
-      href: encodeURI(
-        /^(https?|ftp|mailto|file):\/\//.test(cellValue.value?.url)
-          ? cellValue.value?.url
-          : cellValue.value?.url?.trim()
-          ? `http://${cellValue.value?.url}`
-          : '',
-      ),
+      href: encodeURI(/^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `http://${url}` : ''),
       target: '_blank',
       disabled: !cellValue.value?.url,
     }

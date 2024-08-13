@@ -119,7 +119,10 @@ export class HooksService {
 
     this.validateHookPayload(param.hook.notification);
 
-    if (hook.active && !param.hook.active) {
+    if (
+      (hook.active && !param.hook.active) ||
+      hook.event !== param.hook.event
+    ) {
       const buttonCols = await Hook.hookUsages(context, param.hookId);
       if (buttonCols.length) {
         for (const button of buttonCols) {

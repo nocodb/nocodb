@@ -12,6 +12,9 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
   const route = router.currentRoute
 
+  const { getMeta } = useMetas()
+  const { activeTable } = toRefs(useTablesStore())
+
   const createWebhookUrl = computed(() => {
     return navigateToWebhookRoute({
       openCreatePage: true,
@@ -26,9 +29,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
   async function loadHooksList() {
     isHooksLoading.value = true
-    const { activeTable } = useTablesStore()
     try {
-      const hookList = (await $api.dbTableWebhook.list(activeTable?.id as string)).list
+      const hookList = (await $api.dbTableWebhook.list(activeTable.value?.id as string)).list
 
       hooks.value = hookList.map((hook) => {
         hook.notification = parseProp(hook.notification)
@@ -58,10 +60,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
-      const { getMeta } = useMetas()
-      const { activeTable } = useTablesStore()
-
-      await getMeta(activeTable?.id!, true)
+      await getMeta(activeTable.value.id!, true)
     }
   }
 
@@ -93,12 +92,13 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      await getMeta(activeTable.value.id!, true)
     }
   }
 
   async function saveHooks({ hook: _hook, ogHook }: { hook: HookType; ogHook: HookType }) {
-    const { activeTable } = useTablesStore()
-    if (!activeTable) throw new Error('activeTable is not defined')
+    if (!activeTable.value) throw new Error('activeTable is not defined')
 
     if (typeof _hook.notification === 'string') {
       _hook.notification = JSON.parse(_hook.notification)
@@ -120,7 +120,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
           },
         })
       } else {
-        res = await $api.dbTableWebhook.create(activeTable!.id!, {
+        res = await $api.dbTableWebhook.create(activeTable.value!.id!, {
           ...hook,
           notification: {
             ...hook.notification,
@@ -159,10 +159,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
         })
       }
     } finally {
-      const { getMeta } = useMetas()
-      const { activeTable } = useTablesStore()
-
-      await getMeta(activeTable?.id!, true)
+      await getMeta(activeTable.value.id!, true)
     }
 
     $e('a:webhook:add', {

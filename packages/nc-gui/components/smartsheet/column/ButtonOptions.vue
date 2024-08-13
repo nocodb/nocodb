@@ -22,8 +22,6 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
-const { fromTableExplorer } = toRefs(props)
-
 const { t } = useI18n()
 
 const { isUIAllowed } = useRoles()
@@ -369,9 +367,7 @@ const selectIcon = (icon: string) => {
 
 onMounted(async () => {
   jsep.plugins.register(jsepCurlyHook)
-  if (fromTableExplorer.value) {
-    mountMonaco()
-  }
+  mountMonaco()
 })
 </script>
 
@@ -421,7 +417,7 @@ onMounted(async () => {
                     {{ vModel.theme }}
                   </span>
                   <span class="capitalize">
-                    {{ vModel.color }}
+                    {{ vModel.color === 'brand' ? $t('general.default') : vModel.color }}
                   </span>
                 </div>
               </div>
@@ -524,18 +520,29 @@ onMounted(async () => {
         class="nc-button-style-dropdown-not-focus flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
       >
         <div class="flex w-full items-center gap-2">
-          <div :key="selectedWebhook?.id" class="flex items-center w-full gap-1 text-gray-800">
-            {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
+          <div
+            :key="selectedWebhook?.id"
+            class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
+          >
+            <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+              <template #title>
+                {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
+              </template>
+              {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
+            </NcTooltip>
           </div>
           <GeneralIcon icon="arrowDown" class="text-gray-700" />
         </div>
       </div>
       <template #overlay>
         <NcListWithSearch
-          :is-parent-open="isDropdownOpen"
+          v-if="isWebHookSelectionDropdownOpen"
+          :is-parent-open="isWebHookSelectionDropdownOpen"
           :search-input-placeholder="$t('placeholder.searchFields')"
           :option-config="{ selectOptionEvent: ['c:actions:webhook'], optionClassName: '' }"
           :options="manualHooks"
+          disable-mascot
+          class="max-h-72 max-w-85"
           filter-field="title"
           show-selected-option
           @selected="onSelectWebhook"

@@ -1030,6 +1030,7 @@ export class ImportService {
             (a.uidt === UITypes.Lookup ||
               a.uidt === UITypes.Rollup ||
               a.uidt === UITypes.Formula ||
+              a.uidt === UITypes.Button ||
               a.uidt === UITypes.QrCode ||
               a.uidt === UITypes.CreatedTime ||
               a.uidt === UITypes.LastModifiedTime ||
@@ -1057,10 +1058,10 @@ export class ImportService {
         relatedColIds.push(col.colOptions.fk_rollup_column_id);
       }
       if (col.colOptions?.formula) {
-        const colIds = col.colOptions.formula.match(/(?<=\{\{).*?(?=\}\})/gm);
+        const colIds = col.colOptions?.formula.match(/(?<=\{\{).*?(?=\}\})/gm);
         if (colIds && colIds.length > 0) {
           relatedColIds.push(
-            ...col.colOptions.formula.match(/(?<=\{\{).*?(?=\}\})/gm),
+            ...col.colOptions.formula?.match(/(?<=\{\{).*?(?=\}\})/gm),
           );
         }
       }
@@ -1153,6 +1154,31 @@ export class ImportService {
             ...flatCol,
             ...{
               formula_raw: colOptions.formula_raw,
+            },
+          }) as any,
+          req: param.req,
+          user: param.user,
+        });
+
+        for (const nColumn of freshModelData.columns) {
+          if (nColumn.title === col.title) {
+            idMap.set(col.id, nColumn.id);
+            break;
+          }
+        }
+      } else if (col.uidt === UITypes.Button) {
+        const freshModelData = await this.columnsService.columnAdd(context, {
+          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+          column: withoutId({
+            ...flatCol,
+            ...{
+              formula_raw: colOptions?.formula_raw,
+              label: colOptions?.label,
+              color: colOptions?.color,
+              theme: colOptions?.theme,
+              icon: colOptions?.icon,
+              type: colOptions?.type,
+              fk_webhook_id: getIdOrExternalId(colOptions?.fk_webhook_id),
             },
           }) as any,
           req: param.req,

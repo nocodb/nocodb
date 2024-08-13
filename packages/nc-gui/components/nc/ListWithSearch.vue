@@ -8,6 +8,7 @@ const props = defineProps<{
     selectOptionEvent: string[] | undefined
   }
   options: T[]
+  disableMascot?: boolean
   selectedOptionId?: string
   filterField: keyof T
   showSelectedOption?: boolean
@@ -20,14 +21,24 @@ defineSlots<{
   bottom: () => any
 }>()
 
-const { isParentOpen, searchInputPlaceholder, selectedOptionId, showSelectedOption, filterField, options, optionConfig } =
-  toRefs(props)
+const {
+  isParentOpen,
+  searchInputPlaceholder,
+  selectedOptionId,
+  showSelectedOption,
+  filterField,
+  options,
+  optionConfig,
+  disableMascot,
+} = toRefs(props)
 
 const inputRef = ref()
 
 const activeOptionIndex = ref(-1)
 
 const searchQuery = ref('')
+
+const wrapperRef = ref()
 
 const handleAutoScrollOption = () => {
   const option = document.querySelector('.nc-unified-list-option-active')
@@ -92,6 +103,7 @@ watch(
 
 <template>
   <div
+    ref="wrapperRef"
     class="flex flex-col pt-2 nc-list-with-search w-64"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
@@ -113,6 +125,7 @@ watch(
     <div class="nc-unified-search-list-wrapper flex-col w-full max-h-100 nc-scrollbar-thin !overflow-y-auto px-2 pb-2">
       <div v-if="!filteredOptions.length" class="px-2 py-6 text-center text-gray-500 flex flex-col items-center gap-6">
         <img
+          v-if="!disableMascot"
           src="~assets/img/placeholder/no-search-result-found.png"
           class="!w-[164px] flex-none"
           alt="No search results found"

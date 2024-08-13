@@ -327,7 +327,7 @@ const selectIcon = (icon: string) => {
               >
                 <component :is="iconMap.cellText" class="w-4 h-4" />
               </div>
-              <GeneralIcon icon="arrowDown" class="text-gray-700" />
+              <GeneralIcon icon="arrowDown" class="text-gray-500" />
             </div>
             <template #overlay>
               <div class="bg-white space-y-2 p-2 rounded-lg">
@@ -364,7 +364,7 @@ const selectIcon = (icon: string) => {
                 <span v-else class="text-sm">
                   {{ $t('labels.selectIcon') }}
                 </span>
-                <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                <GeneralIcon icon="arrowDown" class="text-gray-500" />
               </div>
             </div>
             <template #overlay>
@@ -409,7 +409,7 @@ const selectIcon = (icon: string) => {
             class="w-52 nc-button-type-select"
             dropdown-class-name="nc-dropdown-button-cell-type"
           >
-            <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-700" /> </template>
+            <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-500" /> </template>
 
             <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
               <div class="flex gap-2 w-full capitalize text-gray-800 truncate items-center">
@@ -499,7 +499,7 @@ const selectIcon = (icon: string) => {
                 :class="{
                   'transform rotate-180': isWebHookSelectionDropdownOpen,
                 }"
-                class="text-gray-700 transition-all transition-transform"
+                class="text-gray-500 transition-all transition-transform"
               />
             </div>
           </div>

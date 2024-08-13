@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import type { ButtonType, ColumnType } from 'nocodb-sdk'
 
-const props = defineProps<{
-  modelValue: any
-}>()
-
 const column = inject(ColumnInj) as Ref<
   ColumnType & {
     colOptions: ButtonType
   }
 >
+
+const cellValue = inject(CellValueInj, ref())
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
@@ -39,7 +37,7 @@ const disableButton = computed(() => {
 })
 
 const isButtonInValid = computed(() => {
-  if (column.value.colOptions.type === 'webhook' && !props.modelValue?.fk_webhook_id) {
+  if (column.value.colOptions.type === 'webhook' && !cellValue.value?.fk_webhook_id) {
     return true
   }
   return false
@@ -52,7 +50,7 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      await $api.dbTableWebhook.trigger(props.modelValue?.fk_webhook_id, rowId.value)
+      await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId.value)
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -76,10 +74,10 @@ const triggerAction = async () => {
         ...(column.colOptions.type === 'url'
           ? {
               href: encodeURI(
-                /^(https?|ftp|mailto|file):\/\//.test(modelValue.url)
-                  ? modelValue.url
-                  : modelValue.url?.trim()
-                  ? `http://${modelValue.url}`
+                /^(https?|ftp|mailto|file):\/\//.test(cellValue?.url)
+                  ? cellValue?.url
+                  : cellValue?.url?.trim()
+                  ? `http://${cellValue?.url}`
                   : '',
               ),
               target: '_blank',

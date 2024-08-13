@@ -72,26 +72,24 @@ const triggerAction = async () => {
   >
     <button
       :class="`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`"
-      class="nc-cell-button max-w-28 h-6 min-w-20"
+      class="nc-cell-button btn-cell-colors flex items-center h-6"
       :disabled="disableButton"
       @click="triggerAction"
     >
       <GeneralLoader
         v-if="isLoading"
         :class="{
-          '!text-white': column.colOptions.theme === 'solid',
-          '!text-gray': column.colOptions.theme === 'text',
-          '!text-gray-700': column.colOptions.theme === 'light',
+          solid: column.colOptions.theme === 'solid',
+          text: column.colOptions.theme === 'text',
+          light: column.colOptions.theme === 'light',
         }"
-        class="flex !bg-inherit"
+        class="flex btn-cell-colors !bg-transparent w-4 h-4"
         size="medium"
       />
-      <div v-else class="flex items-center gap-2 justify-center">
-        <GeneralIcon v-if="column.colOptions.icon" :icon="column.colOptions.icon" class="w-4 h-4" />
-        <span class="text-[13px] font-medium">
-          {{ column.colOptions.label }}
-        </span>
-      </div>
+      <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="w-4 h-4" />
+      <span class="text-[13px] font-medium">
+        {{ column.colOptions.label }}
+      </span>
     </button>
   </div>
 </template>
@@ -111,73 +109,78 @@ const triggerAction = async () => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-lg px-2 flex items-center transition-all py-1 justify-center;
+  @apply rounded-lg px-2 flex items-center gap-2 transition-all py-1 justify-center;
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
   &:focus-within {
     box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
   }
+  &[disabled] {
+    @apply !bg-gray-100 text-gray-400;
+  }
+}
 
+.btn-cell-colors {
   &.solid {
     @apply text-white;
 
     &[class*='brand'] {
-      @apply !bg-brand-500;
-      &:hover {
-        @apply !bg-brand-600;
+      @apply bg-brand-500 hover:bg-brand-600;
+      .nc-loader {
+        @apply !text-brand-500;
       }
     }
     &[class*='red'] {
-      @apply bg-red-600;
-      &:hover {
-        @apply !bg-red-700;
+      @apply bg-red-600 hover:bg-red-700;
+      .nc-loader {
+        @apply !text-red-600;
       }
     }
     &[class*='green'] {
-      @apply bg-green-600;
-      &:hover {
-        @apply !bg-green-700;
+      @apply bg-green-600 hover:bg-green-700;
+      .nc-loader {
+        @apply !text-green-600;
       }
     }
     &[class*='maroon'] {
-      @apply bg-maroon-600;
-      &:hover {
-        @apply !bg-maroon-700;
+      @apply bg-maroon-600 hover:bg-maroon-700;
+      .nc-loader {
+        @apply !text-maroon-600;
       }
     }
     &[class*='blue'] {
-      @apply bg-blue-600;
-      &:hover {
-        @apply !bg-blue-700;
+      @apply bg-blue-600 hover:bg-blue-700;
+      .nc-loader {
+        @apply !text-blue-600;
       }
     }
     &[class*='orange'] {
-      @apply bg-orange-600;
-      &:hover {
-        @apply !bg-orange-700;
+      @apply bg-orange-600 hover:bg-orange-700;
+      .nc-loader {
+        @apply !text-orange-600;
       }
     }
     &[class*='pink'] {
-      @apply bg-pink-600;
-      &:hover {
-        @apply !bg-pink-700;
+      @apply bg-pink-600 hover:bg-pink-700;
+      .nc-loader {
+        @apply !text-pink-600;
       }
     }
     &[class*='purple'] {
-      @apply bg-purple-500;
-      &:hover {
-        @apply !bg-puple-700;
+      @apply bg-purple-500 hover:bg-puple-700;
+      .nc-loader {
+        @apply !text-purple-600;
       }
     }
     &[class*='yellow'] {
-      @apply bg-yellow-600;
-      &:hover {
-        @apply !bg-yellow-700;
+      @apply bg-yellow-600 hover:bg-yellow-700;
+      .nc-loader {
+        @apply !text-yellow-600;
       }
     }
     &[class*='gray'] {
-      @apply bg-gray-600;
-      &:hover {
-        @apply !bg-gray-700;
+      @apply bg-gray-600 hover:bg-gray-700;
+      .nc-loader {
+        @apply !text-gray-600;
       }
     }
   }
@@ -187,33 +190,63 @@ const triggerAction = async () => {
 
     &[class*='brand'] {
       @apply bg-brand-200;
+      .nc-loader {
+        @apply !text-brand-500;
+      }
     }
     &[class*='red'] {
       @apply bg-red-200;
+      .nc-loader {
+        @apply !text-red-600;
+      }
     }
     &[class*='green'] {
       @apply bg-green-200;
+      .nc-loader {
+        @apply !text-green-600;
+      }
     }
     &[class*='maroon'] {
       @apply bg-maroon-200;
+      .nc-loader {
+        @apply !text-maroon-600;
+      }
     }
     &[class*='blue'] {
       @apply bg-blue-200;
+      .nc-loader {
+        @apply !text-blue-600;
+      }
     }
     &[class*='orange'] {
       @apply bg-orange-200;
+      .nc-loader {
+        @apply !text-orange-600;
+      }
     }
     &[class*='pink'] {
       @apply bg-pink-200;
+      .nc-loader {
+        @apply !text-pink-600;
+      }
     }
     &[class*='purple'] {
       @apply bg-purple-200;
+      .nc-loader {
+        @apply !text-purple-600;
+      }
     }
     &[class*='yellow'] {
       @apply bg-yellow-200;
+      .nc-loader {
+        @apply !text-yellow-600;
+      }
     }
     &[class*='gray'] {
       @apply bg-gray-200;
+      .nc-loader {
+        @apply !text-gray-600;
+      }
     }
   }
 
@@ -226,33 +259,63 @@ const triggerAction = async () => {
     }
     &[class*='brand'] {
       @apply text-brand-500;
+      .nc-loader {
+        @apply !text-brand-500;
+      }
     }
     &[class*='red'] {
       @apply text-red-600;
+      .nc-loader {
+        @apply !text-red-600;
+      }
     }
     &[class*='green'] {
       @apply text-green-600;
+      .nc-loader {
+        @apply !text-green-600;
+      }
     }
     &[class*='maroon'] {
       @apply text-maroon-600;
+      .nc-loader {
+        @apply !text-maroon-600;
+      }
     }
     &[class*='blue'] {
       @apply text-blue-600;
+      .nc-loader {
+        @apply !text-blue-600;
+      }
     }
     &[class*='orange'] {
       @apply text-orange-600;
+      .nc-loader {
+        @apply !text-orange-600;
+      }
     }
     &[class*='pink'] {
       @apply text-pink-600;
+      .nc-loader {
+        @apply !text-pink-600;
+      }
     }
     &[class*='purple'] {
       @apply text-purple-500;
+      .nc-loader {
+        @apply !text-purple-600;
+      }
     }
     &[class*='yellow'] {
       @apply text-yellow-600;
+      .nc-loader {
+        @apply !text-yellow-600;
+      }
     }
     &[class*='gray'] {
       @apply text-gray-600;
+      .nc-loader {
+        @apply !text-gray-600;
+      }
     }
   }
 }

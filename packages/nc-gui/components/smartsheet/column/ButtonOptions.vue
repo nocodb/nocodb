@@ -327,7 +327,7 @@ const selectIcon = (icon: string) => {
               >
                 <component :is="iconMap.cellText" class="w-4 h-4" />
               </div>
-              <GeneralIcon icon="arrowDown" class="text-gray-500" />
+              <GeneralIcon icon="arrowDown" class="text-gray-500 !w-4 !h-4" />
             </div>
             <template #overlay>
               <div class="bg-white space-y-2 p-2 rounded-lg">
@@ -359,12 +359,12 @@ const selectIcon = (icon: string) => {
               }"
               class="flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
             >
-              <div class="flex w-full items-center justify-between gap-2">
+              <div class="flex w-full items-center leading-5 justify-between gap-1">
                 <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4 text-gray-700" />
-                <span v-else class="text-sm">
+                <div v-else class="text-sm flex items-center leading-5 text-gray-500">
                   {{ $t('labels.selectIcon') }}
-                </span>
-                <GeneralIcon icon="arrowDown" class="text-gray-500" />
+                </div>
+                <GeneralIcon icon="arrowDown" class="text-gray-500 !w-4 !h-4" />
               </div>
             </div>
             <template #overlay>
@@ -449,7 +449,7 @@ const selectIcon = (icon: string) => {
           Docs
         </a>
       </div>
-      <div class="flex rounded-lg nc-color-picker-dropdown-trigger">
+      <div class="flex rounded-lg">
         <NcDropdown v-model:visible="isWebHookSelectionDropdownOpen" :trigger="['click']">
           <template #overlay>
             <NcListWithSearch
@@ -478,7 +478,7 @@ const selectIcon = (icon: string) => {
           </template>
           <div
             :class="{
-              '!border-brand-500 shadow-selected remove-right-shadow nc-button-style-dropdown ': isWebHookSelectionDropdownOpen,
+              'nc-button-style-dropdown shadow-dropdown-open remove-right-shadow': isWebHookSelectionDropdownOpen,
             }"
             class="nc-button-webhook-select border-r-0 flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-l-lg"
           >
@@ -487,7 +487,13 @@ const selectIcon = (icon: string) => {
                 :key="selectedWebhook?.id"
                 class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
               >
-                <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                <NcTooltip
+                  :class="{
+                    'text-gray-500': !selectedWebhook?.title,
+                  }"
+                  class="truncate max-w-full"
+                  show-on-truncate-only
+                >
                   <template #title>
                     {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
                   </template>
@@ -509,8 +515,7 @@ const selectIcon = (icon: string) => {
           type="secondary"
           class="!rounded-l-none border-l-[#d9d9d9] nc-button-style-dropdown"
           :class="{
-            '!border-t-brand-500 !border-b-brand-500 remove-left-shadow !border-r-brand-500  !shadow-selected nc-button-style-dropdown':
-              isWebHookSelectionDropdownOpen,
+            'nc-button-style-dropdown shadow-dropdown-open remove-left-shadow': isWebHookSelectionDropdownOpen,
           }"
           @click="editWebhook"
         >
@@ -536,6 +541,14 @@ const selectIcon = (icon: string) => {
 </template>
 
 <style scoped lang="scss">
+.shadow-dropdown-open {
+  @apply transition-all duration-0.3s;
+
+  &:not(:focus-within) {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+  }
+}
+
 :deep(.ant-form-item-label > label) {
   @apply !text-small !leading-[18px] mb-2 !text-gray-800 flex;
 }

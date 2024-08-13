@@ -218,63 +218,64 @@ const triggerAction = async () => {
 
   &.light {
     @apply text-gray-700;
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 
     &[class*='brand'] {
-      @apply bg-brand-200;
+      @apply bg-brand-100 hover:bg-brand-200;
       .nc-loader {
         @apply !text-brand-500;
       }
     }
     &[class*='red'] {
-      @apply bg-red-200;
+      @apply bg-red-100 hover:bg-red-200;
       .nc-loader {
         @apply !text-red-600;
       }
     }
     &[class*='green'] {
-      @apply bg-green-200;
+      @apply bg-green-100 hover:bg-green-200;
       .nc-loader {
         @apply !text-green-600;
       }
     }
     &[class*='maroon'] {
-      @apply bg-maroon-200;
+      @apply bg-maroon-100 hover:bg-maroon-200;
       .nc-loader {
         @apply !text-maroon-600;
       }
     }
     &[class*='blue'] {
-      @apply bg-blue-200;
+      @apply bg-blue-100 hover:bg-blue-200;
       .nc-loader {
         @apply !text-blue-600;
       }
     }
     &[class*='orange'] {
-      @apply bg-orange-200;
+      @apply bg-orange-100 hover:bg-orange-200;
       .nc-loader {
         @apply !text-orange-600;
       }
     }
     &[class*='pink'] {
-      @apply bg-pink-200;
+      @apply bg-pink-100 hover:bg-pink-200;
       .nc-loader {
         @apply !text-pink-600;
       }
     }
     &[class*='purple'] {
-      @apply bg-purple-200;
+      @apply bg-purple-100 hover:bg-purple-200;
       .nc-loader {
         @apply !text-purple-600;
       }
     }
     &[class*='yellow'] {
-      @apply bg-yellow-200;
+      @apply bg-yellow-100 hover:bg-yellow-200;
       .nc-loader {
         @apply !text-yellow-600;
       }
     }
     &[class*='gray'] {
-      @apply bg-gray-200;
+      @apply bg-gray-100 hover:bg-gray-200;
       .nc-loader {
         @apply !text-gray-600;
       }

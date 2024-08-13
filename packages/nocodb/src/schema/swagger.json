@@ -18490,10 +18490,53 @@
         }
       ]
     },
-
-
-
-
+    "/api/v2/meta/hooks/{hookId}/trigger/{rowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "hookId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Hook ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Row ID"
+        }
+      ],
+      "post": {
+        "summary": "Trigger Manual Hook",
+        "operationId": "db-table-webhook-trigger",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Webhook"
+        ],
+        "description": "Trigger the manual WebHook",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v2/meta/integrations": {
       "get": {
         "summary": "List integrations",
@@ -21944,7 +21987,8 @@
           "event": {
             "enum": [
               "after",
-              "before"
+              "before",
+              "manual"
             ],
             "type": "string",
             "description": "Event Type for the operation",
@@ -21973,7 +22017,8 @@
               "delete",
               "bulkInsert",
               "bulkUpdate",
-              "bulkDelete"
+              "bulkDelete",
+              "trigger"
             ],
             "type": "string",
             "description": "Hook Operation",
@@ -22064,7 +22109,8 @@
           "event": {
             "enum": [
               "after",
-              "before"
+              "before",
+              "manual"
             ],
             "type": "string",
             "description": "Event Type for the operation",
@@ -22093,7 +22139,8 @@
               "delete",
               "bulkInsert",
               "bulkUpdate",
-              "bulkDelete"
+              "bulkDelete",
+              "trigger"
             ],
             "type": "string",
             "description": "Hook Operation",
@@ -22277,7 +22324,8 @@
             "example": "after",
             "enum": [
               "after",
-              "before"
+              "before",
+              "manual"
             ]
           },
           "execution_time": {
@@ -22306,7 +22354,8 @@
               "delete",
               "bulkInsert",
               "bulkUpdate",
-              "bulkDelete"
+              "bulkDelete",
+              "trigger"
             ],
             "example": "insert"
           },

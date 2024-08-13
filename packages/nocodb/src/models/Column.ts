@@ -330,10 +330,11 @@ export default class Column<T = any> implements ColumnType {
           formula: column?.formula,
           formula_raw: column?.formula_raw,
           parsed_tree: column?.parsed_tree,
+          icon: column?.icon,
           type: column.type,
           theme: column.theme,
           color: column.color,
-          webhook_id: column?.webhook_id,
+          fk_webhook_id: column?.fk_webhook_id,
           label: column.label,
         });
 

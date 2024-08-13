@@ -897,6 +897,18 @@ svg.nc-virtual-cell-icon {
   }
 }
 
+.nc-dropdown-search-unified-input {
+  @apply !rounded-lg;
+
+  .nc-search-icon {
+    @apply text-gray-400;
+  }
+
+  &:hover .nc-search-icon,
+  &.ant-input-affix-wrapper-focused .nc-search-icon {
+    @apply text-gray-800;
+  }
+}
 .nc-toolbar-dropdown-search-field-input {
   @apply !rounded-lg;
 

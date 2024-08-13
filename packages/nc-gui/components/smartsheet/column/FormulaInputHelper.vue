@@ -643,10 +643,10 @@ const handleKeydown = (e: KeyboardEvent) => {
   <div
     :class="{
       'h-[250px]': suggestionHeight === 'large',
-      'h-[175px]': suggestionHeight === 'medium',
+      'h-[150px]': suggestionHeight === 'medium',
       'h-[125px]': suggestionHeight === 'small',
     }"
-    class="overflow-auto flex flex-col nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4"
+    class="overflow-auto flex flex-col nc-suggestion-list nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4"
   >
     <div v-if="suggestedFormulas && showFunctionList" :style="{ order: priority === -1 ? 2 : 1 }">
       <div
@@ -740,6 +740,10 @@ const handleKeydown = (e: KeyboardEvent) => {
 </template>
 
 <style scoped lang="scss">
+.nc-suggestion-list {
+  @apply resize-y max-h-[300px] min-h-[50px];
+}
+
 :deep(.ant-list-item) {
   @apply !py-0 !px-2;
 

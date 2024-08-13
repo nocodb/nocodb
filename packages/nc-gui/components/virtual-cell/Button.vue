@@ -107,9 +107,14 @@ const triggerAction = async () => {
         size="medium"
       />
       <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
-      <span v-if="column.colOptions.label" class="text-[13px] truncate font-medium">
-        {{ column.colOptions.label }}
-      </span>
+      <NcTooltip v-if="column.colOptions.label" class="!truncate" show-on-truncate-only>
+        <span class="text-[13px] truncate font-medium">
+          {{ column.colOptions.label }}
+        </span>
+        <template #title>
+          {{ column.colOptions.label }}
+        </template>
+      </NcTooltip>
     </component>
   </div>
 </template>

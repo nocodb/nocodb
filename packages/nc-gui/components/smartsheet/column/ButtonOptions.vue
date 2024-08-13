@@ -608,7 +608,7 @@ onMounted(async () => {
       </div>
     </div>
     <a-form-item v-bind="validateInfos.label" class="mt-4" :label="$t('general.label')">
-      <a-input v-model:value="vModel.label" class="nc-column-name-input !rounded-lg" placeholder="Button" />
+      <a-input v-model:value="vModel.label" class="nc-column-label-input !rounded-lg" placeholder="Button" />
     </a-form-item>
     <a-row class="mt-4" :gutter="8">
       <a-col :span="12">

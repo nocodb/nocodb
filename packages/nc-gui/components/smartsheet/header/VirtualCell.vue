@@ -118,12 +118,8 @@ const addField = async (payload: any) => {
 const editOrAddProviderRef = ref()
 
 const closeAddColumnDropdown = () => {
-  setTimeout(() => {
-    const isWebhookModalOpen = editOrAddProviderRef.value?.isWebhookModalOpen()
-    if (isWebhookModalOpen) return
-    columnOrder.value = null
-    editColumnDropdown.value = false
-  }, 50)
+  columnOrder.value = null
+  editColumnDropdown.value = false
 }
 
 const openHeaderMenu = (e?: MouseEvent) => {

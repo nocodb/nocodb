@@ -361,6 +361,7 @@ const onClose = (hook: HookType) => {
 const onSelectWebhook = (hook: HookType) => {
   vModel.value.fk_webhook_id = hook.id
   selectedWebhook.value = hook
+  isWebHookSelectionDropdownOpen.value = false
   isWebhookModal.value = false
 }
 
@@ -375,6 +376,12 @@ const editWebhook = () => {
     isWebhookModal.value = true
   }
 }
+
+watch(isWebhookModal, (newVal) => {
+  if (!newVal) {
+    isWebhookCreateModalOpen.value = false
+  }
+})
 
 const selectIcon = (icon: string) => {
   vModel.value.icon = icon

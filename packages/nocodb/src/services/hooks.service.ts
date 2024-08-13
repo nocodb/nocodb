@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
+import View from '../models/View';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -89,6 +90,7 @@ export class HooksService {
           fk_webhook_id: null,
         });
       }
+      await View.clearSingleQueryCache(context, hook.fk_model_id);
     }
 
     await Hook.delete(context, param.hookId);
@@ -126,6 +128,7 @@ export class HooksService {
           });
         }
       }
+      await View.clearSingleQueryCache(context, hook.fk_model_id);
     }
 
     const res = await Hook.update(context, param.hookId, param.hook);

@@ -38,20 +38,16 @@ const disableButton = computed(() => {
   }
 })
 
-const isButtonInValid = ref(false)
+const isButtonInValid = computed(() => {
+  if (column.value.colOptions.type === 'webhook' && !props.modelValue.fk_webhook_id) {
+    return true
+  }
+  return false
+})
+
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
-  let modelValue = props.modelValue
-
-  if (typeof modelValue === 'string') {
-    try {
-      modelValue = JSON.parse(modelValue)
-    } catch (e) {
-      isButtonInValid.value = true
-      console.log(e)
-      return
-    }
-  }
+  const modelValue = props.modelValue
 
   if (colOptions.type === 'url') {
     const fullUrl = /^(https?|ftp|mailto|file):\/\//.test(modelValue.url)
@@ -83,9 +79,15 @@ const triggerAction = async () => {
     }"
     class="w-full flex items-center"
   >
-    <NcTooltip :disabled="!(column.colOptions.type === 'webhook' && !column.colOptions.fk_webhook_id)">
+    <NcTooltip :disabled="!(column.colOptions.type === 'webhook' && !column.colOptions.fk_webhook_id) && !isButtonInValid">
       <template #title>
-        {{ column.colOptions.type === 'webhook' && !column.colOptions.fk_webhook_id ? $t('msg.invalidConfiguration') : '' }}
+        {{
+          column.colOptions.type === 'webhook' && !column.colOptions.fk_webhook_id
+            ? $t('msg.invalidConfiguration')
+            : isButtonInValid
+            ? $t('msg.invalidConfiguration')
+            : ''
+        }}
       </template>
 
       <button

@@ -1,18 +1,24 @@
 <script setup lang="ts" generic="T">
-const props = defineProps<{
-  // As we need to focus search box when the parent is opened
-  isParentOpen: boolean
-  searchInputPlaceholder?: string
-  optionConfig: {
-    optionClassName: string
-    selectOptionEvent: string[] | undefined
-  }
-  options: T[]
-  disableMascot?: boolean
-  selectedOptionId?: string
-  filterField: keyof T
-  showSelectedOption?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    // As we need to focus search box when the parent is opened
+    isParentOpen: boolean
+    searchInputPlaceholder?: string
+    optionConfig: {
+      optionClassName: string
+      selectOptionEvent: string[] | undefined
+    }
+    options: Array<T>
+    disableMascot?: boolean
+    selectedOptionId?: string
+    uniqueIdentifier: keyof T
+    filterField: keyof T
+    showSelectedOption?: boolean
+  }>(),
+  {
+    uniqueIdentifier: 'id' as keyof T,
+  },
+)
 
 const emits = defineEmits<{ selected: [T] }>()
 
@@ -30,6 +36,7 @@ const {
   options,
   optionConfig,
   disableMascot,
+  uniqueIdentifier,
 } = toRefs(props)
 
 const inputRef = ref()
@@ -37,6 +44,8 @@ const inputRef = ref()
 const activeOptionIndex = ref(-1)
 
 const searchQuery = ref('')
+
+const { t } = useI18n()
 
 const wrapperRef = ref()
 
@@ -113,7 +122,7 @@ watch(
       <a-input
         ref="inputRef"
         v-model:value="searchQuery"
-        :placeholder="searchInputPlaceholder || $t('placeholder.search')"
+        :placeholder="searchInputPlaceholder || t('placeholder.search')"
         class="nc-dropdown-search-unified-input"
         @keydown.enter.stop="handleKeydownEnter"
         @change="activeOptionIndex = 0"
@@ -131,7 +140,7 @@ watch(
           alt="No search results found"
         />
 
-        {{ options.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
+        {{ options.length ? t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>
 
       <div
@@ -163,9 +172,8 @@ watch(
             </span>
           </NcTooltip>
         </div>
-
         <GeneralIcon
-          v-if="showSelectedOption && option.id === selectedOptionId"
+          v-if="showSelectedOption && option[uniqueIdentifier] === selectedOptionId"
           id="nc-selected-item-icon"
           icon="check"
           class="flex-none text-primary w-4 h-4"

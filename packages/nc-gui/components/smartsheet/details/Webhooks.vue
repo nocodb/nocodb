@@ -350,6 +350,7 @@ const getHookTypeText = (hook: HookType) => {
                 {{ toBeDeleteHook.title }}
               </div>
             </div>
+            <span class="text-small leading-[18px] mb-2 text-gray-500"> {{ $t('msg.warning.webhookDelete') }} </span>
           </template>
         </GeneralDeleteModal>
 

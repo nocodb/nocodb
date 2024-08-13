@@ -104,11 +104,10 @@ const validators = {
       required: vModel.value.type === 'webhook',
       validator: (_: any, fk_webhook_id: any) => {
         return new Promise<void>((resolve, reject) => {
-          if (vModel.value.type === 'webhook') {
-            fk_webhook_id ? resolve() : reject(new Error(t('msg.required')))
-          } else {
-            resolve()
+          if (vModel.value.type === 'webhook' && !fk_webhook_id) {
+            reject(new Error(t('msg.required')))
           }
+          resolve()
         })
       },
     },
@@ -117,9 +116,9 @@ const validators = {
     {
       validator: (_: any, color: any) => {
         return new Promise<void>((resolve, reject) => {
-          ;['brand', 'red', 'green', 'maroon', 'blue', 'orange', 'pink', 'purple', 'yellow', 'gray'].includes(color)
-            ? resolve()
-            : reject(new Error(t('msg.invalidColor')))
+          if (!['brand', 'red', 'green', 'maroon', 'blue', 'orange', 'pink', 'purple', 'yellow', 'gray'].includes(color)) {
+            reject(new Error(t('msg.invalidColor')))
+          }
           resolve()
         })
       },
@@ -129,7 +128,9 @@ const validators = {
     {
       validator: (_: any, theme: any) => {
         return new Promise<void>((resolve, reject) => {
-          ;['solid', 'light', 'text'].includes(theme) ? resolve() : reject(new Error(t('msg.invalidTheme')))
+          if (!['solid', 'light', 'text'].includes(theme)) {
+            reject(new Error(t('msg.invalidTheme')))
+          }
           resolve()
         })
       },
@@ -139,7 +140,9 @@ const validators = {
     {
       validator: (_: any, type: any) => {
         return new Promise<void>((resolve, reject) => {
-          ;['url', 'webhook'].includes(type) ? resolve() : reject(new Error(t('msg.invalidType')))
+          if (!['url', 'webhook'].includes(type)) {
+            reject(new Error(t('msg.invalidType')))
+          }
           resolve()
         })
       },
@@ -149,7 +152,9 @@ const validators = {
     {
       validator: (_: any, label: any) => {
         return new Promise<void>((resolve, reject) => {
-          label.length > 0 ? resolve() : !vModel.value.icon ? reject(new Error(t('msg.invalidLabel'))) : resolve()
+          if (!(label.length > 0) && !vModel.value.icon) {
+            reject(new Error(t('msg.invalidLabel')))
+          }
           resolve()
         })
       },
@@ -453,6 +458,7 @@ const selectIcon = (icon: string) => {
               :search-input-placeholder="$t('placeholder.searchFields')"
               :option-config="{ selectOptionEvent: ['c:actions:webhook'], optionClassName: '' }"
               :options="manualHooks"
+              :selected-option-id="selectedWebhook?.id"
               disable-mascot
               class="max-h-72 max-w-85"
               filter-field="title"

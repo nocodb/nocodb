@@ -25,9 +25,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
   })
 
   async function loadHooksList() {
-    const { activeTable } = useTablesStore()
     isHooksLoading.value = true
-
+    const { activeTable } = useTablesStore()
     try {
       const hookList = (await $api.dbTableWebhook.list(activeTable?.id as string)).list
 
@@ -58,6 +57,11 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      const { getMeta } = useMetas()
+      const { activeTable } = useTablesStore()
+
+      await getMeta(activeTable?.id!, true)
     }
   }
 
@@ -154,6 +158,11 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
           return h
         })
       }
+    } finally {
+      const { getMeta } = useMetas()
+      const { activeTable } = useTablesStore()
+
+      await getMeta(activeTable?.id!, true)
     }
 
     $e('a:webhook:add', {

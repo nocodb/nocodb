@@ -1,21 +1,13 @@
 <script setup lang="ts">
 import {
-  type ButtonType,
-  type ColumnType,
   FormulaError,
-  type HookType,
   UITypes,
   isHiddenCol,
-  jsepCurlyHook,
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
-import { type editor as MonacoEditor, languages, editor as monacoEditor } from 'monaco-editor'
-import jsep from 'jsep'
-import formulaLanguage from '../../monaco/formula'
+import { type ButtonType, type ColumnType, type HookType } from 'nocodb-sdk'
 import { searchIcons } from '../../../utils/iconUtils'
-import { isCursorInsideString } from '../../../utils/formulaUtils'
-import PlaceholderContentWidget from '../../monaco/Placeholder'
 
 const props = defineProps<{
   value: any
@@ -36,6 +28,8 @@ const meta = inject(MetaInj, ref())
 
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen } = useColumnCreateStoreOrThrow()
 
+const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
+
 const webhooksStore = useWebhooksStore()
 
 const { loadHooksList } = webhooksStore
@@ -50,55 +44,6 @@ const manualHooks = computed(() => {
   return hooks.value.filter((hook) => hook.event === 'manual' && hook.active)
 })
 
-const suggestionPreviewed = ref<Record<any, string> | undefined>()
-
-const supportedColumns = computed(
-  () =>
-    meta?.value?.columns?.filter((col) => {
-      if ([UITypes.QrCode, UITypes.Barcode, UITypes.Button].includes(col.uidt as UITypes)) {
-        return false
-      }
-
-      if (isHiddenCol(col, meta.value)) {
-        return false
-      }
-
-      return true
-    }) || [],
-)
-
-const suggestionsList = computed(() => {
-  const unsupportedFnList = sqlUi.value.getUnsupportedFnList()
-  return (
-    [
-      ...formulaList.map((fn: string) => ({
-        text: `${fn}()`,
-        type: 'function',
-        description: formulas[fn].description,
-        syntax: formulas[fn].syntax,
-        examples: formulas[fn].examples,
-        docsUrl: formulas[fn].docsUrl,
-        unsupported: unsupportedFnList.includes(fn),
-      })),
-    ]
-      // move unsupported functions to the end
-      .sort((a: Record<string, any>, b: Record<string, any>) => {
-        if (a.unsupported && !b.unsupported) {
-          return 1
-        }
-        if (!a.unsupported && b.unsupported) {
-          return -1
-        }
-        return 0
-      })
-  )
-})
-
-const suggestionPreviewPostion = ref({
-  top: '0px',
-  left: '344px',
-})
-
 const buttonTypes = [
   {
     label: t('labels.openUrl'),
@@ -109,6 +54,21 @@ const buttonTypes = [
     value: 'webhook',
   },
 ]
+
+const supportedColumns = computed(
+  () =>
+    meta?.value?.columns?.filter((col) => {
+      if (uiTypesNotSupportedInFormulas.includes(col.uidt as UITypes)) {
+        return false
+      }
+
+      if (isHiddenCol(col, meta.value)) {
+        return false
+      }
+
+      return true
+    }) || [],
+)
 
 const validators = {
   formula_raw: [
@@ -272,198 +232,6 @@ const updateButtonTheme = (type: string, name: string) => {
   vModel.value.color = name
 }
 
-const monacoRoot = ref()
-
-let editor: MonacoEditor.IStandaloneCodeEditor
-
-const mountMonaco = () => {
-  if (monacoRoot.value) {
-    const model = monacoEditor.createModel(vModel.value.formula_raw, 'formula')
-
-    languages.register({
-      id: formulaLanguage.name,
-    })
-
-    monacoEditor.defineTheme(formulaLanguage.name, formulaLanguage.theme)
-
-    languages.setMonarchTokensProvider(
-      formulaLanguage.name,
-      formulaLanguage.generateLanguageDefinition(supportedColumns.value.map((c) => c.title!)),
-    )
-
-    languages.setLanguageConfiguration(formulaLanguage.name, formulaLanguage.languageConfiguration)
-
-    editor = monacoEditor.create(monacoRoot.value, {
-      model,
-      'contextmenu': false,
-      'theme': 'formula',
-      'selectOnLineNumbers': false,
-      'language': 'formula',
-      'roundedSelection': false,
-      'scrollBeyondLastLine': false,
-      'lineNumbers': 'off',
-      'glyphMargin': false,
-      'folding': false,
-      'wordWrap': 'on',
-      'wrappingStrategy': 'advanced',
-      // This seems to be a bug in the monoco.
-      // https://github.com/microsoft/monaco-editor/issues/4535#issuecomment-2234042290
-      'bracketPairColorization.enabled': false,
-      'padding': {
-        top: 8,
-        bottom: 8,
-      },
-      'lineDecorationsWidth': 8,
-      'lineNumbersMinChars': 0,
-      'renderLineHighlight': 'none',
-      'renderIndentGuides': false,
-      'scrollbar': {
-        horizontal: 'hidden',
-      },
-      'tabSize': 2,
-      'automaticLayout': false,
-      'overviewRulerLanes': 0,
-      'hideCursorInOverviewRuler': true,
-      'overviewRulerBorder': false,
-      'matchBrackets': 'never',
-      'minimap': {
-        enabled: false,
-      },
-    })
-
-    editor.layout({
-      width: 339,
-      height: 120,
-    })
-
-    // eslint-disable-next-line no-new
-    new PlaceholderContentWidget('CONCAT({URL-field})', editor)
-
-    editor.onDidChangeModelContent(async () => {
-      vModel.value.formula_raw = editor.getValue()
-    })
-
-    editor.onDidChangeCursorPosition(() => {
-      const position = editor.getPosition()
-      const model = editor.getModel()
-
-      if (!position || !model) return
-
-      const text = model.getValue()
-      const offset = model.getOffsetAt(position)
-
-      // IF cursor is inside string, don't show any suggestions
-      if (isCursorInsideString(text, offset)) {
-      }
-
-      const findEnclosingFunction = (text: string, offset: number) => {
-        const formulaRegex = /\b(?<!['"])(\w+)\s*\(/g // Regular expression to match function names
-        const quoteRegex = /"/g // Regular expression to match quotes
-
-        const functionStack = [] // Stack to keep track of functions
-        let inQuote = false
-
-        let match
-        while ((match = formulaRegex.exec(text)) !== null) {
-          if (match.index > offset) break
-
-          if (!inQuote) {
-            const functionData = {
-              name: match[1],
-              start: match.index,
-              end: formulaRegex.lastIndex,
-            }
-
-            let parenBalance = 1
-            let childValueStart = -1
-            let childValueEnd = -1
-            for (let i = formulaRegex.lastIndex; i < text.length; i++) {
-              if (text[i] === '(') {
-                parenBalance++
-              } else if (text[i] === ')') {
-                parenBalance--
-                if (parenBalance === 0) {
-                  functionData.end = i + 1
-                  break
-                }
-              }
-
-              // Child value handling
-              if (childValueStart === -1 && ['(', ',', '{'].includes(text[i])) {
-                childValueStart = i
-              } else if (childValueStart !== -1 && ['(', ',', '{'].includes(text[i])) {
-                childValueStart = i
-              } else if (childValueStart !== -1 && ['}', ',', ')'].includes(text[i])) {
-                childValueEnd = i
-                childValueStart = -1
-              }
-
-              if (i >= offset) {
-                // If we've reached the offset and parentheses are still open, consider the current position as the end of the function
-                if (parenBalance > 0) {
-                  functionData.end = i + 1
-                  break
-                }
-
-                // Check for nested functions
-                const nestedFunction = findEnclosingFunction(
-                  text.substring(functionData.start + match[1].length + 1, i),
-                  offset - functionData.start - match[1].length - 1,
-                )
-                if (nestedFunction) {
-                  return nestedFunction
-                } else {
-                  functionStack.push(functionData)
-                  break
-                }
-              }
-            }
-
-            // If child value ended before offset, use child value end as function end
-            if (childValueEnd !== -1 && childValueEnd < offset) {
-              functionData.end = childValueEnd + 1
-            }
-
-            functionStack.push(functionData)
-          }
-
-          // Check for quotes
-          let quoteMatch
-          while ((quoteMatch = quoteRegex.exec(text)) !== null && quoteMatch.index < match.index) {
-            inQuote = !inQuote
-          }
-        }
-
-        const enclosingFunctions = functionStack.filter((func) => func.start <= offset && func.end >= offset)
-        return enclosingFunctions.length > 0 ? enclosingFunctions[enclosingFunctions.length - 1].name : null
-      }
-      const lastFunction = findEnclosingFunction(text, offset)
-
-      suggestionPreviewed.value =
-        (suggestionsList.value.find((s) => s.text === `${lastFunction}()`) as Record<any, string>) || undefined
-    })
-    editor.focus()
-  }
-}
-
-useResizeObserver(monacoRoot, (entries) => {
-  const entry = entries[0]
-  const { height } = entry.contentRect
-  editor.layout({
-    width: 339,
-    height,
-  })
-})
-
-watch(
-  () => vModel.value?.type,
-  async (val) => {
-    await nextTick(() => {
-      mountMonaco()
-    })
-  },
-)
-
 const isDropdownOpen = ref(false)
 
 const isWebHookSelectionDropdownOpen = ref(false)
@@ -528,85 +296,10 @@ const selectIcon = (icon: string) => {
   vModel.value.icon = icon
   isButtonIconDropdownOpen.value = false
 }
-
-onMounted(async () => {
-  jsep.plugins.register(jsepCurlyHook)
-  mountMonaco()
-
-  until(() => monacoRoot.value as HTMLDivElement)
-    .toBeTruthy()
-    .then(() => {
-      setTimeout(() => {
-        const monacoDivPosition = monacoRoot.value?.getBoundingClientRect()
-        if (!monacoDivPosition) return
-
-        suggestionPreviewPostion.value.top = `${monacoDivPosition.top}px`
-
-        if (props.fromTableExplorer?.value || monacoDivPosition.left > 352) {
-          suggestionPreviewPostion.value.left = `${monacoDivPosition.left - 344}px`
-        } else {
-          suggestionPreviewPostion.value.left = `${monacoDivPosition.right + 8}px`
-        }
-      }, 250)
-    })
-})
 </script>
 
 <template>
   <div class="relative">
-    <div
-      v-if="
-        suggestionPreviewed &&
-        !suggestionPreviewed.unsupported &&
-        suggestionPreviewed.type === 'function' &&
-        vModel.type === 'url'
-      "
-      class="w-84 fixed bg-white z-10 pl-3 pt-3 border-1 shadow-md rounded-xl"
-      :style="{
-        left: suggestionPreviewPostion.left,
-        top: suggestionPreviewPostion.top,
-      }"
-    >
-      <div class="pr-3">
-        <div class="flex flex-row w-full justify-between pb-2 border-b-1">
-          <div class="flex items-center gap-x-1 font-semibold text-lg text-gray-600">
-            <component :is="iconMap.function" class="text-lg" />
-            {{ suggestionPreviewed.text }}
-          </div>
-          <NcButton type="text" size="small" class="!h-7 !w-7 !min-w-0" @click="suggestionPreviewed = undefined">
-            <GeneralIcon icon="close" />
-          </NcButton>
-        </div>
-      </div>
-      <div class="flex flex-col max-h-120 nc-scrollbar-thin pr-2">
-        <div class="flex mt-3 text-[13px] leading-6">{{ suggestionPreviewed.description }}</div>
-
-        <div class="text-gray-500 uppercase text-[11px] mt-3 mb-2">Syntax</div>
-        <div class="bg-white rounded-md py-1 text-[13px] mono-font leading-6 px-2 border-1">{{ suggestionPreviewed.syntax }}</div>
-        <div class="text-gray-500 uppercase text-[11px] mt-3 mb-2">Examples</div>
-        <div
-          v-for="(example, index) of suggestionPreviewed.examples"
-          :key="example"
-          class="bg-gray-100 mono-font text-[13px] leading-6 py-1 px-2"
-          :class="{
-            'border-t-1  border-gray-200': index !== 0,
-            'rounded-b-md': index === suggestionPreviewed.examples.length - 1 && suggestionPreviewed.examples.length !== 1,
-            'rounded-t-md': index === 0 && suggestionPreviewed.examples.length !== 1,
-            'rounded-md': suggestionPreviewed.examples.length === 1,
-          }"
-        >
-          {{ example }}
-        </div>
-      </div>
-      <div class="flex flex-row mt-3 mb-3 justify-end pr-3">
-        <a v-if="suggestionPreviewed.docsUrl" target="_blank" rel="noopener noreferrer" :href="suggestionPreviewed.docsUrl">
-          <NcButton type="text" size="small" class="!text-gray-400 !hover:text-gray-700 !text-xs"
-            >View in Docs
-            <GeneralIcon icon="openInNew" class="ml-1" />
-          </NcButton>
-        </a>
-      </div>
-    </div>
     <a-form-item v-bind="validateInfos.label" class="mt-4" :label="$t('general.label')">
       <a-input v-model:value="vModel.label" class="nc-column-label-input !rounded-lg" placeholder="Button" />
     </a-form-item>
@@ -739,22 +432,14 @@ onMounted(async () => {
         </a-form-item>
       </a-col>
     </a-row>
-    <a-form-item
-      v-if="vModel?.type === 'url'"
-      class="!mt-4"
-      v-bind="validateInfos.formula_raw"
-      :label="$t('labels.urlFormula')"
-      required
-    >
-      <div
-        ref="monacoRoot"
-        :class="{
-          '!border-red-500 formula-error': validateInfos.formula_raw?.validateStatus === 'error',
-          '!focus-within:border-brand-500 formula-success': validateInfos.formula_raw?.validateStatus !== 'error',
-        }"
-        class="formula-monaco"
-      ></div>
-    </a-form-item>
+    <div v-if="vModel?.type === 'url'" class="!mt-4">
+      <SmartsheetColumnFormulaInputHelper
+        v-model:value="vModel.formula_raw"
+        suggestion-height="small"
+        :label="$t('labels.urlFormula')"
+        :error="validateInfos.formula_raw?.validateStatus === 'error'"
+      />
+    </div>
 
     <a-form-item v-if="vModel?.type === 'webhook'" class="!mt-4">
       <div class="mb-2 text-gray-700 text-[13px] flex justify-between">
@@ -846,13 +531,6 @@ onMounted(async () => {
   </div>
 </template>
 
-<style lang="scss">
-.formula-placeholder {
-  @apply !text-gray-500 !text-xs !font-medium;
-  font-family: 'Manrope';
-}
-</style>
-
 <style scoped lang="scss">
 .nc-list-with-search {
   @apply w-full;
@@ -864,23 +542,7 @@ onMounted(async () => {
 .remove-left-shadow {
   clip-path: inset(-2px -2px -2px 0px) !important;
 }
-.formula-monaco {
-  @apply rounded-md nc-scrollbar-md border-gray-200 border-1 overflow-y-auto overflow-x-hidden resize-y;
-  min-height: 100px;
-  height: 120px;
-  max-height: 250px;
 
-  &:focus-within:not(.formula-error) {
-    box-shadow: 0 0 0 2px var(--ant-primary-color-outline);
-  }
-
-  &:focus-within:not(.formula-success) {
-    box-shadow: 0 0 0 2px var(--ant-error-color-outline);
-  }
-  .view-line {
-    width: auto !important;
-  }
-}
 .mono-font {
   font-family: 'JetBrainsMono', monospace;
 }

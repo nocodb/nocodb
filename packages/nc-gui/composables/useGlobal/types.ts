@@ -22,6 +22,7 @@ export interface AppInfo {
   oneClick: boolean
   baseHasAdmin: boolean
   teleEnabled: boolean
+  errorReportingEnabled: boolean
   auditEnabled: boolean
   type: string
   version: string
@@ -37,6 +38,7 @@ export interface AppInfo {
   inviteOnlySignup: boolean
   samlAuthEnabled: boolean
   samlProviderName: string | null
+  giftUrl: string
 }
 
 export interface StoredState {
@@ -58,6 +60,8 @@ export interface StoredState {
     current: number
   }
   isAddNewRecordGridMode: boolean
+  syncDataUpvotes: string[]
+  giftBannerDismissedCount: number
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
@@ -96,6 +100,7 @@ export interface Actions {
   setGridViewPageSize: (pageSize: number) => void
   setLeftSidebarSize: (params: { old?: number; current?: number }) => void
   setAddNewRecordGridMode: (isGridMode: boolean) => void
+  updateSyncDataUpvotes: (upvotes: string[]) => void
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

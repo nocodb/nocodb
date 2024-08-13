@@ -20,7 +20,9 @@ const props = withDefaults(
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, destroyOnClose, maskClosable, wrapClassName: _wrapClassName, showSeparator } = props
+const { width: propWidth, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
+
+const { maskClosable } = toRefs(props)
 
 const { isMobileMode } = useGlobal()
 
@@ -105,7 +107,7 @@ const slots = useSlots()
         :class="{
           'border-b-1 border-gray-200': showSeparator,
         }"
-        class="flex pb-2 mb-2 text-lg font-medium"
+        class="flex pb-2 mb-2 nc-modal-header text-lg font-medium"
       >
         <slot name="header" />
       </div>

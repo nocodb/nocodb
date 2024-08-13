@@ -1521,6 +1521,7 @@ export interface XcFilter {
   sortArr?: Sort[];
   pks?: string;
   aggregation?: XcAggregation[];
+  column_name?: string;
 }
 
 export interface XcFilterWithAlias extends XcFilter {

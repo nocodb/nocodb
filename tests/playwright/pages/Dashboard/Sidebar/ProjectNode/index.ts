@@ -148,5 +148,9 @@ export class SidebarProjectNodeObject extends BasePage {
 
     if (copyProjectInfoVisible) await expect(copyProjectInfoLocator).toBeVisible();
     else await expect(copyProjectInfoLocator).toHaveCount(0);
+
+    await this.get({
+      baseTitle,
+    }).click();
   }
 }

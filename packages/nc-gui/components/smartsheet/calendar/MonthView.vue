@@ -55,14 +55,6 @@ const isDayInPagedMonth = (date: dayjs.Dayjs) => {
   return date.month() === selectedMonth.value.month()
 }
 
-const getDayIndex = (date: dayjs.Dayjs) => {
-  let dayIndex = date.day() - 1
-  if (dayIndex === -1) {
-    dayIndex = 6
-  }
-  return dayIndex
-}
-
 const dragElement = ref<HTMLElement | null>(null)
 
 const draggingId = ref<string | null>(null)

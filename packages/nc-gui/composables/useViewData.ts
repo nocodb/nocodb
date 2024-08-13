@@ -143,14 +143,18 @@ export function useViewData(
 
     if (!ids?.length || ids?.some((id) => !id)) return
 
-    aggCommentCount.value = await $api.utils.commentCount({
-      ids,
-      fk_model_id: metaId.value as string,
-    })
+    try {
+      aggCommentCount.value = await $api.utils.commentCount({
+        ids,
+        fk_model_id: metaId.value as string,
+      })
 
-    for (const row of formattedData.value) {
-      const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-      row.rowMeta.commentCount = +(aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0)
+      for (const row of formattedData.value) {
+        const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+        row.rowMeta.commentCount = +(aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0)
+      }
+    } catch (e) {
+      console.error(e)
     }
   }
 

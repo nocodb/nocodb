@@ -1,15 +1,23 @@
 <script lang="ts" setup>
-const props = defineProps<{
-  visible: boolean
-  entityName: string
-  onDelete: () => Promise<void>
-  deleteLabel?: string | undefined
-}>()
+const props = withDefaults(
+  defineProps<{
+    visible: boolean
+    entityName: string
+    onDelete: () => Promise<void>
+    deleteLabel?: string | undefined
+    showDefaultDeleteMsg?: boolean
+  }>(),
+  {
+    showDefaultDeleteMsg: true,
+  },
+)
 
 const emits = defineEmits(['update:visible'])
 const visible = useVModel(props, 'visible', emits)
 
 const isLoading = ref(false)
+
+const modalRef = ref<HTMLElement>()
 
 const { t } = useI18n()
 
@@ -40,14 +48,22 @@ onKeyStroke('Enter', () => {
 
   onDelete()
 })
+
+watch(visible, (value) => {
+  if (value) {
+    setTimeout(() => {
+      modalRef.value?.focus()
+    }, 100)
+  }
+})
 </script>
 
 <template>
   <GeneralModal v-model:visible="visible" size="small" centered>
-    <div class="flex flex-col p-6">
+    <div ref="modalRef" class="flex flex-col p-6">
       <div class="flex flex-row pb-2 mb-3 font-medium text-lg text-gray-800">{{ deleteLabel }} {{ props.entityName }}</div>
 
-      <div class="mb-3 text-gray-800">
+      <div v-if="showDefaultDeleteMsg" class="mb-3 text-gray-800">
         {{
           $t('msg.areYouSureUWantToDeleteLabel', {
             deleteLabel: deleteLabel.toLowerCase(),

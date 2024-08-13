@@ -6,7 +6,7 @@ import { NavigateDir } from '~/lib/enums'
 const props = defineProps<{
   group: Group
 
-  loadGroups: (params?: any, group?: Group) => Promise<void>
+  loadGroups: (params?: any, group?: Group, options?: { triggerChildOnly: boolean }) => Promise<void>
   loadGroupData: (group: Group, force?: boolean, params?: any) => Promise<void>
   loadGroupPage: (group: Group, p: number) => Promise<void>
   groupWrapperChangePage: (page: number, groupWrapper?: Group) => Promise<void>
@@ -42,8 +42,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const skipRowRemovalOnCancel = ref(false)
 
-const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
-
 const { eventBus } = useSmartsheetStoreOrThrow()
 
 const route = router.currentRoute
@@ -53,6 +51,8 @@ const routeQuery = computed(() => route.value.query as Record<string, string>)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
+
+const groupByKeyId = computed(() => routeQuery.value.group)
 
 const expandedFormOnRowIdDlg = computed({
   get() {
@@ -64,6 +64,7 @@ const expandedFormOnRowIdDlg = computed({
         query: {
           ...routeQuery.value,
           rowId: undefined,
+          group: undefined,
         },
       })
       expandedFormRow.value = {}
@@ -72,17 +73,21 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
-function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
+function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false, groupByKey?: string) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
     router.push({
       query: {
         ...routeQuery.value,
+        group: vGroup.value.key,
         rowId,
       },
     })
   } else {
+    if (groupByKey && groupByKey !== vGroup.value.key) {
+      return
+    }
     expandedFormRow.value = row
     expandedFormDlg.value = true
     skipRowRemovalOnCancel.value = !fromToolbar
@@ -165,13 +170,6 @@ const reloadTableData = async (params: void | { shouldShowLoading?: boolean | un
     ...(params?.offset !== undefined ? { offset: params.offset } : {}),
   })
 }
-
-onBeforeUnmount(async () => {
-  // reset hooks
-  reloadViewDataHook?.off(reloadTableData)
-})
-
-reloadViewDataHook?.on(reloadTableData)
 
 provide(IsGroupByInj, ref(true))
 
@@ -273,14 +271,8 @@ async function deleteSelectedRowsWrapper() {
 
   await deleteSelectedRows()
   // reload table data
-  await reloadTableData({ shouldShowLoading: true })
+  await reloadTableData({ shouldShowLoading: false })
 }
-
-eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
-    reloadViewDataHook?.trigger()
-  }
-})
 </script>
 
 <template>
@@ -289,6 +281,7 @@ eventBus.on((event) => {
     v-model:selected-all-records="selectedAllRecords"
     class="nc-group-table"
     :data="vGroup.rows"
+    :v-group="vGroup"
     :pagination-data="vGroup.paginationData"
     :load-data="async () => {}"
     :change-page="(p: number) => props.loadGroupPage(vGroup, p)"
@@ -320,7 +313,7 @@ eventBus.on((event) => {
     />
   </Suspense>
   <SmartsheetExpandedForm
-    v-if="expandedFormOnRowIdDlg && meta?.id"
+    v-if="expandedFormOnRowIdDlg && meta?.id && groupByKeyId === vGroup.key"
     v-model="expandedFormOnRowIdDlg"
     :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
     :meta="meta"

@@ -35,7 +35,10 @@ vModel.value.au = !!vModel.value.au */
   <div class="p-4 border-[0.1px] radius-1 rounded-lg border-grey w-full flex flex-col gap-2">
     <template v-if="props.advancedDbOptions">
       <div class="flex justify-between w-full gap-1">
-        <a-form-item label="NN">
+        <a-form-item>
+          <template #label>
+            <span title="Not Null">NN</span>
+          </template>
           <a-checkbox
             v-model:checked="vModel.rqd"
             :disabled="vModel.pk || !sqlUi.columnEditable(vModel)"
@@ -44,7 +47,10 @@ vModel.value.au = !!vModel.value.au */
           />
         </a-form-item>
 
-        <a-form-item label="PK">
+        <a-form-item>
+          <template #label>
+            <span title="Primary Key">PK</span>
+          </template>
           <a-checkbox
             v-model:checked="vModel.pk"
             :disabled="!sqlUi.columnEditable(vModel)"
@@ -53,7 +59,10 @@ vModel.value.au = !!vModel.value.au */
           />
         </a-form-item>
 
-        <a-form-item label="AI">
+        <a-form-item>
+          <template #label>
+            <span title="Auto Increment">AI</span>
+          </template>
           <a-checkbox
             v-model:checked="vModel.ai"
             :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)"
@@ -62,11 +71,17 @@ vModel.value.au = !!vModel.value.au */
           />
         </a-form-item>
 
-        <a-form-item label="UN" :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
+        <a-form-item :disabled="sqlUi.colPropUNDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
+          <template #label>
+            <span title="Unsigned">UN</span>
+          </template>
           <a-checkbox v-model:checked="vModel.un" class="nc-column-checkbox-UN" />
         </a-form-item>
 
-        <a-form-item label="AU" :disabled="sqlUi.colPropAuDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
+        <a-form-item :disabled="sqlUi.colPropAuDisabled(vModel) || !sqlUi.columnEditable(vModel)" @change="onAlter">
+          <template #label>
+            <span title="Auto Update">AU</span>
+          </template>
           <a-checkbox v-model:checked="vModel.au" class="nc-column-checkbox-AU" />
         </a-form-item>
       </div>

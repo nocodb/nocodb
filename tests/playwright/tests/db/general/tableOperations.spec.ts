@@ -33,9 +33,12 @@ test.describe('Table Operations', () => {
 
       await dashboard.treeView.openProject({ title: context.base.title, context });
 
-      await dashboard.treeView.baseSettings({ title: context.base.title });
-      await dashboard.settings.selectTab({ tab: 'dataSources' });
-      await dashboard.settings.dataSources.openAudit({ rowIndex: 0 });
+      await dashboard.baseView.tab_dataSources.click();
+      await dashboard.baseView.dataSources.openAudit({ rowIndex: 0 });
+
+      // await dashboard.treeView.baseSettings({ title: context.base.title });
+      // await dashboard.settings.selectTab({ tab: 'dataSources' });
+      // await dashboard.settings.dataSources.openAudit({ rowIndex: 0 });
 
       await audit.verifyRow({
         index: 0,

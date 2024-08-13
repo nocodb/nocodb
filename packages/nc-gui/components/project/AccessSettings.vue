@@ -12,7 +12,7 @@ const { activeProjectId, bases, basesUser } = storeToRefs(basesStore)
 
 const { orgRoles, baseRoles, loadRoles } = useRoles()
 
-const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Project')
+const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Project')
 
 const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -22,6 +22,8 @@ const { orgId } = storeToRefs(orgStore)
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
 const { $api } = useNuxtApp()
+
+const { t } = useI18n()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -54,7 +56,6 @@ const totalCollaborators = ref(0)
 const userSearchText = ref('')
 
 const isLoading = ref(false)
-const isSearching = ref(false)
 const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>([])
 
 const filteredCollaborators = computed(() =>
@@ -196,16 +197,71 @@ watch(isInviteModalVisible, () => {
 watch(currentBase, () => {
   loadCollaborators()
 })
+
+const orderBy = computed<Record<string, SordDirectionType>>({
+  get: () => {
+    return sortDirection.value
+  },
+  set: (value: Record<string, SordDirectionType>) => {
+    // Check if value is an empty object
+    if (Object.keys(value).length === 0) {
+      saveOrUpdateUserSort({})
+      return
+    }
+
+    const [field, direction] = Object.entries(value)[0]
+
+    saveOrUpdateUserSort({
+      field,
+      direction,
+    })
+  },
+})
+
+const columns = [
+  {
+    key: 'select',
+    title: '',
+    width: 70,
+    minWidth: 70,
+  },
+  {
+    key: 'email',
+    title: t('objects.users'),
+    minWidth: 220,
+    dataIndex: 'email',
+    showOrderBy: true,
+  },
+  {
+    key: 'role',
+    title: t('general.role'),
+    basis: '30%',
+    minWidth: 272,
+    dataIndex: 'roles',
+    showOrderBy: true,
+  },
+  {
+    key: 'created_at',
+    title: t('title.dateJoined'),
+    basis: '25%',
+    minWidth: 200,
+  },
+] as NcTableColumnProps[]
+
+const customRow = (record: Record<string, any>) => ({
+  class: `${selected[record.id] ? 'selected' : ''} user-row`,
+})
 </script>
 
 <template>
   <div
     :class="{
-      'px-6 ': isAdminPanel,
+      'px-6': isAdminPanel,
+      'px-1': !isAdminPanel,
     }"
-    class="nc-collaborator-table-container mt-4 nc-access-settings-view h-[calc(100vh-8rem)]"
+    class="nc-collaborator-table-container pt-6 nc-access-settings-view h-[calc(100vh-8rem)] flex flex-col gap-6"
   >
-    <div v-if="isAdminPanel" class="font-bold w-full !mb-5 text-2xl" data-rec="true">
+    <div v-if="isAdminPanel" class="font-bold w-full text-2xl" data-rec="true">
       <div class="flex items-center gap-3">
         <NuxtLink
           :href="`/admin/${orgId}/bases`"
@@ -223,132 +279,113 @@ watch(currentBase, () => {
         </span>
       </div>
     </div>
-    <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="currentBase?.id" type="base" />
-    <div v-if="isLoading" class="nc-collaborators-list items-center justify-center">
-      <GeneralLoader size="xlarge" />
-    </div>
-    <template v-else>
-      <div class="w-full flex flex-row justify-between items-center max-w-350 mt-6.5 mb-2 pr-0.25">
-        <a-input v-model:value="userSearchText" :placeholder="$t('title.searchMembers')" class="!max-w-90 !rounded-md mr-4">
-          <template #prefix>
-            <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
-          </template>
-        </a-input>
 
-        <NcButton size="small" @click="isInviteModalVisible = true">
-          <div class="flex items-center gap-1">
-            <component :is="iconMap.plus" class="w-4 h-4" />
-            {{ $t('activity.addMembers') }}
-          </div>
-        </NcButton>
-      </div>
-
-      <div v-if="isSearching" class="nc-collaborators-list items-center justify-center">
-        <GeneralLoader size="xlarge" />
-      </div>
-
-      <div
-        v-else-if="!filteredCollaborators?.length"
-        class="nc-collaborators-list w-full h-full flex flex-col items-center justify-center"
+    <div v-else class="w-full flex justify-between items-center max-w-350 gap-3">
+      <a-input
+        v-model:value="userSearchText"
+        :placeholder="$t('title.searchMembers')"
+        :disabled="isLoading"
+        allow-clear
+        class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
       >
+        <template #prefix>
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+        </template>
+      </a-input>
+
+      <NcButton :disabled="isLoading" size="small" @click="isInviteModalVisible = true">
+        <div class="flex items-center gap-1">
+          <component :is="iconMap.plus" class="w-4 h-4" />
+          {{ $t('activity.addMembers') }}
+        </div>
+      </NcButton>
+    </div>
+
+    <NcTable
+      v-model:order-by="orderBy"
+      :is-data-loading="isLoading"
+      :columns="columns"
+      :data="sortedCollaborators"
+      :bordered="false"
+      :custom-row="customRow"
+      class="flex-1 nc-collaborators-list max-w-350"
+    >
+      <template #emptyText>
         <a-empty :description="$t('title.noMembersFound')" />
-      </div>
-      <div v-else class="nc-collaborators-list mt-6 h-full">
-        <div class="flex flex-col overflow-hidden max-w-350 max-h-[calc(100%-8rem)]">
-          <div class="flex flex-row bg-gray-50 min-h-12 items-center border-b-1">
-            <div class="py-3 px-6"><NcCheckbox v-model:checked="selectAll" /></div>
+      </template>
 
-            <LazyAccountHeaderWithSorter
-              class="users-email-grid"
-              :header="$t('objects.users')"
-              :active-sort="sorts"
-              field="email"
-              :toggle-sort="toggleSort"
-            />
+      <template #headerCell="{ column }">
+        <template v-if="column.key === 'select'">
+          <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
+        </template>
+        <template v-else>
+          {{ column.title }}
+        </template>
+      </template>
 
-            <LazyAccountHeaderWithSorter
-              class="user-access-grid"
-              :header="$t('general.role')"
-              :active-sort="sorts"
-              field="roles"
-              :toggle-sort="toggleSort"
-            />
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'select'">
+          <NcCheckbox v-model:checked="selected[record.id]" />
+        </template>
 
-            <div class="text-gray-700 date-joined-grid">{{ $t('title.dateJoined') }}</div>
-          </div>
-
-          <div class="flex flex-col nc-scrollbar-md">
-            <div
-              v-for="(collab, i) of sortedCollaborators"
-              :key="i"
-              :class="{
-                'bg-[#F0F3FF]': selected[collab.id],
-              }"
-              class="user-row flex hover:bg-[#F0F3FF] flex-row border-b-1 py-1 min-h-14 items-center"
-            >
-              <div class="py-3 px-6">
-                <NcCheckbox v-model:checked="selected[collab.id]" />
-              </div>
-              <div class="flex gap-3 items-center users-email-grid">
-                <GeneralUserIcon size="base" :email="collab.email" />
-                <div class="flex flex-col">
-                  <div class="flex gap-3">
-                    <span class="text-gray-800 capitalize font-semibold">
-                      {{ collab.display_name || collab.email.slice(0, collab.email.indexOf('@')) }}
-                    </span>
-                  </div>
-                  <span class="text-xs text-gray-600">
-                    {{ collab.email }}
-                  </span>
-                </div>
-              </div>
-              <div class="user-access-grid">
-                <template v-if="accessibleRoles.includes(collab.roles)">
-                  <RolesSelector
-                    :role="collab.roles"
-                    :roles="accessibleRoles"
-                    :inherit="
-                      isEeUI && collab.workspace_roles && WorkspaceRolesToProjectRoles[collab.workspace_roles]
-                        ? WorkspaceRolesToProjectRoles[collab.workspace_roles]
-                        : null
-                    "
-                    :description="false"
-                    :on-role-change="(role) => updateCollaborator(collab, role as ProjectRoles)"
-                  />
+        <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
+          <GeneralUserIcon size="base" :email="record.email" class="flex-none" />
+          <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+            <div class="flex gap-3">
+              <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
+                <template #title>
+                  {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                 </template>
-                <template v-else>
-                  <RolesBadge :border="false" :role="collab.roles" />
-                </template>
-              </div>
-              <div class="date-joined-grid">
-                <NcTooltip class="max-w-full">
-                  <template #title>
-                    {{ parseStringDateTime(collab.created_at) }}
-                  </template>
-                  <span>
-                    {{ timeAgo(collab.created_at) }}
-                  </span>
-                </NcTooltip>
-              </div>
+                {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+              </NcTooltip>
             </div>
+            <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+              <template #title>
+                {{ record.email }}
+              </template>
+              {{ record.email }}
+            </NcTooltip>
           </div>
         </div>
-      </div>
-    </template>
+        <div v-if="column.key === 'role'">
+          <template v-if="accessibleRoles.includes(record.roles)">
+            <RolesSelector
+              :role="record.roles"
+              :roles="accessibleRoles"
+              :inherit="
+                isEeUI && record.workspace_roles && WorkspaceRolesToProjectRoles[record.workspace_roles]
+                  ? WorkspaceRolesToProjectRoles[record.workspace_roles]
+                  : null
+              "
+              show-inherit
+              :description="false"
+              :on-role-change="(role) => updateCollaborator(record, role as ProjectRoles)"
+            />
+          </template>
+          <template v-else>
+            <RolesBadge :border="false" :role="record.roles" />
+          </template>
+        </div>
+        <div v-if="column.key === 'created_at'">
+          <NcTooltip class="max-w-full">
+            <template #title>
+              {{ parseStringDateTime(record.created_at) }}
+            </template>
+            <span>
+              {{ timeAgo(record.created_at) }}
+            </span>
+          </NcTooltip>
+        </div>
+      </template>
+    </NcTable>
+
+    <LazyDlgInviteDlg v-model:model-value="isInviteModalVisible" :base-id="currentBase?.id" type="base" />
   </div>
 </template>
 
 <style scoped lang="scss">
-.ant-input::placeholder {
+:deep(.ant-input::placeholder) {
   @apply text-gray-500;
-}
-
-.ant-input:placeholder-shown {
-  @apply text-gray-500 !text-md;
-}
-
-.ant-input-affix-wrapper {
-  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
 }
 
 .color-band {
@@ -357,28 +394,5 @@ watch(currentBase, () => {
 
 :deep(.nc-collaborator-role-select .ant-select-selector) {
   @apply !rounded;
-}
-
-:deep(.ant-select-selection-item) {
-  @apply mt-0.75;
-}
-
-.users-email-grid {
-  @apply flex-grow ml-4 w-1/2;
-}
-
-.date-joined-grid {
-  @apply w-1/4 flex items-start;
-}
-
-.user-access-grid {
-  @apply w-1/4 flex justify-start;
-}
-
-.user-row {
-  @apply w-full;
-}
-.user-row:last-child {
-  @apply border-b-0;
 }
 </style>

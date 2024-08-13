@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { BaseType, TableType } from 'nocodb-sdk'
+import { type BaseType, type TableType, type ViewType, ViewTypes } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
@@ -47,9 +47,11 @@ provide(SidebarTableInj, table)
 
 const { setMenuContext, openRenameTableDialog: _openRenameTableDialog, duplicateTable: _duplicateTable } = inject(TreeViewInj)!
 
-const { loadViews: _loadViews } = useViewsStore()
+const { loadViews: _loadViews, navigateToView } = useViewsStore()
 const { activeView, activeViewTitleOrId, viewsByTable } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const { refreshCommandPalette } = useCommandPalette()
 
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
@@ -205,6 +207,53 @@ const openRenameTableDialog = (table: SidebarTableNode, sourceId: string) => {
 const deleteTable = () => {
   isOptionsOpen.value = false
   isTableDeleteDialogVisible.value = true
+}
+
+function onDuplicate() {
+  isOptionsOpen.value = false
+
+  const views = viewsByTable.value.get(table.value.id as string)
+  const defaultView = views?.find((v) => v.is_default) || views?.[0]
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
+    'modelValue': isOpen,
+    'title': defaultView!.title,
+    'type': defaultView!.type as ViewTypes,
+    'tableId': table.value!.id,
+    'selectedViewId': defaultView!.id,
+    'groupingFieldColumnId': defaultView!.view!.fk_grp_col_id,
+    'views': views,
+    'calendarRange': defaultView!.view!.calendar_range,
+    'coverImageColumnId': defaultView!.view!.fk_cover_image_col_id,
+    'onUpdate:modelValue': closeDialog,
+    'onCreated': async (view: ViewType) => {
+      closeDialog()
+
+      refreshCommandPalette()
+
+      await _loadViews({
+        force: true,
+        tableId: table.value!.id!,
+      })
+
+      navigateToView({
+        view,
+        tableId: table.value!.id!,
+        baseId: base.value.id!,
+        hardReload: view.type === ViewTypes.FORM,
+      })
+
+      $e('a:view:create', { view: view.type, sidebar: true })
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 
 // TODO: Should find a way to render the components without using the `nextTick` function
@@ -367,6 +416,16 @@ const source = computed(() => {
                     <GeneralIcon icon="duplicate" class="text-gray-700" />
                     {{ $t('general.duplicate') }} {{ $t('objects.table').toLowerCase() }}
                   </div>
+                </NcMenuItem>
+                <NcDivider />
+
+                <NcMenuItem class="!text-gray-700" @click="onDuplicate">
+                  <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
+                  {{
+                    $t('general.duplicateEntity', {
+                      entity: $t('title.defaultView').toLowerCase(),
+                    })
+                  }}
                 </NcMenuItem>
 
                 <NcDivider />

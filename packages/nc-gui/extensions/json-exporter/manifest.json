@@ -1,0 +1,12 @@
+{
+  "id": "nc-json-exporter",
+  "title": "JSON Exporter",
+  "description": "This is a sample NocoDB extension that exports data in JSON format. \nIt is used to demonstrate how to create a NocoDB extension.\n\nThis extension is disabled by default. To access it you need to first change the `disabled` property in the manifest file to `false`.",
+  "entry": "json-exporter",
+  "version": "0.1",
+  "iconUrl": "json-exporter/icon.png",
+  "publisherName": "NocoDB",
+  "publisherEmail": "contact@nocodb.com",
+  "publisherUrl": "https://www.nocodb.com",
+  "disabled": true
+}

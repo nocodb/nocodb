@@ -10,6 +10,7 @@ import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/web
 import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export.processor';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobStatus, JobTypes } from '~/interface/Jobs';
+import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 
 export interface Job {
   id: string;
@@ -35,6 +36,7 @@ export class QueueService {
     protected readonly sourceDeleteProcessor: SourceDeleteProcessor,
     protected readonly webhookHandlerProcessor: WebhookHandlerProcessor,
     protected readonly dataExportProcessor: DataExportProcessor,
+    protected readonly thumbnailGeneratorProcessor: ThumbnailGeneratorProcessor,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((job) => job.id === data.job.id);
@@ -99,6 +101,10 @@ export class QueueService {
     [JobTypes.DataExport]: {
       this: this.dataExportProcessor,
       fn: this.dataExportProcessor.job,
+    },
+    [JobTypes.ThumbnailGenerator]: {
+      this: this.thumbnailGeneratorProcessor,
+      fn: this.thumbnailGeneratorProcessor.job,
     },
   };
 

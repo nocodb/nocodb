@@ -51,7 +51,7 @@ export default {
         v-bind="$attrs"
         :style="{ zIndex }"
         :class="[inline ? 'absolute' : 'fixed']"
-        class="top-0 left-0 bottom-0 right-0"
+        class="inset-0 nc-general-overlay"
       >
         <slot :is-open="vModel" />
       </div>
@@ -62,7 +62,7 @@ export default {
 <style scoped>
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.3s;
+  transition: opacity 0.8s;
 }
 
 .fade-enter,

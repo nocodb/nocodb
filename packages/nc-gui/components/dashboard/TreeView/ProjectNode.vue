@@ -29,7 +29,7 @@ const { isMobileMode } = useGlobal()
 
 const { api } = useApi()
 
-const { auditLogsQuery, auditCurrentPage } = storeToRefs(useWorkspace())
+const { auditLogsQuery, auditPaginationData } = storeToRefs(useWorkspace())
 
 const { createProject: _createProject, updateProject, getProjectMetaInfo, loadProject } = basesStore
 
@@ -454,7 +454,7 @@ const getSource = (sourceId: string) => {
 async function openAudit(source: SourceType) {
   $e('c:project:audit')
 
-  auditCurrentPage.value = 1
+  auditPaginationData.value.page = 1
 
   auditLogsQuery.value = {
     ...auditLogsQuery.value,
@@ -739,7 +739,7 @@ async function openAudit(source: SourceType) {
                     v-e="['c:source:toggle-expand']"
                     class="!mx-0 !px-0 nc-sidebar-source-node"
                     :class="[{ hidden: searchActive && !!filterQuery }]"
-                    expand-icon-position="left"
+                    expand-icon-position="right"
                     :bordered="false"
                     ghost
                   >
@@ -771,7 +771,7 @@ async function openAudit(source: SourceType) {
                           </div>
                           <div
                             v-else
-                            class="source-context flex flex-grow items-center gap-1.75 text-gray-800 min-w-1/20 max-w-full"
+                            class="source-context flex flex-grow items-center gap-1 text-gray-800 min-w-1/20 max-w-full"
                             @contextmenu="setMenuContext('source', source)"
                           >
                             <NcTooltip
@@ -785,10 +785,12 @@ async function openAudit(source: SourceType) {
                               <template #title>
                                 <component :is="getSourceTooltip(source)" />
                               </template>
-                              <GeneralBaseLogo
-                                :color="getSourceIconColor(source)"
-                                class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)"
-                              />
+                              <div class="flex-none w-6 flex items-center justify-center">
+                                <GeneralBaseLogo
+                                  :color="getSourceIconColor(source)"
+                                  class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)"
+                                />
+                              </div>
                             </NcTooltip>
                             <input
                               v-if="source.id && sourceRenameHelpers[source.id]?.editMode"
@@ -991,7 +993,7 @@ async function openAudit(source: SourceType) {
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-8.75 h-7 !xs:(pl-7 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
+  @apply !mx-0 !pl-7.5 h-7 !xs:(pl-6 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
 
   .ant-collapse-arrow {
     @apply !right-1 !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);

@@ -1,35 +1,36 @@
 import isURL from 'validator/lib/isURL'
+import { decode } from 'html-entities'
+
 export const replaceUrlsWithLink = (text: string): boolean | string => {
   if (!text) {
     return false
   }
   const rawText = text.toString()
 
-  // Create a temporary element to sanitize the string by encoding any HTML code
-  const tempEl = document.createElement('div')
-  tempEl.textContent = rawText
-  const sanitisedText = tempEl.innerHTML
-
   const protocolRegex = /^(https?|ftp|mailto|file):\/\//
+  let isUrl
 
-  const out = sanitisedText.replace(/URI::\(([^)]*)\)(?: LABEL::\(([^)]*)\))?/g, (_, url, label) => {
+  const out = rawText.replace(/URI::\(([^)]*)\)(?: LABEL::\(([^)]*)\))?/g, (_, url, label) => {
     if (!url.trim() && !label) {
       return ' '
     }
 
     const fullUrl = protocolRegex.test(url) ? url : url.trim() ? `http://${url}` : ''
+
+    isUrl = isURL(fullUrl)
+
     const anchorLabel = label || url || ''
 
     const a = document.createElement('a')
     a.textContent = anchorLabel
-    a.setAttribute('href', fullUrl)
+    a.setAttribute('href', decode(fullUrl))
     a.setAttribute('class', ' nc-cell-field-link')
     a.setAttribute('target', '_blank')
     a.setAttribute('rel', 'noopener,noreferrer')
     return a.outerHTML
   })
 
-  return out
+  return isUrl ? out : false
 }
 
 export const isValidURL = (str: string, extraProps?) => {

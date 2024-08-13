@@ -5,6 +5,7 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   extractRolesObj,
+  IntegrationsType,
   OrgUserRoles,
   SqlUiFactory,
 } from 'nocodb-sdk';
@@ -20,7 +21,7 @@ import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { extractPropsAndSanitize } from '~/helpers/extractProps';
 import syncMigration from '~/helpers/syncMigration';
-import { Base, BaseUser } from '~/models';
+import { Base, BaseUser, Integration } from '~/models';
 import Noco from '~/Noco';
 import { getToolDir } from '~/utils/nc-config';
 import { MetaService } from '~/meta/meta.service';
@@ -51,8 +52,12 @@ export class BasesService {
     return bases;
   }
 
-  async getProjectWithInfo(context: NcContext, param: { baseId: string }) {
-    const base = await Base.getWithInfo(context, param.baseId);
+  async getProjectWithInfo(
+    context: NcContext,
+    param: { baseId: string; includeConfig?: boolean },
+  ) {
+    const { includeConfig = true } = param;
+    const base = await Base.getWithInfo(context, param.baseId, includeConfig);
     return base;
   }
 
@@ -206,6 +211,25 @@ export class BasesService {
       if (process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED) {
         NcError.badRequest('Connecting to external db is disabled');
       }
+
+      for (const source of baseBody.sources || []) {
+        if (!source.fk_integration_id) {
+          const integration = await Integration.createIntegration({
+            title: source.alias || baseBody.title,
+            type: IntegrationsType.Database,
+            sub_type: source.config?.client,
+            is_private: !!param.req.user?.id,
+            config: source.config,
+            workspaceId: param.req?.ncWorkspaceId,
+            created_by: param.req.user?.id,
+          });
+
+          source.fk_integration_id = integration.id;
+          source.config = {
+            client: baseBody.config?.client,
+          };
+        }
+      }
       baseBody.is_meta = false;
     }
 
@@ -242,7 +266,7 @@ export class BasesService {
           req: param.req,
         });
 
-        delete source.config;
+        source.config = undefined;
       }
     }
 

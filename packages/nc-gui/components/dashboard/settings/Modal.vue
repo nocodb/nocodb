@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import Misc from './Misc.vue'
-import DataSources from '~/components/dashboard/settings/DataSources.vue'
+// import DataSources from '~/components/dashboard/settings/DataSources.vue'
 
 interface Props {
   modelValue?: boolean
@@ -110,21 +110,21 @@ const tabsInfo: TabGroup = {
     },
   },
 
-  dataSources: {
-    // Data Sources
-    title: 'Data Sources',
-    icon: iconMap.database,
-    subTabs: {
-      dataSources: {
-        title: 'Data Sources',
-        body: DataSources,
-      },
-    },
-    onClick: () => {
-      vDataState.value = ''
-      $e('c:settings:data-sources')
-    },
-  },
+  // dataSources: {
+  //   // Data Sources
+  //   title: 'Data Sources',
+  //   icon: iconMap.database,
+  //   subTabs: {
+  //     dataSources: {
+  //       title: 'Data Sources',
+  //       body: DataSources,
+  //     },
+  //   },
+  //   onClick: () => {
+  //     vDataState.value = ''
+  //     $e('c:settings:data-sources')
+  //   },
+  // },
 }
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
@@ -160,94 +160,110 @@ watch(
     wrap-class-name="nc-modal-settings"
     @cancel="emits('update:modelValue', false)"
   >
-    <!--    Settings -->
-    <div class="flex flex-row justify-between w-full items-center mb-1">
-      <a-typography-title class="ml-4 select-none" type="secondary" :level="5">
-        {{ $t('activity.settings') }}
-      </a-typography-title>
+    <div class="nc-modal-settings-content">
+      <!--    Settings -->
+      <div class="flex flex-row justify-between w-full items-center p-4 border-b-1 border-gray-200">
+        <h5 class="!my-0 text-2xl font-bold">{{ $t('objects.project') }} {{ $t('activity.settings') }}</h5>
 
-      <a-button
-        type="text"
-        class="!rounded-md border-none !px-1.5"
-        data-testid="settings-modal-close-button"
-        @click="vModel = false"
-      >
-        <component :is="iconMap.close" class="cursor-pointer nc-modal-close w-4" />
-      </a-button>
-    </div>
+        <NcButton type="text" size="small" data-testid="settings-modal-close-button" @click="vModel = false">
+          <component :is="iconMap.close" class="cursor-pointer nc-modal-close w-4" />
+        </NcButton>
+      </div>
 
-    <a-layout class="mt-3 overflow-y-auto flex">
-      <!-- Side tabs -->
-      <a-layout-sider>
-        <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
-          <template v-for="(tab, key) of tabsInfo" :key="key">
-            <a-menu-item
-              v-if="key !== 'dataSources' || isUIAllowed('sourceCreate')"
-              :key="key"
-              class="active:(!ring-0) hover:(!bg-primary !bg-opacity-25)"
-            >
-              <div class="flex items-center space-x-2" @click="tab.onClick">
-                <component :is="tab.icon" />
+      <a-layout class="overflow-y-auto flex !h-[calc(100%_-_66px)]">
+        <!-- Side tabs -->
+        <a-layout-sider class="!bg-white">
+          <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
+            <template v-for="(tab, key) of tabsInfo" :key="key">
+              <a-menu-item
+                v-if="key !== 'dataSources' || isUIAllowed('sourceCreate')"
+                :key="key"
+                class="active:(!ring-0) hover:(!bg-[#F0F3FF])"
+              >
+                <div class="flex items-center space-x-3 min-h-10" @click="tab.onClick">
+                  <component :is="tab.icon" class="flex-none" />
 
-                <div class="select-none">
-                  {{ tab.title }}
+                  <div class="select-none text-sm">
+                    {{ tab.title }}
+                  </div>
                 </div>
-              </div>
-            </a-menu-item>
-          </template>
-        </a-menu>
-      </a-layout-sider>
+              </a-menu-item>
+            </template>
+          </a-menu>
+        </a-layout-sider>
 
-      <!-- Sub Tabs -->
-      <a-layout-content class="h-auto h-80vh px-4 scrollbar-thumb-gray-500">
-        <a-menu
-          v-if="selectedTabKeys[0] !== 'dataSources'"
-          v-model:selectedKeys="selectedSubTabKeys"
-          :open-keys="[]"
-          mode="horizontal"
-        >
-          <a-menu-item
-            v-for="(tab, key) of selectedTab.subTabs"
-            :key="key"
-            class="active:(!ring-0) select-none"
-            @click="tab.onClick"
+        <!-- Sub Tabs -->
+        <a-layout-content class="h-full scrollbar-thumb-gray-500">
+          <a-menu
+            v-if="selectedTabKeys[0] !== 'dataSources'"
+            v-model:selectedKeys="selectedSubTabKeys"
+            :open-keys="[]"
+            mode="horizontal"
+            class="px-4"
           >
-            {{ tab.title }}
-          </a-menu-item>
-        </a-menu>
+            <a-menu-item
+              v-for="(tab, key) of selectedTab.subTabs"
+              :key="key"
+              class="active:(!ring-0) select-none"
+              @click="tab.onClick"
+            >
+              {{ tab.title }}
+            </a-menu-item>
+          </a-menu>
 
-        <div
-          class="overflow-auto"
-          :class="{
-            'h-full': selectedSubTabKeys[0] === 'dataSources',
-          }"
-        >
-          <component
-            :is="selectedSubTab?.body"
-            v-if="selectedSubTabKeys[0] === 'dataSources'"
-            v-model:state="vDataState"
-            v-model:reload="dataSourcesReload"
-            class="px-2 pb-2 h-full"
-            :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
-            :base-id="baseId"
-          />
-          <component
-            :is="selectedSubTab?.body"
-            v-else
-            class="px-2 py-6"
-            :base-id="baseId"
-            :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
-          />
-        </div>
-      </a-layout-content>
-    </a-layout>
+          <div
+            class="overflow-auto"
+            :class="{
+              'h-full': selectedSubTabKeys[0] === 'dataSources',
+              'px-4': selectedTabKeys[0] !== 'dataSources',
+            }"
+          >
+            <component
+              :is="selectedSubTab?.body"
+              v-if="selectedSubTabKeys[0] === 'dataSources'"
+              v-model:state="vDataState"
+              v-model:reload="dataSourcesReload"
+              class="h-full"
+              :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
+              :base-id="baseId"
+            />
+            <component
+              :is="selectedSubTab?.body"
+              v-else
+              class="px-2 py-6"
+              :base-id="baseId"
+              :data-testid="`nc-settings-subtab-${selectedSubTab.key}`"
+            />
+          </div>
+        </a-layout-content>
+      </a-layout>
+    </div>
   </a-modal>
 </template>
 
 <style lang="scss" scoped>
 .tabs-menu {
-  :deep(.ant-menu-item-selected) {
-    @apply border-r-3 border-primary bg-primary !bg-opacity-25;
+  @apply !p-3;
+
+  :deep(.ant-menu-item) {
+    @apply rounded-lg first:!mt-0 !mb-1 font-weight-500;
+
+    &.ant-menu-item-selected {
+      @apply bg-[#F0F3FF] font-weight-600;
+    }
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-modal-settings {
+  .ant-modal-content {
+    @apply !p-0 overflow-hidden;
+  }
+
+  .nc-modal-settings-content {
+    height: min(calc(100vh - 100px), 1124px);
+    max-height: min(calc(100vh - 100px), 1124px) !important;
   }
 }
 </style>

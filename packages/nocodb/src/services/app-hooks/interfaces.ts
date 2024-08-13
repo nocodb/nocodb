@@ -6,6 +6,7 @@ import type {
   CommentType,
   FilterType,
   HookType,
+  IntegrationType,
   PluginTestReqType,
   PluginType,
   ProjectUserReqType,
@@ -224,3 +225,9 @@ export type AppEventPayload =
   | SortEvent
   | RowCommentEvent
   | ColumnEvent;
+
+export interface IntegrationEvent extends NcBaseEvent {
+  integration: IntegrationType;
+  user: UserType;
+  ip?: string;
+}

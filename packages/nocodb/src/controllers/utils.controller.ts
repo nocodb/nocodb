@@ -9,6 +9,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ProjectRoles, validateAndExtractSSLProp } from 'nocodb-sdk';
+import {
+  getTestDatabaseName,
+  IntegrationsType,
+  OrgUserRoles,
+} from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { UtilsService } from '~/services/utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -16,6 +22,11 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { TelemetryService } from '~/services/telemetry.service';
 import { NcRequest } from '~/interface/config';
+import { Integration } from '~/models';
+import { MetaTable, RootScopes } from '~/utils/globals';
+import { NcError } from '~/helpers/catchError';
+import { deepMerge } from '~/utils';
+import Noco from '~/Noco';
 
 @Controller()
 export class UtilsController {
@@ -49,13 +60,69 @@ export class UtilsController {
     scope: 'org',
   })
   @HttpCode(200)
-  async testConnection(@Body() body: any, @Req() _req: NcRequest) {
+  async testConnection(@Body() body: any, @Req() req: NcRequest) {
     body.pool = {
       min: 0,
       max: 1,
     };
 
-    return await this.utilsService.testConnection({ body });
+    let config = { ...body };
+
+    if (body.fk_integration_id) {
+      const integration = await Integration.get(
+        {
+          workspace_id: RootScopes.BYPASS,
+        },
+        body.fk_integration_id,
+      );
+
+      if (!integration || integration.type !== IntegrationsType.Database) {
+        NcError.integrationNotFound(body.fk_integration_id);
+      }
+
+      if (integration.is_private && integration.created_by !== req.user.id) {
+        NcError.forbidden('You do not have access to this integration');
+      }
+
+      if (!req.user.roles[OrgUserRoles.CREATOR]) {
+        // check if user have owner/creator role in any of the base in the workspace
+        const baseWithPermission = await Noco.ncMeta
+          .knex(MetaTable.PROJECT_USERS)
+          .innerJoin(
+            MetaTable.PROJECT,
+            `${MetaTable.PROJECT}.id`,
+            `${MetaTable.PROJECT_USERS}.base_id`,
+          )
+          .where(`${MetaTable.PROJECT_USERS}.fk_user_id`, req.user.id)
+          .where((qb) => {
+            qb.where(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              ProjectRoles.OWNER,
+            ).orWhere(`${MetaTable.PROJECT_USERS}.roles`, ProjectRoles.CREATOR);
+          })
+          .first();
+
+        if (!baseWithPermission)
+          NcError.forbidden('You do not have access to this integration');
+      }
+
+      config = await integration.getConfig();
+      deepMerge(config, body);
+
+      if (config?.connection?.database) {
+        config.connection.database = getTestDatabaseName(config);
+      }
+    }
+
+    if (config.connection?.ssl) {
+      config.connection.ssl = validateAndExtractSSLProp(
+        config.connection,
+        config.sslUse,
+        config.client,
+      );
+    }
+
+    return await this.utilsService.testConnection({ body: config });
   }
 
   @UseGuards(PublicApiLimiterGuard)

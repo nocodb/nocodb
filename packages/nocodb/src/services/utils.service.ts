@@ -12,6 +12,7 @@ import { NcError } from '~/helpers/catchError';
 import { Base, Store, User } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import getInstance from '~/utils/getInstance';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
 import { packageVersion } from '~/utils/packageVersion';
@@ -394,6 +395,7 @@ export class UtilsService {
 
   async appInfo(param: { req: { ncSiteUrl: string } }) {
     const baseHasAdmin = !(await User.isFirst());
+    const instance = await getInstance();
 
     let settings: { invite_only_signup?: boolean } = {};
     try {
@@ -406,6 +408,14 @@ export class UtilsService {
     const oidcProviderName = oidcAuthEnabled
       ? process.env.NC_OIDC_PROVIDER_NAME ?? 'OpenID Connect'
       : null;
+
+    let giftUrl: string;
+
+    if (instance.impacted >= 5) {
+      giftUrl = `https://w21dqb1x.nocodb.com/#/nc/form/4d2e0e4b-df97-4c5e-ad8e-f8b8cca90330?Users=${
+        instance.impacted
+      }&Bases=${instance.projectsExt + instance.projectsMeta}`;
+    }
 
     const samlAuthEnabled = process.env.NC_SSO?.toLowerCase() === 'saml';
     const samlProviderName = samlAuthEnabled
@@ -437,6 +447,7 @@ export class UtilsService {
       timezone: defaultConnectionConfig.timezone,
       ncMin: !!process.env.NC_MIN,
       teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
+      errorReportingEnabled: process.env.NC_DISABLE_ERR_REPORTS !== 'true',
       auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
       ncSiteUrl: (param.req as any).ncSiteUrl,
       ee: Noco.isEE(),
@@ -453,6 +464,7 @@ export class UtilsService {
       inviteOnlySignup: settings.invite_only_signup,
       samlProviderName,
       samlAuthEnabled,
+      giftUrl,
     };
 
     return result;

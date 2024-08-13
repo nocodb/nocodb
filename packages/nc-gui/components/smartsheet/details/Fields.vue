@@ -911,11 +911,11 @@ watch(
 )
 
 onMounted(async () => {
+  await until(() => !!(meta.value?.id && meta.value?.columns)).toBeTruthy()
+
   if (meta.value && meta.value.id) {
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value.id)).hash
   }
-
-  await until(() => meta.value?.columns)
 
   metaToLocal()
 })

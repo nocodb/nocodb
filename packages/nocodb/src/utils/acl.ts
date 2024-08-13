@@ -53,6 +53,13 @@ const permissionScopes = {
     'uploadViaURL',
 
     'notification',
+
+    // Integration
+    'integrationGet',
+    'integrationCreate',
+    'integrationDelete',
+    'integrationUpdate',
+    'integrationList',
   ],
   base: [
     'formViewGet',
@@ -131,6 +138,7 @@ const permissionScopes = {
     'nestedDataUnlink',
     'nestedListCopyPasteOrDeleteAll',
     'baseUserList',
+    'sourceCreate',
 
     // Base API Tokens
     'baseApiTokenList',
@@ -146,6 +154,8 @@ const permissionScopes = {
 
     // Jobs
     'jobList',
+
+    'org_integrationList',
   ],
 };
 
@@ -305,6 +315,11 @@ const rolePermissions:
       uploadViaURL: true,
       baseCreate: true,
       duplicateSharedBase: true,
+      integrationGet: true,
+      integrationCreate: true,
+      integrationDelete: true,
+      integrationUpdate: true,
+      integrationList: true,
     },
   },
 };

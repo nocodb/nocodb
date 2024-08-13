@@ -12,11 +12,11 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import { useColumnDrag } from './useColumnDrag'
-import usePaginationShortcuts from './usePaginationShortcuts'
-import { type CellRange, NavigateDir } from '#imports'
+import { type CellRange, type Group, NavigateDir } from '#imports'
 
 const props = defineProps<{
   data: Row[]
+  vGroup?: Group
   paginationData?: PaginatedType
   loadData?: (params?: any, shouldShowLoading?: boolean) => Promise<void>
   changePage?: (page: number) => void
@@ -31,7 +31,7 @@ const props = defineProps<{
   selectedAllRecords?: boolean
   deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
   rowHeight?: number
-  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
+  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean, groupKey?: string) => void
   deleteSelectedRows?: () => Promise<void>
   removeRowIfNew?: (row: Row) => void
   bulkUpdateRows?: (
@@ -76,6 +76,7 @@ const disableVirtualY = toRef(props, 'disableVirtualY')
 const { api } = useApi()
 
 const {
+  vGroup,
   loadData,
   changePage,
   callAddEmptyRow,
@@ -129,6 +130,7 @@ const {
   isViewColumnsLoading: _isViewColumnsLoading,
   updateGridViewColumn,
   gridViewCols,
+  metaColumnById,
   resizingColOldWith,
 } = useViewColumnsOrThrow()
 
@@ -181,6 +183,7 @@ const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, to
 const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
   paginationDataRef,
   changePage: changePage as any,
+  isViewDataLoading,
 })
 
 // #Variables
@@ -480,14 +483,15 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
   }
 }
 
-async function openNewRecordHandler() {
+async function openNewRecordHandler(groupKey?: string) {
+  if (groupKey && groupKey !== vGroup?.key) return
   // skip update row when it is `New record form`
   const newRow = addEmptyRow(dataRef.value.length, true)
-  if (newRow) expandForm?.(newRow, undefined, true)
+  if (newRow) expandForm?.(newRow, undefined, true, groupKey)
 }
 
 const onDraftRecordClick = () => {
-  openNewRecordFormHook.trigger()
+  openNewRecordFormHook.trigger(vGroup?.key)
 }
 
 const onNewRecordToGridClick = () => {
@@ -1102,12 +1106,33 @@ const saveOrUpdateRecords = async (
 // #Grid Resize
 const onresize = (colID: string | undefined, event: any) => {
   if (!colID) return
-  updateGridViewColumn(colID, { width: event.detail })
+
+  // Set 80px minimum width for attachment cells
+  if (metaColumnById.value[colID].uidt === UITypes.Attachment) {
+    const size = event.detail.split('px')[0]
+    if (+size < 80) {
+      updateGridViewColumn(colID, { width: '80px' })
+    } else {
+      updateGridViewColumn(colID, { width: event.detail })
+    }
+  } else {
+    updateGridViewColumn(colID, { width: event.detail })
+  }
 }
 
 const onXcResizing = (cn: string | undefined, event: any) => {
   if (!cn) return
-  gridViewCols.value[cn].width = `${event.detail}`
+  // Set 80px minimum width for attachment cells
+  if (metaColumnById.value[cn].uidt === UITypes.Attachment) {
+    const size = event.detail.split('px')[0]
+    if (+size < 80) {
+      gridViewCols.value[cn].width = '80px'
+    } else {
+      gridViewCols.value[cn].width = `${event.detail}`
+    }
+  } else {
+    gridViewCols.value[cn].width = `${event.detail}`
+  }
 }
 
 const onXcStartResizing = (cn: string | undefined, event: any) => {
@@ -1136,7 +1161,7 @@ const maxGridWidth = computed(() => {
 
 const maxGridHeight = computed(() => {
   // 2 extra rows for the add new row and the sticky header
-  return dataRef.value.length * rowHeightInPx[`${props.rowHeight}`]
+  return dataRef.value.length * (isMobileMode.value ? 56 : rowHeightInPx[`${props.rowHeight}`])
 })
 
 const colSlice = ref({
@@ -2380,7 +2405,7 @@ onKeyStroke('ArrowDown', onDown)
               class="nc-grid-add-new-row"
               type="secondary"
               :disabled="isPaginationLoading"
-              @click="onNewRecordToFormClick()"
+              @click.stop="onNewRecordToFormClick()"
             >
               {{ $t('activity.newRecord') }}
             </NcButton>
@@ -2390,7 +2415,7 @@ onKeyStroke('ArrowDown', onDown)
               class="nc-grid-add-new-row"
               placement="top"
               :disabled="isPaginationLoading"
-              @click="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
+              @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
             >
               <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
                 <span>
@@ -2470,7 +2495,7 @@ onKeyStroke('ArrowDown', onDown)
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             :disabled="isPaginationLoading"
-            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            class="nc-grid-add-new-row"
             size="small"
             type="secondary"
             @click.stop="onNewRecordToFormClick()"
@@ -2481,6 +2506,7 @@ onKeyStroke('ArrowDown', onDown)
             </div>
           </NcButton>
           <NcButton
+            v-else
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
             :disabled="isPaginationLoading"
             class="!rounded-r-none !border-r-0 nc-grid-add-new-row"

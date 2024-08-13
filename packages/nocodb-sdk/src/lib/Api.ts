@@ -256,8 +256,12 @@ export interface AuditRowUpdateReqType {
  * Model for Source
  */
 export interface SourceType {
-  /** Source Name - Default BASE will be null by default */
+  /** Source Name */
   alias?: StringOrNullType;
+  /** Integration Name */
+  integration_title?: StringOrNullType;
+  /** Integration Id */
+  fk_integration_id?: StringOrNullType;
   /** Source Configuration */
   config?: any;
   /** Is this source enabled */
@@ -302,6 +306,43 @@ export interface SourceType {
     | 'snowflake'
     | 'sqlite3'
     | 'databricks';
+}
+
+/**
+ * Model for Integration
+ */
+export interface IntegrationType {
+  /** Source Name - Default BASE will be null by default */
+  title?: StringOrNullType;
+  /** Source Configuration */
+  config?: any;
+  /** Is this Intgration enabled */
+  enabled?: BoolType;
+  /** Unique Integration ID */
+  id?: string;
+  /** Unique Workspace ID */
+  fk_workspace_id?: string;
+  /**
+   * The order of the list of sources
+   * @example 1
+   */
+  order?: number;
+  /** The base ID that this source belongs to */
+  base_id?: string;
+  /** Model for Bool */
+  is_private?: BoolType;
+  /** Integration Type */
+  type?: IntegrationsType;
+  /**
+   * DB Type
+   * @example mysql2
+   */
+  sub_type?: string;
+  /**
+   * DB Type
+   * @example mysql2
+   */
+  created_by?: string;
 }
 
 /**
@@ -353,6 +394,35 @@ export interface BaseReqType {
     | 'snowflake'
     | 'sqlite3'
     | 'databricks';
+  fk_integration_id?: string;
+}
+
+/**
+ * Integration Type
+ */
+export enum IntegrationsType {
+  Database = 'database',
+}
+
+/**
+ * Model for Integration Request
+ */
+export interface IntegrationReqType {
+  /**
+   * Integration Name - Default BASE will be null by default
+   * @example Integration
+   */
+  title: string;
+  /** Source Configuration */
+  config: any;
+  /** Integration metas */
+  meta?: any;
+  /** Integration Type */
+  type: IntegrationsType;
+  /** Sub Type */
+  sub_type?: string;
+  /** ID of integration to be copied from. Used in Copy Integration. */
+  copy_from_id?: StringOrNullType;
 }
 
 /**
@@ -9293,6 +9363,84 @@ export class Api<
       }),
 
     /**
+ * @description Read bulk data from a given table with provided filters
+ * 
+ * @tags Public
+ * @name DataTableBulkDataList
+ * @summary Read Shared View Bulk Data List
+ * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/dataList
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataTableBulkDataList: (
+      sharedViewUuid: string,
+      data: object[],
+      query?: {
+        /** Extra filtering */
+        where?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/bulk/dataList`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Read bulk group data from a given table with provided filters
+ * 
+ * @tags Public
+ * @name DataTableBulkGroup
+ * @summary Read Shared View Bulk Group Data
+ * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/group
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataTableBulkGroup: (
+      sharedViewUuid: string,
+      data: object[],
+      query?: {
+        /** Extra filtering */
+        where?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/bulk/group`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Read aggregated data from a given table
  * 
  * @tags Public
@@ -9326,6 +9474,55 @@ export class Api<
         }
       >({
         path: `/api/v2/public/shared-view/${sharedViewUuid}/aggregate`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Download attachment from a shared view
+ * 
+ * @tags Public
+ * @name DataAttachmentDownload
+ * @summary Get Shared View Attachment
+ * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/downloadAttachment/{columnId}/{rowId}
+ * @response `200` `{
+  \** URL to download the attachment *\
+  url?: string,
+  \** Path to download the attachment *\
+  path?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataAttachmentDownload: (
+      sharedViewUuid: string,
+      columnId: IdType,
+      rowId: any,
+      query?: {
+        /** URL or Path of the attachment */
+        urlOrPath?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** URL to download the attachment */
+          url?: string;
+          /** Path to download the attachment */
+          path?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/downloadAttachment/${columnId}/${rowId}`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -9814,6 +10011,88 @@ export class Api<
       this.request<any, any>({
         path: `/api/v1/db/public/shared-erd/${sharedErdUuid}/meta`,
         method: 'GET',
+        ...params,
+      }),
+  };
+  dbDataTableBulkList = {
+    /**
+ * @description Read bulk data from a given table with given filters
+ * 
+ * @tags DB Data Table Bulk List
+ * @name DbDataTableBulkList
+ * @summary Read Bulk Data
+ * @request POST:/api/v2/tables/{tableId}/bulk/dataList
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dbDataTableBulkList: (
+      tableId: string,
+      query: {
+        /** View ID is required */
+        viewId: string;
+        /** Extra filtering */
+        where?: string;
+      },
+      data: object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/bulk/dataList`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  dbDataTableBulkGroupList = {
+    /**
+ * @description Read bulk group data from a given table with given filters
+ * 
+ * @tags DB Data Table Bulk Group List
+ * @name DbDataTableBulkGroupList
+ * @summary Read Bulk Group Data
+ * @request POST:/api/v2/tables/{tableId}/bulk/group
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dbDataTableBulkGroupList: (
+      tableId: string,
+      query: {
+        /** View ID is required */
+        viewId: string;
+      },
+      data: object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/bulk/group`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };
@@ -10326,6 +10605,7 @@ export class Api<
   defaultLimit?: number,
   ncMin?: boolean,
   teleEnabled?: boolean,
+  errorReportingEnabled?: boolean,
   auditEnabled?: boolean,
   ncSiteUrl?: string,
   ee?: boolean,
@@ -10357,6 +10637,7 @@ export class Api<
           defaultLimit?: number;
           ncMin?: boolean;
           teleEnabled?: boolean;
+          errorReportingEnabled?: boolean;
           auditEnabled?: boolean;
           ncSiteUrl?: string;
           ee?: boolean;
@@ -11827,6 +12108,47 @@ export class Api<
       }),
 
     /**
+ * @description Download attachment from a given row
+ * 
+ * @tags DB Data Table Row
+ * @name AttachmentDownload
+ * @summary Download Attachment
+ * @request GET:/api/v2/downloadAttachment/{modelId}/{columnId}/{rowId}
+ * @response `200` `{
+  \** URL to download attachment *\
+  url?: string,
+  \** Path to download attachment *\
+  path?: string,
+
+}` OK
+ */
+    attachmentDownload: (
+      modelId: string,
+      columnId: string,
+      rowId: string,
+      query?: {
+        /** URL or Path of the attachment */
+        urlOrPath?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** URL to download attachment */
+          url?: string;
+          /** Path to download attachment */
+          path?: string;
+        },
+        any
+      >({
+        path: `/api/v2/downloadAttachment/${modelId}/${columnId}/${rowId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Copy links from the one cell and paste them into another cell or delete all records from cell
  * 
  * @tags DB Data Table Row
@@ -12026,6 +12348,118 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+  };
+  integration = {
+    /**
+     * @description List integrations
+     *
+     * @tags Integration
+     * @name List
+     * @summary List integrations
+     * @request GET:/api/v2/meta/integrations
+     * @response `200` `any` OK
+     */
+    list: (
+      query?: {
+        /** Integration Type */
+        type?: IntegrationsType;
+        includeDatabaseInfo?: boolean;
+        limit?: number;
+        offset?: number;
+        baseId?: string;
+        query?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v2/meta/integrations`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create integration
+     *
+     * @tags Integration
+     * @name Create
+     * @summary Create integration
+     * @request POST:/api/v2/meta/integrations
+     * @response `200` `IntegrationType` OK
+     */
+    create: (data: IntegrationReqType, params: RequestParams = {}) =>
+      this.request<IntegrationType, any>({
+        path: `/api/v2/meta/integrations`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Read integration
+     *
+     * @tags Integration
+     * @name Read
+     * @summary Read integration
+     * @request GET:/api/v2/meta/integrations/{integrationId}
+     * @response `200` `IntegrationType` OK
+     */
+    read: (
+      integrationId: string,
+      query?: {
+        includeConfig?: boolean;
+        includeSources?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<IntegrationType, any>({
+        path: `/api/v2/meta/integrations/${integrationId}`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update integration
+     *
+     * @tags Integration
+     * @name Update
+     * @summary Update integration
+     * @request PATCH:/api/v2/meta/integrations/{integrationId}
+     * @response `200` `void` OK
+     */
+    update: (
+      integrationId: string,
+      data: IntegrationReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v2/meta/integrations/${integrationId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete integration
+     *
+     * @tags Integration
+     * @name Delete
+     * @summary Delete integration
+     * @request DELETE:/api/v2/meta/integrations/{integrationId}
+     * @response `200` `void` OK
+     */
+    delete: (integrationId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v2/meta/integrations/${integrationId}`,
+        method: 'DELETE',
         ...params,
       }),
   };

@@ -40,6 +40,7 @@ import Phishing from '~icons/material-symbols/phishing-outline-rounded'
 import MdiAccountGroup from '~icons/mdi/account-group'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
 import MdiDotsHorizontal from '~icons/mdi/dots-horizontal'
+import MdiPdf from '~icons/mdi/file-pdf'
 import PhExcelThin from '~icons/ph/microsoft-excel-logo-light'
 import VscodeIconsExcelColored from '~icons/vscode-icons/file-type-excel'
 import PhCsvThin from '~icons/ph/file-csv'
@@ -109,6 +110,7 @@ import NcIconsRowHeightMedium from '~icons/nc-icons/row-height-medium'
 import NcIconsRowHeightShort from '~icons/nc-icons/row-height-short'
 import NcIconsRowHeightTall from '~icons/nc-icons/row-height-tall'
 import NcIconsRowHeightExtraTall from '~icons/nc-icons/row-height-extra-tall'
+import NcIconsGift from '~icons/nc-icons/gift'
 import NcArticle from '~icons/nc-icons/article'
 import NcCommentHere from '~icons/nc-icons/comment-here'
 import NcAddDataSource from '~icons/nc-icons/add-data-source'
@@ -204,6 +206,81 @@ import NcMaximize from '~icons/nc-icons/maximize'
 import NcMaximizeAll from '~icons/nc-icons/maximize-all'
 import NcDrag from '~icons/nc-icons/drag'
 import NcRefresh from '~icons/nc-icons/refresh'
+import NcPlay from '~icons/nc-icons/play'
+import GoogleDocs from '~icons/nc-icons/google-docs'
+import NcGlobe from '~icons/nc-icons/globe'
+import NcIntegration from '~icons/nc-icons/integration'
+import NcGitCommit from '~icons/nc-icons/git-commit'
+import NcCircle from '~icons/nc-icons/circle'
+import NcServer1 from '~icons/nc-icons/server1'
+import NcThumbsUpOutline from '~icons/nc-icons/thumbs-up-outline'
+
+// Sync data
+import NcAppleSolid from '~icons/nc-icons/apple_solid'
+import NcAsana from '~icons/nc-icons/asana'
+import NcBox from '~icons/nc-icons/box'
+import NcGithubSolid from '~icons/nc-icons/github_solid'
+import NcGitlab from '~icons/nc-icons/gitlab'
+import NcGoogleCalendar from '~icons/nc-icons/google_calendar'
+import NcGoogleSheet from '~icons/nc-icons/google_sheet'
+import NcGoogleDrive from '~icons/nc-icons/google-drive'
+import NcHubspot from '~icons/nc-icons/hubspot'
+import NcJira from '~icons/nc-icons/jira'
+import NcMailchimp from '~icons/nc-icons/mailchimp'
+import NcMicrosoftAccess from '~icons/nc-icons/microsoft_access'
+import NcMicrosoftExcel from '~icons/nc-icons/microsoft_excel'
+import NcMicrosoftOutlook from '~icons/nc-icons/microsoft_outlook'
+import NcMiro from '~icons/nc-icons/miro'
+import NcSalesforce from '~icons/nc-icons/salesforce'
+import NcSnowflake from '~icons/nc-icons/snowflake'
+import NcStripe from '~icons/nc-icons/stripe'
+import NcSurveyMonkey from '~icons/nc-icons/survey_monkey'
+import NcTableau from '~icons/nc-icons/tableau'
+import NcTrello from '~icons/nc-icons/trello'
+import NcTypeform from '~icons/nc-icons/typeform'
+import NcWorkday from '~icons/nc-icons/workday'
+import NcZendesk from '~icons/nc-icons/zendesk'
+
+import NcBookOpen from '~icons/nc-icons/book-open'
+import NcCircleCheckSolid from '~icons/nc-icons/check-circle-solid'
+import NcAlertTriangleSolid from '~icons/nc-icons/alert-triangle-solid'
+import NcMail from '~icons/nc-icons/mail'
+import NcSlack from '~icons/nc-icons/slack'
+import NcMicrosoftTeams from '~icons/nc-icons/microsoft-teams'
+import NcMattermost from '~icons/nc-icons/mattermost'
+import NcTwilio from '~icons/nc-icons/twilio'
+import NcWhatsapp from '~icons/nc-icons/whatsapp'
+import NcWhatsappSolid from '~icons/nc-icons/whatsapp-solid'
+
+// View icons
+import NcViewGantt from '~icons/nc-icons/view-gantt'
+
+import NcDollerSign from '~icons/nc-icons/doller-sign'
+import NcMultiFile from '~icons/nc-icons/multi-file'
+import NcHeart from '~icons/nc-icons/heart'
+import NcSave from '~icons/nc-icons/save'
+
+import NcMySql from '~icons/logos/mysql-icon'
+import NcPostgreSql from '~icons/nc-icons/postgresql'
+import NcSqlServer from '~icons/nc-icons/sql-server'
+import NcDataBricks from '~icons/nc-icons/data-bricks'
+import NcMssqlServer from '~icons/nc-icons/mssql-server'
+import NcOracle from '~icons/nc-icons/oracle'
+import NcGmail from '~icons/nc-icons/gmail'
+import NcTelegram from '~icons/nc-icons/telegram'
+import NcMicrosoftDynamics365 from '~icons/nc-icons/microsoft-dynamics-365'
+import NcPipedrive from '~icons/nc-icons/pipedrive'
+import NcZohoCrm from '~icons/nc-icons/zoho-crm'
+import NcGreenhouse from '~icons/nc-icons/greenhouse'
+import NcLever from '~icons/nc-icons/lever'
+import NcBitBucket from '~icons/nc-icons/bit-bucket'
+import NcQuickbooks from '~icons/nc-icons/quickbooks'
+import NcIntercom from '~icons/nc-icons/intercom'
+import NcDropbox from '~icons/nc-icons/dropbox'
+import NcOpenai from '~icons/nc-icons/openai'
+import NcClaude from '~icons/nc-icons/claude'
+import NcOllama from '~icons/nc-icons/ollama'
+import NcGroq from '~icons/nc-icons/groq'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -638,6 +715,76 @@ export const iconMap = {
   ncDrag: NcDrag,
   refresh: NcRefresh,
   chevronUpDown: NcChevronUpDown,
+  play: NcPlay,
+  googleDocs: GoogleDocs,
+  pdfFile: MdiPdf,
+  globe: NcGlobe,
+  integration: NcIntegration,
+  gitCommit: NcGitCommit,
+  circle: NcCircle,
+  server1: NcServer1,
+  thumbsUpOutline: NcThumbsUpOutline,
+  appleSolid: NcAppleSolid,
+  asana: NcAsana,
+  box: NcBox,
+  githubSolid: NcGithubSolid,
+  gitlab: NcGitlab,
+  googleCalendar: NcGoogleCalendar,
+  googleSheet: NcGoogleSheet,
+  googleDrive: NcGoogleDrive,
+  hubspot: NcHubspot,
+  jira: NcJira,
+  mailchimp: NcMailchimp,
+  microsoftAccess: NcMicrosoftAccess,
+  microsoftExcel: NcMicrosoftExcel,
+  microsoftOutlook: NcMicrosoftOutlook,
+  miro: NcMiro,
+  salesforce: NcSalesforce,
+  snowflake: NcSnowflake,
+  stripe: NcStripe,
+  surveyMonkey: NcSurveyMonkey,
+  tableau: NcTableau,
+  trello: NcTrello,
+  typeform: NcTypeform,
+  workday: NcWorkday,
+  zendesk: NcZendesk,
+  bookOpen: NcBookOpen,
+  circleCheckSolid: NcCircleCheckSolid,
+  alertTriangleSolid: NcAlertTriangleSolid,
+  mail: NcMail,
+  slack: NcSlack,
+  microsoftTeams: NcMicrosoftTeams,
+  mattermost: NcMattermost,
+  twilio: NcTwilio,
+  whatsapp: NcWhatsapp,
+  whatsappSolid: NcWhatsappSolid,
+  viewGannt: NcViewGantt,
+  dollerSign: NcDollerSign,
+  multiFile: NcMultiFile,
+  heart: NcHeart,
+  ncSave: NcSave,
+  mysql: NcMySql,
+  postgreSql: NcPostgreSql,
+  sqlServer: NcSqlServer,
+  dataBricks: NcDataBricks,
+  mssqlServer: NcMssqlServer,
+  oracle: NcOracle,
+  gmail: NcGmail,
+  telegram: NcTelegram,
+  microsoftDynamics365: NcMicrosoftDynamics365,
+  pipedrive: NcPipedrive,
+  zohoCrm: NcZohoCrm,
+  greenhouse: NcGreenhouse,
+  lever: NcLever,
+  bitBucket: NcBitBucket,
+  quickbooks: NcQuickbooks,
+  intercom: NcIntercom,
+  dropbox: NcDropbox,
+  gift: NcIconsGift,
+  openai: NcOpenai,
+  claude: NcClaude,
+  ollama: NcOllama,
+  groq: NcGroq,
 }
 
 export const getMdiIcon = (type: string): any => {

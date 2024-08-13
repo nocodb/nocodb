@@ -180,6 +180,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       reloadData?.()
       $e('a:fields:show-all')
     }
+
     const hideAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
@@ -228,11 +229,32 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
+    const updateDefaultViewColumnOrder = (columnId: string, order: number) => {
+      if (!meta.value?.columns) return
+
+      const colIndex = meta.value.columns.findIndex((c) => c.id === columnId)
+      if (colIndex !== -1) {
+        meta.value.columns[colIndex].meta = {
+          ...parseProp((meta.value.columns[colIndex] as ColumnType)?.meta || {}),
+          defaultViewColOrder: order,
+        }
+        meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
+          if (c.id !== columnId) return c
+
+          c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: order }
+          return c
+        })
+      }
+      if (meta.value?.columnsById?.[columnId]) {
+        meta.value.columnsById[columnId].meta = { ...parseProp(meta.value.columns[colIndex]?.meta), defaultViewColOrder: order }
+      }
+    }
+
     const saveOrUpdate = async (
       field: any,
       index: number,
       disableDataReload: boolean = false,
-      updateDefaultViewColumnOrder: boolean = false,
+      updateDefaultViewColOrder: boolean = false,
     ) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
@@ -242,13 +264,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               ...column,
               ...field,
               id: field.fk_column_id,
-              ...(updateDefaultViewColumnOrder ? { meta: { ...parseProp(column.meta), defaultViewColOrder: field.order } } : {}),
             }
           }
           return column
         })
 
         localChanges.value[field.fk_column_id] = field
+      }
+
+      if (updateDefaultViewColOrder && field?.fk_column_id) {
+        updateDefaultViewColumnOrder(field.fk_column_id, field.order)
       }
 
       if (isUIAllowed('viewFieldEdit')) {
@@ -434,22 +459,27 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           scope: defineViewScope({ view: view.value }),
         })
       }
+      try {
+        // sync with server if allowed
+        if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
+          await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
+            ...props,
+          })
+        }
 
-      // sync with server if allowed
-      if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
-        await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
-          ...props,
-        })
-      }
-
-      if (gridViewCols.value?.[id]) {
-        Object.assign(gridViewCols.value[id], {
-          ...gridViewCols.value[id],
-          ...props,
-        })
-      } else {
-        // fallback to reload
-        await loadViewColumns()
+        if (gridViewCols.value?.[id]) {
+          Object.assign(gridViewCols.value[id], {
+            ...gridViewCols.value[id],
+            ...props,
+          })
+        } else {
+          // fallback to reload
+          await loadViewColumns()
+        }
+      } catch (e) {
+        // this could happen if user doesn't have permission to update view columns
+        // todo: find out root cause and handle with isUIAllowed
+        console.error(e)
       }
     }
 

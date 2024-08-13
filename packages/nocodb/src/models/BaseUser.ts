@@ -452,7 +452,7 @@ export default class BaseUser {
         .map((p) => {
           const base = Base.castType(p);
           base.meta = parseMetaProp(base);
-          promises.push(base.getSources(ncMeta));
+          promises.push(base.getSources(false, ncMeta));
           return base;
         });
 

@@ -749,6 +749,16 @@ export default class Model implements TableType {
       tableId,
     );
 
+    // get default view and update alias
+    {
+      const defaultView = await View.getDefaultView(context, tableId, ncMeta);
+      if (defaultView) {
+        await View.update(context, defaultView.id, {
+          title,
+        });
+      }
+    }
+
     await NocoCache.update(`${CacheScope.MODEL}:${tableId}`, {
       title,
       table_name,

@@ -96,6 +96,8 @@ const editor = useEditor({
   onBlur: (e) => {
     const targetEl = e?.event.relatedTarget as HTMLElement
 
+    if (!targetEl) return
+
     if (
       !targetEl?.closest(
         '.comment-bubble-menu, .nc-rich-text-comment, .tippy-box, .nc-comment-save-btn, .rich-text-bottom-bar, .mention, .nc-mention-list, .tippy-content, .nc-comment-rich-editor',

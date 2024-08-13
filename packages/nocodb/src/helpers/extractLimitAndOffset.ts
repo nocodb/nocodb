@@ -5,7 +5,7 @@ export const defaultLimitConfig = {
 };
 
 export const defaultGroupByLimitConfig = {
-  limitGroup: Math.max(+process.env.DB_QUERY_LIMIT_GROUP_BY_GROUP || 10, 1),
+  limitGroup: Math.max(+process.env.DB_QUERY_LIMIT_GROUP_BY_GROUP || 25, 1),
   limitRecord: Math.max(+process.env.DB_QUERY_LIMIT_GROUP_BY_RECORD || 10, 1),
 };
 

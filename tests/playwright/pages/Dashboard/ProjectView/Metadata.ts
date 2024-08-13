@@ -38,11 +38,11 @@ export class MetaDataPage extends BasePage {
   }
 
   async verifyRow({ index, model, state }: { index: number; model: string; state: string }) {
-    const fieldLocator = this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(0);
+    const fieldLocator = this.get().locator(`tr.nc-table-row`).nth(index).locator(`td.nc-table-cell`).nth(0);
     const fieldText = await getTextExcludeIconText(fieldLocator);
     expect(fieldText).toBe(model);
 
-    await expect(this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(1)).toHaveText(
+    await expect(this.get().locator(`tr.nc-table-row`).nth(index).locator(`td.nc-table-cell`).nth(1)).toHaveText(
       state,
       {
         ignoreCase: true,

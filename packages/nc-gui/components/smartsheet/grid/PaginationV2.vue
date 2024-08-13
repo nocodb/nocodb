@@ -23,12 +23,9 @@ const showSizeChanger = toRef(props, 'showSizeChanger')
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
-const { loadViewAggregate, updateAggregate, getAggregations, visibleFieldsComputed, displayFieldComputed } =
-  useViewAggregateOrThrow()
+const { updateAggregate, getAggregations, visibleFieldsComputed, displayFieldComputed } = useViewAggregateOrThrow()
 
 const scrollLeft = toRef(props, 'scrollLeft')
-
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
 const containerElement = ref()
 
@@ -43,10 +40,6 @@ watch(
     immediate: true,
   },
 )
-
-reloadViewDataHook?.on(async () => {
-  await loadViewAggregate()
-})
 
 const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
 

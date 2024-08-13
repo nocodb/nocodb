@@ -47,10 +47,11 @@ watch(activeMenu, (newVal, oldValue) => {
     @keydown.esc="dialogShow = false"
   >
     <div class="flex h-full flex-row">
-      <div style="border-top-left-radius: 1rem; border-bottom-left-radius: 1rem" class="px-2 !-full flex-grow bg-gray-100">
-        <NcMenu class="!h-full !bg-gray-100">
+      <div style="border-top-left-radius: 1rem; border-bottom-left-radius: 1rem" class="px-2 !-full flex-grow bg-gray-50">
+        <NcMenu class="!h-full !bg-gray-50">
           <NcMenuItem
             key="local"
+            class="!hover:bg-gray-200 !hover:text-gray-800 rounded-md"
             :class="{
               'active-menu': activeMenu === 'local',
             }"
@@ -64,6 +65,7 @@ watch(activeMenu, (newVal, oldValue) => {
           <NcMenuItem
             v-if="!isPublic"
             key="url"
+            class="!hover:bg-gray-200 !hover:text-gray-800 rounded-md"
             :class="{
               'active-menu': activeMenu === 'url',
             }"
@@ -76,6 +78,7 @@ watch(activeMenu, (newVal, oldValue) => {
           </NcMenuItem>
           <NcMenuItem
             key="webcam"
+            class="!hover:bg-gray-200 !hover:text-gray-800 rounded-md"
             :class="{
               'active-menu': activeMenu === 'webcam',
             }"
@@ -115,7 +118,7 @@ watch(activeMenu, (newVal, oldValue) => {
 <style lang="scss">
 .nc-modal-attachment-create {
   .active-menu {
-    @apply !bg-gray-200 font-sembold text-brand-500 rounded-md;
+    @apply bg-brand-50 font-sembold text-brand-500 rounded-md;
   }
 }
 

@@ -1,11 +1,12 @@
 {
   "name": "nc-gui",
-  "description": "NocoDB Frontend",
   "private": true,
+  "description": "NocoDB Frontend",
   "author": {
     "name": "NocoDB",
     "url": "https://nocodb.com/"
   },
+  "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/nocodb/nocodb",
   "repository": {
     "type": "git",
@@ -17,7 +18,6 @@
   "engines": {
     "node": ">=18.19.1"
   },
-  "license": "AGPL-3.0-or-later",
   "web-types": "web-types.json",
   "scripts": {
     "build": "nuxt build",
@@ -36,11 +36,12 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@braks/revue-draggable": "^0.4.3",
     "@ckpack/vue-color": "^1.5.0",
     "@iconify/vue": "^4.1.2",
     "@nuxt/image": "^1.3.0",
     "@pinia/nuxt": "^0.5.1",
+    "@sentry/tracing": "^7.72.0",
+    "@sentry/vue": "^7.72.0",
     "@tiptap/extension-link": "^2.4.0",
     "@tiptap/extension-placeholder": "^2.4.0",
     "@tiptap/extension-task-list": "2.4.0",
@@ -62,9 +63,11 @@
     "dagre": "^0.8.5",
     "dayjs": "^1.11.11",
     "deep-object-diff": "^1.1.9",
+    "embla-carousel-vue": "^8.1.7",
     "emoji-mart-vue-fast": "^15.0.2",
     "file-saver": "^2.0.5",
     "fuse.js": "^6.6.2",
+    "html-entities": "^2.5.2",
     "httpsnippet": "^2.0.0",
     "inflection": "^1.13.4",
     "jsbarcode": "^3.11.6",
@@ -74,12 +77,15 @@
     "leaflet.markercluster": "^1.5.3",
     "locale-codes": "^1.3.1",
     "marked": "^4.3.0",
-    "monaco-editor": "^0.45.0",
+    "monaco-editor": "^0.50.0",
     "monaco-sql-languages": "^0.11.0",
     "nocodb-sdk": "workspace:^",
     "papaparse": "^5.4.1",
     "parse-github-url": "^1.0.2",
+    "pdfobject": "^2.3.0",
+    "pdfobject-vue": "^0.0.4",
     "pinia": "^2.1.7",
+    "plyr": "^3.7.8",
     "qrcode": "^1.5.3",
     "rfdc": "^1.3.1",
     "showdown": "^2.1.0",
@@ -136,6 +142,7 @@
     "@types/inflection": "^1.13.2",
     "@types/leaflet": "^1.9.12",
     "@types/leaflet.markercluster": "^1.5.4",
+    "@types/marked": "^6.0.0",
     "@types/papaparse": "^5.3.14",
     "@types/parse-github-url": "^1.0.3",
     "@types/qrcode": "^1.5.5",

@@ -106,20 +106,20 @@ onBeforeUnmount(() => {
       ref="dropZoneRef"
       :class="{
         'border-brand-500': isOverDropZone,
-        'border-dashed border-1': !tempFiles.length,
+        'border-dashed border-2': !tempFiles.length,
       }"
       data-testid="attachment-drop-zone"
       :style="`height: ${tempFiles.length > 0 ? '324px' : '100%'}`"
       class="flex flex-col items-center justify-center h-full w-full flex-grow-1 rounded-lg"
       @click="tempFiles.length > 0 ? () => {} : open()"
     >
-      <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-2">
+      <div v-if="!tempFiles.length" class="flex cursor-pointer items-center justify-center flex-col gap-4">
         <template v-if="!isOverDropZone">
-          <component :is="iconMap.upload" class="w-5 h-5" />
+          <component :is="iconMap.upload" class="w-8 h-8 text-gray-500" />
           <h1>
             {{ $t('labels.clickTo') }}
 
-            <span class="font-semibold"> {{ $t('labels.browseFiles') }} </span>
+            <span class="font-semibold text-brand-500"> {{ $t('labels.browseFiles') }} </span>
             {{ $t('general.or') }}
             <span class="font-semibold"> {{ $t('labels.dragFilesHere') }} </span>
 
@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
           </h1>
         </template>
         <template v-if="isOverDropZone">
-          <component :is="iconMap.upload" class="w-5 text-brand-500 h-5" />
+          <component :is="iconMap.upload" class="w-8 text-brand-500 h-8" />
           <h1 class="text-brand-500 font-bold">{{ $t('labels.dropHere') }}</h1>
         </template>
       </div>
@@ -165,7 +165,7 @@ onBeforeUnmount(() => {
         </div>
       </template>
     </div>
-    <div v-if="tempFiles.length" class="flex gap-2 pt-1 bg-white w-full items-center justify-end">
+    <div v-if="tempFiles.length" class="flex gap-2 pt-2 bg-white w-full items-center justify-end">
       <NcButton :disabled="isLoading" type="secondary" size="small" @click="closeMenu">
         {{ $t('labels.cancel') }}
       </NcButton>

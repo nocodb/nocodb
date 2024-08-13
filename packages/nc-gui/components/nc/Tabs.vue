@@ -13,6 +13,13 @@ const props = defineProps<{
     }"
   >
     <slot />
+
+    <template v-if="$slots.leftExtra" #leftExtra>
+      <slot name="leftExtra" />
+    </template>
+    <template v-if="$slots.rightExtra" #rightExtra>
+      <slot name="rightExtra" />
+    </template>
   </a-tabs>
 </template>
 

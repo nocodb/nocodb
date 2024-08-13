@@ -1,5 +1,6 @@
 import { NcErrorType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import type { BaseType, SourceType } from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 
@@ -479,6 +480,14 @@ const errorHelpers: {
     message: (id: string) => `Source '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.INTEGRATION_NOT_FOUND]: {
+    message: (id: string) => `Connection '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.INTEGRATION_LINKED_WITH_BASES]: {
+    message: (bases) => `Connection linked with following bases '${bases}'`,
+    code: 404,
+  },
   [NcErrorType.TABLE_NOT_FOUND]: {
     message: (id: string) => `Table '${id}' not found`,
     code: 404,
@@ -832,5 +841,38 @@ export class NcError {
 
   static sourceMetaReadOnly(name: string) {
     NcError.forbidden(`Source '${name}' schema is read-only`);
+  }
+
+  static integrationNotFound(id: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INTEGRATION_NOT_FOUND, {
+      params: id,
+      ...(args || {}),
+    });
+  }
+
+  static integrationLinkedWithMultiple(
+    bases: BaseType[],
+    sources: SourceType[],
+    args?: NcErrorArgs,
+  ) {
+    throw new NcBaseErrorv2(NcErrorType.INTEGRATION_LINKED_WITH_BASES, {
+      params: bases.map((s) => s.title).join(', '),
+      details: {
+        bases: bases.map((b) => {
+          return {
+            id: b.id,
+            title: b.title,
+          };
+        }),
+        sources: sources.map((s) => {
+          return {
+            id: s.id,
+            base_id: s.base_id,
+            title: s.alias,
+          };
+        }),
+      },
+      ...(args || {}),
+    });
   }
 }

@@ -140,7 +140,7 @@ export class AuthController {
     scope: 'org',
   })
   @HttpCode(200)
-  async passwordChange(@Req() req: NcRequest): Promise<any> {
+  async passwordChange(@Req() req: NcRequest, @Res() res): Promise<any> {
     if (!(req as any).isAuthenticated?.()) {
       NcError.forbidden('Not allowed');
     }
@@ -151,7 +151,10 @@ export class AuthController {
       body: req.body,
     });
 
-    return { msg: 'Password has been updated successfully' };
+    // set new refresh token
+    await this.setRefreshToken({ req, res });
+
+    res.json({ msg: 'Password has been updated successfully' });
   }
 
   @Post([

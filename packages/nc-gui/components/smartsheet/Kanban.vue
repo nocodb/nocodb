@@ -155,6 +155,8 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
+    expandedFormRow.value = undefined
+
     router.push({
       query: {
         ...route.value.query,
@@ -278,6 +280,8 @@ async function onMove(event: any, stackKey: string) {
 }
 
 const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
+  if (!e.target) return
+
   if (e.target.scrollTop + e.target.clientHeight + INFINITY_SCROLL_THRESHOLD >= e.target.scrollHeight) {
     const stackTitle = e.target.getAttribute('data-stack-title')
     const pageSize = appInfo.value.defaultLimit || 25
@@ -785,12 +789,12 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                         </template>
 
                                         <template v-for="attachment in attachments(record)">
-                                          <LazyCellAttachmentImage
+                                          <LazyCellAttachmentPreviewImage
                                             v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
                                             :key="attachment.path"
                                             class="h-52"
                                             :class="[`${coverImageObjectFitClass}`]"
-                                            :srcs="getPossibleAttachmentSrc(attachment)"
+                                            :srcs="getPossibleAttachmentSrc(attachment, 'card_cover')"
                                           />
                                         </template>
                                       </a-carousel>

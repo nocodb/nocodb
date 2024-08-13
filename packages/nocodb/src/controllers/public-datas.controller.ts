@@ -4,6 +4,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Query,
   Req,
   UseGuards,
   UseInterceptors,
@@ -13,11 +14,17 @@ import { PublicDatasService } from '~/services/public-datas.service';
 import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { Column } from '~/models';
+import { AttachmentsService } from '~/services/attachments.service';
+import { NcError } from '~/helpers/catchError';
 
 @UseGuards(PublicApiLimiterGuard)
 @Controller()
 export class PublicDatasController {
-  constructor(protected readonly publicDatasService: PublicDatasService) {}
+  constructor(
+    protected readonly publicDatasService: PublicDatasService,
+    protected readonly attachmentsService: AttachmentsService,
+  ) {}
 
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
@@ -188,5 +195,76 @@ export class PublicDatasController {
       },
     );
     return paginatedResponse;
+  }
+
+  @Get(
+    '/api/v2/public/shared-view/:sharedViewUuid/downloadAttachment/:columnId/:rowId',
+  )
+  async downloadPublicAttachment(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Query('urlOrPath') urlOrPath: string,
+  ) {
+    const column = await Column.get(context, {
+      colId: columnId,
+    });
+
+    if (!column) {
+      NcError.fieldNotFound(columnId);
+    }
+
+    const record = await this.publicDatasService.dataRead(context, {
+      sharedViewUuid,
+      query: {
+        fields: column.title,
+      },
+      rowId,
+      password: req.headers?.['xc-password'] as string,
+    });
+
+    if (!record) {
+      NcError.recordNotFound(rowId);
+    }
+
+    return this.attachmentsService.getAttachmentFromRecord({
+      record,
+      column,
+      urlOrPath,
+    });
+  }
+
+  @Post(['/api/v2/public/shared-view/:sharedViewUuid/bulk/dataList'])
+  async bulkDataList(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+  ) {
+    const response = await this.publicDatasService.bulkDataList(context, {
+      query: req.query,
+      password: req.headers?.['xc-password'] as string,
+      sharedViewUuid,
+      body: req.body,
+    });
+
+    return response;
+  }
+
+  @Post(['/api/v2/public/shared-view/:sharedViewUuid/bulk/group'])
+  async bulkGroupBy(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+  ) {
+    const response = await this.publicDatasService.bulkGroupBy(context, {
+      query: req.query,
+      password: req.headers?.['xc-password'] as string,
+      sharedViewUuid,
+      body: req.body,
+    });
+
+    return response;
   }
 }

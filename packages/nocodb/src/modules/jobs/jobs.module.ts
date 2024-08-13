@@ -18,6 +18,7 @@ import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-
 import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
 import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export.processor';
 import { DataExportController } from '~/modules/jobs/jobs/data-export/data-export.controller';
+import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -78,6 +79,7 @@ export const JobsModuleMetadata = {
     SourceDeleteProcessor,
     WebhookHandlerProcessor,
     DataExportProcessor,
+    ThumbnailGeneratorProcessor,
   ],
   exports: ['JobsService'],
 };

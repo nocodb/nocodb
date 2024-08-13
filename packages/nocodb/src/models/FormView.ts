@@ -238,23 +238,14 @@ export default class FormView implements FormViewType {
             formAttachments[key] = deserializeJSON(formAttachments[key]);
           }
 
-          if (formAttachments[key]?.path) {
-            promises.push(
-              PresignedUrl.getSignedUrl(
-                {
-                  path: formAttachments[key].path.replace(/^download\//, ''),
-                },
-                ncMeta,
-              ).then((r) => (formAttachments[key].signedPath = r)),
-            );
-          } else if (formAttachments[key]?.url) {
-            promises.push(
-              PresignedUrl.getSignedUrl(
-                { path: decodeURI(new URL(formAttachments[key].url).pathname) },
-                ncMeta,
-              ).then((r) => (formAttachments[key].signedUrl = r)),
-            );
-          }
+          promises.push(
+            PresignedUrl.signAttachment(
+              {
+                attachment: formAttachments[key],
+              },
+              ncMeta,
+            ),
+          );
         }
         await Promise.all(promises);
       }

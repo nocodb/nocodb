@@ -6,6 +6,8 @@ const props = defineProps<{
   baseId?: string
 }>()
 
+const { integrations } = useProvideIntegrationViewStore()
+
 const basesStore = useBases()
 
 const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesStore)
@@ -35,9 +37,13 @@ const currentBase = computedAsync(async () => {
 
 const { isUIAllowed, baseRoles } = useRoles()
 
+const { base } = storeToRefs(useBase())
+
 const { projectPageTab } = storeToRefs(useConfigStore())
 
 const { isMobileMode } = useGlobal()
+
+const baseSettingsState = ref('')
 
 const userCount = computed(() =>
   activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0,
@@ -86,6 +92,18 @@ watch(
   },
   {
     immediate: true,
+  },
+)
+
+watch(
+  () => currentBase.value?.id,
+  () => {
+    /**
+     * When the current base ID changes, reset the integrations array.
+     * This ensures that the integration data is cleared, allowing it to be reloaded
+     * properly when opening the create/edit source modal with the updated base.
+     */
+    integrations.value = []
   },
 )
 </script>
@@ -158,7 +176,7 @@ watch(
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
-        <!--        <a-tab-pane v-if="isUIAllowed('sourceCreate')" key="data-source">
+        <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="data-source">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
               <GeneralIcon icon="database" />
@@ -175,8 +193,12 @@ watch(
               </div>
             </div>
           </template>
-          <DashboardSettingsDataSources v-model:state="baseSettingsState" />
-        </a-tab-pane> -->
+          <DashboardSettingsDataSources
+            v-model:state="baseSettingsState"
+            :base-id="base.id"
+            class="max-h-[calc(100%_-_36px)] pt-3"
+          />
+        </a-tab-pane>
       </a-tabs>
     </div>
   </div>

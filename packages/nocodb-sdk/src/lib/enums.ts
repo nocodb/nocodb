@@ -151,6 +151,9 @@ export enum AppEvents {
   COMMENT_CREATE = 'comment.create',
   COMMENT_DELETE = 'comment.delete',
   COMMENT_UPDATE = 'comment.update',
+  INTEGRATION_DELETE = 'integration.delete',
+  INTEGRATION_CREATE = 'integration.create',
+  INTEGRATION_UPDATE = 'integration.update',
 }
 
 export enum ClickhouseTables {
@@ -327,10 +330,100 @@ export enum APIContext {
   SORTS = 'sorts',
 }
 
-
 export enum SourceRestriction {
   SCHEMA_READONLY = 'is_schema_readonly',
   DATA_READONLY = 'is_data_readonly',
 }
 
+export enum ClientType {
+  MYSQL = 'mysql2',
+  MSSQL = 'mssql',
+  PG = 'pg',
+  SQLITE = 'sqlite3',
+  VITESS = 'vitess',
+  SNOWFLAKE = 'snowflake',
+  DATABRICKS = 'databricks',
+}
 
+export enum SSLUsage {
+  No = 'No',
+  Allowed = 'Allowed',
+  Preferred = 'Preferred',
+  Required = 'Required',
+  RequiredWithCa = 'Required-CA',
+  RequiredWithIdentity = 'Required-Identity',
+}
+
+export enum SyncDataType {
+  // Database
+  MICROSOFT_ACCESS = 'microsoft-access',
+  TABLEAU = 'tableau',
+  ORACLE = 'oracle',
+  // AI
+  OPENAI = 'openai',
+  CLAUDE = 'claude',
+  OLLAMA = 'ollama',
+  GROQ = 'groq',
+  // Communication
+  SLACK = 'slack',
+  DISCORD = 'discord',
+  TWILLO = 'twillo',
+  MICROSOFT_OUTLOOK = 'microsoft-outlook',
+  MICROSOFT_TEAMS = 'microsoft-teams',
+  TELEGRAM = 'telegram',
+  GMAIL = 'gmail',
+  WHATSAPP = 'whatsapp',
+  // Project Management
+  ASANA = 'asana',
+  JIRA = 'jira',
+  MIRO = 'miro',
+  TRELLO = 'trello',
+  // CRM
+  SALESFORCE = 'salesforce',
+  PIPEDRIVE = 'pipedrive',
+  MICROSOFT_DYNAMICS_365 = 'microsoft-dynamics-365',
+  ZOHO_CRM = 'zoho-crm',
+  // Marketing
+  HUBSPOT = 'hubspot',
+  MAILCHIMP = 'mailchimp',
+  SURVEYMONKEY = 'surveymonkey',
+  TYPEFORM = 'typeform',
+  // ATS
+  WORKDAY = 'workday',
+  GREENHOUSE = 'greenhouse',
+  LEVER = 'lever',
+  // Development
+  GITHUB = 'github',
+  GITLAB = 'gitlab',
+  BITBUCKET = 'bitbucket',
+  // Finance
+  STRIPE = 'stripe',
+  QUICKBOOKS = 'quickbooks',
+  // Ticketing
+  INTERCOM = 'intercom',
+  ZENDESK = 'zendesk',
+  // Storage
+  BOX = 'box',
+  GOOGLE_DRIVE = 'google-drive',
+  DROPBOX = 'dropbox',
+  // Others
+  APPLE_NUMBERS = 'apple-numbers',
+  GOOGLE_CALENDAR = 'google-calendar',
+  MICROSOFT_EXCEL = 'microsoft-excel',
+  GOOGLE_SHEETS = 'google-sheets',
+}
+
+export enum IntegrationCategoryType {
+  DATABASE = 'database',
+  AI = 'ai',
+  COMMUNICATION = 'communication',
+  PROJECT_MANAGEMENT = 'project-management',
+  CRM = 'crm',
+  MARKETING = 'marketing',
+  ATS = 'ats',
+  DEVELOPMENT = 'development',
+  FINANCE = 'finance',
+  TICKETING = 'ticketing',
+  STORAGE = 'storage',
+  OTHERS = 'others',
+}

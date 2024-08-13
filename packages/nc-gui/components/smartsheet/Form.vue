@@ -199,8 +199,14 @@ async function submitForm() {
   }
 
   try {
-    await validate(Object.keys(formState.value).map((title) => fieldMappings.value[title]))
+    await validate(
+      Object.keys(formState.value)
+        .map((title) => fieldMappings.value[title])
+        .filter((v) => v !== undefined),
+    )
   } catch (e: any) {
+    console.error(e)
+
     if (e?.errorFields?.length) {
       message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
       return
@@ -587,7 +593,11 @@ watch(
     updatePreFillFormSearchParams()
 
     try {
-      await validate(Object.keys(formState.value).map((title) => fieldMappings.value[title]))
+      await validate(
+        Object.keys(formState.value)
+          .map((title) => fieldMappings.value[title])
+          .filter((v) => v !== undefined),
+      )
     } catch {}
   },
   {
@@ -872,7 +882,7 @@ useEventListener(
                             "
                             style="transition: all 0.3s ease-in"
                           >
-                            <LazyCellAttachmentImage
+                            <LazyCellAttachmentPreviewImage
                               v-if="formViewData.logo_url"
                               :key="formViewData.logo_url?.path"
                               :srcs="getFormLogoSrc"
@@ -1164,7 +1174,6 @@ useEventListener(
                         </NcButton>
 
                         <NcButton
-                          html-type="submit"
                           type="primary"
                           size="small"
                           :disabled="!isUIAllowed('dataInsert') || !visibleColumns.length"
@@ -1687,7 +1696,9 @@ useEventListener(
 .nc-input {
   @apply appearance-none w-full;
   &:not(.layout-list) {
-    @apply !bg-white rounded-lg border-solid border-1 border-gray-200 !focus-within:border-brand-500;
+    &:not(.nc-cell-attachment) {
+      @apply !bg-white rounded-lg border-solid border-1 border-gray-200 !focus-within:border-brand-500;
+    }
   }
   &.layout-list {
     @apply h-auto !pl-0 !py-1;

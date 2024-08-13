@@ -111,6 +111,11 @@ function animate(target: AnimationTarget) {
 }
 
 const validateField = async (title: string) => {
+  if (fieldMappings.value[title] === undefined) {
+    console.warn('Missing mapping field for:', title)
+    return false
+  }
+
   try {
     await validate(fieldMappings.value[title])
 

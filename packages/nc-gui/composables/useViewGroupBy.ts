@@ -29,7 +29,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { base } = storeToRefs(useBase())
 
-    const { sharedView, fetchSharedViewData, fetchBulkAggregatedData } = useSharedView()
+    const { sharedView, fetchSharedViewData, fetchBulkAggregatedData, fetchBulkListData, fetchBulkGroupData } = useSharedView()
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
@@ -64,7 +64,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
     const groupByGroupLimit = computed(() => {
-      return appInfo.value.defaultGroupByLimit?.limitGroup || 10
+      return appInfo.value.defaultGroupByLimit?.limitGroup || 25
     })
 
     const groupByRecordLimit = computed(() => {
@@ -229,7 +229,104 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }
     }
 
-    async function loadGroups(params: any = {}, group?: Group) {
+    const processGroupData = async (response: any, group?: Group) => {
+      group = group || rootGroup.value
+
+      const groupby = groupBy.value[group.nestedIn.length]
+
+      if (!groupby) return group
+
+      const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
+        const keyExists = acc.find(
+          (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
+        )
+        if (keyExists) {
+          keyExists.count += +curr.count
+          keyExists.paginationData = {
+            page: 1,
+            pageSize: group.paginationData.pageSize || groupByGroupLimit.value,
+            totalRows: keyExists.count,
+          }
+          return acc
+        }
+        if (groupby.column.title && groupby.column.uidt) {
+          acc.push({
+            key: valueToTitle(curr[groupby.column.title!], groupby.column),
+            column: groupby.column,
+            count: +curr.count,
+            color: findKeyColor(curr[groupby.column.title!], groupby.column),
+            nestedIn: [
+              ...group!.nestedIn,
+              {
+                title: groupby.column.title,
+                column_name: groupby.column.title!,
+                key: valueToTitle(curr[groupby.column.title!], groupby.column),
+                column_uidt: groupby.column.uidt,
+              },
+            ],
+            aggregations: curr.aggregations ?? {},
+            paginationData: {
+              page: 1,
+              pageSize:
+                group!.nestedIn.length < groupBy.value.length - 1
+                  ? group.paginationData.pageSize || groupByGroupLimit.value
+                  : groupByRecordLimit.value,
+              totalRows: +curr.count,
+            },
+            nested: group!.nestedIn.length < groupBy.value.length - 1,
+          })
+        }
+        return acc
+      }, [])
+
+      if (!group.children) group.children = []
+
+      for (const temp of tempList) {
+        const keyExists = group.children?.find((a) => a.key === temp.key)
+        if (keyExists) {
+          temp.paginationData = {
+            page: keyExists.paginationData.page || temp.paginationData.page,
+            pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
+            totalRows: temp.count,
+          }
+          temp.color = keyExists.color
+
+          // update group
+          Object.assign(keyExists, temp)
+          continue
+        }
+        group.children.push(temp)
+      }
+
+      group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
+
+      if (group.count <= (group.paginationData.pageSize ?? groupByGroupLimit.value)) {
+        group.children.sort((a, b) => {
+          const orderA = tempList.findIndex((t) => t.key === a.key)
+          const orderB = tempList.findIndex((t) => t.key === b.key)
+          return orderA - orderB
+        })
+      }
+
+      group.paginationData = response.pageInfo
+
+      // to cater the case like when querying with a non-zero offset
+      // the result page may point to the target page where the actual returned data don't display on
+      const expectedPage = Math.max(1, Math.ceil(group.paginationData.totalRows! / group.paginationData.pageSize!))
+      if (expectedPage < group.paginationData.page!) {
+        await groupWrapperChangePage(expectedPage, group)
+      }
+
+      return group
+    }
+
+    async function loadGroups(
+      params: any = {},
+      group?: Group,
+      options?: {
+        triggerChildOnly: boolean
+      },
+    ) {
       try {
         group = group || rootGroup.value
         if (!base?.value?.id || !view.value?.id || !view.value?.fk_model_id || !group) return
@@ -259,141 +356,78 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           group.displayValueProp = (relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0])?.title || ''
         }
 
-        const response = !isPublic
-          ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
-              offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
-              limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
-              ...params,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: `${nestedWhere}`,
-              sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
-              column_name: groupby.column.title,
-            } as any)
-          : await api.public.dataGroupBy(
-              sharedView.value!.uuid!,
-              {
+        if (!options?.triggerChildOnly) {
+          const response = !isPublic
+            ? await api.dbViewRow.groupBy('noco', base.value.id, view.value.fk_model_id, view.value.id, {
                 offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
                 limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
                 ...params,
-                where: nestedWhere,
+                ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+                ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+                where: `${nestedWhere}`,
                 sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
                 column_name: groupby.column.title,
-                sortsArr: sorts.value,
-                filtersArr: nestedFilters.value,
-              },
-              {
-                headers: {
-                  'xc-password': sharedViewPassword.value,
-                },
-              },
-            )
-
-        const tempList: Group[] = response.list.reduce((acc: Group[], curr: Record<string, any>) => {
-          const keyExists = acc.find(
-            (a) => a.key === valueToTitle(curr[groupby.column.column_name!] ?? curr[groupby.column.title!], groupby.column),
-          )
-          if (keyExists) {
-            keyExists.count += +curr.count
-            keyExists.paginationData = { page: 1, pageSize: groupByGroupLimit.value, totalRows: keyExists.count }
-            return acc
-          }
-          if (groupby.column.title && groupby.column.uidt) {
-            acc.push({
-              key: valueToTitle(curr[groupby.column.title!], groupby.column),
-              column: groupby.column,
-              count: +curr.count,
-              color: findKeyColor(curr[groupby.column.title!], groupby.column),
-              nestedIn: [
-                ...group!.nestedIn,
+              } as any)
+            : await api.public.dataGroupBy(
+                sharedView.value!.uuid!,
                 {
-                  title: groupby.column.title,
-                  column_name: groupby.column.title!,
-                  key: valueToTitle(curr[groupby.column.title!], groupby.column),
-                  column_uidt: groupby.column.uidt,
+                  offset: ((group.paginationData.page ?? 0) - 1) * (group.paginationData.pageSize ?? groupByGroupLimit.value),
+                  limit: group.paginationData.pageSize ?? groupByGroupLimit.value,
+                  ...params,
+                  where: nestedWhere,
+                  sort: `${getSortParams(groupby.sort)}${groupby.column.title}`,
+                  column_name: groupby.column.title,
+                  sortsArr: sorts.value,
+                  filtersArr: nestedFilters.value,
                 },
-              ],
-              aggregations: curr.aggregations ?? {},
-              paginationData: {
-                page: 1,
-                pageSize: group!.nestedIn.length < groupBy.value.length - 1 ? groupByGroupLimit.value : groupByRecordLimit.value,
-                totalRows: +curr.count,
-              },
-              nested: group!.nestedIn.length < groupBy.value.length - 1,
-            })
-          }
-          return acc
-        }, [])
+                {
+                  headers: {
+                    'xc-password': sharedViewPassword.value,
+                  },
+                },
+              )
 
-        if (!group.children) group.children = []
-
-        for (const temp of tempList) {
-          const keyExists = group.children?.find((a) => a.key === temp.key)
-          if (keyExists) {
-            temp.paginationData = {
-              page: keyExists.paginationData.page || temp.paginationData.page,
-              pageSize: keyExists.paginationData.pageSize || temp.paginationData.pageSize,
-              totalRows: temp.count,
-            }
-            temp.color = keyExists.color
-
-            // update group
-            Object.assign(keyExists, temp)
-            continue
-          }
-          group.children.push(temp)
-        }
-
-        group.children = group.children.filter((c) => tempList.find((t) => t.key === c.key))
-
-        if (group.count <= (group.paginationData.pageSize ?? groupByGroupLimit.value)) {
-          group.children.sort((a, b) => {
-            const orderA = tempList.findIndex((t) => t.key === a.key)
-            const orderB = tempList.findIndex((t) => t.key === b.key)
-            return orderA - orderB
-          })
-        }
-
-        group.paginationData = response.pageInfo
-
-        // to cater the case like when querying with a non-zero offset
-        // the result page may point to the target page where the actual returned data don't display on
-        const expectedPage = Math.max(1, Math.ceil(group.paginationData.totalRows! / group.paginationData.pageSize!))
-        if (expectedPage < group.paginationData.page!) {
-          await groupWrapperChangePage(expectedPage, group)
+          group = await processGroupData(response, group)
         }
 
         if (appInfo.value.ee) {
           const aggregationMap = new Map<string, string>()
 
           const aggregationParams = (group.children ?? []).map((child) => {
-            try {
-              const key = JSON.parse(child.key)
+            let key = child.key
 
+            if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
+              key = Math.random().toString(36).substring(7)
+              aggregationMap.set(key, child.key)
+            }
+
+            try {
+              key = JSON.parse(key)
               if (typeof key === 'object') {
-                const newKey = Math.random().toString(36).substring(7)
-                aggregationMap.set(newKey, child.key)
+                key = Math.random().toString(36).substring(7)
+                aggregationMap.set(key, child.key)
                 return {
                   where: calculateNestedWhere(child.nestedIn, where?.value),
-                  alias: newKey,
+                  alias: key,
                 }
               }
             } catch (e) {}
 
             return {
               where: calculateNestedWhere(child.nestedIn, where?.value),
-              alias: child.key,
+              alias: key,
             }
           })
 
           const aggResponse = !isPublic
-            ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
-                viewId: view.value!.id,
-                aggregateFilterList: aggregationParams,
-              })
-            : await fetchBulkAggregatedData({
-                aggregateFilterList: aggregationParams,
-              })
+            ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
+                meta.value!.id,
+                {
+                  viewId: view.value!.id,
+                },
+                aggregationParams,
+              )
+            : await fetchBulkAggregatedData({}, aggregationParams)
 
           Object.entries(aggResponse).forEach(([key, value]) => {
             const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
@@ -401,16 +435,134 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               Object.assign(child.aggregations, value)
             } else {
               const originalKey = aggregationMap.get(key)
-              if (originalKey) {
-                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
-                if (child) {
-                  Object.assign(child.aggregations, value)
-                }
+              const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+              if (child) {
+                Object.assign(child.aggregations, value)
               }
             }
           })
         }
+
+        if (group?.children && group.nestedIn.length === groupBy.value.length - 1) {
+          const aliasMap = new Map<string, string>()
+
+          const childViewFilters = group?.children?.map((childGroup) => {
+            let key = childGroup.key
+
+            if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
+              key = Math.random().toString(36).substring(7)
+              aliasMap.set(key, childGroup.key)
+            }
+
+            try {
+              key = JSON.parse(key)
+
+              if (typeof key === 'object') {
+                key = Math.random().toString(36).substring(7)
+                aliasMap.set(key, childGroup.key)
+              }
+            } catch (e) {}
+
+            return {
+              alias: key,
+              where: calculateNestedWhere(childGroup.nestedIn, where?.value),
+              offset:
+                ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByRecordLimit.value),
+              limit: childGroup.paginationData.pageSize ?? groupByRecordLimit.value,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            }
+          })
+
+          if (childViewFilters.length > 0) {
+            const bulkData = !isPublic
+              ? await api.dbDataTableBulkList.dbDataTableBulkList(
+                  meta.value.id,
+                  {
+                    viewId: view.value.id,
+                  },
+                  childViewFilters,
+                  {},
+                )
+              : await fetchBulkListData({}, childViewFilters)
+
+            Object.entries(bulkData).forEach(([key, value]: { key: string; value: any }) => {
+              const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
+              if (child) {
+                child.count = value.pageInfo.totalRows ?? 0
+                child.rows = formatData(value.list)
+                child.paginationData = value.pageInfo
+              } else {
+                const originalKey = aliasMap.get(key)
+                const child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())
+                if (child) {
+                  child.count = value.pageInfo.totalRows ?? 0
+                  child.rows = formatData(value.list)
+                  child.paginationData = value.pageInfo
+                }
+              }
+            })
+          }
+        }
+
+        if (group?.children && group.nestedIn.length < groupBy.value.length - 1) {
+          const aliasMap = new Map<string, string>()
+
+          const childGroupFilters = group?.children?.map((childGroup) => {
+            const childGroupBy = groupBy.value[childGroup.nestedIn.length]
+            const childNestedWhere = calculateNestedWhere(childGroup.nestedIn, where?.value)
+
+            let key = childGroup.key
+
+            if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
+              key = Math.random().toString(36).substring(7)
+              aliasMap.set(key, childGroup.key)
+            }
+
+            try {
+              key = JSON.parse(key)
+              if (typeof key === 'object') {
+                key = Math.random().toString(36).substring(7)
+                aliasMap.set(key, childGroup.key)
+              }
+            } catch (e) {}
+
+            return {
+              alias: key,
+              offset:
+                ((childGroup.paginationData.page ?? 0) - 1) * (childGroup.paginationData.pageSize ?? groupByGroupLimit.value),
+              limit: childGroup.paginationData.pageSize ?? groupByGroupLimit.value,
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              where: `${childNestedWhere}`,
+              sort: `${getSortParams(childGroupBy.sort)}${childGroupBy.column.title}`,
+              column_name: childGroupBy.column.title,
+            }
+          })
+
+          if (childGroupFilters.length > 0) {
+            const bulkGroupData = !isPublic
+              ? await api.dbDataTableBulkGroupList.dbDataTableBulkGroupList(
+                  meta.value.id,
+                  {
+                    viewId: view.value.id,
+                  },
+                  childGroupFilters,
+                )
+              : await fetchBulkGroupData({}, childGroupFilters)
+
+            for (const [key, value] of Object.entries(bulkGroupData)) {
+              let child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
+              if (!child) {
+                const originalKey = aliasMap.get(key)
+                child = (group?.children ?? []).find((c) => c.key.toString() === originalKey.toString())!
+              }
+              Object.assign(child, await processGroupData(value, child))
+            }
+          }
+        }
       } catch (e) {
+        console.log(e)
         message.error(await extractSdkResponseErrorMsg(e))
       }
     }
@@ -467,34 +619,42 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         const aggregationMap = new Map<string, string>()
 
         const aggregationParams = (group.children ?? []).map((child) => {
+          let key = child.key
+
+          if (!key?.length || key.startsWith(' ') || key.endsWith(' ')) {
+            key = Math.random().toString(36).substring(7)
+            aggregationMap.set(key, child.key)
+          }
+
           try {
-            const key = JSON.parse(child.key)
+            key = JSON.parse(child.key)
             if (typeof key === 'object') {
-              const newKey = Math.random().toString(36).substring(7)
-              aggregationMap.set(newKey, child.key)
-              return {
-                where: calculateNestedWhere(child.nestedIn, where?.value),
-                alias: newKey,
-              }
+              key = Math.random().toString(36).substring(7)
+              aggregationMap.set(key, child.key)
             }
           } catch (e) {}
 
           return {
             where: calculateNestedWhere(child.nestedIn, where?.value),
-            alias: child.key,
+            alias: key,
           }
         })
 
         const response = !isPublic
-          ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(meta.value!.id, {
-              viewId: view.value!.id,
-              aggregateFilterList: aggregationParams,
-              ...(filteredFields ? { aggregation: filteredFields } : {}),
-            })
-          : await fetchBulkAggregatedData({
-              aggregateFilterList: aggregationParams,
-              ...(filteredFields ? { aggregation: filteredFields } : {}),
-            })
+          ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
+              meta.value!.id,
+              {
+                viewId: view.value!.id,
+                ...(filteredFields ? { aggregation: filteredFields } : {}),
+              },
+              aggregationParams,
+            )
+          : await fetchBulkAggregatedData(
+              {
+                ...(filteredFields ? { aggregation: filteredFields } : {}),
+              },
+              aggregationParams,
+            )
 
         Object.entries(response).forEach(([key, value]) => {
           const child = (group.children ?? []).find((c) => c.key.toString() === key.toString())
@@ -605,7 +765,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel].column, group.displayValueProp)
           )
         })
-        console.log(child)
 
         if (child) {
           return findGroupForRow(row, child, nestLevel + 1)
@@ -629,15 +788,12 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               }
               if (group) {
                 group.rows?.splice(group!.rows.indexOf(row), 1)
-                console.log('removed Bunch')
                 modifyCount(group, -1)
               }
             }
           } else {
             if (group) {
               group.rows?.splice(group!.rows.indexOf(row), 1)
-              console.log('removed Bunch22')
-
               modifyCount(group, -1)
             } else {
               rootGroup.value.rows?.splice(rootGroup.value.rows!.indexOf(row), 1)

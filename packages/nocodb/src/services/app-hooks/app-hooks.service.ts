@@ -39,6 +39,7 @@ import type {
   WebhookEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
+import type { IntegrationEvent } from '~/services/app-hooks/interfaces';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 const ALL_EVENTS = '__nc_all_events__';
@@ -124,6 +125,13 @@ export class AppHooksService {
       | AppEvents.COLUMN_DELETE
       | AppEvents.COLUMN_CREATE,
     listener: (data: ColumnEvent) => void,
+  ): () => void;
+  on(
+    event:
+      | AppEvents.INTEGRATION_UPDATE
+      | AppEvents.INTEGRATION_DELETE
+      | AppEvents.INTEGRATION_CREATE,
+    listener: (data: IntegrationEvent) => void,
   ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);
@@ -265,6 +273,13 @@ export class AppHooksService {
   emit(event: AppEvents.EXTENSION_CREATE, data: any): void;
   emit(event: AppEvents.EXTENSION_UPDATE, data: any): void;
   emit(event: AppEvents.EXTENSION_DELETE, data: any): void;
+  emit(
+    event:
+      | AppEvents.INTEGRATION_CREATE
+      | AppEvents.INTEGRATION_DELETE
+      | AppEvents.INTEGRATION_UPDATE,
+    data: IntegrationEvent,
+  ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });

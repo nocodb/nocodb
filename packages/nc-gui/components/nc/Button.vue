@@ -21,6 +21,7 @@ interface Props {
   centered?: boolean
   fullWidth?: boolean
   iconOnly?: boolean
+  iconPosition?: 'left' | 'right'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -29,6 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
   type: 'primary',
   fullWidth: false,
   centered: true,
+  iconPosition: 'left',
 })
 
 const emits = defineEmits(['update:loading'])
@@ -97,17 +99,19 @@ useEventListener(NcButton, 'mousedown', () => {
       }"
       class="flex flex-row gap-x-2.5 w-full"
     >
-      <GeneralLoader
-        v-if="loading"
-        :class="{
-          '!text-white': type === 'primary' || type === 'danger',
-          '!text-gray-800': type !== 'primary' && type !== 'danger',
-        }"
-        class="flex !bg-inherit"
-        size="medium"
-      />
+      <template v-if="iconPosition === 'left'">
+        <GeneralLoader
+          v-if="loading"
+          :class="{
+            '!text-white': type === 'primary' || type === 'danger',
+            '!text-gray-800': type !== 'primary' && type !== 'danger',
+          }"
+          class="flex !bg-inherit"
+          size="medium"
+        />
 
-      <slot v-else name="icon" />
+        <slot v-else name="icon" />
+      </template>
       <div
         v-if="!(size === 'xxsmall' && loading) && !props.iconOnly"
         :class="{
@@ -120,6 +124,19 @@ useEventListener(NcButton, 'mousedown', () => {
 
         <slot v-else />
       </div>
+      <template v-if="iconPosition === 'right'">
+        <GeneralLoader
+          v-if="loading"
+          :class="{
+            '!text-white': type === 'primary' || type === 'danger',
+            '!text-gray-800': type !== 'primary' && type !== 'danger',
+          }"
+          class="flex !bg-inherit"
+          size="medium"
+        />
+
+        <slot v-else name="icon" />
+      </template>
     </div>
   </a-button>
 </template>

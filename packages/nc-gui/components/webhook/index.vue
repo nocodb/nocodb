@@ -224,24 +224,6 @@ const validators = computed(() => {
 })
 const { validate, validateInfos } = useForm(hookRef, validators)
 
-const isValid = computed(() => {
-  // Recursively check if all the fields are valid
-  const check = (obj: Record<string, any>) => {
-    for (const key in obj) {
-      if (typeof obj[key] === 'object') {
-        if (!check(obj[key])) {
-          return false
-        }
-      } else if (obj && key === 'validateStatus' && obj[key] === 'error') {
-        return false
-      }
-    }
-    return true
-  }
-
-  return hookRef && check(validateInfos)
-})
-
 const getChannelsArray = (val: unknown) => {
   if (val) {
     if (Array.isArray(val)) {

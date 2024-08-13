@@ -179,7 +179,6 @@ export class HooksService {
         prevData: null,
         newData: row,
         user: param.req.user,
-        testFilters: (hook as any)?.filters,
         throwErrorOnFailure: true,
         testHook: false,
       });

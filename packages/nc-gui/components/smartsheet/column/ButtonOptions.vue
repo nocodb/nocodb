@@ -345,8 +345,8 @@ const isWebhookModal = ref(false)
 
 const newWebhook = () => {
   selectedWebhook.value = undefined
-  isWebhookCreateModalOpen.value = true
   isWebhookModal.value = true
+  isWebhookCreateModalOpen.value = true
 }
 
 const onClose = (hook: HookType) => {

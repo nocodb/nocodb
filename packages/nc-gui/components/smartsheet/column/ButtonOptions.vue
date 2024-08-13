@@ -436,7 +436,13 @@ const selectIcon = (icon: string) => {
     <a-form-item v-if="vModel?.type === 'webhook'" class="!mt-4">
       <div class="mb-2 text-gray-700 text-[13px] flex justify-between">
         {{ $t('labels.webhook') }}
-        <a class="font-medium" href="https://docs.nocodb.com/automation/webhook/create-webhook/" target="_blank"> Docs </a>
+        <a
+          class="font-medium"
+          href="https://docs.nocodb.com/fields/field-types/custom-types/button#create-a-button-field"
+          target="_blank"
+        >
+          Docs
+        </a>
       </div>
       <div class="flex rounded-lg nc-color-picker-dropdown-trigger">
         <NcDropdown v-model:visible="isWebHookSelectionDropdownOpen" :trigger="['click']">

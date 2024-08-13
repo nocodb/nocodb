@@ -181,7 +181,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const hook = await Hook.get(context, params.hookId);
 
       if (!hook) {
-        NcError.genericNotFound('Webhook', params.hookId);
+        NcError.hookNotFound(params.hookId);
       }
 
       req.ncBaseId = hook.base_id;

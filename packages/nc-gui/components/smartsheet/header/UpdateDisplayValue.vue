@@ -89,28 +89,28 @@ onMounted(() => {
 
       <div class="border-1 rounded-md h-[250px] nc-scrollbar-md border-gray-200">
         <div
-          v-for="column in filteredColumns"
-          :key="column.fk_column_id"
+          v-for="col in filteredColumns"
+          :key="col.fk_column_id"
           :class="{
-            'bg-gray-100': selectedField === column,
+            'bg-gray-100': selectedField === col,
           }"
-          :data-testid="`nc-display-field-update-menu-${column.title}`"
+          :data-testid="`nc-display-field-update-menu-${col.title}`"
           class="px-3 py-1 flex flex-row items-center rounded-md hover:bg-gray-100"
-          @click.stop="selectedField = column"
+          @click.stop="selectedField = col"
         >
           <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2">
-            <component :is="getIcon(meta.columnsById[column.fk_column_id])" class="!w-3.5 !h-3.5 !text-gray-500" />
+            <component :is="getIcon(meta.columnsById[col.fk_column_id])" class="!w-3.5 !h-3.5 !text-gray-500" />
             <NcTooltip class="flex-1 pl-1 pr-2 truncate" show-on-truncate-only>
               <template #title>
-                {{ column.title }}
+                {{ col.title }}
               </template>
-              <template #default>{{ column.title }}</template>
+              <template #default>{{ col.title }}</template>
             </NcTooltip>
           </div>
 
           <div class="flex-1" />
 
-          <component :is="iconMap.check" v-if="selectedField === column" class="!w-4 !h-4 !text-brand-500" />
+          <component :is="iconMap.check" v-if="selectedField === col" class="!w-4 !h-4 !text-brand-500" />
         </div>
       </div>
 

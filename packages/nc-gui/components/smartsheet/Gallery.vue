@@ -141,6 +141,13 @@ const openNewRecordFormHookHandler = async () => {
   })
 }
 
+const handleClick = (col, event) => {
+  if (isButton(col)) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+}
+
 openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
 // remove openNewRecordFormHookHandler before unmounting
@@ -338,7 +345,14 @@ watch(
                   <template v-else> - </template>
                 </h2>
 
-                <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
+                <div
+                  v-for="col in fieldsWithoutDisplay"
+                  :key="`record-${record.row.id}-${col.id}`"
+                  :class="{
+                    '!children:pointer-events-auto': isButton(col),
+                  }"
+                  @click="handleClick(col, $event)"
+                >
                   <div class="flex flex-col rounded-lg w-full">
                     <div class="flex flex-row w-full justify-start">
                       <div class="nc-card-col-header w-full !children:text-gray-500">

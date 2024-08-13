@@ -1784,7 +1784,7 @@ export class PgUi {
       case 'LongText':
       case 'Collaborator':
       case 'GeoData':
-        return ['text',  'character varying', 'char', 'character'];
+        return ['text', 'character varying', 'char', 'character'];
 
       case 'Attachment':
         return ['json', 'text', 'char', 'character', 'character varying'];
@@ -1943,6 +1943,7 @@ export class PgUi {
         ];
 
       case 'Formula':
+      case 'Button':
         return ['text', 'character varying'];
 
       case 'Rollup':
@@ -2022,7 +2023,6 @@ export class PgUi {
           'circle',
         ];
 
-      case 'Button':
       default:
         return dbTypes;
     }

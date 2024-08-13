@@ -53,6 +53,7 @@ export enum MetaTable {
   COMMENTS_REACTIONS = 'nc_comment_reactions',
   JOBS = 'nc_jobs',
   INTEGRATIONS = 'nc_integrations_v2',
+  COL_BUTTON = 'nc_col_button_v2',
 }
 
 export enum MetaTableOldV2 {
@@ -182,6 +183,7 @@ export enum CacheScope {
   SSO_CLIENT = 'ssoClient',
   EXTENSION = 'uiExtension',
   INTEGRATION = 'integration',
+  COL_BUTTON = 'colButton',
 }
 
 export enum CacheGetType {

@@ -121,7 +121,10 @@ export class AtImportProcessor {
     const syncDB = job.data;
 
     const req = {
-      user: syncDB.user.email,
+      user: {
+        id: syncDB.user.id,
+        email: syncDB.user.email,
+      },
       clientIp: syncDB.clientIp,
     } as any;
 
@@ -2562,6 +2565,7 @@ export class AtImportProcessor {
               logBasic,
               logDetailed,
               logWarning,
+              req,
             });
 
             if (source.type === 'pg') {

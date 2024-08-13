@@ -219,6 +219,7 @@ export class AppHooksService {
       | AppEvents.WEBHOOK_UPDATE
       | AppEvents.WEBHOOK_CREATE
       | AppEvents.WEBHOOK_DELETE
+      | AppEvents.WEBHOOK_TRIGGER
       | AppEvents.WEBHOOK_TEST,
     data: WebhookEvent,
   ): void;

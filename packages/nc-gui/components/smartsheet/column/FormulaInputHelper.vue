@@ -11,16 +11,19 @@ interface Props {
   error?: boolean
   value: string
   label?: string
-  suggestionHeight?: 'small' | 'medium'
+  editorHeight?: string
+  suggestionHeight?: 'small' | 'medium' | 'large'
+  disableSuggestionHeaders?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  suggestionHeight: 'medium',
+  suggestionHeight: 'large',
+  disableSuggestionHeaders: false,
 })
 
 const emits = defineEmits(['update:value'])
 
-const { error, suggestionHeight } = toRefs(props)
+const { error, suggestionHeight, editorHeight } = toRefs(props)
 
 const value = useVModel(props, 'value', emits)
 
@@ -524,16 +527,14 @@ function scrollToSelectedOption() {
   })
 }
 
-onMounted(() => {
-  jsep.plugins.register(jsepCurlyHook)
-})
-
 const suggestionPreviewPostion = ref({
   top: '0px',
   left: '344px',
 })
 
 onMounted(() => {
+  jsep.plugins.register(jsepCurlyHook)
+
   until(() => monacoRoot.value as HTMLDivElement)
     .toBeTruthy()
     .then(() => {
@@ -627,6 +628,9 @@ const handleKeydown = (e: KeyboardEvent) => {
   <a-form-item :label="label" required v-bind="validateInfos.formula_raw">
     <div
       ref="monacoRoot"
+      :style="{
+        height: editorHeight ?? '100px',
+      }"
       :class="{
         '!border-red-500 formula-error': error,
         '!focus-within:border-brand-500 formula-success': !error,
@@ -637,13 +641,19 @@ const handleKeydown = (e: KeyboardEvent) => {
   </a-form-item>
   <div
     :class="{
-      'h-[250px]': suggestionHeight === 'medium',
+      'h-[250px]': suggestionHeight === 'large',
+      'h-[200px]': suggestionHeight === 'medium',
       'h-[125px]': suggestionHeight === 'small',
     }"
     class="overflow-auto flex flex-col nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4"
   >
     <div v-if="suggestedFormulas && showFunctionList" :style="{ order: priority === -1 ? 2 : 1 }">
-      <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">Formulas</div>
+      <div
+        v-if="!disableSuggestionHeaders"
+        class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10"
+      >
+        Formulas
+      </div>
 
       <a-list :data-source="suggestedFormulas" :locale="{ emptyText: $t('msg.formula.noSuggestedFormulaFound') }">
         <template #renderItem="{ item, index }">
@@ -680,7 +690,12 @@ const handleKeydown = (e: KeyboardEvent) => {
     </div>
 
     <div v-if="variableList" :style="{ order: priority === 1 ? 2 : 1 }">
-      <div class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10">Fields</div>
+      <div
+        v-if="!disableSuggestionHeaders"
+        class="border-b-1 bg-gray-50 px-3 py-1 uppercase text-gray-600 text-xs font-semibold sticky top-0 z-10"
+      >
+        Fields
+      </div>
 
       <a-list
         ref="variableListRef"
@@ -747,9 +762,8 @@ const handleKeydown = (e: KeyboardEvent) => {
 
 .formula-monaco {
   @apply rounded-md nc-scrollbar-md border-gray-200 border-1 overflow-y-auto overflow-x-hidden resize-y;
-  min-height: 100px;
-  height: 120px;
   max-height: 250px;
+  min-height: 50px;
 
   &:focus-within:not(.formula-error) {
     box-shadow: 0 0 0 2px var(--ant-primary-color-outline);

@@ -560,7 +560,7 @@ watch(isHooksLoading, () => {
     </NcDropdown>
   </a-form-item>
 
-  <Webhook v-model:value="isWebhookCreateModalOpen" :event-list="eventList" @close="onClose" />
+  <Webhook v-if="isWebhookCreateModalOpen" v-model:value="isWebhookCreateModalOpen" :event-list="eventList" @close="onClose" />
 </template>
 
 <style scoped lang="scss">

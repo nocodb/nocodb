@@ -1006,7 +1006,7 @@ onMounted(async () => {
 
 <style lang="scss">
 .nc-modal-webhook-create-edit {
-  z-index: 3000;
+  z-index: 1050;
   a {
     @apply !no-underline !text-gray-700 !hover:text-primary;
   }

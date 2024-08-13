@@ -20,7 +20,7 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits<{ selected: [T] }>()
+const emits = defineEmits<{ (e: 'selected', value: T): void }>()
 
 defineSlots<{
   default: (props: { option: T }) => any
@@ -174,7 +174,6 @@ watch(
         </div>
         <GeneralIcon
           v-if="showSelectedOption && option[uniqueIdentifier] === selectedOptionId"
-          id="nc-selected-item-icon"
           icon="check"
           class="flex-none text-primary w-4 h-4"
         />

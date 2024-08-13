@@ -513,7 +513,7 @@ const selectIcon = (icon: string) => {
         <NcButton
           size="small"
           type="secondary"
-          class="!rounded-l-none border-l-[#d9d9d9] nc-button-style-dropdown"
+          class="!rounded-l-none border-l-[#d9d9d9] !hover:bg-white nc-button-style-dropdown"
           :class="{
             'nc-button-style-dropdown shadow-dropdown-open remove-left-shadow': isWebHookSelectionDropdownOpen,
           }"
@@ -576,34 +576,43 @@ const selectIcon = (icon: string) => {
   &.solid {
     @apply text-white;
 
-    &[class*='brand'] {
-      @apply !bg-brand-500;
+    &.brand {
+      @apply bg-brand-500;
     }
-    &[class*='red'] {
+
+    &.red {
       @apply bg-red-600;
     }
-    &[class*='green'] {
+
+    &.green {
       @apply bg-green-600;
     }
-    &[class*='maroon'] {
+
+    &.maroon {
       @apply bg-maroon-600;
     }
-    &[class*='blue'] {
+
+    &.blue {
       @apply bg-blue-600;
     }
-    &[class*='orange'] {
+
+    &.orange {
       @apply bg-orange-600;
     }
-    &[class*='pink'] {
+
+    &.pink {
       @apply bg-pink-600;
     }
-    &[class*='purple'] {
+
+    &.purple {
       @apply bg-purple-500;
     }
-    &[class*='yellow'] {
+
+    &.yellow {
       @apply bg-yellow-600;
     }
-    &[class*='gray'] {
+
+    &.gray {
       @apply bg-gray-600;
     }
   }
@@ -611,34 +620,43 @@ const selectIcon = (icon: string) => {
   &.light {
     @apply text-gray-700;
 
-    &[class*='brand'] {
+    &.brand {
       @apply bg-brand-200;
     }
-    &[class*='red'] {
+
+    &.red {
       @apply bg-red-200;
     }
-    &[class*='green'] {
+
+    &.green {
       @apply bg-green-200;
     }
-    &[class*='maroon'] {
+
+    &.maroon {
       @apply bg-maroon-200;
     }
-    &[class*='blue'] {
+
+    &.blue {
       @apply bg-blue-200;
     }
-    &[class*='orange'] {
+
+    &.orange {
       @apply bg-orange-200;
     }
-    &[class*='pink'] {
+
+    &.pink {
       @apply bg-pink-200;
     }
-    &[class*='purple'] {
+
+    &.purple {
       @apply bg-purple-200;
     }
-    &[class*='yellow'] {
+
+    &.yellow {
       @apply bg-yellow-200;
     }
-    &[class*='gray'] {
+
+    &.gray {
       @apply bg-gray-200;
     }
   }
@@ -646,34 +664,43 @@ const selectIcon = (icon: string) => {
   &.text {
     @apply border-1 border-gray-200 rounded;
 
-    &[class*='brand'] {
+    &.brand {
       @apply text-brand-500;
     }
-    &[class*='red'] {
+
+    &.red {
       @apply text-red-600;
     }
-    &[class*='green'] {
+
+    &.green {
       @apply text-green-600;
     }
-    &[class*='maroon'] {
+
+    &.maroon {
       @apply text-maroon-600;
     }
-    &[class*='blue'] {
+
+    &.blue {
       @apply text-blue-600;
     }
-    &[class*='orange'] {
+
+    &.orange {
       @apply text-orange-600;
     }
-    &[class*='pink'] {
+
+    &.pink {
       @apply text-pink-600;
     }
-    &[class*='purple'] {
+
+    &.purple {
       @apply text-purple-500;
     }
-    &[class*='yellow'] {
+
+    &.yellow {
       @apply text-yellow-600;
     }
-    &[class*='gray'] {
+
+    &.gray {
       @apply text-gray-600;
     }
   }

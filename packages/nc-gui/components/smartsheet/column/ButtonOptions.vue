@@ -17,9 +17,12 @@ import { searchIcons } from '../../../utils/iconUtils'
 
 const props = defineProps<{
   value: any
+  fromTableExplorer?: boolean
 }>()
 
 const emit = defineEmits(['update:value'])
+
+const { fromTableExplorer } = toRefs(props)
 
 const { t } = useI18n()
 
@@ -273,7 +276,6 @@ const mountMonaco = () => {
     })
 
     editor.onDidChangeModelContent(async () => {
-      console.log(editor.getValue())
       vModel.value.formula_raw = editor.getValue()
     })
     editor.focus()
@@ -348,6 +350,10 @@ onMounted(async () => {
     vModel.value.label = 'Button'
     vModel.value.color = 'brand'
     updateValidations('url')
+  }
+
+  if (fromTableExplorer.value) {
+    mountMonaco()
   }
 })
 

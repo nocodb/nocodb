@@ -504,7 +504,11 @@ const isFullUpdateAllowed = computed(() => {
           v-model:value="formState"
           :from-table-explorer="props.fromTableExplorer || false"
         />
-        <SmartsheetColumnButtonOptions v-if="formState.uidt === UITypes.Button" v-model:value="formState" />
+        <SmartsheetColumnButtonOptions
+          v-if="formState.uidt === UITypes.Button"
+          v-model:value="formState"
+          :from-table-explorer="props.fromTableExplorer || false"
+        />
       </template>
       <template v-if="formState.uidt">
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">

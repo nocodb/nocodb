@@ -197,7 +197,7 @@ const openDuplicateDlg = async () => {
       },
     }
 
-    if (column.value.uidt === UITypes.Formula) {
+    if (column.value.uidt === UITypes.Formula || column.value.uidt === UITypes.Button) {
       nextTick(() => {
         duplicateDialogRef?.value?.duplicate()
       })

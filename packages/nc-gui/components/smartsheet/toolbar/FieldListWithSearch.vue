@@ -82,12 +82,10 @@ const configByToolbarMenu = computed(() => {
     :selected-option-id="selectedOptionId"
     filter-field="title"
     :show-selected-option="showSelectedOption"
-    @selected="($event) => emits('selected', $event)"
+    @selected="emits('selected', $event)"
   >
     <template #default="{ option }">
       <SmartsheetHeaderIcon :column="option" class="!w-3.5 !h-3.5 !text-gray-500" />
     </template>
   </NcListWithSearch>
 </template>
-
-<style lang="scss" scoped></style>

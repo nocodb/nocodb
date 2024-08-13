@@ -105,7 +105,7 @@ const validators = {
       validator: (_: any, fk_webhook_id: any) => {
         return new Promise<void>((resolve, reject) => {
           if (vModel.value.type === 'webhook' && !fk_webhook_id) {
-            reject(new Error(t('msg.required')))
+            reject(new Error(t('general.required')))
           }
           resolve()
         })

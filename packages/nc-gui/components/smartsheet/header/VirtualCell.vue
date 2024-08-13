@@ -10,7 +10,6 @@ import {
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, UITypesName, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
-import { isColumnInvalid } from '../../../utils/columnUtils'
 
 const props = defineProps<{
   column: ColumnType

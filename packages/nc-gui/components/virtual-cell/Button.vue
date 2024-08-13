@@ -39,7 +39,7 @@ const disableButton = computed(() => {
 })
 
 const isButtonInValid = computed(() => {
-  if (column.value.colOptions.type === 'webhook' && !props.modelValue.fk_webhook_id) {
+  if (column.value.colOptions.type === 'webhook' && !props.modelValue?.fk_webhook_id) {
     return true
   }
   return false
@@ -52,7 +52,7 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      await $api.dbTableWebhook.trigger(props.modelValue.fk_webhook_id, rowId.value)
+      await $api.dbTableWebhook.trigger(props.modelValue?.fk_webhook_id, rowId.value)
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -78,7 +78,7 @@ const triggerAction = async () => {
               href: encodeURI(
                 /^(https?|ftp|mailto|file):\/\//.test(modelValue.url)
                   ? modelValue.url
-                  : modelValue.url.trim()
+                  : modelValue.url?.trim()
                   ? `http://${modelValue.url}`
                   : '',
               ),
@@ -89,10 +89,10 @@ const triggerAction = async () => {
             }),
       }"
       data-testid="nc-button-cell"
-      :class="{
-        [`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`]: true,
-        '!w-7': !column.colOptions.label,
-      }"
+      :class="[
+        `${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`,
+        { '!w-6': !column.colOptions.label },
+      ]"
       class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center h-6"
       @click="triggerAction"
     >

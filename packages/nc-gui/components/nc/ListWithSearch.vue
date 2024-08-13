@@ -11,7 +11,7 @@ const props = withDefaults(
     options: Array<T>
     disableMascot?: boolean
     selectedOptionId?: string
-    uniqueIdentifier: keyof T
+    uniqueIdentifier?: keyof T
     filterField: keyof T
     showSelectedOption?: boolean
   }>(),

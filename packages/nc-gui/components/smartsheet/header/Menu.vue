@@ -515,13 +515,7 @@ const changeTitleField = () => {
               </template>
               <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('asc')">
                 <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-                  <component
-                    :is="iconMap.sortDesc"
-                    class="text-gray-500 !rotate-180 !w-4.25 !h-4.25"
-                    :style="{
-                      transform: 'rotate(180deg)',
-                    }"
-                  />
+                  <component :is="iconMap.sortDesc" class="text-gray-500 transform !rotate-180 !w-4.25 !h-4.25" />
 
                   <!-- Sort Ascending -->
                   {{ $t('general.sortAsc') }}

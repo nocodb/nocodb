@@ -134,6 +134,7 @@ function pause_workers_and_gracefully_shutdown(){
 
 function perform_rollout(){
     PROMOTE_IMAGE_BEFORE_ROLLOUT=${1:-false}
+    PAUSE_AND_SHUTDOWN_WORKERS=${2:-false}
     if [[ ! "${ENVIRONMENT}" || ! "${CLUSTER}" ]]; then echo "CLUSTER and ENVIRONMENT variables must be set for check status"; log_and_exit  ; fi
 
     global_retry_count=0
@@ -149,8 +150,10 @@ function perform_rollout(){
     latest_remote_digest=$(aws ecr batch-get-image --region us-east-2 --repository-name ${REPO_NAME:-nocohub} --image-ids imageTag=${STAGE_TAG} --output text --query images[].imageId )
     message "${ENVIRONMENT}: Image with tag:${STAGE_TAG} will be launched. digest: ${latest_remote_digest}"
 
-    # image is promoted so we can update workers and other services
-    pause_workers_and_gracefully_shutdown
+    if [[ "${PAUSE_AND_SHUTDOWN_WORKERS}" == "true" ]]
+    then
+        pause_workers_and_gracefully_shutdown
+    fi
 
     # TODO: prewarm ASG to have additional instances. update only desired 
     ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER}  --region=us-east-2  | jq -r '.serviceArns[] | split("/") | .[2]')

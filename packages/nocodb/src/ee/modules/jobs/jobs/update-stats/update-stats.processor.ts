@@ -11,8 +11,6 @@ import { CacheGetType, CacheScope, RootScopes } from '~/utils/globals';
 export class UpdateStatsProcessor {
   private readonly debugLog = debug('nc:jobs:update-stats');
 
-  constructor() {}
-
   @Process(JobTypes.UpdateModelStat)
   async updateModelStat(job: Job) {
     const {
@@ -145,8 +143,14 @@ export class UpdateStatsProcessor {
 
         try {
           for (const model of models) {
+            const modelContext = {
+              workspace_id: model.fk_workspace_id,
+              base_id: model.base_id,
+            };
+
             await this.updateModelStat({
               data: {
+                context: modelContext,
                 fk_workspace_id,
                 fk_model_id: model.id,
                 updated_at: new Date().toISOString(),

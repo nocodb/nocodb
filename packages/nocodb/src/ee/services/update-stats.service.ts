@@ -43,34 +43,27 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  private async updateWorkspaceStat(
-    context: NcContext,
-    {
-      fk_workspace_id,
-    }: {
-      fk_workspace_id?: string;
-    },
-  ): Promise<void> {
+  private async updateWorkspaceStat({
+    fk_workspace_id,
+  }: {
+    fk_workspace_id?: string;
+  }): Promise<void> {
     await this.jobsService.add(JobTypes.UpdateWsStat, {
-      context,
       fk_workspace_id,
       force: true,
     });
   }
 
-  private async updateWorkspaceCounter(
-    context: NcContext,
-    {
-      fk_workspace_id,
-      fk_model_id,
-      count,
-    }: {
-      fk_workspace_id?: string;
-      base_id?: string;
-      fk_model_id?: string;
-      count?: number;
-    },
-  ): Promise<void> {
+  private async updateWorkspaceCounter({
+    fk_workspace_id,
+    fk_model_id,
+    count,
+  }: {
+    fk_workspace_id?: string;
+    base_id?: string;
+    fk_model_id?: string;
+    count?: number;
+  }): Promise<void> {
     const updatedCount = await NocoCache.incrby(
       `${CacheScope.WORKSPACE_CREATE_DELETE_COUNTER}:${fk_workspace_id}`,
       count,
@@ -102,12 +95,10 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
         return this.updateModelStat(context, rest);
       }),
       this.eventEmitter.on(UPDATE_WORKSPACE_STAT, (arg) => {
-        const { context, ...rest } = arg;
-        return this.updateWorkspaceStat(context, rest);
+        return this.updateWorkspaceStat(arg);
       }),
       this.eventEmitter.on(UPDATE_WORKSPACE_COUNTER, (arg) => {
-        const { context, ...rest } = arg;
-        return this.updateWorkspaceCounter(context, rest);
+        return this.updateWorkspaceCounter(arg);
       }),
     ];
   }

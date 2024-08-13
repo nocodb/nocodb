@@ -9,7 +9,7 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 source ${SCRIPT_DIR}/rollout_util.sh
-PROMOTE_IMAGE_BEFORE_ROLLOUT="${1:-false}"
+="${1:-false}"
 ENVIRONMENT="Production"
 ECR_REPO_NAME=nocohub
 PRE_REL_STAGE_TAG="ws-pre-release"
@@ -24,4 +24,4 @@ ASG_NAME=nocohub-nocodb_ai_main
 
 # prewarm_asg
 # function call in rollout_util.sh file
-perform_rollout "${PROMOTE_IMAGE_BEFORE_ROLLOUT}"
+perform_rollout "${PROMOTE_IMAGE_BEFORE_ROLLOUT}" true

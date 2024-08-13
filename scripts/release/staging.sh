@@ -23,4 +23,4 @@ ASG_NAME=nocohub-noco_to_main
 
 # prewarm_asg
 # function call in rollout_util.sh file
-perform_rollout
+perform_rollout false true

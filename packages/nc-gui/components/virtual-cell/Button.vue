@@ -42,7 +42,7 @@ const triggerAction = () => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-md px-2 flex items-center py-1 justify-center;
+  @apply rounded-lg px-2 flex items-center py-1 justify-center;
 
   &.solid {
     @apply text-white;
@@ -115,7 +115,7 @@ const triggerAction = () => {
   }
 
   &.text {
-    @apply border-1 border-gray-200 rounded;
+    @apply border-1 border-gray-200;
 
     &[class*='brand'] {
       @apply text-brand-500;

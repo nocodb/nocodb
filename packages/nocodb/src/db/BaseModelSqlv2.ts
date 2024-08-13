@@ -4323,7 +4323,6 @@ class BaseModelSqlv2 {
                       `json_object('type', ?, 'label', ?, 'url', ??) as ??`,
                       [
                         colOption.type,
-                        ,
                         `${colOption.label}`,
                         selectQb.builder,
                         column.id,

@@ -52,11 +52,24 @@ const triggerAction = async () => {
   <div class="w-full flex items-center justify-center">
     <button
       :class="`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`"
-      class="nc-cell-button"
+      class="nc-cell-button max-w-28 h-6 min-w-20"
       :disabled="isLoading"
       @click="triggerAction"
     >
-      {{ column.colOptions.label }}
+      <GeneralLoader
+        v-if="isLoading"
+        :class="{
+          '!text-white': column.colOptions.theme === 'solid',
+          '!text-gray': column.colOptions.theme === 'text',
+          '!text-gray-700': column.colOptions.theme === 'light',
+        }"
+        class="flex !bg-inherit"
+        size="medium"
+      />
+      <div v-else class="flex items-center gap-2 justify-center">
+        <GeneralIcon :icon="column.colOptions.icon" class="w-4 h-4" />
+        {{ column.colOptions.label }}
+      </div>
     </button>
   </div>
 </template>

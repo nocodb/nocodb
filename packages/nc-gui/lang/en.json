@@ -615,6 +615,7 @@
     "categories": "Categories"
   },
   "labels": {
+    "selectIcon": "-no icon-",
     "selectAWebhook": "--select a webhook--",
     "openUrl": "Open URL",
     "runWebHook": "Run Webhook",
@@ -1281,6 +1282,7 @@
     "comingSoonIntegration": "Coming soon! Click to upvote for the integration you need in NocoDB."
   },
   "placeholder": {
+    "searchIcons": "Search icons",
     "selectSlackChannels": "Select Slack channels",
     "selectTeamsChannels": "Select Microsoft Teams channels",
     "selectDiscordChannels": "Select Discord channels",

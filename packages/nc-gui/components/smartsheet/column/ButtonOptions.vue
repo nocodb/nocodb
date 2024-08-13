@@ -633,7 +633,7 @@ onMounted(async () => {
               :class="{
                 '!border-brand-500 shadow-selected nc-button-style-dropdown ': isDropdownOpen,
               }"
-              class="nc-button-style-dropdown-not-focus flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
+              class="flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
             >
               <div class="flex w-full items-center gap-2">
                 <div class="flex gap-2 items-center w-full">
@@ -665,7 +665,7 @@ onMounted(async () => {
               :class="{
                 '!border-brand-500 shadow-selected nc-button-style-dropdown ': isButtonIconDropdownOpen,
               }"
-              class="nc-button-style-dropdown-not-focus flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
+              class="flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
             >
               <div class="flex w-full items-center justify-between gap-2">
                 <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4" />
@@ -753,33 +753,12 @@ onMounted(async () => {
     </a-form-item>
 
     <a-form-item v-if="vModel?.type === 'webhook'" class="!mt-4">
-      <div class="flex gap-2">
+      <div class="flex">
         <NcDropdown
           v-model:visible="isWebHookSelectionDropdownOpen"
           :trigger="['click']"
           class="nc-color-picker-dropdown-trigger"
         >
-          <div
-            :class="{
-              '!border-brand-500 shadow-selected nc-button-style-dropdown ': isWebHookSelectionDropdownOpen,
-            }"
-            class="nc-button-style-dropdown-not-focus nc-button-webhook-select flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
-          >
-            <div class="flex w-full items-center gap-2">
-              <div
-                :key="selectedWebhook?.id"
-                class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
-              >
-                <NcTooltip class="truncate max-w-full" show-on-truncate-only>
-                  <template #title>
-                    {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
-                  </template>
-                  {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
-                </NcTooltip>
-              </div>
-              <GeneralIcon icon="arrowDown" class="text-gray-700" />
-            </div>
-          </div>
           <template #overlay>
             <NcListWithSearch
               v-if="isWebHookSelectionDropdownOpen"
@@ -804,8 +783,45 @@ onMounted(async () => {
               </template>
             </NcListWithSearch>
           </template>
+          <div
+            :class="{
+              '!border-brand-500 shadow-selected remove-right-shadow nc-button-style-dropdown ': isWebHookSelectionDropdownOpen,
+            }"
+            class="nc-button-webhook-select border-r-0 flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-l-lg"
+          >
+            <div class="flex w-full items-center gap-2">
+              <div
+                :key="selectedWebhook?.id"
+                class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
+              >
+                <NcTooltip class="truncate max-w-full" show-on-truncate-only>
+                  <template #title>
+                    {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
+                  </template>
+                  {{ !selectedWebhook?.title ? $t('labels.selectAWebhook') : selectedWebhook?.title }}
+                </NcTooltip>
+              </div>
+              <GeneralIcon
+                icon="arrowDown"
+                :class="{
+                  'transform rotate-180': isWebHookSelectionDropdownOpen,
+                }"
+                class="text-gray-700 transition-all transition-transform"
+              />
+            </div>
+          </div>
         </NcDropdown>
-        <NcButton size="small" type="secondary" :disabled="!selectedWebhook" @click="editWebhook">
+        <NcButton
+          size="small"
+          type="secondary"
+          class="!rounded-l-none border-l-[#d9d9d9] nc-button-style-dropdown"
+          :class="{
+            '!border-t-brand-500 !border-b-brand-500 remove-left-shadow !border-r-brand-500  !shadow-selected nc-button-style-dropdown':
+              isWebHookSelectionDropdownOpen,
+          }"
+          :disabled="!selectedWebhook"
+          @click="editWebhook"
+        >
           <GeneralIcon icon="ncEdit" />
         </NcButton>
       </div>
@@ -825,7 +841,13 @@ onMounted(async () => {
 .nc-list-with-search {
   @apply w-full;
 }
+.remove-right-shadow {
+  clip-path: inset(-2px 0px -2px -2px) !important;
+}
 
+.remove-left-shadow {
+  clip-path: inset(-2px -2px -2px 0px) !important;
+}
 .formula-monaco {
   @apply rounded-md nc-scrollbar-md border-gray-200 border-1 overflow-y-auto overflow-x-hidden resize-y;
   min-height: 100px;
@@ -850,7 +872,6 @@ onMounted(async () => {
 
 .nc-button-style-dropdown {
   @apply border-[#d9d9d9];
-  width: 100%;
 }
 
 .nc-cell-button {

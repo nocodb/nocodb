@@ -72,7 +72,7 @@ const triggerAction = async () => {
   >
     <button
       :class="`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`"
-      class="nc-cell-button btn-cell-colors flex items-center h-6"
+      class="nc-cell-button btn-cell-colors truncate flex items-center h-6"
       :disabled="disableButton"
       @click="triggerAction"
     >
@@ -86,8 +86,8 @@ const triggerAction = async () => {
         class="flex btn-cell-colors !bg-transparent w-4 h-4"
         size="medium"
       />
-      <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="w-4 h-4" />
-      <span class="text-[13px] font-medium">
+      <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
+      <span v-if="column.colOptions.label" class="text-[13px] truncate font-medium">
         {{ column.colOptions.label }}
       </span>
     </button>

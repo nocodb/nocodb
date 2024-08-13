@@ -142,6 +142,7 @@
     "@types/inflection": "^1.13.2",
     "@types/leaflet": "^1.9.12",
     "@types/leaflet.markercluster": "^1.5.4",
+    "@types/marked": "^6.0.0",
     "@types/papaparse": "^5.3.14",
     "@types/parse-github-url": "^1.0.3",
     "@types/qrcode": "^1.5.5",

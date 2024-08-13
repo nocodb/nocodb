@@ -49,11 +49,12 @@ const triggerAction = async () => {
 
 const componentProps = computed(() => {
   if (column.value.colOptions.type === 'url') {
-    const url = `${cellValue.value?.url}`
+    let url = `${cellValue.value?.url}`
+    url = encodeURI(/^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `http://${url}` : '')
     return {
-      href: encodeURI(/^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `http://${url}` : ''),
+      href: url,
       target: '_blank',
-      ...(!cellValue.value?.url || column.value?.colOptions.error ? { disabled: true } : {}),
+      ...(column.value?.colOptions.error ? { disabled: true } : {}),
     }
   } else {
     return {

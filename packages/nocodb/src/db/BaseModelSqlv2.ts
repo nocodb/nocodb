@@ -7851,6 +7851,7 @@ class BaseModelSqlv2 {
       skipAttachmentConversion?: boolean;
       skipSubstitutingColumnIds?: boolean;
       skipUserConversion?: boolean;
+      skipButtonConversion?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
       bulkAggregate?: boolean;
@@ -7859,6 +7860,7 @@ class BaseModelSqlv2 {
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
       skipUserConversion: false,
+      skipButtonConversion: false,
       raw: false,
       first: false,
       bulkAggregate: false,
@@ -7869,6 +7871,7 @@ class BaseModelSqlv2 {
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
       options.skipUserConversion = true;
+      options.skipButtonConversion = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -7896,6 +7899,10 @@ class BaseModelSqlv2 {
     // update user fields
     if (!options.skipUserConversion) {
       data = await this.convertUserFormat(data, dependencyColumns);
+    }
+
+    if (!options.skipButtonConversion) {
+      data = await this.convertButtonType(data, dependencyColumns);
     }
 
     if (!options.skipSubstitutingColumnIds) {
@@ -8304,6 +8311,30 @@ class BaseModelSqlv2 {
     return d;
   }
 
+  protected async _convertButtonType(
+    buttonColumns: Record<string, any>[],
+    d: Record<string, any>,
+  ) {
+    try {
+      if (d) {
+        for (const col of buttonColumns) {
+          if (d[col.id] && typeof d[col.id] === 'string') {
+            d[col.id] = JSON.parse(d[col.id]);
+          }
+
+          if (d[col.id]?.length) {
+            for (let i = 0; i < d[col.id].length; i++) {
+              if (typeof d[col.id][i] === 'string') {
+                d[col.id][i] = JSON.parse(d[col.id][i]);
+              }
+            }
+          }
+        }
+      }
+    } catch {}
+    return d;
+  }
+
   public async getNestedColumn(column: Column) {
     if (column.uidt !== UITypes.Lookup) {
       return column;
@@ -8312,6 +8343,42 @@ class BaseModelSqlv2 {
     return this.getNestedColumn(
       await colOptions?.getLookupColumn(this.context),
     );
+  }
+
+  public async convertButtonType(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ) {
+    // buttons result are stringified json in Sqlite and need to be parsed
+    // convertButtonType is used to convert the response in string to array of object in API response
+    if (data) {
+      const buttonCols = [];
+
+      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+
+      for (const col of columns) {
+        if (col.uidt === UITypes.Lookup) {
+          if ((await this.getNestedColumn(col))?.uidt === UITypes.Button) {
+            buttonCols.push(col);
+          }
+        } else {
+          if (col.uidt === UITypes.Button) {
+            buttonCols.push(col);
+          }
+        }
+      }
+
+      if (buttonCols.length) {
+        if (Array.isArray(data)) {
+          data = await Promise.all(
+            data.map((d) => this._convertButtonType(buttonCols, d)),
+          );
+        } else {
+          data = await this._convertButtonType(buttonCols, data);
+        }
+      }
+    }
+    return data;
   }
 
   public async convertAttachmentType(

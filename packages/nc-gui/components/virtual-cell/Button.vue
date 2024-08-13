@@ -19,6 +19,10 @@ const isGrid = inject(IsGridInj, ref(false))
 
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
+const { isUIAllowed } = useRoles()
+
+const isPublic = inject(IsPublicInj, ref(false))
+
 const { $api } = useNuxtApp()
 
 const rowId = computed(() => {
@@ -26,6 +30,13 @@ const rowId = computed(() => {
 })
 
 const isLoading = ref(false)
+
+const disableButton = computed(() => {
+  if (column.value.colOptions.type === 'url') return false
+  else {
+    return isPublic.value || !isUIAllowed('hookTrigger') || isLoading.value
+  }
+})
 
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
@@ -62,7 +73,7 @@ const triggerAction = async () => {
     <button
       :class="`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`"
       class="nc-cell-button max-w-28 h-6 min-w-20"
-      :disabled="isLoading"
+      :disabled="isLoading || isPublic || !isUIAllowed('hookTrigger')"
       @click="triggerAction"
     >
       <GeneralLoader
@@ -76,8 +87,10 @@ const triggerAction = async () => {
         size="medium"
       />
       <div v-else class="flex items-center gap-2 justify-center">
-        <GeneralIcon :icon="column.colOptions.icon" class="w-4 h-4" />
-        {{ column.colOptions.label }}
+        <GeneralIcon v-if="column.colOptions.icon" :icon="column.colOptions.icon" class="w-4 h-4" />
+        <span class="text-[13px] font-medium">
+          {{ column.colOptions.label }}
+        </span>
       </div>
     </button>
   </div>
@@ -98,40 +111,74 @@ const triggerAction = async () => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-lg px-2 flex items-center py-1 justify-center;
+  @apply rounded-lg px-2 flex items-center transition-all py-1 justify-center;
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  &:focus-within {
+    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+  }
 
   &.solid {
     @apply text-white;
 
     &[class*='brand'] {
       @apply !bg-brand-500;
+      &:hover {
+        @apply !bg-brand-600;
+      }
     }
     &[class*='red'] {
       @apply bg-red-600;
+      &:hover {
+        @apply !bg-red-700;
+      }
     }
     &[class*='green'] {
       @apply bg-green-600;
+      &:hover {
+        @apply !bg-green-700;
+      }
     }
     &[class*='maroon'] {
       @apply bg-maroon-600;
+      &:hover {
+        @apply !bg-maroon-700;
+      }
     }
     &[class*='blue'] {
       @apply bg-blue-600;
+      &:hover {
+        @apply !bg-blue-700;
+      }
     }
     &[class*='orange'] {
       @apply bg-orange-600;
+      &:hover {
+        @apply !bg-orange-700;
+      }
     }
     &[class*='pink'] {
       @apply bg-pink-600;
+      &:hover {
+        @apply !bg-pink-700;
+      }
     }
     &[class*='purple'] {
       @apply bg-purple-500;
+      &:hover {
+        @apply !bg-puple-700;
+      }
     }
     &[class*='yellow'] {
       @apply bg-yellow-600;
+      &:hover {
+        @apply !bg-yellow-700;
+      }
     }
     &[class*='gray'] {
       @apply bg-gray-600;
+      &:hover {
+        @apply !bg-gray-700;
+      }
     }
   }
 
@@ -171,8 +218,12 @@ const triggerAction = async () => {
   }
 
   &.text {
-    @apply border-1 border-gray-200;
-
+    &:hover {
+      @apply bg-white;
+    }
+    &:focus {
+      box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+    }
     &[class*='brand'] {
       @apply text-brand-500;
     }

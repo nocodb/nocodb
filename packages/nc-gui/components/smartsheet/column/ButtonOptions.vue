@@ -319,6 +319,11 @@ const onSelectWebhook = (hook: HookType) => {
   isWebHookSelectionDropdownOpen.value = false
 }
 
+const removeIcon = () => {
+  vModel.value.icon = null
+  isButtonIconDropdownOpen.value = false
+}
+
 const selectIcon = (icon: string) => {
   vModel.value.icon = icon
   isButtonIconDropdownOpen.value = false
@@ -413,32 +418,6 @@ watch(isHooksLoading, () => {
     <a-col :span="12">
       <a-form-item :label="$t('labels.icon')" v-bind="validateInfos.icon">
         <NcDropdown v-model:visible="isButtonIconDropdownOpen" class="nc-color-picker-dropdown-trigger">
-          <template #overlay>
-            <div class="bg-white w-80 space-y-3 h-70 overflow-y-auto rounded-lg">
-              <div class="!sticky top-0 bg-white px-2 pt-2">
-                <a-input
-                  ref="inputRef"
-                  v-model:value="iconSearchQuery"
-                  :placeholder="$t('placeholder.searchIcons')"
-                  class="nc-dropdown-search-unified-input z-10"
-                >
-                  <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
-                ></a-input>
-              </div>
-
-              <div class="grid px-3 auto-rows-max pb-2 nc-scrollbar-md gap-3 grid-cols-10">
-                <component
-                  :is="icon"
-                  v-for="({ icon, name }, i) in icons"
-                  :key="i"
-                  :icon="icon"
-                  class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
-                  @click="selectIcon(name)"
-                />
-              </div>
-            </div>
-          </template>
-
           <div
             :class="{
               '!border-brand-500 shadow-selected nc-button-style-dropdown ': isButtonIconDropdownOpen,
@@ -453,6 +432,34 @@ watch(isHooksLoading, () => {
               <GeneralIcon icon="arrowDown" class="text-gray-700" />
             </div>
           </div>
+          <template #overlay>
+            <div class="bg-white w-80 space-y-3 h-70 overflow-y-auto rounded-lg">
+              <div class="!sticky top-0 flex gap-2 bg-white px-2 pt-2">
+                <a-input
+                  ref="inputRef"
+                  v-model:value="iconSearchQuery"
+                  :placeholder="$t('placeholder.searchIcons')"
+                  class="nc-dropdown-search-unified-input z-10"
+                >
+                  <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
+                ></a-input>
+                <NcButton size="small" type="text" @click="removeIcon">
+                  {{ $t('general.remove') }}
+                </NcButton>
+              </div>
+
+              <div class="grid px-3 auto-rows-max pb-2 nc-scrollbar-md gap-3 grid-cols-10">
+                <component
+                  :is="icon"
+                  v-for="({ icon, name }, i) in icons"
+                  :key="i"
+                  :icon="icon"
+                  class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
+                  @click="selectIcon(name)"
+                />
+              </div>
+            </div>
+          </template>
         </NcDropdown>
       </a-form-item>
     </a-col>

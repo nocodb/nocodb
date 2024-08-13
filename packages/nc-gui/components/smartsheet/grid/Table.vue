@@ -1103,36 +1103,39 @@ const saveOrUpdateRecords = async (
   }
 }
 
+const columnWidthLimit = {
+  [UITypes.Attachment]: {
+    minWidth: 80,
+    maxWidth: Number.POSITIVE_INFINITY,
+  },
+  [UITypes.Button]: {
+    minWidth: 100,
+    maxWidth: 320,
+  },
+}
+
+const normalizedWidth = (col: ColumnType, width: number) => {
+  if (col.uidt! in columnWidthLimit) {
+    const { minWidth, maxWidth } = columnWidthLimit[col.uidt]
+
+    if (minWidth < width && width < maxWidth) return width
+    if (width < minWidth) return minWidth
+    if (width > maxWidth) return maxWidth
+  }
+  return width
+}
 // #Grid Resize
 const onresize = (colID: string | undefined, event: any) => {
   if (!colID) return
+  const size = event.detail.split('px')[0]
 
-  // Set 80px minimum width for attachment cells
-  if (metaColumnById.value[colID].uidt === UITypes.Attachment) {
-    const size = event.detail.split('px')[0]
-    if (+size < 80) {
-      updateGridViewColumn(colID, { width: '80px' })
-    } else {
-      updateGridViewColumn(colID, { width: event.detail })
-    }
-  } else {
-    updateGridViewColumn(colID, { width: event.detail })
-  }
+  updateGridViewColumn(colID, { width: `${normalizedWidth(metaColumnById.value[colID], size)}px` })
 }
 
 const onXcResizing = (cn: string | undefined, event: any) => {
   if (!cn) return
-  // Set 80px minimum width for attachment cells
-  if (metaColumnById.value[cn].uidt === UITypes.Attachment) {
-    const size = event.detail.split('px')[0]
-    if (+size < 80) {
-      gridViewCols.value[cn].width = '80px'
-    } else {
-      gridViewCols.value[cn].width = `${event.detail}`
-    }
-  } else {
-    gridViewCols.value[cn].width = `${event.detail}`
-  }
+  const size = event.detail.split('px')[0]
+  gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
 }
 
 const onXcStartResizing = (cn: string | undefined, event: any) => {

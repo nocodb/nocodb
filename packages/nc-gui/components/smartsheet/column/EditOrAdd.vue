@@ -107,6 +107,7 @@ const onlyNameUpdateOnEditColumns = [
   UITypes.Formula,
   UITypes.QrCode,
   UITypes.Barcode,
+  UITypes.Button,
 ]
 
 // To close column type dropdown on escape and

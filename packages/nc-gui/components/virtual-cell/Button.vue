@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ButtonType, ColumnType } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 
 const column = inject(ColumnInj) as Ref<
   ColumnType & {
@@ -29,20 +30,6 @@ const rowId = computed(() => {
 
 const isLoading = ref(false)
 
-const disableButton = computed(() => {
-  if (column.value.colOptions.type === 'url') return false
-  else {
-    return isPublic.value || !isUIAllowed('hookTrigger') || isLoading.value || !column.value.colOptions.fk_webhook_id
-  }
-})
-
-const isButtonInValid = computed(() => {
-  if (column.value.colOptions.type === 'webhook' && !cellValue.value?.fk_webhook_id) {
-    return true
-  }
-  return false
-})
-
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
 
@@ -50,7 +37,7 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId.value)
+      await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
     } catch (e) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -59,6 +46,30 @@ const triggerAction = async () => {
     }
   }
 }
+
+const componentProps = computed(() => {
+  if (column.value.colOptions.type === 'url') {
+    return {
+      href: encodeURI(
+        /^(https?|ftp|mailto|file):\/\//.test(cellValue.value?.url)
+          ? cellValue.value?.url
+          : cellValue.value?.url?.trim()
+          ? `http://${cellValue.value?.url}`
+          : '',
+      ),
+      target: '_blank',
+    }
+  } else {
+    return {
+      disabled:
+        isPublic.value ||
+        !isUIAllowed('hookTrigger') ||
+        isLoading.value ||
+        !column.value.colOptions.fk_webhook_id ||
+        !cellValue.value?.fk_webhook_id,
+    }
+  }
+})
 </script>
 
 <template>
@@ -70,22 +81,7 @@ const triggerAction = async () => {
   >
     <component
       :is="column.colOptions.type === 'url' ? 'a' : 'button'"
-      v-bind="{
-        ...(column.colOptions.type === 'url'
-          ? {
-              href: encodeURI(
-                /^(https?|ftp|mailto|file):\/\//.test(cellValue?.url)
-                  ? cellValue?.url
-                  : cellValue?.url?.trim()
-                  ? `http://${cellValue?.url}`
-                  : '',
-              ),
-              target: '_blank',
-            }
-          : {
-              disabled: disableButton || isButtonInValid,
-            }),
-      }"
+      v-bind="componentProps"
       data-testid="nc-button-cell"
       :class="[
         `${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`,

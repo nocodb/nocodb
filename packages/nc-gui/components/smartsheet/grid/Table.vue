@@ -446,6 +446,7 @@ const isReadonly = (col: ColumnType) => {
     isLookup(col) ||
     isRollup(col) ||
     isFormula(col) ||
+    isButton(col) ||
     isVirtualCol(col) ||
     isCreatedOrLastModifiedTimeCol(col) ||
     isCreatedOrLastModifiedByCol(col)

@@ -206,7 +206,6 @@ const onClick = (e: Event) => {
       <template #overlay>
         <div class="nc-edit-or-add-provider-wrapper">
           <LazySmartsheetColumnEditOrAddProvider
-            v-if="editColumnDropdown"
             :column="columnOrder ? null : column"
             :column-position="columnOrder"
             class="w-full"

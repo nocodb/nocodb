@@ -1006,12 +1006,14 @@ export default class Column<T = any> implements ColumnType {
       MetaTable.FORM_VIEW_COLUMNS,
       MetaTable.KANBAN_VIEW_COLUMNS,
       MetaTable.GALLERY_VIEW_COLUMNS,
+      MetaTable.CALENDAR_VIEW_COLUMNS,
     ];
     const viewColumnCacheScope = [
       CacheScope.GRID_VIEW_COLUMN,
       CacheScope.FORM_VIEW_COLUMN,
       CacheScope.KANBAN_VIEW_COLUMN,
       CacheScope.GALLERY_VIEW_COLUMN,
+      CacheScope.CALENDAR_VIEW_COLUMN,
     ];
 
     for (let i = 0; i < viewColumnTables.length; i++) {

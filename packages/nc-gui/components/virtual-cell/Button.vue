@@ -71,8 +71,12 @@ const triggerAction = async () => {
     class="w-full flex items-center"
   >
     <button
-      :class="`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`"
-      class="nc-cell-button btn-cell-colors truncate flex items-center h-6"
+      data-testid="nc-button-cell"
+      :class="{
+        [`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`]: true,
+        '!w-7': !column.colOptions.label,
+      }"
+      class="nc-cell-button btn-cell-colors truncate flex items-center h-7"
       :disabled="disableButton"
       @click="triggerAction"
     >
@@ -109,7 +113,7 @@ const triggerAction = async () => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-lg px-2 flex items-center gap-2 transition-all py-1 justify-center;
+  @apply rounded-lg px-2 flex items-center gap-2 transition-all justify-center;
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
   &:focus-within {
     box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;

@@ -64,6 +64,7 @@ const showFunctionList = ref<boolean>(true)
 const validators = {
   formula_raw: [
     {
+      required: true,
       validator: (_: any, formula: any) => {
         return (async () => {
           if (!formula?.trim()) throw new Error('Required')

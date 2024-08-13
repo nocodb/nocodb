@@ -70,61 +70,47 @@ const triggerAction = async () => {
     }"
     class="w-full flex items-center"
   >
-    <NcTooltip :disabled="!(column.colOptions.type === 'webhook' && !column.colOptions.fk_webhook_id) && !isButtonInValid">
-      <template #title>
-        {{
-          column.colOptions.type === 'webhook' && !column.colOptions.fk_webhook_id
-            ? $t('msg.invalidConfiguration')
-            : isButtonInValid
-            ? $t('msg.invalidConfiguration')
-            : ''
-        }}
-      </template>
-
-      <component
-        :is="column.colOptions.type === 'url' ? 'a' : 'div'"
-        v-bind="{
-          ...(column.colOptions.type === 'url'
-            ? {
-                href: encodeURI(
-                  /^(https?|ftp|mailto|file):\/\//.test(modelValue.url)
-                    ? modelValue.url
-                    : modelValue.url.trim()
-                    ? `http://${modelValue.url}`
-                    : '',
-                ),
-                target: '_blank',
-              }
-            : {}),
+    <component
+      :is="column.colOptions.type === 'url' ? 'a' : 'button'"
+      v-bind="{
+        ...(column.colOptions.type === 'url'
+          ? {
+              href: encodeURI(
+                /^(https?|ftp|mailto|file):\/\//.test(modelValue.url)
+                  ? modelValue.url
+                  : modelValue.url.trim()
+                  ? `http://${modelValue.url}`
+                  : '',
+              ),
+              target: '_blank',
+            }
+          : {
+              disabled: disableButton || isButtonInValid,
+            }),
+      }"
+      data-testid="nc-button-cell"
+      :class="{
+        [`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`]: true,
+        '!w-7': !column.colOptions.label,
+      }"
+      class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center h-6"
+      @click="triggerAction"
+    >
+      <GeneralLoader
+        v-if="isLoading"
+        :class="{
+          solid: column.colOptions.theme === 'solid',
+          text: column.colOptions.theme === 'text',
+          light: column.colOptions.theme === 'light',
         }"
-      >
-        <button
-          data-testid="nc-button-cell"
-          :class="{
-            [`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`]: true,
-            '!w-7': !column.colOptions.label,
-          }"
-          class="nc-cell-button btn-cell-colors truncate flex items-center h-6"
-          :disabled="disableButton || isButtonInValid"
-          @click="triggerAction"
-        >
-          <GeneralLoader
-            v-if="isLoading"
-            :class="{
-              solid: column.colOptions.theme === 'solid',
-              text: column.colOptions.theme === 'text',
-              light: column.colOptions.theme === 'light',
-            }"
-            class="flex btn-cell-colors !bg-transparent w-4 h-4"
-            size="medium"
-          />
-          <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
-          <span v-if="column.colOptions.label" class="text-[13px] truncate font-medium">
-            {{ column.colOptions.label }}
-          </span>
-        </button>
-      </component>
-    </NcTooltip>
+        class="flex btn-cell-colors !bg-transparent w-4 h-4"
+        size="medium"
+      />
+      <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
+      <span v-if="column.colOptions.label" class="text-[13px] truncate font-medium">
+        {{ column.colOptions.label }}
+      </span>
+    </component>
   </div>
 </template>
 
@@ -139,12 +125,13 @@ const triggerAction = async () => {
     @apply !border-none;
   }
 }
+
+.nc-button-cell-link {
+  @apply !no-underline;
+}
 </style>
 
 <style scoped lang="scss">
-a {
-  @apply !no-underline;
-}
 .nc-cell-button {
   @apply rounded-lg px-2 flex items-center gap-2 transition-all justify-center;
   &:not([class*='text']) {

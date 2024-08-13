@@ -138,6 +138,7 @@ const uiTypes = [
   {
     name: UITypes.Button,
     icon: iconMap.cellButton,
+    virtual: 1,
   },
   {
     name: UITypes.CreatedTime,

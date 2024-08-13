@@ -306,7 +306,7 @@ main {
 }
 
 a {
-  @apply !text-primary !underline hover:!text-accent;
+  @apply text-primary !underline hover:text-accent;
 }
 
 .nc-icon {

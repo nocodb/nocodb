@@ -96,6 +96,8 @@
     "on": "On",
     "onMultiple": "On Multiple",
     "addLookupField": "Add {count} lookup field",
+    "style": "Style",
+    "label": "Label",
     "role": "Role",
     "general": "General",
     "quit": "Quit",
@@ -611,6 +613,9 @@
     "categories": "Categories"
   },
   "labels": {
+    "openUrl": "Open URL",
+    "runWebHook": "Run Webhook",
+    "onClick": "On click",
     "defaultView": "Default view",
     "recordInsert": "Record Insert",
     "recordUpdate": "Record Update",
@@ -1327,6 +1332,10 @@
     "searchOptions": "Search options"
   },
   "msg": {
+    "invalidTheme": "Select a valid theme",
+    "invalidColor": "Select a valid color",
+    "invalidType": "Button type can be either 'webhook' or 'url'",
+    "invalidLabel": "Enter a valid button label",
     "formulaNotSupported": "This function is unavailable for your database",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",

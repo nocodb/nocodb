@@ -30,8 +30,11 @@ import type {
   XcFilter,
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
+import type CustomKnex from '~/db/CustomKnex';
+import type { NcContext } from '~/interface/config';
 import type {
   BarcodeColumn,
+  ButtonColumn,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   QrCodeColumn,
@@ -39,8 +42,6 @@ import type {
   SelectOption,
   User,
 } from '~/models';
-import type CustomKnex from '~/db/CustomKnex';
-import type { NcContext } from '~/interface/config';
 import {
   Audit,
   BaseUser,
@@ -822,9 +823,16 @@ class BaseModelSqlv2 {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                throw NcError.badRequest(
+                NcError.badRequest(
                   'Group by using attachment column is not supported',
                 );
+                break;
+              case UITypes.Button: {
+                NcError.badRequest(
+                  'Group by using Button column is not supported',
+                );
+                break;
+              }
               case UITypes.Links:
               case UITypes.Rollup:
                 colSelectors.push(
@@ -1134,9 +1142,16 @@ class BaseModelSqlv2 {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                throw NcError.badRequest(
+                NcError.badRequest(
                   'Group by using attachment column is not supported',
                 );
+                break;
+              case UITypes.Button: {
+                NcError.badRequest(
+                  'Group by using Button column is not supported',
+                );
+                break;
+              }
               case UITypes.Links:
               case UITypes.Rollup:
                 colSelectors.push(
@@ -1772,6 +1787,13 @@ class BaseModelSqlv2 {
               'Group by using attachment column is not supported',
             );
             break;
+          case UITypes.Button:
+            {
+              NcError.badRequest(
+                'Group by using Button column is not supported',
+              );
+            }
+            break;
           case UITypes.Links:
           case UITypes.Rollup:
             selectors.push(
@@ -2070,6 +2092,10 @@ class BaseModelSqlv2 {
               'Group by using attachment column is not supported',
             );
             break;
+          case UITypes.Button: {
+            NcError.badRequest('Group by using Button column is not supported');
+            break;
+          }
           case UITypes.Rollup:
           case UITypes.Links:
             selectors.push(
@@ -4254,6 +4280,33 @@ class BaseModelSqlv2 {
             }
           }
           break;
+        case UITypes.Button: {
+          try {
+            const colOption = column.colOptions as ButtonColumn;
+            if (colOption.type === 'url') {
+              const selectQb = await this.getSelectQueryBuilderForFormula(
+                column,
+                alias,
+                validateFormula,
+                aliasToColumnBuilder,
+              );
+              qb.select(
+                this.dbDriver.raw(`?? as ??`, [selectQb.builder, column.id]),
+              );
+            } else if (colOption.type === 'webhook') {
+              qb.select(
+                this.dbDriver.raw(`'?' as ??`, [colOption.label, column.id]),
+              );
+            } else {
+              qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+            }
+          } catch (e) {
+            logger.log(e);
+            // return dummy select
+            qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+          }
+          break;
+        }
         case UITypes.Rollup:
         case UITypes.Links:
           qb.select(

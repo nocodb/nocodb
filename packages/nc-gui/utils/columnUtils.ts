@@ -151,6 +151,10 @@ const uiTypes = [
     name: UITypes.LastModifiedBy,
     icon: iconMap.cellSystemUser,
   },
+  {
+    name: UITypes.Button,
+    icon: iconMap.cellButton,
+  },
 ]
 
 const getUIDTIcon = (uidt: UITypes | string) => {

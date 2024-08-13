@@ -24,7 +24,7 @@ const props = defineProps<{
 }>()
 const emit = defineEmits(['update:value'])
 
-const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode]
+const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const vModel = useVModel(props, 'value', emit)
 

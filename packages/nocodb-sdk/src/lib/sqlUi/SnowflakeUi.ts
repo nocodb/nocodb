@@ -983,6 +983,7 @@ export class SnowflakeUi {
         ];
 
       case 'Formula':
+      case 'Button':
         return ['TEXT', 'VARCHAR'];
 
       case 'Rollup':
@@ -1016,7 +1017,6 @@ export class SnowflakeUi {
       case 'Geometry':
         return ['TEXT'];
 
-      case 'Button':
       default:
         return dbTypes;
     }

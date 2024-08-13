@@ -17,7 +17,13 @@ import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import QrCodeColumn from '~/models/QrCodeColumn';
 import BarcodeColumn from '~/models/BarcodeColumn';
-import { FileReference, GalleryView, KanbanView, LinksColumn } from '~/models';
+import {
+  ButtonColumn,
+  FileReference,
+  GalleryView,
+  KanbanView,
+  LinksColumn,
+} from '~/models';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
 import addFormulaErrorIfMissingColumn from '~/helpers/addFormulaErrorIfMissingColumn';
@@ -318,6 +324,21 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
+      case UITypes.Button: {
+        await ButtonColumn.insert(context, {
+          fk_column_id: colId,
+          formula: column?.formula,
+          formula_raw: column?.formula_raw,
+          parsed_tree: column?.parsed_tree,
+          type: column.type,
+          theme: column.theme,
+          color: column.color,
+          webhook_id: column?.webhook_id,
+          label: column.label,
+        });
+
+        break;
+      }
       case UITypes.Formula: {
         await FormulaColumn.insert(
           context,
@@ -476,6 +497,9 @@ export default class Column<T = any> implements ColumnType {
         break;
       case UITypes.Formula:
         res = await FormulaColumn.read(context, this.id, ncMeta);
+        break;
+      case UITypes.Button:
+        res = await ButtonColumn.read(context, this.id, ncMeta);
         break;
       case UITypes.QrCode:
         res = await QrCodeColumn.read(context, this.id, ncMeta);
@@ -749,6 +773,51 @@ export default class Column<T = any> implements ColumnType {
       const cachedList = await NocoCache.getList(CacheScope.COLUMN, [
         col.fk_model_id,
       ]);
+      let { list: buttonColumns } = cachedList;
+      const { isNoneList } = cachedList;
+      if (!isNoneList && !buttonColumns.length) {
+        buttonColumns = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COLUMNS,
+          {
+            condition: {
+              fk_model_id: col.fk_model_id,
+              uidt: UITypes.Button,
+            },
+          },
+        );
+      }
+      buttonColumns = buttonColumns.filter((c) => c.uidt === UITypes.Button);
+
+      for (const buttonCol of buttonColumns) {
+        const button = await new Column(buttonCol).getColOptions<ButtonColumn>(
+          context,
+          ncMeta,
+        );
+
+        if (button.type === 'url') {
+          if (
+            addFormulaErrorIfMissingColumn({
+              formula: button,
+              columnId: id,
+              title: col?.title,
+            })
+          )
+            await ButtonColumn.update(
+              context,
+              buttonCol.id,
+              button as ButtonColumn & { parsed_tree?: any },
+              ncMeta,
+            );
+        }
+      }
+    }
+
+    {
+      const cachedList = await NocoCache.getList(CacheScope.COLUMN, [
+        col.fk_model_id,
+      ]);
       let { list: formulaColumns } = cachedList;
       const { isNoneList } = cachedList;
       if (!isNoneList && !formulaColumns.length) {
@@ -900,6 +969,10 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.Formula:
         colOptionTableName = MetaTable.COL_FORMULA;
         cacheScopeName = CacheScope.COL_FORMULA;
+        break;
+      case UITypes.Button:
+        colOptionTableName = MetaTable.COL_BUTTON;
+        cacheScopeName = CacheScope.COL_BUTTON;
         break;
       case UITypes.QrCode:
         colOptionTableName = MetaTable.COL_QRCODE;
@@ -1079,6 +1152,24 @@ export default class Column<T = any> implements ColumnType {
         );
         break;
       }
+
+      case UITypes.Button: {
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_BUTTON,
+          {
+            fk_column_id: colId,
+          },
+        );
+
+        await NocoCache.deepDel(
+          `${CacheScope.COL_BUTTON}:${colId}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+        break;
+      }
+
       case UITypes.QrCode: {
         await ncMeta.metaDelete(
           context.workspace_id,
@@ -1236,7 +1327,7 @@ export default class Column<T = any> implements ColumnType {
 
     const updatedColumn = await Column.get(context, { colId }, ncMeta);
     if (!skipFormulaInvalidate) {
-      // invalidate formula parsed-tree in which current column is used
+      // invalidate formula/button parsed-tree in which current column is used
       // whenever a new request comes for that formula, it will be populated again
       getFormulasReferredTheColumn(
         context,
@@ -1252,17 +1343,28 @@ export default class Column<T = any> implements ColumnType {
       )
         .then(async (formulas) => {
           for (const formula of formulas) {
-            await FormulaColumn.update(
-              context,
-              formula.id,
-              {
-                parsed_tree: null,
-              },
-              ncMeta,
-            );
+            if (formula.uidt === UITypes.Formula) {
+              await FormulaColumn.update(
+                context,
+                formula.id,
+                {
+                  parsed_tree: null,
+                },
+                ncMeta,
+              );
+            } else if (formula.uidt === UITypes.Button) {
+              await ButtonColumn.update(
+                context,
+                formula.id,
+                {
+                  parsed_tree: null,
+                },
+                ncMeta,
+              );
+            }
           }
         })
-        // ignore the error and continue, if formula is no longer valid it will be captured in the next run
+        // ignore the error and continue, if formula/button is no longer valid it will be captured in the next run
         .catch((err) => {
           logger.error(err);
         });

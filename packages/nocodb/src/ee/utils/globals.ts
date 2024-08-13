@@ -72,6 +72,7 @@ export enum MetaTable {
   USER_COMMENTS_NOTIFICATIONS_PREFERENCE = 'nc_user_comment_notifications_preference',
   COMMENTS_REACTIONS = 'nc_comment_reactions',
   JOBS = 'nc_jobs',
+  COL_BUTTON = 'nc_col_button_v2',
   INTEGRATIONS = 'nc_integrations_v2',
   FILE_REFERENCES = 'nc_file_references',
 }
@@ -198,6 +199,7 @@ export enum CacheScope {
   ORG_WORKSPACE = 'orgWorkspace',
   EXTENSION = 'uiExtension',
   INTEGRATION = 'integration',
+  COL_BUTTON = 'colButton',
 }
 
 export const RootScopeTables = {

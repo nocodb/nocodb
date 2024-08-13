@@ -9,6 +9,7 @@ import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
 import type {
   BarcodeColumn,
+  ButtonColumn,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
@@ -807,6 +808,46 @@ export async function extractColumn({
           validateFormula,
         );
         qb.select(knex.raw(`?? as ??`, [selectQb.builder, column.id]));
+      }
+      break;
+    case UITypes.Button:
+      {
+        const model: Model = await column.getModel(context);
+        const buttonCol = await column.getColOptions<ButtonColumn>(context);
+        if (buttonCol.type === 'url') {
+          if (buttonCol.error) return result;
+          const selectQb = await formulaQueryBuilderv2(
+            baseModel,
+            buttonCol.formula,
+            null,
+            model,
+            column,
+            {},
+            rootAlias,
+            validateFormula,
+          );
+
+          qb.select(
+            knex.raw(`JSON_OBJECT('type', ?, 'label', ?, 'url', ??) as ??`, [
+              buttonCol.type,
+              `${buttonCol.label}`,
+              selectQb.builder,
+              column.id,
+            ]),
+          );
+        } else if (buttonCol.type === 'webhook') {
+          qb.select(
+            knex.raw(
+              `JSON_OBJECT('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+              [
+                buttonCol.type,
+                `${buttonCol.label}`,
+                buttonCol.fk_webhook_id,
+                column.id,
+              ],
+            ),
+          );
+        }
       }
       break;
     case UITypes.Rollup:

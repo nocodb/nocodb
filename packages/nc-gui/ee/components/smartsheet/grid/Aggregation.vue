@@ -51,7 +51,7 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
     ></div>
     <NcDropdown
       v-if="field && column?.id"
-      :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey].includes(column?.uidt!) || isLocked"
+      :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!) || isLocked"
       overlay-class-name="max-h-64 relative scroll-container nc-scrollbar-thin overflow-auto"
       @click.stop
     >
@@ -63,7 +63,7 @@ const { visibleFieldsComputed, updateAggregate, getAggregations } = useViewAggre
           'width': width,
         }"
       >
-        <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey].includes(column?.uidt!)">
+        <template v-if="![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(column?.uidt!)">
           <div
             v-if="field?.aggregation === 'none' || field?.aggregation === null"
             class="text-gray-500 opacity-0 transition group-hover-aggregation"

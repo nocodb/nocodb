@@ -34,7 +34,7 @@ const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:
 
 const initialModelValue = props.modelValue
 
-const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode]
+const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const draftFilter = useVModel(props, 'draftFilter', emit)
 

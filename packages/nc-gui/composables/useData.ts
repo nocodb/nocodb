@@ -284,6 +284,7 @@ export function useData(args: {
                 col.uidt === UITypes.LastModifiedTime ||
                 col.uidt === UITypes.LastModifiedBy ||
                 col.uidt === UITypes.Lookup ||
+                col.uidt === UITypes.Button ||
                 col.uidt === UITypes.Attachment ||
                 col.au ||
                 (isValidValue(col?.cdf) && / on update /i.test(col.cdf)))

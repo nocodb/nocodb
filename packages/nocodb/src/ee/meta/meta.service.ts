@@ -75,6 +75,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.JOBS]: 'job',
       [MetaTable.INTEGRATIONS]: 'int',
       [MetaTable.FILE_REFERENCES]: 'at',
+      [MetaTable.COL_BUTTON]: 'btn',
     };
 
     const prefix = prefixMap[target] || 'nc';

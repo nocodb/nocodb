@@ -15317,7 +15317,8 @@
             "example": "after",
             "enum": [
               "after",
-              "before"
+              "before",
+              "manual"
             ]
           },
           "execution_time": {
@@ -15346,7 +15347,8 @@
               "delete",
               "bulkInsert",
               "bulkUpdate",
-              "bulkDelete"
+              "bulkDelete",
+              "trigger"
             ],
             "example": "insert"
           },

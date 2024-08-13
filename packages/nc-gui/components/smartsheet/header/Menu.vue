@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { type ColumnReqType, partialUpdateAllowedTypes, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
-import { SmartsheetStoreEvents } from '#imports'
+import { SmartsheetStoreEvents, isColumnInvalid } from '#imports'
 
 const props = defineProps<{ virtual?: boolean; isOpen: boolean; isHiddenCol?: boolean }>()
 
@@ -197,7 +197,7 @@ const openDuplicateDlg = async () => {
       },
     }
 
-    if (column.value.uidt === UITypes.Formula) {
+    if (column.value.uidt === UITypes.Formula || column.value.uidt === UITypes.Button) {
       nextTick(() => {
         duplicateDialogRef?.value?.duplicate()
       })
@@ -334,7 +334,13 @@ const isDuplicateAllowed = computed(() => {
 })
 const isFilterSupported = computed(
   () =>
-    !!(meta.value?.columns || []).find((f) => f.id === column?.value?.id && ![UITypes.QrCode, UITypes.Barcode].includes(f.uidt)),
+    !!(meta.value?.columns || []).find(
+      (f) => f.id === column?.value?.id && ![UITypes.QrCode, UITypes.Barcode, UITypes.Button].includes(f.uidt),
+    ),
+)
+
+const isSortSupported = computed(
+  () => !!(meta.value?.columns || []).find((f) => f.id === column?.value?.id && ![UITypes.Button].includes(f.uidt)),
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -406,9 +412,25 @@ const changeTitleField = () => {
     overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl "
     @click.stop="isOpen = !isOpen"
   >
-    <div @dblclick.stop>
+    <div class="flex items-center gap-2" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
-      <GeneralIcon v-else icon="arrowDown" class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2" />
+
+      <NcTooltip class="flex items-center">
+        <GeneralIcon
+          v-if="isColumnInvalid(column) && !isExpandedForm"
+          class="text-orange-500 w-3.5 h-3.5 ml-2"
+          icon="alertTriangle"
+        />
+
+        <template #title>
+          {{ $t('msg.invalidColumnConfiguration') }}
+        </template>
+      </NcTooltip>
+      <GeneralIcon
+        v-if="!isExpandedForm"
+        icon="arrowDown"
+        class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
+      />
     </div>
     <template #overlay>
       <NcMenu
@@ -487,27 +509,32 @@ const changeTitleField = () => {
           <a-divider v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO" class="!my-0" />
 
           <template v-if="!isLinksOrLTAR(column) || column.colOptions.type !== RelationTypes.BELONGS_TO">
-            <NcMenuItem @click="sortByColumn('asc')">
-              <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
-                <component
-                  :is="iconMap.sortDesc"
-                  class="text-gray-500 !rotate-180 !w-4.25 !h-4.25"
-                  :style="{
-                    transform: 'rotate(180deg)',
-                  }"
-                />
+            <NcTooltip :disabled="isSortSupported">
+              <template #title>
+                {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+              </template>
+              <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('asc')">
+                <div v-e="['a:field:sort', { dir: 'asc' }]" class="nc-column-insert-after nc-header-menu-item">
+                  <component :is="iconMap.sortDesc" class="text-gray-500 transform !rotate-180 !w-4.25 !h-4.25" />
 
-                <!-- Sort Ascending -->
-                {{ $t('general.sortAsc') }}
-              </div>
-            </NcMenuItem>
-            <NcMenuItem @click="sortByColumn('desc')">
-              <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
-                <!-- Sort Descending -->
-                <component :is="iconMap.sortDesc" class="text-gray-500 !w-4.25 !h-4.25" />
-                {{ $t('general.sortDesc').trim() }}
-              </div>
-            </NcMenuItem>
+                  <!-- Sort Ascending -->
+                  {{ $t('general.sortAsc') }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
+
+            <NcTooltip :disabled="isSortSupported">
+              <template #title>
+                {{ !isSortSupported ? "This field type doesn't support sorting" : '' }}
+              </template>
+              <NcMenuItem :disabled="!isSortSupported" @click="sortByColumn('desc')">
+                <div v-e="['a:field:sort', { dir: 'desc' }]" class="nc-column-insert-before nc-header-menu-item">
+                  <!-- Sort Descending -->
+                  <component :is="iconMap.sortDesc" class="text-gray-500 !w-4.25 !h-4.25" />
+                  {{ $t('general.sortDesc').trim() }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
           </template>
 
           <a-divider class="!my-0" />

@@ -171,6 +171,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       skipAttachmentConversion?: boolean;
       skipSubstitutingColumnIds?: boolean;
       skipUserConversion?: boolean;
+      skipButtonConversion?: boolean;
       bulkAggregate?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
@@ -180,6 +181,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       skipSubstitutingColumnIds: false,
       skipUserConversion: false,
       bulkAggregate: false,
+      skipButtonConversion: false,
       raw: false,
       first: false,
     },
@@ -189,6 +191,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
       options.skipUserConversion = true;
+      options.skipButtonConversion = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -248,6 +251,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     // update user fields
     if (!options.skipUserConversion) {
       data = await this.convertUserFormat(data, dependencyColumns);
+    }
+    // Update button fields
+    if (!options.skipButtonConversion) {
+      data = await this.convertButtonType(data, dependencyColumns);
     }
 
     if (options.bulkAggregate) {

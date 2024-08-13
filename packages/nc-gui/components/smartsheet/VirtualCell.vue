@@ -61,6 +61,7 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
     <LazyVirtualCellBarcode v-else-if="isBarcode(column)" />
     <LazyVirtualCellCount v-else-if="isCount(column)" />
     <LazyVirtualCellLookup v-else-if="isLookup(column)" />
+    <LazyVirtualCellButton v-else-if="isButton(column)" />
     <LazyCellReadOnlyDateTimePicker v-else-if="isCreatedOrLastModifiedTimeCol(column)" :model-value="modelValue" />
     <LazyCellReadOnlyUser v-else-if="isCreatedOrLastModifiedByCol(column)" :model-value="modelValue" />
   </div>

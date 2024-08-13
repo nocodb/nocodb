@@ -124,6 +124,7 @@ const rolePermissions = {
     include: {
       fieldUpdate: true,
       hookList: true,
+      hookCreate: true,
       tableCreate: true,
       tableRename: true,
       tableDelete: true,
@@ -162,6 +163,7 @@ const rolePermissions = {
       filterChildrenRead: true,
       viewFieldEdit: true,
       csvTableImport: true,
+      hookTrigger: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

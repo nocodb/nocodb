@@ -227,6 +227,9 @@ const permissionScopes = {
     'jobList',
     // it's an extended scoped permission which is prefixed with the main scope
     'workspace_integrationList',
+
+    // Webhooks
+    'hookTrigger',
   ],
 };
 
@@ -439,6 +442,9 @@ const rolePermissions:
       bulkDataDeleteAll: true,
       relationDataRemove: true,
       relationDataAdd: true,
+
+      // Webhooks
+      hookTrigger: true,
 
       // TODO implement this
       // upload: true,

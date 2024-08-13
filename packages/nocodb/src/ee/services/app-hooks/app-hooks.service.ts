@@ -138,6 +138,7 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.COMMENT_DELETE,
     listener: (data: RowCommentEvent) => void,
   ): () => void;
+
   on(
     event:
       | AppEvents.INTEGRATION_UPDATE
@@ -145,6 +146,7 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.INTEGRATION_CREATE,
     listener: (data: IntegrationEvent) => void,
   ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }
@@ -228,9 +230,11 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.WEBHOOK_UPDATE
       | AppEvents.WEBHOOK_CREATE
       | AppEvents.WEBHOOK_DELETE
-      | AppEvents.WEBHOOK_TEST,
+      | AppEvents.WEBHOOK_TEST
+      | AppEvents.WEBHOOK_TRIGGER,
     data: WebhookEvent,
   ): void;
+
   emit(
     event:
       | AppEvents.SYNC_SOURCE_UPDATE

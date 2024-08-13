@@ -9,11 +9,15 @@ import { Model } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
+import { DatasService } from '~/services/datas.service';
 
 @Injectable()
 export class HooksService extends HooksServiceCE {
-  constructor(protected readonly appHooksService: AppHooksService) {
-    super(appHooksService);
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly datasService: DatasService,
+  ) {
+    super(appHooksService, datasService);
   }
 
   async hookCreate(

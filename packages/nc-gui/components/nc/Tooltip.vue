@@ -7,6 +7,7 @@ interface Props {
   // Key to be pressed on hover to trigger the tooltip
   modifierKey?: string
   tooltipStyle?: CSSProperties
+  attrs?: Record<string, unknown>
   // force disable tooltip
   color?: 'dark' | 'light'
   disabled?: boolean
@@ -28,6 +29,7 @@ const showOnTruncateOnly = computed(() => props.showOnTruncateOnly)
 const hideOnClick = computed(() => props.hideOnClick)
 const placement = computed(() => props.placement ?? 'top')
 const wrapChild = computed(() => props.wrapChild ?? 'div')
+const attributes = computed(() => props.attrs)
 
 const color = computed(() => (props.color ? props.color : 'dark'))
 
@@ -132,7 +134,15 @@ const onClick = () => {
       <slot name="title" />
     </template>
 
-    <component :is="wrapChild" ref="el" v-bind="divStyles" @mousedown="onClick">
+    <component
+      :is="wrapChild"
+      ref="el"
+      v-bind="{
+        ...divStyles,
+        ...attributes,
+      }"
+      @mousedown="onClick"
+    >
       <slot />
     </component>
   </a-tooltip>

@@ -7,8 +7,11 @@ import {
 } from './common-helpers';
 import type { Knex } from 'knex';
 import type { XKnex } from '~/db/CustomKnex';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { NcContext } from '~/interface/config';
 import type {
   BarcodeColumn,
+  ButtonColumn,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
@@ -16,11 +19,8 @@ import type {
   Source,
   View,
 } from '~/models';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type { NcContext } from '~/interface/config';
 import { Column, Filter, Model, Sort } from '~/models';
 import {
-  _wherePk,
   extractFilterFromXwhere,
   extractSortsObject,
   getColumnName,
@@ -868,6 +868,48 @@ export async function extractColumn({
           validateFormula,
         );
         qb.select(knex.raw(`?? as ??`, [selectQb.builder, column.id]));
+      }
+      break;
+    case UITypes.Button:
+      {
+        const model: Model = await column.getModel(context);
+        const buttonColumn = await column.getColOptions<ButtonColumn>(context);
+        if (buttonColumn.type === 'url') {
+          if (buttonColumn.error) return result;
+          const selectQb = await formulaQueryBuilderv2(
+            baseModel,
+            buttonColumn.formula,
+            null,
+            model,
+            column,
+            {},
+            rootAlias,
+            validateFormula,
+          );
+          qb.select(
+            knex.raw(
+              `json_build_object('type', ?, 'label', ?, 'url', ??) as ??`,
+              [
+                buttonColumn.type,
+                `${buttonColumn.label}`,
+                selectQb.builder,
+                column.id,
+              ],
+            ),
+          );
+        } else if (buttonColumn.type === 'webhook') {
+          qb.select(
+            knex.raw(
+              `json_build_object('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+              [
+                buttonColumn.type,
+                `${buttonColumn.label}`,
+                buttonColumn.fk_webhook_id,
+                column.id,
+              ],
+            ),
+          );
+        }
       }
       break;
     case UITypes.Rollup:

@@ -55,7 +55,7 @@ const config: XcPluginConfig = {
         label: 'Use SSL',
         placeholder: 'Use SSL',
         type: XcType.Checkbox,
-        required: true,
+        required: false,
       },
     ],
     actions: [

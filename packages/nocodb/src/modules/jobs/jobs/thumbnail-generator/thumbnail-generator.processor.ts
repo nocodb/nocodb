@@ -3,6 +3,7 @@ import { Readable } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
+import slash from 'slash';
 import type { IStorageAdapterV2 } from 'nc-plugin';
 import type { AttachmentResType } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
@@ -99,7 +100,7 @@ export class ThumbnailGeneratorProcessor {
             .toBuffer();
 
           await (storageAdapter as any).fileCreateByStream(
-            thumbnailPath,
+            slash(thumbnailPath),
             Readable.from(resizedImage),
             {
               mimetype: 'image/jpeg',

@@ -198,8 +198,18 @@ export class AttachmentsService {
       param.urls?.map?.((urlMeta) => async () => {
         try {
           const { url, fileName: _fileName } = urlMeta;
-          const response = await axios.head(url, { maxRedirects: 5 });
-          const finalUrl = response.request.res.responseUrl || url;
+
+          let mimeType,
+            response,
+            size,
+            finalUrl = url;
+
+          if (!url.startsWith('data:')) {
+            response = await axios.head(url, { maxRedirects: 5 });
+            mimeType = response.headers['content-type']?.split(';')[0];
+            size = response.headers['content-length'];
+            finalUrl = response.request.res.responseUrl;
+          }
 
           const parsedUrl = Url.parse(finalUrl, true);
           const decodedPath = decodeURIComponent(parsedUrl.pathname);
@@ -208,9 +218,6 @@ export class AttachmentsService {
           const fileName = `${path.parse(fileNameWithExt).name}_${nanoid(
             5,
           )}${path.extname(fileNameWithExt)}`;
-
-          let mimeType = response.headers['content-type']?.split(';')[0];
-          const size = response.headers['content-length'];
 
           if (!mimeType) {
             mimeType = mimetypes[path.extname(fileNameWithExt).slice(1)];

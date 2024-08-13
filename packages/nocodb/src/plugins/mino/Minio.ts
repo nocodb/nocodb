@@ -123,7 +123,7 @@ export default class Minio implements IStorageAdapterV2 {
       },
     };
 
-    const responseUrl = this.upload(uploadParams);
+    const responseUrl = await this.upload(uploadParams);
 
     return {
       url: responseUrl,
@@ -137,7 +137,7 @@ export default class Minio implements IStorageAdapterV2 {
     metaData: { [key: string]: string | number };
   }): Promise<any> {
     try {
-      this.minioClient.putObject(
+      await this.minioClient.putObject(
         this.input.bucket,
         uploadParams.Key,
         uploadParams.Body,

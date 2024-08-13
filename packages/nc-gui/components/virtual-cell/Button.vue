@@ -58,6 +58,7 @@ const componentProps = computed(() => {
           : '',
       ),
       target: '_blank',
+      disabled: !cellValue.value?.url,
     }
   } else {
     return {

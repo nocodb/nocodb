@@ -53,6 +53,7 @@ const triggerAction = async () => {
     <button
       :class="`${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`"
       class="nc-cell-button"
+      :disabled="isLoading"
       @click="triggerAction"
     >
       {{ column.colOptions.label }}
@@ -100,7 +101,7 @@ const triggerAction = async () => {
   }
 
   &.light {
-    @apply text-gray-800;
+    @apply text-gray-700;
 
     &[class*='brand'] {
       @apply bg-brand-200;

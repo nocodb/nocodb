@@ -4295,7 +4295,10 @@ class BaseModelSqlv2 {
               );
             } else if (colOption.type === 'webhook') {
               qb.select(
-                this.dbDriver.raw(`'?' as ??`, [colOption.label, column.id]),
+                this.dbDriver.raw(`? as ??`, [
+                  `${colOption.fk_webhook_id}`,
+                  column.id,
+                ]),
               );
             } else {
               qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));

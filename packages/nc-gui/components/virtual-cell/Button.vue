@@ -53,7 +53,7 @@ const componentProps = computed(() => {
     return {
       href: encodeURI(/^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `http://${url}` : ''),
       target: '_blank',
-      disabled: !cellValue.value?.url,
+      ...(!cellValue.value?.url || column.value?.colOptions.error ? { disabled: true } : {}),
     }
   } else {
     return {

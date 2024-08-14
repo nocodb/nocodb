@@ -201,8 +201,8 @@ async function onOpenModal({
               <a-sub-menu popup-class-name="nc-viewlist-submenu-popup ">
                 <template #title>
                   <div class="flex items-center gap-2 text-sm font-weight-500 !text-brand-500">
-                    <div class="flex-1">New View</div>
                     <GeneralIcon icon="plus" />
+                    <div class="flex-1 text-right">New View</div>
                   </div>
                 </template>
 

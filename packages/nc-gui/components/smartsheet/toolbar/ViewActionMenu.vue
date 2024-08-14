@@ -299,7 +299,7 @@ const onDelete = async () => {
 
         <template #expandIcon></template>
         <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewMode') }}</div>
-        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
+        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
           <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
         </a-menu-item>
 

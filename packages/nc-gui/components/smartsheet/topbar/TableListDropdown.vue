@@ -138,8 +138,8 @@ function openTableCreateDialog() {
             <div
               class="px-2 py-1.5 flex items-center gap-2 text-sm font-weight-500 !text-brand-500 hover:bg-gray-100 rounded-md cursor-pointer"
             >
-              <div class="flex-1">New Table</div>
               <GeneralIcon icon="plus" />
+              <div class="flex-1 text-right">New Table</div>
             </div>
           </div>
         </template>

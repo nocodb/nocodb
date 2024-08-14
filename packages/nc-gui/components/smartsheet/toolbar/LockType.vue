@@ -29,7 +29,7 @@ const selectedView = inject(ActiveViewInj)
 </script>
 
 <template>
-  <div class="nc-locked-menu-item !px-1 text-gray-800" @click="emit('select', type)">
+  <div class="nc-locked-menu-item !px-1 text-gray-800 max-w-[312px]" @click="emit('select', type)">
     <div :class="{ 'show-tick': !hideTick }">
       <div class="flex flex-col gap-y-1">
         <div class="flex items-center gap-2 flex-grow">

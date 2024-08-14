@@ -93,9 +93,6 @@ cd nocodb/docker-compose/pg
 <a href="https://discord.gg/5RgZmkW" target="_blank">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
-<a href="https://community.nocodb.com/" target="_blank">
-<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
-</a>
 
 # 截图
 

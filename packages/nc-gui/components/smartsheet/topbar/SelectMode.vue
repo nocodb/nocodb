@@ -15,7 +15,7 @@ const onClickDetails = () => {
 </script>
 
 <template>
-  <div class="flex flex-row p-1 mx-3 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
+  <div class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
     <div
       v-e="['c:project:mode:data']"
       class="tab"

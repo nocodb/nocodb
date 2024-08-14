@@ -14,25 +14,23 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
   <div
     class="flex flex-row items-center border-gray-50 transition-all duration-100 select-none"
     :class="{
-      'min-w-36/100 max-w-36/100': !isMobileMode && isLeftSidebarOpen,
-      'min-w-39/100 max-w-39/100': !isMobileMode && !isLeftSidebarOpen,
-      'w-2/3 text-base ml-1.5': isMobileMode,
-      '!max-w-3/4': isSharedBase && !isMobileMode,
+      'text-base w-[calc(100%_-_52px)]': isMobileMode,
+      'w-[calc(100%_-_44px)]': !isMobileMode,
     }"
   >
     <template v-if="!isMobileMode">
       <SmartsheetTopbarProjectListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-2 cursor-pointer max-w-1/3"
+            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer max-w-1/3"
             :class="{
               '!max-w-none': isSharedBase && !isMobileMode,
-              '-ml-3': !isMobileMode && isLeftSidebarOpen,
+              '': !isMobileMode && isLeftSidebarOpen,
             }"
           >
             <GeneralProjectIcon
               :type="base?.type"
-              class="!grayscale min-w-4"
+              class="!grayscale min-w-4 mr-1"
               :style="{
                 filter: 'grayscale(100%) brightness(115%)',
               }"
@@ -69,14 +67,14 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <SmartsheetTopbarTableListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-2 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
             :class="{
-              'max-w-1/2': isMobileMode,
+              'max-w-full': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,
             }"
           >
-            <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">
+            <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall" class="mr-1">
               <template #default>
                 <GeneralIcon
                   icon="table"
@@ -122,14 +120,14 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <SmartsheetTopbarViewListDropdown>
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-800 font-semibold hover:(bg-gray-100 text-gray-900) flex items-center gap-2 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-gray-800 font-semibold hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
             :class="{
-              'max-w-1/2': isMobileMode,
+              'max-w-full': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,
             }"
           >
-            <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeView?.meta?.icon" readonly size="xsmall">
+            <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeView?.meta?.icon" readonly size="xsmall" class="mr-1">
               <template #default>
                 <GeneralViewIcon :meta="{ type: activeView?.type }" class="min-w-4.5 text-lg flex" />
               </template>

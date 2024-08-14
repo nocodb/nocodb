@@ -119,15 +119,9 @@ watch(
     >
       <div class="flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
-        <div
-          class="flex flex-row items-center h-full gap-x-2"
-          :class="{
-            '-ml-1': !isMobileMode && isLeftSidebarOpen,
-            'ml-2': !isMobileMode && !isLeftSidebarOpen,
-          }"
-        >
+        <div class="flex flex-row items-center h-full gap-x-2 px-2">
           <GeneralProjectIcon :color="parseProp(currentBase?.meta).iconColor" :type="currentBase?.type" />
-          <NcTooltip class="flex font-bold text-sm capitalize truncate max-w-150" show-on-truncate-only>
+          <NcTooltip class="flex font-bold text-sm capitalize truncate max-w-150 text-gray-800" show-on-truncate-only>
             <template #title> {{ currentBase?.title }}</template>
             <span class="truncate">
               {{ currentBase?.title }}

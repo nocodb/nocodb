@@ -181,10 +181,8 @@ export default class BaseUser {
 
     const fullVersionCols = [
       'invite_token',
-      'main_roles',
       'created_at',
       'base_id',
-      'roles',
     ];
 
     if (!isNoneList && !baseUsers.length) {

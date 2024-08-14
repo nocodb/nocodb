@@ -247,7 +247,7 @@ export class BaseUsersService {
     }
 
     if (
-      getProjectRolePower(targetUser) >= getProjectRolePower(param.req.user)
+      getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)
     ) {
       NcError.badRequest(`Insufficient privilege to update user`);
     }
@@ -303,7 +303,7 @@ export class BaseUsersService {
     // check if user have access to delete user based on role power
     if(getProjectRolePower({
       base_roles: extractRolesObj(param.req.user.base_roles),
-    }) >= getProjectRolePower(param.req.user?.base_roles) {
+    }) > getProjectRolePower(param.req.user?.base_roles)) {
       NcError.badRequest('Insufficient privilege to delete user');
     }
 

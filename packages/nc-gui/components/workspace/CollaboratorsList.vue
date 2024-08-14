@@ -77,18 +77,15 @@ const selectAll = computed({
 const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
-  try {
-    await _updateCollaborator(collab.id, roles, currentWorkspace.value.id)
-    message.success('Successfully updated user role')
+  const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id)
+  if (!res) return
+  message.success('Successfully updated user role')
 
-    collaborators.value?.forEach((collaborator) => {
-      if (collaborator.id === collab.id) {
-        collaborator.roles = roles
-      }
-    })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
+  collaborators.value?.forEach((collaborator) => {
+    if (collaborator.id === collab.id) {
+      collaborator.roles = roles
+    }
+  })
 }
 
 const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
@@ -96,7 +93,7 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
     (role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role),
   )
   if (currentRoleIndex === -1) return []
-  return OrderedWorkspaceRoles.slice(currentRoleIndex + 1).filter((r) => r)
+  return OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
 })
 
 onMounted(async () => {
@@ -271,7 +268,8 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <template v-if="isAdminPanel">x
+                  <template v-if="isAdminPanel"
+                    >x
                     <NcMenuItem data-testid="nc-admin-org-user-delete">
                       <GeneralIcon class="text-gray-800" icon="signout" />
                       <span>{{ $t('labels.signOutUser') }}</span>

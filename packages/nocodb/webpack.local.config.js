@@ -35,7 +35,7 @@ module.exports = {
   },
   externals: [
     nodeExternals({
-      allowlist: ['nocodb-sdk'],
+      allowlist: ['nocodb-sdk', 'nc-plugin'],
     }),
   ],
   resolve: {

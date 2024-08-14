@@ -198,6 +198,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
   }
 
   return {
+    $api,
     fullscreen,
     collapsed,
     extension,
@@ -205,7 +206,6 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState((exten
     getViewsForTable,
     getData,
     getTableMeta,
-    $api,
     insertData,
     updateData,
     upsertData,

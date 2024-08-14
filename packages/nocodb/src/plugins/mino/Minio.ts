@@ -12,6 +12,7 @@ interface MinioObjectStorageInput {
   useSSL?: boolean;
   endPoint: string;
   port: number;
+  ca?: string;
 }
 
 export default class Minio implements IStorageAdapterV2 {
@@ -32,6 +33,12 @@ export default class Minio implements IStorageAdapterV2 {
     };
 
     this.minioClient = new MinioClient(minioOptions);
+
+    if (this.input.useSSL && this.input.ca) {
+      this.minioClient.setRequestOptions({
+        ca: this.input.ca,
+      });
+    }
   }
 
   public async test(): Promise<boolean> {
@@ -123,7 +130,7 @@ export default class Minio implements IStorageAdapterV2 {
       },
     };
 
-    const responseUrl = this.upload(uploadParams);
+    const responseUrl = await this.upload(uploadParams);
 
     return {
       url: responseUrl,
@@ -137,7 +144,7 @@ export default class Minio implements IStorageAdapterV2 {
     metaData: { [key: string]: string | number };
   }): Promise<any> {
     try {
-      this.minioClient.putObject(
+      await this.minioClient.putObject(
         this.input.bucket,
         uploadParams.Key,
         uploadParams.Body,

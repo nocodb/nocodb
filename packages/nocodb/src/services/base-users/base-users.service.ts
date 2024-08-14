@@ -122,6 +122,7 @@ export class BaseUsersService {
           base_id: param.baseId,
           fk_user_id: user.id,
           roles: param.baseUser.roles || 'editor',
+          invited_by: param.req?.user?.id,
         });
 
         this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
@@ -147,6 +148,7 @@ export class BaseUsersService {
             base_id: param.baseId,
             fk_user_id: user.id,
             roles: param.baseUser.roles,
+            invited_by: param.req?.user?.id,
           });
 
           this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
@@ -246,9 +248,7 @@ export class BaseUsersService {
       );
     }
 
-    if (
-      getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)
-    ) {
+    if (getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)) {
       NcError.badRequest(`Insufficient privilege to update user`);
     }
 
@@ -301,14 +301,19 @@ export class BaseUsersService {
     }
 
     // check if user have access to delete user based on role power
-    if(getProjectRolePower({
-      base_roles: extractRolesObj(param.req.user.base_roles),
-    }) > getProjectRolePower(param.req.user?.base_roles)) {
+    if (
+      getProjectRolePower({
+        base_roles: extractRolesObj(param.req.user.base_roles),
+      }) > getProjectRolePower(param.req.user?.base_roles)
+    ) {
       NcError.badRequest('Insufficient privilege to delete user');
     }
 
     // block self delete if user is owner or super
-    if (param.req.user.id === param.userId && param.req.user.roles.includes('owner')) {
+    if (
+      param.req.user.id === param.userId &&
+      param.req.user.roles.includes('owner')
+    ) {
       NcError.badRequest("Admin can't delete themselves!");
     }
 

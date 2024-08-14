@@ -20,6 +20,7 @@ export default class BaseUser {
   base_id: string;
   fk_user_id: string;
   roles?: string;
+  invited_by?: string;
 
   constructor(data: BaseUser) {
     Object.assign(this, data);
@@ -35,7 +36,7 @@ export default class BaseUser {
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = baseUsers.map((baseUser) =>
-      extractProps(baseUser, ['fk_user_id', 'base_id', 'roles']),
+      extractProps(baseUser, ['fk_user_id', 'base_id', 'roles', 'invited_by']),
     );
 
     if (!insertObj.length) {
@@ -84,6 +85,7 @@ export default class BaseUser {
       'fk_user_id',
       'base_id',
       'roles',
+      'invited_by',
     ]);
 
     const { base_id, fk_user_id } = await ncMeta.metaInsert2(
@@ -179,11 +181,7 @@ export default class BaseUser {
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
 
-    const fullVersionCols = [
-      'invite_token',
-      'created_at',
-      'base_id',
-    ];
+    const fullVersionCols = ['invite_token', 'created_at', 'base_id'];
 
     if (!isNoneList && !baseUsers.length) {
       const queryBuilder = ncMeta
@@ -477,6 +475,7 @@ export default class BaseUser {
       return await this.insert(context, {
         base_id: baseId,
         fk_user_id: userId,
+        invited_by: baseUser.invited_by,
       });
     }
   }

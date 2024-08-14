@@ -22,9 +22,9 @@ export enum ProjectRoles {
 export enum WorkspaceUserRoles {
   OWNER = 'workspace-level-owner',
   CREATOR = 'workspace-level-creator',
-  VIEWER = 'workspace-level-viewer',
   EDITOR = 'workspace-level-editor',
   COMMENTER = 'workspace-level-commenter',
+  VIEWER = 'workspace-level-viewer',
   NO_ACCESS = 'workspace-level-no-access',
 }
 

@@ -4,7 +4,7 @@ import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import slash from 'slash';
-import type { IStorageAdapterV2 } from 'nc-plugin';
+import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import type { AttachmentResType } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import type Sharp from 'sharp';

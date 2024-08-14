@@ -140,6 +140,7 @@ declare module 'vue' {
     MdiReload: typeof import('~icons/mdi/reload')['default']
     MdiRocketLaunchOutline: typeof import('~icons/mdi/rocket-launch-outline')['default']
     MdiScriptTextOutline: typeof import('~icons/mdi/script-text-outline')['default']
+    MdiShieldKeyOutline: typeof import('~icons/mdi/shield-key-outline')['default']
     MdiStar: typeof import('~icons/mdi/star')['default']
     MdiStarOutline: typeof import('~icons/mdi/star-outline')['default']
     MdiStickerCheckOutline: typeof import('~icons/mdi/sticker-check-outline')['default']

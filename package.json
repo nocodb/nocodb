@@ -32,7 +32,7 @@
     ]
   },
   "scripts": {
-    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nc-plugin install && pnpm --filter=nc-plugin build && pnpm --filter=nocodb --filter=nc-mail-templates --filter=nc-gui --filter=playwright install",
+    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-mail-templates --filter=nc-gui --filter=playwright install",
     "start:frontend": "pnpm --filter=nc-gui run dev",
     "start:backend": "pnpm --filter=nocodb run start",
     "lint:staged:playwright": "cd ./tests/playwright; pnpm dlx lint-staged; cd -",

@@ -1,6 +1,6 @@
-import { XcEmailPlugin } from 'nc-plugin';
 import SMTP from './SMTP';
-import type { IEmailAdapter } from 'nc-plugin';
+import type { IEmailAdapter } from '~/types/nc-plugin';
+import { XcEmailPlugin } from '~/types/nc-plugin';
 
 class SMTPPlugin extends XcEmailPlugin {
   private static storageAdapter: SMTP;

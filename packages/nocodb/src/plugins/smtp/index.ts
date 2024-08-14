@@ -1,6 +1,6 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import SMTPPlugin from './SMTPPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 // @author <dean@deanlofts.xyz>
 

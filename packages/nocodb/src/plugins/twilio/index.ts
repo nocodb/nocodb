@@ -1,6 +1,6 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import TwilioPlugin from './TwilioPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: TwilioPlugin,

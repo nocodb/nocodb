@@ -101,26 +101,6 @@ function openTableCreateDialog() {
         search-input-placeholder="Search tables"
         @change="handleNavigateToTable"
       >
-        <template
-          v-if="
-            !isMobileMode &&
-            isUIAllowed('tableCreate', {
-              roles: base?.project_role || base?.workspace_role,
-              source: base?.sources?.[activeTableSourceIndex] || {},
-            })
-          "
-          #listHeader
-        >
-          <div class="px-2" @click="openTableCreateDialog()">
-            <div
-              class="p-2 flex items-center gap-2 text-sm font-weight-500 !text-brand-500 hover:bg-gray-100 rounded-md cursor-pointer"
-            >
-              <div class="flex-1">New Table</div>
-              <GeneralIcon icon="plus" />
-            </div>
-          </div>
-          <NcDivider />
-        </template>
         <template #listItem="{ option }">
           <div>
             <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
@@ -141,6 +121,27 @@ function openTableCreateDialog() {
             icon="check"
             class="flex-none text-primary w-4 h-4"
           />
+        </template>
+
+        <template
+          v-if="
+            !isMobileMode &&
+            isUIAllowed('tableCreate', {
+              roles: base?.project_role || base?.workspace_role,
+              source: base?.sources?.[activeTableSourceIndex] || {},
+            })
+          "
+          #listFooter
+        >
+          <NcDivider class="!mt-0 !mb-2" />
+          <div class="px-2 mb-2" @click="openTableCreateDialog()">
+            <div
+              class="px-2 py-1.5 flex items-center gap-2 text-sm font-weight-500 !text-brand-500 hover:bg-gray-100 rounded-md cursor-pointer"
+            >
+              <div class="flex-1">New Table</div>
+              <GeneralIcon icon="plus" />
+            </div>
+          </div>
         </template>
       </LazyNcList>
     </template>

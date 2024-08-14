@@ -248,19 +248,24 @@ watch(
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
   >
-    <div v-if="isSearchEnabled" class="w-full pb-2 px-2" @click.stop>
-      <a-input
-        ref="inputRef"
-        v-model:value="searchQuery"
-        :placeholder="searchInputPlaceholder || $t('placeholder.searchFields')"
-        class="nc-toolbar-dropdown-search-field-input"
-        allow-clear
-        @keydown.enter.stop="handleKeydownEnter"
-        @change="handleResetHoverEffect(false, 0)"
-      >
-        <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
-      ></a-input>
-    </div>
+    <template v-if="isSearchEnabled">
+      <div class="w-full px-2" @click.stop>
+        <a-input
+          ref="inputRef"
+          v-model:value="searchQuery"
+          :placeholder="searchInputPlaceholder || $t('placeholder.searchFields')"
+          class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5"
+          allow-clear
+          :bordered="false"
+          @keydown.enter.stop="handleKeydownEnter"
+          @change="handleResetHoverEffect(false, 0)"
+        >
+          <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
+        ></a-input>
+      </div>
+      <NcDivider/>
+    </template>
+
     <slot name="listHeader"></slot>
     <div class="nc-list-wrapper">
       <template v-if="list.length">
@@ -311,4 +316,15 @@ watch(
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+:deep(.nc-toolbar-dropdown-search-field-input) {
+  &.ant-input-affix-wrapper-focused {
+    .ant-input-prefix svg {
+      @apply text-brand-500;
+    }
+  }
+  .ant-input {
+    @apply placeholder-gray-500;
+  }
+}
+</style>

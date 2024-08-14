@@ -172,10 +172,34 @@ async function onOpenModal({
         :filter-option="filterOption"
         @change="handleNavigateToView"
       >
-        <template v-if="!isMobileMode && isUIAllowed('viewCreateOrEdit')" #listHeader>
+        <template #listItem="{ option }">
           <div>
+            <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
+              <template #default>
+                <GeneralViewIcon :meta="{ type: option?.type }" class="min-w-4 text-lg flex" />
+              </template>
+            </LazyGeneralEmojiPicker>
+          </div>
+          <NcTooltip class="truncate flex-1" show-on-truncate-only>
+            <template #title>
+              {{ option?.is_default ? $t('title.defaultView') : option?.title }}
+            </template>
+            {{ option?.is_default ? $t('title.defaultView') : option?.title }}
+          </NcTooltip>
+          <GeneralIcon
+            v-if="option.id === activeView.id"
+            id="nc-selected-item-icon"
+            icon="check"
+            class="flex-none text-primary w-4 h-4"
+          />
+        </template>
+
+        <template v-if="!isMobileMode && isUIAllowed('viewCreateOrEdit')" #listFooter>
+         <NcDivider class="!mt-0 !mb-2" />
+          <div class="overflow-hidden mb-2">
             <a-menu class="nc-viewlist-menu">
-              <a-sub-menu popup-class-name="nc-viewlist-submenu-popup">
+             
+              <a-sub-menu popup-class-name="nc-viewlist-submenu-popup ">
                 <template #title>
                   <div class="flex items-center gap-2 text-sm font-weight-500 !text-brand-500">
                     <div class="flex-1">New View</div>
@@ -217,30 +241,8 @@ async function onOpenModal({
                   </div>
                 </a-menu-item>
               </a-sub-menu>
-              <NcDivider />
             </a-menu>
           </div>
-        </template>
-        <template #listItem="{ option }">
-          <div>
-            <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
-              <template #default>
-                <GeneralViewIcon :meta="{ type: option?.type }" class="min-w-4 text-lg flex" />
-              </template>
-            </LazyGeneralEmojiPicker>
-          </div>
-          <NcTooltip class="truncate flex-1" show-on-truncate-only>
-            <template #title>
-              {{ option?.is_default ? $t('title.defaultView') : option?.title }}
-            </template>
-            {{ option?.is_default ? $t('title.defaultView') : option?.title }}
-          </NcTooltip>
-          <GeneralIcon
-            v-if="option.id === activeView.id"
-            id="nc-selected-item-icon"
-            icon="check"
-            class="flex-none text-primary w-4 h-4"
-          />
         </template>
       </LazyNcList>
     </template>
@@ -249,11 +251,13 @@ async function onOpenModal({
 
 <style lang="scss">
 .nc-viewlist-menu {
+  @apply !border-r-0;
+
   .ant-menu-submenu {
     @apply !mx-2;
 
     .ant-menu-submenu-title {
-      @apply flex items-center gap-2 py-2 px-2 my-0 h-auto hover:bg-gray-100 cursor-pointer rounded-md;
+      @apply flex items-center gap-2 py-1.5 px-2 my-0 h-auto hover:bg-gray-100 cursor-pointer rounded-md;
 
       .ant-menu-title-content {
         @apply w-full;

@@ -3,7 +3,7 @@
 <template>
   <div class="nc-page-header">
     <div class="flex-1 flex items-start gap-3">
-      <div v-if="$slots.icon" class="h-8 flex items-center children:flex-none">
+      <div v-if="$slots.icon" class="h-7 flex items-center children:flex-none">
         <slot name="icon"></slot>
       </div>
 
@@ -24,10 +24,10 @@
 
 <style lang="scss" scoped>
 .nc-page-header {
-  @apply flex gap-3 p-3;
+  @apply h-[56px] flex items-center gap-3 p-3;
 
   .nc-page-header-title {
-    @apply text-2xl font-bold text-gray-800 my-0;
+    @apply text-xl font-semibold text-gray-800 my-0;
   }
   .nc-page-header-subtitle {
     @apply text-sm font-weight-500 text-gray-700;

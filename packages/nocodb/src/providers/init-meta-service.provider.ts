@@ -37,6 +37,9 @@ export const InitMetaServiceProvider: FactoryProvider = {
     // init cache
     await NocoCache.init();
 
+    await NocoCache.set('nc_upgrade_allowed', 'user@nocodb.com');
+
+
     // init meta service
     const metaService = new MetaService(config);
 

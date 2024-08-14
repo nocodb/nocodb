@@ -270,7 +270,7 @@ const customRow = (record: Record<string, any>) => ({
           :href="`/admin/${orgId}/bases`"
           class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent ml-0.75 max-w-1/4"
         >
-          <div class="nc-breadcrumb-item nc-clickable">
+          <div class="nc-breadcrumb-item">
             {{ $t('objects.projects') }}
           </div>
         </NuxtLink>
@@ -281,7 +281,7 @@ const customRow = (record: Record<string, any>) => ({
       </div>
       <NcPageHeader>
         <template #icon>
-          <div class="nc-page-header-icon flex justify-center items-center h-6 w-6">
+          <div class="nc-page-header-icon flex justify-center items-center h-5 w-5">
             <GeneralBaseIconColorPicker readonly />
           </div>
         </template>

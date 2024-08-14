@@ -92,7 +92,7 @@ onMounted(() => {
           :href="`/admin/${orgId}/workspaces`"
           class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent ml-0.75 max-w-1/4"
         >
-          <div class="nc-breadcrumb-item nc-clickable">
+          <div class="nc-breadcrumb-item">
             {{ $t('labels.workspaces') }}
           </div>
         </NuxtLink>

@@ -10,6 +10,17 @@ const { activeView, views } = storeToRefs(viewsStore)
 
 const isOpen = ref<boolean>(false)
 
+/**
+ * Handles navigation to a selected view.
+ * 
+ * @param {ViewType} view - The view to navigate to.
+ * @returns {Promise<void>}
+ * 
+ * @description
+ * This function is called when a user selects a view from the dropdown list.
+ * It checks if the view has a valid ID and then navigates to the selected view.
+ * If the view is a form and it's already active, it performs a hard reload.
+ */
 const handleNavigateToView = async (view: ViewType) => {
   if (!view?.id) return
   

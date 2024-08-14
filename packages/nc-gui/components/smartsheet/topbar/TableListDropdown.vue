@@ -7,6 +7,17 @@ const { openTable } = useTablesStore()
 
 const isOpen = ref<boolean>(false)
 
+/**
+ * Handles navigation to a selected table.
+ * 
+ * @param {TableType} table - The table to navigate to.
+ * @returns {void}
+ * 
+ * @description
+ * This function is called when a user selects a table from the dropdown list.
+ * It checks if the table has a valid ID and then opens the selected table.
+ */
+
 const handleNavigateToTable = (table: TableType) => {
   if (table?.id) {
     openTable(table)

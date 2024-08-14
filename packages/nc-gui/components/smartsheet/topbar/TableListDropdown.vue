@@ -21,34 +21,34 @@ const filteredTableList = computed(() => {
   return (activeTables.value || []).filter((t: TableType) => t?.source_id === activeTable.value?.source_id)
 })
 
- /**
-  * Handles navigation to a selected table.
-  *
-  * @param table - The table to navigate to.
-  *
-  * @remarks
-  * This function is called when a user selects a table from the dropdown list.
-  * It checks if the table has a valid ID and then opens the selected table.
-  */
+/**
+ * Handles navigation to a selected table.
+ *
+ * @param table - The table to navigate to.
+ *
+ * @remarks
+ * This function is called when a user selects a table from the dropdown list.
+ * It checks if the table has a valid ID and then opens the selected table.
+ */
 const handleNavigateToTable = (table: TableType) => {
   if (table?.id) {
     openTable(table)
   }
 }
 
- /**
-  * Opens a dialog to create a new table.
-  *
-  * @returns void
-  *
-  * @remarks
-  * This function is triggered when the user initiates the table creation process from the topbar.
-  * It emits a tracking event, checks for a valid source, and opens a dialog for table creation.
-  * The function also handles the dialog closure and potential scrolling to the newly created table.
-  *
-  * @see {@link packages/nc-gui/components/dashboard/TreeView/ProjectNode.vue} for a similar implementation
-  * of table creation dialog. If this function is updated, consider updating the other implementation as well.
-  */
+/**
+ * Opens a dialog to create a new table.
+ *
+ * @returns void
+ *
+ * @remarks
+ * This function is triggered when the user initiates the table creation process from the topbar.
+ * It emits a tracking event, checks for a valid source, and opens a dialog for table creation.
+ * The function also handles the dialog closure and potential scrolling to the newly created table.
+ *
+ * @see {@link packages/nc-gui/components/dashboard/TreeView/ProjectNode.vue} for a similar implementation
+ * of table creation dialog. If this function is updated, consider updating the other implementation as well.
+ */
 function openTableCreateDialog() {
   $e('c:table:create:topbar')
 
@@ -57,7 +57,7 @@ function openTableCreateDialog() {
   isOpen.value = false
 
   const isCreateTableOpen = ref(true)
-  let sourceId = base.value!.sources?.[activeTableSourceIndex.value].id
+  const sourceId = base.value!.sources?.[activeTableSourceIndex.value].id
 
   if (!sourceId || !base.value?.id) return
 
@@ -90,16 +90,16 @@ function openTableCreateDialog() {
 
 <template>
   <NcDropdown v-model:visible="isOpen">
-    <slot name="default" :isOpen="isOpen"></slot>
+    <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <NcList
         v-model:open="isOpen"
         :value="activeTable.id"
-        @change="handleNavigateToTable"
         :list="filteredTableList"
         option-value-key="id"
         option-label-key="title"
         search-input-placeholder="Search tables"
+        @change="handleNavigateToTable"
       >
         <template
           v-if="isUIAllowed('tableCreate', { roles: base?.project_role || base?.workspace_role, source: base?.sources?.[0] })"

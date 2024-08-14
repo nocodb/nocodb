@@ -45,8 +45,6 @@ interface Emits {
   (e: 'change', option: ListItem): void
 }
 
-const emits = defineEmits<Emits>()
-
 const props = withDefaults(defineProps<Props>(), {
   open: false,
   closeOnSelect: true,
@@ -54,6 +52,8 @@ const props = withDefaults(defineProps<Props>(), {
   optionValueKey: 'value',
   optionLabelKey: 'label',
 })
+
+const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'value', emits)
 
@@ -75,15 +75,14 @@ const showHoverEffectOnSelectedOption = ref(true)
 
 const isSearchEnabled = computed(() => props.list.length > 4)
 
-
- /**
-  * Computed property that filters the list of options based on the search query.
-  * If a custom filter function is provided via props.filterOption, it will be used instead of the default filtering logic.
-  *
-  * @returns Filtered list of options
-  *
-  * @typeparam ListItem - The type of items in the list
-  */
+/**
+ * Computed property that filters the list of options based on the search query.
+ * If a custom filter function is provided via props.filterOption, it will be used instead of the default filtering logic.
+ *
+ * @returns Filtered list of options
+ *
+ * @typeparam ListItem - The type of items in the list
+ */
 const list = computed(() => {
   return props.list.filter((item, i) => {
     if (props?.filterOption) {

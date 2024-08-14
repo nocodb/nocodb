@@ -11,7 +11,7 @@ const { $api } = useNuxtApp()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { activeView, views, openedViewsTab, viewsByTable } = storeToRefs(useViewsStore())
+const { activeView, views, viewsByTable } = storeToRefs(useViewsStore())
 const { loadViews, removeFromRecentViews } = useViewsStore()
 
 const { navigateToTable } = useTablesStore()

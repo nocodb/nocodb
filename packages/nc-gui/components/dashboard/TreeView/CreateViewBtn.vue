@@ -32,8 +32,6 @@ const overlayClassName = computed(() => {
   return 'nc-view-create-dropdown'
 })
 
-
-
 /**
  * Opens a modal for creating or editing a view.
  *
@@ -51,7 +49,7 @@ const overlayClassName = computed(() => {
  * This function opens a modal dialog for creating or editing a view.
  * It handles the dialog state, view creation, and navigation to the newly created view.
  * After creating a view, it refreshes the command palette and reloads the views.
- * 
+ *
  * @see {@link packages/nc-gui/components/smartsheet/topbar/ViewListDropdown.vue} for a similar implementation of view creation dialog.
  * If this function is updated, consider updating the other implementations as well.
  */

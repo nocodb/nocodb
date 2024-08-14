@@ -44,17 +44,17 @@ const handleNavigateToProject = async (base: NcProject) => {
 
 <template>
   <NcDropdown v-model:visible="isOpen">
-    <slot name="default" :isOpen="isOpen"></slot>
+    <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <NcList
         v-if="activeBase.id"
         v-model:open="isOpen"
         :value="activeBase.id"
-        @change="handleNavigateToProject"
         :list="basesList"
         option-value-key="id"
         option-label-key="title"
         search-input-placeholder="Search bases"
+        @change="handleNavigateToProject"
       >
         <template #listItem="{ option }">
           <GeneralBaseIconColorPicker :type="option?.type" :model-value="parseProp(option.meta).iconColor" size="xsmall" readonly>

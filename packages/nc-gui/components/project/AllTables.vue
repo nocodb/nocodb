@@ -220,7 +220,7 @@ const onCreateBaseClick = () => {
             data-testid="proj-view-list__item-title"
           >
             <div class="min-w-6 flex items-center justify-center">
-              <GeneralTableIcon :meta="record" class="flex-none text-gray-600"/>
+              <GeneralTableIcon :meta="record" class="flex-none text-gray-600" />
             </div>
             <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
               <template #title>

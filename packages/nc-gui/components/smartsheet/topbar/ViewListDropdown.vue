@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ViewTypes, type ViewType } from 'nocodb-sdk'
+import { type ViewType, ViewTypes } from 'nocodb-sdk'
 
 const { t } = useI18n()
 
@@ -25,7 +25,7 @@ const activeSource = computed(() => {
   return (base.value.sources || [])?.find((s) => s.id === activeView.value?.source_id)
 })
 
- /**
+/**
  * Handles navigation to a selected view.
  *
  * @param view - The view to navigate to.
@@ -48,8 +48,7 @@ const handleNavigateToView = async (view: ViewType) => {
   })
 }
 
-
- /**
+/**
  * Filters the view options based on the input string.
  *
  * @param input - The search input string.
@@ -86,11 +85,11 @@ const filterOption = (input: string = '', view: ViewType) => {
  * This function opens a modal dialog for creating or editing a view.
  * It handles the dialog state, view creation, and navigation to the newly created view.
  * After creating a view, it refreshes the command palette and reloads the views.
- * 
+ *
  * @see {@link packages/nc-gui/components/dashboard/TreeView/CreateViewBtn.vue} for a similar implementation of view creation dialog.
  * If this function is updated, consider updating the other implementations as well.
  */
- async function onOpenModal({
+async function onOpenModal({
   title = '',
   type,
   copyViewId,
@@ -159,19 +158,19 @@ const filterOption = (input: string = '', view: ViewType) => {
 
 <template>
   <NcDropdown v-if="activeView" v-model:visible="isOpen">
-    <slot name="default" :isOpen="isOpen"></slot>
+    <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
       <NcList
         v-model:open="isOpen"
         :value="activeView.id"
-        @change="handleNavigateToView"
         :list="views"
         option-value-key="id"
         option-label-key="title"
         search-input-placeholder="Search views"
         :filter-option="filterOption"
+        @change="handleNavigateToView"
       >
-        <template #listHeader v-if="isUIAllowed('viewCreateOrEdit')">
+        <template v-if="isUIAllowed('viewCreateOrEdit')" #listHeader>
           <div>
             <a-menu class="nc-viewlist-menu">
               <a-sub-menu popup-class-name="nc-viewlist-submenu-popup">

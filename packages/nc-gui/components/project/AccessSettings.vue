@@ -373,7 +373,7 @@ const isDeleteOrUpdateAllowed = (user) => {
             </div>
           </div>
           <div v-if="column.key === 'role'">
-          <template v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles)">
+            <template v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles)">
               <RolesSelector
                 :role="record.roles"
                 :roles="accessibleRoles"

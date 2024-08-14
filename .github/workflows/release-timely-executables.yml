@@ -97,9 +97,11 @@ jobs:
           ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=x64 --target_libc=musl
           ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=arm64 --target_libc=musl
           
+          # clean up code to optimize size
+          npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,nocodb-daily/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
           
-          mkdir ./mac-dist
-          mkdir ./dist
+          mkdir -p ./mac-dist
+          mkdir -p ./dist
           
           # build darwin x64 executable
           npm uninstall sharp
@@ -138,13 +140,6 @@ jobs:
           npm install --cpu=arm64 --os=win32 sharp
           npx --yes pkg@5.8.1 . --compress GZip -t node18-win-arm64 -o Noco-win-arm64.exe
           mv ./Noco-win-arm64.exe ./dist/
-          
-          # clean up code to optimize size
-          npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,nocodb-daily/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
-          
-          mkdir ./mac-dist
-          mv ./dist/Noco-macos-arm64 ./mac-dist/
-          mv ./dist/Noco-macos-x64 ./mac-dist/
 
       - name: Upload executables(except mac executables) to release
         uses: svenstaro/upload-release-action@v2

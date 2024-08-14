@@ -150,6 +150,7 @@ import NcStrike from '~icons/nc-icons/strike-through'
 import NcCrop from '~icons/nc-icons/crop'
 import NcControlPanel from '~icons/nc-icons/control-panel'
 import NcHome from '~icons/nc-icons/home'
+import NcHome1 from '~icons/nc-icons/home1'
 import NcWorkspace from '~icons/nc-icons/workspace'
 
 import NcCellBarcode from '~icons/nc-icons/cell-barcode'
@@ -690,6 +691,7 @@ export const iconMap = {
   ncWorkspace: NcWorkspace,
   controlPanel: NcControlPanel,
   home: NcHome,
+  home1: NcHome1,
   cellBarcode: NcCellBarcode,
   cellCheckbox: NcCellCheckbox,
   cellDate: NcCellDate,

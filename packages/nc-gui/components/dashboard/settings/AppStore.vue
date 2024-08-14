@@ -106,7 +106,7 @@ onMounted(async () => {
       </div>
     </a-modal>
 
-    <div class="flex flex-wrap mt-4 w-full gap-5 mb-10">
+    <div class="flex flex-wrap w-full gap-5">
       <a-card
         v-for="(app, i) in apps"
         :key="i"

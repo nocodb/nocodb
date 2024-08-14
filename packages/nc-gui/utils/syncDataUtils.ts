@@ -53,6 +53,16 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     },
   },
   {
+    title: 'objects.integrationCategories.spreadSheet',
+    subtitle: 'objects.integrationCategories.spreadSheetSubtitle',
+    value: IntegrationCategoryType.SPREAD_SHEET,
+    icon: iconMap.viewGannt,
+    iconBgColor: '#FFF0D1',
+    iconStyle: {
+      color: '#977223',
+    },
+  },
+  {
     title: 'objects.integrationCategories.projectManagement',
     subtitle: 'objects.integrationCategories.projectManagementSubtitle',
     value: IntegrationCategoryType.PROJECT_MANAGEMENT,
@@ -459,7 +469,7 @@ export const allIntegrations: IntegrationItemType[] = [
     title: 'objects.syncData.appleNumbers',
     value: SyncDataType.APPLE_NUMBERS,
     icon: iconMap.appleSolid,
-    categories: [IntegrationCategoryType.OTHERS],
+    categories: [IntegrationCategoryType.SPREAD_SHEET],
   },
   {
     title: 'objects.syncData.googleCalendar',
@@ -471,12 +481,12 @@ export const allIntegrations: IntegrationItemType[] = [
     title: 'objects.syncData.microsoftExcel',
     value: SyncDataType.MICROSOFT_EXCEL,
     icon: iconMap.microsoftExcel,
-    categories: [IntegrationCategoryType.OTHERS],
+    categories: [IntegrationCategoryType.SPREAD_SHEET],
   },
   {
     title: 'objects.syncData.googleSheets',
     value: SyncDataType.GOOGLE_SHEETS,
     icon: iconMap.googleSheet,
-    categories: [IntegrationCategoryType.OTHERS],
+    categories: [IntegrationCategoryType.SPREAD_SHEET],
   },
 ]

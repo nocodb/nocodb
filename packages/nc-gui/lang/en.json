@@ -416,7 +416,9 @@
       "storageSubtitle": "Integrate and organize your storage solutions seamlessly with NocoDB.",
       "others": "Others",
       "othersSubtitle": "Discover additional versatile integrations to enhance your NocoDB experience.",
-      "ai": "AI"
+      "ai": "AI",
+      "spreadSheet": "Spreadsheet",
+      "spreadSheetSubtitle": "Connect and manage your spreadsheets with NocoDB."
     }
   },
   "datatype": {

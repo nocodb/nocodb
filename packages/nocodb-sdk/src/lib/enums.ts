@@ -417,6 +417,7 @@ export enum IntegrationCategoryType {
   DATABASE = 'database',
   AI = 'ai',
   COMMUNICATION = 'communication',
+  SPREAD_SHEET = 'spread-sheet',
   PROJECT_MANAGEMENT = 'project-management',
   CRM = 'crm',
   MARKETING = 'marketing',

@@ -15,12 +15,10 @@ const { openTable } = useTablesStore()
 
 const isOpen = ref<boolean>(false)
 
-const activeTableSourceIndex = computed(() => {
-  return activeTable.value?.source_id ? (base.value?.sources || []).findIndex((s) => s.id === activeTable.value?.source_id) : -1
-})
+const activeTableSourceIndex = computed(() => base.value?.sources?.findIndex((s) => s.id === activeTable.value?.source_id) ?? -1)
 
 const filteredTableList = computed(() => {
-  return (activeTables.value || []).filter((t: TableType) => t?.source_id === activeTable.value?.source_id)
+  return activeTables.value.filter((t: TableType) => t?.source_id === activeTable.value?.source_id) || []
 })
 
 /**
@@ -108,7 +106,7 @@ function openTableCreateDialog() {
             !isMobileMode &&
             isUIAllowed('tableCreate', {
               roles: base?.project_role || base?.workspace_role,
-              source: base?.sources?.[activeTableSourceIndex],
+              source: base?.sources?.[activeTableSourceIndex] || {},
             })
           "
           #listHeader

@@ -24,7 +24,7 @@ const { refreshCommandPalette } = useCommandPalette()
 const isOpen = ref<boolean>(false)
 
 const activeSource = computed(() => {
-  return (base.value.sources || [])?.find((s) => s.id === activeView.value?.source_id)
+  return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
 })
 
 /**
@@ -63,7 +63,7 @@ const handleNavigateToView = async (view: ViewType) => {
  * The matching is case-insensitive.
  */
 const filterOption = (input: string = '', view: ViewType) => {
-  if (view.is_default && t('title.defaultView').toLowerCase().includes(input.toLowerCase())) {
+  if (view.is_default && t('title.defaultView').toLowerCase().includes(input)) {
     return true
   }
 

@@ -85,11 +85,13 @@ const isSearchEnabled = computed(() => props.list.length > 4)
  * @typeparam ListItem - The type of items in the list
  */
 const list = computed(() => {
+  const query = searchQuery.value.toLowerCase()
+
   return props.list.filter((item, i) => {
     if (props?.filterOption) {
-      return props.filterOption(searchQuery.value, item, i)
+      return props.filterOption(query, item, i)
     } else {
-      return item[optionLabelKey]?.toLowerCase()?.includes(searchQuery.value.toLowerCase())
+      return item[optionLabelKey]?.toLowerCase()?.includes(query)
     }
   })
 })

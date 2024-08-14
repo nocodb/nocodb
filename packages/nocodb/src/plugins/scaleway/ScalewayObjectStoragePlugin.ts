@@ -1,6 +1,6 @@
-import { XcStoragePlugin } from 'nc-plugin';
 import ScalewayObjectStorage from './ScalewayObjectStorage';
-import type { IStorageAdapterV2 } from 'nc-plugin';
+import type { IStorageAdapterV2 } from '~/types/nc-plugin';
+import { XcStoragePlugin } from '~/types/nc-plugin';
 
 class ScalewayObjectStoragePlugin extends XcStoragePlugin {
   private static storageAdapter: ScalewayObjectStorage;

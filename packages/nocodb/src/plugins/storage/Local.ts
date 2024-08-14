@@ -6,7 +6,7 @@ import mkdirp from 'mkdirp';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import { globStream } from 'glob';
-import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 
 export default class Local implements IStorageAdapterV2 {

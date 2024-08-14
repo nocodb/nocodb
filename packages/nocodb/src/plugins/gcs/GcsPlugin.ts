@@ -1,6 +1,6 @@
-import { XcStoragePlugin } from 'nc-plugin';
 import Gcs from './Gcs';
-import type { IStorageAdapterV2 } from 'nc-plugin';
+import type { IStorageAdapterV2 } from '~/types/nc-plugin';
+import { XcStoragePlugin } from '~/types/nc-plugin';
 
 class GcsPlugin extends XcStoragePlugin {
   private static storageAdapter: Gcs;

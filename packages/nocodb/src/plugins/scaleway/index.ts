@@ -1,6 +1,6 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import ScalewayObjectStoragePlugin from './ScalewayObjectStoragePlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: ScalewayObjectStoragePlugin,

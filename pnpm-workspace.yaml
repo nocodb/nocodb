@@ -4,4 +4,3 @@ packages:
   - 'packages/nc-mail-templates'
   - 'packages/nocodb'
   - 'tests/playwright'
-  - 'packages/nc-plugin'

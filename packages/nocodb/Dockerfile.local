@@ -26,7 +26,7 @@ RUN echo "node-linker=hoisted" > .npmrc
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
 # and add execute permission to start.sh
-RUN pnpm uninstall nocodb-sdk nc-plugin
+RUN pnpm uninstall nocodb-sdk
 RUN pnpm install --prod --shamefully-hoist --reporter=silent \
     && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \

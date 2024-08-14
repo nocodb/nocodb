@@ -268,8 +268,7 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <template v-if="isAdminPanel"
-                    >x
+                  <template v-if="isAdminPanel">
                     <NcMenuItem data-testid="nc-admin-org-user-delete">
                       <GeneralIcon class="text-gray-800" icon="signout" />
                       <span>{{ $t('labels.signOutUser') }}</span>

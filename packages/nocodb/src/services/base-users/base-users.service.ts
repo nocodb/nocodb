@@ -215,10 +215,6 @@ export class BaseUsersService {
       return NcError.baseNotFound(param.baseId);
     }
 
-    if (param.baseUser.roles.includes(ProjectRoles.OWNER)) {
-      NcError.badRequest('Owner cannot be updated');
-    }
-
     if (
       ![
         ProjectRoles.CREATOR,
@@ -229,6 +225,18 @@ export class BaseUsersService {
       ].includes(param.baseUser.roles as ProjectRoles)
     ) {
       NcError.badRequest('Invalid role');
+    }
+
+    // if old role is owner and there is only one owner then restrict to update
+    if (param.baseUser.roles === ProjectRoles.OWNER) {
+      const baseUsers = await BaseUser.getUsersList(context, {
+        base_id: param.baseId,
+      });
+      if (
+        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
+          .length === 1
+      )
+        NcError.badRequest('At least one owner is required');
     }
 
     const user = await User.get(param.userId);

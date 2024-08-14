@@ -75,6 +75,7 @@ const integrationsMapByCategory = computed(() => {
           title: curr.title,
           list: getIntegrationsByCategory(curr.value, searchQuery.value),
           isAvailable: curr.isAvailable,
+          teleEventName: curr.teleEventName,
         }
 
         return acc
@@ -85,6 +86,7 @@ const integrationsMapByCategory = computed(() => {
           title: string
           list: IntegrationItemType[]
           isAvailable?: boolean
+          teleEventName?: IntegrationCategoryType
         }
       >,
     )
@@ -114,7 +116,7 @@ const isAddNewIntegrationModalOpen = computed({
 const handleUpvote = (category: IntegrationCategoryType, syncDataType: SyncDataType) => {
   if (upvotesData.value.has(syncDataType)) return
 
-  $e(`a:integration-request:${category}:${syncDataType}`)
+  $e(`a:integration-request:${integrationsMapByCategory.value[category]?.teleEventName || category}:${syncDataType}`)
 
   updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
 }

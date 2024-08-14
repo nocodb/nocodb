@@ -254,7 +254,12 @@ const customRow = (record: Record<string, any>) => ({
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container nc-access-settings-view h-[calc(100vh-8rem)] flex flex-col">
+  <div
+    class="nc-collaborator-table-container nc-access-settings-view flex flex-col"
+    :class="{
+      'h-[calc(100vh_-_100px)]': !isAdminPanel,
+    }"
+  >
     <div v-if="isAdminPanel">
       <div class="nc-breadcrumb px-2">
         <div class="nc-breadcrumb-item">
@@ -289,7 +294,7 @@ const customRow = (record: Record<string, any>) => ({
     </div>
 
     <div
-      class="flex flex-col items-center gap-6 p-6"
+      class="h-full flex flex-col items-center gap-6 px-6 pt-6"
       :class="{
         'border-t-1 border-gray-200': isAdminPanel,
       }"

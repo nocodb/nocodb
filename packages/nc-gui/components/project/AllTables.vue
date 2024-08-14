@@ -111,7 +111,7 @@ const onCreateBaseClick = () => {
 </script>
 
 <template>
-  <div class="nc-all-tables-view p-6">
+  <div class="nc-all-tables-view px-6 pt-6">
     <div
       class="flex flex-row gap-x-6 pb-2 overflow-x-auto nc-scrollbar-thin"
       :class="{
@@ -199,7 +199,7 @@ const onCreateBaseClick = () => {
       v-else-if="activeTables.length"
       class="flex mt-4"
       :style="{
-        height: 'calc(100vh - var(--topbar-height) - 15.2rem)',
+        height: 'calc(100vh - var(--topbar-height) - 218px)',
       }"
     >
       <NcTable

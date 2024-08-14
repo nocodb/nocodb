@@ -43,6 +43,8 @@ const { projectPageTab } = storeToRefs(useConfigStore())
 
 const { isMobileMode } = useGlobal()
 
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
 const baseSettingsState = ref('')
 
 const userCount = computed(() =>
@@ -117,9 +119,13 @@ watch(
     >
       <div class="flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
-        <div class="flex flex-row items-center h-full gap-x-2.5">
+        <div class="flex flex-row items-center h-full gap-x-2"
+        :class="{
+           '-ml-0.8': !isMobileMode && isLeftSidebarOpen,
+           'ml-1.2': !isMobileMode && !isLeftSidebarOpen,
+        }">
           <GeneralProjectIcon :color="parseProp(currentBase?.meta).iconColor" :type="currentBase?.type" />
-          <NcTooltip class="flex font-medium text-sm capitalize truncate max-w-150" show-on-truncate-only>
+          <NcTooltip class="flex font-bold text-sm capitalize truncate max-w-150" show-on-truncate-only>
             <template #title> {{ currentBase?.title }}</template>
             <span class="truncate">
               {{ currentBase?.title }}

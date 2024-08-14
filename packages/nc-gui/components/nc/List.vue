@@ -110,7 +110,7 @@ const {
  * @param clearActiveOption - Whether to clear the active option index
  */
 const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: number) => {
-  if (clearActiveOption) {
+  if (clearActiveOption && showHoverEffectOnSelectedOption.value) {
     activeOptionIndex.value = -1
   }
 

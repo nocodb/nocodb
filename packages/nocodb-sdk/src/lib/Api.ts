@@ -589,12 +589,14 @@ export interface ColumnListType {
  * Model for Column Request
  */
 export type ColumnReqType = (
+  | ButtonColumnReqType
   | FormulaColumnReqType
   | LinkToAnotherColumnReqType
   | LookupColumnReqType
   | NormalColumnRequestType
   | RollupColumnReqType
-  | (FormulaColumnReqType &
+  | (ButtonColumnReqType &
+      FormulaColumnReqType &
       LinkToAnotherColumnReqType &
       LookupColumnReqType &
       NormalColumnRequestType &
@@ -1100,6 +1102,88 @@ export interface FormulaType {
 }
 
 /**
+ * Model for Button
+ */
+export interface ButtonType {
+  /** Unique ID */
+  id?: IdType;
+  /** Whether button is webhook or url */
+  type?: 'webhook' | 'url';
+  /** Label of Button */
+  label?: string;
+  /** Button Theme */
+  theme?: 'solid' | 'text' | 'light';
+  /** Button color */
+  color?:
+    | 'brand'
+    | 'red'
+    | 'green'
+    | 'maroon'
+    | 'blue'
+    | 'orange'
+    | 'pink'
+    | 'purple'
+    | 'yellow'
+    | 'gray';
+  /** Button Icon */
+  icon?: string;
+  /**
+   * Formula with column ID replaced
+   * @example CONCAT("FOO", {{cl_c5knoi4xs4sfpt}})
+   */
+  formula?: string;
+  /**
+   * Original Formula inputted in UI
+   * @example CONCAT("FOO", {Title})
+   */
+  formula_raw?: string;
+  /** Error Message */
+  error?: string;
+  /** Parsed Formula Tree */
+  parsed_tree?: object;
+  /** Webhook ID */
+  fk_webhook_id?: IdType;
+  /** Foreign Key to Column */
+  fk_column_id?: IdType;
+}
+
+/**
+ * Model for Button Column Request
+ */
+export interface ButtonColumnReqType {
+  /** Formula Title */
+  title?: string;
+  /** UI Data Type */
+  uidt?: 'Formula';
+  /** Whether button is webhook or url */
+  type?: 'webhook' | 'url';
+  /** Button Theme */
+  theme?: 'solid' | 'text' | 'light';
+  /** Button color */
+  color?:
+    | 'brand'
+    | 'red'
+    | 'green'
+    | 'maroon'
+    | 'blue'
+    | 'orange'
+    | 'pink'
+    | 'purple'
+    | 'yellow'
+    | 'gray';
+  /** Label of Button */
+  label?: string;
+  /** Button Icon */
+  icon?: string;
+  /** Webhook ID */
+  fk_webhook_id?: IdType;
+  /** Formula with column ID replaced */
+  formula?: string;
+  /** Original Formula inputted in UI */
+  formula_raw?: string;
+}
+
+/**
  * Model for Formula Column Request
  */
 export interface FormulaColumnReqType {
@@ -1347,7 +1431,7 @@ export interface HookType {
    * Event Type for the operation
    * @example after
    */
-  event?: 'after' | 'before';
+  event?: 'after' | 'before' | 'manual';
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -1367,7 +1451,8 @@ export interface HookType {
     | 'delete'
     | 'bulkInsert'
     | 'bulkUpdate'
-    | 'bulkDelete';
+    | 'bulkDelete'
+    | 'trigger';
   /**
    * Retry Count
    * @example 10
@@ -1416,7 +1501,7 @@ export interface HookReqType {
    * Event Type for the operation
    * @example after
    */
-  event: 'after' | 'before';
+  event: 'after' | 'before' | 'manual';
   /**
    * Foreign Key to Model
    * @example md_rsu68aqjsbyqtl
@@ -1436,7 +1521,8 @@ export interface HookReqType {
     | 'delete'
     | 'bulkInsert'
     | 'bulkUpdate'
-    | 'bulkDelete';
+    | 'bulkDelete'
+    | 'trigger';
   /**
    * Retry Count
    * @example 10
@@ -1494,7 +1580,7 @@ export interface HookLogType {
    * Hook Event
    * @example after
    */
-  event?: 'after' | 'before';
+  event?: 'after' | 'before' | 'manual';
   /**
    * Execution Time in milliseconds
    * @example 98
@@ -1516,7 +1602,8 @@ export interface HookLogType {
     | 'delete'
     | 'bulkInsert'
     | 'bulkUpdate'
-    | 'bulkDelete';
+    | 'bulkDelete'
+    | 'trigger';
   /**
    * Hook Payload
    * @example {"method":"POST","body":"{{ json data }}","headers":[{}],"parameters":[{}],"auth":"","path":"https://webhook.site/6eb45ce5-b611-4be1-8b96-c2965755662b"}
@@ -11190,6 +11277,33 @@ export class Api<
         path: `/api/v1/db/meta/hooks/${hookId}`,
         method: 'DELETE',
         format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Trigger the manual WebHook
+ * 
+ * @tags DB Table Webhook
+ * @name Trigger
+ * @summary Trigger Manual Hook
+ * @request POST:/api/v2/meta/hooks/{hookId}/trigger/{rowId}
+ * @response `200` `void` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    trigger: (hookId: IdType, rowId: IdType, params: RequestParams = {}) =>
+      this.request<
+        void,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/meta/hooks/${hookId}/trigger/${rowId}`,
+        method: 'POST',
         ...params,
       }),
   };

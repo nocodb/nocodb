@@ -166,7 +166,13 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container py-6 h-[calc(100vh-92px)] max-w-350 px-6 flex flex-col gap-6">
+  <div
+    class="nc-collaborator-table-container py-6 max-w-350 px-6 flex flex-col gap-6"
+    :class="{
+      'h-[calc(100vh-144px)]': isAdminPanel,
+      'h-[calc(100vh-92px)]': !isAdminPanel,
+    }"
+  >
     <div class="w-full flex items-center justify-between gap-3">
       <a-input
         v-model:value="userSearchText"

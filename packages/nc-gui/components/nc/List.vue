@@ -72,6 +72,8 @@ const handleResetHoverEffect = () => {
 }
 
 const handleSelectOption = (option: ListItem) => {
+  if(!option?.[optionValueKey]) return 
+
   vModel.value = option[optionValueKey] as RawValueType
   emits('change', option)
   if (closeOnSelect.value) {
@@ -183,7 +185,7 @@ onMounted(() => {
           @mouseover="handleResetHoverEffect"
           @click="handleSelectOption(option)"
         >
-          <slot name="menuItem" :option="option" :index="idx">
+          <slot name="listItem" :option="option" :index="idx">
             <NcTooltip class="truncate flex-1" show-on-truncate-only>
               <template #title>
                 {{ option[optionLabelKey] }}

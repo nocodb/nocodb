@@ -3,6 +3,8 @@ const { isMobileMode } = useGlobal()
 
 const { activeView } = storeToRefs(useViewsStore())
 
+const { basesList } = storeToRefs(useBases())
+
 const { base, isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
@@ -59,7 +61,7 @@ const openedBaseUrl = computed(() => {
             <div
               class="hidden !2xl:(flex truncate ml-1)"
               :class="{
-                '!flex': isSharedBase && !isMobileMode,
+                '!flex': !isMobileMode,
               }"
             >
               <span class="truncate !text-inherit capitalize">
@@ -72,27 +74,28 @@ const openedBaseUrl = computed(() => {
       <div class="nc-topbar-breadcrum-divider">/</div>
     </template>
     <template v-if="!(isMobileMode && !activeView?.is_default)">
-      <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">
-        <template #default>
-          <MdiTable
-            class="min-w-5"
-            :class="{
-              '!text-gray-500': !isMobileMode,
-              '!text-gray-700': isMobileMode,
-            }"
-          />
-        </template>
-      </LazyGeneralEmojiPicker>
       <SmartsheetTopbarTableListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
             class="rounded-lg h-8 px-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
             :class="{
               'max-w-1/2': isMobileMode || activeView?.is_default,
-              'max-w-20/100': !isSharedBase && !isMobileMode && !activeView?.is_default,
+              'max-w-50/100': !isSharedBase && !isMobileMode && !activeView?.is_default,
               'max-w-none': isSharedBase && !isMobileMode,
             }"
           >
+            <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">
+              <template #default>
+                <MdiTable
+                  class="min-w-5"
+                  :class="{
+                    '!text-gray-500': !isMobileMode,
+                    '!text-gray-700': isMobileMode,
+                  }"
+                />
+              </template>
+            </LazyGeneralEmojiPicker>
+
             <NcTooltip class="truncate nc-active-table-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
               <template #title>
                 {{ activeTable?.title }}
@@ -117,7 +120,7 @@ const openedBaseUrl = computed(() => {
                 </NuxtLink>
               </span>
             </NcTooltip>
-            <GeneralIcon icon="chevronDown" class="!text-gray-600 flex-none" />
+            <GeneralIcon v-if="!isMobileMode" icon="chevronDown" class="!text-gray-600 flex-none" />
           </div>
         </template>
       </SmartsheetTopbarTableListDropdown>

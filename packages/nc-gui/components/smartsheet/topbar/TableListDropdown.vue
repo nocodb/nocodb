@@ -136,10 +136,19 @@ function openTableCreateDialog() {
           <NcDivider class="!mt-0 !mb-2" />
           <div class="px-2 mb-2" @click="openTableCreateDialog()">
             <div
-              class="px-2 py-1.5 flex items-center gap-2 text-sm font-weight-500 !text-brand-500 hover:bg-gray-100 rounded-md cursor-pointer"
+              class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-brand-500 hover:bg-gray-100 rounded-md cursor-pointer"
             >
-              <GeneralIcon icon="plus" />
-              <div class="flex-1 text-right">New Table</div>
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="plus" />
+                <div>
+                  {{
+                    $t('general.createEntity', {
+                      entity: $t('objects.table'),
+                    })
+                  }}
+                </div>
+              </div>
+              <GeneralIcon icon="arrowRight" class="text-base text-gray-600 group-hover:text-gray-800" />
             </div>
           </div>
         </template>

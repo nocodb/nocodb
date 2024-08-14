@@ -200,9 +200,18 @@ async function onOpenModal({
             <a-menu class="nc-viewlist-menu">
               <a-sub-menu popup-class-name="nc-viewlist-submenu-popup ">
                 <template #title>
-                  <div class="flex items-center gap-2 text-sm font-weight-500 !text-brand-500">
-                    <GeneralIcon icon="plus" />
-                    <div class="flex-1 text-right">New View</div>
+                  <div class="flex items-center justify-between gap-2 text-sm font-weight-500 !text-brand-500">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="plus" />
+                      <div>
+                        {{
+                          $t('general.createEntity', {
+                            entity: $t('objects.view'),
+                          })
+                        }}
+                      </div>
+                    </div>
+                    <GeneralIcon icon="arrowRight" class="text-base text-gray-600 group-hover:text-gray-800" />
                   </div>
                 </template>
 

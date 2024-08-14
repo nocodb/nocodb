@@ -269,7 +269,7 @@ watch(
     <slot name="listHeader"></slot>
     <div class="nc-list-wrapper">
       <template v-if="list.length">
-        <div v-bind="containerProps" class="nc-list h-auto w-full max-h-[247px] nc-scrollbar-thin px-2 pb-2">
+        <div v-bind="containerProps" class="nc-list h-auto w-full !max-h-[247px] nc-scrollbar-thin px-2 pb-2">
           <div v-bind="wrapperProps">
             <div
               v-for="{ data: option, index: idx } in virtualList"

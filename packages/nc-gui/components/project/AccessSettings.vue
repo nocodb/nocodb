@@ -98,6 +98,10 @@ const loadCollaborators = async () => {
   }
 }
 
+const isOwnerOrCreator = computed(() => {
+  return baseRoles.value?.[ProjectRoles.OWNER] || baseRoles.value?.[ProjectRoles.CREATOR]
+})
+
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   const currentCollaborator = collaborators.value.find((coll) => coll.id === collab.id)!
 
@@ -361,7 +365,7 @@ const customRow = (record: Record<string, any>) => ({
             </div>
           </div>
           <div v-if="column.key === 'role'">
-            <template v-if="accessibleRoles.includes(record.roles)">
+          <template v-if="isOwnerOrCreator && accessibleRoles.includes(record.roles)">
               <RolesSelector
                 :role="record.roles"
                 :roles="accessibleRoles"

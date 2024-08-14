@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-/* eslint-disable @typescript-eslint/consistent-type-imports */
 import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -87,6 +86,10 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
     }
   })
 }
+
+const isOwnerOrCreator = computed(() => {
+  return workspaceRoles.value[WorkspaceUserRoles.OWNER] || workspaceRoles.value[WorkspaceUserRoles.CREATOR]
+})
 
 const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
   const currentRoleIndex = OrderedWorkspaceRoles.findIndex(
@@ -237,7 +240,7 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
             </div>
           </div>
           <div v-if="column.key === 'role'">
-            <template v-if="accessibleRoles.includes(record.roles as WorkspaceUserRoles)">
+            <template v-if="isOwnerOrCreator && accessibleRoles.includes(record.roles as WorkspaceUserRoles)">
               <RolesSelector
                 :description="false"
                 :on-role-change="(role) => updateCollaborator(record, role as WorkspaceUserRoles)"
@@ -262,7 +265,7 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
           </div>
 
           <div v-if="column.key === 'action'">
-            <NcDropdown>
+            <NcDropdown v-if="isOwnerOrCreator">
               <NcButton size="small" type="secondary">
                 <component :is="iconMap.threeDotVertical" />
               </NcButton>

@@ -46,7 +46,7 @@ const handleNavigateToProject = async (base: NcProject) => {
   <NcDropdown v-model:visible="isOpen">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
-      <NcList
+      <LazyNcList
         v-if="activeBase.id"
         v-model:open="isOpen"
         :value="activeBase.id"
@@ -72,7 +72,7 @@ const handleNavigateToProject = async (base: NcProject) => {
             class="flex-none text-primary w-4 h-4"
           />
         </template>
-      </NcList>
+      </LazyNcList>
     </template>
   </NcDropdown>
 </template>

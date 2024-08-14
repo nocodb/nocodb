@@ -174,6 +174,8 @@ const onDelete = async () => {
 
     <template v-if="!view?.is_default && isUIAllowed('viewCreateOrEdit')">
       <NcDivider />
+      <template v-if="inSidebar">
+       
       <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
         <GeneralIcon icon="rename" />
         {{
@@ -193,6 +195,7 @@ const onDelete = async () => {
           }}
         </NcMenuItem>
       </NcTooltip>
+    </template>
       <NcMenuItem @click="onDuplicate">
         <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
         {{

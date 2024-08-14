@@ -94,7 +94,7 @@ function openTableCreateDialog() {
   <NcDropdown v-model:visible="isOpen">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
-      <NcList
+      <LazyNcList
         v-model:open="isOpen"
         :value="activeTable.id"
         :list="filteredTableList"
@@ -104,7 +104,13 @@ function openTableCreateDialog() {
         @change="handleNavigateToTable"
       >
         <template
-          v-if="!isMobileMode && isUIAllowed('tableCreate', { roles: base?.project_role || base?.workspace_role, source: base?.sources?.[activeTableSourceIndex] })"
+          v-if="
+            !isMobileMode &&
+            isUIAllowed('tableCreate', {
+              roles: base?.project_role || base?.workspace_role,
+              source: base?.sources?.[activeTableSourceIndex],
+            })
+          "
           #listHeader
         >
           <div class="px-2" @click="openTableCreateDialog()">
@@ -138,7 +144,7 @@ function openTableCreateDialog() {
             class="flex-none text-primary w-4 h-4"
           />
         </template>
-      </NcList>
+      </LazyNcList>
     </template>
   </NcDropdown>
 </template>

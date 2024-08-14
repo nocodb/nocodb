@@ -162,7 +162,7 @@ async function onOpenModal({
   <NcDropdown v-if="activeView" v-model:visible="isOpen">
     <slot name="default" :is-open="isOpen"></slot>
     <template #overlay>
-      <NcList
+      <LazyNcList
         v-model:open="isOpen"
         :value="activeView.id"
         :list="views"
@@ -242,7 +242,7 @@ async function onOpenModal({
             class="flex-none text-primary w-4 h-4"
           />
         </template>
-      </NcList>
+      </LazyNcList>
     </template>
   </NcDropdown>
 </template>

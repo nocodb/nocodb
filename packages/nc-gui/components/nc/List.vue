@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useVirtualList } from '@vueuse/core'
 export type Placement = 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight'
 
 export type RawValueType = string | number
@@ -93,6 +94,15 @@ const list = computed(() => {
   })
 })
 
+const {
+  list: virtualList,
+  containerProps,
+  wrapperProps,
+  scrollTo,
+} = useVirtualList(list, {
+  itemHeight: 38,
+})
+
 /**
  * Resets the hover effect on the selected option
  * @param clearActiveOption - Whether to clear the active option index
@@ -129,28 +139,26 @@ const handleSelectOption = (option: ListItem) => {
   }
 }
 
-let scrollTimerId: any
-
 /**
  * Automatically scrolls to the active option in the list
  */
-const handleAutoScrollOption = (behavior: ScrollBehavior = 'smooth') => {
-  if (scrollTimerId) {
-    clearTimeout(scrollTimerId)
+const handleAutoScrollOption = (useDelay = false) => {
+  if (activeOptionIndex.value === -1) return
+
+  if (!useDelay) {
+    scrollTo(activeOptionIndex.value)
+    return
   }
 
-  const option = document.querySelector('.nc-list-option-active')
-
-  if (option) {
-    scrollTimerId = setTimeout(() => {
-      option?.scrollIntoView({ behavior, block: 'center' })
-      clearTimeout(scrollTimerId)
-    }, 50)
-  }
+  setTimeout(() => {
+    scrollTo(activeOptionIndex.value)
+  }, 150)
 }
 
 const onArrowDown = () => {
   handleResetHoverEffect()
+
+  if (activeOptionIndex.value === list.value.length - 1) return
 
   activeOptionIndex.value = Math.min(activeOptionIndex.value + 1, list.value.length - 1)
   handleAutoScrollOption()
@@ -158,6 +166,8 @@ const onArrowDown = () => {
 
 const onArrowUp = () => {
   handleResetHoverEffect()
+
+  if (activeOptionIndex.value === 0) return
 
   activeOptionIndex.value = Math.max(activeOptionIndex.value - 1, 0)
   handleAutoScrollOption()
@@ -209,7 +219,7 @@ watch(
       activeOptionIndex.value = list.value.findIndex((o) => o?.[optionValueKey] === vModel.value)
 
       nextTick(() => {
-        handleAutoScrollOption('auto')
+        handleAutoScrollOption(true)
       })
     } else {
       activeOptionIndex.value = -1
@@ -250,37 +260,41 @@ watch(
       ></a-input>
     </div>
     <slot name="listHeader"></slot>
-    <div class="nc-list-wrapper flex-col w-full max-h-[247px] nc-scrollbar-thin !overflow-y-auto px-2 pb-2">
+    <div class="nc-list-wrapper">
       <template v-if="list.length">
-        <div
-          v-for="(option, idx) of list"
-          :key="idx"
-          class="flex items-center gap-2 w-full py-2 px-2 hover:bg-gray-100 cursor-pointer rounded-md"
-          :class="[
-            `nc-list-option-${idx}`,
-            {
-              'nc-list-option-selected': option[optionValueKey] === vModel,
-              'bg-gray-100 ': showHoverEffectOnSelectedOption && option[optionValueKey] === vModel,
-              'bg-gray-100 nc-list-option-active': activeOptionIndex === idx,
-            },
-          ]"
-          @mouseover="handleResetHoverEffect(true)"
-          @click="handleSelectOption(option)"
-        >
-          <slot name="listItem" :option="option" :index="idx">
-            <NcTooltip class="truncate flex-1" show-on-truncate-only>
-              <template #title>
-                {{ option[optionLabelKey] }}
-              </template>
-              {{ option[optionLabelKey] }}
-            </NcTooltip>
-            <GeneralIcon
-              v-if="showSelectedOption && option[optionValueKey] === vModel"
-              id="nc-selected-item-icon"
-              icon="check"
-              class="flex-none text-primary w-4 h-4"
-            />
-          </slot>
+        <div v-bind="containerProps" class="nc-list h-auto w-full max-h-[247px] nc-scrollbar-thin px-2 pb-2">
+          <div v-bind="wrapperProps">
+            <div
+              v-for="{ data: option, index: idx } in virtualList"
+              :key="idx"
+              class="flex items-center gap-2 w-full py-2 px-2 hover:bg-gray-100 cursor-pointer rounded-md"
+              :class="[
+                `nc-list-option-${idx}`,
+                {
+                  'nc-list-option-selected': option[optionValueKey] === vModel,
+                  'bg-gray-100 ': showHoverEffectOnSelectedOption && option[optionValueKey] === vModel,
+                  'bg-gray-100 nc-list-option-active': activeOptionIndex === idx,
+                },
+              ]"
+              @mouseover="handleResetHoverEffect(true)"
+              @click="handleSelectOption(option)"
+            >
+              <slot name="listItem" :option="option" :index="idx">
+                <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                  <template #title>
+                    {{ option[optionLabelKey] }}
+                  </template>
+                  {{ option[optionLabelKey] }}
+                </NcTooltip>
+                <GeneralIcon
+                  v-if="showSelectedOption && option[optionValueKey] === vModel"
+                  id="nc-selected-item-icon"
+                  icon="check"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </slot>
+            </div>
+          </div>
         </div>
       </template>
       <template v-if="!list.length">

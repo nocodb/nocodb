@@ -75,11 +75,15 @@ const showHoverEffectOnSelectedOption = ref(true)
 
 const isSearchEnabled = computed(() => props.list.length > 4)
 
-/**
- * Computed property that filters the list of options based on the search query
- * If a custom filter function is provided via props.filterOption, it will be used instead of the default filtering logic
- * @returns {ListItem[]} Filtered list of options
- */
+
+ /**
+  * Computed property that filters the list of options based on the search query.
+  * If a custom filter function is provided via props.filterOption, it will be used instead of the default filtering logic.
+  *
+  * @returns Filtered list of options
+  *
+  * @typeparam ListItem - The type of items in the list
+  */
 const list = computed(() => {
   return props.list.filter((item, i) => {
     if (props?.filterOption) {
@@ -110,7 +114,11 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
 
 /**
  * Handles the selection of an option from the list
+ *
  * @param option - The selected list item
+ *
+ * This function is responsible for handling the selection of an option from the list.
+ * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
 const handleSelectOption = (option: ListItem) => {
   if (!option?.[optionValueKey]) return
@@ -242,7 +250,7 @@ watch(
         <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
       ></a-input>
     </div>
-    <slot name="header"></slot>
+    <slot name="listHeader"></slot>
     <div class="nc-list-wrapper flex-col w-full max-h-[247px] nc-scrollbar-thin !overflow-y-auto px-2 pb-2">
       <template v-if="list.length">
         <div
@@ -284,7 +292,7 @@ watch(
         </slot>
       </template>
     </div>
-    <slot name="footer"></slot>
+    <slot name="listFooter"></slot>
   </div>
 </template>
 

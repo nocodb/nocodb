@@ -1,26 +1,89 @@
 <script lang="ts" setup>
 import type { TableType } from 'nocodb-sdk'
 
+const { $e } = useNuxtApp()
+
+const { isUIAllowed } = useRoles()
+
+const { base } = storeToRefs(useBase())
+
 const { activeTable, activeTables } = storeToRefs(useTablesStore())
 
 const { openTable } = useTablesStore()
 
 const isOpen = ref<boolean>(false)
 
-/**
- * Handles navigation to a selected table.
- * 
- * @param {TableType} table - The table to navigate to.
- * @returns {void}
- * 
- * @description
- * This function is called when a user selects a table from the dropdown list.
- * It checks if the table has a valid ID and then opens the selected table.
- */
+const activeTableSourceIndex = computed(() => {
+  return activeTable.value?.source_id ? (base.value?.sources || []).findIndex((s) => s.id === activeTable.value?.source_id) : -1
+})
 
+const filteredTableList = computed(() => {
+  return (activeTables.value || []).filter((t: TableType) => t?.source_id === activeTable.value?.source_id)
+})
+
+ /**
+  * Handles navigation to a selected table.
+  *
+  * @param table - The table to navigate to.
+  *
+  * @remarks
+  * This function is called when a user selects a table from the dropdown list.
+  * It checks if the table has a valid ID and then opens the selected table.
+  */
 const handleNavigateToTable = (table: TableType) => {
   if (table?.id) {
     openTable(table)
+  }
+}
+
+ /**
+  * Opens a dialog to create a new table.
+  *
+  * @returns void
+  *
+  * @remarks
+  * This function is triggered when the user initiates the table creation process from the topbar.
+  * It emits a tracking event, checks for a valid source, and opens a dialog for table creation.
+  * The function also handles the dialog closure and potential scrolling to the newly created table.
+  *
+  * @see {@link packages/nc-gui/components/dashboard/TreeView/ProjectNode.vue} for a similar implementation
+  * of table creation dialog. If this function is updated, consider updating the other implementation as well.
+  */
+function openTableCreateDialog() {
+  $e('c:table:create:topbar')
+
+  if (activeTableSourceIndex.value === -1) return
+
+  isOpen.value = false
+
+  const isCreateTableOpen = ref(true)
+  let sourceId = base.value!.sources?.[activeTableSourceIndex.value].id
+
+  if (!sourceId || !base.value?.id) return
+
+  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
+    'modelValue': isCreateTableOpen,
+    sourceId, // || sources.value[0].id,
+    'baseId': base.value!.id,
+    'onCreate': closeDialog,
+    'onUpdate:modelValue': () => closeDialog(),
+  })
+
+  function closeDialog(table?: TableType) {
+    isCreateTableOpen.value = false
+
+    if (!table) return
+
+    // TODO: Better way to know when the table node dom is available
+    setTimeout(() => {
+      const newTableDom = document.querySelector(`[data-table-id="${table.id}"]`)
+      if (!newTableDom) return
+
+      // Scroll to the table node
+      newTableDom?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+    }, 1000)
+
+    close(1000)
   }
 }
 </script>
@@ -33,16 +96,30 @@ const handleNavigateToTable = (table: TableType) => {
         v-model:open="isOpen"
         :value="activeTable.id"
         @change="handleNavigateToTable"
-        :list="activeTables"
+        :list="filteredTableList"
         option-value-key="id"
         option-label-key="title"
         search-input-placeholder="Search tables"
       >
+        <template
+          v-if="isUIAllowed('tableCreate', { roles: base?.project_role || base?.workspace_role, source: base?.sources?.[0] })"
+          #listHeader
+        >
+          <div class="px-2" @click="openTableCreateDialog()">
+            <div
+              class="p-2 flex items-center gap-2 text-sm font-weight-500 !text-brand-500 hover:bg-gray-100 rounded-md cursor-pointer"
+            >
+              <div class="flex-1">New Table</div>
+              <GeneralIcon icon="plus" />
+            </div>
+          </div>
+          <NcDivider />
+        </template>
         <template #listItem="{ option }">
           <div>
             <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
               <template #default>
-                <GeneralIcon icon="table" class="min-w-4 !text-gray-600" />
+                <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
               </template>
             </LazyGeneralEmojiPicker>
           </div>

@@ -140,7 +140,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
             <NcTooltip class="truncate nc-active-view-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
               <template #title>
-                {{ activeView?.title }}
+                {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
               </template>
               <span
                 class="text-ellipsis"
@@ -150,7 +150,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
                   display: 'inline',
                 }"
               >
-                {{ activeView?.title }}
+                {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
               </span>
             </NcTooltip>
             <GeneralIcon
@@ -163,7 +163,6 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       </SmartsheetTopbarViewListDropdown>
 
       <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view' && !isMobileMode" />
-
     </template>
   </div>
 </template>

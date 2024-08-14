@@ -205,5 +205,4 @@ function openDeleteDialog() {
     </template>
   </NcDropdown>
 
-  <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view' && !isMobileMode && !isRenaming" />
 </template>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { isMobileMode } = useGlobal()
 
-const { activeView } = storeToRefs(useViewsStore())
+const { activeView, openedViewsTab } = storeToRefs(useViewsStore())
 
 const { base, isSharedBase } = storeToRefs(useBase())
 
@@ -119,15 +119,9 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
     <div v-if="!isMobileMode" class="nc-topbar-breadcrum-divider">/</div>
 
     <template v-if="!(isMobileMode && activeView?.is_default)">
-      <!-- <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeView?.meta?.icon" readonly size="xsmall">
-        <template #default>
-          <GeneralViewIcon :meta="{ type: activeView?.type }" class="min-w-4.5 text-lg flex" />
-        </template>
-      </LazyGeneralEmojiPicker> -->
-
       <!-- <SmartsheetToolbarOpenedViewAction /> -->
 
-      <SmartsheetTopbarViewListDropdown v-if="activeTable">
+      <SmartsheetTopbarViewListDropdown>
         <template #default="{ isOpen }">
           <div
             class="rounded-lg h-8 px-2 text-gray-800 font-medium hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer"
@@ -138,22 +132,15 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               'bg-gray-100 !text-gray-800 font-medium': isOpen,
             }"
           >
-            <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">
+            <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeView?.meta?.icon" readonly size="xsmall">
               <template #default>
-                <GeneralIcon
-                  icon="table"
-                  class="min-w-5"
-                  :class="{
-                    '!text-gray-500': !isMobileMode,
-                    '!text-gray-700': isMobileMode,
-                  }"
-                />
+                <GeneralViewIcon :meta="{ type: activeView?.type }" class="min-w-4.5 text-lg flex" />
               </template>
             </LazyGeneralEmojiPicker>
 
             <NcTooltip class="truncate nc-active-table-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
               <template #title>
-                {{ activeTable?.title }}
+                {{ activeView?.title }}
               </template>
               <span
                 class="text-ellipsis"
@@ -163,7 +150,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
                   display: 'inline',
                 }"
               >
-                {{ activeTable?.title }}
+                {{ activeView?.title }}
               </span>
             </NcTooltip>
             <GeneralIcon
@@ -174,6 +161,9 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
           </div>
         </template>
       </SmartsheetTopbarViewListDropdown>
+
+      <LazySmartsheetToolbarReload v-if="openedViewsTab === 'view' && !isMobileMode" />
+
     </template>
   </div>
 </template>

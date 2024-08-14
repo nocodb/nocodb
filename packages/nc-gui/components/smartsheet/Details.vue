@@ -104,7 +104,7 @@ watch(openedSubTab, () => {
 }
 
 :deep(.ant-tabs-nav) {
-  min-height: calc(var(--topbar-height) - 1.75px);
+  min-height: 46px;
 }
 </style>
 

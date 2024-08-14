@@ -335,7 +335,7 @@ export class AttachmentMigration {
                             model.base_id
                           } - ${model.id}`,
                         );
-                      } else if (isReferenced.referenced === false) {
+                      } else if (!isReferenced.referenced) {
                         const fileNameWithExt = path.basename(filePath);
 
                         const mimetype =

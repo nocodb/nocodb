@@ -25,6 +25,7 @@ const handleNavigateToTable = (table: TableType) => {
         :list="activeTables"
         option-value-key="id"
         option-label-key="title"
+        search-input-placeholder="Search tables"
       >
         <template #listItem="{ option }">
           <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">

@@ -47,13 +47,17 @@ const { optionValueKey, optionLabelKey } = props
 
 const { closeOnSelect, showSelectedOption } = toRefs(props)
 
+const listRef = ref<HTMLDivElement>()
+
 const searchQuery = ref('')
 
 const inputRef = ref()
 
-const activeFieldIndex = ref(-1)
+const activeOptionIndex = ref(-1)
 
 const showHoverEffectOnSelectedOption = ref(true)
+
+const isSearchEnabled = computed(() => props.list.length > 4)
 
 const list = computed(() => {
   return props.list.filter((item, i) => {
@@ -65,14 +69,18 @@ const list = computed(() => {
   })
 })
 
-const handleResetHoverEffect = () => {
+const handleResetHoverEffect = (clearActiveOption = false) => {
+  if (clearActiveOption) {
+    activeOptionIndex.value = -1
+  }
+
   if (!showHoverEffectOnSelectedOption.value) return
 
   showHoverEffectOnSelectedOption.value = false
 }
 
 const handleSelectOption = (option: ListItem) => {
-  if(!option?.[optionValueKey]) return 
+  if (!option?.[optionValueKey]) return
 
   vModel.value = option[optionValueKey] as RawValueType
   emits('change', option)
@@ -94,32 +102,39 @@ const handleAutoScrollOption = () => {
 const onArrowDown = () => {
   handleResetHoverEffect()
 
-  activeFieldIndex.value = Math.min(activeFieldIndex.value + 1, list.value.length - 1)
+  activeOptionIndex.value = Math.min(activeOptionIndex.value + 1, list.value.length - 1)
   handleAutoScrollOption()
 }
 
 const onArrowUp = () => {
   handleResetHoverEffect()
 
-  activeFieldIndex.value = Math.max(activeFieldIndex.value - 1, 0)
+  activeOptionIndex.value = Math.max(activeOptionIndex.value - 1, 0)
   handleAutoScrollOption()
 }
 
 const handleKeydownEnter = () => {
-  if (list.value[activeFieldIndex.value]) {
-    handleSelectOption(list.value[activeFieldIndex.value])
+  console.log('enter', activeOptionIndex.value)
+  if (list.value[activeOptionIndex.value]) {
+    handleSelectOption(list.value[activeOptionIndex.value])
   } else if (list.value[0]) {
-    handleSelectOption(list.value[activeFieldIndex.value])
+    handleSelectOption(list.value[activeOptionIndex.value])
   }
 }
 
 const focusInputBox = () => {
-  console.log('isOpen inside focus')
-
   if (!vOpen.value) return
 
   setTimeout(() => {
     inputRef.value?.focus()
+  }, 100)
+}
+
+const focusListWrapper = () => {
+  if (!vOpen.value) return
+
+  setTimeout(() => {
+    listRef.value?.focus()
   }, 100)
 }
 
@@ -130,31 +145,35 @@ watch(
 
     searchQuery.value = ''
     showHoverEffectOnSelectedOption.value = true
+
     if (vModel.value) {
-      activeFieldIndex.value = -1
+      activeOptionIndex.value = list.value.findIndex((o) => o?.[optionValueKey] === vModel.value)
+    } else {
+      activeOptionIndex.value = -1
     }
 
-    focusInputBox()
+    if (isSearchEnabled.value) {
+      focusInputBox()
+    } else {
+      focusListWrapper()
+    }
   },
   {
     immediate: true,
   },
 )
-
-onMounted(() => {
-  searchQuery.value = ''
-  activeFieldIndex.value = -1
-})
 </script>
 
 <template>
   <div
-    class="flex flex-col pt-2 w-64"
+    ref="listRef"
+    tabindex="0"
+    class="flex flex-col pt-2 w-64 !focus:(shadow-none outline-none)"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
-    @keydown.enter.prevent="handleSelectOption(list[activeFieldIndex])"
+    @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
   >
-    <div class="w-full pb-2 px-2" @click.stop>
+    <div v-if="isSearchEnabled" class="w-full pb-2 px-2" @click.stop>
       <a-input
         ref="inputRef"
         v-model:value="searchQuery"
@@ -162,7 +181,7 @@ onMounted(() => {
         class="nc-toolbar-dropdown-search-field-input"
         allow-clear
         @keydown.enter.stop="handleKeydownEnter"
-        @change="activeFieldIndex = 0"
+        @change="activeOptionIndex = 0"
       >
         <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
       ></a-input>
@@ -179,10 +198,10 @@ onMounted(() => {
             {
               'nc-list-option-selected': option[optionValueKey] === vModel,
               'bg-gray-100 ': showHoverEffectOnSelectedOption && option[optionValueKey] === vModel,
-              'bg-gray-100 nc-list-option-active': activeFieldIndex === idx,
+              'bg-gray-100 nc-list-option-active': activeOptionIndex === idx,
             },
           ]"
-          @mouseover="handleResetHoverEffect"
+          @mouseover="handleResetHoverEffect(true)"
           @click="handleSelectOption(option)"
         >
           <slot name="listItem" :option="option" :index="idx">

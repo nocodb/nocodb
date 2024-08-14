@@ -104,10 +104,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   try {
     if (
       !roles ||
-      (roles === ProjectRoles.NO_ACCESS && !isEeUI) ||
-      (currentCollaborator.workspace_roles &&
-        WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
-        isEeUI)
+      (roles === ProjectRoles.NO_ACCESS && !isEeUI)
     ) {
       await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
       if (
@@ -155,7 +152,7 @@ onMounted(async () => {
       (role) => baseRoles.value && Object.keys(baseRoles.value).includes(role),
     )
     if (isSuper.value) {
-      accessibleRoles.value = OrderedProjectRoles.slice(1)
+      accessibleRoles.value = OrderedProjectRoles.slice(0)
     } else if (currentRoleIndex !== -1) {
       accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
     }

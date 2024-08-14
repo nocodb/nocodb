@@ -217,6 +217,7 @@ export class BaseUsersService {
 
     if (
       ![
+        ProjectRoles.OWNER,
         ProjectRoles.CREATOR,
         ProjectRoles.EDITOR,
         ProjectRoles.COMMENTER,
@@ -225,18 +226,6 @@ export class BaseUsersService {
       ].includes(param.baseUser.roles as ProjectRoles)
     ) {
       NcError.badRequest('Invalid role');
-    }
-
-    // if old role is owner and there is only one owner then restrict to update
-    if (param.baseUser.roles === ProjectRoles.OWNER) {
-      const baseUsers = await BaseUser.getUsersList(context, {
-        base_id: param.baseId,
-      });
-      if (
-        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
-          .length === 1
-      )
-        NcError.badRequest('At least one owner is required');
     }
 
     const user = await User.get(param.userId);
@@ -254,6 +243,18 @@ export class BaseUsersService {
       NcError.badRequest(
         `User with id '${param.userId}' doesn't exist in this base`,
       );
+    }
+
+    // if old role is owner and there is only one owner then restrict to update
+    if (extractRolesObj(targetUser.base_roles)?.[ProjectRoles.OWNER]) {
+      const baseUsers = await BaseUser.getUsersList(context, {
+        base_id: param.baseId,
+      });
+      if (
+        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
+          .length === 1
+      )
+        NcError.badRequest('At least one owner is required');
     }
 
     if (getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)) {
@@ -303,9 +304,6 @@ export class BaseUsersService {
           'Insufficient privilege to delete a super admin user.',
         );
 
-      const baseUser = await BaseUser.get(context, base_id, param.userId);
-      if (baseUser?.roles?.split(',').includes('owner'))
-        NcError.forbidden('Insufficient privilege to delete a owner user.');
     }
 
     // check if user have access to delete user based on role power

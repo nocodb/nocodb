@@ -95,7 +95,11 @@
   "general": {
     "on": "On",
     "onMultiple": "On Multiple",
+    "manual": "Manual",
+    "trigger": "Trigger",
     "addLookupField": "Add {count} lookup fields",
+    "style": "Style",
+    "label": "Label",
     "role": "תפקיד",
     "general": "כללי",
     "quit": "יציאה",
@@ -274,7 +278,6 @@
     "use": "השתמש",
     "stack": "Stack",
     "ipAddress": "IP Address",
-    "trigger": "Trigger",
     "integration": "Integration",
     "integrations": "Integrations",
     "connection": "Connection",
@@ -416,7 +419,9 @@
       "storageSubtitle": "Integrate and organize your storage solutions seamlessly with NocoDB.",
       "others": "Others",
       "othersSubtitle": "Discover additional versatile integrations to enhance your NocoDB experience.",
-      "ai": "AI"
+      "ai": "AI",
+      "spreadSheet": "Spreadsheet",
+      "spreadSheetSubtitle": "Connect and manage your spreadsheets with NocoDB."
     }
   },
   "datatype": {
@@ -609,6 +614,12 @@
     "categories": "Categories"
   },
   "labels": {
+    "urlFormula": "URL Formula",
+    "selectIcon": "none",
+    "selectAWebhook": "--select a webhook--",
+    "openUrl": "Open URL",
+    "runWebHook": "Run Webhook",
+    "onClick": "On click",
     "defaultView": "Default view",
     "recordInsert": "Record Insert",
     "recordUpdate": "Record Update",
@@ -1271,6 +1282,7 @@
     "comingSoonIntegration": "Coming soon! Click to upvote for the integration you need in NocoDB."
   },
   "placeholder": {
+    "searchIcons": "Search icons",
     "selectSlackChannels": "בחר ערוצי Slack",
     "selectTeamsChannels": "בחר ערוצי Teams של Microsoft",
     "selectDiscordChannels": "בחר ערוצי Discord",
@@ -1325,6 +1337,12 @@
     "searchOptions": "אפשרויות חיפוש"
   },
   "msg": {
+    "invalidConfiguration": "Invalid button configuration",
+    "invalidColumnConfiguration": "Invalid field configuration",
+    "invalidTheme": "Select a valid theme",
+    "invalidColor": "Select a valid color",
+    "invalidType": "Button type can be either 'webhook' or 'url'",
+    "invalidLabel": "Enter a valid button label",
     "formulaNotSupported": "פונקציה זו אינה זמינה עבור מסד הנתונים שלך",
     "controlOrgAppearance": "שלוט על שם ומראה הארגונים שלך.",
     "addCompanyDomains": "הוסף דומיינים של חברה כדי להגביל גישה למשתמשים שאינם רצויים.",
@@ -1440,6 +1458,7 @@
     "tooLargeFieldEntity": "השדה גדול מדי כדי להיות ממורגן ל-{entity}",
     "roleRequired": "נדרש תפקיד",
     "warning": {
+      "webhookDelete": "Button fields relying on this webhook will be impacted",
       "calendarNoFields": "תצוגת לוח שנה דורשת שדה תאריך או תאריך ושעה כדי להתקין. נסה להגדיר תצוגת לוח שנה לאחר הוספת שדה תאריך / תאריך ושעה!",
       "kanbanNoFields": "תצוגת קאנבן דורשת שדה בחירה יחידה להתקנה. נסה להגדיר תצוגת קאנבן לאחר הוספת שדה בחירה יחידה!",
       "mapNoFields": "תצוגת מפה דורשת שדה נתוני גיאוגרפי להתקנה. נסה להגדיר תצוגת מפה לאחר הוספת שדה נתוני גיאוגרפי!",
@@ -1639,6 +1658,7 @@
       "preventHideAllOptions": "לא ניתן להסתיר את כל האפשרויות אם השדה נדרש"
     },
     "error": {
+      "manualTriggerHook": "Manual hooks can't be disabled",
       "errorLoadingRecord": "שגיאה בטעינת נתוני הרשומה",
       "fetchingCalendarData": "שגיאה בקבלת נתוני לוח שנה",
       "fetchingActiveDates": "שגיאה בקבלת תאריכים פעילים",

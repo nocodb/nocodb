@@ -29,10 +29,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
 <template>
   <div
-    class="nc-table-topbar h-11 pt-3 flex gap-3 items-center justify-between overflow-hidden relative max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1 py-3 border-b-1 border-gray-200)"
-    :class="{
-      'pb-2 border-b-1 border-gray-200': isForm,
-    }"
+    class="nc-table-topbar py-2 border-b-1 border-gray-200 flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1)"
     style="z-index: 7"
   >
     <template v-if="isViewsLoading">

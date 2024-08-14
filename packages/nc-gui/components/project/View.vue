@@ -114,7 +114,7 @@ watch(
   <div class="h-full nc-base-view">
     <div
       v-if="!isAdminPanel"
-      class="flex flex-row px-2 pt-3 gap-1 justify-between w-full"
+      class="flex flex-row px-2 py-2 gap-1 justify-between w-full border-b-1 border-gray-200"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
       <div class="flex flex-row items-center gap-x-3">
@@ -214,10 +214,10 @@ watch(
 }
 
 .tab-title {
-  @apply flex flex-row items-center gap-x-2 px-2;
+  @apply flex flex-row items-center gap-x-2 px-2 py-[1px];
 }
 :deep(.ant-tabs-tab) {
-  @apply pt-2 pb-3.5;
+  @apply pt-2 pb-3;
 }
 :deep(.ant-tabs-tab .tab-title) {
   @apply text-gray-500;

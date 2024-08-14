@@ -15,7 +15,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
     class="flex flex-row items-center border-gray-50 transition-all duration-100 select-none"
     :class="{
       'text-base w-[calc(100%_-_52px)]': isMobileMode,
-      'w-[calc(100%_-_44px)]': !isMobileMode,
+      'w-[calc(100%_-_44px)]': !isMobileMode && !isLeftSidebarOpen,
+      'w-full': !isMobileMode && isLeftSidebarOpen,
     }"
   >
     <template v-if="!isMobileMode">

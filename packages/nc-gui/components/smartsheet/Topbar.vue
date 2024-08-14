@@ -15,6 +15,16 @@ const { appInfo } = useGlobal()
 const { toggleExtensionPanel, isPanelExpanded, extensionsEgg, onEggClick } = useExtensions()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
+
+const topbarBreadcrumbItemWidth = computed(() => {
+  if (!isSharedBase.value && !isMobileMode.value) {
+    return 'calc(\(100% - 167px - 24px\) / 2)'
+  } else if (isMobileMode.value) {
+    return 'calc(75% - 12px)'
+  } else {
+    return 'calc(\(100% - 12px\) / 2)'
+  }
+})
 </script>
 
 <template>
@@ -30,9 +40,9 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
     </template>
     <template v-else>
       <div
-        class="flex items-center gap-3"
+        class="flex items-center gap-3 min-w-[300px]"
         :style="{
-          width: !isSharedBase && !isMobileMode ? 'calc(\(100% - 167px - 24px\)/2)' : isMobileMode ? 'calc(75% - 12px)': 'calc(\(100% - 12px\)/2)',
+          width: topbarBreadcrumbItemWidth,
         }"
       >
         <GeneralOpenLeftSidebarBtn />
@@ -43,12 +53,7 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
         <SmartsheetTopbarSelectMode />
       </div>
 
-      <div
-        class="flex items-center justify-end gap-3"
-        :style="{
-          width: !isSharedBase && !isMobileMode ? 'calc(\(100% - 167px - 24px\)/2)' : isMobileMode ? '25%': 'calc(\(100% - 12px\)/2)',
-        }"
-      >
+      <div class="flex items-center justify-end gap-3 flex-1">
         <GeneralApiLoader v-if="!isMobileMode" />
 
         <div

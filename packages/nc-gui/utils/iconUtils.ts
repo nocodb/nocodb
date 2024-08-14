@@ -530,9 +530,9 @@ import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
-import NcChevronUpSmall from  '~icons/nc-icons/chevron-up-small'
-import NcChevronDownSmall from  '~icons/nc-icons/chevron-down-small'
-import NcChevronUpDownSmall from  '~icons/nc-icons/chevron-up-down-small'
+import NcChevronUpSmall from '~icons/nc-icons/chevron-up-small'
+import NcChevronDownSmall from '~icons/nc-icons/chevron-down-small'
+import NcChevronUpDownSmall from '~icons/nc-icons/chevron-up-down-small'
 
 // keep it for reference
 // todo: remove it after all icons are migrated

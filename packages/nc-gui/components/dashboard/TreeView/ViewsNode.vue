@@ -66,7 +66,6 @@ const isDefaultBase = computed(() => {
 
 const input = ref<HTMLInputElement>()
 
-
 const isDropdownOpen = ref(false)
 
 const isEditing = ref(false)
@@ -96,7 +95,7 @@ const handleOnClick = () => {
 }
 
 const focusInput = () => {
-  setTimeout(()=>{
+  setTimeout(() => {
     input.value?.focus()
     input.value?.select()
   })
@@ -112,7 +111,7 @@ function onDblClick() {
     _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
 
-    nextTick(()=>{
+    nextTick(() => {
       focusInput()
     })
   }
@@ -157,7 +156,7 @@ const onRenameMenuClick = () => {
     _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
 
-    nextTick(()=>{
+    nextTick(() => {
       focusInput()
     })
   }

@@ -18,6 +18,7 @@ export interface IntegrationCategoryItemType {
   iconBgColor?: string
   iconStyle?: CSSProperties
   isAvailable?: boolean
+  teleEventName?: IntegrationCategoryType
 }
 
 export const integrationCategories: IntegrationCategoryItemType[] = [
@@ -56,6 +57,7 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     title: 'objects.integrationCategories.spreadSheet',
     subtitle: 'objects.integrationCategories.spreadSheetSubtitle',
     value: IntegrationCategoryType.SPREAD_SHEET,
+    teleEventName: IntegrationCategoryType.OTHERS,
     icon: iconMap.viewGannt,
     iconBgColor: '#FFF0D1',
     iconStyle: {
@@ -464,18 +466,12 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.STORAGE],
   },
 
-  // Others
+  // Spreadsheet 
   {
     title: 'objects.syncData.appleNumbers',
     value: SyncDataType.APPLE_NUMBERS,
     icon: iconMap.appleSolid,
     categories: [IntegrationCategoryType.SPREAD_SHEET],
-  },
-  {
-    title: 'objects.syncData.googleCalendar',
-    value: SyncDataType.GOOGLE_CALENDAR,
-    icon: iconMap.googleCalendar,
-    categories: [IntegrationCategoryType.OTHERS],
   },
   {
     title: 'objects.syncData.microsoftExcel',
@@ -489,4 +485,12 @@ export const allIntegrations: IntegrationItemType[] = [
     icon: iconMap.googleSheet,
     categories: [IntegrationCategoryType.SPREAD_SHEET],
   },
+
+  // Others
+  // {
+  //   title: 'objects.syncData.googleCalendar',
+  //   value: SyncDataType.GOOGLE_CALENDAR,
+  //   icon: iconMap.googleCalendar,
+  //   categories: [IntegrationCategoryType.OTHERS],
+  // },
 ]

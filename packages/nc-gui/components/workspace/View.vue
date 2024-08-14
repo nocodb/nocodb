@@ -68,13 +68,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="currentWorkspace" class="flex w-full px-6 max-w-[97.5rem] flex-col nc-workspace-settings">
-    <div v-if="!props.workspaceId" class="flex gap-2 items-center min-w-0 py-4">
-      <h1 class="text-base capitalize font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
-        <span class="text-gray-500">{{ currentWorkspace?.title }} ></span> {{ $t('title.teamAndSettings') }}
-      </h1>
+  <div v-if="currentWorkspace" class="flex w-full max-w-[97.5rem] flex-col nc-workspace-settings">
+    <div v-if="!props.workspaceId" class="min-w-0 py-3 px-2">
+      <div class="nc-breadcrumb nc-workspace-title">
+        <div class="nc-breadcrumb-item capitalize">
+          {{ currentWorkspace?.title }}
+        </div>
+        <div class="nc-breadcrumb-divider">/</div>
+        <h1 class="nc-breadcrumb-item active">
+          {{ $t('title.teamAndSettings') }}
+        </h1>
+      </div>
     </div>
-    <div v-else>
+    <div v-else class="px-2">
       <div class="font-bold w-full !mb-5 text-2xl" data-rec="true">
         <div class="flex items-center gap-3">
           <NuxtLink
@@ -96,6 +102,9 @@ onMounted(() => {
     </div>
 
     <NcTabs v-model:activeKey="tab">
+      <template #leftExtra>
+        <div class="w-3"></div>
+      </template>
       <template v-if="isUIAllowed('workspaceSettings')">
         <a-tab-pane key="collaborators" class="w-full">
           <template #tab>
@@ -104,7 +113,7 @@ onMounted(() => {
               Members
             </div>
           </template>
-          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
+          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id"/>
         </a-tab-pane>
       </template>
 
@@ -128,7 +137,7 @@ onMounted(() => {
               Audit Logs
             </div>
           </template>
-          <div class="h-[calc(100vh-92px)]">
+          <div class="h-[calc(100vh-92px)] px-6">
             <WorkspaceAuditLogs :workspace-id="currentWorkspace.id" />
           </div>
         </a-tab-pane>

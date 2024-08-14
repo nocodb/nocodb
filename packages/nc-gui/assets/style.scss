@@ -935,3 +935,23 @@ svg.nc-virtual-cell-icon {
 .nc-edit-or-add-provider-wrapper {
   @apply overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-xl shadow-lg shadow-gray-300;
 }
+
+.nc-breadcrumb {
+  @apply text-sm text-gray-700 font-weight-500 flex items-center;
+
+  .nc-breadcrumb-item {
+    @apply h-8 px-2 flex items-center gap-2 my-0;
+
+    &.nc-clickable {
+      @apply cursor-pointer select-none rounded-lg hover:(bg-gray-100 text-gray-800);
+    }
+
+    &.active {
+      @apply font-bold text-gray-800;
+    }
+  }
+
+  .nc-breadcrumb-divider {
+    @apply w-4 flex-none flex justify-center text-gray-600;
+  }
+}

@@ -47,10 +47,16 @@ onBeforeMount(() => {
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full max-w-[97.5rem] flex-col nc-workspace-integrations">
-    <div class="flex gap-2 items-center min-w-0 py-4 px-6">
-      <h1 class="text-base capitalize font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
-        <span class="text-gray-500"> {{ currentWorkspace?.title }} ></span> {{ $t('general.integrations') }}
-      </h1>
+    <div class="flex gap-2 items-center min-w-0 py-3 px-2">
+      <div class="nc-breadcrumb">
+        <div class="nc-breadcrumb-item capitalize">
+          {{ currentWorkspace?.title }}
+        </div>
+        <div class="nc-breadcrumb-divider">/</div>
+        <h1 class="nc-breadcrumb-item active">
+          {{ $t('general.integrations') }}
+        </h1>
+      </div>
     </div>
 
     <NcTabs v-model:activeKey="activeViewTab">

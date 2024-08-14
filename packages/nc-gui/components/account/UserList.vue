@@ -218,7 +218,7 @@ const columns = [
       </template>
       <template #title>
         <span data-rec="true">
-          {{ $t('title.userMgmt') }}
+          {{ $t('title.userManagement') }}
         </span>
       </template>
     </NcPageHeader>

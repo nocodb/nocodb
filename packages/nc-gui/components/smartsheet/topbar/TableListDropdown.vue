@@ -28,11 +28,13 @@ const handleNavigateToTable = (table: TableType) => {
         search-input-placeholder="Search tables"
       >
         <template #listItem="{ option }">
-          <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
-            <template #default>
-              <GeneralIcon icon="table" class="min-w-4 !text-gray-600" />
-            </template>
-          </LazyGeneralEmojiPicker>
+          <div>
+            <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
+              <template #default>
+                <GeneralIcon icon="table" class="min-w-4 !text-gray-600" />
+              </template>
+            </LazyGeneralEmojiPicker>
+          </div>
           <NcTooltip class="truncate flex-1" show-on-truncate-only>
             <template #title>
               {{ option?.title }}

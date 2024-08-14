@@ -3,25 +3,11 @@ const { isMobileMode } = useGlobal()
 
 const { activeView } = storeToRefs(useViewsStore())
 
-const { basesList } = storeToRefs(useBases())
-
 const { base, isSharedBase } = storeToRefs(useBase())
-const { baseUrl } = useBase()
 
-const { activeTable, activeTables } = storeToRefs(useTablesStore())
-const { tableUrl } = useTablesStore()
+const { activeTable } = storeToRefs(useTablesStore())
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-
-const openedBaseUrl = computed(() => {
-  if (!base.value) return ''
-
-  return `${window.location.origin}/#${baseUrl({
-    id: base.value.id!,
-    type: 'database',
-    isSharedBase: isSharedBase.value,
-  })}`
-})
 </script>
 
 <template>
@@ -133,13 +119,61 @@ const openedBaseUrl = computed(() => {
     <div v-if="!isMobileMode" class="nc-topbar-breadcrum-divider">/</div>
 
     <template v-if="!(isMobileMode && activeView?.is_default)">
-      <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeView?.meta?.icon" readonly size="xsmall">
+      <!-- <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeView?.meta?.icon" readonly size="xsmall">
         <template #default>
           <GeneralViewIcon :meta="{ type: activeView?.type }" class="min-w-4.5 text-lg flex" />
         </template>
-      </LazyGeneralEmojiPicker>
+      </LazyGeneralEmojiPicker> -->
 
-      <SmartsheetToolbarOpenedViewAction />
+      <!-- <SmartsheetToolbarOpenedViewAction /> -->
+
+      <SmartsheetTopbarViewListDropdown v-if="activeTable">
+        <template #default="{ isOpen }">
+          <div
+            class="rounded-lg h-8 px-2 text-gray-600 font-weight-500 hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer"
+            :class="{
+              'max-w-1/2': isMobileMode,
+              'max-w-1/4': !isSharedBase && !isMobileMode,
+              'max-w-none': isSharedBase && !isMobileMode,
+              'bg-gray-100 !text-gray-800': isOpen,
+            }"
+          >
+            <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">
+              <template #default>
+                <GeneralIcon
+                  icon="table"
+                  class="min-w-5"
+                  :class="{
+                    '!text-gray-500': !isMobileMode,
+                    '!text-gray-700': isMobileMode,
+                  }"
+                />
+              </template>
+            </LazyGeneralEmojiPicker>
+
+            <NcTooltip class="truncate nc-active-table-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
+              <template #title>
+                {{ activeTable?.title }}
+              </template>
+              <span
+                class="text-ellipsis"
+                :style="{
+                  wordBreak: 'keep-all',
+                  whiteSpace: 'nowrap',
+                  display: 'inline',
+                }"
+              >
+                {{ activeTable?.title }}
+              </span>
+            </NcTooltip>
+            <GeneralIcon
+              icon="chevronDown"
+              class="!text-gray-600 flex-none transform transition-transform duration-25"
+              :class="{ '!rotate-180': isOpen }"
+            />
+          </div>
+        </template>
+      </SmartsheetTopbarViewListDropdown>
     </template>
   </div>
 </template>

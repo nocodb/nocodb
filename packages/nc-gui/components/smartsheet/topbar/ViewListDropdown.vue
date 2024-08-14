@@ -1,27 +1,65 @@
 <script lang="ts" setup>
-const { activeTable, activeTables } = storeToRefs(useTablesStore())
+import { ViewTypes, type ViewType } from 'nocodb-sdk'
+
+const { base } = storeToRefs(useBase())
+
+const { activeTable } = storeToRefs(useTablesStore())
+
+const viewsStore = useViewsStore()
+const { activeView, views } = storeToRefs(viewsStore)
 
 const isOpen = ref<boolean>(false)
 
-const handleNavigateToView = (id: string | number) => {}
+const handleNavigateToView = async (view: ViewType) => {
+  if (!view?.id) return
+  
+  await viewsStore.navigateToView({
+    view,
+    tableId: activeTable.value.id!,
+    baseId: base.value.id!,
+    hardReload: view.type === ViewTypes.FORM && activeView.value?.id === view.id,
+    doNotSwitchTab: true,
+  })
+}
 </script>
 
 <template>
-  <div v-if="activeTable">
-    <NcDropdown v-model:visible="isOpen">
-      <slot />
-      <template #overlay>
-        <NcList
-          v-model:open="isOpen"
-          :value="activeTable.id"
-          @update:value="handleNavigateToView"
-          :list="activeTables"
-          option-value-key="id"
-          option-label-key="title"
-        ></NcList>
-      </template>
-    </NcDropdown>
-  </div>
+  <NcDropdown v-if="activeView" v-model:visible="isOpen">
+    <slot name="default" :isOpen="isOpen"></slot>
+    <template #overlay>
+      <NcList
+        v-model:open="isOpen"
+        :value="activeView.id"
+        @change="handleNavigateToView"
+        :list="views"
+        option-value-key="id"
+        option-label-key="title"
+        search-input-placeholder="Search views"
+      >
+        <template #listItem="{ option }">
+          <div>
+            <LazyGeneralEmojiPicker :emoji="option?.meta?.icon" readonly size="xsmall">
+              <template #default>
+                <GeneralViewIcon :meta="{ type: option?.type }" class="min-w-4 text-lg flex" />
+              </template>
+            </LazyGeneralEmojiPicker>
+          </div>
+          <NcTooltip class="truncate flex-1" show-on-truncate-only>
+            <template #title>
+              {{ option?.is_default ? $t('title.defaultView') : option?.title }}
+            </template>
+            {{ option?.is_default ? $t('title.defaultView') : option?.title }}
+          </NcTooltip>
+          <GeneralIcon
+            v-if="option.id === activeView.id"
+            id="nc-selected-item-icon"
+            icon="check"
+            class="flex-none text-primary w-4 h-4"
+          />
+        </template>
+      </NcList>
+    </template>
+  </NcDropdown>
 </template>
 
 <style lang="scss" scopped></style>

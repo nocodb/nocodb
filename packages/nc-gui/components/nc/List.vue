@@ -269,37 +269,45 @@ watch(
     <slot name="listHeader"></slot>
     <div class="nc-list-wrapper">
       <template v-if="list.length">
-        <div v-bind="containerProps" class="nc-list h-auto w-full !max-h-[247px] nc-scrollbar-thin px-2 pb-2">
-          <div v-bind="wrapperProps">
-            <div
-              v-for="{ data: option, index: idx } in virtualList"
-              :key="idx"
-              class="flex items-center gap-2 w-full py-2 px-2 hover:bg-gray-100 cursor-pointer rounded-md"
-              :class="[
-                `nc-list-option-${idx}`,
-                {
-                  'nc-list-option-selected': option[optionValueKey] === vModel,
-                  'bg-gray-100 ': showHoverEffectOnSelectedOption && option[optionValueKey] === vModel,
-                  'bg-gray-100 nc-list-option-active': activeOptionIndex === idx,
-                },
-              ]"
-              @mouseover="handleResetHoverEffect(true)"
-              @click="handleSelectOption(option)"
-            >
-              <slot name="listItem" :option="option" :index="idx">
-                <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                  <template #title>
+        <div class="h-auto !max-h-[247px]">
+          <div
+            v-bind="containerProps"
+            class="nc-list !h-auto w-full nc-scrollbar-thin px-2 pb-2"
+            :style="{
+              maxHeight: '247px !important',
+            }"
+          >
+            <div v-bind="wrapperProps">
+              <div
+                v-for="{ data: option, index: idx } in virtualList"
+                :key="idx"
+                class="flex items-center gap-2 w-full py-2 px-2 hover:bg-gray-100 cursor-pointer rounded-md"
+                :class="[
+                  `nc-list-option-${idx}`,
+                  {
+                    'nc-list-option-selected': option[optionValueKey] === vModel,
+                    'bg-gray-100 ': showHoverEffectOnSelectedOption && option[optionValueKey] === vModel,
+                    'bg-gray-100 nc-list-option-active': activeOptionIndex === idx,
+                  },
+                ]"
+                @mouseover="handleResetHoverEffect(true)"
+                @click="handleSelectOption(option)"
+              >
+                <slot name="listItem" :option="option" :index="idx">
+                  <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                    <template #title>
+                      {{ option[optionLabelKey] }}
+                    </template>
                     {{ option[optionLabelKey] }}
-                  </template>
-                  {{ option[optionLabelKey] }}
-                </NcTooltip>
-                <GeneralIcon
-                  v-if="showSelectedOption && option[optionValueKey] === vModel"
-                  id="nc-selected-item-icon"
-                  icon="check"
-                  class="flex-none text-primary w-4 h-4"
-                />
-              </slot>
+                  </NcTooltip>
+                  <GeneralIcon
+                    v-if="showSelectedOption && option[optionValueKey] === vModel"
+                    id="nc-selected-item-icon"
+                    icon="check"
+                    class="flex-none text-primary w-4 h-4"
+                  />
+                </slot>
+              </div>
             </div>
           </div>
         </div>

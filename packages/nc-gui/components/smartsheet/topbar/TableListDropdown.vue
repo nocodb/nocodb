@@ -148,7 +148,6 @@ function openTableCreateDialog() {
                   }}
                 </div>
               </div>
-              <GeneralIcon icon="arrowRight" class="text-base text-gray-600 group-hover:text-gray-800" />
             </div>
           </div>
         </template>

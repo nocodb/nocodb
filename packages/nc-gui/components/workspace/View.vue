@@ -17,7 +17,7 @@ const { activeWorkspace: _activeWorkspace, workspaces } = storeToRefs(workspaceS
 const { loadCollaborators, loadWorkspace } = workspaceStore
 
 const orgStore = useOrg()
-const { orgId } = storeToRefs(orgStore)
+const { orgId, org } = storeToRefs(orgStore)
 
 const currentWorkspace = computedAsync(async () => {
   let ws
@@ -69,7 +69,7 @@ onMounted(() => {
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full max-w-[97.5rem] flex-col nc-workspace-settings">
-    <div v-if="!props.workspaceId" class="min-w-0 py-3 px-2">
+    <div v-if="!props.workspaceId" class="min-w-0 pt-3 px-2">
       <div class="nc-breadcrumb nc-workspace-title">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}
@@ -80,26 +80,38 @@ onMounted(() => {
         </h1>
       </div>
     </div>
-    <div v-else class="px-2">
-      <div class="font-bold w-full !mb-5 text-2xl" data-rec="true">
-        <div class="flex items-center gap-3">
-          <NuxtLink
-            :href="`/admin/${orgId}/workspaces`"
-            class="!hover:(text-black underline-gray-600) flex items-center !text-black !underline-transparent ml-0.75 max-w-1/4"
-          >
-            <component :is="iconMap.arrowLeft" class="text-3xl" />
-
+    <template v-else>
+      <div class="nc-breadcrumb px-2">
+        <div class="nc-breadcrumb-item">
+          {{ org.title }}
+        </div>
+        <div class="nc-breadcrumb-divider">/</div>
+        <NuxtLink
+          :href="`/admin/${orgId}/workspaces`"
+          class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent ml-0.75 max-w-1/4"
+        >
+          <div class="nc-breadcrumb-item nc-clickable">
             {{ $t('labels.workspaces') }}
-          </NuxtLink>
-
-          <span class="text-2xl"> / </span>
-          <GeneralWorkspaceIcon :workspace="currentWorkspace" hide-label />
-          <span class="text-base capitalize">
-            {{ currentWorkspace?.title }}
-          </span>
+          </div>
+        </NuxtLink>
+        <div class="nc-breadcrumb-divider">/</div>
+        <div class="nc-breadcrumb-item active truncate capitalize">
+          {{ currentWorkspace?.title }}
         </div>
       </div>
-    </div>
+      <NcPageHeader>
+        <template #icon>
+          <div class="flex justify-center items-center h-6 w-6">
+            <GeneralWorkspaceIcon :workspace="currentWorkspace" hide-label size="small" />
+          </div>
+        </template>
+        <template #title>
+          <span data-rec="true" class="capitalize">
+            {{ currentWorkspace?.title }}
+          </span>
+        </template>
+      </NcPageHeader>
+    </template>
 
     <NcTabs v-model:activeKey="tab">
       <template #leftExtra>
@@ -108,19 +120,19 @@ onMounted(() => {
       <template v-if="isUIAllowed('workspaceSettings')">
         <a-tab-pane key="collaborators" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center pb-1 gap-x-1.5">
+            <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5">
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
               Members
             </div>
           </template>
-          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id"/>
+          <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" />
         </a-tab-pane>
       </template>
 
       <template v-if="isUIAllowed('workspaceManage')">
         <a-tab-pane key="settings" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-settings">
+            <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5" data-testid="nc-workspace-settings-tab-settings">
               <GeneralIcon icon="settings" />
               Settings
             </div>
@@ -132,7 +144,7 @@ onMounted(() => {
       <template v-if="isUIAllowed('workspaceAuditList') && !props.workspaceId">
         <a-tab-pane key="audit" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center pb-1 gap-x-1.5">
+            <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5">
               <GeneralIcon icon="audit" class="!h-3.5 !w-3.5" />
               Audit Logs
             </div>
@@ -148,7 +160,7 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .nc-workspace-avatar {
-  @apply min-w-6 h-6 rounded-[6px] flex items-center justify-center text-white font-weight-bold uppercase;
+  @apply min-w-5 h-5 w-5 rounded-[6px] flex items-center justify-center text-white font-weight-bold uppercase;
   font-size: 0.7rem;
 }
 

@@ -98,17 +98,15 @@ const loadCollaborators = async () => {
   }
 }
 
+const isOwnerOrCreator = computed(() => {
+  return baseRoles.value?.[ProjectRoles.OWNER] || baseRoles.value?.[ProjectRoles.CREATOR]
+})
+
 const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   const currentCollaborator = collaborators.value.find((coll) => coll.id === collab.id)!
 
   try {
-    if (
-      !roles ||
-      (roles === ProjectRoles.NO_ACCESS && !isEeUI) ||
-      (currentCollaborator.workspace_roles &&
-        WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
-        isEeUI)
-    ) {
+    if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
       await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
       if (
         currentCollaborator.workspace_roles &&
@@ -155,9 +153,9 @@ onMounted(async () => {
       (role) => baseRoles.value && Object.keys(baseRoles.value).includes(role),
     )
     if (isSuper.value) {
-      accessibleRoles.value = OrderedProjectRoles.slice(1)
+      accessibleRoles.value = OrderedProjectRoles.slice(0)
     } else if (currentRoleIndex !== -1) {
-      accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex + 1)
+      accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
     }
     loadSorts()
   } catch (e: any) {
@@ -251,6 +249,14 @@ const columns = [
 const customRow = (record: Record<string, any>) => ({
   class: `${selected[record.id] ? 'selected' : ''} user-row`,
 })
+
+const isOnlyOneOwner = computed(() => {
+  return collaborators.value?.filter((collab) => collab.roles === ProjectRoles.OWNER).length === 1
+})
+
+const isDeleteOrUpdateAllowed = (user) => {
+  return !(isOnlyOneOwner.value && user.roles === ProjectRoles.OWNER)
+}
 </script>
 
 <template>
@@ -367,7 +373,7 @@ const customRow = (record: Record<string, any>) => ({
             </div>
           </div>
           <div v-if="column.key === 'role'">
-            <template v-if="accessibleRoles.includes(record.roles)">
+          <template v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles)">
               <RolesSelector
                 :role="record.roles"
                 :roles="accessibleRoles"

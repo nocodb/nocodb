@@ -19,7 +19,7 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
 <template>
   <div
-    class="nc-table-topbar h-20 py-1 flex gap-2 items-center border-b border-gray-200 overflow-hidden relative max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(pr-2 pl-2) xs:(px-1)"
+    class="nc-table-topbar h-11 pt-3 flex gap-3 items-center overflow-hidden relative max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1 py-3 border-b-1 border-gray-200)"
     style="z-index: 7"
   >
     <template v-if="isViewsLoading">

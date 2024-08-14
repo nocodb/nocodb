@@ -114,7 +114,7 @@ watch(
   <div class="h-full nc-base-view">
     <div
       v-if="!isAdminPanel"
-      class="flex flex-row pl-2 pr-2 gap-1 justify-between w-full"
+      class="flex flex-row px-2 pt-3 gap-1 justify-between w-full"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
       <div class="flex flex-row items-center gap-x-3">
@@ -122,8 +122,8 @@ watch(
         <div
           class="flex flex-row items-center h-full gap-x-2"
           :class="{
-            '-ml-0.8': !isMobileMode && isLeftSidebarOpen,
-            'ml-1.2': !isMobileMode && !isLeftSidebarOpen,
+            '-ml-1': !isMobileMode && isLeftSidebarOpen,
+            'ml-2': !isMobileMode && !isLeftSidebarOpen,
           }"
         >
           <GeneralProjectIcon :color="parseProp(currentBase?.meta).iconColor" :type="currentBase?.type" />
@@ -221,6 +221,9 @@ watch(
 
 .tab-title {
   @apply flex flex-row items-center gap-x-2 px-2;
+}
+:deep(.ant-tabs-tab) {
+  @apply pt-2 pb-3.5;
 }
 :deep(.ant-tabs-tab .tab-title) {
   @apply text-gray-500;

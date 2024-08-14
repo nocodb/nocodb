@@ -12,7 +12,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 <template>
   <div
-    class="ml-0.25 flex flex-row items-center border-gray-50 transition-all duration-100 select-none"
+    class="flex flex-row items-center border-gray-50 transition-all duration-100 select-none"
     :class="{
       'min-w-36/100 max-w-36/100': !isMobileMode && isLeftSidebarOpen,
       'min-w-39/100 max-w-39/100': !isMobileMode && !isLeftSidebarOpen,
@@ -27,7 +27,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer max-w-1/3"
             :class="{
               '!max-w-none': isSharedBase && !isMobileMode,
-              '-ml-2': !isMobileMode && isLeftSidebarOpen,
+              '-ml-3': !isMobileMode && isLeftSidebarOpen,
             }"
           >
             <GeneralProjectIcon

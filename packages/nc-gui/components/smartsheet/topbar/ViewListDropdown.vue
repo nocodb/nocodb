@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { type ViewType, ViewTypes } from 'nocodb-sdk'
 
+const { isMobileMode } = useGlobal()
+
 const { t } = useI18n()
 
 const { $e } = useNuxtApp()
@@ -170,7 +172,7 @@ async function onOpenModal({
         :filter-option="filterOption"
         @change="handleNavigateToView"
       >
-        <template v-if="isUIAllowed('viewCreateOrEdit')" #listHeader>
+        <template v-if="!isMobileMode && isUIAllowed('viewCreateOrEdit')" #listHeader>
           <div>
             <a-menu class="nc-viewlist-menu">
               <a-sub-menu popup-class-name="nc-viewlist-submenu-popup">

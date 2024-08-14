@@ -54,7 +54,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               </span>
             </NcTooltip>
             <GeneralIcon
-              icon="chevronDown"
+              icon="chevronDownSmall"
               class="!text-current opacity-70 flex-none transform transition-transform duration-25"
               :class="{ '!rotate-180': isOpen }"
             />
@@ -103,7 +103,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               </span>
             </NcTooltip>
             <GeneralIcon
-              icon="chevronDown"
+              icon="chevronDownSmall"
               class="!text-current opacity-70 flex-none transform transition-transform duration-25"
               :class="{ '!rotate-180': isOpen }"
             />
@@ -149,7 +149,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               </span>
             </NcTooltip>
             <GeneralIcon
-              icon="chevronDown"
+              icon="chevronDownSmall"
               class="!text-current opacity-70 flex-none transform transition-transform duration-25"
               :class="{ '!rotate-180': isOpen }"
             />

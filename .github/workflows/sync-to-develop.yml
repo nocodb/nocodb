@@ -45,7 +45,7 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           revertSDK=true node scripts/upgradeNocodbSdk.js
-          pnpm --filter=nocodb-sdk install --no-frozen-lockfile && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-gui --filter=playwright install --no-frozen-lockfile
+          pnpm --filter=nocodb-sdk install --no-frozen-lockfile && pnpm --filter=nocodb-sdk run build && pnpm --filter=nc-plugin install && pnpm --filter=nc-plugin build && pnpm --filter=nocodb --filter=nc-gui --filter=playwright install --no-frozen-lockfile
           git add .
           git diff-index --quiet HEAD || git commit -m "chore: update sdk path"
           git push origin $BRANCH_NAME

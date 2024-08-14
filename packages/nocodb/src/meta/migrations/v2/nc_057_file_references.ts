@@ -17,7 +17,10 @@ const up = async (knex: Knex) => {
     table.boolean('deleted').defaultTo(false);
     table.timestamps(true, true);
 
-    // TODO: Add indexes
+    // this index is used on migration, this can be removed after migration
+    if (!knex.client.config.client.includes('mysql')) {
+      table.index(['file_url', 'storage'], 'nc_file_references_temp');
+    }
   });
 };
 

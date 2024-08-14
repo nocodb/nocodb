@@ -335,7 +335,7 @@ export class AttachmentMigration {
                             model.base_id
                           } - ${model.id}`,
                         );
-                      } else if (isReferenced.referenced === false) {
+                      } else if (!isReferenced.referenced) {
                         const fileNameWithExt = path.basename(filePath);
 
                         const mimetype =
@@ -502,7 +502,7 @@ export class AttachmentMigration {
       const skipModels = new Set(['placeholder']);
       let processingModels = [{ fk_model_id: 'placeholder', processing: true }];
 
-      const parallelLimit = 5;
+      const parallelLimit = 2;
 
       const queue = new PQueue({ concurrency: parallelLimit });
 

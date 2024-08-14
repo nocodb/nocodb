@@ -235,9 +235,9 @@ export class AttachmentsService {
           const decodedPath = decodeURIComponent(parsedUrl.pathname);
           const fileNameWithExt = _fileName || path.basename(decodedPath);
 
-          const fileName = `${path.parse(fileNameWithExt).name}_${nanoid(
-            5,
-          )}${path.extname(fileNameWithExt)}`;
+          const fileName = `${normalizeFilename(
+            path.parse(fileNameWithExt).name,
+          )}_${nanoid(5)}${path.extname(fileNameWithExt)}`;
 
           if (!mimeType) {
             mimeType = mimetypes[path.extname(fileNameWithExt).slice(1)];

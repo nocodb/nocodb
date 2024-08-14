@@ -1,3 +1,4 @@
+import { ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
 
@@ -7,7 +8,7 @@ export const useConfigStore = defineStore('configStore', () => {
 
   const sidebarStore = useSidebarStore()
   const viewsStore = useViewsStore()
-  const { activeViewTitleOrId } = storeToRefs(viewsStore)
+  const { activeViewTitleOrId, activeView } = storeToRefs(viewsStore)
   const tablesStore = useTablesStore()
   const { activeTableId } = storeToRefs(tablesStore)
 
@@ -28,12 +29,12 @@ export const useConfigStore = defineStore('configStore', () => {
   window.addEventListener('resize', onViewPortResize)
 
   watch(
-    isMobileMode,
+    [isMobileMode, activeView],
     () => {
       globalIsMobile.value = isMobileMode.value
 
       // Change --topbar-height css variable
-      document.documentElement.style.setProperty('--topbar-height', isMobileMode.value ? '3.875rem' : '2.75rem')
+      document.documentElement.style.setProperty('--topbar-height', isMobileMode.value ? '3.875rem' : activeView.value?.type === ViewTypes.FORM ? '3.25rem': '2.75rem')
 
       // Set .mobile-mode class on body
       if (isMobileMode.value) {

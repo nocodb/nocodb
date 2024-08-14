@@ -52,7 +52,7 @@ onBeforeMount(() => {
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}
         </div>
-        <div class="nc-breadcrumb-divider">/</div>
+        <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider"/>
         <h1 class="nc-breadcrumb-item active">
           {{ $t('general.integrations') }}
         </h1>

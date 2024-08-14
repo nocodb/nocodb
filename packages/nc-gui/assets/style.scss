@@ -943,15 +943,14 @@ svg.nc-virtual-cell-icon {
     @apply h-8 px-2 flex items-center gap-2 my-0;
 
     &.nc-clickable {
-      @apply cursor-pointer select-none rounded-lg hover:(bg-gray-100 text-gray-800);
+      @apply cursor-pointer select-none rounded-lg hover:(bg-gray-100 text-gray-900);
     }
 
     &.active {
       @apply font-bold text-gray-800;
     }
   }
-
-  .nc-breadcrumb-divider {
-    @apply w-4 flex-none flex justify-center text-gray-600;
-  }
+}
+.nc-breadcrumb-divider {
+  @apply flex-none text-gray-500 !stroke-transparent;
 }

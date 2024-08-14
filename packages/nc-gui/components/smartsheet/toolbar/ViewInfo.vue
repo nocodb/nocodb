@@ -24,7 +24,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <SmartsheetTopbarProjectListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer max-w-1/3"
+            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-2 cursor-pointer max-w-1/3"
             :class="{
               '!max-w-none': isSharedBase && !isMobileMode,
               '-ml-3': !isMobileMode && isLeftSidebarOpen,
@@ -57,19 +57,20 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             </NcTooltip>
             <GeneralIcon
               icon="chevronDown"
-              class="!text-gray-600 flex-none transform transition-transform duration-25"
+              class="!text-current opacity-80 flex-none transform transition-transform duration-25"
               :class="{ '!rotate-180': isOpen }"
             />
           </div>
         </template>
       </SmartsheetTopbarProjectListDropdown>
-      <div class="nc-topbar-breadcrum-divider">/</div>
+      <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider"/>
+
     </template>
     <template v-if="!(isMobileMode && !activeView?.is_default)">
       <SmartsheetTopbarTableListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-2 cursor-pointer"
             :class="{
               'max-w-1/2': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode,
@@ -106,7 +107,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             </NcTooltip>
             <GeneralIcon
               icon="chevronDown"
-              class="!text-gray-600 flex-none transform transition-transform duration-25"
+              class="!text-current opacity-80 flex-none transform transition-transform duration-25"
               :class="{ '!rotate-180': isOpen }"
             />
           </div>
@@ -114,7 +115,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       </SmartsheetTopbarTableListDropdown>
     </template>
 
-    <div v-if="!isMobileMode" class="nc-topbar-breadcrum-divider">/</div>
+    <GeneralIcon v-if="!isMobileMode" icon="ncSlash" class="nc-breadcrumb-divider"/>
 
     <template v-if="!(isMobileMode && activeView?.is_default)">
       <!-- <SmartsheetToolbarOpenedViewAction /> -->
@@ -122,7 +123,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <SmartsheetTopbarViewListDropdown>
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-800 font-semibold hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-gray-800 font-semibold hover:(bg-gray-100 text-gray-900) flex items-center gap-2 cursor-pointer"
             :class="{
               'max-w-1/2': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode,
@@ -152,7 +153,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             </NcTooltip>
             <GeneralIcon
               icon="chevronDown"
-              class="!text-gray-600 flex-none transform transition-transform duration-25"
+              class="!text-current opacity-80 flex-none transform transition-transform duration-25"
               :class="{ '!rotate-180': isOpen }"
             />
           </div>
@@ -163,9 +164,3 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
     </template>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.nc-topbar-breadcrum-divider {
-  @apply w-4 flex-none flex justify-center text-gray-500;
-}
-</style>

@@ -74,7 +74,8 @@ onMounted(() => {
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}
         </div>
-        <div class="nc-breadcrumb-divider">/</div>
+        <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider"/>
+
         <h1 class="nc-breadcrumb-item active">
           {{ $t('title.teamAndSettings') }}
         </h1>
@@ -85,7 +86,8 @@ onMounted(() => {
         <div class="nc-breadcrumb-item">
           {{ org.title }}
         </div>
-        <div class="nc-breadcrumb-divider">/</div>
+        <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider"/>
+
         <NuxtLink
           :href="`/admin/${orgId}/workspaces`"
           class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent ml-0.75 max-w-1/4"
@@ -94,7 +96,8 @@ onMounted(() => {
             {{ $t('labels.workspaces') }}
           </div>
         </NuxtLink>
-        <div class="nc-breadcrumb-divider">/</div>
+        <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider"/>
+
         <div class="nc-breadcrumb-item active truncate capitalize">
           {{ currentWorkspace?.title }}
         </div>

@@ -528,6 +528,8 @@ import NcAlignLeftIcon from '~icons/nc-icons-v2/align-left.svg'
 import NcHeartIcon from '~icons/nc-icons-v2/heart.svg'
 import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
 
+import NcSlash1 from '~icons/nc-icons/slash1'
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -679,6 +681,7 @@ export const iconMap = {
   strike: NcStrike,
   atSign: NcAtSign,
   slash: NcSlash,
+  ncSlash: NcSlash1,
   arrowUpRight: NcArrowUpRight,
   ncWorkspace: NcWorkspace,
   controlPanel: NcControlPanel,

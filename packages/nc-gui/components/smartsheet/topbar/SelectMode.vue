@@ -15,7 +15,7 @@ const onClickDetails = () => {
 </script>
 
 <template>
-  <div class="flex flex-row p-1 mx-3 bg-gray-100 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
+  <div class="flex flex-row p-1 mx-3 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab">
     <div
       v-e="['c:project:mode:data']"
       class="tab"
@@ -51,7 +51,7 @@ const onClickDetails = () => {
 
 <style scoped>
 .tab {
-  @apply flex flex-row items-center h-6 justify-center px-2 py-1 bg-gray-100 rounded-md gap-x-2 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab-icon {

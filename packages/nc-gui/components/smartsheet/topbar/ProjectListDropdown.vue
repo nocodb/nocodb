@@ -77,4 +77,4 @@ const handleNavigateToProject = async (base: NcProject) => {
   </NcDropdown>
 </template>
 
-<style lang="scss" scopped></style>
+<style lang="scss" scoped></style>

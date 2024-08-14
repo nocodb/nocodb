@@ -102,7 +102,7 @@ function openTableCreateDialog() {
         @change="handleNavigateToTable"
       >
         <template
-          v-if="isUIAllowed('tableCreate', { roles: base?.project_role || base?.workspace_role, source: base?.sources?.[0] })"
+          v-if="isUIAllowed('tableCreate', { roles: base?.project_role || base?.workspace_role, source: base?.sources?.[activeTableSourceIndex] })"
           #listHeader
         >
           <div class="px-2" @click="openTableCreateDialog()">
@@ -141,4 +141,4 @@ function openTableCreateDialog() {
   </NcDropdown>
 </template>
 
-<style lang="scss" scopped></style>
+<style lang="scss" scoped></style>

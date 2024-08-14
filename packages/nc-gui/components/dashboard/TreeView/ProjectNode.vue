@@ -112,7 +112,7 @@ const enableEditMode = () => {
   nextTick(() => {
     input.value?.focus()
     input.value?.select()
-    input.value?.scrollIntoView()
+    // input.value?.scrollIntoView()
   })
 }
 
@@ -128,7 +128,7 @@ const enableEditModeForSource = (sourceId: string) => {
     if (!input) return
     input?.focus()
     input?.select()
-    input?.scrollIntoView()
+    // input?.scrollIntoView()
   })
 }
 

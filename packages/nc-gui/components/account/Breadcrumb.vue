@@ -106,7 +106,7 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       >
         {{ item.title }}
       </div>
-      <GeneralIcon v-if="i !== breadcrumb.length - 1" icon="ncSlash" class="nc-breadcrumb-divider" />
+      <GeneralIcon v-if="i !== breadcrumb.length - 1" icon="ncSlash1" class="nc-breadcrumb-divider" />
     </template>
   </div>
 </template>

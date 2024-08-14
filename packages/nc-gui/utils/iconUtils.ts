@@ -686,7 +686,7 @@ export const iconMap = {
   strike: NcStrike,
   atSign: NcAtSign,
   slash: NcSlash,
-  ncSlash: NcSlash1,
+  ncSlash1: NcSlash1,
   arrowUpRight: NcArrowUpRight,
   ncWorkspace: NcWorkspace,
   controlPanel: NcControlPanel,

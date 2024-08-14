@@ -94,9 +94,13 @@ const list = computed(() => {
  * Resets the hover effect on the selected option
  * @param clearActiveOption - Whether to clear the active option index
  */
-const handleResetHoverEffect = (clearActiveOption = false) => {
+const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: number) => {
   if (clearActiveOption) {
     activeOptionIndex.value = -1
+  }
+
+  if (newActiveIndex !== undefined) {
+    activeOptionIndex.value = newActiveIndex
   }
 
   if (!showHoverEffectOnSelectedOption.value) return
@@ -233,7 +237,7 @@ watch(
         class="nc-toolbar-dropdown-search-field-input"
         allow-clear
         @keydown.enter.stop="handleKeydownEnter"
-        @change="activeOptionIndex = 0"
+        @change="handleResetHoverEffect(false, 0)"
       >
         <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
       ></a-input>

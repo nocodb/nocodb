@@ -130,7 +130,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <SmartsheetTopbarViewListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-600 font-weight-500 hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-gray-800 font-medium hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer"
             :class="{
               'max-w-1/2': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode,

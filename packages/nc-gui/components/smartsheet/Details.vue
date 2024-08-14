@@ -104,23 +104,28 @@ watch(openedSubTab, () => {
 }
 
 :deep(.ant-tabs-nav) {
-  min-height: 46px;
+  min-height: calc(var(--toolbar-height) - 1px);
+}
+:deep(.ant-tabs-tab) {
+  @apply pt-2 pb-3;
 }
 </style>
 
 <style lang="scss">
 .nc-details-tab.nc-tabs.centered {
   > .ant-tabs-nav {
+    @apply px-3;
     .ant-tabs-nav-wrap {
-      @apply absolute mx-auto -left-9.5;
+      @apply absolute mx-auto;
     }
   }
 }
 
 .nc-details-tab-left-sidebar-close > .nc-details-tab.nc-tabs.centered {
   > .ant-tabs-nav {
+    @apply px-3;
     .ant-tabs-nav-wrap {
-      @apply absolute mx-auto left-0;
+      @apply absolute mx-auto;
     }
   }
 }

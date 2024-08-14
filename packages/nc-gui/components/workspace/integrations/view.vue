@@ -47,7 +47,7 @@ onBeforeMount(() => {
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full max-w-[97.5rem] flex-col nc-workspace-integrations">
-    <div class="flex gap-2 items-center min-w-0 pt-3 px-2">
+    <div class="flex gap-2 items-center min-w-0 pt-2 px-2">
       <div class="nc-breadcrumb">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}

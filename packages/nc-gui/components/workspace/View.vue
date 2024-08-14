@@ -69,7 +69,7 @@ onMounted(() => {
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full max-w-[97.5rem] flex-col nc-workspace-settings">
-    <div v-if="!props.workspaceId" class="min-w-0 pt-3 px-2">
+    <div v-if="!props.workspaceId" class="min-w-0 pt-2 px-2">
       <div class="nc-breadcrumb nc-workspace-title">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}

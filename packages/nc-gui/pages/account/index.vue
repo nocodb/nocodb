@@ -160,7 +160,7 @@ const logout = async () => {
           <!-- Sub Tabs -->
 
           <div class="h-full flex-1 flex flex-col overflow-y-auto nc-scrollbar-thin">
-            <div class="flex flex-row pt-3 px-2 items-center h-11">
+            <div class="flex flex-row pt-2 px-2 items-center">
               <div class="flex-1">
                 <LazyAccountBreadcrumb />
               </div>

@@ -157,7 +157,7 @@ onMounted(async () => {
     if (isSuper.value) {
       accessibleRoles.value = OrderedProjectRoles.slice(1)
     } else if (currentRoleIndex !== -1) {
-      accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex + 1)
+      accessibleRoles.value = OrderedProjectRoles.slice(currentRoleIndex)
     }
     loadSorts()
   } catch (e: any) {

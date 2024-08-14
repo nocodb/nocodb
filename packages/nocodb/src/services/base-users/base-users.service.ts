@@ -300,6 +300,18 @@ export class BaseUsersService {
         NcError.forbidden('Insufficient privilege to delete a owner user.');
     }
 
+    // check if user have access to delete user based on role power
+    if(getProjectRolePower({
+      base_roles: extractRolesObj(param.req.user.base_roles),
+    }) >= getProjectRolePower(param.req.user?.base_roles) {
+      NcError.badRequest('Insufficient privilege to delete user');
+    }
+
+    // block self delete if user is owner or super
+    if (param.req.user.id === param.userId && param.req.user.roles.includes('owner')) {
+      NcError.badRequest("Admin can't delete themselves!");
+    }
+
     await BaseUser.delete(context, base_id, param.userId);
     return true;
   }

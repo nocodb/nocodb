@@ -265,13 +265,13 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
           </div>
 
           <div v-if="column.key === 'action'">
-            <NcDropdown v-if="record.roles !== WorkspaceUserRoles.OWNER">
+            <NcDropdown>
               <NcButton size="small" type="secondary">
                 <component :is="iconMap.threeDotVertical" />
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <template v-if="isAdminPanel">
+                  <template v-if="isAdminPanel">x
                     <NcMenuItem data-testid="nc-admin-org-user-delete">
                       <GeneralIcon class="text-gray-800" icon="signout" />
                       <span>{{ $t('labels.signOutUser') }}</span>

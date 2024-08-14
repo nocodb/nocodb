@@ -203,7 +203,7 @@ const logout = async () => {
               </template>
             </div>
             <div
-              class="flex flex-col container"
+              class="flex flex-col w-full max-w-[97.5rem]"
               :style="{
                 height: 'calc(100vh - 3.5rem)',
               }"

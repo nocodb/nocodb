@@ -18,6 +18,7 @@ export interface IntegrationCategoryItemType {
   iconBgColor?: string
   iconStyle?: CSSProperties
   isAvailable?: boolean
+  teleEventName?: IntegrationCategoryType
 }
 
 export const integrationCategories: IntegrationCategoryItemType[] = [
@@ -50,6 +51,17 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     iconBgColor: '#FFF0F7',
     iconStyle: {
       color: '#801044',
+    },
+  },
+  {
+    title: 'objects.integrationCategories.spreadSheet',
+    subtitle: 'objects.integrationCategories.spreadSheetSubtitle',
+    value: IntegrationCategoryType.SPREAD_SHEET,
+    teleEventName: IntegrationCategoryType.OTHERS,
+    icon: iconMap.viewGannt,
+    iconBgColor: '#FFF0D1',
+    iconStyle: {
+      color: '#977223',
     },
   },
   {
@@ -454,29 +466,31 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.STORAGE],
   },
 
-  // Others
+  // Spreadsheet 
   {
     title: 'objects.syncData.appleNumbers',
     value: SyncDataType.APPLE_NUMBERS,
     icon: iconMap.appleSolid,
-    categories: [IntegrationCategoryType.OTHERS],
-  },
-  {
-    title: 'objects.syncData.googleCalendar',
-    value: SyncDataType.GOOGLE_CALENDAR,
-    icon: iconMap.googleCalendar,
-    categories: [IntegrationCategoryType.OTHERS],
+    categories: [IntegrationCategoryType.SPREAD_SHEET],
   },
   {
     title: 'objects.syncData.microsoftExcel',
     value: SyncDataType.MICROSOFT_EXCEL,
     icon: iconMap.microsoftExcel,
-    categories: [IntegrationCategoryType.OTHERS],
+    categories: [IntegrationCategoryType.SPREAD_SHEET],
   },
   {
     title: 'objects.syncData.googleSheets',
     value: SyncDataType.GOOGLE_SHEETS,
     icon: iconMap.googleSheet,
-    categories: [IntegrationCategoryType.OTHERS],
+    categories: [IntegrationCategoryType.SPREAD_SHEET],
   },
+
+  // Others
+  // {
+  //   title: 'objects.syncData.googleCalendar',
+  //   value: SyncDataType.GOOGLE_CALENDAR,
+  //   icon: iconMap.googleCalendar,
+  //   categories: [IntegrationCategoryType.OTHERS],
+  // },
 ]

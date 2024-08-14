@@ -29,36 +29,46 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               '': !isMobileMode && isLeftSidebarOpen,
             }"
           >
-            <GeneralProjectIcon
-              :type="base?.type"
-              class="!grayscale min-w-4 mr-1"
-              :style="{
-                filter: 'grayscale(100%) brightness(115%)',
-              }"
-            />
-            <NcTooltip class="truncate nc-active-base-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
+            <NcTooltip :disabled="isSharedBase || isOpen">
               <template #title>
                 <span class="capitalize">
                   {{ base?.title }}
                 </span>
               </template>
 
-              <span
-                class="text-ellipsis capitalize"
+              <GeneralProjectIcon
+                :type="base?.type"
+                class="!grayscale min-w-4"
                 :style="{
-                  wordBreak: 'keep-all',
-                  whiteSpace: 'nowrap',
-                  display: 'inline',
+                  filter: 'grayscale(100%) brightness(115%)',
                 }"
-              >
-                {{ base?.title }}
-              </span>
+              />
             </NcTooltip>
-            <GeneralIcon
-              icon="chevronDown"
-              class="!text-current opacity-70 flex-none transform transition-transform duration-25 w-3.5 h-3.5"
-              :class="{ '!rotate-180': isOpen }"
-            />
+            <template v-if="isSharedBase">
+              <NcTooltip class="ml-1 truncate nc-active-base-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
+                <template #title>
+                  <span class="capitalize">
+                    {{ base?.title }}
+                  </span>
+                </template>
+
+                <span
+                  class="text-ellipsis capitalize"
+                  :style="{
+                    wordBreak: 'keep-all',
+                    whiteSpace: 'nowrap',
+                    display: 'inline',
+                  }"
+                >
+                  {{ base?.title }}
+                </span>
+              </NcTooltip>
+              <GeneralIcon
+                icon="chevronDown"
+                class="!text-current opacity-70 flex-none transform transition-transform duration-25 w-3.5 h-3.5"
+                :class="{ '!rotate-180': isOpen }"
+              />
+            </template>
           </div>
         </template>
       </SmartsheetTopbarProjectListDropdown>
@@ -71,7 +81,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': isMobileMode,
-              'max-w-1/4': !isSharedBase && !isMobileMode,
+              'max-w-1/2': activeView?.is_default,
+              'max-w-1/4': !isSharedBase && !isMobileMode && !activeView?.is_default,
               'max-w-none': isSharedBase && !isMobileMode,
             }"
           >
@@ -124,7 +135,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             class="rounded-lg h-8 px-2 text-gray-800 font-semibold hover:(bg-gray-100 text-gray-900) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': isMobileMode,
-              'max-w-1/4': !isSharedBase && !isMobileMode,
+              'max-w-2/5': !isSharedBase && !isMobileMode && activeView?.is_default,
+              'max-w-1/2': !isSharedBase && !isMobileMode && !activeView?.is_default,
               'max-w-none': isSharedBase && !isMobileMode,
             }"
           >

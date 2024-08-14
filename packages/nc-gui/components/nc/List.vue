@@ -9,18 +9,33 @@ interface ListItem {
   [key: string]: any
 }
 
+/**
+ * Props interface for the List component
+ */
 interface Props {
+  /** The currently selected value */
   value: RawValueType
-  /**
-   * optionValueKey is used to access value from list item
-   */
+  /** The list of items to display */
   list: ListItem[]
+  /**
+   * The key to use for accessing the value from a list item
+   * @default 'value'
+   */
   optionValueKey?: string
+  /**
+   * The key to use for accessing the label from a list item
+   * @default 'label'
+   */
   optionLabelKey?: string
+  /** Whether the list is open or closed */
   open?: boolean
+  /** Whether to close the list after an item is selected */
   closeOnSelect?: boolean
+  /** Placeholder text for the search input */
   searchInputPlaceholder?: string
+  /** Whether to show the currently selected option */
   showSelectedOption?: boolean
+  /** Custom filter function for list items */
   filterOption?: (input: string, option: ListItem, index: Number) => boolean
 }
 
@@ -41,6 +56,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const vModel = useVModel(props, 'value', emits)
+
 const vOpen = useVModel(props, 'open', emits)
 
 const { optionValueKey, optionLabelKey } = props
@@ -59,6 +75,11 @@ const showHoverEffectOnSelectedOption = ref(true)
 
 const isSearchEnabled = computed(() => props.list.length > 4)
 
+/**
+ * Computed property that filters the list of options based on the search query
+ * If a custom filter function is provided via props.filterOption, it will be used instead of the default filtering logic
+ * @returns {ListItem[]} Filtered list of options
+ */
 const list = computed(() => {
   return props.list.filter((item, i) => {
     if (props?.filterOption) {
@@ -69,6 +90,11 @@ const list = computed(() => {
   })
 })
 
+
+/**
+ * Resets the hover effect on the selected option
+ * @param clearActiveOption - Whether to clear the active option index
+ */
 const handleResetHoverEffect = (clearActiveOption = false) => {
   if (clearActiveOption) {
     activeOptionIndex.value = -1
@@ -79,6 +105,10 @@ const handleResetHoverEffect = (clearActiveOption = false) => {
   showHoverEffectOnSelectedOption.value = false
 }
 
+/**
+ * Handles the selection of an option from the list
+ * @param option - The selected list item
+ */
 const handleSelectOption = (option: ListItem) => {
   if (!option?.[optionValueKey]) return
 
@@ -91,6 +121,9 @@ const handleSelectOption = (option: ListItem) => {
 
 let scrollTimerId: any
 
+/**
+ * Automatically scrolls to the active option in the list
+ */
 const handleAutoScrollOption = () => {
   if (scrollTimerId) {
     clearTimeout(scrollTimerId)
@@ -121,7 +154,6 @@ const onArrowUp = () => {
 }
 
 const handleKeydownEnter = () => {
-  console.log('enter', activeOptionIndex.value)
   if (list.value[activeOptionIndex.value]) {
     handleSelectOption(list.value[activeOptionIndex.value])
   } else if (list.value[0]) {
@@ -129,6 +161,9 @@ const handleKeydownEnter = () => {
   }
 }
 
+/**
+ * Focuses the input box when the list is opened
+ */
 const focusInputBox = () => {
   if (!vOpen.value) return
 
@@ -137,8 +172,15 @@ const focusInputBox = () => {
   }, 100)
 }
 
+/**
+ * Focuses the list wrapper when the list is opened
+ * 
+ * This function is called when the list is opened and search is not enabled.
+ * It sets a timeout to focus the list wrapper element after a short delay.
+ * This allows for proper rendering and improves accessibility.
+ */
 const focusListWrapper = () => {
-  if (!vOpen.value) return
+  if (!vOpen.value || isSearchEnabled.value) return
 
   setTimeout(() => {
     listRef.value?.focus()
@@ -155,7 +197,7 @@ watch(
 
     if (vModel.value) {
       activeOptionIndex.value = list.value.findIndex((o) => o?.[optionValueKey] === vModel.value)
-      
+
       nextTick(() => {
         handleAutoScrollOption()
       })

@@ -64,6 +64,9 @@ const isDefaultBase = computed(() => {
   return _isDefaultBase(source)
 })
 
+const input = ref<HTMLInputElement>()
+
+
 const isDropdownOpen = ref(false)
 
 const isEditing = ref(false)
@@ -92,6 +95,13 @@ const handleOnClick = () => {
   }
 }
 
+const focusInput = () => {
+  setTimeout(()=>{
+    input.value?.focus()
+    input.value?.select()
+  })
+}
+
 /** Enable editing view name on dbl click */
 function onDblClick() {
   if (isMobileMode.value) return
@@ -101,6 +111,10 @@ function onDblClick() {
     isEditing.value = true
     _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
+
+    nextTick(()=>{
+      focusInput()
+    })
   }
 }
 
@@ -142,15 +156,11 @@ const onRenameMenuClick = () => {
     isEditing.value = true
     _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
+
+    nextTick(()=>{
+      focusInput()
+    })
   }
-}
-
-const focusInput: VNodeRef = (el) => {
-  const input = el as HTMLInputElement
-  input?.focus()
-  input?.select()
-
-  return el
 }
 
 /** Rename a view */
@@ -250,7 +260,7 @@ watch(isDropdownOpen, async () => {
 
       <a-input
         v-if="isEditing"
-        :ref="focusInput"
+        ref="input"
         v-model:value="_title"
         class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent !pl-0 !flex-1 mr-4"
         :class="{

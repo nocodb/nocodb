@@ -6,7 +6,7 @@ const { activeView } = storeToRefs(useViewsStore())
 const { base, isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
-const { activeTable } = storeToRefs(useTablesStore())
+const { activeTable, activeTables } = storeToRefs(useTablesStore())
 const { tableUrl } = useTablesStore()
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
@@ -83,43 +83,44 @@ const openedBaseUrl = computed(() => {
           />
         </template>
       </LazyGeneralEmojiPicker>
-      <div
-        v-if="activeTable"
-        :class="{
-          'max-w-1/2': isMobileMode || activeView?.is_default,
-          'max-w-20/100': !isSharedBase && !isMobileMode && !activeView?.is_default,
-          'max-w-none': isSharedBase && !isMobileMode,
-        }"
-      >
-        <NcTooltip class="truncate nc-active-table-title max-w-full" show-on-truncate-only>
-          <template #title>
-            {{ activeTable?.title }}
-          </template>
-          <span
-            class="text-ellipsis overflow-hidden text-gray-500 xs:ml-2"
+      <SmartsheetTopbarTableListDropdown v-if="activeTable">
+        <template #default="{ isOpen }">
+          <div
+            class="rounded-lg h-8 px-2 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
             :class="{
-              'text-gray-500': !isMobileMode,
-              'text-gray-800 font-medium': isMobileMode || activeView?.is_default,
-            }"
-            :style="{
-              wordBreak: 'keep-all',
-              whiteSpace: 'nowrap',
-              display: 'inline',
+              'max-w-1/2': isMobileMode || activeView?.is_default,
+              'max-w-20/100': !isSharedBase && !isMobileMode && !activeView?.is_default,
+              'max-w-none': isSharedBase && !isMobileMode,
             }"
           >
-            <template v-if="activeView?.is_default">
-              {{ activeTable?.title }}
-            </template>
-            <NuxtLink
-              v-else
-              class="!text-inherit !underline-transparent !hover:(text-black underline-gray-600)"
-              :to="tableUrl({ table: activeTable, completeUrl: true, isSharedBase })"
-            >
-              {{ activeTable?.title }}
-            </NuxtLink>
-          </span>
-        </NcTooltip>
-      </div>
+            <NcTooltip class="truncate nc-active-table-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
+              <template #title>
+                {{ activeTable?.title }}
+              </template>
+              <span
+                class="text-ellipsis overflow-hidden text-gray-700 font-weight-500 xs:ml-2"
+                :style="{
+                  wordBreak: 'keep-all',
+                  whiteSpace: 'nowrap',
+                  display: 'inline',
+                }"
+              >
+                <template v-if="activeView?.is_default">
+                  {{ activeTable?.title }}
+                </template>
+                <NuxtLink
+                  v-else
+                  class="!text-inherit !underline-transparent !hover:(text-black underline-gray-600)"
+                  :to="tableUrl({ table: activeTable, completeUrl: true, isSharedBase })"
+                >
+                  {{ activeTable?.title }}
+                </NuxtLink>
+              </span>
+            </NcTooltip>
+            <GeneralIcon icon="chevronDown" class="!text-gray-600 flex-none" />
+          </div>
+        </template>
+      </SmartsheetTopbarTableListDropdown>
     </template>
 
     <div v-if="!isMobileMode" class="nc-topbar-breadcrum-divider">/</div>

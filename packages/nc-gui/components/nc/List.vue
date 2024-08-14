@@ -6,12 +6,17 @@ export type RawValueType = string | number
 interface ListItem {
   value: RawValueType
   label: string
-  [key: string]: unknown
+  [key: string]: any
 }
 
 interface Props {
   value: RawValueType
+  /**
+   * optionValueKey is used to access value from list item
+   */
   list: ListItem[]
+  optionValueKey?: string
+  optionLabelKey?: string
   open?: boolean
   closeOnSelect?: boolean
   searchInputPlaceholder?: string
@@ -22,6 +27,7 @@ interface Props {
 interface Emits {
   (e: 'update:value', value: RawValueType): void
   (e: 'update:open', open: boolean): void
+  (e: 'change', option: ListItem): void
 }
 
 const emits = defineEmits<Emits>()
@@ -30,10 +36,14 @@ const props = withDefaults(defineProps<Props>(), {
   open: false,
   closeOnSelect: true,
   showSelectedOption: true,
+  optionValueKey: 'value',
+  optionLabelKey: 'label',
 })
 
 const vModel = useVModel(props, 'value', emits)
 const vOpen = useVModel(props, 'open', emits)
+
+const { optionValueKey, optionLabelKey } = props
 
 const { closeOnSelect, showSelectedOption } = toRefs(props)
 
@@ -50,7 +60,7 @@ const list = computed(() => {
     if (props?.filterOption) {
       return props.filterOption(searchQuery.value, item, i)
     } else {
-      return item.label?.toLowerCase()?.includes(searchQuery.value.toLowerCase())
+      return item[optionLabelKey]?.toLowerCase()?.includes(searchQuery.value.toLowerCase())
     }
   })
 })
@@ -62,8 +72,8 @@ const handleResetHoverEffect = () => {
 }
 
 const handleSelectOption = (option: ListItem) => {
-  vModel.value = option.value
-
+  vModel.value = option[optionValueKey] as RawValueType
+  emits('change', option)
   if (closeOnSelect.value) {
     vOpen.value = false
   }
@@ -80,11 +90,15 @@ const handleAutoScrollOption = () => {
 }
 
 const onArrowDown = () => {
+  handleResetHoverEffect()
+
   activeFieldIndex.value = Math.min(activeFieldIndex.value + 1, list.value.length - 1)
   handleAutoScrollOption()
 }
 
 const onArrowUp = () => {
+  handleResetHoverEffect()
+
   activeFieldIndex.value = Math.max(activeFieldIndex.value - 1, 0)
   handleAutoScrollOption()
 }
@@ -114,6 +128,9 @@ watch(
 
     searchQuery.value = ''
     showHoverEffectOnSelectedOption.value = true
+    if (vModel.value) {
+      activeFieldIndex.value = -1
+    }
 
     focusInputBox()
   },
@@ -125,9 +142,6 @@ watch(
 onMounted(() => {
   searchQuery.value = ''
   activeFieldIndex.value = -1
-
-  focusInputBox()
-  console.log('on mounted')
 })
 </script>
 
@@ -144,6 +158,7 @@ onMounted(() => {
         v-model:value="searchQuery"
         :placeholder="searchInputPlaceholder || $t('placeholder.searchFields')"
         class="nc-toolbar-dropdown-search-field-input"
+        allow-clear
         @keydown.enter.stop="handleKeydownEnter"
         @change="activeFieldIndex = 0"
       >
@@ -160,7 +175,9 @@ onMounted(() => {
           :class="[
             `nc-list-option-${idx}`,
             {
-              'bg-gray-100 nc-list-option-active': showHoverEffectOnSelectedOption && activeFieldIndex === idx,
+              'nc-list-option-selected': option[optionValueKey] === vModel,
+              'bg-gray-100 ': showHoverEffectOnSelectedOption && option[optionValueKey] === vModel,
+              'bg-gray-100 nc-list-option-active': activeFieldIndex === idx,
             },
           ]"
           @mouseover="handleResetHoverEffect"
@@ -169,12 +186,12 @@ onMounted(() => {
           <slot name="menuItem" :option="option" :index="idx">
             <NcTooltip class="truncate flex-1" show-on-truncate-only>
               <template #title>
-                {{ option.label }}
+                {{ option[optionLabelKey] }}
               </template>
-              {{ option.label }}
+              {{ option[optionLabelKey] }}
             </NcTooltip>
             <GeneralIcon
-              v-if="showSelectedOption && option.value === vModel"
+              v-if="showSelectedOption && option[optionValueKey] === vModel"
               id="nc-selected-item-icon"
               icon="check"
               class="flex-none text-primary w-4 h-4"

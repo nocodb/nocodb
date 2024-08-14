@@ -28,7 +28,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             :class="{
               '!max-w-none': isSharedBase && !isMobileMode,
               '-ml-2': !isMobileMode && isLeftSidebarOpen,
-              'bg-gray-100 !text-gray-800': isOpen,
+              'bg-gray-100 !text-gray-800 font-medium': isOpen,
             }"
           >
             <GeneralProjectIcon
@@ -75,7 +75,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               'max-w-1/2': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,
-              'bg-gray-100 !text-gray-800': isOpen,
+              'bg-gray-100 !text-gray-800 font-medium': isOpen,
             }"
           >
             <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">
@@ -135,7 +135,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               'max-w-1/2': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,
-              'bg-gray-100 !text-gray-800': isOpen,
+              'bg-gray-100 !text-gray-800 font-medium': isOpen,
             }"
           >
             <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">

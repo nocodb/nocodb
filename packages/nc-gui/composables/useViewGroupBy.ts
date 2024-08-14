@@ -12,7 +12,7 @@ import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import type { Group } from '../lib/types'
 
-const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]
+const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
   (

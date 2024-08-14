@@ -109,8 +109,14 @@ watch(
 )
 
 const toggleHook = async (hook: HookType) => {
+  if (hook.event === 'manual' && hook.operation === 'trigger') {
+    message.error(t('msg.error.manualTriggerHook'))
+    return
+  }
+
+  const ogHook = Object.assign({}, hook)
   hook.active = !hook.active
-  await saveHooks({ hook })
+  await saveHooks({ hook, ogHook })
 }
 
 const createWebhook = async () => {
@@ -158,6 +164,7 @@ const eventList = ref<Record<string, any>[]>([
   { text: [t('general.onMultiple'), t('labels.recordInsert')], value: ['after', 'bulkInsert'] },
   { text: [t('general.onMultiple'), t('labels.recordUpdate')], value: ['after', 'bulkUpdate'] },
   { text: [t('general.onMultiple'), t('labels.recordDelete')], value: ['after', 'bulkDelete'] },
+  { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
 ])
 
 const columns: NcTableColumnProps[] = [
@@ -283,9 +290,20 @@ const getHookTypeText = (hook: HookType) => {
             body-row-class-name="nc-view-sidebar-webhook-item"
           >
             <template #bodyCell="{ column, record: hook }">
-              <div v-if="column.key === 'active'" v-e="['c:actions:webhook']" @click.stop>
-                <NcSwitch size="small" :checked="!!hook.active" @change="toggleHook(hook)" />
-              </div>
+              <NcTooltip :disabled="hook.event !== 'manual'">
+                <template #title>
+                  {{ $t('msg.error.manualTriggerHook') }}
+                </template>
+                <div v-if="column.key === 'active'" v-e="['c:actions:webhook']" @click.stop>
+                  <NcSwitch
+                    size="small"
+                    :disabled="hook.event === 'manual'"
+                    :checked="!!hook.active"
+                    @change="toggleHook(hook)"
+                  />
+                </div>
+              </NcTooltip>
+
               <template v-if="column.key === 'name'">
                 <NcTooltip class="truncate max-w-full text-gray-800 font-semibold text-sm" show-on-truncate-only>
                   {{ hook.title }}
@@ -348,6 +366,9 @@ const getHookTypeText = (hook: HookType) => {
                 {{ toBeDeleteHook.title }}
               </div>
             </div>
+            <span v-if="toBeDeleteHook?.event === 'manual'" class="text-small leading-[18px] mb-2 text-gray-500">
+              {{ $t('msg.warning.webhookDelete') }}
+            </span>
           </template>
         </GeneralDeleteModal>
 

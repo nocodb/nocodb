@@ -736,6 +736,7 @@ export class DatabricksUi {
         return ['int'];
 
       case 'Formula':
+      case 'Button':
         return ['string'];
 
       case 'Rollup':
@@ -766,7 +767,6 @@ export class DatabricksUi {
       case 'JSON':
         return ['string'];
 
-      case 'Button':
       default:
         return dbTypes;
     }

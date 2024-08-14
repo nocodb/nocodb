@@ -30,8 +30,11 @@ import type {
   XcFilter,
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
+import type CustomKnex from '~/db/CustomKnex';
+import type { NcContext } from '~/interface/config';
 import type {
   BarcodeColumn,
+  ButtonColumn,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   QrCodeColumn,
@@ -39,8 +42,6 @@ import type {
   SelectOption,
   User,
 } from '~/models';
-import type CustomKnex from '~/db/CustomKnex';
-import type { NcContext } from '~/interface/config';
 import {
   Audit,
   BaseUser,
@@ -822,9 +823,16 @@ class BaseModelSqlv2 {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                throw NcError.badRequest(
+                NcError.badRequest(
                   'Group by using attachment column is not supported',
                 );
+                break;
+              case UITypes.Button: {
+                NcError.badRequest(
+                  'Group by using Button column is not supported',
+                );
+                break;
+              }
               case UITypes.Links:
               case UITypes.Rollup:
                 colSelectors.push(
@@ -1134,9 +1142,16 @@ class BaseModelSqlv2 {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                throw NcError.badRequest(
+                NcError.badRequest(
                   'Group by using attachment column is not supported',
                 );
+                break;
+              case UITypes.Button: {
+                NcError.badRequest(
+                  'Group by using Button column is not supported',
+                );
+                break;
+              }
               case UITypes.Links:
               case UITypes.Rollup:
                 colSelectors.push(
@@ -1772,6 +1787,13 @@ class BaseModelSqlv2 {
               'Group by using attachment column is not supported',
             );
             break;
+          case UITypes.Button:
+            {
+              NcError.badRequest(
+                'Group by using Button column is not supported',
+              );
+            }
+            break;
           case UITypes.Links:
           case UITypes.Rollup:
             selectors.push(
@@ -2070,6 +2092,10 @@ class BaseModelSqlv2 {
               'Group by using attachment column is not supported',
             );
             break;
+          case UITypes.Button: {
+            NcError.badRequest('Group by using Button column is not supported');
+            break;
+          }
           case UITypes.Rollup:
           case UITypes.Links:
             selectors.push(
@@ -4254,6 +4280,111 @@ class BaseModelSqlv2 {
             }
           }
           break;
+        case UITypes.Button: {
+          try {
+            const colOption = column.colOptions as ButtonColumn;
+            if (colOption.type === 'url') {
+              const selectQb = await this.getSelectQueryBuilderForFormula(
+                column,
+                alias,
+                validateFormula,
+                aliasToColumnBuilder,
+              );
+              switch (this.dbDriver.client.config.client) {
+                case 'mysql2':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `JSON_OBJECT('type', ? , 'label', ?, 'url', ??) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                case 'pg':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_build_object('type', ? ,'label', ?, 'url', ??) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                case 'sqlite3':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_object('type', ?, 'label', ?, 'url', ??) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                default:
+                  qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+              }
+            } else if (colOption.type === 'webhook') {
+              switch (this.dbDriver.client.config.client) {
+                case 'mysql2':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `JSON_OBJECT('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        colOption.fk_webhook_id,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                case 'pg':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_build_object('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        colOption.fk_webhook_id,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                case 'sqlite3':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_object('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        colOption.fk_webhook_id,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                default:
+                  qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+              }
+            }
+          } catch (e) {
+            logger.log(e);
+            // return dummy select
+            qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+          }
+          break;
+        }
         case UITypes.Rollup:
         case UITypes.Links:
           qb.select(
@@ -7719,6 +7850,7 @@ class BaseModelSqlv2 {
       skipAttachmentConversion?: boolean;
       skipSubstitutingColumnIds?: boolean;
       skipUserConversion?: boolean;
+      skipButtonConversion?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
       bulkAggregate?: boolean;
@@ -7727,6 +7859,7 @@ class BaseModelSqlv2 {
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
       skipUserConversion: false,
+      skipButtonConversion: false,
       raw: false,
       first: false,
       bulkAggregate: false,
@@ -7737,6 +7870,7 @@ class BaseModelSqlv2 {
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
       options.skipUserConversion = true;
+      options.skipButtonConversion = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -7764,6 +7898,10 @@ class BaseModelSqlv2 {
     // update user fields
     if (!options.skipUserConversion) {
       data = await this.convertUserFormat(data, dependencyColumns);
+    }
+
+    if (!options.skipButtonConversion) {
+      data = await this.convertButtonType(data, dependencyColumns);
     }
 
     if (!options.skipSubstitutingColumnIds) {
@@ -8172,6 +8310,30 @@ class BaseModelSqlv2 {
     return d;
   }
 
+  protected async _convertButtonType(
+    buttonColumns: Record<string, any>[],
+    d: Record<string, any>,
+  ) {
+    try {
+      if (d) {
+        for (const col of buttonColumns) {
+          if (d[col.id] && typeof d[col.id] === 'string') {
+            d[col.id] = JSON.parse(d[col.id]);
+          }
+
+          if (d[col.id]?.length) {
+            for (let i = 0; i < d[col.id].length; i++) {
+              if (typeof d[col.id][i] === 'string') {
+                d[col.id][i] = JSON.parse(d[col.id][i]);
+              }
+            }
+          }
+        }
+      }
+    } catch {}
+    return d;
+  }
+
   public async getNestedColumn(column: Column) {
     if (column.uidt !== UITypes.Lookup) {
       return column;
@@ -8180,6 +8342,42 @@ class BaseModelSqlv2 {
     return this.getNestedColumn(
       await colOptions?.getLookupColumn(this.context),
     );
+  }
+
+  public async convertButtonType(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ) {
+    // buttons result are stringified json in Sqlite and need to be parsed
+    // convertButtonType is used to convert the response in string to array of object in API response
+    if (data) {
+      const buttonCols = [];
+
+      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+
+      for (const col of columns) {
+        if (col.uidt === UITypes.Lookup) {
+          if ((await this.getNestedColumn(col))?.uidt === UITypes.Button) {
+            buttonCols.push(col);
+          }
+        } else {
+          if (col.uidt === UITypes.Button) {
+            buttonCols.push(col);
+          }
+        }
+      }
+
+      if (buttonCols.length) {
+        if (Array.isArray(data)) {
+          data = await Promise.all(
+            data.map((d) => this._convertButtonType(buttonCols, d)),
+          );
+        } else {
+          data = await this._convertButtonType(buttonCols, data);
+        }
+      }
+    }
+    return data;
   }
 
   public async convertAttachmentType(

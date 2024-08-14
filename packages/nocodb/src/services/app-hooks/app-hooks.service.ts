@@ -37,6 +37,7 @@ import type {
   ViewColumnEvent,
   ViewEvent,
   WebhookEvent,
+  WebhookTriggerEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
 import type { IntegrationEvent } from '~/services/app-hooks/interfaces';
@@ -219,6 +220,7 @@ export class AppHooksService {
       | AppEvents.WEBHOOK_UPDATE
       | AppEvents.WEBHOOK_CREATE
       | AppEvents.WEBHOOK_DELETE
+      | AppEvents.WEBHOOK_TRIGGER
       | AppEvents.WEBHOOK_TEST,
     data: WebhookEvent,
   ): void;

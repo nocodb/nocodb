@@ -9,7 +9,7 @@ import {
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import type { ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
@@ -263,6 +263,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:
+    case UITypes.Button:
       return message.info(t('msg.info.notAvailableAtTheMoment'))
     case UITypes.SingleSelect:
     case UITypes.MultiSelect:
@@ -536,6 +537,12 @@ const isColumnValid = (column: TableExplorerColumn) => {
       return false
     }
   }
+
+  if (column.uidt === UITypes.Button && isNew) {
+    if (column.type === 'url' && !column.formula_raw) return false
+    if (column.type === 'webhook' && !column.fk_webhook_id) return false
+  }
+
   return true
 }
 
@@ -579,6 +586,17 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
   }
 
   if (column.uidt === UITypes.Formula && column.colOptions?.formula_raw && !column?.formula_raw) {
+    column.formula_raw = column.colOptions?.formula_raw
+  }
+
+  if (column.uidt === UITypes.Button) {
+    const colOptions = column.colOptions as ButtonType
+    column.type = colOptions?.type
+    column.theme = colOptions?.theme
+    column.label = colOptions?.label
+    column.color = colOptions?.color
+    column.fk_webhook_id = colOptions?.fk_webhook_id
+    column.icon = colOptions?.icon
     column.formula_raw = column.colOptions?.formula_raw
   }
 

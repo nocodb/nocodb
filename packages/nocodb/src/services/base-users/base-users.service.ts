@@ -45,7 +45,7 @@ export class BaseUsersService {
   async userInvite(
     context: NcContext,
     param: {
-      baseId: string;
+      baseId: string
       baseUser: ProjectUserReqType;
       req: NcRequest;
     },
@@ -65,6 +65,7 @@ export class BaseUsersService {
 
     if (
       ![
+        ProjectRoles.OWNER,
         ProjectRoles.CREATOR,
         ProjectRoles.EDITOR,
         ProjectRoles.COMMENTER,

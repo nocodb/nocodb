@@ -84,12 +84,10 @@ const focusOnDiv = () => {
 watch(dialogShow, async (newVal) => {
   if (newVal) {
     try {
-      const rolesArr = Object.values(orderedRoles.value);
-      const currentRoleIndex = rolesArr.findIndex(
-        (role) => userRoles.value && Object.keys(userRoles.value).includes(role),
-      )
+      const rolesArr = Object.values(orderedRoles.value)
+      const currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
       if (currentRoleIndex !== -1) {
-      allowedRoles.value = rolesArr.slice(currentRoleIndex)
+        allowedRoles.value = rolesArr.slice(currentRoleIndex)
         disabledRoles.value = rolesArr.slice(0, currentRoleIndex)
       } else {
         allowedRoles.value = rolesArr

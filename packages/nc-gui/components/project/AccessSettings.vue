@@ -249,6 +249,14 @@ const columns = [
 const customRow = (record: Record<string, any>) => ({
   class: `${selected[record.id] ? 'selected' : ''} user-row`,
 })
+
+const isOnlyOneOwner = computed(() => {
+  return collaborators.value?.filter((collab) => collab.roles === ProjectRoles.OWNER).length === 1
+})
+
+const isDeleteOrUpdateAllowed = (user) => {
+  return !(isOnlyOneOwner.value && user.roles === ProjectRoles.OWNER)
+}
 </script>
 
 <template>
@@ -365,7 +373,7 @@ const customRow = (record: Record<string, any>) => ({
             </div>
           </div>
           <div v-if="column.key === 'role'">
-          <template v-if="isOwnerOrCreator && accessibleRoles.includes(record.roles)">
+          <template v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles)">
               <RolesSelector
                 :role="record.roles"
                 :roles="accessibleRoles"

@@ -74,7 +74,7 @@ function onChangeRole(val: SelectValue) {
       class="py-1 !absolute top-0 left-0 w-20 h-full z-10 text-xs opacity-0"
       @change="onChangeRole"
     >
-      <a-select-option v-for="rl in (props.disabledRoles || [])" :key="rl" :value="rl" disabled>
+      <a-select-option v-for="rl in props.disabledRoles || []" :key="rl" :value="rl" disabled>
         <div
           :class="{
             'w-full': descriptionRef,

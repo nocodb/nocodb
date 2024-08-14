@@ -71,7 +71,6 @@ const openedBaseUrl = computed(() => {
               </span>
             </NcTooltip>
             <GeneralIcon
-              v-if="!isMobileMode"
               icon="chevronDown"
               class="!text-gray-600 flex-none transform transition-transform duration-25"
               :class="{ '!rotate-180': isOpen }"
@@ -122,7 +121,6 @@ const openedBaseUrl = computed(() => {
               </span>
             </NcTooltip>
             <GeneralIcon
-              v-if="!isMobileMode"
               icon="chevronDown"
               class="!text-gray-600 flex-none transform transition-transform duration-25"
               :class="{ '!rotate-180': isOpen }"

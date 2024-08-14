@@ -24,6 +24,8 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
       return { icon: iconMap.cellDb, color: 'text-grey' }
     case UITypes.Formula:
       return { icon: iconMap.cellFormula, color: 'text-grey' }
+    case UITypes.Button:
+      return { icon: iconMap.cellButton, color: 'text-grey' }
     case UITypes.QrCode:
       return { icon: iconMap.cellQrCode, color: 'text-grey' }
     case UITypes.Barcode:

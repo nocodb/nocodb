@@ -53,6 +53,8 @@ export enum MetaTable {
   COMMENTS_REACTIONS = 'nc_comment_reactions',
   JOBS = 'nc_jobs',
   INTEGRATIONS = 'nc_integrations_v2',
+  FILE_REFERENCES = 'nc_file_references',
+  COL_BUTTON = 'nc_col_button_v2',
 }
 
 export enum MetaTableOldV2 {
@@ -182,6 +184,7 @@ export enum CacheScope {
   SSO_CLIENT = 'ssoClient',
   EXTENSION = 'uiExtension',
   INTEGRATION = 'integration',
+  COL_BUTTON = 'colButton',
 }
 
 export enum CacheGetType {
@@ -286,8 +289,11 @@ export const RootScopeTables = {
     MetaTable.STORE,
     MetaTable.NOTIFICATION,
     MetaTable.JOBS,
+    MetaTable.FILE_REFERENCES,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
+  // It's a special case and Workspace is equivalent to org in oss
+  [RootScopes.WORKSPACE]: [MetaTable.INTEGRATIONS],
 };

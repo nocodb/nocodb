@@ -30,8 +30,11 @@ import type {
   XcFilter,
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
+import type CustomKnex from '~/db/CustomKnex';
+import type { NcContext } from '~/interface/config';
 import type {
   BarcodeColumn,
+  ButtonColumn,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   QrCodeColumn,
@@ -39,12 +42,11 @@ import type {
   SelectOption,
   User,
 } from '~/models';
-import type CustomKnex from '~/db/CustomKnex';
-import type { NcContext } from '~/interface/config';
 import {
   Audit,
   BaseUser,
   Column,
+  FileReference,
   Filter,
   GridViewColumn,
   Model,
@@ -198,6 +200,7 @@ class BaseModelSqlv2 {
   protected viewId: string;
   protected _proto: any;
   protected _columns = {};
+  protected source: Source;
   public model: Model;
   public context: NcContext;
 
@@ -820,9 +823,16 @@ class BaseModelSqlv2 {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                throw NcError.badRequest(
+                NcError.badRequest(
                   'Group by using attachment column is not supported',
                 );
+                break;
+              case UITypes.Button: {
+                NcError.badRequest(
+                  'Group by using Button column is not supported',
+                );
+                break;
+              }
               case UITypes.Links:
               case UITypes.Rollup:
                 colSelectors.push(
@@ -1132,9 +1142,16 @@ class BaseModelSqlv2 {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                throw NcError.badRequest(
+                NcError.badRequest(
                   'Group by using attachment column is not supported',
                 );
+                break;
+              case UITypes.Button: {
+                NcError.badRequest(
+                  'Group by using Button column is not supported',
+                );
+                break;
+              }
               case UITypes.Links:
               case UITypes.Rollup:
                 colSelectors.push(
@@ -1770,6 +1787,13 @@ class BaseModelSqlv2 {
               'Group by using attachment column is not supported',
             );
             break;
+          case UITypes.Button:
+            {
+              NcError.badRequest(
+                'Group by using Button column is not supported',
+              );
+            }
+            break;
           case UITypes.Links:
           case UITypes.Rollup:
             selectors.push(
@@ -2068,6 +2092,10 @@ class BaseModelSqlv2 {
               'Group by using attachment column is not supported',
             );
             break;
+          case UITypes.Button: {
+            NcError.badRequest('Group by using Button column is not supported');
+            break;
+          }
           case UITypes.Rollup:
           case UITypes.Links:
             selectors.push(
@@ -4252,6 +4280,111 @@ class BaseModelSqlv2 {
             }
           }
           break;
+        case UITypes.Button: {
+          try {
+            const colOption = column.colOptions as ButtonColumn;
+            if (colOption.type === 'url') {
+              const selectQb = await this.getSelectQueryBuilderForFormula(
+                column,
+                alias,
+                validateFormula,
+                aliasToColumnBuilder,
+              );
+              switch (this.dbDriver.client.config.client) {
+                case 'mysql2':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `JSON_OBJECT('type', ? , 'label', ?, 'url', ??) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                case 'pg':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_build_object('type', ? ,'label', ?, 'url', ??) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                case 'sqlite3':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_object('type', ?, 'label', ?, 'url', ??) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        selectQb.builder,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                default:
+                  qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+              }
+            } else if (colOption.type === 'webhook') {
+              switch (this.dbDriver.client.config.client) {
+                case 'mysql2':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `JSON_OBJECT('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        colOption.fk_webhook_id,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                case 'pg':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_build_object('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        colOption.fk_webhook_id,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                case 'sqlite3':
+                  qb.select(
+                    this.dbDriver.raw(
+                      `json_object('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,
+                      [
+                        colOption.type,
+                        `${colOption.label}`,
+                        colOption.fk_webhook_id,
+                        column.id,
+                      ],
+                    ),
+                  );
+                  break;
+                default:
+                  qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+              }
+            }
+          } catch (e) {
+            logger.log(e);
+            // return dummy select
+            qb.select(this.dbDriver.raw(`'ERR' as ??`, [column.id]));
+          }
+          break;
+        }
         case UITypes.Rollup:
         case UITypes.Links:
           qb.select(
@@ -4439,7 +4572,7 @@ class BaseModelSqlv2 {
   async delByPk(id, _trx?, cookie?) {
     let trx: Knex.Transaction = _trx;
     try {
-      const source = await Source.get(this.context, this.model.source_id);
+      const source = await this.getSource();
       // retrieve data for handling params in hook
       const data = await this.readRecord({
         idOrRecord: id,
@@ -4516,6 +4649,11 @@ class BaseModelSqlv2 {
       const response = await trx(this.tnPath).del().where(where);
 
       if (!_trx) await trx.commit();
+
+      await this.clearFileReferences({
+        oldData: data,
+        columns: this.model.columns,
+      });
 
       await this.afterDelete(data, trx, cookie);
       return response;
@@ -4598,8 +4736,6 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      await this.prepareNocoData(updateObj, false, cookie);
-
       const btForeignKeyColumn = columns.find(
         (c) =>
           c.uidt === UITypes.ForeignKey && data[c.column_name] !== undefined,
@@ -4623,6 +4759,8 @@ class BaseModelSqlv2 {
       if (!prevData) {
         NcError.recordNotFound(id);
       }
+
+      await this.prepareNocoData(updateObj, false, cookie, prevData);
 
       const query = this.dbDriver(this.tnPath)
         .update(updateObj)
@@ -4755,7 +4893,7 @@ class BaseModelSqlv2 {
   async nestedInsert(data, _trx = null, cookie?) {
     // const driver = trx ? trx : await this.dbDriver.transaction();
     try {
-      const source = await Source.get(this.context, this.model.source_id);
+      const source = await this.getSource();
       await populatePk(this.context, this.model, data);
 
       const columns = await this.model.getColumns(this.context);
@@ -5282,6 +5420,12 @@ class BaseModelSqlv2 {
 
         aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
         agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
+      } else {
+        await this.model.getColumns(this.context);
+
+        await Promise.all(
+          insertDatas.map((d) => this.prepareNocoData(d, true, cookie)),
+        );
       }
 
       if ('beforeBulkInsert' in this) {
@@ -5338,10 +5482,8 @@ class BaseModelSqlv2 {
       } else {
         const returningObj: Record<string, string> = {};
 
-        if (!raw) {
-          for (const col of this.model.primaryKeys) {
-            returningObj[col.title] = col.column_name;
-          }
+        for (const col of this.model.primaryKeys) {
+          returningObj[col.title] = col.column_name;
         }
 
         responses =
@@ -5446,7 +5588,7 @@ class BaseModelSqlv2 {
       for (const [i, d] of updateDatas.entries()) {
         const pkValues = getCompositePkValue(
           this.model.primaryKeys,
-          this._extractPksValues(d),
+          this.extractPksValues(d),
         );
         if (!pkValues) {
           // throw or skip if no pk provided
@@ -5456,8 +5598,6 @@ class BaseModelSqlv2 {
           continue;
         }
         if (!raw) {
-          await this.prepareNocoData(d, false, cookie);
-
           pkAndData.push({
             pk: pkValues,
             data: d,
@@ -5478,24 +5618,22 @@ class BaseModelSqlv2 {
               },
             );
 
-            if (oldRecords.length === tempToRead.length) {
-              prevData.push(...oldRecords);
-            } else {
-              for (const recordPk of tempToRead) {
-                const oldRecord = oldRecords.find((r) =>
-                  this.comparePks(this._extractPksValues(r), recordPk),
-                );
+            for (const record of tempToRead) {
+              const oldRecord = oldRecords.find((r) =>
+                this.comparePks(this.extractPksValues(r), record.pk),
+              );
 
-                if (!oldRecord) {
-                  // throw or skip if no record found
-                  if (throwExceptionIfNotExist) {
-                    NcError.recordNotFound(recordPk);
-                  }
-                  continue;
+              if (!oldRecord) {
+                // throw or skip if no record found
+                if (throwExceptionIfNotExist) {
+                  NcError.recordNotFound(record);
                 }
-
-                prevData.push(oldRecord);
+                continue;
               }
+
+              await this.prepareNocoData(record.data, false, cookie, oldRecord);
+
+              prevData.push(oldRecord);
             }
 
             for (const { pk, data } of tempToRead) {
@@ -5505,6 +5643,8 @@ class BaseModelSqlv2 {
             }
           }
         } else {
+          await this.prepareNocoData(d, false, cookie);
+
           const wherePk = await this._wherePk(pkValues, true);
 
           toBeUpdated.push({ d, wherePk });
@@ -5582,9 +5722,16 @@ class BaseModelSqlv2 {
       if (!args.skipValidationAndHooks)
         await this.validate(updateData, columns);
 
+      // if attachment provided error out
+      for (const col of columns) {
+        if (col.uidt === UITypes.Attachment && updateData[col.column_name]) {
+          NcError.notImplemented(`Attachment bulk update all`);
+        }
+      }
+
       await this.prepareNocoData(updateData, false, cookie);
 
-      const pkValues = this._extractPksValues(updateData);
+      const pkValues = this.extractPksValues(updateData);
       if (pkValues) {
         // pk is specified - by pass
       } else {
@@ -5683,7 +5830,7 @@ class BaseModelSqlv2 {
       for (const [i, d] of deleteIds.entries()) {
         const pkValues = getCompositePkValue(
           this.model.primaryKeys,
-          this._extractPksValues(d),
+          this.extractPksValues(d),
         );
         if (!pkValues) {
           // throw or skip if no pk provided
@@ -5713,7 +5860,7 @@ class BaseModelSqlv2 {
           } else {
             for (const { pk, data } of tempToRead) {
               const oldRecord = oldRecords.find((r) =>
-                this.comparePks(this._extractPksValues(r), pk),
+                this.comparePks(this.extractPksValues(r), pk),
               );
 
               if (!oldRecord) {
@@ -5736,7 +5883,7 @@ class BaseModelSqlv2 {
         ids: any[],
       ) => Promise<any>)[] = [];
 
-      const base = await Source.get(this.context, this.model.source_id);
+      const base = await this.getSource();
 
       for (const column of this.model.columns) {
         if (column.uidt !== UITypes.LinkToAnotherRecord) continue;
@@ -5808,6 +5955,11 @@ class BaseModelSqlv2 {
       }
 
       await transaction.commit();
+
+      await this.clearFileReferences({
+        oldData: deleted,
+        columns: columns,
+      });
 
       if (isSingleRecordDeletion) {
         await this.afterDelete(deleted[0], null, cookie);
@@ -5931,7 +6083,98 @@ class BaseModelSqlv2 {
         }
       }
 
-      const source = await Source.get(this.context, this.model.source_id);
+      const source = await this.getSource();
+
+      // remove FileReferences for attachments
+      const attachmentColumns = columns.filter(
+        (c) => c.uidt === UITypes.Attachment,
+      );
+
+      // paginate all the records and find file reference ids
+      const selectQb = qb
+        .clone()
+        .select(
+          attachmentColumns
+            .map((c) => c.column_name)
+            .concat(this.model.primaryKeys.map((pk) => pk.column_name)),
+        );
+
+      const response = [];
+
+      let offset = 0;
+      const limit = 100;
+
+      const fileReferenceIds: string[] = [];
+
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const rows = await this.execAndParse(
+          selectQb
+            .clone()
+            .offset(offset)
+            .limit(limit + 1),
+          null,
+          {
+            raw: true,
+          },
+        );
+
+        if (rows.length === 0) {
+          break;
+        }
+
+        let lastPage = false;
+
+        if (rows.length > limit) {
+          rows.pop();
+        } else {
+          lastPage = true;
+        }
+
+        for (const row of rows) {
+          for (const c of attachmentColumns) {
+            if (row[c.column_name]) {
+              try {
+                let attachments;
+                if (typeof row[c.column_name] === 'string') {
+                  attachments = JSON.parse(row[c.column_name]);
+                  for (const attachment of attachments) {
+                    if (attachment.id) {
+                      fileReferenceIds.push(attachment.id);
+                    }
+                  }
+                }
+
+                if (Array.isArray(attachments)) {
+                  for (const attachment of attachments) {
+                    if (attachment.id) {
+                      fileReferenceIds.push(attachment.id);
+                    }
+                  }
+                }
+              } catch (e) {
+                continue;
+              }
+            }
+          }
+
+          const primaryData = {};
+
+          for (const pk of this.model.primaryKeys) {
+            primaryData[pk.title] = row[pk.column_name];
+          }
+
+          response.push(primaryData);
+        }
+
+        if (lastPage) {
+          break;
+        }
+
+        offset += limit;
+      }
+
+      await FileReference.delete(this.context, fileReferenceIds);
 
       trx = await this.dbDriver.transaction();
 
@@ -5942,15 +6185,13 @@ class BaseModelSqlv2 {
         }
       }
 
-      const deleteQb = qb.clone().transacting(trx).del();
-
-      const count = (await deleteQb) as any;
+      await qb.clone().transacting(trx).del();
 
       await trx.commit();
 
-      await this.afterBulkDelete(count, this.dbDriver, cookie, true);
+      await this.afterBulkDelete(response.length, this.dbDriver, cookie, true);
 
-      return count;
+      return response;
     } catch (e) {
       throw e;
     }
@@ -5970,7 +6211,7 @@ class BaseModelSqlv2 {
 
   public async afterInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
-    const id = this._extractPksValues(data);
+    const id = this.extractPksValues(data);
 
     let details = '';
 
@@ -6117,7 +6358,7 @@ class BaseModelSqlv2 {
     req,
     updateObj?: Record<string, any>,
   ): Promise<void> {
-    const id = this._extractPksValues(newData);
+    const id = this.extractPksValues(newData);
     let desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
     let details = '';
     if (updateObj) {
@@ -6169,7 +6410,7 @@ class BaseModelSqlv2 {
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
-    const id = this._extractPksValues(data);
+    const id = this.extractPksValues(data);
     await Audit.insert({
       fk_workspace_id: this.model.fk_workspace_id,
       base_id: this.model.base_id,
@@ -6206,7 +6447,7 @@ class BaseModelSqlv2 {
   protected async errorUpdate(_e, _data, _trx, _cookie) {}
 
   // todo: handle composite primary key
-  protected _extractPksValues(data: any) {
+  public extractPksValues(data: any) {
     // data can be still inserted without PK
 
     // if composite primary key return an object with all the primary keys
@@ -6611,7 +6852,7 @@ class BaseModelSqlv2 {
             const oldChildRowId = prevData[column.title]
               ? getCompositePkValue(
                   parentTable.primaryKeys,
-                  this._extractPksValues(prevData[column.title]),
+                  this.extractPksValues(prevData[column.title]),
                 )
               : null;
 
@@ -6800,7 +7041,7 @@ class BaseModelSqlv2 {
             if (linkedOoRowObj) {
               const oldRowId = getCompositePkValue(
                 childTable.primaryKeys,
-                this._extractPksValues(linkedOoRowObj),
+                this.extractPksValues(linkedOoRowObj),
               );
 
               if (oldRowId) {
@@ -6852,7 +7093,7 @@ class BaseModelSqlv2 {
             if (linkedCurrentOoRowObj) {
               const oldChildRowId = getCompositePkValue(
                 childTable.primaryKeys,
-                this._extractPksValues(linkedCurrentOoRowObj),
+                this.extractPksValues(linkedCurrentOoRowObj),
               );
 
               if (oldChildRowId) {
@@ -7609,6 +7850,7 @@ class BaseModelSqlv2 {
       skipAttachmentConversion?: boolean;
       skipSubstitutingColumnIds?: boolean;
       skipUserConversion?: boolean;
+      skipButtonConversion?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
       bulkAggregate?: boolean;
@@ -7617,6 +7859,7 @@ class BaseModelSqlv2 {
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
       skipUserConversion: false,
+      skipButtonConversion: false,
       raw: false,
       first: false,
       bulkAggregate: false,
@@ -7627,6 +7870,7 @@ class BaseModelSqlv2 {
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
       options.skipUserConversion = true;
+      options.skipButtonConversion = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -7654,6 +7898,10 @@ class BaseModelSqlv2 {
     // update user fields
     if (!options.skipUserConversion) {
       data = await this.convertUserFormat(data, dependencyColumns);
+    }
+
+    if (!options.skipButtonConversion) {
+      data = await this.convertButtonType(data, dependencyColumns);
     }
 
     if (!options.skipSubstitutingColumnIds) {
@@ -8062,6 +8310,30 @@ class BaseModelSqlv2 {
     return d;
   }
 
+  protected async _convertButtonType(
+    buttonColumns: Record<string, any>[],
+    d: Record<string, any>,
+  ) {
+    try {
+      if (d) {
+        for (const col of buttonColumns) {
+          if (d[col.id] && typeof d[col.id] === 'string') {
+            d[col.id] = JSON.parse(d[col.id]);
+          }
+
+          if (d[col.id]?.length) {
+            for (let i = 0; i < d[col.id].length; i++) {
+              if (typeof d[col.id][i] === 'string') {
+                d[col.id][i] = JSON.parse(d[col.id][i]);
+              }
+            }
+          }
+        }
+      }
+    } catch {}
+    return d;
+  }
+
   public async getNestedColumn(column: Column) {
     if (column.uidt !== UITypes.Lookup) {
       return column;
@@ -8070,6 +8342,42 @@ class BaseModelSqlv2 {
     return this.getNestedColumn(
       await colOptions?.getLookupColumn(this.context),
     );
+  }
+
+  public async convertButtonType(
+    data: Record<string, any>,
+    dependencyColumns?: Column[],
+  ) {
+    // buttons result are stringified json in Sqlite and need to be parsed
+    // convertButtonType is used to convert the response in string to array of object in API response
+    if (data) {
+      const buttonCols = [];
+
+      const columns = this.model?.columns.concat(dependencyColumns ?? []);
+
+      for (const col of columns) {
+        if (col.uidt === UITypes.Lookup) {
+          if ((await this.getNestedColumn(col))?.uidt === UITypes.Button) {
+            buttonCols.push(col);
+          }
+        } else {
+          if (col.uidt === UITypes.Button) {
+            buttonCols.push(col);
+          }
+        }
+      }
+
+      if (buttonCols.length) {
+        if (Array.isArray(data)) {
+          data = await Promise.all(
+            data.map((d) => this._convertButtonType(buttonCols, d)),
+          );
+        } else {
+          data = await this._convertButtonType(buttonCols, data);
+        }
+      }
+    }
+    return data;
   }
 
   public async convertAttachmentType(
@@ -9136,7 +9444,12 @@ class BaseModelSqlv2 {
     await this.execAndParse(qb, null, { raw: true });
   }
 
-  async prepareNocoData(data, isInsertData = false, cookie?: { user?: any }) {
+  async prepareNocoData(
+    data,
+    isInsertData = false,
+    cookie?: { user?: any },
+    oldData?,
+  ) {
     for (const column of this.model.columns) {
       if (
         ![
@@ -9166,38 +9479,129 @@ class BaseModelSqlv2 {
         }
       }
       if (column.uidt === UITypes.Attachment) {
-        if (data[column.column_name]) {
-          try {
-            if (typeof data[column.column_name] === 'string') {
-              data[column.column_name] = JSON.parse(data[column.column_name]);
+        if (column.column_name in data) {
+          if (data && data[column.column_name]) {
+            try {
+              if (typeof data[column.column_name] === 'string') {
+                data[column.column_name] = JSON.parse(data[column.column_name]);
+              }
+            } catch (e) {
+              NcError.invalidAttachmentJson(data[column.column_name]);
             }
-          } catch (e) {
-            NcError.invalidAttachmentJson(data[column.column_name]);
           }
 
+          if (oldData && oldData[column.title]) {
+            try {
+              if (typeof oldData[column.title] === 'string') {
+                oldData[column.title] = JSON.parse(oldData[column.title]);
+              }
+            } catch (e) {}
+          }
+
+          const regenerateIds = [];
+
+          if (!isInsertData) {
+            const oldAttachmentMap = new Map<
+              string,
+              { url?: string; path?: string }
+            >(
+              oldData &&
+              oldData[column.title] &&
+              Array.isArray(oldData[column.title])
+                ? oldData[column.title]
+                    .filter((att) => att.id)
+                    .map((att) => [att.id, att])
+                : [],
+            );
+
+            const newAttachmentMap = new Map<
+              string,
+              { url?: string; path?: string }
+            >(
+              data[column.column_name] &&
+              Array.isArray(data[column.column_name])
+                ? data[column.column_name]
+                    .filter((att) => att.id)
+                    .map((att) => [att.id, att])
+                : [],
+            );
+
+            for (const [oldId, oldAttachment] of oldAttachmentMap) {
+              if (!newAttachmentMap.has(oldId)) {
+                await FileReference.delete(this.context, oldId);
+              } else if (
+                (oldAttachment.url &&
+                  oldAttachment.url !== newAttachmentMap.get(oldId).url) ||
+                (oldAttachment.path &&
+                  oldAttachment.path !== newAttachmentMap.get(oldId).path)
+              ) {
+                await FileReference.delete(this.context, oldId);
+                regenerateIds.push(oldId);
+              }
+            }
+
+            for (const [newId, newAttachment] of newAttachmentMap) {
+              if (!oldAttachmentMap.has(newId)) {
+                regenerateIds.push(newId);
+              } else if (
+                (newAttachment.url &&
+                  newAttachment.url !== oldAttachmentMap.get(newId).url) ||
+                (newAttachment.path &&
+                  newAttachment.path !== oldAttachmentMap.get(newId).path)
+              ) {
+                regenerateIds.push(newId);
+              }
+            }
+          }
+
+          const sanitizedAttachments = [];
           if (Array.isArray(data[column.column_name])) {
-            const sanitizedAttachments = [];
             for (const attachment of data[column.column_name]) {
               if (!('url' in attachment) && !('path' in attachment)) {
                 NcError.unprocessableEntity(
                   'Attachment object must contain either url or path',
                 );
               }
-              sanitizedAttachments.push(
-                extractProps(attachment, [
-                  'url',
-                  'path',
-                  'title',
-                  'mimetype',
-                  'size',
-                  'icon',
-                  'width',
-                  'height',
-                ]),
-              );
+              const sanitizedAttachment = extractProps(attachment, [
+                'id',
+                'url',
+                'path',
+                'title',
+                'mimetype',
+                'size',
+                'icon',
+                'width',
+                'height',
+              ]);
+
+              if (
+                isInsertData ||
+                !sanitizedAttachment.id ||
+                regenerateIds.includes(sanitizedAttachment.id)
+              ) {
+                const source = await this.getSource();
+                sanitizedAttachment.id = await FileReference.insert(
+                  this.context,
+                  {
+                    file_url:
+                      sanitizedAttachment.url ?? sanitizedAttachment.path,
+                    file_size: sanitizedAttachment.size,
+                    fk_user_id: cookie?.user?.id ?? 'anonymous',
+                    source_id: source.id,
+                    fk_model_id: this.model.id,
+                    fk_column_id: column.id,
+                    is_external: !source.isMeta(),
+                  },
+                );
+              }
+
+              sanitizedAttachments.push(sanitizedAttachment);
             }
-            data[column.column_name] = JSON.stringify(sanitizedAttachments);
           }
+
+          data[column.column_name] = sanitizedAttachments.length
+            ? JSON.stringify(sanitizedAttachments)
+            : null;
         }
       } else if (
         [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
@@ -9371,6 +9775,58 @@ class BaseModelSqlv2 {
       ],
       qb,
     );
+  }
+
+  async getSource() {
+    // return this.source if defined or fetch and return
+    return (
+      this.source ||
+      (this.source = await Source.get(this.context, this.model.source_id))
+    );
+  }
+
+  protected async clearFileReferences(args: {
+    oldData?: Record<string, any>[];
+    columns?: Column[];
+  }) {
+    const { oldData, columns } = args;
+
+    const modelColumns = columns || (await this.model.getColumns(this.context));
+
+    const attachmentColumns = modelColumns.filter(
+      (c) => c.uidt === UITypes.Attachment,
+    );
+
+    if (attachmentColumns.length === 0) return;
+
+    for (const column of attachmentColumns) {
+      const oldAttachments = [];
+
+      if (oldData) {
+        for (const row of oldData) {
+          let attachmentRecord = row[column.title];
+          if (attachmentRecord) {
+            try {
+              if (typeof attachmentRecord === 'string') {
+                attachmentRecord = JSON.parse(row[column.title]);
+              }
+              for (const attachment of attachmentRecord) {
+                oldAttachments.push(attachment);
+              }
+            } catch (e) {
+              logger.error(e);
+            }
+          }
+        }
+      }
+
+      if (oldAttachments.length === 0) continue;
+
+      await FileReference.delete(
+        this.context,
+        oldAttachments.filter((at) => at.id).map((at) => at.id),
+      );
+    }
   }
 }
 

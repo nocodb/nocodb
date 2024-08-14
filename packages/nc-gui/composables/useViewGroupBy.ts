@@ -12,7 +12,7 @@ import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import type { Group } from '../lib/types'
 
-const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode]
+const excludedGroupingUidt = [UITypes.Attachment, UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
   (
@@ -765,7 +765,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             valueToTitle(row.row[groupBy.value[nestLevel].column.title!], groupBy.value[nestLevel].column, group.displayValueProp)
           )
         })
-        console.log(child)
 
         if (child) {
           return findGroupForRow(row, child, nestLevel + 1)
@@ -789,15 +788,12 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
               }
               if (group) {
                 group.rows?.splice(group!.rows.indexOf(row), 1)
-                console.log('removed Bunch')
                 modifyCount(group, -1)
               }
             }
           } else {
             if (group) {
               group.rows?.splice(group!.rows.indexOf(row), 1)
-              console.log('removed Bunch22')
-
               modifyCount(group, -1)
             } else {
               rootGroup.value.rows?.splice(rootGroup.value.rows!.indexOf(row), 1)

@@ -25,7 +25,7 @@ watch(isReloading, () => {
 </script>
 
 <template>
-  <a-tooltip placement="bottom">
+  <NcTooltip placement="bottom">
     <template #title> {{ $t('general.reload') }} </template>
 
     <div
@@ -38,5 +38,5 @@ watch(isReloading, () => {
         @click="onClick"
       />
     </div>
-  </a-tooltip>
+  </NcTooltip>
 </template>

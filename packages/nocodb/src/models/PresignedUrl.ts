@@ -4,7 +4,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
-import { isPreviewAllowed } from '~/helpers/attachmentHelpers';
+import { getPathFromUrl, isPreviewAllowed } from '~/helpers/attachmentHelpers';
 
 function roundExpiry(date) {
   const msInHour = 10 * 60 * 1000;
@@ -101,7 +101,7 @@ export default class PresignedUrl {
     const isUrl = /^https?:\/\//i.test(param.pathOrUrl);
 
     let path = (
-      isUrl ? decodeURI(new URL(param.pathOrUrl).pathname) : param.pathOrUrl
+      isUrl ? getPathFromUrl(param.pathOrUrl) : param.pathOrUrl
     ).replace(/^\/+/, '');
 
     const {

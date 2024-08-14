@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { OrgUserRoles, extractRolesObj } from 'nocodb-sdk'
-
 const { appInfo, giftBannerDismissedCount, user } = useGlobal()
+
+const { $e } = useNuxtApp()
 
 const isBannerClosed = ref(true)
 const confirmDialog = ref(false)
@@ -11,7 +11,6 @@ const isAvailable = computed(() => {
   return (
     !isEeUI &&
     user.value?.email &&
-    [OrgUserRoles.CREATOR, OrgUserRoles.SUPER_ADMIN].some((r) => extractRolesObj(user.value?.roles)?.[r]) &&
     !/^[a-zA-Z0-9._%+-]+@(gmail|yahoo|hotmail|outlook|aol|icloud|qq|163|126|sina|nocodb)(\.com)?$/i.test(user.value?.email) &&
     (!giftBannerDismissedCount.value || giftBannerDismissedCount.value < 5)
   )
@@ -27,6 +26,7 @@ if (giftBannerDismissedCount.value) {
 
 const open = () => {
   giftBannerDismissedCount.value++
+  $e('a:claim:gift:coupon')
   window.open(appInfo.value?.giftUrl, '_blank', 'noopener,noreferrer')
 }
 
@@ -61,7 +61,7 @@ const closeAndShowAgain = () => {
       </div>
       <div class="body">We are giving away $100 worth of amazon coupons to our pro open source users!</div>
     </div>
-    <div class="img-wrapper" v-if="!hideImage && !giftBannerDismissedCount">
+    <div v-if="!hideImage && !giftBannerDismissedCount" class="img-wrapper">
       <img src="~assets/img/giftCard.svg" />
     </div>
 

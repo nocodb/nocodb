@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline'
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
-
 import type { editor as MonacoEditor } from 'monaco-editor'
+import { languages, editor as monacoEditor } from 'monaco-editor'
+
+import PlaceholderContentWidget from './Placeholder'
 
 interface Props {
   modelValue: string | Record<string, any>
@@ -10,6 +10,7 @@ interface Props {
   lang?: string
   validate?: boolean
   disableDeepCompare?: boolean
+  placeholder?: string
   readOnly?: boolean
   autoFocus?: boolean
   monacoConfig?: Partial<MonacoEditor.IStandaloneEditorConstructionOptions>
@@ -30,7 +31,8 @@ const emits = defineEmits(['update:modelValue'])
 
 const { modelValue } = toRefs(props)
 
-const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus, monacoConfig, monacoCustomTheme } = props
+const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus, monacoConfig, monacoCustomTheme, placeholder } =
+  props
 
 const vModel = computed<string>({
   get: () => {
@@ -74,8 +76,6 @@ defineExpose({
 })
 
 onMounted(async () => {
-  const { editor: monacoEditor, languages } = await import('monaco-editor')
-
   if (root.value && lang) {
     const model = monacoEditor.createModel(vModel.value, lang)
 
@@ -135,6 +135,11 @@ onMounted(async () => {
         console.log(e)
       }
     })
+
+    if (placeholder) {
+      // eslint-disable-next-line no-new
+      new PlaceholderContentWidget(placeholder, editor)
+    }
 
     if (!isDrawerOrModalExist() && autoFocus) {
       // auto focus on json cells only

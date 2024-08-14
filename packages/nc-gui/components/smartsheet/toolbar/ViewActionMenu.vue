@@ -174,17 +174,8 @@ const onDelete = async () => {
 
     <template v-if="!view?.is_default && isUIAllowed('viewCreateOrEdit')">
       <NcDivider />
-      <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
-        <GeneralIcon icon="rename" />
-        {{
-          $t('general.renameEntity', {
-            entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
-          })
-        }}
-      </NcMenuItem>
-      <NcTooltip v-else>
-        <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
-        <NcMenuItem class="!cursor-not-allowed !text-gray-400">
+      <template v-if="inSidebar">
+        <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
           <GeneralIcon icon="rename" />
           {{
             $t('general.renameEntity', {
@@ -192,7 +183,19 @@ const onDelete = async () => {
             })
           }}
         </NcMenuItem>
-      </NcTooltip>
+        <NcTooltip v-else>
+          <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
+          <NcMenuItem class="!cursor-not-allowed !text-gray-400">
+            <GeneralIcon icon="rename" />
+            {{
+              $t('general.renameEntity', {
+                entity:
+                  view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
+              })
+            }}
+          </NcMenuItem>
+        </NcTooltip>
+      </template>
       <NcMenuItem @click="onDuplicate">
         <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
         {{
@@ -296,7 +299,7 @@ const onDelete = async () => {
 
         <template #expandIcon></template>
         <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewMode') }}</div>
-        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
+        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
           <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
         </a-menu-item>
 

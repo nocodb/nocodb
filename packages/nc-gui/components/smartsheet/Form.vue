@@ -28,6 +28,7 @@ const hiddenColTypes = [
   UITypes.Formula,
   UITypes.QrCode,
   UITypes.Barcode,
+  UITypes.Button,
   UITypes.SpecificDBType,
   UITypes.CreatedTime,
   UITypes.LastModifiedTime,
@@ -170,6 +171,16 @@ const { open, onChange: onChangeFile } = useFileDialog({
   multiple: false,
   reset: true,
 })
+
+const editOrAddProviderRef = ref()
+
+const onVisibilityChange = (state: 'showAddColumn' | 'showEditColumn') => {
+  dropdownStates.value[state] = true
+
+  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.isWebHookModalOpen()) {
+    dropdownStates.value[state] = false
+  }
+}
 
 const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(formViewData.value?.logo_url)))
 
@@ -1243,6 +1254,7 @@ useEventListener(
                         :trigger="['click']"
                         overlay-class-name="nc-dropdown-form-edit-column"
                         :disabled="!isUIAllowed('fieldEdit')"
+                        @visible-change="onVisibilityChange('showEditColumn')"
                       >
                         <NcButton type="secondary" size="small" class="nc-form-add-field" data-testid="nc-form-add-field">
                           {{ $t('general.edit') }} {{ $t('objects.field') }}
@@ -1251,6 +1263,7 @@ useEventListener(
                           <div class="nc-edit-or-add-provider-wrapper">
                             <LazySmartsheetColumnEditOrAddProvider
                               v-if="dropdownStates.showEditColumn"
+                              ref="editOrAddProviderRef"
                               :column="activeColumn"
                               @submit="editColumnCallback"
                               @cancel="dropdownStates.showEditColumn = false"
@@ -1327,6 +1340,7 @@ useEventListener(
                           v-model:visible="dropdownStates.showAddColumn"
                           :trigger="['click']"
                           overlay-class-name="nc-dropdown-form-add-column"
+                          @visible-change="onVisibilityChange('showAddColumn')"
                         >
                           <NcButton type="secondary" size="small" class="nc-form-add-field" data-testid="nc-form-add-field">
                             <div class="flex gap-2 items-center">
@@ -1339,6 +1353,7 @@ useEventListener(
                             <div class="nc-edit-or-add-provider-wrapper">
                               <LazySmartsheetColumnEditOrAddProvider
                                 v-if="dropdownStates.showAddColumn"
+                                ref="editOrAddProviderRef"
                                 @submit="addColumnCallback"
                                 @cancel="dropdownStates.showAddColumn = false"
                                 @click.stop

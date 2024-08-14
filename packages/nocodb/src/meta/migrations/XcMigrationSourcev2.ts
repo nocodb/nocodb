@@ -43,6 +43,9 @@ import * as nc_053_jobs from '~/meta/migrations/v2/nc_053_jobs';
 import * as nc_054_id_length from '~/meta/migrations/v2/nc_054_id_length';
 import * as nc_055_junction_pk from '~/meta/migrations/v2/nc_055_junction_pk';
 import * as nc_056_integration from '~/meta/migrations/v2/nc_056_integration';
+import * as nc_057_file_references from '~/meta/migrations/v2/nc_057_file_references';
+import * as nc_058_button_colum from '~/meta/migrations/v2/nc_058_button_colum';
+import * as nc_059_invited_by from '~/meta/migrations/v2/nc_059_invited_by';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -97,6 +100,9 @@ export default class XcMigrationSourcev2 {
       'nc_054_id_length',
       'nc_055_junction_pk',
       'nc_056_integration',
+      'nc_057_file_references',
+      'nc_058_button_colum',
+      'nc_059_invited_by',
     ]);
   }
 
@@ -196,6 +202,12 @@ export default class XcMigrationSourcev2 {
         return nc_055_junction_pk;
       case 'nc_056_integration':
         return nc_056_integration;
+      case 'nc_057_file_references':
+        return nc_057_file_references;
+      case 'nc_058_button_colum':
+        return nc_058_button_colum;
+      case 'nc_059_invited_by':
+        return nc_059_invited_by;
     }
   }
 }

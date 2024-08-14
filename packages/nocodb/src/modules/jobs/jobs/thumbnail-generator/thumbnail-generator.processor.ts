@@ -3,12 +3,14 @@ import { Readable } from 'stream';
 import { Process, Processor } from '@nestjs/bull';
 import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
+import slash from 'slash';
 import type { IStorageAdapterV2 } from 'nc-plugin';
 import type { AttachmentResType } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import type Sharp from 'sharp';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
+import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 
 @Processor(JOBS_QUEUE)
 export class ThumbnailGeneratorProcessor {
@@ -18,23 +20,19 @@ export class ThumbnailGeneratorProcessor {
 
   @Process(JobTypes.ThumbnailGenerator)
   async job(job: Job<ThumbnailGeneratorJobData>) {
-    try {
-      const { attachments } = job.data;
+    const { attachments } = job.data;
 
-      const thumbnailPromises = attachments.map(async (attachment) => {
-        const thumbnail = await this.generateThumbnail(attachment);
-        return {
-          path: attachment.path ?? attachment.url,
-          card_cover: thumbnail?.card_cover,
-          small: thumbnail?.small,
-          tiny: thumbnail?.tiny,
-        };
-      });
+    const thumbnailPromises = attachments.map(async (attachment) => {
+      const thumbnail = await this.generateThumbnail(attachment);
+      return {
+        path: attachment.path ?? attachment.url,
+        card_cover: thumbnail?.card_cover,
+        small: thumbnail?.small,
+        tiny: thumbnail?.tiny,
+      };
+    });
 
-      return await Promise.all(thumbnailPromises);
-    } catch (error) {
-      this.logger.error('Failed to generate thumbnails', error.stack as string);
-    }
+    return await Promise.all(thumbnailPromises);
   }
 
   private async generateThumbnail(
@@ -102,7 +100,7 @@ export class ThumbnailGeneratorProcessor {
             .toBuffer();
 
           await (storageAdapter as any).fileCreateByStream(
-            thumbnailPath,
+            slash(thumbnailPath),
             Readable.from(resizedImage),
             {
               mimetype: 'image/jpeg',
@@ -135,10 +133,7 @@ export class ThumbnailGeneratorProcessor {
         attachment.path.replace(/^download\//, ''),
       );
     } else if (attachment.url) {
-      relativePath = decodeURI(new URL(attachment.url).pathname).replace(
-        /^\/+/,
-        '',
-      );
+      relativePath = getPathFromUrl(attachment.url).replace(/^\/+/, '');
     }
 
     const file = await storageAdapter.fileRead(relativePath);

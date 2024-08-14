@@ -155,6 +155,8 @@ const expandForm = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
+    expandedFormRow.value = undefined
+
     router.push({
       query: {
         ...route.value.query,
@@ -322,6 +324,14 @@ const handleCollapseStack = async (stackIdx: number) => {
     await updateKanbanStackMeta()
   }
 }
+
+const handleCellClick = (col, event) => {
+  if (isButton(col)) {
+    event.preventDefault()
+    event.stopPropagation()
+  }
+}
+
 const handleCollapseAllStack = async () => {
   groupingFieldColOptions.value.forEach((stack) => {
     if (stack.id !== addNewStackId && !stack.collapsed) {
@@ -827,7 +837,14 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                       <template v-else> - </template>
                                     </h2>
 
-                                    <div v-for="col in fieldsWithoutDisplay" :key="`record-${record.row.id}-${col.id}`">
+                                    <div
+                                      v-for="col in fieldsWithoutDisplay"
+                                      :key="`record-${record.row.id}-${col.id}`"
+                                      :class="{
+                                        '!children:pointer-events-auto': isButton(col),
+                                      }"
+                                      @click="handleCellClick(col, $event)"
+                                    >
                                       <div class="flex flex-col rounded-lg w-full">
                                         <div class="flex flex-row w-full justify-start">
                                           <div class="nc-card-col-header w-full !children:text-gray-500">

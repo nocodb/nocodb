@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
+import View from '../models/View';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -10,11 +11,15 @@ import {
   populateSamplePayloadV2,
 } from '~/helpers/populateSamplePayload';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
-import { Hook, HookLog, Model } from '~/models';
+import { ButtonColumn, Hook, HookLog, Model } from '~/models';
+import { DatasService } from '~/services/datas.service';
 
 @Injectable()
 export class HooksService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(
+    protected readonly appHooksService: AppHooksService,
+    protected readonly dataService: DatasService,
+  ) {}
 
   validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
     let notification: { type?: string } = {};
@@ -74,7 +79,18 @@ export class HooksService {
     const hook = await Hook.get(context, param.hookId);
 
     if (!hook) {
-      NcError.badRequest('Hook not found');
+      NcError.hookNotFound(param.hookId);
+    }
+
+    const buttonCols = await Hook.hookUsages(context, param.hookId);
+
+    if (buttonCols.length) {
+      for (const button of buttonCols) {
+        await ButtonColumn.update(context, button.fk_column_id, {
+          fk_webhook_id: null,
+        });
+      }
+      await View.clearSingleQueryCache(context, hook.fk_model_id);
     }
 
     await Hook.delete(context, param.hookId);
@@ -98,10 +114,25 @@ export class HooksService {
     const hook = await Hook.get(context, param.hookId);
 
     if (!hook) {
-      NcError.badRequest('Hook not found');
+      NcError.hookNotFound(param.hookId);
     }
 
     this.validateHookPayload(param.hook.notification);
+
+    if (
+      (hook.active && !param.hook.active) ||
+      hook.event !== param.hook.event
+    ) {
+      const buttonCols = await Hook.hookUsages(context, param.hookId);
+      if (buttonCols.length) {
+        for (const button of buttonCols) {
+          await ButtonColumn.update(context, button.fk_column_id, {
+            fk_webhook_id: null,
+          });
+        }
+      }
+      await View.clearSingleQueryCache(context, hook.fk_model_id);
+    }
 
     const res = await Hook.update(context, param.hookId, param.hook);
 
@@ -114,6 +145,56 @@ export class HooksService {
     });
 
     return res;
+  }
+
+  async hookTrigger(
+    context: NcContext,
+    param: {
+      req: NcRequest;
+      hookId: string;
+      rowId: string;
+    },
+  ) {
+    const hook = await Hook.get(context, param.hookId);
+
+    if (!hook && hook.event !== 'manual') {
+      NcError.badRequest('Hook not found');
+    }
+
+    const row = await this.dataService.dataRead(context, {
+      rowId: param.rowId,
+      query: {},
+      baseName: hook.base_id,
+      tableName: hook.fk_model_id,
+    });
+
+    if (!row) {
+      NcError.badRequest('Row not found');
+    }
+
+    const model = await Model.get(context, hook.fk_model_id);
+
+    try {
+      await invokeWebhook(context, {
+        hook: hook,
+        model: model,
+        view: null,
+        prevData: null,
+        newData: row,
+        user: param.req.user,
+        throwErrorOnFailure: true,
+        testHook: false,
+      });
+    } catch (e) {
+      throw e;
+    } finally {
+      /*this.appHooksService.emit(AppEvents.WEBHOOK_TRIGGER, {
+        hook,
+        req: param.req,
+      });*/
+    }
+
+    return true;
   }
 
   async hookTest(

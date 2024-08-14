@@ -32,6 +32,7 @@ const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
 
 const {
   formState,
+  isWebhookCreateModalOpen,
   generateNewColumnMeta,
   addOrUpdate,
   onAlter,
@@ -107,6 +108,7 @@ const onlyNameUpdateOnEditColumns = [
   UITypes.Formula,
   UITypes.QrCode,
   UITypes.Barcode,
+  UITypes.Button,
 ]
 
 // To close column type dropdown on escape and
@@ -294,7 +296,7 @@ onMounted(() => {
 })
 
 const handleEscape = (event: KeyboardEvent): void => {
-  if (isColumnTypeOpen.value) return
+  if (isColumnTypeOpen.value || isWebhookCreateModalOpen.value) return
 
   if (event.key === 'Escape') emit('cancel')
 }
@@ -500,6 +502,11 @@ const isFullUpdateAllowed = computed(() => {
         <SmartsheetColumnUserOptions v-if="formState.uidt === UITypes.User" v-model:value="formState" :is-edit="isEdit" />
         <SmartsheetColumnSelectOptions
           v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
+          v-model:value="formState"
+          :from-table-explorer="props.fromTableExplorer || false"
+        />
+        <SmartsheetColumnButtonOptions
+          v-if="formState.uidt === UITypes.Button"
           v-model:value="formState"
           :from-table-explorer="props.fromTableExplorer || false"
         />

@@ -46,7 +46,13 @@ export default {
 <template>
   <teleport :disabled="teleportDisabled || (inline && !target)" :to="target || 'body'">
     <Transition :name="transition ? 'fade' : undefined" mode="out-in">
-      <div v-show="!!vModel" v-bind="$attrs" :style="{ zIndex }" :class="[inline ? 'absolute' : 'fixed']" class="inset-0">
+      <div
+        v-show="!!vModel"
+        v-bind="$attrs"
+        :style="{ zIndex }"
+        :class="[inline ? 'absolute' : 'fixed']"
+        class="inset-0 nc-general-overlay"
+      >
         <slot :is-open="vModel" />
       </div>
     </Transition>

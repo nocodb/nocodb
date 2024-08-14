@@ -399,7 +399,7 @@ onKeyStroke('ArrowDown', onDown)
                 </td>
                 <td class="cell-type">
                   <div>
-                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate !border-transparent">
+                    <NcBadge rounded="lg" class="flex items-center gap-2 px-0 py-1 !h-7 truncate !border-transparent">
                       <WorkspaceIntegrationsIcon
                         v-if="integration.sub_type"
                         :integration-type="integration.sub_type"
@@ -686,8 +686,9 @@ onKeyStroke('ArrowDown', onDown)
             {{ successConfirmModal.description }}
           </div>
 
-          <!-- Todo: add link  -->
-          <a target="_blank" rel="noopener noreferrer"> Learn more </a>
+          <a target="_blank" href="https://docs.nocodb.com/data-sources/connect-to-data-source/" rel="noopener noreferrer">
+            Learn more
+          </a>
         </div>
       </div>
     </NcModal>

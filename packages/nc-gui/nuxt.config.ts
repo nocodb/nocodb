@@ -148,6 +148,9 @@ export default defineNuxtConfig({
           'nc-icons': FileSystemIconLoader('./assets/nc-icons', (svg) =>
             svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" '),
           ),
+          'nc-icons-v2': FileSystemIconLoader('./assets/nc-icons-v2', (svg) =>
+            svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" '),
+          ),
         },
       }),
       Components({

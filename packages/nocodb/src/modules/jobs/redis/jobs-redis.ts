@@ -41,11 +41,13 @@ export class JobsRedis {
       } catch (error) {
         this.logger.error({
           message: `Error processing redis pub-sub message ${message}`,
+          error: {
+            message: error?.message,
+            stack: error?.stack,
+          },
         });
       }
     };
-
-    PubSubRedis.redisSubscriber.on('message', onMessage);
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       await PubSubRedis.subscribe(InstanceTypes.WORKER, async (message) => {

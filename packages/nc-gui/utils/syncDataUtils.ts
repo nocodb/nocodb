@@ -18,6 +18,7 @@ export interface IntegrationCategoryItemType {
   iconBgColor?: string
   iconStyle?: CSSProperties
   isAvailable?: boolean
+  teleEventName?: IntegrationCategoryType
 }
 
 export const integrationCategories: IntegrationCategoryItemType[] = [
@@ -33,6 +34,16 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     isAvailable: true,
   },
   {
+    title: 'objects.integrationCategories.ai',
+    subtitle: 'objects.integrationCategories.ai',
+    value: IntegrationCategoryType.AI,
+    icon: iconMap.openai,
+    iconBgColor: '#FFF0F7',
+    iconStyle: {
+      color: '#801044',
+    },
+  },
+  {
     title: 'objects.integrationCategories.communication',
     subtitle: 'objects.integrationCategories.communicationSubtitle',
     value: IntegrationCategoryType.COMMUNICATION,
@@ -43,10 +54,31 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     },
   },
   {
+    title: 'objects.integrationCategories.spreadSheet',
+    subtitle: 'objects.integrationCategories.spreadSheetSubtitle',
+    value: IntegrationCategoryType.SPREAD_SHEET,
+    teleEventName: IntegrationCategoryType.OTHERS,
+    icon: iconMap.viewGannt,
+    iconBgColor: '#FFF0D1',
+    iconStyle: {
+      color: '#977223',
+    },
+  },
+  {
     title: 'objects.integrationCategories.projectManagement',
     subtitle: 'objects.integrationCategories.projectManagementSubtitle',
     value: IntegrationCategoryType.PROJECT_MANAGEMENT,
     icon: iconMap.viewGannt,
+    iconBgColor: '#FFF0D1',
+    iconStyle: {
+      color: '#977223',
+    },
+  },
+  {
+    title: 'objects.integrationCategories.ticketing',
+    subtitle: 'objects.integrationCategories.ticketingSubtitle',
+    value: IntegrationCategoryType.TICKETING,
+    icon: iconMap.globe,
     iconBgColor: '#FFF0D1',
     iconStyle: {
       color: '#977223',
@@ -100,16 +132,6 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     iconBgColor: '#D4F7E0',
     iconStyle: {
       color: '#17803D',
-    },
-  },
-  {
-    title: 'objects.integrationCategories.ticketing',
-    subtitle: 'objects.integrationCategories.ticketingSubtitle',
-    value: IntegrationCategoryType.TICKETING,
-    icon: iconMap.globe,
-    iconBgColor: '#FFF0D1',
-    iconStyle: {
-      color: '#977223',
     },
   },
   {
@@ -177,6 +199,32 @@ export const allIntegrations: IntegrationItemType[] = [
     value: SyncDataType.ORACLE,
     icon: iconMap.oracle,
     categories: [IntegrationCategoryType.DATABASE],
+  },
+
+  // AI
+  {
+    title: 'objects.syncData.openai',
+    value: SyncDataType.OPENAI,
+    icon: iconMap.openai,
+    categories: [IntegrationCategoryType.AI],
+  },
+  {
+    title: 'objects.syncData.claude',
+    value: SyncDataType.CLAUDE,
+    icon: iconMap.claude,
+    categories: [IntegrationCategoryType.AI],
+  },
+  {
+    title: 'objects.syncData.ollama',
+    value: SyncDataType.OLLAMA,
+    icon: iconMap.ollama,
+    categories: [IntegrationCategoryType.AI],
+  },
+  {
+    title: 'objects.syncData.groq',
+    value: SyncDataType.GROQ,
+    icon: iconMap.groq,
+    categories: [IntegrationCategoryType.AI],
   },
 
   // Communication
@@ -418,40 +466,31 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.STORAGE],
   },
 
-  // Others
+  // Spreadsheet
   {
     title: 'objects.syncData.appleNumbers',
     value: SyncDataType.APPLE_NUMBERS,
     icon: iconMap.appleSolid,
-    categories: [IntegrationCategoryType.OTHERS],
-  },
-  {
-    title: 'objects.syncData.googleCalendar',
-    value: SyncDataType.GOOGLE_CALENDAR,
-    icon: iconMap.googleCalendar,
-    categories: [IntegrationCategoryType.OTHERS],
+    categories: [IntegrationCategoryType.SPREAD_SHEET],
   },
   {
     title: 'objects.syncData.microsoftExcel',
     value: SyncDataType.MICROSOFT_EXCEL,
     icon: iconMap.microsoftExcel,
-    categories: [IntegrationCategoryType.OTHERS],
+    categories: [IntegrationCategoryType.SPREAD_SHEET],
   },
   {
     title: 'objects.syncData.googleSheets',
     value: SyncDataType.GOOGLE_SHEETS,
     icon: iconMap.googleSheet,
-    categories: [IntegrationCategoryType.OTHERS],
+    categories: [IntegrationCategoryType.SPREAD_SHEET],
   },
+
+  // Others
+  // {
+  //   title: 'objects.syncData.googleCalendar',
+  //   value: SyncDataType.GOOGLE_CALENDAR,
+  //   icon: iconMap.googleCalendar,
+  //   categories: [IntegrationCategoryType.OTHERS],
+  // },
 ]
-
-export const syncDataTypes = [] as {
-  title: string
-  icon: FunctionalComponent<SVGAttributes, {}, any, {}>
-  value: SyncDataType
-}[]
-
-export const syncDataTypesMap = allIntegrations.reduce((acc, curr) => {
-  acc[curr.value] = curr
-  return acc
-}, {} as Record<string, IntegrationItemType>)

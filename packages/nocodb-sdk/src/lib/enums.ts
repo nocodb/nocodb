@@ -22,9 +22,9 @@ export enum ProjectRoles {
 export enum WorkspaceUserRoles {
   OWNER = 'workspace-level-owner',
   CREATOR = 'workspace-level-creator',
-  VIEWER = 'workspace-level-viewer',
   EDITOR = 'workspace-level-editor',
   COMMENTER = 'workspace-level-commenter',
+  VIEWER = 'workspace-level-viewer',
   NO_ACCESS = 'workspace-level-no-access',
 }
 
@@ -120,6 +120,7 @@ export enum AppEvents {
   WEBHOOK_UPDATE = 'webhook.update',
   WEBHOOK_DELETE = 'webhook.delete',
   WEBHOOK_TEST = 'webhook.test',
+  WEBHOOK_TRIGGER = 'webhook.trigger',
 
   UI_ACL_UPDATE = 'ui.acl.update',
 
@@ -352,4 +353,79 @@ export enum SSLUsage {
   Required = 'Required',
   RequiredWithCa = 'Required-CA',
   RequiredWithIdentity = 'Required-Identity',
+}
+
+export enum SyncDataType {
+  // Database
+  MICROSOFT_ACCESS = 'microsoft-access',
+  TABLEAU = 'tableau',
+  ORACLE = 'oracle',
+  // AI
+  OPENAI = 'openai',
+  CLAUDE = 'claude',
+  OLLAMA = 'ollama',
+  GROQ = 'groq',
+  // Communication
+  SLACK = 'slack',
+  DISCORD = 'discord',
+  TWILLO = 'twillo',
+  MICROSOFT_OUTLOOK = 'microsoft-outlook',
+  MICROSOFT_TEAMS = 'microsoft-teams',
+  TELEGRAM = 'telegram',
+  GMAIL = 'gmail',
+  WHATSAPP = 'whatsapp',
+  // Project Management
+  ASANA = 'asana',
+  JIRA = 'jira',
+  MIRO = 'miro',
+  TRELLO = 'trello',
+  // CRM
+  SALESFORCE = 'salesforce',
+  PIPEDRIVE = 'pipedrive',
+  MICROSOFT_DYNAMICS_365 = 'microsoft-dynamics-365',
+  ZOHO_CRM = 'zoho-crm',
+  // Marketing
+  HUBSPOT = 'hubspot',
+  MAILCHIMP = 'mailchimp',
+  SURVEYMONKEY = 'surveymonkey',
+  TYPEFORM = 'typeform',
+  // ATS
+  WORKDAY = 'workday',
+  GREENHOUSE = 'greenhouse',
+  LEVER = 'lever',
+  // Development
+  GITHUB = 'github',
+  GITLAB = 'gitlab',
+  BITBUCKET = 'bitbucket',
+  // Finance
+  STRIPE = 'stripe',
+  QUICKBOOKS = 'quickbooks',
+  // Ticketing
+  INTERCOM = 'intercom',
+  ZENDESK = 'zendesk',
+  // Storage
+  BOX = 'box',
+  GOOGLE_DRIVE = 'google-drive',
+  DROPBOX = 'dropbox',
+  // Others
+  APPLE_NUMBERS = 'apple-numbers',
+  GOOGLE_CALENDAR = 'google-calendar',
+  MICROSOFT_EXCEL = 'microsoft-excel',
+  GOOGLE_SHEETS = 'google-sheets',
+}
+
+export enum IntegrationCategoryType {
+  DATABASE = 'database',
+  AI = 'ai',
+  COMMUNICATION = 'communication',
+  SPREAD_SHEET = 'spread-sheet',
+  PROJECT_MANAGEMENT = 'project-management',
+  CRM = 'crm',
+  MARKETING = 'marketing',
+  ATS = 'ats',
+  DEVELOPMENT = 'development',
+  FINANCE = 'finance',
+  TICKETING = 'ticketing',
+  STORAGE = 'storage',
+  OTHERS = 'others',
 }

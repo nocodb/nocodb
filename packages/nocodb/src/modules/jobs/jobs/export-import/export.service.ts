@@ -156,20 +156,22 @@ export class ExportService {
                 break;
               case 'formula':
                 // rewrite formula_raw with aliases
-                column.colOptions['formula_raw'] = column.colOptions[k].replace(
-                  /\{\{.*?\}\}/gm,
-                  (match) => {
-                    const col = model.columns.find(
-                      (c) => c.id === match.slice(2, -2),
-                    );
-                    return `{${col?.title}}`;
-                  },
-                );
+                column.colOptions['formula_raw'] = column.colOptions[
+                  k
+                ]?.replace(/\{\{.*?\}\}/gm, (match) => {
+                  const col = model.columns.find(
+                    (c) => c.id === match.slice(2, -2),
+                  );
+                  return `{${col?.title}}`;
+                });
 
-                column.colOptions[k] = column.colOptions[k].replace(
+                column.colOptions[k] = column.colOptions[k]?.replace(
                   /(?<=\{\{).*?(?=\}\})/gm,
                   (match) => idMap.get(match),
                 );
+                break;
+              case 'fk_webhook_id':
+                column.colOptions[k] = idMap.get(v as string);
                 break;
               case 'id':
               case 'created_at':
@@ -568,6 +570,7 @@ export class ExportService {
                 break;
               case UITypes.Formula:
               case UITypes.Lookup:
+              case UITypes.Button:
               case UITypes.Rollup:
               case UITypes.Barcode:
               case UITypes.QrCode:

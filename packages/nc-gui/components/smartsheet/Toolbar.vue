@@ -34,7 +34,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
     :class="{
       'px-4': isMobileMode,
     }"
-    class="nc-table-toolbar relative px-3 flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) min-h-9 max-h-9 z-7"
+    class="nc-table-toolbar relative px-3 flex gap-2 items-center border-b border-gray-200 overflow-hidden xs:(min-h-14) min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] z-7"
   >
     <template v-if="isViewsLoading">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
@@ -63,6 +63,8 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+
+        <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
       </div>
 
       <LazySmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
@@ -70,6 +72,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
       <template v-if="!isMobileMode">
         <LazySmartsheetToolbarRowHeight v-if="isGrid" />
 
+        <LazySmartsheetToolbarOpenedViewAction v-if="!isCalendar" />
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
         <div class="flex-1" />

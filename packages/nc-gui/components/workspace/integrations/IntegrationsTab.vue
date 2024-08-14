@@ -75,6 +75,7 @@ const integrationsMapByCategory = computed(() => {
           title: curr.title,
           list: getIntegrationsByCategory(curr.value, searchQuery.value),
           isAvailable: curr.isAvailable,
+          teleEventName: curr.teleEventName,
         }
 
         return acc
@@ -85,31 +86,28 @@ const integrationsMapByCategory = computed(() => {
           title: string
           list: IntegrationItemType[]
           isAvailable?: boolean
+          teleEventName?: IntegrationCategoryType
         }
       >,
     )
 })
 
 const isEmptyList = computed(() => {
-  const categories = Object.keys(integrationsMapByCategory.value);
-  
-  if (!categories.length) {
-    return true;
-  }
-  console.log('cate', categories, integrationsMapByCategory.value)
-  
-  return !categories.some(category => integrationsMapByCategory.value[category].list.length > 0);
-});
+  const categories = Object.keys(integrationsMapByCategory.value)
 
+  if (!categories.length) {
+    return true
+  }
+
+  return !categories.some((category) => integrationsMapByCategory.value[category].list.length > 0)
+})
 
 const isAddNewIntegrationModalOpen = computed({
   get: () => {
     return pageMode.value === IntegrationsPageMode.LIST
   },
   set: (value: boolean) => {
-    if (value) {
-      pageMode.value = IntegrationsPageMode.LIST
-    } else {
+    if (!value) {
       pageMode.value = null
     }
   },
@@ -118,7 +116,7 @@ const isAddNewIntegrationModalOpen = computed({
 const handleUpvote = (category: IntegrationCategoryType, syncDataType: SyncDataType) => {
   if (upvotesData.value.has(syncDataType)) return
 
-  $e(`a:integration-request:${category}:${syncDataType}`)
+  $e(`a:integration-request:${integrationsMapByCategory.value[category]?.teleEventName || category}:${syncDataType}`)
 
   updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
 }
@@ -209,9 +207,12 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
             ref="integrationListRef"
             class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin"
           >
-            <div class="w-full flex justify-center" :class="{
-              'flex-1': isEmptyList
-            }">
+            <div
+              class="w-full flex justify-center"
+              :class="{
+                'flex-1': isEmptyList,
+              }"
+            >
               <div
                 class="flex flex-col space-y-6 w-full"
                 :style="{

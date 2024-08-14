@@ -14,7 +14,7 @@ import type Sharp from 'sharp';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
-import { PresignedUrl } from '~/models';
+import { FileReference, PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -34,6 +34,11 @@ interface AttachmentObject {
 }
 
 const thumbnailMimes = ['image/'];
+
+// ref: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-keys.html - extended with some more characters
+const normalizeFilename = (filename: string) => {
+  return filename.replace(/[\\/:*?"<>'`#|%~{}[\]^]/g, '_');
+};
 
 @Injectable()
 export class AttachmentsService {
@@ -73,9 +78,9 @@ export class AttachmentsService {
       param.files?.map((file) => async () => {
         try {
           const originalName = utf8ify(file.originalname);
-          const fileName = `${path.parse(originalName).name}_${nanoid(
-            5,
-          )}${path.extname(originalName)}`;
+          const fileName = `${normalizeFilename(
+            path.parse(originalName).name,
+          )}_${nanoid(5)}${path.extname(originalName)}`;
 
           const tempMetadata: {
             width?: number;
@@ -112,6 +117,21 @@ export class AttachmentsService {
           const url = await storageAdapter.fileCreate(
             slash(path.join(destPath, fileName)),
             file,
+          );
+
+          await FileReference.insert(
+            {
+              workspace_id: RootScopes.ROOT,
+              base_id: RootScopes.ROOT,
+            },
+            {
+              storage: storageAdapter.name,
+              file_url:
+                url ?? path.join('download', filePath.join('/'), fileName),
+              file_size: file.size,
+              fk_user_id: userId,
+              deleted: true, // root file references are always deleted as they are not associated with any record
+            },
           );
 
           const attachment: AttachmentObject = {
@@ -198,19 +218,26 @@ export class AttachmentsService {
       param.urls?.map?.((urlMeta) => async () => {
         try {
           const { url, fileName: _fileName } = urlMeta;
-          const response = await axios.head(url, { maxRedirects: 5 });
-          const finalUrl = response.request.res.responseUrl || url;
+
+          let mimeType,
+            response,
+            size,
+            finalUrl = url;
+
+          if (!url.startsWith('data:')) {
+            response = await axios.head(url, { maxRedirects: 5 });
+            mimeType = response.headers['content-type']?.split(';')[0];
+            size = response.headers['content-length'];
+            finalUrl = response.request.res.responseUrl;
+          }
 
           const parsedUrl = Url.parse(finalUrl, true);
           const decodedPath = decodeURIComponent(parsedUrl.pathname);
           const fileNameWithExt = _fileName || path.basename(decodedPath);
 
-          const fileName = `${path.parse(fileNameWithExt).name}_${nanoid(
-            5,
-          )}${path.extname(fileNameWithExt)}`;
-
-          let mimeType = response.headers['content-type']?.split(';')[0];
-          const size = response.headers['content-length'];
+          const fileName = `${normalizeFilename(
+            path.parse(fileNameWithExt).name,
+          )}_${nanoid(5)}${path.extname(fileNameWithExt)}`;
 
           if (!mimeType) {
             mimeType = mimetypes[path.extname(fileNameWithExt).slice(1)];
@@ -260,6 +287,22 @@ export class AttachmentsService {
               );
             }
           }
+
+          await FileReference.insert(
+            {
+              workspace_id: RootScopes.ROOT,
+              base_id: RootScopes.ROOT,
+            },
+            {
+              storage: storageAdapter.name,
+              file_url:
+                attachmentUrl ??
+                path.join('download', filePath.join('/'), fileName),
+              file_size: size ? parseInt(size) : urlMeta.size,
+              fk_user_id: userId,
+              deleted: true, // root file references are always deleted as they are not associated with any record
+            },
+          );
 
           const attachment: AttachmentObject = {
             ...(attachmentUrl

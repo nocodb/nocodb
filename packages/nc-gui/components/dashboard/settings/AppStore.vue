@@ -110,7 +110,7 @@ onMounted(async () => {
       <a-card
         v-for="(app, i) in apps"
         :key="i"
-        class="sm:w-100 md:w-138.1"
+        class="sm:w-100 md:w-130"
         :class="`relative flex overflow-x-hidden app-item-card !shadow-sm rounded-md w-full nc-app-store-card-${app.title}`"
       >
         <div class="install-btn flex flex-row justify-end space-x-1">
@@ -137,7 +137,7 @@ onMounted(async () => {
         </div>
 
         <div class="flex flex-row space-x-2 items-center justify-start w-full">
-          <div class="flex w-20 pl-3">
+          <div class="flex w-[68px]">
             <img
               v-if="app.title !== 'SMTP'"
               class="avatar"

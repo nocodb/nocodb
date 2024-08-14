@@ -36,7 +36,7 @@ loadSettings()
       </template>
       <template #title>
         <span data-rec="true">
-          {{ t('activity.settings') }}
+          {{ $t('activity.settings') }}
         </span>
       </template>
     </NcPageHeader>

@@ -43,8 +43,6 @@ const { projectPageTab } = storeToRefs(useConfigStore())
 
 const { isMobileMode } = useGlobal()
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-
 const baseSettingsState = ref('')
 
 const userCount = computed(() =>

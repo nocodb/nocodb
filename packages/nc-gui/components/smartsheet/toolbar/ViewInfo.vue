@@ -45,7 +45,11 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               />
             </NcTooltip>
             <template v-if="isSharedBase">
-              <NcTooltip class="ml-1 truncate nc-active-base-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
+              <NcTooltip
+                class="ml-1 truncate nc-active-base-title max-w-full !leading-5"
+                show-on-truncate-only
+                :disabled="isOpen"
+              >
                 <template #title>
                   <span class="capitalize">
                     {{ base?.title }}

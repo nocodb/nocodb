@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
 import type { TableType, ViewType, ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { isDefaultBase as _isDefaultBase } from '#imports'

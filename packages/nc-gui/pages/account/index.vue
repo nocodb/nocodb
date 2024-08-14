@@ -42,9 +42,9 @@ const logout = async () => {
             >
               <NcButton
                 v-if="!$route.params.baseType"
+                v-e="['c:navbar:home']"
                 type="text"
                 size="small"
-                v-e="['c:navbar:home']"
                 class="transition-all duration-200 mx-2 my-2.5 cursor-pointer transform hover:bg-gray-100 nc-noco-brand-icon"
                 data-testid="nc-noco-brand-icon"
                 @click="navigateTo('/')"

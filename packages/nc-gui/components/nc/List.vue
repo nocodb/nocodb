@@ -263,7 +263,7 @@ watch(
           <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
         ></a-input>
       </div>
-      <NcDivider/>
+      <NcDivider />
     </template>
 
     <slot name="listHeader"></slot>

@@ -57,7 +57,7 @@ const resetError = () => {
 </script>
 
 <template>
-  <div class="flex flex-col" >
+  <div class="flex flex-col">
     <NcPageHeader>
       <template #icon>
         <GeneralIcon icon="passwordChange" class="flex-none text-gray-700 h-5 w-5" />

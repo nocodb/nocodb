@@ -261,7 +261,7 @@ const handleCancel = () => {
         </div>
         <span data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
         <div v-if="!isLoadingAllTokens && (tokens.length || showNewTokenModal)" class="mt-5 h-full max-h-[calc(100%-80px)]">
-          <div class="h-full w-full overflow-y-auto  rounded-md">
+          <div class="h-full w-full overflow-y-auto rounded-md">
             <div class="flex w-full pl-5 bg-gray-50 border-1 rounded-t-md">
               <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9" data-rec="true">{{ $t('title.tokenName') }}</span>
               <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9 text-start" data-rec="true">{{

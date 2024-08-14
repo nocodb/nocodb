@@ -195,10 +195,9 @@ async function onOpenModal({
         </template>
 
         <template v-if="!isMobileMode && isUIAllowed('viewCreateOrEdit')" #listFooter>
-         <NcDivider class="!mt-0 !mb-2" />
+          <NcDivider class="!mt-0 !mb-2" />
           <div class="overflow-hidden mb-2">
             <a-menu class="nc-viewlist-menu">
-             
               <a-sub-menu popup-class-name="nc-viewlist-submenu-popup ">
                 <template #title>
                   <div class="flex items-center gap-2 text-sm font-weight-500 !text-brand-500">

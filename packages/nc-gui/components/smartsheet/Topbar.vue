@@ -75,7 +75,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         />
 
         <LazyGeneralLanguage
-          v-if="isSharedBase"
+          v-if="isSharedBase && !appInfo.ee"
           class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md"
         />
       </div>

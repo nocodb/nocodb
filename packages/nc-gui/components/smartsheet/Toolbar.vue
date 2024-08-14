@@ -63,6 +63,8 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <LazySmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
 
         <LazySmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
+
+        <LazySmartsheetToolbarOpenedViewAction v-if="isCalendar" />
       </div>
 
       <LazySmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
@@ -70,6 +72,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
       <template v-if="!isMobileMode">
         <LazySmartsheetToolbarRowHeight v-if="isGrid" />
 
+        <LazySmartsheetToolbarOpenedViewAction v-if="!isCalendar" />
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
         <div class="flex-1" />

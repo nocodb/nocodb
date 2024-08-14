@@ -12,7 +12,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 <template>
   <div
-    class="ml-0.25 flex flex-row font-medium items-center border-gray-50 transition-all duration-100 select-none"
+    class="ml-0.25 flex flex-row items-center border-gray-50 transition-all duration-100 select-none"
     :class="{
       'min-w-36/100 max-w-36/100': !isMobileMode && isLeftSidebarOpen,
       'min-w-39/100 max-w-39/100': !isMobileMode && !isLeftSidebarOpen,
@@ -24,11 +24,11 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <SmartsheetTopbarProjectListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-600 font-weight-500 hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer max-w-1/3"
+            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer max-w-1/3"
             :class="{
               '!max-w-none': isSharedBase && !isMobileMode,
               '-ml-2': !isMobileMode && isLeftSidebarOpen,
-              'bg-gray-100 !text-gray-800 font-medium': isOpen,
+              'bg-gray-100 !text-gray-800 !font-semibold': isOpen,
             }"
           >
             <GeneralProjectIcon
@@ -38,7 +38,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
                 filter: 'grayscale(100%) brightness(115%)',
               }"
             />
-            <NcTooltip class="truncate" show-on-truncate-only :disabled="isOpen">
+            <NcTooltip class="truncate nc-active-base-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
               <template #title>
                 <span class="capitalize">
                   {{ base?.title }}
@@ -46,7 +46,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               </template>
 
               <span
-                class="text-ellipsis overflow-hidden font-weight-500 select-none capitalize"
+                class="text-ellipsis capitalize"
                 :style="{
                   wordBreak: 'keep-all',
                   whiteSpace: 'nowrap',
@@ -70,12 +70,12 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <SmartsheetTopbarTableListDropdown v-if="activeTable">
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-600 font-weight-500 hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-gray-700 font-weight-500 hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer"
             :class="{
               'max-w-1/2': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,
-              'bg-gray-100 !text-gray-800 font-medium': isOpen,
+              'bg-gray-100 !text-gray-800 !font-semibold': isOpen,
             }"
           >
             <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">
@@ -124,12 +124,12 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <SmartsheetTopbarViewListDropdown>
         <template #default="{ isOpen }">
           <div
-            class="rounded-lg h-8 px-2 text-gray-800 font-medium hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer"
+            class="rounded-lg h-8 px-2 text-gray-800 font-weight-700 hover:(bg-gray-100 text-gray-800) flex items-center gap-2 cursor-pointer"
             :class="{
-              'max-w-1/2': isMobileMode,
+              'max-w-1/2 !font-semibold': isMobileMode,
               'max-w-1/4': !isSharedBase && !isMobileMode,
               'max-w-none': isSharedBase && !isMobileMode,
-              'bg-gray-100 !text-gray-800 font-medium': isOpen,
+              'bg-gray-100 !text-gray-800': isOpen,
             }"
           >
             <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeView?.meta?.icon" readonly size="xsmall">
@@ -138,7 +138,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               </template>
             </LazyGeneralEmojiPicker>
 
-            <NcTooltip class="truncate nc-active-table-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
+            <NcTooltip class="truncate nc-active-view-title max-w-full !leading-5" show-on-truncate-only :disabled="isOpen">
               <template #title>
                 {{ activeView?.title }}
               </template>

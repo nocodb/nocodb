@@ -8,7 +8,7 @@ import type {
   // XcPlugin,
   // XcStoragePlugin,
   // XcWebhookNotificationPlugin
-} from 'nc-plugin';
+} from '~/types/nc-plugin';
 import BackblazePluginConfig from '~/plugins/backblaze';
 import DiscordPluginConfig from '~/plugins/discord';
 import GcsPluginConfig from '~/plugins/gcs';

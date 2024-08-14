@@ -42,9 +42,7 @@ module.exports = {
     ],
     nodeEnv: false,
   },
-  externals: [nodeExternals({
-    allowlist: ['nc-plugin'],
-  })],
+  externals: [nodeExternals()],
   plugins: [new webpack.EnvironmentPlugin(['EE'])],
   target: 'node',
   node: {

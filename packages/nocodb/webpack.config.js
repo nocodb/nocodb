@@ -33,9 +33,7 @@ module.exports = {
     ],
     nodeEnv: false,
   },
-  externals: [nodeExternals({
-    allowlist: ['nc-plugin'],
-  })],
+  externals: [nodeExternals()],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
     alias: resolveTsAliases(path.resolve('tsconfig.json')),

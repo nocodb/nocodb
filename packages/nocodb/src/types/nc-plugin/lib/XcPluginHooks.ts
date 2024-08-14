@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 abstract class XcPluginHooks {
   public async appStart(): Promise<any> {}
 

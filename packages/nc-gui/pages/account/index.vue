@@ -157,8 +157,10 @@ const logout = async () => {
           <!-- Sub Tabs -->
 
           <div class="flex flex-col w-full pl-65">
-            <div class="flex flex-row p-3 items-center h-14">
-              <div class="flex-1" />
+            <div class="flex flex-row pt-3 px-2 items-center h-11">
+              <div class="flex-1">
+                <LazyAccountBreadcrumb />
+              </div>
 
               <LazyGeneralReleaseInfo />
 
@@ -231,14 +233,15 @@ const logout = async () => {
 :deep(.ant-menu-submenu-selected .ant-menu-submenu-arrow) {
   @apply !text-inherit;
 }
+.tabs-menu {
+  :deep(.item) {
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+    width: calc(100% - 1rem);
+  }
 
-:deep(.item) {
-  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
-  width: calc(100% - 1rem);
-}
-
-:deep(.active) {
-  @apply !bg-brand-50 !text-brand-500;
+  :deep(.active) {
+    @apply !bg-brand-50 !text-brand-500;
+  }
 }
 
 :deep(.ant-menu-submenu-title) {

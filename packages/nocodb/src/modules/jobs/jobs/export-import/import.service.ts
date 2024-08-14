@@ -1103,7 +1103,7 @@ export class ImportService {
         const colIds = col.colOptions?.formula.match(/(?<=\{\{).*?(?=\}\})/gm);
         if (colIds && colIds.length > 0) {
           relatedColIds.push(
-            ...col.colOptions.formula?.match(/(?<=\{\{).*?(?=\}\})/gm),
+            ...col.colOptions.formula.match(/(?<=\{\{).*?(?=\}\})/gm),
           );
         }
       }

@@ -141,7 +141,11 @@ const onCancel = () => {
 
 <template>
   <div
-    class="flex flex-col items-center nc-workspace-settings-settings h-[calc(100vh-134px)] pb-10 overflow-y-auto nc-scrollbar-x-lg"
+    class="flex flex-col items-center nc-workspace-settings-settings pb-10 overflow-y-auto nc-scrollbar-x-lg px-6"
+    :class="{
+      'h-[calc(100vh-144px)]': isAdminPanel,
+      'h-[calc(100vh-92px)]': !isAdminPanel,
+    }"
   >
     <div class="item-card flex flex-col w-full">
       <div class="font-medium text-base">Change Workspace Name</div>

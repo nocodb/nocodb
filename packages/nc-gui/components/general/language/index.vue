@@ -5,7 +5,7 @@
     overlay-class-name="nc-dropdown-menu-translate"
   >
     <div v-bind="$attrs" class="flex items-center justify-center">
-      <MaterialSymbolsTranslate class="md:text-xl nc-menu-translate" />
+      <MaterialSymbolsTranslate class="text-base nc-menu-translate" />
     </div>
 
     <template #overlay>

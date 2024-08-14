@@ -33,9 +33,9 @@ onMounted(async () => {
 <template>
   <NuxtLayout>
     <div v-if="org" :key="org.title" class="mx-auto h-full">
-      <div class="h-full overflow-y-auto flex">
+      <div class="h-full flex">
         <!-- Side tabs -->
-        <div class="h-full bg-white nc-user-sidebar fixed">
+        <div class="h-full bg-white nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
           <NcMenu
             v-model:openKeys="openKeys"
             v-model:selectedKeys="selectedKeys"
@@ -43,19 +43,24 @@ onMounted(async () => {
             class="tabs-menu h-full"
             mode="inline"
           >
-            <div
+            <NcButton
+              v-if="!$route.params.baseType"
               v-e="['c:navbar:home']"
-              class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"
+              type="text"
+              size="small"
+              class="transition-all duration-200 mx-2 my-2.5 cursor-pointer transform nc-noco-brand-icon"
               data-testid="nc-noco-brand-icon"
               @click="navigateTo('/')"
             >
-              <div class="flex flex-row gap-x-2 items-center h-8.5">
-                <GeneralIcon class="-mt-0.1" icon="arrowLeft" />
-                <div class="flex text-sm font-medium text-gray-800">{{ $t('labels.back') }}</div>
+              <div class="flex flex-row gap-x-2 items-center">
+                <GeneralIcon icon="ncArrowLeft" />
+                <div class="flex text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</div>
               </div>
-            </div>
-            <div class="text-sm ml-4 p-2 mt-3 flex justify-between gap-2">
-              <div class="font-weight-bold">
+            </NcButton>
+            <NcDivider class="!mt-0" />
+
+            <div class="text-sm ml-3 p-2 mt-2 flex justify-between gap-2">
+              <div class="font-bold text-gray-900">
                 {{ org.title }}
               </div>
               <span class="text-gray-600 gray-600">{{ $t('labels.adminPanel') }}</span>
@@ -71,7 +76,7 @@ onMounted(async () => {
               @click="navigateTo(`/admin/${$route.params.orgId}`)"
             >
               <div class="flex items-center space-x-2">
-                <GeneralIcon class="!h-3.5 !w-3.5" icon="home" />
+                <GeneralIcon class="!h-3.5 !w-3.5" icon="home1" />
 
                 <div class="select-none">{{ $t('labels.dashboard') }}</div>
               </div>
@@ -113,7 +118,7 @@ onMounted(async () => {
               @click="navigateTo(`/admin/${$route.params.orgId}/members`)"
             >
               <div class="flex items-center space-x-2">
-                <GeneralIcon class="!h-3.5 !w-3.5" icon="user" />
+                <GeneralIcon class="!h-3.5 !w-3.5" icon="users" />
                 <div class="select-none">{{ $t('labels.members') }}</div>
               </div>
             </NcMenuItem>
@@ -129,7 +134,7 @@ onMounted(async () => {
             >
               <div class="flex items-center space-x-2">
                 <GeneralIcon class="!h-3.5 !w-3.5" icon="lock" />
-                <div class="select-none">{{ $t('labels.ssoSettings') }}</div>
+                <div class="select-none">{{ $t('title.sso') }}</div>
               </div>
             </NcMenuItem>
 
@@ -142,7 +147,7 @@ onMounted(async () => {
               @click="navigateTo(`/admin/${$route.params.orgId}/settings`)"
             >
               <div class="flex items-center space-x-2">
-                <GeneralIcon class="!h-3.5 !w-3.5" icon="settings" />
+                <GeneralIcon class="text-[16px]" icon="settings" />
 
                 <div class="select-none">{{ $t('labels.settings') }}</div>
               </div>
@@ -151,15 +156,9 @@ onMounted(async () => {
         </div>
 
         <!-- Sub Tabs -->
-
-        <div class="flex flex-col w-full ml-65 pt-5">
-          <div
-            :style="{
-              height: 'calc(100vh - 3.5rem)',
-            }"
-            class="flex flex-col container mx-auto"
-          >
-            <div class="mt-2 h-full">
+        <div class="h-full flex-1 flex flex-col pt-2 overflow-y-auto nc-scrollbar-thin">
+          <div class="h-full flex flex-col w-full max-w-[97.5rem]">
+            <div class="h-full">
               <NuxtPage />
             </div>
           </div>
@@ -187,13 +186,15 @@ onMounted(async () => {
   @apply !text-inherit;
 }
 
-:deep(.item) {
-  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
-  width: calc(100% - 1rem);
-}
+.tabs-menu {
+  :deep(.item) {
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+    width: calc(100% - 1rem);
+  }
 
-:deep(.active) {
-  @apply !bg-brand-50 !text-brand-500;
+  :deep(.active) {
+    @apply !bg-brand-50 !text-brand-500;
+  }
 }
 
 :deep(.ant-menu-submenu-title) {

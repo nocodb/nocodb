@@ -150,6 +150,7 @@ import NcStrike from '~icons/nc-icons/strike-through'
 import NcCrop from '~icons/nc-icons/crop'
 import NcControlPanel from '~icons/nc-icons/control-panel'
 import NcHome from '~icons/nc-icons/home'
+import NcHome1 from '~icons/nc-icons/home1'
 import NcWorkspace from '~icons/nc-icons/workspace'
 
 import NcCellBarcode from '~icons/nc-icons/cell-barcode'
@@ -528,6 +529,12 @@ import NcAlignLeftIcon from '~icons/nc-icons-v2/align-left.svg'
 import NcHeartIcon from '~icons/nc-icons-v2/heart.svg'
 import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
 
+import NcSlash1 from '~icons/nc-icons/slash1'
+
+import NcChevronUpSmall from '~icons/nc-icons/chevron-up-small'
+import NcChevronDownSmall from '~icons/nc-icons/chevron-down-small'
+import NcChevronUpDownSmall from '~icons/nc-icons/chevron-up-down-small'
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -679,10 +686,12 @@ export const iconMap = {
   strike: NcStrike,
   atSign: NcAtSign,
   slash: NcSlash,
+  ncSlash1: NcSlash1,
   arrowUpRight: NcArrowUpRight,
   ncWorkspace: NcWorkspace,
   controlPanel: NcControlPanel,
   home: NcHome,
+  home1: NcHome1,
   cellBarcode: NcCellBarcode,
   cellCheckbox: NcCellCheckbox,
   cellDate: NcCellDate,
@@ -1275,6 +1284,9 @@ export const iconMap = {
   ncAlignLeft: NcAlignLeftIcon,
   ncHeart: NcHeartIcon,
   ncTrendingUp: NcTrendingUpIcon,
+  chevronUpSmall: NcChevronUpSmall,
+  chevronDownSmall: NcChevronDownSmall,
+  chevronUpDownSmall: NcChevronUpDownSmall,
 }
 
 export const getMdiIcon = (type: string): any => {

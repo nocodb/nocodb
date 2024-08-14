@@ -1,5 +1,9 @@
 <script lang="ts" setup>
-const { sorts, loadSorts, handleGetSortedData, toggleSort } = useUserSorts('Organization')
+const { t } = useI18n()
+
+const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Organization')
+
+const { org } = storeToRefs(useOrg())
 
 const organizationStore = useOrganization()
 
@@ -52,6 +56,73 @@ const inviteUserToWorkspace = (email: string) => {
   bulkAddMemberDlg.value = true
 }
 
+const orderBy = computed<Record<string, SordDirectionType>>({
+  get: () => {
+    return sortDirection.value
+  },
+  set: (value: Record<string, SordDirectionType>) => {
+    // Check if value is an empty object
+    if (Object.keys(value).length === 0) {
+      saveOrUpdateSort({})
+      return
+    }
+
+    const [field, direction] = Object.entries(value)[0]
+
+    saveOrUpdateSort({
+      field,
+      direction,
+    })
+  },
+})
+
+const columns = [
+  {
+    key: 'select',
+    title: '',
+    width: 70,
+    minWidth: 70,
+  },
+  {
+    key: 'email',
+    title: t('objects.member'),
+    minWidth: 288,
+    dataIndex: 'email',
+    showOrderBy: true,
+  },
+  {
+    key: 'workspaceCount',
+    title: t('labels.workspaces'),
+    width: 180,
+    minWidth: 180,
+    dataIndex: 'workspaceCount',
+    showOrderBy: true,
+  },
+  {
+    key: 'dateAdded',
+    title: t('labels.dateAdded'),
+    minWidth: 180,
+    width: 180,
+  },
+  {
+    key: 'lastActive',
+    title: t('labels.lastActive'),
+    minWidth: 180,
+    width: 180,
+  },
+  {
+    key: 'action',
+    title: t('labels.actions'),
+    width: 120,
+    minWidth: 120,
+    justify: 'justify-end',
+  },
+] as NcTableColumnProps[]
+
+const customRow = (_record: Record<string, any>, recordIndex: number) => ({
+  class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0`,
+})
+
 watch(bulkAddMemberDlg, (val) => {
   if (!val) {
     bulkOpsEmails.value = []
@@ -71,13 +142,29 @@ watch(selected, () => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center" data-test-id="nc-admin-members">
+  <div class="flex flex-col h-full" data-test-id="nc-admin-members">
     <LazyDlgInviteDlg v-model:model-value="bulkAddMemberDlg" :emails="bulkOpsEmails" type="organization" />
-    <div class="flex flex-col w-full px-6 max-w-[97.5rem]">
-      <span class="font-bold w-full text-2xl" data-rec="true">
+    <div class="nc-breadcrumb px-2">
+      <div class="nc-breadcrumb-item">
+        {{ org.title }}
+      </div>
+      <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+      <div class="nc-breadcrumb-item active">
         {{ $t('labels.members') }}
-      </span>
-      <div class="w-full justify-between mt-5 flex items-center">
+      </div>
+    </div>
+    <NcPageHeader>
+      <template #icon>
+        <GeneralIcon icon="users" class="flex-none h-5 w-5" />
+      </template>
+      <template #title>
+        <span data-rec="true">
+          {{ $t('labels.members') }}
+        </span>
+      </template>
+    </NcPageHeader>
+    <div class="h-full max-h-[calc(100vh_-_100px)] flex flex-col items-center gap-6 p-6 border-t-1 border-gray-200">
+      <div class="w-full justify-between flex items-center">
         <div class="flex items-center gap-2">
           <a-input v-model:value="searchInput" placeholder="Search for a member">
             <template #prefix>
@@ -108,121 +195,121 @@ watch(selected, () => {
         </NcButton>
       </div>
 
-      <div class="mt-5 h-full" data-testid="nc-org-members-list">
-        <div class="flex flex-col overflow-hidden border-b-1 min-h-[calc(100%-8rem)]">
-          <div class="flex flex-row bg-gray-50 max-h-11 items-center border-b-1">
-            <div class="py-3 px-6"><NcCheckbox v-model:checked="selectAll" /></div>
-            <LazyAccountHeaderWithSorter
-              class="text-gray-700 w-[25rem] users-email-grid flex items-center space-x-2 cursor-pointer"
-              :header="$t('objects.member')"
-              :active-sort="sorts"
-              field="email"
-              :toggle-sort="toggleSort"
-            />
-            <LazyAccountHeaderWithSorter
-              :active-sort="sorts"
-              :header="$t('objects.workspaces')"
-              :toggle-sort="toggleSort"
-              class="text-gray-700 w-full flex-1 px-6 py-3 flex items-center space-x-2"
-              field="workspaceCount"
-            />
+      <NcTable
+        v-model:order-by="orderBy"
+        :columns="columns"
+        :data="sortedMembers"
+        :bordered="false"
+        :custom-row="customRow"
+        data-testid="nc-org-members-list"
+        class="flex-1 nc-org-members-list"
+      >
+        <template #headerCell="{ column }">
+          <template v-if="column.key === 'select'">
+            <NcCheckbox v-model:checked="selectAll" :disabled="!sortedMembers.length" />
+          </template>
+          <template v-else>
+            {{ column.title }}
+          </template>
+        </template>
 
-            <div class="text-gray-700 w-full flex-1 px-6 py-3">{{ $t('labels.dateAdded') }}</div>
-            <div class="text-gray-700 w-full flex-1 px-6 py-3">{{ $t('labels.lastActive') }}</div>
-            <div class="text-gray-700 w-full flex-1 px-6 text-right py-3">{{ $t('labels.actions') }}</div>
+        <template #bodyCell="{ column, record: member, recordIndex }">
+          <template v-if="column.key === 'select'">
+            <NcCheckbox v-model:checked="selected[recordIndex]" />
+          </template>
+          <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
+            <GeneralUserIcon :email="member?.email" size="base" class="flex-none" />
+            <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+              <div class="flex gap-3">
+                <NcTooltip
+                  class="truncate text-gray-800 capitalize font-semibold"
+                  :class="{
+                    'max-w-1/2': member.cloud_org_roles,
+                    'max-w-full': !member.cloud_org_roles,
+                  }"
+                  show-on-truncate-only
+                >
+                  <template #title>
+                    {{ member.display_name || member.email.split('@')[0] }}
+                  </template>
+                  {{ member.display_name || member.email.split('@')[0] }}
+                </NcTooltip>
+                <RolesBadge v-if="member.cloud_org_roles" :border="false" :role="member.cloud_org_roles" :show-icon="false" />
+              </div>
+              <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+                <template #title>
+                  {{ member.email }}
+                </template>
+                {{ member.email }}
+              </NcTooltip>
+            </div>
           </div>
-          <div class="flex flex-col nc-scrollbar-md">
-            <div
-              v-for="(member, i) of sortedMembers"
-              :key="i"
-              :class="{
-                'bg-[#F0F3FF]': selected[i],
-              }"
-              class="user-row flex hover:bg-[#F0F3FF] !max-h-13.5 flex-row last:border-b-0 border-b-1 py-1 items-center"
-            >
-              <div class="py-3 px-6">
-                <NcCheckbox v-model:checked="selected[i]" />
+
+          <div v-if="column.key === 'workspaceCount'" class="w-full">
+            <NcDropdown :trigger="['hover']">
+              <div class="w-full">
+                {{ member.workspaceCount }}
               </div>
 
-              <div class="flex gap-3 w-[25rem] items-center users-email-grid">
-                <GeneralUserIcon :email="member?.email" size="base" />
-                <div class="flex flex-col">
-                  <div class="flex gap-3">
-                    <span class="text-gray-800 font-semibold">
-                      {{ member.display_name || member.email.split('@')[0] }}
-                    </span>
-                    <RolesBadge v-if="member.cloud_org_roles" :border="false" :role="member.cloud_org_roles" :show-icon="false" />
+              <template #overlay>
+                <div class="rounded-lg">
+                  <div class="rounded-t-lg font-medium bg-gray-100 py-1.5 px-2">
+                    {{ $t('labels.memberIn') }}
                   </div>
-                  <span class="text-xs text-gray-600">
-                    {{ member.email }}
-                  </span>
-                </div>
-              </div>
-
-              <div class="w-full flex-1 px-6 py-3">
-                <NcDropdown :trigger="['hover']">
-                  <span>
-                    {{ member.workspaceCount }}
-                  </span>
-
-                  <template #overlay>
-                    <div class="rounded-lg">
-                      <div class="rounded-t-lg font-medium bg-gray-100 py-1.5 px-2">
-                        {{ $t('labels.memberIn') }}
-                      </div>
-                      <div class="max-h-72 nc-scrollbar-md overflow-y-auto">
-                        <div
-                          v-for="x in member.workspaces"
-                          :key="x.id"
-                          class="flex gap-3 px-2 py-3 w-72 justify-between font-semibold items-center"
-                        >
-                          <div class="flex gap-3">
-                            <!--
+                  <div class="max-h-72 nc-scrollbar-md overflow-y-auto">
+                    <div
+                      v-for="x in member.workspaces"
+                      :key="x.id"
+                      class="flex gap-3 px-2 py-3 w-72 justify-between font-semibold items-center"
+                    >
+                      <div class="flex gap-3">
+                        <!--
                             <GeneralWorkspaceIcon :workspace="x" hide-label />
 -->
-                            {{ x.title }}
-                          </div>
-
-                          <RolesBadge :border="false" :show-icon="true" icon-only role="owner" />
-                        </div>
+                        {{ x.title }}
                       </div>
-                    </div>
-                  </template>
-                </NcDropdown>
-              </div>
-              <div class="w-full flex-1 px-6 py-3">
-                <NcTooltip class="max-w-full">
-                  <template #title>
-                    {{ parseStringDateTime(member?.created_at) }}
-                  </template>
-                  <span>
-                    {{ timeAgo(member?.created_at) }}
-                  </span>
-                </NcTooltip>
-              </div>
-              <div class="w-full flex-1 px-6 py-3">
-                <NcTooltip class="max-w-full">
-                  <template #title>
-                    {{ parseStringDateTime(member?.created_at) }}
-                  </template>
-                  <span>
-                    {{ timeAgo(member?.created_at) }}
-                  </span>
-                </NcTooltip>
-              </div>
-              <div class="w-full flex-1 flex justify-end px-6 py-3">
-                <NcDropdown>
-                  <NcButton size="small" type="secondary">
-                    <component :is="iconMap.threeDotVertical" />
-                  </NcButton>
-                  <template #overlay>
-                    <NcMenu>
-                      <NcMenuItem data-testid="nc-admin-org-user-assign-admin" @click="inviteUserToWorkspace(member.email)">
-                        <GeneralIcon class="text-gray-800" icon="send" />
-                        <span>{{ $t('activity.inviteToWorkspace') }}</span>
-                      </NcMenuItem>
 
-                      <!--                      <NcMenuItem data-testid="nc-admin-org-user-delete">
+                      <RolesBadge :border="false" :show-icon="true" icon-only role="owner" />
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </NcDropdown>
+          </div>
+          <div v-if="column.key === 'dateAdded'">
+            <NcTooltip class="max-w-full">
+              <template #title>
+                {{ parseStringDateTime(member?.created_at) }}
+              </template>
+              <span>
+                {{ timeAgo(member?.created_at) }}
+              </span>
+            </NcTooltip>
+          </div>
+          <div v-if="column.key === 'lastActive'">
+            <NcTooltip class="max-w-full">
+              <template #title>
+                {{ parseStringDateTime(member?.created_at) }}
+              </template>
+              <span>
+                {{ timeAgo(member?.created_at) }}
+              </span>
+            </NcTooltip>
+          </div>
+
+          <div v-if="column.key === 'action'" class="flex justify-end" @click.stop>
+            <NcDropdown>
+              <NcButton size="small" type="secondary">
+                <component :is="iconMap.threeDotVertical" />
+              </NcButton>
+              <template #overlay>
+                <NcMenu>
+                  <NcMenuItem data-testid="nc-admin-org-user-assign-admin" @click="inviteUserToWorkspace(member.email)">
+                    <GeneralIcon class="text-gray-800" icon="send" />
+                    <span>{{ $t('activity.inviteToWorkspace') }}</span>
+                  </NcMenuItem>
+
+                  <!--                      <NcMenuItem data-testid="nc-admin-org-user-delete">
                         <GeneralIcon class="text-gray-800" icon="signout" />
                         <span>{{ $t('labels.signOutUser') }}</span>
                       </NcMenuItem>
@@ -235,14 +322,12 @@ watch(selected, () => {
                           {{ $t('labels.deactivateUser') }}
                         </div>
                       </NcMenuItem> -->
-                    </NcMenu>
-                  </template>
-                </NcDropdown>
-              </div>
-            </div>
+                </NcMenu>
+              </template>
+            </NcDropdown>
           </div>
-        </div>
-      </div>
+        </template>
+      </NcTable>
     </div>
   </div>
 </template>

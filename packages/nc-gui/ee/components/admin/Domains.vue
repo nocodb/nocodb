@@ -29,7 +29,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2" data-test-id="nc-org-domain">
+  <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2" data-test-id="nc-org-domain">
     <div class="flex font-bold text-base" data-rec="true">{{ $t('labels.domain') }}</div>
     <div class="">
       <h1 class="text-md text-gray-800">

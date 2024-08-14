@@ -47,10 +47,16 @@ onBeforeMount(() => {
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full max-w-[97.5rem] flex-col nc-workspace-integrations">
-    <div class="flex gap-2 items-center min-w-0 py-4 px-6">
-      <h1 class="text-base capitalize font-weight-bold tracking-[0.5px] mb-0 nc-workspace-title truncate min-w-10 capitalize">
-        <span class="text-gray-500"> {{ currentWorkspace?.title }} ></span> {{ $t('general.integrations') }}
-      </h1>
+    <div class="flex gap-2 items-center min-w-0 pt-2 px-2">
+      <div class="nc-breadcrumb">
+        <div class="nc-breadcrumb-item capitalize">
+          {{ currentWorkspace?.title }}
+        </div>
+        <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+        <h1 class="nc-breadcrumb-item active">
+          {{ $t('general.integrations') }}
+        </h1>
+      </div>
     </div>
 
     <NcTabs v-model:activeKey="activeViewTab">
@@ -60,7 +66,7 @@ onBeforeMount(() => {
       <template v-if="isUIAllowed('workspaceIntegrations')">
         <a-tab-pane key="integrations" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
+            <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
               <GeneralIcon icon="integration" />
               {{ $t('general.integrations') }}
             </div>
@@ -73,7 +79,7 @@ onBeforeMount(() => {
       <template v-if="isUIAllowed('workspaceIntegrations')">
         <a-tab-pane key="connections" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center pb-1 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
+            <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
               <GeneralIcon icon="gitCommit" />
               {{ $t('general.connections') }}
               <div

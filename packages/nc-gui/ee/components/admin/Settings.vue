@@ -122,7 +122,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col items-center" data-test-id="nc-admin-settings">
+  <div class="flex flex-col" data-test-id="nc-admin-settings">
     <GeneralImageCropper
       v-model:show-cropper="showImageCropper"
       :cropper-config="imageCropperData.cropperConfig"
@@ -130,67 +130,89 @@ onMounted(() => {
       :upload-config="imageCropperData.uploadConfig"
       @submit="handleOnUploadImage"
     ></GeneralImageCropper>
-    <div v-if="org" class="flex flex-col w-150">
-      <span class="font-bold text-xl" data-rec="true">
-        {{ $t('labels.settings') }}
-      </span>
-      <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6">
-        <div class="font-bold text-base" data-rec="true">
-          {{ $t('labels.organizationProfile') }}
-        </div>
-        <span class="text-gray-600 mt-2">
-          {{ $t('msg.controlOrgAppearance') }}
-        </span>
-        <a-divider class="text-gray-200" />
-        <span class="text-gray-800 mb-3 font-bold">
-          {{ $t('labels.organizationImage') }}
-        </span>
-        <div class="flex items-center mb-5 space-x-3">
-          <div class="border-1 bg-gray-100 border-gray-200 w-16 flex items-center justify-center h-16 rounded-xl">
-            <img
-              v-if="org.image"
-              :src="getOrgLogoSrc"
-              :srcset="getOrgLogoSrc"
-              alt="Organization Logo"
-              class="w-16 h-16 rounded-xl"
-            />
-            <component :is="iconMap.office" v-else class="w-8 !fill-gray-600 h-8" />
-          </div>
-          <NcButton data-testid="nc-admin-settings-org-icon-btn" size="small" type="secondary" @click="openUploadImage">
-            <div class="flex gap-2 items-center">
-              <span>
-                <component :is="iconMap.upload" class="w-4 h-4" />
-
-                {{ org.image ? $t('general.replace') : $t('general.upload') }}
-              </span>
-            </div>
-          </NcButton>
-
-          <NcButton
-            v-if="org.image"
-            data-testid="nc-admin-settings-org-icon-remove-btn"
-            size="small"
-            type="secondary"
-            @click="removeImage"
-          >
-            <div class="flex gap-2 items-center">
-              <component :is="iconMap.delete" class="w-4 h-4" />
-              {{ $t('general.remove') }}
-            </div>
-          </NcButton>
-        </div>
-        <span class="text-gray-800 mb-3 font-bold">
-          {{ $t('labels.organizationName') }}
-        </span>
-        <a-input ref="inputEl" v-model:value="form.title" class="w-96" placeholder="Acme Inc" />
-        <div class="flex justify-end mt-3">
-          <NcButton type="primary" @click="save">
-            {{ $t('general.save') }}
-          </NcButton>
-        </div>
+    <div class="nc-breadcrumb px-2">
+      <div class="nc-breadcrumb-item">
+        {{ org.title }}
       </div>
-      <!--
-      <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6">
+      <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+      <div class="nc-breadcrumb-item active">
+        {{ $t('labels.settings') }}
+      </div>
+    </div>
+    <NcPageHeader>
+      <template #icon>
+        <div class="flex justify-center items-center h-5 w-5">
+          <GeneralIcon icon="settings" class="flex-none text-[20px]" />
+        </div>
+      </template>
+      <template #title>
+        <span data-rec="true">
+          {{ $t('labels.settings') }}
+        </span>
+      </template>
+    </NcPageHeader>
+
+    <div
+      class="flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6 border-t-1 border-gray-200"
+    >
+      <div v-if="org" class="flex flex-col gap-6 w-150">
+        <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6">
+          <div class="font-bold text-base" data-rec="true">
+            {{ $t('labels.organizationProfile') }}
+          </div>
+          <span class="text-gray-600 mt-2">
+            {{ $t('msg.controlOrgAppearance') }}
+          </span>
+          <a-divider class="text-gray-200" />
+          <span class="text-gray-800 mb-3 font-bold">
+            {{ $t('labels.organizationImage') }}
+          </span>
+          <div class="flex items-center mb-5 space-x-3">
+            <div class="border-1 bg-gray-100 border-gray-200 w-16 flex items-center justify-center h-16 rounded-xl">
+              <img
+                v-if="org.image"
+                :src="getOrgLogoSrc"
+                :srcset="getOrgLogoSrc"
+                alt="Organization Logo"
+                class="w-16 h-16 rounded-xl"
+              />
+              <component :is="iconMap.office" v-else class="w-8 !fill-gray-600 h-8" />
+            </div>
+            <NcButton data-testid="nc-admin-settings-org-icon-btn" size="small" type="secondary" @click="openUploadImage">
+              <div class="flex gap-2 items-center">
+                <span>
+                  <component :is="iconMap.upload" class="w-4 h-4" />
+
+                  {{ org.image ? $t('general.replace') : $t('general.upload') }}
+                </span>
+              </div>
+            </NcButton>
+
+            <NcButton
+              v-if="org.image"
+              data-testid="nc-admin-settings-org-icon-remove-btn"
+              size="small"
+              type="secondary"
+              @click="removeImage"
+            >
+              <div class="flex gap-2 items-center">
+                <component :is="iconMap.delete" class="w-4 h-4" />
+                {{ $t('general.remove') }}
+              </div>
+            </NcButton>
+          </div>
+          <span class="text-gray-800 mb-3 font-bold">
+            {{ $t('labels.organizationName') }}
+          </span>
+          <a-input ref="inputEl" v-model:value="form.title" class="w-96" placeholder="Acme Inc" />
+          <div class="flex justify-end mt-3">
+            <NcButton type="primary" @click="save">
+              {{ $t('general.save') }}
+            </NcButton>
+          </div>
+        </div>
+        <!--
+      <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6">
         <div class="font-bold text-base" data-rec="true">
           {{ $t('labels.domains') }}
         </div>
@@ -216,7 +238,7 @@ onMounted(() => {
         </div>
       </div> -->
 
-      <!-- <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6">
+        <!-- <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6">
         <div class="font-bold text-base" data-rec="true">
           {{ $t('labels.shareSettings') }}
         </div>
@@ -235,7 +257,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6" data-test-id="nc-oidc-provider">
+      <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6" data-test-id="nc-oidc-provider">
         <div class="flex font-bold justify-between text-gray-900 text-base" data-rec="true">
           {{ $t('labels.userOptions') }}
         </div>
@@ -251,7 +273,7 @@ onMounted(() => {
         </div>
       </div> -->
 
-      <!--      <div class="mt-5 flex flex-col border-1 rounded-2xl border-red-500 p-6" data-test-id="nc-oidc-provider">
+        <!--      <div class="flex flex-col border-1 rounded-2xl border-red-500 p-6" data-test-id="nc-oidc-provider">
         <div class="flex font-bold justify-between text-red-500 text-base" data-rec="true">
           {{ $t('labels.dangerZone') }}
         </div>
@@ -266,6 +288,7 @@ onMounted(() => {
           </span>
         </div>
       </div> -->
+      </div>
     </div>
   </div>
 </template>

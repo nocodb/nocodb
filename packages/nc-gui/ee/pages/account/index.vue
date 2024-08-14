@@ -30,10 +30,10 @@ const logout = async () => {
   <div>
     <NuxtLayout name="empty">
       <div class="mx-auto h-full">
-        <div class="h-full overflow-y-auto flex">
+        <div class="h-full flex">
           <!-- Side tabs -->
 
-          <div class="h-full bg-white nc-user-sidebar">
+          <div class="h-full bg-white nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
             <NcMenu
               v-model:openKeys="openKeys"
               v-model:selectedKeys="selectedKeys"
@@ -41,20 +41,23 @@ const logout = async () => {
               class="tabs-menu h-full"
               mode="inline"
             >
-              <div
+              <NcButton
                 v-if="!$route.params.baseType"
                 v-e="['c:navbar:home']"
-                class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"
+                type="text"
+                size="small"
+                class="transition-all duration-200 mx-2 my-2.5 cursor-pointer transform hover:bg-gray-100 nc-noco-brand-icon"
                 data-testid="nc-noco-brand-icon"
                 @click="navigateTo('/')"
               >
-                <div class="flex flex-row gap-x-2 items-center h-8.5">
-                  <GeneralIcon class="-mt-0.1" icon="arrowLeft" />
-                  <div class="flex text-xs text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
+                <div class="flex flex-row gap-x-2 items-center">
+                  <GeneralIcon icon="ncArrowLeft" />
+                  <div class="flex text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</div>
                 </div>
-              </div>
+              </NcButton>
+              <NcDivider class="!mt-0" />
 
-              <div class="text-xs text-gray-600 ml-4 py-1.5 mt-3">{{ $t('labels.account') }}</div>
+              <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
 
               <NcMenuItem
                 key="profile"
@@ -127,7 +130,7 @@ const logout = async () => {
                 <template #title>{{ $t('objects.users') }}</template>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement')"
+                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
                   key="list"
                   :class="{
                     active: $route.params.nestedPage === 'list',
@@ -148,7 +151,7 @@ const logout = async () => {
                   <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
                 </NcMenuItem>
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings')"
+                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI"
                   key="settings"
                   :class="{
                     active: $route.params.nestedPage === 'settings',
@@ -164,9 +167,11 @@ const logout = async () => {
 
           <!-- Sub Tabs -->
 
-          <div class="flex flex-col w-full">
-            <div class="flex flex-row p-3 items-center h-14">
-              <div class="flex-1" />
+          <div class="h-full flex-1 flex flex-col overflow-y-auto nc-scrollbar-thin">
+            <div class="flex flex-row pt-2 px-2 items-center">
+              <div class="flex-1">
+                <LazyAccountBreadcrumb />
+              </div>
 
               <LazyGeneralReleaseInfo />
 
@@ -209,9 +214,9 @@ const logout = async () => {
               :style="{
                 height: 'calc(100vh - 3.5rem)',
               }"
-              class="flex flex-col container mx-auto"
+              class="flex flex-col w-full max-w-[97.5rem]"
             >
-              <div class="mt-2 h-full">
+              <div class="h-full">
                 <NuxtPage />
               </div>
             </div>
@@ -240,13 +245,15 @@ const logout = async () => {
   @apply !text-inherit;
 }
 
-:deep(.item) {
-  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
-  width: calc(100% - 1rem);
-}
+.tabs-menu {
+  :deep(.item) {
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+    width: calc(100% - 1rem);
+  }
 
-:deep(.active) {
-  @apply !bg-brand-50 !text-brand-500;
+  :deep(.active) {
+    @apply !bg-brand-50 !text-brand-500;
+  }
 }
 
 :deep(.ant-menu-submenu-title) {

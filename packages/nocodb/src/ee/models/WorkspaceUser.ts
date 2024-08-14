@@ -22,6 +22,7 @@ export default class WorkspaceUser {
   order?: number;
   deleted?: boolean;
   deleted_at?: string;
+  invited_by?: string;
 
   constructor(data: WorkspaceUser) {
     Object.assign(this, data);
@@ -74,6 +75,7 @@ export default class WorkspaceUser {
           created_at: workspaceUser.created_at,
           updated_at: workspaceUser.updated_at,
           order: workspaceUser.order ?? order,
+          invited_by: workspaceUser.invited_by,
         },
         true,
       );

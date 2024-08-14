@@ -3,7 +3,7 @@ import { BasesService as BasesServiceCE } from 'src/services/bases.service';
 import { Injectable } from '@nestjs/common';
 import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
-import {AppEvents, IntegrationsType} from 'nocodb-sdk';
+import { AppEvents, IntegrationsType } from 'nocodb-sdk';
 import type { ProjectReqType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { populateMeta, validatePayload } from '~/helpers';
@@ -12,7 +12,8 @@ import syncMigration from '~/helpers/syncMigration';
 import {
   Base,
   BaseUser,
-  DashboardProjectDBProject, Integration,
+  DashboardProjectDBProject,
+  Integration,
   Workspace,
   WorkspaceUser,
 } from '~/models';

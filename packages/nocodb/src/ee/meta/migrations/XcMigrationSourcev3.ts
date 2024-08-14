@@ -24,6 +24,7 @@ import * as nc_023_tenant_isolation from './v3/nc_023_tenant_isolation';
 import * as nc_024_junction_pk from './v3/nc_024_junction_pk';
 import * as nc_025_integration from './v3/nc_025_integration';
 import * as nc_026_button_column from './v3/nc_026_button_column';
+import * as nc_027_invited_by from './v3/nc_027_invited_by';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -59,6 +60,7 @@ export default class XcMigrationSourcev3 {
       'nc_024_junction_pk',
       'nc_025_integration',
       'nc_026_button_column',
+      'nc_027_invited_by',
     ]);
   }
 
@@ -120,6 +122,8 @@ export default class XcMigrationSourcev3 {
         return nc_025_integration;
       case 'nc_026_button_column':
         return nc_026_button_column;
+      case 'nc_027_invited_by':
+        return nc_027_invited_by;
     }
   }
 }

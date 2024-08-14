@@ -120,7 +120,7 @@ onMounted(() => {
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
-      <template v-if="isUIAllowed('workspaceSettings')">
+      <template v-if="isUIAllowed('workspaceCollaborators')">
         <a-tab-pane key="collaborators" class="w-full">
           <template #tab>
             <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5">

@@ -81,7 +81,7 @@ export class IntegrationsService {
     type?: IntegrationsType;
     limit?: number;
     offset?: number;
-    query?: string
+    query?: string;
   }) {
     // const haveWorkspaceLevelPermission = Object.keys(
     //   param.req.user.workspace_roles,
@@ -101,7 +101,7 @@ export class IntegrationsService {
       limit: param.limit,
       offset: param.offset,
       includeSourceCount: true,
-      query: param.query
+      query: param.query,
     });
 
     return integrations;

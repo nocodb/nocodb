@@ -108,7 +108,9 @@ const rolePermissions = {
     include: {},
   },
   [WorkspaceUserRoles.VIEWER]: {
-    include: {},
+    include: {
+      workspaceCollaborators: true,
+    },
   },
   [WorkspaceUserRoles.NO_ACCESS]: {
     include: {},
@@ -136,7 +138,6 @@ const rolePermissions = {
       jsonImport: true,
       excelImport: true,
       settingsPage: true,
-      newUser: true,
       webhook: true,
       fieldEdit: true,
       fieldAlter: true,
@@ -182,6 +183,7 @@ const rolePermissions = {
       commentList: true,
       commentCount: true,
       auditListRow: true,
+      newUser: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

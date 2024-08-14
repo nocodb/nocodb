@@ -75,10 +75,12 @@ export class WorkspaceUsersController {
   async delete(
     @Param('workspaceId') workspaceId: string,
     @Param('workspaceUserId') workspaceUserId: string,
+    @Req() req: NcRequest,
   ) {
     return await this.workspaceUsersService.delete({
       workspaceId,
       userId: workspaceUserId,
+      req,
     });
   }
 

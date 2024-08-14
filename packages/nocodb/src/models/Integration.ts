@@ -2,7 +2,6 @@ import CryptoJS from 'crypto-js';
 import type { IntegrationsType, SourceType } from 'nocodb-sdk';
 import type { BoolType, IntegrationType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type { Condition } from '~/db/CustomKnex';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';

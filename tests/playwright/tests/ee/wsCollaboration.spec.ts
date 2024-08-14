@@ -71,13 +71,10 @@ test.describe('Collaborators', () => {
     await dashboard.rootPage.waitForTimeout(1000);
 
     if (user.role.toLowerCase() === 'creator') {
-      await expect(dashboard.leftSidebar.btn_teamAndSettings).toBeVisible();
       await expect(dashboard.leftSidebar.btn_newProject).toBeVisible();
-
       await dashboard.leftSidebar.clickTeamAndSettings();
       await workspacePage.verifyAccess(user.role.toLowerCase());
     } else {
-      await expect(dashboard.leftSidebar.btn_teamAndSettings).toBeVisible({ visible: false });
       await expect(dashboard.leftSidebar.btn_newProject).toBeVisible({ visible: false });
     }
 
@@ -156,7 +153,7 @@ test.describe('Collaborators', () => {
     });
 
     await dashboard.sidebar.verifyQuickActions({ isVisible: true });
-    await dashboard.sidebar.verifyTeamAndSettings({ isVisible: false });
+    await dashboard.sidebar.verifyTeamAndSettings({ isVisible: true });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
 
     await dashboard.sidebar.tableNode.verifyTableOptions({
@@ -185,7 +182,7 @@ test.describe('Collaborators', () => {
     });
 
     await dashboard.sidebar.verifyQuickActions({ isVisible: true });
-    await dashboard.sidebar.verifyTeamAndSettings({ isVisible: false });
+    await dashboard.sidebar.verifyTeamAndSettings({ isVisible: true });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
 
     await dashboard.sidebar.tableNode.verifyTableOptions({
@@ -214,7 +211,7 @@ test.describe('Collaborators', () => {
     });
 
     await dashboard.sidebar.verifyQuickActions({ isVisible: true });
-    await dashboard.sidebar.verifyTeamAndSettings({ isVisible: false });
+    await dashboard.sidebar.verifyTeamAndSettings({ isVisible: true });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
 
     await dashboard.sidebar.tableNode.verifyTableOptions({

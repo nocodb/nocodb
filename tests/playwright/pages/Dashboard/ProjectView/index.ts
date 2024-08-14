@@ -55,9 +55,9 @@ export class ProjectViewPage extends BasePage {
 
     if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {
       await this.tab_accessSettings.waitFor({ state: 'visible' });
-      expect(await this.tab_accessSettings.isVisible()).toBeTruthy();
+      expect(await this.tab_dataSources.isVisible()).toBeTruthy();
     } else {
-      expect(await this.tab_accessSettings.isVisible()).toBeFalsy();
+      expect(await this.tab_dataSources.isVisible()).toBeFalsy();
     }
 
     await this.tables.verifyAccess(role);

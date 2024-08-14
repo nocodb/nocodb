@@ -207,11 +207,8 @@ export default class BaseUser extends BaseUserCE {
 
     const fullVersionCols = [
       'invite_token',
-      'main_roles',
       'created_at',
       'base_id',
-      'roles',
-      'workspace_roles',
       'workspace_id',
       'deleted',
     ];

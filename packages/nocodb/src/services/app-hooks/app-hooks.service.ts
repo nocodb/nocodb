@@ -37,7 +37,6 @@ import type {
   ViewColumnEvent,
   ViewEvent,
   WebhookEvent,
-  WebhookTriggerEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
 import type { IntegrationEvent } from '~/services/app-hooks/interfaces';

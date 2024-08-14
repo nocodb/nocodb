@@ -129,7 +129,7 @@ export class IntegrationsController {
       // if limit/offset is not provided, then return all integrations
       limit: limit && (+limit || 25),
       offset: offset && (+offset || 0),
-      query
+      query,
     });
 
     if (!includeDatabaseInfo) {

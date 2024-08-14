@@ -28,7 +28,6 @@ import { UsersService } from '~/services/users/users.service';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 import Noco from '~/Noco';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
-import { RootScopes } from '~/utils/globals';
 
 @Injectable()
 export class WorkspaceUsersService {
@@ -78,7 +77,33 @@ export class WorkspaceUsersService {
     );
 
     if (!workspaceUser)
-      NcError.notFound('User is not a member of this workspace');
+      NcError.userNotFound('User is not a member of this workspace');
+
+    const isOrgOwner = extractRolesObj(
+      (param.req.user as any).org_roles as any,
+    )?.[CloudOrgUserRoles.OWNER];
+
+    // check current user have permission to update user by checking role power
+    if (
+      !isOrgOwner &&
+      getWorkspaceRolePower({
+        workspace_roles: extractRolesObj(workspaceUser.roles),
+      }) > getWorkspaceRolePower(param.req.user)
+    ) {
+      NcError.badRequest(`Insufficient privilege to update user`);
+    }
+
+    // check user have update role to target role by checking role power
+    if (
+      !isOrgOwner &&
+      getWorkspaceRolePower({
+        workspace_roles: extractRolesObj(param.roles),
+      }) > getWorkspaceRolePower(param.req.user)
+    ) {
+      NcError.badRequest(
+        `Insufficient privilege to update user with this role`,
+      );
+    }
 
     const user = await User.get(param.userId);
 
@@ -87,9 +112,6 @@ export class WorkspaceUsersService {
     const workspace = await Workspace.get(param.workspaceId);
 
     if (!workspace) NcError.workspaceNotFound(param.workspaceId);
-
-    if (workspaceUser.roles === WorkspaceUserRoles.OWNER)
-      NcError.badRequest('Owner cannot be updated');
 
     if (
       ![
@@ -104,52 +126,15 @@ export class WorkspaceUsersService {
       NcError.badRequest('Invalid role');
     }
 
-    const targetUser = await User.getWithRoles(
-      {
-        workspace_id: RootScopes.WORKSPACE,
-        base_id: RootScopes.WORKSPACE,
-      },
-      user.id,
-      {
-        user,
-        workspaceId: workspace.id,
-      },
-    );
-
-    if (!targetUser) {
-      NcError.userNotFound(param.userId);
-    }
-
-    const isOrgOwner = extractRolesObj(
-      (param.req.user as any).org_roles as any,
-    )?.[CloudOrgUserRoles.OWNER];
-
-    if (!isOrgOwner) {
-      if (
-        getWorkspaceRolePower(targetUser) >=
-        getWorkspaceRolePower(param.req.user)
-      ) {
-        NcError.badRequest(`Insufficient privilege to update user`);
-      }
-    }
-
-    if (param.roles === WorkspaceUserRoles.OWNER) {
-      const wsOwner = await WorkspaceUser.userList({
+    // if old role is owner and there is only one owner then restrict to update
+    if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
+      const wsOwners = await WorkspaceUser.userList({
         fk_workspace_id: workspace.id,
         roles: WorkspaceUserRoles.OWNER,
       });
 
-      if (
-        isOrgOwner ||
-        (wsOwner.length === 1 &&
-          wsOwner[0].id === user.id &&
-          extractRolesObj(user.roles)?.[WorkspaceUserRoles.OWNER])
-      ) {
-        await WorkspaceUser.update(workspace.id, wsOwner[0].id, {
-          roles: WorkspaceUserRoles.CREATOR,
-        });
-      } else {
-        NcError.badRequest('Only owner or orgAdmin can transfer workspace ');
+      if (wsOwners.length === 1) {
+        NcError.badRequest('At least one owner should be there');
       }
     }
 
@@ -175,7 +160,7 @@ export class WorkspaceUsersService {
     return workspaceUser;
   }
 
-  async delete(param: { workspaceId: string; userId: string }) {
+  async delete(param: { workspaceId: string; userId: string; req: NcRequest }) {
     const { workspaceId, userId } = param;
 
     const ncMeta = await Noco.ncMeta.startTransaction();
@@ -185,8 +170,34 @@ export class WorkspaceUsersService {
 
       if (!user) NcError.userNotFound(userId);
 
-      if (user.roles === WorkspaceUserRoles.OWNER)
-        NcError.badRequest('Owner cannot be deleted');
+      if (user.roles === WorkspaceUserRoles.OWNER) {
+        if (user.fk_user_id === param.req.user.id)
+          NcError.badRequest('Owner user cannot be deleted themselves');
+
+        // current user should have owner role to delete owner
+        if (
+          !extractRolesObj(param.req.user.workspace_roles)?.[
+            WorkspaceUserRoles.OWNER
+          ]
+        ) {
+          NcError.badRequest('Insufficient privilege to delete owner');
+        }
+
+        // at least one owner should be there after deletion
+        const owners = await WorkspaceUser.userList({
+          fk_workspace_id: workspaceId,
+          roles: WorkspaceUserRoles.OWNER,
+        });
+
+        if (owners.length === 1) {
+          NcError.badRequest('At least one owner should be there');
+        }
+      }
+
+      // for other user delete user should have higher role
+      if (getWorkspaceRolePower(user) > getWorkspaceRolePower(param.req.user)) {
+        NcError.badRequest(`Insufficient privilege to delete user`);
+      }
 
       // get all bases user is part of and delete them
       const workspaceBases = await Base.listByWorkspace(workspaceId, ncMeta);
@@ -322,6 +333,7 @@ export class WorkspaceUsersService {
         fk_workspace_id: workspaceId,
         fk_user_id: user.id,
         roles: roles || WorkspaceUserRoles.VIEWER,
+        invited_by: param.req?.user?.id,
       });
       if (!param.skipEmailInvite) {
         this.sendInviteEmail({

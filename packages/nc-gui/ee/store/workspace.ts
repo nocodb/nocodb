@@ -40,6 +40,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const { loadRoles, isUIAllowed } = useRoles()
 
+  const { user: currentUser } = useGlobal()
+
   const collaborators = ref<WorkspaceUserType[] | null>()
 
   const allCollaborators = ref<WorkspaceUserType[] | null>()
@@ -256,40 +258,57 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   // remove user from workspace
   const removeCollaborator = async (userId: string, workspaceId?: string) => {
-    if (!workspaceId && !activeWorkspace.value?.id) {
-      throw new Error('Workspace not selected')
+    try {
+      if (!workspaceId && !activeWorkspace.value?.id) {
+        throw new Error('Workspace not selected')
+      }
+
+      await $api.workspaceUser.delete(workspaceId ?? activeWorkspace.value.id!, userId, {
+        baseURL: appInfo.value.baseHostName
+          ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
+          : undefined,
+      })
+
+      $e('a:workspace:settings:remove-user')
+
+      await loadCollaborators({} as any, workspaceId)
+      basesStore.clearBasesUser()
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
     }
-
-    await $api.workspaceUser.delete(workspaceId ?? activeWorkspace.value.id!, userId, {
-      baseURL: appInfo.value.baseHostName
-        ? `https://${workspaceId ?? activeWorkspace.value.id!}.${appInfo.value.baseHostName}`
-        : undefined,
-    })
-
-    $e('a:workspace:settings:remove-user')
-
-    await loadCollaborators({} as any, workspaceId)
-    basesStore.clearBasesUser()
   }
 
   // update existing collaborator role
   const updateCollaborator = async (userId: string, roles: WorkspaceUserRoles, workspaceId?: string) => {
-    if (!workspaceId && !activeWorkspace.value?.id) {
-      throw new Error('Workspace not selected')
-    }
+    try {
+      if (!workspaceId && !activeWorkspace.value?.id) {
+        throw new Error('Workspace not selected')
+      }
 
-    await $api.workspaceUser.update(
-      workspaceId,
-      userId,
-      {
-        roles,
-      },
-      {
-        baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.value.baseHostName}` : undefined,
-      },
-    )
-    await loadCollaborators({} as any, workspaceId)
-    basesStore.clearBasesUser()
+      await $api.workspaceUser.update(
+        workspaceId,
+        userId,
+        {
+          roles,
+        },
+        {
+          baseURL: appInfo.value.baseHostName ? `https://${activeWorkspace.value.id!}.${appInfo.value.baseHostName}` : undefined,
+        },
+      )
+
+      // reload roles if updating roles of current user
+      if (userId === currentUser.value?.id) {
+        loadRoles(undefined, {}, workspaceId).catch(() => {
+          // ignore
+        })
+      }
+
+      await loadCollaborators({} as any, workspaceId)
+      basesStore.clearBasesUser()
+      return true
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
 
   const loadWorkspace = async (workspaceId: string) => {
@@ -301,6 +320,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       workspaces.value.set(res.workspace.id!, res.workspace)
 
       workspaceUserCount.value = Number(res.workspaceUserCount)
+      return res
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
       navigateTo('/')

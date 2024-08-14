@@ -89,12 +89,19 @@ const handleSelectOption = (option: ListItem) => {
   }
 }
 
+let scrollTimerId: any
+
 const handleAutoScrollOption = () => {
+  if (scrollTimerId) {
+    clearTimeout(scrollTimerId)
+  }
+
   const option = document.querySelector('.nc-list-option-active')
 
   if (option) {
-    setTimeout(() => {
+    scrollTimerId = setTimeout(() => {
       option?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      clearTimeout(scrollTimerId)
     }, 50)
   }
 }
@@ -148,6 +155,10 @@ watch(
 
     if (vModel.value) {
       activeOptionIndex.value = list.value.findIndex((o) => o?.[optionValueKey] === vModel.value)
+      
+      nextTick(() => {
+        handleAutoScrollOption()
+      })
     } else {
       activeOptionIndex.value = -1
     }
@@ -187,12 +198,12 @@ watch(
       ></a-input>
     </div>
     <slot name="header"></slot>
-    <div class="nc-list-wrapper flex-col w-full max-h-100 nc-scrollbar-thin !overflow-y-auto px-2 pb-2">
+    <div class="nc-list-wrapper flex-col w-full max-h-[247px] nc-scrollbar-thin !overflow-y-auto px-2 pb-2">
       <template v-if="list.length">
         <div
           v-for="(option, idx) of list"
           :key="idx"
-          class="flex items-center gap-2 w-full py-[5px] px-2 hover:bg-gray-100 cursor-pointer rounded-md"
+          class="flex items-center gap-2 w-full py-2 px-2 hover:bg-gray-100 cursor-pointer rounded-md"
           :class="[
             `nc-list-option-${idx}`,
             {

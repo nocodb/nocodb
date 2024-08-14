@@ -251,20 +251,10 @@ const columns = [
 const customRow = (record: Record<string, any>) => ({
   class: `${selected[record.id] ? 'selected' : ''} user-row`,
 })
-
-watchEffect(()=>{
-  console.log('base', currentBase.value)
-})
 </script>
 
 <template>
-  <div
-    :class="{
-      'px-0': isAdminPanel,
-      'px-1 pt-6': !isAdminPanel,
-    }"
-    class="nc-collaborator-table-container nc-access-settings-view h-[calc(100vh-8rem)] flex flex-col"
-  >
+  <div class="nc-collaborator-table-container nc-access-settings-view h-[calc(100vh-8rem)] flex flex-col">
     <div v-if="isAdminPanel">
       <div class="nc-breadcrumb px-2">
         <div class="nc-breadcrumb-item">
@@ -298,7 +288,12 @@ watchEffect(()=>{
       </NcPageHeader>
     </div>
 
-    <div class="flex flex-col items-center gap-6 p-6 border-t-1 border-gray-200">
+    <div
+      class="flex flex-col items-center gap-6 p-6"
+      :class="{
+        'border-t-1 border-gray-200': isAdminPanel,
+      }"
+    >
       <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-350 gap-3">
         <a-input
           v-model:value="userSearchText"
@@ -416,8 +411,8 @@ watchEffect(()=>{
   @apply !rounded;
 }
 
-.nc-page-header-icon{
-  :deep(svg){
+.nc-page-header-icon {
+  :deep(svg) {
     @apply h-4.5 w-4.5;
   }
 }

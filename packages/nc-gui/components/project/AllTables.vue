@@ -111,9 +111,9 @@ const onCreateBaseClick = () => {
 </script>
 
 <template>
-  <div class="nc-all-tables-view">
+  <div class="nc-all-tables-view p-6">
     <div
-      class="flex flex-row gap-x-6 pt-6 pb-2 overflow-x-auto nc-scrollbar-thin"
+      class="flex flex-row gap-x-6 pb-2 overflow-x-auto nc-scrollbar-thin"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"

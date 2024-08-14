@@ -145,7 +145,13 @@ const onRenameMenuClick = () => {
   }
 }
 
-const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+const focusInput: VNodeRef = (el) => {
+  const input = el as HTMLInputElement
+  input?.focus()
+  input?.select()
+
+  return el
+}
 
 /** Rename a view */
 async function onRename() {

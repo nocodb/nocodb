@@ -34,7 +34,10 @@ export const useConfigStore = defineStore('configStore', () => {
       globalIsMobile.value = isMobileMode.value
 
       // Change --topbar-height css variable
-      document.documentElement.style.setProperty('--topbar-height', isMobileMode.value ? '3.875rem' : activeView.value?.type === ViewTypes.FORM ? '3.25rem': '2.75rem')
+      document.documentElement.style.setProperty(
+        '--topbar-height',
+        isMobileMode.value ? '3.875rem' : activeView.value?.type === ViewTypes.FORM ? '3.25rem' : '2.75rem',
+      )
 
       // Set .mobile-mode class on body
       if (isMobileMode.value) {

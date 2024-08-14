@@ -9,12 +9,12 @@ interface BreadcrumbType {
 const { t } = useI18n()
 
 const breadcrumb = computed<BreadcrumbType[]>(() => {
-  let payload: BreadcrumbType[] = [
+  const payload: BreadcrumbType[] = [
     {
       title: 'Account',
     },
   ]
-  
+
   switch (route.params.page) {
     case 'profile': {
       payload.push({

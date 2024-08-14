@@ -21,7 +21,7 @@ const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
   <div
     class="nc-table-topbar h-11 pt-3 flex gap-3 items-center overflow-hidden relative max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1 py-3 border-b-1 border-gray-200)"
     :class="{
-      'pb-2 border-b-1 border-gray-200': isForm
+      'pb-2 border-b-1 border-gray-200': isForm,
     }"
     style="z-index: 7"
   >

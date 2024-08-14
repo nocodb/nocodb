@@ -265,7 +265,7 @@ const customRow = (record: Record<string, any>) => ({
         <div class="nc-breadcrumb-item">
           {{ org.title }}
         </div>
-        <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider"/>
+        <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider" />
         <NuxtLink
           :href="`/admin/${orgId}/bases`"
           class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent ml-0.75 max-w-1/4"
@@ -274,7 +274,7 @@ const customRow = (record: Record<string, any>) => ({
             {{ $t('objects.projects') }}
           </div>
         </NuxtLink>
-        <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider"/>
+        <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider" />
         <div class="nc-breadcrumb-item active truncate capitalize">
           {{ currentBase?.title }}
         </div>

@@ -175,18 +175,7 @@ const onDelete = async () => {
     <template v-if="!view?.is_default && isUIAllowed('viewCreateOrEdit')">
       <NcDivider />
       <template v-if="inSidebar">
-       
-      <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
-        <GeneralIcon icon="rename" />
-        {{
-          $t('general.renameEntity', {
-            entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
-          })
-        }}
-      </NcMenuItem>
-      <NcTooltip v-else>
-        <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
-        <NcMenuItem class="!cursor-not-allowed !text-gray-400">
+        <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
           <GeneralIcon icon="rename" />
           {{
             $t('general.renameEntity', {
@@ -194,8 +183,19 @@ const onDelete = async () => {
             })
           }}
         </NcMenuItem>
-      </NcTooltip>
-    </template>
+        <NcTooltip v-else>
+          <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
+          <NcMenuItem class="!cursor-not-allowed !text-gray-400">
+            <GeneralIcon icon="rename" />
+            {{
+              $t('general.renameEntity', {
+                entity:
+                  view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
+              })
+            }}
+          </NcMenuItem>
+        </NcTooltip>
+      </template>
       <NcMenuItem @click="onDuplicate">
         <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
         {{

@@ -70,6 +70,5 @@ const onClickDetails = () => {
   @apply bg-white text-brand-600 hover:text-brand-600;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
-
 }
 </style>

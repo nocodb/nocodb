@@ -63,8 +63,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
           </div>
         </template>
       </SmartsheetTopbarProjectListDropdown>
-      <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider"/>
-
+      <GeneralIcon icon="ncSlash" class="nc-breadcrumb-divider" />
     </template>
     <template v-if="!(isMobileMode && !activeView?.is_default)">
       <SmartsheetTopbarTableListDropdown v-if="activeTable">
@@ -115,7 +114,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       </SmartsheetTopbarTableListDropdown>
     </template>
 
-    <GeneralIcon v-if="!isMobileMode" icon="ncSlash" class="nc-breadcrumb-divider"/>
+    <GeneralIcon v-if="!isMobileMode" icon="ncSlash" class="nc-breadcrumb-divider" />
 
     <template v-if="!(isMobileMode && activeView?.is_default)">
       <!-- <SmartsheetToolbarOpenedViewAction /> -->

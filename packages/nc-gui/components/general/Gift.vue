@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const { appInfo, giftBannerDismissedCount, user } = useGlobal()
 
 const { $e } = useNuxtApp()

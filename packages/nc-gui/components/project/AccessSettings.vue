@@ -102,10 +102,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
   const currentCollaborator = collaborators.value.find((coll) => coll.id === collab.id)!
 
   try {
-    if (
-      !roles ||
-      (roles === ProjectRoles.NO_ACCESS && !isEeUI)
-    ) {
+    if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
       await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
       if (
         currentCollaborator.workspace_roles &&

@@ -4,7 +4,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
-import { isPreviewAllowed, getPathFromUrl } from '~/helpers/attachmentHelpers';
+import { getPathFromUrl, isPreviewAllowed } from '~/helpers/attachmentHelpers';
 
 function roundExpiry(date) {
   const msInHour = 10 * 60 * 1000;

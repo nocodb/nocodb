@@ -7,6 +7,10 @@ import { isString } from '@vue/shared'
 export const useBases = defineStore('basesStore', () => {
   const { $api } = useNuxtApp()
 
+  const { user: currentUser } = useGlobal()
+
+  const { loadRoles } = useRoles()
+
   const { isUIAllowed } = useRoles()
 
   const bases = ref<Map<string, NcProject>>(new Map())
@@ -89,6 +93,13 @@ export const useBases = defineStore('basesStore', () => {
 
   const updateProjectUser = async (baseId: string, user: User) => {
     await api.auth.baseUserUpdate(baseId, user.id, user as ProjectUserReqType)
+
+    // reload roles if updating roles of current user
+    if (user.id === currentUser.value?.id) {
+      loadRoles(baseId).catch(() => {
+        // ignore
+      })
+    }
   }
 
   const removeProjectUser = async (baseId: string, user: User) => {

@@ -45,7 +45,7 @@ export class BaseUsersService {
   async userInvite(
     context: NcContext,
     param: {
-      baseId: string
+      baseId: string;
       baseUser: ProjectUserReqType;
       req: NcRequest;
     },
@@ -304,7 +304,6 @@ export class BaseUsersService {
         NcError.forbidden(
           'Insufficient privilege to delete a super admin user.',
         );
-
     }
 
     // check if user have access to delete user based on role power

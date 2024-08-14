@@ -3,7 +3,7 @@ const { isUIAllowed } = useRoles()
 </script>
 
 <template>
-  <div class="h-full overflow-y-auto scrollbar-thin-dull pt-2">
+  <div class="h-full">
     <template
       v-if="
         $route.params.nestedPage === 'password-reset' ||

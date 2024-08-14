@@ -112,14 +112,14 @@ watch(
   <div class="h-full nc-base-view">
     <div
       v-if="!isAdminPanel"
-      class="flex flex-row pl-2 pr-2 gap-1 border-b-1 border-gray-200 justify-between w-full"
+      class="flex flex-row px-2 py-2 gap-1 justify-between w-full border-b-1 border-gray-200"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
       <div class="flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
-        <div class="flex flex-row items-center h-full gap-x-2.5">
+        <div class="flex flex-row items-center h-full gap-x-2 px-2">
           <GeneralProjectIcon :color="parseProp(currentBase?.meta).iconColor" :type="currentBase?.type" />
-          <NcTooltip class="flex font-medium text-sm capitalize truncate max-w-150" show-on-truncate-only>
+          <NcTooltip class="flex font-bold text-sm capitalize truncate max-w-150 text-gray-800" show-on-truncate-only>
             <template #title> {{ currentBase?.title }}</template>
             <span class="truncate">
               {{ currentBase?.title }}
@@ -130,12 +130,15 @@ watch(
       <LazyGeneralShareProject />
     </div>
     <div
-      class="flex mx-12 my-8 nc-base-view-tab"
+      class="flex nc-base-view-tab container"
       :style="{
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
       <a-tabs v-model:activeKey="projectPageTab" class="w-full">
+        <template #leftExtra>
+          <div class="w-3"></div>
+        </template>
         <a-tab-pane v-if="!isAdminPanel" key="allTable">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__all-tables">
@@ -193,11 +196,7 @@ watch(
               </div>
             </div>
           </template>
-          <DashboardSettingsDataSources
-            v-model:state="baseSettingsState"
-            :base-id="base.id"
-            class="max-h-[calc(100%_-_36px)] pt-3"
-          />
+          <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
       </a-tabs>
     </div>
@@ -213,7 +212,10 @@ watch(
 }
 
 .tab-title {
-  @apply flex flex-row items-center gap-x-2 px-2;
+  @apply flex flex-row items-center gap-x-2 px-2 py-[1px];
+}
+:deep(.ant-tabs-tab) {
+  @apply pt-2 pb-3;
 }
 :deep(.ant-tabs-tab .tab-title) {
   @apply text-gray-500;

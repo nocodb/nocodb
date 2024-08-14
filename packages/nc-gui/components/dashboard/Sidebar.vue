@@ -56,7 +56,7 @@ onUnmounted(() => {
     >
       <DashboardTreeView v-if="!isWorkspaceLoading" />
     </div>
-    <div v-if="!isSharedBase" class="overflow-auto">
+    <div v-if="!isSharedBase" class="flex-none overflow-auto">
       <GeneralGift v-if="!isEeUI" />
       <div class="border-t-1 w-full"></div>
       <DashboardSidebarBeforeUserInfo />

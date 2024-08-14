@@ -94,7 +94,7 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
   expandedFormRowState.value = state
   if (rowId && !isPublic.value) {
     expandedFormRow.value = undefined
-    
+
     router.push({
       query: {
         ...routeQuery.value,

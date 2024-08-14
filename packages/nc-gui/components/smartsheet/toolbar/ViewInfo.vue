@@ -69,7 +69,7 @@ const openedBaseUrl = computed(() => {
           </div>
         </NcTooltip>
       </NuxtLink>
-      <div class="px-1.75 text-gray-500">></div>
+      <div class="nc-topbar-breadcrum-divider">/</div>
     </template>
     <template v-if="!(isMobileMode && !activeView?.is_default)">
       <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeTable?.meta?.icon" readonly size="xsmall">
@@ -122,7 +122,7 @@ const openedBaseUrl = computed(() => {
       </div>
     </template>
 
-    <div v-if="!isMobileMode" class="pl-1.25 text-gray-500">></div>
+    <div v-if="!isMobileMode" class="nc-topbar-breadcrum-divider">/</div>
 
     <template v-if="!(isMobileMode && activeView?.is_default)">
       <LazyGeneralEmojiPicker v-if="isMobileMode" :emoji="activeView?.meta?.icon" readonly size="xsmall">
@@ -135,3 +135,9 @@ const openedBaseUrl = computed(() => {
     </template>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-topbar-breadcrum-divider {
+  @apply w-4 flex-none flex justify-center text-gray-500;
+}
+</style>

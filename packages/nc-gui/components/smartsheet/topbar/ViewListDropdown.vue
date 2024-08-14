@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { ViewTypes, type ViewType } from 'nocodb-sdk'
 
+const { t } = useI18n()
+
 const { base } = storeToRefs(useBase())
 
 const { activeTable } = storeToRefs(useTablesStore())
@@ -12,10 +14,10 @@ const isOpen = ref<boolean>(false)
 
 /**
  * Handles navigation to a selected view.
- * 
+ *
  * @param {ViewType} view - The view to navigate to.
  * @returns {Promise<void>}
- * 
+ *
  * @description
  * This function is called when a user selects a view from the dropdown list.
  * It checks if the view has a valid ID and then navigates to the selected view.
@@ -23,7 +25,7 @@ const isOpen = ref<boolean>(false)
  */
 const handleNavigateToView = async (view: ViewType) => {
   if (!view?.id) return
-  
+
   await viewsStore.navigateToView({
     view,
     tableId: activeTable.value.id!,
@@ -31,6 +33,26 @@ const handleNavigateToView = async (view: ViewType) => {
     hardReload: view.type === ViewTypes.FORM && activeView.value?.id === view.id,
     doNotSwitchTab: true,
   })
+}
+
+/**
+ * Filters the view options based on the input string.
+ *
+ * @param {string} input - The search input string.
+ * @param {ViewType} view - The view object to be filtered.
+ * @returns {boolean} - Returns true if the view matches the filter criteria, false otherwise.
+ *
+ * @description
+ * This function is used to filter the list of views in the dropdown.
+ * It checks if the input string matches either the default view title (translated) or the view's title.
+ * The matching is case-insensitive.
+ */
+const filterOption = (input: string = '', view: ViewType) => {
+  if (view.is_default && t('title.defaultView').toLowerCase().includes(input.toLowerCase())) {
+    return true
+  }
+
+  return view.title?.toLowerCase()?.includes(input.toLowerCase())
 }
 </script>
 
@@ -46,6 +68,7 @@ const handleNavigateToView = async (view: ViewType) => {
         option-value-key="id"
         option-label-key="title"
         search-input-placeholder="Search views"
+        :filter-option="filterOption"
       >
         <template #listItem="{ option }">
           <div>

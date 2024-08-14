@@ -38,7 +38,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
                 filter: 'grayscale(100%) brightness(115%)',
               }"
             />
-            <NcTooltip class="truncate" show-on-truncate-only>
+            <NcTooltip class="truncate" show-on-truncate-only :disabled="isOpen">
               <template #title>
                 <span class="capitalize">
                   {{ base?.title }}

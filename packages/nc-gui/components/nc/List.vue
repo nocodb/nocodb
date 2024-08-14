@@ -4,8 +4,8 @@ export type Placement = 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight'
 export type RawValueType = string | number
 
 interface ListItem {
-  value: RawValueType
-  label: string
+  value?: RawValueType
+  label?: string
   [key: string]: any
 }
 
@@ -90,7 +90,6 @@ const list = computed(() => {
   })
 })
 
-
 /**
  * Resets the hover effect on the selected option
  * @param clearActiveOption - Whether to clear the active option index
@@ -124,7 +123,7 @@ let scrollTimerId: any
 /**
  * Automatically scrolls to the active option in the list
  */
-const handleAutoScrollOption = () => {
+const handleAutoScrollOption = (behavior: ScrollBehavior = 'smooth') => {
   if (scrollTimerId) {
     clearTimeout(scrollTimerId)
   }
@@ -133,7 +132,7 @@ const handleAutoScrollOption = () => {
 
   if (option) {
     scrollTimerId = setTimeout(() => {
-      option?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      option?.scrollIntoView({ behavior, block: 'center' })
       clearTimeout(scrollTimerId)
     }, 50)
   }
@@ -174,7 +173,7 @@ const focusInputBox = () => {
 
 /**
  * Focuses the list wrapper when the list is opened
- * 
+ *
  * This function is called when the list is opened and search is not enabled.
  * It sets a timeout to focus the list wrapper element after a short delay.
  * This allows for proper rendering and improves accessibility.
@@ -199,7 +198,7 @@ watch(
       activeOptionIndex.value = list.value.findIndex((o) => o?.[optionValueKey] === vModel.value)
 
       nextTick(() => {
-        handleAutoScrollOption()
+        handleAutoScrollOption('auto')
       })
     } else {
       activeOptionIndex.value = -1

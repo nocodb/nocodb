@@ -26,6 +26,7 @@ import {
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { FileReference } from '~/models';
 import {
   parseMetaProp,
   prepareForDb,
@@ -590,6 +591,9 @@ export default class Model implements TableType {
         fk_model_id: this.id,
       },
     );
+
+    // Delete FileReference
+    await FileReference.bulkDelete(context, { fk_model_id: this.id }, ncMeta);
 
     await NocoCache.deepDel(
       `${CacheScope.MODEL}:${this.id}`,

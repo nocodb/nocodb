@@ -16,6 +16,8 @@ interface GoogleCloudStorageInput {
 }
 
 export default class Gcs implements IStorageAdapterV2 {
+  name = 'Gcs';
+
   private storageClient: Storage;
   private bucketName: string;
   private input: GoogleCloudStorageInput;
@@ -147,7 +149,7 @@ export default class Gcs implements IStorageAdapterV2 {
   }
 
   fileDelete(_path: string): Promise<any> {
-    return Promise.resolve(undefined);
+    throw new Error('Method not implemented.');
   }
 
   // TODO - implement
@@ -178,5 +180,9 @@ export default class Gcs implements IStorageAdapterV2 {
       .getSignedUrl(options);
 
     return url;
+  }
+
+  public async scanFiles(_globPattern: string): Promise<Readable> {
+    return Promise.resolve(undefined);
   }
 }

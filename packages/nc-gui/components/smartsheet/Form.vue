@@ -1254,7 +1254,7 @@ useEventListener(
                         :trigger="['click']"
                         overlay-class-name="nc-dropdown-form-edit-column"
                         :disabled="!isUIAllowed('fieldEdit')"
-                        @visibleChange="onVisibilityChange('showEditColumn')"
+                        @visible-change="onVisibilityChange('showEditColumn')"
                       >
                         <NcButton type="secondary" size="small" class="nc-form-add-field" data-testid="nc-form-add-field">
                           {{ $t('general.edit') }} {{ $t('objects.field') }}
@@ -1340,7 +1340,7 @@ useEventListener(
                           v-model:visible="dropdownStates.showAddColumn"
                           :trigger="['click']"
                           overlay-class-name="nc-dropdown-form-add-column"
-                          @visibleChange="onVisibilityChange('showAddColumn')"
+                          @visible-change="onVisibilityChange('showAddColumn')"
                         >
                           <NcButton type="secondary" size="small" class="nc-form-add-field" data-testid="nc-form-add-field">
                             <div class="flex gap-2 items-center">

@@ -466,7 +466,7 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.STORAGE],
   },
 
-  // Spreadsheet 
+  // Spreadsheet
   {
     title: 'objects.syncData.appleNumbers',
     value: SyncDataType.APPLE_NUMBERS,

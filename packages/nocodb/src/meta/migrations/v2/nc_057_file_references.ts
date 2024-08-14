@@ -18,7 +18,9 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
 
     // this index is used on migration, this can be removed after migration
-    table.index(['file_url', 'storage'], 'nc_file_references_temp');
+    if (!knex.client.config.client.includes('mysql')) {
+      table.index(['file_url', 'storage'], 'nc_file_references_temp');
+    }
   });
 };
 

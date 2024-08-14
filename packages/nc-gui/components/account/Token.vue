@@ -237,8 +237,8 @@ const handleCancel = () => {
     </NcPageHeader>
     <div class="p-6 h-[calc(100vh_-_100px)] border-t-1 border-gray-200 flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="max-w-202 mx-auto h-full w-full" data-testid="nc-token-list">
-        <div class="py-2 flex gap-4 items-baseline justify-between">
-          <h6 class="text-2xl text-left font-bold" data-rec="true">{{ $t('title.apiTokens') }}</h6>
+        <div class="flex gap-4 items-baseline justify-between">
+          <h6 class="text-xl text-left font-bold my-0" data-rec="true">{{ $t('title.apiTokens') }}</h6>
           <NcTooltip v-if="tokens.length" :disabled="!(isEeUI && tokens.length)">
             <template #title>{{ $t('labels.tokenLimit') }}</template>
             <NcButton
@@ -260,7 +260,7 @@ const handleCancel = () => {
           </NcTooltip>
         </div>
         <span data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
-        <div v-if="!isLoadingAllTokens && (tokens.length || showNewTokenModal)" class="mt-5 h-full max-h-[calc(100%-80px)]">
+        <div v-if="!isLoadingAllTokens && (tokens.length || showNewTokenModal)" class="mt-6 h-full max-h-[calc(100%-80px)]">
           <div class="h-full w-full overflow-y-auto rounded-md">
             <div class="flex w-full pl-5 bg-gray-50 border-1 rounded-t-md">
               <span class="py-3.5 text-gray-500 font-medium text-3.5 w-2/9" data-rec="true">{{ $t('title.tokenName') }}</span>

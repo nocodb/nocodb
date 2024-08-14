@@ -939,6 +939,10 @@ svg.nc-virtual-cell-icon {
 .nc-breadcrumb {
   @apply text-sm text-gray-700 font-weight-500 flex items-center;
 
+  &:not(.nc-no-negative-margin) {
+    @apply -ml-1;
+  }
+
   .nc-breadcrumb-item {
     @apply h-8 px-2 flex items-center gap-2 my-0;
 

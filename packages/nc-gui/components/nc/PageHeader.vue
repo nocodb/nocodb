@@ -24,7 +24,7 @@
 
 <style lang="scss" scoped>
 .nc-page-header {
-  @apply h-[56px] flex items-center gap-3 p-3;
+  @apply h-12 flex items-center gap-3 px-3 py-2;
 
   .nc-page-header-title {
     @apply text-xl font-semibold text-gray-800 my-0;

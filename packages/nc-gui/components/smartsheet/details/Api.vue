@@ -98,6 +98,7 @@ const activeLang = computed(() => langs.find((lang) => lang.name === selectedLan
 const code = computed(() => {
   if (activeLang.value?.name === 'nocodb-sdk') {
     return `${selectedClient.value === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
+    
 const api = new Api({
   baseURL: "${(appInfo.value && appInfo.value.ncSiteUrl) || '/'}",
   headers: {
@@ -113,14 +114,13 @@ api.dbViewRow.list(
   console.log(data);
 }).catch(function (error) {
   console.error(error);
-});
-    `
+});`
   }
 
   return snippet.value.convert(
     activeLang.value?.name,
     selectedClient.value || (activeLang.value?.clients && activeLang.value?.clients[0]),
-    {},
+    { indent: '\t' },
   )
 })
 
@@ -231,7 +231,7 @@ const handleNavigateToDocs = (href: string) => {
           </NcButton>
         </div>
       </NcMenu>
-      <div class="flex flex-col gap-6 h-full max-h-full">
+      <div class="w-[calc(100%_-_264px)] flex flex-col gap-6 h-full max-h-full">
         <div class="flex items-center justify-between gap-3">
           <h3 class="my-0 capitalize text-2xl text-gray-800 font-bold">{{ selectedLangName }}</h3>
           <!-- Todo: add docs link  -->
@@ -250,59 +250,70 @@ const handleNavigateToDocs = (href: string) => {
           </NcButton>
         </div>
 
-        <NcTabs v-model:activeKey="selectedClient" class="!flex-1">
-          <a-tab-pane v-for="client in (activeLang?.clients || ['default'])" :key="client" class="!h-full">
+        <NcTabs v-model:activeKey="selectedClient" class="nc-api-clents-tab">
+          <template #rightExtra>
+            <NcButton
+              v-e="[
+                'c:snippet:copy',
+                { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
+              ]"
+              type="secondary"
+              size="small"
+              @click="onCopyToClipboard"
+            >
+              <div class="flex items-center">
+                <GeneralIcon icon="copy" class="mr-1" />
+                {{ $t('general.copy') }} code
+              </div>
+            </NcButton>
+          </template>
+          <a-tab-pane v-for="client in activeLang?.clients || ['default']" :key="client" class="!h-full">
             <template #tab>
               <div class="text-sm capitalize select-none">
                 {{ client }}
               </div>
             </template>
 
-            <div class="flex flex-row w-full space-x-3 my-4 items-center">
-              <!-- <NcSelect
-                v-if="activeLang?.clients"
-                v-model:value="selectedClient"
-                style="width: 10rem"
-                class="capitalize"
-                dropdown-class-name="nc-dropdown-snippet-active-lang"
-              >
-                <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full capitalize" :value="client">
-                  <div class="flex items-center w-full justify-between w-full gap-2">
-                    <div class="truncate flex-1">{{ client }}</div>
-                    <component
-                      :is="iconMap.check"
-                      v-if="selectedClient === client"
-                      id="nc-selected-item-icon"
-                      class="text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect> -->
-
-              <NcButton
-                v-e="[
-                  'c:snippet:copy',
-                  { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
-                ]"
-                type="secondary"
-                size="small"
-                @click="onCopyToClipboard"
-              >
-                <div class="flex items-center">
-                  <GeneralIcon icon="copy" class="mr-1" />
-                  {{ $t('general.copy') }} code
-                </div>
-              </NcButton>
-            </div>
-
             <Suspense>
               <MonacoEditor
-                class="border-1 border-gray-200 py-4 rounded-lg"
+                class="h-full !bg-gray-50 pl-3"
                 :model-value="code"
                 :read-only="true"
                 lang="typescript"
                 :validate="false"
                 :disable-deep-compare="true"
+                :monaco-config="{
+                  minimap: {
+                    enabled: false,
+                  },
+                  fontSize: 14,
+                  lineHeight: 20,
+                  padding: {
+                    top: 12,
+                    bottom: 12,
+                  },
+                  overviewRulerBorder: false,
+                  overviewRulerLanes: 0,
+                  hideCursorInOverviewRuler: true,
+                  lineDecorationsWidth: 12,
+                  lineNumbersMinChars: 0,
+                  roundedSelection: false,
+                  selectOnLineNumbers: false,
+                  scrollBeyondLastLine: false,
+                  contextmenu: false,
+                  glyphMargin: false,
+                  folding: false,
+                  bracketPairColorization: { enabled: false },
+                  wordWrap: 'on',
+                  scrollbar: {
+                    horizontal: 'hidden',
+                    verticalScrollbarSize: 6,
+                  },
+                  wrappingStrategy: 'advanced',
+                  renderLineHighlight: 'none',
+                  tabSize: 4,
+                  lineNumbers: 'on',
+                }"
                 hide-minimap
               />
               <template #fallback>
@@ -342,6 +353,28 @@ const handleNavigateToDocs = (href: string) => {
         @apply text-brand-600 font-semibold;
       }
     }
+  }
+}
+:deep(.nc-api-clents-tab.ant-tabs) {
+  @apply bg-gray-50 border-1 border-gray-200 rounded-lg flex-1;
+
+  .ant-tabs-nav {
+    @apply px-3;
+  }
+  .ant-tabs-content {
+    @apply h-full;
+  }
+  .monaco-editor {
+    @apply !border-0 !rounded-none pr-3;
+  }
+  .overflow-guard {
+    @apply !border-0 !rounded-none;
+  }
+  .monaco-editor,
+  .monaco-diff-editor,
+  .monaco-component {
+    --vscode-editor-background: #f9f9fa;
+    --vscode-editorGutter-background: #f9f9fa;
   }
 }
 </style>

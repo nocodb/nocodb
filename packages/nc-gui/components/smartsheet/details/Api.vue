@@ -30,34 +30,43 @@ const langs = [
   {
     name: 'shell',
     clients: ['curl', 'wget'],
+    icon: iconMap.langShell
   },
   {
     name: 'javascript',
     clients: ['axios', 'fetch', 'jquery', 'xhr'],
+    icon: iconMap.langJava
   },
   {
     name: 'node',
     clients: ['axios', 'fetch', 'request', 'native', 'unirest'],
+    icon: iconMap.langNode
   },
   {
     name: 'nocodb-sdk',
     clients: ['javascript', 'node'],
+    icon: iconMap.langNocodbSdk
   },
   {
     name: 'php',
+    icon: iconMap.langPhp
   },
   {
     name: 'python',
     clients: ['python3', 'requests'],
+    icon: iconMap.langPython
   },
   {
     name: 'ruby',
+    icon: iconMap.langRuby
   },
   {
     name: 'java',
+    icon: iconMap.langJava
   },
   {
     name: 'c',
+    icon: iconMap.langC
   },
 ]
 
@@ -196,7 +205,7 @@ const handleNavigateToDocs = (href: string) => {
           @click="selectedLangName = item.name"
         >
           <div class="flex gap-2 items-center">
-            <GeneralIcon icon="file" />
+            <component :is="item.icon" class="!stroke-transparent h-6 w-6"/>
             {{ item.name }}
           </div>
         </NcMenuItem>
@@ -338,7 +347,7 @@ const handleNavigateToDocs = (href: string) => {
   @apply border-r-0 !py-0;
 
   :deep(.ant-menu-item) {
-    @apply h-7 leading-5 my-1.5 px-3 text-gray-700;
+    @apply h-7 leading-5 my-1.5 px-3 text-gray-700 flex items-center;
 
     .nc-menu-item-inner {
       @apply text-small leading-[18px] text-current font-weight-500;

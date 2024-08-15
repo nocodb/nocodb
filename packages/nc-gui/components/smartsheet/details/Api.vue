@@ -26,6 +26,8 @@ const indicator = h(LoadingOutlined, {
 
 const { copy } = useCopy()
 
+const isCopied = ref(false)
+
 const langs = [
   {
     name: 'shell',
@@ -138,6 +140,12 @@ const onCopyToClipboard = async () => {
     await copy(code.value)
     // Copied to clipboard
     message.info(t('msg.info.copiedToClipboard'))
+
+    isCopied.value = true
+
+    setTimeout(() => {
+      isCopied.value = false
+    }, 5000)
   } catch (e: any) {
     message.error(e.message)
   }
@@ -232,11 +240,13 @@ const handleNavigateToDocs = (href: string) => {
             class="children:children:flex-1"
             @click="handleNavigateToDocs(doc.href)"
           >
-            <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-2 w-full text-small leading-[18px] font-weight-500">
+              <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
+
               {{ doc.title }}
 
-              <GeneralIcon icon="externalLink" class="flex-none" />
             </div>
+           
           </NcButton>
         </div>
       </NcMenu>
@@ -251,7 +261,7 @@ const handleNavigateToDocs = (href: string) => {
             class="children:children:flex-1"
             @click="handleNavigateToDocs('')"
           >
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 text-small leading-[18px]">
               {{ $t('activity.goToDocs') }}
 
               <GeneralIcon icon="externalLink" class="flex-none" />
@@ -270,16 +280,23 @@ const handleNavigateToDocs = (href: string) => {
                 size="small"
                 @click="onCopyToClipboard"
               >
-                <div class="flex items-center">
-                  <GeneralIcon icon="copy" class="mr-1" />
-                  {{ $t('general.copy') }} code
+                <div class="flex items-center gap-2 text-small leading-[18px]">
+                  <GeneralIcon
+                    :icon="isCopied ? 'circleCheck2' : 'copy'"
+                    class="h-4 w-4"
+                    :class="{
+                      'text-gray-700': !isCopied,
+                      'text-green-500': isCopied,
+                    }"
+                  />
+                  {{ $t('general.copy') }}
                 </div>
               </NcButton>
             </template>
 
             <a-tab-pane v-for="client in activeLang?.clients || ['default']" :key="client" class="!h-full">
               <template #tab>
-                <div class="text-sm capitalize select-none">
+                <div class="text-small leading-[18px] capitalize select-none">
                   {{ client }}
                 </div>
               </template>
@@ -370,7 +387,7 @@ const handleNavigateToDocs = (href: string) => {
     @apply px-3;
 
     .ant-tabs-tab {
-      @apply px-3 py-2;
+      @apply px-3 pt-2 pb-2.5;
       & + .ant-tabs-tab {
         @apply !ml-2;
       }

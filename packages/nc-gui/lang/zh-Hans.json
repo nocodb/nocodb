@@ -95,7 +95,11 @@
   "general": {
     "on": "开",
     "onMultiple": "在多个时",
+    "manual": "Manual",
+    "trigger": "触发器",
     "addLookupField": "添加{count}个查找字段",
+    "style": "Style",
+    "label": "Label",
     "role": "角色",
     "general": "通用",
     "quit": "退出",
@@ -274,7 +278,6 @@
     "use": "使用",
     "stack": "Stack",
     "ipAddress": "IP 地址",
-    "trigger": "触发器",
     "integration": "集成",
     "integrations": "集成",
     "connection": "连接",
@@ -416,7 +419,9 @@
       "storageSubtitle": "使用 NocoDB 无缝整合和组织您的存储解决方案。",
       "others": "其他",
       "othersSubtitle": "发现额外的多功能集成来增强您的 NocoDB 体验。",
-      "ai": "AI"
+      "ai": "AI",
+      "spreadSheet": "Spreadsheet",
+      "spreadSheetSubtitle": "Connect and manage your spreadsheets with NocoDB."
     }
   },
   "datatype": {
@@ -609,6 +614,12 @@
     "categories": "类别"
   },
   "labels": {
+    "urlFormula": "URL Formula",
+    "selectIcon": "none",
+    "selectAWebhook": "--select a webhook--",
+    "openUrl": "Open URL",
+    "runWebHook": "Run Webhook",
+    "onClick": "On click",
     "defaultView": "默认视图",
     "recordInsert": "记录插入",
     "recordUpdate": "记录更新",
@@ -1198,7 +1209,7 @@
       "collapseStack": "折叠此类别",
       "collapseAll": "全部折叠",
       "expandAll": "全部展开",
-      "renameStack": "重新命名堆栈",
+      "renameStack": "重命名堆栈...",
       "deleteStack": "删除此类别",
       "stackedBy": "分类依据为",
       "chooseGroupingField": "选择分组字段",
@@ -1271,6 +1282,7 @@
     "comingSoonIntegration": "即将推出！点击为您需要的 NocoDB 集成投票。"
   },
   "placeholder": {
+    "searchIcons": "Search icons",
     "selectSlackChannels": "选择 Slack 频道",
     "selectTeamsChannels": "选择 Microsoft Teams 频道",
     "selectDiscordChannels": "选择 Discord 频道",
@@ -1325,6 +1337,12 @@
     "searchOptions": "搜索选项"
   },
   "msg": {
+    "invalidConfiguration": "Invalid button configuration",
+    "invalidColumnConfiguration": "Invalid field configuration",
+    "invalidTheme": "Select a valid theme",
+    "invalidColor": "Select a valid color",
+    "invalidType": "Button type can be either 'webhook' or 'url'",
+    "invalidLabel": "Enter a valid button label",
     "formulaNotSupported": "此功能对您的数据库不可用",
     "controlOrgAppearance": "控制您的组织名称和外观。",
     "addCompanyDomains": "添加公司域，限制不需要的用户访问。",
@@ -1440,6 +1458,7 @@
     "tooLargeFieldEntity": "字段太大，无法转换为 {entity}",
     "roleRequired": "角色要求",
     "warning": {
+      "webhookDelete": "Button fields relying on this webhook will be impacted",
       "calendarNoFields": "日历视图需要设置日期或日期时间字段。请尝试在添加日期/日期时间字段后设置日历视图！",
       "kanbanNoFields": "看板视图需要添加一个选择字段",
       "mapNoFields": "地图视图需要添加一个位置字段",
@@ -1639,6 +1658,7 @@
       "preventHideAllOptions": "必填项不能为空"
     },
     "error": {
+      "manualTriggerHook": "Manual hooks can't be disabled",
       "errorLoadingRecord": "加载记录数据时出错",
       "fetchingCalendarData": "获取日历数据时出错",
       "fetchingActiveDates": "获取活动日期时出错",

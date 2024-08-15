@@ -83,11 +83,35 @@ export class QueueService {
     QueueService.queueIdCounter = index;
   }
 
-  add(name: string, data: any, opts?: { jobId?: string }) {
+  add(name: string, data: any, opts?: { jobId?: string; delay?: number }) {
     const id = opts?.jobId || `${this.queueIndex++}`;
-    const job = { id: `${id}`, name, status: JobStatus.WAITING, data };
-    this.queueMemory.push(job);
-    this.queue.add(() => this.jobWrapper(job));
+    const existingJob = this.queueMemory.find((q) => q.id === id);
+
+    let job;
+
+    if (existingJob) {
+      if (existingJob.status !== JobStatus.WAITING) {
+        existingJob.status = JobStatus.WAITING;
+      }
+      job = existingJob;
+    } else {
+      job = { id: `${id}`, name, status: JobStatus.WAITING, data };
+    }
+
+    if (opts?.delay) {
+      setTimeout(() => {
+        if (!existingJob) {
+          this.queueMemory.push(job);
+        }
+        this.queue.add(() => this.jobWrapper(job));
+      }, opts.delay);
+    } else {
+      if (!existingJob) {
+        this.queueMemory.push(job);
+      }
+      this.queue.add(() => this.jobWrapper(job));
+    }
+
     return { id, name };
   }
 

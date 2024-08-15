@@ -159,6 +159,24 @@ export class JobsController {
 
     const jobId = data.id;
 
+    // clean as it might be taken by another worker
+    if (data.status === JobStatus.REQUEUED) {
+      if (this.jobRooms[jobId]) {
+        this.jobRooms[jobId].listeners.forEach((res) => {
+          if (!res.headersSent) {
+            res.send({
+              status: 'refresh',
+            });
+          }
+        });
+      }
+
+      delete this.jobRooms[jobId];
+      delete this.localJobs[jobId];
+      await NocoCache.del(`${CacheScope.JOBS_POLLING}:${jobId}:messages`);
+      return;
+    }
+
     if (this.localJobs[jobId]) {
       response = {
         status: 'update',

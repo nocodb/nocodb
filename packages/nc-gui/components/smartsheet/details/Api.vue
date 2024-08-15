@@ -204,7 +204,7 @@ const handleNavigateToDocs = (href: string) => {
         <NcDivider class="!my-3" />
 
         <div
-          class="px-3 py-2 text-[11px] leading-4 text-gray-500 uppercase font-semibold"
+          class="p-2 text-[11px] leading-4 text-gray-500 uppercase font-semibold"
           :style="{
             letterSpacing: '0.3px',
           }"
@@ -242,7 +242,7 @@ const handleNavigateToDocs = (href: string) => {
             class="children:children:flex-1"
             @click="handleNavigateToDocs('')"
           >
-            <div class="flex items-center justify-between w-full">
+            <div class="flex items-center gap-2">
               {{ $t('activity.goToDocs') }}
 
               <GeneralIcon icon="externalLink" class="flex-none" />
@@ -250,16 +250,16 @@ const handleNavigateToDocs = (href: string) => {
           </NcButton>
         </div>
 
-        <NcTabs v-model:activeKey="selectedLangName" class="!flex-1">
-          <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
+        <NcTabs v-model:activeKey="selectedClient" class="!flex-1">
+          <a-tab-pane v-for="client in (activeLang?.clients || ['default'])" :key="client" class="!h-full">
             <template #tab>
               <div class="text-sm capitalize select-none">
-                {{ item.name }}
+                {{ client }}
               </div>
             </template>
 
             <div class="flex flex-row w-full space-x-3 my-4 items-center">
-              <NcSelect
+              <!-- <NcSelect
                 v-if="activeLang?.clients"
                 v-model:value="selectedClient"
                 style="width: 10rem"
@@ -277,7 +277,7 @@ const handleNavigateToDocs = (href: string) => {
                     />
                   </div>
                 </a-select-option>
-              </NcSelect>
+              </NcSelect> -->
 
               <NcButton
                 v-e="[
@@ -298,7 +298,6 @@ const handleNavigateToDocs = (href: string) => {
             <Suspense>
               <MonacoEditor
                 class="border-1 border-gray-200 py-4 rounded-lg"
-               
                 :model-value="code"
                 :read-only="true"
                 lang="typescript"

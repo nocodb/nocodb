@@ -6,7 +6,7 @@ import {
   InstanceCommands,
   JOBS_QUEUE,
   JobStatus,
-  MigrationJobTypes,
+  JobTypes,
 } from '~/interface/Jobs';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { Job } from '~/models';
@@ -35,7 +35,7 @@ export class JobsService implements OnModuleInit {
       await this.jobsQueue.pause(true);
     };
 
-    await this.add(MigrationJobTypes.InitMigrationJobs, {});
+    await this.add(JobTypes.InitMigrationJobs, {});
   }
 
   async toggleQueue() {
@@ -72,9 +72,10 @@ export class JobsService implements OnModuleInit {
       fk_user_id: data?.user?.id,
     });
 
-    await this.jobsQueue.add(name, data, {
+    data.jobName = name;
+
+    await this.jobsQueue.add(data, {
       jobId: jobData.id,
-      removeOnComplete: true,
     });
 
     return jobData;

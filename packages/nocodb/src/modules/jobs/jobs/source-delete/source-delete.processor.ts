@@ -1,16 +1,14 @@
 import debug from 'debug';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { Injectable } from '@nestjs/common';
+import type { Job } from 'bull';
 import { SourcesService } from '~/services/sources.service';
 
-@Processor(JOBS_QUEUE)
+@Injectable()
 export class SourceDeleteProcessor {
   private readonly debugLog = debug('nc:jobs:source-delete');
 
   constructor(private readonly sourcesService: SourcesService) {}
 
-  @Process(JobTypes.SourceDelete)
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 

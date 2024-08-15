@@ -1,10 +1,9 @@
 import { Readable } from 'stream';
 import path from 'path';
-import { Process, Processor } from '@nestjs/bull';
-import { Logger } from '@nestjs/common';
-import { Job } from 'bull';
+import { Injectable, Logger } from '@nestjs/common';
 import moment from 'moment';
-import { type DataExportJobData, JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import type { Job } from 'bull';
+import { type DataExportJobData } from '~/interface/Jobs';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 import { Model, PresignedUrl, View } from '~/models';
@@ -15,13 +14,12 @@ function getViewTitle(view: View) {
   return view?.is_default ? 'Default View' : view?.title;
 }
 
-@Processor(JOBS_QUEUE)
+@Injectable()
 export class DataExportProcessor {
   private logger = new Logger(DataExportProcessor.name);
 
   constructor(private readonly exportService: ExportService) {}
 
-  @Process(JobTypes.DataExport)
   async job(job: Job<DataExportJobData>) {
     const {
       context,

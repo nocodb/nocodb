@@ -3,7 +3,6 @@ import type { NcContext, NcRequest } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';
 
 export enum MigrationJobTypes {
-  InitMigrationJobs = 'init-migration-jobs',
   Attachment = 'attachment',
   Thumbnail = 'thumbnail',
 }
@@ -25,6 +24,7 @@ export enum JobTypes {
   DataExport = 'data-export',
   ThumbnailGenerator = 'thumbnail-generator',
   AttachmentCleanUp = 'attachment-clean-up',
+  InitMigrationJobs = 'init-migration-jobs',
 }
 
 export enum JobStatus {
@@ -55,6 +55,7 @@ export enum InstanceCommands {
 }
 
 export interface JobData {
+  jobName: string;
   context: NcContext;
   user: Partial<UserType>;
 }

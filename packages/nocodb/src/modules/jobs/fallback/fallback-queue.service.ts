@@ -1,18 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
 import Emittery from 'emittery';
-import { DuplicateProcessor } from '~/modules/jobs/jobs/export-import/duplicate.processor';
-import { AtImportProcessor } from '~/modules/jobs/jobs/at-import/at-import.processor';
-import { MetaSyncProcessor } from '~/modules/jobs/jobs/meta-sync/meta-sync.processor';
-import { SourceCreateProcessor } from '~/modules/jobs/jobs/source-create/source-create.processor';
-import { SourceDeleteProcessor } from '~/modules/jobs/jobs/source-delete/source-delete.processor';
-import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
-import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export.processor';
 import { JobsEventService } from '~/modules/jobs/jobs-event.service';
-import { JobStatus, JobTypes, MigrationJobTypes } from '~/interface/Jobs';
-import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
-import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
-import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
+import { JobStatus } from '~/interface/Jobs';
+import { JobsMap } from '~/modules/jobs/jobs-map.service';
 
 export interface Job {
   id: string;
@@ -31,16 +22,7 @@ export class QueueService {
 
   constructor(
     protected readonly jobsEventService: JobsEventService,
-    protected readonly duplicateProcessor: DuplicateProcessor,
-    protected readonly atImportProcessor: AtImportProcessor,
-    protected readonly metaSyncProcessor: MetaSyncProcessor,
-    protected readonly sourceCreateProcessor: SourceCreateProcessor,
-    protected readonly sourceDeleteProcessor: SourceDeleteProcessor,
-    protected readonly webhookHandlerProcessor: WebhookHandlerProcessor,
-    protected readonly dataExportProcessor: DataExportProcessor,
-    protected readonly thumbnailGeneratorProcessor: ThumbnailGeneratorProcessor,
-    protected readonly attachmentCleanUpProcessor: AttachmentCleanUpProcessor,
-    protected readonly initMigrationJobs: InitMigrationJobs,
+    @Inject(forwardRef(() => JobsMap)) protected readonly jobsMap: JobsMap,
   ) {
     this.emitter.on(JobStatus.ACTIVE, (data: { job: Job }) => {
       const job = this.queueMemory.find((job) => job.id === data.job.id);
@@ -69,64 +51,12 @@ export class QueueService {
     });
   }
 
-  jobMap = {
-    [JobTypes.DuplicateBase]: {
-      this: this.duplicateProcessor,
-      fn: this.duplicateProcessor.duplicateBase,
-    },
-    [JobTypes.DuplicateModel]: {
-      this: this.duplicateProcessor,
-      fn: this.duplicateProcessor.duplicateModel,
-    },
-    [JobTypes.DuplicateColumn]: {
-      this: this.duplicateProcessor,
-      fn: this.duplicateProcessor.duplicateColumn,
-    },
-    [JobTypes.AtImport]: {
-      this: this.atImportProcessor,
-      fn: this.atImportProcessor.job,
-    },
-    [JobTypes.MetaSync]: {
-      this: this.metaSyncProcessor,
-      fn: this.metaSyncProcessor.job,
-    },
-    [JobTypes.SourceCreate]: {
-      this: this.sourceCreateProcessor,
-      fn: this.sourceCreateProcessor.job,
-    },
-    [JobTypes.SourceDelete]: {
-      this: this.sourceDeleteProcessor,
-      fn: this.sourceDeleteProcessor.job,
-    },
-    [JobTypes.HandleWebhook]: {
-      this: this.webhookHandlerProcessor,
-      fn: this.webhookHandlerProcessor.job,
-    },
-    [JobTypes.DataExport]: {
-      this: this.dataExportProcessor,
-      fn: this.dataExportProcessor.job,
-    },
-    [JobTypes.ThumbnailGenerator]: {
-      this: this.thumbnailGeneratorProcessor,
-      fn: this.thumbnailGeneratorProcessor.job,
-    },
-    [JobTypes.AttachmentCleanUp]: {
-      this: this.attachmentCleanUpProcessor,
-      fn: this.attachmentCleanUpProcessor.job,
-    },
-    [MigrationJobTypes.InitMigrationJobs]: {
-      this: this.initMigrationJobs,
-      fn: this.initMigrationJobs.job,
-    },
-  };
-
   async jobWrapper(job: Job) {
     this.emitter.emit(JobStatus.ACTIVE, { job });
+
     try {
-      const result = await this.jobMap[job.name].fn.apply(
-        this.jobMap[job.name].this,
-        [job],
-      );
+      const { this: processor, fn = 'job' } = this.jobsMap.jobs[job.name];
+      const result = await processor[fn](job);
       this.emitter.emit(JobStatus.COMPLETED, { job, result });
     } catch (error) {
       this.emitter.emit(JobStatus.FAILED, { job, error });

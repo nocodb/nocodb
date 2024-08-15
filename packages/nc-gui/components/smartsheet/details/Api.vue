@@ -107,7 +107,7 @@ const snippet = computed(
 const activeLang = computed(() => langs.find((lang) => lang.name === selectedLangName.value))
 
 const code = computed(() => {
-  if (activeLang.value?.name === 'nocodb-sdk') {
+  if (activeLang.value?.name === 'NocoDB-SDK') {
     return `${selectedClient.value === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
   
 const api = new Api({

@@ -37,7 +37,7 @@ const langs = [
   {
     name: 'javascript',
     clients: ['axios', 'fetch', 'jquery', 'xhr'],
-    icon: iconMap.langJava,
+    icon: iconMap.langJavascript,
   },
   {
     name: 'node',
@@ -195,7 +195,7 @@ const handleNavigateToDocs = (href: string) => {
     <div class="flex gap-4 max-w-[1000px] mx-auto h-full">
       <NcMenu class="nc-api-snippets-menu !h-full w-[252px] min-w-[252px] nc-scrollbar-thin !pr-3">
         <div
-          class="px-3 py-2 text-[11px] leading-4 text-gray-500 uppercase font-semibold"
+          class="p-2 text-xs text-gray-500 uppercase font-semibold"
           :style="{
             letterSpacing: '0.3px',
           }"
@@ -220,39 +220,33 @@ const handleNavigateToDocs = (href: string) => {
 
         <NcDivider class="!my-3" />
 
-        <div
-          class="p-2 text-[11px] leading-4 text-gray-500 uppercase font-semibold"
-          :style="{
-            letterSpacing: '0.3px',
-          }"
-        >
-          {{ $t('labels.documentation') }}
-        </div>
-
         <div class="flex flex-col gap-1">
-          <NcButton
-            v-for="(doc, idx) of supportedDocs"
-            :key="idx"
-            type="text"
-            size="small"
-            :centered="false"
-            icon-position="right"
-            class="children:children:flex-1"
-            @click="handleNavigateToDocs(doc.href)"
+          <div
+            class="p-2 text-xs text-gray-500 uppercase font-semibold"
+            :style="{
+              letterSpacing: '0.3px',
+            }"
           >
-            <div class="flex items-center gap-2 w-full text-small leading-[18px] font-weight-500">
-              <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
+            {{ $t('labels.documentation') }}
+          </div>
 
+          <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-2 px-2 h-7">
+            <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
+
+            <a
+              :href="doc.href"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="!text-gray-700 text-small leading-[18px] !no-underline !hover:underline"
+            >
               {{ doc.title }}
-
-            </div>
-           
-          </NcButton>
+            </a>
+          </div>
         </div>
       </NcMenu>
       <div class="w-[calc(100%_-_264px)] flex flex-col gap-6 h-full max-h-full">
         <div class="flex items-center justify-between gap-3">
-          <h3 class="my-0 capitalize text-2xl text-gray-800 font-bold">{{ selectedLangName }}</h3>
+          <h3 class="my-0 capitalize text-xl text-gray-800 font-bold">{{ selectedLangName }}</h3>
           <!-- Todo: add docs link  -->
           <NcButton
             type="text"
@@ -278,6 +272,7 @@ const handleNavigateToDocs = (href: string) => {
                 ]"
                 type="text"
                 size="small"
+                class="!hover:bg-gray-200"
                 @click="onCopyToClipboard"
               >
                 <div class="flex items-center gap-2 text-small leading-[18px]">
@@ -296,7 +291,7 @@ const handleNavigateToDocs = (href: string) => {
 
             <a-tab-pane v-for="client in activeLang?.clients || ['default']" :key="client" class="!h-full">
               <template #tab>
-                <div class="text-small leading-[18px] capitalize select-none">
+                <div class="text-xs capitalize select-none">
                   {{ client }}
                 </div>
               </template>
@@ -364,7 +359,7 @@ const handleNavigateToDocs = (href: string) => {
   @apply border-r-0 !py-0;
 
   :deep(.ant-menu-item) {
-    @apply h-7 leading-5 my-1.5 px-3 text-gray-700 flex items-center;
+    @apply h-7 leading-5 my-1.5 px-2 text-gray-700 flex items-center;
 
     .nc-menu-item-inner {
       @apply text-small leading-[18px] text-current font-weight-500;
@@ -387,9 +382,13 @@ const handleNavigateToDocs = (href: string) => {
     @apply px-3;
 
     .ant-tabs-tab {
-      @apply px-3 pt-2 pb-2.5;
+      @apply px-3 pt-2 pb-3;
       & + .ant-tabs-tab {
         @apply !ml-2;
+      }
+
+      &.ant-tabs-tab-active {
+        @apply font-semibold;
       }
     }
   }

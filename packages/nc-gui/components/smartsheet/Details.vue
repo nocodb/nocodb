@@ -107,7 +107,7 @@ watch(openedSubTab, () => {
   min-height: calc(var(--toolbar-height) - 1px);
 
   .ant-tabs-tab {
-    @apply pt-2 pb-3;
+    @apply pt-3 pb-3 text-small leading-[18px];
   }
 }
 </style>

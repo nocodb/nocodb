@@ -95,7 +95,11 @@
   "general": {
     "on": "On",
     "onMultiple": "On Multiple",
+    "manual": "Manual",
+    "trigger": "Trigger",
     "addLookupField": "Add {count} lookup fields",
+    "style": "Style",
+    "label": "Label",
     "role": "Rôle",
     "general": "Général",
     "quit": "Quitter",
@@ -274,7 +278,6 @@
     "use": "Use",
     "stack": "Empiler",
     "ipAddress": "Adresse IP",
-    "trigger": "Trigger",
     "integration": "Integration",
     "integrations": "Integrations",
     "connection": "Connection",
@@ -416,7 +419,9 @@
       "storageSubtitle": "Integrate and organize your storage solutions seamlessly with NocoDB.",
       "others": "Others",
       "othersSubtitle": "Discover additional versatile integrations to enhance your NocoDB experience.",
-      "ai": "AI"
+      "ai": "AI",
+      "spreadSheet": "Spreadsheet",
+      "spreadSheetSubtitle": "Connect and manage your spreadsheets with NocoDB."
     }
   },
   "datatype": {
@@ -609,6 +614,12 @@
     "categories": "Categories"
   },
   "labels": {
+    "urlFormula": "URL Formula",
+    "selectIcon": "none",
+    "selectAWebhook": "--select a webhook--",
+    "openUrl": "Open URL",
+    "runWebHook": "Run Webhook",
+    "onClick": "On click",
     "defaultView": "Default view",
     "recordInsert": "Record Insert",
     "recordUpdate": "Record Update",
@@ -1271,6 +1282,7 @@
     "comingSoonIntegration": "Coming soon! Click to upvote for the integration you need in NocoDB."
   },
   "placeholder": {
+    "searchIcons": "Search icons",
     "selectSlackChannels": "Sélectionnez les canaux Slack",
     "selectTeamsChannels": "Sélectionnez les canaux Microsoft Teams",
     "selectDiscordChannels": "Sélectionnez les canaux Discord",
@@ -1325,6 +1337,12 @@
     "searchOptions": "Options de recherche"
   },
   "msg": {
+    "invalidConfiguration": "Invalid button configuration",
+    "invalidColumnConfiguration": "Invalid field configuration",
+    "invalidTheme": "Select a valid theme",
+    "invalidColor": "Select a valid color",
+    "invalidType": "Button type can be either 'webhook' or 'url'",
+    "invalidLabel": "Enter a valid button label",
     "formulaNotSupported": "Cette fonction n'est pas disponible pour votre base de données",
     "controlOrgAppearance": "Contrôlez le nom et l'apparence de vos organisations.",
     "addCompanyDomains": "Ajoutez des domaines pour restreindre l'accès aux utilisateurs non souhaités.",
@@ -1440,6 +1458,7 @@
     "tooLargeFieldEntity": "Le champ est trop grand pour être converti en {entity}",
     "roleRequired": "Rôle requis",
     "warning": {
+      "webhookDelete": "Button fields relying on this webhook will be impacted",
       "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date / date time field!",
       "kanbanNoFields": "La vue Kanban nécessite un seul champ de type SingleSelect pour être configuré. Essayez de configurer une vue kanban après avoir ajouté un seul champ de type SingleSelect !",
       "mapNoFields": "La vue cartographique nécessite un champ de données géographiques pour être configuré. Essayez de configurer une vue cartographique après avoir ajouté un champ de données géographiques !",
@@ -1639,6 +1658,7 @@
       "preventHideAllOptions": "Vous ne pouvez pas masquer toutes les options si le champ est requis"
     },
     "error": {
+      "manualTriggerHook": "Manual hooks can't be disabled",
       "errorLoadingRecord": "Erreur lors du chargement des données de l'enregistrement",
       "fetchingCalendarData": "Erreur lors de la récupération des données du calendrier",
       "fetchingActiveDates": "Erreur lors de la récupération des dates actives",

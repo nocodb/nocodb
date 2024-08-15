@@ -535,7 +535,7 @@ import NcChevronUpSmall from '~icons/nc-icons/chevron-up-small'
 import NcChevronDownSmall from '~icons/nc-icons/chevron-down-small'
 import NcChevronUpDownSmall from '~icons/nc-icons/chevron-up-down-small'
 
-// Api snippets lang 
+// Api snippets lang
 import NcLangShell from '~icons/nc-icons/lang-shell.svg'
 import NcLangJavascript from '~icons/nc-icons/lang-js.svg'
 import NcLangNode from '~icons/nc-icons/lang-node.svg'
@@ -545,7 +545,6 @@ import NcLangPython from '~icons/nc-icons/lang-python.svg'
 import NcLangRuby from '~icons/nc-icons/lang-ruby.svg'
 import NcLangJava from '~icons/nc-icons/lang-java.svg'
 import NcLangC from '~icons/nc-icons/lang-c.svg'
-
 
 // keep it for reference
 // todo: remove it after all icons are migrated

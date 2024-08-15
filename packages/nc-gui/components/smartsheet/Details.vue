@@ -105,9 +105,10 @@ watch(openedSubTab, () => {
 
 :deep(.nc-details-tab > .ant-tabs-nav:first-of-type) {
   min-height: calc(var(--toolbar-height) - 1px);
-}
-:deep(.ant-tabs-tab) {
-  @apply pt-2 pb-3;
+
+  .ant-tabs-tab {
+    @apply pt-2 pb-3;
+  }
 }
 </style>
 

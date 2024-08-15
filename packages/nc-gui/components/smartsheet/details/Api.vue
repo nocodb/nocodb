@@ -30,43 +30,43 @@ const langs = [
   {
     name: 'shell',
     clients: ['curl', 'wget'],
-    icon: iconMap.langShell
+    icon: iconMap.langShell,
   },
   {
     name: 'javascript',
     clients: ['axios', 'fetch', 'jquery', 'xhr'],
-    icon: iconMap.langJava
+    icon: iconMap.langJava,
   },
   {
     name: 'node',
     clients: ['axios', 'fetch', 'request', 'native', 'unirest'],
-    icon: iconMap.langNode
+    icon: iconMap.langNode,
   },
   {
     name: 'nocodb-sdk',
     clients: ['javascript', 'node'],
-    icon: iconMap.langNocodbSdk
+    icon: iconMap.langNocodbSdk,
   },
   {
     name: 'php',
-    icon: iconMap.langPhp
+    icon: iconMap.langPhp,
   },
   {
     name: 'python',
     clients: ['python3', 'requests'],
-    icon: iconMap.langPython
+    icon: iconMap.langPython,
   },
   {
     name: 'ruby',
-    icon: iconMap.langRuby
+    icon: iconMap.langRuby,
   },
   {
     name: 'java',
-    icon: iconMap.langJava
+    icon: iconMap.langJava,
   },
   {
     name: 'c',
-    icon: iconMap.langC
+    icon: iconMap.langC,
   },
 ]
 
@@ -205,7 +205,7 @@ const handleNavigateToDocs = (href: string) => {
           @click="selectedLangName = item.name"
         >
           <div class="flex gap-2 items-center">
-            <component :is="item.icon" class="!stroke-transparent h-6 w-6"/>
+            <component :is="item.icon" class="!stroke-transparent h-6 w-6" />
             {{ item.name }}
           </div>
         </NcMenuItem>

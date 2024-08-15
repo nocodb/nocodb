@@ -593,7 +593,7 @@ export default class View implements ViewType {
       fk_column_id: param.fk_column_id,
       fk_model_id: param.fk_model_id,
       order: param.order,
-      show: param.column_show.show,
+      show: false,
     };
     const views = await this.list(context, param.fk_model_id, ncMeta);
 
@@ -631,8 +631,6 @@ export default class View implements ViewType {
           (c) => c.show && !isSystemColumn(colIdMap.get(c.fk_column_id)),
         ).length;
         modifiedInsertObj.show = visibleColumnsCount < 3;
-      } else if (view.type !== ViewTypes.FORM) {
-        modifiedInsertObj.show = true;
       }
 
       if (param.column_order?.view_id === view.id) {

@@ -42,6 +42,7 @@ export class WorkspacesController {
   async list(@Req() req: NcRequest) {
     return await this.workspacesService.list({
       user: req.user,
+      req,
     });
   }
 

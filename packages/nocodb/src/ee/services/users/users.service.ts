@@ -202,7 +202,10 @@ export class UsersService extends UsersServiceCE {
         req: param.req,
       });
 
-      createdWorkspace = await this.createDefaultWorkspace(user, param.req);
+      createdWorkspace = await this.workspaceService.createDefaultWorkspace(
+        user,
+        param.req,
+      );
     }
     user = await User.getByEmail(email);
 
@@ -238,44 +241,6 @@ export class UsersService extends UsersServiceCE {
     return { ...(await this.login(user, param.req)), createdWorkspace };
   }
 
-  private async createDefaultWorkspace(user: User, req: any) {
-    const title = `${user.email?.split('@')?.[0]}`;
-
-    let createdWorkspace;
-
-    const prepopulatedWorkspace =
-      await this.workspaceService.getRandomPrepopulatedWorkspace();
-
-    let transferred = false;
-
-    if (prepopulatedWorkspace) {
-      transferred = await this.workspaceService.transferOwnership({
-        user,
-        workspace: prepopulatedWorkspace,
-        req,
-      });
-      if (transferred) {
-        await Workspace.update(prepopulatedWorkspace.id, {
-          title,
-        });
-        createdWorkspace = prepopulatedWorkspace;
-      }
-    }
-
-    if (!transferred) {
-      // create new workspace for user
-      createdWorkspace = await this.workspaceService.create({
-        user,
-        workspaces: {
-          title,
-        },
-        req,
-      });
-    }
-
-    return createdWorkspace;
-  }
-
   async login(
     user: UserType & { provider?: string; extra?: Record<string, any> },
     req: NcRequest,
@@ -286,7 +251,7 @@ export class UsersService extends UsersServiceCE {
     });
 
     if (workspaces.length === 0) {
-      await this.createDefaultWorkspace(user, req);
+      await this.workspaceService.createDefaultWorkspace(user, req);
     }
 
     return await super.login(user, req);

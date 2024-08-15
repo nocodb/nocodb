@@ -128,11 +128,23 @@ export class WorkspacesService implements OnApplicationBootstrap {
       roles?: string;
       extra?: Record<string, any>;
     };
+    req: NcRequest;
   }) {
-    const workspaces = await WorkspaceUser.workspaceList({
+    let workspaces = await WorkspaceUser.workspaceList({
       fk_user_id: param.user.id,
       fk_org_id: param.user.extra?.org_id,
     });
+
+    if (!workspaces.length && param.req.user?.id) {
+      // create a default workspace if empty
+      await this.createDefaultWorkspace(param.req.user, param.req);
+
+      // fetch workspaces again
+      workspaces = await WorkspaceUser.workspaceList({
+        fk_user_id: param.user.id,
+        fk_org_id: param.user.extra?.org_id,
+      });
+    }
 
     return new PagedResponseImpl<WorkspaceType>(workspaces, {
       count: workspaces.length,
@@ -676,5 +688,42 @@ export class WorkspacesService implements OnApplicationBootstrap {
         }
       }
     }
+  }
+
+  public async createDefaultWorkspace(user: User, req: any) {
+    const title = `${user.email?.split('@')?.[0]}`;
+
+    let createdWorkspace;
+
+    const prepopulatedWorkspace = await this.getRandomPrepopulatedWorkspace();
+
+    let transferred = false;
+
+    if (prepopulatedWorkspace) {
+      transferred = await this.transferOwnership({
+        user,
+        workspace: prepopulatedWorkspace,
+        req,
+      });
+      if (transferred) {
+        await Workspace.update(prepopulatedWorkspace.id, {
+          title,
+        });
+        createdWorkspace = prepopulatedWorkspace;
+      }
+    }
+
+    if (!transferred) {
+      // create new workspace for user
+      createdWorkspace = await this.create({
+        user,
+        workspaces: {
+          title,
+        },
+        req,
+      });
+    }
+
+    return createdWorkspace;
   }
 }

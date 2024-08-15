@@ -45,7 +45,7 @@ const langs = [
     icon: iconMap.langNode,
   },
   {
-    name: 'nocodb-sdk',
+    name: 'NocoDB-SDK',
     clients: ['javascript', 'node'],
     icon: iconMap.langNocodbSdk,
   },
@@ -158,19 +158,19 @@ watch(activeLang, (newLang) => {
 const supportedDocs = [
   {
     title: 'Data APIs',
-    href: '',
-  },
-  {
-    title: 'Create API Token',
-    href: '',
+    href: 'https://data-apis-v2.nocodb.com/',
   },
   {
     title: 'Meta APIs',
-    href: '',
+    href: 'https://meta-apis-v2.nocodb.com/',
+  },
+  {
+    title: 'Create API Token',
+    href: 'https://docs.nocodb.com/account-settings/api-tokens/#create-api-token',
   },
   {
     title: 'Swagger',
-    href: '',
+    href: 'https://docs.nocodb.com/bases/actions-on-base/#rest-apis',
   },
 ] as {
   title: string
@@ -213,7 +213,7 @@ const handleNavigateToDocs = (href: string) => {
           @click="selectedLangName = item.name"
         >
           <div class="flex gap-2 items-center">
-            <component :is="item.icon" class="!stroke-transparent h-6 w-6" />
+            <component :is="item.icon" class="!stroke-transparent h-5 w-5" />
             {{ item.name }}
           </div>
         </NcMenuItem>
@@ -245,24 +245,7 @@ const handleNavigateToDocs = (href: string) => {
         </div>
       </NcMenu>
       <div class="w-[calc(100%_-_264px)] flex flex-col gap-6 h-full max-h-full">
-        <div class="flex items-center justify-between gap-3">
-          <h3 class="my-0 capitalize text-xl text-gray-800 font-bold">{{ selectedLangName }}</h3>
-          <!-- Todo: add docs link  -->
-          <NcButton
-            type="text"
-            size="small"
-            icon-position="right"
-            class="children:children:flex-1"
-            @click="handleNavigateToDocs('')"
-          >
-            <div class="flex items-center gap-2 text-small leading-[18px]">
-              {{ $t('activity.goToDocs') }}
-
-              <GeneralIcon icon="externalLink" class="flex-none" />
-            </div>
-          </NcButton>
-        </div>
-        <div class="nc-api-clents-tab-wrapper h-[calc(100%_-_56px)] flex flex-col">
+        <div class="nc-api-clents-tab-wrapper h-[calc(100%_-_56px)] flex flex-col mt-2">
           <NcTabs v-model:activeKey="selectedClient" class="nc-api-clents-tab">
             <template #rightExtra>
               <NcButton
@@ -275,23 +258,23 @@ const handleNavigateToDocs = (href: string) => {
                 class="!hover:bg-gray-200"
                 @click="onCopyToClipboard"
               >
-                <div class="flex items-center gap-2 text-small leading-[18px]">
+                <div class="flex items-center gap-2 text-small leading-[18px] min-w-80px justify-center">
                   <GeneralIcon
-                    :icon="isCopied ? 'circleCheck2' : 'copy'"
+                    :icon="isCopied ? 'circleCheck' : 'copy'"
                     class="h-4 w-4"
                     :class="{
                       'text-gray-700': !isCopied,
-                      'text-green-500': isCopied,
+                      'text-green-700': isCopied,
                     }"
                   />
-                  {{ $t('general.copy') }}
+                  {{ isCopied ? $t('general.copied') : $t('general.copy') }}
                 </div>
               </NcButton>
             </template>
 
             <a-tab-pane v-for="client in activeLang?.clients || ['default']" :key="client" class="!h-full">
               <template #tab>
-                <div class="text-xs capitalize select-none">
+                <div class="text-small leading-[18px] capitalize select-none">
                   {{ client }}
                 </div>
               </template>
@@ -300,7 +283,7 @@ const handleNavigateToDocs = (href: string) => {
           </NcTabs>
           <Suspense>
             <MonacoEditor
-              class="h-[calc(100%_-_36px)] !bg-gray-50 pl-3"
+              class="h-[calc(100%_-_36px)] !bg-gray-50 pl-2"
               :model-value="code"
               :read-only="true"
               lang="typescript"
@@ -310,8 +293,8 @@ const handleNavigateToDocs = (href: string) => {
                 minimap: {
                   enabled: false,
                 },
-                fontSize: 14,
-                lineHeight: 20,
+                fontSize: 13,
+                lineHeight: 18,
                 padding: {
                   top: 12,
                   bottom: 12,
@@ -338,7 +321,7 @@ const handleNavigateToDocs = (href: string) => {
                 tabSize: 4,
                 detectIndentation: false,
                 insertSpaces: true,
-                lineNumbers: 'on',
+                lineNumbers: 'off',
               }"
               hide-minimap
             />
@@ -382,7 +365,7 @@ const handleNavigateToDocs = (href: string) => {
     @apply px-3;
 
     .ant-tabs-tab {
-      @apply px-3 pt-2 pb-3;
+      @apply px-3 pt-2 pb-2.5;
       & + .ant-tabs-tab {
         @apply !ml-2;
       }

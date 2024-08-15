@@ -21,6 +21,10 @@ import { DataExportController } from '~/modules/jobs/jobs/data-export/data-expor
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
 
+// Job Processor
+import { JobsProcessor } from '~/modules/jobs/jobs.processor';
+import { JobsMap } from '~/modules/jobs/jobs-map.service';
+
 // Migration Jobs
 import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-jobs';
 import { AttachmentMigration } from '~/modules/jobs/migration-jobs/nc_job_001_attachment';
@@ -48,6 +52,9 @@ export const JobsModuleMetadata = {
           }),
           BullModule.registerQueue({
             name: JOBS_QUEUE,
+            defaultJobOptions: {
+              removeOnComplete: true,
+            },
           }),
         ]
       : []),
@@ -66,7 +73,7 @@ export const JobsModuleMetadata = {
       : []),
   ],
   providers: [
-    ...(process.env.NC_WORKER_CONTAINER !== 'true' ? [] : []),
+    JobsMap,
     JobsEventService,
     ...(process.env.NC_REDIS_JOB_URL ? [] : [FallbackQueueService]),
     {
@@ -76,6 +83,7 @@ export const JobsModuleMetadata = {
         : FallbackJobsService,
     },
     JobsLogService,
+    JobsProcessor,
     ExportService,
     ImportService,
     DuplicateProcessor,

@@ -1,8 +1,6 @@
 import path from 'path';
 import debug from 'debug';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import type { Job } from 'bull';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -10,13 +8,9 @@ import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 
 const retentionDays = process.env.NC_ATTACHMENT_RETENTION_DAYS || 10;
 
-@Processor(JOBS_QUEUE)
 export class AttachmentCleanUpProcessor {
   private readonly debugLog = debug('nc:jobs:attachment-clean-up');
 
-  constructor() {}
-
-  @Process(JobTypes.AttachmentCleanUp)
   async job(job: Job) {
     // if retentionDays is set to 0, clean up is disabled
     if (+retentionDays === 0) {

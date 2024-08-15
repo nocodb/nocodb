@@ -1,21 +1,12 @@
-import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
-import { Job } from 'bull';
+import type { Job } from 'bull';
 import { invokeWebhook } from '~/helpers/webhookHelpers';
 import { Hook, Model, View } from '~/models';
-import {
-  type HandleWebhookJobData,
-  JOBS_QUEUE,
-  JobTypes,
-} from '~/interface/Jobs';
+import { type HandleWebhookJobData } from '~/interface/Jobs';
 
-@Processor(JOBS_QUEUE)
 export class WebhookHandlerProcessor {
   private logger = new Logger(WebhookHandlerProcessor.name);
 
-  constructor() {}
-
-  @Process(JobTypes.HandleWebhook)
   async job(job: Job<HandleWebhookJobData>) {
     const { context, hookId, modelId, viewId, prevData, newData, user } =
       job.data;

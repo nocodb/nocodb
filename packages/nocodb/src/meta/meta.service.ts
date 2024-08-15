@@ -223,7 +223,7 @@ export class MetaService {
     target: string,
     data: any | any[],
     ids: string[],
-    condition?: { [key: string]: any },
+    condition?: { [p: string]: any },
   ): Promise<any> {
     if (Array.isArray(data) ? !data.length : !data) {
       return [];

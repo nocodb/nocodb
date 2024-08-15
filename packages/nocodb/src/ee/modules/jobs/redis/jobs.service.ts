@@ -2,6 +2,7 @@ import { JobsService as JobsServiceCE } from 'src/modules/jobs/redis/jobs.servic
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
+import type { JobOptions } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
 import { InstanceCommands, JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import { TelemetryService } from '~/services/telemetry.service';
@@ -24,9 +25,13 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
     await JobsRedis.initJobs();
 
     await this.jobsQueue.add(
-      JobTypes.HealthCheck,
-      {},
-      { repeat: { cron: '*/10 * * * *' }, removeOnComplete: true },
+      {
+        jobName: JobTypes.HealthCheck,
+      },
+      {
+        jobId: JobTypes.HealthCheck,
+        repeat: { cron: '*/10 * * * *' },
+      },
     );
 
     // common cmds
@@ -74,8 +79,8 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
     super.onModuleInit();
   }
 
-  async add(name: string, data: any) {
-    const res = await super.add(name, data);
+  async add(name: string, data: any, options?: JobOptions) {
+    const res = await super.add(name, data, options);
 
     this.jobsQueue
       .getActiveCount()

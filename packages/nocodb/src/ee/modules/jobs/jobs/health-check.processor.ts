@@ -1,16 +1,13 @@
-import { Process, Processor } from '@nestjs/bull';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { Queue } from 'bull';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 
-@Processor(JOBS_QUEUE)
+@Injectable()
 export class HealthCheckProcessor {
   private logger = new Logger(HealthCheckProcessor.name);
 
   constructor(@Inject('JobsService') protected readonly jobsService) {}
 
-  @Process(JobTypes.HealthCheck)
-  async healthCheck() {
+  async job() {
     const queue = this.jobsService.jobsQueue as Queue;
 
     if (queue) {

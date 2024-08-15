@@ -1,8 +1,6 @@
 import debug from 'debug';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import type { Job } from 'bull';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import Workspace from '~/models/Workspace';
@@ -12,14 +10,10 @@ const DELETE_AFTER_DAYS = 1000 * 60 * 60 * 24 * 60; // 60 days
 
 const logger = new Logger('CleanUpProcessor');
 
-@Processor(JOBS_QUEUE)
 export class CleanUpProcessor {
   private readonly debugLog = debug('nc:jobs:clean-up');
 
-  constructor() {}
-
-  @Process(JobTypes.CleanUp)
-  async cleanUp(_job: Job) {
+  async job(_job: Job) {
     const ncMeta = Noco.ncMeta;
 
     const deletedWorkspaces = await ncMeta.metaList2(

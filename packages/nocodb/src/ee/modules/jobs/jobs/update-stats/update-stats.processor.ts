@@ -1,17 +1,13 @@
 import debug from 'debug';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import type { Job } from 'bull';
 import { Base, Model, ModelStat, Source, Workspace } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope, RootScopes } from '~/utils/globals';
 
-@Processor(JOBS_QUEUE)
 export class UpdateStatsProcessor {
   private readonly debugLog = debug('nc:jobs:update-stats');
 
-  @Process(JobTypes.UpdateModelStat)
   async updateModelStat(job: Job) {
     const {
       context,
@@ -64,7 +60,6 @@ export class UpdateStatsProcessor {
     return true;
   }
 
-  @Process(JobTypes.UpdateWsStat)
   async updateWorkspaceStat(job: Job) {
     this.debugLog(
       `Start updating stats for workspace ${job.data.fk_workspace_id}`,
@@ -168,7 +163,6 @@ export class UpdateStatsProcessor {
     return true;
   }
 
-  @Process(JobTypes.UpdateSrcStat)
   async UpdateSrcStat(_job: Job) {
     /* TODO - fix for context
     this.debugLog(`Start fetching stats for external sources`);

@@ -1,8 +1,7 @@
 import debug from 'debug';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
 import { WorkspacePlan } from 'nocodb-sdk';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
+import { Injectable } from '@nestjs/common';
+import type { Job } from 'bull';
 import { SourcesService } from '~/services/sources.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
 import { Base, Model, Workspace } from '~/models';
@@ -10,7 +9,7 @@ import { WorkspacesService } from '~/services/workspaces.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
-@Processor(JOBS_QUEUE)
+@Injectable()
 export class SourceCreateProcessor {
   private readonly debugLog = debug('nc:jobs:source-create');
 
@@ -21,7 +20,6 @@ export class SourceCreateProcessor {
     private readonly telemetryService: TelemetryService,
   ) {}
 
-  @Process(JobTypes.SourceCreate)
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 

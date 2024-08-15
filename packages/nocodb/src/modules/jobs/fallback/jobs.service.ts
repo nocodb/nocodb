@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import type { OnModuleInit } from '@nestjs/common';
 import { QueueService } from '~/modules/jobs/fallback/fallback-queue.service';
-import { JobStatus, MigrationJobTypes } from '~/interface/Jobs';
+import { JobStatus, JobTypes, JobVersions } from '~/interface/Jobs';
 import { Job } from '~/models';
 import { RootScopes } from '~/utils/globals';
 
@@ -10,23 +10,56 @@ export class JobsService implements OnModuleInit {
   constructor(private readonly fallbackQueueService: QueueService) {}
 
   async onModuleInit() {
-    await this.add(MigrationJobTypes.InitMigrationJobs, {});
+    await this.add(JobTypes.InitMigrationJobs, {});
   }
 
-  async add(name: string, data: any) {
+  async add(
+    name: string,
+    data: any,
+    options?: {
+      jobId?: string;
+      delay?: number; // delay in ms
+    },
+  ) {
     const context = {
       workspace_id: RootScopes.ROOT,
       base_id: RootScopes.ROOT,
       ...(data?.context || {}),
     };
 
-    const jobData = await Job.insert(context, {
-      job: name,
-      status: JobStatus.WAITING,
-      fk_user_id: data?.user?.id,
-    });
+    let jobData;
 
-    this.fallbackQueueService.add(name, data, { jobId: jobData.id });
+    if (options?.jobId) {
+      const existingJob = await Job.get(context, options.jobId);
+      if (existingJob) {
+        jobData = existingJob;
+
+        if (existingJob.status !== JobStatus.WAITING) {
+          await Job.update(context, existingJob.id, {
+            status: JobStatus.WAITING,
+          });
+        }
+      }
+    }
+
+    if (!jobData) {
+      jobData = await Job.insert(context, {
+        job: name,
+        status: JobStatus.WAITING,
+        fk_user_id: data?.user?.id,
+      });
+    }
+
+    data.jobName = name;
+
+    if (JobVersions?.[name]) {
+      data._jobVersion = JobVersions[name];
+    }
+
+    this.fallbackQueueService.add(name, data, {
+      jobId: jobData.id,
+      ...options,
+    });
 
     return jobData;
   }

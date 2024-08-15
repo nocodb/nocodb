@@ -611,26 +611,10 @@ export default class View implements ViewType {
         fk_view_id: view.id,
       };
 
-      if (param.column_show?.view_id === view.id) {
-        modifiedInsertObj.show = true;
-      } else if (view.uuid) {
+      if (view.uuid) {
         // if view is shared, then keep the show state as it is
-      }
-      // if gallery/kanban view, show only 3 columns(excluding system columns)
-      else if (view.type === ViewTypes.GALLERY) {
-        const visibleColumnsCount = (
-          await GalleryViewColumn.list(context, view.id, ncMeta)
-        )?.filter(
-          (c) => c.show && !isSystemColumn(colIdMap.get(c.fk_column_id)),
-        ).length;
-        modifiedInsertObj.show = visibleColumnsCount < 3;
-      } else if (view.type === ViewTypes.KANBAN) {
-        const visibleColumnsCount = (
-          await KanbanViewColumn.list(context, view.id, ncMeta)
-        )?.filter(
-          (c) => c.show && !isSystemColumn(colIdMap.get(c.fk_column_id)),
-        ).length;
-        modifiedInsertObj.show = visibleColumnsCount < 3;
+      } else if (param.column_show?.view_id === view.id) {
+        modifiedInsertObj.show = true;
       }
 
       if (param.column_order?.view_id === view.id) {

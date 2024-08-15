@@ -11,7 +11,6 @@ on:
     paths:
       - "packages/nocodb-sdk/**"
       - "packages/nc-gui/**"
-      - "packages/nc-plugin/**"
       - "packages/nocodb/**"
 
 concurrency:

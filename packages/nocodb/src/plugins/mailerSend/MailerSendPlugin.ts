@@ -1,6 +1,6 @@
-import { XcEmailPlugin } from 'nc-plugin';
 import MailerSend from './MailerSend';
-import type { IEmailAdapter } from 'nc-plugin';
+import type { IEmailAdapter } from '~/types/nc-plugin';
+import { XcEmailPlugin } from '~/types/nc-plugin';
 
 class MailerSendPlugin extends XcEmailPlugin {
   private static storageAdapter: MailerSend;

@@ -1,7 +1,7 @@
-import { XcForm } from 'nc-common';
+import type { XcForm } from '~/types/nc-plugin';
 
-import XcPlugin from './XcPlugin';
-import XcPluginMigration from './XcPluginMigration';
+import type XcPlugin from './XcPlugin';
+import type XcPluginMigration from './XcPluginMigration';
 
 export default interface XcPluginConfig {
   title: string;

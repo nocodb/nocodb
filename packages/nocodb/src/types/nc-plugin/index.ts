@@ -25,3 +25,5 @@ export {
   XcWebhookNotificationPlugin,
   IStorageAdapterV2,
 };
+export * from './common/XcUIBuilder';
+export * from './common/XcNotification';

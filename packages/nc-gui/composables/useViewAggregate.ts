@@ -29,8 +29,6 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     const aggregations = ref({}) as Ref<Record<string, any>>
 
-    const { isUIAllowed } = useRoles()
-
     const reloadAggregate = inject(ReloadAggregateHookInj)
 
     const visibleFieldsComputed = computed(() => {
@@ -94,7 +92,6 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
               ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {
                   viewId: view.value.id,
                   where: where?.value,
-                  ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
                   ...(fields ? { aggregation: fields } : {}),
                 })
               : await fetchAggregatedData({

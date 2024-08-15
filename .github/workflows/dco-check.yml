@@ -8,7 +8,6 @@ on:
       - "packages/nocodb-sdk/**"
       - "packages/nc-gui/**"
       - "packages/nc-lib-gui/**"
-      - "packages/nc-plugin/**"
       - "packages/nocodb/**"
 
 jobs:

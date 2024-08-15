@@ -51,7 +51,6 @@
     "**/node_modules/**",
     "**/nc-cli/**",
     "**/nc-lib-gui/**",
-    "**/nc-plugin/**",
     "**/nocodb-legacy/**",
     "**/test/**",
     "**/tests/**",

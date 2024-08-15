@@ -1,6 +1,6 @@
-import { Readable } from 'stream';
+import type { Readable } from 'stream';
 
-import IStorageAdapter from './IStorageAdapter';
+import type IStorageAdapter from './IStorageAdapter';
 
 /*
   #ref: https://github.com/nocodb/nocodb/pull/5608
@@ -22,13 +22,13 @@ export default interface IStorageAdapterV2<
     fetchOptions?: {
       buffer?: boolean;
     };
-  }
+  },
 > extends IStorageAdapter {
   name: string;
   fileCreateByUrl(
     destPath: string,
     url: string,
-    options?: FileCreateByUrlOptions
+    options?: FileCreateByUrlOptions,
   ): Promise<any>;
   fileCreateByStream(destPath: string, readStream: Readable): Promise<void>;
   fileReadByStream(key: string): Promise<Readable>;

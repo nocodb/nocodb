@@ -393,13 +393,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         if (appInfo.value.ee) {
           const aggregationMap = new Map<string, string>()
 
-          const aggregation = Object.values(gridViewCols.value)
-            .map((f) => ({
-              field: f.fk_column_id,
-              type: f.aggregation ?? CommonAggregations.None,
-            }))
-            .filter((f) => f.type !== CommonAggregations.None)
-
           const aggregationParams = (group.children ?? []).map((child) => {
             let key = child.key
 
@@ -416,7 +409,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 return {
                   where: calculateNestedWhere(child.nestedIn, where?.value),
                   alias: key,
-                  ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
                 }
               }
             } catch (e) {}
@@ -424,7 +416,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             return {
               where: calculateNestedWhere(child.nestedIn, where?.value),
               alias: key,
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             }
           })
 
@@ -433,16 +424,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
                 meta.value!.id,
                 {
                   viewId: view.value!.id,
-                  aggregation,
                 },
                 aggregationParams,
               )
-            : await fetchBulkAggregatedData(
-                {
-                  aggregation,
-                },
-                aggregationParams,
-              )
+            : await fetchBulkAggregatedData({}, aggregationParams)
 
           Object.entries(aggResponse).forEach(([key, value]) => {
             const child = (group?.children ?? []).find((c) => c.key.toString() === key.toString())
@@ -627,15 +612,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       try {
         if (!meta?.value?.id || !view.value?.id || !view.value?.fk_model_id || !appInfo.value.ee) return
 
-        let filteredFields = fields
-        if (!fields) {
-          filteredFields = Object.values(gridViewCols.value).map((f) => ({
-            field: f.fk_column_id,
-            type: f.aggregation ?? CommonAggregations.None,
-          }))
-        }
-
-        filteredFields = filteredFields?.filter((x) => x.type !== CommonAggregations.None)
+        const filteredFields = fields?.filter((x) => x.type !== CommonAggregations.None)
 
         if (filteredFields && !filteredFields?.length) return
 
@@ -660,7 +637,6 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           return {
             where: calculateNestedWhere(child.nestedIn, where?.value),
             alias: key,
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
           }
         })
 

@@ -5,6 +5,6 @@ export default interface IWebhookNotificationAdapter {
     content: string,
     webhooks: Array<{
       webhook_url: string;
-    }>
+    }>,
   ): Promise<any>;
 }

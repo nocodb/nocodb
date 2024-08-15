@@ -167,7 +167,7 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: workspace:^
+        specifier: 0.255.0
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.4.1
@@ -706,13 +706,13 @@ importers:
         specifier: 0.3.4
         version: 0.3.4(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
-        specifier: 0.253.0
-        version: 0.253.0
+        specifier: 0.255.0
+        version: 0.255.0
       nestjs-throttler-storage-redis:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8)(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2)(ioredis@5.4.1)(reflect-metadata@0.2.1)
       nocodb-sdk:
-        specifier: workspace:^
+        specifier: 0.255.0
         version: link:../nocodb-sdk
       nodemailer:
         specifier: ^6.9.13
@@ -21394,8 +21394,8 @@ packages:
       - debug
     dev: false
 
-  /nc-lib-gui@0.253.0:
-    resolution: {integrity: sha512-4C6EwsnZxrbc5eNVMaCck8kWb1skCIKtIIoTgIqssjclqaXhyGLLXy87FMRwH2cn40j84GeW7kBS8OKe6cpGkw==}
+  /nc-lib-gui@0.255.0:
+    resolution: {integrity: sha512-GHbr7Dtc9J4S3oDgf3p/8qWEruRKySHJcnMVgHlt5YgWWbwV+LidsHv7FDuxbjGYiTiHHjfUs2s18OMZ9EfEJw==}
     dependencies:
       express: 4.19.2
     transitivePeerDependencies:
@@ -25533,9 +25533,6 @@ packages:
   /sqlite3@5.1.6:
     resolution: {integrity: sha512-olYkWoKFVNSSSQNvxVUfjiVbz3YtBwTJj+mfV5zpHmqW3sELx2Cf4QCdirMelhM5Zh+KDVaKgQHqCxrqiWHybw==}
     requiresBuild: true
-    peerDependenciesMeta:
-      node-gyp:
-        optional: true
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.11
       node-addon-api: 4.3.0
@@ -25550,9 +25547,6 @@ packages:
   /sqlite3@5.1.7:
     resolution: {integrity: sha512-GGIyOiFaG+TUra3JIfkI/zGP8yZYLPQ0pl1bH+ODjiX57sPhrLU5sQJn1y9bDKZUFYkX1crlrPfSYt0BKKdkog==}
     requiresBuild: true
-    peerDependenciesMeta:
-      node-gyp:
-        optional: true
     dependencies:
       bindings: 1.5.0
       node-addon-api: 7.0.0

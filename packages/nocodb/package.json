@@ -1,6 +1,6 @@
 {
   "name": "nocodb",
-  "version": "0.253.0",
+  "version": "0.255.0",
   "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {
@@ -123,9 +123,9 @@
     "mysql2": "^3.9.7",
     "nanoid": "^3.3.7",
     "nc-help": "0.3.4",
-    "nc-lib-gui": "0.253.0",
+    "nc-lib-gui": "0.255.0",
     "nestjs-throttler-storage-redis": "^0.4.4",
-    "nocodb-sdk": "workspace:^",
+    "nocodb-sdk": "0.255.0",
     "nodemailer": "^6.9.13",
     "object-hash": "^3.0.0",
     "object-sizeof": "^2.6.4",

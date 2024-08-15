@@ -144,7 +144,6 @@ declare module 'vue' {
     MdiStar: typeof import('~icons/mdi/star')['default']
     MdiStarOutline: typeof import('~icons/mdi/star-outline')['default']
     MdiStickerCheckOutline: typeof import('~icons/mdi/sticker-check-outline')['default']
-    MdiTable: typeof import('~icons/mdi/table')['default']
     MdiTableColumnPlusAfter: typeof import('~icons/mdi/table-column-plus-after')['default']
     MdiThumbUp: typeof import('~icons/mdi/thumb-up')['default']
     MdiTick: typeof import('~icons/mdi/tick')['default']

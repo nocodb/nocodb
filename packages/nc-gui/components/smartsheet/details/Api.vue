@@ -98,22 +98,22 @@ const activeLang = computed(() => langs.find((lang) => lang.name === selectedLan
 const code = computed(() => {
   if (activeLang.value?.name === 'nocodb-sdk') {
     return `${selectedClient.value === 'node' ? 'const { Api } = require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
-    
+  
 const api = new Api({
-  baseURL: "${(appInfo.value && appInfo.value.ncSiteUrl) || '/'}",
-  headers: {
-    "xc-token": "CREATE_YOUR_API_TOKEN_FROM ${location.origin + location.pathname}#/account/tokens"
-  }
+    baseURL: "${(appInfo.value && appInfo.value.ncSiteUrl) || '/'}",
+    headers: {
+      "xc-token": "CREATE_YOUR_API_TOKEN_FROM ${location.origin + location.pathname}#/account/tokens"
+    }
 })
 
 api.dbViewRow.list(
-  "noco",
-  ${JSON.stringify(base.value?.id)},
-  ${JSON.stringify(meta.value?.id)},
-  ${JSON.stringify(view.value?.id)}, ${JSON.stringify(queryParams.value, null, 4)}).then(function (data) {
-  console.log(data);
+    "noco",
+    ${JSON.stringify(base.value?.id)},
+    ${JSON.stringify(meta.value?.id)},
+    ${JSON.stringify(view.value?.id)}, ${JSON.stringify(queryParams.value, null, 4)}).then(function (data) {
+    console.log(data);
 }).catch(function (error) {
-  console.error(error);
+    console.error(error);
 });`
   }
 
@@ -175,8 +175,8 @@ const handleNavigateToDocs = (href: string) => {
       maxHeight: 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 16px)',
     }"
   >
-    <div class="flex gap-6 max-w-[1000px] mx-auto h-full">
-      <NcMenu class="nc-api-snippets-menu !h-full w-[240px] min-w-[240px]">
+    <div class="flex gap-4 max-w-[1000px] mx-auto h-full">
+      <NcMenu class="nc-api-snippets-menu !h-full w-[252px] min-w-[252px] nc-scrollbar-thin !pr-3">
         <div
           class="px-3 py-2 text-[11px] leading-4 text-gray-500 uppercase font-semibold"
           :style="{
@@ -249,91 +249,91 @@ const handleNavigateToDocs = (href: string) => {
             </div>
           </NcButton>
         </div>
-
-        <NcTabs v-model:activeKey="selectedClient" class="nc-api-clents-tab">
-          <template #rightExtra>
-            <NcButton
-              v-e="[
-                'c:snippet:copy',
-                { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
-              ]"
-              type="secondary"
-              size="small"
-              @click="onCopyToClipboard"
-            >
-              <div class="flex items-center">
-                <GeneralIcon icon="copy" class="mr-1" />
-                {{ $t('general.copy') }} code
-              </div>
-            </NcButton>
-          </template>
-          <a-tab-pane v-for="client in activeLang?.clients || ['default']" :key="client" class="!h-full">
-            <template #tab>
-              <div class="text-sm capitalize select-none">
-                {{ client }}
-              </div>
+        <div class="nc-api-clents-tab-wrapper h-[calc(100%_-_56px)] flex flex-col">
+          <NcTabs v-model:activeKey="selectedClient" class="nc-api-clents-tab">
+            <template #rightExtra>
+              <NcButton
+                v-e="[
+                  'c:snippet:copy',
+                  { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
+                ]"
+                type="text"
+                size="small"
+                @click="onCopyToClipboard"
+              >
+                <div class="flex items-center">
+                  <GeneralIcon icon="copy" class="mr-1" />
+                  {{ $t('general.copy') }} code
+                </div>
+              </NcButton>
             </template>
 
-            <Suspense>
-              <MonacoEditor
-                class="h-full !bg-gray-50 pl-3"
-                :model-value="code"
-                :read-only="true"
-                lang="typescript"
-                :validate="false"
-                :disable-deep-compare="true"
-                :monaco-config="{
-                  minimap: {
-                    enabled: false,
-                  },
-                  fontSize: 14,
-                  lineHeight: 20,
-                  padding: {
-                    top: 12,
-                    bottom: 12,
-                  },
-                  overviewRulerBorder: false,
-                  overviewRulerLanes: 0,
-                  hideCursorInOverviewRuler: true,
-                  lineDecorationsWidth: 12,
-                  lineNumbersMinChars: 0,
-                  roundedSelection: false,
-                  selectOnLineNumbers: false,
-                  scrollBeyondLastLine: false,
-                  contextmenu: false,
-                  glyphMargin: false,
-                  folding: false,
-                  bracketPairColorization: { enabled: false },
-                  wordWrap: 'on',
-                  scrollbar: {
-                    horizontal: 'hidden',
-                    verticalScrollbarSize: 6,
-                  },
-                  wrappingStrategy: 'advanced',
-                  renderLineHighlight: 'none',
-                  tabSize: 4,
-                  lineNumbers: 'on',
-                }"
-                hide-minimap
-              />
-              <template #fallback>
-                <div class="h-full w-full flex flex-col justify-center items-center mt-28">
-                  <a-spin size="large" :indicator="indicator" />
+            <a-tab-pane v-for="client in activeLang?.clients || ['default']" :key="client" class="!h-full">
+              <template #tab>
+                <div class="text-sm capitalize select-none">
+                  {{ client }}
                 </div>
               </template>
-            </Suspense>
-          </a-tab-pane>
-        </NcTabs>
+              <div></div>
+            </a-tab-pane>
+          </NcTabs>
+          <Suspense>
+            <MonacoEditor
+              class="h-[calc(100%_-_36px)] !bg-gray-50 pl-3"
+              :model-value="code"
+              :read-only="true"
+              lang="typescript"
+              :validate="false"
+              :disable-deep-compare="true"
+              :monaco-config="{
+                minimap: {
+                  enabled: false,
+                },
+                fontSize: 14,
+                lineHeight: 20,
+                padding: {
+                  top: 12,
+                  bottom: 12,
+                },
+                overviewRulerBorder: false,
+                overviewRulerLanes: 0,
+                hideCursorInOverviewRuler: true,
+                lineDecorationsWidth: 12,
+                lineNumbersMinChars: 0,
+                roundedSelection: false,
+                selectOnLineNumbers: false,
+                scrollBeyondLastLine: false,
+                contextmenu: false,
+                glyphMargin: false,
+                folding: false,
+                bracketPairColorization: { enabled: false },
+                wordWrap: 'on',
+                scrollbar: {
+                  horizontal: 'hidden',
+                  verticalScrollbarSize: 6,
+                },
+                wrappingStrategy: 'advanced',
+                renderLineHighlight: 'none',
+                tabSize: 4,
+                detectIndentation: false,
+                insertSpaces: true,
+                lineNumbers: 'on',
+              }"
+              hide-minimap
+            />
+            <template #fallback>
+              <div class="h-full w-full flex flex-col justify-center items-center mt-28">
+                <a-spin size="large" :indicator="indicator" />
+              </div>
+            </template>
+          </Suspense>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-:deep(.ant-tabs-tab + .ant-tabs-tab) {
-  @apply !ml-7;
-}
-
 .nc-api-snippets-menu {
   @apply border-r-0 !py-0;
 
@@ -355,15 +355,28 @@ const handleNavigateToDocs = (href: string) => {
     }
   }
 }
-:deep(.nc-api-clents-tab.ant-tabs) {
-  @apply bg-gray-50 border-1 border-gray-200 rounded-lg flex-1;
 
+:deep(.nc-api-clents-tab.ant-tabs) {
   .ant-tabs-nav {
     @apply px-3;
+
+    .ant-tabs-tab {
+      @apply px-3 py-2;
+      & + .ant-tabs-tab {
+        @apply !ml-2;
+      }
+    }
   }
   .ant-tabs-content {
     @apply h-full;
   }
+}
+</style>
+
+<style lang="scss">
+.nc-api-clents-tab-wrapper {
+  @apply bg-gray-50 border-1 border-gray-200 rounded-lg flex-1;
+
   .monaco-editor {
     @apply !border-0 !rounded-none pr-3;
   }

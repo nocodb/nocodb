@@ -103,7 +103,7 @@ watch(openedSubTab, () => {
   @apply flex flex-row items-center gap-x-1.5 pr-0.5;
 }
 
-:deep(.ant-tabs-nav) {
+:deep(.nc-details-tab > .ant-tabs-nav:first-of-type) {
   min-height: calc(var(--toolbar-height) - 1px);
 }
 :deep(.ant-tabs-tab) {

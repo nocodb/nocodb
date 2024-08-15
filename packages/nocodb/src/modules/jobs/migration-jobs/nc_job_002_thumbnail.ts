@@ -2,7 +2,7 @@ import path from 'path';
 import debug from 'debug';
 import { Process } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
-import { MigrationJobTypes } from '~/interface/Jobs';
+import type Sharp from 'sharp';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import mimetypes from '~/utils/mimeTypes';
@@ -25,6 +25,21 @@ export class ThumbnailMigration {
   @Process(MigrationJobTypes.Thumbnail)
   async job() {
     try {
+      let sharp: typeof Sharp;
+
+      try {
+        sharp = (await import('sharp')).default;
+      } catch {
+        // ignore
+      }
+
+      if (!sharp) {
+        this.log(
+          `Thumbnail generation is not supported in this platform at the moment. Skipping thumbnail migration for now!`,
+        );
+        return true;
+      }
+
       const ncMeta = Noco.ncMeta;
 
       const storageAdapter = await NcPluginMgrv2.storageAdapter(ncMeta);

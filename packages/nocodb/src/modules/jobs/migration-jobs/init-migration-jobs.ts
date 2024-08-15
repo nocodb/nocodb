@@ -21,11 +21,11 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.Attachment,
       service: this.attachmentMigration,
     },
-    /* {
+    {
       version: '2',
       job: MigrationJobTypes.Thumbnail,
-      fn: this.thumbnailMigration.job,
-    }, */
+      service: this.thumbnailMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');

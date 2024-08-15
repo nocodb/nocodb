@@ -137,79 +137,212 @@ const onCopyToClipboard = async () => {
 watch(activeLang, (newLang) => {
   selectedClient.value = newLang?.clients?.[0]
 })
+
+const supportedDocs = [
+  {
+    title: 'Data APIs',
+    href: '',
+  },
+  {
+    title: 'Create API Token',
+    href: '',
+  },
+  {
+    title: 'Meta APIs',
+    href: '',
+  },
+  {
+    title: 'Swagger',
+    href: '',
+  },
+] as {
+  title: string
+  href: string
+}[]
+
+const handleNavigateToDocs = (href: string) => {
+  navigateTo(href, {
+    open: navigateToBlankTargetOpenOption,
+  })
+}
 </script>
 
 <template>
-  <div class="flex flex-col w-full h-full px-6 mt-1">
-    <NcTabs v-model:activeKey="selectedLangName" class="!h-full">
-      <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
-        <template #tab>
-          <div class="text-sm capitalize select-none">
+  <div
+    class="p-6"
+    :style="{
+      height: 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 16px)',
+      maxHeight: 'calc(100vh - var(--topbar-height) - var(--toolbar-height) - 16px)',
+    }"
+  >
+    <div class="flex gap-6 max-w-[1000px] mx-auto h-full">
+      <NcMenu class="nc-api-snippets-menu !h-full w-[240px] min-w-[240px]">
+        <div
+          class="px-3 py-2 text-[11px] leading-4 text-gray-500 uppercase font-semibold"
+          :style="{
+            letterSpacing: '0.3px',
+          }"
+        >
+          {{ $t('general.languages') }}
+        </div>
+
+        <NcMenuItem
+          v-for="item in langs"
+          :key="item.name"
+          class="rounded-md capitalize select-none"
+          :class="{
+            'active-menu': selectedLangName === item.name,
+          }"
+          @click="selectedLangName = item.name"
+        >
+          <div class="flex gap-2 items-center">
+            <GeneralIcon icon="file" />
             {{ item.name }}
           </div>
-        </template>
+        </NcMenuItem>
 
-        <div class="flex flex-row w-full space-x-3 my-4 items-center">
-          <NcSelect
-            v-if="activeLang?.clients"
-            v-model:value="selectedClient"
-            style="width: 10rem"
-            class="capitalize"
-            dropdown-class-name="nc-dropdown-snippet-active-lang"
-          >
-            <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full capitalize" :value="client">
-              <div class="flex items-center w-full justify-between w-full gap-2">
-                <div class="truncate flex-1">{{ client }}</div>
-                <component
-                  :is="iconMap.check"
-                  v-if="selectedClient === client"
-                  id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
-                />
-              </div>
-            </a-select-option>
-          </NcSelect>
+        <NcDivider class="!my-3" />
 
+        <div
+          class="px-3 py-2 text-[11px] leading-4 text-gray-500 uppercase font-semibold"
+          :style="{
+            letterSpacing: '0.3px',
+          }"
+        >
+          {{ $t('labels.documentation') }}
+        </div>
+
+        <div class="flex flex-col gap-1">
           <NcButton
-            v-e="[
-              'c:snippet:copy',
-              { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
-            ]"
-            type="secondary"
+            v-for="(doc, idx) of supportedDocs"
+            :key="idx"
+            type="text"
             size="small"
-            @click="onCopyToClipboard"
+            :centered="false"
+            icon-position="right"
+            class="children:children:flex-1"
+            @click="handleNavigateToDocs(doc.href)"
           >
-            <div class="flex items-center">
-              <GeneralIcon icon="copy" class="mr-1" />
-              {{ $t('general.copy') }} code
+            <div class="flex items-center justify-between w-full">
+              {{ doc.title }}
+
+              <GeneralIcon icon="externalLink" class="flex-none" />
+            </div>
+          </NcButton>
+        </div>
+      </NcMenu>
+      <div class="flex flex-col gap-6 h-full max-h-full">
+        <div class="flex items-center justify-between gap-3">
+          <h3 class="my-0 capitalize text-2xl text-gray-800 font-bold">{{ selectedLangName }}</h3>
+          <!-- Todo: add docs link  -->
+          <NcButton
+            type="text"
+            size="small"
+            icon-position="right"
+            class="children:children:flex-1"
+            @click="handleNavigateToDocs('')"
+          >
+            <div class="flex items-center justify-between w-full">
+              {{ $t('activity.goToDocs') }}
+
+              <GeneralIcon icon="externalLink" class="flex-none" />
             </div>
           </NcButton>
         </div>
 
-        <Suspense>
-          <MonacoEditor
-            class="border-1 border-gray-200 py-4 rounded-lg"
-            style="height: calc(100vh - (var(--topbar-height) * 2) - 8rem)"
-            :model-value="code"
-            :read-only="true"
-            lang="typescript"
-            :validate="false"
-            :disable-deep-compare="true"
-            hide-minimap
-          />
-          <template #fallback>
-            <div class="h-full w-full flex flex-col justify-center items-center mt-28">
-              <a-spin size="large" :indicator="indicator" />
+        <NcTabs v-model:activeKey="selectedLangName" class="!flex-1">
+          <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
+            <template #tab>
+              <div class="text-sm capitalize select-none">
+                {{ item.name }}
+              </div>
+            </template>
+
+            <div class="flex flex-row w-full space-x-3 my-4 items-center">
+              <NcSelect
+                v-if="activeLang?.clients"
+                v-model:value="selectedClient"
+                style="width: 10rem"
+                class="capitalize"
+                dropdown-class-name="nc-dropdown-snippet-active-lang"
+              >
+                <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full capitalize" :value="client">
+                  <div class="flex items-center w-full justify-between w-full gap-2">
+                    <div class="truncate flex-1">{{ client }}</div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="selectedClient === client"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+
+              <NcButton
+                v-e="[
+                  'c:snippet:copy',
+                  { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
+                ]"
+                type="secondary"
+                size="small"
+                @click="onCopyToClipboard"
+              >
+                <div class="flex items-center">
+                  <GeneralIcon icon="copy" class="mr-1" />
+                  {{ $t('general.copy') }} code
+                </div>
+              </NcButton>
             </div>
-          </template>
-        </Suspense>
-      </a-tab-pane>
-    </NcTabs>
+
+            <Suspense>
+              <MonacoEditor
+                class="border-1 border-gray-200 py-4 rounded-lg"
+               
+                :model-value="code"
+                :read-only="true"
+                lang="typescript"
+                :validate="false"
+                :disable-deep-compare="true"
+                hide-minimap
+              />
+              <template #fallback>
+                <div class="h-full w-full flex flex-col justify-center items-center mt-28">
+                  <a-spin size="large" :indicator="indicator" />
+                </div>
+              </template>
+            </Suspense>
+          </a-tab-pane>
+        </NcTabs>
+      </div>
+    </div>
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 :deep(.ant-tabs-tab + .ant-tabs-tab) {
   @apply !ml-7;
+}
+
+.nc-api-snippets-menu {
+  @apply border-r-0 !py-0;
+
+  :deep(.ant-menu-item) {
+    @apply h-7 leading-5 my-1.5 px-3 text-gray-700;
+
+    .nc-menu-item-inner {
+      @apply text-small leading-[18px] text-current font-weight-500;
+    }
+    &:hover:not(.active-menu) {
+      @apply !bg-gray-100;
+    }
+
+    &.active-menu {
+      @apply bg-brand-50;
+      .nc-menu-item-inner {
+        @apply text-brand-600 font-semibold;
+      }
+    }
+  }
 }
 </style>

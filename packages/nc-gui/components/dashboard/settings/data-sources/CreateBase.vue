@@ -233,8 +233,8 @@ const createSource = async () => {
             emit('sourceCreated')
             vOpen.value = false
             creatingSource.value = false
-          } else if (status === JobStatus.FAILED) {
-            message.error('Failed to create base')
+          } else if (data.status === JobStatus.FAILED) {
+            message.error(data?.data?.error?.message || 'Failed to create base')
             creatingSource.value = false
           }
         }

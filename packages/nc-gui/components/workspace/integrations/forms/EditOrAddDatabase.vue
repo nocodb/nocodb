@@ -666,7 +666,7 @@ watch(
                           :label="$t('labels.sqliteFile')"
                           v-bind="validateInfos['dataSource.connection.connection.filename']"
                         >
-                          <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" />
+                          <a-input v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename" placeholder="Enter absolute file path"/>
                         </a-form-item>
                       </a-col>
                     </a-row>

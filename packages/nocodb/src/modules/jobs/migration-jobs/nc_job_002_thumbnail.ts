@@ -167,7 +167,8 @@ export class ThumbnailMigration {
       let processedImages = 0;
 
       const limit = 10;
-      let offset = 0;
+
+      const skipImages = [];
 
       this.log(
         `Starting thumbnail generation for ${numberOfImagesToBeProcessed} images`,
@@ -177,13 +178,11 @@ export class ThumbnailMigration {
       while (true) {
         const fileReferences = await ncMeta
           .knexConnection(temp_file_references_table)
-          .where('thumbnail_generated', false)
+          .whereNotIn('id', skipImages)
+          .andWhere('thumbnail_generated', false)
           .andWhere('referenced', true)
           .andWhere('mimetype', 'like', 'image/%')
-          .limit(limit)
-          .offset(offset);
-
-        offset += limit;
+          .limit(limit);
 
         if (fileReferences.length === 0) {
           break;
@@ -231,47 +230,54 @@ export class ThumbnailMigration {
             } catch (e) {
               // ignore error
             }
+
+            if (fileReference.thumbnail_generated) {
+              continue;
+            }
+
+            const attachment: {
+              url?: string;
+              path?: string;
+              mimetype?: string;
+            } = {};
+
+            if (isUrl) {
+              attachment.url = fileReference.file_path;
+              attachment.mimetype = fileReference.mimetype;
+            } else {
+              attachment.path = path.join(
+                'download',
+                fileReference.file_path.replace(/^nc\/uploads\//, ''),
+              );
+              attachment.mimetype = fileReference.mimetype;
+            }
+
+            // manually call thumbnail generator job to control the concurrency
+            const thumbnailGenerated =
+              await this.thumbnailGeneratorProcessor.job({
+                data: {
+                  context: {
+                    base_id: RootScopes.ROOT,
+                    workspace_id: RootScopes.ROOT,
+                  },
+                  attachments: [attachment],
+                },
+              } as any);
+
+            if (thumbnailGenerated.length > 0) {
+              await ncMeta
+                .knexConnection(temp_file_references_table)
+                .where('id', fileReference.id)
+                .update({
+                  thumbnail_generated: true,
+                });
+            } else {
+              this.log(
+                `Error generating thumbnail for file ${fileReference.file_path}`,
+              );
+              skipImages.push(fileReference.id);
+            }
           }
-
-          // manually call thumbnail generator job to control the concurrency
-          await this.thumbnailGeneratorProcessor.job({
-            data: {
-              context: {
-                base_id: RootScopes.ROOT,
-                workspace_id: RootScopes.ROOT,
-              },
-              attachments: fileReferences
-                .filter((f) => !f.thumbnail_generated)
-                .map((f) => {
-                  const isUrl = /^https?:\/\//i.test(f.file_path);
-                  if (isUrl) {
-                    return {
-                      url: f.file_path,
-                      mimetype: f.mimetype,
-                    };
-                  } else {
-                    return {
-                      path: path.join(
-                        'download',
-                        f.file_path.replace(/^nc\/uploads\//, ''),
-                      ),
-                      mimetype: f.mimetype,
-                    };
-                  }
-                }),
-            },
-          } as any);
-
-          // update the file references
-          await ncMeta
-            .knexConnection(temp_file_references_table)
-            .whereIn(
-              'file_path',
-              fileReferences.map((f) => f.file_path),
-            )
-            .update({
-              thumbnail_generated: true,
-            });
         } catch (e) {
           this.log(`error while generating thumbnail:`, e);
         } finally {

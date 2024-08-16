@@ -150,10 +150,10 @@ function perform_rollout(){
     latest_remote_digest=$(aws ecr batch-get-image --region us-east-2 --repository-name ${REPO_NAME:-nocohub} --image-ids imageTag=${STAGE_TAG} --output text --query images[].imageId )
     message "${ENVIRONMENT}: Image with tag:${STAGE_TAG} will be launched. digest: ${latest_remote_digest}"
 
-    if [[ "${PAUSE_AND_SHUTDOWN_WORKERS}" == "true" ]]
-    then
-        pause_workers_and_gracefully_shutdown
-    fi
+    # if [[ "${PAUSE_AND_SHUTDOWN_WORKERS}" == "true" ]]
+    # then
+    #     pause_workers_and_gracefully_shutdown
+    # fi
 
     # TODO: prewarm ASG to have additional instances. update only desired 
     ALL_SVS=$( aws ecs list-services --cluster ${CLUSTER}  --region=us-east-2  | jq -r '.serviceArns[] | split("/") | .[2]')

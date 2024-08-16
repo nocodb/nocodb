@@ -201,7 +201,7 @@ export default class Integration implements IntegrationType {
       qb.where(`${MetaTable.INTEGRATIONS}.type`, args.type);
     }
     // if sub_type is provided then filter integrations based on sub_type
-    if (args.type) {
+    if (args.sub_type) {
       qb.where(`${MetaTable.INTEGRATIONS}.sub_type`, args.sub_type);
     }
 

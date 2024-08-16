@@ -8,6 +8,7 @@ export interface IntegrationItemType {
   categories: IntegrationCategoryType[]
   isAvailable?: boolean
   iconStyle?: CSSProperties
+  isOssOnly?: boolean
 }
 
 export interface IntegrationCategoryItemType {
@@ -107,6 +108,14 @@ export const allIntegrations: IntegrationItemType[] = [
     icon: iconMap.postgreSql,
     categories: [IntegrationCategoryType.DATABASE],
     isAvailable: true,
+  },
+  {
+    title: 'objects.syncData.sqlServer',
+    value: ClientType.SQLITE,
+    icon: iconMap.sqlServer,
+    categories: [IntegrationCategoryType.DATABASE],
+    isAvailable: true,
+    isOssOnly: true
   },
   {
     title: 'objects.syncData.snowflake',
@@ -426,3 +435,12 @@ export const allIntegrations: IntegrationItemType[] = [
   //   categories: [IntegrationCategoryType.OTHERS],
   // },
 ]
+
+
+export const allIntegrationsMapByValue = allIntegrations.reduce(
+  (acc, curr) => {
+    acc[curr.value] = curr;
+    return acc;
+  },
+  {} as Record<string, IntegrationItemType>
+);

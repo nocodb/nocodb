@@ -10,9 +10,10 @@ enum IntegrationsPageMode {
   EDIT,
 }
 
-const integrationType: Record<'PostgreSQL' | 'MySQL', ClientType> = {
+const integrationType: Record<'PostgreSQL' | 'MySQL' | 'SQLITE', ClientType> = {
   PostgreSQL: ClientType.PG,
   MySQL: ClientType.MYSQL,
+  SQLITE: ClientType.SQLITE,
 }
 
 type IntegrationsSubType = (typeof integrationType)[keyof typeof integrationType]
@@ -40,6 +41,16 @@ function defaultValues(type: IntegrationsSubType) {
         title: 'MySQL',
         logo: h(GeneralBaseLogo, {
           'source-type': 'mysql2',
+          'class': 'logo',
+        }),
+      }
+    case integrationType.SQLITE:
+      return {
+        ...genericValues,
+        type: integrationType.SQLITE,
+        title: 'SQLite',
+        logo: h(GeneralBaseLogo, {
+          'source-type': 'sqlite3',
           'class': 'logo',
         }),
       }
@@ -144,7 +155,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
   const addIntegration = (type: IntegrationsSubType) => {
+    console.log('add integration', type)
     activeIntegration.value = defaultValues(type)
+    console.log('integration', activeIntegration.value)
     pageMode.value = IntegrationsPageMode.ADD
     $e('c:integration:add')
   }

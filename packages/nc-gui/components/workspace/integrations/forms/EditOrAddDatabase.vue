@@ -428,6 +428,14 @@ function handleAutoScroll(scroll: boolean, className: string) {
   }
 }
 
+const activeIntegrationIcon = computed(() => {
+  const activeIntegrationType = isEditMode.value
+    ? activeIntegration.value?.sub_type || activeIntegration.value?.config?.client
+    : activeIntegration.value?.type
+
+  return allIntegrationsMapByValue[activeIntegrationType]?.icon
+})
+
 // reset test status on config change
 watch(
   formState,
@@ -504,12 +512,14 @@ watch(
         >
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
-        <WorkspaceIntegrationsIcon
-          :integration-type="
-            isEditMode ? activeIntegration?.sub_type || activeIntegration?.config?.client : activeIntegration?.type
-          "
-          size="xs"
-        />
+
+        <div
+          v-if="activeIntegrationIcon"
+          class="h-8 w-8 flex items-center justify-center children:flex-none bg-gray-200 rounded-lg"
+        >
+          <component :is="activeIntegrationIcon" class="!stroke-transparent w-4 h-4" />
+        </div>
+
         <div class="flex-1 text-base font-weight-700">{{ activeIntegration?.title }}</div>
       </div>
       <div class="flex items-center gap-3">

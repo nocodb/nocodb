@@ -6,6 +6,8 @@ import 'splitpanes/dist/splitpanes.css'
 
 import {
   type AttachmentResType,
+  type LinkToAnotherRecordType,
+  type ColumnType,
   ProjectRoles,
   RelationTypes,
   UITypes,
@@ -55,6 +57,8 @@ const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
+const { metas, getMeta } = useMetas()
+
 const { base } = storeToRefs(useBase())
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -94,7 +98,7 @@ const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
 reloadEventHook.on(async () => {
-  await loadFormView()
+  await Promise.all([loadFormView(), loadReleatedMetas()])
   setFormData()
 })
 
@@ -184,6 +188,41 @@ const onVisibilityChange = (state: 'showAddColumn' | 'showEditColumn') => {
 
 const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(formViewData.value?.logo_url)))
 
+const getPrefillValue = (c: ColumnType, value: any) => {
+  let preFillValue: any
+
+  switch (c.uidt) {
+    case UITypes.LinkToAnotherRecord:
+    case UITypes.Links: {
+      const values = Array.isArray(value) ? value : [value]
+      const fk_related_model_id = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+
+      if (!fk_related_model_id) return
+
+      const rowIds = values
+        .map((row) => {
+          return extractPkFromRow(row, metas.value[fk_related_model_id].columns || [])
+        })
+        .filter((rowId) => !!rowId)
+        .join(',')
+
+      preFillValue = rowIds || undefined
+      // if bt/oo then extract object from array
+      if (c.colOptions?.type === RelationTypes.BELONGS_TO || c.colOptions?.type === RelationTypes.ONE_TO_ONE) {
+        preFillValue = rowIds[0]
+      }
+
+      break
+    }
+
+    default: {
+      return value
+    }
+  }
+
+  return preFillValue
+}
+
 const updatePreFillFormSearchParams = useDebounceFn(() => {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
@@ -192,8 +231,20 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
   const searchParams = new URLSearchParams()
 
   for (const c of visibleColumns.value) {
-    if (c.title && preFilledData[c.title] && !isVirtualCol(c) && !(UITypes.Attachment === c.uidt)) {
-      searchParams.append(c.title, preFilledData[c.title])
+    if (
+      !c.title ||
+      !isValidValue(preFilledData[c.title]) ||
+      (isVirtualCol(c) && !isLinksOrLTAR(c)) ||
+      isAttachment(c) ||
+      c.uidt === UITypes.SpecificDBType
+    ) {
+      continue
+    }
+
+    const preFillValue = getPrefillValue(c, preFilledData[c.title])
+
+    if (preFillValue !== undefined) {
+      searchParams.append(c.title, preFillValue)
     }
   }
 
@@ -562,6 +613,31 @@ const updateFieldTitle = (value: string) => {
   }
 }
 
+const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {
+  const field = document.querySelector(
+    `${isSidebar ? '.nc-form-field-item-' : '.nc-form-drag-'}${CSS.escape(title?.replaceAll(' ', ''))}`,
+  )
+
+  if (field) {
+    setTimeout(() => {
+      field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 50)
+  }
+}
+
+async function loadReleatedMetas() {
+  await Promise.all(
+    (localColumns.value || []).map(async (c: ColumnType) => {
+      const fk_related_model_id = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+
+      if (isVirtualCol(c) && isLinksOrLTAR(c) && fk_related_model_id) {
+        await getMeta(fk_related_model_id)
+      }
+      return c
+    }),
+  )
+}
+
 onMounted(async () => {
   if (imageCropperData.value.src) {
     URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
@@ -570,7 +646,9 @@ onMounted(async () => {
   preFillFormSearchParams.value = ''
 
   isLoadingFormView.value = true
-  await loadFormView()
+
+  await Promise.all([loadFormView(), loadReleatedMetas()])
+
   setFormData()
   isLoadingFormView.value = false
 })
@@ -600,7 +678,7 @@ watch(
     for (const virtualField in state.value) {
       formState.value[virtualField] = state.value[virtualField]
     }
-
+    console.log('value changes', state.value)
     updatePreFillFormSearchParams()
 
     try {
@@ -615,18 +693,6 @@ watch(
     deep: true,
   },
 )
-
-const handleAutoScrollFormField = (title: string, isSidebar: boolean) => {
-  const field = document.querySelector(
-    `${isSidebar ? '.nc-form-field-item-' : '.nc-form-drag-'}${CSS.escape(title?.replaceAll(' ', ''))}`,
-  )
-
-  if (field) {
-    setTimeout(() => {
-      field?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }, 50)
-  }
-}
 
 watch(activeField, (newValue, oldValue) => {
   if (newValue && autoScrollFormField.value) {

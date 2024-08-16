@@ -63,6 +63,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledformState = ref<Record<string, any>>({})
 
+  const preFilledAdditionalState = ref<Record<string, any>>({})
+
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
   useProvideSmartsheetLtarHelpers(meta)
@@ -339,7 +341,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const clearForm = async () => {
     formResetHook.trigger()
 
-    additionalState.value = {}
+    additionalState.value = {
+      ...(sharedViewMeta.value.preFillEnabled ? preFilledAdditionalState.value : {}),
+    }
+
     formState.value = {
       ...preFilledDefaultValueformState.value,
       ...(sharedViewMeta.value.preFillEnabled ? preFilledformState.value : {}),
@@ -373,13 +378,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             if (isLinksOrLTAR(c)) {
               // Prefill Link to another record / Links form state
               additionalState.value[c.title] = preFillValue
+
+              // preFilledAdditionalState will be used in clear form to fill the prefilled data
+              preFilledAdditionalState.value[c.title] = preFillValue
             } else {
               // Prefill form state
               formState.value[c.title] = preFillValue
-            }
 
-            // preFilledformState will be used in clear form to fill the prefilled data
-            preFilledformState.value[c.title] = preFillValue
+              // preFilledformState will be used in clear form to fill the prefilled data
+              preFilledformState.value[c.title] = preFillValue
+            }
 
             // Update column
             switch (sharedViewMeta.value.preFilledMode) {
@@ -404,7 +412,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     return (c?.source_id ? sqlUis.value[c?.source_id] : Object.values(sqlUis.value)[0])?.getAbstractType(c)
   }
 
-  async function getPreFillValue(c: ColumnType, value: string) {
+  async function getPreFillValue(c: ColumnType, value: string | string[]) {
     let preFillValue: any
     switch (c.uidt) {
       case UITypes.SingleSelect:

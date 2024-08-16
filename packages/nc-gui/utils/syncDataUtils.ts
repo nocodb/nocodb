@@ -110,7 +110,7 @@ export const allIntegrations: IntegrationItemType[] = [
     isAvailable: true,
   },
   {
-    title: 'objects.syncData.sqlServer',
+    title: 'objects.syncData.sqlite',
     value: ClientType.SQLITE,
     icon: iconMap.sqlServer,
     categories: [IntegrationCategoryType.DATABASE],

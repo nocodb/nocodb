@@ -377,7 +377,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           if (preFillValue !== undefined) {
             if (isLinksOrLTAR(c)) {
               // Prefill Link to another record / Links form state
-              additionalState.value[c.title] = preFillValue
+
+              additionalState.value = {
+                ...(additionalState.value || {}),
+                [c.title]: preFillValue
+              }
 
               // preFilledAdditionalState will be used in clear form to fill the prefilled data
               preFilledAdditionalState.value[c.title] = preFillValue

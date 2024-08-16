@@ -294,11 +294,9 @@ onMounted(async () => {
       .filter(([key]) => !definedParameters.includes(key))
       .map(([key, value]) => ({ key: key as string, value: value as string }))
 
-    const client = activeBase.config?.client || activeBase.config?.connection?.client
-
     formState.value = {
       title: activeBase.alias || '',
-      dataSource: { client, connection: {}, ...(activeBase.config || {}), searchPath: activeBase.config?.searchPath || [] },
+      dataSource: { connection: {}, ...(activeBase.config || {}), searchPath: activeBase.config?.searchPath || [] },
       inflection: {
         inflectionColumn: activeBase.inflection_column,
         inflectionTable: activeBase.inflection_table,

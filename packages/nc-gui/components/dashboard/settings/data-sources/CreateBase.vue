@@ -360,7 +360,6 @@ const changeIntegration = (triggerTestConnection = false) => {
     formState.value.dataSource = {
       client: selectedIntegration.value.sub_type,
       connection: {
-        client: selectedIntegration.value.sub_type,
         database: selectedIntegrationDb.value,
       },
       searchPath: selectedIntegration.value.config?.searchPath,
@@ -426,7 +425,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
     case ClientType.SQLITE:
       return {
         isDisabled: integration?.source_count && integration.source_count > 0,
-        msg: 'Sqlite support only 1 database per integration',
+        msg: 'Sqlite support only 1 database per connection',
       }
 
     default:

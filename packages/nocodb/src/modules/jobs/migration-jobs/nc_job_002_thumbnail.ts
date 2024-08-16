@@ -1,6 +1,7 @@
 import path from 'path';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
+import type Sharp from 'sharp';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import mimetypes from '~/utils/mimeTypes';
@@ -22,6 +23,21 @@ export class ThumbnailMigration {
 
   async job() {
     try {
+      let sharp: typeof Sharp;
+
+      try {
+        sharp = (await import('sharp')).default;
+      } catch {
+        // ignore
+      }
+
+      if (!sharp) {
+        this.log(
+          `Thumbnail generation is not supported in this platform at the moment. Skipping thumbnail migration for now!`,
+        );
+        return true;
+      }
+
       const ncMeta = Noco.ncMeta;
 
       const storageAdapter = await NcPluginMgrv2.storageAdapter(ncMeta);
@@ -138,8 +154,24 @@ export class ThumbnailMigration {
         }
       }
 
+      const numberOfImagesToBeProcessed = (
+        await ncMeta
+          .knexConnection(temp_file_references_table)
+          .where('thumbnail_generated', false)
+          .andWhere('referenced', true)
+          .andWhere('mimetype', 'like', 'image/%')
+          .count('*', { as: 'count' })
+          .first()
+      )?.count;
+
+      let processedImages = 0;
+
       const limit = 10;
       let offset = 0;
+
+      this.log(
+        `Starting thumbnail generation for ${numberOfImagesToBeProcessed} images`,
+      );
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
@@ -242,6 +274,11 @@ export class ThumbnailMigration {
             });
         } catch (e) {
           this.log(`error while generating thumbnail:`, e);
+        } finally {
+          processedImages += fileReferences.length;
+          this.log(
+            `Processed ${processedImages} out of ${numberOfImagesToBeProcessed} images`,
+          );
         }
       }
     } catch (e) {
@@ -251,6 +288,8 @@ export class ThumbnailMigration {
       this.log(e);
       return false;
     }
+
+    this.log(`Thumbnail generation for old attachments completed successfully`);
 
     return true;
   }

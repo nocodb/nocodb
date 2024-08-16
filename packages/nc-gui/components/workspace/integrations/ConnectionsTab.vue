@@ -398,7 +398,7 @@ onKeyStroke('ArrowDown', onDown)
                   </div>
                 </td>
                 <td class="cell-type">
-                  <div :title="integration.sub_type">
+                  <div>
                     <NcBadge rounded="lg" class="flex items-center gap-2 px-0 py-1 !h-7 truncate !border-transparent">
                       <GeneralIntegrationIcon :type="integration.sub_type" />
                       <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">

@@ -60,10 +60,26 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
+const relation = computed(() => {
+  return injectedColumn!.value?.colOptions?.type
+})
+
 const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
     addLTARRef(row, injectedColumn?.value as ColumnType)
-    isChildrenExcludedListLinked.value[id] = true
+    if (relation.value === 'oo' || relation.value === 'bt') {
+      isChildrenExcludedListLinked.value.forEach((isLinked, idx) => {
+        if (isLinked) {
+          isChildrenExcludedListLinked.value[idx] = false
+        }
+        if (id === idx) {
+          isChildrenExcludedListLinked.value[idx] = true
+        }
+      })
+    } else {
+      isChildrenExcludedListLinked.value[id] = true
+    }
+
     saveRow!()
 
     $e('a:links:link')
@@ -155,10 +171,6 @@ const fields = computedInject(FieldsInj, (_fields) => {
       return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
     })
     .slice(0, isMobileMode.value ? 1 : 3)
-})
-
-const relation = computed(() => {
-  return injectedColumn!.value?.colOptions?.type
 })
 
 const totalItemsToShow = computed(() => {

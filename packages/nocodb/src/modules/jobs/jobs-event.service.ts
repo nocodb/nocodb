@@ -81,6 +81,15 @@ export class JobsEventService {
 
   @OnQueueCompleted()
   onCompleted(job: BullJob, data: any) {
+    // If job was requeued, don't update the status
+    if (data === JobStatus.REQUEUED) {
+      this.eventEmitter.emit(JobEvents.STATUS, {
+        id: job.id.toString(),
+        status: JobStatus.REQUEUED,
+      });
+      return;
+    }
+
     Job.update(
       {
         workspace_id: RootScopes.ROOT,

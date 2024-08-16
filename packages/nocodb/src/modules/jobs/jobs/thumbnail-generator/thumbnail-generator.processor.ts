@@ -1,24 +1,18 @@
 import path from 'path';
 import { Readable } from 'stream';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import slash from 'slash';
 import type { IStorageAdapterV2 } from '~/types/nc-plugin';
+import type { Job } from 'bull';
 import type { AttachmentResType } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import type Sharp from 'sharp';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 
-@Processor(JOBS_QUEUE)
 export class ThumbnailGeneratorProcessor {
-  constructor() {}
-
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
 
-  @Process(JobTypes.ThumbnailGenerator)
   async job(job: Job<ThumbnailGeneratorJobData>) {
     const { attachments } = job.data;
 

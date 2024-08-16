@@ -1,8 +1,6 @@
 import path from 'path';
 import debug from 'debug';
-import { Process } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
-import { MigrationJobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import mimetypes from '~/utils/mimeTypes';
@@ -22,7 +20,6 @@ export class ThumbnailMigration {
     console.log('[nc_job_002_thumbnail]: ', ...msgs);
   };
 
-  @Process(MigrationJobTypes.Thumbnail)
   async job() {
     try {
       const ncMeta = Noco.ncMeta;

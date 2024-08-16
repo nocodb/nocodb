@@ -1,8 +1,7 @@
 import debug from 'debug';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
-import { forwardRef, Inject } from '@nestjs/common';
-import { JOBS_QUEUE, MigrationJobTypes } from '~/interface/Jobs';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import type { Job } from 'bull';
+import { JobTypes, MigrationJobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { AttachmentMigration } from '~/modules/jobs/migration-jobs/nc_job_001_attachment';
 import { ThumbnailMigration } from '~/modules/jobs/migration-jobs/nc_job_002_thumbnail';
@@ -13,7 +12,7 @@ import {
   updateMigrationJobsState,
 } from '~/helpers/migrationJobs';
 
-@Processor(JOBS_QUEUE)
+@Injectable()
 export class InitMigrationJobs {
   migrationJobsList = [
     {
@@ -41,7 +40,6 @@ export class InitMigrationJobs {
     console.log('[init-migration-jobs]: ', ...msgs);
   };
 
-  @Process(MigrationJobTypes.InitMigrationJobs)
   async job(job: Job) {
     this.debugLog(`job started for ${job.id}`);
 
@@ -67,7 +65,7 @@ export class InitMigrationJobs {
       // migration job is running, make sure it's not stalled by checking after 10 mins
       // stall check is updated every 5 mins
       setTimeout(() => {
-        this.jobsService.add(MigrationJobTypes.InitMigrationJobs, {});
+        this.jobsService.add(JobTypes.InitMigrationJobs, {});
       }, 10 * 60 * 1000);
       return;
     }
@@ -122,7 +120,7 @@ export class InitMigrationJobs {
 
         // run the job again if successful
         if (migrated) {
-          await this.jobsService.add(MigrationJobTypes.InitMigrationJobs, {});
+          await this.jobsService.add(JobTypes.InitMigrationJobs, {});
         } else {
           this.log('A migration job failed!');
         }

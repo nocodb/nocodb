@@ -18,6 +18,11 @@ export class ThumbnailGeneratorProcessor {
 
     const thumbnailPromises = attachments.map(async (attachment) => {
       const thumbnail = await this.generateThumbnail(attachment);
+
+      if (!thumbnail) {
+        return;
+      }
+
       return {
         path: attachment.path ?? attachment.url,
         card_cover: thumbnail?.card_cover,
@@ -26,7 +31,9 @@ export class ThumbnailGeneratorProcessor {
       };
     });
 
-    return await Promise.all(thumbnailPromises);
+    const thumbnails = await Promise.all(thumbnailPromises);
+
+    return thumbnails.filter((thumbnail) => thumbnail);
   }
 
   private async generateThumbnail(
@@ -105,12 +112,14 @@ export class ThumbnailGeneratorProcessor {
 
       return thumbnailPaths;
     } catch (error) {
-      this.logger.error(
-        `Failed to generate thumbnails for ${
+      this.logger.error({
+        message: `Failed to generate thumbnails for ${
           attachment.path ?? attachment.url
         }`,
-        error.stack as string,
-      );
+        error: error?.message,
+      });
+
+      return null;
     }
   }
 

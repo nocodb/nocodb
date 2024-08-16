@@ -54,6 +54,10 @@ const _getDefaultConnectionConfig = (client = ClientType.MYSQL) => {
   if ('database' in config.connection) {
     config.connection.database = ''
   }
+
+  if (client === ClientType.SQLITE && config.connection?.connection?.filename) {
+    config.connection.connection.filename = ''
+  }
   return config
 }
 

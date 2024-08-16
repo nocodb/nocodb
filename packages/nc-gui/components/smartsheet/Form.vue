@@ -678,7 +678,6 @@ watch(
     for (const virtualField in state.value) {
       formState.value[virtualField] = state.value[virtualField]
     }
-    console.log('value changes', state.value)
     updatePreFillFormSearchParams()
 
     try {

@@ -163,6 +163,10 @@ const relation = computed(() => {
 
 const totalItemsToShow = computed(() => {
   if (isForm.value || isNew.value) {
+    if (relation.value === 'bt' || relation.value === 'oo') {
+      return rowState.value?.[injectedColumn!.value?.title] ? 1 : 0
+    }
+
     return rowState.value?.[injectedColumn!.value?.title]?.length ?? 0
   }
 

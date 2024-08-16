@@ -5,7 +5,7 @@ export default defineComponent({
     setup() {
         return () => {
             return h("img", {
-                src: "https://app.nocodb.com/discord.png",
+                src: "https://cdn.nocodb.com/email/discord.png",
                 width: "24",
                 height: "24",
                 alt: "Discord Icon",

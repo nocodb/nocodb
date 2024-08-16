@@ -5,7 +5,7 @@ export default defineComponent({
     setup() {
         return () => {
             return h("img", {
-                src: "https://app.nocodb.com/github.png",
+                src: "https://cdn.nocodb.com/email/github.png",
                 alt: "Github Icon",
                 width: "24",
                 height: "24",

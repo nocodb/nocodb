@@ -6,8 +6,8 @@ import 'splitpanes/dist/splitpanes.css'
 
 import {
   type AttachmentResType,
-  type LinkToAnotherRecordType,
   type ColumnType,
+  type LinkToAnotherRecordType,
   ProjectRoles,
   RelationTypes,
   UITypes,

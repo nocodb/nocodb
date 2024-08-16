@@ -380,7 +380,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
               additionalState.value = {
                 ...(additionalState.value || {}),
-                [c.title]: preFillValue
+                [c.title]: preFillValue,
               }
 
               // preFilledAdditionalState will be used in clear form to fill the prefilled data

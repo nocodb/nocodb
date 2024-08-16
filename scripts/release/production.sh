@@ -9,7 +9,7 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 source ${SCRIPT_DIR}/rollout_util.sh
-="${1:-false}"
+PROMOTE_IMAGE_BEFORE_ROLLOUT="${1:-false}"
 ENVIRONMENT="Production"
 ECR_REPO_NAME=nocohub
 PRE_REL_STAGE_TAG="ws-pre-release"

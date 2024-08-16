@@ -413,11 +413,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
                       >
                         <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
                           <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
-                            <GeneralBaseLogo
-                              v-if="integration.type"
-                              :source-type="integration.sub_type"
-                              class="flex-none h-4 w-4"
-                            />
+                            <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
                             <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                               <template #title>
                                 {{ integration.title }}

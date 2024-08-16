@@ -115,7 +115,7 @@ export const allIntegrations: IntegrationItemType[] = [
     icon: iconMap.sqlServer,
     categories: [IntegrationCategoryType.DATABASE],
     isAvailable: true,
-    isOssOnly: true
+    isOssOnly: true,
   },
   {
     title: 'objects.syncData.snowflake',
@@ -436,11 +436,7 @@ export const allIntegrations: IntegrationItemType[] = [
   // },
 ]
 
-
-export const allIntegrationsMapByValue = allIntegrations.reduce(
-  (acc, curr) => {
-    acc[curr.value] = curr;
-    return acc;
-  },
-  {} as Record<string, IntegrationItemType>
-);
+export const allIntegrationsMapByValue = allIntegrations.reduce((acc, curr) => {
+  acc[curr.value] = curr
+  return acc
+}, {} as Record<string, IntegrationItemType>)

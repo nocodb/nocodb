@@ -354,7 +354,7 @@ const source = computed(() => {
           </span>
         </NcTooltip>
         <div class="flex items-center">
-          <NcTooltip v-if="table.description?.length">
+          <NcTooltip v-if="table.description?.length" placement="bottom">
             <template #title>
               {{ table.description }}
             </template>

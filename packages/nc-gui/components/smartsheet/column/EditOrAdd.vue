@@ -619,10 +619,10 @@ const isFullUpdateAllowed = computed(() => {
             ref="descInputEl"
             v-model:value="formState.description"
             :class="{
-              'h-[200px]': fromTableExplorer,
-              'h-[150px]': !fromTableExplorer,
+              '!min-h-[200px]': fromTableExplorer,
+              'h-[150px] !min-h-[100px]': !fromTableExplorer,
             }"
-            class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 max-h-[250px] min-h-[80px]"
+            class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 !max-h-[300px]"
             hide-details
             data-testid="create-field-description-input"
             :placeholder="$t('msg.info.enterFieldDescription')"

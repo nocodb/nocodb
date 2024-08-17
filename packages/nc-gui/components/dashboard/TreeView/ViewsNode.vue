@@ -289,7 +289,7 @@ watch(isDropdownOpen, async () => {
       </NcTooltip>
 
       <template v-if="!isEditing && !isLocked">
-        <NcTooltip v-if="vModel.description?.length">
+        <NcTooltip v-if="vModel.description?.length" placement="bottom">
           <template #title>
             {{ vModel.description }}
           </template>

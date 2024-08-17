@@ -460,14 +460,18 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
           'min-w-[256px]': isExpandedForm,
         }"
       >
-        <NcMenu>
-          <NcTooltip placement="top">
+        <NcMenuItem class="!h-9.5 nc-copy-field" @click="onClickCopyFieldUrl(column)">
+          <NcTooltip
+            :attrs="{
+              class: 'w-full',
+            }"
+            placement="top"
+          >
             <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
 
             <div
-              class="flex flex-row px-3 py-2 justify-between items-center group hover:bg-gray-100 cursor-pointer"
+              class="flex flex-row justify-between items-center w-full group hover:bg-gray-100 cursor-pointer"
               data-testid="nc-field-item-action-copy-id"
-              @click="onClickCopyFieldUrl(column)"
             >
               <div class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold text-xs">
                 <div class="whitespace-nowrap">{{ $t('labels.idColon') }}</div>
@@ -481,7 +485,7 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
               </NcButton>
             </div>
           </NcTooltip>
-        </NcMenu>
+        </NcMenuItem>
         <a-divider class="!my-0" />
         <GeneralSourceRestrictionTooltip message="Field properties cannot be edited." :enabled="!isColumnEditAllowed">
           <NcMenuItem
@@ -703,7 +707,10 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
   <LazySmartsheetHeaderUpdateDisplayValue v-if="changeTitleFieldMenu" v-model:value="changeTitleFieldMenu" :column="column" />
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+:deep(.nc-menu-item-inner) {
+  @apply !w-full;
+}
 .nc-header-menu-item {
   @apply text-dropdown flex items-center gap-2;
 }

@@ -209,9 +209,9 @@ const openRenameTableDialog = (table: SidebarTableNode, sourceId: string) => {
   _openRenameTableDialog(table, !!sourceId)
 }
 
-const openTableDescriptionDialog = (table: SidebarTableNode, sourceId: string) => {
+const openTableDescriptionDialog = (table: SidebarTableNode) => {
   isOptionsOpen.value = false
-  _openTableDescriptionDialog(table, !!sourceId)
+  _openTableDescriptionDialog(table)
 }
 
 const deleteTable = () => {
@@ -408,7 +408,7 @@ const source = computed(() => {
                   "
                   :data-testid="`sidebar-table-description-${table.title}`"
                   class="nc-table-description"
-                  @click="openTableDescriptionDialog(table, source.id)"
+                  @click="openTableDescriptionDialog(table)"
                 >
                   <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
                     <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
@@ -441,7 +441,7 @@ const source = computed(() => {
                     v-if="isUIAllowed('tableDescriptionEdit', { roles: baseRole, source })"
                     :data-testid="`sidebar-table-description-${table.title}`"
                     class="nc-table-description"
-                    @click="openTableDescriptionDialog(table, source.id)"
+                    @click="openTableDescriptionDialog(table)"
                   >
                     <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
                       <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->

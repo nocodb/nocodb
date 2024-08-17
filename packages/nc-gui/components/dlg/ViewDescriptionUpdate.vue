@@ -77,8 +77,6 @@ const updateDescription = async (undo = false) => {
 
     dialogShow.value = false
 
-    // await loadProjectTables(view.base_id!, true)
-
     if (!undo) {
       addUndo({
         redo: {

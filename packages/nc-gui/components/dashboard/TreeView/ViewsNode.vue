@@ -198,7 +198,7 @@ async function onRename() {
 const openViewDescriptionDialog = (view: ViewType) => {
   isDropdownOpen.value = false
 
-  _openViewDescriptionDialog(view, false)
+  _openViewDescriptionDialog(view)
 }
 
 /** Cancel renaming view */

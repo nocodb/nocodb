@@ -1098,7 +1098,7 @@ export default class Model implements TableType {
   static async updateMeta(
     context: NcContext,
     tableId: string,
-    model: Partial<TableReqType>,
+    model: Pick<TableReqType, 'meta' | 'description'>,
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(model, ['description', 'meta']);

@@ -4431,7 +4431,7 @@
                     "example": "Users"
                   },
                   "description": {
-                    "type": "string",
+                    "$ref": "#/components/schemas/TextOrNull",
                     "description": "Table description",
                     "example": "Table for storing User Information"
                   },
@@ -19674,7 +19674,7 @@
             "description": "Auto Update Timestamp"
           },
           "description": {
-            "type": "string",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Column Description"
           },
           "source_id": {
@@ -20059,7 +20059,7 @@
                 "type": "string"
               },
               "description": {
-                "type": "string"
+                "$ref": "#/components/schemas/StringOrNull"
               },
               "column_order": {
                 "description": "Column order in a specific view",
@@ -25569,7 +25569,7 @@
           },
           "description": {
             "description": "Table Description",
-            "type": "string"
+            "$ref": "#/components/schemas/TextOrNull"
           },
           "table_name": {
             "description": "Table Name. Prefix will be added for XCDB bases.",
@@ -25838,6 +25838,10 @@
               "$ref": "#/components/schemas/NormalColumnRequest"
             },
             "type": "array"
+          },
+          "description": {
+            "description": "Table description",
+            "$ref": "#/components/schemas/TextOrNull"
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
@@ -26150,7 +26154,7 @@
           },
           "description": {
             "description": "View Description",
-            "type": "string"
+            "$ref": "#/components/schemas/TextOrNull"
           },
           "password": {
             "$ref": "#/components/schemas/StringOrNull",
@@ -26463,7 +26467,7 @@
             "example": "Grid View 1"
           },
           "description": {
-            "type": "string",
+            "$ref": "#/components/schemas/TextOrNull",
             "description": "Description of the view.",
             "example": "This is a grid view."
           },

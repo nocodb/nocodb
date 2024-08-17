@@ -36,7 +36,7 @@ const setMenuContext = (type: 'base' | 'source' | 'table' | 'main' | 'layout', v
   contextMenuTarget.value = value
 }
 
-function openViewDescriptionDialog(view: ViewType, _ = false) {
+function openViewDescriptionDialog(view: ViewType) {
   if (!view || !view.id) return
 
   $e('c:view:description')
@@ -56,7 +56,7 @@ function openViewDescriptionDialog(view: ViewType, _ = false) {
   }
 }
 
-function openTableDescriptionDialog(table: TableType, _ = false) {
+function openTableDescriptionDialog(table: TableType) {
   if (!table || !table.id) return
 
   $e('c:table:description')

@@ -46,9 +46,9 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <div v-if="currentWorkspace" class="flex w-full max-w-[97.5rem] flex-col nc-workspace-integrations">
-    <div class="flex gap-2 items-center min-w-0 pt-2 px-2">
-      <div class="nc-breadcrumb">
+  <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-integrations">
+    <div class="flex gap-2 items-center min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200">
+      <div class="nc-breadcrumb nc-no-negative-margin pl-1">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}
         </div>
@@ -58,7 +58,6 @@ onBeforeMount(() => {
         </h1>
       </div>
     </div>
-
     <NcTabs v-model:activeKey="activeViewTab">
       <template #leftExtra>
         <div class="w-3"></div>
@@ -66,7 +65,7 @@ onBeforeMount(() => {
       <template v-if="isUIAllowed('workspaceIntegrations')">
         <a-tab-pane key="integrations" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-integrations">
               <GeneralIcon icon="integration" />
               {{ $t('general.integrations') }}
             </div>
@@ -79,7 +78,7 @@ onBeforeMount(() => {
       <template v-if="isUIAllowed('workspaceIntegrations')">
         <a-tab-pane key="connections" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5" data-testid="nc-workspace-settings-tab-integrations">
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-integrations">
               <GeneralIcon icon="gitCommit" />
               {{ $t('general.connections') }}
               <div
@@ -117,20 +116,19 @@ onBeforeMount(() => {
 :deep(.ant-tabs-nav) {
   @apply !pl-0;
 }
-
-:deep(.ant-tabs-nav-list) {
-  @apply !gap-5;
-}
 :deep(.ant-tabs-tab) {
-  @apply !pt-0 !pb-2.5 !ml-0;
+  @apply pt-2 pb-3;
 }
-.ant-tabs-content {
-  @apply !h-full;
+:deep(.ant-tabs-content) {
+  @apply nc-content-max-w;
 }
 .ant-tabs-content-top {
   @apply !h-full;
 }
 .tab-info {
   @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
+}
+.tab-title {
+  @apply flex flex-row items-center gap-x-2 py-[1px];
 }
 </style>

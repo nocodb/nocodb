@@ -133,7 +133,7 @@ const updateDescription = async (undo = false) => {
             hide-details
             size="small"
             :placeholder="$t('msg.info.enterTableDescription')"
-            @keydown.enter="() => updateDescription()"
+            @keydown.enter.exact="() => updateDescription()"
           />
         </a-form-item>
       </a-form>

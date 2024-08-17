@@ -201,6 +201,14 @@ export class ColumnsService {
       Source.get(context, table.source_id),
     );
 
+    // TODO: Refactor the columnUpdate function to handle metaOnly changes and
+    // DB related changes, right now both are mixed up, making this fragile
+    if (param.column.description !== column.description) {
+      await Column.update(context, param.columnId, {
+        description: param.column.description,
+      });
+    }
+
     // These are the column types whose meta is allowed to be updated
     // It includes currency, date, datetime where formatting is allowed to update
     const isMetaOnlyUpdateAllowed =
@@ -213,10 +221,24 @@ export class ColumnsService {
         (param.column.uidt &&
           !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes))) &&
       !partialUpdateAllowedTypes.includes(column.uidt)
-      && !('description' in param.column)
     ) {
-      // throw error if source is readonly and column type is not allowed
+      /*
+      throw error if source is readonly and column type is not allowed
       NcError.sourceMetaReadOnly(source.alias);
+
+      Get all the columns in the table and return
+      */
+      await table.getColumns(context);
+
+      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+        table,
+        column,
+        user: param.req?.user,
+        ip: param.req?.clientIp,
+        req: param.req,
+      });
+
+      return table;
     }
 
     const sqlClient = await reuseOrSave('sqlClient', reuse, async () =>
@@ -307,7 +329,6 @@ export class ColumnsService {
 
     if (
       isMetaOnlyUpdateAllowed ||
-      'description' in param.column ||
       isCreatedOrLastModifiedTimeCol(column) ||
       isCreatedOrLastModifiedByCol(column) ||
       [
@@ -453,11 +474,6 @@ export class ColumnsService {
             await Column.updateMeta(context, {
               colId: param.columnId,
               meta: colBody.meta,
-            });
-          }
-          if ('description' in colBody) {
-            await Column.update(context, param.columnId,{
-              description: colBody.description,
             });
           }
 

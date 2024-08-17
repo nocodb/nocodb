@@ -401,6 +401,22 @@ const source = computed(() => {
                   </div>
                 </NcTooltip>
 
+                <NcMenuItem
+                  v-if="
+                    isUIAllowed('tableDescriptionEdit', { roles: baseRole, source }) &&
+                    !isUIAllowed('tableRename', { roles: baseRole, source })
+                  "
+                  :data-testid="`sidebar-table-description-${table.title}`"
+                  class="nc-table-description"
+                  @click="openTableDescriptionDialog(table, source.id)"
+                >
+                  <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
+                    <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
+                    <GeneralIcon icon="ncAlignLeft" class="text-gray-700" />
+                    {{ $t('labels.editDescription') }}
+                  </div>
+                </NcMenuItem>
+
                 <template
                   v-if="
                     !isSharedBase &&
@@ -422,7 +438,7 @@ const source = computed(() => {
                   </NcMenuItem>
 
                   <NcMenuItem
-                    v-if="isUIAllowed('tableRename', { roles: baseRole, source })"
+                    v-if="isUIAllowed('tableDescriptionEdit', { roles: baseRole, source })"
                     :data-testid="`sidebar-table-description-${table.title}`"
                     class="nc-table-description"
                     @click="openTableDescriptionDialog(table, source.id)"

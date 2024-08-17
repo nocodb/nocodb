@@ -159,7 +159,7 @@ onMounted(() => {
           <a-form-item v-bind="validateInfos.title">
             <a-input
               ref="inputEl"
-              v-model:valueuse="table.title"
+              v-model:value="table.title"
               class="nc-input-sm nc-input-shadow"
               hide-details
               data-testid="create-table-title-input"

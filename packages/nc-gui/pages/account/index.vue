@@ -40,20 +40,22 @@ const logout = async () => {
               class="tabs-menu h-full"
               mode="inline"
             >
-              <NcButton
-                v-if="!$route.params.baseType"
-                v-e="['c:navbar:home']"
-                type="text"
-                size="small"
-                class="transition-all duration-200 mx-2 my-2.5 cursor-pointer transform hover:bg-gray-100 nc-noco-brand-icon"
-                data-testid="nc-noco-brand-icon"
-                @click="navigateTo('/')"
-              >
-                <div class="flex flex-row gap-x-2 items-center">
-                  <GeneralIcon icon="ncArrowLeft" />
-                  <div class="flex text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</div>
-                </div>
-              </NcButton>
+              <div class="h-[var(--topbar-height)] flex items-center children:flex-none">
+                <NcButton
+                  v-if="!$route.params.baseType"
+                  v-e="['c:navbar:home']"
+                  type="text"
+                  size="small"
+                  class="transition-all duration-200 mx-2 cursor-pointer transform hover:bg-gray-100 nc-noco-brand-icon"
+                  data-testid="nc-noco-brand-icon"
+                  @click="navigateTo('/')"
+                >
+                  <div class="flex flex-row gap-x-2 items-center">
+                    <GeneralIcon icon="ncArrowLeft" />
+                    <div class="flex text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</div>
+                  </div>
+                </NcButton>
+              </div>
               <NcDivider class="!mt-0" />
 
               <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
@@ -203,7 +205,7 @@ const logout = async () => {
               </template>
             </div>
             <div
-              class="flex flex-col w-full max-w-[97.5rem]"
+              class="flex flex-col w-full"
               :style="{
                 height: 'calc(100vh - 3.5rem)',
               }"

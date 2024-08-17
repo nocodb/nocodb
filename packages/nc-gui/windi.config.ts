@@ -58,6 +58,7 @@ export default defineConfig({
     'scrollbar-thin-dull': 'scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-gray-100 scrollbar-track-white',
     'nc-scrollbar-thin':
       'scrollbar scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent',
+    'nc-content-max-w': 'max-w-[97.5rem]',
   },
 
   theme: {

@@ -163,7 +163,7 @@ watch(selected, () => {
         </span>
       </template>
     </NcPageHeader>
-    <div class="h-full max-h-[calc(100vh_-_100px)] flex flex-col items-center gap-6 p-6 border-t-1 border-gray-200">
+    <div class="nc-content-max-w h-full max-h-[calc(100vh_-_100px)] flex flex-col items-center gap-6 p-6">
       <div class="w-full justify-between flex items-center">
         <div class="flex items-center gap-2">
           <a-input v-model:value="searchInput" placeholder="Search for a member">

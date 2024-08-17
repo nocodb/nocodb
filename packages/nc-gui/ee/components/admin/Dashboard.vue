@@ -39,7 +39,7 @@ onMounted(async () => {
     </NcPageHeader>
 
     <div
-      class="flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6 border-t-1 border-gray-200"
+      class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6"
     >
       <div class="flex flex-col gap-6 w-150">
         <span class="font-bold text-xl" data-rec="true">

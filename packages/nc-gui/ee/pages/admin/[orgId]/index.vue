@@ -43,20 +43,22 @@ onMounted(async () => {
             class="tabs-menu h-full"
             mode="inline"
           >
-            <NcButton
-              v-if="!$route.params.baseType"
-              v-e="['c:navbar:home']"
-              type="text"
-              size="small"
-              class="transition-all duration-200 mx-2 my-2.5 cursor-pointer transform nc-noco-brand-icon"
-              data-testid="nc-noco-brand-icon"
-              @click="navigateTo('/')"
-            >
-              <div class="flex flex-row gap-x-2 items-center">
-                <GeneralIcon icon="ncArrowLeft" />
-                <div class="flex text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</div>
-              </div>
-            </NcButton>
+            <div class="h-[var(--topbar-height)] flex items-center children:flex-none">
+              <NcButton
+                v-if="!$route.params.baseType"
+                v-e="['c:navbar:home']"
+                type="text"
+                size="small"
+                class="transition-all duration-200 mx-2 cursor-pointer transform nc-noco-brand-icon"
+                data-testid="nc-noco-brand-icon"
+                @click="navigateTo('/')"
+              >
+                <div class="flex flex-row gap-x-2 items-center">
+                  <GeneralIcon icon="ncArrowLeft" />
+                  <div class="flex text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</div>
+                </div>
+              </NcButton>
+            </div>
             <NcDivider class="!mt-0" />
 
             <div class="text-sm ml-3 p-2 mt-2 flex justify-between gap-2">
@@ -157,7 +159,7 @@ onMounted(async () => {
 
         <!-- Sub Tabs -->
         <div class="h-full flex-1 flex flex-col pt-2 overflow-y-auto nc-scrollbar-thin">
-          <div class="h-full flex flex-col w-full max-w-[97.5rem]">
+          <div class="h-full flex flex-col w-full">
             <div class="h-full">
               <NuxtPage />
             </div>

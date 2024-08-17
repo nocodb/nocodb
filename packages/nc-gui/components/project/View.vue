@@ -130,7 +130,7 @@ watch(
       <LazyGeneralShareProject />
     </div>
     <div
-      class="flex nc-base-view-tab container"
+      class="flex nc-base-view-tab"
       :style="{
         height: 'calc(100% - var(--topbar-height))',
       }"
@@ -216,6 +216,9 @@ watch(
 }
 :deep(.ant-tabs-tab) {
   @apply pt-2 pb-3;
+}
+:deep(.ant-tabs-content) {
+  @apply nc-content-max-w;
 }
 :deep(.ant-tabs-tab .tab-title) {
   @apply text-gray-500;

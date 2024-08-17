@@ -1,7 +1,19 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+interface Props {
+  bottomBorder?: boolean
+}
+withDefaults(defineProps<Props>(), {
+  bottomBorder: true,
+})
+</script>
 
 <template>
-  <div class="nc-page-header">
+  <div
+    class="nc-page-header"
+    :class="{
+      'border-b-1 border-gray-200': bottomBorder,
+    }"
+  >
     <div class="flex-1 flex items-start gap-3">
       <div v-if="$slots.icon" class="h-7 flex items-center children:flex-none">
         <slot name="icon"></slot>

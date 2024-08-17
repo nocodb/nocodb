@@ -142,9 +142,7 @@ onMounted(() => {
         </template>
       </NcPageHeader>
 
-      <div
-        class="flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col gap-6 p-6 border-t-1 border-gray-200"
-      >
+      <div class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col gap-6 p-6">
         <div class="w-full justify-between flex items-center">
           <a-input v-model:value="searchInput" placeholder="Search a base">
             <template #prefix>

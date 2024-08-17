@@ -20059,7 +20059,7 @@
                 "type": "string"
               },
               "description": {
-                "$ref": "#/components/schemas/StringOrNull"
+                "$ref": "#/components/schemas/TextOrNull"
               },
               "column_order": {
                 "description": "Column order in a specific view",

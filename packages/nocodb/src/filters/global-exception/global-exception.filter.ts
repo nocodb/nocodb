@@ -107,9 +107,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
               (data.timestamp + 300000 - Date.now()) / 1000,
             );
 
-            NocoCache.setExpiring(cacheKey, data, ttlInSeconds).catch((err) => {
-              this.logger.error(err);
-            });
+            if (ttlInSeconds <= 0) {
+              NocoCache.setExpiring(cacheKey, data, ttlInSeconds).catch(
+                (err) => {
+                  this.logger.error(err);
+                },
+              );
+            }
 
             // log every 50th request in last 5 minutes after first
             if (data.count % 50 === 0) {

@@ -217,6 +217,16 @@ const onDelete = async () => {
       </NcMenuItem>
     </template>
 
+    <template v-if="lockType !== LockType.Locked">
+      <NcDivider />
+      <NcMenuItem @click="onDescriptionUpdateClick">
+        <GeneralIcon icon="ncAlignLeft" />
+        {{ $t('general.edit') }}
+
+        {{ $t('labels.description') }}
+      </NcMenuItem>
+    </template>
+
     <template v-if="view.type !== ViewTypes.FORM">
       <NcDivider />
       <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isDataReadOnly">

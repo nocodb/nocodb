@@ -605,18 +605,20 @@ const isFullUpdateAllowed = computed(() => {
         </template>
 
         <a-form-item v-if="enableDescription">
-          <div class="flex gap-3 text-gray-800 h-7 mb-1 justify-between">
-            {{ $t('labels.description') }}
+          <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
+            <span class="text-[13px]">
+              {{ $t('labels.description') }}
+            </span>
 
-            <NcButton type="text" class="!h-7 !w-7" size="xsmall" @click="removeDescription">
-              <GeneralIcon icon="delete" class="text-gray-700" />
+            <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
+              <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
             </NcButton>
           </div>
 
           <a-textarea
             ref="descInputEl"
             v-model:value="formState.description"
-            class="nc-input-sm nc-input-text-area nc-input-shadow px-3 h-[120px] max-h-[150px] min-h-[80px]"
+            class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 h-[120px] max-h-[150px] min-h-[80px]"
             hide-details
             data-testid="create-field-description-input"
             :placeholder="$t('msg.info.enterFieldDescription')"
@@ -697,6 +699,7 @@ const isFullUpdateAllowed = computed(() => {
 
 <style lang="scss" scoped>
 .nc-input-text-area {
+  @apply !text-gray-800;
   padding-block: 8px !important;
 }
 

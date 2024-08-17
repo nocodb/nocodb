@@ -40,11 +40,8 @@ const validators = computed(() => {
   return {
     description: [
       {
-        validator: (_: any, value: any) => {
-          return new Promise<void>((resolve, reject) => {
-            if (value.length > 255) {
-              return reject(new Error(`Table description exceeds 255 characters`))
-            }
+        validator: (_: any, _value: any) => {
+          return new Promise<void>((resolve, _reject) => {
             resolve()
           })
         },

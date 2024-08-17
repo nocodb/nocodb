@@ -63,7 +63,7 @@ const isDefaultBase = computed(() => {
   return _isDefaultBase(source)
 })
 
-const { openViewDescriptionDialog: _openTableDescriptionDialog } = inject(TreeViewInj)!
+const { openViewDescriptionDialog: _openViewDescriptionDialog } = inject(TreeViewInj)!
 
 const input = ref<HTMLInputElement>()
 
@@ -198,7 +198,7 @@ async function onRename() {
 const openViewDescriptionDialog = (view: ViewType) => {
   isDropdownOpen.value = false
 
-  _openTableDescriptionDialog(view, false)
+  _openViewDescriptionDialog(view, false)
 }
 
 /** Cancel renaming view */
@@ -295,7 +295,7 @@ watch(isDropdownOpen, async () => {
           </template>
 
           <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
-            <GeneralIcon icon="info" class="nc-info-icon group-hover:opacity-100 text-gray-700 !hover:text-gray-800 opacity-0" />
+            <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
           </NcButton>
         </NcTooltip>
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">

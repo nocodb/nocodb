@@ -422,16 +422,13 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
     overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl "
     @click.stop="isOpen = !isOpen"
   >
-    <div class="flex items-center gap-1" @dblclick.stop>
+    <div class="flex gap-0.5 items-center" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
       <NcTooltip v-if="column.description?.length">
         <template #title>
           {{ column.description }}
         </template>
-
-        <NcButton type="text" size="xsmall">
-          <GeneralIcon icon="info" class="group-hover:opacity-100 !w-4 !h-4 !text-gray-500" />
-        </NcButton>
+        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500" />
       </NcTooltip>
 
       <NcTooltip class="flex items-center">
@@ -536,7 +533,7 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
         <NcMenuItem v-if="isUIAllowed('fieldAlter')" title="Add field description" @click="onEditPress($event, true)">
           <div class="nc-column-edit-description nc-header-menu-item">
             <GeneralIcon icon="ncAlignLeft" class="text-gray-500 !w-4.25 !h-4.25" />
-            {{ $t('labels.addDescription') }}
+            {{ $t('labels.editDescription') }}
           </div>
         </NcMenuItem>
 

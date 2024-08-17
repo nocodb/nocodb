@@ -34,11 +34,8 @@ const validators = computed(() => {
   return {
     description: [
       {
-        validator: (_: any, value: any) => {
-          return new Promise<void>((resolve, reject) => {
-            if (value.length > 255) {
-              return reject(new Error(`View description exceeds 255 characters`))
-            }
+        validator: (_: any, _value: any) => {
+          return new Promise<void>((resolve, _reject) => {
             resolve()
           })
         },
@@ -132,7 +129,7 @@ const updateDescription = async (undo = false) => {
           <a-textarea
             ref="inputEl"
             v-model:value="formState.description"
-            class="nc-input-sm !py-2 nc-text-area nc-input-shadow"
+            class="nc-input-sm !py-2 nc-text-area !text-gray-800 nc-input-shadow"
             hide-details
             size="small"
             :placeholder="$t('msg.info.enterTableDescription')"

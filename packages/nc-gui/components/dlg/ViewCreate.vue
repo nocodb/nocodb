@@ -256,15 +256,14 @@ const removeDescription = () => {
 const isMetaLoading = ref(false)
 
 onMounted(async () => {
+  if (form.copy_from_id) {
+    enableDescription.value = true
+  }
+
   if ([ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(props.type)) {
     isMetaLoading.value = true
     try {
       meta.value = (await getMeta(tableId.value))!
-
-      if (form.copy_from_id) {
-        enableDescription.value = true
-      }
-
       if (props.type === ViewTypes.MAP) {
         viewSelectFieldOptions.value = meta
           .value!.columns!.filter((el) => el.uidt === UITypes.GeoData)
@@ -723,18 +722,20 @@ onMounted(async () => {
       </div>
 
       <a-form-item v-if="enableDescription">
-        <div class="flex gap-3 text-gray-800 h-7 mt-4 mb-1 justify-between">
-          {{ $t('labels.description') }}
+        <div class="flex gap-3 text-gray-800 h-7 mt-4 mb-1 items-center justify-between">
+          <span class="text-[13px]">
+            {{ $t('labels.description') }}
+          </span>
 
-          <NcButton type="text" class="!h-7 !w-7" size="xsmall" @click="removeDescription">
-            <GeneralIcon icon="delete" class="text-gray-700" />
+          <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
+            <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
           </NcButton>
         </div>
 
         <a-textarea
           ref="inputEl"
           v-model:value="form.description"
-          class="nc-input-sm nc-input-text-area nc-input-shadow px-3 max-h-[100px] min-h-[60px]"
+          class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800 max-h-[150px] min-h-[100px]"
           hide-details
           data-testid="create-table-title-input"
           :placeholder="$t('msg.info.enterViewDescription')"

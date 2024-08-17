@@ -68,9 +68,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="currentWorkspace" class="flex w-full max-w-[97.5rem] flex-col nc-workspace-settings">
-    <div v-if="!props.workspaceId" class="min-w-0 pt-2 px-2">
-      <div class="nc-breadcrumb nc-workspace-title">
+  <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings">
+    <div v-if="!props.workspaceId" class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200">
+      <div class="nc-breadcrumb nc-no-negative-margin pl-1  nc-workspace-title">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}
         </div>
@@ -116,14 +116,14 @@ onMounted(() => {
       </NcPageHeader>
     </template>
 
-    <NcTabs v-model:activeKey="tab">
+    <NcTabs v-model:activeKey="tab" >
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
       <template v-if="isUIAllowed('workspaceCollaborators')">
         <a-tab-pane key="collaborators" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5">
+            <div class="tab-title">
               <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
               Members
             </div>
@@ -135,7 +135,7 @@ onMounted(() => {
       <template v-if="isUIAllowed('workspaceManage')">
         <a-tab-pane key="settings" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5" data-testid="nc-workspace-settings-tab-settings">
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
               <GeneralIcon icon="settings" />
               Settings
             </div>
@@ -147,7 +147,7 @@ onMounted(() => {
       <template v-if="isUIAllowed('workspaceAuditList') && !props.workspaceId">
         <a-tab-pane key="audit" class="w-full">
           <template #tab>
-            <div class="flex flex-row items-center pb-1 pt-2 gap-x-1.5">
+            <div class="tab-title">
               <GeneralIcon icon="audit" class="!h-3.5 !w-3.5" />
               Audit Logs
             </div>
@@ -174,17 +174,19 @@ onMounted(() => {
 :deep(.ant-tabs-nav) {
   @apply !pl-0;
 }
-
-:deep(.ant-tabs-nav-list) {
-  @apply !gap-5;
-}
 :deep(.ant-tabs-tab) {
-  @apply !pt-0 !pb-2.5 !ml-0;
+  @apply pt-2 pb-3;
 }
-.ant-tabs-content {
-  @apply !h-full;
+:deep(.ant-tabs-content) {
+  @apply nc-content-max-w;
 }
 .ant-tabs-content-top {
   @apply !h-full;
+}
+.tab-info {
+  @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
+}
+.tab-title {
+  @apply flex flex-row items-center gap-x-2 py-[1px];
 }
 </style>

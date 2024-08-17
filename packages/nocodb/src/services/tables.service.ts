@@ -69,10 +69,10 @@ export class TablesService {
       NcError.badRequest('Model does not belong to base');
     }
 
-    // if meta present update meta and return
+    // if meta/description present update and return
     // todo: allow user to update meta  and other prop in single api call
-    if ('meta' in param.table) {
-      await Model.updateMeta(context, param.tableId, param.table.meta);
+    if ('meta' in param.table || 'description' in param.table) {
+      await Model.updateMeta(context, param.tableId, param.table);
 
       return true;
     }

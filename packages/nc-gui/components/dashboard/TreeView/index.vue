@@ -36,6 +36,26 @@ const setMenuContext = (type: 'base' | 'source' | 'table' | 'main' | 'layout', v
   contextMenuTarget.value = value
 }
 
+function openTableDescriptionDialog(table: TableType, _ = false) {
+  if (!table || !table.id) return
+
+  $e('c:table:description')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableDescriptionUpdate'), {
+    'modelValue': isOpen,
+    'table': table,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
 function openRenameTableDialog(table: TableType, _ = false) {
   if (!table || !table.source_id) return
 
@@ -159,6 +179,7 @@ provide(TreeViewInj, {
   setMenuContext,
   duplicateTable,
   openRenameTableDialog,
+  openTableDescriptionDialog,
   contextMenuTarget,
 })
 

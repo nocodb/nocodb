@@ -61,6 +61,7 @@ type ViewColumnEnrichedWithTitleAndName = ViewColumn & {
 export default class View implements ViewType {
   id?: string;
   title: string;
+  description?: string;
   uuid?: string;
   password?: string;
   show: boolean;
@@ -258,6 +259,7 @@ export default class View implements ViewType {
       'id',
       'title',
       'is_default',
+      'description',
       'type',
       'fk_model_id',
       'base_id',
@@ -1256,6 +1258,7 @@ export default class View implements ViewType {
     const updateObj = extractProps(body, [
       'title',
       'order',
+      'description',
       'show_system_fields',
       'lock_type',
       'password',
@@ -1971,6 +1974,7 @@ export default class View implements ViewType {
       'id',
       'title',
       'is_default',
+      'description',
       'type',
       'fk_model_id',
       'base_id',

@@ -616,6 +616,7 @@
     "categories": "Categories"
   },
   "labels": {
+    "editDescription": "Edit Description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",
@@ -1596,6 +1597,7 @@
       "tablesMetadataInSync": "Tables metadata is in Sync",
       "addMultipleUsers": "You can add multiple comma(,) separated emails",
       "enterTableName": "Enter table name",
+      "enterTableDescription": "Enter table description...",
       "enterLayoutName": "Enter Layout name",
       "enterDashboardName": "Enter Dashboard name",
       "defaultColumns": "Default fields",

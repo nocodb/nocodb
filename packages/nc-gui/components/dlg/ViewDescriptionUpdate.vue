@@ -118,14 +118,14 @@ const updateDescription = async (undo = false) => {
       <div class="flex flex-row items-center gap-x-2">
         <GeneralViewIcon :meta="view" class="mt-0.5 !text-2xl" />
 
-        <span class="text-gray-900 font-bold">
+        <span class="text-gray-900 font-semibold">
           {{ view?.title }}
         </span>
       </div>
     </template>
     <div class="mt-1">
-      <a-form :model="formState" name="create-new-table-form">
-        <a-form-item v-bind="validateInfos.description">
+      <a-form layout="vertical" :model="formState" name="create-new-table-form">
+        <a-form-item :label="$t('labels.description')" v-bind="validateInfos.description">
           <a-textarea
             ref="inputEl"
             v-model:value="formState.description"
@@ -160,5 +160,13 @@ const updateDescription = async (undo = false) => {
 <style scoped lang="scss">
 .nc-text-area {
   @apply !py-2 min-h-[120px] max-h-[200px];
+}
+
+:deep(.ant-form-item-label > label) {
+  @apply !leading-[20px] font-base !text-md text-gray-800 flex;
+
+  &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+    @apply content-[''] m-0;
+  }
 }
 </style>

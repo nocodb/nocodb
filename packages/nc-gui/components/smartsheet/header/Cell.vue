@@ -78,7 +78,7 @@ const isColumnEditAllowed = computed(() => {
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
   if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
-  if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value && isColumnEditAllowed.value) {
+  if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value && (isColumnEditAllowed.value || description)) {
     if (description) {
       enableDescription.value = true
     }

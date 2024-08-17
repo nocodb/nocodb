@@ -161,6 +161,7 @@ const onVisibleChange = () => {
   editColumnDropdown.value = true
   if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
     editColumnDropdown.value = false
+    enableDescription.value = false
   }
 }
 

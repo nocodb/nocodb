@@ -20058,6 +20058,10 @@
               "column_name": {
                 "type": "string"
               },
+              "description": {
+                "type": "string",
+                "maxLength": 255
+              },
               "column_order": {
                 "description": "Column order in a specific view",
                 "properties": {

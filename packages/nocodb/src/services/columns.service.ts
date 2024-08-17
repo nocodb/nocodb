@@ -201,10 +201,11 @@ export class ColumnsService {
       Source.get(context, table.source_id),
     );
 
+    // These are the column types whose meta is allowed to be updated
+    // It includes currency, date, datetime where formatting is allowed to update
     const isMetaOnlyUpdateAllowed =
       source?.is_schema_readonly &&
       partialUpdateAllowedTypes.includes(column.uidt);
-
     // check if source is readonly and column type is not allowed
     if (
       source?.is_schema_readonly &&
@@ -212,7 +213,9 @@ export class ColumnsService {
         (param.column.uidt &&
           !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes))) &&
       !partialUpdateAllowedTypes.includes(column.uidt)
+      && !('description' in param.column)
     ) {
+      // throw error if source is readonly and column type is not allowed
       NcError.sourceMetaReadOnly(source.alias);
     }
 
@@ -222,6 +225,8 @@ export class ColumnsService {
 
     const sqlClientType = sqlClient.knex.clientType();
 
+    // The maxLength of column name is different for different databases
+    // This is the maximum length of column name allowed in the database
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
     if (!isVirtualCol(param.column) && !isMetaOnlyUpdateAllowed) {
@@ -301,7 +306,7 @@ export class ColumnsService {
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
 
     if (
-      isMetaOnlyUpdateAllowed ||
+      'description' in param.column ||
       isCreatedOrLastModifiedTimeCol(column) ||
       isCreatedOrLastModifiedByCol(column) ||
       [
@@ -449,6 +454,12 @@ export class ColumnsService {
               meta: colBody.meta,
             });
           }
+          if ('description' in colBody) {
+            await Column.update(context, param.columnId,{
+              description: colBody.description,
+            });
+          }
+
           if (
             'validate' in colBody &&
             ([UITypes.URL, UITypes.PhoneNumber, UITypes.Email].includes(
@@ -1535,6 +1546,7 @@ export class ColumnsService {
       });
     }
 
+    // Get all the columns in the table and return
     await table.getColumns(context);
 
     this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {

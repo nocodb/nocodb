@@ -77,9 +77,15 @@ export default {
             <div v-else class="text-sm font-semibold truncate nc-shared-view-title flex gap-2 items-center">
               <GeneralViewIcon v-if="sharedView" class="h-4 w-4 ml-0.5" :meta="sharedView" />
 
-              <span class="truncate">
-                {{ sharedView?.title }}
-              </span>
+              <NcTooltip v-if="sharedView?.description?.length" placement="bottom">
+                <template #title>
+                  {{ sharedView?.description }}
+                </template>
+
+                <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
+                  <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon text-gray-600" />
+                </NcButton>
+              </NcTooltip>
             </div>
           </div>
         </div>

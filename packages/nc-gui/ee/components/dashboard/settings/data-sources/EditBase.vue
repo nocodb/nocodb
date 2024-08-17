@@ -325,7 +325,11 @@ onMounted(async () => {
 
     formState.value = {
       title: activeBase.alias || '',
-      dataSource: { connection: {}, ...(activeBase.config || {}), searchPath: activeBase.config?.searchPath || [] },
+      dataSource: {
+        connection: {},
+        ...(activeBase.config || {}),
+        searchPath: activeBase.config?.searchPath || [],
+      },
       inflection: {
         inflectionColumn: activeBase.inflection_column,
         inflectionTable: activeBase.inflection_table,
@@ -445,10 +449,12 @@ function handleAutoScroll(scroll: boolean, className: string) {
                       >
                         <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
                           <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
-                            <GeneralBaseLogo
-                              v-if="integration.type"
-                              :source-type="integration.sub_type"
-                              class="flex-none h-4 w-4"
+                            <GeneralIntegrationIcon
+                              v-if="integration?.sub_type"
+                              :type="integration.sub_type"
+                              :style="{
+                                filter: 'grayscale(100%) brightness(115%)',
+                              }"
                             />
                             <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                               <template #title>

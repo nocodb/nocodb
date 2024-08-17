@@ -400,12 +400,7 @@ onKeyStroke('ArrowDown', onDown)
                 <td class="cell-type">
                   <div>
                     <NcBadge rounded="lg" class="flex items-center gap-2 px-0 py-1 !h-7 truncate !border-transparent">
-                      <WorkspaceIntegrationsIcon
-                        v-if="integration.sub_type"
-                        :integration-type="integration.sub_type"
-                        size="xs"
-                        class="!p-0 !bg-transparent"
-                      />
+                      <GeneralIntegrationIcon :type="integration.sub_type" />
                       <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
                         <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
 
@@ -604,11 +599,7 @@ onKeyStroke('ArrowDown', onDown)
         </template>
         <div v-else-if="toBeDeletedIntegration" class="w-full flex flex-col text-gray-800">
           <div class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
-            <WorkspaceIntegrationsIcon
-              :integration-type="toBeDeletedIntegration.sub_type"
-              size="xs"
-              class="!p-0 !bg-transparent"
-            />
+            <GeneralIntegrationIcon :type="toBeDeletedIntegration.sub_type" />
             <div
               class="text-ellipsis overflow-hidden select-none w-full pl-3"
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

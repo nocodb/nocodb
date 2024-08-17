@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Form, message } from 'ant-design-vue'
 import type { Card as AntCard } from 'ant-design-vue'
-import { WorkspaceStatus, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { type IntegrationType, WorkspaceStatus, validateAndExtractSSLProp } from 'nocodb-sdk'
 import NcModal from '~/components/nc/Modal.vue'
 
 import {
@@ -555,8 +555,8 @@ const allowDataWrite = computed({
 const changeIntegration = (triggerTestConnection = false) => {
   if (formState.value.fk_integration_id && selectedIntegration.value) {
     formState.value.dataSource = {
+      client: selectedIntegration.value.sub_type,
       connection: {
-        client: selectedIntegration.value.sub_type,
         database: selectedIntegrationDb.value,
       },
       searchPath: selectedIntegration.value.config?.searchPath,
@@ -620,6 +620,22 @@ const isModalClosable = computed(() => {
 })
 
 const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [IntegrationCategoryType.DATABASE].includes(c.value)
+
+const isIntgrationDisabled = (integration: IntegrationType = {}) => {
+  switch (integration.sub_type) {
+    case ClientType.SQLITE:
+      return {
+        isDisabled: integration?.source_count && integration.source_count > 0,
+        msg: 'Sqlite support only 1 database per connection',
+      }
+
+    default:
+      return {
+        isDisabled: false,
+        msg: '',
+      }
+  }
+}
 </script>
 
 <template>
@@ -718,16 +734,32 @@ const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [Integrati
                             dropdown-match-select-width
                             @change="changeIntegration()"
                           >
-                            <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
+                            <a-select-option
+                              v-for="integration in integrations"
+                              :key="integration.id"
+                              :value="integration.id"
+                              :disabled="isIntgrationDisabled(integration).isDisabled"
+                            >
                               <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
-                                <GeneralBaseLogo
+                                <GeneralIntegrationIcon
                                   v-if="integration?.sub_type"
-                                  :source-type="integration.sub_type"
-                                  class="flex-none h-4 w-4"
+                                  :type="integration.sub_type"
+                                  :style="{
+                                    filter: isIntgrationDisabled(integration).isDisabled
+                                      ? 'grayscale(100%) brightness(115%)'
+                                      : undefined,
+                                  }"
                                 />
-                                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                                <NcTooltip
+                                  class="flex-1 truncate"
+                                  :show-on-truncate-only="!isIntgrationDisabled(integration).isDisabled"
+                                >
                                   <template #title>
-                                    {{ integration.title }}
+                                    {{
+                                      isIntgrationDisabled(integration).isDisabled
+                                        ? isIntgrationDisabled(integration).msg
+                                        : integration.title
+                                    }}
                                   </template>
                                   {{ integration.title }}
                                 </NcTooltip>

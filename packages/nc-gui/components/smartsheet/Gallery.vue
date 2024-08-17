@@ -143,7 +143,6 @@ const openNewRecordFormHookHandler = async () => {
 
 const handleClick = (col, event) => {
   if (isButton(col)) {
-    event.preventDefault()
     event.stopPropagation()
   }
 }

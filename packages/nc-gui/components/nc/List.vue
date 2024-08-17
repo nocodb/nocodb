@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useVirtualList } from '@vueuse/core'
-export type Placement = 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight'
 
 export type RawValueType = string | number
 
@@ -30,12 +29,20 @@ interface Props {
   optionLabelKey?: string
   /** Whether the list is open or closed */
   open?: boolean
-  /** Whether to close the list after an item is selected */
+  /**
+   * Whether to close the list after an item is selected
+   * @default true
+   */
   closeOnSelect?: boolean
   /** Placeholder text for the search input */
   searchInputPlaceholder?: string
   /** Whether to show the currently selected option */
   showSelectedOption?: boolean
+  /**
+   * The height of each item in the list, used for virtual list rendering.
+   * @default 38
+   */
+  itemHeight?: number
   /** Custom filter function for list items */
   filterOption?: (input: string, option: ListItem, index: Number) => boolean
 }
@@ -49,9 +56,11 @@ interface Emits {
 const props = withDefaults(defineProps<Props>(), {
   open: false,
   closeOnSelect: true,
+  searchInputPlaceholder: '',
   showSelectedOption: true,
   optionValueKey: 'value',
   optionLabelKey: 'label',
+  itemHeight: 38,
 })
 
 const emits = defineEmits<Emits>()
@@ -102,7 +111,7 @@ const {
   wrapperProps,
   scrollTo,
 } = useVirtualList(list, {
-  itemHeight: 38,
+  itemHeight: props.itemHeight,
 })
 
 /**
@@ -253,7 +262,7 @@ watch(
         <a-input
           ref="inputRef"
           v-model:value="searchQuery"
-          :placeholder="searchInputPlaceholder || $t('placeholder.searchFields')"
+          :placeholder="searchInputPlaceholder"
           class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5"
           allow-clear
           :bordered="false"

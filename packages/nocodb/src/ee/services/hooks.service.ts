@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { HooksService as HooksServiceCE } from 'src/services/hooks.service';
 import type { HookReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -10,14 +10,16 @@ import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/plan-limits';
 import { DatasService } from '~/services/datas.service';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 @Injectable()
 export class HooksService extends HooksServiceCE {
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected readonly datasService: DatasService,
+    @Inject('JobsService') protected readonly jobsService: IJobsService,
   ) {
-    super(appHooksService, datasService);
+    super(appHooksService, datasService, jobsService);
   }
 
   async hookCreate(

@@ -210,6 +210,7 @@
     "confirm": "确认",
     "generate": "生成",
     "copy": "复制",
+    "copied": "Copied",
     "are": "是",
     "misc": "其他",
     "lock": "锁定",
@@ -283,7 +284,8 @@
     "connection": "连接",
     "connections": "连接",
     "private": "私人",
-    "request": "请求"
+    "request": "请求",
+    "languages": "Languages"
   },
   "objects": {
     "files": "文件",
@@ -1235,7 +1237,8 @@
       "lockedFieldTooltip": "预填值"
     },
     "getPreFilledLink": "获取预填链接",
-    "group": "分组"
+    "group": "分组",
+    "goToDocs": "Go to Docs"
   },
   "tooltip": {
     "privateConnection": "启用后，此工作区中的其他创建者无法看到此连接。",

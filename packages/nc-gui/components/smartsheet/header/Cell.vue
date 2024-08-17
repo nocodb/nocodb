@@ -192,6 +192,12 @@ const onClick = (e: Event) => {
         }"
       />
     </div>
+    <NcTooltip v-if="column.description?.length && hideMenu">
+      <template #title>
+        {{ column.description }}
+      </template>
+      <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500" />
+    </NcTooltip>
 
     <template v-if="!hideMenu">
       <div v-if="!isExpandedForm" class="flex-1" />

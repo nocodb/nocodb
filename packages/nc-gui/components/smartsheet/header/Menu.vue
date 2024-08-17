@@ -402,6 +402,11 @@ const changeTitleField = () => {
   changeTitleFieldMenu.value = true
 }
 
+const openDropdown = () => {
+  if (isLocked) return
+  isOpen.value = !isOpen.value
+}
+
 const isFieldIdCopied = ref(false)
 
 const { copy } = useClipboard()
@@ -415,12 +420,12 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
 
 <template>
   <a-dropdown
-    v-if="!isLocked"
     v-model:visible="isOpen"
+    :disabled="isLocked"
     :trigger="['click']"
     :placement="isExpandedForm ? 'bottomLeft' : 'bottomRight'"
     overlay-class-name="nc-dropdown-column-operations !border-1 rounded-lg !shadow-xl "
-    @click.stop="isOpen = !isOpen"
+    @click.stop="openDropdown"
   >
     <div class="flex gap-0.5 items-center" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
@@ -443,7 +448,7 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
         </template>
       </NcTooltip>
       <GeneralIcon
-        v-if="!isExpandedForm"
+        v-if="!isExpandedForm && !isLocked"
         icon="arrowDown"
         class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
       />
@@ -460,15 +465,12 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
             <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
 
             <div
-              :class="{
-                'w-55': !isExpandedForm,
-              }"
               class="flex flex-row px-3 py-2 justify-between items-center group hover:bg-gray-100 cursor-pointer"
               data-testid="nc-field-item-action-copy-id"
               @click="onClickCopyFieldUrl(column)"
             >
               <div class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold text-xs">
-                <div class="whitespace-nowrap">{{ $t('labels.fieldID') }} :</div>
+                <div class="whitespace-nowrap">{{ $t('labels.idColon') }}</div>
                 <div class="flex flex-row truncate">
                   {{ column.id }}
                 </div>

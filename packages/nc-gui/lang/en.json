@@ -618,7 +618,7 @@
   "labels": {
     "fieldID": "Field ID",
     "addDescription": "Add description",
-    "editDescription": "Edit Description",
+    "editDescription": "Edit description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",

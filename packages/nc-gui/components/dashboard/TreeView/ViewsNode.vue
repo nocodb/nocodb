@@ -63,6 +63,8 @@ const isDefaultBase = computed(() => {
   return _isDefaultBase(source)
 })
 
+const { openViewDescriptionDialog: _openViewDescriptionDialog } = inject(TreeViewInj)!
+
 const input = ref<HTMLInputElement>()
 
 const isDropdownOpen = ref(false)
@@ -193,6 +195,12 @@ async function onRename() {
   onStopEdit()
 }
 
+const openViewDescriptionDialog = (view: ViewType) => {
+  isDropdownOpen.value = false
+
+  _openViewDescriptionDialog(view)
+}
+
 /** Cancel renaming view */
 function onCancel() {
   if (!isEditing.value) return
@@ -281,6 +289,15 @@ watch(isDropdownOpen, async () => {
       </NcTooltip>
 
       <template v-if="!isEditing && !isLocked">
+        <NcTooltip v-if="vModel.description?.length" placement="bottom">
+          <template #title>
+            {{ vModel.description }}
+          </template>
+
+          <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
+            <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
+          </NcButton>
+        </NcTooltip>
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <NcButton
             v-e="['c:view:option']"
@@ -305,6 +322,7 @@ watch(isDropdownOpen, async () => {
               @close-modal="isDropdownOpen = false"
               @rename="onRenameMenuClick"
               @delete="onDelete"
+              @description-update="openViewDescriptionDialog(vModel)"
             />
           </template>
         </NcDropdown>

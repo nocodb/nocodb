@@ -85,6 +85,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const defaultType = isMetaReadOnly.value ? UITypes.Formula : UITypes.SingleLineText
     const formState = ref<Record<string, any>>({
       title: '',
+      description: '',
       uidt: fromTableExplorer?.value ? defaultType : null,
       custom: {},
       ...clone(column.value || {}),

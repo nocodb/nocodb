@@ -380,9 +380,11 @@ export class ExportService {
           prefix: base.prefix,
           title: model.title,
           table_name: clearPrefix(model.table_name, base.prefix),
+          description: model.description,
           pgSerialLastVal,
           meta: model.meta,
           columns: model.columns.map((column) => ({
+            description: column.description,
             id: idMap.get(column.id),
             ai: column.ai,
             column_name: column.column_name,
@@ -405,6 +407,7 @@ export class ExportService {
           })),
         },
         views: model.views.map((view) => ({
+          description: view.description,
           id: idMap.get(view.id),
           is_default: view.is_default,
           type: view.type,

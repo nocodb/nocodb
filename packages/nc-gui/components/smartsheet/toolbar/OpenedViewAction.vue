@@ -7,7 +7,7 @@ const { isSharedBase, base } = storeToRefs(useBase())
 
 const { t } = useI18n()
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -27,6 +27,28 @@ const renameInputDom = ref()
 const viewRenameTitle = ref('')
 
 const error = ref<string | undefined>()
+
+const updateDescription = async () => {
+  if (!activeView.value || !activeView.value.id) return
+
+  $e('c:view:description')
+
+  const isOpen = ref(true)
+
+  isDropdownOpen.value = false
+
+  const { close } = useDialog(resolveComponent('DlgViewDescriptionUpdate'), {
+    'modelValue': isOpen,
+    'view': activeView.value,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 
 const onRenameMenuClick = () => {
   isRenaming.value = true
@@ -190,6 +212,7 @@ function openDeleteDialog() {
         @close-modal="isDropdownOpen = false"
         @rename="onRenameMenuClick"
         @delete="openDeleteDialog"
+        @description-update="updateDescription"
       />
     </template>
   </NcDropdown>

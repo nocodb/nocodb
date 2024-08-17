@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import type { TableType } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
 import ProjectWrapper from './ProjectWrapper.vue'
 
 const { isUIAllowed } = useRoles()
@@ -34,6 +34,46 @@ const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main'
 const setMenuContext = (type: 'base' | 'source' | 'table' | 'main' | 'layout', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
+}
+
+function openViewDescriptionDialog(view: ViewType) {
+  if (!view || !view.id) return
+
+  $e('c:view:description')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgViewDescriptionUpdate'), {
+    'modelValue': isOpen,
+    'view': view,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openTableDescriptionDialog(table: TableType) {
+  if (!table || !table.id) return
+
+  $e('c:table:description')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableDescriptionUpdate'), {
+    'modelValue': isOpen,
+    'tableMeta': table,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 
 function openRenameTableDialog(table: TableType, _ = false) {
@@ -159,6 +199,8 @@ provide(TreeViewInj, {
   setMenuContext,
   duplicateTable,
   openRenameTableDialog,
+  openViewDescriptionDialog,
+  openTableDescriptionDialog,
   contextMenuTarget,
 })
 

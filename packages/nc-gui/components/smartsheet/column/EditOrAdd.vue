@@ -25,6 +25,7 @@ const props = defineProps<{
   hideType?: boolean
   hideAdditionalOptions?: boolean
   fromTableExplorer?: boolean
+  editDescription?: boolean
   readonly?: boolean
 }>()
 
@@ -42,6 +43,8 @@ const {
   disableSubmitBtn,
   column,
 } = useColumnCreateStoreOrThrow()
+
+const editDescription = toRef(props, 'editDescription')
 
 const { getMeta } = useMetas()
 
@@ -237,7 +240,19 @@ watchEffect(() => {
   advancedOptions.value = false
 })
 
+const enableDescription = ref(false)
+
+const descInputEl = ref()
+
+const removeDescription = () => {
+  formState.value.description = ''
+  enableDescription.value = false
+}
+
 onMounted(() => {
+  if (column.value?.description?.length || editDescription.value) {
+    enableDescription.value = true
+  }
   if (!isEdit.value) {
     generateNewColumnMeta(true)
   } else {
@@ -286,10 +301,14 @@ onMounted(() => {
       }
     }
 
-    if (isForm.value && !props.fromTableExplorer) {
+    if (isForm.value && !props.fromTableExplorer && !enableDescription.value) {
       setTimeout(() => {
         antInput.value?.focus()
         antInput.value?.select()
+      }, 100)
+    } else if (enableDescription.value) {
+      setTimeout(() => {
+        descInputEl.value?.focus()
       }, 100)
     }
   })
@@ -344,6 +363,17 @@ const filterOption = (input: string, option: { value: UITypes }) => {
     option.value.toLowerCase().includes(input.toLowerCase()) ||
     (UITypesName[option.value] && UITypesName[option.value].toLowerCase().includes(input.toLowerCase()))
   )
+}
+
+const triggerDescriptionEnable = () => {
+  if (enableDescription.value) {
+    enableDescription.value = false
+  } else {
+    enableDescription.value = true
+    setTimeout(() => {
+      descInputEl.value?.focus()
+    }, 100)
+  }
 }
 
 const isFullUpdateAllowed = computed(() => {
@@ -585,41 +615,89 @@ const isFullUpdateAllowed = computed(() => {
           </Transition>
         </template>
 
+        <a-form-item v-if="enableDescription">
+          <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
+            <span class="text-[13px]">
+              {{ $t('labels.description') }}
+            </span>
+
+            <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
+              <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
+            </NcButton>
+          </div>
+
+          <a-textarea
+            ref="descInputEl"
+            v-model:value="formState.description"
+            :class="{
+              '!min-h-[200px]': fromTableExplorer,
+              'h-[150px] !min-h-[100px]': !fromTableExplorer,
+            }"
+            class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 !max-h-[300px]"
+            hide-details
+            data-testid="create-field-description-input"
+            :placeholder="$t('msg.info.enterFieldDescription')"
+          />
+        </a-form-item>
+
         <template v-if="props.fromTableExplorer">
-          <a-form-item></a-form-item>
+          <a-form-item>
+            <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
+              <div class="flex !text-gray-700 items-center gap-2">
+                <GeneralIcon icon="plus" class="h-4 w-4" />
+
+                <span class="first-letter:capitalize">
+                  {{ $t('labels.addDescription').toLowerCase() }}
+                </span>
+              </div>
+            </NcButton>
+          </a-form-item>
         </template>
         <template v-else>
-          <a-form-item>
-            <div
-              class="flex gap-x-2 justify-end"
-              :class="{
-                'justify-end': !props.embedMode,
-              }"
-            >
-              <!-- Cancel -->
-              <NcButton size="small" html-type="button" type="secondary" @click="emit('cancel')">
-                {{ $t('general.cancel') }}
-              </NcButton>
+          <div class="flex items-center justify-between gap-2">
+            <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
+              <div class="flex !text-gray-700 items-center gap-2">
+                <GeneralIcon icon="plus" class="h-4 w-4" />
 
-              <!-- Save -->
-              <NcButton
-                html-type="submit"
-                type="primary"
-                :loading="saving"
-                :disabled="!formState.uidt || disableSubmitBtn"
-                size="small"
-                :label="submitBtnLabel.label"
-                :loading-label="submitBtnLabel.loadingLabel"
-                data-testid="nc-field-modal-submit-btn"
-                @click.prevent="onSubmit"
+                <span class="first-letter:capitalize">
+                  {{ $t('labels.addDescription').toLowerCase() }}
+                </span>
+              </div>
+            </NcButton>
+            <div v-else></div>
+
+            <a-form-item>
+              <div
+                class="flex gap-x-2 justify-end"
+                :class="{
+                  'justify-end': !props.embedMode,
+                }"
               >
-                {{ submitBtnLabel.label }}
-                <template #loading>
-                  {{ submitBtnLabel.loadingLabel }}
-                </template>
-              </NcButton>
-            </div>
-          </a-form-item>
+                <!-- Cancel -->
+                <NcButton size="small" html-type="button" type="secondary" @click="emit('cancel')">
+                  {{ $t('general.cancel') }}
+                </NcButton>
+
+                <!-- Save -->
+                <NcButton
+                  html-type="submit"
+                  type="primary"
+                  :loading="saving"
+                  :disabled="!formState.uidt || disableSubmitBtn"
+                  size="small"
+                  :label="submitBtnLabel.label"
+                  :loading-label="submitBtnLabel.loadingLabel"
+                  data-testid="nc-field-modal-submit-btn"
+                  @click.prevent="onSubmit"
+                >
+                  {{ submitBtnLabel.label }}
+                  <template #loading>
+                    {{ submitBtnLabel.loadingLabel }}
+                  </template>
+                </NcButton>
+              </div>
+            </a-form-item>
+          </div>
         </template>
       </template>
     </a-form>
@@ -635,6 +713,11 @@ const isFullUpdateAllowed = computed(() => {
 </style>
 
 <style lang="scss" scoped>
+.nc-input-text-area {
+  @apply !text-gray-800;
+  padding-block: 8px !important;
+}
+
 .nc-fields-input {
   &::placeholder {
     @apply font-normal;

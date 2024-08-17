@@ -130,6 +130,7 @@ const rolePermissions = {
       tableCreate: true,
       tableRename: true,
       tableDelete: true,
+      tableDescriptionEdit: true,
       tableDuplicate: true,
       tableSort: true,
       layoutRename: true,

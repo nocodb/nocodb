@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { type TableType, stringifyRolesObj } from 'nocodb-sdk'
+import { type TableType, type ViewType, stringifyRolesObj } from 'nocodb-sdk'
 import ProjectWrapper from './ProjectWrapper.vue'
 import { useRouter } from '#app'
 
@@ -44,7 +44,27 @@ const setMenuContext = (type: 'base' | 'base' | 'table' | 'main' | 'layout', val
   contextMenuTarget.value = value
 }
 
-function openRenameTableDialog(table: TableType, _rightClick = false) {
+function openViewDescriptionDialog(view: ViewType) {
+  if (!view || !view.id) return
+
+  $e('c:view:description')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgViewDescriptionUpdate'), {
+    'modelValue': isOpen,
+    'view': view,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openRenameTableDialog(table: TableType) {
   if (!table || !table.source_id) return
 
   $e('c:table:rename')
@@ -76,6 +96,26 @@ function openTableCreateDialog(sourceId?: string, baseId?: string) {
     'modelValue': isOpen,
     'sourceId': sourceId, // || sources.value[0].id,
     'baseId': baseId || basesList.value[0].id,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
+function openTableDescriptionDialog(table: TableType) {
+  if (!table || !table.id) return
+
+  $e('c:table:description')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgTableDescriptionUpdate'), {
+    'modelValue': isOpen,
+    'tableMeta': table,
     'onUpdate:modelValue': closeDialog,
   })
 
@@ -174,6 +214,8 @@ const handleContext = (e: MouseEvent) => {
 provide(TreeViewInj, {
   setMenuContext,
   duplicateTable,
+  openViewDescriptionDialog,
+  openTableDescriptionDialog,
   openRenameTableDialog,
   contextMenuTarget,
 })

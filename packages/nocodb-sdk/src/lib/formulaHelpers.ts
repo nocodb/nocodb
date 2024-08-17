@@ -1892,6 +1892,24 @@ export async function validateFormulaAndExtractTreeWithType({
       } else {
         res.dataType = FormulaDataTypes.NUMERIC;
       }
+    } else if (parsedTree.type === JSEPNode.MEMBER_EXP) {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        {},
+        'Bracket notation is not supported'
+      );
+    } else if (parsedTree.type === JSEPNode.ARRAY_EXP) {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        {},
+        'Array is not supported'
+      );
+    } else if (parsedTree.type === JSEPNode.COMPOUND) {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        {},
+        'Compound statement is not supported'
+      );
     }
 
     return res;

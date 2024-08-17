@@ -59,12 +59,7 @@ export default {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <NcTooltip placement="bottom" class="flex">
-              <template #title>
-                {{ appInfo.version }}
-              </template>
-              <img width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
-            </NcTooltip>
+            <img width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
           </a>
 
           <div class="flex items-center gap-2 text-gray-900 text-sm truncate">
@@ -76,6 +71,10 @@ export default {
 
             <div v-else class="text-sm font-semibold truncate nc-shared-view-title flex gap-2 items-center">
               <GeneralViewIcon v-if="sharedView" class="h-4 w-4 ml-0.5" :meta="sharedView" />
+
+              <span class="truncate">
+                {{ sharedView?.title }}
+              </span>
 
               <NcTooltip v-if="sharedView?.description?.length" placement="bottom">
                 <template #title>

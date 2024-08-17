@@ -170,7 +170,8 @@ onMounted(async () => {
 
     languages.setMonarchTokensProvider(
       formulaLanguage.name,
-      formulaLanguage.generateLanguageDefinition(supportedColumns.value.map((c) => c.title!)),
+      // replace @ with \x01 to avoid conflict with monaco's tokenizer
+      formulaLanguage.generateLanguageDefinition(supportedColumns.value.map((c) => c.title!.replace(/@/g, '\x01'))),
     )
 
     languages.setLanguageConfiguration(formulaLanguage.name, formulaLanguage.languageConfiguration)

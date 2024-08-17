@@ -88,8 +88,6 @@ async function signUp() {
     }
 
     if (continueAfterSignIn) {
-      localStorage.removeItem('continueAfterSignIn')
-      await navigateTo(continueAfterSignIn)
       return
     }
 

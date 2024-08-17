@@ -26459,6 +26459,12 @@
             "description": "View Title",
             "example": "Grid View 1"
           },
+          "description": {
+            "maxLength": 255,
+            "type": "string",
+            "description": "Description of the view.",
+            "example": "This is a grid view."
+          },
           "uuid": {
             "maxLength": 255,
             "type": "string",

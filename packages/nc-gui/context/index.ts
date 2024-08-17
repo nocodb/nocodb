@@ -64,6 +64,7 @@ export const TreeViewInj: InjectionKey<{
   setMenuContext: (type: 'base' | 'base' | 'table' | 'main' | 'layout', value?: any) => void
   duplicateTable: (table: TableType) => void
   openRenameTableDialog: (table: TableType, rightClick: boolean) => void
+  openViewDescriptionDialog: (view: ViewType, rightClick: boolean) => void
   openTableDescriptionDialog: (table: TableType, rightClick: boolean) => void
   contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
 }> = Symbol('tree-view-functions-injection')

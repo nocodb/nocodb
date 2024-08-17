@@ -63,6 +63,8 @@ const isDefaultBase = computed(() => {
   return _isDefaultBase(source)
 })
 
+const { openViewDescriptionDialog: _openTableDescriptionDialog } = inject(TreeViewInj)!
+
 const input = ref<HTMLInputElement>()
 
 const isDropdownOpen = ref(false)
@@ -107,7 +109,7 @@ function onDblClick() {
 
   if (!isEditing.value) {
     isEditing.value = true
-    _title.value = vM`odel.value.title
+    _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
 
     nextTick(() => {
@@ -193,9 +195,10 @@ async function onRename() {
   onStopEdit()
 }
 
-const onDescriptionUpdate = () => {
-  vModel.value.description = description
-  emits('update:view', { ...vModel.value, description })
+const openViewDescriptionDialog = (view: ViewType) => {
+  isDropdownOpen.value = false
+
+  _openTableDescriptionDialog(view, false)
 }
 
 /** Cancel renaming view */
@@ -286,6 +289,15 @@ watch(isDropdownOpen, async () => {
       </NcTooltip>
 
       <template v-if="!isEditing && !isLocked">
+        <NcTooltip v-if="vModel.description?.length">
+          <template #title>
+            {{ vModel.description }}
+          </template>
+
+          <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
+            <GeneralIcon icon="info" class="nc-info-icon group-hover:opacity-100 text-gray-700 !hover:text-gray-800 opacity-0" />
+          </NcButton>
+        </NcTooltip>
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <NcButton
             v-e="['c:view:option']"
@@ -310,7 +322,7 @@ watch(isDropdownOpen, async () => {
               @close-modal="isDropdownOpen = false"
               @rename="onRenameMenuClick"
               @delete="onDelete"
-              @description-update="onDescriptionUpdate"
+              @description-update="openViewDescriptionDialog(vModel)"
             />
           </template>
         </NcDropdown>

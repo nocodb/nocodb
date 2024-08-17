@@ -106,6 +106,7 @@ function onDuplicate() {
     'selectedViewId': view.value!.id,
     'groupingFieldColumnId': view.value!.view!.fk_grp_col_id,
     'views': views,
+    'description': view.value!.description,
     'calendarRange': view.value!.view!.calendar_range,
     'coverImageColumnId': view.value!.view!.fk_cover_image_col_id,
     'onUpdate:modelValue': closeDialog,
@@ -200,7 +201,7 @@ const onDelete = async () => {
           </NcMenuItem>
         </NcTooltip>
         <NcMenuItem v-if="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
-          <GeneralIcon icon="rename" />
+          <GeneralIcon icon="ncAlignLeft" />
           {{ $t('general.edit') }}
 
           {{ $t('labels.description') }}

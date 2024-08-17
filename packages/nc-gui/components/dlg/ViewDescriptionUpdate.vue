@@ -1,28 +1,22 @@
 <script setup lang="ts">
-import type { TableType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 
 interface Props {
   modelValue?: boolean
-  tableMeta: TableType
-  sourceId: string
+  view: ViewType
+  sourceId?: string
 }
 
-const { tableMeta, ...props } = defineProps<Props>()
+const { view, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
 const { $e, $api } = useNuxtApp()
 
-const { setMeta } = useMetas()
-
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { loadProjectTables } = useTablesStore()
-
-const baseStore = useBase()
-
-const { loadTables } = baseStore
+const { loadViews } = useViewsStore()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
 
@@ -43,7 +37,7 @@ const validators = computed(() => {
         validator: (_: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             if (value.length > 255) {
-              return reject(new Error(`Table description exceeds 255 characters`))
+              return reject(new Error(`View description exceeds 255 characters`))
             }
             resolve()
           })
@@ -57,7 +51,7 @@ const { validateInfos } = useForm(formState, validators)
 
 watchEffect(
   () => {
-    if (tableMeta?.description) formState.description = `${tableMeta.description}`
+    if (view?.description) formState.description = `${view.description}`
 
     nextTick(() => {
       const input = inputEl.value?.$el as HTMLInputElement
@@ -72,7 +66,7 @@ watchEffect(
 )
 
 const updateDescription = async (undo = false) => {
-  if (!tableMeta) return
+  if (!view) return
 
   if (formState.description) {
     formState.description = formState.description.trim()
@@ -80,14 +74,13 @@ const updateDescription = async (undo = false) => {
 
   loading.value = true
   try {
-    await $api.dbTable.update(tableMeta.id as string, {
-      base_id: tableMeta.base_id,
+    await $api.dbView.update(view.id as string, {
       description: formState.description,
     })
 
     dialogShow.value = false
 
-    await loadProjectTables(tableMeta.base_id!, true)
+    // await loadProjectTables(view.base_id!, true)
 
     if (!undo) {
       addUndo({
@@ -103,19 +96,15 @@ const updateDescription = async (undo = false) => {
             formState.description = t
             updateDescription(true, true)
           },
-          args: [tableMeta.description],
+          args: [view.description],
         },
-        scope: defineProjectScope({ model: tableMeta }),
+        scope: defineProjectScope({ view }),
       })
     }
 
-    await loadTables()
+    await loadViews({ tableId: view.fk_model_id, ignoreLoading: true, force: true })
 
-    // update metas
-    const newMeta = await $api.dbTable.read(tableMeta.id as string)
-    await setMeta(newMeta)
-
-    $e('a:table:description:update')
+    $e('a:view:description:update')
 
     dialogShow.value = false
   } catch (e: any) {
@@ -130,9 +119,10 @@ const updateDescription = async (undo = false) => {
   <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="table" class="w-6 h-6 text-gray-700" />
+        <GeneralViewIcon :meta="view" class="mt-0.5 !text-2xl" />
+
         <span class="text-gray-900 font-bold">
-          {{ tableMeta?.title ?? tableMeta?.table_name }}
+          {{ view?.title }}
         </span>
       </div>
     </template>
@@ -158,7 +148,7 @@ const updateDescription = async (undo = false) => {
           type="primary"
           size="small"
           :disabled="
-            validateInfos?.description?.validateStatus === 'error' || formState.description?.trim() === tableMeta?.description
+            validateInfos?.description?.validateStatus === 'error' || formState.description?.trim() === view?.description
           "
           :loading="loading"
           @click="() => updateDescription()"

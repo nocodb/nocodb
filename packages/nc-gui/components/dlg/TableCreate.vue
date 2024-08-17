@@ -228,7 +228,7 @@ onMounted(() => {
               <GeneralIcon icon="plus" class="h-4 w-4" />
 
               <span class="first-letter:capitalize">
-                {{ $t('labels.description').toLowerCase() }}
+                {{ $t('labels.addDescription').toLowerCase() }}
               </span>
             </div>
           </NcButton>

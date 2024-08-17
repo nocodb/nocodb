@@ -616,6 +616,8 @@
     "categories": "Categories"
   },
   "labels": {
+    "fieldID": "Field ID",
+    "addDescription": "Add description",
     "editDescription": "Edit Description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
@@ -1598,6 +1600,8 @@
       "addMultipleUsers": "You can add multiple comma(,) separated emails",
       "enterTableName": "Enter table name",
       "enterTableDescription": "Enter table description...",
+      "enterFieldDescription": "Enter field description...",
+      "enterViewDescription": "Enter view description...",
       "enterLayoutName": "Enter Layout name",
       "enterDashboardName": "Enter Dashboard name",
       "defaultColumns": "Default fields",

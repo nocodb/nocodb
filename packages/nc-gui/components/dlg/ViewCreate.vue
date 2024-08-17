@@ -23,6 +23,7 @@ interface Props {
   selectedViewId?: string
   groupingFieldColumnId?: string
   geoDataFieldColumnId?: string
+  description?: string
   tableId: string
   calendarRange?: Array<{
     fk_from_column_id: string
@@ -40,6 +41,7 @@ interface Emits {
 interface Form {
   title: string
   type: ViewTypes
+  description?: string
   copy_from_id: string | null
   // for kanban view only
   fk_grp_col_id: string | null
@@ -103,6 +105,7 @@ const form = reactive<Form>({
   fk_geo_data_col_id: null,
   calendar_range: props.calendarRange || [],
   fk_cover_image_col_id: null,
+  description: props.description || '',
 })
 
 const viewSelectFieldOptions = ref<SelectProps['options']>([])
@@ -243,6 +246,13 @@ const addCalendarRange = async () => {
 }
 */
 
+const enableDescription = ref(false)
+
+const removeDescription = () => {
+  form.description = ''
+  enableDescription.value = false
+}
+
 const isMetaLoading = ref(false)
 
 onMounted(async () => {
@@ -250,6 +260,10 @@ onMounted(async () => {
     isMetaLoading.value = true
     try {
       meta.value = (await getMeta(tableId.value))!
+
+      if (form.copy_from_id) {
+        enableDescription.value = true
+      }
 
       if (props.type === ViewTypes.MAP) {
         viewSelectFieldOptions.value = meta
@@ -708,28 +722,63 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="flex flex-row w-full justify-end gap-x-2 mt-5">
-        <NcButton type="secondary" size="small" @click="vModel = false">
-          {{ $t('general.cancel') }}
-        </NcButton>
+      <a-form-item v-if="enableDescription">
+        <div class="flex gap-3 text-gray-800 h-7 mt-4 mb-1 justify-between">
+          {{ $t('labels.description') }}
 
-        <NcButton
-          v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
-          :disabled="!isNecessaryColumnsPresent"
-          :loading="isViewCreating"
-          type="primary"
-          size="small"
-          @click="onSubmit"
-        >
-          {{ $t('labels.createView') }}
-          <template #loading> {{ $t('labels.creatingView') }}</template>
+          <NcButton type="text" class="!h-7 !w-7" size="xsmall" @click="removeDescription">
+            <GeneralIcon icon="delete" class="text-gray-700" />
+          </NcButton>
+        </div>
+
+        <a-textarea
+          ref="inputEl"
+          v-model:value="form.description"
+          class="nc-input-sm nc-input-text-area nc-input-shadow px-3 max-h-[100px] min-h-[60px]"
+          hide-details
+          data-testid="create-table-title-input"
+          :placeholder="$t('msg.info.enterViewDescription')"
+        />
+      </a-form-item>
+
+      <div class="flex flex-row w-full justify-between gap-x-2 mt-5">
+        <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="enableDescription = !enableDescription">
+          <div class="flex !text-gray-700 items-center gap-2">
+            <GeneralIcon icon="plus" class="h-4 w-4" />
+
+            <span class="first-letter:capitalize">
+              {{ $t('labels.addDescription') }}
+            </span>
+          </div>
         </NcButton>
+        <div v-else></div>
+        <div class="flex gap-2 items-center">
+          <NcButton type="secondary" size="small" @click="vModel = false">
+            {{ $t('general.cancel') }}
+          </NcButton>
+
+          <NcButton
+            v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
+            :disabled="!isNecessaryColumnsPresent"
+            :loading="isViewCreating"
+            type="primary"
+            size="small"
+            @click="onSubmit"
+          >
+            {{ $t('labels.createView') }}
+            <template #loading> {{ $t('labels.creatingView') }}</template>
+          </NcButton>
+        </div>
       </div>
     </div>
   </NcModal>
 </template>
 
 <style lang="scss" scoped>
+.nc-input-text-area {
+  padding-block: 8px !important;
+}
+
 .ant-form-item-required {
   @apply !text-gray-800 font-medium;
   &:before {

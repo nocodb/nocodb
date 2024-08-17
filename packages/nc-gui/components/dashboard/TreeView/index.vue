@@ -45,7 +45,7 @@ function openTableDescriptionDialog(table: TableType, _ = false) {
 
   const { close } = useDialog(resolveComponent('DlgTableDescriptionUpdate'), {
     'modelValue': isOpen,
-    'table': table,
+    'tableMeta': table,
     'onUpdate:modelValue': closeDialog,
   })
 

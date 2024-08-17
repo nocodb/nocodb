@@ -71,7 +71,7 @@ watchEffect(
   { flush: 'post' },
 )
 
-const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undefined) => {
+const updateDescription = async (undo = false, disableTitleDiffCheck?: boolean | undefined) => {
   if (!tableMeta) return
 
   if (formState.description) {
@@ -94,14 +94,14 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
         redo: {
           fn: (t: string) => {
             formState.description = t
-            renameTable(true, true)
+            updateDescription(true, true)
           },
           args: [formState.description],
         },
         undo: {
           fn: (t: string) => {
             formState.description = t
-            renameTable(true, true)
+            updateDescription(true, true)
           },
           args: [tableMeta.description],
         },
@@ -115,7 +115,7 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
     const newMeta = await $api.dbTable.read(tableMeta.id as string)
     await setMeta(newMeta)
 
-    $e('a:table:rename')
+    $e('a:table:description:update')
 
     dialogShow.value = false
   } catch (e: any) {
@@ -130,8 +130,10 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
   <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="rename" />
-        {{ $t('activity.renameTable') }}
+        <GeneralIcon icon="table" class="w-6 h-6 text-gray-700" />
+        <span class="text-gray-900 font-bold">
+          {{ tableMeta?.title ?? tableMeta?.table_name }}
+        </span>
       </div>
     </template>
     <div class="mt-1">
@@ -140,11 +142,11 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
           <a-textarea
             ref="inputEl"
             v-model:value="formState.description"
-            class="nc-input-sm nc-input-shadow"
+            class="nc-input-sm !py-2 nc-text-area nc-input-shadow"
             hide-details
             size="small"
-            :placeholder="$t('msg.info.enterTableName')"
-            @keydown.enter="() => renameTable()"
+            :placeholder="$t('msg.info.enterTableDescription')"
+            @keydown.enter="() => updateDescription()"
           />
         </a-form-item>
       </a-form>
@@ -158,15 +160,18 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
           :disabled="
             validateInfos?.description?.validateStatus === 'error' || formState.description?.trim() === tableMeta?.description
           "
-          label="Rename Table"
-          loading-label="Renaming Table"
           :loading="loading"
-          @click="() => renameTable()"
+          @click="() => updateDescription()"
         >
-          {{ $t('title.renameTable') }}
-          <template #loading> {{ $t('title.renamingTable') }}</template>
+          {{ $t('general.save') }}
         </NcButton>
       </div>
     </div>
   </NcModal>
 </template>
+
+<style scoped lang="scss">
+.nc-text-area {
+  @apply !py-2 min-h-[120px] max-h-[200px];
+}
+</style>

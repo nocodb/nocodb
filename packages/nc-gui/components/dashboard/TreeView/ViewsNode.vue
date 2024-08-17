@@ -107,7 +107,7 @@ function onDblClick() {
 
   if (!isEditing.value) {
     isEditing.value = true
-    _title.value = vModel.value.title
+    _title.value = vM`odel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
 
     nextTick(() => {
@@ -191,6 +191,11 @@ async function onRename() {
   emits('rename', vModel.value, originalTitle)
 
   onStopEdit()
+}
+
+const onDescriptionUpdate = () => {
+  vModel.value.description = description
+  emits('update:view', { ...vModel.value, description })
 }
 
 /** Cancel renaming view */
@@ -305,6 +310,7 @@ watch(isDropdownOpen, async () => {
               @close-modal="isDropdownOpen = false"
               @rename="onRenameMenuClick"
               @delete="onDelete"
+              @description-update="onDescriptionUpdate"
             />
           </template>
         </NcDropdown>

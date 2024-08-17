@@ -14,7 +14,7 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['rename', 'closeModal', 'delete'])
+const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate'])
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
 
@@ -45,6 +45,10 @@ const currentSourceId = computed(() => table.value?.source_id)
 
 const onRenameMenuClick = () => {
   emits('rename')
+}
+
+const onDescriptionUpdateClick = () => {
+  emits('descriptionUpdate')
 }
 
 const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
@@ -195,6 +199,12 @@ const onDelete = async () => {
             }}
           </NcMenuItem>
         </NcTooltip>
+        <NcMenuItem v-if="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
+          <GeneralIcon icon="rename" />
+          {{ $t('general.edit') }}
+
+          {{ $t('labels.description') }}
+        </NcMenuItem>
       </template>
       <NcMenuItem @click="onDuplicate">
         <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />

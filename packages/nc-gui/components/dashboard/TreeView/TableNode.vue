@@ -432,7 +432,7 @@ const source = computed(() => {
                   >
                     <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
                       <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
-                      <GeneralIcon icon="edit" class="text-gray-700" />
+                      <GeneralIcon icon="alignLeft" class="text-gray-700" />
                       {{ $t('labels.editDescription') }}
                     </div>
                   </NcMenuItem>

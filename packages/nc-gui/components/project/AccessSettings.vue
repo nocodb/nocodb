@@ -274,7 +274,7 @@ const isDeleteOrUpdateAllowed = (user) => {
         <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
         <NuxtLink
           :href="`/admin/${orgId}/bases`"
-          class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent ml-0.75 max-w-1/4"
+          class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent max-w-1/4"
         >
           <div class="nc-breadcrumb-item">
             {{ $t('objects.projects') }}
@@ -300,10 +300,8 @@ const isDeleteOrUpdateAllowed = (user) => {
     </div>
 
     <div
-      class="h-full flex flex-col items-center gap-6 px-6 pt-6"
-      :class="{
-        'border-t-1 border-gray-200': isAdminPanel,
-      }"
+      class="nc-content-max-w h-full flex flex-col items-center gap-6 px-6 pt-6"
+     
     >
       <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-350 gap-3">
         <a-input

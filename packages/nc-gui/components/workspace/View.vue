@@ -82,7 +82,7 @@ onMounted(() => {
       </div>
     </div>
     <template v-else>
-      <div class="nc-breadcrumb px-2">
+      <div class="nc-breadcrumb nc-no-negative-margin pl-3 pr-2">
         <div class="nc-breadcrumb-item">
           {{ org.title }}
         </div>
@@ -90,7 +90,7 @@ onMounted(() => {
 
         <NuxtLink
           :href="`/admin/${orgId}/workspaces`"
-          class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent ml-0.75 max-w-1/4"
+          class="!hover:(text-gray-800 underline-gray-600) flex items-center !text-gray-700 !underline-transparent max-w-1/4"
         >
           <div class="nc-breadcrumb-item">
             {{ $t('labels.workspaces') }}
@@ -102,7 +102,7 @@ onMounted(() => {
           {{ currentWorkspace?.title }}
         </div>
       </div>
-      <NcPageHeader>
+      <NcPageHeader class="!pl-5">
         <template #icon>
           <div class="flex justify-center items-center h-6 w-6">
             <GeneralWorkspaceIcon :workspace="currentWorkspace" hide-label size="small" />

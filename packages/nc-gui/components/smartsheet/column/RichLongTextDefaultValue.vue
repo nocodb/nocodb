@@ -28,13 +28,13 @@ const cdfValue = computed({
     <NcButton
       size="small"
       type="text"
-      class="!text-gray-500 !hover:text-gray-700"
+      class="text-gray-700"
       data-testid="nc-show-default-value-btn"
       @click.stop="isVisibleDefaultValueInput = true"
     >
       <div class="flex items-center gap-2">
-        <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue').toLowerCase() }}</span>
         <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
+        <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue').toLowerCase() }}</span>
       </div>
     </NcButton>
   </div>

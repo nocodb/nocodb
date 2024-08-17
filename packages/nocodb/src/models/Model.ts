@@ -53,6 +53,7 @@ export default class Model implements TableType {
 
   table_name: string;
   title: string;
+  description?: string;
 
   mm: BoolType;
 
@@ -140,6 +141,7 @@ export default class Model implements TableType {
     const insertObj = extractProps(model, [
       'table_name',
       'title',
+      'description',
       'mm',
       'order',
       'type',
@@ -1096,25 +1098,23 @@ export default class Model implements TableType {
   static async updateMeta(
     context: NcContext,
     tableId: string,
-    meta: string | Record<string, any>,
+    model: Pick<TableReqType, 'meta' | 'description'>,
     ncMeta = Noco.ncMeta,
   ) {
+    const updateObj = extractProps(model, ['description', 'meta']);
+
     // set meta
     const res = await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.MODELS,
-      prepareForDb({
-        meta,
-      }),
+      prepareForDb(updateObj),
       tableId,
     );
 
     await NocoCache.update(
       `${CacheScope.MODEL}:${tableId}`,
-      prepareForResponse({
-        meta,
-      }),
+      prepareForResponse(updateObj),
     );
 
     return res;
@@ -1138,7 +1138,7 @@ export default class Model implements TableType {
       hasNonDefaultViews: views.length > 1,
     };
 
-    await this.updateMeta(context, modelId, modelMeta, ncMeta);
+    await this.updateMeta(context, modelId, { meta: modelMeta }, ncMeta);
 
     return modelMeta?.hasNonDefaultViews;
   }

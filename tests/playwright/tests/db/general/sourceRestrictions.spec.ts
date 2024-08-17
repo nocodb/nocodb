@@ -77,8 +77,8 @@ test.describe('Source Restrictions', () => {
       .scrollIntoViewIfNeeded();
     await dashboard.grid.get().locator(`th[data-title="LastName"]`).first().locator('.nc-ui-dt-dropdown').click();
     for (const item of ['Edit', 'Delete', 'Duplicate']) {
-      await expect(dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()).toBeVisible();
-      await expect(dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).last()).toHaveClass(
+      await expect(dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).first()).toBeVisible();
+      await expect(dashboard.rootPage.locator(`li[role="menuitem"]:has-text("${item}"):visible`).first()).toHaveClass(
         /ant-dropdown-menu-item-disabled/
       );
     }

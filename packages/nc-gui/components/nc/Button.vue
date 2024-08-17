@@ -97,7 +97,7 @@ useEventListener(NcButton, 'mousedown', () => {
         'justify-center': props.centered,
         'justify-start': !props.centered,
       }"
-      class="flex flex-row gap-x-2.5 w-full"
+      class="flex flex-row gap-x-2.5 nc-btn-inner w-full"
     >
       <template v-if="iconPosition === 'left'">
         <GeneralLoader

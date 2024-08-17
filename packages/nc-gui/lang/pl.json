@@ -616,6 +616,9 @@
     "categories": "Categories"
   },
   "labels": {
+    "fieldID": "Field ID",
+    "addDescription": "Add description",
+    "editDescription": "Edit description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",
@@ -1596,6 +1599,9 @@
       "tablesMetadataInSync": "Metadane tabel są zsynchronizowane",
       "addMultipleUsers": "Możesz dodać wielu użytkowników, oddzielając adresy e-mail przecinkami (,)",
       "enterTableName": "Wpisz nazwę tabeli",
+      "enterTableDescription": "Enter table description...",
+      "enterFieldDescription": "Enter field description...",
+      "enterViewDescription": "Enter view description...",
       "enterLayoutName": "Wpisz nazwę układu",
       "enterDashboardName": "Wpisz nazwę deski rozdzielczej",
       "defaultColumns": "Domyślne pola",

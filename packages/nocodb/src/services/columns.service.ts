@@ -306,6 +306,7 @@ export class ColumnsService {
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
 
     if (
+      isMetaOnlyUpdateAllowed ||
       'description' in param.column ||
       isCreatedOrLastModifiedTimeCol(column) ||
       isCreatedOrLastModifiedByCol(column) ||

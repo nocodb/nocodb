@@ -618,7 +618,11 @@ const isFullUpdateAllowed = computed(() => {
           <a-textarea
             ref="descInputEl"
             v-model:value="formState.description"
-            class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 h-[120px] max-h-[150px] min-h-[80px]"
+            :class="{
+              'h-[200px]': fromTableExplorer,
+              'h-[150px]': !fromTableExplorer,
+            }"
+            class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 max-h-[250px] min-h-[80px]"
             hide-details
             data-testid="create-field-description-input"
             :placeholder="$t('msg.info.enterFieldDescription')"

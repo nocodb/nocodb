@@ -210,6 +210,7 @@
     "confirm": "אישור",
     "generate": "יצירה",
     "copy": "העתק",
+    "copied": "Copied",
     "are": "are",
     "misc": "שונות",
     "lock": "נעל",
@@ -283,7 +284,8 @@
     "connection": "Connection",
     "connections": "Connections",
     "private": "Private",
-    "request": "Request"
+    "request": "Request",
+    "languages": "Languages"
   },
   "objects": {
     "files": "files",
@@ -1235,7 +1237,8 @@
       "lockedFieldTooltip": "ערך מומלא מראש"
     },
     "getPreFilledLink": "קבל קישור מומלא מראש",
-    "group": "קבוצה"
+    "group": "קבוצה",
+    "goToDocs": "Go to Docs"
   },
   "tooltip": {
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",

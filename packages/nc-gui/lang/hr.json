@@ -210,6 +210,7 @@
     "confirm": "Potvrdi",
     "generate": "Generiraj",
     "copy": "Kopiraj",
+    "copied": "Copied",
     "are": "are",
     "misc": "Razno",
     "lock": "Zaključaj",
@@ -283,7 +284,8 @@
     "connection": "Connection",
     "connections": "Connections",
     "private": "Private",
-    "request": "Request"
+    "request": "Request",
+    "languages": "Languages"
   },
   "objects": {
     "files": "files",
@@ -1235,7 +1237,8 @@
       "lockedFieldTooltip": "Pre-filled value"
     },
     "getPreFilledLink": "Get Pre-filled Link",
-    "group": "Group"
+    "group": "Group",
+    "goToDocs": "Go to Docs"
   },
   "tooltip": {
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",

@@ -156,7 +156,7 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
           type="primary"
           size="small"
           :disabled="
-            validateInfos.description.validateStatus === 'error' || formState.description?.trim() === tableMeta.description
+            validateInfos?.description?.validateStatus === 'error' || formState.description?.trim() === tableMeta?.description
           "
           label="Rename Table"
           loading-label="Renaming Table"

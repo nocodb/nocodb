@@ -4430,6 +4430,11 @@
                     "description": "Table title",
                     "example": "Users"
                   },
+                  "description": {
+                    "type": "string",
+                    "description": "Table description",
+                    "example": "Table for storing User Information"
+                  },
                   "base_id": {
                     "type": "string",
                     "description": "Base ID",
@@ -19668,6 +19673,10 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Auto Update Timestamp"
           },
+          "description": {
+            "type": "string",
+            "description": "Column Description"
+          },
           "source_id": {
             "description": "Source ID that this column belongs to",
             "example": "ds_krsappzu9f8vmo",
@@ -25555,6 +25564,10 @@
             "description": "Unique Base ID",
             "type": "string"
           },
+          "description": {
+            "description": "Table Description",
+            "type": "string"
+          },
           "table_name": {
             "description": "Table Name. Prefix will be added for XCDB bases.",
             "type": "string"
@@ -26131,6 +26144,10 @@
           "order": {
             "description": "The rder of the list of views",
             "type": "number"
+          },
+          "description": {
+            "description": "View Description",
+            "type": "string"
           },
           "password": {
             "$ref": "#/components/schemas/StringOrNull",

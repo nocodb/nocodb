@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import View from '../models/View';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
@@ -13,12 +13,15 @@ import {
 import { invokeWebhook } from '~/helpers/webhookHelpers';
 import { ButtonColumn, Hook, HookLog, Model } from '~/models';
 import { DatasService } from '~/services/datas.service';
+import { JobTypes } from '~/interface/Jobs';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 @Injectable()
 export class HooksService {
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected readonly dataService: DatasService,
+    @Inject('JobsService') protected readonly jobsService: IJobsService,
   ) {}
 
   validateHookPayload(notificationJsonOrObject: string | Record<string, any>) {
@@ -175,15 +178,13 @@ export class HooksService {
     const model = await Model.get(context, hook.fk_model_id);
 
     try {
-      await invokeWebhook(context, {
-        hook: hook,
-        model: model,
-        view: null,
+      await this.jobsService.add(JobTypes.HandleWebhook, {
+        hookId: hook.id,
+        modelId: model.id,
+        viewId: null,
         prevData: null,
         newData: row,
         user: param.req.user,
-        throwErrorOnFailure: true,
-        testHook: false,
       });
     } catch (e) {
       throw e;

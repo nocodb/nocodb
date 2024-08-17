@@ -7,6 +7,8 @@ const emits = defineEmits(['update:activeKey'])
 
 const activeKey = useVModel(props, 'activeKey', emits)
 
+const { $e } = useNuxtApp()
+
 const navigationElements = [
   {
     key: 'recents',
@@ -27,6 +29,38 @@ const navigationElements = [
     description: 'Upcoming features',
   },
 ]
+
+const socialLinks = [
+  {
+    key: 'youtube',
+    icon: iconMap.youtube,
+    title: 'NocoDB',
+    url: 'https://www.youtube.com/@nocodb',
+  },
+  {
+    key: 'twitter',
+    icon: iconMap.twitter,
+    title: '@nocodb',
+    url: 'https://x.com/nocodb',
+  },
+  {
+    key: 'discord',
+    icon: iconMap.discord,
+    title: 'NocoDB',
+    url: 'https://discord.gg/5RgZmkW',
+  },
+  {
+    key: 'reddit',
+    icon: iconMap.reddit,
+    title: 'r/NocoDB',
+    url: 'https://www.reddit.com/r/NocoDB',
+  },
+]
+
+const openLink = (url: string, key: string) => {
+  $e(`c:nocodb:${key}`)
+  window.open(url, '_blank')
+}
 </script>
 
 <template>
@@ -73,68 +107,20 @@ const navigationElements = [
         </div>
       </div>
     </div>
-    <NcMenu>
-      <a
-        v-e="['c:nocodb:twitter']"
-        href="https://twitter.com/nocodb"
-        target="_blank"
-        class="!underline-transparent"
-        rel="noopener noreferrer"
+    <div class="flex flex-col gap-1">
+      <div
+        v-for="social in socialLinks"
+        :key="social.key"
+        class="flex items-center w-full cursor-pointer transition-all gap-2 px-3 py-2"
+        @click="openLink(social.url, social.key)"
       >
-        <NcMenuItem class="social-icon-wrapper group">
-          <GeneralIcon class="social-icon" icon="ncTwitter" />
-          <span class="menu-btn"> @nocodb </span>
-        </NcMenuItem>
-      </a>
-      <a
-        v-e="['c:nocodb:discord']"
-        href="https://discord.gg/5RgZmkW"
-        target="_blank"
-        class="!underline-transparent"
-        rel="noopener noreferrer"
-      >
-        <NcMenuItem class="social-icon-wrapper">
-          <GeneralIcon class="social-icon" icon="ncDiscord" />
-          <span class="menu-btn"> {{ $t('labels.community.joinDiscord') }} </span>
-        </NcMenuItem>
-      </a>
-      <a
-        v-e="['c:nocodb:reddit']"
-        href="https://www.reddit.com/r/NocoDB"
-        target="_blank"
-        class="!underline-transparent"
-        rel="noopener noreferrer"
-      >
-        <NcMenuItem class="social-icon-wrapper">
-          <GeneralIcon class="social-icon" icon="ncReddit" />
-          <span class="menu-btn"> {{ $t('labels.community.joinReddit') }} </span>
-        </NcMenuItem>
-      </a>
-    </NcMenu>
+        <component :is="social.icon" class="w-5 h-5 stroke-transparent" />
+        <span class="text-[13px] text-gray-800 font-medium">
+          {{ social.title }}
+        </span>
+      </div>
+    </div>
   </div>
 </template>
 
-<style scoped lang="scss">
-menu-btn {
-  line-height: 1.5;
-}
-.menu-icon {
-  @apply w-4 h-4;
-  font-size: 1rem;
-}
-
-:deep(.ant-popover-inner-content) {
-  @apply !p-0 !rounded-md;
-}
-
-.social-icon {
-  @apply my-0.5 w-4 h-4 stroke-transparent;
-}
-
-.social-icon-wrapper {
-  @apply !w-5 !h-5 !text-gray-800;
-  .nc-icon {
-    @apply mr-0.15;
-  }
-}
-</style>
+<style scoped lang="scss"></style>

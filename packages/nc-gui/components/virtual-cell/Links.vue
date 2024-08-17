@@ -69,7 +69,6 @@ const textVal = computed(() => {
       ? t('title.linkRecords')
       : t('msg.noRecordsLinked')
   }
-
   const parsedValue = +value?.value || 0
 
   if (!parsedValue) {

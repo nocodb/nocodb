@@ -495,6 +495,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const navigateToFeed = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
+    workspaceId = workspaceId || activeWorkspaceId.value!
+
+    if (cmdOrCtrl) {
+      await navigateTo(router.resolve({ name: 'index-typeOrId-feed', params: { typeOrId: workspaceId }, query }).href, {
+        open: navigateToBlankTargetOpenOption,
+      })
+    } else {
+      router.push({ name: 'index-typeOrId-feed', params: { typeOrId: workspaceId }, query })
+    }
+  }
+
   const navigateToIntegrations = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
     workspaceId = workspaceId || activeWorkspaceId.value!
 
@@ -627,6 +639,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     loadAudits,
     isIntegrationsPageOpened,
     navigateToIntegrations,
+    navigateToFeed,
   }
 })
 

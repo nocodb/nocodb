@@ -238,6 +238,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const navigateToFeed = async (_?: string, cmdOrCtrl?: boolean) => {
+    if (cmdOrCtrl) {
+      await navigateTo('/nc/feed', {
+        open: navigateToBlankTargetOpenOption,
+      })
+    } else {
+      await navigateTo('/nc/feed')
+    }
+  }
+
   const auditLogsQuery = ref<Partial<AuditLogsQuery>>(defaultAuditLogsQuery)
 
   const audits = ref<null | Array<AuditType>>(null)
@@ -326,6 +336,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     auditLogsQuery,
     audits,
     auditPaginationData,
+    navigateToFeed,
     loadAudits,
     isIntegrationsPageOpened,
     navigateToIntegrations,

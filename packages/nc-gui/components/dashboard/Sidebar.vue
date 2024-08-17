@@ -60,6 +60,7 @@ onUnmounted(() => {
       <GeneralGift v-if="!isEeUI" />
       <div class="border-t-1 w-full"></div>
       <DashboardSidebarBeforeUserInfo />
+      <DashboardSidebarFeed />
       <DashboardSidebarUserInfo />
     </div>
   </div>

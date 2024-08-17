@@ -253,6 +253,17 @@ const removeDescription = () => {
   enableDescription.value = false
 }
 
+const toggleDescription = () => {
+  if (enableDescription.value) {
+    enableDescription.value = false
+  } else {
+    enableDescription.value = true
+    setTimeout(() => {
+      inputEl.value?.focus()
+    }, 100)
+  }
+}
+
 const isMetaLoading = ref(false)
 
 onMounted(async () => {
@@ -743,7 +754,7 @@ onMounted(async () => {
       </a-form-item>
 
       <div class="flex flex-row w-full justify-between gap-x-2 mt-5">
-        <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="enableDescription = !enableDescription">
+        <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="toggleDescription">
           <div class="flex !text-gray-700 items-center gap-2">
             <GeneralIcon icon="plus" class="h-4 w-4" />
 

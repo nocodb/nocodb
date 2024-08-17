@@ -365,6 +365,17 @@ const filterOption = (input: string, option: { value: UITypes }) => {
   )
 }
 
+const triggerDescriptionEnable = () => {
+  if (enableDescription.value) {
+    enableDescription.value = false
+  } else {
+    enableDescription.value = true
+    setTimeout(() => {
+      descInputEl.value?.focus()
+    }, 100)
+  }
+}
+
 const isFullUpdateAllowed = computed(() => {
   if (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(formState.value?.uidt) && !isVirtualCol(formState.value)) {
     return false
@@ -631,7 +642,7 @@ const isFullUpdateAllowed = computed(() => {
 
         <template v-if="props.fromTableExplorer">
           <a-form-item>
-            <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="enableDescription = !enableDescription">
+            <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
               <div class="flex !text-gray-700 items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 
@@ -644,7 +655,7 @@ const isFullUpdateAllowed = computed(() => {
         </template>
         <template v-else>
           <div class="flex items-center justify-between gap-2">
-            <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="enableDescription = !enableDescription">
+            <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="triggerDescriptionEnable">
               <div class="flex !text-gray-700 items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 

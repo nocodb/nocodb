@@ -118,6 +118,17 @@ const _createTable = async () => {
   }
 }
 
+const toggleDescription = () => {
+  if (enableDescription.value) {
+    enableDescription.value = false
+  } else {
+    enableDescription.value = true
+    setTimeout(() => {
+      inputEl.value?.focus()
+    }, 100)
+  }
+}
+
 onMounted(() => {
   generateUniqueTitle()
   nextTick(() => {
@@ -224,7 +235,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex flex-row justify-between gap-x-2">
-          <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="enableDescription = !enableDescription">
+          <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="toggleDescription">
             <div class="flex !text-gray-700 items-center gap-2">
               <GeneralIcon icon="plus" class="h-4 w-4" />
 

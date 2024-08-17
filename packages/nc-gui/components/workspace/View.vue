@@ -70,7 +70,7 @@ onMounted(() => {
 <template>
   <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings">
     <div v-if="!props.workspaceId" class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200">
-      <div class="nc-breadcrumb nc-no-negative-margin pl-1  nc-workspace-title">
+      <div class="nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}
         </div>
@@ -82,7 +82,7 @@ onMounted(() => {
       </div>
     </div>
     <template v-else>
-      <div class="nc-breadcrumb nc-no-negative-margin pl-3 pr-2">
+      <div class="nc-breadcrumb px-2">
         <div class="nc-breadcrumb-item">
           {{ org.title }}
         </div>
@@ -102,7 +102,7 @@ onMounted(() => {
           {{ currentWorkspace?.title }}
         </div>
       </div>
-      <NcPageHeader class="!pl-5">
+      <NcPageHeader>
         <template #icon>
           <div class="flex justify-center items-center h-6 w-6">
             <GeneralWorkspaceIcon :workspace="currentWorkspace" hide-label size="small" />
@@ -116,7 +116,7 @@ onMounted(() => {
       </NcPageHeader>
     </template>
 
-    <NcTabs v-model:activeKey="tab" >
+    <NcTabs v-model:activeKey="tab">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>

@@ -58,7 +58,7 @@ onBeforeMount(() => {
         </h1>
       </div>
     </div>
-    <NcTabs v-model:activeKey="activeViewTab" >
+    <NcTabs v-model:activeKey="activeViewTab">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>

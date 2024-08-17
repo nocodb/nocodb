@@ -209,10 +209,7 @@ onKeyStroke('ArrowDown', onDown)
         </span>
       </template>
     </NcPageHeader>
-    <div
-      class="nc-content-max-w flex flex-col"
-      :class="{ 'gap-6 p-6 h-[calc(100vh_-_100px)]': !baseId, 'gap-4 h-full': baseId }"
-    >
+    <div class="nc-content-max-w flex flex-col" :class="{ 'gap-6 p-6 h-[calc(100vh_-_100px)]': !baseId, 'gap-4 h-full': baseId }">
       <div v-if="!appInfo.auditEnabled" class="text-red-500">Audit logs are currently disabled by administrators.</div>
 
       <div class="flex flex-col" :class="{ 'gap-6': !baseId, 'gap-4': baseId }">

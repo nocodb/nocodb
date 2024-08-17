@@ -299,10 +299,7 @@ const isDeleteOrUpdateAllowed = (user) => {
       </NcPageHeader>
     </div>
 
-    <div
-      class="nc-content-max-w h-full flex flex-col items-center gap-6 px-6 pt-6"
-     
-    >
+    <div class="nc-content-max-w h-full flex flex-col items-center gap-6 px-6 pt-6">
       <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-350 gap-3">
         <a-input
           v-model:value="userSearchText"

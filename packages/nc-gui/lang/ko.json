@@ -616,6 +616,9 @@
     "categories": "Categories"
   },
   "labels": {
+    "fieldID": "Field ID",
+    "addDescription": "Add description",
+    "editDescription": "Edit description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",
@@ -1596,6 +1599,9 @@
       "tablesMetadataInSync": "테이블 메타 데이터가 동기화되어 있습니다",
       "addMultipleUsers": "쉼표로 분리된 이메일을 여러 개 추가할 수 있습니다.",
       "enterTableName": "테이블 이름을 입력하십시오",
+      "enterTableDescription": "Enter table description...",
+      "enterFieldDescription": "Enter field description...",
+      "enterViewDescription": "Enter view description...",
       "enterLayoutName": "Enter Layout name",
       "enterDashboardName": "Enter Dashboard name",
       "defaultColumns": "Default fields",

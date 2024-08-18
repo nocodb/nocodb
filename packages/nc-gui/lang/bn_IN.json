@@ -616,6 +616,9 @@
     "categories": "Categories"
   },
   "labels": {
+    "fieldID": "Field ID",
+    "addDescription": "Add description",
+    "editDescription": "Edit description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",
@@ -1596,6 +1599,9 @@
       "tablesMetadataInSync": "টেবিলের মেটাডেটা সিঙ্ক করা আছে",
       "addMultipleUsers": "आप एकाधिक COMMA (,) द्वारा अलग ईमेल जोड़ सकते है",
       "enterTableName": "টেবিলের নাম লিখুন",
+      "enterTableDescription": "Enter table description...",
+      "enterFieldDescription": "Enter field description...",
+      "enterViewDescription": "Enter view description...",
       "enterLayoutName": "Enter Layout name",
       "enterDashboardName": "Enter Dashboard name",
       "defaultColumns": "Default fields",

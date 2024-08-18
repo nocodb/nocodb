@@ -616,6 +616,9 @@
     "categories": "Categories"
   },
   "labels": {
+    "fieldID": "Field ID",
+    "addDescription": "Add description",
+    "editDescription": "Edit description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",
@@ -1596,6 +1599,9 @@
       "tablesMetadataInSync": "מטא נתוני הטבלאות מסונכרנים",
       "addMultipleUsers": "ניתן להוסיף מיילים מרובים מופרדים בפסיקים (,)",
       "enterTableName": "הזן שם טבלה",
+      "enterTableDescription": "Enter table description...",
+      "enterFieldDescription": "Enter field description...",
+      "enterViewDescription": "Enter view description...",
       "enterLayoutName": "הזן שם פריסה",
       "enterDashboardName": "הזן את שם הלוח",
       "defaultColumns": "שדות ברירת מחדל",

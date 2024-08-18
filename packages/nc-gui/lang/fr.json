@@ -616,6 +616,9 @@
     "categories": "Categories"
   },
   "labels": {
+    "fieldID": "Field ID",
+    "addDescription": "Add description",
+    "editDescription": "Edit description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",
@@ -1596,6 +1599,9 @@
       "tablesMetadataInSync": "Les métadonnées des tables sont synchronisées",
       "addMultipleUsers": "Vous pouvez ajouter plusieurs courriels séparés par des virgules (,)",
       "enterTableName": "Entrez le nom du tableau",
+      "enterTableDescription": "Enter table description...",
+      "enterFieldDescription": "Enter field description...",
+      "enterViewDescription": "Enter view description...",
       "enterLayoutName": "Entrez le nom de la mise en page",
       "enterDashboardName": "Entrez le nom du tableau de bord",
       "defaultColumns": "Champs par défaut",

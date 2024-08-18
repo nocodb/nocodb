@@ -4,27 +4,33 @@ export default defineNuxtPlugin(function (nuxtApp) {
 
   const route = router.currentRoute
 
-  watch(
-    () => (nuxtApp.$state as ReturnType<typeof useGlobal>)?.token?.value,
-    async (newToken, oldToken) => {
-      try {
-        if (newToken && newToken !== oldToken) {
-          try {
-            if (route.value.query?.continueAfterSignIn) {
-              await navigateTo(route.value.query.continueAfterSignIn as string)
-            } else {
-              const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
-              if (continueAfterSignIn) {
-                await navigateTo(continueAfterSignIn)
+  // put inside app:created hook to ensure global state is available
+  nuxtApp.hooks.hook('app:created', () => {
+    const { token } = useGlobal()
+
+    watch(
+      () => token.value ?? (nuxtApp.$state as ReturnType<typeof useGlobal>)?.token?.value,
+      async (newToken, oldToken) => {
+        try {
+          if (newToken && newToken !== oldToken) {
+            try {
+              if (route.value.query?.continueAfterSignIn) {
+                await navigateTo(route.value.query.continueAfterSignIn as string)
+              } else {
+                const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
+                if (continueAfterSignIn) {
+                  await navigateTo(continueAfterSignIn)
+                }
               }
+            } finally {
+              localStorage.removeItem('continueAfterSignIn')
             }
-          } finally {
-            localStorage.removeItem('continueAfterSignIn')
           }
+        } catch (e) {
+          console.error(e)
         }
-      } catch (e) {
-        console.error(e)
-      }
-    },
-  )
+      },
+      { immediate: true },
+    )
+  })
 })

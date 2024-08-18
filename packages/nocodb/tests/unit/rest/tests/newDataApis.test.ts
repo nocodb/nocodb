@@ -2388,12 +2388,17 @@ function linkBased() {
         rowId: 1,
       },
       query: {
-        limit: 5,
-        offset: 10,
+        limit: 10,
+        offset: 5,
       },
     });
-    expect(rsp.body.list.length).to.equal(5);
+    expect(rsp.body.list.length).to.equal(10);
     expect(rsp.body.list).to.deep.equal([
+      { Id: 6, City: 'City 6' },
+      { Id: 7, City: 'City 7' },
+      { Id: 8, City: 'City 8' },
+      { Id: 9, City: 'City 9' },
+      { Id: 10, City: 'City 10' },
       { Id: 11, City: 'City 11' },
       { Id: 12, City: 'City 12' },
       { Id: 13, City: 'City 13' },

@@ -80,7 +80,9 @@ test.describe('Fill Handle', () => {
     }
 
     // verify api response
-    const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 4 })).list;
+    const updatedRecords = (
+      await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 10 })
+    ).list.slice(0, 4);
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i][fields[j].title]).toEqual(fields[j].value);
@@ -141,7 +143,9 @@ test.describe('Fill Handle', () => {
     // verify api response
     // duration in seconds
     const APIResponse = [33, 33.3, 33.3, 33, 60, 3, 2023, '02:02:00'];
-    const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 4 })).list;
+    const updatedRecords = (
+      await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 10 })
+    ).list.slice(0, 4);
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         if (fields[j].title === 'Time') {
@@ -195,7 +199,9 @@ test.describe('Fill Handle', () => {
     }
 
     // verify api response
-    const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 4 })).list;
+    const updatedRecords = (
+      await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 10 })
+    ).list.slice(0, 4);
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i][fields[j].title]).toContain(fields[j].value);
@@ -248,7 +254,9 @@ test.describe('Fill Handle', () => {
     }
 
     // verify api response
-    const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 4 })).list;
+    const updatedRecords = (
+      await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 10 })
+    ).list.slice(0, 4);
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(+updatedRecords[i]['Checkbox']).toBe(1);
@@ -287,7 +295,9 @@ test.describe('Fill Handle', () => {
     }
 
     // verify api response
-    const updatedRecords = (await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 4 })).list;
+    const updatedRecords = (
+      await p.api.dbTableRow.list('noco', p.context.base.id, p.table.id, { limit: 10 })
+    ).list.slice(0, 4);
     for (let i = 0; i < updatedRecords.length; i++) {
       for (let j = 0; j < fields.length; j++) {
         expect(updatedRecords[i]['Date']).toBe(fields[j].value);

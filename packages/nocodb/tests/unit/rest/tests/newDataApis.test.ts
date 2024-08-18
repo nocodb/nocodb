@@ -335,16 +335,16 @@ function generalDb() {
   });
 
   it('Nested List - Link to another record', async function () {
-    const expectedRecords = [1, 3, 1, 2];
+    const expectedRecords = [1, 3, 1, 2, 1, 13, 1, 1, 3, 2];
 
     // read first 4 records
     const records = await ncAxiosGet({
       url: `/api/v2/tables/${countryTable.id}/records`,
       query: {
-        limit: 4,
+        limit: 10,
       },
     });
-    expect(records.body.list.length).to.equal(4);
+    expect(records.body.list.length).to.equal(10);
 
     // extract LTAR column "City List"
     const cityList = records.body.list.map((r) => r['Cities']);
@@ -365,16 +365,36 @@ function generalDb() {
       ['Batna', 'Bchar', 'Skikda'],
       ['Tafuna'],
       ['Benguela', 'Namibe'],
+      ['South Hill'],
+      [
+        'Almirante Brown',
+        'Avellaneda',
+        'Baha Blanca',
+        'Crdoba',
+        'Escobar',
+        'Ezeiza',
+        'La Plata',
+        'Merlo',
+        'Quilmes',
+        'San Miguel de Tucumn',
+        'Santa F',
+        'Tandil',
+        'Vicente Lpez',
+      ],
+      ['Yerevan'],
+      ['Woodridge'],
+      ['Graz', 'Linz', 'Salzburg'],
+      ['Baku', 'Sumqayit'],
     ];
 
     // read first 4 records
     const records = await ncAxiosGet({
       url: `/api/v2/tables/${countryTable.id}/records`,
       query: {
-        limit: 4,
+        limit: 10,
       },
     });
-    expect(records.body.list.length).to.equal(4);
+    expect(records.body.list.length).to.equal(10);
 
     // extract Lookup column
     const lookupData = records.body.list.map((record) => record.Lookup);
@@ -391,16 +411,16 @@ function generalDb() {
       rollupFunction: 'count',
     });
 
-    const expectedRecords = [1, 3, 1, 2];
+    const expectedRecords = [1, 3, 1, 2, 1, 13, 1, 1, 3, 2];
 
     // read first 4 records
     const records = await ncAxiosGet({
       url: `/api/v2/tables/${countryTable.id}/records`,
       query: {
-        limit: 4,
+        limit: 10,
       },
     });
-    expect(records.body.list.length).to.equal(4);
+    expect(records.body.list.length).to.equal(10);
 
     // extract Lookup column
     const rollupData = records.body.list.map((record) => record.Rollup);
@@ -1375,13 +1395,13 @@ function numberBased() {
     // verify updated records
     rsp = await ncAxiosGet({
       query: {
-        limit: 4,
+        limit: 10,
         offset: 400,
         fields: 'Id,Number,Decimal,Currency,Percent,Duration,Rating',
       },
     });
 
-    expect(rsp.body.list).to.deep.equal(updatedRecords);
+    expect(rsp.body.list.slice(0, 4)).to.deep.equal(updatedRecords);
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1570,12 +1590,12 @@ function selectBased() {
     // verify updated records
     rsp = await ncAxiosGet({
       query: {
-        limit: 4,
+        limit: 10,
         offset: 400,
         fields: 'Id,SingleSelect,MultiSelect',
       },
     });
-    expect(rsp.body.list).to.deep.equal(updatedRecords);
+    expect(rsp.body.list.slice(0, 4)).to.deep.equal(updatedRecords);
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -1727,12 +1747,12 @@ function dateBased() {
     // verify updated records
     rsp = await ncAxiosGet({
       query: {
-        limit: 4,
+        limit: 10,
         offset: 800,
         fields: 'Id,Date,DateTime',
       },
     });
-    expect(rsp.body.list).to.deep.equal(updatedRecords);
+    expect(rsp.body.list.slice(0, 4)).to.deep.equal(updatedRecords);
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -2368,12 +2388,17 @@ function linkBased() {
         rowId: 1,
       },
       query: {
-        limit: 5,
-        offset: 10,
+        limit: 10,
+        offset: 5,
       },
     });
-    expect(rsp.body.list.length).to.equal(5);
+    expect(rsp.body.list.length).to.equal(10);
     expect(rsp.body.list).to.deep.equal([
+      { Id: 6, City: 'City 6' },
+      { Id: 7, City: 'City 7' },
+      { Id: 8, City: 'City 8' },
+      { Id: 9, City: 'City 9' },
+      { Id: 10, City: 'City 10' },
       { Id: 11, City: 'City 11' },
       { Id: 12, City: 'City 12' },
       { Id: 13, City: 'City 13' },

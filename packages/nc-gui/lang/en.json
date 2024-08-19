@@ -1245,7 +1245,7 @@
     "goToDocs": "Go to Docs"
   },
   "tooltip": {
-    "currentDateNotAvail": "Current date option not available for this data source / data type",
+    "currentDateNotAvail": "Current date option not available for the data source or the data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
     "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",
     "optionalSchemaName": "Optional. Uses default schema \"{schema}\" if left blank.",

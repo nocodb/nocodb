@@ -5,11 +5,12 @@ import { isDateMonthFormat, isSystemColumn } from 'nocodb-sdk'
 interface Props {
   modelValue?: string | null
   isPk?: boolean
+  showCurrentDateOption?: boolean | 'disabled'
 }
 
 const { modelValue, isPk } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'currentDate'])
 
 const { t } = useI18n()
 
@@ -287,6 +288,11 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   localState.value = value
   open.value = false
 }
+
+const currentDate = ($event) => {
+  emit('currentDate', $event)
+  open.value = false
+}
 </script>
 
 <template>
@@ -336,6 +342,8 @@ function handleSelectDate(value?: dayjs.Dayjs) {
           :is-open="isOpen"
           type="month"
           size="medium"
+          :show-current-date-option="showCurrentDateOption"
+          @current-date="currentDate"
         />
         <NcDatePicker
           v-else
@@ -344,7 +352,9 @@ function handleSelectDate(value?: dayjs.Dayjs) {
           :selected-date="localState"
           type="date"
           size="medium"
+          :show-current-date-option="showCurrentDateOption"
           @update:selected-date="handleSelectDate"
+          @current-date="currentDate"
         />
       </div>
     </template>

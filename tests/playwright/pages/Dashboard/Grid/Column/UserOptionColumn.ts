@@ -80,7 +80,7 @@ export class UserOptionColumnPageObject extends BasePage {
   }
 
   async clearDefaultValue(): Promise<void> {
-    await this.get().locator('.nc-cell-user + svg.nc-icon').click();
+    await this.get().locator('.nc-default-value-wrapper > svg.nc-icon').click();
   }
 
   async verifyDefaultValueOptionCount({
@@ -92,7 +92,7 @@ export class UserOptionColumnPageObject extends BasePage {
   }): Promise<void> {
     await this.column.openEdit({ title: columnTitle });
 
-    await this.column.get().locator('.nc-cell-user > .nc-user-select').click();
+    await this.column.get().locator('.nc-default-value-wrapper > .relative > .nc-cell-user').click();
 
     await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'visible' });
 

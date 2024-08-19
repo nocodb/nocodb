@@ -5,12 +5,13 @@ import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 interface Props {
   modelValue?: string | null
   isPk?: boolean
+  showCurrentDateOption?: boolean | 'disabled'
   isUpdatedFromCopyNPaste?: Record<string, boolean>
 }
 
 const { modelValue, isPk, isUpdatedFromCopyNPaste } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'currentDate'])
 
 const timeFormatsObj = {
   [timeFormats[0]]: 'hh:mm A',
@@ -425,6 +426,11 @@ const cellValue = computed(
     localState.value?.format(parseProp(column.value.meta).is12hrFormat ? timeFormatsObj[timeFormat.value] : timeFormat.value) ??
     '',
 )
+
+const currentDate = ($event) => {
+  open.value = false
+  emit('currentDate', $event)
+}
 </script>
 
 <template>
@@ -510,7 +516,9 @@ const cellValue = computed(
             :is-open="isOpen"
             type="date"
             size="medium"
+            :show-current-date-option="showCurrentDateOption"
             @update:selected-date="handleSelectDate"
+            @current-date="currentDate"
           />
 
           <template v-else>
@@ -520,7 +528,9 @@ const cellValue = computed(
               is-min-granularity-picker
               :is12hr-format="!!parseProp(column.meta).is12hrFormat"
               :is-open="isOpen"
+              :show-current-date-option="showCurrentDateOption"
               @update:selected-date="handleSelectTime"
+              @current-date="currentDate"
             />
           </template>
         </div>

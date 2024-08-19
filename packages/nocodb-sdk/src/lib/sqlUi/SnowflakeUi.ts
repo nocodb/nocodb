@@ -1035,6 +1035,10 @@ export class SnowflakeUi {
     ];
   }
 
+  static getNowDefaultVal() {
+    return null;
+  }
+
   static isEqual(dataType1: string, dataType2: string) {
     if (dataType1 === dataType2) return true;
 

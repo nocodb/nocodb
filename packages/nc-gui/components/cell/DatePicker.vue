@@ -9,7 +9,7 @@ interface Props {
 
 const { modelValue, isPk } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'currentDate'])
 
 const { t } = useI18n()
 
@@ -287,6 +287,11 @@ function handleSelectDate(value?: dayjs.Dayjs) {
   localState.value = value
   open.value = false
 }
+
+const currentDate = ($event) => {
+  emit('currentDate', $event)
+  open.value = false
+}
 </script>
 
 <template>
@@ -336,6 +341,8 @@ function handleSelectDate(value?: dayjs.Dayjs) {
           :is-open="isOpen"
           type="month"
           size="medium"
+          :show-current-date-option="isEditColumn"
+          @currentDate="currentDate"
         />
         <NcDatePicker
           v-else
@@ -344,7 +351,9 @@ function handleSelectDate(value?: dayjs.Dayjs) {
           :selected-date="localState"
           type="date"
           size="medium"
+          :show-current-date-option="isEditColumn"
           @update:selected-date="handleSelectDate"
+          @currentDate="currentDate"
         />
       </div>
     </template>

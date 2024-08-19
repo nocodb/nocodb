@@ -2032,6 +2032,10 @@ export class PgUi {
     return [];
   }
 
+  static getNowDefaultVal() {
+    return 'NOW()';
+  }
+
   static isEqual(dataType1: string, dataType2: string) {
     if (dataType1?.toLowerCase() === dataType2?.toLowerCase()) return true;
 

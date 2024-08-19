@@ -107,7 +107,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
               (data.timestamp + 300000 - Date.now()) / 1000,
             );
 
-            if (ttlInSeconds <= 0) {
+            if (ttlInSeconds > 0) {
               NocoCache.setExpiring(cacheKey, data, ttlInSeconds).catch(
                 (err) => {
                   this.logger.error(err);

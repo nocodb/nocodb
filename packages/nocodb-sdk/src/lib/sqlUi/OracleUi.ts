@@ -1,4 +1,4 @@
-import { NormalColumnRequestType } from '../Api';
+import { ColumnType, NormalColumnRequestType } from '../Api';
 import UITypes from '../UITypes';
 import { IDType } from './index';
 
@@ -952,7 +952,7 @@ export class OracleUi {
     ];
   }
 
-  static getNowDefaultVal() {
+  static getCurrentDateDefault(_col: Partial<ColumnType>) {
     return null;
   }
 

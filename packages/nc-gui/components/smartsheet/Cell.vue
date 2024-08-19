@@ -128,12 +128,12 @@ const showCurrentDateOption = computed(() => {
   return (
     isEditColumnMenu.value &&
     (isDate(column.value, abstractType.value) || isDateTime(column.value, abstractType.value)) &&
-    sqlUi.value?.getNowDefaultVal?.()
+    sqlUi.value?.getCurrentDateDefault?.(column.value)
   )
 })
 
 const currentDate = () => {
-  vModel.value = sqlUi.value?.getNowDefaultVal?.()
+  vModel.value = sqlUi.value?.getCurrentDateDefault?.(column.value)
 }
 </script>
 

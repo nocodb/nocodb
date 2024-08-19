@@ -1,5 +1,6 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
+import { ColumnType } from '~/lib';
 
 const dbTypes = [
   'bigint',
@@ -969,7 +970,7 @@ export class MssqlUi {
     ];
   }
 
-  static getNowDefaultVal() {
+  static getCurrentDateDefault(_col: Partial<ColumnType>) {
     return null;
   }
 

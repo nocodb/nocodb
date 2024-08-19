@@ -52,11 +52,11 @@ const sqlUi = computed(() =>
 )
 
 const showCurrentDateOption = computed(() => {
-  return [UITypes.Date, UITypes.DateTime].includes(vModel.value?.uidt) && sqlUi.value?.getNowDefaultVal?.()
+  return [UITypes.Date, UITypes.DateTime].includes(vModel.value?.uidt) && sqlUi.value?.getCurrentDateDefault?.(vModel.value)
 })
 
 const isCurrentDate = computed(() => {
-  return showCurrentDateOption.value && cdfValue.value?.toUpperCase?.() === sqlUi.value?.getNowDefaultVal?.()
+  return showCurrentDateOption.value && cdfValue.value?.toUpperCase?.() === sqlUi.value?.getCurrentDateDefault?.(vModel.value)
 })
 </script>
 

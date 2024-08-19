@@ -1,6 +1,8 @@
 import path from 'path';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
+import PQueue from 'p-queue';
+import type Sharp from 'sharp';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import mimetypes from '~/utils/mimeTypes';
@@ -139,13 +141,109 @@ export class ThumbnailMigration {
       }
 
       const limit = 10;
-      let offset = 0;
+      const parallelLimit = 1;
+
+      const skipImages = [];
+      let processingImages: {
+        id: string;
+        processed: boolean;
+      }[] = [];
+
+      const queue = new PQueue({ concurrency: parallelLimit });
+
+      this.log(
+        `Starting thumbnail generation for ${numberOfImagesToBeProcessed} images`,
+      );
+
+      const wrapper = async (
+        fileReference: {
+          id: string;
+          file_path: string;
+          mimetype: string;
+        },
+        isUrl: boolean,
+      ) => {
+        try {
+          const attachment: {
+            url?: string;
+            path?: string;
+            mimetype?: string;
+          } = {};
+
+          if (isUrl) {
+            attachment.url = fileReference.file_path;
+            attachment.mimetype = fileReference.mimetype;
+          } else {
+            attachment.path = path.join(
+              'download',
+              fileReference.file_path.replace(/^nc\/uploads\//, ''),
+            );
+            attachment.mimetype = fileReference.mimetype;
+          }
+
+          // manually call thumbnail generator job to control the concurrency
+          const thumbnailGenerated = await this.thumbnailGeneratorProcessor.job(
+            {
+              data: {
+                context: {
+                  base_id: RootScopes.ROOT,
+                  workspace_id: RootScopes.ROOT,
+                },
+                attachments: [attachment],
+              },
+            } as any,
+          );
+
+          if (thumbnailGenerated.length > 0) {
+            await ncMeta
+              .knexConnection(temp_file_references_table)
+              .where('id', fileReference.id)
+              .update({
+                thumbnail_generated: true,
+              });
+          } else {
+            this.log(
+              `Error generating thumbnail for file ${fileReference.file_path}`,
+            );
+            skipImages.push(fileReference.id);
+          }
+        } catch (e) {
+          this.log(
+            `Error generating thumbnail for file ${fileReference.file_path}`,
+          );
+          this.log(e);
+          skipImages.push(fileReference.id);
+        } finally {
+          processedImages += 1;
+          this.log(
+            `Processed ${processedImages} out of ${numberOfImagesToBeProcessed} images`,
+          );
+          const processingImage = processingImages.find(
+            (p) => p.id === fileReference.id,
+          );
+
+          if (processingImage) {
+            processingImage.processed = true;
+          }
+        }
+      };
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
+        if (queue.pending > parallelLimit) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          continue;
+        }
+
+        processingImages = processingImages.filter((p) => !p.processed);
+
         const fileReferences = await ncMeta
           .knexConnection(temp_file_references_table)
-          .where('thumbnail_generated', false)
+          .whereNotIn(
+            'id',
+            skipImages.concat(processingImages.map((p) => p.id)),
+          )
+          .andWhere('thumbnail_generated', false)
           .andWhere('referenced', true)
           .andWhere('mimetype', 'like', 'image/%')
           .limit(limit)
@@ -199,6 +297,17 @@ export class ThumbnailMigration {
             } catch (e) {
               // ignore error
             }
+
+            if (fileReference.thumbnail_generated) {
+              continue;
+            }
+
+            processingImages.push({
+              id: fileReference.id,
+              processed: false,
+            });
+
+            queue.add(() => wrapper(fileReference, isUrl));
           }
 
           // manually call thumbnail generator job to control the concurrency
@@ -244,6 +353,8 @@ export class ThumbnailMigration {
           this.log(`error while generating thumbnail:`, e);
         }
       }
+
+      await queue.onIdle();
     } catch (e) {
       this.log(
         `There was an error while generating thumbnails for old attachments`,

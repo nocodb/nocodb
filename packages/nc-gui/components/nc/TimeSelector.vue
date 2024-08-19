@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
   minGranularity: 30,
   isOpen: false,
 })
-const emit = defineEmits(['update:selectedDate', ''])
+const emit = defineEmits(['update:selectedDate', 'currentDate'])
 
 const pageDate = ref<dayjs.Dayjs>(dayjs())
 

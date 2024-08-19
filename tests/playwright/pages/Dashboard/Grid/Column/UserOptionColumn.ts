@@ -92,7 +92,7 @@ export class UserOptionColumnPageObject extends BasePage {
   }): Promise<void> {
     await this.column.openEdit({ title: columnTitle });
 
-    await this.column.get().locator('.nc-default-value-wrapper > .nc-user-select').click();
+    await this.column.get().locator('.nc-default-value-wrapper > .relative > .nc-cell-user').click();
 
     await this.rootPage.locator('.nc-dropdown-user-select-cell').waitFor({ state: 'visible' });
 

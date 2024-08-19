@@ -19,6 +19,8 @@ const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editE
 
 const column = toRef(props, 'column')
 
+const meta = inject(MetaInj, ref())
+
 const active = toRef(props, 'active', false)
 
 const readOnly = toRef(props, 'readOnly', false)
@@ -51,11 +53,9 @@ const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { sqlUis } = storeToRefs(useBase())
 
-const sqlUi = ref(
-  column.value?.source_id && sqlUis.value[column.value?.source_id]
-    ? sqlUis.value[column.value?.source_id]
-    : Object.values(sqlUis.value)[0],
-)
+const sourceId = meta.value?.source_id || column.value?.source_id
+
+const sqlUi = ref(sourceId && sqlUis.value[sourceId] ? sqlUis.value[sourceId] : Object.values(sqlUis.value)[0])
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
@@ -123,6 +123,17 @@ const onContextmenu = (e: MouseEvent) => {
     e.stopPropagation()
   }
 }
+
+const showCurrentDateOption = computed(() => {
+  if (!isEditColumnMenu.value || (!isDate(column.value, abstractType.value) && !isDateTime(column.value, abstractType.value)))
+    return false
+
+  return sqlUi.value?.getCurrentDateDefault?.(column.value) ? true : 'disabled'
+})
+
+const currentDate = () => {
+  vModel.value = sqlUi.value?.getCurrentDateDefault?.(column.value)
+}
 </script>
 
 <template>
@@ -166,13 +177,21 @@ const onContextmenu = (e: MouseEvent) => {
         :disable-option-creation="!!isEditColumnMenu"
         :row-index="props.rowIndex"
       />
-      <LazyCellDatePicker v-else-if="isDate(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+      <LazyCellDatePicker
+        v-else-if="isDate(column, abstractType)"
+        v-model="vModel"
+        :is-pk="isPrimaryKey(column)"
+        :show-current-date-option="showCurrentDateOption"
+        @current-date="currentDate"
+      />
       <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
       <LazyCellDateTimePicker
         v-else-if="isDateTime(column, abstractType)"
         v-model="vModel"
         :is-pk="isPrimaryKey(column)"
         :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
+        :show-current-date-option="showCurrentDateOption"
+        @current-date="currentDate"
       />
       <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
       <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />

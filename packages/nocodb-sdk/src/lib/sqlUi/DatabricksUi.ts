@@ -1,5 +1,6 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
+import { ColumnType } from '~/lib';
 
 const dbTypes = [
   'BIGINT',
@@ -792,6 +793,10 @@ export class DatabricksUi {
       'MONTH',
       'HOUR',
     ];
+  }
+
+  static getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return null;
   }
 
   static isEqual(dataType1: string, dataType2: string) {

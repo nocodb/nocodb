@@ -7,7 +7,7 @@ interface Props {
   isMinGranularityPicker?: boolean
   minGranularity?: number
   isOpen?: boolean
-  showCurrentDateOption?: boolean
+  showCurrentDateOption?: boolean | 'disabled'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -98,16 +98,20 @@ onMounted(() => {
       <NcButton :tabindex="-1" class="!h-7" size="small" type="secondary" @click="handleSelectTime(dayjs())">
         <span class="text-small"> {{ $t('general.now') }} </span>
       </NcButton>
-
-      <NcButton
-        v-if="showCurrentDateOption"
-        class="nc-date-picker-now-btn !h-7"
-        size="small"
-        type="secondary"
-        @click="emit('currentDate')"
-      >
-        <span class="text-small"> {{ $t('labels.currentDate') }} </span>
-      </NcButton>
+      <NcTooltip v-if="showCurrentDateOption" :disabled="showCurrentDateOption !== 'disabled'">
+        <template #title>
+          {{ $t('tooltip.currentDateNotAvail') }}
+        </template>
+        <NcButton
+          class="nc-date-picker-now-btn !h-7"
+          size="small"
+          type="secondary"
+          :disabled="showCurrentDateOption === 'disabled'"
+          @click="emit('currentDate')"
+        >
+          <span class="text-small"> {{ $t('labels.currentDate') }} </span>
+        </NcButton>
+      </NcTooltip>
     </div>
   </div>
 </template>

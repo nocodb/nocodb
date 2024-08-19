@@ -125,11 +125,10 @@ const onContextmenu = (e: MouseEvent) => {
 }
 
 const showCurrentDateOption = computed(() => {
-  return (
-    isEditColumnMenu.value &&
-    (isDate(column.value, abstractType.value) || isDateTime(column.value, abstractType.value)) &&
-    sqlUi.value?.getCurrentDateDefault?.(column.value)
-  )
+  if (!isEditColumnMenu.value || (!isDate(column.value, abstractType.value) && !isDateTime(column.value, abstractType.value)))
+    return false
+
+  return sqlUi.value?.getCurrentDateDefault?.(column.value) ? true : 'disabled'
 })
 
 const currentDate = () => {

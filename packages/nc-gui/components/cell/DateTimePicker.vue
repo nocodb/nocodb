@@ -5,7 +5,7 @@ import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 interface Props {
   modelValue?: string | null
   isPk?: boolean
-  showCurrentDateOption?: boolean
+  showCurrentDateOption?: boolean | 'disabled'
   isUpdatedFromCopyNPaste?: Record<string, boolean>
 }
 

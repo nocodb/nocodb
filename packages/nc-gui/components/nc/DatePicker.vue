@@ -8,7 +8,7 @@ interface Props {
   isCellInputField?: boolean
   type: 'date' | 'time' | 'year' | 'month'
   isOpen: boolean
-  showCurrentDateOption?: boolean
+  showCurrentDateOption?: boolean | 'disabled'
 }
 
 const props = withDefaults(defineProps<Props>(), {

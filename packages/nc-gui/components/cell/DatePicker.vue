@@ -5,7 +5,7 @@ import { isDateMonthFormat, isSystemColumn } from 'nocodb-sdk'
 interface Props {
   modelValue?: string | null
   isPk?: boolean
-  showCurrentDateOption?: boolean
+  showCurrentDateOption?: boolean | 'disabled'
 }
 
 const { modelValue, isPk } = defineProps<Props>()

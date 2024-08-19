@@ -8,7 +8,7 @@ interface Props {
   hideCalendar?: boolean
   isCellInputField?: boolean
   pickerType?: 'date' | 'time' | 'year' | 'month'
-  showCurrentDateOption?: boolean
+  showCurrentDateOption?: boolean | 'disabled'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -186,9 +186,20 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
       </div>
 
       <div v-if="showCurrentDateOption" class="flex items-center justify-center px-2 pb-2 pt-1">
-        <NcButton class="nc-date-picker-now-btn !h-7" size="small" type="secondary" @click="emit('currentDate')">
-          <span class="text-small"> {{ $t('labels.currentDate') }} </span>
-        </NcButton>
+        <NcTooltip :disabled="showCurrentDateOption !== 'disabled'">
+          <template #title>
+            {{ $t('tooltip.currentDateNotAvail') }}
+          </template>
+          <NcButton
+            class="nc-date-picker-now-btn !h-7"
+            size="small"
+            type="secondary"
+            :disabled="showCurrentDateOption === 'disabled'"
+            @click="emit('currentDate')"
+          >
+            <span class="text-small"> {{ $t('labels.currentDate') }} </span>
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
   </div>

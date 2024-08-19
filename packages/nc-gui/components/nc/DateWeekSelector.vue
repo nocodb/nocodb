@@ -15,7 +15,7 @@ interface Props {
   } | null
   isCellInputField?: boolean
   pickerType?: 'date' | 'time' | 'year' | 'month'
-  showCurrentDateOption?: boolean
+  showCurrentDateOption?: boolean | 'disabled'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -255,15 +255,20 @@ const paginate = (action: 'next' | 'prev') => {
         <NcButton class="nc-date-picker-now-btn !h-7" size="small" type="secondary" @click="handleSelectDate(dayjs())">
           <span class="text-small"> {{ $t('labels.today') }} </span>
         </NcButton>
-        <NcButton
-          v-if="showCurrentDateOption"
-          class="nc-date-picker-now-btn !h-7"
-          size="small"
-          type="secondary"
-          @click="emit('currentDate')"
-        >
-          <span class="text-small"> {{ $t('labels.currentDate') }} </span>
-        </NcButton>
+        <NcTooltip v-if="showCurrentDateOption" :disabled="showCurrentDateOption !== 'disabled'">
+          <template #title>
+            {{ $t('tooltip.currentDateNotAvail') }}
+          </template>
+          <NcButton
+            class="nc-date-picker-current-date-btn !h-7"
+            size="small"
+            type="secondary"
+            :disabled="showCurrentDateOption === 'disabled'"
+            @click="emit('currentDate')"
+          >
+            <span class="text-small"> {{ $t('labels.currentDate') }} </span>
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
   </div>

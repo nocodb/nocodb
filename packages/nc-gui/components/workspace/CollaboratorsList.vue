@@ -37,8 +37,6 @@ const isOnlyOneOwner = computed(() => {
   return collaborators.value?.filter((collab) => collab.roles === WorkspaceUserRoles.OWNER).length === 1
 })
 
-const { isUIAllowed } = useRoles()
-
 const { t } = useI18n()
 
 const inviteDlg = ref(false)
@@ -291,14 +289,20 @@ const isDeleteOrUpdateAllowed = (user) => {
 
                     <a-menu-divider class="my-1.5" />
                   </template>
-                  <NcMenuItem
-                    :disabled="!isDeleteOrUpdateAllowed(record)"
-                    :class="{ '!text-red-500 !hover:bg-red-50': isDeleteOrUpdateAllowed(record) }"
-                    @click="removeCollaborator(record.id, currentWorkspace?.id)"
-                  >
-                    <MaterialSymbolsDeleteOutlineRounded />
-                    {{ record.id === user.id ? 'Leave workspace' : 'Remove user' }}
-                  </NcMenuItem>
+                  <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
+                    <template #title>
+                      Each workspace must have at least one owner. Please assign another user as the Owner before leaving the
+                      workspace. If you are the last member, consider deleting the workspace instead.
+                    </template>
+                    <NcMenuItem
+                      :disabled="!isDeleteOrUpdateAllowed(record)"
+                      :class="{ '!text-red-500 !hover:bg-red-50': isDeleteOrUpdateAllowed(record) }"
+                      @click="removeCollaborator(record.id, currentWorkspace?.id)"
+                    >
+                      <MaterialSymbolsDeleteOutlineRounded />
+                      {{ record.id === user.id ? 'Leave workspace' : 'Remove user' }}
+                    </NcMenuItem>
+                  </NcTooltip>
                 </NcMenu>
               </template>
             </NcDropdown>

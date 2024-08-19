@@ -4,10 +4,22 @@ export default defineNuxtPlugin(function (nuxtApp) {
 
   const route = router.currentRoute
 
+  // watch for continueAfterSignIn query param and store it in localStorage so that it can be used after sign in
+  watch(
+    () => route.value.query?.continueAfterSignIn,
+    (continueAfterSignIn) => {
+      if (continueAfterSignIn) {
+        localStorage.setItem('continueAfterSignIn', continueAfterSignIn as string)
+      }
+    },
+    {
+      immediate: true,
+    },
+  )
+
   // put inside app:created hook to ensure global state is available
   nuxtApp.hooks.hook('app:created', () => {
     const { token } = useGlobal()
-
     watch(
       () => token.value ?? (nuxtApp.$state as ReturnType<typeof useGlobal>)?.token?.value,
       async (newToken, oldToken) => {

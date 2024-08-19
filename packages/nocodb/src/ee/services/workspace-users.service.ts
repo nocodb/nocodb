@@ -171,9 +171,6 @@ export class WorkspaceUsersService {
       if (!user) NcError.userNotFound(userId);
 
       if (user.roles === WorkspaceUserRoles.OWNER) {
-        if (user.fk_user_id === param.req.user.id)
-          NcError.badRequest('Owner user cannot be deleted themselves');
-
         // current user should have owner role to delete owner
         if (
           !extractRolesObj(param.req.user.workspace_roles)?.[
@@ -189,12 +186,12 @@ export class WorkspaceUsersService {
           roles: WorkspaceUserRoles.OWNER,
         });
 
-        if (owners.length === 1) {
+        if (owners.length < 2) {
           NcError.badRequest('At least one owner should be there');
         }
       }
 
-      // for other user delete user should have higher role
+      // for other user delete user should have higher or equal role
       if (getWorkspaceRolePower(user) > getWorkspaceRolePower(param.req.user)) {
         NcError.badRequest(`Insufficient privilege to delete user`);
       }

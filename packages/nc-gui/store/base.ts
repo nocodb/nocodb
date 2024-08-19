@@ -26,6 +26,14 @@ export const useBase = defineStore('baseStore', () => {
 
   const tablesStore = useTablesStore()
 
+  const idUserMap = computed(() => {
+    return (basesStore.basesUser.get(baseId.value) || []).reduce((acc, user) => {
+      acc[user.id] = user
+      acc[user.email] = user
+      return acc
+    }, {} as Record<string, any>)
+  })
+
   // todo: refactor
   const sharedProject = ref<BaseType>()
 
@@ -297,6 +305,7 @@ export const useBase = defineStore('baseStore', () => {
     baseUrl,
     getBaseType,
     navigateToProjectPage,
+    idUserMap,
   }
 })
 

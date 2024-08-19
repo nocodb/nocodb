@@ -50,6 +50,14 @@ export const useBase = defineStore('baseStore', () => {
 
   const { navigateToProject } = useGlobal()
 
+  const idUserMap = computed(() => {
+    return (basesStore.basesUser.get(baseId.value) || []).reduce((acc, user) => {
+      acc[user.id] = user
+      acc[user.email] = user
+      return acc
+    }, {} as Record<string, any>)
+  })
+
   const baseMeta = computed<Record<string, any>>(() => {
     const defaultMeta = {
       showNullAndEmptyInFilter: false,
@@ -319,6 +327,7 @@ export const useBase = defineStore('baseStore', () => {
     getBaseType,
     navigateToProjectPage,
     forcedProjectId,
+    idUserMap,
   }
 })
 

@@ -38,6 +38,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
   const basesStore = useBases()
 
+  const workspaceStore = useWorkspace()
+
   const { loadRoles, isUIAllowed } = useRoles()
 
   const { user: currentUser } = useGlobal()
@@ -129,6 +131,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           ...workspace,
         })
       }
+      return list
     } catch (e: any) {
       if (!ignoreError) message.error(await e)
     }
@@ -271,7 +274,14 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
       $e('a:workspace:settings:remove-user')
 
+      // if user left the workspace, navigate to home
+      if (currentUser.value?.id === userId) {
+        const list = await workspaceStore.loadWorkspaces()
+        return await navigateTo(`/${list?.[0]?.id}`)
+      }
+
       await loadCollaborators({} as any, workspaceId)
+
       basesStore.clearBasesUser()
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -493,9 +503,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
 
     if (cmdOrCtrl) {
-      await navigateTo(router.resolve({ name: 'index-typeOrId-integrations', params: { typeOrId: workspaceId }, query }).href, {
-        open: navigateToBlankTargetOpenOption,
-      })
+      await navigateTo(
+        router.resolve({
+          name: 'index-typeOrId-integrations',
+          params: { typeOrId: workspaceId },
+          query,
+        }).href,
+        {
+          open: navigateToBlankTargetOpenOption,
+        },
+      )
     } else {
       router.push({ name: 'index-typeOrId-integrations', params: { typeOrId: workspaceId }, query })
     }

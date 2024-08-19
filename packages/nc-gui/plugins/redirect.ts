@@ -9,18 +9,17 @@ export default defineNuxtPlugin(function (nuxtApp) {
     async (newToken, oldToken) => {
       try {
         if (newToken && newToken !== oldToken) {
-          if (route.value.query?.continueAfterSignIn) {
-            localStorage.removeItem('continueAfterSignIn')
-            await navigateTo(route.value.query.continueAfterSignIn as string)
-          } else {
-            const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
-            if (continueAfterSignIn) {
-              localStorage.removeItem('continueAfterSignIn')
-              await navigateTo({
-                path: continueAfterSignIn,
-                query: route.value.query,
-              })
+          try {
+            if (route.value.query?.continueAfterSignIn) {
+              await navigateTo(route.value.query.continueAfterSignIn as string)
+            } else {
+              const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
+              if (continueAfterSignIn) {
+                await navigateTo(continueAfterSignIn)
+              }
             }
+          } finally {
+            localStorage.removeItem('continueAfterSignIn')
           }
         }
       } catch (e) {

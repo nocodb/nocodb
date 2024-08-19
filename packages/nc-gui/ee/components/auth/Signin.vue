@@ -51,8 +51,6 @@ async function signIn() {
     _signIn(token!)
 
     if (continueAfterSignIn) {
-      localStorage.removeItem('continueAfterSignIn')
-      await navigateTo(continueAfterSignIn)
       return
     }
 

@@ -85,10 +85,6 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     if (state.token.value) {
       resolveTokenGenerationProgress(true)
       tokenGenerationProgress = null
-      if (!skipRedirect && continueAfterSignIn) {
-        localStorage.removeItem('continueAfterSignIn')
-        navigateTo(continueAfterSignIn)
-      }
       return
     }
 
@@ -111,16 +107,11 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
       if ((await tokenRes).data.token) {
         updateFirstTimeUser()
         await signIn((await tokenRes).data.token)
-        if (!skipRedirect && continueAfterSignIn) {
-          localStorage.removeItem('continueAfterSignIn')
-          navigateTo(continueAfterSignIn)
-        }
       }
     } catch (err) {
     } finally {
       tokenGenerationProgress = null
       resolveTokenGenerationProgress(true)
-      localStorage.removeItem('continueAfterSignIn')
     }
   }
 

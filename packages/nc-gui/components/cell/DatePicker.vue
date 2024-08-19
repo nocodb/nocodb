@@ -5,6 +5,7 @@ import { isDateMonthFormat, isSystemColumn } from 'nocodb-sdk'
 interface Props {
   modelValue?: string | null
   isPk?: boolean
+  showCurrentDateOption?: boolean
 }
 
 const { modelValue, isPk } = defineProps<Props>()
@@ -341,8 +342,8 @@ const currentDate = ($event) => {
           :is-open="isOpen"
           type="month"
           size="medium"
-          :show-current-date-option="isEditColumn"
-          @currentDate="currentDate"
+          :show-current-date-option="showCurrentDateOption"
+          @current-date="currentDate"
         />
         <NcDatePicker
           v-else
@@ -351,9 +352,9 @@ const currentDate = ($event) => {
           :selected-date="localState"
           type="date"
           size="medium"
-          :show-current-date-option="isEditColumn"
+          :show-current-date-option="showCurrentDateOption"
           @update:selected-date="handleSelectDate"
-          @currentDate="currentDate"
+          @current-date="currentDate"
         />
       </div>
     </template>

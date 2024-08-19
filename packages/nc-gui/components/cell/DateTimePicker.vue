@@ -5,6 +5,7 @@ import { dateFormats, isSystemColumn, timeFormats } from 'nocodb-sdk'
 interface Props {
   modelValue?: string | null
   isPk?: boolean
+  showCurrentDateOption?: boolean
   isUpdatedFromCopyNPaste?: Record<string, boolean>
 }
 
@@ -515,7 +516,7 @@ const currentDate = ($event) => {
             :is-open="isOpen"
             type="date"
             size="medium"
-            :show-current-date-option="isEditColumn"
+            :show-current-date-option="showCurrentDateOption"
             @update:selected-date="handleSelectDate"
             @current-date="currentDate"
           />
@@ -527,7 +528,7 @@ const currentDate = ($event) => {
               is-min-granularity-picker
               :is12hr-format="!!parseProp(column.meta).is12hrFormat"
               :is-open="isOpen"
-              :show-current-date-option="isEditColumn"
+              :show-current-date-option="showCurrentDateOption"
               @update:selected-date="handleSelectTime"
               @current-date="currentDate"
             />

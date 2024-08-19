@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const { workspaceRoles } = useRoles()
 
+const { user } = useGlobal()
+
 const workspaceStore = useWorkspace()
 
 const { removeCollaborator, updateCollaborator: _updateCollaborator, loadWorkspace } = workspaceStore
@@ -290,23 +292,12 @@ const isDeleteOrUpdateAllowed = (user) => {
                     <a-menu-divider class="my-1.5" />
                   </template>
                   <NcMenuItem
-                    v-if="isUIAllowed('transferWorkspaceOwnership')"
-                    :disabled="!isDeleteOrUpdateAllowed(record)"
-                    data-testid="nc-admin-org-user-assign-admin"
-                    @click="updateCollaborator(record, WorkspaceUserRoles.OWNER)"
-                  >
-                    <GeneralIcon :class="{ 'text-gray-800': isDeleteOrUpdateAllowed(record) }" icon="user" />
-                    <span>{{ $t('labels.assignAs') }}</span>
-                    <RolesBadge :border="false" :show-icon="false" role="owner" :disabled="!isDeleteOrUpdateAllowed(record)" />
-                  </NcMenuItem>
-
-                  <NcMenuItem
                     :disabled="!isDeleteOrUpdateAllowed(record)"
                     :class="{ '!text-red-500 !hover:bg-red-50': isDeleteOrUpdateAllowed(record) }"
                     @click="removeCollaborator(record.id, currentWorkspace?.id)"
                   >
                     <MaterialSymbolsDeleteOutlineRounded />
-                    Remove user
+                    {{ record.id === user.id ? 'Leave workspace' : 'Remove user' }}
                   </NcMenuItem>
                 </NcMenu>
               </template>

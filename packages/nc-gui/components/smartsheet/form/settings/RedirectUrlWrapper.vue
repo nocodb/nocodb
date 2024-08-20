@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between gap-3">
       <!-- Redirect to URL -->
       <span>{{ $t('labels.redirectToUrl') }}</span>
-      <NcTooltip>
+      <NcTooltip placement="topRight">
         <template #title>
           <div class="text-center">
             {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}

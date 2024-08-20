@@ -21,6 +21,9 @@ send "\r"
 expect "Do you want to enabled Redis for caching*"
 send "\r"
 
+expect "Do you want to enable Minio for file storage*"
+send "N\r"
+
 expect "Do you want to enabled Watchtower for automatic updates*"
 send "Y\r"
 

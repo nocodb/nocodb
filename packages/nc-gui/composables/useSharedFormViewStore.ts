@@ -347,9 +347,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const clearForm = async () => {
     formResetHook.trigger()
-
     additionalState.value = {
-      ...(sharedViewMeta.value.preFillEnabled ? preFilledAdditionalState.value : {}),
+      ...preFilledAdditionalState.value,
     }
 
     formState.value = {
@@ -370,9 +369,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   async function handlePreFillForm() {
     if (Object.keys(route.query || {}).length) {
-      
       columns.value = await Promise.all(
-        getPrefillColumns().map(async (c) => {
+        (columns.value || []).map(async (c) => {
           const queryParam = route.query[c.title as string] || route.query[encodeURIComponent(c.title as string)]
 
           if (
@@ -393,14 +391,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           if (preFillValue !== undefined) {
             if (isLinksOrLTAR(c)) {
               // Prefill Link to another record / Links form state
-
               additionalState.value = {
                 ...(additionalState.value || {}),
                 [c.title]: preFillValue,
               }
 
               // preFilledAdditionalState will be used in clear form to fill the prefilled data
-              preFilledAdditionalState.value[c.title] = preFillValue
+              preFilledAdditionalState.value = {
+                ...preFilledAdditionalState.value,
+                [c.title]: preFillValue,
+              }
             } else {
               // Prefill form state
               formState.value[c.title] = preFillValue
@@ -409,15 +409,17 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
               preFilledformState.value[c.title] = preFillValue
             }
 
-            // Update column
-            switch (sharedViewMeta.value.preFilledMode) {
-              case PreFilledMode.Hidden: {
-                c.show = false
-                break
-              }
-              case PreFilledMode.Locked: {
-                c.read_only = true
-                break
+            if (sharedViewMeta.value.preFillEnabled) {
+              // Update column
+              switch (sharedViewMeta.value.preFilledMode) {
+                case PreFilledMode.Hidden: {
+                  c.show = false
+                  break
+                }
+                case PreFilledMode.Locked: {
+                  c.read_only = true
+                  break
+                }
               }
             }
           }

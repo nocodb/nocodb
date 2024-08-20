@@ -73,6 +73,37 @@ install_package() {
   fi
 }
 
+add_to_hosts() {
+    local IP="127.0.0.1"
+    local HOSTS_FILE="/etc/hosts"
+    local TEMP_HOSTS_FILE="/tmp/hosts.tmp"
+
+    ## Only add to hosts if the domain name is minio
+
+    if [ "$CONFIG_DOMAIN_NAME" != "minio" ]; then
+        return 0
+    fi
+
+    # Check if the hostname already exists in the file
+    if sudo grep -q "MINIO_DOMAIN_NAME" "$HOSTS_FILE"; then
+        echo "MINIO_DOMAIN_NAME already exists in $HOSTS_FILE"
+    else
+        # Create a temporary copy of the hosts file
+        sudo cp "$HOSTS_FILE" "$TEMP_HOSTS_FILE"
+
+        # Add the hostname to the temporary file
+        echo "$IP MINIO_DOMAIN_NAME" | sudo tee -a "$TEMP_HOSTS_FILE" > /dev/null
+
+        # Replace the original hosts file with the modified one
+        if sudo mv "$TEMP_HOSTS_FILE" "$HOSTS_FILE"; then
+            echo "Added MINIO_DOMAIN_NAME to $HOSTS_FILE"
+        else
+            echo "Failed to update $HOSTS_FILE. Please check your permissions."
+            return 1
+        fi
+    fi
+}
+
 # Function to check if sudo is required for Docker command
 check_for_docker_sudo() {
     if docker ps >/dev/null 2>&1; then
@@ -494,7 +525,7 @@ if [ "$ADVANCED_OPTIONS" == "y" ]; then
 fi
 # Minio Domain Name and SSL Configuration
 
-MINIO_DOMAIN_NAME="localhost"
+MINIO_DOMAIN_NAME="minio"
 MINIO_SSL_ENABLED="n"
 
 if [ "$ADVANCED_OPTIONS" == "y" ]; then
@@ -556,8 +587,7 @@ MINIO_ACCESS_SECRET=$(openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 24)
 # Encode special characters in the password for JDBC URL usage
 ENCODED_PASSWORD=$(urlencode "$STRONG_PASSWORD")
 
-## TODO: Update them
-IMAGE="nocodb/nocodb-timely:0.251.3-pr-9137-20240802-1235";
+IMAGE="nocodb/nocodb:latest";
 
 # Determine the Docker image to use based on the edition
 if [ -n "$EDITION" ] && { [ "$EDITION" = "EE" ] || [ "$EDITION" = "ee" ]; }; then
@@ -791,6 +821,7 @@ if [ "$MINIO_SSL_ENABLED" != 'Y' ] || [ "$MINIO_SSL_ENABLED" != 'y' ]; then
   cat <<EOF >> docker.env
 NC_S3_ENDPOINT=http://${MINIO_DOMAIN_NAME}:9000
 EOF
+add_to_hosts
 else
   cat <<EOF >> docker.env
 NC_S3_ENDPOINT=https://${MINIO_DOMAIN_NAME}

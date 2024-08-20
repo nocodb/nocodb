@@ -377,7 +377,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -825,7 +825,7 @@
     "lengthValue": "长度/值",
     "dbType": "数据库类型",
     "servername": "服务器地址",
-    "sqliteFile": "SQLite 文件",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "主机地址",
     "port": "端口号",
     "username": "用户名",
@@ -985,7 +985,8 @@
     "fitImage": "适配图像",
     "coverImageArea": "封面图片",
     "syncData": "同步数据",
-    "syncDataModalSubtitle": "注册您感兴趣的服务，以便在服务可用时收到通知"
+    "syncDataModalSubtitle": "注册您感兴趣的服务，以便在服务可用时收到通知",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
     "webhookDetails": "Webhook 详情",
@@ -1545,7 +1546,7 @@
       "apiOptions": "访问项目通过",
       "submitAnotherForm": "显示“提交另一个表单”按钮",
       "showBlankForm": "5 秒后显示空表单",
-      "emailForm": "发电子邮件给我",
+      "emailForm": "Email responses to",
       "showSysFields": "显示系统字段",
       "filterAutoApply": "自动应用",
       "formDisplayMessage": "显示消息",

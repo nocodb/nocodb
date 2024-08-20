@@ -12,8 +12,8 @@ const props = withDefaults(
 
 <template>
   <component
-    :is="allIntegrationsMapByValue[props.type]?.icon"
     v-if="allIntegrationsMapByValue[props.type]?.icon"
+    :is="allIntegrationsMapByValue[props.type]?.icon"
     class="stroke-transparent flex-none"
     :class="{
       'w-3.5 h-3.5': size === 'sx',

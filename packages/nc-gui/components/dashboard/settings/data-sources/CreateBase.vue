@@ -539,19 +539,8 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                             :disabled="isIntgrationDisabled(integration).isDisabled"
                           >
                             <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
-                              <GeneralIntegrationIcon
-                                v-if="integration?.sub_type"
-                                :type="integration.sub_type"
-                                :style="{
-                                  filter: isIntgrationDisabled(integration).isDisabled
-                                    ? 'grayscale(100%) brightness(115%)'
-                                    : undefined,
-                                }"
-                              />
-                              <NcTooltip
-                                class="flex-1 truncate"
-                                :show-on-truncate-only="!isIntgrationDisabled(integration).isDisabled"
-                              >
+                              <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
+                              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                                 <template #title>
                                   {{
                                     isIntgrationDisabled(integration).isDisabled

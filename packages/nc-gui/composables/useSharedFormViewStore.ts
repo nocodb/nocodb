@@ -333,7 +333,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
 
-      if (isEeUI && pk && isValidRedirectUrl.value) {
+      if (pk && isValidRedirectUrl.value) {
         const url = sharedFormView.value!.redirect_url!.replace('{record_id}', pk)
         window.location.href = url
       } else {
@@ -609,7 +609,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   /** reset form if show_blank_form is true */
   watch(submitted, (nextVal) => {
     if (nextVal && sharedFormView.value?.show_blank_form) {
-      if (isEeUI && typeof sharedFormView.value?.redirect_url === 'string') {
+      if (typeof sharedFormView.value?.redirect_url === 'string') {
         return
       }
 

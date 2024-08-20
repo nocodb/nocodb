@@ -323,11 +323,18 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ...attachment,
       })
 
-      await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
+      const newRecord = await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
         headers: {
           'xc-password': password.value,
         },
       })
+      if (sharedFormView.value?.redirect_url && sharedFormView.value?.redirect_url?.includes(`{record_Id}`)) {
+        const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
+        if (pk) {
+          const url = sharedFormView.value.redirect_url.replace('{record_Id}', pk)
+          window.location.href = url
+        }
+      }
 
       submitted.value = true
       progress.value = false
@@ -353,10 +360,19 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     clearValidate()
   }
 
+  const getPrefillColumns = () => {
+    if (sharedViewMeta.value.preFillEnabled) {
+      return columns.value || []
+    }
+    // If preFill is not enabled then return only link column which will be used to prefill form from redirect url
+    return (columns.value || []).filter((c) => isVirtualCol(c) && isLinksOrLTAR(c))
+  }
+
   async function handlePreFillForm() {
-    if (Object.keys(route.query || {}).length && sharedViewMeta.value.preFillEnabled) {
+    if (Object.keys(route.query || {}).length) {
+      
       columns.value = await Promise.all(
-        (columns.value || []).map(async (c) => {
+        getPrefillColumns().map(async (c) => {
           const queryParam = route.query[c.title as string] || route.query[encodeURIComponent(c.title as string)]
 
           if (

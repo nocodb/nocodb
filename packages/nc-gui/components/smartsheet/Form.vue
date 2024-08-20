@@ -1744,14 +1744,14 @@ useEventListener(
                                 ></a-input>
                               </a-form-item>
                               <div class="text-small leading-[18px] text-gray-500">
-                                Use {record_id} to get ID of the newly created record.
+                                Use <span class="text-gray-800">{record_id}</span> to get ID of the newly created record.
                                 <a
-                                  href="https://docs.nocodb.com/views/view-types/form/"
+                                  href="https://docs.nocodb.com/views/view-types/form/#redirect-url"
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  class="!no-underline !hover:underline text-current"
+                                  class="!no-underline  !hover:underline"
                                 >
-                                  More
+                                  Learn more
                                 </a>
                               </div>
                             </div>

@@ -1,4 +1,4 @@
-import isURL from 'validator/lib/isURL'
+import isURL, { type IsURLOptions } from 'validator/lib/isURL'
 import { decode } from 'html-entities'
 
 export const replaceUrlsWithLink = (text: string): boolean | string => {
@@ -33,7 +33,7 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
   return isUrl ? out : false
 }
 
-export const isValidURL = (str: string, extraProps?) => {
+export const isValidURL = (str: string, extraProps?: IsURLOptions) => {
   return isURL(`${str}`, extraProps)
 }
 

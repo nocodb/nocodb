@@ -96,7 +96,7 @@ onMounted(() => {
   <div v-if="isCustomValidationSupported" class="p-4 border-b border-gray-200">
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
-        <div class="text-base font-bold text-gray-600">Custom validations</div>
+        <div class="text-sm font-bold text-gray-800">Custom validations</div>
 
         <div class="flex flex-col">
           <div

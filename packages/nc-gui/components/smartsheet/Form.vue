@@ -1743,13 +1743,13 @@ useEventListener(
                                   @input="handleUpdateRedirectUrl"
                                 ></a-input>
                               </a-form-item>
-                              <div class="text-small leading-[18px] text-gray-400">
-                                Use <span class="text-gray-600">{record_id}</span> to get ID of the newly created record.
+                              <div class="text-small leading-[18px] text-gray-400 pl-3">
+                                Use {record_id} to get ID of the newly created record.
                                 <a
                                   href="https://docs.nocodb.com/views/view-types/form/#redirect-url"
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  class="!no-underline  !hover:underline"
+                                  class="!no-underline !hover:underline"
                                 >
                                   Learn more
                                 </a>

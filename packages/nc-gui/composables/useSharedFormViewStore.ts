@@ -67,7 +67,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
-  const isValidRedirectUrl = computed(() => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim())
+  const isValidRedirectUrl = computed(
+    () => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim(),
+  )
 
   useProvideSmartsheetLtarHelpers(meta)
   const { state: additionalState } = useProvideSmartsheetRowStore(
@@ -336,6 +338,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       if (pk && isValidRedirectUrl.value) {
         const url = sharedFormView.value!.redirect_url!.replace('{record_id}', pk)
         window.location.href = url
+        window.location.reload()
       } else {
         submitted.value = true
         progress.value = false

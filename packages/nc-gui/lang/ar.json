@@ -377,7 +377,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -825,7 +825,7 @@
     "lengthValue": "الطول / القيمة",
     "dbType": "نوع قاعدة البيانات",
     "servername": "servername / hostAddr",
-    "sqliteFile": "ملف SQLite",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "اسم المستخدم",
@@ -985,7 +985,8 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
     "webhookDetails": "Webhook Details",
@@ -1545,7 +1546,7 @@
       "apiOptions": "الوصول للمشروع عبر",
       "submitAnotherForm": "إظهار زر 'إرسال نموذج آخر'",
       "showBlankForm": "إظهار نموذج فارغ بعد 5 ثوان",
-      "emailForm": "راسلني بالبريد عبر",
+      "emailForm": "Email responses to",
       "showSysFields": "إظهار حقول النظام",
       "filterAutoApply": "تطبيق تلقائي",
       "formDisplayMessage": "Display Message",

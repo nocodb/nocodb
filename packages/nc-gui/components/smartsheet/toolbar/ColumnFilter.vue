@@ -57,6 +57,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const reloadDataHook = inject(ReloadViewDataHookInj)!
 
+const reloadAggregate = inject(ReloadAggregateHookInj)
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { $e } = useNuxtApp()
@@ -93,7 +95,10 @@ const {
   activeView,
   parentId,
   computed(() => autoSave.value),
-  () => reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 }),
+  () => {
+    reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 })
+    reloadAggregate?.trigger()
+  },
   currentFilters,
   props.nestedLevel > 0,
   webHook.value,

@@ -1461,6 +1461,7 @@ class BaseModelSqlv2 {
     bulkFilterList: Array<{
       alias: string;
       where?: string;
+      filterArrJson?: string | Filter[];
     }>,
     view: View,
   ) {
@@ -1540,6 +1541,10 @@ class BaseModelSqlv2 {
       for (const f of bulkFilterList) {
         const tQb = this.dbDriver(this.tnPath);
         const aggFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
+        let aggFilterJson = f.filterArrJson;
+        try {
+          aggFilterJson = JSON.parse(aggFilterJson as any);
+        } catch (_e) {}
 
         await conditionV2(
           this,
@@ -1567,6 +1572,14 @@ class BaseModelSqlv2 {
               is_group: true,
               logical_op: 'and',
             }),
+            ...(aggFilterJson
+              ? [
+                  new Filter({
+                    children: aggFilterJson as Filter[],
+                    is_group: true,
+                  }),
+                ]
+              : []),
           ],
           tQb,
         );

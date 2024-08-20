@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Form, message } from 'ant-design-vue'
-import { type IntegrationType, validateAndExtractSSLProp } from 'nocodb-sdk'
+import { validateAndExtractSSLProp, type IntegrationType } from 'nocodb-sdk'
 import {
   ClientType,
   type DatabricksConnection,
@@ -425,7 +425,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
     case ClientType.SQLITE:
       return {
         isDisabled: integration?.source_count && integration.source_count > 0,
-        msg: 'Sqlite support only 1 database per connection',
+        msg: 'Sqlite support only 1 database per integration',
       }
 
     default:
@@ -540,13 +540,9 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                           >
                             <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
                               <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
-                              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                              <NcTooltip class="flex-1 truncate" :show-on-truncate-only="!isIntgrationDisabled(integration).isDisabled">
                                 <template #title>
-                                  {{
-                                    isIntgrationDisabled(integration).isDisabled
-                                      ? isIntgrationDisabled(integration).msg
-                                      : integration.title
-                                  }}
+                                  {{ isIntgrationDisabled(integration).isDisabled ? isIntgrationDisabled(integration).msg : integration.title }}
                                 </template>
                                 {{ integration.title }}
                               </NcTooltip>

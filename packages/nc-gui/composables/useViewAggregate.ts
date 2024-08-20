@@ -25,8 +25,6 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     const { nestedFilters } = useSmartsheetStoreOrThrow()
 
-    const { isUIAllowed } = useRoles()
-
     const { fetchAggregatedData } = useSharedView()
 
     const aggregations = ref({}) as Ref<Record<string, any>>

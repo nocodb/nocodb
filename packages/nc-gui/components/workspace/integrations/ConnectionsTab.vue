@@ -22,6 +22,8 @@ const { $api, $e } = useNuxtApp()
 
 const { allCollaborators } = storeToRefs(useWorkspace())
 
+const { bases } = storeToRefs(useBases())
+
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
   | (IntegrationType & {
@@ -139,7 +141,26 @@ const openDeleteIntegration = async (source: IntegrationType) => {
 }
 
 const onDeleteConfirm = async () => {
-  await deleteIntegration(toBeDeletedIntegration.value, true)
+  const isDeleted = await deleteIntegration(toBeDeletedIntegration.value, true)
+
+  if (isDeleted) {
+    for (const source of toBeDeletedIntegration.value?.sources || []) {
+      if (!source.base_id || !source.id || (source.base_id && !bases.value.get(source.base_id))) {
+        continue
+      }
+
+      const base = bases.value.get(source.base_id)
+
+      if (!Array.isArray(base?.sources)) {
+        continue
+      }
+
+      bases.value.set(source.base_id, {
+        ...(base || {}),
+        sources: [...base.sources.filter((s) => s.id !== source.id)],
+      })
+    }
+  }
 }
 
 const loadOrgUsers = async () => {
@@ -501,10 +522,30 @@ onKeyStroke('ArrowDown', onDown)
                             <GeneralIcon class="text-gray-800" icon="edit" />
                             <span>{{ $t('general.edit') }}</span>
                           </NcMenuItem>
-                          <NcMenuItem @click="duplicateIntegration(integration)">
-                            <GeneralIcon class="text-gray-800" icon="duplicate" />
-                            <span>{{ $t('general.duplicate') }}</span>
-                          </NcMenuItem>
+                          <NcTooltip :disabled="integration?.sub_type !== ClientType.SQLITE">
+                            <template #title>
+                              Not allowed for type
+                              {{
+                                integration.sub_type && clientTypesMap[integration.sub_type]
+                                  ? clientTypesMap[integration.sub_type]?.text
+                                  : integration.sub_type
+                              }}
+                            </template>
+
+                            <NcMenuItem
+                              @click="duplicateIntegration(integration)"
+                              :disabled="integration?.sub_type === ClientType.SQLITE"
+                            >
+                              <GeneralIcon
+                                :class="{
+                                  'text-current': integration?.sub_type === ClientType.SQLITE,
+                                  'text-gray-800': integration?.sub_type !== ClientType.SQLITE,
+                                }"
+                                icon="duplicate"
+                              />
+                              <span>{{ $t('general.duplicate') }}</span>
+                            </NcMenuItem>
+                          </NcTooltip>
                           <NcDivider />
                           <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteIntegration(integration)">
                             <GeneralIcon icon="delete" />

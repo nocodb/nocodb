@@ -425,7 +425,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
     case ClientType.SQLITE:
       return {
         isDisabled: integration?.source_count && integration.source_count > 0,
-        msg: 'Sqlite support only 1 database per integration',
+        msg: 'Sqlite support only 1 database per connection',
       }
 
     default:

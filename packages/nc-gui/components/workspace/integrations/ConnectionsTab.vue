@@ -501,10 +501,30 @@ onKeyStroke('ArrowDown', onDown)
                             <GeneralIcon class="text-gray-800" icon="edit" />
                             <span>{{ $t('general.edit') }}</span>
                           </NcMenuItem>
-                          <NcMenuItem @click="duplicateIntegration(integration)">
-                            <GeneralIcon class="text-gray-800" icon="duplicate" />
-                            <span>{{ $t('general.duplicate') }}</span>
-                          </NcMenuItem>
+                          <NcTooltip :disabled="integration?.sub_type !== ClientType.SQLITE">
+                            <template #title>
+                              Not allowed for type
+                              {{
+                                integration.sub_type && clientTypesMap[integration.sub_type]
+                                  ? clientTypesMap[integration.sub_type]?.text
+                                  : integration.sub_type
+                              }}
+                            </template>
+
+                            <NcMenuItem
+                              @click="duplicateIntegration(integration)"
+                              :disabled="integration?.sub_type === ClientType.SQLITE"
+                            >
+                              <GeneralIcon
+                                :class="{
+                                  'text-current': integration?.sub_type === ClientType.SQLITE,
+                                  'text-gray-800': integration?.sub_type !== ClientType.SQLITE,
+                                }"
+                                icon="duplicate"
+                              />
+                              <span>{{ $t('general.duplicate') }}</span>
+                            </NcMenuItem>
+                          </NcTooltip>
                           <NcDivider />
                           <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteIntegration(integration)">
                             <GeneralIcon icon="delete" />

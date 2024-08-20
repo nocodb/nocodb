@@ -67,6 +67,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
+  const isValidRedirectUrl = computed(
+    () => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim(),
+  )
+
   useProvideSmartsheetLtarHelpers(meta)
   const { state: additionalState } = useProvideSmartsheetRowStore(
     ref({
@@ -323,14 +327,22 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         ...attachment,
       })
 
-      await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
+      const newRecord = await api.public.dataCreate(sharedView.value!.uuid!, filtedData, {
         headers: {
           'xc-password': password.value,
         },
       })
 
-      submitted.value = true
-      progress.value = false
+      const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
+
+      if (pk && isValidRedirectUrl.value) {
+        const url = sharedFormView.value!.redirect_url!.replace('{record_id}', pk)
+        window.location.href = url
+        window.location.reload()
+      } else {
+        submitted.value = true
+        progress.value = false
+      }
     } catch (e: any) {
       console.error(e)
       await message.error(await extractSdkResponseErrorMsg(e))
@@ -340,9 +352,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const clearForm = async () => {
     formResetHook.trigger()
-
     additionalState.value = {
-      ...(sharedViewMeta.value.preFillEnabled ? preFilledAdditionalState.value : {}),
+      ...preFilledAdditionalState.value,
     }
 
     formState.value = {
@@ -354,7 +365,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   async function handlePreFillForm() {
-    if (Object.keys(route.query || {}).length && sharedViewMeta.value.preFillEnabled) {
+    if (Object.keys(route.query || {}).length) {
       columns.value = await Promise.all(
         (columns.value || []).map(async (c) => {
           const queryParam = route.query[c.title as string] || route.query[encodeURIComponent(c.title as string)]
@@ -364,6 +375,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             !queryParam ||
             isSystemColumn(c) ||
             (isVirtualCol(c) && !isLinksOrLTAR(c)) ||
+            (!sharedViewMeta.value.preFillEnabled && !isVirtualCol(c) && !isLinksOrLTAR(c)) ||
             isAttachment(c) ||
             c.uidt === UITypes.SpecificDBType
           ) {
@@ -377,31 +389,26 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           if (preFillValue !== undefined) {
             if (isLinksOrLTAR(c)) {
               // Prefill Link to another record / Links form state
-
               additionalState.value = {
                 ...(additionalState.value || {}),
                 [c.title]: preFillValue,
               }
-
-              // preFilledAdditionalState will be used in clear form to fill the prefilled data
-              preFilledAdditionalState.value[c.title] = preFillValue
             } else {
               // Prefill form state
               formState.value[c.title] = preFillValue
-
-              // preFilledformState will be used in clear form to fill the prefilled data
-              preFilledformState.value[c.title] = preFillValue
             }
 
-            // Update column
-            switch (sharedViewMeta.value.preFilledMode) {
-              case PreFilledMode.Hidden: {
-                c.show = false
-                break
-              }
-              case PreFilledMode.Locked: {
-                c.read_only = true
-                break
+            if (sharedViewMeta.value.preFillEnabled) {
+              // Update column
+              switch (sharedViewMeta.value.preFilledMode) {
+                case PreFilledMode.Hidden: {
+                  c.show = false
+                  break
+                }
+                case PreFilledMode.Locked: {
+                  c.read_only = true
+                  break
+                }
               }
             }
           }
@@ -409,6 +416,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           return c
         }),
       )
+
+      try {
+        // preFilledAdditionalState will be used in clear form to fill the prefilled data
+        preFilledAdditionalState.value = JSON.parse(JSON.stringify(additionalState.value || {}))
+
+        // preFilledformState will be used in clear form to fill the prefilled data
+        preFilledformState.value = JSON.parse(JSON.stringify(formState.value || {}))
+      } catch {}
     }
   }
 
@@ -597,6 +612,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   /** reset form if show_blank_form is true */
   watch(submitted, (nextVal) => {
     if (nextVal && sharedFormView.value?.show_blank_form) {
+      if (typeof sharedFormView.value?.redirect_url === 'string') {
+        return
+      }
+
       secondsRemain.value = 5
       intvl = setInterval(() => {
         secondsRemain.value = secondsRemain.value - 1
@@ -700,6 +719,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isRequired,
     handleAddMissingRequiredFieldDefaultState,
     fieldMappings,
+    isValidRedirectUrl,
   }
 }, 'shared-form-view-store')
 

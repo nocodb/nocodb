@@ -1354,7 +1354,7 @@ useEventListener(
                   </div>
                   <!-- Field text -->
                   <div class="nc-form-field-text p-4 flex flex-col gap-4 border-b border-gray-200">
-                    <div class="text-base font-bold text-gray-600">
+                    <div class="text-sm font-bold text-gray-800">
                       {{ $t('objects.field') }} {{ $t('general.text').toLowerCase() }}
                     </div>
 
@@ -1391,8 +1391,8 @@ useEventListener(
                   <Splitpanes v-if="formViewData" horizontal class="nc-form-settings w-full nc-form-right-splitpane">
                     <Pane min-size="30" size="50" class="nc-form-right-splitpane-item p-4 flex flex-col space-y-4 !min-h-200px">
                       <div class="flex flex-wrap justify-between items-center gap-2">
-                        <div class="flex gap-3">
-                          <div class="text-base font-bold text-gray-600">
+                        <div class="flex items-center gap-3">
+                          <div class="text-sm font-bold text-gray-800">
                             {{ $t('objects.viewType.form') }} {{ $t('objects.fields') }}
                           </div>
                           <NcBadge color="border-gray-200">
@@ -1584,7 +1584,7 @@ useEventListener(
                     <Pane min-size="20" size="50" class="nc-form-right-splitpane-item !overflow-y-auto nc-form-scrollbar">
                       <div class="p-4 flex flex-col space-y-4 border-b border-gray-200">
                         <!-- Appearance Settings -->
-                        <div class="text-base font-bold text-gray-600">{{ $t('labels.appearanceSettings') }}</div>
+                        <div class="text-sm font-bold text-gray-800">{{ $t('labels.appearanceSettings') }}</div>
 
                         <div class="flex flex-col space-y-3">
                           <div :class="isLocked || !isEditable ? 'pointer-events-none' : ''">
@@ -1664,7 +1664,7 @@ useEventListener(
 
                       <div class="p-4 flex flex-col space-y-4">
                         <!-- Post Form Submission Settings -->
-                        <div class="text-base font-bold text-gray-600">
+                        <div class="text-sm font-bold text-gray-800">
                           {{ $t('msg.info.postFormSubmissionSettings') }}
                         </div>
 

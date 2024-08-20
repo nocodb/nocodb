@@ -67,6 +67,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
+  const isValidRedirectUrl = computed(() => sharedFormView.value?.redirect_url?.includes(`{record_Id}`))
+
   useProvideSmartsheetLtarHelpers(meta)
   const { state: additionalState } = useProvideSmartsheetRowStore(
     ref({
@@ -328,16 +330,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           'xc-password': password.value,
         },
       })
-      if (sharedFormView.value?.redirect_url && sharedFormView.value?.redirect_url?.includes(`{record_Id}`)) {
-        const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
-        if (pk) {
-          const url = sharedFormView.value.redirect_url.replace('{record_Id}', pk)
-          window.location.href = url
-        }
-      }
 
-      submitted.value = true
-      progress.value = false
+      const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
+
+      if (pk && isValidRedirectUrl.value) {
+        const url = sharedFormView.value!.redirect_url!.replace('{record_Id}', pk)
+        window.location.href = url
+      } else {
+        submitted.value = true
+        progress.value = false
+      }
     } catch (e: any) {
       console.error(e)
       await message.error(await extractSdkResponseErrorMsg(e))
@@ -614,7 +616,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   let intvl: NodeJS.Timeout
   /** reset form if show_blank_form is true */
   watch(submitted, (nextVal) => {
-    if (nextVal && sharedFormView.value?.show_blank_form) {
+    if (nextVal && sharedFormView.value?.show_blank_form && typeof sharedFormView.value?.redirect_url !== 'string') {
       secondsRemain.value = 5
       intvl = setInterval(() => {
         secondsRemain.value = secondsRemain.value - 1
@@ -718,6 +720,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isRequired,
     handleAddMissingRequiredFieldDefaultState,
     fieldMappings,
+    isValidRedirectUrl
   }
 }, 'shared-form-view-store')
 

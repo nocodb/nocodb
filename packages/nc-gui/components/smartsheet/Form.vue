@@ -182,15 +182,22 @@ const isOpenRedirectUrlOption = ref(false)
 
 const isOpenRedirectUrl = computed({
   get: () => {
-    return !!formViewData.value?.redirect_url || isOpenRedirectUrlOption.value
+    return typeof formViewData.value?.redirect_url === 'string'
   },
   set: (value: boolean) => {
     isOpenRedirectUrlOption.value = value
-
-    if (!value && formViewData.value?.redirect_url) {
-      formViewData.value.redirect_url = ''
-      updateView()
+    if (value) {
+      formViewData.value = {
+        ...formViewData.value,
+        redirect_url: '',
+      }
+    } else {
+      formViewData.value = {
+        ...formViewData.value,
+        redirect_url: null,
+      }
     }
+    updateView()
   },
 })
 
@@ -1699,44 +1706,57 @@ useEventListener(
                                 @change="updateView"
                               />
                             </div>
-                            <a-input
-                              v-if="isOpenRedirectUrl"
-                              v-model:value="formViewData.redirect_url"
-                              type="text"
-                              class="!h-8 !px-3 !py-1 !rounded-lg max-w-[calc(100%_-_40px)]"
-                              placeholder="Paste redirect URL here"
-                              data-testid="nc-form-redirect-url-input"
-                              @input="updateView"
-                            >
-                            </a-input>
+                            <div v-if="isOpenRedirectUrl">
+                              <a-input
+                                v-model:value="formViewData.redirect_url"
+                                type="text"
+                                class="!h-8 !px-3 !py-1 !rounded-lg max-w-[calc(100%_-_40px)]"
+                                placeholder="Paste redirect URL here"
+                                data-testid="nc-form-redirect-url-input"
+                                @input="updateView"
+                              ></a-input>
+                              <div class="text-xs text-gray-600 mt-1.5">
+                                Use {record_id} to get ID of the newly created record.
+                                <a
+                                  href="https://docs.nocodb.com/views/view-types/form/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  class="!no-underline !hover:underline text-current"
+                                >
+                                  More
+                                </a>
+                              </div>
+                            </div>
                           </div>
-                          <div class="flex items-center justify-between gap-3">
-                            <!-- Show "Submit Another Form" button -->
-                            <span>{{ $t('msg.info.submitAnotherForm') }}</span>
-                            <a-switch
-                              v-model:checked="formViewData.submit_another_form"
-                              v-e="[`a:form-view:submit-another-form`]"
-                              size="small"
-                              class="nc-form-checkbox-submit-another-form"
-                              data-testid="nc-form-checkbox-submit-another-form"
-                              :disabled="isLocked || !isEditable"
-                              @change="updateView"
-                            />
-                          </div>
+                          <template v-if="!isOpenRedirectUrl">
+                            <div class="flex items-center justify-between gap-3">
+                              <!-- Show "Submit Another Form" button -->
+                              <span>{{ $t('msg.info.submitAnotherForm') }}</span>
+                              <a-switch
+                                v-model:checked="formViewData.submit_another_form"
+                                v-e="[`a:form-view:submit-another-form`]"
+                                size="small"
+                                class="nc-form-checkbox-submit-another-form"
+                                data-testid="nc-form-checkbox-submit-another-form"
+                                :disabled="isLocked || !isEditable"
+                                @change="updateView"
+                              />
+                            </div>
 
-                          <div class="flex items-center justify-between gap-3">
-                            <!-- Show a blank form after 5 seconds -->
-                            <span>{{ $t('msg.info.showBlankForm') }}</span>
-                            <a-switch
-                              v-model:checked="formViewData.show_blank_form"
-                              v-e="[`a:form-view:show-blank-form`]"
-                              size="small"
-                              class="nc-form-checkbox-show-blank-form"
-                              data-testid="nc-form-checkbox-show-blank-form"
-                              :disabled="isLocked || !isEditable"
-                              @change="updateView"
-                            />
-                          </div>
+                            <div class="flex items-center justify-between gap-3">
+                              <!-- Show a blank form after 5 seconds -->
+                              <span>{{ $t('msg.info.showBlankForm') }}</span>
+                              <a-switch
+                                v-model:checked="formViewData.show_blank_form"
+                                v-e="[`a:form-view:show-blank-form`]"
+                                size="small"
+                                class="nc-form-checkbox-show-blank-form"
+                                data-testid="nc-form-checkbox-show-blank-form"
+                                :disabled="isLocked || !isEditable"
+                                @change="updateView"
+                              />
+                            </div>
+                          </template>
 
                           <div class="flex items-center justify-between gap-3">
                             <!-- Email me at <email> -->

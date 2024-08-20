@@ -61,10 +61,7 @@ const getIntegrationsByCategory = (category: IntegrationCategoryType, query: str
   return allIntegrations.filter((i) => {
     const isOssOnly = isEeUI ? !i?.isOssOnly : true
     return (
-      isOssOnly &&
-      filterIntegration(i) &&
-      i.categories.includes(category) &&
-      t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+      isOssOnly && filterIntegration(i) && i.categories.includes(category) && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
     )
   })
 }

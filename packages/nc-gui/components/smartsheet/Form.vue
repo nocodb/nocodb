@@ -1692,43 +1692,7 @@ useEventListener(
                         </div>
 
                         <div class="flex flex-col gap-3">
-                          <div class="flex flex-col gap-3">
-                            <div class="flex items-center justify-between gap-3">
-                              <!-- Redirect to URL -->
-                              <span>{{ $t('labels.redirectToUrl') }}</span>
-                              <a-switch
-                                v-model:checked="isOpenRedirectUrl"
-                                v-e="[`a:form-view:redirect-url`]"
-                                size="small"
-                                class="nc-form-checkbox-redirect-url"
-                                data-testid="nc-form-checkbox-redirect-url"
-                                :disabled="isLocked || !isEditable"
-                                @change="updateView"
-                              />
-                            </div>
-                            <div v-if="isOpenRedirectUrl">
-                              <a-input
-                                v-model:value="formViewData.redirect_url"
-                                type="text"
-                                class="!h-8 !px-3 !py-1 !rounded-lg max-w-[calc(100%_-_40px)]"
-                                placeholder="Paste redirect URL here"
-                                data-testid="nc-form-redirect-url-input"
-                                @input="updateView"
-                              ></a-input>
-                              <div class="text-xs text-gray-600 mt-1.5">
-                                Use {record_id} to get ID of the newly created record.
-                                <a
-                                  href="https://docs.nocodb.com/views/view-types/form/"
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  class="!no-underline !hover:underline text-current"
-                                >
-                                  More
-                                </a>
-                              </div>
-                            </div>
-                          </div>
-                          <template v-if="!isOpenRedirectUrl">
+                          <SmartsheetFormSettingsRedirectUrlWrapper>
                             <div class="flex items-center justify-between gap-3">
                               <!-- Show "Submit Another Form" button -->
                               <span>{{ $t('msg.info.submitAnotherForm') }}</span>
@@ -1756,7 +1720,7 @@ useEventListener(
                                 @change="updateView"
                               />
                             </div>
-                          </template>
+                          </SmartsheetFormSettingsRedirectUrlWrapper>
 
                           <div class="flex items-center justify-between gap-3">
                             <!-- Email me at <email> -->

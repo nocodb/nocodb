@@ -2,6 +2,7 @@ import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { ColumnType, FormType, TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
 
 const useForm = Form.useForm
 
@@ -114,6 +115,10 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       } catch {}
     }
 
+    const isValidRedirectUrl = (): ValidateInfo => {
+      return { validateStatus: '', help: undefined }
+    }
+
     const updateView = useDebounceFn(
       () => {
         updateFormView(formViewData.value)
@@ -160,6 +165,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       validateInfos,
       clearValidate,
       fieldMappings,
+      isValidRedirectUrl,
+      formViewData,
     }
   },
   'form-view-store',

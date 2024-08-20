@@ -438,6 +438,8 @@ export interface ColumnType {
   ai?: BoolType;
   /** Auto Update Timestamp */
   au?: BoolType;
+  /** Column Description */
+  description?: TextOrNullType;
   /**
    * Source ID that this column belongs to
    * @example ds_krsappzu9f8vmo
@@ -603,6 +605,8 @@ export type ColumnReqType = (
       RollupColumnReqType)
 ) & {
   column_name?: string;
+  /** Model for TextOrNull */
+  description?: TextOrNullType;
   /** Column order in a specific view */
   column_order?: {
     order?: number;
@@ -2677,6 +2681,8 @@ export interface TableType {
   pinned?: BoolType;
   /** Unique Base ID */
   base_id?: string;
+  /** Table Description */
+  description?: TextOrNullType;
   /** Table Name. Prefix will be added for XCDB bases. */
   table_name: string;
   /** Currently not in use */
@@ -2703,6 +2709,8 @@ export interface TableListType {
 export interface TableReqType {
   /** The column models in this table */
   columns: NormalColumnRequestType[];
+  /** Table description */
+  description?: TextOrNullType;
   /** the meta data for this table */
   meta?: MetaType;
   /**
@@ -2804,6 +2812,8 @@ export interface ViewType {
   meta?: MetaType;
   /** The rder of the list of views */
   order?: number;
+  /** View Description */
+  description?: TextOrNullType;
   /** Password for protecting the view */
   password?: StringOrNullType;
   /** Unique Base ID */
@@ -2871,6 +2881,11 @@ export interface ViewUpdateReqType {
    * @example Grid View 1
    */
   title?: string;
+  /**
+   * Description of the view.
+   * @example This is a grid view.
+   */
+  description?: TextOrNullType;
   /**
    * View UUID. Used in Shared View.
    * @example e2457bbf-e29c-4fec-866e-fe3b01dba57f
@@ -6165,6 +6180,11 @@ export class Api<
          * @example Users
          */
         title?: string;
+        /**
+         * Table description
+         * @example Table for storing User Information
+         */
+        description?: TextOrNullType;
         /**
          * Base ID
          * @example p_124hhlkbeasewh

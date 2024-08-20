@@ -32,7 +32,11 @@ const activeCell = inject(ActiveCellInj, ref(false))
 
 const basesStore = useBases()
 
+const baseStore = useBase()
+
 const { basesUser } = storeToRefs(basesStore)
+
+const { idUserMap } = storeToRefs(baseStore)
 
 const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
@@ -303,6 +307,11 @@ const filterOption = (input: string, option: any) => {
     return searchVal.toLowerCase().includes(input.toLowerCase())
   }
 }
+
+// check if user is part of the base
+const isCollaborator = (userIdOrEmail) => {
+  return !idUserMap.value?.[userIdOrEmail]?.deleted
+}
 </script>
 
 <template>
@@ -347,6 +356,7 @@ const filterOption = (input: string, option: any) => {
                     :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
                     :email="op.email"
                     class="!text-[0.65rem]"
+                    :disabled="!isCollaborator(op.id)"
                   />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
@@ -359,6 +369,9 @@ const filterOption = (input: string, option: any) => {
                       wordBreak: 'keep-all',
                       whiteSpace: 'nowrap',
                       display: 'inline',
+                    }"
+                    :class="{
+                      'text-gray-600': !isCollaborator(op.id || op.email),
                     }"
                   >
                     {{ op.display_name?.trim() || op.email }}
@@ -408,6 +421,7 @@ const filterOption = (input: string, option: any) => {
             >
               <div class="flex-none">
                 <GeneralUserIcon
+                  :disabled="!isCollaborator(selectedOpt.value)"
                   size="auto"
                   :name="!selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : ''"
                   :email="selectedOpt.label"
@@ -424,6 +438,9 @@ const filterOption = (input: string, option: any) => {
                     wordBreak: 'keep-all',
                     whiteSpace: 'nowrap',
                     display: 'inline',
+                  }"
+                  :class="{
+                    'text-gray-600': !isCollaborator(selectedOpt.value),
                   }"
                 >
                   {{ selectedOpt.label }}
@@ -540,9 +557,16 @@ const filterOption = (input: string, option: any) => {
                   :name="!label?.includes('@') ? label.trim() : ''"
                   :email="label"
                   class="!text-[0.65rem]"
+                  :disabled="!isCollaborator(val)"
                 />
               </div>
-              {{ label }}
+              <span
+                :class="{
+                  'text-gray-600': !isCollaborator(val),
+                }"
+              >
+                {{ label }}
+              </span>
             </span>
           </a-tag>
         </template>

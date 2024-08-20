@@ -216,7 +216,7 @@ const onCreateBaseClick = () => {
         <template #bodyCell="{ column, record }">
           <div
             v-if="column.key === 'tableName'"
-            class="w-full flex items-center gap-3 max-w-full text-gray-800 font-semibold"
+            class="w-full flex items-center gap-3 max-w-full text-gray-800"
             data-testid="proj-view-list__item-title"
           >
             <div class="min-w-6 flex items-center justify-center">

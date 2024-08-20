@@ -430,6 +430,8 @@ export class ExternalError extends NcBaseError {
   }
 }
 
+export class ExternalTimeout extends ExternalError {}
+
 export class UnprocessableEntity extends NcBaseError {}
 
 export class AjvError extends NcBaseError {
@@ -577,6 +579,10 @@ const errorHelpers: {
   },
   [NcErrorType.TABLE_ASSOCIATED_WITH_LINK]: {
     message: 'Table is associated with a link, please remove the link first',
+    code: 400,
+  },
+  [NcErrorType.FORMULA_ERROR]: {
+    message: (message: string) => `Formula error: ${message}`,
     code: 400,
   },
 };
@@ -803,6 +809,13 @@ export class NcError {
 
   static internalServerError(message: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INTERNAL_SERVER_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  static formulaError(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.FORMULA_ERROR, {
       params: message,
       ...args,
     });

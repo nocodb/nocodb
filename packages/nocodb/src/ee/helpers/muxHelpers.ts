@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import axios from 'axios';
-import { ExternalError } from '~/helpers/catchError';
+import { ExternalError, ExternalTimeout } from '~/helpers/catchError';
 
 const logger = new Logger('MuxHelpers');
 
@@ -32,7 +32,7 @@ export async function runExternal(
     }
 
     if (e?.message.includes('timeout')) {
-      throw new ExternalError(
+      throw new ExternalTimeout(
         new Error(
           'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
         ),

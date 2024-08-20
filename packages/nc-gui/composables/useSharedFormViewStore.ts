@@ -67,7 +67,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
-  const isValidRedirectUrl = computed(() => sharedFormView.value?.redirect_url?.includes(`{record_Id}`))
+  const isValidRedirectUrl = computed(() => sharedFormView.value?.redirect_url?.includes('{record_id}'))
 
   useProvideSmartsheetLtarHelpers(meta)
   const { state: additionalState } = useProvideSmartsheetRowStore(
@@ -332,9 +332,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       })
 
       const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
-
+    
       if (pk && isValidRedirectUrl.value) {
-        const url = sharedFormView.value!.redirect_url!.replace('{record_Id}', pk)
+        const url = sharedFormView.value!.redirect_url!.replace('{record_id}', pk)
         window.location.href = url
       } else {
         submitted.value = true
@@ -720,7 +720,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     isRequired,
     handleAddMissingRequiredFieldDefaultState,
     fieldMappings,
-    isValidRedirectUrl
+    isValidRedirectUrl,
   }
 }, 'shared-form-view-store')
 

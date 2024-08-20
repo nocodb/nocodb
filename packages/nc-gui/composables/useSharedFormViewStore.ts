@@ -332,7 +332,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       })
 
       const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
-    
+
       if (pk && isValidRedirectUrl.value) {
         const url = sharedFormView.value!.redirect_url!.replace('{record_id}', pk)
         window.location.href = url
@@ -380,6 +380,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
             !queryParam ||
             isSystemColumn(c) ||
             (isVirtualCol(c) && !isLinksOrLTAR(c)) ||
+            (!sharedViewMeta.value.preFillEnabled && !isVirtualCol(c) && !isLinksOrLTAR(c)) ||
             isAttachment(c) ||
             c.uidt === UITypes.SpecificDBType
           ) {
@@ -397,18 +398,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
                 ...(additionalState.value || {}),
                 [c.title]: preFillValue,
               }
-
-              // preFilledAdditionalState will be used in clear form to fill the prefilled data
-              preFilledAdditionalState.value = {
-                ...preFilledAdditionalState.value,
-                [c.title]: preFillValue,
-              }
             } else {
               // Prefill form state
               formState.value[c.title] = preFillValue
-
-              // preFilledformState will be used in clear form to fill the prefilled data
-              preFilledformState.value[c.title] = preFillValue
             }
 
             if (sharedViewMeta.value.preFillEnabled) {
@@ -429,6 +421,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           return c
         }),
       )
+
+      try {
+        // preFilledAdditionalState will be used in clear form to fill the prefilled data
+        preFilledAdditionalState.value = JSON.parse(JSON.stringify(additionalState.value || {}))
+
+        // preFilledformState will be used in clear form to fill the prefilled data
+        preFilledformState.value = JSON.parse(JSON.stringify(formState.value || {}))
+      } catch {}
     }
   }
 

@@ -662,6 +662,7 @@
     "metaSync": "元同步",
     "mention": "提及",
     "today": "今天",
+    "currentDate": "Current date",
     "workspace": "工作区",
     "txt": "TXT 记录值",
     "transferOwnership": "转让所有权",
@@ -1244,6 +1245,7 @@
     "goToDocs": "Go to Docs"
   },
   "tooltip": {
+    "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "启用后，此工作区中的其他创建者无法看到此连接。",
     "optionalDatabaseName": "可选。如果留空，则使用默认数据库 \"{database}\"。",
     "optionalSchemaName": "可选。如果留空，则使用默认模式 \"{schema}\"。",

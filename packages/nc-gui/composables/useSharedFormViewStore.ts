@@ -67,7 +67,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
-  const isValidRedirectUrl = computed(() => sharedFormView.value?.redirect_url?.includes('{record_id}'))
+  const isValidRedirectUrl = computed(() => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim())
 
   useProvideSmartsheetLtarHelpers(meta)
   const { state: additionalState } = useProvideSmartsheetRowStore(

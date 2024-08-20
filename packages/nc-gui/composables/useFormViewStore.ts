@@ -116,11 +116,29 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     }
 
     const isValidRedirectUrl = (): ValidateInfo => {
+      if (typeof formViewData.value?.redirect_url !== 'string') return { validateStatus: '', help: undefined }
+
+      const url = formViewData.value?.redirect_url?.trim() ?? ''
+
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        return {
+          validateStatus: 'error',
+          help: 'Redirect url must starts with `http://` or `https://`',
+        }
+      }
+
       return { validateStatus: '', help: undefined }
     }
 
     const updateView = useDebounceFn(
       () => {
+        if (isValidRedirectUrl().validateStatus === 'error') {
+          formViewData.value = {
+            ...formViewData.value,
+            redirect_url: '',
+          }
+        }
+
         updateFormView(formViewData.value)
       },
       300,

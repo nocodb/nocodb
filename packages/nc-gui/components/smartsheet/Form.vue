@@ -17,6 +17,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ImageCropperConfig } from '~/lib/types'
+import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
@@ -91,6 +92,7 @@ const {
   validate,
   clearValidate,
   fieldMappings,
+  isValidRedirectUrl,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
@@ -187,6 +189,53 @@ const onVisibilityChange = (state: 'showAddColumn' | 'showEditColumn') => {
 }
 
 const getFormLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(formViewData.value?.logo_url)))
+
+const isOpenRedirectUrlOption = ref(false)
+
+const redirectLinkValidation = ref<ValidateInfo>({
+  validateStatus: '',
+  help: undefined,
+})
+
+const isOpenRedirectUrl = computed({
+  get: () => {
+    return typeof formViewData.value?.redirect_url === 'string'
+  },
+  set: (value: boolean) => {
+    isOpenRedirectUrlOption.value = value
+    if (value) {
+      formViewData.value = {
+        ...formViewData.value,
+        redirect_url: '',
+      }
+    } else {
+      formViewData.value = {
+        ...formViewData.value,
+        redirect_url: null,
+      }
+
+      redirectLinkValidation.value = {
+        validateStatus: '',
+        help: undefined,
+      }
+    }
+    updateView()
+  },
+})
+
+const handleUpdateRedirectUrl = () => {
+  const validStatus = isValidRedirectUrl()
+
+  redirectLinkValidation.value = {
+    ...validStatus,
+  }
+
+  if (validStatus.validateStatus === 'error') {
+    return
+  }
+
+  updateView()
+}
 
 const getPrefillValue = (c: ColumnType, value: any) => {
   let preFillValue: any
@@ -1669,7 +1718,45 @@ useEventListener(
                         </div>
 
                         <div class="flex flex-col gap-3">
-                          <SmartsheetFormSettingsRedirectUrlWrapper>
+                          <div class="flex flex-col gap-3">
+                            <div class="flex items-center justify-between gap-3">
+                              <!-- Redirect to URL -->
+                              <span>{{ $t('labels.redirectToUrl') }}</span>
+                              <a-switch
+                                v-model:checked="isOpenRedirectUrl"
+                                v-e="[`a:form-view:redirect-url`]"
+                                size="small"
+                                class="nc-form-checkbox-redirect-url"
+                                data-testid="nc-form-checkbox-redirect-url"
+                                :disabled="isLocked || !isEditable"
+                                @change="updateView"
+                              />
+                            </div>
+                            <div v-if="isOpenRedirectUrl" class="flex flex-col gap-2 max-w-[calc(100%_-_40px)]">
+                              <a-form-item class="!my-0" v-bind="redirectLinkValidation">
+                                <a-input
+                                  v-model:value="formViewData.redirect_url"
+                                  type="text"
+                                  class="!h-8 !px-3 !py-1 !rounded-lg"
+                                  placeholder="Paste redirect URL here"
+                                  data-testid="nc-form-redirect-url-input"
+                                  @input="handleUpdateRedirectUrl"
+                                ></a-input>
+                              </a-form-item>
+                              <div class="text-small leading-[18px] text-gray-500">
+                                Use {record_id} to get ID of the newly created record.
+                                <a
+                                  href="https://docs.nocodb.com/views/view-types/form/"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  class="!no-underline !hover:underline text-current"
+                                >
+                                  More
+                                </a>
+                              </div>
+                            </div>
+                          </div>
+                          <template v-if="!isOpenRedirectUrl">
                             <div class="flex items-center justify-between gap-3">
                               <!-- Show "Submit Another Form" button -->
                               <span>{{ $t('msg.info.submitAnotherForm') }}</span>
@@ -1697,7 +1784,7 @@ useEventListener(
                                 @change="updateView"
                               />
                             </div>
-                          </SmartsheetFormSettingsRedirectUrlWrapper>
+                          </template>
 
                           <div class="flex items-center justify-between gap-3">
                             <!-- Email me at <email> -->
@@ -1718,7 +1805,7 @@ useEventListener(
                         </div>
 
                         <!-- Show this message -->
-                        <div class="pb-10">
+                        <div v-if="!isOpenRedirectUrl" class="pb-10">
                           <div class="text-gray-800 mb-2">
                             {{ $t('msg.info.formDisplayMessage') }}
                           </div>

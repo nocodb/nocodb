@@ -3,9 +3,7 @@ import { diff } from 'deep-object-diff'
 
 const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
   (props: { formSchema: FormDefinition; onSubmit?: () => Promise<any>; initialState?: Ref<Record<string, any>> }) => {
-    const { formSchema, onSubmit } = props
-
-    const initialState = toRef(props, 'initialState')
+    const { formSchema, onSubmit, initialState } = props
 
     const useForm = Form.useForm
 
@@ -127,7 +125,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     }
 
     function checkDifference() {
-      if (!initialState.value) {
+      if (!initialState?.value) {
         return false
       }
 
@@ -158,7 +156,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
       formState.value = {
         ...defaultFormState(),
-        ...initialState.value,
+        ...(initialState?.value ?? {}),
       }
 
       isLoading.value = false

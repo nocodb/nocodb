@@ -5,14 +5,19 @@ const deepReference = (path: string): any => {
   return path.split('.').reduce((acc, key) => acc[key], formState.value)
 }
 
-const updateFormState = (path: string, value: any) => {
+const setFormState = (path: string, value: any) => {
   // update nested prop in formState
   const keys = path.split('.')
   const lastKey = keys.pop()
 
   if (!lastKey) return
 
-  const target = keys.reduce((acc, key) => acc[key], formState.value)
+  const target = keys.reduce((acc, key) => {
+    if (!acc[key]) {
+      acc[key] = {}
+    }
+    return acc[key]
+  }, formState.value)
   target[lastKey] = value
 }
 </script>
@@ -39,22 +44,19 @@ const updateFormState = (path: string, value: any) => {
                   :style="`width:${+field.width || 100}%`"
                 >
                   <template v-if="field.type === FormBuilderInputType.Input">
-                    <a-input :value="deepReference(field.model)" @update:value="updateFormState(field.model, $event)" />
+                    <a-input :value="deepReference(field.model)" @update:value="setFormState(field.model, $event)" />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Select">
                     <NcSelect
                       :value="deepReference(field.model)"
                       :options="field.options"
-                      @update:value="updateFormState(field.model, $event)"
+                      @update:value="setFormState(field.model, $event)"
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Switch">
                     <div class="flex flex-col p-2" :class="field.border ? 'border-1 rounded-lg' : ''">
                       <div class="flex items-center">
-                        <NcSwitch
-                          :checked="!!deepReference(field.model)"
-                          @update:checked="updateFormState(field.model, $event)"
-                        />
+                        <NcSwitch :checked="!!deepReference(field.model)" @update:checked="setFormState(field.model, $event)" />
                         <span class="ml-[6px] font-bold">{{ field.label }}</span>
                       </div>
                       <div v-if="field.helpText" class="w-full mt-1 ml-[35px]">

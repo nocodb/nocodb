@@ -22,6 +22,8 @@ const { $api, $e } = useNuxtApp()
 
 const { allCollaborators } = storeToRefs(useWorkspace())
 
+const { bases } = storeToRefs(useBases())
+
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
   | (IntegrationType & {
@@ -139,7 +141,26 @@ const openDeleteIntegration = async (source: IntegrationType) => {
 }
 
 const onDeleteConfirm = async () => {
-  await deleteIntegration(toBeDeletedIntegration.value, true)
+  const isDeleted = await deleteIntegration(toBeDeletedIntegration.value, true)
+
+  if (isDeleted) {
+    for (const source of toBeDeletedIntegration.value?.sources || []) {
+      if (!source.base_id || !source.id || (source.base_id && !bases.value.get(source.base_id))) {
+        continue
+      }
+
+      const base = bases.value.get(source.base_id)
+
+      if (!Array.isArray(base?.sources)) {
+        continue
+      }
+
+      bases.value.set(source.base_id, {
+        ...(base || {}),
+        sources: [...base.sources.filter((s) => s.id !== source.id)],
+      })
+    }
+  }
 }
 
 const loadOrgUsers = async () => {

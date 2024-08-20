@@ -26,6 +26,8 @@ const connectionType = computed(() => {
       return ClientType.PG
     case integrationType.MySQL:
       return ClientType.MYSQL
+    case integrationType.SQLITE:
+      return ClientType.SQLITE
     default: {
       return undefined
     }

@@ -22,6 +22,8 @@ const { $api, $e } = useNuxtApp()
 
 const { allCollaborators } = storeToRefs(useWorkspace())
 
+const { bases } = storeToRefs(useBases())
+
 const isDeleteIntegrationModalOpen = ref(false)
 const toBeDeletedIntegration = ref<
   | (IntegrationType & {
@@ -139,7 +141,26 @@ const openDeleteIntegration = async (source: IntegrationType) => {
 }
 
 const onDeleteConfirm = async () => {
-  await deleteIntegration(toBeDeletedIntegration.value, true)
+  const isDeleted = await deleteIntegration(toBeDeletedIntegration.value, true)
+
+  if (isDeleted) {
+    for (const source of toBeDeletedIntegration.value?.sources || []) {
+      if (!source.base_id || !source.id || (source.base_id && !bases.value.get(source.base_id))) {
+        continue
+      }
+
+      const base = bases.value.get(source.base_id)
+
+      if (!Array.isArray(base?.sources)) {
+        continue
+      }
+
+      bases.value.set(source.base_id, {
+        ...(base || {}),
+        sources: [...base.sources.filter((s) => s.id !== source.id)],
+      })
+    }
+  }
 }
 
 const loadOrgUsers = async () => {
@@ -400,12 +421,7 @@ onKeyStroke('ArrowDown', onDown)
                 <td class="cell-type">
                   <div>
                     <NcBadge rounded="lg" class="flex items-center gap-2 px-0 py-1 !h-7 truncate !border-transparent">
-                      <WorkspaceIntegrationsIcon
-                        v-if="integration.sub_type"
-                        :integration-type="integration.sub_type"
-                        size="xs"
-                        class="!p-0 !bg-transparent"
-                      />
+                      <GeneralIntegrationIcon :type="integration.sub_type" />
                       <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
                         <template #title> {{ clientTypesMap[integration?.sub_type]?.text || integration?.sub_type }}</template>
 
@@ -506,10 +522,30 @@ onKeyStroke('ArrowDown', onDown)
                             <GeneralIcon class="text-gray-800" icon="edit" />
                             <span>{{ $t('general.edit') }}</span>
                           </NcMenuItem>
-                          <NcMenuItem @click="duplicateIntegration(integration)">
-                            <GeneralIcon class="text-gray-800" icon="duplicate" />
-                            <span>{{ $t('general.duplicate') }}</span>
-                          </NcMenuItem>
+                          <NcTooltip :disabled="integration?.sub_type !== ClientType.SQLITE">
+                            <template #title>
+                              Not allowed for type
+                              {{
+                                integration.sub_type && clientTypesMap[integration.sub_type]
+                                  ? clientTypesMap[integration.sub_type]?.text
+                                  : integration.sub_type
+                              }}
+                            </template>
+
+                            <NcMenuItem
+                              @click="duplicateIntegration(integration)"
+                              :disabled="integration?.sub_type === ClientType.SQLITE"
+                            >
+                              <GeneralIcon
+                                :class="{
+                                  'text-current': integration?.sub_type === ClientType.SQLITE,
+                                  'text-gray-800': integration?.sub_type !== ClientType.SQLITE,
+                                }"
+                                icon="duplicate"
+                              />
+                              <span>{{ $t('general.duplicate') }}</span>
+                            </NcMenuItem>
+                          </NcTooltip>
                           <NcDivider />
                           <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="openDeleteIntegration(integration)">
                             <GeneralIcon icon="delete" />
@@ -604,11 +640,7 @@ onKeyStroke('ArrowDown', onDown)
         </template>
         <div v-else-if="toBeDeletedIntegration" class="w-full flex flex-col text-gray-800">
           <div class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
-            <WorkspaceIntegrationsIcon
-              :integration-type="toBeDeletedIntegration.sub_type"
-              size="xs"
-              class="!p-0 !bg-transparent"
-            />
+            <GeneralIntegrationIcon :type="toBeDeletedIntegration.sub_type" />
             <div
               class="text-ellipsis overflow-hidden select-none w-full pl-3"
               :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

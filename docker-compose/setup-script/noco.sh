@@ -85,18 +85,18 @@ add_to_hosts() {
     fi
 
     # Check if the hostname already exists in the file
-    if sudo grep -q "MINIO_DOMAIN_NAME" "$HOSTS_FILE"; then
-        echo "MINIO_DOMAIN_NAME already exists in $HOSTS_FILE"
+    if sudo grep -q "$MINIO_DOMAIN_NAME" "$HOSTS_FILE"; then
+        echo "$MINIO_DOMAIN_NAME already exists in $HOSTS_FILE"
     else
         # Create a temporary copy of the hosts file
         sudo cp "$HOSTS_FILE" "$TEMP_HOSTS_FILE"
 
         # Add the hostname to the temporary file
-        echo "$IP MINIO_DOMAIN_NAME" | sudo tee -a "$TEMP_HOSTS_FILE" > /dev/null
+        echo "$IP $MINIO_DOMAIN_NAME" | sudo tee -a "$TEMP_HOSTS_FILE" > /dev/null
 
         # Replace the original hosts file with the modified one
         if sudo mv "$TEMP_HOSTS_FILE" "$HOSTS_FILE"; then
-            echo "Added MINIO_DOMAIN_NAME to $HOSTS_FILE"
+            echo "Added $MINIO_DOMAIN_NAME to $HOSTS_FILE"
         else
             echo "Failed to update $HOSTS_FILE. Please check your permissions."
             return 1
@@ -817,7 +817,7 @@ NC_S3_FORCE_PATH_STYLE=true
 EOF
 fi
 
-if [ "$MINIO_SSL_ENABLED" != 'Y' ] || [ "$MINIO_SSL_ENABLED" != 'y' ]; then
+if [ "$MINIO_SSL_ENABLED" != 'Y' ] && [ "$MINIO_SSL_ENABLED" != 'y' ]; then
   cat <<EOF >> docker.env
 NC_S3_ENDPOINT=http://${MINIO_DOMAIN_NAME}:9000
 EOF

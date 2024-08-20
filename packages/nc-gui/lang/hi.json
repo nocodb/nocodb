@@ -377,7 +377,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -825,7 +825,7 @@
     "lengthValue": "लंबाई/ मूल्य",
     "dbType": "डेटाबेस प्रकार",
     "servername": "servername / hostAddr",
-    "sqliteFile": "Sqlite फ़ाइल",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "उपयोगकर्ता नाम",
@@ -985,7 +985,8 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
     "webhookDetails": "Webhook Details",
@@ -1545,7 +1546,7 @@
       "apiOptions": "के माध्यम से प्रोजेक्ट",
       "submitAnotherForm": "एक और फॉर्म सबमिट करें' बटन दिखाएं",
       "showBlankForm": "5 सेकंड के बाद एक खाली फॉर्म दिखाएं",
-      "emailForm": "मुझे ई-मेल करें",
+      "emailForm": "Email responses to",
       "showSysFields": "सिस्टम फ़ील्ड दिखाएं",
       "filterAutoApply": "ऑटो लागू करें",
       "formDisplayMessage": "Display Message",

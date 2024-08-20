@@ -178,6 +178,22 @@ const { open, onChange: onChangeFile } = useFileDialog({
 
 const editOrAddProviderRef = ref()
 
+const isOpenRedirectUrlOption = ref(false)
+
+const isOpenRedirectUrl = computed({
+  get: () => {
+    return !!formViewData.value?.redirect_url || isOpenRedirectUrlOption.value
+  },
+  set: (value: boolean) => {
+    isOpenRedirectUrlOption.value = value
+
+    if (!value && formViewData.value?.redirect_url) {
+      formViewData.value.redirect_url = ''
+      updateView()
+    }
+  },
+})
+
 const onVisibilityChange = (state: 'showAddColumn' | 'showEditColumn') => {
   dropdownStates.value[state] = true
 
@@ -1669,6 +1685,31 @@ useEventListener(
                         </div>
 
                         <div class="flex flex-col gap-3">
+                          <div class="flex flex-col gap-3">
+                            <div class="flex items-center justify-between gap-3">
+                              <!-- Redirect to URL -->
+                              <span>{{ $t('labels.redirectToUrl') }}</span>
+                              <a-switch
+                                v-model:checked="isOpenRedirectUrl"
+                                v-e="[`a:form-view:redirect-url`]"
+                                size="small"
+                                class="nc-form-checkbox-redirect-url"
+                                data-testid="nc-form-checkbox-redirect-url"
+                                :disabled="isLocked || !isEditable"
+                                @change="updateView"
+                              />
+                            </div>
+                            <a-input
+                              v-if="isOpenRedirectUrl"
+                              v-model:value="formViewData.redirect_url"
+                              type="text"
+                              class="!h-8 !px-3 !py-1 !rounded-lg max-w-[calc(100%_-_40px)]"
+                              placeholder="Paste redirect URL here"
+                              data-testid="nc-form-redirect-url-input"
+                              @input="updateView"
+                            >
+                            </a-input>
+                          </div>
                           <div class="flex items-center justify-between gap-3">
                             <!-- Show "Submit Another Form" button -->
                             <span>{{ $t('msg.info.submitAnotherForm') }}</span>

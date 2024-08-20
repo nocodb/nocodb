@@ -80,6 +80,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
     /** if user is still not signed in, redirect to signin page */
     if (!state.signedIn.value) {
+      localStorage.setItem('continueAfterSignIn', to.fullPath)
       return navigateTo({
         path: '/signin',
         query: to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {},

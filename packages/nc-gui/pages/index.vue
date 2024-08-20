@@ -91,20 +91,6 @@ watch(
 // immediate watch, because if route is changed during page transition
 // It will error out nuxt
 onMounted(() => {
-  if (route.value.query?.continueAfterSignIn) {
-    localStorage.removeItem('continueAfterSignIn')
-    return navigateTo(route.value.query.continueAfterSignIn as string)
-  } else {
-    const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
-    localStorage.removeItem('continueAfterSignIn')
-    if (continueAfterSignIn) {
-      return navigateTo({
-        path: continueAfterSignIn,
-        query: route.value.query,
-      })
-    }
-  }
-
   handleRouteTypeIdChange().then(() => {
     if (sharedBaseId.value) {
       if (!isUIAllowed('baseDuplicate')) {

@@ -1546,7 +1546,7 @@
       "apiOptions": "Access Base via",
       "submitAnotherForm": "Show 'Submit Another Form' button",
       "showBlankForm": "Show a blank form after 5 seconds",
-      "emailForm": "E-mail me at",
+      "emailForm": "Email responses to",
       "showSysFields": "Show system fields",
       "filterAutoApply": "Auto apply",
       "formDisplayMessage": "Display Message",

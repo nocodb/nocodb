@@ -1703,7 +1703,7 @@ useEventListener(
                             <!-- Email me at <email> -->
                             <span>
                               {{ $t('msg.info.emailForm') }}
-                              <span class="text-bold text-gray-600">{{ user?.email }}</span>
+                              <span class="text-bold text-gray-600 underline">{{ user?.email }}</span>
                             </span>
                             <a-switch
                               v-model:checked="emailMe"

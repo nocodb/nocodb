@@ -178,29 +178,6 @@ const { open, onChange: onChangeFile } = useFileDialog({
 
 const editOrAddProviderRef = ref()
 
-const isOpenRedirectUrlOption = ref(false)
-
-const isOpenRedirectUrl = computed({
-  get: () => {
-    return typeof formViewData.value?.redirect_url === 'string'
-  },
-  set: (value: boolean) => {
-    isOpenRedirectUrlOption.value = value
-    if (value) {
-      formViewData.value = {
-        ...formViewData.value,
-        redirect_url: '',
-      }
-    } else {
-      formViewData.value = {
-        ...formViewData.value,
-        redirect_url: null,
-      }
-    }
-    updateView()
-  },
-})
-
 const onVisibilityChange = (state: 'showAddColumn' | 'showEditColumn') => {
   dropdownStates.value[state] = true
 

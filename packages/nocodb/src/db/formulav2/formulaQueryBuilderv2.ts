@@ -23,6 +23,7 @@ import { convertDateFormatForConcat } from '~/helpers/formulaFnHelper';
 import FormulaColumn from '~/models/FormulaColumn';
 import { BaseUser, ButtonColumn } from '~/models';
 import { getRefColumnIfAlias } from '~/helpers';
+import { ExternalTimeout, NcError } from '~/helpers/catchError';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -1373,7 +1374,7 @@ export default async function formulaQueryBuilderv2(
         await NocoCache.update(`${CacheScope.COL_BUTTON}:${column.id}`, {
           error: e.message,
         });
-      } else {
+      } else if (!(e instanceof ExternalTimeout)) {
         // add formula error to show in UI
         await FormulaColumn.update(context, column.id, {
           error: e.message,
@@ -1385,7 +1386,7 @@ export default async function formulaQueryBuilderv2(
         });
       }
     }
-    throw new Error(`Formula error: ${e.message}`);
+    NcError.formulaError(e.message);
   }
   return qb;
 }

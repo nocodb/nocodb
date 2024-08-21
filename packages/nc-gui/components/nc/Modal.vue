@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import {Action} from "../../composables/useAccountSetupStore";
-
 const props = withDefaults(
   defineProps<{
     visible: boolean
@@ -10,6 +8,7 @@ const props = withDefaults(
     maskClosable?: boolean
     showSeparator?: boolean
     wrapClassName?: string
+    closable?: boolean
   }>(),
   {
     size: 'medium',
@@ -17,6 +16,7 @@ const props = withDefaults(
     maskClosable: true,
     showSeparator: true,
     wrapClassName: '',
+    closable: false,
   },
 )
 
@@ -91,7 +91,7 @@ const slots = useSlots()
     :class="{ active: visible }"
     :width="width"
     :centered="true"
-    :closable="false"
+    :closable="closable"
     :wrap-class-name="newWrapClassName"
     :footer="null"
     :mask-closable="maskClosable"

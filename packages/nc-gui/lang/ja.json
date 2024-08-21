@@ -377,7 +377,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -825,7 +825,7 @@
     "lengthValue": "長さ/値",
     "dbType": "データベースのデータ型",
     "servername": "servername / hostAddr",
-    "sqliteFile": "SQLiteファイル",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "ユーザー名",
@@ -985,7 +985,8 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
     "webhookDetails": "Webhook Details",
@@ -1545,7 +1546,7 @@
       "apiOptions": "プロジェクトへのアクセス: ",
       "submitAnotherForm": "「他の回答を送信」ボタンを表示",
       "showBlankForm": "5秒後に空白のフォームを表示",
-      "emailForm": "次のアドレスへメールを送る",
+      "emailForm": "Email responses to",
       "showSysFields": "システムフィールドを表示",
       "filterAutoApply": "自動適用",
       "formDisplayMessage": "Display Message",

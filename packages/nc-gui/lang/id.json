@@ -377,7 +377,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -825,7 +825,7 @@
     "lengthValue": "Panjang / Nilai",
     "dbType": "DATABASE TYPE.",
     "servername": "servername / hostAddr",
-    "sqliteFile": "File SQLite.",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "Nama pengguna",
@@ -985,7 +985,8 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
     "webhookDetails": "Webhook Details",
@@ -1545,7 +1546,7 @@
       "apiOptions": "PROYEK AKSES VIA.",
       "submitAnotherForm": "Tampilkan tombol 'Kirim formulir lain'",
       "showBlankForm": "Tampilkan formulir kosong setelah 5 detik",
-      "emailForm": "E-mail saya di",
+      "emailForm": "Email responses to",
       "showSysFields": "Tampilkan bidang sistem",
       "filterAutoApply": "Terapkan secara otomatis",
       "formDisplayMessage": "Display Message",

@@ -3,6 +3,8 @@ const { t } = useI18n()
 
 const { loadSetupApps, emailConfigured, storageConfigured, listModalDlg } = useProvideAccountSetupStore()
 
+const { appInfo } = useGlobal()
+
 const openedCategory = ref<string | null>(null)
 
 const configs = computed(() => [
@@ -36,7 +38,7 @@ const configs = computed(() => [
     onClick: () => {
       //  TODO: Implement the logic to switch to production
     },
-    isPending: !isEeUI,
+    isPending: !(appInfo.value as any)?.prodReady,
   },
 ])
 
@@ -78,13 +80,30 @@ onMounted(async () => {
           </div>
           <div class="text-gray-600 text-sm">{{ config.description }}</div>
 
-          <div class="flex justify-between mt-4"  v-if="config.configured">
-            <div class="flex gap-2">
-<GeneralIcon icon="check" class="text-green-500" />
-
+          <div v-if="config.configured" class="flex justify-between mt-4">
+            <div class="flex gap-4 items-center border-1 w-full p-4 rounded">
+              <GeneralIcon icon="circleCheckSolid" class="text-success w-6 h-6 bg-white-500" />
+              <img
+                v-if="config.configured.title !== 'SMTP'"
+                class="max-h-6 max-w-6"
+                :alt="config.configured.title"
+                :style="{
+                  backgroundColor: config.configured.title === 'SES' ? '#242f3e' : '',
+                }"
+                :src="config.configured.logo"
+              />
+              <GeneralIcon v-else icon="mail" />
+              <span class="font-weight-bold text-base">{{ config.configured.title }}</span>
+              <div class="flex-grow" />
+              <NcButton type="text" @click="config.onClick">
+                <div class="flex gap-2 items-center">
+                  <GeneralIcon icon="ncEdit3" />
+                  Edit
+                </div>
+              </NcButton>
             </div>
           </div>
-          <div v-else class="flex justify-between mt-4" >
+          <div v-else class="flex justify-between mt-4">
             <NcButton size="small" type="text">
               <div class="flex gap-2 items-center">
                 Go to docs
@@ -97,7 +116,7 @@ onMounted(async () => {
       </div>
     </div>
 
-    <LazyAccountSetupListModal v-if="openedCategory" :category="openedCategory" v-model="listModalDlg" />
+    <LazyAccountSetupListModal v-if="openedCategory" v-model="listModalDlg" :category="openedCategory" />
   </div>
 </template>
 

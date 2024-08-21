@@ -3,6 +3,7 @@ export enum FormBuilderInputType {
   Select = 'select',
   Switch = 'switch',
   Space = 'space',
+  Password = 'password',
 }
 
 export interface FormBuilderElement {

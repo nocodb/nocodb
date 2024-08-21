@@ -126,7 +126,14 @@ async function queryHandler(req, res) {
         maxConnections = (await tempKnex.raw('SHOW max_connections'))
           .rows?.[0]?.max_connections;
       }
-      tempKnex.destroy();
+
+      // capture the exception and log it
+      tempKnex.destroy().catch((err) =>{
+        console.error(
+          sourceId,
+          err
+        );
+      });
 
       // use dynamicPoolPercent of maxConnections
       const poolSize = Math.floor(

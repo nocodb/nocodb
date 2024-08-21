@@ -29,14 +29,12 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     const aggregations = ref({}) as Ref<Record<string, any>>
 
-    const { isUIAllowed } = useRoles()
-
     const reloadAggregate = inject(ReloadAggregateHookInj)
 
     const visibleFieldsComputed = computed(() => {
-      const fie = fields.value.map((field, index) => ({ field, index })).filter((f) => f.index !== 0)
+      const field = fields.value.map((field, index) => ({ field, index })).filter((f) => f.index !== 0)
 
-      return fie.map((f) => {
+      return field.map((f) => {
         const gridField = gridViewCols.value[f.field.id!]
 
         if (!gridField) {
@@ -44,7 +42,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         }
 
         return {
-          value: aggregations.value[f.field.title] ?? null,
+          value: aggregations.value[f.field.title!] ?? null,
           field: gridField,
           column: f.field,
           index: f.index,
@@ -82,8 +80,8 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
       }>,
     ) => {
       // Wait for meta to be defined https://vueuse.org/shared/until/
-      await until(meta)
-        .toBeTruthy((c) => !!c, {
+      await until(() => !!meta.value)
+        .toBeTruthy({
           timeout: 10000,
         })
         .then(async () => {

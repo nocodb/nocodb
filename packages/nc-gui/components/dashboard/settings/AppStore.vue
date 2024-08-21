@@ -15,11 +15,16 @@ const fetchPluginApps = async () => {
   try {
     const plugins = (await $api.plugin.list()).list ?? []
 
-    apps.value = plugins.map((p) => ({
-      ...p,
-      tags: p.tags ? p.tags.split(',') : [],
-      parsedInput: p.input && JSON.parse(p.input as string),
-    }))
+    // filter out email and storage plugins
+    apps.value = plugins
+      .filter((p) => {
+        return !['email', 'storage'].includes(p.category.toLowerCase())
+      })
+      .map((p) => ({
+        ...p,
+        tags: p.tags ? p.tags.split(',') : [],
+        parsedInput: p.input && JSON.parse(p.input as string),
+      }))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

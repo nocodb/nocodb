@@ -4,8 +4,8 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: R2Plugin,
-  title: 'Cloudflare R2 Storage',
-  version: '0.0.1',
+  title: 'Cloudflare R2',
+  version: '0.0.2',
   logo: 'plugins/r2.png',
   description:
     'Cloudflare R2 is an S3-compatible, zero egress-fee, globally distributed object storage.',

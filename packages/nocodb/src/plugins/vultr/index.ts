@@ -4,8 +4,8 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: VultrPlugin,
-  title: 'Vultr Object Storage',
-  version: '0.0.3',
+  title: 'Vultr',
+  version: '0.0.4',
   logo: 'plugins/vultr.png',
   description:
     'Using Vultr Object Storage can give flexibility and cloud storage that allows applications greater flexibility and access worldwide.',

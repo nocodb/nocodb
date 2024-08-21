@@ -4,8 +4,8 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: LinodeObjectStoragePlugin,
-  title: 'Linode Object Storage',
-  version: '0.0.2',
+  title: 'Linode',
+  version: '0.0.3',
   logo: 'plugins/linode.svg',
   tags: 'Storage',
   description:

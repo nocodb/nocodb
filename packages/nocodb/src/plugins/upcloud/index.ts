@@ -4,8 +4,8 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: UpCloudPlugin,
-  title: 'UpCloud Object Storage',
-  version: '0.0.2',
+  title: 'UpCloud',
+  version: '0.0.3',
   logo: 'plugins/upcloud.png',
   description:
     'The perfect home for your data. Thanks to the S3-compatible programmable interface,\n' +

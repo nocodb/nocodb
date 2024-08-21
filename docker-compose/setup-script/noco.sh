@@ -80,7 +80,7 @@ add_to_hosts() {
 
     ## Only add to hosts if the domain name is minio
 
-    if [ "$CONFIG_DOMAIN_NAME" != "minio" ]; then
+    if [ "$MINIO_DOMAIN_NAME" != "minio" ]; then
         return 0
     fi
 

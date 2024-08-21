@@ -9,10 +9,13 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
 
   const { $api, $e } = useNuxtApp()
 
+  const { t } = useI18n()
+
   const activePlugin = ref<PluginType | null>(null)
   const activePluginFormData = ref({})
   const isLoading = ref(false)
   const loadingAction = ref<null | Action>(null)
+  const showPluginUninstallModal = ref(false)
 
   const emailApps = computed(() => apps.value.filter((app) => app.category === 'Email'))
   const storageApps = computed(() => apps.value.filter((app) => app.category === 'Storage'))
@@ -25,10 +28,11 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
 
   const categorizeApps = computed(() => {
     return apps.value.reduce((acc, app) => {
-      if (!acc[app.category]) {
-        acc[app.category] = []
+      const key = app.category.toLowerCase()
+      if (!acc[key]) {
+        acc[key] = []
       }
-      acc[app.category].push(app)
+      acc[key].push(app)
       return acc
     }, {} as Record<string, PluginType[]>)
   })
@@ -119,6 +123,23 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
     }
   }
 
+  const resetPlugin = async () => {
+    try {
+      await $api.plugin.update(activePlugin.value.id, {
+        input: null,
+        active: false,
+      })
+      // Plugin uninstalled successfully
+      message.success(t('msg.success.pluginUninstalled'))
+      showPluginUninstallModal.value = false
+      await loadSetupApps()
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+
+    $e('a:appstore:reset', { app: activePlugin.value.title })
+  }
+
   return {
     apps,
     emailApps,
@@ -136,6 +157,9 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
     storageConfigured,
     listModalDlg,
     configModalDlg,
+    readPluginDetails,
+    showPluginUninstallModal,
+    resetPlugin,
   }
 })
 

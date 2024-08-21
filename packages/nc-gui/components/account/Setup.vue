@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { useAccountSetupStoreOrThrow } from '../../composables/useAccountSetupStore'
+
 const { t } = useI18n()
 
-const { loadSetupApps, emailConfigured, storageConfigured, listModalDlg } = useProvideAccountSetupStore()
+const { loadSetupApps, emailConfigured, storageConfigured, listModalDlg } = useAccountSetupStoreOrThrow()
 
 const { appInfo } = useGlobal()
 
@@ -14,8 +16,9 @@ const configs = computed(() => [
     description: 'Configure an email account to send system notifications to your organisation’s users.',
     docsLink: '',
     onClick: () => {
-      listModalDlg.value = true
-      openedCategory.value = 'Email'
+      // listModalDlg.value = true
+      // openedCategory.value = 'Email'
+      navigateTo(`/account/setup/email${emailConfigured.value ? `/${emailConfigured.value.title}` : ''}`)
     },
     configured: emailConfigured.value,
   },
@@ -25,8 +28,10 @@ const configs = computed(() => [
     description: 'Configure a storage service to store your organisation’s data.',
     docsLink: '',
     onClick: () => {
-      listModalDlg.value = true
-      openedCategory.value = 'Storage'
+      // listModalDlg.value = true
+      // openedCategory.value = 'Storage'
+
+      navigateTo(`/account/setup/storage${storageConfigured.value ? `/${storageConfigured.value.title}` : ''}`)
     },
     configured: storageConfigured.value,
   },

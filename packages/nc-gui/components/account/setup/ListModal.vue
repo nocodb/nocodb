@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 const props = defineProps<{
   category: string
   modelValue?: boolean
@@ -43,7 +42,7 @@ const selectApp = (app: any) => {
               <GeneralIcon v-else icon="mail" />
               <span class="title">{{ app.title }}</span>
               <div class="flex-grow" />
-              <GeneralIcon icon="circleCheckSolid" v-if="app.active" class="text-primary min-w-6 h-6 bg-white-500" />
+              <GeneralIcon v-if="app.active" icon="circleCheckSolid" class="text-primary min-w-6 h-6 bg-white-500" />
             </div>
           </div>
         </div>

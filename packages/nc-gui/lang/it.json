@@ -377,7 +377,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -825,7 +825,7 @@
     "lengthValue": "Lunghezza / Valore",
     "dbType": "Tipo di database",
     "servername": "servername / hostAddr",
-    "sqliteFile": "File di SQLite",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "Nome utente",
@@ -985,7 +985,8 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
     "webhookDetails": "Webhook Details",
@@ -1545,7 +1546,7 @@
       "apiOptions": "Accedi al progetto tramite",
       "submitAnotherForm": "Mostra \"Invia un altro modulo\"",
       "showBlankForm": "Mostra un modulo vuoto dopo 5 secondi",
-      "emailForm": "Mandami un'e-mail a",
+      "emailForm": "Email responses to",
       "showSysFields": "Mostra campi di sistema",
       "filterAutoApply": "Auto Apply.",
       "formDisplayMessage": "Display Message",

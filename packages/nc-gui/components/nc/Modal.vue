@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import {Action} from "../../composables/useAccountSetupStore";
+
 const props = withDefaults(
   defineProps<{
     visible: boolean

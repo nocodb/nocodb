@@ -2,6 +2,7 @@ import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { ColumnType, FormType, TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
 
 const useForm = Form.useForm
 
@@ -114,8 +115,30 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       } catch {}
     }
 
+    const isValidRedirectUrl = (): ValidateInfo => {
+      if (typeof formViewData.value?.redirect_url !== 'string') return { validateStatus: '', help: undefined }
+
+      const url = formViewData.value?.redirect_url?.trim() ?? ''
+
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        return {
+          validateStatus: 'error',
+          help: 'Redirect url must starts with `http://` or `https://`',
+        }
+      }
+
+      return { validateStatus: '', help: undefined }
+    }
+
     const updateView = useDebounceFn(
       () => {
+        if (isValidRedirectUrl().validateStatus === 'error') {
+          formViewData.value = {
+            ...formViewData.value,
+            redirect_url: '',
+          }
+        }
+
         updateFormView(formViewData.value)
       },
       300,
@@ -160,6 +183,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       validateInfos,
       clearValidate,
       fieldMappings,
+      isValidRedirectUrl,
+      formViewData,
     }
   },
   'form-view-store',

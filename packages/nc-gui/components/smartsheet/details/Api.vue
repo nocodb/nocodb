@@ -176,12 +176,6 @@ const supportedDocs = [
   title: string
   href: string
 }[]
-
-const handleNavigateToDocs = (href: string) => {
-  navigateTo(href, {
-    open: navigateToBlankTargetOpenOption,
-  })
-}
 </script>
 
 <template>

@@ -16,17 +16,24 @@ export class ThumbnailGeneratorProcessor {
   async job(job: Job<ThumbnailGeneratorJobData>) {
     const { attachments } = job.data;
 
-    const thumbnailPromises = attachments.map(async (attachment) => {
+    const results = [];
+
+    for (const attachment of attachments) {
       const thumbnail = await this.generateThumbnail(attachment);
-      return {
+
+      if (!thumbnail) {
+        continue;
+      }
+
+      results.push({
         path: attachment.path ?? attachment.url,
         card_cover: thumbnail?.card_cover,
         small: thumbnail?.small,
         tiny: thumbnail?.tiny,
-      };
-    });
+      });
+    }
 
-    return await Promise.all(thumbnailPromises);
+    return results;
   }
 
   private async generateThumbnail(
@@ -47,6 +54,8 @@ export class ThumbnailGeneratorProcessor {
       return;
     }
 
+    sharp.concurrency(1);
+
     try {
       const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
@@ -66,51 +75,53 @@ export class ThumbnailGeneratorProcessor {
         tiny: path.join('nc', 'thumbnails', relativePath, 'tiny.jpg'),
       };
 
-      await Promise.all(
-        Object.entries(thumbnailPaths).map(async ([size, thumbnailPath]) => {
-          let height;
-          switch (size) {
-            case 'card_cover':
-              height = 512;
-              break;
-            case 'small':
-              height = 128;
-              break;
-            case 'tiny':
-              height = 64;
-              break;
-            default:
-              height = 32;
-              break;
-          }
+      const sharpImage = await sharp(file, {
+        limitInputPixels: false,
+      });
 
-          const resizedImage = await sharp(file, {
-            limitInputPixels: false,
+      for (const [size, thumbnailPath] of Object.entries(thumbnailPaths)) {
+        let height;
+        switch (size) {
+          case 'card_cover':
+            height = 512;
+            break;
+          case 'small':
+            height = 128;
+            break;
+          case 'tiny':
+            height = 64;
+            break;
+          default:
+            height = 32;
+            break;
+        }
+
+        const resizedImage = await sharpImage
+          .resize(undefined, height, {
+            fit: sharp.fit.cover,
+            kernel: 'lanczos3',
           })
-            .resize(undefined, height, {
-              fit: sharp.fit.cover,
-              kernel: 'lanczos3',
-            })
-            .toBuffer();
+          .toBuffer();
 
-          await (storageAdapter as any).fileCreateByStream(
-            slash(thumbnailPath),
-            Readable.from(resizedImage),
-            {
-              mimetype: 'image/jpeg',
-            },
-          );
-        }),
-      );
+        await (storageAdapter as any).fileCreateByStream(
+          slash(thumbnailPath),
+          Readable.from(resizedImage),
+          {
+            mimetype: 'image/jpeg',
+          },
+        );
+      }
 
       return thumbnailPaths;
     } catch (error) {
-      this.logger.error(
-        `Failed to generate thumbnails for ${
+      this.logger.error({
+        message: `Failed to generate thumbnails for ${
           attachment.path ?? attachment.url
         }`,
-        error.stack as string,
-      );
+        error: error?.message,
+      });
+
+      return null;
     }
   }
 

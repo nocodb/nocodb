@@ -377,7 +377,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -825,7 +825,7 @@
     "lengthValue": "Chiều dài / giá trị",
     "dbType": "Loại cơ sở dữ liệu",
     "servername": "servername / hostAddr",
-    "sqliteFile": "Tập tin sqlite.",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "tên tài khoản",
@@ -985,7 +985,8 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
     "webhookDetails": "Webhook Details",
@@ -1545,7 +1546,7 @@
       "apiOptions": "Dự án truy cập thông qua",
       "submitAnotherForm": "Hiển thị 'Gửi nút khác'",
       "showBlankForm": "Hiển thị một hình thức trống sau 5 giây",
-      "emailForm": "Gửi email cho tôi tại",
+      "emailForm": "Email responses to",
       "showSysFields": "Hiển thị các lĩnh vực hệ thống",
       "filterAutoApply": "Áp dụng tự động",
       "formDisplayMessage": "Display Message",

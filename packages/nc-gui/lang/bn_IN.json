@@ -377,7 +377,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -825,7 +825,7 @@
     "lengthValue": "দৈর্ঘ্য/ মান",
     "dbType": "ডাটাবেস প্রকার",
     "servername": "servername / hostAddr",
-    "sqliteFile": "স্ক্লাইট ফাইল",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "ব্যবহারকারীর নাম",
@@ -985,7 +985,8 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
     "webhookDetails": "Webhook Details",
@@ -1545,7 +1546,7 @@
       "apiOptions": "মাধ্যমে অ্যাক্সেস প্রকল্প",
       "submitAnotherForm": "অন্য ফর্ম জমা দিন' বোতামটি দেখান",
       "showBlankForm": "5 সেকেন্ড পরে একটি ফাঁকা ফর্ম দেখান",
-      "emailForm": "আমাকে ইমেল করুন",
+      "emailForm": "Email responses to",
       "showSysFields": "সিস্টেম ক্ষেত্রগুলি দেখান",
       "filterAutoApply": "অটো প্রয়োগ",
       "formDisplayMessage": "Display Message",

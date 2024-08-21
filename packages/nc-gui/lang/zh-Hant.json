@@ -377,7 +377,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -825,7 +825,7 @@
     "lengthValue": "長度/值",
     "dbType": "資料庫類型",
     "servername": "servername / hostAddr",
-    "sqliteFile": "SQLite 檔案",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "使用者名稱",
@@ -985,7 +985,8 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
     "webhookDetails": "Webhook Details",
@@ -1545,7 +1546,7 @@
       "apiOptions": "存取專案方式",
       "submitAnotherForm": "顯示“提交另一個表格”按鈕",
       "showBlankForm": "5 秒後顯示空白表格",
-      "emailForm": "發電子郵件給我",
+      "emailForm": "Email responses to",
       "showSysFields": "顯示系統欄位",
       "filterAutoApply": "自動申請",
       "formDisplayMessage": "Display Message",

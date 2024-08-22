@@ -54,7 +54,7 @@ watch(isPanelExpanded, (newValue) => {
     :size="extensionPanelSize"
     min-size="10%"
     max-size="60%"
-    class="flex flex-col gap-3 bg-[#F0F3FF]"
+    class="nc-extension-pane"
     :style="{
       minWidth: isReady ? '300px' : `${normalizePaneMaxWidth}%`,
       maxWidth: `${normalizePaneMaxWidth}%`,
@@ -160,5 +160,11 @@ watch(isPanelExpanded, (newValue) => {
   &:last-child {
     @apply pb-3;
   }
+}
+
+.nc-extension-pane{
+  @apply flex flex-col gap-3 bg-gray-50 rounded-l-xl border-1 border-gray-200 z-30;
+
+  box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
 }
 </style>

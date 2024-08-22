@@ -126,6 +126,25 @@ get_public_ip() {
     echo "localhost"
 }
 
+get_nproc() {
+    # Try to get the number of processors using nproc
+    if command -v nproc &> /dev/null; then
+        nproc
+    else
+        # Fallback: Check if /proc/cpuinfo exists and count the number of processors
+        if [[ -f /proc/cpuinfo ]]; then
+            grep -c ^processor /proc/cpuinfo
+        # Fallback for macOS or BSD systems using sysctl
+        elif command -v sysctl &> /dev/null; then
+            sysctl -n hw.ncpu
+        # Default to 1 processor if everything else fails
+        else
+            echo 1
+        fi
+    fi
+}
+
+
 prompt() {
     local prompt_text="$1"
     local default_value="$2"
@@ -443,7 +462,7 @@ get_advanced_options() {
 
     CONFIG_WATCHTOWER_ENABLED=$(confirm "Do you want to enable Watchtower for automatic updates?" "Y" && echo "Y" || echo "N")
 
-    NUM_CORES=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
+    NUM_CORES=$(get_nproc)
     CONFIG_NUM_INSTANCES=$(read_number_range "How many instances of NocoDB do you want to run?" 1 "$NUM_CORES" 1)
 }
 
@@ -868,7 +887,7 @@ upgrade_service() {
 }
 
 scale_service() {
-    num_cores=$(nproc || sysctl -n hw.ncpu || echo 1)
+    num_cores=$(get_nproc)
     current_scale=$($CONFIG_DOCKER_COMMAND compose ps -q nocodb | wc -l)
     echo -e "\nCurrent number of instances: $current_scale"
     scale_num=$(read_number_range "How many instances of NocoDB do you want to run?" 1 "$num_cores" 1)

@@ -358,7 +358,8 @@ export const useExtensions = createSharedComposable(() => {
       const modules = import.meta.glob('../extensions/*/*.json')
 
       const markdownModules = import.meta.glob('../extensions/*/*.md', {
-        as: 'raw',
+        query: '?raw',
+        import: 'default',
       })
 
       const extensionCount = Object.keys(modules).length

@@ -140,11 +140,11 @@ onMounted(() => {
       maxWidth: `${normalizePaneMaxWidth}%`,
     }"
   >
-    <div class="flex items-center gap-3 p-4 border-b-1 border-gray-200 bg-white">
+    <div class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-gray-200 bg-white">
       <NcTooltip v-if="false" class="flex" hide-on-click placement="topRight">
         <template #title> Hide extensions </template>
         <NcButton
-          size="small"
+          size="xs"
           type="text"
           class="!text-gray-700 !hover:text-gray-800 !hover:bg-gray-200"
           @click="toggleExtensionPanel"
@@ -169,7 +169,7 @@ onMounted(() => {
           'flex-1': isOpenSearchBox,
         }"
       >
-        <NcButton v-if="!isOpenSearchBox" size="small" type="text" @click="handleShowSearchInput">
+        <NcButton v-if="!isOpenSearchBox" size="xs" type="text" class="!px-1" @click="handleShowSearchInput">
           <GeneralIcon icon="search" class="flex-none !text-gray-500" />
         </NcButton>
         <div v-else class="flex flex-grow items-center justify-end">
@@ -177,7 +177,7 @@ onMounted(() => {
             ref="searchExtensionRef"
             v-model:value="searchQuery"
             type="text"
-            class="nc-input-border-on-value !h-8 !px-3 !py-1 !rounded-lg !max-w-[350px]"
+            class="nc-input-border-on-value !h-7 !px-3 !py-1 !rounded-lg !max-w-[350px]"
             placeholder="Search Extension"
             allow-clear
             @keydown.esc="handleCloseSearchbox"
@@ -188,7 +188,7 @@ onMounted(() => {
           </a-input>
         </div>
       </div>
-      <NcButton type="secondary" size="small" @click="toggleMarket">
+      <NcButton type="secondary" size="xs" @click="toggleMarket">
         <div class="flex items-center gap-1 text-xs max-w-full">
           <GeneralIcon icon="plus" />
           Add

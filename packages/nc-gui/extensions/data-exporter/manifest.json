@@ -8,5 +8,9 @@
   "iconUrl": "data-exporter/icon.svg",
   "publisherName": "NocoDB",
   "publisherEmail": "contact@nocodb.com",
-  "publisherUrl": "https://www.nocodb.com"
+  "publisherUrl": "https://www.nocodb.com",
+  "config": {
+    "modalMaxWith": "sm",
+    "contentMinHeight": "310px"
+  }
 }

@@ -9,5 +9,8 @@
   "publisherName": "NocoDB",
   "publisherEmail": "contact@nocodb.com",
   "publisherUrl": "https://www.nocodb.com",
-  "disabled": true
+  "disabled": true,
+  "config": {
+    "contentMinHeight": "190px"
+  }
 }

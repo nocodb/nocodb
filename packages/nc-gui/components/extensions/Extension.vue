@@ -56,17 +56,19 @@ const { fullscreen, collapsed } = useProvideExtensionHelper(extension)
 
 const component = ref<any>(null)
 
-const extensionManifest = ref<any>(null)
+const extensionManifest = ref<ExtensionManifest | undefined>()
 
-const extensionMinHeight = computed(() => {
-  switch (extension.value.extensionId) {
-    case 'nc-data-exporter':
-      return 'min-h-[310px] h-[310px]'
-    case 'nc-json-exporter':
-      return 'min-h-[215px] h-[215px]'
-    case 'nc-csv-import':
-      return 'min-h-[190px] h-[190px]'
+const fullscreenModalMaxWidth = computed(() => {
+  const modalMaxWidth = {
+    xs: 'min(calc(100vw - 32px), 448px)',
+    sm: 'min(calc(100vw - 32px), 640px)',
+    md: 'min(calc(100vw - 48px), 900px)',
+    lg: 'min(calc(100vw - 48px), 1280px)',
   }
+
+  return extensionManifest.value?.config?.modalMaxWith
+    ? modalMaxWidth[extensionManifest.value?.config?.modalMaxWith] || modalMaxWidth.lg
+    : modalMaxWidth.lg
 })
 
 const expandExtension = () => {
@@ -81,7 +83,7 @@ onMounted(() => {
     .then(() => {
       extensionManifest.value = availableExtensions.value.find((ext) => ext.id === extension.value.extensionId)
 
-      if (!extensionManifest) {
+      if (!extensionManifest.value) {
         return
       }
 
@@ -142,13 +144,20 @@ eventBus.on((event, payload) => {
     <div
       class="extension-wrapper"
       :class="[
-        `${!collapsed ? extensionMinHeight : ''}`,
         {
           '!h-auto': collapsed,
           'isOpen': !collapsed,
           'mousedown': isMouseDown,
         },
       ]"
+      :style="
+        !collapsed
+          ? {
+              height: extensionManifest?.config?.contentMinHeight,
+              minHeight: extensionManifest?.config?.contentMinHeight,
+            }
+          : {}
+      "
       @mousedown="isMouseDown = true"
       @mouseup="isMouseDown = false"
     >
@@ -248,7 +257,16 @@ eventBus.on((event, payload) => {
             :class="{ 'extension-modal': fullscreen, 'h-[calc(100%_-_50px)]': !fullscreen }"
             @click="closeFullscreen"
           >
-            <div :class="{ 'extension-modal-content': fullscreen, 'h-full': !fullscreen }">
+            <div
+              :class="{ 'extension-modal-content': fullscreen, 'h-full': !fullscreen }"
+              :style="
+                fullscreen
+                  ? {
+                      maxWidth: fullscreenModalMaxWidth,
+                    }
+                  : {}
+              "
+            >
               <div v-if="fullscreen" class="flex items-center justify-between cursor-default">
                 <div class="flex-1 max-w-[calc(100%_-_96px)] flex items-center gap-2 text-gray-800 font-semibold">
                   <img
@@ -358,7 +376,7 @@ eventBus.on((event, payload) => {
   @apply absolute top-0 left-0 z-1000 w-full h-full bg-black bg-opacity-50;
 
   .extension-modal-content {
-    @apply bg-white rounded-2xl w-[90%] max-w-[1154px] h-[90vh] mt-[5vh] mx-auto p-6 flex flex-col gap-3;
+    @apply bg-white rounded-2xl w-[90%] h-[90vh] mt-[5vh] mx-auto p-6 flex flex-col gap-3;
   }
 }
 

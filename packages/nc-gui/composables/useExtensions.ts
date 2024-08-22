@@ -11,7 +11,7 @@ const extensionsState = createGlobalState(() => {
   return { baseExtensions, extensionsEgg, extensionsEggCounter }
 })
 
-interface ExtensionManifest {
+export interface ExtensionManifest {
   id: string
   title: string
   subTitle: string
@@ -23,6 +23,10 @@ interface ExtensionManifest {
   publisherEmail: string
   publisherUrl: string
   disabled?: boolean
+  config?: {
+    modalMaxWith?: 'xs' | 'sm' | 'md' | 'lg'
+    contentMinHeight?: string
+  }
 }
 
 abstract class ExtensionType {

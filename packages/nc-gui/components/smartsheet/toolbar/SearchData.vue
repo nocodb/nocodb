@@ -85,6 +85,12 @@ onClickOutside(globalSearchWrapperRef, (e) => {
 
   showSearchBox.value = false
 })
+
+onMounted(() => {
+  if (search.value.query && !showSearchBox.value) {
+    showSearchBox.value = true
+  }
+})
 </script>
 
 <template>

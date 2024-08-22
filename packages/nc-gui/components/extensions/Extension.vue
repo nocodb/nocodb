@@ -201,21 +201,21 @@ eventBus.on((event, payload) => {
       <template v-if="activeError">
         <div
           v-show="!collapsed"
-          class="extension-content"
+          class="extension-content nc-scrollbar-thin h-[calc(100%_-_50px)] flex items-center justify-center"
           :class="{
             fullscreen: fullscreen,
           }"
         >
-          <a-result status="error" title="Extension Error">
+          <a-result status="error" title="Extension Error" class="nc-extension-error">
             <template #subTitle>{{ activeError }}</template>
             <template #extra>
-              <NcButton @click="extension.clear()">
+              <NcButton size="small" @click="extension.clear()">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="reload" />
                   Clear Data
                 </div>
               </NcButton>
-              <NcButton type="danger" @click="extension.delete()">
+              <NcButton size="small" type="danger" @click="extension.delete()">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="delete" />
                   Delete
@@ -333,6 +333,24 @@ eventBus.on((event, payload) => {
 
   .extension-modal-content {
     @apply bg-white rounded-2xl w-[90%] max-w-[1154px] h-[90vh] mt-[5vh] mx-auto p-6 flex flex-col gap-3;
+  }
+}
+
+:deep(.nc-extension-error.ant-result){
+  @apply p-0;
+  .ant-result-icon{
+    @apply mb-3;
+    & > span {
+      @apply text-[32px];
+    }
+  }
+
+  .ant-result-title{
+    @apply text-base text-gray-800 font-semibold;
+  }
+
+  .ant-result-extra{
+    @apply mt-3;
   }
 }
 </style>

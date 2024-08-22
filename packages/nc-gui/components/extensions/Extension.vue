@@ -323,7 +323,7 @@ eventBus.on((event, payload) => {
 .extension-content {
   @apply rounded-lg;
 
-  &:not(fullscreen) {
+  &:not(.fullscreen) {
     @apply p-3;
   }
 }

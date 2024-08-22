@@ -315,14 +315,14 @@ get_advanced_options() {
     CONFIG_SSL_ENABLED=$(confirm "Do you want to configure SSL?" && echo "Y" || echo "N")
     CONFIG_EDITION=$(prompt "Choose Community or Enterprise Edition [CE/EE]" "CE")
 
-    if [ "${CONFIG_EDITION}" = "EE" ] || [ "$CONFIG_EDITION}" = "ee" ]; then
+    if [ "$CONFIG_EDITION" = "EE" ] || [ "$CONFIG_EDITION" = "ee" ]; then
         CONFIG_LICENSE_KEY=$(prompt_required "Enter the NocoDB license key")
     fi
 
     CONFIG_REDIS_ENABLED=$(confirm "Do you want to enable Redis for caching?" "Y" && echo "Y" || echo "N")
     CONFIG_MINIO_ENABLED=$(confirm "Do you want to enable Minio for file storage?" "Y" && echo "Y" || echo "N")
 
-    if [ "${CONFIG_MINIO_ENABLED}" = "Y" ] || [ "$CONFIG_MINIO_ENABLED}" = "y" ]; then
+    if [ "$CONFIG_MINIO_ENABLED" = "Y" ] || [ "$CONFIG_MINIO_ENABLED" = "y" ]; then
         CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter the MinIO domain name" "localhost")
         CONFIG_MINIO_SSL_ENABLED=$(confirm "Do you want to configure SSL for MinIO?" && echo "Y" || echo "N")
     fi
@@ -498,7 +498,8 @@ EOF
 
 create_env_file() {
     local env_file="docker.env"
-    local encoded_password=$(urlencode "${CONFIG_POSTGRES_PASSWORD}")
+    local encoded_password
+    encoded_password=$(urlencode "${CONFIG_POSTGRES_PASSWORD}")
 
     cat > "$env_file" <<EOF
 POSTGRES_DB=nocodb

@@ -638,7 +638,7 @@ EOF
 EOF
 # If minio SSL is enabled, set the entry point to websecure
 fi
-    if [ "${CONFIG_SSL_ENABLED}" = "Y" ]; then
+    if [ "$CONFIG_MINIO_SSL_ENABLED" = "Y" ]; then
         cat >> "$compose_file" <<EOF
       - "traefik.http.routers.minio.entrypoints=websecure"
       - "traefik.http.routers.minio.tls=true"

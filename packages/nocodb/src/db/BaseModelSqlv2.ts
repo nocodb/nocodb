@@ -9799,10 +9799,11 @@ class BaseModelSqlv2 {
   }
 
   protected async clearFileReferences(args: {
-    oldData?: Record<string, any>[];
+    oldData?: Record<string, any>[] | Record<string, any>;
     columns?: Column[];
   }) {
-    const { oldData, columns } = args;
+    const { oldData: _oldData, columns } = args;
+    const oldData = Array.isArray(_oldData) ? _oldData : [_oldData];
 
     const modelColumns = columns || (await this.model.getColumns(this.context));
 

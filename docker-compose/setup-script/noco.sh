@@ -577,14 +577,14 @@ EOF
     image: redis:latest
     restart: unless-stopped
     env_file: docker.env
-    command: redis-server --requirepass \${REDIS_PASSWORD}
-    volumes:
-      - redis:/data
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --requirepass "\$\${REDIS_PASSWORD}"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: [ "CMD", "redis-cli", "-a", "\$\${REDIS_PASSWORD}", "--raw", "incr", "ping" ]
+    volumes:
+      - ./redis:/data
     networks:
       - nocodb-network
 EOF

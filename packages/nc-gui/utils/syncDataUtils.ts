@@ -166,12 +166,6 @@ export const allIntegrations: IntegrationItemType[] = [
     icon: iconMap.ollama,
     type: `${IntegrationCategoryType.AI}-coming-soon`,
   },
-  {
-    title: 'objects.syncData.groq',
-    subType: SyncDataType.GROQ,
-    icon: iconMap.groq,
-    type: `${IntegrationCategoryType.AI}-coming-soon`,
-  },
 
   // Communication
   {

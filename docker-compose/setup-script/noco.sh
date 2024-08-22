@@ -871,8 +871,7 @@ scale_service() {
     num_cores=$(nproc || sysctl -n hw.ncpu || echo 1)
     current_scale=$($CONFIG_DOCKER_COMMAND compose ps -q nocodb | wc -l)
     echo -e "\nCurrent number of instances: $current_scale"
-    echo "How many instances of NocoDB do you want to run (Maximum: ${num_cores}) ? (default: 1): "
-    scale_num=$(read_number_range 1 "$num_cores")
+    scale_num=$(read_number_range "How many instances of NocoDB do you want to run?" 1 "$num_cores" 1)
 
     if [ "$scale_num" -eq "$current_scale" ]; then
         echo "Number of instances is already set to $scale_num. Returning to main menu."

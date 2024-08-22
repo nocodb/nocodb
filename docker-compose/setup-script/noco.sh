@@ -60,6 +60,36 @@ command_exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
+# generate email from the domain
+generate_contact_email() {
+    local domain="$1"
+    local email
+
+    # Check if the domain is empty, localhost, or an IP address
+    if [ -z "$domain" ] || [ "$domain" = "localhost" ] || [[ "$domain" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        email="contact@example.com"
+    else
+        # Remove any protocol prefix (http:// or https://)
+        domain="${domain#http://}"
+        domain="${domain#https://}"
+        # Remove any path or query string
+        domain="${domain%%/*}"
+        domain="${domain%%\?*}"
+
+        # Extract the main domain (last two parts)
+        if [[ "$domain" =~ [^.]+\.[^.]+$ ]]; then
+            main_domain="${BASH_REMATCH[0]}"
+        else
+            main_domain="$domain"
+        fi
+
+        email="contact@$main_domain"
+    fi
+
+    echo "$email"
+}
+
+
 # install package based on platform
 install_package() {
   if command_exists yum; then
@@ -86,7 +116,7 @@ add_to_hosts() {
 
     # Check if the hostname already exists in the file
     if sudo grep -q "$MINIO_DOMAIN_NAME" "$HOSTS_FILE"; then
-        echo "$MINIO_DOMAIN_NAME already exists in $HOSTS_FILE"
+        return 0
     else
         # Create a temporary copy of the hosts file
         sudo cp "$HOSTS_FILE" "$TEMP_HOSTS_FILE"
@@ -672,20 +702,23 @@ cat <<EOF >> docker-compose.yml
       - "--providers.docker=true"
       - "--entrypoints.web.address=:80"
       - "--providers.docker.exposedByDefault=false"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+EOF
+if [ "MINIO_ENABLED" != 'n' ] && [ "MINIO_ENABLED" != 'N' ]; then
+  cat <<EOF >> docker-compose.yml
       - "--entrypoints.minio.address=:9000"
 EOF
+fi
 
 if [ "$SSL_ENABLED" = 'y' ] || [ "$SSL_ENABLED" = 'Y' ] || [ "$MINIO_SSL_ENABLED" = 'y' ] || [ "$MINIO_SSL_ENABLED" = 'Y' ]; then
     cat <<EOF >> docker-compose.yml
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=websecure"
-      - "--certificatesresolvers.letsencrypt.acme.email=`\"contact@$DOMAIN_NAME\"`"
+      - "--certificatesresolvers.letsencrypt.acme.email=$(generate_contact_email "$DOMAIN_NAME")"
       - "--certificatesresolvers.letsencrypt.acme.storage=/etc/letsencrypt/acme.json"
 EOF
 else
     cat <<EOF >> docker-compose.yml
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
 EOF
 fi
 
@@ -844,7 +877,11 @@ echo 'Waiting for Traefik to start...';
 sleep 5
 
 if [ -n "$DOMAIN_NAME" ]; then
-  message_arr+=("NocoDB is now available at http://$DOMAIN_NAME")
+  if [ -n "$SSL_ENABLED" ]; then
+    message_arr+=("NocoDB is now available at https://$DOMAIN_NAME")
+  else
+    message_arr+=("NocoDB is now available at http://$DOMAIN_NAME")
+  fi
 else
   message_arr+=("NocoDB is now available at http://localhost")
 fi

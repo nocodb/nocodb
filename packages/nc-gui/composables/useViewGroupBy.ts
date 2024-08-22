@@ -395,7 +395,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
           const aggregation = Object.values(gridViewCols.value)
             .map((f) => ({
-              field: f.fk_column_id,
+              field: f.fk_column_id!,
               type: f.aggregation ?? CommonAggregations.None,
             }))
             .filter((f) => f.type !== CommonAggregations.None)
@@ -630,7 +630,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         let filteredFields = fields
         if (!fields) {
           filteredFields = Object.values(gridViewCols.value).map((f) => ({
-            field: f.fk_column_id,
+            field: f.fk_column_id!,
             type: f.aggregation ?? CommonAggregations.None,
           }))
         }

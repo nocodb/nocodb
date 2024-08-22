@@ -1,11 +1,16 @@
 {
   "id": "nc-data-exporter",
   "title": "Data Exporter",
-  "description": "Export any view in various formats",
+  "subTitle": "Asynchronous CSV downloads with real-time notifications.",
+  "description": "data-exporter/description.md",
   "entry": "data-exporter",
   "version": "0.1",
-  "iconUrl": "data-exporter/icon.png",
+  "iconUrl": "data-exporter/assets/icon.svg",
   "publisherName": "NocoDB",
   "publisherEmail": "contact@nocodb.com",
-  "publisherUrl": "https://www.nocodb.com"
+  "publisherUrl": "https://www.nocodb.com",
+  "config": {
+    "modalMaxWith": "sm",
+    "contentMinHeight": "310px"
+  }
 }

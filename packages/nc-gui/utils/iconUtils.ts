@@ -551,6 +551,8 @@ import NcFormViewIcon from '~icons/nc-icons/form'
 import NcGalleryViewIcon from '~icons/nc-icons/gallery'
 import NcKanbanViewIcon from '~icons/nc-icons/kanban'
 import NcCalendarViewIcon from '~icons/nc-icons/calendar'
+import NcPuzzleSolid from '~icons/nc-icons/puzzle-solid'
+import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1319,6 +1321,8 @@ export const iconMap = {
   langRuby: NcLangRuby,
   langJava: NcLangJava,
   langC: NcLangC,
+  ncPuzzleSolid: NcPuzzleSolid,
+  ncPuzzleOutline: NcPuzzleOutline,
 }
 
 export const getMdiIcon = (type: string): any => {

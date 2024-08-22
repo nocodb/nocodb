@@ -119,7 +119,7 @@ test.describe('Collaborators', () => {
       relationsVisible: true,
     });
 
-    await dashboard.sidebar.verifyQuickActions({ isVisible: true });
+    await dashboard.grid.topbar.verifyQuickActions({ isVisible: true });
     await dashboard.sidebar.verifyTeamAndSettings({ isVisible: true });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: true });
 
@@ -152,7 +152,7 @@ test.describe('Collaborators', () => {
       relationsVisible: true,
     });
 
-    await dashboard.sidebar.verifyQuickActions({ isVisible: true });
+    await dashboard.grid.topbar.verifyQuickActions({ isVisible: true });
     await dashboard.sidebar.verifyTeamAndSettings({ isVisible: true });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
 
@@ -181,7 +181,7 @@ test.describe('Collaborators', () => {
       relationsVisible: true,
     });
 
-    await dashboard.sidebar.verifyQuickActions({ isVisible: true });
+    await dashboard.grid.topbar.verifyQuickActions({ isVisible: true });
     await dashboard.sidebar.verifyTeamAndSettings({ isVisible: true });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
 
@@ -210,7 +210,7 @@ test.describe('Collaborators', () => {
       relationsVisible: true,
     });
 
-    await dashboard.sidebar.verifyQuickActions({ isVisible: true });
+    await dashboard.grid.topbar.verifyQuickActions({ isVisible: true });
     await dashboard.sidebar.verifyTeamAndSettings({ isVisible: true });
     await dashboard.sidebar.verifyCreateProjectBtn({ isVisible: false });
 

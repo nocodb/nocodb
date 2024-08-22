@@ -1,11 +1,15 @@
 {
   "id": "nc-csv-import",
   "title": "CSV Import",
-  "description": "The CSV Import extension for NocoDB empowers users with seamless integration, enabling effortless uploading of CSV files into existing tables. With its intuitive interface, users can effortlessly bind any column from their CSV files to corresponding columns within their NocoDB tables, facilitating efficient data management.\n\nThis versatile extension further enhances productivity by supporting upsert operations, allowing users to match records based on specified columns. Whether updating existing data or importing new information, the CSV Import extension streamlines the process, ensuring accuracy and consistency across datasets.\n\nKey Features:\n\n- Simplified CSV file uploading to NocoDB tables.\n- Flexible column binding for seamless data integration.\n- Upsert functionality for efficient record matching and updating.\n\nExperience unparalleled convenience and precision in data management with the CSV Import extension for NocoDB. Streamline your workflow and unlock the full potential of your datasets today.",
+  "subTitle": "Import data from CSV files into your existing NocoDB table.",
+  "description": "csv-import-ee/description.md",
   "entry": "csv-import-ee",
   "version": "0.1",
-  "iconUrl": "csv-import-ee/icon.png",
+  "iconUrl": "csv-import-ee/assets/icon.svg",
   "publisherName": "NocoDB",
   "publisherEmail": "contact@nocodb.com",
-  "publisherUrl": "https://www.nocodb.com"
+  "publisherUrl": "https://www.nocodb.com",
+  "config": {
+    "contentMinHeight": "215px"
+  }
 }

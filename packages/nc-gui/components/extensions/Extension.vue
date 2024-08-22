@@ -146,6 +146,7 @@ eventBus.on((event, payload) => {
         class="extension-header p-3"
         :class="{
           'border-b-1 border-gray-200': !collapsed,
+          'collapsed': collapsed,
         }"
       >
         <div class="extension-header-left max-w-[calc(100%_-_100px)]">
@@ -181,7 +182,7 @@ eventBus.on((event, payload) => {
           </NcTooltip>
         </div>
         <div class="extension-header-right">
-          <NcButton v-if="!activeError" type="text" size="xxsmall" @click="fullscreen = true">
+          <NcButton v-if="!activeError" type="text" size="xxsmall" class="nc-extension-expand-btn" @click="fullscreen = true">
             <GeneralIcon icon="expand" />
           </NcButton>
           <ExtensionsExtensionMenu
@@ -191,6 +192,7 @@ eventBus.on((event, payload) => {
             @show-details="showExtensionDetails(extension.extensionId, 'extension')"
             @clear-data="extension.clear()"
             @delete="extension.delete()"
+            class="nc-extension-menu"
           />
           <NcButton size="xxsmall" type="text" @click="collapsed = !collapsed">
             <GeneralIcon :icon="collapsed ? 'arrowUp' : 'arrowDown'" class="flex-none" />
@@ -307,6 +309,13 @@ eventBus.on((event, payload) => {
 .extension-header {
   @apply flex justify-between;
 
+  &.collapsed:not(:hover) {
+    .nc-extension-expand-btn,
+    .nc-extension-menu {
+      @apply hidden;
+    }
+  }
+
   .extension-header-left {
     @apply flex-1 flex items-center gap-2;
   }
@@ -336,20 +345,20 @@ eventBus.on((event, payload) => {
   }
 }
 
-:deep(.nc-extension-error.ant-result){
+:deep(.nc-extension-error.ant-result) {
   @apply p-0;
-  .ant-result-icon{
+  .ant-result-icon {
     @apply mb-3;
     & > span {
       @apply text-[32px];
     }
   }
 
-  .ant-result-title{
+  .ant-result-title {
     @apply text-base text-gray-800 font-semibold;
   }
 
-  .ant-result-extra{
+  .ant-result-extra {
     @apply mt-3;
   }
 }

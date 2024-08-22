@@ -40,6 +40,11 @@ const handleShowSearchInput = () => {
   })
 }
 
+const handleCloseSearchbox = () => {
+  showSearchBox.value = false
+  searchQuery.value = ''
+}
+
 const filteredExtensionList = computed(() =>
   (extensionList.value || []).filter((ext) => ext.title.toLowerCase().includes(searchQuery.value.toLowerCase())),
 )
@@ -155,7 +160,7 @@ onMounted(() => {
           'flex-1': !isOpenSearchBox,
         }"
       >
-        <GeneralIcon icon="ncPuzzleSolid" class="h-7 w-7" />
+        <GeneralIcon icon="ncPuzzleSolid" class="h-6 w-6" />
         <span v-if="!isOpenSearchBox">Extensions</span>
       </div>
       <div
@@ -175,6 +180,7 @@ onMounted(() => {
             class="nc-input-border-on-value !h-8 !px-3 !py-1 !rounded-lg !max-w-[350px]"
             placeholder="Search Extension"
             allow-clear
+            @keydown.esc="handleCloseSearchbox"
           >
             <template #prefix>
               <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />

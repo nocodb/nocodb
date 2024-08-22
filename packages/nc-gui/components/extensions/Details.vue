@@ -41,7 +41,7 @@ const detailsBody = activeExtension.value?.description ? marked.parse(activeExte
     :footer="null"
     :width="1154"
     size="medium"
-    wrap-class-name="nc-modal-extension-market"
+    wrap-class-name="nc-modal-extension-details"
   >
     <div v-if="activeExtension" class="flex flex-col w-full h-full">
       <div v-if="from === 'market'" class="flex-none h-8 flex items-center mb-4">

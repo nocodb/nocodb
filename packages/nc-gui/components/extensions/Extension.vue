@@ -151,7 +151,7 @@ eventBus.on((event, payload) => {
         <div class="extension-header-left max-w-[calc(100%_-_100px)]">
           <!-- Todo: enable later when we support extension reordering -->
           <!-- eslint-disable vue/no-constant-condition -->
-          <NcButton size="xxsmall" type="text">
+          <NcButton size="xxsmall" type="text" class="nc-extension-drag-handler">
             <GeneralIcon icon="ncDrag" class="flex-none text-gray-500" />
           </NcButton>
 

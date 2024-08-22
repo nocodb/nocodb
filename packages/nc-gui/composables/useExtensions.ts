@@ -33,6 +33,7 @@ abstract class ExtensionType {
   abstract title: string
   abstract kvStore: any
   abstract meta: any
+  abstract order: number
   abstract setTitle(title: string): Promise<any>
   abstract setMeta(key: string, value: any): Promise<any>
   abstract clear(): Promise<any>
@@ -70,7 +71,11 @@ export const useExtensions = createSharedComposable(() => {
   })
 
   const extensionList = computed<ExtensionType[]>(() => {
-    return activeBaseExtensions.value ? activeBaseExtensions.value.extensions : []
+    return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : []).sort(
+      (a: ExtensionType, b: ExtensionType) => {
+        return (a?.order ?? Infinity) - (b?.order ?? Infinity)
+      },
+    )
   })
 
   const toggleExtensionPanel = () => {
@@ -158,7 +163,7 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    const { id: _id, ...extensionData } = extension.serialize()
+    const { id: _id, order: _order, ...extensionData } = extension.serialize()
 
     const newExtension = await $api.extensions.create(base.value.id, {
       ...extensionData,
@@ -251,6 +256,7 @@ export const useExtensions = createSharedComposable(() => {
     private _title: string
     private _kvStore: KvStore
     private _meta: any
+    private _order: number
 
     public uiKey = 0
 
@@ -262,6 +268,7 @@ export const useExtensions = createSharedComposable(() => {
       this._title = data.title
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
+      this._order = data.order
     }
 
     get id() {
@@ -292,6 +299,10 @@ export const useExtensions = createSharedComposable(() => {
       return this._meta
     }
 
+    get order() {
+      return this._order
+    }
+
     serialize() {
       return {
         id: this._id,
@@ -301,6 +312,7 @@ export const useExtensions = createSharedComposable(() => {
         title: this._title,
         kv_store: this._kvStore.serialize(),
         meta: this._meta,
+        order: this._order,
       }
     }
 
@@ -312,6 +324,7 @@ export const useExtensions = createSharedComposable(() => {
       this._title = data.title
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
+      this._order = data.order
     }
 
     setTitle(title: string): Promise<any> {

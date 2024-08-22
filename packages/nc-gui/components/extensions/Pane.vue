@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
+import Draggable from 'vuedraggable'
 
 const {
   extensionList,
@@ -11,7 +12,10 @@ const {
   isMarketVisible,
   extensionPanelSize,
   toggleExtensionPanel,
+  updateExtension,
 } = useExtensions()
+
+const { $e } = useNuxtApp()
 
 const isReady = ref(false)
 
@@ -50,6 +54,39 @@ const normalizePaneMaxWidth = computed(() => {
     return extensionPanelSize.value
   }
 })
+
+const onMove = async (_event: { moved: { newIndex: number; oldIndex: number; element: NcProject } }) => {
+  
+  const {
+    moved: { newIndex = 0, oldIndex = 0, element },
+  } = _event
+
+  if (!element?.id) return
+
+  let nextOrder: number
+
+  // set new order value based on the new order of the items
+  if (filteredExtensionList.value.length - 1 === newIndex) {
+    // If moving to the end, set nextOrder greater than the maximum order in the list
+    nextOrder = Math.max(...filteredExtensionList.value.map((item) => item?.order ?? 0)) + 1
+  } else if (newIndex === 0) {
+    // If moving to the beginning, set nextOrder smaller than the minimum order in the list
+    nextOrder = Math.min(...filteredExtensionList.value.map((item) => item?.order ?? 0)) / 2
+  } else {
+    nextOrder =
+      (parseFloat(String(filteredExtensionList.value[newIndex - 1]?.order ?? 0)) +
+        parseFloat(String(filteredExtensionList.value[newIndex + 1]?.order ?? 0))) /
+      2
+  }
+
+  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+  await updateExtension(element.id, {
+    order: _nextOrder,
+  })
+
+  $e('a:extension:reorder')
+}
 
 defineExpose({
   onReady: () => {
@@ -158,7 +195,7 @@ onMounted(() => {
             Add Extension
           </div>
         </NcButton>
-          <!-- Todo: add docs link  -->
+        <!-- Todo: add docs link  -->
         <NcButton size="small" type="secondary">
           <div class="flex items-center gap-2 font-weight-600">
             <GeneralIcon icon="externalLink" />
@@ -168,29 +205,39 @@ onMounted(() => {
       </div>
     </template>
     <template v-else>
-      <div
+      <Draggable
+        :model-value="filteredExtensionList"
+        item-key="id"
+        draggable=".nc-extension-item"
+        handle=".nc-extension-drag-handler"
+        ghost-class="ghost"
         class="nc-extension-list-wrapper flex items-center flex-col gap-3 w-full nc-scrollbar-md py-4"
         :class="{
           'h-full': searchQuery && !filteredExtensionList.length && extensionList.length,
         }"
+        @start="(e) => e.target.classList.add('grabbing')"
+        @end="(e) => e.target.classList.remove('grabbing')"
+        @change="onMove($event)"
       >
-        <ExtensionsWrapper v-for="ext in filteredExtensionList" :key="ext.id" :extension-id="ext.id" />
-
-        <div
-          v-if="searchQuery && !filteredExtensionList.length && extensionList.length"
-          class="w-full h-full flex-1 flex items-center justify-center"
-        >
-          <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
-            <img
-              src="~assets/img/placeholder/no-search-result-found.png"
-              class="!w-[164px] flex-none"
-              alt="No search results found"
-            />
-
-            {{ $t('title.noResultsMatchedYourSearch') }}
+        <template #item="{ element: ext }">
+          <div :key="ext.id" class="nc-extension-item w-full">
+            <ExtensionsWrapper :extension-id="ext.id" />
           </div>
-        </div>
-      </div>
+        </template>
+        <template #header v-if="searchQuery && !filteredExtensionList.length && extensionList.length">
+          <div class="w-full h-full flex-1 flex items-center justify-center">
+            <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
+              <img
+                src="~assets/img/placeholder/no-search-result-found.png"
+                class="!w-[164px] flex-none"
+                alt="No search results found"
+              />
+
+              {{ $t('title.noResultsMatchedYourSearch') }}
+            </div>
+          </div>
+        </template>
+      </Draggable>
     </template>
     <ExtensionsMarket v-if="isMarketVisible" v-model="isMarketVisible" />
     <ExtensionsDetails

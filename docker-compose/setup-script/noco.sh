@@ -58,6 +58,11 @@ print_box_message() {
 
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
+is_valid_domain() {
+    local domain_regex="^([a-zA-Z0-9]([-a-zA-Z0-9]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+    [[ "$1" =~ $domain_regex ]]
+}
+
 urlencode() {
     local string="$1"
     local strlen=${#string}
@@ -80,7 +85,45 @@ generate_password() {
 }
 
 get_public_ip() {
-    dig +short myip.opendns.com @1.1.1.1 || echo "localhost"
+    local ip
+
+    if command -v dig >/dev/null 2>&1; then
+        ip=$(dig +short myip.opendns.com @resolver1.opendns.com 2>/dev/null)
+        if [ -n "$ip" ]; then
+            echo "$ip"
+            return
+        fi
+    fi
+
+    # Method 2: Using curl
+    if command -v curl >/dev/null 2>&1; then
+        ip=$(curl -s -4 https://ifconfig.co 2>/dev/null)
+        if [ -n "$ip" ]; then
+            echo "$ip"
+            return
+        fi
+    fi
+
+    # Method 3: Using wget
+    if command -v wget >/dev/null 2>&1; then
+        ip=$(wget -qO- https://ifconfig.me 2>/dev/null)
+        if [ -n "$ip" ]; then
+            echo "$ip"
+            return
+        fi
+    fi
+
+    # Method 4: Using host
+    if command -v host >/dev/null 2>&1; then
+        ip=$(host myip.opendns.com resolver1.opendns.com 2>/dev/null | grep "myip.opendns.com has" | awk '{print $4}')
+        if [ -n "$ip" ]; then
+            echo "$ip"
+            return
+        fi
+    fi
+
+    # If all methods fail, return localhost
+    echo "localhost"
 }
 
 prompt() {
@@ -222,36 +265,52 @@ check_for_docker_sudo() {
 }
 
 read_number() {
+    local prompt="$1"
+    local default="$2"
     local number
-    read -rp "$1" number
 
-    while ! [[ $number =~ ^[0-9]+$ ]] && [ -n "$number" ] ; do
-        read -rp "Please enter a valid number: " number
+    while true; do
+        if [ -n "$default" ]; then
+            read -rp "$prompt [$default]: " number
+            number=${number:-$default}
+        else
+            read -rp "$prompt: " number
+        fi
+
+        if [ -z "$number" ]; then
+            echo "Input cannot be empty. Please enter a number."
+        elif ! [[ $number =~ ^[0-9]+$ ]]; then
+            echo "Invalid input. Please enter a valid number."
+        else
+            echo "$number"
+            return
+        fi
     done
-
-    echo "$number"
 }
 
 read_number_range() {
+    local prompt="$1"
+    local min="$2"
+    local max="$3"
+    local default="$4"
     local number
-    local min
-    local max
 
-    if [ "$#" -ne 3 ]; then
-        number=$(read_number)
-        min=$1
-        max=$2
-    else
-        number=$(read_number "$1")
-        min=$2
-        max=$3
-    fi
+    while true; do
+        if [ -n "$default" ]; then
+            number=$(read_number "$prompt ($min-$max)" "$default")
+        else
+            number=$(read_number "$prompt ($min-$max)")
+        fi
 
-    while [[ -n "$number" && ($number -lt $min || $number -gt $max) ]]; do
-        number=$(read_number "Please enter a number between $min and $max: ")
+        if [ -z "$number" ]; then
+            continue
+        elif [ "$number" -lt "$min" ] || [ "$number" -gt "$max" ]; then
+            echo "Please enter a number between $min and $max."
+        else
+            echo "$number"
+            return
+        fi
     done
-
-    echo "$number"
 }
 
 check_if_docker_is_running() {
@@ -341,6 +400,16 @@ check_system_requirements() {
 get_user_inputs() {
     CONFIG_DOMAIN_NAME=$(prompt "Enter the IP address or domain name for the NocoDB instance" "$(get_public_ip)")
 
+     if is_valid_domain "$CONFIG_DOMAIN_NAME"; then
+            if confirm "Do you want to configure SSL for $CONFIG_DOMAIN_NAME?"; then
+                CONFIG_SSL_ENABLED="Y"
+            else
+                CONFIG_SSL_ENABLED="N"
+            fi
+        else
+            CONFIG_SSL_ENABLED="N"
+        fi
+
     if confirm "Show Advanced Options?"; then
         get_advanced_options
     else
@@ -349,25 +418,33 @@ get_user_inputs() {
 }
 
 get_advanced_options() {
-    CONFIG_SSL_ENABLED=$(confirm "Do you want to configure SSL?" && echo "Y" || echo "N")
     CONFIG_EDITION=$(prompt "Choose Community or Enterprise Edition [CE/EE]" "CE")
 
     if [ "$CONFIG_EDITION" = "EE" ] || [ "$CONFIG_EDITION" = "ee" ]; then
         CONFIG_LICENSE_KEY=$(prompt_required "Enter the NocoDB license key")
     fi
 
-    CONFIG_REDIS_ENABLED=$(confirm "Do you want to enable Redis for caching?" "Y" && echo "Y" || echo "N")
-    CONFIG_MINIO_ENABLED=$(confirm "Do you want to enable Minio for file storage?" "Y" && echo "Y" || echo "N")
+    CONFIG_REDIS_ENABLED=$(confirm "Do you want to enable Redis for caching?" "Y" && echo "Y" || echo "N" "Y")
+    CONFIG_MINIO_ENABLED=$(confirm "Do you want to enable Minio for file storage?" "Y" && echo "Y" || echo "N" "Y")
 
     if [ "$CONFIG_MINIO_ENABLED" = "Y" ] || [ "$CONFIG_MINIO_ENABLED" = "y" ]; then
-        CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter the MinIO domain name" "localhost")
-        CONFIG_MINIO_SSL_ENABLED=$(confirm "Do you want to configure SSL for MinIO?" && echo "Y" || echo "N")
+        CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter the MinIO domain name" "minio")
+
+        if is_valid_domain "CONFIG_MINIO_DOMAIN_NAME"; then
+                if confirm "Do you want to configure SSL for $CONFIG_MINIO_DOMAIN_NAME?"; then
+                    CONFIG_MINIO_SSL_ENABLED="Y"
+                else
+                    CONFIG_MINIO_SSL_ENABLED="N"
+                fi
+        else
+                CONFIG_MINIO_SSL_ENABLED="N"
+        fi
     fi
 
     CONFIG_WATCHTOWER_ENABLED=$(confirm "Do you want to enable Watchtower for automatic updates?" "Y" && echo "Y" || echo "N")
 
     NUM_CORES=$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
-    CONFIG_NUM_INSTANCES=$(prompt_number "How many instances of NocoDB do you want to run?" 1 "$NUM_CORES")
+    CONFIG_NUM_INSTANCES=$(read_number_range "How many instances of NocoDB do you want to run?" 1 "$NUM_CORES" 1)
 }
 
 set_default_options() {
@@ -375,7 +452,7 @@ set_default_options() {
     CONFIG_EDITION="CE"
     CONFIG_REDIS_ENABLED="Y"
     CONFIG_MINIO_ENABLED="Y"
-    CONFIG_MINIO_DOMAIN_NAME="localhost"
+    CONFIG_MINIO_DOMAIN_NAME="minio"
     CONFIG_MINIO_SSL_ENABLED="N"
     CONFIG_WATCHTOWER_ENABLED="Y"
     CONFIG_NUM_INSTANCES=1
@@ -399,7 +476,6 @@ create_docker_compose_file() {
     local compose_file="docker-compose.yml"
 
     cat > "$compose_file" <<EOF
-version: '3'
 services:
   nocodb:
     image: ${image}
@@ -501,7 +577,7 @@ EOF
     image: redis:latest
     restart: unless-stopped
     env_file: docker.env
-    command: redis-server --requirepass "\${REDIS_PASSWORD}"
+    command: redis-server --requirepass \${REDIS_PASSWORD}
     volumes:
       - redis:/data
     healthcheck:
@@ -821,6 +897,7 @@ main() {
     get_user_inputs
     generate_credentials
     create_docker_compose_file
+    add_to_hosts
     create_env_file
     create_update_script
     start_services

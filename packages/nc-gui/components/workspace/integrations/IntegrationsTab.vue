@@ -19,13 +19,13 @@ const props = withDefaults(
 
 const { isModal, filterCategory, filterIntegration } = props
 
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
 const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 
-const { pageMode, IntegrationsPageMode, requestIntegration, addIntegration, saveIntegraitonRequest } = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, requestIntegration, addIntegration, saveIntegraitonRequest, integrationsRefreshKey } = useIntegrationStore()
 
 const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
 
@@ -61,15 +61,15 @@ const getIntegrationsByCategory = (category: IntegrationCategoryType, query: str
   return allIntegrations.filter((i) => {
     const isOssOnly = isEeUI ? !i?.isOssOnly : true
     return (
-      isOssOnly &&
-      filterIntegration(i) &&
-      i.categories.includes(category) &&
-      t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+      isOssOnly && filterIntegration(i) && i.type === category && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
     )
   })
 }
 
 const integrationsMapByCategory = computed(() => {
+  // eslint-disable-next-line no-unused-expressions
+  integrationsRefreshKey.value
+
   return integrationCategories
     .filter(filterCategory)
     .filter((c) => (activeCategory.value ? c.value === activeCategory.value.value : true))
@@ -127,18 +127,13 @@ const handleUpvote = (category: IntegrationCategoryType, syncDataType: SyncDataT
   updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
 }
 
-const handleAddIntegration = (category: IntegrationCategoryType, integration: IntegrationItemType) => {
+const handleAddIntegration = async (category: IntegrationCategoryType, integration: IntegrationItemType) => {
   if (!integration.isAvailable) {
-    handleUpvote(category, integration.value)
+    handleUpvote(category, integration.subType)
     return
   }
 
-  // currently we only support database integration category type
-  if (category !== IntegrationCategoryType.DATABASE) {
-    return
-  }
-
-  addIntegration(integration.value)
+  await addIntegration(integration)
 }
 </script>
 
@@ -240,7 +235,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                     <div v-if="category.list.length" class="integration-type-list">
                       <NcTooltip
                         v-for="integration of category.list"
-                        :key="integration.value"
+                        :key="integration.subType"
                         :disabled="integration?.isAvailable"
                         placement="bottom"
                       >
@@ -268,7 +263,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                               size="xs"
                               class="integration-upvote-btn !rounded-lg !px-1 !py-0"
                               :class="{
-                                selected: upvotesData.has(integration.value),
+                                selected: upvotesData.has(integration.subType),
                               }"
                             >
                               <div class="flex items-center gap-2">

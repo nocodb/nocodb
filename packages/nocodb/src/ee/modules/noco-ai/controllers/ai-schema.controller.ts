@@ -8,9 +8,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { AiSchemaService } from '~/modules/noco-ai/services/schema.service';
+import { AiSchemaService } from '~/modules/noco-ai/services/ai-schema.service';
 import { BasesService } from '~/services/bases.service';
 
 @Controller()
@@ -24,6 +26,7 @@ export class AiSchemaController {
   @Post(['/api/v2/ai/schema/:baseId'])
   @HttpCode(200)
   async generateSchema(
+    @TenantContext() context: NcContext,
     @Req() req: Request,
     @Body()
     body: {
@@ -32,7 +35,7 @@ export class AiSchemaController {
     @Param('baseId') baseId: string,
   ) {
     const { input } = body;
-    return await this.aiSchemaService.generateSchema({
+    return await this.aiSchemaService.generateSchema(context, {
       baseId,
       input,
       req,
@@ -41,8 +44,12 @@ export class AiSchemaController {
 
   @Post(['/api/v2/ai/schema/:baseId/views'])
   @HttpCode(200)
-  async generateViews(@Req() req: Request, @Param('baseId') baseId: string) {
-    return await this.aiSchemaService.generateViews({
+  async generateViews(
+    @TenantContext() context: NcContext,
+    @Req() req: Request,
+    @Param('baseId') baseId: string,
+  ) {
+    return await this.aiSchemaService.generateViews(context, {
       baseId,
       req,
     });
@@ -51,11 +58,12 @@ export class AiSchemaController {
   @Post(['/api/v2/ai/schema/:baseId/preview'])
   @HttpCode(200)
   async generateSchemaPreview(
+    @TenantContext() context: NcContext,
     @Req() req: Request,
     @Body() body,
     @Param('baseId') baseId: string,
   ) {
-    return await this.aiSchemaService.serializeSchema({
+    return await this.aiSchemaService.serializeSchema(context, {
       baseId,
       req,
     });
@@ -64,6 +72,7 @@ export class AiSchemaController {
   @Post(['/api/v2/ai/template/:workspaceId'])
   @HttpCode(200)
   async generateTemplate(
+    @TenantContext() context: NcContext,
     @Req() req: Request,
     @Body()
     body: {
@@ -87,7 +96,9 @@ export class AiSchemaController {
       req: req,
     });
 
-    await this.aiSchemaService.generateSchema({
+    context.base_id = base.id;
+
+    await this.aiSchemaService.generateSchema(context, {
       baseId: base.id,
       input,
       instructions,
@@ -95,7 +106,7 @@ export class AiSchemaController {
     });
 
     if (body.options?.generateViews) {
-      await this.aiSchemaService.generateViews({
+      await this.aiSchemaService.generateViews(context, {
         baseId: base.id,
         instructions,
         req,
@@ -103,7 +114,7 @@ export class AiSchemaController {
     }
 
     if (body.options?.generateData) {
-      await this.aiSchemaService.generateData({
+      await this.aiSchemaService.generateData(context, {
         baseId: base.id,
         instructions,
         req,

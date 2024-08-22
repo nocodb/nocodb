@@ -1,11 +1,10 @@
-import { Module } from '@nestjs/common';
-import { AiSchemaController } from '~/modules/noco-ai/controllers/schema.controller';
-import { AiSchemaService } from '~/modules/noco-ai/services/schema.service';
-import { MetasModule } from '~/modules/metas/metas.module';
-import { DatasModule } from '~/modules/datas/datas.module';
+import { forwardRef, Module } from '@nestjs/common';
+import { AiSchemaController } from '~/modules/noco-ai/controllers/ai-schema.controller';
+import { AiSchemaService } from '~/modules/noco-ai/services/ai-schema.service';
+import { NocoModule } from '~/modules/noco.module';
 
 @Module({
-  imports: [MetasModule, DatasModule],
+  imports: [forwardRef(() => NocoModule)],
   controllers: [AiSchemaController],
   providers: [AiSchemaService],
   exports: [AiSchemaService],

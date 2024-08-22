@@ -1,6 +1,13 @@
-import type { IntegrationsType, SourceType } from 'nocodb-sdk';
-import type { BoolType, IntegrationType } from 'nocodb-sdk';
+import { glob } from 'glob';
+import type {
+  BoolType,
+  FormDefinition,
+  IntegrationsType,
+  IntegrationType,
+  SourceType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type IntegrationWrapper from '~/integrations/integration.wrapper';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -19,6 +26,20 @@ import {
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export default class Integration implements IntegrationType {
+  public static availableIntegrations: {
+    integrationType: IntegrationsType;
+    integrationSubType: string;
+    form?: FormDefinition;
+    wrapper?: typeof IntegrationWrapper;
+    meta?: {
+      title?: string;
+      value?: string;
+      icon?: string;
+      type?: IntegrationsType;
+      description?: string;
+    };
+  }[] = [];
+
   id?: string;
   fk_workspace_id?: string;
   title?: string;
@@ -44,6 +65,58 @@ export default class Integration implements IntegrationType {
   protected static encryptConfigIfRequired(obj: Record<string, unknown>) {
     obj.config = encryptPropIfRequired({ data: obj });
     obj.is_encrypted = isEncryptionRequired();
+  }
+
+  public static async init() {
+    const files = await glob('src/integrations/**/*.ts', {
+      // ignore root level .ts files
+      ignore: ['src/integrations/*.ts', 'src/integrations/*/*.ts'],
+      cwd: process.cwd(),
+      absolute: true,
+    });
+
+    for (const file of files) {
+      // get between integrations/ and next /
+      const integrationType = file
+        .replace(/.*integrations\//, '')
+        ?.split('/')?.[0] as IntegrationsType;
+
+      if (!integrationType) continue;
+
+      // get between integrations/${integrationType}/ and next /
+
+      const subTypeRegex = new RegExp(`.*integrations/${integrationType}/`);
+
+      const integrationSubType = file
+        .replace(subTypeRegex, '')
+        ?.split('/')?.[0];
+
+      if (!integrationSubType) continue;
+
+      let integration = this.availableIntegrations.find((el) => {
+        return (
+          integrationType === el.integrationType &&
+          integrationSubType === el.integrationSubType
+        );
+      });
+
+      if (!integration) {
+        integration = {
+          integrationType,
+          integrationSubType,
+        };
+
+        this.availableIntegrations.push(integration);
+      }
+
+      if (file.includes('entry')) {
+        integration.wrapper = (await import(file)).default;
+      } else if (file.includes('form')) {
+        integration.form = (await import(file)).default;
+      } else if (file.includes('manifest')) {
+        integration.meta = (await import(file)).default;
+      }
+    }
   }
 
   public static async createIntegration(
@@ -404,5 +477,25 @@ export default class Integration implements IntegrationType {
       });
 
     return (this.sources = sources);
+  }
+
+  public wrapper: IntegrationWrapper;
+
+  async getIntegrationWrapper<T extends IntegrationWrapper>() {
+    if (!this.wrapper) {
+      const integrationWrapper = Integration.availableIntegrations.find(
+        (el) =>
+          el.integrationType === this.type &&
+          el.integrationSubType === this.sub_type,
+      );
+
+      if (!integrationWrapper) {
+        throw new Error('Integration not found');
+      }
+
+      this.wrapper = new integrationWrapper.wrapper(this);
+    }
+
+    return this.wrapper as T;
   }
 }

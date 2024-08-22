@@ -1,7 +1,8 @@
-import type { IntegrationType, PaginatedType } from 'nocodb-sdk'
-import { ClientType, IntegrationsType } from 'nocodb-sdk'
+import type { FormDefinition, IntegrationType, PaginatedType } from 'nocodb-sdk'
+import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
-import type { IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'
+import GeneralIcon from '~/components/general/Icon.vue'
+import type { IntegrationItemType, IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'
 
 enum IntegrationsPageMode {
   LIST,
@@ -9,14 +10,15 @@ enum IntegrationsPageMode {
   EDIT,
 }
 
-const integrationType: Record<'PostgreSQL' | 'MySQL', ClientType> = {
+const integrationType: Record<'PostgreSQL' | 'MySQL' | 'OpenAI', ClientType | SyncDataType> = {
   PostgreSQL: ClientType.PG,
   MySQL: ClientType.MYSQL,
+  OpenAI: SyncDataType.OPENAI,
 }
 
 type IntegrationsSubType = (typeof integrationType)[keyof typeof integrationType]
 
-function defaultValues(type: IntegrationsSubType) {
+function getStaticInitializor(type: IntegrationsSubType) {
   const genericValues = {
     payload: {},
   }
@@ -45,6 +47,8 @@ function defaultValues(type: IntegrationsSubType) {
   }
 }
 
+const integrationForms: Record<string, FormDefinition> = {}
+
 const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState(() => {
   const router = useRouter()
   const route = router.currentRoute
@@ -52,6 +56,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const { api } = useApi()
   const pageMode = ref<IntegrationsPageMode | null>(null)
   const activeIntegration = ref<IntegrationType | null>(null)
+  const activeIntegrationItem = ref<IntegrationItemType | null>(null)
 
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
@@ -68,11 +73,13 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const eventBus = useEventBus<IntegrationStoreEventsTypes>(Symbol('integrationStore'))
 
-  const { $e } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const { t } = useI18n()
 
   const isFromIntegrationPage = ref(false)
+
+  const integrationsRefreshKey = ref(0)
 
   const requestIntegration = ref({
     isOpen: false,
@@ -142,8 +149,22 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       isLoadingIntegrations.value = false
     }
   }
-  const addIntegration = (type: IntegrationsSubType) => {
-    activeIntegration.value = defaultValues(type)
+  const addIntegration = async (integration: IntegrationItemType) => {
+    activeIntegration.value = integration.dynamic ? integration : getStaticInitializor(integration.subType)
+    activeIntegrationItem.value = integration
+
+    if (integration.dynamic === true && !(integration.subType in integrationForms)) {
+      const integrationInfo = await $api.integrations.info(integration.type, integration.subType)
+
+      if (integrationInfo?.form) {
+        integrationForms[integration.subType] = integrationInfo.form
+
+        activeIntegrationItem.value.form = integrationInfo.form
+      }
+    } else if (integration.dynamic === true) {
+      activeIntegrationItem.value.form = integrationForms[integration.subType]
+    }
+
     pageMode.value = IntegrationsPageMode.ADD
     $e('c:integration:add')
   }
@@ -292,6 +313,25 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     try {
       const integrationWithConfig = await getIntegration(integration, { includeConfig: true })
       activeIntegration.value = integrationWithConfig
+
+      const integrationItem = allIntegrations.find(
+        (item) => item.type === integration.type && item.subType === integration.sub_type,
+      )!
+
+      activeIntegrationItem.value = integrationItem
+
+      if (integrationItem.dynamic === true && !(integrationItem.subType in integrationForms)) {
+        const integrationInfo = await $api.integrations.info(integrationItem.type, integrationItem.subType)
+
+        if (integrationInfo?.form) {
+          integrationForms[integrationItem.subType] = integrationInfo.form
+
+          activeIntegrationItem.value.form = integrationInfo.form
+        }
+      } else if (integrationItem.dynamic === true) {
+        activeIntegrationItem.value.form = integrationForms[integrationItem.subType]
+      }
+
       pageMode.value = IntegrationsPageMode.EDIT
 
       $e('c:integration:edit')
@@ -318,11 +358,46 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
+  onMounted(async () => {
+    if (integrationsInitialized.value) return
+
+    integrationsInitialized.value = true
+
+    const dynamicIntegrations = (await $api.integrations.list()) as {
+      type: IntegrationsType
+      subType: string
+      meta: {
+        title?: string
+        subType?: string
+        icon?: string
+        type?: IntegrationsType
+        description?: string
+      }
+    }[]
+
+    for (const di of dynamicIntegrations) {
+      const integration: IntegrationItemType = {
+        title: di.meta.title || di.subType,
+        subType: di.meta.subType || di.subType,
+        icon: di.meta.icon ? iconMap[di.meta.icon] : iconMap.puzzle,
+        type: di.meta.type || [di.type],
+        isAvailable: true,
+        dynamic: true,
+      }
+
+      allIntegrations.push(integration)
+
+      integrationsRefreshKey.value++
+    }
+  })
+
   return {
     IntegrationsPageMode,
     integrationType,
     pageMode,
     activeIntegration,
+    activeIntegrationItem,
+    integrationsRefreshKey,
     integrations,
     isLoadingIntegrations,
     deleteConfirmText,

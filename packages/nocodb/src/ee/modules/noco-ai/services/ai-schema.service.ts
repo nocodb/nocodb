@@ -1,17 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { openai } from '@ai-sdk/openai';
-import { generateObject, type LanguageModel } from 'ai';
-import { z } from 'zod';
 import {
   extractRolesObj,
+  IntegrationCategoryType,
   type RelationTypes,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
 
+import { z } from 'zod';
 import type GridViewColumn from '~/models/GridViewColumn';
 import type CalendarView from '~/models/CalendarView';
 import type Column from '~/models/Column';
+import type { NcContext } from '~/interface/config';
+import type AiIntegration from '~/integrations/ai/ai.interface';
 import Base from '~/models/Base';
 import Model from '~/models/Model';
 
@@ -27,11 +28,10 @@ import { CalendarsService } from '~/services/calendars.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { DataTableService } from '~/services/data-table.service';
+import { Integration } from '~/models';
 
 @Injectable()
 export class AiSchemaService {
-  private model: LanguageModel;
-
   constructor(
     protected readonly tablesService: TablesService,
     protected readonly columnsService: ColumnsService,
@@ -45,26 +45,38 @@ export class AiSchemaService {
     private calendarsService: CalendarsService,
     private kanbansService: KanbansService,
     private dataTableService: DataTableService,
-  ) {
-    this.model = openai('gpt-4o');
-  }
+  ) {}
 
-  async generateSchema(params: {
-    baseId: string;
-    input: string;
-    instructions?: string;
-    req?: any;
-  }) {
+  async generateSchema(
+    context: NcContext,
+    params: {
+      baseId: string;
+      input: string;
+      instructions?: string;
+      req?: any;
+    },
+  ) {
     const { baseId, input, instructions, req } = params;
 
-    const base = await Base.get(baseId);
+    const base = await Base.get(context, baseId);
 
     if (!base) {
       throw new Error('Base not found');
     }
 
-    const { object, ...rest } = await generateObject({
-      model: this.model,
+    const integration = await Integration.getWithType(
+      context,
+      IntegrationCategoryType.AI,
+    );
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper =
+      (await integration.getIntegrationWrapper()) as AiIntegration;
+
+    const { data, usage } = await wrapper.generateObject({
       schema: z.object({
         tables: z.array(
           z.object({
@@ -144,30 +156,33 @@ export class AiSchemaService {
       ],
     });
 
-    console.log(`Generate Schema: ${rest.usage.totalTokens} tokens`);
+    console.log(`Generate Schema: ${usage.total} tokens`);
 
-    return this.createSchema({ base, schema: object, req });
+    return this.createSchema(context, { base, schema: data, req });
   }
 
-  private async createSchema(params: {
-    base: Base;
-    schema: {
-      tables?: {
-        title?: string;
-        columns?: {
+  private async createSchema(
+    context: NcContext,
+    params: {
+      base: Base;
+      schema: {
+        tables?: {
           title?: string;
-          type?: string;
-          options?: string[];
+          columns?: {
+            title?: string;
+            type?: string;
+            options?: string[];
+          }[];
         }[];
-      }[];
-      relationships?: {
-        from?: string;
-        to?: string;
-        type?: string;
-      }[];
-    };
-    req: any;
-  }) {
+        relationships?: {
+          from?: string;
+          to?: string;
+          type?: string;
+        }[];
+      };
+      req: any;
+    },
+  ) {
     const { base, schema, req } = params;
 
     const tables = schema.tables || [];
@@ -177,7 +192,7 @@ export class AiSchemaService {
 
     for (const table of tables) {
       generatedTables.push(
-        await this.tablesService.tableCreate({
+        await this.tablesService.tableCreate(context, {
           baseId: base.id,
           table: {
             title: table.title,
@@ -213,7 +228,7 @@ export class AiSchemaService {
       );
 
       if (fromTable && toTable) {
-        await this.columnsService.columnAdd({
+        await this.columnsService.columnAdd(context, {
           tableId: fromTable.id,
           column: {
             title: toTable.title,
@@ -232,21 +247,35 @@ export class AiSchemaService {
     return generatedTables;
   }
 
-  async generateViews(params: {
-    baseId: string;
-    instructions?: string;
-    req?: any;
-  }) {
+  async generateViews(
+    context: NcContext,
+    params: {
+      baseId: string;
+      instructions?: string;
+      req?: any;
+    },
+  ) {
     const { baseId, instructions, req } = params;
 
-    const base = await Base.get(baseId);
+    const base = await Base.get(context, baseId);
 
     if (!base) {
       throw new Error('Base not found');
     }
 
-    const { object, ...rest } = await generateObject({
-      model: this.model,
+    const integration = await Integration.getWithType(
+      context,
+      IntegrationCategoryType.AI,
+    );
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper =
+      (await integration.getIntegrationWrapper()) as AiIntegration;
+
+    const { data, usage } = await wrapper.generateObject({
       schema: z.object({
         views: z.array(
           z.object({
@@ -314,42 +343,45 @@ export class AiSchemaService {
           content: `Please generate views for following schema:
           \`\`\`json
           ${JSON.stringify(
-            await this.serializeSchema({ baseId: base.id, req }),
+            await this.serializeSchema(context, { baseId: base.id, req }),
           )}
           \`\`\`${instructions ? `\n${instructions}` : ''}`,
         },
       ],
     });
 
-    console.log(`Generate Views: ${rest.usage.totalTokens} tokens`);
+    console.log(`Generate Views: ${usage.total} tokens`);
 
-    return this.createViews({ base, views: object.views, req });
+    return this.createViews(context, { base, views: (data as any).views, req });
   }
 
-  async createViews(params: {
-    base: Base;
-    views?: {
-      type?: string;
-      table?: string;
-      title?: string;
-      filters?: {
-        comparison_op?: string;
-        logical_op?: string;
-        value?: string;
-        column?: string;
+  async createViews(
+    context: NcContext,
+    params: {
+      base: Base;
+      views?: {
+        type?: string;
+        table?: string;
+        title?: string;
+        filters?: {
+          comparison_op?: string;
+          logical_op?: string;
+          value?: string;
+          column?: string;
+        }[];
+        sorts?: {
+          column?: string;
+          order?: 'asc' | 'desc';
+        }[];
+        calendar_range?: {
+          from_column?: string;
+        }[];
+        gridGroupBy?: string[];
+        kanbanGroupBy?: string;
       }[];
-      sorts?: {
-        column?: string;
-        order?: 'asc' | 'desc';
-      }[];
-      calendar_range?: {
-        from_column?: string;
-      }[];
-      gridGroupBy?: string[];
-      kanbanGroupBy?: string;
-    }[];
-    req: any;
-  }) {
+      req: any;
+    },
+  ) {
     const { base, views, req } = params;
 
     const sources = await base.getSources();
@@ -361,7 +393,7 @@ export class AiSchemaService {
     const source = sources[0];
 
     for (const view of views) {
-      const tables = await this.tablesService.getAccessibleTables({
+      const tables = await this.tablesService.getAccessibleTables(context, {
         baseId: base.id,
         sourceId: source.id,
         includeM2M: false,
@@ -374,7 +406,7 @@ export class AiSchemaService {
         throw new Error('Table not found');
       }
 
-      await table.getColumns();
+      await table.getColumns(context);
 
       const getColumnId = (columnTitle: string) => {
         const column = table.columns.find((col) => col.title === columnTitle);
@@ -397,13 +429,13 @@ export class AiSchemaService {
       switch (view.type) {
         case 'grid':
           {
-            const grid = await this.gridsService.gridViewCreate({
+            const grid = await this.gridsService.gridViewCreate(context, {
               tableId: table.id,
               grid: viewData,
               req,
             });
 
-            await grid.getColumns();
+            await grid.getColumns(context);
 
             for (const groupBy of view.gridGroupBy || []) {
               const columnId = getColumnId(groupBy);
@@ -420,7 +452,7 @@ export class AiSchemaService {
                 throw new Error('View column not found');
               }
 
-              await this.gridColumnsService.gridColumnUpdate({
+              await this.gridColumnsService.gridColumnUpdate(context, {
                 gridViewColumnId: viewColumn.id,
                 grid: {
                   group_by: true,
@@ -437,7 +469,7 @@ export class AiSchemaService {
                 throw new Error('Column not found');
               }
 
-              await this.sortsService.sortCreate({
+              await this.sortsService.sortCreate(context, {
                 viewId: grid.id,
                 sort: {
                   fk_column_id: columnId,
@@ -454,7 +486,7 @@ export class AiSchemaService {
                 throw new Error('Column not found');
               }
 
-              await this.filtersService.filterCreate({
+              await this.filtersService.filterCreate(context, {
                 viewId: grid.id,
                 filter: {
                   comparison_op: filter.comparison_op as any,
@@ -469,7 +501,7 @@ export class AiSchemaService {
           }
           break;
         case 'kanban':
-          await this.kanbansService.kanbanViewCreate({
+          await this.kanbansService.kanbanViewCreate(context, {
             tableId: table.id,
             kanban: {
               ...viewData,
@@ -480,7 +512,7 @@ export class AiSchemaService {
           });
           break;
         case 'calendar':
-          await this.calendarsService.calendarViewCreate({
+          await this.calendarsService.calendarViewCreate(context, {
             tableId: table.id,
             calendar: {
               ...viewData,
@@ -493,7 +525,7 @@ export class AiSchemaService {
           });
           break;
         case 'form':
-          await this.formsService.formViewCreate({
+          await this.formsService.formViewCreate(context, {
             tableId: table.id,
             body: viewData,
             user: req.user,
@@ -501,7 +533,7 @@ export class AiSchemaService {
           });
           break;
         case 'gallery':
-          await this.galleriesService.galleryViewCreate({
+          await this.galleriesService.galleryViewCreate(context, {
             tableId: table.id,
             gallery: viewData,
             user: req.user,
@@ -514,14 +546,17 @@ export class AiSchemaService {
     }
   }
 
-  async generateData(params: {
-    baseId: string;
-    instructions?: string;
-    req: any;
-  }) {
+  async generateData(
+    context: NcContext,
+    params: {
+      baseId: string;
+      instructions?: string;
+      req: any;
+    },
+  ) {
     const { baseId, instructions, req } = params;
 
-    const base = await Base.get(baseId);
+    const base = await Base.get(context, baseId);
 
     if (!base) {
       throw new Error('Base not found');
@@ -533,8 +568,19 @@ export class AiSchemaService {
       throw new Error('No sources found');
     }
 
-    const { object, ...rest } = await generateObject({
-      model: this.model,
+    const integration = await Integration.getWithType(
+      context,
+      IntegrationCategoryType.AI,
+    );
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper =
+      (await integration.getIntegrationWrapper()) as AiIntegration;
+
+    const { data, usage } = await wrapper.generateObject({
       schema: z.object({
         data: z.array(
           z.object({
@@ -597,41 +643,44 @@ export class AiSchemaService {
           content: `Please generate data for following schema:
           \`\`\`json
           ${JSON.stringify(
-            await this.serializeSchema({ baseId: base.id, req }),
+            await this.serializeSchema(context, { baseId: base.id, req }),
           )}
           \`\`\`${instructions ? `\n${instructions}` : ''}`,
         },
       ],
     });
 
-    console.log(`Generate Data: ${rest.usage.totalTokens} tokens`);
+    console.log(`Generate Data: ${usage.total} tokens`);
 
-    return this.createData({ base, data: object, req });
+    return this.createData(context, { base, data, req });
   }
 
-  async createData(params: {
-    base: Base;
-    data?: {
+  async createData(
+    context: NcContext,
+    params: {
+      base: Base;
       data?: {
-        table?: string;
-        columns?: string[];
-        rows?: (
-          | string
-          | number
-          | boolean
-          | string[]
-          | { url?: string; mimetype?: string }[]
-        )[][];
-      }[];
-      links?: {
-        fromTable?: string;
-        toTable?: string;
-        type?: string;
-        fromToTuples?: (string | string[])[][];
-      }[];
-    };
-    req: any;
-  }) {
+        data?: {
+          table?: string;
+          columns?: string[];
+          rows?: (
+            | string
+            | number
+            | boolean
+            | string[]
+            | { url?: string; mimetype?: string }[]
+          )[][];
+        }[];
+        links?: {
+          fromTable?: string;
+          toTable?: string;
+          type?: string;
+          fromToTuples?: (string | string[])[][];
+        }[];
+      };
+      req: any;
+    },
+  ) {
     const { base, data, req } = params;
 
     const sources = await base.getSources();
@@ -649,7 +698,7 @@ export class AiSchemaService {
       column: Column;
     }[] = [];
 
-    const tables = await this.tablesService.getAccessibleTables({
+    const tables = await this.tablesService.getAccessibleTables(context, {
       baseId: base.id,
       sourceId: source.id,
       includeM2M: false,
@@ -668,7 +717,7 @@ export class AiSchemaService {
         throw new Error('Table not found');
       }
 
-      await table.getColumns();
+      await table.getColumns(context);
 
       const rows = tableData.rows.map((row) => {
         const newRow = {};
@@ -680,7 +729,7 @@ export class AiSchemaService {
         return newRow;
       });
 
-      await this.dataTableService.dataInsert({
+      await this.dataTableService.dataInsert(context, {
         modelId: getTableId(tableData.table),
         body: rows,
         viewId: null,
@@ -696,7 +745,7 @@ export class AiSchemaService {
         ) {
           const fromTable = table.title;
           const toTable = (
-            await Model.get(column.colOptions?.fk_related_model_id)
+            await Model.get(context, column.colOptions?.fk_related_model_id)
           )?.title;
 
           if (!toTable) {
@@ -749,7 +798,7 @@ export class AiSchemaService {
         const fromRowId = tuple[0];
         const toRowIds = tuple[1];
 
-        await this.dataTableService.nestedLink({
+        await this.dataTableService.nestedLink(context, {
           modelId: fromTable.id,
           viewId: null,
           columnId: relationMeta.column.id,
@@ -762,10 +811,13 @@ export class AiSchemaService {
     }
   }
 
-  async serializeSchema(params: { baseId: string; req: any }) {
+  async serializeSchema(
+    context: NcContext,
+    params: { baseId: string; req: any },
+  ) {
     const { baseId, req } = params;
 
-    const base = await Base.get(baseId);
+    const base = await Base.get(context, baseId);
 
     if (!base) {
       throw new Error('Base not found');
@@ -779,7 +831,7 @@ export class AiSchemaService {
 
     const source = sources[0];
 
-    const tables = await this.tablesService.getAccessibleTables({
+    const tables = await this.tablesService.getAccessibleTables(context, {
       baseId: base.id,
       sourceId: source.id,
       includeM2M: false,
@@ -793,7 +845,7 @@ export class AiSchemaService {
     };
 
     for (const table of tables) {
-      const columns = (await table.getColumns()).filter(
+      const columns = (await table.getColumns(context)).filter(
         (col) => !col.system && col.uidt !== UITypes.ForeignKey,
       );
 
@@ -823,6 +875,7 @@ export class AiSchemaService {
       for (const column of columns) {
         if (['mm', 'hm', 'oo'].includes(column.colOptions?.type)) {
           const toTable = await Model.get(
+            context,
             column.colOptions?.fk_related_model_id,
           );
 
@@ -847,7 +900,7 @@ export class AiSchemaService {
         }
       }
 
-      const views = await table.getViews();
+      const views = await table.getViews(context);
 
       for (const view of views.filter((v) => !v.is_default)) {
         const serializedViewTypes = {
@@ -883,7 +936,7 @@ export class AiSchemaService {
           title: view.title,
         };
 
-        await view.getFilters();
+        await view.getFilters(context);
 
         const getColumnTitle = (columnId: string) => {
           const column = table.columns.find((col) => col.id === columnId);
@@ -893,7 +946,9 @@ export class AiSchemaService {
         switch (view.type) {
           case ViewTypes.GRID:
             {
-              const viewColumns = (await view.getColumns()) as GridViewColumn[];
+              const viewColumns = (await view.getColumns(
+                context,
+              )) as GridViewColumn[];
               if (
                 viewColumns &&
                 viewColumns.filter((column) => column.group_by).length > 0
@@ -905,7 +960,7 @@ export class AiSchemaService {
               }
 
               // grid view sort:
-              const viewSorts = await view.getSorts();
+              const viewSorts = await view.getSorts(context);
               if (viewSorts && viewSorts.length > 0) {
                 serializedView.sorts = viewSorts.map((sort) => ({
                   column: getColumnTitle(sort.fk_column_id),
@@ -914,7 +969,7 @@ export class AiSchemaService {
               }
 
               // grid view filter:
-              const viewFilters = await view.getFilters();
+              const viewFilters = await view.getFilters(context);
               const filters = viewFilters?.children;
 
               if (

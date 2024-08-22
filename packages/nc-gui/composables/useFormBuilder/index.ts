@@ -3,7 +3,7 @@ import { diff } from 'deep-object-diff'
 
 const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
   (props: { formSchema: FormDefinition; onSubmit?: () => Promise<any>; initialState?: Ref<Record<string, any>> }) => {
-    const { formSchema, onSubmit, initialState } = props
+    const { formSchema, onSubmit, initialState = ref({}) } = props
 
     const useForm = Form.useForm
 

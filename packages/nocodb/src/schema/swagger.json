@@ -19114,6 +19114,68 @@
           "required": true
         }
       ]
+    },
+    "/api/v2/integrations": {
+      "get": {
+        "summary": "Integration List",
+        "operationId": "integrations-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integrations"
+        ],
+        "description": "List available integrations"
+      }
+    },
+    "/api/v2/integrations/:type/:subType": {
+      "get": {
+        "summary": "Get Integration Info",
+        "operationId": "integrations-info",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integrations"
+        ],
+        "description": "Get info for integration"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "type",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "subType",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "components": {
@@ -19945,7 +20007,19 @@
         "type": "string",
         "description": "Integration Type",
         "enum": [
-          "database"
+          "database",
+          "ai",
+          "communication",
+          "spread-sheet",
+          "project-management",
+          "crm",
+          "marketing",
+          "ats",
+          "development",
+          "finance",
+          "ticketing",
+          "storage",
+          "others"
         ]
       },
       "IntegrationReq": {

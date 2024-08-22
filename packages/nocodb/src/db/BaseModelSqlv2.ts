@@ -4687,7 +4687,7 @@ class BaseModelSqlv2 {
       if (!_trx) await trx.commit();
 
       await this.clearFileReferences({
-        oldData: data,
+        oldData: [data],
         columns: this.model.columns,
       });
 

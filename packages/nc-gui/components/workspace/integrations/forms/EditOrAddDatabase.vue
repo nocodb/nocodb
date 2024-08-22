@@ -561,7 +561,6 @@ watch(
         >
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
-
         <div
           v-if="activeIntegrationIcon"
           class="h-8 w-8 flex items-center justify-center children:flex-none bg-gray-200 rounded-lg"

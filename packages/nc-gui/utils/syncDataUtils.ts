@@ -1,15 +1,19 @@
+import type { FormDefinition } from 'nocodb-sdk'
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
 import { ClientType, IntegrationCategoryType, SyncDataType } from '~/lib/enums'
 
+export const integrationsInitialized = ref(false)
 export interface IntegrationItemType {
   title: string
   icon: FunctionalComponent<SVGAttributes, {}, any, {}>
-  value: SyncDataType | ClientType
-  categories: IntegrationCategoryType[]
+  subType: SyncDataType | ClientType
+  type: IntegrationCategoryType
   isAvailable?: boolean
   iconStyle?: CSSProperties
   isOssOnly?: boolean
   subtitle?: string
+  dynamic?: boolean
+  form?: FormDefinition
 }
 
 export interface IntegrationCategoryItemType {
@@ -31,6 +35,12 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     title: 'objects.integrationCategories.ai',
     subtitle: 'objects.integrationCategories.ai',
     value: IntegrationCategoryType.AI,
+    isAvailable: true,
+  },
+  {
+    title: 'objects.integrationCategories.ai',
+    subtitle: 'objects.integrationCategories.ai',
+    value: `${IntegrationCategoryType.AI}-coming-soon`,
   },
   {
     title: 'objects.integrationCategories.communication',
@@ -94,9 +104,9 @@ export const allIntegrations: IntegrationItemType[] = [
   // Database
   {
     title: 'objects.syncData.mysql',
-    value: ClientType.MYSQL,
+    subType: ClientType.MYSQL,
     icon: iconMap.mysql,
-    categories: [IntegrationCategoryType.DATABASE],
+    type: IntegrationCategoryType.DATABASE,
     isAvailable: true,
     iconStyle: {
       width: '32px',
@@ -105,76 +115,70 @@ export const allIntegrations: IntegrationItemType[] = [
   },
   {
     title: 'objects.syncData.postgreSQL',
-    value: ClientType.PG,
+    subType: ClientType.PG,
     icon: iconMap.postgreSql,
-    categories: [IntegrationCategoryType.DATABASE],
+    type: IntegrationCategoryType.DATABASE,
     isAvailable: true,
   },
   {
     title: 'objects.syncData.sqlite',
-    value: ClientType.SQLITE,
+    subType: ClientType.SQLITE,
     icon: iconMap.sqlServer,
-    categories: [IntegrationCategoryType.DATABASE],
+    type: IntegrationCategoryType.DATABASE,
     isAvailable: true,
     isOssOnly: true,
   },
   {
     title: 'objects.syncData.snowflake',
-    value: ClientType.SNOWFLAKE,
+    subType: ClientType.SNOWFLAKE,
     icon: iconMap.snowflake,
-    categories: [IntegrationCategoryType.DATABASE],
+    type: IntegrationCategoryType.DATABASE,
   },
   {
     title: 'objects.syncData.dataBricks',
-    value: ClientType.DATABRICKS,
+    subType: ClientType.DATABRICKS,
     icon: iconMap.dataBricks,
-    categories: [IntegrationCategoryType.DATABASE],
+    type: IntegrationCategoryType.DATABASE,
   },
   {
     title: 'objects.syncData.mssqlServer',
-    value: ClientType.MSSQL,
+    subType: ClientType.MSSQL,
     icon: iconMap.mssqlServer,
-    categories: [IntegrationCategoryType.DATABASE],
+    type: IntegrationCategoryType.DATABASE,
   },
   {
     title: 'objects.syncData.oracle',
-    value: SyncDataType.ORACLE,
+    subType: SyncDataType.ORACLE,
     icon: iconMap.oracle,
-    categories: [IntegrationCategoryType.DATABASE],
+    type: IntegrationCategoryType.DATABASE,
   },
 
   // AI
   {
-    title: 'objects.syncData.openai',
-    value: SyncDataType.OPENAI,
-    icon: iconMap.openai,
-    categories: [IntegrationCategoryType.AI],
-  },
-  {
     title: 'objects.syncData.claude',
-    value: SyncDataType.CLAUDE,
+    subType: SyncDataType.CLAUDE,
     icon: iconMap.claude,
-    categories: [IntegrationCategoryType.AI],
+    type: `${IntegrationCategoryType.AI}-coming-soon`,
   },
   {
     title: 'objects.syncData.ollama',
-    value: SyncDataType.OLLAMA,
+    subType: SyncDataType.OLLAMA,
     icon: iconMap.ollama,
-    categories: [IntegrationCategoryType.AI],
+    type: `${IntegrationCategoryType.AI}-coming-soon`,
   },
   {
     title: 'objects.syncData.groq',
-    value: SyncDataType.GROQ,
+    subType: SyncDataType.GROQ,
     icon: iconMap.groq,
-    categories: [IntegrationCategoryType.AI],
+    type: `${IntegrationCategoryType.AI}-coming-soon`,
   },
 
   // Communication
   {
     title: 'general.slack',
-    value: SyncDataType.SLACK,
+    subType: SyncDataType.SLACK,
     icon: iconMap.slack,
-    categories: [IntegrationCategoryType.COMMUNICATION],
+    type: IntegrationCategoryType.COMMUNICATION,
     iconStyle: {
       width: '32px',
       height: '32px',
@@ -182,9 +186,9 @@ export const allIntegrations: IntegrationItemType[] = [
   },
   {
     title: 'general.discord',
-    value: SyncDataType.DISCORD,
+    subType: SyncDataType.DISCORD,
     icon: iconMap.ncDiscord,
-    categories: [IntegrationCategoryType.COMMUNICATION],
+    type: IntegrationCategoryType.COMMUNICATION,
     iconStyle: {
       width: '32px',
       height: '32px',
@@ -192,9 +196,9 @@ export const allIntegrations: IntegrationItemType[] = [
   },
   {
     title: 'general.twilio',
-    value: SyncDataType.TWILLO,
+    subType: SyncDataType.TWILLO,
     icon: iconMap.twilio,
-    categories: [IntegrationCategoryType.COMMUNICATION],
+    type: IntegrationCategoryType.COMMUNICATION,
     iconStyle: {
       width: '32px',
       height: '32px',
@@ -203,15 +207,15 @@ export const allIntegrations: IntegrationItemType[] = [
 
   {
     title: 'objects.syncData.microsoftOutlook',
-    value: SyncDataType.MICROSOFT_OUTLOOK,
+    subType: SyncDataType.MICROSOFT_OUTLOOK,
     icon: iconMap.microsoftOutlook,
-    categories: [IntegrationCategoryType.COMMUNICATION],
+    type: IntegrationCategoryType.COMMUNICATION,
   },
   {
     title: 'general.microsoftTeams',
-    value: SyncDataType.MICROSOFT_TEAMS,
+    subType: SyncDataType.MICROSOFT_TEAMS,
     icon: iconMap.microsoftTeams,
-    categories: [IntegrationCategoryType.COMMUNICATION],
+    type: IntegrationCategoryType.COMMUNICATION,
     iconStyle: {
       width: '32px',
       height: '32px',
@@ -219,21 +223,21 @@ export const allIntegrations: IntegrationItemType[] = [
   },
   {
     title: 'objects.syncData.gmail',
-    value: SyncDataType.GMAIL,
+    subType: SyncDataType.GMAIL,
     icon: iconMap.gmail,
-    categories: [IntegrationCategoryType.COMMUNICATION],
+    type: IntegrationCategoryType.COMMUNICATION,
   },
   {
     title: 'objects.syncData.telegram',
-    value: SyncDataType.TELEGRAM,
+    subType: SyncDataType.TELEGRAM,
     icon: iconMap.telegram,
-    categories: [IntegrationCategoryType.COMMUNICATION],
+    type: IntegrationCategoryType.COMMUNICATION,
   },
   {
     title: 'objects.syncData.whatsapp',
-    value: SyncDataType.WHATSAPP,
+    subType: SyncDataType.WHATSAPP,
     icon: iconMap.whatsappSolid,
-    categories: [IntegrationCategoryType.COMMUNICATION],
+    type: IntegrationCategoryType.COMMUNICATION,
     iconStyle: {
       width: '32px',
       height: '32px',
@@ -243,140 +247,140 @@ export const allIntegrations: IntegrationItemType[] = [
   // Project Management
   {
     title: 'objects.syncData.asana',
-    value: SyncDataType.ASANA,
+    subType: SyncDataType.ASANA,
     icon: iconMap.asana,
-    categories: [IntegrationCategoryType.PROJECT_MANAGEMENT],
+    type: IntegrationCategoryType.PROJECT_MANAGEMENT,
   },
   {
     title: 'objects.syncData.jira',
-    value: SyncDataType.JIRA,
+    subType: SyncDataType.JIRA,
     icon: iconMap.jira,
-    categories: [IntegrationCategoryType.PROJECT_MANAGEMENT],
+    type: IntegrationCategoryType.PROJECT_MANAGEMENT,
   },
   {
     title: 'objects.syncData.miro',
-    value: SyncDataType.MIRO,
+    subType: SyncDataType.MIRO,
     icon: iconMap.miro,
-    categories: [IntegrationCategoryType.PROJECT_MANAGEMENT],
+    type: IntegrationCategoryType.PROJECT_MANAGEMENT,
   },
 
   {
     title: 'objects.syncData.trello',
-    value: SyncDataType.TRELLO,
+    subType: SyncDataType.TRELLO,
     icon: iconMap.trello,
-    categories: [IntegrationCategoryType.PROJECT_MANAGEMENT],
+    type: IntegrationCategoryType.PROJECT_MANAGEMENT,
   },
 
   // CRM
   {
     title: 'objects.syncData.salesforce',
-    value: SyncDataType.SALESFORCE,
+    subType: SyncDataType.SALESFORCE,
     icon: iconMap.salesforce,
-    categories: [IntegrationCategoryType.CRM],
+    type: IntegrationCategoryType.CRM,
   },
   {
     title: 'objects.syncData.hubspot',
-    value: SyncDataType.HUBSPOT,
+    subType: SyncDataType.HUBSPOT,
     icon: iconMap.hubspot,
-    categories: [IntegrationCategoryType.CRM],
+    type: IntegrationCategoryType.CRM,
   },
   {
     title: 'objects.syncData.pipedrive',
-    value: SyncDataType.PIPEDRIVE,
+    subType: SyncDataType.PIPEDRIVE,
     icon: iconMap.pipedrive,
-    categories: [IntegrationCategoryType.CRM],
+    type: IntegrationCategoryType.CRM,
   },
   {
     title: 'objects.syncData.microsoftDynamics365',
-    value: SyncDataType.MICROSOFT_DYNAMICS_365,
+    subType: SyncDataType.MICROSOFT_DYNAMICS_365,
     icon: iconMap.microsoftDynamics365,
-    categories: [IntegrationCategoryType.CRM],
+    type: IntegrationCategoryType.CRM,
   },
   {
     title: 'objects.syncData.zohoCrm',
-    value: SyncDataType.ZOHO_CRM,
+    subType: SyncDataType.ZOHO_CRM,
     icon: iconMap.zohoCrm,
-    categories: [IntegrationCategoryType.CRM],
+    type: IntegrationCategoryType.CRM,
   },
 
   // Marketing
   {
     title: 'objects.syncData.hubspot',
-    value: SyncDataType.HUBSPOT,
+    subType: SyncDataType.HUBSPOT,
     icon: iconMap.hubspot,
-    categories: [IntegrationCategoryType.MARKETING],
+    type: IntegrationCategoryType.MARKETING,
   },
   {
     title: 'objects.syncData.mailchimp',
-    value: SyncDataType.MAILCHIMP,
+    subType: SyncDataType.MAILCHIMP,
     icon: iconMap.mailchimp,
-    categories: [IntegrationCategoryType.MARKETING],
+    type: IntegrationCategoryType.MARKETING,
   },
   {
     title: 'objects.syncData.surveyMonkey',
-    value: SyncDataType.SURVEYMONKEY,
+    subType: SyncDataType.SURVEYMONKEY,
     icon: iconMap.surveyMonkey,
-    categories: [IntegrationCategoryType.MARKETING],
+    type: IntegrationCategoryType.MARKETING,
   },
   {
     title: 'objects.syncData.typeform',
-    value: SyncDataType.TYPEFORM,
+    subType: SyncDataType.TYPEFORM,
     icon: iconMap.typeform,
-    categories: [IntegrationCategoryType.MARKETING],
+    type: IntegrationCategoryType.MARKETING,
   },
 
   // ATS
   {
     title: 'objects.syncData.workday',
-    value: SyncDataType.WORKDAY,
+    subType: SyncDataType.WORKDAY,
     icon: iconMap.workday,
-    categories: [IntegrationCategoryType.ATS],
+    type: IntegrationCategoryType.ATS,
   },
   {
     title: 'objects.syncData.greenhouse',
-    value: SyncDataType.GREENHOUSE,
+    subType: SyncDataType.GREENHOUSE,
     icon: iconMap.greenhouse,
-    categories: [IntegrationCategoryType.ATS],
+    type: IntegrationCategoryType.ATS,
   },
   {
     title: 'objects.syncData.lever',
-    value: SyncDataType.LEVER,
+    subType: SyncDataType.LEVER,
     icon: iconMap.lever,
-    categories: [IntegrationCategoryType.ATS],
+    type: IntegrationCategoryType.ATS,
   },
 
   // Development
   {
     title: 'objects.syncData.bitbucket',
-    value: SyncDataType.BITBUCKET,
+    subType: SyncDataType.BITBUCKET,
     icon: iconMap.bitBucket,
-    categories: [IntegrationCategoryType.DEVELOPMENT],
+    type: IntegrationCategoryType.DEVELOPMENT,
   },
   {
     title: 'objects.syncData.github',
-    value: SyncDataType.GITHUB,
+    subType: SyncDataType.GITHUB,
     icon: iconMap.githubSolid,
-    categories: [IntegrationCategoryType.DEVELOPMENT],
+    type: IntegrationCategoryType.DEVELOPMENT,
   },
   {
     title: 'objects.syncData.gitlab',
-    value: SyncDataType.GITLAB,
+    subType: SyncDataType.GITLAB,
     icon: iconMap.gitlab,
-    categories: [IntegrationCategoryType.DEVELOPMENT],
+    type: IntegrationCategoryType.DEVELOPMENT,
   },
 
   // Finance
   {
     title: 'objects.syncData.stripe',
-    value: SyncDataType.STRIPE,
+    subType: SyncDataType.STRIPE,
     icon: iconMap.stripe,
-    categories: [IntegrationCategoryType.FINANCE],
+    type: IntegrationCategoryType.FINANCE,
   },
   {
     title: 'objects.syncData.quickbooks',
-    value: SyncDataType.QUICKBOOKS,
+    subType: SyncDataType.QUICKBOOKS,
     icon: iconMap.quickbooks,
-    categories: [IntegrationCategoryType.FINANCE],
+    type: IntegrationCategoryType.FINANCE,
   },
 
   // Ticketing
@@ -388,15 +392,15 @@ export const allIntegrations: IntegrationItemType[] = [
   },
   {
     title: 'objects.syncData.intercom',
-    value: SyncDataType.INTERCOM,
+    subType: SyncDataType.INTERCOM,
     icon: iconMap.intercom,
-    categories: [IntegrationCategoryType.TICKETING],
+    type: IntegrationCategoryType.TICKETING,
   },
   {
     title: 'objects.syncData.zendesk',
-    value: SyncDataType.ZENDESK,
+    subType: SyncDataType.ZENDESK,
     icon: iconMap.zendesk,
-    categories: [IntegrationCategoryType.TICKETING],
+    type: IntegrationCategoryType.TICKETING,
   },
   {
     title: 'objects.syncData.salesforce',
@@ -414,50 +418,50 @@ export const allIntegrations: IntegrationItemType[] = [
   },
 
   // Storage
-  { title: 'objects.syncData.box', value: SyncDataType.BOX, icon: iconMap.box, categories: [IntegrationCategoryType.STORAGE] },
+  { title: 'objects.syncData.box', subType: SyncDataType.BOX, icon: iconMap.box, type: IntegrationCategoryType.STORAGE },
   {
     title: 'objects.syncData.dropbox',
-    value: SyncDataType.DROPBOX,
+    subType: SyncDataType.DROPBOX,
     icon: iconMap.dropbox,
-    categories: [IntegrationCategoryType.STORAGE],
+    type: IntegrationCategoryType.STORAGE,
   },
   {
     title: 'objects.syncData.googleDrive',
-    value: SyncDataType.GOOGLE_DRIVE,
+    subType: SyncDataType.GOOGLE_DRIVE,
     icon: iconMap.googleDrive,
-    categories: [IntegrationCategoryType.STORAGE],
+    type: IntegrationCategoryType.STORAGE,
   },
 
   // Spreadsheet
   {
     title: 'objects.syncData.appleNumbers',
-    value: SyncDataType.APPLE_NUMBERS,
+    subType: SyncDataType.APPLE_NUMBERS,
     icon: iconMap.appleSolid,
-    categories: [IntegrationCategoryType.SPREAD_SHEET],
+    type: IntegrationCategoryType.SPREAD_SHEET,
   },
   {
     title: 'objects.syncData.microsoftExcel',
-    value: SyncDataType.MICROSOFT_EXCEL,
+    subType: SyncDataType.MICROSOFT_EXCEL,
     icon: iconMap.microsoftExcel,
-    categories: [IntegrationCategoryType.SPREAD_SHEET],
+    type: IntegrationCategoryType.SPREAD_SHEET,
   },
   {
     title: 'objects.syncData.googleSheets',
-    value: SyncDataType.GOOGLE_SHEETS,
+    subType: SyncDataType.GOOGLE_SHEETS,
     icon: iconMap.googleSheet,
-    categories: [IntegrationCategoryType.SPREAD_SHEET],
+    type: IntegrationCategoryType.SPREAD_SHEET,
   },
 
   // Others
   // {
   //   title: 'objects.syncData.googleCalendar',
-  //   value: SyncDataType.GOOGLE_CALENDAR,
+  //   subType: SyncDataType.GOOGLE_CALENDAR,
   //   icon: iconMap.googleCalendar,
-  //   categories: [IntegrationCategoryType.OTHERS],
+  //   type: IntegrationCategoryType.OTHERS,
   // },
 ]
 
 export const allIntegrationsMapByValue = allIntegrations.reduce((acc, curr) => {
-  acc[curr.value] = curr
+  acc[curr.subType] = curr
   return acc
 }, {} as Record<string, IntegrationItemType>)

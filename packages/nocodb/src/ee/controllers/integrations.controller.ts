@@ -17,6 +17,7 @@ import { IntegrationsService } from '~/services/integrations.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { Integration } from '~/models';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -139,5 +140,38 @@ export class IntegrationsController {
     }
 
     return integrations;
+  }
+
+  @Get(['/api/v2/integrations'])
+  async availableIntegrations() {
+    return Integration.availableIntegrations
+      .sort((a, b) => a.integrationType.localeCompare(b.integrationType))
+      .sort((a, b) => a.integrationSubType.localeCompare(b.integrationSubType))
+      .map((i) => ({
+        type: i.integrationType,
+        subType: i.integrationSubType,
+        meta: i.meta,
+      }));
+  }
+
+  @Get(['/api/v2/integrations/:type/:subType'])
+  async getIntegrationMeta(
+    @Param('type') type: IntegrationsType,
+    @Param('subType') subType: string,
+  ) {
+    const integration = Integration.availableIntegrations.find(
+      (i) => i.integrationType === type && i.integrationSubType === subType,
+    );
+
+    if (!integration) {
+      throw new Error('Integration not found!');
+    }
+
+    return {
+      integrationType: integration.integrationType,
+      integrationSubType: integration.integrationSubType,
+      form: integration.form,
+      meta: integration.meta,
+    };
   }
 }

@@ -306,6 +306,47 @@ export default class Integration extends IntegrationCE {
     return this.castType(baseData);
   }
 
+  static async getWithType(
+    context: Omit<NcContext, 'base_id'>,
+    type: string,
+    force = false,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Integration> {
+    const baseData = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.workspace_id === RootScopes.BYPASS
+        ? RootScopes.BYPASS
+        : RootScopes.WORKSPACE,
+      MetaTable.INTEGRATIONS,
+      context.workspace_id === RootScopes.BYPASS
+        ? type
+        : { type, fk_workspace_id: context.workspace_id },
+      null,
+      force
+        ? {}
+        : {
+            _or: [
+              {
+                deleted: {
+                  neq: true,
+                },
+              },
+              {
+                deleted: {
+                  eq: null,
+                },
+              },
+            ],
+          },
+    );
+
+    if (baseData) {
+      baseData.meta = parseMetaProp(baseData, 'meta');
+    }
+
+    return this.castType(baseData);
+  }
+
   public async getConnectionConfig(): Promise<any> {
     const config = this.getConfig();
 

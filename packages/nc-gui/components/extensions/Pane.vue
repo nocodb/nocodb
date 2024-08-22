@@ -56,7 +56,6 @@ const normalizePaneMaxWidth = computed(() => {
 })
 
 const onMove = async (_event: { moved: { newIndex: number; oldIndex: number; element: NcProject } }) => {
-  
   const {
     moved: { newIndex = 0, oldIndex = 0, element },
   } = _event
@@ -206,7 +205,7 @@ onMounted(() => {
     </template>
     <template v-else>
       <Draggable
-        :model-value="filteredExtensionList"
+        :model-value="extensionList"
         item-key="id"
         draggable=".nc-extension-item"
         handle=".nc-extension-drag-handler"
@@ -220,7 +219,7 @@ onMounted(() => {
         @change="onMove($event)"
       >
         <template #item="{ element: ext }">
-          <div :key="ext.id" class="nc-extension-item w-full">
+          <div v-if="ext.title.toLowerCase().includes(searchQuery.toLowerCase())" :key="ext.id" class="nc-extension-item w-full">
             <ExtensionsWrapper :extension-id="ext.id" />
           </div>
         </template>

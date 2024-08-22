@@ -14,6 +14,7 @@ const extensionsState = createGlobalState(() => {
 interface ExtensionManifest {
   id: string
   title: string
+  subTitle: string
   description: string
   entry: string
   version: string
@@ -31,6 +32,7 @@ abstract class ExtensionType {
   abstract fkUserId: string
   abstract extensionId: string
   abstract title: string
+  abstract subTitle: string
   abstract kvStore: any
   abstract meta: any
   abstract order: number
@@ -254,6 +256,7 @@ export const useExtensions = createSharedComposable(() => {
     private _fkUserId: string
     private _extensionId: string
     private _title: string
+    private _subTitle: string
     private _kvStore: KvStore
     private _meta: any
     private _order: number
@@ -266,6 +269,7 @@ export const useExtensions = createSharedComposable(() => {
       this._fkUserId = data.fk_user_id
       this._extensionId = data.extension_id
       this._title = data.title
+      this._subTitle = data.subTitle
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
       this._order = data.order
@@ -291,6 +295,10 @@ export const useExtensions = createSharedComposable(() => {
       return this._title
     }
 
+    get subTitle() {
+      return this._subTitle
+    }
+
     get kvStore() {
       return this._kvStore
     }
@@ -310,6 +318,7 @@ export const useExtensions = createSharedComposable(() => {
         fk_user_id: this._fkUserId,
         extension_id: this._extensionId,
         title: this._title,
+        subTitle: this._subTitle,
         kv_store: this._kvStore.serialize(),
         meta: this._meta,
         order: this._order,
@@ -322,6 +331,7 @@ export const useExtensions = createSharedComposable(() => {
       this._fkUserId = data.fk_user_id
       this._extensionId = data.extension_id
       this._title = data.title
+      this._subTitle = data.subTitle
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
       this._order = data.order

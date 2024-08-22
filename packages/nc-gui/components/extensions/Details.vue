@@ -47,9 +47,10 @@ const detailsBody = activeExtension.value?.description ? marked.parse(activeExte
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
 
-        <img :src="getExtensionIcon(activeExtension.iconUrl)" alt="icon" class="h-[28px] w-[28px] object-contain" />
-        <div class="flex-1 flex flex-col gap-3">
-          <div class="font-semibold text-xl">{{ activeExtension.title }}</div>
+        <img :src="getExtensionIcon(activeExtension.iconUrl)" alt="icon" class="h-[50px] w-[50px] object-contain" />
+        <div class="flex-1 flex flex-col">
+          <div class="font-semibold text-xl truncate">{{ activeExtension.title }}</div>
+          <div class="text-small leading-[18px] text-gray-500 truncate">{{ activeExtension.subTitle }}</div>
         </div>
         <div class="self-start flex items-center gap-2.5">
           <NcButton size="small" class="w-full" @click="onAddExtension(activeExtension)">
@@ -63,7 +64,7 @@ const detailsBody = activeExtension.value?.description ? marked.parse(activeExte
 
       <div class="extension-details">
         <div class="extension-details-left">
-          <div class="text-base text-gray-600" v-html="detailsBody"></div>
+          <div class="text-sm text-gray-600" v-html="detailsBody"></div>
         </div>
         <div class="extension-details-right">
           <div class="extension-details-right-section">

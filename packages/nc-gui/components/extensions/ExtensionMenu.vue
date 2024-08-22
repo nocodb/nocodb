@@ -11,7 +11,7 @@ const emits = defineEmits(['rename', 'duplicate', 'showDetails', 'clearData', 'd
 <template>
   <div class="flex items-center">
     <NcDropdown :trigger="['click']">
-      <NcButton type="text" :size="fullscreen ? 'small' : 'xxsmall'">
+      <NcButton type="text" :size="fullscreen ? 'small' : 'xs'" class="!px-1">
         <GeneralIcon icon="threeDotVertical" />
       </NcButton>
 

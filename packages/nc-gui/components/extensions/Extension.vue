@@ -101,11 +101,11 @@ onMounted(() => {
 // close fullscreen on escape key press
 useEventListener('keydown', (e) => {
   // Check if the event target or its closest parent is an input, select, or textarea
-  const isFormElement = (e?.target as HTMLElement)?.closest('input, select, textarea');
+  const isFormElement = (e?.target as HTMLElement)?.closest('input, select, textarea')
 
   // If the target is not a form element and the key is 'Escape', close fullscreen
   if (e.key === 'Escape' && !isFormElement) {
-    fullscreen.value = false;
+    fullscreen.value = false
   }
 })
 
@@ -163,7 +163,7 @@ eventBus.on((event, payload) => {
         <div class="extension-header-left max-w-[calc(100%_-_100px)]">
           <!-- Todo: enable later when we support extension reordering -->
           <!-- eslint-disable vue/no-constant-condition -->
-          <NcButton size="xxsmall" type="text" class="nc-extension-drag-handler" @click.stop>
+          <NcButton size="xs" type="text" class="nc-extension-drag-handler !px-1" @click.stop>
             <GeneralIcon icon="ncDrag" class="flex-none text-gray-500" />
           </NcButton>
 
@@ -171,7 +171,7 @@ eventBus.on((event, payload) => {
             v-if="extensionManifest"
             :src="getExtensionAssetsUrl(extensionManifest.iconUrl)"
             alt="icon"
-            class="h-7 w-7 object-contain"
+            class="h-8 w-8 object-contain"
           />
           <a-input
             v-if="titleEditMode && !fullscreen"
@@ -196,7 +196,7 @@ eventBus.on((event, payload) => {
           </NcTooltip>
         </div>
         <div class="extension-header-right" @click.stop>
-          <NcButton v-if="!activeError" type="text" size="xxsmall" class="nc-extension-expand-btn" @click="fullscreen = true">
+          <NcButton v-if="!activeError" type="text" size="xs" class="nc-extension-expand-btn !px-1" @click="fullscreen = true">
             <GeneralIcon icon="expand" />
           </NcButton>
           <ExtensionsExtensionMenu
@@ -208,7 +208,7 @@ eventBus.on((event, payload) => {
             @delete="extension.delete()"
             class="nc-extension-menu"
           />
-          <NcButton size="xxsmall" type="text" @click="collapsed = !collapsed">
+          <NcButton size="xs" type="text" @click="collapsed = !collapsed" class="!px-1">
             <GeneralIcon :icon="collapsed ? 'arrowDown' : 'arrowUp'" class="flex-none" />
           </NcButton>
         </div>
@@ -338,7 +338,7 @@ eventBus.on((event, payload) => {
   }
 
   .extension-header-right {
-    @apply flex items-center gap-2;
+    @apply flex items-center gap-1;
   }
 
   .extension-title {

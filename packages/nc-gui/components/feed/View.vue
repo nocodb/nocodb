@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import FeedRecents from './Changelog/index.vue'
+import FeedRecents from './Recents/index.vue'
+import FeedChangelog from './Changelog/index.vue'
 import FeedYoutube from './Youtube/index.vue'
 import FeedTwitter from './Twitter/index.vue'
 import FeedRoadmap from './Roadmap.vue'
@@ -16,7 +17,7 @@ const tabs = [
     key: 'changelog',
     icon: 'list',
     title: 'Changelog',
-    container: FeedRecents,
+    container: FeedChangelog,
   },
   {
     key: 'roadmap',

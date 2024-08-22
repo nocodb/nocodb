@@ -59,7 +59,7 @@ print_box_message() {
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
 is_valid_domain() {
-    local domain_regex="^([a-zA-Z0-9]([-a-zA-Z0-9]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$"
+    local domain_regex="^([a-zA-Z0-9]([-a-zA-Z0-9]{0,61}[a-zA-Z0-9])?\.)*[a-zA-Z0-9]([-a-zA-Z0-9]{0,61}[a-zA-Z0-9])?\.[a-zA-Z]{2,}$"
     [[ "$1" =~ $domain_regex ]]
 }
 
@@ -449,7 +449,7 @@ get_advanced_options() {
     if [ "$CONFIG_MINIO_ENABLED" = "Y" ] || [ "$CONFIG_MINIO_ENABLED" = "y" ]; then
         CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter the MinIO domain name" "minio")
 
-        if is_valid_domain "CONFIG_MINIO_DOMAIN_NAME"; then
+        if is_valid_domain "$CONFIG_MINIO_DOMAIN_NAME"; then
                 if confirm "Do you want to configure SSL for $CONFIG_MINIO_DOMAIN_NAME?"; then
                     CONFIG_MINIO_SSL_ENABLED="Y"
                 else
@@ -565,11 +565,11 @@ EOF
 # If SSL is enabled we need to add the following lines to the traefik service
  if [ "$CONFIG_SSL_ENABLED" = "Y" ]; then
      cat >> "$compose_file" <<EOF
-       - "--entrypoints.websecure.address=:443"
-       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-       - "--certificatesresolvers.letsencrypt.acme.email=$(generate_contact_email $CONFIG_DOMAIN_NAME)"
-       - "--certificatesresolvers.letsencrypt.acme.storage=/etc/letsencrypt/acme.json"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=$(generate_contact_email $CONFIG_DOMAIN_NAME)"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/letsencrypt/acme.json"
 EOF
  fi
  # Continue with the compose file

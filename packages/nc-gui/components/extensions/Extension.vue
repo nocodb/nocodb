@@ -69,6 +69,12 @@ const extensionMinHeight = computed(() => {
   }
 })
 
+const expandExtension = () => {
+  if (!collapsed.value) return
+
+  collapsed.value = false
+}
+
 onMounted(() => {
   until(extensionsLoaded)
     .toMatch((v) => v)
@@ -148,11 +154,12 @@ eventBus.on((event, payload) => {
           'border-b-1 border-gray-200': !collapsed,
           'collapsed': collapsed,
         }"
+        @click="expandExtension"
       >
         <div class="extension-header-left max-w-[calc(100%_-_100px)]">
           <!-- Todo: enable later when we support extension reordering -->
           <!-- eslint-disable vue/no-constant-condition -->
-          <NcButton size="xxsmall" type="text" class="nc-extension-drag-handler">
+          <NcButton size="xxsmall" type="text" class="nc-extension-drag-handler" @click.stop>
             <GeneralIcon icon="ncDrag" class="flex-none text-gray-500" />
           </NcButton>
 
@@ -166,7 +173,7 @@ eventBus.on((event, payload) => {
             v-if="titleEditMode && !fullscreen"
             ref="titleInput"
             v-model="tempTitle"
-            class="flex-grow leading-1 outline-0 ring-none !text-inherit !bg-transparent w-4/5 extension-title"
+            class="flex-grow leading-1 py-0.5 px-1 -ml-1.1 outline-0 ring-none border-1 border-gray-200 rounded-md !h-6 !text-inherit !bg-transparent w-4/5 extension-title"
             @click.stop
             @keyup.enter="updateExtensionTitle"
             @keyup.esc="updateExtensionTitle"
@@ -176,12 +183,12 @@ eventBus.on((event, payload) => {
             <template #title>
               {{ extension.title }}
             </template>
-            <span class="extension-title" @dblclick="enableEditMode">
+            <span class="extension-title" @dblclick.stop="enableEditMode" @click.stop>
               {{ extension.title }}
             </span>
           </NcTooltip>
         </div>
-        <div class="extension-header-right">
+        <div class="extension-header-right" @click.stop>
           <NcButton v-if="!activeError" type="text" size="xxsmall" class="nc-extension-expand-btn" @click="fullscreen = true">
             <GeneralIcon icon="expand" />
           </NcButton>
@@ -195,7 +202,7 @@ eventBus.on((event, payload) => {
             class="nc-extension-menu"
           />
           <NcButton size="xxsmall" type="text" @click="collapsed = !collapsed">
-            <GeneralIcon :icon="collapsed ? 'arrowUp' : 'arrowDown'" class="flex-none" />
+            <GeneralIcon :icon="collapsed ? 'arrowDown' : 'arrowUp'" class="flex-none" />
           </NcButton>
         </div>
       </div>

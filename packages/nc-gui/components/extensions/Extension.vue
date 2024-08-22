@@ -142,11 +142,16 @@ eventBus.on((event, payload) => {
       @mousedown="isMouseDown = true"
       @mouseup="isMouseDown = false"
     >
-      <div class="extension-header" :class="{ 'mb-2': !collapsed }">
+      <div
+        class="extension-header p-3"
+        :class="{
+          'border-b-1 border-gray-200': !collapsed,
+        }"
+      >
         <div class="extension-header-left max-w-[calc(100%_-_100px)]">
           <!-- Todo: enable later when we support extension reordering -->
           <!-- eslint-disable vue/no-constant-condition -->
-          <NcButton v-if="false" size="xxsmall" type="text">
+          <NcButton size="xxsmall" type="text">
             <GeneralIcon icon="ncDrag" class="flex-none text-gray-500" />
           </NcButton>
 
@@ -192,8 +197,15 @@ eventBus.on((event, payload) => {
           </NcButton>
         </div>
       </div>
+
       <template v-if="activeError">
-        <div v-show="!collapsed" class="extension-content">
+        <div
+          v-show="!collapsed"
+          class="extension-content"
+          :class="{
+            fullscreen: fullscreen,
+          }"
+        >
           <a-result status="error" title="Extension Error">
             <template #subTitle>{{ activeError }}</template>
             <template #extra>
@@ -217,7 +229,7 @@ eventBus.on((event, payload) => {
         <Teleport to="body" :disabled="!fullscreen">
           <div
             ref="extensionModalRef"
-            :class="{ 'extension-modal': fullscreen, 'h-[calc(100%_-_32px)]': !fullscreen }"
+            :class="{ 'extension-modal': fullscreen, 'h-[calc(100%_-_50px)]': !fullscreen }"
             @click="closeFullscreen"
           >
             <div :class="{ 'extension-modal-content': fullscreen, 'h-full': !fullscreen }">
@@ -266,7 +278,7 @@ eventBus.on((event, payload) => {
               <div
                 v-show="fullscreen || !collapsed"
                 class="extension-content"
-                :class="{ 'h-[calc(100%-40px)]': fullscreen, 'h-full': !fullscreen }"
+                :class="{ 'fullscreen h-[calc(100%-40px)]': fullscreen, 'h-full': !fullscreen }"
               >
                 <component :is="component" :key="extension.uiKey" class="h-full" />
               </div>
@@ -280,7 +292,7 @@ eventBus.on((event, payload) => {
 
 <style scoped lang="scss">
 .extension-wrapper {
-  @apply bg-white rounded-xl px-3 py-[11px] w-full border-1 relative;
+  @apply bg-white rounded-xl w-full border-1 relative;
 
   &.isOpen {
     resize: vertical;
@@ -310,6 +322,10 @@ eventBus.on((event, payload) => {
 
 .extension-content {
   @apply rounded-lg;
+
+  &:not(fullscreen) {
+    @apply p-3;
+  }
 }
 
 .extension-modal {

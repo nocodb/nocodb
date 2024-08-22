@@ -149,10 +149,10 @@ eventBus.on((event, payload) => {
       @mouseup="isMouseDown = false"
     >
       <div
-        class="extension-header p-3"
+        class="extension-header px-3 py-2"
         :class="{
-          'border-b-1 border-gray-200': !collapsed,
-          'collapsed': collapsed,
+          'border-b-1 border-gray-200 h-[49px]': !collapsed,
+          'collapsed border-transparent h-[48px]': collapsed,
         }"
         @click="expandExtension"
       >
@@ -169,16 +169,19 @@ eventBus.on((event, payload) => {
             alt="icon"
             class="h-6 w-6 object-contain"
           />
-          <input
+          <a-input
             v-if="titleEditMode && !fullscreen"
             ref="titleInput"
-            v-model="tempTitle"
-            class="flex-grow leading-1 py-0.5 px-1 -ml-1.1 outline-0 ring-none border-1 border-gray-200 rounded-md !h-6 !text-inherit !bg-transparent w-4/5 extension-title"
+            v-model:value="tempTitle"
+            type="text"
+            class="flex-grow !h-8 !px-1 !py-1 !-ml-1 !rounded-lg w-4/5 extension-title"
             @click.stop
             @keyup.enter="updateExtensionTitle"
             @keyup.esc="updateExtensionTitle"
             @blur="updateExtensionTitle"
-          />
+          >
+          </a-input>
+
           <NcTooltip v-else show-on-truncate-only class="truncate">
             <template #title>
               {{ extension.title }}

@@ -59,7 +59,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           :class="{ 'bg-brand-50 text-brand-500': isPanelExpanded }"
           @click="toggleExtensionPanel"
         >
-          <GeneralIcon icon="puzzle" class="w-4 h-4" :class="{ 'border-l-1 border-transparent': isPanelExpanded }" />
+          <GeneralIcon icon="ncPuzzleOutline" class="w-4 h-4 !stroke-transparent" :class="{ 'border-l-1 border-transparent': isPanelExpanded }" />
           <span
             class="overflow-hidden trasition-all duration-200"
             :class="{ 'w-[0px] invisible': isPanelExpanded, 'ml-2 w-[74px]': !isPanelExpanded }"

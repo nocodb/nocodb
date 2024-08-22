@@ -129,7 +129,7 @@ onMounted(() => {
             ref="searchExtensionRef"
             v-model:value="searchQuery"
             type="text"
-            class="!h-8 !px-3 !py-1 !rounded-lg !max-w-[350px]"
+            class="nc-input-border-on-value !h-8 !px-3 !py-1 !rounded-lg !max-w-[350px]"
             placeholder="Search Extension"
             allow-clear
           >
@@ -147,21 +147,29 @@ onMounted(() => {
       </NcButton>
     </div>
     <template v-if="extensionList.length === 0">
-      <div class="flex items-center flex-col gap-4 w-full nc-scrollbar-md text-center px-4">
-        <div class="w-[180px] h-[180px] bg-[#d9d9d9] rounded-3xl mt-[100px]"></div>
+      <div class="flex items-center flex-col gap-4 w-full nc-scrollbar-md text-center p-4">
+        <GeneralIcon icon="ncPuzzleSolid" class="h-12 w-12 flex-none mt-[120px] text-gray-500 !stroke-transparent" />
+
         <div class="font-weight-700 text-base">No extensions added</div>
-        <div>Add Extensions from the community extensions marketplace</div>
+        <div class="text-sm text-gray-700">Add Extensions from the community extensions marketplace</div>
         <NcButton size="small" @click="toggleMarket">
           <div class="flex items-center gap-2 font-weight-600">
             <GeneralIcon icon="plus" />
             Add Extension
           </div>
         </NcButton>
+          <!-- Todo: add docs link  -->
+        <NcButton size="small" type="secondary">
+          <div class="flex items-center gap-2 font-weight-600">
+            <GeneralIcon icon="externalLink" />
+            {{ $t('activity.goToDocs') }}
+          </div>
+        </NcButton>
       </div>
     </template>
     <template v-else>
       <div
-        class="nc-extension-list-wrapper flex items-center flex-col gap-3 w-full nc-scrollbar-md"
+        class="nc-extension-list-wrapper flex items-center flex-col gap-3 w-full nc-scrollbar-md py-4"
         :class="{
           'h-full': searchQuery && !filteredExtensionList.length && extensionList.length,
         }"
@@ -202,7 +210,7 @@ onMounted(() => {
 }
 
 .nc-extension-pane {
-  @apply flex flex-col gap-3 bg-gray-50 rounded-l-xl border-1 border-gray-200 z-30;
+  @apply flex flex-col bg-gray-50 rounded-l-xl border-1 border-gray-200 z-30;
 
   box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
 }

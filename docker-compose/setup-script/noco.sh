@@ -255,7 +255,7 @@ read_number_range() {
 }
 
 check_if_docker_is_running() {
-    if ! ${CONFIG_DOCKER_COMMAND} ps >/dev/null 2>&1; then
+    if ! $CONFIG_DOCKER_COMMAND ps >/dev/null 2>&1; then
         print_warning "Docker is not running. Most of the commands will not work without Docker."
         print_info "Use the following command to start Docker:"
         print_color "$BLUE" "     sudo systemctl start docker"
@@ -264,16 +264,53 @@ check_if_docker_is_running() {
 
 # Main functions
 check_existing_installation() {
-    if [ -d "$NOCO_HOME" ] || ${CONFIG_DOCKER_COMMAND} ps --format '{{.Names}}' | grep -q "nocodb"; then
-        if ! confirm "NocoDB is already installed. Do you want to reinstall?"; then
-            management_menu
-            exit 0
-        fi
-        ${CONFIG_DOCKER_COMMAND} compose down
-        rm -rf "$NOCO_HOME"
-    fi
-    mkdir -p "$NOCO_HOME"
-    cd "$NOCO_HOME" || exit 1
+  NOCO_FOUND=false
+
+  # Check if $NOCO_HOME exists as directory
+  if [ -d "$NOCO_HOME" ]; then
+    NOCO_FOUND=true
+  elif $CONFIG_DOCKER_COMMAND ps --format '{{.Names}}' | grep -q "nocodb"; then
+      NOCO_ID=$($CONFIG_DOCKER_COMMAND ps | grep "nocodb/nocodb" | cut -d ' ' -f 1)
+      CUSTOM_HOME=$($CONFIG_DOCKER_COMMAND inspect --format='{{index .Mounts 0}}' "$NOCO_ID" | cut -d ' ' -f 3)
+      PARENT_DIR=$(dirname "$CUSTOM_HOME")
+
+      ln -s "$PARENT_DIR" "$NOCO_HOME"
+      basename "$PARENT_DIR" > "$NOCO_HOME/.COMPOSE_PROJECT_NAME"
+
+      NOCO_FOUND=true
+  else
+      mkdir -p "$NOCO_HOME"
+  fi
+
+  cd "$NOCO_HOME" || exit 1
+
+  # Check if nocodb is already installed
+  if [ "$NOCO_FOUND" = true ]; then
+      echo "NocoDB is already installed. And running."
+      echo "Do you want to reinstall NocoDB? [Y/N] (default: N): "
+      read -r REINSTALL
+
+      if [ -f "$NOCO_HOME/.COMPOSE_PROJECT_NAME" ]; then
+          COMPOSE_PROJECT_NAME=$(cat "$NOCO_HOME/.COMPOSE_PROJECT_NAME")
+          export COMPOSE_PROJECT_NAME
+      fi
+
+      if [ "$REINSTALL" != "Y" ] && [ "$REINSTALL" != "y" ]; then
+          management_menu
+          exit 0
+      else
+          echo "Reinstalling NocoDB..."
+          $CONFIG_DOCKER_COMMAND compose down
+
+          unset COMPOSE_PROJECT_NAME
+          cd /tmp || exit 1
+          rm -rf "$NOCO_HOME"
+
+          cd "$CURRENT_PATH" || exit 1
+          mkdir -p "$NOCO_HOME"
+          cd "$NOCO_HOME" || exit 1
+      fi
+  fi
 }
 
 check_system_requirements() {
@@ -381,9 +418,23 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
       - "traefik.enable=true"
       - "traefik.http.routers.nocodb.rule=Host(\`${CONFIG_DOMAIN_NAME}\`)"
-      - "traefik.http.routers.nocodb.entrypoints=${CONFIG_SSL_ENABLED:+websecure}"
-      ${CONFIG_SSL_ENABLED:+- "traefik.http.routers.nocodb.tls=true"}
-      ${CONFIG_SSL_ENABLED:+- "traefik.http.routers.nocodb.tls.certresolver=letsencrypt"}
+EOF
+# IF SSL is Enabled add the following lines
+  if [ "$CONFIG_SSL_ENABLED" = "Y" ]; then
+    cat >> "$compose_file" <<EOF
+
+      - "traefik.http.routers.nocodb.entrypoints=websecure"
+      - "traefik.http.routers.nocodb.tls=true"
+      - "traefik.http.routers.nocodb.tls.certresolver=letsencrypt"
+EOF
+# If no ssl just configure the web entrypoint
+  else
+    cat >> "$compose_file" <<EOF
+      - "traefik.http.routers.nocodb.entrypoints=web"
+EOF
+  fi
+  # Continue with the compose file
+  cat >> "$compose_file" <<EOF
     networks:
       - nocodb-network
 
@@ -408,12 +459,26 @@ services:
       - "--providers.docker=true"
       - "--entrypoints.web.address=:80"
       - "--providers.docker.exposedByDefault=false"
+EOF
+# In Traefik we need to add the minio entrypoint if it is enabled
+ if [ "$CONFIG_MINIO_ENABLED" = "Y" ]; then
+   cat >> "$compose_file" <<EOF
       - "--entrypoints.minio.address=:9000"
-      ${CONFIG_SSL_ENABLED:+- "--entrypoints.websecure.address=:443"}
-      ${CONFIG_SSL_ENABLED:+- "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"}
-      ${CONFIG_SSL_ENABLED:+- "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"}
-      ${CONFIG_SSL_ENABLED:+- "--certificatesresolvers.letsencrypt.acme.email=$(generate_contact_email "${CONFIG_DOMAIN_NAME}")"}
-      ${CONFIG_SSL_ENABLED:+- "--certificatesresolvers.letsencrypt.acme.storage=/etc/letsencrypt/acme.json"}
+EOF
+ fi
+
+# If SSL is enabled we need to add the following lines to the traefik service
+ if [ "$CONFIG_SSL_ENABLED" = "Y" ]; then
+     cat >> "$compose_file" <<EOF
+       - "--entrypoints.websecure.address=:443"
+       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+       - "--certificatesresolvers.letsencrypt.acme.email=$(generate_contact_email $CONFIG_DOMAIN_NAME)"
+       - "--certificatesresolvers.letsencrypt.acme.storage=/etc/letsencrypt/acme.json"
+EOF
+ fi
+ # Continue with the compose file
+ cat >> "$compose_file" <<EOF
     ports:
       - "80:80"
       - "443:443"
@@ -429,13 +494,14 @@ services:
 
 EOF
 
+# If Redis is enabled add the following lines to the compose file
     if [ "${CONFIG_REDIS_ENABLED}" = "Y" ]; then
         cat >> "$compose_file" <<EOF
   redis:
     image: redis:latest
     restart: unless-stopped
     env_file: docker.env
-    command: redis-server --requirepass "\$\${REDIS_PASSWORD}"
+    command: redis-server --requirepass "\${REDIS_PASSWORD}"
     volumes:
       - redis:/data
     healthcheck:
@@ -445,10 +511,10 @@ EOF
       retries: 5
     networks:
       - nocodb-network
-
 EOF
     fi
 
+# IF Minio is enabled add the following lines to the compose file
     if [ "${CONFIG_MINIO_ENABLED}" = "Y" ]; then
         cat >> "$compose_file" <<EOF
   minio:
@@ -463,15 +529,26 @@ EOF
       - "traefik.enable=true"
       - "traefik.http.services.minio.loadbalancer.server.port=9000"
       - "traefik.http.routers.minio.rule=Host(\`${CONFIG_MINIO_DOMAIN_NAME}\`)"
-      - "traefik.http.routers.minio.entrypoints=${CONFIG_MINIO_SSL_ENABLED:+websecure}"
-      ${CONFIG_MINIO_SSL_ENABLED:+- "traefik.http.routers.minio.tls=true"}
-      ${CONFIG_MINIO_SSL_ENABLED:+- "traefik.http.routers.minio.tls.certresolver=letsencrypt"}
+EOF
+# If minio SSL is enabled, set the entry point to websecure
+fi
+    if [ "${CONFIG_SSL_ENABLED}" = "Y" ]; then
+        cat >> "$compose_file" <<EOF
+      - "traefik.http.routers.minio.entrypoints=websecure"
+      - "traefik.http.routers.minio.tls=true"
+      - "traefik.http.routers.minio.tls.certresolver=letsencrypt"
+EOF
+# If not confugured, set the entry point to minio: Port 9000
+    else
+        cat >> "$compose_file" <<EOF
+      - "traefik.http.routers.minio.entrypoints=minio"
+EOF
+    fi
+    cat >> "$compose_file" <<EOF
     networks:
       - nocodb-network
 
 EOF
-    fi
-
     if [ "${CONFIG_WATCHTOWER_ENABLED}" = "Y" ]; then
         cat >> "$compose_file" <<EOF
   watchtower:
@@ -542,17 +619,17 @@ EOF
 create_update_script() {
     cat > ./update.sh <<EOF
 #!/bin/bash
-${CONFIG_DOCKER_COMMAND} compose pull
-${CONFIG_DOCKER_COMMAND} compose up -d --force-recreate
-${CONFIG_DOCKER_COMMAND} image prune -a -f
+$CONFIG_DOCKER_COMMAND compose pull
+$CONFIG_DOCKER_COMMAND compose up -d --force-recreate
+$CONFIG_DOCKER_COMMAND image prune -a -f
 EOF
     chmod +x ./update.sh
     message_arr+=("Update script: update.sh")
 }
 
 start_services() {
-    ${CONFIG_DOCKER_COMMAND} compose pull
-    ${CONFIG_DOCKER_COMMAND} compose up -d
+    $CONFIG_DOCKER_COMMAND compose pull
+    $CONFIG_DOCKER_COMMAND compose up -d
 
     echo 'Waiting for Traefik to start...'
     sleep 5
@@ -611,29 +688,112 @@ show_menu() {
 
 start_service() {
     echo -e "\nStarting nocodb..."
-    ${CONFIG_DOCKER_COMMAND} compose up -d
+    $CONFIG_DOCKER_COMMAND compose up -d
 }
 
 stop_service() {
     echo -e "\nStopping nocodb..."
-    ${CONFIG_DOCKER_COMMAND} compose stop
+    $CONFIG_DOCKER_COMMAND compose stop
+}
+
+show_logs_sub_menu() {
+    clear
+    echo "Select a replica for $1:"
+    for i in $(seq 1 $2); do
+        echo "$i. \"$1\" replica $i"
+    done
+    echo "A. All"
+    echo "0. Back to Logs Menu"
+    echo "Enter replica number: "
+    read -r replica_choice
+
+    if [[ "$replica_choice" =~ ^[0-9]+$ ]] && [ "$replica_choice" -gt 0 ] && [ "$replica_choice" -le "$2" ]; then
+        container_id=$($CONFIG_DOCKER_COMMAND compose ps | grep "$1-$replica_choice" | cut -d " " -f 1)
+        $CONFIG_DOCKER_COMMAND logs -f "$container_id"
+    elif [ "$replica_choice" == "A" ] || [ "$replica_choice" == "a" ]; then
+        $CONFIG_DOCKER_COMMAND compose logs -f "$1"
+    elif [ "$replica_choice" == "0" ]; then
+        show_logs
+    else
+        show_logs_sub_menu "$1" "$2"
+    fi
+}
+
+# Function to show logs
+show_logs() {
+    clear
+    echo "Select a container for logs:"
+
+    # Fetch the list of services
+    services=()
+    while IFS= read -r service; do
+        services+=("$service")
+    done < <($CONFIG_DOCKER_COMMAND compose ps --services)
+
+    service_replicas=()
+    count=0
+
+    # For each service, count the number of running instances
+    for service in "${services[@]}"; do
+        # Count the number of lines that have the service name, which corresponds to the number of replicas
+        replicas=$($CONFIG_DOCKER_COMMAND compose ps "$service" | grep -c "$service")
+        service_replicas["$count"]=$replicas
+        count=$((count + 1))
+    done
+
+    count=1
+
+    for service in "${services[@]}"; do
+        echo "$count. $service (${service_replicas[(($count - 1))]} replicas)"
+        count=$((count + 1))
+    done
+
+    echo "A. All"
+    echo "0. Back to main menu"
+    echo "Enter your choice: "
+    read -r log_choice
+    echo
+
+    if [[ "$log_choice" =~ ^[0-9]+$ ]] && [ "$log_choice" -gt 0 ] && [ "$log_choice" -lt "$count" ]; then
+        service_index=$((log_choice-1))
+        service="${services[$service_index]}"
+        num_replicas="${service_replicas[$service_index]}"
+
+        if [ "$num_replicas" -gt 1 ]; then
+            trap 'show_logs_sub_menu "$service" "$num_replicas"' INT
+            show_logs_sub_menu "$service" "$num_replicas"
+            trap - INT
+        else
+            trap 'show_logs' INT
+            $CONFIG_DOCKER_COMMAND compose logs -f "$service"
+        fi
+    elif [ "$log_choice" == "A" ] || [ "$log_choice" == "a" ]; then
+        trap 'show_logs' INT
+        $CONFIG_DOCKER_COMMAND compose logs -f
+    elif [ "$log_choice" == "0" ]; then
+        return
+    else
+        show_logs
+    fi
+
+    trap - INT
 }
 
 restart_service() {
     echo -e "\nRestarting nocodb..."
-    ${CONFIG_DOCKER_COMMAND} compose restart
+    $CONFIG_DOCKER_COMMAND compose restart
 }
 
 upgrade_service() {
     echo -e "\nUpgrading nocodb..."
-    ${CONFIG_DOCKER_COMMAND} compose pull
-    ${CONFIG_DOCKER_COMMAND} compose up -d --force-recreate
-    ${CONFIG_DOCKER_COMMAND} image prune -a -f
+    $CONFIG_DOCKER_COMMAND compose pull
+    $CONFIG_DOCKER_COMMAND compose up -d --force-recreate
+    $CONFIG_DOCKER_COMMAND image prune -a -f
 }
 
 scale_service() {
     num_cores=$(nproc || sysctl -n hw.ncpu || echo 1)
-    current_scale=$(${CONFIG_DOCKER_COMMAND} compose ps -q nocodb | wc -l)
+    current_scale=$($CONFIG_DOCKER_COMMAND compose ps -q nocodb | wc -l)
     echo -e "\nCurrent number of instances: $current_scale"
     echo "How many instances of NocoDB do you want to run (Maximum: ${num_cores}) ? (default: 1): "
     scale_num=$(read_number_range 1 "$num_cores")
@@ -643,14 +803,15 @@ scale_service() {
         return
     fi
 
-    ${CONFIG_DOCKER_COMMAND} compose up -d --scale nocodb="$scale_num"
+    $CONFIG_DOCKER_COMMAND compose up -d --scale nocodb="$scale_num"
 }
 
 monitoring_service() {
     echo -e '\nLoading stats...'
     trap ' ' INT
-    ${CONFIG_DOCKER_COMMAND} stats
+    $CONFIG_DOCKER_COMMAND stats
 }
+
 
 main() {
     CONFIG_DOCKER_COMMAND=$([ "$(check_for_docker_sudo)" = "y" ] && echo "sudo docker" || echo "docker")

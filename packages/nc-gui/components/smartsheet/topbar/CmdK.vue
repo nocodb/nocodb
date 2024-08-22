@@ -11,7 +11,7 @@ const { commandPalette } = useCommandPalette()
     data-testid="nc-topbar-cmd-k-btn"
     @click="commandPalette?.open()"
   >
-    <div class="flex items-center gap-2 text-sm">
+    <div class="flex items-center gap-1 text-sm">
       <GeneralIcon icon="ncCommand" class="h-3.5"/>
       K
     </div>

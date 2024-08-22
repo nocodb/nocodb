@@ -232,7 +232,7 @@ const onReady = () => {
 
 .nc-extensions-content-resizable-wrapper > {
   .splitpanes__splitter {
-    @apply !w-0 relative overflow-visible;
+    @apply !w-0 relative overflow-visible z-40 -ml-1px;
   }
   .splitpanes__splitter:before {
     @apply bg-gray-200 absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40;

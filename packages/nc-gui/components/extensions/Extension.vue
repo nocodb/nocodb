@@ -11,7 +11,7 @@ const {
   extensionsLoaded,
   availableExtensions,
   eventBus,
-  getExtensionIcon,
+  getExtensionAssetsUrl,
   duplicateExtension,
   showExtensionDetails,
 } = useExtensions()
@@ -165,7 +165,7 @@ eventBus.on((event, payload) => {
 
           <img
             v-if="extensionManifest"
-            :src="getExtensionIcon(extensionManifest.iconUrl)"
+            :src="getExtensionAssetsUrl(extensionManifest.iconUrl)"
             alt="icon"
             class="h-6 w-6 object-contain"
           />
@@ -249,7 +249,7 @@ eventBus.on((event, payload) => {
                 <div class="flex-1 max-w-[calc(100%_-_96px)] flex items-center gap-2 text-gray-800 font-weight-600">
                   <img
                     v-if="extensionManifest"
-                    :src="getExtensionIcon(extensionManifest.iconUrl)"
+                    :src="getExtensionAssetsUrl(extensionManifest.iconUrl)"
                     alt="icon"
                     class="flex-none w-6 h-6"
                   />

@@ -16,6 +16,7 @@ interface ExtensionManifest {
   title: string
   subTitle: string
   description: string
+  descriptionMarkdown: string
   entry: string
   version: string
   iconUrl: string
@@ -32,7 +33,6 @@ abstract class ExtensionType {
   abstract fkUserId: string
   abstract extensionId: string
   abstract title: string
-  abstract subTitle: string
   abstract kvStore: any
   abstract meta: any
   abstract order: number
@@ -58,6 +58,9 @@ export const useExtensions = createSharedComposable(() => {
   const extensionsLoaded = ref(false)
 
   const availableExtensions = ref<ExtensionManifest[]>([])
+
+  // Object to store description content for each extension
+  const descriptionContent = ref<Record<string, string>>({})
 
   const extensionPanelSize = ref(40)
 
@@ -214,7 +217,7 @@ export const useExtensions = createSharedComposable(() => {
     }
   }
 
-  const getExtensionIcon = (pathOrUrl: string) => {
+  const getExtensionAssetsUrl = (pathOrUrl: string) => {
     if (pathOrUrl.startsWith('http')) {
       return pathOrUrl
     } else {
@@ -256,7 +259,6 @@ export const useExtensions = createSharedComposable(() => {
     private _fkUserId: string
     private _extensionId: string
     private _title: string
-    private _subTitle: string
     private _kvStore: KvStore
     private _meta: any
     private _order: number
@@ -269,7 +271,6 @@ export const useExtensions = createSharedComposable(() => {
       this._fkUserId = data.fk_user_id
       this._extensionId = data.extension_id
       this._title = data.title
-      this._subTitle = data.subTitle
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
       this._order = data.order
@@ -295,10 +296,6 @@ export const useExtensions = createSharedComposable(() => {
       return this._title
     }
 
-    get subTitle() {
-      return this._subTitle
-    }
-
     get kvStore() {
       return this._kvStore
     }
@@ -318,7 +315,6 @@ export const useExtensions = createSharedComposable(() => {
         fk_user_id: this._fkUserId,
         extension_id: this._extensionId,
         title: this._title,
-        subTitle: this._subTitle,
         kv_store: this._kvStore.serialize(),
         meta: this._meta,
         order: this._order,
@@ -331,7 +327,6 @@ export const useExtensions = createSharedComposable(() => {
       this._fkUserId = data.fk_user_id
       this._extensionId = data.extension_id
       this._title = data.title
-      this._subTitle = data.subTitle
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
       this._order = data.order
@@ -356,32 +351,64 @@ export const useExtensions = createSharedComposable(() => {
     }
   }
 
-  onMounted(() => {
-    const modules = import.meta.glob('../extensions/*/*.json')
+  // Function to load extensions
+  onMounted(async () => {
+    try {
+      // Load all JSON modules from the specified glob pattern
+      const modules = import.meta.glob('../extensions/*/*.json')
 
-    const extensionCount = modules ? Object.keys(modules).length : 0
+      const markdownModules = import.meta.glob('../extensions/*/*.md', {
+        as: 'raw',
+      })
 
-    let disabledCount = 0
+      const extensionCount = Object.keys(modules).length
+      let disabledCount = 0
 
-    for (const path in modules) {
-      modules[path]().then((mod: any) => {
-        const manifest = mod.default as ExtensionManifest
+      // Array to hold the promises
+      const promises = Object.keys(modules).map(async (path) => {
+        try {
+          // Load the module
+          const mod = (await modules[path]()) as any
+          const manifest = mod.default as ExtensionManifest
 
-        if (manifest?.disabled !== true) {
-          availableExtensions.value.push(manifest)
-        } else {
-          disabledCount++
-        }
+          if (manifest?.disabled !== true) {
+            availableExtensions.value.push(manifest)
 
-        if (availableExtensions.value.length + disabledCount === extensionCount) {
-          availableExtensions.value.sort((a, b) => a.title.localeCompare(b.title))
+            // Load the descriptionMarkdown if available
+            if (manifest.descriptionMarkdown) {
+              const markdownPath = `../extensions/${manifest.descriptionMarkdown}`
 
-          extensionsLoaded.value = true
+              if (markdownModules[markdownPath] && manifest?.id) {
+                try {
+                  const markdownContent = await markdownModules[markdownPath]()
+
+                  descriptionContent.value[manifest.id] = `${markdownContent}`
+                } catch (markdownError) {
+                  console.error(`Failed to load Markdown file at ${markdownPath}:`, markdownError)
+                }
+              }
+            }
+          } else {
+            disabledCount++
+          }
+        } catch (error) {
+          console.error(`Failed to load module at ${path}:`, error)
         }
       })
+
+      // Wait for all modules to be processed
+      await Promise.all(promises)
+
+      if (availableExtensions.value.length + disabledCount === extensionCount) {
+        // Sort extensions
+        availableExtensions.value.sort((a, b) => a.title.localeCompare(b.title))
+        extensionsLoaded.value = true
+      }
+    } catch (error) {
+      console.error('Error loading extensions:', error)
     }
 
-    if(isEeUI){
+    if (isEeUI) {
       extensionsEgg.value = true
     }
   })
@@ -424,6 +451,7 @@ export const useExtensions = createSharedComposable(() => {
   return {
     extensionsLoaded,
     availableExtensions,
+    descriptionContent,
     extensionList,
     isPanelExpanded,
     toggleExtensionPanel,
@@ -433,7 +461,7 @@ export const useExtensions = createSharedComposable(() => {
     updateExtensionMeta,
     clearKvStore,
     deleteExtension,
-    getExtensionIcon,
+    getExtensionAssetsUrl,
     isDetailsVisible,
     detailsExtensionId,
     detailsFrom,

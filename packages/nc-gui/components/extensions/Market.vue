@@ -9,7 +9,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { availableExtensions, addExtension, getExtensionIcon, showExtensionDetails } = useExtensions()
+const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails } = useExtensions()
 
 const searchQuery = ref<string>('')
 
@@ -77,7 +77,7 @@ const onAddExtension = (ext: any) => {
                 @click="onExtensionClick(ext.id)"
               >
                 <div class="h-[60px] w-[60px] overflow-hidden m-auto">
-                  <img :src="getExtensionIcon(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />
+                  <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />
                 </div>
                 <div class="flex flex-grow flex-col gap-2 ml-3">
                   <div class="flex justify-between gap-1">
@@ -85,7 +85,7 @@ const onAddExtension = (ext: any) => {
                     <NcButton size="xsmall" type="secondary" @click.stop="onAddExtension(ext)">
                       <div class="flex items-center gap-2 mx-1">
                         <GeneralIcon icon="plus" />
-                        Add
+                        {{ $t('general.install') }}
                       </div>
                     </NcButton>
                   </div>

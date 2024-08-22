@@ -194,7 +194,7 @@ onMounted(() => {
       <NcButton type="secondary" size="xs" @click="toggleMarket">
         <div class="flex items-center gap-1 text-xs max-w-full">
           <GeneralIcon icon="plus" />
-          Add
+          {{ $t('general.install') }}
         </div>
       </NcButton>
     </div>
@@ -207,7 +207,7 @@ onMounted(() => {
         <NcButton size="small" @click="toggleMarket">
           <div class="flex items-center gap-2 font-weight-600">
             <GeneralIcon icon="plus" />
-            Add Extension
+            {{ $t('general.install') }}
           </div>
         </NcButton>
         <!-- Todo: add docs link  -->

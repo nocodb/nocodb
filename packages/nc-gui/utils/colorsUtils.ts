@@ -385,18 +385,18 @@ export const lightTheme = {
       disabled: themeV3Colors.brand[600],
       hover: themeV3Colors.gray[300],
     },
-    'nc-inverted': {
-      primary: {
-        DEFAULT: themeV3Colors.base['white'],
-        hover: themeV3Colors.base['white'],
-        disabled: themeV3Colors.gray[400],
-      },
-      secondary: {
-        DEFAULT: themeV3Colors.gray[700],
-        hover: themeV3Colors.gray[700],
-        disabled: themeV3Colors.gray[400],
-      },
-    },
+    // 'nc-inverted': {
+    //   primary: {
+    //     DEFAULT: themeV3Colors.base['white'],
+    //     hover: themeV3Colors.base['white'],
+    //     disabled: themeV3Colors.gray[400],
+    //   },
+    //   secondary: {
+    //     DEFAULT: themeV3Colors.gray[700],
+    //     hover: themeV3Colors.gray[700],
+    //     disabled: themeV3Colors.gray[400],
+    //   },
+    // },
     'nc-red': {
       dark: themeV3Colors.red[700],
       medium: themeV3Colors.red[500],

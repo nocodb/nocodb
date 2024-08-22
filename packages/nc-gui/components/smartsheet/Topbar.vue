@@ -63,7 +63,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           data-testid="nc-topbar-extension-btn"
           @click="toggleExtensionPanel"
         >
-          <div class="flex items-center justify-center min-w-[32.69px]">
+          <div class="flex items-center justify-center min-w-[28.69px]">
             <GeneralIcon
               icon="ncPuzzleOutline"
               class="w-4 h-4 !stroke-transparent"

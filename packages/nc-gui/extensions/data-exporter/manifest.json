@@ -5,7 +5,7 @@
   "description": "data-exporter/description.md",
   "entry": "data-exporter",
   "version": "0.1",
-  "iconUrl": "data-exporter/icon.svg",
+  "iconUrl": "data-exporter/assets/icon.svg",
   "publisherName": "NocoDB",
   "publisherEmail": "contact@nocodb.com",
   "publisherUrl": "https://www.nocodb.com",

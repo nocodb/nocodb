@@ -4,7 +4,7 @@
   "description": "Export any view in various formats",
   "entry": "data-exporter",
   "version": "0.1",
-  "iconUrl": "data-exporter/icon.png",
+  "iconUrl": "data-exporter/icon.svg",
   "publisherName": "NocoDB",
   "publisherEmail": "contact@nocodb.com",
   "publisherUrl": "https://www.nocodb.com"

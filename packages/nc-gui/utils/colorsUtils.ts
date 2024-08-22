@@ -369,3 +369,187 @@ export function isColorDark(hexColor: string) {
 export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light') {
   return enumColor[mode][i % enumColor[mode].length]
 }
+
+export const lightTheme = {
+  content: {
+    grey: {
+      extreme: themeV3Colors.base['black'],
+      emphasis: themeV3Colors.gray[900],
+      default: themeV3Colors.gray[800],
+      subtle: themeV3Colors.gray[700],
+      subtle2: themeV3Colors.gray[600],
+      muted: themeV3Colors.gray[500],
+    },
+    brand: {
+      default: themeV3Colors.brand[500],
+      disabled: themeV3Colors.brand[600],
+      hover: themeV3Colors.gray[300],
+    },
+    inverted: {
+      primary: {
+        default: themeV3Colors.base['white'],
+        hover: themeV3Colors.base['white'],
+        disabled: themeV3Colors.gray[400],
+      },
+      secondary: {
+        default: themeV3Colors.gray[700],
+        hover: themeV3Colors.gray[700],
+        disabled: themeV3Colors.gray[400],
+      },
+    },
+    red: {
+      dark: themeV3Colors.red[700],
+      medium: themeV3Colors.red[500],
+      light: themeV3Colors.red[300],
+    },
+    green: {
+      dark: themeV3Colors.green[700],
+      medium: themeV3Colors.green[500],
+      light: themeV3Colors.green[300],
+    },
+    yellow: {
+      dark: themeV3Colors.yellow[700],
+      medium: themeV3Colors.yellow[500],
+      light: themeV3Colors.yellow[300],
+    },
+    blue: {
+      dark: themeV3Colors.blue[700],
+      medium: themeV3Colors.blue[500],
+      light: themeV3Colors.blue[300],
+    },
+    purple: {
+      dark: themeV3Colors.purple[700],
+      medium: themeV3Colors.purple[500],
+      light: themeV3Colors.purple[300],
+    },
+    pink: {
+      dark: themeV3Colors.pink[700],
+      medium: themeV3Colors.pink[500],
+      light: themeV3Colors.pink[300],
+    },
+    orange: {
+      dark: themeV3Colors.orange[700],
+      medium: themeV3Colors.orange[500],
+      light: themeV3Colors.orange[300],
+    },
+    maroon: {
+      dark: themeV3Colors.maroon[700],
+      medium: themeV3Colors.maroon[500],
+      light: themeV3Colors.maroon[300],
+    },
+  },
+  background: {
+    default: themeV3Colors.base['white'],
+    brand: themeV3Colors.brand[50],
+    gray: {
+      extralight: themeV3Colors.gray[50],
+      light: themeV3Colors.gray[100],
+      medium: themeV3Colors.gray[200],
+      dark: themeV3Colors.gray[300],
+      extradark: themeV3Colors.gray[400],
+    },
+    coloured: {
+      red: themeV3Colors.red[50],
+      green: themeV3Colors.green[50],
+      yellow: themeV3Colors.yellow[50],
+      blue: themeV3Colors.blue[50],
+      purple: themeV3Colors.purple[50],
+      pink: themeV3Colors.pink[50],
+      orange: themeV3Colors.orange[50],
+      maroon: themeV3Colors.maroon[50],
+      darkred: themeV3Colors.red[100],
+      darkgreen: themeV3Colors.green[100],
+      darkyellow: themeV3Colors.yellow[100],
+      darkblue: themeV3Colors.blue[100],
+      darkpurple: themeV3Colors.purple[100],
+      darkpink: themeV3Colors.pink[100],
+      darkorange: themeV3Colors.orange[100],
+      darkmaroon: themeV3Colors.maroon[100],
+    },
+  },
+  border: {
+    brand: themeV3Colors.brand[500],
+    gray: {
+      extralight: themeV3Colors.gray[50],
+      light: themeV3Colors.gray[100],
+      medium: themeV3Colors.gray[200],
+      dark: themeV3Colors.gray[300],
+      extradark: themeV3Colors.gray[400],
+    },
+    coloured: {
+      red: themeV3Colors.red[500],
+      green: themeV3Colors.green[500],
+      yellow: themeV3Colors.yellow[500],
+      blue: themeV3Colors.blue[500],
+      purple: themeV3Colors.purple[500],
+      pink: themeV3Colors.pink[500],
+      orange: themeV3Colors.orange[500],
+      maroon: themeV3Colors.maroon[500],
+    },
+  },
+  fill: {
+    primary: {
+      default: themeV3Colors.brand[500],
+      hover: themeV3Colors.brand[600],
+      disabled: themeV3Colors.gray[300],
+      disabled2: themeV3Colors.brand[200],
+    },
+    secondary: {
+      default: themeV3Colors.base['white'],
+      hover: themeV3Colors.gray[50],
+      disabled: themeV3Colors.base['white'],
+    },
+    warning: {
+      default: themeV3Colors.red[500],
+      hover: themeV3Colors.red[600],
+      disabled: themeV3Colors.gray[50],
+    },
+    success: {
+      default: themeV3Colors.green[500],
+      hover: themeV3Colors.green[600],
+      disabled: themeV3Colors.gray[50],
+    },
+    coloured: {
+      red: {
+        dark: themeV3Colors.red[700],
+        medium: themeV3Colors.red[500],
+        light: themeV3Colors.red[300],
+      },
+      green: {
+        dark: themeV3Colors.green[700],
+        medium: themeV3Colors.green[500],
+        light: themeV3Colors.green[300],
+      },
+      yellow: {
+        dark: themeV3Colors.yellow[700],
+        medium: themeV3Colors.yellow[500],
+        light: themeV3Colors.yellow[300],
+      },
+      blue: {
+        dark: themeV3Colors.blue[700],
+        medium: themeV3Colors.blue[500],
+        light: themeV3Colors.blue[300],
+      },
+      purple: {
+        dark: themeV3Colors.purple[700],
+        medium: themeV3Colors.purple[500],
+        light: themeV3Colors.purple[300],
+      },
+      pink: {
+        dark: themeV3Colors.pink[700],
+        medium: themeV3Colors.pink[500],
+        light: themeV3Colors.pink[300],
+      },
+      orange: {
+        dark: themeV3Colors.orange[700],
+        medium: themeV3Colors.orange[500],
+        light: themeV3Colors.orange[300],
+      },
+      maroon: {
+        dark: themeV3Colors.maroon[700],
+        medium: themeV3Colors.maroon[500],
+        light: themeV3Colors.maroon[300],
+      },
+    },
+  },
+}

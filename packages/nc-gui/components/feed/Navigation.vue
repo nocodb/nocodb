@@ -23,6 +23,12 @@ const navigationElements = [
     description: 'Recent changes',
   },
   {
+    key: 'youtube',
+    icon: iconMap.youtube,
+    title: 'Youtube',
+    description: 'Recent changes',
+  },
+  {
     key: 'roadmap',
     icon: iconMap.ncNavigation,
     title: 'Roadmap',

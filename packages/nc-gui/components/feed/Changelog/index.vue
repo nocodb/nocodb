@@ -1,25 +1,15 @@
 <script setup lang="ts">
-const releases = ref<
-  {
-    body: string
-    id: string
-    published_at: string
-  }[]
->([])
-
-const fetchReleaseNotes = async () => {
-  const response = await fetch('https://api.github.com/repos/nocodb/nocodb/releases')
-  const data = await response.json()
-  return data
-}
+const { loadGithubFeed, githubFeed } = useProductFeed()
 
 onMounted(async () => {
-  releases.value = await fetchReleaseNotes()
+  await loadGithubFeed()
 })
 </script>
 
 <template>
-  <FeedChangelogItem v-for="feed in releases" :key="feed.id" :date="feed.published_at" :body="feed?.body" />
+  <div class="max-w-260 mx-auto">
+    <FeedChangelogItem v-for="feed in githubFeed" :key="feed.id" :date="feed.published_at" :body="feed?.body" />
+  </div>
 </template>
 
 <style scoped lang="scss"></style>

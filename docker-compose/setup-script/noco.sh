@@ -56,6 +56,15 @@ print_box_message() {
     echo "$edge"
 }
 
+print_note() {
+    local note_text="$1"
+    local note_color='\033[0;33m'  # Yellow color
+    local bold='\033[1m'
+    local reset='\033[0m'
+
+    echo -e "${note_color}${bold}NOTE:${reset} ${note_text}"
+}
+
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
 is_valid_domain() {
@@ -252,25 +261,40 @@ install_package() {
     fi
 }
 
+reload_hosts() {
+    # Flush DNS cache on macOS
+    if [ "$(uname)" == "Darwin" ]; then
+        sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder
+    # Flush DNS cache on Linux (Debian/Ubuntu)
+    elif [ -f /etc/debian_version ]; then
+        sudo systemd-resolve --flush-caches >/dev/null 2>&1 || sudo service network-manager restart >/dev/null 2>&1
+    # Flush DNS cache on Linux (RHEL/CentOS)
+    elif [ -f /etc/redhat-release ]; then
+        sudo systemctl restart NetworkManager >/dev/null 2>&1
+    fi
+}
+
 add_to_hosts() {
     local IP="127.0.0.1"
     local HOSTS_FILE="/etc/hosts"
     local TEMP_HOSTS_FILE="/tmp/hosts.tmp"
 
-    if [ "${CONFIG_MINIO_DOMAIN_NAME}" != "minio" ]; then
-        return 0
-    fi
 
-    if sudo grep -q "${CONFIG_MINIO_DOMAIN_NAME}" "$HOSTS_FILE"; then
+    if is_valid_domain "CONFIG_MINIO_DOMAIN_NAME"; then
+              return 0
+    elif sudo grep -q "${CONFIG_MINIO_DOMAIN_NAME}" "$HOSTS_FILE"; then
         return 0
     else
-        sudo cp "$HOSTS_FILE" "$TEMP_HOSTS_FILE"
+      sudo cp "$HOSTS_FILE" "$TEMP_HOSTS_FILE"
         echo "$IP ${CONFIG_MINIO_DOMAIN_NAME}" | sudo tee -a "$TEMP_HOSTS_FILE" > /dev/null
         if sudo mv "$TEMP_HOSTS_FILE" "$HOSTS_FILE"; then
-            print_info "Added ${CONFIG_MINIO_DOMAIN_NAME} to $HOSTS_FILE"
+          print_info "Added ${CONFIG_MINIO_DOMAIN_NAME} to $HOSTS_FILE"
+          reload_hosts
+          print_note "You may need to reboot your system"
+
         else
-            print_error "Failed to update $HOSTS_FILE. Please check your permissions."
-            return 1
+          print_error "Failed to update $HOSTS_FILE. Please check your permissions."
+          return 1
         fi
     fi
 }
@@ -447,7 +471,8 @@ get_advanced_options() {
     CONFIG_MINIO_ENABLED=$(confirm "Do you want to enable Minio for file storage?" "Y" && echo "Y" || echo "N" "Y")
 
     if [ "$CONFIG_MINIO_ENABLED" = "Y" ] || [ "$CONFIG_MINIO_ENABLED" = "y" ]; then
-        CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter the MinIO domain name" "minio")
+
+      CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter the MinIO domain name" "$(get_public_ip)")
 
         if is_valid_domain "$CONFIG_MINIO_DOMAIN_NAME"; then
                 if confirm "Do you want to configure SSL for $CONFIG_MINIO_DOMAIN_NAME?"; then
@@ -471,7 +496,7 @@ set_default_options() {
     CONFIG_EDITION="CE"
     CONFIG_REDIS_ENABLED="Y"
     CONFIG_MINIO_ENABLED="Y"
-    CONFIG_MINIO_DOMAIN_NAME="minio"
+    CONFIG_MINIO_DOMAIN_NAME=$(get_public_ip)
     CONFIG_MINIO_SSL_ENABLED="N"
     CONFIG_WATCHTOWER_ENABLED="Y"
     CONFIG_NUM_INSTANCES=1
@@ -703,7 +728,7 @@ NC_S3_ACCESS_KEY=${CONFIG_MINIO_ACCESS_KEY}
 NC_S3_ACCESS_SECRET=${CONFIG_MINIO_ACCESS_SECRET}
 NC_S3_FORCE_PATH_STYLE=true
 EOF
-        if [ "${CONFIG_MINIO_SSL_ENABLED}" = "Y" ]; then
+        if [ "$CONFIG_MINIO_SSL_ENABLED" = "Y" ]; then
             echo "NC_S3_ENDPOINT=https://${CONFIG_MINIO_DOMAIN_NAME}" >> "$env_file"
         else
             echo "NC_S3_ENDPOINT=http://${CONFIG_MINIO_DOMAIN_NAME}:9000" >> "$env_file"

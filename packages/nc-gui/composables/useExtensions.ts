@@ -16,7 +16,6 @@ interface ExtensionManifest {
   title: string
   subTitle: string
   description: string
-  descriptionMarkdown: string
   entry: string
   version: string
   iconUrl: string
@@ -376,8 +375,8 @@ export const useExtensions = createSharedComposable(() => {
             availableExtensions.value.push(manifest)
 
             // Load the descriptionMarkdown if available
-            if (manifest.descriptionMarkdown) {
-              const markdownPath = `../extensions/${manifest.descriptionMarkdown}`
+            if (manifest.description) {
+              const markdownPath = `../extensions/${manifest.description}`
 
               if (markdownModules[markdownPath] && manifest?.id) {
                 try {

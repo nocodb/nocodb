@@ -196,9 +196,6 @@ eventBus.on((event, payload) => {
           </NcTooltip>
         </div>
         <div class="extension-header-right" @click.stop>
-          <NcButton v-if="!activeError" type="text" size="xs" class="nc-extension-expand-btn !px-1" @click="fullscreen = true">
-            <GeneralIcon icon="expand" />
-          </NcButton>
           <ExtensionsExtensionMenu
             :active-error="activeError"
             @rename="enableEditMode"
@@ -208,6 +205,9 @@ eventBus.on((event, payload) => {
             @delete="extension.delete()"
             class="nc-extension-menu"
           />
+          <NcButton v-if="!activeError" type="text" size="xs" class="nc-extension-expand-btn !px-1" @click="fullscreen = true">
+            <GeneralIcon icon="ncMaximize2" />
+          </NcButton>
           <NcButton size="xs" type="text" @click="collapsed = !collapsed" class="!px-1">
             <GeneralIcon :icon="collapsed ? 'arrowDown' : 'arrowUp'" class="flex-none" />
           </NcButton>

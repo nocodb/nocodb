@@ -261,19 +261,6 @@ install_package() {
     fi
 }
 
-reload_hosts() {
-    # Flush DNS cache on macOS
-    if [ "$(uname)" == "Darwin" ]; then
-        sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder
-    # Flush DNS cache on Linux (Debian/Ubuntu)
-    elif [ -f /etc/debian_version ]; then
-        sudo systemd-resolve --flush-caches >/dev/null 2>&1 || sudo service network-manager restart >/dev/null 2>&1
-    # Flush DNS cache on Linux (RHEL/CentOS)
-    elif [ -f /etc/redhat-release ]; then
-        sudo systemctl restart NetworkManager >/dev/null 2>&1
-    fi
-}
-
 add_to_hosts() {
     local IP="127.0.0.1"
     local HOSTS_FILE="/etc/hosts"
@@ -289,8 +276,7 @@ add_to_hosts() {
         echo "$IP ${CONFIG_MINIO_DOMAIN_NAME}" | sudo tee -a "$TEMP_HOSTS_FILE" > /dev/null
         if sudo mv "$TEMP_HOSTS_FILE" "$HOSTS_FILE"; then
           print_info "Added ${CONFIG_MINIO_DOMAIN_NAME} to $HOSTS_FILE"
-          reload_hosts
-          print_note "You may need to reboot your system"
+          print_note "You may need to reboot your system, If the uploaded attachments are not accessible."
 
         else
           print_error "Failed to update $HOSTS_FILE. Please check your permissions."

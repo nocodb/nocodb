@@ -31,6 +31,8 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     const aggregations = ref({}) as Ref<Record<string, any>>
 
+    const { isUIAllowed } = useRoles()
+
     const reloadAggregate = inject(ReloadAggregateHookInj)
 
     const visibleFieldsComputed = computed(() => {

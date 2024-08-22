@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const { loadFeed, githubFeed } = useProductFeed()
+import Tweet from 'vue-tweet'
+
+const { twitterFeed, loadFeed } = useProductFeed()
 
 const scrollContainer = ref<HTMLElement>()
 
@@ -8,11 +10,10 @@ const { isLoading } = useInfiniteScroll(
   async () => {
     if (isLoading.value) return
     const data = await loadFeed({
-      type: 'github',
+      type: 'twitter',
       loadMore: true,
     })
-
-    githubFeed.value = [...githubFeed.value, ...data]
+    twitterFeed.value = [...twitterFeed.value, ...data]
   },
   { distance: 1 },
 )
@@ -22,12 +23,12 @@ const { isLoading } = useInfiniteScroll(
   <div
     ref="scrollContainer"
     :style="{
-      height: 'calc(100dvh - var(--toolbar-height) - 3rem)',
+      height: 'calc(100dvh - var(--toolbar-height) - 3.25rem)',
     }"
-    class="overflow-y-auto nc-scrollbar-md mx-auto w-full"
+    class="overflow-y-auto nc-scrollbar-md w-full"
   >
-    <div class="max-w-260 mx-auto">
-      <FeedChangelogItem v-for="feed in githubFeed" :item="feed" />
+    <div class="flex items-center flex-col">
+      <Tweet v-for="feed in twitterFeed" :key="feed.Id" :tweet-url="feed.Url" />
     </div>
   </div>
 </template>

@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import Plyr from 'plyr'
 import 'plyr/dist/plyr.css'
+import type { ProductFeedItem } from '../../../lib/types'
 
-defineProps<{
-  body: string
-  name: string
-  published_at: string
-  embed_url: string
-  html_url: string
+const props = defineProps<{
+  item: ProductFeedItem
 }>()
+
+const {
+  item: { Title, Description, Url },
+} = props
 
 const videoPlayer = ref<HTMLElement>()
 
@@ -18,6 +19,10 @@ onMounted(() => {
   if (!videoPlayer.value) return
   player.value = new Plyr(videoPlayer.value, {
     previewThumbnails: {},
+    quality: {
+      default: 1080,
+      options: [720, 1080, 2160],
+    },
   })
 })
 
@@ -33,7 +38,7 @@ onBeforeUnmount(() => {
     <div class="aspect-video !rounded-lg mx-auto !h-[428px]">
       <div id="player" ref="videoPlayer" class="plyr__video-embed">
         <iframe
-          :src="`${embed_url}?origin=https://plyr.io&amp;iv_load_policy=3&amp;modestbranding=1&amp;playsinline=1&amp;showinfo=0&amp;rel=0&amp;enablejsapi=1`"
+          :src="`${Url}?origin=https://plyr.io&amp;iv_load_policy=3&amp;modestbranding=1&amp;playsinline=1&amp;showinfo=0&amp;rel=0&amp;enablejsapi=1`"
           allowfullscreen
           allowtransparency
           allow="autoplay"
@@ -41,10 +46,10 @@ onBeforeUnmount(() => {
       </div>
     </div>
     <div class="text-gray-900 font-bold text-2xl">
-      {{ name }}
+      {{ Title }}
     </div>
     <div class="text-gray-900">
-      {{ body }}
+      {{ Description.length > 200 ? `${Description.slice(0, 280)}...` : Description }}
     </div>
   </div>
 </template>

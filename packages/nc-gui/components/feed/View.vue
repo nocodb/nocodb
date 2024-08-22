@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import FeedRecents from './Changelog/index.vue'
 import FeedYoutube from './Youtube/index.vue'
+import FeedTwitter from './Twitter/index.vue'
 import FeedRoadmap from './Roadmap.vue'
 const { activeTab } = useProductFeed()
 
@@ -28,6 +29,12 @@ const tabs = [
     icon: 'ncYoutube',
     title: 'Youtube',
     container: FeedYoutube,
+  },
+  {
+    key: 'twitter',
+    icon: 'ncTwitter',
+    title: 'Twitter',
+    container: FeedTwitter,
   },
 ]
 </script>

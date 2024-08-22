@@ -43,8 +43,8 @@ const onAddExtension = (ext: any) => {
   >
     <div class="h-full">
       <div class="flex items-center gap-3 p-4 border-b-1 border-gray-200">
-        <GeneralIcon icon="puzzle" class="h-5 w-5 flex-none" />
-        <div class="flex-1 font-weight-700 text-base">Extensions Marketplace</div>
+        <GeneralIcon icon="ncPuzzleSolid" class="h-6 w-6 flex-none text-gray-700" />
+        <div class="flex-1 font-semibold text-xl">Extensions Marketplace</div>
         <NcButton size="small" type="text" @click="vModel = false">
           <GeneralIcon icon="close" class="text-gray-600" />
         </NcButton>

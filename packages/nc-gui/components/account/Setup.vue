@@ -15,10 +15,13 @@ const configs = computed(() => [
     key: 'email',
     description: 'Configure an email account to send system notifications to your organisation’s users.',
     docsLink: '',
-    onClick: () => {
+    buttonClick: () => {
       // listModalDlg.value = true
       // openedCategory.value = 'Email'
       navigateTo(`/account/setup/email${emailConfigured.value ? `/${emailConfigured.value.title}` : ''}`)
+    },
+    itemClick: () =>{
+      navigateTo(`/account/setup/email`)
     },
     configured: emailConfigured.value,
   },
@@ -27,11 +30,14 @@ const configs = computed(() => [
     key: 'storage',
     description: 'Configure a storage service to store your organisation’s data.',
     docsLink: '',
-    onClick: () => {
+    buttonClick: () => {
       // listModalDlg.value = true
       // openedCategory.value = 'Storage'
 
       navigateTo(`/account/setup/storage${storageConfigured.value ? `/${storageConfigured.value.title}` : ''}`)
+    },
+    itemClick: () =>{
+      navigateTo(`/account/setup/storage`)
     },
     configured: storageConfigured.value,
   },
@@ -40,7 +46,7 @@ const configs = computed(() => [
     key: 'switchToProd',
     description: 'Configure a production-ready app database to port from the existing built-in application database.',
     docsLink: '',
-    onClick: () => {
+    buttonClick: () => {
       //  TODO: Implement the logic to switch to production
     },
     isPending: !(appInfo.value as any)?.prodReady,
@@ -71,52 +77,38 @@ onMounted(async () => {
       class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6"
     >
       <div class="flex flex-col gap-6 w-150">
-        <div v-for="config of configs" class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
-          <div class="flex flex justify-between" data-rec="true">
-            <span class="font-bold text-base"> {{ config.title }}</span>
-
+        <div v-for="config of configs" class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-2" :class="{
+          'cursor-pointer': config.itemClick
+        }" @click="config.itemClick">
+          <div class="flex gap-3 items-center" data-rec="true">
             <NcTooltip v-if="!config.configured || config.isPending">
               <template #title>
                 <span>
                   {{ $t('activity.pending') }}
                 </span>
               </template>
-              <GeneralIcon icon="warning" class="text-orange-500" />
+              <GeneralIcon icon="warning" class="text-orange-500 -mt-1 w-6 h-6" />
             </NcTooltip>
+            <GeneralIcon v-else icon="circleCheckSolid" class="text-success w-6 h-6 bg-white-500" />
+
+            <span class="font-bold text-base"> {{ config.title }}</span>
           </div>
           <div class="text-gray-600 text-sm">{{ config.description }}</div>
 
-          <div v-if="config.configured" class="flex justify-between mt-4 cursor-pointer" @click="config.onClick">
-            <div class="flex gap-4 items-center border-1 w-full p-4 rounded-2xl">
-              <GeneralIcon icon="circleCheckSolid" class="text-success w-6 h-6 bg-white-500" />
-              <img
-                v-if="config.configured.title !== 'SMTP'"
-                class="max-h-6 max-w-6"
-                :alt="config.configured.title"
-                :style="{
-                  backgroundColor: config.configured.title === 'SES' ? '#242f3e' : '',
-                }"
-                :src="config.configured.logo"
-              />
-              <GeneralIcon v-else icon="mail" />
-              <span class="font-weight-bold text-base">{{ config.configured.title }}</span>
-              <div class="flex-grow" />
-              <NcButton type="text">
-                <div class="flex gap-2 items-center">
-                  <GeneralIcon icon="ncEdit3" />
-                  Edit
-                </div>
-              </NcButton>
-            </div>
-          </div>
-          <div v-else class="flex justify-between mt-4">
+          <div class="flex justify-between mt-4">
             <NcButton size="small" type="text">
               <div class="flex gap-2 items-center">
                 Go to docs
                 <GeneralIcon icon="ncExternalLink" />
               </div>
             </NcButton>
-            <NcButton size="small" @click="config.onClick">Configure</NcButton>
+            <NcButton v-if="config.configured" size="small" type="text" @click.stop="config.buttonClick">
+              <div class="flex gap-2 items-center">
+                <GeneralIcon icon="ncEdit3" />
+                Edit
+              </div>
+            </NcButton>
+            <NcButton v-else size="small" @click.stop="config.buttonClick">Configure</NcButton>
           </div>
         </div>
       </div>

@@ -22,11 +22,13 @@ const isReady = ref(false)
 
 const searchExtensionRef = ref<HTMLInputElement>()
 
-const searchExtensionWrapperRef = ref<HTMLDivElement>()
+const extensionHeaderRef = ref<HTMLDivElement>()
 
 const searchQuery = ref<string>('')
 
 const showSearchBox = ref(false)
+
+const { width } = useElementSize(extensionHeaderRef)
 
 const isOpenSearchBox = computed(() => {
   return !!(searchQuery.value || showSearchBox.value)
@@ -113,7 +115,7 @@ watch(isPanelExpanded, (newValue) => {
   }
 })
 
-onClickOutside(searchExtensionWrapperRef, () => {
+onClickOutside(searchExtensionRef, () => {
   if (searchQuery.value) {
     return
   }
@@ -140,7 +142,7 @@ onMounted(() => {
       maxWidth: `${normalizePaneMaxWidth}%`,
     }"
   >
-    <div class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-gray-200 bg-white">
+    <div ref="extensionHeaderRef" class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-gray-200 bg-white">
       <NcTooltip v-if="false" class="flex" hide-on-click placement="topRight">
         <template #title> Hide extensions </template>
         <NcButton
@@ -160,11 +162,12 @@ onMounted(() => {
           'flex-1': !isOpenSearchBox,
         }"
       >
-        <GeneralIcon icon="ncPuzzleSolid" class="h-6 w-6" />
-        <span v-if="!isOpenSearchBox">Extensions</span>
+        <GeneralIcon icon="ncPuzzleSolid" class="h-5.5 w-5.5" />
+        <span v-if="!isOpenSearchBox || width >= 507">Extensions</span>
       </div>
       <div
-        ref="searchExtensionWrapperRef"
+        
+        class="flex justify-end"
         :class="{
           'flex-1': isOpenSearchBox,
         }"
@@ -172,12 +175,12 @@ onMounted(() => {
         <NcButton v-if="!isOpenSearchBox" size="xs" type="text" class="!px-1" @click="handleShowSearchInput">
           <GeneralIcon icon="search" class="flex-none !text-gray-500" />
         </NcButton>
-        <div v-else class="flex flex-grow items-center justify-end">
+        <div v-else class="flex flex-grow items-center justify-end !max-w-[300px]">
           <a-input
             ref="searchExtensionRef"
             v-model:value="searchQuery"
             type="text"
-            class="nc-input-border-on-value !h-7 !px-3 !py-1 !rounded-lg !max-w-[350px]"
+            class="nc-input-border-on-value !h-7 !px-3 !py-1 !rounded-lg"
             placeholder="Search Extension"
             allow-clear
             @keydown.esc="handleCloseSearchbox"

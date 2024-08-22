@@ -370,6 +370,10 @@ export const useExtensions = createSharedComposable(() => {
         }
       })
     }
+
+    if(isEeUI){
+      extensionsEgg.value = true
+    }
   })
 
   watch(

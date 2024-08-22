@@ -186,7 +186,7 @@ eventBus.on((event, payload) => {
             <template #title>
               {{ extension.title }}
             </template>
-            <span class="extension-title" @dblclick.stop="enableEditMode" @click.stop>
+            <span class="extension-title cursor-pointer" @dblclick.stop="enableEditMode" @click.stop>
               {{ extension.title }}
             </span>
           </NcTooltip>

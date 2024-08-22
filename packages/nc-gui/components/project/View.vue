@@ -127,8 +127,8 @@ watch(
           </NcTooltip>
         </div>
       </div>
-      
-      <SmartsheetTopbarCmdK />
+
+      <SmartsheetTopbarCmdK v-if="!isSharedBase" />
 
       <LazyGeneralShareProject />
     </div>

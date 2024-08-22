@@ -54,7 +54,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <GeneralApiLoader v-if="!isMobileMode" />
 
         <div
-          v-if="extensionsEgg"
+          v-if="!isSharedBase && extensionsEgg"
           class="flex items-center px-2 py-1 border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 cursor-pointer font-weight-600 text-sm select-none"
           :class="{ 'bg-brand-50 text-brand-500': isPanelExpanded }"
           @click="toggleExtensionPanel"
@@ -71,8 +71,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
             Extensions
           </span>
         </div>
-        <div v-else-if="!extensionsEgg" class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
-        <div>
+        <div v-else-if="!isSharedBase && !extensionsEgg" class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
+        <div v-if="!isSharedBase">
           <LazySmartsheetTopbarCmdK />
         </div>
         <LazyGeneralShareProject
@@ -84,7 +84,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
           v-if="isSharedBase && !appInfo.ee"
           class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md"
         />
-       
       </div>
     </template>
   </div>

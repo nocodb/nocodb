@@ -100,8 +100,12 @@ onMounted(() => {
 
 // close fullscreen on escape key press
 useEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    fullscreen.value = false
+  // Check if the event target or its closest parent is an input, select, or textarea
+  const isFormElement = (e?.target as HTMLElement)?.closest('input, select, textarea');
+
+  // If the target is not a form element and the key is 'Escape', close fullscreen
+  if (e.key === 'Escape' && !isFormElement) {
+    fullscreen.value = false;
   }
 })
 
@@ -246,28 +250,31 @@ eventBus.on((event, payload) => {
           >
             <div :class="{ 'extension-modal-content': fullscreen, 'h-full': !fullscreen }">
               <div v-if="fullscreen" class="flex items-center justify-between cursor-default">
-                <div class="flex-1 max-w-[calc(100%_-_96px)] flex items-center gap-2 text-gray-800 font-weight-600">
+                <div class="flex-1 max-w-[calc(100%_-_96px)] flex items-center gap-2 text-gray-800 font-semibold">
                   <img
                     v-if="extensionManifest"
                     :src="getExtensionAssetsUrl(extensionManifest.iconUrl)"
                     alt="icon"
-                    class="flex-none w-6 h-6"
+                    class="flex-none w-7 h-7"
                   />
-                  <input
+
+                  <a-input
                     v-if="titleEditMode"
                     ref="titleInput"
-                    v-model="tempTitle"
-                    class="flex-grow leading-1 outline-0 ring-none !text-xl !bg-transparent !font-weight-600"
+                    v-model:value="tempTitle"
+                    type="text"
+                    class="flex-grow !h-8 !px-1 !py-1 !-ml-1 !rounded-lg !text-xl font-semibold extension-title max-w-[420px]"
                     @click.stop
-                    @keyup.enter="updateExtensionTitle"
-                    @keyup.esc="updateExtensionTitle"
+                    @keyup.enter.stop="updateExtensionTitle"
+                    @keyup.esc.stop="updateExtensionTitle"
                     @blur="updateExtensionTitle"
-                  />
+                  >
+                  </a-input>
                   <NcTooltip v-else show-on-truncate-only class="extension-title truncate text-xl">
                     <template #title>
                       {{ extension.title }}
                     </template>
-                    <span @dblclick="enableEditMode">
+                    <span @dblclick="enableEditMode" class="cursor-pointer">
                       {{ extension.title }}
                     </span>
                   </NcTooltip>

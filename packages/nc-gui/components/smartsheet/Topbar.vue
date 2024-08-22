@@ -53,9 +53,10 @@ const topbarBreadcrumbItemWidth = computed(() => {
       <div class="flex items-center justify-end gap-3 flex-1">
         <GeneralApiLoader v-if="!isMobileMode" />
 
+        <!-- todo: weight and hover, icon -->
         <div
           v-if="!isSharedBase && extensionsEgg"
-          class="flex items-center px-2 py-1 border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 cursor-pointer font-weight-600 text-sm select-none"
+          class="flex items-center px-2 py-1 border-1 rounded-lg h-8 xs:(h-10 ml-0) ml-1 border-gray-200 cursor-pointer text-sm select-none"
           :class="{ 'bg-brand-50 text-brand-500': isPanelExpanded }"
           @click="toggleExtensionPanel"
         >

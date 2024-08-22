@@ -7,7 +7,7 @@ const { commandPalette } = useCommandPalette()
     v-e="['c:quick-actions']"
     type="secondary"
     size="small"
-    class="nc-topbar-cmd-k-btn w-full"
+    class="nc-topbar-cmd-k-btn"
     data-testid="nc-topbar-cmd-k-btn"
     @click="commandPalette?.open()"
   >

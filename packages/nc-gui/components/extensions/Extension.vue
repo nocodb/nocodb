@@ -171,7 +171,7 @@ eventBus.on((event, payload) => {
             v-if="extensionManifest"
             :src="getExtensionAssetsUrl(extensionManifest.iconUrl)"
             alt="icon"
-            class="h-6 w-6 object-contain"
+            class="h-7 w-7 object-contain"
           />
           <a-input
             v-if="titleEditMode && !fullscreen"

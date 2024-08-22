@@ -82,8 +82,8 @@ const onAddExtension = (ext: any) => {
                 <div class="flex flex-grow flex-col gap-2 ml-3">
                   <div class="flex justify-between gap-1">
                     <div class="font-weight-600">{{ ext.title }}</div>
-                    <NcButton size="xsmall" type="secondary" @click.stop="onAddExtension(ext)">
-                      <div class="flex items-center gap-2 mx-1">
+                    <NcButton size="xsmall" type="secondary" class="!px-7px" @click.stop="onAddExtension(ext)">
+                      <div class="flex items-center gap-1 -ml-3px">
                         <GeneralIcon icon="plus" />
                         {{ $t('general.install') }}
                       </div>

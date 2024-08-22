@@ -255,7 +255,7 @@ eventBus.on((event, payload) => {
                     v-if="extensionManifest"
                     :src="getExtensionAssetsUrl(extensionManifest.iconUrl)"
                     alt="icon"
-                    class="flex-none w-7 h-7"
+                    class="flex-none w-8 h-8"
                   />
 
                   <a-input

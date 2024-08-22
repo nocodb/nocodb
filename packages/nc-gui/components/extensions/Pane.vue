@@ -12,7 +12,6 @@ const {
   detailsFrom,
   isMarketVisible,
   extensionPanelSize,
-  toggleExtensionPanel,
   updateExtension,
 } = useExtensions()
 
@@ -142,31 +141,20 @@ onMounted(() => {
       maxWidth: `${normalizePaneMaxWidth}%`,
     }"
   >
-    <div ref="extensionHeaderRef" class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-gray-200 bg-white">
-      <NcTooltip v-if="false" class="flex" hide-on-click placement="topRight">
-        <template #title> Hide extensions </template>
-        <NcButton
-          size="xs"
-          type="text"
-          class="!text-gray-700 !hover:text-gray-800 !hover:bg-gray-200"
-          @click="toggleExtensionPanel"
-        >
-          <div class="flex items-center justify-center">
-            <GeneralIcon icon="doubleRightArrow" class="flex-none !text-gray-500/75" />
-          </div>
-        </NcButton>
-      </NcTooltip>
+    <div
+      ref="extensionHeaderRef"
+      class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-gray-200 bg-white"
+    >
       <div
         class="flex items-center gap-3 font-weight-700 text-gray-700 text-base"
         :class="{
           'flex-1': !isOpenSearchBox,
         }"
       >
-        <GeneralIcon icon="ncPuzzleSolid" class="h-5.5 w-5.5" />
+        <GeneralIcon icon="ncPuzzleSolid" class="h-5 w-5 text-gray-700 opacity-85" />
         <span v-if="!isOpenSearchBox || width >= 507">Extensions</span>
       </div>
       <div
-        
         class="flex justify-end"
         :class="{
           'flex-1': isOpenSearchBox,
@@ -192,7 +180,7 @@ onMounted(() => {
         </div>
       </div>
       <NcButton type="secondary" size="xs" @click="toggleMarket">
-        <div class="flex items-center gap-1 text-xs max-w-full">
+        <div class="flex items-center gap-1 text-xs max-w-full -ml-3px">
           <GeneralIcon icon="plus" />
           {{ $t('general.install') }}
         </div>
@@ -205,14 +193,14 @@ onMounted(() => {
         <div class="font-weight-700 text-base">No extensions added</div>
         <div class="text-sm text-gray-700">Add Extensions from the community extensions marketplace</div>
         <NcButton size="small" @click="toggleMarket">
-          <div class="flex items-center gap-2 font-weight-600">
+          <div class="flex items-center gap-1 -ml-3px">
             <GeneralIcon icon="plus" />
             {{ $t('general.install') }}
           </div>
         </NcButton>
         <!-- Todo: add docs link  -->
         <NcButton size="small" type="secondary">
-          <div class="flex items-center gap-2 font-weight-600">
+          <div class="flex items-center gap-1.5">
             <GeneralIcon icon="externalLink" />
             {{ $t('activity.goToDocs') }}
           </div>
@@ -272,7 +260,7 @@ onMounted(() => {
 }
 
 .nc-extension-pane {
-  @apply flex flex-col bg-gray-50 rounded-tl-xl border-1 border-gray-200 z-30;
+  @apply flex flex-col bg-gray-50 rounded-l-xl border-1 border-gray-200 z-30 -mt-1px;
 
   box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
 }

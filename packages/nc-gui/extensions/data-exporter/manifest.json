@@ -1,7 +1,7 @@
 {
   "id": "nc-data-exporter",
   "title": "Data Exporter",
-  "subTitle": "Data Exporter",
+  "subTitle": "Asynchronous CSV downloads with real-time notifications.",
   "description": "data-exporter/description.md",
   "entry": "data-exporter",
   "version": "0.1",

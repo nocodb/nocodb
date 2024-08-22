@@ -17,7 +17,7 @@ const filteredAvailableExtensions = computed(() =>
   (availableExtensions.value || []).filter(
     (ext) =>
       ext.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      ext.description.toLowerCase().includes(searchQuery.value.toLowerCase()),
+      ext.subTitle.toLowerCase().includes(searchQuery.value.toLowerCase()),
   ),
 )
 
@@ -79,11 +79,11 @@ const onAddExtension = (ext: any) => {
                 <div class="h-[60px] w-[60px] overflow-hidden m-auto">
                   <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />
                 </div>
-                <div class="flex flex-grow flex-col gap-2 ml-3">
+                <div class="flex flex-grow flex-col gap-1 ml-3">
                   <div class="flex justify-between gap-1">
-                    <div class="font-weight-600">{{ ext.title }}</div>
+                    <div class="font-weight-600 text-base">{{ ext.title }}</div>
                     <NcButton size="xsmall" type="secondary" class="!px-7px" @click.stop="onAddExtension(ext)">
-                      <div class="flex items-center gap-1 -ml-3px">
+                      <div class="flex items-center gap-1 -ml-3px text-small">
                         <GeneralIcon icon="plus" />
                         {{ $t('general.install') }}
                       </div>

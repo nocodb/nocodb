@@ -34,7 +34,7 @@ const emits = defineEmits(['rename', 'duplicate', 'showDetails', 'clearData', 'd
           </template>
           <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="emits('clearData')">
             <GeneralIcon icon="reload" />
-            Clear Data
+            Clear data
           </NcMenuItem>
           <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="emits('delete')">
             <GeneralIcon icon="delete" />

@@ -215,7 +215,7 @@ eventBus.on((event, payload) => {
             @delete="extension.delete()"
           />
           <NcButton v-if="!activeError" type="text" size="xs" class="nc-extension-expand-btn !px-1" @click="fullscreen = true">
-            <GeneralIcon icon="ncMaximize2" />
+            <GeneralIcon icon="ncMaximize2" class="h-3.5 w-3.5" />
           </NcButton>
           <NcButton size="xs" type="text" class="!px-1" @click="collapsed = !collapsed">
             <GeneralIcon :icon="collapsed ? 'arrowDown' : 'arrowUp'" class="flex-none" />
@@ -281,14 +281,14 @@ eventBus.on((event, payload) => {
                     ref="titleInput"
                     v-model:value="tempTitle"
                     type="text"
-                    class="flex-grow !h-8 !px-1 !py-1 !-ml-1 !rounded-lg !text-xl font-semibold extension-title max-w-[420px]"
+                    class="flex-grow !h-8 !px-1 !py-1 !-ml-1 !rounded-lg !text-lg font-semibold extension-title max-w-[420px]"
                     @click.stop
                     @keyup.enter.stop="updateExtensionTitle"
                     @keyup.esc.stop="updateExtensionTitle"
                     @blur="updateExtensionTitle"
                   >
                   </a-input>
-                  <NcTooltip v-else show-on-truncate-only class="extension-title truncate text-xl">
+                  <NcTooltip v-else show-on-truncate-only class="extension-title truncate text-lg">
                     <template #title>
                       {{ extension.title }}
                     </template>

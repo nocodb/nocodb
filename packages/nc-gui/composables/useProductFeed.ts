@@ -64,7 +64,7 @@ export const useProductFeed = createSharedComposable(() => {
           },
     })
     ytNextPageToken.value = data.nextPageToken
-    youtubeFeed.value = data.videos
+    youtubeFeed.value = [...youtubeFeed.value, ...data.videos]
   }
 
   const loadGithubFeed = async (loadMore?: boolean) => {
@@ -78,7 +78,7 @@ export const useProductFeed = createSharedComposable(() => {
             per_page: 10,
           },
     })
-    githubFeed.value = data
+    githubFeed.value = [...githubFeed.value, ...data]
   }
 
   return {

@@ -26,6 +26,9 @@ const handleIframeLoad = () => {
 
 <template>
   <div
+    :style="{
+      height: 'calc(100dvh - var(--toolbar-height))',
+    }"
     :class="{
       'hidden': !isLoaded,
       'block h-full': isLoaded,

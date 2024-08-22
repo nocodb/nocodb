@@ -59,7 +59,11 @@ const topbarBreadcrumbItemWidth = computed(() => {
           :class="{ 'bg-brand-50 text-brand-500': isPanelExpanded }"
           @click="toggleExtensionPanel"
         >
-          <GeneralIcon icon="ncPuzzleOutline" class="w-4 h-4 !stroke-transparent" :class="{ 'border-l-1 border-transparent': isPanelExpanded }" />
+          <GeneralIcon
+            icon="ncPuzzleOutline"
+            class="w-4 h-4 !stroke-transparent"
+            :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
+          />
           <span
             class="overflow-hidden trasition-all duration-200"
             :class="{ 'w-[0px] invisible': isPanelExpanded, 'ml-2 w-[74px]': !isPanelExpanded }"
@@ -68,7 +72,9 @@ const topbarBreadcrumbItemWidth = computed(() => {
           </span>
         </div>
         <div v-else-if="!extensionsEgg" class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
-
+        <div>
+          <LazySmartsheetTopbarCmdK />
+        </div>
         <LazyGeneralShareProject
           v-if="(isForm || isGrid || isKanban || isGallery || isMap || isCalendar) && !isPublic && !isMobileMode"
           is-view-toolbar
@@ -78,6 +84,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           v-if="isSharedBase && !appInfo.ee"
           class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md"
         />
+       
       </div>
     </template>
   </div>

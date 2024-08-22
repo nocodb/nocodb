@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ExtensionType } from '#imports'
 import { Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import Draggable from 'vuedraggable'
@@ -28,7 +29,7 @@ const searchQuery = ref<string>('')
 const showSearchBox = ref(false)
 
 const isOpenSearchBox = computed(() => {
-  return searchQuery.value || showSearchBox.value
+  return !!(searchQuery.value || showSearchBox.value)
 })
 
 const handleShowSearchInput = () => {
@@ -55,26 +56,32 @@ const normalizePaneMaxWidth = computed(() => {
   }
 })
 
-const onMove = async (_event: { moved: { newIndex: number; oldIndex: number; element: NcProject } }) => {
-  const {
+const onMove = async (_event: { moved: { newIndex: number; oldIndex: number; element: ExtensionType } }) => {
+  let {
     moved: { newIndex = 0, oldIndex = 0, element },
   } = _event
 
+  element = extensionList.value?.find((ext) => ext.id === element.id) || element
+
   if (!element?.id) return
+
+  newIndex = extensionList.value.findIndex((ext) => ext.id === filteredExtensionList.value[newIndex].id)
+
+  oldIndex = extensionList.value.findIndex((ext) => ext.id === filteredExtensionList.value[oldIndex].id)
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
-  if (filteredExtensionList.value.length - 1 === newIndex) {
+  if (extensionList.value.length - 1 === newIndex) {
     // If moving to the end, set nextOrder greater than the maximum order in the list
-    nextOrder = Math.max(...filteredExtensionList.value.map((item) => item?.order ?? 0)) + 1
+    nextOrder = Math.max(...extensionList.value.map((item) => item?.order ?? 0)) + 1
   } else if (newIndex === 0) {
     // If moving to the beginning, set nextOrder smaller than the minimum order in the list
-    nextOrder = Math.min(...filteredExtensionList.value.map((item) => item?.order ?? 0)) / 2
+    nextOrder = Math.min(...extensionList.value.map((item) => item?.order ?? 0)) / 2
   } else {
     nextOrder =
-      (parseFloat(String(filteredExtensionList.value[newIndex - 1]?.order ?? 0)) +
-        parseFloat(String(filteredExtensionList.value[newIndex + 1]?.order ?? 0))) /
+      (parseFloat(String(extensionList.value[newIndex - 1]?.order ?? 0)) +
+        parseFloat(String(extensionList.value[newIndex + 1]?.order ?? 0))) /
       2
   }
 
@@ -205,9 +212,9 @@ onMounted(() => {
     </template>
     <template v-else>
       <Draggable
-        :model-value="extensionList"
-        item-key="id"
+        :model-value="filteredExtensionList"
         draggable=".nc-extension-item"
+        item-key="id"
         handle=".nc-extension-drag-handler"
         ghost-class="ghost"
         class="nc-extension-list-wrapper flex items-center flex-col gap-3 w-full nc-scrollbar-md py-4"
@@ -219,7 +226,7 @@ onMounted(() => {
         @change="onMove($event)"
       >
         <template #item="{ element: ext }">
-          <div v-if="ext.title.toLowerCase().includes(searchQuery.toLowerCase())" :key="ext.id" class="nc-extension-item w-full">
+          <div class="nc-extension-item w-full">
             <ExtensionsWrapper :extension-id="ext.id" />
           </div>
         </template>
@@ -256,7 +263,7 @@ onMounted(() => {
 }
 
 .nc-extension-pane {
-  @apply flex flex-col bg-gray-50 rounded-l-xl border-1 border-gray-200 z-30;
+  @apply flex flex-col bg-gray-50 rounded-tl-xl border-1 border-gray-200 z-30;
 
   box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
 }

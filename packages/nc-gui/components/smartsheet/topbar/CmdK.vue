@@ -12,7 +12,7 @@ const { commandPalette } = useCommandPalette()
     @click="commandPalette?.open()"
   >
     <div class="flex items-center gap-1 text-sm">
-      <GeneralIcon icon="ncCommand" class="h-3.5"/>
+      <GeneralIcon icon="ncCommand" class="h-3.5" />
       K
     </div>
   </NcButton>

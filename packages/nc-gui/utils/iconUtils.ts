@@ -1322,7 +1322,7 @@ export const iconMap = {
   langJava: NcLangJava,
   langC: NcLangC,
   ncPuzzleSolid: NcPuzzleSolid,
-  ncPuzzleOutline: NcPuzzleOutline
+  ncPuzzleOutline: NcPuzzleOutline,
 }
 
 export const getMdiIcon = (type: string): any => {

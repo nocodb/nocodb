@@ -207,17 +207,17 @@ eventBus.on((event, payload) => {
         <div class="extension-header-right" @click.stop>
           <ExtensionsExtensionMenu
             :active-error="activeError"
+            class="nc-extension-menu"
             @rename="enableEditMode"
             @duplicate="handleDuplicateExtension(extension.id, true)"
             @show-details="showExtensionDetails(extension.extensionId, 'extension')"
             @clear-data="extension.clear()"
             @delete="extension.delete()"
-            class="nc-extension-menu"
           />
           <NcButton v-if="!activeError" type="text" size="xs" class="nc-extension-expand-btn !px-1" @click="fullscreen = true">
             <GeneralIcon icon="ncMaximize2" />
           </NcButton>
-          <NcButton size="xs" type="text" @click="collapsed = !collapsed" class="!px-1">
+          <NcButton size="xs" type="text" class="!px-1" @click="collapsed = !collapsed">
             <GeneralIcon :icon="collapsed ? 'arrowDown' : 'arrowUp'" class="flex-none" />
           </NcButton>
         </div>
@@ -228,7 +228,7 @@ eventBus.on((event, payload) => {
           v-show="!collapsed"
           class="extension-content nc-scrollbar-thin h-[calc(100%_-_50px)] flex items-center justify-center"
           :class="{
-            fullscreen: fullscreen,
+            fullscreen,
           }"
         >
           <a-result status="error" title="Extension Error" class="nc-extension-error">
@@ -292,7 +292,7 @@ eventBus.on((event, payload) => {
                     <template #title>
                       {{ extension.title }}
                     </template>
-                    <span @dblclick="enableEditMode" class="cursor-pointer">
+                    <span class="cursor-pointer" @dblclick="enableEditMode">
                       {{ extension.title }}
                     </span>
                   </NcTooltip>

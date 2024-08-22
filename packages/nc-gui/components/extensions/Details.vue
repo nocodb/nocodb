@@ -84,7 +84,9 @@ const detailsBody = computed(() => {
         </div>
         <div class="self-start flex items-center gap-2.5">
           <NcButton size="small" class="w-full" @click="onAddExtension(activeExtension)">
-            <div class="flex items-center justify-center gap-1 -ml-3px"><GeneralIcon icon="plus" /> {{ $t('general.install') }}</div>
+            <div class="flex items-center justify-center gap-1 -ml-3px">
+              <GeneralIcon icon="plus" /> {{ $t('general.install') }}
+            </div>
           </NcButton>
           <NcButton size="small" type="text" @click="vModel = false">
             <GeneralIcon icon="close" class="text-gray-600" />

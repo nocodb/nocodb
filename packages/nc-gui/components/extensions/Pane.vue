@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { ExtensionType } from '#imports'
 import { Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import Draggable from 'vuedraggable'
+import type { ExtensionType } from '#imports'
 
 const {
   extensionList,
@@ -227,7 +227,7 @@ onMounted(() => {
             <ExtensionsWrapper :extension-id="ext.id" />
           </div>
         </template>
-        <template #header v-if="searchQuery && !filteredExtensionList.length && extensionList.length">
+        <template v-if="searchQuery && !filteredExtensionList.length && extensionList.length" #header>
           <div class="w-full h-full flex-1 flex items-center justify-center">
             <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
               <img

@@ -267,7 +267,7 @@ add_to_hosts() {
     local TEMP_HOSTS_FILE="/tmp/hosts.tmp"
 
 
-    if is_valid_domain "CONFIG_MINIO_DOMAIN_NAME"; then
+    if is_valid_domain $CONFIG_MINIO_DOMAIN_NAME; then
               return 0
     elif sudo grep -q "${CONFIG_MINIO_DOMAIN_NAME}" "$HOSTS_FILE"; then
         return 0
@@ -574,7 +574,7 @@ EOF
  fi
 
 # If SSL is enabled we need to add the following lines to the traefik service
- if [ "$CONFIG_SSL_ENABLED" = "Y" ]; then
+ if [ "$CONFIG_SSL_ENABLED" = "Y" ] || [ "$CONFIG_MINIO_SSL_ENABLED" = "Y" ]; then
      cat >> "$compose_file" <<EOF
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
@@ -644,7 +644,13 @@ fi
       - "traefik.http.routers.minio.tls=true"
       - "traefik.http.routers.minio.tls.certresolver=letsencrypt"
 EOF
-# If not confugured, set the entry point to minio: Port 9000
+# If minio is enabled and the domain is valid, set the entry point to web
+    elif is_valid_domain "$CONFIG_MINIO_DOMAIN_NAME"; then
+        cat >> "$compose_file" <<EOF
+      - "traefik.http.routers.minio.entrypoints=web"
+EOF
+
+# If minio is enabled, valid domain name is not configured, set the entry point to Port 9000
     else
         cat >> "$compose_file" <<EOF
       - "traefik.http.routers.minio.entrypoints=minio"
@@ -716,6 +722,8 @@ NC_S3_FORCE_PATH_STYLE=true
 EOF
         if [ "$CONFIG_MINIO_SSL_ENABLED" = "Y" ]; then
             echo "NC_S3_ENDPOINT=https://${CONFIG_MINIO_DOMAIN_NAME}" >> "$env_file"
+        elif is_valid_domain "$CONFIG_MINIO_DOMAIN_NAME"; then
+            echo "NC_S3_ENDPOINT=http://${CONFIG_MINIO_DOMAIN_NAME}" >> "$env_file"
         else
             echo "NC_S3_ENDPOINT=http://${CONFIG_MINIO_DOMAIN_NAME}:9000" >> "$env_file"
         fi

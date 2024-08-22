@@ -38,13 +38,31 @@ const setFormState = (path: string, value: any) => {
                 ></div>
                 <a-form-item
                   v-else
-                  :label="[FormBuilderInputType.Switch].includes(field.type) ? undefined : field.label"
                   v-bind="validateInfos[field.model]"
                   class="nc-form-item"
                   :style="`width:${+field.width || 100}%`"
+                  :required="false"
                 >
+                  <template v-if="![FormBuilderInputType.Switch].includes(field.type)" #label>
+                    <div class="flex items-center gap-1">
+                      <span>{{ field.label }}</span>
+                      <span v-if="field.required" class="text-red-500">*</span>
+                      <NcTooltip v-if="field.helpText">
+                        <template #title>
+                          <div class="text-xs">
+                            {{ field.helpText }}
+                          </div>
+                        </template>
+                        <GeneralIcon icon="info" class="text-gray-500 h-4" />
+                      </NcTooltip>
+                    </div>
+                  </template>
                   <template v-if="field.type === FormBuilderInputType.Input">
-                    <a-input :value="deepReference(field.model)" @update:value="setFormState(field.model, $event)" />
+                    <a-input
+                      class="!w-full"
+                      :value="deepReference(field.model)"
+                      @update:value="setFormState(field.model, $event)"
+                    />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Password">
                     <a-input-password :value="deepReference(field.model)" @update:value="setFormState(field.model, $event)" />
@@ -57,19 +75,16 @@ const setFormState = (path: string, value: any) => {
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Switch">
-                    <div class="flex flex-col p-2" :class="field.border ? 'border-1 rounded-lg' : ''">
+                    <div class="flex flex-col p-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
                       <div class="flex items-center">
                         <NcSwitch :checked="!!deepReference(field.model)" @update:checked="setFormState(field.model, $event)" />
                         <span class="ml-[6px] font-bold">{{ field.label }}</span>
                       </div>
-                      <div v-if="field.helpText" class="w-full mt-1 ml-[35px]">
+                      <div v-if="field.helpText" class="w-full mt-1 pl-[35px]">
                         <div class="text-xs text-gray-500">{{ field.helpText }}</div>
                       </div>
                     </div>
                   </template>
-                  <div v-if="field.helpText && field.type !== FormBuilderInputType.Switch" class="w-full mt-1">
-                    <div class="text-xs text-gray-500">{{ field.helpText }}</div>
-                  </div>
                 </a-form-item>
               </template>
             </div>
@@ -87,7 +102,6 @@ const setFormState = (path: string, value: any) => {
 
 <style lang="scss" scoped>
 .nc-form-item {
-  padding-right: 24px;
   margin-bottom: 12px;
 }
 

@@ -1,14 +1,4 @@
 <script setup lang="ts">
-import { ClientType, SSLUsage } from 'nocodb-sdk'
-import { Action } from '../../../composables/useAccountSetupStore'
-import type {
-  CertTypes,
-  DatabricksConnection,
-  DefaultConnection,
-  SQLiteConnection,
-  SnowflakeConnection,
-} from '../../../utils/baseCreateUtils'
-
 const props = defineProps<{
   id: string
   modelValue?: boolean
@@ -39,14 +29,22 @@ const pluginTypeMap = {
 
 const { formState, validate, validateInfos } = useProvideFormBuilderHelper({
   formSchema: [
-    ...plugin.value.formDetails.items.map((item) => ({
-      type: pluginTypeMap[item.type] || FormBuilderInputType.Input,
-      label: item.label,
-      placeholder: item.placeholder,
-      model: item.key,
-      required: item.required,
-      helpText: item.help_text,
-    })),
+    ...plugin.value.formDetails.items.flatMap((item, i) => [
+      {
+        type: pluginTypeMap[item.type] || FormBuilderInputType.Input,
+        label: item.label,
+        placeholder: item.placeholder,
+        model: item.key,
+        required: item.required,
+        helpText: item.help_text,
+        width: '47',
+        border: true,
+      },
+      ...(i % 2 ? [] : [{
+        type: FormBuilderInputType.Space,
+        width: '6',
+      }] ),
+    ]),
   ],
   initialState: pluginFormData,
 })
@@ -82,23 +80,25 @@ const isValid = computed(() => {
   <div class="flex flex-col h-full h-[calc(100vh_-_40px)]" data-test-id="nc-setup">
     <NcPageHeader>
       <template #title>
-        <span data-rec="true">
-          {{ plugin.title }}
-        </span>
-      </template>
-    </NcPageHeader>
-    <div class="h-full flex  h-[calc(100%_-_48px)]">
-      <div class="nc-config-left-panel nc-scrollbar-thin relative h-full flex flex-col">
-        <div class="w-full flex items-center gap-3 border-b-1 border-gray-200 h-12 py-2 px-3">
+        <div class="flex gap-3 items-center">
           <div
-            v-if="plugin.logo"
+            v-if="plugin.logo || plugin.title === 'SMTP'"
             class="mr-1 flex items-center justify-center"
             :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
           >
-            <img :alt="plugin.title || 'plugin'" :src="plugin.logo" class="h-3" />
+            <GeneralIcon v-if="plugin.title === 'SMTP'" class="h-8 w-8" icon="mail" />
+            <img v-else :alt="plugin.title || 'plugin'" :src="plugin.logo" class="h-8 w-8" />
           </div>
-
-          <span class="font-semibold text-lg">{{ plugin.formDetails.title }}</span>
+          <span data-rec="true">
+            {{ plugin.title }}
+          </span>
+        </div>
+      </template>
+    </NcPageHeader>
+    <div class="h-full flex h-[calc(100%_-_48px)]">
+      <div class="nc-config-left-panel nc-scrollbar-thin relative h-full flex flex-col">
+        <div class="w-full flex items-center gap-3 border-b-1 border-gray-200 h-12 py-2 px-3">
+          <span class="font-semibold text-lg">{{ $t('labels.configuration') }}</span>
           <div class="flex-grow" />
 
           <div class="flex gap-2">
@@ -116,13 +116,13 @@ const isValid = computed(() => {
             </NcButton>
           </div>
         </div>
-        <div class="h-[calc(100%_-_48px)] flex py-4 flex-col p-6  overflow-auto">
+        <div class="h-[calc(100%_-_48px)] flex py-4 flex-col p-6 overflow-auto">
           <div v-if="isLoading || !plugin" class="flex flex-row w-full justify-center items-center h-52">
             <a-spin size="large" />
           </div>
 
           <div v-else class="flex">
-            <NcFormBuilder class="w-150 mx-auto" />
+            <NcFormBuilder class="w-225 mx-auto" />
           </div>
         </div>
       </div>
@@ -148,6 +148,7 @@ const isValid = computed(() => {
 .nc-config-left-panel {
   @apply w-full flex-1 flex justify-stretch;
 }
+
 .nc-config-right-panel {
   @apply p-5 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
 }

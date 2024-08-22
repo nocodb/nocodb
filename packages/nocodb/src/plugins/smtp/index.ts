@@ -53,6 +53,24 @@ const config: XcPluginConfig = {
           'Enter the port number used by the SMTP server (e.g., 587 for TLS, 465 for SSL, or 25 for non-secure connections).',
       },
       {
+        key: 'username',
+        label: 'Username',
+        placeholder: 'Username',
+        type: XcType.SingleLineText,
+        required: false,
+        help_text:
+          'Enter the username required to authenticate with the SMTP server. This is usually your email address.',
+      },
+      {
+        key: 'password',
+        label: 'Password',
+        placeholder: 'Password',
+        type: XcType.Password,
+        required: false,
+        help_text:
+          'Enter the password associated with the SMTP server username. Click the eye icon to view the password as you type',
+      },
+      {
         key: 'secure',
         label: 'Use Secure Connection',
         placeholder: 'Secure',
@@ -78,24 +96,6 @@ const config: XcPluginConfig = {
         required: false,
         help_text:
           'Enable this on to reject emails that fail authentication checks, ensuring only authorized emails are sent.',
-      },
-      {
-        key: 'username',
-        label: 'Username',
-        placeholder: 'Username',
-        type: XcType.SingleLineText,
-        required: false,
-        help_text:
-          'Enter the username required to authenticate with the SMTP server. This is usually your email address.',
-      },
-      {
-        key: 'password',
-        label: 'Password',
-        placeholder: 'Password',
-        type: XcType.Password,
-        required: false,
-        help_text:
-          'Enter the password associated with the SMTP server username. Click the eye icon to view the password as you type',
       },
     ],
     actions: [

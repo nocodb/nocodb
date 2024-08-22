@@ -63,6 +63,7 @@ const logout = async () => {
               <NcMenuItem
                 key="profile"
                 class="item"
+                v-if="isUIAllowed('superAdminSetup') && !isEeUI"
                 :class="{
                   active: $route.path?.startsWith('/account/setup'),
                 }"

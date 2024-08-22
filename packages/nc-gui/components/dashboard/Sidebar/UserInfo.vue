@@ -15,6 +15,8 @@ const isLoggingOut = ref(false)
 
 const { isMobileMode } = useGlobal()
 
+const { isUIAllowed } = useRoles()
+
 const logout = async () => {
   isLoggingOut.value = true
   try {
@@ -50,6 +52,10 @@ const isMounted = ref(false)
 
 onMounted(() => {
   isMounted.value = true
+})
+
+const accountUrl = computed(() => {
+  return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
 })
 </script>
 
@@ -180,7 +186,7 @@ onMounted(() => {
 
               <DashboardSidebarEEMenuOption v-if="isEeUI" />
 
-              <nuxt-link v-e="['c:user:settings']" class="!no-underline" to="/account/profile">
+              <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl">
                 <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
               </nuxt-link>
             </template>

@@ -75,18 +75,19 @@ onMounted(async () => {
           <div class="flex flex justify-between" data-rec="true">
             <span class="font-bold text-base"> {{ config.title }}</span>
 
-            <div
-              v-if="!config.configured || config.isPending"
-              class="flex items-center gap-1 text-orange-500 bg-orange-50 border-1 border-orange-500 px-1 rounded"
-            >
+            <NcTooltip v-if="!config.configured || config.isPending">
+              <template #title>
+                <span>
+                  {{ $t('activity.pending') }}
+                </span>
+              </template>
               <GeneralIcon icon="warning" class="text-orange-500" />
-              {{ $t('activity.pending') }}
-            </div>
+            </NcTooltip>
           </div>
           <div class="text-gray-600 text-sm">{{ config.description }}</div>
 
-          <div v-if="config.configured" class="flex justify-between mt-4">
-            <div class="flex gap-4 items-center border-1 w-full p-4 rounded">
+          <div v-if="config.configured" class="flex justify-between mt-4 cursor-pointer" @click="config.onClick">
+            <div class="flex gap-4 items-center border-1 w-full p-4 rounded-2xl">
               <GeneralIcon icon="circleCheckSolid" class="text-success w-6 h-6 bg-white-500" />
               <img
                 v-if="config.configured.title !== 'SMTP'"
@@ -100,7 +101,7 @@ onMounted(async () => {
               <GeneralIcon v-else icon="mail" />
               <span class="font-weight-bold text-base">{{ config.configured.title }}</span>
               <div class="flex-grow" />
-              <NcButton type="text" @click="config.onClick">
+              <NcButton type="text">
                 <div class="flex gap-2 items-center">
                   <GeneralIcon icon="ncEdit3" />
                   Edit

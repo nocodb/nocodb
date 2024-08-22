@@ -148,7 +148,7 @@ const detailsBody = computed(() => {
     @apply p-5 w-[320px] flex flex-col space-y-4 border-l-1 border-gray-200 bg-gray-50 nc-scrollbar-thin;
 
     .extension-details-right-section {
-      @apply flex flex-col gap-3;
+      @apply flex flex-col gap-2;
     }
 
     .extension-details-right-title {

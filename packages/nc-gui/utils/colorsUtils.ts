@@ -385,18 +385,16 @@ export const lightTheme = {
       disabled: themeV3Colors.brand[600],
       hover: themeV3Colors.gray[300],
     },
-    // 'nc-inverted': {
-    //   primary: {
-    //     DEFAULT: themeV3Colors.base['white'],
-    //     hover: themeV3Colors.base['white'],
-    //     disabled: themeV3Colors.gray[400],
-    //   },
-    //   secondary: {
-    //     DEFAULT: themeV3Colors.gray[700],
-    //     hover: themeV3Colors.gray[700],
-    //     disabled: themeV3Colors.gray[400],
-    //   },
-    // },
+    'nc-inverted-primary': {
+      DEFAULT: themeV3Colors.base['white'],
+      hover: themeV3Colors.base['white'],
+      disabled: themeV3Colors.gray[400],
+    },
+    'nc-inverted-secondary': {
+      DEFAULT: themeV3Colors.gray[700],
+      hover: themeV3Colors.gray[700],
+      disabled: themeV3Colors.gray[400],
+    },
     'nc-red': {
       dark: themeV3Colors.red[700],
       medium: themeV3Colors.red[500],
@@ -448,23 +446,37 @@ export const lightTheme = {
       dark: themeV3Colors.gray[300],
       extradark: themeV3Colors.gray[400],
     },
-    'nc-coloured': {
-      red: themeV3Colors.red[50],
-      green: themeV3Colors.green[50],
-      yellow: themeV3Colors.yellow[50],
-      blue: themeV3Colors.blue[50],
-      purple: themeV3Colors.purple[50],
-      pink: themeV3Colors.pink[50],
-      orange: themeV3Colors.orange[50],
-      maroon: themeV3Colors.maroon[50],
-      darkred: themeV3Colors.red[100],
-      darkgreen: themeV3Colors.green[100],
-      darkyellow: themeV3Colors.yellow[100],
-      darkblue: themeV3Colors.blue[100],
-      darkpurple: themeV3Colors.purple[100],
-      darkpink: themeV3Colors.pink[100],
-      darkorange: themeV3Colors.orange[100],
-      darkmaroon: themeV3Colors.maroon[100],
+    'nc-red': {
+      light: themeV3Colors.red[50],
+      dark: themeV3Colors.red[100],
+    },
+    'nc-green': {
+      light: themeV3Colors.green[50],
+      dark: themeV3Colors.green[100],
+    },
+    'nc-yellow': {
+      light: themeV3Colors.yellow[50],
+      dark: themeV3Colors.yellow[100],
+    },
+    'nc-blue': {
+      light: themeV3Colors.blue[50],
+      dark: themeV3Colors.blue[100],
+    },
+    'nc-purple': {
+      light: themeV3Colors.purple[50],
+      dark: themeV3Colors.purple[100],
+    },
+    'nc-pink': {
+      light: themeV3Colors.pink[50],
+      dark: themeV3Colors.pink[100],
+    },
+    'nc-orange': {
+      light: themeV3Colors.orange[50],
+      dark: themeV3Colors.orange[100],
+    },
+    'nc-maroon': {
+      light: themeV3Colors.maroon[50],
+      dark: themeV3Colors.maroon[100],
     },
   },
   border: {
@@ -476,80 +488,92 @@ export const lightTheme = {
       dark: themeV3Colors.gray[300],
       extradark: themeV3Colors.gray[400],
     },
-    'nc-coloured': {
-      red: themeV3Colors.red[500],
-      green: themeV3Colors.green[500],
-      yellow: themeV3Colors.yellow[500],
-      blue: themeV3Colors.blue[500],
-      purple: themeV3Colors.purple[500],
-      pink: themeV3Colors.pink[500],
-      orange: themeV3Colors.orange[500],
-      maroon: themeV3Colors.maroon[500],
+    'nc-red': {
+      DEFAULT: themeV3Colors.red[500],
+    },
+    'nc-green': {
+      DEFAULT: themeV3Colors.green[500],
+    },
+    'nc-yellow': {
+      DEFAULT: themeV3Colors.yellow[500],
+    },
+    'nc-blue': {
+      DEFAULT: themeV3Colors.blue[500],
+    },
+    'nc-purple': {
+      DEFAULT: themeV3Colors.purple[500],
+    },
+    'nc-pink': {
+      DEFAULT: themeV3Colors.pink[500],
+    },
+    'nc-orange': {
+      DEFAULT: themeV3Colors.orange[500],
+    },
+    'nc-maroon': {
+      DEFAULT: themeV3Colors.maroon[500],
     },
   },
   fill: {
-    'nc-primary': {
+    'nc-fill-primary': {
       DEFAULT: themeV3Colors.brand[500],
       hover: themeV3Colors.brand[600],
       disabled: themeV3Colors.gray[300],
       disabled2: themeV3Colors.brand[200],
     },
-    'nc-secondary': {
+    'nc-fill-secondary': {
       DEFAULT: themeV3Colors.base['white'],
       hover: themeV3Colors.gray[50],
       disabled: themeV3Colors.base['white'],
     },
-    'nc-warning': {
+    'nc-fill-warning': {
       DEFAULT: themeV3Colors.red[500],
       hover: themeV3Colors.red[600],
       disabled: themeV3Colors.gray[50],
     },
-    'nc-success': {
+    'nc-fill-success': {
       DEFAULT: themeV3Colors.green[500],
       hover: themeV3Colors.green[600],
       disabled: themeV3Colors.gray[50],
     },
-    'nc-coloured': {
-      red: {
-        dark: themeV3Colors.red[700],
-        medium: themeV3Colors.red[500],
-        light: themeV3Colors.red[300],
-      },
-      green: {
-        dark: themeV3Colors.green[700],
-        medium: themeV3Colors.green[500],
-        light: themeV3Colors.green[300],
-      },
-      yellow: {
-        dark: themeV3Colors.yellow[700],
-        medium: themeV3Colors.yellow[500],
-        light: themeV3Colors.yellow[300],
-      },
-      blue: {
-        dark: themeV3Colors.blue[700],
-        medium: themeV3Colors.blue[500],
-        light: themeV3Colors.blue[300],
-      },
-      purple: {
-        dark: themeV3Colors.purple[700],
-        medium: themeV3Colors.purple[500],
-        light: themeV3Colors.purple[300],
-      },
-      pink: {
-        dark: themeV3Colors.pink[700],
-        medium: themeV3Colors.pink[500],
-        light: themeV3Colors.pink[300],
-      },
-      orange: {
-        dark: themeV3Colors.orange[700],
-        medium: themeV3Colors.orange[500],
-        light: themeV3Colors.orange[300],
-      },
-      maroon: {
-        dark: themeV3Colors.maroon[700],
-        medium: themeV3Colors.maroon[500],
-        light: themeV3Colors.maroon[300],
-      },
+    'nc-fill-red': {
+      dark: themeV3Colors.red[700],
+      medium: themeV3Colors.red[500],
+      light: themeV3Colors.red[300],
+    },
+    'nc-fill-green': {
+      dark: themeV3Colors.green[700],
+      medium: themeV3Colors.green[500],
+      light: themeV3Colors.green[300],
+    },
+    'nc-fill-yellow': {
+      dark: themeV3Colors.yellow[700],
+      medium: themeV3Colors.yellow[500],
+      light: themeV3Colors.yellow[300],
+    },
+    'nc-fill-blue': {
+      dark: themeV3Colors.blue[700],
+      medium: themeV3Colors.blue[500],
+      light: themeV3Colors.blue[300],
+    },
+    'nc-fill-purple': {
+      dark: themeV3Colors.purple[700],
+      medium: themeV3Colors.purple[500],
+      light: themeV3Colors.purple[300],
+    },
+    'nc-fill-pink': {
+      dark: themeV3Colors.pink[700],
+      medium: themeV3Colors.pink[500],
+      light: themeV3Colors.pink[300],
+    },
+    'nc-fill-orange': {
+      dark: themeV3Colors.orange[700],
+      medium: themeV3Colors.orange[500],
+      light: themeV3Colors.orange[300],
+    },
+    'nc-fill-maroon': {
+      dark: themeV3Colors.maroon[700],
+      medium: themeV3Colors.maroon[500],
+      light: themeV3Colors.maroon[300],
     },
   },
 }

@@ -39,6 +39,7 @@ const { formState, validate, validateInfos } = useProvideFormBuilderHelper({
         helpText: item.help_text,
         width: '48',
         border: false,
+        showHintAsTooltip: true,
       },
       ...(i % 2
         ? []
@@ -85,14 +86,8 @@ const isValid = computed(() => {
     <NcPageHeader>
       <template #title>
         <div class="flex gap-3 items-center">
-          <div
-            v-if="plugin.logo || plugin.title === 'SMTP'"
-            class="mr-1 flex items-center justify-center"
-            :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
-          >
-            <GeneralIcon v-if="plugin.title === 'SMTP'" class="h-8 w-8 text-gray-500" icon="mail" />
-            <img v-else :alt="plugin.title || 'plugin'" :src="plugin.logo" class="h-8 w-8" />
-          </div>
+          <AccountSetupAppIcon :app="plugin" class="h-8 w-8" />
+
           <span data-rec="true">
             {{ plugin.title }}
           </span>
@@ -134,14 +129,21 @@ const isValid = computed(() => {
         <div class="flex-grow flex flex-col gap-3">
           <div class="text-gray-500 text-capitalize">Documentation</div>
 
-          <div>
+          <a href="httpd://docs.nocodb.com" rel="noopener noreferrer" target="_blank" class="!no-underline !text-current">
             <GeneralIcon icon="bookOpen" class="text-gray-500" />
             Workspace Setup
-          </div>
-          <div>
+          </a>
+          <a
+            v-for="doc of plugin.formDetails?.docs || []"
+            :key="doc.title"
+            :href="doc.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="!no-underline !text-current"
+          >
             <GeneralIcon icon="bookOpen" class="text-gray-500" />
-            Setting up SMTP as email service
-          </div>
+            {{ doc.title }}
+          </a>
         </div>
       </div>
     </div>

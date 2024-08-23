@@ -13,7 +13,8 @@ const configs = computed(() => [
   {
     title: t('labels.configLabel', { label: t('labels.email') }),
     key: 'email',
-    description: 'Configure an email account to send notifications to your organisation’s users.',
+    description:
+      'Configure your preferred email service to manage how your application sends alerts, notifications and other essential emails.',
     docsLink: 'https://docs.nocodb.com',
     buttonClick: () => {
       navigateTo(`/account/setup/email${emailConfigured.value ? `/${emailConfigured.value.title}` : ''}`)
@@ -26,7 +27,7 @@ const configs = computed(() => [
   {
     title: t('labels.configLabel', { label: t('labels.storage') }),
     key: 'storage',
-    description: 'Configure a storage service to store your organisation’s data.',
+    description: 'Set up and manage your preferred storage solution for securely handling and storing your application’s data.',
     docsLink: 'https://docs.nocodb.com',
     buttonClick: () => {
       navigateTo(`/account/setup/storage${storageConfigured.value ? `/${storageConfigured.value.title}` : ''}`)
@@ -87,7 +88,7 @@ onMounted(async () => {
                   {{ $t('activity.pending') }}
                 </span>
               </template>
-              <GeneralIcon icon="warning" class="text-orange-500 -mt-1 w-6 h-6" />
+              <GeneralIcon icon="ncAlertCircle" class="text-orange-500 -mt-1 w-6 h-6" />
             </NcTooltip>
             <GeneralIcon v-else icon="circleCheckSolid" class="text-success w-6 h-6 bg-white-500" />
 

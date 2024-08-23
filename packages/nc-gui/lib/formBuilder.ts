@@ -20,6 +20,7 @@ export interface FormBuilderElement {
   options?: { value: string; label: string }[]
   // used for styling switch
   border?: boolean
+  showHintAsTooltip?: boolean
 }
 
 export type FormDefinition = FormBuilderElement[]

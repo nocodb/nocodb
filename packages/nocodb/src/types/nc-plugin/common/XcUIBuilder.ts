@@ -1,9 +1,14 @@
+export interface XcPluginDoc {
+  title: string;
+  url: string;
+}
 interface XcForm {
   title: string;
   items: XcItem[];
   actions: XcButton[];
   msgOnInstall: string;
   msgOnUninstall: string;
+  docs?: XcPluginDoc[];
   [key: string]: any;
 }
 declare enum XcType {

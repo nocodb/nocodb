@@ -47,7 +47,7 @@ const setFormState = (path: string, value: any) => {
                     <div class="flex items-center gap-1">
                       <span>{{ field.label }}</span>
                       <span v-if="field.required" class="text-red-500">*</span>
-                      <NcTooltip v-if="field.helpText">
+                      <NcTooltip v-if="field.helpText && field.showHintAsTooltip">
                         <template #title>
                           <div class="text-xs">
                             {{ field.helpText }}
@@ -79,12 +79,26 @@ const setFormState = (path: string, value: any) => {
                       <div class="flex items-center">
                         <NcSwitch :checked="!!deepReference(field.model)" @update:checked="setFormState(field.model, $event)" />
                         <span class="ml-[6px] font-bold">{{ field.label }}</span>
+                        <NcTooltip v-if="field.helpText">
+                          <template #title>
+                            <div class="text-xs">
+                              {{ field.helpText }}
+                            </div>
+                          </template>
+                          <GeneralIcon icon="info" class="text-gray-500 h-4 ml-1" />
+                        </NcTooltip>
                       </div>
-                      <div v-if="field.helpText" class="w-full mt-1 pl-[35px]">
+                      <div v-if="field.helpText && !field.showHintAsTooltip" class="w-full mt-1 pl-[35px]">
                         <div class="text-xs text-gray-500">{{ field.helpText }}</div>
                       </div>
                     </div>
                   </template>
+                  <div
+                    v-if="field.helpText && field.type !== FormBuilderInputType.Switch && !field.showHintAsTooltip"
+                    class="w-full mt-1"
+                  >
+                    <div class="text-xs text-gray-500">{{ field.helpText }}</div>
+                  </div>
                 </a-form-item>
               </template>
             </div>

@@ -17,7 +17,7 @@ const config: XcPluginConfig = {
     items: [
       {
         key: 'api_key',
-        label: 'API KEy',
+        label: 'API key',
         placeholder: 'eg: ***************',
         type: XcType.Password,
         required: true,
@@ -31,7 +31,7 @@ const config: XcPluginConfig = {
       },
       {
         key: 'from_name',
-        label: 'From Name',
+        label: 'From name',
         placeholder: 'eg: Adam',
         type: XcType.SingleLineText,
         required: true,

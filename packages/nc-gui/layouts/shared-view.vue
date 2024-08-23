@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { isLoading, appInfo } = useGlobal()
+const { isLoading } = useGlobal()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 

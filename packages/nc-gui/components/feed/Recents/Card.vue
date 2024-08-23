@@ -33,7 +33,8 @@ const renderedText = computedAsync(async () => {
     .process(
       Description.replace(/!\[.*?\]\(.*?\)/g, '')
         .substring(0, 300)
-        .concat('...'),
+        .concat('...')
+        .concat(`&nbsp;   [Read more](${Url})`),
     )
 })
 </script>
@@ -43,7 +44,7 @@ const renderedText = computedAsync(async () => {
     <div class="flex items-center justify-between px-5 py-4">
       <div class="flex items-center gap-3">
         <component :is="feedIcon[source as any]" class="w-4 h-4 stroke-transparent" />
-        <span class="font-weight-medium leading-5">
+        <span class="font-weight-medium leading-5 cursor-pointer" @click="openLink(Url)">
           {{ source }}
         </span>
       </div>
@@ -74,4 +75,10 @@ const renderedText = computedAsync(async () => {
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.prose {
+  a {
+    @apply !text-gray-900;
+  }
+}
+</style>

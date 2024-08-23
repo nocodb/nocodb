@@ -69,8 +69,11 @@ onMounted(() => {
 
 <template>
   <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings">
-    <div v-if="!props.workspaceId" class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200">
-      <div class="nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title">
+    <div
+      v-if="!props.workspaceId"
+      class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-gray-200 flex items-center gap-3"
+    >
+      <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1 nc-workspace-title">
         <div class="nc-breadcrumb-item capitalize">
           {{ currentWorkspace?.title }}
         </div>
@@ -80,6 +83,7 @@ onMounted(() => {
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
+      <SmartsheetTopbarCmdK />
     </div>
     <template v-else>
       <div class="nc-breadcrumb px-2">

@@ -41,10 +41,10 @@ export class SidebarPage extends BasePage {
     }
   }
 
-  async verifyQuickActions({ isVisible }: { isVisible: boolean }) {
-    if (isVisible) await expect(this.get().getByTestId('nc-sidebar-search-btn')).toBeVisible();
-    else await expect(this.get().getByTestId('nc-sidebar-search-btn')).toHaveCount(0);
-  }
+  // async verifyQuickActions({ isVisible }: { isVisible: boolean }) {
+  //   if (isVisible) await expect(this.get().getByTestId('nc-sidebar-search-btn')).toBeVisible();
+  //   else await expect(this.get().getByTestId('nc-sidebar-search-btn')).toHaveCount(0);
+  // }
 
   async verifyTeamAndSettings({ isVisible }: { isVisible: boolean }) {
     if (isVisible) await expect(this.get().getByTestId('nc-sidebar-team-settings-btn')).toBeVisible();

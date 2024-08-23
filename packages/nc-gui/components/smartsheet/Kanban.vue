@@ -1016,9 +1016,9 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                         </div>
                       </div>
 
-                      <div class="flex items-center gap-3">
+                      <div class="flex items-center gap-2 truncate">
                         <div
-                          class="nc-kanban-data-count px-1 rounded bg-gray-200 text-gray-800 text-sm font-weight-500"
+                          class="nc-kanban-data-count px-1 rounded bg-gray-200 text-gray-800 text-sm font-weight-500 truncate"
                           :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }"
                         >
                           <!-- Record Count -->

@@ -533,8 +533,8 @@ onKeyStroke('ArrowDown', onDown)
                             </template>
 
                             <NcMenuItem
-                              @click="duplicateIntegration(integration)"
                               :disabled="integration?.sub_type === ClientType.SQLITE"
+                              @click="duplicateIntegration(integration)"
                             >
                               <GeneralIcon
                                 :class="{

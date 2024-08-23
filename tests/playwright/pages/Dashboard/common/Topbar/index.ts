@@ -17,6 +17,8 @@ export class TopbarPage extends BasePage {
   readonly btn_share: Locator;
   readonly btn_data: Locator;
   readonly btn_details: Locator;
+  readonly btn_cmdK: Locator;
+  readonly btn_extension: Locator;
 
   constructor(parent: GridPage | GalleryPage | FormPage | KanbanPage | MapPage | CalendarPage) {
     super(parent.rootPage);
@@ -26,6 +28,8 @@ export class TopbarPage extends BasePage {
     this.btn_share = this.get().locator(`[data-testid="share-base-button"]`);
     this.btn_data = this.get().locator(`.nc-tab:has-text("Data")`);
     this.btn_details = this.get().locator(`.nc-tab:has-text("Details")`);
+    this.btn_cmdK = this.rootPage.locator('[data-testid="nc-topbar-cmd-k-btn"]');
+    this.btn_extension = this.get().locator('[data-testid="nc-topbar-extension-btn"]');
   }
 
   get() {
@@ -121,5 +125,10 @@ export class TopbarPage extends BasePage {
     const expectedData = fs.readFileSync(`./fixtures/${verificationFile}`, 'utf8').replace(/\r/g, '').split('\n');
     const file = fs.readFileSync('./output/at.txt', 'utf8').replace(/\r/g, '').split('\n');
     expect(file).toEqual(expectedData);
+  }
+
+  async verifyQuickActions({ isVisible }: { isVisible: boolean }) {
+    if (isVisible) await expect(this.btn_cmdK).toBeVisible();
+    else await expect(this.btn_cmdK).toHaveCount(0);
   }
 }

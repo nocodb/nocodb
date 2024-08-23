@@ -9,6 +9,12 @@ const apps = computed(() => categorizeApps.value?.[props.category?.toLowerCase()
 const showResetActiveAppMsg = ref(false)
 const switchingTo = ref(null)
 
+const showResetPluginModal = async (app: any, resetActiveAppMsg = false) => {
+  showResetActiveAppMsg.value = resetActiveAppMsg
+  showPluginUninstallModal.value = true
+  activePlugin.value = app
+}
+
 const selectApp = (app: any) => {
   const activeApp = !app.active && apps.value.find((a: any) => a.active)
   if (activeApp) {
@@ -17,12 +23,6 @@ const selectApp = (app: any) => {
   }
 
   navigateTo(`/account/setup/${props.category}/${app.title}`)
-}
-
-const showResetPluginModal = async (app: any, resetActiveAppMsg = false) => {
-  showResetActiveAppMsg.value = resetActiveAppMsg
-  showPluginUninstallModal.value = true
-  activePlugin.value = app
 }
 
 const resetPlugin = async () => {
@@ -65,8 +65,7 @@ const closeResetModal = () => {
               }"
               :src="app.logo"
             />
-            <GeneralIcon v-else
-                         class="icon" icon="mail" />
+            <GeneralIcon v-else class="icon" icon="mail" />
             <span class="title">{{ app.title }}</span>
             <div class="flex-grow" />
 
@@ -132,7 +131,7 @@ const closeResetModal = () => {
     @apply text-base w-296px max-w-296px flex gap-3 border-1 border-gray-200 py-4 px-5 rounded-xl items-center cursor-pointer hover:(shadow bg-gray-50);
 
     .icon {
-      @apply !w-8 !h-8 object-contain
+      @apply !w-8 !h-8 object-contain;
     }
 
     .title {

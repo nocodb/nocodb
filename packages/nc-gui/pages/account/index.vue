@@ -61,9 +61,9 @@ const logout = async () => {
               <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
 
               <NcMenuItem
+                v-if="isUIAllowed('superAdminSetup') && !isEeUI"
                 key="profile"
                 class="item"
-                v-if="isUIAllowed('superAdminSetup') && !isEeUI"
                 :class="{
                   active: $route.path?.startsWith('/account/setup'),
                 }"

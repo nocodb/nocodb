@@ -157,7 +157,6 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
     storageConfigured,
     listModalDlg,
     configModalDlg,
-    readPluginDetails,
     showPluginUninstallModal,
     resetPlugin,
   }

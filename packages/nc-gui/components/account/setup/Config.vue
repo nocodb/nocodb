@@ -40,10 +40,14 @@ const { formState, validate, validateInfos } = useProvideFormBuilderHelper({
         width: '47',
         border: true,
       },
-      ...(i % 2 ? [] : [{
-        type: FormBuilderInputType.Space,
-        width: '6',
-      }] ),
+      ...(i % 2
+        ? []
+        : [
+            {
+              type: FormBuilderInputType.Space,
+              width: '6',
+            },
+          ]),
     ]),
   ],
   initialState: pluginFormData,

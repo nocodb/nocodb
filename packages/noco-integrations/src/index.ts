@@ -39,6 +39,7 @@ async function generateEntryBoilerplate(type: string, subType: string) {
     parameters: string;
     returnType: string;
     typeParameters: string;
+    async: boolean;
     scope?: "public" | "private" | "protected";
   }[] = [];
   const abstractFields: {
@@ -88,12 +89,19 @@ async function generateEntryBoilerplate(type: string, subType: string) {
             }
           }
 
+          let async = false;
+
+          if (returnType.includes("Promise")) {
+            async = true;
+          }
+
           abstractMethods.push({
             name: methodName,
             parameters,
             returnType,
             typeParameters,
             scope,
+            async,
           });
         }
       });
@@ -153,7 +161,7 @@ async function generateEntryBoilerplate(type: string, subType: string) {
   boilerplate += `\n`;
 
   abstractMethods.forEach((method) => {
-    boilerplate += `  ${method.scope} ${method.name}${
+    boilerplate += `  ${method.scope}${method.async ? ' async' : ''} ${method.name}${
       method.typeParameters.length ? `<${method.typeParameters}>` : ""
     }(${method.parameters}): ${method.returnType} {\n`;
     boilerplate += `    // TODO: Implement ${method.name}\n`;

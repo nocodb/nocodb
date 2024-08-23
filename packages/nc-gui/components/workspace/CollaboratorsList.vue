@@ -275,7 +275,7 @@ const isDeleteOrUpdateAllowed = (user) => {
           </div>
 
           <div v-if="column.key === 'action'">
-            <NcDropdown v-if="isOwnerOrCreator">
+            <NcDropdown v-if="isOwnerOrCreator || record.id === user.id">
               <NcButton size="small" type="secondary">
                 <component :is="iconMap.threeDotVertical" />
               </NcButton>

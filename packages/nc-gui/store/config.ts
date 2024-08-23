@@ -1,4 +1,3 @@
-import { ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
 

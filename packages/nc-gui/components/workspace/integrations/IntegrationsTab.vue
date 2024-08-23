@@ -244,7 +244,8 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                         <template #title>{{ $t('tooltip.comingSoonIntegration') }}</template>
 
                         <div
-                          class="source-card"
+                          :tabindex="0"
+                          class="source-card focus-visible:outline-none"
                           :class="{
                             'is-available': integration?.isAvailable,
                           }"

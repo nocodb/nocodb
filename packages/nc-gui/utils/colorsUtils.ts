@@ -372,83 +372,83 @@ export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light')
 
 export const lightTheme = {
   content: {
-    grey: {
+    'nc-grey': {
       extreme: themeV3Colors.base['black'],
       emphasis: themeV3Colors.gray[900],
-      default: themeV3Colors.gray[800],
+      DEFAULT: themeV3Colors.gray[800],
       subtle: themeV3Colors.gray[700],
       subtle2: themeV3Colors.gray[600],
       muted: themeV3Colors.gray[500],
     },
-    brand: {
-      default: themeV3Colors.brand[500],
+    'nc-brand': {
+      DEFAULT: themeV3Colors.brand[500],
       disabled: themeV3Colors.brand[600],
       hover: themeV3Colors.gray[300],
     },
-    inverted: {
+    'nc-inverted': {
       primary: {
-        default: themeV3Colors.base['white'],
+        DEFAULT: themeV3Colors.base['white'],
         hover: themeV3Colors.base['white'],
         disabled: themeV3Colors.gray[400],
       },
       secondary: {
-        default: themeV3Colors.gray[700],
+        DEFAULT: themeV3Colors.gray[700],
         hover: themeV3Colors.gray[700],
         disabled: themeV3Colors.gray[400],
       },
     },
-    red: {
+    'nc-red': {
       dark: themeV3Colors.red[700],
       medium: themeV3Colors.red[500],
       light: themeV3Colors.red[300],
     },
-    green: {
+    'nc-green': {
       dark: themeV3Colors.green[700],
       medium: themeV3Colors.green[500],
       light: themeV3Colors.green[300],
     },
-    yellow: {
+    'nc-yellow': {
       dark: themeV3Colors.yellow[700],
       medium: themeV3Colors.yellow[500],
       light: themeV3Colors.yellow[300],
     },
-    blue: {
+    'nc-blue': {
       dark: themeV3Colors.blue[700],
       medium: themeV3Colors.blue[500],
       light: themeV3Colors.blue[300],
     },
-    purple: {
+    'nc-purple': {
       dark: themeV3Colors.purple[700],
       medium: themeV3Colors.purple[500],
       light: themeV3Colors.purple[300],
     },
-    pink: {
+    'nc-pink': {
       dark: themeV3Colors.pink[700],
       medium: themeV3Colors.pink[500],
       light: themeV3Colors.pink[300],
     },
-    orange: {
+    'nc-orange': {
       dark: themeV3Colors.orange[700],
       medium: themeV3Colors.orange[500],
       light: themeV3Colors.orange[300],
     },
-    maroon: {
+    'nc-maroon': {
       dark: themeV3Colors.maroon[700],
       medium: themeV3Colors.maroon[500],
       light: themeV3Colors.maroon[300],
     },
   },
   background: {
-    default: themeV3Colors.base['white'],
-    brand: themeV3Colors.brand[50],
-    gray: {
+    'nc-default': themeV3Colors.base['white'],
+    'nc-brand': themeV3Colors.brand[50],
+    'nc-gray': {
       extralight: themeV3Colors.gray[50],
       light: themeV3Colors.gray[100],
       medium: themeV3Colors.gray[200],
       dark: themeV3Colors.gray[300],
       extradark: themeV3Colors.gray[400],
     },
-    coloured: {
+    'nc-coloured': {
       red: themeV3Colors.red[50],
       green: themeV3Colors.green[50],
       yellow: themeV3Colors.yellow[50],
@@ -468,15 +468,15 @@ export const lightTheme = {
     },
   },
   border: {
-    brand: themeV3Colors.brand[500],
-    gray: {
+    'nc-brand': themeV3Colors.brand[500],
+    'nc-gray': {
       extralight: themeV3Colors.gray[50],
       light: themeV3Colors.gray[100],
       medium: themeV3Colors.gray[200],
       dark: themeV3Colors.gray[300],
       extradark: themeV3Colors.gray[400],
     },
-    coloured: {
+    'nc-coloured': {
       red: themeV3Colors.red[500],
       green: themeV3Colors.green[500],
       yellow: themeV3Colors.yellow[500],
@@ -488,28 +488,28 @@ export const lightTheme = {
     },
   },
   fill: {
-    primary: {
-      default: themeV3Colors.brand[500],
+    'nc-primary': {
+      DEFAULT: themeV3Colors.brand[500],
       hover: themeV3Colors.brand[600],
       disabled: themeV3Colors.gray[300],
       disabled2: themeV3Colors.brand[200],
     },
-    secondary: {
-      default: themeV3Colors.base['white'],
+    'nc-secondary': {
+      DEFAULT: themeV3Colors.base['white'],
       hover: themeV3Colors.gray[50],
       disabled: themeV3Colors.base['white'],
     },
-    warning: {
-      default: themeV3Colors.red[500],
+    'nc-warning': {
+      DEFAULT: themeV3Colors.red[500],
       hover: themeV3Colors.red[600],
       disabled: themeV3Colors.gray[50],
     },
-    success: {
-      default: themeV3Colors.green[500],
+    'nc-success': {
+      DEFAULT: themeV3Colors.green[500],
       hover: themeV3Colors.green[600],
       disabled: themeV3Colors.gray[50],
     },
-    coloured: {
+    'nc-coloured': {
       red: {
         dark: themeV3Colors.red[700],
         medium: themeV3Colors.red[500],

@@ -285,6 +285,7 @@ interface ProductFeedItem {
   Url: string
   Tags?: string
   CreatedAt: string
+  Images?: Record<string, any>[] | null
 }
 
 type SordDirectionType = 'asc' | 'desc' | undefined

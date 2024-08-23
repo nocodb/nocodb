@@ -15,7 +15,7 @@ const { isLoading } = useInfiniteScroll(
     })
     twitterFeed.value = [...twitterFeed.value, ...data]
   },
-  { distance: 1 },
+  { distance: 1, interval: 2000 },
 )
 </script>
 
@@ -27,8 +27,10 @@ const { isLoading } = useInfiniteScroll(
     }"
     class="overflow-y-auto nc-scrollbar-md w-full"
   >
-    <div class="flex items-center flex-col">
-      <Tweet v-for="feed in twitterFeed" :key="feed.Id" :tweet-url="feed.Url" />
+    <div class="mx-auto flex flex-col items-center">
+      <div style="min-width: 650px">
+        <Tweet v-for="feed in twitterFeed" :key="feed.Id" align="center" conversation="all" class="mt-6" :tweet-url="feed.Url" />
+      </div>
     </div>
   </div>
 </template>

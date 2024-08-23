@@ -14,7 +14,7 @@ const { isLoading } = useInfiniteScroll(
 
     githubFeed.value = [...githubFeed.value, ...data]
   },
-  { distance: 1 },
+  { distance: 1, interval: 2000 },
 )
 </script>
 

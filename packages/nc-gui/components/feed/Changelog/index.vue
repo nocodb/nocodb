@@ -27,7 +27,7 @@ const { isLoading } = useInfiniteScroll(
     class="overflow-y-auto nc-scrollbar-md mx-auto w-full"
   >
     <div class="max-w-260 mx-auto">
-      <FeedChangelogItem v-for="feed in githubFeed" :item="feed" />
+      <FeedChangelogItem v-for="feed in githubFeed" :key="feed.Id" :item="feed" />
     </div>
   </div>
 </template>

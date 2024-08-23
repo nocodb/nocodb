@@ -62,7 +62,7 @@ const renderedText = computedAsync(async () => {
       </div>
 
       <div class="content">
-        <div class="flex flex-col py-6 gap-8">
+        <div class="flex flex-col py-6 gap-5">
           <div class="flex items-center">
             <div
               v-for="tag in tags"
@@ -73,7 +73,7 @@ const renderedText = computedAsync(async () => {
                 'bg-green-50': tag.color === 'green',
               }"
               :href="tag.href"
-              class="mr-4 flex gap-2 items-center px-1 rounded-md"
+              class="mr-3 flex gap-2 items-center px-1 rounded-md"
             >
               <component
                 :is="tag.icon"
@@ -90,7 +90,7 @@ const renderedText = computedAsync(async () => {
                   'text-purple-500': tag.color === 'purple',
                   'text-green-500': tag.color === 'green',
                 }"
-                class="leading-5"
+                class="leading-5 text-[13px]"
               >
                 {{ tag.text }}
               </span>
@@ -147,7 +147,7 @@ const renderedText = computedAsync(async () => {
       @apply sticky top-0
       transform: translateY(calc(-50% + 3px)) translateX(50%);
       &:before {
-        @apply bg-brand-500 absolute w-1.5 h-1.5 left-0 rounded-full transform -translate-x-1/2;
+        @apply bg-brand-500 absolute w-2 h-2 border-2 border-white left-0 rounded-full transform -translate-x-1/2;
         content: '';
       }
     }

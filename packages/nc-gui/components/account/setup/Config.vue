@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
+
 const props = defineProps<{
   id: string
   modelValue?: boolean
@@ -131,7 +133,7 @@ const isValid = computed(() => {
 
           <a href="httpd://docs.nocodb.com" rel="noopener noreferrer" target="_blank" class="!no-underline !text-current">
             <GeneralIcon icon="bookOpen" class="text-gray-500" />
-            Workspace Setup
+            Application Setup
           </a>
           <a
             v-for="doc of plugin.formDetails?.docs || []"
@@ -144,6 +146,13 @@ const isValid = computed(() => {
             <GeneralIcon icon="bookOpen" class="text-gray-500" />
             {{ doc.title }}
           </a>
+
+          <NcDivider />
+
+          <div class="text-gray-500 text-capitalize">Modified on</div>
+          <div class="">
+            {{ dayjs(plugin.created_at).format('DD MMM YYYY HH:mm') }}
+          </div>
         </div>
       </div>
     </div>

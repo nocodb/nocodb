@@ -248,8 +248,10 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         if (isFromIntegrationPage.value) {
           activeViewTab.value = 'connections'
 
-          successConfirmModal.value.connectionTitle = response.title ?? ''
-          successConfirmModal.value.isOpen = true
+          if (response.type === IntegrationsType.Database) {
+            successConfirmModal.value.connectionTitle = response.title ?? ''
+            successConfirmModal.value.isOpen = true
+          }
         } else {
           await message.success(`Connection "${response.title}" created successfully`)
         }

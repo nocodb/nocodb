@@ -144,7 +144,7 @@ async function generateEntryBoilerplate(type: string, subType: string) {
   // Step 4: Generate the new class code
   let boilerplate = `${imports.join("\n")}\n`;
   boilerplate += `import ${abstractClassName} from '~/integrations/${type}/${type}.interface';\n\n`;
-  boilerplate += `export class ${newClassName}Integration extends ${abstractClassName} {\n`;
+  boilerplate += `export default class ${newClassName}Integration extends ${abstractClassName} {\n`;
 
   abstractFields.forEach((field) => {
     boilerplate += `  ${field.scope} ${field.name}: ${field.type};\n`;

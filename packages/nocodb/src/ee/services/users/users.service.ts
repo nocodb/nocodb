@@ -19,7 +19,6 @@ import {
   Store,
   User,
   UserRefreshToken,
-  Workspace,
   WorkspaceUser,
 } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';

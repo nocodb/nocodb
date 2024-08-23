@@ -315,6 +315,7 @@ const rolePermissions:
     include: {
       workspaceUserList: true,
       workspaceInvite: true,
+      workspaceUserDelete: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {

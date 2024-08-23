@@ -196,6 +196,16 @@ export class WorkspaceUsersService {
         NcError.badRequest(`Insufficient privilege to delete user`);
       }
 
+      // if not owner/creator then user can only delete self
+      if (
+        ![WorkspaceUserRoles.OWNER, WorkspaceUserRoles.CREATOR].some((r) => {
+          return extractRolesObj(param.req.user.workspace_roles)?.[r];
+        }) &&
+        user.fk_user_id !== param.req.user.id
+      ) {
+        NcError.badRequest('Insufficient privilege to delete user');
+      }
+
       // get all bases user is part of and delete them
       const workspaceBases = await Base.listByWorkspace(workspaceId, ncMeta);
 

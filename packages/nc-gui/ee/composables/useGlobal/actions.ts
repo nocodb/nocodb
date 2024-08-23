@@ -80,8 +80,6 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
       resolveTokenGenerationProgress = resolve
     })
 
-    const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
-
     if (state.token.value) {
       resolveTokenGenerationProgress(true)
       tokenGenerationProgress = null

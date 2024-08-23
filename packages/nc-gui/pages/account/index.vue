@@ -176,33 +176,6 @@ const logout = async () => {
                   <LazyGeneralLanguage class="cursor-pointer text-2xl hover:text-gray-800" />
                 </div>
               </a-tooltip>
-
-              <template v-if="signedIn">
-                <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
-                  <NcButton type="text" size="small">
-                    <component
-                      :is="iconMap.threeDotVertical"
-                      data-testid="nc-menu-accounts"
-                      class="md:text-lg cursor-pointer hover:text-gray-800 nc-menu-accounts"
-                      @click.prevent
-                    />
-                  </NcButton>
-
-                  <template #overlay>
-                    <div class="!py-1 !rounded-md bg-white overflow-hidden">
-                      <div class="!rounded-b group" data-testid="nc-menu-accounts__sign-out">
-                        <div v-e="['a:navbar:user:sign-out']" class="nc-account-dropdown-item group" @click="logout">
-                          <component :is="iconMap.signout" class="group-hover:text-accent" />&nbsp;
-
-                          <span class="prose group-hover:text-primary">
-                            {{ $t('general.signOut') }}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </template>
-                </NcDropdown>
-              </template>
             </div>
             <div
               class="flex flex-col w-full"

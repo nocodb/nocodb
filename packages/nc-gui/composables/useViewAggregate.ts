@@ -29,8 +29,6 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
     const { fetchAggregatedData } = useSharedView()
 
-    const { isUIAllowed } = useRoles()
-
     const aggregations = ref({}) as Ref<Record<string, any>>
 
     const reloadAggregate = inject(ReloadAggregateHookInj)

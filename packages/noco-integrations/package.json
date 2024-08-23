@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "@inquirer/prompts": "^5.3.8",
-    "nocodb-sdk": "link:../nocodb-sdk",
+    "nocodb-sdk": "link:../nocodb-sdk"
   }
 }

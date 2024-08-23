@@ -20,7 +20,7 @@ const generateInstructions = ref('')
 
 const generateOptions = ref({
   generateViews: true,
-  generateData: true,
+  generateData: false,
 })
 
 const generatePromptInput = ref<HTMLInputElement | null>(null)
@@ -118,7 +118,7 @@ const generate = async () => {
       </div>
       <div class="flex items-center m-2">
         <a-checkbox v-model:checked="generateOptions.generateViews" :disabled="isGenerating"> Generate Views </a-checkbox>
-        <a-checkbox v-model:checked="generateOptions.generateData" :disabled="isGenerating"> Generate Data </a-checkbox>
+        <!-- <a-checkbox v-model:checked="generateOptions.generateData" :disabled="isGenerating"> Generate Data </a-checkbox> -->
       </div>
       <div class="mt-4">
         <NcButton

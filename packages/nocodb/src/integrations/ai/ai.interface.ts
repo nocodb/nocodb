@@ -1,8 +1,10 @@
-import { type CoreMessage } from 'ai';
+import type { CoreMessage, LanguageModel } from 'ai';
 import type { Schema } from 'zod';
 import IntegrationWrapper from '~/integrations/integration.wrapper';
 
 export default abstract class AiIntegration extends IntegrationWrapper {
+  protected abstract model: LanguageModel;
+
   public abstract generateObject<T>(args: {
     messages: CoreMessage[];
     schema: Schema;

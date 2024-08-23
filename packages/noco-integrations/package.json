@@ -1,0 +1,15 @@
+{
+  "name": "noco-integrations",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@inquirer/prompts": "^5.3.8",
+    "nocodb-sdk": "link:../nocodb-sdk",
+  }
+}

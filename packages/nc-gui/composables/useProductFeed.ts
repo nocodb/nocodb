@@ -18,8 +18,6 @@ export const useProductFeed = createSharedComposable(() => {
 
   const socialFeed = ref<ProductFeedItem[]>([])
 
-  const twitterFeed = ref<ProductFeedItem[]>([])
-
   const loadFeed = async ({ loadMore, type }: { loadMore: boolean; type: 'youtube' | 'github' | 'all' | 'twitter' }) => {
     let page = 1
 
@@ -33,9 +31,6 @@ export const useProductFeed = createSharedComposable(() => {
           break
         case 'all':
           page = Math.ceil(socialFeed.value.length / 10) + 1
-          break
-        case 'twitter':
-          page = Math.ceil(twitterFeed.value.length / 10) + 1
           break
       }
     }
@@ -56,7 +51,6 @@ export const useProductFeed = createSharedComposable(() => {
     youtubeFeed,
     githubFeed,
     socialFeed,
-    twitterFeed,
     loadFeed,
   }
 })

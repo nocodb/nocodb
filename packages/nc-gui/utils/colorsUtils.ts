@@ -372,7 +372,7 @@ export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light')
 
 export const lightTheme = {
   content: {
-    'nc-grey': {
+    'nc-gray': {
       extreme: themeV3Colors.base['black'],
       emphasis: themeV3Colors.gray[900],
       DEFAULT: themeV3Colors.gray[800],

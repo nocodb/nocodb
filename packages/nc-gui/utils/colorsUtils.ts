@@ -71,6 +71,10 @@ export const themeV2Colors = {
 }
 
 export const themeV3Colors = {
+  base: {
+    white: '#FFFFFF',
+    black: '#000000',
+  },
   brand: {
     50: '#EBF0FF',
     100: '#D6E0FF',
@@ -179,6 +183,18 @@ export const themeV3Colors = {
     700: '#801044',
     800: '#690735',
     900: '#42001F',
+  },
+  green: {
+    50: '#ECFFF2',
+    100: '#D4F7E0',
+    200: '#A9EFC1',
+    300: '#7DE6A3',
+    400: '#52DE84',
+    500: '#27D665',
+    600: '#1FAB51',
+    700: '#17803D',
+    800: '#105628',
+    900: '#082B14',
   },
 }
 

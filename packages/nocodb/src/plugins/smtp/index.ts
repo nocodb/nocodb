@@ -18,7 +18,7 @@ const config: XcPluginConfig = {
     items: [
       {
         key: 'from',
-        label: 'From Address',
+        label: 'From address',
         placeholder: 'admin@run.com',
         type: XcType.SingleLineText,
         required: true,
@@ -27,7 +27,7 @@ const config: XcPluginConfig = {
       },
       {
         key: 'host',
-        label: 'SMTP Server',
+        label: 'SMTP server',
         placeholder: 'smtp.run.com',
         help_text:
           'Enter outgoing mail server address (SMTP). If you do not have this information available, contact your email service provider',
@@ -36,7 +36,7 @@ const config: XcPluginConfig = {
       },
       {
         key: 'name',
-        label: 'From Domain',
+        label: 'From domain',
         placeholder: 'your-domain.com',
         type: XcType.SingleLineText,
         required: true,
@@ -45,7 +45,7 @@ const config: XcPluginConfig = {
       },
       {
         key: 'port',
-        label: 'SMTP Port',
+        label: 'SMTP port',
         placeholder: 'Port',
         type: XcType.SingleLineText,
         required: true,
@@ -72,7 +72,7 @@ const config: XcPluginConfig = {
       },
       {
         key: 'secure',
-        label: 'Use Secure Connection',
+        label: 'Use secure connection',
         placeholder: 'Secure',
         type: XcType.Checkbox,
         required: false,
@@ -81,7 +81,7 @@ const config: XcPluginConfig = {
       },
       {
         key: 'ignoreTLS',
-        label: 'Ignore TLS Errors',
+        label: 'Ignore TLS errors',
         placeholder: 'Ignore TLS',
         type: XcType.Checkbox,
         required: false,
@@ -90,8 +90,8 @@ const config: XcPluginConfig = {
       },
       {
         key: 'rejectUnauthorized',
-        label: 'Reject Unauthorized',
-        placeholder: 'Reject Unauthorized',
+        label: 'Reject unauthorized',
+        placeholder: 'Reject unauthorized',
         type: XcType.Checkbox,
         required: false,
         help_text:

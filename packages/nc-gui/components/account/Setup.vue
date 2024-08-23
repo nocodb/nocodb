@@ -13,7 +13,7 @@ const configs = computed(() => [
   {
     title: t('labels.configLabel', { label: t('labels.email') }),
     key: 'email',
-    description: 'Configure an email account to send system notifications to your organisation’s users.',
+    description: 'Configure an email account to send notifications to your organisation’s users.',
     docsLink: 'https://docs.nocodb.com',
     buttonClick: () => {
       navigateTo(`/account/setup/email${emailConfigured.value ? `/${emailConfigured.value.title}` : ''}`)
@@ -39,7 +39,7 @@ const configs = computed(() => [
   {
     title: t('labels.switchToProd'),
     key: 'switchToProd',
-    description: 'Configure a production-ready app database to port from the existing built-in application database.',
+    description: 'Switch to production-ready app database from existing application database.',
     docsLink: 'https://docs.nocodb.com',
     buttonClick: () => {
       //  TODO: Implement the logic to switch to production

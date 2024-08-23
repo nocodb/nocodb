@@ -106,10 +106,10 @@ onMounted(async () => {
             <NcButton v-if="config.configured" size="small" type="text" @click.stop="config.buttonClick">
               <div class="flex gap-2 items-center">
                 <GeneralIcon icon="ncEdit3" />
-                Edit
+                {{ $t('general.edit') }}
               </div>
             </NcButton>
-            <NcButton v-else size="small" @click.stop="config.buttonClick">Configure</NcButton>
+            <NcButton v-else size="small" @click.stop="config.buttonClick">{{ $t('general.configure') }}</NcButton>
           </div>
         </div>
       </div>

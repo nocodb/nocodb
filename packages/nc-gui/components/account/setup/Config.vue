@@ -129,7 +129,7 @@ const isValid = computed(() => {
       </div>
       <div class="nc-config-right-panel">
         <div class="flex-grow flex flex-col gap-3">
-          <div class="text-gray-500 text-capitalize">Documentation</div>
+          <div class="text-gray-500 text-capitalize">{{ $t('labels.documentation') }}</div>
 
           <a href="httpd://docs.nocodb.com" rel="noopener noreferrer" target="_blank" class="!no-underline !text-current">
             <GeneralIcon icon="bookOpen" class="text-gray-500" />
@@ -149,7 +149,7 @@ const isValid = computed(() => {
 
           <NcDivider />
 
-          <div class="text-gray-500 text-capitalize">Modified on</div>
+          <div class="text-gray-500 text-capitalize">{{ $t('labels.modifiedOn') }}</div>
           <div class="">
             {{ dayjs(plugin.created_at).format('DD MMM YYYY HH:mm') }}
           </div>

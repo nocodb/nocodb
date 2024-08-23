@@ -119,8 +119,8 @@ const config: XcPluginConfig = {
   docs: [
     {
       title: 'SMTP',
-      url: 'https://docs.nocodb.com/plugins
-    }
+      url: 'https://docs.nocodb.com/plugins',
+    },
   ],
 };
 

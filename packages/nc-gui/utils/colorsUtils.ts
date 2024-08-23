@@ -370,9 +370,66 @@ export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light')
   return enumColor[mode][i % enumColor[mode].length]
 }
 
+/**
+ * ### Light Theme Configuration
+ * In this project, we've integrated a custom WindiCSS configuration that aligns with our Figma design system.
+ * This setup introduces shorthand class names for various UI elements like text color, border color, 
+ * background color, and more. The goal is to ensure design consistency and streamline the development 
+ * process by directly reflecting Figma styles in our codebase.
+ *
+ * #### Why We Introduced This
+ *
+ * The light theme was introduced to:
+ * - **Maintain Consistency**: Ensures that the color scheme used in the design (Figma) is reflected accurately in the codebase.
+ * - **Ease of Use**: Simplifies the application of colors by using intuitive, design-referenced class names.
+ *
+ * #### Usage
+ *
+ * The configuration extends WindiCSS with custom screens, font sizes, font weights, colors, and other utilities.
+ * These can be used directly in files through class names.
+ *
+ * ###### Text Color
+ * To apply a text color, you can use:
+ * ```html
+ * <p class="text-nc-grey-subtle">This is subtle grey text.</p>
+ * ```
+ *
+ * ###### Border Color
+ * To apply a border color, you can use:
+ * ```html
+ * <div class="border-nc-gray-light">This div has a light grey border.</div>
+ * ```
+ *
+ * ###### Background Color
+ * To apply a background color, you can use:
+ * ```html
+ * <div class="bg-nc-brand">This div has a brand color background.</div>
+ * <div class="bg-nc-blue-dark">This div has a blue dark color background.</div>
+ * ```
+ *
+ * ###### Fill Color
+ * light theme fill colors are globally extended in WindiCSS and can be used for various purposes such as:
+ * - **SVG Fill**:
+ * ```html
+ * <svg class="fill-nc-fill-primary">...</svg>
+ * ```
+ * - **Text Color**:
+ * ```html
+ * <p class="text-nc-fill-red-dark">...</p>
+ * ```
+ * - **Border Color**:
+ * ```html
+ * <div class="border-nc-fill-primary">...</div>
+ * ```
+ * - **Background Color**:
+ * ```html
+ * <div class="bg-nc-fill-primary-hover">...</div>
+ * ```
+ * This setup ensures that your styles are consistent with your design specifications and easily maintainable across the project.
+ */
 export const lightTheme = {
   content: {
-    'nc-grey': {
+    'nc-gray': {
       extreme: themeV3Colors.base['black'],
       emphasis: themeV3Colors.gray[900],
       DEFAULT: themeV3Colors.gray[800],

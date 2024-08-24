@@ -30,6 +30,8 @@ const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(fal
 
 const isDropDownOpen = ref(false)
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const column = toRef(props, 'column')
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
@@ -192,7 +194,7 @@ const onClick = (e: Event) => {
         }"
       />
     </div>
-    <NcTooltip v-if="column.description?.length && hideMenu" class="flex">
+    <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
       <template #title>
         {{ column.description }}
       </template>

@@ -43,7 +43,7 @@ const closeResetModal = () => {
 </script>
 
 <template>
-  <div class="flex flex-col" data-test-id="nc-setup">
+  <div class="flex flex-col" data-test-id="nc-setup-list">
     <NcPageHeader>
       <template #title>
         <span data-rec="true">
@@ -65,10 +65,10 @@ const closeResetModal = () => {
               icon="delete"
               class="text-error min-w-6 h-6 bg-white-500 !hidden !group-hover:!inline cursor-pointer"
             />
-            <GeneralIcon v-if="app.active" icon="circleCheckSolid" class="text-success min-w-5 h-5 bg-white-500" />
+            <GeneralIcon v-if="app.active" icon="circleCheckSolid" class="text-success min-w-5 h-5 bg-white-500 nc-configured" />
 
             <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
-              <GeneralIcon v-if="app.active" icon="threeDotVertical" class="min-w-5 h-5 bg-white-500" />
+              <GeneralIcon v-if="app.active" icon="threeDotVertical" class="min-w-5 h-5 bg-white-500 nc-setup-plugin-menu" />
 
               <template #overlay>
                 <NcMenu class="min-w-20">

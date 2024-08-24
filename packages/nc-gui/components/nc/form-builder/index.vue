@@ -42,6 +42,7 @@ const setFormState = (path: string, value: any) => {
                   class="nc-form-item"
                   :style="`width:${+field.width || 100}%`"
                   :required="false"
+                  :data-test-id="`nc-form-input-${field.model}`"
                 >
                   <template v-if="![FormBuilderInputType.Switch].includes(field.type)" #label>
                     <div class="flex items-center gap-1">

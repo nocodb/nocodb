@@ -86,14 +86,7 @@ const snippet = computed(
       method: 'GET',
       headers: [
         {
-          name: '' +
-            '' +
-            '' +
-            '' +
-            '' +
-            '' +
-            '' +
-            'xc-token',
+          name: '' + '' + '' + '' + '' + '' + '' + 'xc-token',
           value: `CREATE_YOUR_API_TOKEN_FROM ${location.origin + location.pathname}#/account/tokens`,
           comment: 'API token',
         },

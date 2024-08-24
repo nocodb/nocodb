@@ -689,7 +689,7 @@ create_env_file() {
     local env_file="docker.env"
     local encoded_password
     encoded_password=$(urlencode "${CONFIG_POSTGRES_PASSWORD}")
-
+    ENCODED_REDIS_PASSWORD=$(urlencode "$CONFIG_REDIS_PASSWORD")
     cat > "$env_file" <<EOF
 POSTGRES_DB=nocodb
 POSTGRES_USER=postgres
@@ -705,8 +705,8 @@ EOF
 
     if [ "${CONFIG_REDIS_ENABLED}" = "Y" ]; then
         cat >> "$env_file" <<EOF
-REDIS_PASSWORD=${CONFIG_REDIS_PASSWORD}
-NC_REDIS_URL=redis://:${CONFIG_REDIS_PASSWORD}@redis:6379/0
+REDIS_PASSWORD=${ENCODED_REDIS_PASSWORD}
+NC_REDIS_URL=redis://:${ENCODED_REDIS_PASSWORD}@redis:6379/0
 EOF
     fi
 

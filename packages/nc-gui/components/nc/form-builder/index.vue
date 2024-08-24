@@ -255,6 +255,10 @@ const setFormState = (path: string, value: any) => {
       @apply !px-1.5;
     }
   }
+
+  :deep(.ant-form-item) {
+    @apply !mb-6;
+  }
 }
 </style>
 

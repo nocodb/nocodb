@@ -115,12 +115,7 @@ const config: XcPluginConfig = {
     msgOnInstall:
       'Successfully installed and email notification will use SMTP configuration',
     msgOnUninstall: '',
-    docs: [
-      {
-        title: 'Setting up SMTP as email service',
-        url: 'https://docs.nocodb.com/plugins',
-      },
-    ],
+    docs: [],
   },
 };
 

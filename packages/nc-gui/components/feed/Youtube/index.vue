@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { youtubeFeed, loadFeed } = useProductFeed()
+const { youtubeFeed, loadFeed, isErrorOccurred } = useProductFeed()
 
 const scrollContainer = ref<HTMLElement>()
 
@@ -29,7 +29,10 @@ const gotoChannel = () => {
     }"
     class="overflow-y-auto nc-scrollbar-md mt-9 mx-auto w-full"
   >
-    <div v-if="isLoading && !youtubeFeed.length" class="flex items-center justify-center h-full w-full">
+    <div v-if="isErrorOccurred?.youtube && !youtubeFeed.length" class="h-full flex justify-center items-center">
+      <FeedError page="youtube" />
+    </div>
+    <div v-else-if="isLoading && !youtubeFeed.length" class="flex items-center justify-center h-full w-full">
       <GeneralLoader size="xlarge" />
     </div>
     <div v-else class="max-w-[764px] mx-auto">
@@ -39,7 +42,7 @@ const gotoChannel = () => {
       </div>
 
       <div class="flex gap-2 flex-col">
-        <FeedYoutubePlayer v-for="feed in youtubeFeed" :item="feed" />
+        <FeedYoutubePlayer v-for="feed in youtubeFeed" :key="feed.id" :item="feed" />
       </div>
     </div>
   </div>

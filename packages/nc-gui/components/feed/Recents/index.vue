@@ -29,7 +29,7 @@ const { isLoading } = useInfiniteScroll(
     class="overflow-y-auto nc-scrollbar-md w-full"
   >
     <div v-if="isErrorOccurred?.social && !socialFeed.length" class="h-full flex justify-center items-center">
-      <FeedError />
+      <FeedError page="all" />
     </div>
     <div v-else-if="isLoading && !socialFeed.length" class="flex items-center justify-center h-full w-full">
       <GeneralLoader size="xlarge" />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { loadFeed, githubFeed } = useProductFeed()
+const { loadFeed, githubFeed, isErrorOccurred } = useProductFeed()
 
 const scrollContainer = ref<HTMLElement>()
 
@@ -26,6 +26,9 @@ const { isLoading } = useInfiniteScroll(
     }"
     class="overflow-y-auto nc-scrollbar-md mx-auto w-full"
   >
+    <div v-if="isErrorOccurred?.github && !githubFeed.length" class="h-full flex justify-center items-center">
+      <FeedError page="github" />
+    </div>
     <div v-if="isLoading && !githubFeed.length" class="flex items-center justify-center h-full w-full">
       <GeneralLoader size="xlarge" />
     </div>

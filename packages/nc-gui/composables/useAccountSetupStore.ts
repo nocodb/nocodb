@@ -4,6 +4,7 @@ export enum Action {
   Save = 'save',
   Test = 'test',
 }
+
 const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState(() => {
   const apps = ref<(PluginType & { parsedInput?: Record<string, any>; tags?: string[] })[]>([])
 
@@ -62,6 +63,8 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
 
       // Plugin settings saved successfully
       message.success(activePlugin.value?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
+      // load all apps again to update the pending status
+      loadSetupApps().catch(console.error)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {

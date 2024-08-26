@@ -86,7 +86,7 @@ const docLinks = computed(() => {
   return [
     {
       title: 'Application Setup',
-      url: `https://docs.nocodb.com/account-settings/oss-specific-details#configure-${plugin.value?.categor?.toLowerCase()}`,
+      url: `https://docs.nocodb.com/account-settings/oss-specific-details#configure-${plugin.value?.category?.toLowerCase()}`,
     },
     ...(plugin.value?.formDetails?.docs || []),
   ]
@@ -140,16 +140,6 @@ const docLinks = computed(() => {
       <div class="nc-config-right-panel">
         <div class="flex-grow flex flex-col gap-3">
           <div class="text-gray-500 text-capitalize">{{ $t('labels.documentation') }}</div>
-
-          <!--          <a -->
-          <!--            :href="defDocLink" -->
-          <!--            rel="noopener noreferrer" -->
-          <!--            target="_blank" -->
-          <!--            class="!no-underline !text-current flex gap-2 items-center" -->
-          <!--          > -->
-          <!--            <GeneralIcon icon="bookOpen" class="text-gray-500" /> -->
-          <!--            Application Setup -->
-          <!--          </a> -->
           <a
             v-for="doc of docLinks"
             :key="doc.title"

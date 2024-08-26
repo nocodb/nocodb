@@ -25,9 +25,9 @@ const gotoChannel = () => {
   <div
     ref="scrollContainer"
     :style="{
-      height: 'calc(100dvh - var(--toolbar-height) - 5.25rem)',
+      height: 'calc(100dvh - var(--toolbar-height) - 3rem)',
     }"
-    class="overflow-y-auto nc-scrollbar-md mt-9 mx-auto w-full"
+    class="overflow-y-auto nc-scrollbar-md pt-9 mx-auto w-full"
   >
     <div v-if="isErrorOccurred?.youtube && !youtubeFeed.length" class="h-full flex justify-center items-center">
       <FeedError page="youtube" />

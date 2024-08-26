@@ -40,7 +40,7 @@ const renderedText = computedAsync(async () => {
 </script>
 
 <template>
-  <div class="bg-white shadow-sm rounded-2xl" style="width: 656px">
+  <div class="bg-white recent-card border-gray-200 border-1 rounded-2xl" style="width: 656px">
     <div class="flex items-center justify-between px-5 py-4">
       <div class="flex items-center gap-3">
         <component :is="feedIcon[source as any]" class="w-4 h-4 stroke-transparent" />
@@ -76,5 +76,9 @@ const renderedText = computedAsync(async () => {
   a {
     @apply !text-gray-900;
   }
+}
+
+.recent-card {
+  box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
 }
 </style>

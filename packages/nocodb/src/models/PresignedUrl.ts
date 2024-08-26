@@ -246,7 +246,7 @@ export default class PresignedUrl {
     if (attachment?.path) {
       nestedObj.signedPath = await PresignedUrl.getSignedUrl(
         {
-          pathOrUrl: attachment.path.replace(/^download\//, ''),
+          pathOrUrl: attachment.path.replace(/^download[/\\]/i, ''),
           preview,
           mimetype: mimetype || attachment.mimetype,
           ...(extra ? { ...extra } : {}),

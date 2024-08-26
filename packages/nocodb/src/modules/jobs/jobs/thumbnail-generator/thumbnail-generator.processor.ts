@@ -75,7 +75,7 @@ export class ThumbnailGeneratorProcessor {
         tiny: path.join('nc', 'thumbnails', relativePath, 'tiny.jpg'),
       };
 
-      const sharpImage = await sharp(file, {
+      const sharpImage = sharp(file, {
         limitInputPixels: false,
       });
 
@@ -135,7 +135,7 @@ export class ThumbnailGeneratorProcessor {
       relativePath = path.join(
         'nc',
         'uploads',
-        attachment.path.replace(/^download\//, ''),
+        attachment.path.replace(/^download[/\\]/i, ''),
       );
     } else if (attachment.url) {
       relativePath = getPathFromUrl(attachment.url).replace(/^\/+/, '');
@@ -144,7 +144,7 @@ export class ThumbnailGeneratorProcessor {
     const file = await storageAdapter.fileRead(relativePath);
 
     // remove everything before 'nc/uploads/' (including nc/uploads/) in relativePath
-    relativePath = relativePath.replace(/.*?nc\/uploads\//, '');
+    relativePath = relativePath.replace(/^.*?nc[/\\]uploads[/\\]/, '');
 
     return { file, relativePath };
   }

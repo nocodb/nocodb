@@ -8184,7 +8184,7 @@ class BaseModelSqlv2 {
                     };
 
                     const thumbnailPath = `thumbnails/${lookedUpAttachment.path.replace(
-                      /^download\//,
+                      /^download[/\\]/i,
                       '',
                     )}`;
 
@@ -8257,7 +8257,7 @@ class BaseModelSqlv2 {
                   }
 
                   const thumbnailPath = `thumbnails/${attachment.path.replace(
-                    /^download\//,
+                    /^download[/\\]/i,
                     '',
                   )}`;
 

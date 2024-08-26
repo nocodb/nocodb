@@ -55,7 +55,7 @@ const renderedText = computedAsync(async () => {
           <div class="aside-divider-dot"></div>
         </div>
         <div class="aside-inner">
-          <div class="text-sm text-gray-700 leading-5">
+          <div class="text-sm text-right pr-8 text-gray-700 leading-5">
             {{ dayjs(CreatedAt).format('MMMM D, YYYY') }}
           </div>
         </div>
@@ -132,7 +132,7 @@ const renderedText = computedAsync(async () => {
   @apply absolute left-0 top-1 bottom-2 w-44;
 
   .aside-inner {
-    @apply py-4 sticky top-0;
+    @apply sticky top-6;
   }
 
   .aside-divider {
@@ -141,13 +141,13 @@ const renderedText = computedAsync(async () => {
       @apply absolute bg-[#E7E7E9] left-0 transform -translate-x-1/2;
       content: '';
       top: 6px;
-      bottom: -18px;
+      bottom: 0px;
       width: 2px;
       border-radius: 2px;
     }
 
     .aside-divider-dot {
-      @apply sticky pt-5.5 top-0
+      @apply sticky h-5 top-7.5
       transform: translateY(calc(-50% + 3px)) translateX(50%);
       &:before {
         @apply bg-brand-500 absolute w-2 h-2 border-2 border-white left-0 rounded-full transform -translate-x-1/2;

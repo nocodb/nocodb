@@ -131,10 +131,10 @@ const renderedText = computedAsync(async () => {
 }
 
 .aside {
-  @apply absolute left-0 top-2 bottom-2 w-44;
+  @apply absolute left-0 top-1 bottom-2 w-44;
 
   .aside-inner {
-    @apply sticky top-0;
+    @apply py-4 sticky top-0;
   }
 
   .aside-divider {
@@ -149,7 +149,7 @@ const renderedText = computedAsync(async () => {
     }
 
     .aside-divider-dot {
-      @apply sticky top-0
+      @apply sticky pt-5.5 top-0
       transform: translateY(calc(-50% + 3px)) translateX(50%);
       &:before {
         @apply bg-brand-500 absolute w-2 h-2 border-2 border-white left-0 rounded-full transform -translate-x-1/2;

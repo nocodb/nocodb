@@ -154,16 +154,16 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   <component :is="iconMap.appStore" />
 
                   <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
-
-                  <span class="text-gray-400 text-xs flex-grow min-w-25 flex items-center">
-                    (Deprecated
-                    <NcTooltip>
-                      <template #title>
-                        App store will be removed soon in upcoming release and migrated to integration.
-                      </template>
-                      <GeneralIcon icon="ncAlertCircle" class="h-3 -mt-0.5" /> </NcTooltip
-                    >)
-                  </span>
+                  <span class="flex-grow" />
+                  <NcTooltip v-if="isPending">
+                    <template #title>
+                      <span>
+                        In upcoming releases, the App Store feature will be deprecated and transitioned to the Integrations
+                        section.
+                      </span>
+                    </template>
+                    <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-4 h-4 nc-pending" />
+                  </NcTooltip>
                 </div>
               </NcMenuItem>
               <a-sub-menu key="users" class="!bg-white !my-0">

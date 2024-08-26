@@ -18,7 +18,7 @@ const showResetPluginModal = async (app: any, resetActiveAppMsg = false) => {
 }
 
 const selectApp = (app: any) => {
-  const activeApp = !app.active && apps.value.find((a: any) => a.active)
+  const activeApp = app !== configuredApp.value && configuredApp.value
   if (activeApp) {
     switchingTo.value = app
     return showResetPluginModal(activeApp, true)

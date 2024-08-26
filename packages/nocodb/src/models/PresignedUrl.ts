@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import contentDisposition from 'content-disposition';
+import slash from 'slash';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -39,7 +40,7 @@ export default class PresignedUrl {
       expiresInSeconds = DEFAULT_EXPIRE_SECONDS,
     } = param;
     await NocoCache.setExpiring(
-      `${CacheScope.PRESIGNED_URL}:path:${path}`,
+      `${CacheScope.PRESIGNED_URL}:path:${slash(path)}`,
       {
         path,
         url,
@@ -48,7 +49,7 @@ export default class PresignedUrl {
       expiresInSeconds,
     );
     await NocoCache.setExpiring(
-      `${CacheScope.PRESIGNED_URL}:url:${decodeURIComponent(url)}`,
+      `${CacheScope.PRESIGNED_URL}:url:${slash(decodeURIComponent(url))}`,
       {
         path,
         url,
@@ -60,15 +61,15 @@ export default class PresignedUrl {
 
   private static async delete(param: { path: string; url: string }) {
     const { path, url } = param;
-    await NocoCache.del(`${CacheScope.PRESIGNED_URL}:path:${path}`);
-    await NocoCache.del(`${CacheScope.PRESIGNED_URL}:url:${url}`);
+    await NocoCache.del(`${CacheScope.PRESIGNED_URL}:path:${slash(path)}`);
+    await NocoCache.del(`${CacheScope.PRESIGNED_URL}:url:${slash(url)}`);
   }
 
   public static async getPath(url: string, _ncMeta = Noco.ncMeta) {
     const urlData =
       url &&
       (await NocoCache.get(
-        `${CacheScope.PRESIGNED_URL}:url:${url}`,
+        `${CacheScope.PRESIGNED_URL}:url:${slash(url)}`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!urlData) {
@@ -159,7 +160,7 @@ export default class PresignedUrl {
     ).toString()}`;
 
     const url = await NocoCache.get(
-      `${CacheScope.PRESIGNED_URL}:path:${cachePath}`,
+      `${CacheScope.PRESIGNED_URL}:path:${slash(cachePath)}`,
       CacheGetType.TYPE_OBJECT,
     );
 

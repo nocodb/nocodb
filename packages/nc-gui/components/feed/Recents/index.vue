@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { socialFeed, loadFeed } = useProductFeed()
+const { socialFeed, loadFeed, isErrorOccurred } = useProductFeed()
 
 const scrollContainer = ref<HTMLElement>()
 
@@ -28,7 +28,10 @@ const { isLoading } = useInfiniteScroll(
     }"
     class="overflow-y-auto nc-scrollbar-md w-full"
   >
-    <div v-if="isLoading && !socialFeed.length" class="flex items-center justify-center h-full w-full">
+    <div v-if="isErrorOccurred?.social && !socialFeed.length" class="h-full flex justify-center items-center">
+      <FeedError />
+    </div>
+    <div v-else-if="isLoading && !socialFeed.length" class="flex items-center justify-center h-full w-full">
       <GeneralLoader size="xlarge" />
     </div>
     <div v-else class="flex flex-col my-6 items-center gap-6">

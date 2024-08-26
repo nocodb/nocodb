@@ -88,9 +88,9 @@ watch([ncLinksDropdownRef, isOpen], () => {
   @apply h-[412px] w-[540px] xs:(w-[90vw] min-h-[312px] h-[312px]);
   overflow-y: auto;
   overflow-x: hidden;
-  resize: vertical;
+  resize: both;
   min-height: 412px;
-  max-height: 700px;
-  max-width: 540px;
+  max-height: 720px;
+  max-width: 600px;
 }
 </style>

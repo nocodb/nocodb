@@ -1,13 +1,18 @@
-import { expect } from '@playwright/test';
 import BasePage from '../Base';
 import { AccountPage } from './index';
+import { AccountSetupConfigPage } from './SetupConfig';
+import { AccountSetupListPage } from './SetupList';
 
-export class AccountSettingsPage extends BasePage {
+export class AccountSetupPage extends BasePage {
   private accountPage: AccountPage;
+  private setupConfigPage: AccountSetupConfigPage;
+  private setupListPage: AccountSetupListPage;
 
   constructor(accountPage: AccountPage) {
     super(accountPage.rootPage);
     this.accountPage = accountPage;
+    this.setupConfigPage = new AccountSetupConfigPage(this);
+    this.setupListPage = new AccountSetupListPage(this);
   }
 
   async goto() {
@@ -21,19 +26,15 @@ export class AccountSettingsPage extends BasePage {
 
   openEmailSettings() {}
 
-  async getInviteOnlyCheckboxValue() {
-    // allow time for the checkbox to be rendered
-    await this.rootPage.waitForTimeout(1000);
-
-    return this.get().locator(`.nc-invite-only-signup-checkbox`).isChecked({ timeout: 1000 });
+  getCategoryCard(key: 'email' | 'storage' = 'email') {
+    return this.get().getByTestId(`nc-setup-${key}`);
   }
 
-  async checkInviteOnlySignupCheckbox(value: boolean) {
-    return expect(await this.getInviteOnlyCheckboxValue()).toBe(value);
+  async isConfigured(key: 'email' | 'storage' = 'email') {
+    return await this.getCategoryCard(key).locator('.nc-configured').isVisible();
   }
 
-  async toggleInviteOnlyCheckbox() {
-    await this.getInviteOnlyCheckbox().click();
-    await this.verifyToast({ message: 'Settings saved successfully' });
+  async configure(key: 'email' | 'storage' = 'email') {
+    await this.getCategoryCard(key).locator('.nc-setup-btn').click();
   }
 }

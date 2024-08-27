@@ -84,7 +84,7 @@ const isValid = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full h-[calc(100vh_-_40px)]" data-test-id="nc-setup">
+  <div class="flex flex-col h-full h-[calc(100vh_-_40px)]" data-test-id="nc-setup-config">
     <NcPageHeader>
       <template #title>
         <div class="flex gap-3 items-center">
@@ -112,6 +112,7 @@ const isValid = computed(() => {
               size="small"
               :disabled="!!loadingAction || !isValid"
               @click="doAction(action.key)"
+              :data-testid="`nc-setup-config-action-${action.key?.toLowerCase()}`"
             >
               {{ action.label }}
             </NcButton>

@@ -5,7 +5,7 @@ import { SignupPage } from '../../../pages/SignupPage';
 import setup, { unsetup } from '../../../setup';
 import { getDefaultPwd } from '../../../tests/utils/general';
 
-test.describe.skip('App setup', () => {
+test.describe.only('App setup', () => {
   // hub will not have this feature
 
   let accountSettingsPage: AccountSettingsPage;

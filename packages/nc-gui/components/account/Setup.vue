@@ -55,7 +55,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col" data-test-id="nc-setup">
+  <div class="flex flex-col" data-test-id="nc-setup-main">
     <NcPageHeader>
       <template #icon>
         <div class="flex justify-center items-center h-5 w-5">
@@ -80,6 +80,7 @@ onMounted(async () => {
             'cursor-pointer': config.itemClick,
           }"
           @click="config.itemClick"
+          :data-testid="`nc-setup-${config.key}`"
         >
           <div class="flex gap-3 items-center" data-rec="true">
             <NcTooltip v-if="!config.configured || config.isPending">
@@ -88,9 +89,9 @@ onMounted(async () => {
                   {{ $t('activity.pending') }}
                 </span>
               </template>
-              <GeneralIcon icon="ncAlertCircle" class="text-orange-500 -mt-1 w-6 h-6" />
+              <GeneralIcon icon="ncAlertCircle" class="text-orange-500 -mt-1 w-6 h-6 nc-pending" />
             </NcTooltip>
-            <GeneralIcon v-else icon="circleCheckSolid" class="text-success w-6 h-6 bg-white-500" />
+            <GeneralIcon v-else icon="circleCheckSolid" class="text-success w-6 h-6 bg-white-500 nc-configured" />
 
             <span class="font-bold text-base"> {{ config.title }}</span>
           </div>

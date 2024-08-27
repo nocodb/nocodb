@@ -15,7 +15,7 @@ const activeAppId = computed(
 </script>
 
 <template>
-  <div class="h-full">
+  <div class="h-full" data-test-id="nc-setup">
     <template v-if="$route.params.app">
       <LazyAccountSetupConfig v-if="activeAppId" :id="activeAppId" />
     </template>

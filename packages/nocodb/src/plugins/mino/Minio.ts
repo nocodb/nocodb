@@ -198,8 +198,10 @@ export default class Minio implements IStorageAdapterV2 {
     return Promise.resolve(undefined);
   }
 
-  public async fileDelete(_path: string): Promise<any> {
-    throw new Error('Method not implemented.');
+  public async fileDelete(path: string): Promise<any> {
+    return this.minioClient.removeObject(this.input.bucket, path).then(() => {
+      return true;
+    });
   }
 
   public async scanFiles(_globPattern: string): Promise<Readable> {

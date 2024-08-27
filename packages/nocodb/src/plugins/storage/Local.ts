@@ -112,15 +112,18 @@ export default class Local implements IStorageAdapterV2 {
   }
 
   public async scanFiles(globPattern: string) {
+    // Normalize the path separator
+    globPattern = globPattern.replace(/\//g, path.sep);
+
     // remove all dots from the glob pattern
     globPattern = globPattern.replace(/\./g, '');
 
     // remove the leading slash
     globPattern = globPattern.replace(/^\//, '');
 
-    // make sure pattern starts with nc/uploads/
-    if (!globPattern.startsWith('nc/uploads/')) {
-      globPattern = `nc/uploads/${globPattern}`;
+    // Ensure the pattern starts with 'nc/uploads/'
+    if (!globPattern.startsWith(path.join('nc', 'uploads'))) {
+      globPattern = path.join('nc', 'uploads', globPattern);
     }
 
     const stream = globStream(globPattern, {

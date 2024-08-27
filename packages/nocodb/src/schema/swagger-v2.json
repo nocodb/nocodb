@@ -1391,63 +1391,6 @@
         ]
       }
     },
-    "/api/v2/meta/bases/:baseId/sources/:sourceId/sqlView": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "sourceId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "Create sql view",
-        "operationId": "create-sql-view",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Source"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "view_name": {
-                    "type": "string"
-                  },
-                  "view_definition": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v2/meta/bases/{baseId}/sources/": {
       "parameters": [
         {
@@ -10228,32 +10171,6 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
-      }
-    },
-    "/api/v2/meta/connection/select": {
-      "parameters": [],
-      "post": {
-        "summary": "",
-        "operationId": "utils-select-query",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {}
-          }
-        },
-        "description": ""
       }
     },
     "/api/v2/meta/nocodb/info": {

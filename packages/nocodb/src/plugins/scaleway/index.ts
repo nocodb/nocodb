@@ -4,8 +4,8 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: ScalewayObjectStoragePlugin,
-  title: 'Scaleway Object Storage',
-  version: '0.0.2',
+  title: 'Scaleway',
+  version: '0.0.4',
   logo: 'plugins/scaleway.png',
   tags: 'Storage',
   description:
@@ -65,7 +65,8 @@ const config: XcPluginConfig = {
         type: XcType.Button,
       },
     ],
-    msgOnInstall: 'Successfully installed Scaleway Object Storage',
+    msgOnInstall:
+      'Successfully configured! Attachments will now be stored in Scaleway Object Storage.',
     msgOnUninstall: '',
   },
   category: 'Storage',

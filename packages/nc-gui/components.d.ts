@@ -81,6 +81,7 @@ declare module 'vue' {
     IcBaselineMoreVert: typeof import('~icons/ic/baseline-more-vert')['default']
     IcOutlineInsertDriveFile: typeof import('~icons/ic/outline-insert-drive-file')['default']
     IcRoundEdit: typeof import('~icons/ic/round-edit')['default']
+    IcRoundInfo: typeof import('~icons/ic/round-info')['default']
     IcRoundKeyboardArrowDown: typeof import('~icons/ic/round-keyboard-arrow-down')['default']
     IcRoundSearch: typeof import('~icons/ic/round-search')['default']
     LogosGoogleGmail: typeof import('~icons/logos/google-gmail')['default']

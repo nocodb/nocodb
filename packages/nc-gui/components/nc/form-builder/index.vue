@@ -38,13 +38,43 @@ const setFormState = (path: string, value: any) => {
                 ></div>
                 <a-form-item
                   v-else
-                  :label="[FormBuilderInputType.Switch].includes(field.type) ? undefined : field.label"
                   v-bind="validateInfos[field.model]"
                   class="nc-form-item"
                   :style="`width:${+field.width || 100}%`"
+                  :required="false"
+                  :data-testid="`nc-form-input-${field.model}`"
                 >
+                  <template v-if="![FormBuilderInputType.Switch].includes(field.type)" #label>
+                    <div class="flex items-center gap-1">
+                      <span>{{ field.label }}</span>
+                      <span v-if="field.required" class="text-red-500">*</span>
+                      <NcTooltip v-if="field.helpText && field.showHintAsTooltip">
+                        <template #title>
+                          <div class="text-xs">
+                            {{ field.helpText }}
+                          </div>
+                        </template>
+                        <GeneralIcon icon="info" class="text-gray-500 h-4" />
+                      </NcTooltip>
+                    </div>
+                  </template>
                   <template v-if="field.type === FormBuilderInputType.Input">
-                    <a-input :value="deepReference(field.model)" @update:value="setFormState(field.model, $event)" />
+                    <a-input
+                      autocomplete="off"
+                      class="!w-full"
+                      :value="deepReference(field.model)"
+                      @update:value="setFormState(field.model, $event)"
+                    />
+                  </template>
+                  <template v-else-if="field.type === FormBuilderInputType.Password">
+                    <a-input-password
+                      readonly
+                      onfocus="this.removeAttribute('readonly');"
+                      onblur="this.setAttribute('readonly', true);"
+                      autocomplete="off"
+                      :value="deepReference(field.model)"
+                      @update:value="setFormState(field.model, $event)"
+                    />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Select">
                     <NcSelect
@@ -54,17 +84,28 @@ const setFormState = (path: string, value: any) => {
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Switch">
-                    <div class="flex flex-col p-2" :class="field.border ? 'border-1 rounded-lg' : ''">
+                    <div class="flex flex-col p-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
                       <div class="flex items-center">
                         <NcSwitch :checked="!!deepReference(field.model)" @update:checked="setFormState(field.model, $event)" />
                         <span class="ml-[6px] font-bold">{{ field.label }}</span>
+                        <NcTooltip v-if="field.helpText">
+                          <template #title>
+                            <div class="text-xs">
+                              {{ field.helpText }}
+                            </div>
+                          </template>
+                          <GeneralIcon icon="info" class="text-gray-500 h-4 ml-1" />
+                        </NcTooltip>
                       </div>
-                      <div v-if="field.helpText" class="w-full mt-1 ml-[35px]">
+                      <div v-if="field.helpText && !field.showHintAsTooltip" class="w-full mt-1 pl-[35px]">
                         <div class="text-xs text-gray-500">{{ field.helpText }}</div>
                       </div>
                     </div>
                   </template>
-                  <div v-if="field.helpText && field.type !== FormBuilderInputType.Switch" class="w-full mt-1">
+                  <div
+                    v-if="field.helpText && field.type !== FormBuilderInputType.Switch && !field.showHintAsTooltip"
+                    class="w-full mt-1"
+                  >
                     <div class="text-xs text-gray-500">{{ field.helpText }}</div>
                   </div>
                 </a-form-item>
@@ -84,13 +125,13 @@ const setFormState = (path: string, value: any) => {
 
 <style lang="scss" scoped>
 .nc-form-item {
-  padding-right: 24px;
   margin-bottom: 12px;
 }
 
 :deep(.ant-collapse-header) {
   @apply !-mt-4 !p-0 flex items-center !cursor-default children:first:flex;
 }
+
 :deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
   @apply !right-0;
 }
@@ -131,9 +172,11 @@ const setFormState = (path: string, value: any) => {
   .nc-form-section {
     @apply flex flex-col gap-3;
   }
+
   .nc-form-section-title {
     @apply text-sm font-bold text-gray-800;
   }
+
   .nc-form-section-body {
     @apply flex flex-col gap-3;
   }
@@ -148,9 +191,11 @@ const setFormState = (path: string, value: any) => {
         &:not(:hover):not(:focus):not(:disabled) {
           @apply shadow-default;
         }
+
         &:hover:not(:focus):not(:disabled) {
           @apply shadow-hover;
         }
+
         &:focus {
           @apply shadow-error ring-0;
         }
@@ -161,34 +206,42 @@ const setFormState = (path: string, value: any) => {
         &:not(:hover):not(:focus-within):not(:disabled) {
           @apply shadow-default;
         }
+
         &:hover:not(:focus-within):not(:disabled) {
           @apply shadow-hover;
         }
+
         &:focus-within {
           @apply shadow-error ring-0;
         }
       }
     }
+
     &:not(.ant-form-item-has-error) {
       &:not(:has(.ant-input-password)) .ant-input {
         &:not(:hover):not(:focus):not(:disabled) {
           @apply shadow-default border-gray-200;
         }
+
         &:hover:not(:focus):not(:disabled) {
           @apply border-gray-200 shadow-hover;
         }
+
         &:focus {
           @apply shadow-selected ring-0;
         }
       }
+
       .ant-input-number,
       .ant-input-affix-wrapper.ant-input-password {
         &:not(:hover):not(:focus-within):not(:disabled) {
           @apply shadow-default border-gray-200;
         }
+
         &:hover:not(:focus-within):not(:disabled) {
           @apply border-gray-200 shadow-hover;
         }
+
         &:focus-within {
           @apply shadow-selected ring-0;
         }
@@ -201,6 +254,10 @@ const setFormState = (path: string, value: any) => {
     & > .ant-col {
       @apply !px-1.5;
     }
+  }
+
+  :deep(.ant-form-item) {
+    @apply !mb-6;
   }
 }
 </style>

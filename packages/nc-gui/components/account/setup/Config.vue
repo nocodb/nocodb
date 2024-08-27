@@ -37,15 +37,15 @@ const { formState, validate, validateInfos } = useProvideFormBuilderHelper({
         model: item.key,
         required: item.required,
         helpText: item.help_text,
-        width: '47',
-        border: true,
+        width: '48',
+        border: false,
       },
       ...(i % 2
         ? []
         : [
             {
               type: FormBuilderInputType.Space,
-              width: '6',
+              width: '4',
             },
           ]),
     ]),
@@ -90,7 +90,7 @@ const isValid = computed(() => {
             class="mr-1 flex items-center justify-center"
             :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
           >
-            <GeneralIcon v-if="plugin.title === 'SMTP'" class="h-8 w-8" icon="mail" />
+            <GeneralIcon v-if="plugin.title === 'SMTP'" class="h-8 w-8 text-gray-500" icon="mail" />
             <img v-else :alt="plugin.title || 'plugin'" :src="plugin.logo" class="h-8 w-8" />
           </div>
           <span data-rec="true">
@@ -101,8 +101,8 @@ const isValid = computed(() => {
     </NcPageHeader>
     <div class="h-full flex h-[calc(100%_-_48px)]">
       <div class="nc-config-left-panel nc-scrollbar-thin relative h-full flex flex-col">
-        <div class="w-full flex items-center gap-3 border-b-1 border-gray-200 h-12 py-2 px-3">
-          <span class="font-semibold text-lg">{{ $t('labels.configuration') }}</span>
+        <div class="w-full flex items-center gap-3 border-gray-200 py-6 px-6">
+          <span class="font-semibold text-base">{{ $t('labels.configuration') }}</span>
           <div class="flex-grow" />
 
           <div class="flex gap-2">
@@ -116,7 +116,7 @@ const isValid = computed(() => {
               :disabled="!!loadingAction || !isValid"
               @click="doAction(action.key)"
             >
-              {{ action.label === 'Save' ? 'Save configuration' : action.label }}
+              {{ action.label }}
             </NcButton>
           </div>
         </div>

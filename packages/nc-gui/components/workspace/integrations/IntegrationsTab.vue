@@ -175,7 +175,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
             'h-full': !isModal,
           }"
         >
-          <div class="px-6 pt-6">
+          <div v-if="integrationListContainerWidth" class="px-6 pt-6">
             <div
               class="flex items-end justify-end flex-wrap gap-3 m-auto"
               :style="{
@@ -214,6 +214,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
             class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin"
           >
             <div
+              v-if="integrationListContainerWidth"
               class="w-full flex justify-center"
               :class="{
                 'flex-1': isEmptyList,
@@ -286,6 +287,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                 </div>
               </div>
             </div>
+            <div v-else class="h-full flex items-center justify-center"><GeneralLoader size="xlarge" /></div>
           </div>
         </div>
         <NcModal

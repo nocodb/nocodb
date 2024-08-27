@@ -1207,7 +1207,10 @@ watch(
                                 data-testid="nc-field-item-action-copy-id"
                                 @click="onClickCopyFieldUrl(field)"
                               >
-                                <div class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold">
+                                <div
+                                  class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold"
+                                  data-testid="nc-field-item-id"
+                                >
                                   {{
                                     $t('labels.idColon', {
                                       fieldId: field.id,
@@ -1389,7 +1392,10 @@ watch(
                               data-testid="nc-field-item-action-copy-id"
                               @click="onClickCopyFieldUrl(displayColumn)"
                             >
-                              <div class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold">
+                              <div
+                                class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold"
+                                data-testid="nc-field-item-id"
+                              >
                                 {{
                                   $t('labels.idColon', {
                                     fieldId: displayColumn.id,

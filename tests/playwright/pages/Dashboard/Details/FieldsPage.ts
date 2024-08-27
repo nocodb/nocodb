@@ -356,6 +356,7 @@ export class FieldsPage extends BasePage {
     const fieldId = await fieldActionDropdown.getByTestId('nc-field-item-id').textContent();
     await field.getByTestId('nc-field-item-action-button').click();
     await fieldActionDropdown.waitFor({ state: 'hidden' });
-    return fieldId;
+
+    return fieldId.split(':')[1]?.trim() || '';
   }
 }

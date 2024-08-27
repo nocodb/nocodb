@@ -4,7 +4,7 @@ import setup, { unsetup } from '../../../setup';
 import { isEE } from '../../../setup/db';
 import { AccountSetupPage } from '../../../pages/Account/Setup';
 
-test.describe('App setup', () => {
+test.describe.serial('App setup', () => {
   // Org level roles are not available in EE
   if (isEE()) {
     test.skip();

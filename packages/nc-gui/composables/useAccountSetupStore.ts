@@ -55,9 +55,6 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
     loadingAction.value = Action.Save
 
     try {
-      // todo: validate form fields
-      // await formRef.value?.validateFields()
-
       await $api.plugin.update(activePlugin.value?.id, {
         input: JSON.stringify(activePluginFormData.value),
         active: true,

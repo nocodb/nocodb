@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
@@ -616,6 +618,11 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -989,6 +996,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1791,7 +1799,7 @@
       "columnDuplicated": "Stolpec je bil uspešno podvojen",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Uspešno posodobljen uporabniški vmesnik ACL za tabele",
-      "pluginUninstalled": "Vtičnik uspešno odstranjen",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "Nastavitve vtičnika so bile uspešno shranjene",
       "pluginTested": "Uspešno preizkušene nastavitve vtičnika",
       "tableRenamed": "Tabela je bila uspešno preimenovana",

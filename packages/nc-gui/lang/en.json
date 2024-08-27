@@ -617,6 +617,7 @@
     "categories": "Categories"
   },
   "labels": {
+    "configuration": "Configuration",
     "setup": "Setup",
     "setupLabel": "Setup {label}",
     "switchToProd": "Switch to a production-ready app database",

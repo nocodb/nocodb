@@ -20,7 +20,7 @@ const configs = computed(() => [
       // openedCategory.value = 'Email'
       navigateTo(`/account/setup/email${emailConfigured.value ? `/${emailConfigured.value.title}` : ''}`)
     },
-    itemClick: () =>{
+    itemClick: () => {
       navigateTo(`/account/setup/email`)
     },
     configured: emailConfigured.value,
@@ -36,7 +36,7 @@ const configs = computed(() => [
 
       navigateTo(`/account/setup/storage${storageConfigured.value ? `/${storageConfigured.value.title}` : ''}`)
     },
-    itemClick: () =>{
+    itemClick: () => {
       navigateTo(`/account/setup/storage`)
     },
     configured: storageConfigured.value,
@@ -77,9 +77,14 @@ onMounted(async () => {
       class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center gap-6 p-6"
     >
       <div class="flex flex-col gap-6 w-150">
-        <div v-for="config of configs" class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-2" :class="{
-          'cursor-pointer': config.itemClick
-        }" @click="config.itemClick">
+        <div
+          v-for="config of configs"
+          class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-2"
+          :class="{
+            'cursor-pointer': config.itemClick,
+          }"
+          @click="config.itemClick"
+        >
           <div class="flex gap-3 items-center" data-rec="true">
             <NcTooltip v-if="!config.configured || config.isPending">
               <template #title>

@@ -9886,6 +9886,18 @@ export function extractFilterFromXwhere(
     return [];
   }
 
+  // if array treat it as `and` group
+  if (Array.isArray(str)) {
+    // calling recursively for nested query
+    return str.map((s) =>
+      extractFilterFromXwhere(s, aliasColObjMap, throwErrorIfInvalid),
+    );
+  } else if (typeof str !== 'string' && throwErrorIfInvalid) {
+    throw new Error(
+      'Invalid filter format. Expected string or array of strings.',
+    );
+  }
+
   let nestedArrayConditions = [];
 
   let openIndex = str.indexOf('((');

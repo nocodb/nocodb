@@ -619,7 +619,7 @@
   "labels": {
     "configuration": "Configuration",
     "setup": "Setup",
-    "setupLabel": "Setup {label}",
+    "configLabel": "Configure {label}",
     "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",

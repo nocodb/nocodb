@@ -53,7 +53,7 @@ const closeResetModal = () => {
     </NcPageHeader>
     <div class="h-[calc(100%_-_58px)] flex">
       <div class="w-full">
-        <div class="w-950px px-4 mt-3 mx-auto text-lg font-weight-bold">{{ category }}</div>
+        <div class="w-950px px-4 mt-3 mx-auto text-lg font-weight-bold">{{ category }} Services</div>
         <div class="container">
           <div v-for="app in apps" :key="app.title" class="item group" @click="selectApp(app)">
             <img

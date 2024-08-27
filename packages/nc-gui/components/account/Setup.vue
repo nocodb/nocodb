@@ -11,13 +11,11 @@ const openedCategory = ref<string | null>(null)
 
 const configs = computed(() => [
   {
-    title: t('labels.setupLabel', { label: t('labels.email') }),
+    title: t('labels.configLabel', { label: t('labels.email') }),
     key: 'email',
     description: 'Configure an email account to send system notifications to your organisation’s users.',
-    docsLink: '',
+    docsLink: 'https://docs.nocodb.com',
     buttonClick: () => {
-      // listModalDlg.value = true
-      // openedCategory.value = 'Email'
       navigateTo(`/account/setup/email${emailConfigured.value ? `/${emailConfigured.value.title}` : ''}`)
     },
     itemClick: () => {
@@ -26,14 +24,11 @@ const configs = computed(() => [
     configured: emailConfigured.value,
   },
   {
-    title: t('labels.setupLabel', { label: t('labels.storage') }),
+    title: t('labels.configLabel', { label: t('labels.storage') }),
     key: 'storage',
     description: 'Configure a storage service to store your organisation’s data.',
-    docsLink: '',
+    docsLink: 'https://docs.nocodb.com',
     buttonClick: () => {
-      // listModalDlg.value = true
-      // openedCategory.value = 'Storage'
-
       navigateTo(`/account/setup/storage${storageConfigured.value ? `/${storageConfigured.value.title}` : ''}`)
     },
     itemClick: () => {
@@ -45,7 +40,7 @@ const configs = computed(() => [
     title: t('labels.switchToProd'),
     key: 'switchToProd',
     description: 'Configure a production-ready app database to port from the existing built-in application database.',
-    docsLink: '',
+    docsLink: 'https://docs.nocodb.com',
     buttonClick: () => {
       //  TODO: Implement the logic to switch to production
     },

@@ -55,7 +55,13 @@ const closeResetModal = () => {
       <div class="w-full">
         <div class="w-950px px-4 mt-3 mx-auto text-lg font-weight-bold">{{ category }} Services</div>
         <div class="container">
-          <div v-for="app in apps" :key="app.title" class="item group" @click="selectApp(app)" :data-testid="`nc-setup-list-item-${app.title}`">
+          <div
+            v-for="app in apps"
+            :key="app.title"
+            class="item group"
+            :data-testid="`nc-setup-list-item-${app.title}`"
+            @click="selectApp(app)"
+          >
             <AccountSetupAppIcon :app="app" class="icon" />
             <span class="title">{{ app.title }}</span>
             <div class="flex-grow" />
@@ -105,7 +111,7 @@ const closeResetModal = () => {
         </div>
         <div class="flex mt-6 justify-end space-x-2">
           <NcButton size="small" type="secondary" @click="closeResetModal"> {{ $t('general.cancel') }}</NcButton>
-          <NcButton size="small" type="danger" @click="resetPlugin" data-testid="nc-reset-confirm-btn">
+          <NcButton size="small" type="danger" data-testid="nc-reset-confirm-btn" @click="resetPlugin">
             {{ showResetActiveAppMsg ? `${$t('general.reset')} & ${$t('general.switch')}` : $t('general.reset') }}
           </NcButton>
         </div>

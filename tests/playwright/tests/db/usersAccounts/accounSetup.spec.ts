@@ -65,5 +65,9 @@ test.describe.serial('App setup', () => {
     });
     await accountSetupPage.goto();
     await accountSetupPage.isConfigured('storage', true);
+    await accountSetupPage.resetConfig({
+      key: 'storage',
+      plugin: 'S3',
+    });
   });
 });

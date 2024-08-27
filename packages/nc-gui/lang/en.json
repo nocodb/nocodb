@@ -616,6 +616,9 @@
     "categories": "Categories"
   },
   "labels": {
+    "setup": "Setup",
+    "setupLabel": "Setup {label}",
+    "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",

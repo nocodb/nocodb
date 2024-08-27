@@ -64,6 +64,21 @@ const logout = async () => {
                 key="profile"
                 class="item"
                 :class="{
+                  active: $route.path?.startsWith( '/account/setup'),
+                }"
+                @click="navigateTo('/account/setup')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncSliders" class="!h-3.5 !w-3.5" />
+
+                  <div class="select-none">{{ $t('labels.setup') }}</div>
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
+                key="profile"
+                class="item"
+                :class="{
                   active: $route.params.page === 'profile',
                 }"
                 @click="navigateTo('/account/profile')"

@@ -77,6 +77,7 @@ const integrationsMapByCategory = computed(() => {
       (acc, curr) => {
         acc[curr.value] = {
           title: curr.title,
+          subtitle: curr.subtitle,
           list: getIntegrationsByCategory(curr.value, searchQuery.value),
           isAvailable: curr.isAvailable,
           teleEventName: curr.teleEventName,
@@ -88,6 +89,7 @@ const integrationsMapByCategory = computed(() => {
         string,
         {
           title: string
+          subtitle?: string
           list: IntegrationItemType[]
           isAvailable?: boolean
           teleEventName?: IntegrationCategoryType
@@ -245,7 +247,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
 
                         <div
                           :tabindex="0"
-                          class="source-card focus-visible:outline-none"
+                          class="source-card focus-visible:outline-none h-full"
                           :class="{
                             'is-available': integration?.isAvailable,
                           }"
@@ -254,7 +256,10 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                           <div class="integration-icon-wrapper">
                             <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                           </div>
-                          <div class="name flex-1">{{ $t(integration.title) }}</div>
+                          <div class="flex-1">
+                            <div class="name">{{ $t(integration.title) }}</div>
+                            <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
+                          </div>
                           <div v-if="integration?.isAvailable" class="action-btn">+</div>
                           <div v-else class="">
                             <NcButton

@@ -9,6 +9,7 @@ export interface IntegrationItemType {
   isAvailable?: boolean
   iconStyle?: CSSProperties
   isOssOnly?: boolean
+  subtitle?: string
 }
 
 export interface IntegrationCategoryItemType {
@@ -398,13 +399,15 @@ export const allIntegrations: IntegrationItemType[] = [
     categories: [IntegrationCategoryType.TICKETING],
   },
   {
-    title: 'objects.syncData.salesforceServiceCloud',
+    title: 'objects.syncData.salesforce',
+    subtitle: 'objects.syncData.serviceCloud',
     value: SyncDataType.SALESFORCE_SERVICE_CLOUD,
     icon: iconMap.salesforce,
     categories: [IntegrationCategoryType.TICKETING],
   },
   {
-    title: 'objects.syncData.hubspotServiceHub',
+    title: 'objects.syncData.hubspot',
+    subtitle: 'objects.syncData.serviceHub',
     value: SyncDataType.HUBSPOT_SERVICE_HUB,
     icon: iconMap.hubspot,
     categories: [IntegrationCategoryType.TICKETING],

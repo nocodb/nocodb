@@ -21,7 +21,7 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
   const storageConfigured = computed(() => storageApps.value.find((app) => app.active))
 
   const listModalDlg = ref(false)
-  const confirmModalDlg = ref(false)
+  const configModalDlg = ref(false)
 
   const categorizeApps = computed(() => {
     return apps.value.reduce((acc, app) => {
@@ -135,7 +135,7 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
     emailConfigured,
     storageConfigured,
     listModalDlg,
-    confirmModalDlg,
+    configModalDlg,
   }
 })
 

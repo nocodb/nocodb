@@ -20,6 +20,7 @@ import {
   defaultGroupByLimitConfig,
   defaultLimitConfig,
 } from '~/helpers/extractLimitAndOffset';
+import { DriverClient } from '~/utils/nc-config';
 
 const versionCache = {
   releaseVersion: null,
@@ -465,6 +466,7 @@ export class UtilsService {
       samlProviderName,
       samlAuthEnabled,
       giftUrl,
+      prodReady: Noco.getConfig()?.meta?.db?.client !== DriverClient.SQLITE,
     };
 
     return result;

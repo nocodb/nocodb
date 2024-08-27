@@ -46,6 +46,9 @@ const setFormState = (path: string, value: any) => {
                   <template v-if="field.type === FormBuilderInputType.Input">
                     <a-input :value="deepReference(field.model)" @update:value="setFormState(field.model, $event)" />
                   </template>
+                  <template v-else-if="field.type === FormBuilderInputType.Password">
+                    <a-input-password :value="deepReference(field.model)" @update:value="setFormState(field.model, $event)" />
+                  </template>
                   <template v-else-if="field.type === FormBuilderInputType.Select">
                     <NcSelect
                       :value="deepReference(field.model)"

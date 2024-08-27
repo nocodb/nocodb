@@ -19,16 +19,14 @@ const {
   saveSettings,
 } = useAccountSetupStoreOrThrow()
 
-if (!plugin.value) {
-  await readPluginDetails(props.id)
-}
+await readPluginDetails(props.id)
 
 const pluginTypeMap = {
   Input: FormBuilderInputType.Input,
   Select: FormBuilderInputType.Select,
   Checkbox: FormBuilderInputType.Switch,
   LongText: FormBuilderInputType.Input,
-  Password: FormBuilderInputType.Input,
+  Password: FormBuilderInputType.Password,
 }
 
 const { formState, validate } = useProvideFormBuilderHelper({
@@ -52,10 +50,12 @@ const doAction = async (action: Action) => {
     switch (action) {
       case Action.Save:
         await validate()
+        pluginFormData.value = formState.value
         await saveSettings()
         break
       case Action.Test:
         await validate()
+        pluginFormData.value = formState.value
         await testSettings()
         break
       default:
@@ -73,7 +73,6 @@ const doAction = async (action: Action) => {
 <template>
   <NcModal
     :visible="vOpen"
-    :keyboard="isModalClosable"
     centered
     width="70rem"
     wrap-class-name="nc-modal-create-source"
@@ -81,7 +80,7 @@ const doAction = async (action: Action) => {
   >
     <div class="flex-1 flex flex-col max-h-full min-h-400px">
       <div class="px-4 pb-4 w-full flex items-center gap-3 border-b-1 border-gray-200">
-        <GeneralIcon icon="arrowLeft" class="flex-none text-[20px]" @click="vOpen = false" />
+        <GeneralIcon icon="arrowLeft" class="cursor-pointer flex-none text-[20px]" @click="vOpen = false" />
         <div
           v-if="plugin.logo"
           class="mr-1 flex items-center justify-center"

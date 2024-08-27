@@ -7,7 +7,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 const config: XcPluginConfig = {
   builder: SMTPPlugin,
   title: 'SMTP',
-  version: '0.0.3',
+  version: '0.0.4',
   // icon: 'mdi-email-outline',
   description: 'SMTP email client',
   price: 'Free',
@@ -27,6 +27,7 @@ const config: XcPluginConfig = {
         key: 'host',
         label: 'SMTP Server',
         placeholder: 'smtp.run.com',
+        help_text: 'Enter outgoing mail server address (SMTP). If you do not have this information available, contact your email service provider',
         type: XcType.SingleLineText,
         required: true,
       },

@@ -8,7 +8,12 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
-import type { BarcodeColumn, QrCodeColumn, RollupColumn } from '~/models';
+import type {
+  BarcodeColumn,
+  FormulaColumn,
+  QrCodeColumn,
+  RollupColumn,
+} from '~/models';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -151,9 +156,14 @@ export default async function applyAggregation({
       break;
 
     case UITypes.Formula:
-      column_name_query = (
-        await baseModelSqlv2.getSelectQueryBuilderForFormula(column)
-      ).builder;
+      const formula = await column.getColOptions<FormulaColumn>(context);
+      if (formula.error) {
+        aggregation = CommonAggregations.None;
+      } else {
+        column_name_query = (
+          await baseModelSqlv2.getSelectQueryBuilderForFormula(column)
+        ).builder;
+      }
       break;
 
     case UITypes.LinkToAnotherRecord:

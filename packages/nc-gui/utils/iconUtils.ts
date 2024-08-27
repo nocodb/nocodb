@@ -156,6 +156,7 @@ import NcWorkspace from '~icons/nc-icons/workspace'
 import NcCellBarcode from '~icons/nc-icons/cell-barcode'
 import NcCellCheckbox from '~icons/nc-icons/cell-checkbox'
 import NcCellDate from '~icons/nc-icons/cell-date'
+import NcCellYear from '~icons/nc-icons/cell-year'
 import NcCellEmail from '~icons/nc-icons/cell-email'
 import NcCellFormula from '~icons/nc-icons/cell-formula'
 import NcCellCurrency from '~icons/nc-icons/cell-currency'
@@ -720,6 +721,7 @@ export const iconMap = {
   cellBarcode: h(NcCellBarcode, { stroke: 'transparent' }),
   cellCheckbox: NcCellCheckbox,
   cellDate: NcCellDate,
+  cellYear: NcCellYear,
   cellEmail: NcCellEmail,
   cellFormula: NcCellFormula,
   cellCurrency: NcCellCurrency,

@@ -230,6 +230,8 @@ const rolePermissions:
       commentList: true,
       commentsCount: true,
       auditListRow: true,
+
+      userInvite: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

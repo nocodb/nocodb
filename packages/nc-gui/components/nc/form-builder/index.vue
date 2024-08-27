@@ -67,6 +67,9 @@ const setFormState = (path: string, value: any) => {
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Password">
                     <a-input-password
+                      readonly
+                      onfocus="this.removeAttribute('readonly');"
+                      onblur="this.setAttribute('readonly', true);"
                       autocomplete="off"
                       :value="deepReference(field.model)"
                       @update:value="setFormState(field.model, $event)"

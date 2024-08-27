@@ -23,7 +23,7 @@ const config: XcPluginConfig = {
         type: XcType.SingleLineText,
         required: true,
         help_text:
-          'Enter the email address you want to appear as the sender of the emails sent through this SMTP configuration',
+          'Successfully configured! Email notifications are now set up using SMTP.',
       },
       {
         key: 'host',

@@ -5,7 +5,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 const config: XcPluginConfig = {
   builder: SpacesPlugin,
   title: 'Spaces',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/spaces.png',
   description:
     'Store & deliver vast amounts of content with a simple architecture.',
@@ -68,7 +68,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in DigitalOcean Spaces',
+      'Successfully configured! Attachments will now be stored in DigitalOcean Spaces.',
     msgOnUninstall: '',
   },
 };

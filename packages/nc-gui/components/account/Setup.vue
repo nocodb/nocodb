@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { useAccountSetupStoreOrThrow } from '../../composables/useAccountSetupStore'
-
 const { t } = useI18n()
 
 const { loadSetupApps, emailConfigured, storageConfigured, listModalDlg } = useAccountSetupStoreOrThrow()
 
-const { appInfo } = useGlobal()
+// const { appInfo } = useGlobal()
 
 const openedCategory = ref<string | null>(null)
 

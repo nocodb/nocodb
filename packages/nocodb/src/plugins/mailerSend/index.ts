@@ -5,7 +5,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 const config: XcPluginConfig = {
   builder: MailerSendPlugin,
   title: 'MailerSend',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/mailersend.svg',
   // icon: 'mdi-email-outline',
   description: 'MailerSend email client',
@@ -52,7 +52,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and email notification will use MailerSend configuration',
+      'Successfully configured! Email notifications are now set up using MailerSend.',
     msgOnUninstall: '',
   },
 };

@@ -5,7 +5,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 const config: XcPluginConfig = {
   builder: BackblazePlugin,
   title: 'Backblaze',
-  version: '0.0.4',
+  version: '0.0.5',
   logo: 'plugins/backblaze.jpeg',
   tags: 'Storage',
   description:
@@ -66,7 +66,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in Backblaze B2',
+      'Successfully configured! Attachments will now be stored in Backblaze B2.',
     msgOnUninstall: '',
   },
   category: 'Storage',

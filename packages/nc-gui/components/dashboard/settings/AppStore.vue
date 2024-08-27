@@ -121,7 +121,8 @@ onMounted(async () => {
         </template>
         <template #description>
           <span class="text-gray-500 ml-9">
-            App store will soon be removed and all functionalities will be moved to integrations
+            App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of the plugins
+            here will be moved to integrations.
           </span>
         </template>
       </a-alert>

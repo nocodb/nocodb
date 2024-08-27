@@ -155,15 +155,15 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
                   <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
                   <span class="flex-grow" />
-                  <NcTooltip v-if="isPending">
+                  <NcToolti>
                     <template #title>
                       <span>
-                        In upcoming releases, the App Store feature will be deprecated and transitioned to the Integrations
-                        section.
+                        App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of
+                        the plugins here will be moved to integrations.
                       </span>
                     </template>
                     <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-4 h-4 nc-pending" />
-                  </NcTooltip>
+                  </NcToolti>
                 </div>
               </NcMenuItem>
               <a-sub-menu key="users" class="!bg-white !my-0">

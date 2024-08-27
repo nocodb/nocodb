@@ -362,6 +362,7 @@
       "googleDrive": "Google Drive",
       "googleSheets": "Google Sheets",
       "hubspot": "Hubspot",
+      "hubspotServiceHub": "Hubspot Service Hub",
       "jira": "Jira",
       "mailchimp": "Mailchimp",
       "microsoftAccess": "Microsoft Access",
@@ -369,6 +370,7 @@
       "microsoftOutlook": "Microsoft Outlook",
       "miro": "Miro",
       "salesforce": "Salesforce",
+      "salesforceServiceCloud": "Salesforce Service Cloud",
       "snowflake": "Snowflake",
       "stripe": "Stripe",
       "surveyMonkey": "SurveyMonkey",
@@ -398,7 +400,8 @@
       "openai": "OpenAI",
       "claude": "Claude",
       "ollama": "Ollama",
-      "groq": "Groq"
+      "groq": "Groq",
+      "freshdesk": "FreshDesk"
     },
     "integrationCategories": {
       "allIntegrations": "All Integrations",

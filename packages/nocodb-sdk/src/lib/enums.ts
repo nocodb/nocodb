@@ -404,7 +404,7 @@ export enum SyncDataType {
   FRESHDESK = 'freshdesk',
   INTERCOM = 'intercom',
   ZENDESK = 'zendesk',
-  HUBSPOT_SERVICE_HUB = 'hubstop-service-hub',
+  HUBSPOT_SERVICE_HUB = 'hubspot-service-hub',
   SALESFORCE_SERVICE_CLOUD = 'salesforce-service-cloud',
   // Storage
   BOX = 'box',

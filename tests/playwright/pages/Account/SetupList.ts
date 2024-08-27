@@ -14,11 +14,11 @@ export class AccountSetupListPage extends BasePage {
   }
 
   get() {
-    return this.setupPage.get().locator(`[data-test-id="nc-setup-list"]`);
+    return this.setupPage.get().locator(`[data-testid="nc-setup-list"]`);
   }
 
   getPluginItem(plugin: string) {
-    return this.get().locator(`[data-test-id="nc-setup-list-item-${plugin}"]`);
+    return this.get().locator(`[data-testid="nc-setup-list-item-${plugin}"]`);
   }
 
   async isConfigured(plugin: string) {
@@ -27,6 +27,6 @@ export class AccountSetupListPage extends BasePage {
 
   async reset(plugin: string) {
     await this.getPluginItem(plugin).locator('.nc-setup-plugin-menu').click();
-    await this.rootPage.locator('.ant-dropdown').locator('[data-test-id="nc-config-reset"].nc-menu-item').click();
+    await this.rootPage.locator('.ant-dropdown').getByTestId('nc-config-reset').click();
   }
 }

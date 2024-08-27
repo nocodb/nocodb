@@ -1,65 +1,69 @@
 import { test } from '@playwright/test';
 import { AccountPage } from '../../../pages/Account';
-import { AccountSettingsPage } from '../../../pages/Account/Settings';
-import { SignupPage } from '../../../pages/SignupPage';
 import setup, { unsetup } from '../../../setup';
-import { getDefaultPwd } from '../../../tests/utils/general';
+import { isEE } from '../../../setup/db';
+import { AccountSetupPage } from '../../../pages/Account/Setup';
 
-test.describe.only('App setup', () => {
+test.describe('App setup', () => {
+  // Org level roles are not available in EE
+  if (isEE()) {
+    test.skip();
+  }
+
   // hub will not have this feature
 
-  let accountSettingsPage: AccountSettingsPage;
+  let accountSetupPage: AccountSetupPage;
   let accountPage: AccountPage;
   // @ts-ignore
   let context: any;
 
   test.beforeEach(async ({ page }) => {
-    context = await setup({ page, isEmptyProject: true });
+    context = await setup({ page, isEmptyProject: true, isSuperUser: true, resetPlugins: true });
     accountPage = new AccountPage(page);
-    accountSettingsPage = accountPage.settings;
+    accountSetupPage = accountPage.setup;
   });
 
   test.afterEach(async () => {
     await unsetup(context);
   });
 
-  test('Toggle invite only signup', async () => {
-    test.slow();
-
-    await accountSettingsPage.goto({ networkValidation: false });
-
-    // enable invite only signup
-    if (!(await accountSettingsPage.getInviteOnlyCheckboxValue())) {
-      await accountSettingsPage.toggleInviteOnlyCheckbox();
-      await accountSettingsPage.checkInviteOnlySignupCheckbox(true);
-    }
-
-    await accountPage.signOut();
-
-    const signupPage = new SignupPage(accountPage.rootPage);
-    await signupPage.goto();
-
-    await signupPage.signUp({
-      email: 'test-user-1@nocodb.com',
-      password: getDefaultPwd(),
-      expectedError: 'Not allowed to signup, contact super admin.',
+  test('Configure email settings', async () => {
+    await accountSetupPage.goto();
+    await accountSetupPage.isConfigured('email', false);
+    await accountSetupPage.configure({
+      key: 'email',
+      plugin: 'SMTP',
+      config: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        username: 'test',
+        password: 'test',
+        name: 'gmail.com',
+        from: 'test@gmail.com',
+      },
     });
-
-    await signupPage.rootPage.reload({ waitUntil: 'load' });
-
-    await accountSettingsPage.goto({ networkValidation: false });
-
-    await accountSettingsPage.checkInviteOnlySignupCheckbox(true);
-    await accountSettingsPage.toggleInviteOnlyCheckbox();
-    await accountSettingsPage.checkInviteOnlySignupCheckbox(false);
-
-    await accountPage.signOut();
-
-    await signupPage.goto();
-
-    await signupPage.signUp({
-      email: 'test-user-1@nocodb.com',
-      password: getDefaultPwd(),
+    await accountSetupPage.goto();
+    await accountSetupPage.isConfigured('email', true);
+    await accountSetupPage.resetConfig({
+      key: 'email',
+      plugin: 'SMTP',
     });
+  });
+
+  test('Configure storage settings', async () => {
+    await accountSetupPage.goto();
+    await accountSetupPage.isConfigured('storage', false);
+    await accountSetupPage.configure({
+      key: 'storage',
+      plugin: 'S3',
+      config: {
+        bucket: 'test',
+        region: 'us-east-1',
+        access_key: 'test',
+        access_secret: 'test',
+      },
+    });
+    await accountSetupPage.goto();
+    await accountSetupPage.isConfigured('storage', true);
   });
 });

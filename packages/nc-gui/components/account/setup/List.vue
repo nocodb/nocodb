@@ -43,7 +43,7 @@ const closeResetModal = () => {
 </script>
 
 <template>
-  <div class="flex flex-col" data-test-id="nc-setup-list">
+  <div class="flex flex-col" data-testid="nc-setup-list">
     <NcPageHeader>
       <template #title>
         <span data-rec="true">
@@ -55,7 +55,7 @@ const closeResetModal = () => {
       <div class="w-full">
         <div class="w-950px px-4 mt-3 mx-auto text-lg font-weight-bold">{{ category }} Services</div>
         <div class="container">
-          <div v-for="app in apps" :key="app.title" class="item group" @click="selectApp(app)">
+          <div v-for="app in apps" :key="app.title" class="item group" @click="selectApp(app)" :data-testid="`nc-setup-list-item-${app.title}`">
             <AccountSetupAppIcon :app="app" class="icon" />
             <span class="title">{{ app.title }}</span>
             <div class="flex-grow" />
@@ -72,7 +72,7 @@ const closeResetModal = () => {
 
               <template #overlay>
                 <NcMenu class="min-w-20">
-                  <NcMenuItem data-test-id="nc-config-reset" @click.stop="showResetPluginModal(app)">
+                  <NcMenuItem data-testid="nc-config-reset" @click.stop="showResetPluginModal(app)">
                     <span> {{ $t('general.reset') }} </span>
                   </NcMenuItem>
                 </NcMenu>
@@ -89,7 +89,7 @@ const closeResetModal = () => {
       width="448px"
       centered
       :footer="null"
-      wrap-class-name="nc-modal-plugin-uninstall"
+      wrap-class-name="nc-modal-plugin-reset-conform"
     >
       <div class="flex flex-col h-full">
         <div v-if="showResetActiveAppMsg" class="text-base font-weight-bold">
@@ -105,7 +105,7 @@ const closeResetModal = () => {
         </div>
         <div class="flex mt-6 justify-end space-x-2">
           <NcButton size="small" type="secondary" @click="closeResetModal"> {{ $t('general.cancel') }}</NcButton>
-          <NcButton size="small" type="danger" @click="resetPlugin">
+          <NcButton size="small" type="danger" @click="resetPlugin" data-testid="nc-reset-confirm-btn">
             {{ showResetActiveAppMsg ? `${$t('general.reset')} & ${$t('general.switch')}` : $t('general.reset') }}
           </NcButton>
         </div>

@@ -84,7 +84,7 @@ const isValid = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full h-[calc(100vh_-_40px)]" data-test-id="nc-setup-config">
+  <div class="flex flex-col h-full h-[calc(100vh_-_40px)]" data-testid="nc-setup-config">
     <NcPageHeader>
       <template #title>
         <div class="flex gap-3 items-center">

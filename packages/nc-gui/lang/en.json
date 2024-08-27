@@ -93,6 +93,7 @@
     "none": "None"
   },
   "general": {
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",

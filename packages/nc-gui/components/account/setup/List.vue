@@ -73,9 +73,20 @@ const closeResetModal = () => {
               v-if="app.active"
               icon="delete"
               class="text-error min-w-6 h-6 bg-white-500 !hidden !group-hover:!inline cursor-pointer"
-              @click.stop="showResetPluginModal(app)"
             />
-            <GeneralIcon v-if="app.active" icon="circleCheckSolid" class="text-primary min-w-6 h-6 bg-white-500" />
+            <GeneralIcon v-if="app.active" icon="circleCheckSolid" class="text-primary min-w-5 h-5 bg-white-500" />
+
+            <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
+              <GeneralIcon v-if="app.active" icon="threeDotVertical" class="min-w-5 h-5 bg-white-500" />
+
+              <template #overlay>
+                <NcMenu class="min-w-20">
+                  <NcMenuItem data-test-id="nc-config-reset" @click.stop="showResetPluginModal(app)">
+                    <span> {{ $t('general.reset') }} </span>
+                  </NcMenuItem>
+                </NcMenu>
+              </template>
+            </NcDropdown>
           </div>
         </div>
       </div>
@@ -84,22 +95,28 @@ const closeResetModal = () => {
     <a-modal
       v-model:visible="showPluginUninstallModal"
       :closable="false"
-      width="24rem"
+      width="448px"
       centered
       :footer="null"
       wrap-class-name="nc-modal-plugin-uninstall"
     >
       <div class="flex flex-col h-full">
-        <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
-          <template v-if="showResetActiveAppMsg">
-            Switching to {{ switchingTo && switchingTo.title }} will reset your {{ activePlugin && activePlugin.title }}
-            settings. Continue?
-          </template>
-          <template v-else>{{ `Click on confirm to reset ${activePlugin && activePlugin.title}` }}</template>
+        <div v-if="showResetActiveAppMsg" class="text-base font-weight-bold">
+          Switch to {{ switchingTo && switchingTo.title }}
         </div>
-        <div class="flex mt-6 justify-center space-x-2">
-          <NcButton type="secondary" @click="closeResetModal"> {{ $t('general.cancel') }}</NcButton>
-          <NcButton type="danger" @click="resetPlugin"> {{ $t('general.confirm') }}</NcButton>
+        <div v-else class="text-base font-weight-bold">Reset {{ activePlugin && activePlugin.title }} Configuration</div>
+        <div class="flex flex-row mt-2 w-full">
+          <template v-if="showResetActiveAppMsg">
+            Switching to {{ switchingTo && switchingTo.title }} will reset your {{ activePlugin && activePlugin.title }} settings.
+            Continue?
+          </template>
+          <template v-else>Resetting will erase your current configuration. </template>
+        </div>
+        <div class="flex mt-6 justify-end space-x-2">
+          <NcButton size="small" type="secondary" @click="closeResetModal"> {{ $t('general.cancel') }}</NcButton>
+          <NcButton size="small" type="danger" @click="resetPlugin">
+            {{ showResetActiveAppMsg ? `${$t('general.reset')} & ${$t('general.switch')}` : $t('general.reset') }}
+          </NcButton>
         </div>
       </div>
     </a-modal>
@@ -111,7 +128,7 @@ const closeResetModal = () => {
   @apply p-4 w-950px gap-5 mx-auto my-2 grid grid-cols-3;
 
   .item {
-    @apply text-base w-296px max-w-296px flex gap-6 border-1 border-gray-200 py-3 px-6 rounded-xl items-center cursor-pointer hover:(shadow bg-gray-50);
+    @apply text-base w-296px max-w-296px flex gap-3 border-1 border-gray-200 py-3 px-6 rounded-xl items-center cursor-pointer hover:(shadow bg-gray-50);
 
     .icon {
       @apply max-w-32px max-h-32px;

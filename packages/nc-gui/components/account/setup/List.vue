@@ -65,7 +65,8 @@ const closeResetModal = () => {
               }"
               :src="app.logo"
             />
-            <GeneralIcon v-else icon="mail" />
+            <GeneralIcon v-else
+                         class="icon" icon="mail" />
             <span class="title">{{ app.title }}</span>
             <div class="flex-grow" />
 
@@ -128,10 +129,10 @@ const closeResetModal = () => {
   @apply p-4 w-950px gap-5 mx-auto my-2 grid grid-cols-3;
 
   .item {
-    @apply text-base w-296px max-w-296px flex gap-3 border-1 border-gray-200 py-3 px-6 rounded-xl items-center cursor-pointer hover:(shadow bg-gray-50);
+    @apply text-base w-296px max-w-296px flex gap-3 border-1 border-gray-200 py-4 px-5 rounded-xl items-center cursor-pointer hover:(shadow bg-gray-50);
 
     .icon {
-      @apply max-w-32px max-h-32px;
+      @apply !w-8 !h-8 object-contain
     }
 
     .title {

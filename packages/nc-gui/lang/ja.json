@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
@@ -616,6 +618,11 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -989,6 +996,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1791,7 +1799,7 @@
       "columnDuplicated": "カラムを複製しました",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "テーブルの UI ACL を更新しました",
-      "pluginUninstalled": "プラグインをアンインストールしました",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "プラグインの設定を保存しました",
       "pluginTested": "プラグイン設定のテストに成功しました",
       "tableRenamed": "テーブル名を変更しました",

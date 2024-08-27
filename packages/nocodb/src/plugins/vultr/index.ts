@@ -66,7 +66,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in Vultr Object Storage',
+      'Successfully configured! Attachments will now be stored in Vultr Object Storage.',
     msgOnUninstall: '',
   },
   category: 'Storage',

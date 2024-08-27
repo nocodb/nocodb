@@ -65,6 +65,7 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
       message.success(activePlugin.value?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
       // load all apps again to update the pending status
       loadSetupApps().catch(console.error)
+      navigateTo('/account/setup')
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {

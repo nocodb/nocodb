@@ -5,7 +5,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 const config: XcPluginConfig = {
   builder: OvhCloud,
   title: 'Ovh',
-  version: '0.0.3',
+  version: '0.0.4',
   logo: 'plugins/ovhCloud.png',
   tags: 'Storage',
   description:
@@ -66,7 +66,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in OvhCloud Object Storage',
+      'Successfully configured! Attachments will now be stored in OvhCloud Object Storage.',
     msgOnUninstall: '',
   },
   category: 'Storage',

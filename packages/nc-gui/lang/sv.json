@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
@@ -616,6 +618,11 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -989,6 +996,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1791,7 +1799,7 @@
       "columnDuplicated": "Kolumnen duplicerades framgångsrikt",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Uppdaterade UI ACL för tabeller framgångsrikt",
-      "pluginUninstalled": "Plugin avinstallerades framgångsrikt",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "Plugin-inställningarna har sparats framgångsrikt",
       "pluginTested": "Testade framgångsrikt inställningar för insticksmodulet",
       "tableRenamed": "Tabellen har bytt namn framgångsrikt",

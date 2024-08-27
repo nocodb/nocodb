@@ -64,7 +64,7 @@ const logout = async () => {
                 key="profile"
                 class="item"
                 :class="{
-                  active: $route.path?.startsWith( '/account/setup'),
+                  active: $route.path?.startsWith('/account/setup'),
                 }"
                 @click="navigateTo('/account/setup')"
               >

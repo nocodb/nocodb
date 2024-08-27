@@ -12,7 +12,7 @@ onMounted(async () => {
       <LazyAccountSetupListModal category="Storage" />
     </template>
     <template v-else-if="$route.params.nestedPage === 'email'">
-      <LazyAccountSetupListModal category="Email"  />
+      <LazyAccountSetupListModal category="Email" />
     </template>
     <template v-else>
       <LazyAccountSetup />

@@ -22,12 +22,15 @@ const config: XcPluginConfig = {
         placeholder: 'admin@run.com',
         type: XcType.SingleLineText,
         required: true,
+        help_text:
+          'Enter the email address you want to appear as the sender of the emails sent through this SMTP configuration',
       },
       {
         key: 'host',
         label: 'SMTP Server',
         placeholder: 'smtp.run.com',
-        help_text: 'Enter outgoing mail server address (SMTP). If you do not have this information available, contact your email service provider',
+        help_text:
+          'Enter outgoing mail server address (SMTP). If you do not have this information available, contact your email service provider',
         type: XcType.SingleLineText,
         required: true,
       },
@@ -37,6 +40,8 @@ const config: XcPluginConfig = {
         placeholder: 'your-domain.com',
         type: XcType.SingleLineText,
         required: true,
+        help_text:
+          "Specify the domain name that will be used in the 'From' address (e.g., yourdomain.com). This should match the domain of the From Address.",
       },
       {
         key: 'port',
@@ -44,6 +49,8 @@ const config: XcPluginConfig = {
         placeholder: 'Port',
         type: XcType.SingleLineText,
         required: true,
+        help_text:
+          'Enter the port number used by the SMTP server (e.g., 587 for TLS, 465 for SSL, or 25 for non-secure connections).',
       },
       {
         key: 'secure',
@@ -51,6 +58,8 @@ const config: XcPluginConfig = {
         placeholder: 'Secure',
         type: XcType.Checkbox,
         required: false,
+        help_text:
+          'Enable this on if your SMTP server requires a secure connection (SSL/TLS).',
       },
       {
         key: 'ignoreTLS',
@@ -58,6 +67,8 @@ const config: XcPluginConfig = {
         placeholder: 'Ignore TLS',
         type: XcType.Checkbox,
         required: false,
+        help_text:
+          'Enable this if you want to bypass any TLS errors that may occur during the connection. Only use this if necessary, as it may compromise security.',
       },
       {
         key: 'rejectUnauthorized',
@@ -65,6 +76,8 @@ const config: XcPluginConfig = {
         placeholder: 'Reject Unauthorized',
         type: XcType.Checkbox,
         required: false,
+        help_text:
+          'Enable this on to reject emails that fail authentication checks, ensuring only authorized emails are sent.',
       },
       {
         key: 'username',
@@ -72,6 +85,8 @@ const config: XcPluginConfig = {
         placeholder: 'Username',
         type: XcType.SingleLineText,
         required: false,
+        help_text:
+          'Enter the username required to authenticate with the SMTP server. This is usually your email address.',
       },
       {
         key: 'password',
@@ -79,6 +94,8 @@ const config: XcPluginConfig = {
         placeholder: 'Password',
         type: XcType.Password,
         required: false,
+        help_text:
+          'Enter the password associated with the SMTP server username. Click the eye icon to view the password as you type',
       },
     ],
     actions: [

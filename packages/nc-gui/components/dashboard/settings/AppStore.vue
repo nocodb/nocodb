@@ -111,6 +111,21 @@ onMounted(async () => {
       </div>
     </a-modal>
 
+    <div class="mb-5">
+      <a-alert type="warning" border="">
+        <template #message>
+          <div class="flex flex-row items-center gap-3">
+            <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-6 h-6" />
+            <span class="font-weight-bold">App Store Deprecation</span>
+          </div>
+        </template>
+        <template #description>
+          <span class="text-gray-500 ml-9">
+            App store will soon be removed and all functionalities will be moved to integrations
+          </span>
+        </template>
+      </a-alert>
+    </div>
     <div class="flex flex-wrap w-full gap-5">
       <a-card
         v-for="(app, i) in apps"

@@ -580,6 +580,14 @@ const errorHelpers: {
     message: 'Table is associated with a link, please remove the link first',
     code: 400,
   },
+  [NcErrorType.FORMULA_ERROR]: {
+    message: (message: string) => `Formula error: ${message}`,
+    code: 400,
+  },
+  [NcErrorType.PERMISSION_DENIED]: {
+    message: 'Permission denied',
+    code: 403,
+  },
 };
 
 function generateError(

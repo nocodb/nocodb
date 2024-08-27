@@ -5745,7 +5745,7 @@ class BaseModelSqlv2 {
       await this.prepareNocoData(updateData, false, cookie);
 
       const pkValues = this.extractPksValues(updateData);
-      if (pkValues) {
+      if (pkValues !== null && pkValues !== undefined) {
         // pk is specified - by pass
       } else {
         const { where } = this._getListArgs(args);
@@ -6467,7 +6467,7 @@ class BaseModelSqlv2 {
     if (this.model.primaryKeys.length > 1) {
       const pkValues = {};
       for (const pk of this.model.primaryKeys) {
-        pkValues[pk.title] = data[pk.title] || data[pk.column_name];
+        pkValues[pk.title] = data[pk.title] ?? data[pk.column_name];
       }
       return pkValues;
     } else if (this.model.primaryKey) {

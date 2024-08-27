@@ -56,16 +56,7 @@ const closeResetModal = () => {
         <div class="w-950px px-4 mt-3 mx-auto text-lg font-weight-bold">{{ category }} Services</div>
         <div class="container">
           <div v-for="app in apps" :key="app.title" class="item group" @click="selectApp(app)">
-            <img
-              v-if="app.title !== 'SMTP'"
-              class="icon"
-              :alt="app.title"
-              :style="{
-                backgroundColor: app.title === 'SES' ? '#242f3e' : '',
-              }"
-              :src="app.logo"
-            />
-            <GeneralIcon v-else class="icon" icon="mail" />
+            <AccountSetupAppIcon :app="app" class="icon" />
             <span class="title">{{ app.title }}</span>
             <div class="flex-grow" />
 
@@ -107,10 +98,10 @@ const closeResetModal = () => {
         <div v-else class="text-base font-weight-bold">Reset {{ activePlugin && activePlugin.title }} Configuration</div>
         <div class="flex flex-row mt-2 w-full">
           <template v-if="showResetActiveAppMsg">
-            Switching to {{ switchingTo && switchingTo.title }} will reset your {{ activePlugin && activePlugin.title }} settings.
-            Continue?
+            Switching to {{ switchingTo && switchingTo.title }} will reset your {{ activePlugin && activePlugin.title }}
+            settings. Continue?
           </template>
-          <template v-else>Resetting will erase your current configuration. </template>
+          <template v-else>Resetting will erase your current configuration.</template>
         </div>
         <div class="flex mt-6 justify-end space-x-2">
           <NcButton size="small" type="secondary" @click="closeResetModal"> {{ $t('general.cancel') }}</NcButton>

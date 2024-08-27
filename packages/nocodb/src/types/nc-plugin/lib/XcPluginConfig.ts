@@ -3,11 +3,6 @@ import type { XcForm } from '~/types/nc-plugin';
 import type XcPlugin from './XcPlugin';
 import type XcPluginMigration from './XcPluginMigration';
 
-export interface XcPluginDoc{
-  title: string;
-  url: string;
-}
-
 export default interface XcPluginConfig {
   title: string;
   logo?: string;
@@ -22,7 +17,6 @@ export default interface XcPluginConfig {
   migrations?: XcPluginMigration[];
   msgOnInstall?: string;
   msgOnUninstall?: string;
-  docs?: XcPluginDoc[];
 }
 
 type Constructor<T extends XcPlugin> = {

@@ -460,35 +460,35 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
           'min-w-[256px]': isExpandedForm,
         }"
       >
-        <NcMenuItem class="!h-9.5 nc-copy-field" @click="onClickCopyFieldUrl(column)">
-          <NcTooltip
-            :attrs="{
-              class: 'w-full',
-            }"
-            placement="top"
-          >
-            <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
+        <NcTooltip
+          :attrs="{
+            class: 'w-full',
+          }"
+          placement="top"
+        >
+          <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
 
-            <div
-              class="flex flex-row justify-between items-center w-full group hover:bg-gray-100 cursor-pointer"
-              data-testid="nc-field-item-action-copy-id"
-            >
-              <div class="w-full flex flex-row justify-between items-center gap-x-2 font-bold text-xs">
-                <div class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold">
-                  {{
-                    $t('labels.idColon', {
-                      fieldId: column.id,
-                    })
-                  }}
-                </div>
-                <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
-                  <GeneralIcon v-if="isFieldIdCopied" icon="check" class="h-4 w-4" />
-                  <GeneralIcon v-else icon="copy" class="h-4 w-4" />
-                </NcButton>
+          <div
+            class="nc-copy-field flex flex-row justify-between items-center w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md hover:bg-gray-100 cursor-pointer group"
+            data-testid="nc-field-item-action-copy-id"
+            @click.stop="onClickCopyFieldUrl(column)"
+          >
+            <div class="w-full flex flex-row justify-between items-center gap-x-2 font-bold text-xs">
+              <div class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold">
+                {{
+                  $t('labels.idColon', {
+                    fieldId: column.id,
+                  })
+                }}
               </div>
+              <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
+                <GeneralIcon v-if="isFieldIdCopied" icon="check" class="h-4 w-4" />
+                <GeneralIcon v-else icon="copy" class="h-4 w-4" />
+              </NcButton>
             </div>
-          </NcTooltip>
-        </NcMenuItem>
+          </div>
+        </NcTooltip>
+
         <a-divider class="!my-0" />
         <GeneralSourceRestrictionTooltip message="Field properties cannot be edited." :enabled="!isColumnEditAllowed">
           <NcMenuItem

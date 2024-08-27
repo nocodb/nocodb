@@ -1203,7 +1203,7 @@ watch(
                               <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
 
                               <div
-                                class="flex flex-row gap-2 px-3 py-2 justify-between items-center group hover:bg-gray-100 cursor-pointer"
+                                class="flex flex-row gap-2 w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md justify-between items-center group hover:bg-gray-100 cursor-pointer"
                                 data-testid="nc-field-item-action-copy-id"
                                 @click="onClickCopyFieldUrl(field)"
                               >
@@ -1385,7 +1385,7 @@ watch(
                             <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
 
                             <div
-                              class="flex flex-row gap-2 px-3 py-2 justify-between items-center group hover:bg-gray-100 cursor-pointer"
+                              class="flex flex-row gap-2 w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md justify-between items-center group hover:bg-gray-100 cursor-pointer"
                               data-testid="nc-field-item-action-copy-id"
                               @click="onClickCopyFieldUrl(displayColumn)"
                             >

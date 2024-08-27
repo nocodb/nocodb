@@ -8,8 +8,6 @@ defineProps<{
 </script>
 
 <template>
-  <img v-if="app.title !== 'SMTP'" class="icon" :alt="app.title" :src="app.logo" />
+  <img v-if="app.title !== 'SMTP'" class="object-contain" :alt="app.title" :src="app.logo" />
   <GeneralIcon v-else class="text-gray-500" icon="mail" />
 </template>
-
-<style scoped lang="scss"></style>

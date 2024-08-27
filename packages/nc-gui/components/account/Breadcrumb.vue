@@ -4,6 +4,7 @@ const route = useRoute()
 interface BreadcrumbType {
   title: string
   active?: boolean
+  path?: string
 }
 
 const { t } = useI18n()
@@ -44,13 +45,6 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       })
       break
     }
-    case 'setup': {
-      payload.push({
-        title: t('labels.setup'),
-        active: true,
-      })
-      break
-    }
   }
 
   switch (route.params.nestedPage) {
@@ -84,7 +78,28 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
     }
   }
 
-  if ((route.params.page === undefined && route.params.nestedPage === '') || route.params.nestedPage === 'list') {
+  if (route.path.startsWith('/account/setup')) {
+    payload.push({
+      title: t('labels.setup'),
+      active: !route.params.nestedPage,
+      path: '/account/setup',
+    })
+
+    if (route.params.nestedPage) {
+      payload.push({
+        title: route.params.nestedPage,
+        active: !route.params.app,
+        path: `/account/setup/${route.params.nestedPage}`,
+      })
+    }
+
+    if (route.params.app) {
+      payload.push({
+        title: route.params.app,
+        active: true,
+      })
+    }
+  } else if ((route.params.page === undefined && route.params.nestedPage === '') || route.params.nestedPage === 'list') {
     payload.push(
       ...[
         {
@@ -100,16 +115,24 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
 
   return payload
 })
+
+const onClick = async (item: BreadcrumbType) => {
+  if (item.path && !item.active) {
+    await navigateTo(item.path)
+  }
+}
 </script>
 
 <template>
   <div class="nc-breadcrumb">
     <template v-for="(item, i) of breadcrumb" :key="i">
       <div
-        class="nc-breadcrumb-item"
+        class="nc-breadcrumb-item capitalize"
         :class="{
-          active: item.active,
+          'active': item.active,
+          'cursor-pointer': item.path && !item.active,
         }"
+        @click="onClick(item)"
       >
         {{ item.title }}
       </div>

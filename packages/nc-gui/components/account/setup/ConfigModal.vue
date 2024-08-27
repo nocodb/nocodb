@@ -67,7 +67,7 @@ const doAction = async (action: Action) => {
 </script>
 
 <template>
-  <NcModal :visible="vOpen" centered width="70rem" wrap-class-name="nc-modal-create-source"  @keydown.esc="vOpen = false">
+  <NcModal :visible="vOpen" centered width="70rem" wrap-class-name="nc-modal-create-source" @keydown.esc="vOpen = false">
     <div class="flex-1 flex flex-col max-h-full min-h-400px">
       <div class="px-4 pb-4 w-full flex items-center gap-3 border-b-1 border-gray-200">
         <GeneralIcon icon="arrowLeft" class="cursor-pointer flex-none text-[20px]" @click="vOpen = false" />

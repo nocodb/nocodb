@@ -1,13 +1,11 @@
 <script setup lang="ts">
-const { loadSetupApps } = useProvideAccountSetupStore()
+const { categorizeApps, loadSetupApps } = useAccountSetupStoreOrThrow()
 
 const $route = useRoute()
 
 onMounted(async () => {
   await loadSetupApps()
 })
-
-const { categorizeApps } = useAccountSetupStoreOrThrow()
 
 const activeAppId = computed(
   () => categorizeApps.value?.[$route.params.nestedPage?.toLowerCase()]?.find((app) => app.title === $route.params.app)?.id,

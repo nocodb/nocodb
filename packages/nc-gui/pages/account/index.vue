@@ -23,6 +23,18 @@ const logout = async () => {
   await signOut(false)
   navigateTo('/signin')
 }
+
+const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && !isEeUI)
+
+const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
+
+watchEffect(() => {
+  if (isSetupPageAllowed.value) {
+    loadSetupApps()
+  }
+})
+
+const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
 </script>
 
 <template>
@@ -61,7 +73,7 @@ const logout = async () => {
               <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
 
               <NcMenuItem
-                v-if="isUIAllowed('superAdminSetup') && !isEeUI"
+                v-if="isSetupPageAllowed"
                 key="profile"
                 class="item"
                 :class="{
@@ -69,10 +81,21 @@ const logout = async () => {
                 }"
                 @click="navigateTo('/account/setup')"
               >
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-2 w-full">
                   <GeneralIcon icon="ncSliders" class="!h-3.5 !w-3.5" />
 
-                  <div class="select-none">{{ $t('labels.setup') }}</div>
+                  <div class="select-none">
+                    {{ $t('labels.setup') }}
+                  </div>
+                  <span class="flex-grow" />
+                  <NcTooltip v-if="isPending">
+                    <template #title>
+                      <span>
+                        {{ $t('activity.pending') }}
+                      </span>
+                    </template>
+                    <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-4 h-4 nc-pending" />
+                  </NcTooltip>
                 </div>
               </NcMenuItem>
 
@@ -121,16 +144,26 @@ const logout = async () => {
               <NcMenuItem
                 v-if="isUIAllowed('superAdminAppStore') && !isEeUI"
                 key="apps"
-                class="item"
+                class="item w-full"
                 :class="{
                   active: $route.params.page === 'apps',
                 }"
                 @click="navigateTo('/account/apps')"
               >
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center gap-2 w-full">
                   <component :is="iconMap.appStore" />
 
                   <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
+
+                  <span class="text-gray-400 text-xs flex-grow min-w-25 flex items-center">
+                    (Deprecated
+                    <NcTooltip>
+                      <template #title>
+                        App store will be removed soon in upcoming release and migrated to integration.
+                      </template>
+                      <GeneralIcon icon="ncAlertCircle" class="h-3 -mt-0.5" /> </NcTooltip
+                    >)
+                  </span>
                 </div>
               </NcMenuItem>
               <a-sub-menu key="users" class="!bg-white !my-0">

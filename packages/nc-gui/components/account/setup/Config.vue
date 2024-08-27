@@ -81,6 +81,16 @@ const doAction = async (action: Action) => {
 const isValid = computed(() => {
   return Object.values(validateInfos || {}).every((info) => info.validateStatus !== 'error')
 })
+
+const docLinks = computed(() => {
+  return [
+    {
+      title: 'Application Setup',
+      url: `https://docs.nocodb.com/account-settings/oss-specific-details#configure-${plugin.value?.categor?.toLowerCase()}`,
+    },
+    ...(plugin.value?.formDetails?.docs || []),
+  ]
+})
 </script>
 
 <template>
@@ -106,13 +116,12 @@ const isValid = computed(() => {
             <NcButton
               v-for="(action, i) in plugin.formDetails.actions"
               :key="i"
-              class="!px-5"
               :loading="loadingAction === action.key"
               :type="action.key === Action.Save ? 'primary' : 'default'"
               size="small"
               :disabled="!!loadingAction || !isValid"
-              @click="doAction(action.key)"
               :data-testid="`nc-setup-config-action-${action.key?.toLowerCase()}`"
+              @click="doAction(action.key)"
             >
               {{ action.label }}
             </NcButton>
@@ -124,7 +133,7 @@ const isValid = computed(() => {
           </div>
 
           <div v-else class="flex">
-            <NcFormBuilder class="w-225 mx-auto" />
+            <NcFormBuilder class="w-229 px-2 mx-auto" />
           </div>
         </div>
       </div>
@@ -132,17 +141,22 @@ const isValid = computed(() => {
         <div class="flex-grow flex flex-col gap-3">
           <div class="text-gray-500 text-capitalize">{{ $t('labels.documentation') }}</div>
 
-          <a href="httpd://docs.nocodb.com" rel="noopener noreferrer" target="_blank" class="!no-underline !text-current">
-            <GeneralIcon icon="bookOpen" class="text-gray-500" />
-            Application Setup
-          </a>
+          <!--          <a -->
+          <!--            :href="defDocLink" -->
+          <!--            rel="noopener noreferrer" -->
+          <!--            target="_blank" -->
+          <!--            class="!no-underline !text-current flex gap-2 items-center" -->
+          <!--          > -->
+          <!--            <GeneralIcon icon="bookOpen" class="text-gray-500" /> -->
+          <!--            Application Setup -->
+          <!--          </a> -->
           <a
-            v-for="doc of plugin.formDetails?.docs || []"
+            v-for="doc of docLinks"
             :key="doc.title"
             :href="doc.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="!no-underline !text-current"
+            class="!no-underline !text-current flex gap-2 items-center"
           >
             <GeneralIcon icon="bookOpen" class="text-gray-500" />
             {{ doc.title }}

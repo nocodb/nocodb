@@ -79,8 +79,8 @@ onMounted(async () => {
           :class="{
             'cursor-pointer': config.itemClick,
           }"
-          @click="config.itemClick"
           :data-testid="`nc-setup-${config.key}`"
+          @click="config.itemClick"
         >
           <div class="flex gap-3 items-center" data-rec="true">
             <NcTooltip v-if="!config.configured || config.isPending">

@@ -6,6 +6,8 @@ const props = defineProps<{
 const { categorizeApps, resetPlugin: _resetPlugin, showPluginUninstallModal, activePlugin } = useAccountSetupStoreOrThrow()
 
 const apps = computed(() => categorizeApps.value?.[props.category?.toLowerCase()] || [])
+const configuredApp = computed(() => apps.value.find((app: any) => app.active))
+
 const showResetActiveAppMsg = ref(false)
 const switchingTo = ref(null)
 
@@ -71,10 +73,18 @@ const closeResetModal = () => {
               icon="delete"
               class="text-error min-w-6 h-6 bg-white-500 !hidden !group-hover:!inline cursor-pointer"
             />
-            <GeneralIcon v-if="app.active" icon="circleCheckSolid" class="text-success min-w-5 h-5 bg-white-500 nc-configured" />
+            <GeneralIcon
+              v-if="app === configuredApp"
+              icon="circleCheckSolid"
+              class="text-success min-w-5 h-5 bg-white-500 nc-configured"
+            />
 
             <NcDropdown :trigger="['click']" overlay-class-name="!rounded-md" @click.stop>
-              <GeneralIcon v-if="app.active" icon="threeDotVertical" class="min-w-5 h-5 bg-white-500 nc-setup-plugin-menu" />
+              <GeneralIcon
+                v-if="app.active"
+                icon="threeDotVertical"
+                class="min-w-5 h-5 bg-white-500 text-gray-500 hover:text-current nc-setup-plugin-menu"
+              />
 
               <template #overlay>
                 <NcMenu class="min-w-20">

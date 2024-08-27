@@ -775,7 +775,7 @@ export default {
           >
             <div
               v-for="(col, i) of fields"
-              v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
+              v-show="!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
               :key="col.title"
               :class="`nc-expand-col-${col.title}`"
               :col-id="col.id"

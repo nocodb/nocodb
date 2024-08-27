@@ -37,16 +37,16 @@ const configs = computed(() => [
     },
     configured: storageConfigured.value,
   },
-  {
-    title: t('labels.switchToProd'),
-    key: 'switchToProd',
-    description: 'Switch to production-ready app database from existing application database.',
-    docsLink: 'https://docs.nocodb.com',
-    buttonClick: () => {
-      //  TODO: Implement the logic to switch to production
-    },
-    isPending: !(appInfo.value as any)?.prodReady,
-  },
+  // {
+  //   title: t('labels.switchToProd'),
+  //   key: 'switchToProd',
+  //   description: 'Switch to production-ready app database from existing application database.',
+  //   docsLink: 'https://docs.nocodb.com',
+  //   buttonClick: () => {
+  //     //  TODO: Implement the logic to switch to production
+  //   },
+  //   isPending: !(appInfo.value as any)?.prodReady,
+  // },
 ])
 
 onMounted(async () => {

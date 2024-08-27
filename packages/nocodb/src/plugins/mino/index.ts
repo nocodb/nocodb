@@ -5,7 +5,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 const config: XcPluginConfig = {
   builder: S3Plugin,
   title: 'Minio',
-  version: '0.0.3',
+  version: '0.0.4',
   logo: 'plugins/minio.png',
   description:
     'MinIO is a High Performance Object Storage released under Apache License v2.0. It is API compatible with Amazon S3 cloud storage service.',
@@ -81,7 +81,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in Minio',
+      'Successfully configured! Attachments will now be stored in Minio.',
     msgOnUninstall: '',
   },
 };

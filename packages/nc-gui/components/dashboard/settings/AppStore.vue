@@ -15,11 +15,16 @@ const fetchPluginApps = async () => {
   try {
     const plugins = (await $api.plugin.list()).list ?? []
 
-    apps.value = plugins.map((p) => ({
-      ...p,
-      tags: p.tags ? p.tags.split(',') : [],
-      parsedInput: p.input && JSON.parse(p.input as string),
-    }))
+    // filter out email and storage plugins
+    apps.value = plugins
+      .filter((p) => {
+        return !['email', 'storage'].includes(p.category.toLowerCase())
+      })
+      .map((p) => ({
+        ...p,
+        tags: p.tags ? p.tags.split(',') : [],
+        parsedInput: p.input && JSON.parse(p.input as string),
+      }))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -106,6 +111,22 @@ onMounted(async () => {
       </div>
     </a-modal>
 
+    <div class="mb-5">
+      <a-alert type="warning" border="">
+        <template #message>
+          <div class="flex flex-row items-center gap-3">
+            <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-6 h-6" />
+            <span class="font-weight-bold">App Store Deprecation</span>
+          </div>
+        </template>
+        <template #description>
+          <span class="text-gray-500 ml-9">
+            App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of the plugins
+            here will be moved to integrations.
+          </span>
+        </template>
+      </a-alert>
+    </div>
     <div class="flex flex-wrap w-full gap-5">
       <a-card
         v-for="(app, i) in apps"

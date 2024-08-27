@@ -373,8 +373,8 @@ export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light')
 /**
  * ### Light Theme Configuration
  * In this project, we've integrated a custom WindiCSS configuration that aligns with our Figma design system.
- * This setup introduces shorthand class names for various UI elements like text color, border color, 
- * background color, and more. The goal is to ensure design consistency and streamline the development 
+ * This setup introduces shorthand class names for various UI elements like text color, border color,
+ * background color, and more. The goal is to ensure design consistency and streamline the development
  * process by directly reflecting Figma styles in our codebase.
  *
  * #### Why We Introduced This
@@ -430,7 +430,7 @@ export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light')
 export const lightTheme = {
   content: {
     'nc-gray': {
-      extreme: themeV3Colors.base['black'],
+      extreme: themeV3Colors.base.black,
       emphasis: themeV3Colors.gray[900],
       DEFAULT: themeV3Colors.gray[800],
       subtle: themeV3Colors.gray[700],
@@ -443,8 +443,8 @@ export const lightTheme = {
       hover: themeV3Colors.gray[300],
     },
     'nc-inverted-primary': {
-      DEFAULT: themeV3Colors.base['white'],
-      hover: themeV3Colors.base['white'],
+      DEFAULT: themeV3Colors.base.white,
+      hover: themeV3Colors.base.white,
       disabled: themeV3Colors.gray[400],
     },
     'nc-inverted-secondary': {
@@ -494,7 +494,7 @@ export const lightTheme = {
     },
   },
   background: {
-    'nc-default': themeV3Colors.base['white'],
+    'nc-default': themeV3Colors.base.white,
     'nc-brand': themeV3Colors.brand[50],
     'nc-gray': {
       extralight: themeV3Colors.gray[50],
@@ -578,9 +578,9 @@ export const lightTheme = {
       disabled2: themeV3Colors.brand[200],
     },
     'nc-fill-secondary': {
-      DEFAULT: themeV3Colors.base['white'],
+      DEFAULT: themeV3Colors.base.white,
       hover: themeV3Colors.gray[50],
-      disabled: themeV3Colors.base['white'],
+      disabled: themeV3Colors.base.white,
     },
     'nc-fill-warning': {
       DEFAULT: themeV3Colors.red[500],

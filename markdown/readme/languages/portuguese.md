@@ -32,18 +32,17 @@ Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma plani
   <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </p>
 
-# Experimente rápida
+# Comece rapidamente
 
 ### Usando o Docker.
 
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
+- NocoDB precisa de um banco de dados como entrada : Veja [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- Se a entrada não existir, nós voltamos para o SQLite. Para que SQLite também persista, você pode monta-lo em `/usr/app/data/`. 
 
-- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
-- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
-
-  Example:
+  Exemplo:
 
   ```
   docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
@@ -52,7 +51,7 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 
 ### GUI
 
-Acessar o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+Acesse o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # Junte-se a nossa comunidade
 
@@ -62,7 +61,7 @@ Acessar o painel usando: [http://localhost:8080/dashboard](http://localhost:8080
 <br>
 <br>
 
-# Screenshots
+# Screenshots (Capturas de Tela)
 
 ![1](https://user-images.githubusercontent.com/86527202/136070349-cacc406d-9efe-406f-9aa2-1b81564332a7.png)
 <br>

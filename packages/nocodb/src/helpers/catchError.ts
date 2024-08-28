@@ -1,5 +1,6 @@
 import { NcErrorType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { generateReadablePermissionErr } from 'src/utils/acl';
 import type { BaseType, SourceType } from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
@@ -579,6 +580,14 @@ const errorHelpers: {
     message: 'Table is associated with a link, please remove the link first',
     code: 400,
   },
+  [NcErrorType.FORMULA_ERROR]: {
+    message: (message: string) => `Formula error: ${message}`,
+    code: 400,
+  },
+  [NcErrorType.PERMISSION_DENIED]: {
+    message: 'Permission denied',
+    code: 403,
+  },
 };
 
 function generateError(
@@ -637,6 +646,24 @@ export class NcBaseErrorv2 extends NcBaseError {
 }
 
 export class NcError {
+  static permissionDenied(
+    permissionName: string,
+    roles: Record<string, boolean>,
+    extendedScopeRoles: any,
+  ) {
+    throw new NcBaseErrorv2(NcErrorType.PERMISSION_DENIED, {
+      customMessage: generateReadablePermissionErr(
+        permissionName,
+        roles,
+        extendedScopeRoles,
+      ),
+      details: {
+        permissionName,
+        roles,
+        extendedScopeRoles,
+      },
+    });
+  }
   static authenticationRequired(args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.AUTHENTICATION_REQUIRED, args);
   }

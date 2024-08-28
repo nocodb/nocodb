@@ -5745,7 +5745,7 @@ class BaseModelSqlv2 {
       await this.prepareNocoData(updateData, false, cookie);
 
       const pkValues = this.extractPksValues(updateData);
-      if (pkValues) {
+      if (pkValues !== null && pkValues !== undefined) {
         // pk is specified - by pass
       } else {
         const { where } = this._getListArgs(args);
@@ -6467,12 +6467,12 @@ class BaseModelSqlv2 {
     if (this.model.primaryKeys.length > 1) {
       const pkValues = {};
       for (const pk of this.model.primaryKeys) {
-        pkValues[pk.title] = data[pk.title] || data[pk.column_name];
+        pkValues[pk.title] = data[pk.title] ?? data[pk.column_name];
       }
       return pkValues;
     } else if (this.model.primaryKey) {
       return (
-        data[this.model.primaryKey.title] ||
+        data[this.model.primaryKey.title] ??
         data[this.model.primaryKey.column_name]
       );
     } else {
@@ -8747,7 +8747,7 @@ class BaseModelSqlv2 {
                 typeof childIds[0] === 'object'
                   ? childIds.map(
                       (c) =>
-                        c[parentTable.primaryKey.title] ||
+                        c[parentTable.primaryKey.title] ??
                         c[parentTable.primaryKey.column_name],
                     )
                   : childIds,
@@ -8830,7 +8830,7 @@ class BaseModelSqlv2 {
                 typeof childIds[0] === 'object'
                   ? childIds.map(
                       (c) =>
-                        c[parentTable.primaryKey.title] ||
+                        c[parentTable.primaryKey.title] ??
                         c[parentTable.primaryKey.column_name],
                     )
                   : childIds,
@@ -8871,7 +8871,7 @@ class BaseModelSqlv2 {
               typeof childIds[0] === 'object'
                 ? childIds.map(
                     (c) =>
-                      c[childTable.primaryKey.title] ||
+                      c[childTable.primaryKey.title] ??
                       c[childTable.primaryKey.column_name],
                   )
                 : childIds,
@@ -9113,7 +9113,7 @@ class BaseModelSqlv2 {
                     (r) =>
                       r[parentColumn.column_name] ===
                       (typeof id === 'object'
-                        ? id[parentTable.primaryKey.title] ||
+                        ? id[parentTable.primaryKey.title] ??
                           id[parentTable.primaryKey.column_name]
                         : id),
                   ),
@@ -9139,7 +9139,7 @@ class BaseModelSqlv2 {
             typeof childIds[0] === 'object'
               ? childIds.map(
                   (c) =>
-                    c[parentTable.primaryKey.title] ||
+                    c[parentTable.primaryKey.title] ??
                     c[parentTable.primaryKey.column_name],
                 )
               : childIds,
@@ -9182,7 +9182,7 @@ class BaseModelSqlv2 {
                 parentTable.primaryKey.column_name,
                 childIds.map(
                   (c) =>
-                    c[parentTable.primaryKey.title] ||
+                    c[parentTable.primaryKey.title] ??
                     c[parentTable.primaryKey.column_name],
                 ),
               );
@@ -9201,7 +9201,7 @@ class BaseModelSqlv2 {
                     (r) =>
                       r[parentColumn.column_name] ===
                       (typeof id === 'object'
-                        ? id[parentTable.primaryKey.title] ||
+                        ? id[parentTable.primaryKey.title] ??
                           id[parentTable.primaryKey.column_name]
                         : id),
                   ),
@@ -9225,7 +9225,7 @@ class BaseModelSqlv2 {
               typeof childIds[0] === 'object'
                 ? childIds.map(
                     (c) =>
-                      c[parentTable.primaryKey.title] ||
+                      c[parentTable.primaryKey.title] ??
                       c[parentTable.primaryKey.column_name],
                   )
                 : childIds,
@@ -9884,6 +9884,18 @@ export function extractFilterFromXwhere(
 ) {
   if (!str) {
     return [];
+  }
+
+  // if array treat it as `and` group
+  if (Array.isArray(str)) {
+    // calling recursively for nested query
+    return str.map((s) =>
+      extractFilterFromXwhere(s, aliasColObjMap, throwErrorIfInvalid),
+    );
+  } else if (typeof str !== 'string' && throwErrorIfInvalid) {
+    throw new Error(
+      'Invalid filter format. Expected string or array of strings.',
+    );
   }
 
   let nestedArrayConditions = [];

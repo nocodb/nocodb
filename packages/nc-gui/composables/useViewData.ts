@@ -16,7 +16,8 @@ export function useViewData(
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
   where?: ComputedRef<string | undefined>,
 ) {
-  const { activeTableId, activeTable } = storeToRefs(useTablesStore())
+  const tablesStore = useTablesStore()
+  const { activeTableId, activeTable } = storeToRefs(tablesStore)
 
   const meta = computed(() => _meta.value || activeTable.value)
   const metaId = computed(() => _meta.value?.id || activeTableId.value)
@@ -199,6 +200,16 @@ export function useViewData(
       if (error.code === 'ERR_CANCELED') {
         return
       }
+
+      // retry the request if the error is FORMULA_ERROR
+      if (error?.response?.data?.error === 'FORMULA_ERROR') {
+        message.error(await extractSdkResponseErrorMsg(error))
+
+        await tablesStore.reloadTableMeta(metaId.value as string)
+
+        return loadData(params, shouldShowLoading)
+      }
+
       console.error(error)
       return message.error(await extractSdkResponseErrorMsg(error))
     }

@@ -161,6 +161,8 @@ const permissionScopes = {
     // Webhooks
 
     'hookTrigger',
+
+    'userInvite',
   ],
 };
 
@@ -232,7 +234,7 @@ const rolePermissions:
       commentsCount: true,
       auditListRow: true,
 
-      // userInvite: true,
+      userInvite: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

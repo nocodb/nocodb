@@ -14,6 +14,7 @@ const {
   displayField,
   updateRowProperty,
   viewMetaProperties,
+  updateFormat,
 } = useCalendarViewStoreOrThrow()
 
 const maxVisibleDays = computed(() => {
@@ -21,6 +22,8 @@ const maxVisibleDays = computed(() => {
 })
 
 const container = ref<null | HTMLElement>(null)
+
+const { $e } = useNuxtApp()
 
 const { width: containerWidth } = useElementSize(container)
 
@@ -322,7 +325,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [toCol.title!]: newEndDate.format('YYYY-MM-DD HH:mm:ssZ'),
+        [toCol.title!]: newEndDate.format(updateFormat.value),
       },
     }
   } else if (resizeDirection.value === 'left') {
@@ -340,7 +343,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
       },
     }
   }
@@ -399,7 +402,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
     },
   }
 
@@ -423,7 +426,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+    newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
     updateProperty.push(toCol.title!)
   }
 
@@ -559,7 +562,7 @@ const addRecord = (date: dayjs.Dayjs) => {
   if (!fromCol) return
   const newRecord = {
     row: {
-      [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol.title!]: date.format(updateFormat.value),
     },
   }
   emits('newRecord', newRecord)

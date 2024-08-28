@@ -49,6 +49,7 @@ const {
   searchQuery,
   sideBarFilterOption,
   showSideMenu,
+  updateFormat,
 } = useCalendarViewStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
@@ -287,13 +288,13 @@ const newRecord = () => {
   }
 
   if (activeCalendarView.value === 'day') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ')
+    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format(updateFormat.value)
   } else if (activeCalendarView.value === 'week') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDateRange.value.start.format('YYYY-MM-DD HH:mm:ssZ')
+    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDateRange.value.start.format(updateFormat.value)
   } else if (activeCalendarView.value === 'month') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = (selectedDate.value ?? selectedMonth.value).format('YYYY-MM-DD HH:mm:ssZ')
+    row[calendarRange.value[0]!.fk_from_col!.title!] = (selectedDate.value ?? selectedMonth.value).format(updateFormat.value)
   } else if (activeCalendarView.value === 'year') {
-    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format('YYYY-MM-DD HH:mm:ssZ')
+    row[calendarRange.value[0]!.fk_from_col!.title!] = selectedDate.value.format(updateFormat.value)
   }
 
   emit('newRecord', { row, oldRow: {}, rowMeta: { new: true } })

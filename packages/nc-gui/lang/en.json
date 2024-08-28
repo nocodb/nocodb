@@ -626,6 +626,7 @@
     "setup": "Setup",
     "configLabel": "Configure {label}",
     "switchToProd": "Switch to a production-ready app database",
+    "sharedBase": "Shared Base",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -999,7 +1000,6 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
-    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1802,7 +1802,7 @@
       "columnDuplicated": "Field duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Record duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
-      "pluginUninstalled": "Configuration reset successfully",
+      "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",
       "pluginTested": "Successfully tested plugin settings",
       "tableRenamed": "Table renamed successfully",

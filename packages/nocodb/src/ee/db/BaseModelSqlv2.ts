@@ -1472,7 +1472,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           this.model.primaryKeys,
           this.extractPksValues(d),
         );
-        if (!pkValues) {
+        if (pkValues === null || pkValues === undefined) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
             NcError.recordNotFound(pkValues);

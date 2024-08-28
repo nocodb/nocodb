@@ -44,7 +44,10 @@ import {
   // Widget,
   Workspace,
 } from '~/models';
-import rolePermissions, { sourceRestrictions } from '~/utils/acl';
+import rolePermissions, {
+  generateReadablePermissionErr,
+  sourceRestrictions,
+} from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
@@ -646,10 +649,18 @@ export class AclMiddleware implements NestInterceptor {
           })));
     if (!isAllowed) {
       NcError.forbidden(
-        `${permissionName} - ${getRolesLabels(
-          Object.keys(roles).filter((k) => roles[k]),
-        )} : Not allowed`,
+        generateReadablePermissionErr(
+          permissionName,
+          roles,
+          extendedScopeRoles,
+        ),
       );
+
+      // NcError.forbidden(
+      //   `${permissionName} - ${getRolesLabels(
+      //     Object.keys(roles).filter((k) => roles[k]),
+      //   )} : Not allowed`,
+      // );
     }
 
     // check if permission have source level permission restriction

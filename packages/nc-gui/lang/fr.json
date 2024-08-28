@@ -93,6 +93,8 @@
     "none": "Aucun"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
@@ -616,6 +618,11 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -989,6 +996,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Renommer la Base",
@@ -1791,7 +1799,7 @@
       "columnDuplicated": "Colonne dupliquée avec succès",
       "rowDuplicatedWithoutSavedYet": "Enregistrement en double (non enregistré)",
       "updatedUIACL": "Mise à jour réussie de l'ACL de l'interface utilisateur pour les tables",
-      "pluginUninstalled": "Le plugin a été désinstallé avec succès",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "Les paramètres du plugin ont été enregistrés avec succès",
       "pluginTested": "Testé avec succès les paramètres du plugin",
       "tableRenamed": "Tableau renommé avec succès",

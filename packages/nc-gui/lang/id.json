@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
@@ -616,6 +618,11 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -989,6 +996,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1791,7 +1799,7 @@
       "columnDuplicated": "Kolom berhasil diduplikasi",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Berhasil memperbarui ACL UI untuk tabel",
-      "pluginUninstalled": "Plugin berhasil dihapus instalasinya",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "Pengaturan plugin berhasil disimpan",
       "pluginTested": "Pengaturan plugin yang berhasil diuji",
       "tableRenamed": "Tabel berhasil diganti namanya",

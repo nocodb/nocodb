@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
@@ -616,6 +618,11 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -989,6 +996,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1791,7 +1799,7 @@
       "columnDuplicated": "Column duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "更新表格的 UI 存取控制清單成功",
-      "pluginUninstalled": "外掛移除安裝成功",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "外掛設定儲存成功",
       "pluginTested": "外掛設定測試成功",
       "tableRenamed": "資料表重新命名成功",

@@ -516,7 +516,7 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).utc().format(updateFormat.value),
+      [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
     },
   }
 
@@ -539,7 +539,7 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).utc().format(updateFormat.value)
+    newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
 
     updateProperty.push(toCol.title!)
   }

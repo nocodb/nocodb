@@ -401,10 +401,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
     ...dragRecord.value,
     row: {
       ...dragRecord.value?.row,
-      [fromCol!.title!]:
-        calDataType.value === UITypes.Date
-          ? dayjs(newStartDate).format(updateFormat.value)
-          : dayjs(newStartDate).utc().format(updateFormat.value),
+      [fromCol!.title!]: dayjs(newStartDate).format(updateFormat.value),
     },
   }
 
@@ -424,10 +421,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol!.title!] =
-      calDataType.value === UITypes.Date
-        ? dayjs(endDate).format(updateFormat.value)
-        : dayjs(endDate).utc().format(updateFormat.value)
+    newRow.row[toCol!.title!] = dayjs(endDate).format(updateFormat.value)
     updateProperty.push(toCol!.title!)
   }
 

@@ -1802,7 +1802,7 @@
       "columnDuplicated": "Field duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Record duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",
-      "pluginUninstalled": "Configuration reset successfully",
+      "pluginUninstalled": "Plugin uninstalled successfully",
       "pluginSettingsSaved": "Plugin settings saved successfully",
       "pluginTested": "Successfully tested plugin settings",
       "tableRenamed": "Table renamed successfully",

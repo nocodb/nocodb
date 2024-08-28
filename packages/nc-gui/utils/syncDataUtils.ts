@@ -9,6 +9,7 @@ export interface IntegrationItemType {
   isAvailable?: boolean
   iconStyle?: CSSProperties
   isOssOnly?: boolean
+  subtitle?: string
 }
 
 export interface IntegrationCategoryItemType {
@@ -250,7 +251,7 @@ export const allIntegrations: IntegrationItemType[] = [
     title: 'objects.syncData.jira',
     value: SyncDataType.JIRA,
     icon: iconMap.jira,
-    categories: [IntegrationCategoryType.PROJECT_MANAGEMENT, IntegrationCategoryType.TICKETING],
+    categories: [IntegrationCategoryType.PROJECT_MANAGEMENT],
   },
   {
     title: 'objects.syncData.miro',
@@ -380,6 +381,12 @@ export const allIntegrations: IntegrationItemType[] = [
 
   // Ticketing
   {
+    title: 'objects.syncData.freshdesk',
+    value: SyncDataType.FRESHDESK,
+    icon: iconMap.freshdesk,
+    categories: [IntegrationCategoryType.TICKETING],
+  },
+  {
     title: 'objects.syncData.intercom',
     value: SyncDataType.INTERCOM,
     icon: iconMap.intercom,
@@ -389,6 +396,20 @@ export const allIntegrations: IntegrationItemType[] = [
     title: 'objects.syncData.zendesk',
     value: SyncDataType.ZENDESK,
     icon: iconMap.zendesk,
+    categories: [IntegrationCategoryType.TICKETING],
+  },
+  {
+    title: 'objects.syncData.salesforce',
+    subtitle: 'objects.syncData.serviceCloud',
+    value: SyncDataType.SALESFORCE_SERVICE_CLOUD,
+    icon: iconMap.salesforce,
+    categories: [IntegrationCategoryType.TICKETING],
+  },
+  {
+    title: 'objects.syncData.hubspot',
+    subtitle: 'objects.syncData.serviceHub',
+    value: SyncDataType.HUBSPOT_SERVICE_HUB,
+    icon: iconMap.hubspot,
     categories: [IntegrationCategoryType.TICKETING],
   },
 

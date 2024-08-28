@@ -1203,15 +1203,19 @@ watch(
                               <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
 
                               <div
-                                class="flex flex-row px-3 py-2 w-46 justify-between items-center group hover:bg-gray-100 cursor-pointer"
+                                class="flex flex-row gap-2 w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md justify-between items-center group hover:bg-gray-100 cursor-pointer"
                                 data-testid="nc-field-item-action-copy-id"
                                 @click="onClickCopyFieldUrl(field)"
                               >
-                                <div class="flex flex-row items-baseline gap-x-1 font-bold text-xs">
-                                  <div class="text-gray-600">{{ $t('labels.idColon') }}</div>
-                                  <div class="flex flex-row text-gray-600 text-xs" data-testid="nc-field-item-id">
-                                    {{ field.id }}
-                                  </div>
+                                <div
+                                  class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold"
+                                  data-testid="nc-field-item-id"
+                                >
+                                  {{
+                                    $t('labels.idColon', {
+                                      fieldId: field.id,
+                                    })
+                                  }}
                                 </div>
                                 <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
                                   <GeneralIcon v-if="isFieldIdCopied" icon="check" />
@@ -1384,15 +1388,19 @@ watch(
                             <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
 
                             <div
-                              class="flex flex-row px-3 py-2 w-46 justify-between items-center group hover:bg-gray-100 cursor-pointer"
+                              class="flex flex-row gap-2 w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md justify-between items-center group hover:bg-gray-100 cursor-pointer"
                               data-testid="nc-field-item-action-copy-id"
                               @click="onClickCopyFieldUrl(displayColumn)"
                             >
-                              <div class="flex flex-row items-baseline gap-x-1 font-bold text-xs">
-                                <div class="text-gray-600">{{ $t('labels.idColon') }}</div>
-                                <div class="flex flex-row text-gray-600 text-xs">
-                                  {{ displayColumn.id }}
-                                </div>
+                              <div
+                                class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold"
+                                data-testid="nc-field-item-id"
+                              >
+                                {{
+                                  $t('labels.idColon', {
+                                    fieldId: displayColumn.id,
+                                  })
+                                }}
                               </div>
                               <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
                                 <GeneralIcon v-if="isFieldIdCopied" icon="check" />

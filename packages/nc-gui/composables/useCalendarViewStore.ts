@@ -772,7 +772,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         await fetchActiveDates()
         return updatedRowData
       } catch (e: any) {
-        message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+        message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
 

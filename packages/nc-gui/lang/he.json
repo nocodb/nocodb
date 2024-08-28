@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
@@ -616,6 +618,11 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -989,6 +996,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "שנה את שם הבסיס",
@@ -1791,7 +1799,7 @@
       "columnDuplicated": "העמודה שוכפלה בהצלחה",
       "rowDuplicatedWithoutSavedYet": "השורה הוכפלה (לא נשמרה עדיין)",
       "updatedUIACL": "עודכן ACL UI לטבלאות בהצלחה",
-      "pluginUninstalled": "התוסף הוסר בהצלחה",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "הגדרות התוסף נשמרו בהצלחה",
       "pluginTested": "בדיקת הגדרות התוסף הושלמה בהצלחה",
       "tableRenamed": "הטבלה שונתה שם בהצלחה",

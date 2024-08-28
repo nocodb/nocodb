@@ -93,6 +93,8 @@
     "none": "空"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "开",
     "onMultiple": "在多个时",
     "manual": "Manual",
@@ -616,6 +618,11 @@
     "categories": "类别"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -989,6 +996,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook 详情",
     "hideWeekends": "隐藏周末",
     "renameBase": "重命名项目",
@@ -1791,7 +1799,7 @@
       "columnDuplicated": "此列的副本创建成功",
       "rowDuplicatedWithoutSavedYet": "该行已复制（未保存）",
       "updatedUIACL": "已成功更新表的 UI ACL",
-      "pluginUninstalled": "插件卸载成功",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "插件设置保存成功",
       "pluginTested": "插件设置测试成功",
       "tableRenamed": "表重命名成功",

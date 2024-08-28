@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
@@ -616,6 +618,11 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -989,6 +996,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1791,7 +1799,7 @@
       "columnDuplicated": "Kolonne duplikeret med succes",
       "rowDuplicatedWithoutSavedYet": "Række duplikeret (ikke gemt)",
       "updatedUIACL": "Opdateret UI ACL for tabeller med succes",
-      "pluginUninstalled": "Plugin afinstalleret med succes",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "Plugin-indstillingerne er gemt med succes",
       "pluginTested": "Succesfuldt testet plugin-indstillinger",
       "tableRenamed": "Det er lykkedes at omdøbe tabellen",

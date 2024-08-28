@@ -161,6 +161,8 @@ const permissionScopes = {
     // Webhooks
 
     'hookTrigger',
+
+    'userInvite',
   ],
 };
 
@@ -232,7 +234,7 @@ const rolePermissions:
       commentsCount: true,
       auditListRow: true,
 
-      // userInvite: true,
+      userInvite: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -703,5 +705,5 @@ export function generateReadablePermissionErr(
     permissionDescriptions[permissionName] ||
     `perform the action "${permissionName}"`;
 
-  return `You do not have permission to ${permissionDescription} with the roles: ${roleLabels}. Please contact support if you need further assistance.`;
+  return `You do not have permission to ${permissionDescription} with the roles: ${roleLabels}.`;
 }

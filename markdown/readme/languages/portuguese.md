@@ -169,4 +169,5 @@ As tentaivas de solucionar isto oferecendo um SaaS vem significando controles de
 
 # Nossa missão
 
-Nossa missão é fornecer a mais poderosa interface de código para bancos de dados que é fonte aberta para cada negócio de Internet no mundo. Isso não apenas democratizaria o acesso a uma poderosa ferramenta de computação, mas também produzirá um bilhão de pessoas que terão habilidades radicais de corda e construção na Internet."
+Nossa missão é fornecer uma ferramenta com uma interface <i>no-code</i> poderosa e com banco de dados que é código aberto para todos os tipos de negócios no mundo.<br/>
+Isto não somente para democratizar o acesso para uma computação poderosa, mas também trazer mais de quatro bilhões de pessoas que têm habilidades mais radicais em <i>"consertar e construir"</i> na internet.

@@ -626,6 +626,7 @@
     "setup": "Setup",
     "configLabel": "Configure {label}",
     "switchToProd": "Switch to a production-ready app database",
+    "sharedBase": "Shared Base",
     "fieldID": "Field ID",
     "addDescription": "Add description",
     "editDescription": "Edit description",
@@ -999,7 +1000,6 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
-    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1500,6 +1500,7 @@
       }
     },
     "info": {
+      "calendarReadOnly": "You will not be able to drag records between dates when computed or system fields are used.",
       "schemaReadOnly": "Schema alterations are disabled for this source",
       "enterWorkspaceName": "Enter workspace name",
       "enterBaseName": "Enter base name",

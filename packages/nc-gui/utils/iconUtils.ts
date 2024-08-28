@@ -242,6 +242,7 @@ import NcTrello from '~icons/nc-icons/trello'
 import NcTypeform from '~icons/nc-icons/typeform'
 import NcWorkday from '~icons/nc-icons/workday'
 import NcZendesk from '~icons/nc-icons/zendesk'
+import NcFreshdesk from '~icons/nc-icons/freshdesk'
 
 import NcBookOpen from '~icons/nc-icons/book-open'
 import NcCircleCheckSolid from '~icons/nc-icons/check-circle-solid'
@@ -1029,6 +1030,7 @@ export const iconMap = {
   typeform: NcTypeform,
   workday: NcWorkday,
   zendesk: NcZendesk,
+  freshdesk: NcFreshdesk,
   bookOpen: NcBookOpen,
   circleCheckSolid: NcCircleCheckSolid,
   alertTriangleSolid: NcAlertTriangleSolid,

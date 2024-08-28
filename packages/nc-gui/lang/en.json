@@ -1500,6 +1500,7 @@
       }
     },
     "info": {
+      "calendarReadOnly": "You will not be able to drag records between dates when computed or system fields are used.",
       "schemaReadOnly": "Schema alterations are disabled for this source",
       "enterWorkspaceName": "Enter workspace name",
       "enterBaseName": "Enter base name",

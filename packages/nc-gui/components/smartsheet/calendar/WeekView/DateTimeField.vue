@@ -17,6 +17,7 @@ const {
   updateRowProperty,
   sideBarFilterOption,
   showSideMenu,
+  updateFormat,
 } = useCalendarViewStoreOrThrow()
 
 const { $e } = useNuxtApp()
@@ -655,7 +656,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [toCol.title!]: newEndDate.format('YYYY-MM-DD HH:mm:ssZ'),
+        [toCol.title!]: newEndDate.format(updateFormat.value),
       },
     }
   } else if (resizeDirection.value === 'left') {
@@ -672,7 +673,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [fromCol.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
       },
     }
   }
@@ -744,7 +745,7 @@ const calculateNewRow = (
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).utc().format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
     },
   }
 
@@ -762,7 +763,7 @@ const calculateNewRow = (
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).utc().format('YYYY-MM-DD HH:mm:ssZ')
+    newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
     updatedProperty.push(toCol.title!)
   }
 
@@ -929,7 +930,7 @@ const addRecord = (date: dayjs.Dayjs) => {
   if (!fromCol) return
   const newRecord = {
     row: {
-      [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol.title!]: date.format(updateFormat.value),
     },
   }
   emits('newRecord', newRecord)

@@ -441,6 +441,15 @@ onMounted(async () => {
     }
   }
 })
+
+const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; fk_to_column_id: string | null }>) => {
+  if (!calendarRange) return false
+  return calendarRange.some((range) => {
+    console.log(range)
+    const column = viewSelectFieldOptions.value?.find((c) => c.value === range?.fk_from_column_id)
+    return !column || ![UITypes.DateTime, UITypes.Date].includes(column.uidt)
+  })
+}
 </script>
 
 <template>
@@ -719,6 +728,19 @@ onMounted(async () => {
             <component :is="iconMap.plus" />
             Add another date field
           </NcButton> -->
+          </div>
+
+          <div
+            v-if="isCalendarReadonly(form.calendar_range)"
+            class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full"
+          >
+            <div class="text-gray-500 flex gap-4">
+              <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="info" />
+              <div class="flex flex-col gap-1">
+                <h2 class="font-semibold text-sm mb-0 text-gray-800">Calendar is readonly</h2>
+                <span class="text-gray-500 font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
+              </div>
+            </div>
           </div>
         </template>
       </a-form>

@@ -2,7 +2,7 @@ import { SSLUsage } from '~/lib/enums';
 
 export const validateAndExtractSSLProp = (
   connectionConfig: any,
-  sslUse: SSLUsage = SSLUsage.No,
+  sslUse: SSLUsage,
   client: string
 ) => {
   if ('ssl' in connectionConfig && connectionConfig.ssl) {

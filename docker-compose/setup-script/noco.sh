@@ -90,7 +90,7 @@ urlencode() {
 }
 
 generate_password() {
-    openssl rand -base64 48 | tr -dc 'a-zA-Z0-9' | head -c 32
+    openssl rand -base64 48 | tr -dc 'a-zA-Z0-9_+*' | head -c 32
 }
 
 get_public_ip() {

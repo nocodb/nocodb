@@ -91,7 +91,6 @@ declare module 'vue' {
     MaterialSymbolsLockOutline: typeof import('~icons/material-symbols/lock-outline')['default']
     MaterialSymbolsPublic: typeof import('~icons/material-symbols/public')['default']
     MaterialSymbolsRocketLaunchOutline: typeof import('~icons/material-symbols/rocket-launch-outline')['default']
-    MaterialSymbolsSearch: typeof import('~icons/material-symbols/search')['default']
     MaterialSymbolsSendOutline: typeof import('~icons/material-symbols/send-outline')['default']
     MaterialSymbolsTranslate: typeof import('~icons/material-symbols/translate')['default']
     MaterialSymbolsVisibility: typeof import('~icons/material-symbols/visibility')['default']

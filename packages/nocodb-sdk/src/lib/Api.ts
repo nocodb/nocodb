@@ -5746,33 +5746,6 @@ export class Api<
       }),
 
     /**
-     * No description
-     *
-     * @tags Source
-     * @name CreateSqlView
-     * @summary Create sql view
-     * @request POST:/api/v1/db/meta/projects/:baseId/bases/:sourceId/sqlView
-     * @response `200` `object` OK
-     */
-    createSqlView: (
-      baseId: string,
-      sourceId: string,
-      data: {
-        view_name?: string;
-        view_definition?: string;
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<object, any>({
-        path: `/api/v1/db/meta/projects/${baseId}/bases/${sourceId}/sqlView`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
  * @description Get base source list
  * 
  * @tags Source
@@ -10580,24 +10553,6 @@ export class Api<
         }
       >({
         path: `/api/v1/db/meta/connection/test`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags Utils
-     * @name SelectQuery
-     * @request POST:/api/v1/db/meta/connection/select
-     * @response `200` `any` OK
-     */
-    selectQuery: (data: any, params: RequestParams = {}) =>
-      this.request<any, any>({
-        path: `/api/v1/db/meta/connection/select`,
         method: 'POST',
         body: data,
         type: ContentType.Json,

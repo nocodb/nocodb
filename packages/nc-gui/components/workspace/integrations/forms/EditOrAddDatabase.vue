@@ -359,9 +359,13 @@ const handleImportURL = async () => {
     formState.value.dataSource.client = connectionConfig.client
     formState.value.dataSource.connection = {
       ...connectionConfig.connection,
-      connection: {
+    }
+
+    // set filename only for sqlite connection
+    if (connectionConfig.client === ClientType.SQLITE) {
+      formState.value.dataSource.connection.connection = {
         filename: connectionConfig?.connection?.filename || '',
-      },
+      }
     }
   } else {
     message.error(t('msg.error.invalidURL'))

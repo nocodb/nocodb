@@ -116,12 +116,11 @@ Nós fornecemos difernetes tipos de integração na árvore principal de categó
 - ⚡ Email: AWS SES, SMTP, MailerSend e outros
 - ⚡ Armazenamento: AWS S3, Google Cloud Storage, Minio e outros
 
-### Acesso programático da API via:
+### Acesso Pragmático:
+Nós forncemos as seguintes formas de deixar pragmaticamente seus usuários executar ações. Você pode usar um <i>token</i> (tanto JWT ou Autenticação por Rede Social) para assinar suas requisições de autorização para o NocoDB.
 
 - ⚡ APIs Rest
-- ⚡ APIs GraphQl.
-- ⚡ Inclui autenticação JWT e autenticação social
-- ⚡ Tokens de API para integrar com Zapier, integromat.
+- ⚡ NocoDB SDK
 
 # Configuração de ambiente de Produção
 

@@ -167,7 +167,7 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: workspace:^
+        specifier: 0.255.2
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.4.1
@@ -706,13 +706,13 @@ importers:
         specifier: 0.3.4
         version: 0.3.4(debug@4.3.4)(knex@2.4.2)
       nc-lib-gui:
-        specifier: 0.255.1
-        version: 0.255.1
+        specifier: 0.255.2
+        version: 0.255.2
       nestjs-throttler-storage-redis:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8)(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2)(ioredis@5.4.1)(reflect-metadata@0.2.1)
       nocodb-sdk:
-        specifier: workspace:^
+        specifier: 0.255.2
         version: link:../nocodb-sdk
       nodemailer:
         specifier: ^6.9.13
@@ -21390,8 +21390,8 @@ packages:
       - debug
     dev: false
 
-  /nc-lib-gui@0.255.1:
-    resolution: {integrity: sha512-PnXBAsKia+bJnOGOZzLUhZJQLjgQmUosaSwhVpirlInajx9Ryq4BeG8TkQB8cP/6rnUMXSsUpY1QpUfPUyIWtg==}
+  /nc-lib-gui@0.255.2:
+    resolution: {integrity: sha512-hgL94oQoj9+1NLtJnMgxIYYUY/7osj2rw2lG1CyiMfQoPT8SYGwy1M2w4e4EvubPGH2DfZDBGWztjaNvYywU4A==}
     dependencies:
       express: 4.19.2
     transitivePeerDependencies:

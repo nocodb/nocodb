@@ -8,6 +8,7 @@ interface Props {
   isCellInputField?: boolean
   type: 'date' | 'time' | 'year' | 'month'
   isOpen: boolean
+  showCurrentDateOption?: boolean | 'disabled'
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,7 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
   type: 'date',
   isOpen: false,
 })
-const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
+const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'currentDate'])
 // Page date is the date we use to manage which month/date that is currently being displayed
 const pageDate = useVModel(props, 'pageDate', emit)
 
@@ -133,7 +134,9 @@ onMounted(() => {
     :is-monday-first="false"
     is-cell-input-field
     size="medium"
+    :show-current-date-option="showCurrentDateOption"
     @update:picker-type="handleUpdatePickerType"
+    @current-date="emit('currentDate', $event)"
   />
   <NcMonthYearSelector
     v-if="['month', 'year'].includes(tempPickerType)"
@@ -143,7 +146,9 @@ onMounted(() => {
     :is-year-picker="tempPickerType === 'year'"
     is-cell-input-field
     size="medium"
+    :show-current-date-option="showCurrentDateOption"
     @update:picker-type="handleUpdatePickerType"
+    @current-date="emit('currentDate', $event)"
   />
 </template>
 

@@ -15,6 +15,7 @@ const {
   displayField,
   sideBarFilterOption,
   showSideMenu,
+  updateFormat,
 } = useCalendarViewStoreOrThrow()
 
 const { $e } = useNuxtApp()
@@ -515,7 +516,7 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value.row,
-      [fromCol.title!]: dayjs(newStartDate).utc().format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
     },
   }
 
@@ -538,7 +539,7 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol.title!] = dayjs(endDate).utc().format('YYYY-MM-DD HH:mm:ssZ')
+    newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
 
     updateProperty.push(toCol.title!)
   }

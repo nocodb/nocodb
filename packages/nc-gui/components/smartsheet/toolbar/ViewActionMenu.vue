@@ -14,7 +14,7 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['rename', 'closeModal', 'delete'])
+const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate'])
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
 
@@ -45,6 +45,10 @@ const currentSourceId = computed(() => table.value?.source_id)
 
 const onRenameMenuClick = () => {
   emits('rename')
+}
+
+const onDescriptionUpdateClick = () => {
+  emits('descriptionUpdate')
 }
 
 const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
@@ -102,6 +106,7 @@ function onDuplicate() {
     'selectedViewId': view.value!.id,
     'groupingFieldColumnId': view.value!.view!.fk_grp_col_id,
     'views': views,
+    'description': view.value!.description,
     'calendarRange': view.value!.view!.calendar_range,
     'coverImageColumnId': view.value!.view!.fk_cover_image_col_id,
     'onUpdate:modelValue': closeDialog,
@@ -195,6 +200,12 @@ const onDelete = async () => {
             }}
           </NcMenuItem>
         </NcTooltip>
+        <NcMenuItem v-if="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
+          <GeneralIcon icon="ncAlignLeft" />
+          {{ $t('general.edit') }}
+
+          {{ $t('labels.description') }}
+        </NcMenuItem>
       </template>
       <NcMenuItem @click="onDuplicate">
         <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
@@ -205,7 +216,6 @@ const onDelete = async () => {
         }}
       </NcMenuItem>
     </template>
-
     <template v-if="view.type !== ViewTypes.FORM">
       <NcDivider />
       <template v-if="isUIAllowed('csvTableImport') && !isPublicView && !isDataReadOnly">

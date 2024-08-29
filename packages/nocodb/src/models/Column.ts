@@ -65,6 +65,7 @@ export default class Column<T = any> implements ColumnType {
 
   public column_name: string;
   public title: string;
+  public description: string;
 
   public uidt: UITypes;
   public dt: string;
@@ -158,6 +159,7 @@ export default class Column<T = any> implements ColumnType {
       'system',
       'meta',
       'virtual',
+      'description',
     ]);
 
     if (!insertObj.column_name) {
@@ -1229,6 +1231,7 @@ export default class Column<T = any> implements ColumnType {
     const updateObj = extractProps(column, [
       'column_name',
       'title',
+      'description',
       'uidt',
       'dt',
       'np',
@@ -1607,6 +1610,7 @@ export default class Column<T = any> implements ColumnType {
         'id',
         'fk_model_id',
         'column_name',
+        'description',
         'title',
         'uidt',
         'dt',

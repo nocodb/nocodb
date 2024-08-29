@@ -4,9 +4,10 @@ import type { SidebarTableNode } from '~/lib/types'
 import { generateUniqueTitle as generateTitle } from '#imports'
 
 export function useTableNew(param: { onTableCreate?: (tableMeta: TableType) => void; baseId: string; sourceId?: string }) {
-  const table = reactive<{ title: string; table_name: string; columns: string[]; is_hybrid: boolean }>({
+  const table = reactive<{ title: string; table_name: string; description?: string; columns: string[]; is_hybrid: boolean }>({
     title: '',
     table_name: '',
+    description: '',
     columns: SYSTEM_COLUMNS,
     is_hybrid: true,
   })

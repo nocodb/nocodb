@@ -185,7 +185,7 @@ onMounted(() => {
 
 <template>
   <div ref="dataExporterRef" class="data-exporter">
-    <div class="pb-3 pt-1 flex items-center justify-between gap-2.5 flex-wrap">
+    <div class="pb-3 flex items-center justify-between gap-2.5 flex-wrap">
       <div
         class="flex-1 flex items-center"
         :class="{
@@ -307,7 +307,7 @@ onMounted(() => {
               </div>
 
               <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1">
-                <div class="inline-flex gap-1 text-sm text-gray-800">
+                <div class="inline-flex gap-1 text-sm text-gray-800 -ml-[1px]">
                   <span class="inline-flex items-center h-5">
                     <GeneralIcon icon="file" class="flex-none text-gray-600/80 h-3.5 w-3.5" />
                   </span>

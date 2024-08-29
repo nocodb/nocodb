@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
-import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
+import { AppEvents, ClientType } from 'nocodb-sdk';
+import { IntegrationsType } from 'nocodb-sdk';
+import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -226,6 +227,35 @@ export class IntegrationsService {
       integrationBody = param.integration;
     }
     param.logger?.('Creating the integration');
+
+    // for SQLite check for existing integration which refers to the same file
+    if (integrationBody.sub_type === 'sqlite3') {
+      // get all integrations of type sqlite3
+      const integrations = await Integration.list({
+        userId: param.req.user?.id,
+        includeDatabaseInfo: true,
+        type: IntegrationsType.Database,
+        sub_type: ClientType.SQLITE,
+        limit: 1000,
+        offset: 0,
+        includeSourceCount: false,
+        query: '',
+      });
+
+      if (integrations.list && integrations.list.length > 0) {
+        for (const integration of integrations.list) {
+          const config = integration.config as any;
+          if (
+            (config?.connection?.filename ||
+              config?.connection?.connection?.filename) ===
+            (integrationBody.config?.connection?.filename ||
+              integrationBody.config?.connection?.connection?.filename)
+          ) {
+            NcError.badRequest('Integration with same file already exists');
+          }
+        }
+      }
+    }
 
     const integration = await Integration.createIntegration({
       ...integrationBody,

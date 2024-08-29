@@ -11,9 +11,10 @@ const extensionsState = createGlobalState(() => {
   return { baseExtensions, extensionsEgg, extensionsEggCounter }
 })
 
-interface ExtensionManifest {
+export interface ExtensionManifest {
   id: string
   title: string
+  subTitle: string
   description: string
   entry: string
   version: string
@@ -22,6 +23,10 @@ interface ExtensionManifest {
   publisherEmail: string
   publisherUrl: string
   disabled?: boolean
+  config?: {
+    modalMaxWith?: 'xs' | 'sm' | 'md' | 'lg'
+    contentMinHeight?: string
+  }
 }
 
 abstract class ExtensionType {
@@ -33,6 +38,7 @@ abstract class ExtensionType {
   abstract title: string
   abstract kvStore: any
   abstract meta: any
+  abstract order: number
   abstract setTitle(title: string): Promise<any>
   abstract setMeta(key: string, value: any): Promise<any>
   abstract clear(): Promise<any>
@@ -56,6 +62,9 @@ export const useExtensions = createSharedComposable(() => {
 
   const availableExtensions = ref<ExtensionManifest[]>([])
 
+  // Object to store description content for each extension
+  const descriptionContent = ref<Record<string, string>>({})
+
   const extensionPanelSize = ref(40)
 
   const activeBaseExtensions = computed(() => {
@@ -70,7 +79,11 @@ export const useExtensions = createSharedComposable(() => {
   })
 
   const extensionList = computed<ExtensionType[]>(() => {
-    return activeBaseExtensions.value ? activeBaseExtensions.value.extensions : []
+    return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : []).sort(
+      (a: ExtensionType, b: ExtensionType) => {
+        return (a?.order ?? Infinity) - (b?.order ?? Infinity)
+      },
+    )
   })
 
   const toggleExtensionPanel = () => {
@@ -158,7 +171,7 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
-    const { id: _id, ...extensionData } = extension.serialize()
+    const { id: _id, order: _order, ...extensionData } = extension.serialize()
 
     const newExtension = await $api.extensions.create(base.value.id, {
       ...extensionData,
@@ -207,7 +220,7 @@ export const useExtensions = createSharedComposable(() => {
     }
   }
 
-  const getExtensionIcon = (pathOrUrl: string) => {
+  const getExtensionAssetsUrl = (pathOrUrl: string) => {
     if (pathOrUrl.startsWith('http')) {
       return pathOrUrl
     } else {
@@ -251,6 +264,7 @@ export const useExtensions = createSharedComposable(() => {
     private _title: string
     private _kvStore: KvStore
     private _meta: any
+    private _order: number
 
     public uiKey = 0
 
@@ -262,6 +276,7 @@ export const useExtensions = createSharedComposable(() => {
       this._title = data.title
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
+      this._order = data.order
     }
 
     get id() {
@@ -292,6 +307,10 @@ export const useExtensions = createSharedComposable(() => {
       return this._meta
     }
 
+    get order() {
+      return this._order
+    }
+
     serialize() {
       return {
         id: this._id,
@@ -301,6 +320,7 @@ export const useExtensions = createSharedComposable(() => {
         title: this._title,
         kv_store: this._kvStore.serialize(),
         meta: this._meta,
+        order: this._order,
       }
     }
 
@@ -312,6 +332,7 @@ export const useExtensions = createSharedComposable(() => {
       this._title = data.title
       this._kvStore = new KvStore(this._id, data.kv_store)
       this._meta = data.meta
+      this._order = data.order
     }
 
     setTitle(title: string): Promise<any> {
@@ -333,30 +354,67 @@ export const useExtensions = createSharedComposable(() => {
     }
   }
 
-  onMounted(() => {
-    const modules = import.meta.glob('../extensions/*/*.json')
+  // Function to load extensions
+  onMounted(async () => {
+    try {
+      // Load all JSON modules from the specified glob pattern
+      const modules = import.meta.glob('../extensions/*/*.json')
 
-    const extensionCount = modules ? Object.keys(modules).length : 0
+      const markdownModules = import.meta.glob('../extensions/*/*.md', {
+        query: '?raw',
+        import: 'default',
+      })
 
-    let disabledCount = 0
+      const extensionCount = Object.keys(modules).length
+      let disabledCount = 0
 
-    for (const path in modules) {
-      modules[path]().then((mod: any) => {
-        const manifest = mod.default as ExtensionManifest
+      // Array to hold the promises
+      const promises = Object.keys(modules).map(async (path) => {
+        try {
+          // Load the module
+          const mod = (await modules[path]()) as any
+          const manifest = mod.default as ExtensionManifest
 
-        if (manifest?.disabled !== true) {
-          availableExtensions.value.push(manifest)
-        } else {
-          disabledCount++
-        }
+          if (manifest?.disabled !== true) {
+            availableExtensions.value.push(manifest)
 
-        if (availableExtensions.value.length + disabledCount === extensionCount) {
-          availableExtensions.value.sort((a, b) => a.title.localeCompare(b.title))
+            // Load the descriptionMarkdown if available
+            if (manifest.description) {
+              const markdownPath = `../extensions/${manifest.description}`
 
-          extensionsLoaded.value = true
+              if (markdownModules[markdownPath] && manifest?.id) {
+                try {
+                  const markdownContent = await markdownModules[markdownPath]()
+
+                  descriptionContent.value[manifest.id] = `${markdownContent}`
+                } catch (markdownError) {
+                  console.error(`Failed to load Markdown file at ${markdownPath}:`, markdownError)
+                }
+              }
+            }
+          } else {
+            disabledCount++
+          }
+        } catch (error) {
+          console.error(`Failed to load module at ${path}:`, error)
         }
       })
+
+      // Wait for all modules to be processed
+      await Promise.all(promises)
+
+      if (availableExtensions.value.length + disabledCount === extensionCount) {
+        // Sort extensions
+        availableExtensions.value.sort((a, b) => a.title.localeCompare(b.title))
+        extensionsLoaded.value = true
+      }
+    } catch (error) {
+      console.error('Error loading extensions:', error)
     }
+
+    // if (isEeUI) {
+    //   extensionsEgg.value = true
+    // }
   })
 
   watch(
@@ -397,6 +455,7 @@ export const useExtensions = createSharedComposable(() => {
   return {
     extensionsLoaded,
     availableExtensions,
+    descriptionContent,
     extensionList,
     isPanelExpanded,
     toggleExtensionPanel,
@@ -406,7 +465,7 @@ export const useExtensions = createSharedComposable(() => {
     updateExtensionMeta,
     clearKvStore,
     deleteExtension,
-    getExtensionIcon,
+    getExtensionAssetsUrl,
     isDetailsVisible,
     detailsExtensionId,
     detailsFrom,

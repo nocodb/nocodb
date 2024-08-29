@@ -72,7 +72,7 @@ const onValidate = async (_: any, valid: boolean) => {
         </span>
       </template>
     </NcPageHeader>
-    <div class="p-6 h-[calc(100vh_-_100px)] border-t-1 border-gray-200 flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
+    <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="flex flex-col w-150 mx-auto">
         <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
           <div class="flex font-medium text-base" data-rec="true">{{ $t('labels.accountDetails') }}</div>

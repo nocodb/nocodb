@@ -5,7 +5,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 const config: XcPluginConfig = {
   builder: S3Plugin,
   title: 'S3',
-  version: '0.0.5',
+  version: '0.0.6',
   logo: 'plugins/s3.png',
   description:
     'Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading scalability, data availability, security, and performance.',
@@ -79,7 +79,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in AWS S3',
+      'Successfully configured! Attachments will now be stored in AWS S3.',
     msgOnUninstall: '',
   },
   category: PluginCategory.STORAGE,

@@ -171,6 +171,7 @@ async function localInit({
   isSuperUser = false,
   dbType,
   resetSsoClients = false,
+  resetPlugins,
 }: {
   workerId: string;
   isEmptyProject?: boolean;
@@ -178,6 +179,7 @@ async function localInit({
   isSuperUser?: boolean;
   dbType?: string;
   resetSsoClients?: boolean;
+  resetPlugins?: boolean;
 }) {
   const parallelId = process.env.TEST_PARALLEL_INDEX;
 
@@ -220,6 +222,22 @@ async function localInit({
           await api.ssoClient.delete(client.id);
         } catch (e) {
           console.log(`Error deleting sso-client: ${client.id}`);
+        }
+      }
+    }
+
+    // if oss reset the plugins
+    if (!isEE() && resetPlugins) {
+      const plugins = (await api.plugin.list()).list ?? [];
+      for (const plugin of plugins) {
+        if (!plugin.input) continue;
+        try {
+          await api.plugin.update(plugin.id, {
+            input: null,
+            active: false,
+          });
+        } catch (e) {
+          console.log(`Error deleting plugin: ${plugin.id}`);
         }
       }
     }
@@ -359,6 +377,7 @@ const setup = async ({
   isSuperUser = false,
   url,
   resetSsoClients = false,
+  resetPlugins,
 }: {
   baseType?: ProjectTypes;
   page: Page;
@@ -366,6 +385,7 @@ const setup = async ({
   isSuperUser?: boolean;
   url?: string;
   resetSsoClients?: boolean;
+  resetPlugins?: boolean;
 }): Promise<NcContext> => {
   console.time('Setup');
 
@@ -390,6 +410,7 @@ const setup = async ({
       isSuperUser,
       dbType,
       resetSsoClients,
+      resetPlugins,
     });
   } catch (e) {
     console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);

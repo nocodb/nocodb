@@ -1391,63 +1391,6 @@
         ]
       }
     },
-    "/api/v2/meta/bases/:baseId/sources/:sourceId/sqlView": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "sourceId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "Create sql view",
-        "operationId": "create-sql-view",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Source"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "view_name": {
-                    "type": "string"
-                  },
-                  "view_definition": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v2/meta/bases/{baseId}/sources/": {
       "parameters": [
         {
@@ -10230,32 +10173,6 @@
         ]
       }
     },
-    "/api/v2/meta/connection/select": {
-      "parameters": [],
-      "post": {
-        "summary": "",
-        "operationId": "utils-select-query",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {}
-          }
-        },
-        "description": ""
-      }
-    },
     "/api/v2/meta/nocodb/info": {
       "parameters": [
         {
@@ -11063,7 +10980,8 @@
             "description": "***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.\n\nAdditionally, if you specify a `sort` query parameter, it will take precedence over any sorting configuration defined in the view. If you specify a `where` query parameter, it will be applied over the filtering configuration defined in the view. \n\nBy default, all fields, including those that are disabled within the view, are included in the response. To explicitly specify which fields to include or exclude, you can use the `fields` query parameter to customize the output according to your requirements."
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "responses": {
@@ -11288,7 +11206,8 @@
         "description": "This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nWhen dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. \n\nCertain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -11362,7 +11281,8 @@
         "description": "This API endpoint allows updating existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be updated are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nWhen dealing with 'Links' or 'Link To Another Record' field types, you should utilize the 'Create Link' API to insert relevant data. \n\nCertain read-only field types will be disregarded if included in the request. These field types include 'Look Up,' 'Roll Up,' 'Formula,' 'Auto Number,' 'Created By,' 'Updated By,' 'Created At,' 'Updated At,' 'Barcode,' and 'QR Code.'\n\nNote that a PATCH request only updates the specified fields while leaving other fields unaffected. Currently, PUT requests are not supported by this endpoint.",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -11431,7 +11351,8 @@
         "description": "This API endpoint allows deleting existing records within a specified table identified by an array of Record-IDs, serving as unique identifier for the record. Records to be deleted are input as an array of record-identifiers.",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -11474,7 +11395,8 @@
             "description": "Allows you to specify the fields that you wish to include in your API response. By default, all the fields are included in the response.\n\nExample: `fields=field1,field2` will include only 'field1' and 'field2' in the API response. \n\nPlease note that it's essential not to include spaces between field names in the comma-separated list."
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "responses": {
@@ -11600,7 +11522,7 @@
             "description": "Enables you to define specific conditions for filtering record count in your API response. Multiple conditions can be combined using logical operators such as 'and' and 'or'. Each condition consists of three parts: a field name, a comparison operator, and a value.\n\nExample: `where=(field1,eq,value1)~and(field2,eq,value2)` will filter records where 'field1' is equal to 'value1' AND 'field2' is equal to 'value2'. \n\nYou can also use other comparison operators like 'ne' (not equal), 'gt' (greater than), 'lt' (less than), and more, to create complex filtering rules.\n\nIf `viewId` query parameter is also included, then the filters included here will be applied over the filtering configuration defined in the view. \n\nPlease remember to maintain the specified format, and do not include spaces between the different condition components"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "responses": {
@@ -11718,7 +11640,8 @@
           },
 
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "responses": {
@@ -11852,7 +11775,8 @@
             "description": "**Record Identifier** corresponding to the record in this table for which links are being created."
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -11920,7 +11844,8 @@
             "description": "**Record Identifier** corresponding to the record in this table for which links are being removed."
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -20139,11 +20064,20 @@
       "xc-auth": {
         "name": "xc-auth",
         "in": "header",
-        "required": false,
+        "required": true,
         "schema": {
           "type": "string"
         },
         "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+      },
+      "xc-token": {
+        "name": "xc-token",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "API Token. Refer [here](https://docs.nocodb.com/account-settings/api-tokens/) to know more"
       }
     }
   }

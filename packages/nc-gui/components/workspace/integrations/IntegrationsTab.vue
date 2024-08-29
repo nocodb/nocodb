@@ -59,8 +59,12 @@ const upvotesData = computed(() => {
 
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
+    const isOssOnly = isEeUI ? !i?.isOssOnly : true
     return (
-      filterIntegration(i) && i.categories.includes(category) && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+      isOssOnly &&
+      filterIntegration(i) &&
+      i.categories.includes(category) &&
+      t(i.title).toLowerCase().includes(query.trim().toLowerCase())
     )
   })
 }
@@ -73,6 +77,7 @@ const integrationsMapByCategory = computed(() => {
       (acc, curr) => {
         acc[curr.value] = {
           title: curr.title,
+          subtitle: curr.subtitle,
           list: getIntegrationsByCategory(curr.value, searchQuery.value),
           isAvailable: curr.isAvailable,
           teleEventName: curr.teleEventName,
@@ -84,6 +89,7 @@ const integrationsMapByCategory = computed(() => {
         string,
         {
           title: string
+          subtitle?: string
           list: IntegrationItemType[]
           isAvailable?: boolean
           teleEventName?: IntegrationCategoryType
@@ -169,7 +175,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
             'h-full': !isModal,
           }"
         >
-          <div class="px-6 pt-6">
+          <div v-if="integrationListContainerWidth" class="px-6 pt-6">
             <div
               class="flex items-end justify-end flex-wrap gap-3 m-auto"
               :style="{
@@ -208,6 +214,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
             class="flex-1 px-6 pb-6 flex flex-col nc-workspace-settings-integrations-list overflow-y-auto nc-scrollbar-thin"
           >
             <div
+              v-if="integrationListContainerWidth"
               class="w-full flex justify-center"
               :class="{
                 'flex-1': isEmptyList,
@@ -240,7 +247,8 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                         <template #title>{{ $t('tooltip.comingSoonIntegration') }}</template>
 
                         <div
-                          class="source-card"
+                          :tabindex="0"
+                          class="source-card focus-visible:outline-none h-full"
                           :class="{
                             'is-available': integration?.isAvailable,
                           }"
@@ -249,7 +257,10 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                           <div class="integration-icon-wrapper">
                             <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                           </div>
-                          <div class="name flex-1">{{ $t(integration.title) }}</div>
+                          <div class="flex-1">
+                            <div class="name">{{ $t(integration.title) }}</div>
+                            <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
+                          </div>
                           <div v-if="integration?.isAvailable" class="action-btn">+</div>
                           <div v-else class="">
                             <NcButton
@@ -276,6 +287,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                 </div>
               </div>
             </div>
+            <div v-else class="h-full flex items-center justify-center"><GeneralLoader size="xlarge" /></div>
           </div>
         </div>
         <NcModal

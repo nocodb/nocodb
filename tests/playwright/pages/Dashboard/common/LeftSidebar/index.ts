@@ -11,7 +11,7 @@ export class LeftSidebarPage extends BasePage {
 
   readonly btn_workspace: Locator;
   readonly btn_newProject: Locator;
-  readonly btn_cmdK: Locator;
+  // readonly btn_cmdK: Locator;
   readonly btn_teamAndSettings: Locator;
 
   readonly modal_workspace: Locator;
@@ -22,7 +22,7 @@ export class LeftSidebarPage extends BasePage {
 
     this.btn_workspace = this.get().locator('.nc-workspace-menu');
     this.btn_newProject = this.get().locator('[data-testid="nc-sidebar-create-base-btn"]');
-    this.btn_cmdK = this.get().locator('[data-testid="nc-sidebar-search-btn"]');
+    // this.btn_cmdK = this.get().locator('[data-testid="nc-sidebar-search-btn"]');
     this.btn_teamAndSettings = this.get().locator('[data-testid="nc-sidebar-team-settings-btn"]');
 
     this.modal_workspace = this.rootPage.locator('.nc-dropdown-workspace-menu');

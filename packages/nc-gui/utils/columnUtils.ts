@@ -56,7 +56,7 @@ const uiTypes = [
   },
   {
     name: UITypes.Year,
-    icon: iconMap.cellDate,
+    icon: iconMap.cellYear,
   },
   {
     name: UITypes.Time,

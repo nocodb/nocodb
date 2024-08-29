@@ -1,5 +1,6 @@
 import { NcErrorType } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { generateReadablePermissionErr } from 'src/utils/acl';
 import type { BaseType, SourceType } from 'nocodb-sdk';
 import type { ErrorObject } from 'ajv';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
@@ -14,6 +15,7 @@ export enum DBError {
   CONSTRAINT_EXIST = 'CONSTRAINT_EXIST',
   CONSTRAINT_NOT_EXIST = 'CONSTRAINT_NOT_EXIST',
   COLUMN_NOT_NULL = 'COLUMN_NOT_NULL',
+  DATA_TYPE_MISMATCH = 'DATA_TYPE_MISMATCH',
 }
 
 // extract db errors using database error code
@@ -47,6 +49,13 @@ export function extractDBError(error): {
       break;
     case 'SQLITE_CORRUPT':
       message = 'The database file is corrupt.';
+      break;
+
+    case 'SQLITE_MISMATCH':
+      if (error.message) {
+        message = 'Data type mismatch in SQLite operation.';
+        _type = DBError.DATA_TYPE_MISMATCH;
+      }
       break;
     case 'SQLITE_ERROR':
       message = 'A SQL error occurred.';
@@ -120,6 +129,26 @@ export function extractDBError(error): {
       break;
 
     // mysql errors
+    case 'ER_TRUNCATED_WRONG_VALUE':
+    case 'ER_WRONG_VALUE':
+      if (error.message) {
+        const typeMismatchMatch = error.message.match(
+          /Incorrect (\w+) value: (.+) for column '(\w+)'/i,
+        );
+        if (typeMismatchMatch) {
+          const dataType = typeMismatchMatch[1];
+          const invalidValue = typeMismatchMatch[2];
+          const columnName = typeMismatchMatch[3];
+
+          message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
+          _type = DBError.DATA_TYPE_MISMATCH;
+          _extra = { dataType, column: columnName, value: invalidValue };
+        } else {
+          message = 'Invalid data format for a column.';
+          _type = DBError.DATA_TYPE_MISMATCH;
+        }
+      }
+      break;
     case 'ER_TABLE_EXISTS_ERROR':
       message = 'The table already exists.';
 
@@ -269,6 +298,31 @@ export function extractDBError(error): {
           _extra = {
             table: extractTableNameMatch[1],
           };
+        }
+      }
+      break;
+    case '22P02': // PostgreSQL invalid_text_representation
+    case '22003': // PostgreSQL numeric_value_out_of_range
+      if (error.message) {
+        const pgTypeMismatchMatch = error.message.match(
+          /invalid input syntax for (\w+): "(.+)"(?: in column "(\w+)")?/i,
+        );
+        if (pgTypeMismatchMatch) {
+          const dataType = pgTypeMismatchMatch[1];
+          const invalidValue = pgTypeMismatchMatch[2];
+          const columnName = pgTypeMismatchMatch[3] || 'unknown';
+
+          message = `Invalid ${dataType} value '${invalidValue}' for column '${columnName}'`;
+          _type = DBError.DATA_TYPE_MISMATCH;
+          _extra = { dataType, column: columnName, value: invalidValue };
+        } else {
+          const detailMatch = error.detail
+            ? error.detail.match(/Column (\w+)/)
+            : null;
+          const columnName = detailMatch ? detailMatch[1] : 'unknown';
+          message = `Invalid data type or value for column '${columnName}'.`;
+          _type = DBError.DATA_TYPE_MISMATCH;
+          _extra = { column: columnName };
         }
       }
       break;
@@ -430,6 +484,8 @@ export class ExternalError extends NcBaseError {
   }
 }
 
+export class ExternalTimeout extends ExternalError {}
+
 export class UnprocessableEntity extends NcBaseError {}
 
 export class AjvError extends NcBaseError {
@@ -579,6 +635,14 @@ const errorHelpers: {
     message: 'Table is associated with a link, please remove the link first',
     code: 400,
   },
+  [NcErrorType.FORMULA_ERROR]: {
+    message: (message: string) => `Formula error: ${message}`,
+    code: 400,
+  },
+  [NcErrorType.PERMISSION_DENIED]: {
+    message: 'Permission denied',
+    code: 403,
+  },
 };
 
 function generateError(
@@ -637,6 +701,24 @@ export class NcBaseErrorv2 extends NcBaseError {
 }
 
 export class NcError {
+  static permissionDenied(
+    permissionName: string,
+    roles: Record<string, boolean>,
+    extendedScopeRoles: any,
+  ) {
+    throw new NcBaseErrorv2(NcErrorType.PERMISSION_DENIED, {
+      customMessage: generateReadablePermissionErr(
+        permissionName,
+        roles,
+        extendedScopeRoles,
+      ),
+      details: {
+        permissionName,
+        roles,
+        extendedScopeRoles,
+      },
+    });
+  }
   static authenticationRequired(args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.AUTHENTICATION_REQUIRED, args);
   }
@@ -803,6 +885,13 @@ export class NcError {
 
   static internalServerError(message: string, args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.INTERNAL_SERVER_ERROR, {
+      params: message,
+      ...args,
+    });
+  }
+
+  static formulaError(message: string, args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.FORMULA_ERROR, {
       params: message,
       ...args,
     });

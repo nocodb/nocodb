@@ -3013,63 +3013,6 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/:baseId/bases/:sourceId/sqlView": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "sourceId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "Create sql view",
-        "operationId": "create-sql-view",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Source"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "view_name": {
-                    "type": "string"
-                  },
-                  "view_definition": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/db/meta/projects/{baseId}/bases/": {
       "parameters": [
         {
@@ -4429,6 +4372,11 @@
                     "type": "string",
                     "description": "Table title",
                     "example": "Users"
+                  },
+                  "description": {
+                    "$ref": "#/components/schemas/TextOrNull",
+                    "description": "Table description",
+                    "example": "Table for storing User Information"
                   },
                   "base_id": {
                     "type": "string",
@@ -15601,32 +15549,6 @@
         ]
       }
     },
-    "/api/v1/db/meta/connection/select": {
-      "parameters": [],
-      "post": {
-        "summary": "",
-        "operationId": "utils-select-query",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {}
-          }
-        },
-        "description": ""
-      }
-    },
     "/api/v1/url_to_config": {
       "parameters": [
         {
@@ -19668,6 +19590,10 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Auto Update Timestamp"
           },
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Column Description"
+          },
           "source_id": {
             "description": "Source ID that this column belongs to",
             "example": "ds_krsappzu9f8vmo",
@@ -20048,6 +19974,9 @@
             "properties": {
               "column_name": {
                 "type": "string"
+              },
+              "description": {
+                "$ref": "#/components/schemas/TextOrNull"
               },
               "column_order": {
                 "description": "Column order in a specific view",
@@ -25555,6 +25484,10 @@
             "description": "Unique Base ID",
             "type": "string"
           },
+          "description": {
+            "description": "Table Description",
+            "$ref": "#/components/schemas/TextOrNull"
+          },
           "table_name": {
             "description": "Table Name. Prefix will be added for XCDB bases.",
             "type": "string"
@@ -25822,6 +25755,10 @@
               "$ref": "#/components/schemas/NormalColumnRequest"
             },
             "type": "array"
+          },
+          "description": {
+            "description": "Table description",
+            "$ref": "#/components/schemas/TextOrNull"
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
@@ -26132,6 +26069,10 @@
             "description": "The rder of the list of views",
             "type": "number"
           },
+          "description": {
+            "description": "View Description",
+            "$ref": "#/components/schemas/TextOrNull"
+          },
           "password": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Password for protecting the view"
@@ -26441,6 +26382,11 @@
             "type": "string",
             "description": "View Title",
             "example": "Grid View 1"
+          },
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Description of the view.",
+            "example": "This is a grid view."
           },
           "uuid": {
             "maxLength": 255,

@@ -1461,6 +1461,7 @@ class BaseModelSqlv2 {
     bulkFilterList: Array<{
       alias: string;
       where?: string;
+      filterArrJson?: string | Filter[];
     }>,
     view: View,
   ) {
@@ -1540,6 +1541,10 @@ class BaseModelSqlv2 {
       for (const f of bulkFilterList) {
         const tQb = this.dbDriver(this.tnPath);
         const aggFilter = extractFilterFromXwhere(f.where, aliasColObjMap);
+        let aggFilterJson = f.filterArrJson;
+        try {
+          aggFilterJson = JSON.parse(aggFilterJson as any);
+        } catch (_e) {}
 
         await conditionV2(
           this,
@@ -1567,6 +1572,14 @@ class BaseModelSqlv2 {
               is_group: true,
               logical_op: 'and',
             }),
+            ...(aggFilterJson
+              ? [
+                  new Filter({
+                    children: aggFilterJson as Filter[],
+                    is_group: true,
+                  }),
+                ]
+              : []),
           ],
           tQb,
         );
@@ -5732,7 +5745,7 @@ class BaseModelSqlv2 {
       await this.prepareNocoData(updateData, false, cookie);
 
       const pkValues = this.extractPksValues(updateData);
-      if (pkValues) {
+      if (pkValues !== null && pkValues !== undefined) {
         // pk is specified - by pass
       } else {
         const { where } = this._getListArgs(args);
@@ -6454,12 +6467,12 @@ class BaseModelSqlv2 {
     if (this.model.primaryKeys.length > 1) {
       const pkValues = {};
       for (const pk of this.model.primaryKeys) {
-        pkValues[pk.title] = data[pk.title] || data[pk.column_name];
+        pkValues[pk.title] = data[pk.title] ?? data[pk.column_name];
       }
       return pkValues;
     } else if (this.model.primaryKey) {
       return (
-        data[this.model.primaryKey.title] ||
+        data[this.model.primaryKey.title] ??
         data[this.model.primaryKey.column_name]
       );
     } else {
@@ -8171,7 +8184,7 @@ class BaseModelSqlv2 {
                     };
 
                     const thumbnailPath = `thumbnails/${lookedUpAttachment.path.replace(
-                      /^download\//,
+                      /^download[/\\]/i,
                       '',
                     )}`;
 
@@ -8244,7 +8257,7 @@ class BaseModelSqlv2 {
                   }
 
                   const thumbnailPath = `thumbnails/${attachment.path.replace(
-                    /^download\//,
+                    /^download[/\\]/i,
                     '',
                   )}`;
 
@@ -8734,7 +8747,7 @@ class BaseModelSqlv2 {
                 typeof childIds[0] === 'object'
                   ? childIds.map(
                       (c) =>
-                        c[parentTable.primaryKey.title] ||
+                        c[parentTable.primaryKey.title] ??
                         c[parentTable.primaryKey.column_name],
                     )
                   : childIds,
@@ -8817,7 +8830,7 @@ class BaseModelSqlv2 {
                 typeof childIds[0] === 'object'
                   ? childIds.map(
                       (c) =>
-                        c[parentTable.primaryKey.title] ||
+                        c[parentTable.primaryKey.title] ??
                         c[parentTable.primaryKey.column_name],
                     )
                   : childIds,
@@ -8858,7 +8871,7 @@ class BaseModelSqlv2 {
               typeof childIds[0] === 'object'
                 ? childIds.map(
                     (c) =>
-                      c[childTable.primaryKey.title] ||
+                      c[childTable.primaryKey.title] ??
                       c[childTable.primaryKey.column_name],
                   )
                 : childIds,
@@ -9100,7 +9113,7 @@ class BaseModelSqlv2 {
                     (r) =>
                       r[parentColumn.column_name] ===
                       (typeof id === 'object'
-                        ? id[parentTable.primaryKey.title] ||
+                        ? id[parentTable.primaryKey.title] ??
                           id[parentTable.primaryKey.column_name]
                         : id),
                   ),
@@ -9126,7 +9139,7 @@ class BaseModelSqlv2 {
             typeof childIds[0] === 'object'
               ? childIds.map(
                   (c) =>
-                    c[parentTable.primaryKey.title] ||
+                    c[parentTable.primaryKey.title] ??
                     c[parentTable.primaryKey.column_name],
                 )
               : childIds,
@@ -9169,7 +9182,7 @@ class BaseModelSqlv2 {
                 parentTable.primaryKey.column_name,
                 childIds.map(
                   (c) =>
-                    c[parentTable.primaryKey.title] ||
+                    c[parentTable.primaryKey.title] ??
                     c[parentTable.primaryKey.column_name],
                 ),
               );
@@ -9188,7 +9201,7 @@ class BaseModelSqlv2 {
                     (r) =>
                       r[parentColumn.column_name] ===
                       (typeof id === 'object'
-                        ? id[parentTable.primaryKey.title] ||
+                        ? id[parentTable.primaryKey.title] ??
                           id[parentTable.primaryKey.column_name]
                         : id),
                   ),
@@ -9212,7 +9225,7 @@ class BaseModelSqlv2 {
               typeof childIds[0] === 'object'
                 ? childIds.map(
                     (c) =>
-                      c[parentTable.primaryKey.title] ||
+                      c[parentTable.primaryKey.title] ??
                       c[parentTable.primaryKey.column_name],
                   )
                 : childIds,
@@ -9786,10 +9799,11 @@ class BaseModelSqlv2 {
   }
 
   protected async clearFileReferences(args: {
-    oldData?: Record<string, any>[];
+    oldData?: Record<string, any>[] | Record<string, any>;
     columns?: Column[];
   }) {
-    const { oldData, columns } = args;
+    const { oldData: _oldData, columns } = args;
+    const oldData = Array.isArray(_oldData) ? _oldData : [_oldData];
 
     const modelColumns = columns || (await this.model.getColumns(this.context));
 
@@ -9870,6 +9884,18 @@ export function extractFilterFromXwhere(
 ) {
   if (!str) {
     return [];
+  }
+
+  // if array treat it as `and` group
+  if (Array.isArray(str)) {
+    // calling recursively for nested query
+    return str.map((s) =>
+      extractFilterFromXwhere(s, aliasColObjMap, throwErrorIfInvalid),
+    );
+  } else if (typeof str !== 'string' && throwErrorIfInvalid) {
+    throw new Error(
+      'Invalid filter format. Expected string or array of strings.',
+    );
   }
 
   let nestedArrayConditions = [];

@@ -8,15 +8,14 @@ export interface IntegrationItemType {
   categories: IntegrationCategoryType[]
   isAvailable?: boolean
   iconStyle?: CSSProperties
+  isOssOnly?: boolean
+  subtitle?: string
 }
 
 export interface IntegrationCategoryItemType {
   title: string
   subtitle: string
   value: IntegrationCategoryType
-  icon: FunctionalComponent<SVGAttributes, {}, any, {}>
-  iconBgColor?: string
-  iconStyle?: CSSProperties
   isAvailable?: boolean
   teleEventName?: IntegrationCategoryType
 }
@@ -26,133 +25,68 @@ export const integrationCategories: IntegrationCategoryItemType[] = [
     title: 'labels.database',
     subtitle: 'objects.integrationCategories.databaseSubtitle',
     value: IntegrationCategoryType.DATABASE,
-    icon: iconMap.database,
-    iconBgColor: '#D4F7E0',
-    iconStyle: {
-      color: '#17803D',
-    },
     isAvailable: true,
   },
   {
     title: 'objects.integrationCategories.ai',
     subtitle: 'objects.integrationCategories.ai',
     value: IntegrationCategoryType.AI,
-    icon: iconMap.openai,
-    iconBgColor: '#FFF0F7',
-    iconStyle: {
-      color: '#801044',
-    },
   },
   {
     title: 'objects.integrationCategories.communication',
     subtitle: 'objects.integrationCategories.communicationSubtitle',
     value: IntegrationCategoryType.COMMUNICATION,
-    icon: iconMap.messageCircle,
-    iconBgColor: '#FFF0F7',
-    iconStyle: {
-      color: '#801044',
-    },
   },
   {
     title: 'objects.integrationCategories.spreadSheet',
     subtitle: 'objects.integrationCategories.spreadSheetSubtitle',
     value: IntegrationCategoryType.SPREAD_SHEET,
     teleEventName: IntegrationCategoryType.OTHERS,
-    icon: iconMap.viewGannt,
-    iconBgColor: '#FFF0D1',
-    iconStyle: {
-      color: '#977223',
-    },
   },
   {
     title: 'objects.integrationCategories.projectManagement',
     subtitle: 'objects.integrationCategories.projectManagementSubtitle',
     value: IntegrationCategoryType.PROJECT_MANAGEMENT,
-    icon: iconMap.viewGannt,
-    iconBgColor: '#FFF0D1',
-    iconStyle: {
-      color: '#977223',
-    },
   },
   {
     title: 'objects.integrationCategories.ticketing',
     subtitle: 'objects.integrationCategories.ticketingSubtitle',
     value: IntegrationCategoryType.TICKETING,
-    icon: iconMap.globe,
-    iconBgColor: '#FFF0D1',
-    iconStyle: {
-      color: '#977223',
-    },
   },
   {
     title: 'objects.integrationCategories.crm',
     subtitle: 'objects.integrationCategories.crmSubtitle',
     value: IntegrationCategoryType.CRM,
-    icon: iconMap.users,
-    iconBgColor: '#D7F2FF',
-    iconStyle: {
-      color: '#207399',
-    },
   },
   {
     title: 'objects.integrationCategories.marketing',
     subtitle: 'objects.integrationCategories.marketingSubtitle',
     value: IntegrationCategoryType.MARKETING,
-    icon: iconMap.heart,
-    iconBgColor: '#FED8F4',
-    iconStyle: {
-      color: '#972377',
-    },
   },
   {
     title: 'objects.integrationCategories.ats',
     subtitle: 'objects.integrationCategories.atsSubtitle',
     value: IntegrationCategoryType.ATS,
-    icon: iconMap.multiFile,
-    iconBgColor: '#FEE6D6',
-    iconStyle: {
-      color: '#C86827',
-    },
   },
   {
     title: 'objects.integrationCategories.development',
     subtitle: 'objects.integrationCategories.developmentSubtitle',
     value: IntegrationCategoryType.DEVELOPMENT,
-    icon: iconMap.code,
-    iconBgColor: '#E5D4F5',
-    iconStyle: {
-      color: '#4B177B',
-    },
   },
   {
     title: 'objects.integrationCategories.finance',
     subtitle: 'objects.integrationCategories.financeSubtitle',
     value: IntegrationCategoryType.FINANCE,
-    icon: iconMap.dollerSign,
-    iconBgColor: '#D4F7E0',
-    iconStyle: {
-      color: '#17803D',
-    },
   },
   {
     title: 'labels.storage',
     subtitle: 'objects.integrationCategories.storageSubtitle',
     value: IntegrationCategoryType.STORAGE,
-    icon: iconMap.ncSave,
-    iconBgColor: '#E7E7E9',
-    iconStyle: {
-      color: '#374151',
-    },
   },
   {
     title: 'objects.integrationCategories.others',
     subtitle: 'objects.integrationCategories.othersSubtitle',
     value: IntegrationCategoryType.OTHERS,
-    icon: iconMap.plusSquare,
-    iconBgColor: 'white',
-    iconStyle: {
-      color: '#374151',
-    },
   },
 ]
 
@@ -175,6 +109,14 @@ export const allIntegrations: IntegrationItemType[] = [
     icon: iconMap.postgreSql,
     categories: [IntegrationCategoryType.DATABASE],
     isAvailable: true,
+  },
+  {
+    title: 'objects.syncData.sqlite',
+    value: ClientType.SQLITE,
+    icon: iconMap.sqlServer,
+    categories: [IntegrationCategoryType.DATABASE],
+    isAvailable: true,
+    isOssOnly: true,
   },
   {
     title: 'objects.syncData.snowflake',
@@ -309,7 +251,7 @@ export const allIntegrations: IntegrationItemType[] = [
     title: 'objects.syncData.jira',
     value: SyncDataType.JIRA,
     icon: iconMap.jira,
-    categories: [IntegrationCategoryType.PROJECT_MANAGEMENT, IntegrationCategoryType.TICKETING],
+    categories: [IntegrationCategoryType.PROJECT_MANAGEMENT],
   },
   {
     title: 'objects.syncData.miro',
@@ -439,6 +381,12 @@ export const allIntegrations: IntegrationItemType[] = [
 
   // Ticketing
   {
+    title: 'objects.syncData.freshdesk',
+    value: SyncDataType.FRESHDESK,
+    icon: iconMap.freshdesk,
+    categories: [IntegrationCategoryType.TICKETING],
+  },
+  {
     title: 'objects.syncData.intercom',
     value: SyncDataType.INTERCOM,
     icon: iconMap.intercom,
@@ -448,6 +396,20 @@ export const allIntegrations: IntegrationItemType[] = [
     title: 'objects.syncData.zendesk',
     value: SyncDataType.ZENDESK,
     icon: iconMap.zendesk,
+    categories: [IntegrationCategoryType.TICKETING],
+  },
+  {
+    title: 'objects.syncData.salesforce',
+    subtitle: 'objects.syncData.serviceCloud',
+    value: SyncDataType.SALESFORCE_SERVICE_CLOUD,
+    icon: iconMap.salesforce,
+    categories: [IntegrationCategoryType.TICKETING],
+  },
+  {
+    title: 'objects.syncData.hubspot',
+    subtitle: 'objects.syncData.serviceHub',
+    value: SyncDataType.HUBSPOT_SERVICE_HUB,
+    icon: iconMap.hubspot,
     categories: [IntegrationCategoryType.TICKETING],
   },
 
@@ -494,3 +456,8 @@ export const allIntegrations: IntegrationItemType[] = [
   //   categories: [IntegrationCategoryType.OTHERS],
   // },
 ]
+
+export const allIntegrationsMapByValue = allIntegrations.reduce((acc, curr) => {
+  acc[curr.value] = curr
+  return acc
+}, {} as Record<string, IntegrationItemType>)

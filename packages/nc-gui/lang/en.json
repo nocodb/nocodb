@@ -93,6 +93,8 @@
     "none": "None"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
@@ -210,6 +212,7 @@
     "confirm": "Confirm",
     "generate": "Generate",
     "copy": "Copy",
+    "copied": "Copied",
     "are": "are",
     "misc": "Miscellaneous",
     "lock": "Lock",
@@ -283,7 +286,8 @@
     "connection": "Connection",
     "connections": "Connections",
     "private": "Private",
-    "request": "Request"
+    "request": "Request",
+    "languages": "Languages"
   },
   "objects": {
     "files": "files",
@@ -358,6 +362,7 @@
       "googleDrive": "Google Drive",
       "googleSheets": "Google Sheets",
       "hubspot": "Hubspot",
+      "serviceHub": "Service Hub",
       "jira": "Jira",
       "mailchimp": "Mailchimp",
       "microsoftAccess": "Microsoft Access",
@@ -365,6 +370,7 @@
       "microsoftOutlook": "Microsoft Outlook",
       "miro": "Miro",
       "salesforce": "Salesforce",
+      "serviceCloud": "Service Cloud",
       "snowflake": "Snowflake",
       "stripe": "Stripe",
       "surveyMonkey": "SurveyMonkey",
@@ -375,7 +381,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -394,7 +400,8 @@
       "openai": "OpenAI",
       "claude": "Claude",
       "ollama": "Ollama",
-      "groq": "Groq"
+      "groq": "Groq",
+      "freshdesk": "FreshDesk"
     },
     "integrationCategories": {
       "allIntegrations": "All Integrations",
@@ -614,6 +621,15 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
+    "sharedBase": "Shared Base",
+    "fieldID": "Field ID",
+    "addDescription": "Add description",
+    "editDescription": "Edit description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",
@@ -657,6 +673,7 @@
     "metaSync": "Meta Sync",
     "mention": "Mention",
     "today": "Today",
+    "currentDate": "Current date",
     "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
@@ -742,7 +759,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Enable rich text",
-    "idColon": "Id:",
+    "idColon": "FIELD ID: {fieldId}",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
     "duplicateRecord": "Duplicate record",
@@ -819,7 +836,7 @@
     "lengthValue": "Length/ value",
     "dbType": "Database Type",
     "servername": "servername / hostAddr",
-    "sqliteFile": "SQLite File",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "Username",
@@ -979,7 +996,8 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
     "webhookDetails": "Webhook Details",
@@ -1235,9 +1253,11 @@
       "lockedFieldTooltip": "Pre-filled value"
     },
     "getPreFilledLink": "Get Pre-filled Link",
-    "group": "Group"
+    "group": "Group",
+    "goToDocs": "Go to Docs"
   },
   "tooltip": {
+    "currentDateNotAvail": "Current date option not available for the data source or the data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
     "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",
     "optionalSchemaName": "Optional. Uses default schema \"{schema}\" if left blank.",
@@ -1480,6 +1500,7 @@
       }
     },
     "info": {
+      "calendarReadOnly": "You will not be able to drag records between dates when computed or system fields are used.",
       "schemaReadOnly": "Schema alterations are disabled for this source",
       "enterWorkspaceName": "Enter workspace name",
       "enterBaseName": "Enter base name",
@@ -1537,7 +1558,7 @@
       "apiOptions": "Access Base via",
       "submitAnotherForm": "Show 'Submit Another Form' button",
       "showBlankForm": "Show a blank form after 5 seconds",
-      "emailForm": "E-mail me at",
+      "emailForm": "Email responses to",
       "showSysFields": "Show system fields",
       "filterAutoApply": "Auto apply",
       "formDisplayMessage": "Display Message",
@@ -1593,6 +1614,9 @@
       "tablesMetadataInSync": "Tables metadata is in Sync",
       "addMultipleUsers": "You can add multiple comma(,) separated emails",
       "enterTableName": "Enter table name",
+      "enterTableDescription": "Enter table description...",
+      "enterFieldDescription": "Enter field description...",
+      "enterViewDescription": "Enter view description...",
       "enterLayoutName": "Enter Layout name",
       "enterDashboardName": "Enter Dashboard name",
       "defaultColumns": "Default fields",

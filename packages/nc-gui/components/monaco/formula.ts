@@ -62,7 +62,7 @@ const generateLanguageDefinition = (identifiers: string[]) => {
         ],
         [/\d+/, 'number'],
         [/[-+/*=<>!]+/, 'operator'],
-        [/[{}()\[\]]/, '@brackets'],
+        [/[{}()]/, '@brackets'],
         [/[ \t\r\n]+/, 'white'],
       ],
 
@@ -86,12 +86,10 @@ const generateLanguageDefinition = (identifiers: string[]) => {
 const languageConfiguration: languages.LanguageConfiguration = {
   brackets: [
     ['{', '}'],
-    ['[', ']'],
     ['(', ')'],
   ],
   autoClosingPairs: [
     { open: '{', close: '}' },
-    { open: '[', close: ']' },
     { open: '(', close: ')' },
     { open: '"', close: '"' },
     { open: "'", close: "'" },

@@ -31,6 +31,8 @@ const editColumnDropdown = ref(false)
 
 const isDropDownOpen = ref(false)
 
+const enableDescription = ref(false)
+
 const isLocked = inject(IsLockedInj, ref(false))
 
 provide(ColumnInj, column)
@@ -122,7 +124,13 @@ const closeAddColumnDropdown = () => {
   editColumnDropdown.value = false
 }
 
-const openHeaderMenu = (e?: MouseEvent) => {
+watch(editColumnDropdown, (val) => {
+  if (!val) {
+    enableDescription.value = false
+  }
+})
+
+const openHeaderMenu = (e?: MouseEvent, description = false) => {
   if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
   if (
@@ -131,6 +139,9 @@ const openHeaderMenu = (e?: MouseEvent) => {
     !isMobileMode.value &&
     (!isMetaReadOnly.value || readonlyMetaAllowedTypes.includes(column.value.uidt))
   ) {
+    if (description) {
+      enableDescription.value = true
+    }
     editColumnDropdown.value = true
   }
 }
@@ -150,6 +161,7 @@ const onVisibleChange = () => {
   editColumnDropdown.value = true
   if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
     editColumnDropdown.value = false
+    enableDescription.value = false
   }
 }
 
@@ -231,7 +243,7 @@ const onClick = (e: Event) => {
         :is-hidden-col="isHiddenCol"
         :virtual="true"
         @add-column="addField"
-        @edit="editColumnDropdown = true"
+        @edit="openHeaderMenu"
       />
     </template>
 
@@ -253,6 +265,7 @@ const onClick = (e: Event) => {
             :column="columnOrder ? null : column"
             :column-position="columnOrder"
             class="w-full"
+            :edit-description="enableDescription"
             @submit="closeAddColumnDropdown"
             @cancel="closeAddColumnDropdown"
             @click.stop

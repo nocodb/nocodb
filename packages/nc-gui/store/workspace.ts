@@ -20,6 +20,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const collaborators = ref<any[] | null>()
 
+  const allCollaborators = ref<any[] | null>()
+
   const router = useRouter()
 
   const route = router.currentRoute
@@ -296,6 +298,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removeCollaborator,
     updateCollaborator,
     collaborators,
+    allCollaborators,
     isInvitingCollaborators,
     isCollaboratorsLoading,
     addToFavourite,
@@ -323,7 +326,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     auditLogsQuery,
     audits,
     auditPaginationData,
-
     loadAudits,
     isIntegrationsPageOpened,
     navigateToIntegrations,

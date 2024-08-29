@@ -30,6 +30,8 @@ const isExpandedBulkUpdateForm = inject(IsExpandedBulkUpdateFormOpenInj, ref(fal
 
 const isDropDownOpen = ref(false)
 
+const isPublic = inject(IsPublicInj, ref(false))
+
 const column = toRef(props, 'column')
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
@@ -52,6 +54,14 @@ const addField = async (payload: any) => {
   editColumnDropdown.value = true
 }
 
+const enableDescription = ref(false)
+
+watch(editColumnDropdown, (val) => {
+  if (!val) {
+    enableDescription.value = false
+  }
+})
+
 const closeAddColumnDropdown = () => {
   columnOrder.value = null
   editColumnDropdown.value = false
@@ -67,10 +77,13 @@ const isColumnEditAllowed = computed(() => {
   return true
 })
 
-const openHeaderMenu = (e?: MouseEvent) => {
+const openHeaderMenu = (e?: MouseEvent, description = false) => {
   if (isLocked.value || (isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value) return
 
-  if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value && isColumnEditAllowed.value) {
+  if (!isForm.value && isUIAllowed('fieldEdit') && !isMobileMode.value && (isColumnEditAllowed.value || description)) {
+    if (description) {
+      enableDescription.value = true
+    }
     editColumnDropdown.value = true
   }
 }
@@ -113,7 +126,7 @@ const onClick = (e: Event) => {
         isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
       'bg-gray-100': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
     }"
-    @dblclick="openHeaderMenu"
+    @dblclick="openHeaderMenu($event, false)"
     @click.right="openDropDown"
     @click="onClick"
   >
@@ -181,6 +194,12 @@ const onClick = (e: Event) => {
         }"
       />
     </div>
+    <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
+      <template #title>
+        {{ column.description }}
+      </template>
+      <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+    </NcTooltip>
 
     <template v-if="!hideMenu">
       <div v-if="!isExpandedForm" class="flex-1" />
@@ -210,6 +229,7 @@ const onClick = (e: Event) => {
             :column="columnOrder ? null : column"
             :column-position="columnOrder"
             class="w-full"
+            :edit-description="enableDescription"
             @submit="closeAddColumnDropdown"
             @cancel="closeAddColumnDropdown"
             @click.stop

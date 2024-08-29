@@ -171,6 +171,7 @@ export default class Integration implements IntegrationType {
       userId: string;
       includeDatabaseInfo?: boolean;
       type?: IntegrationsType;
+      sub_type?: string | ClientTypes;
       limit?: number;
       offset?: number;
       includeSourceCount?: boolean;
@@ -198,6 +199,10 @@ export default class Integration implements IntegrationType {
     // if type is provided then filter integrations based on type
     if (args.type) {
       qb.where(`${MetaTable.INTEGRATIONS}.type`, args.type);
+    }
+    // if sub_type is provided then filter integrations based on sub_type
+    if (args.sub_type) {
+      qb.where(`${MetaTable.INTEGRATIONS}.sub_type`, args.sub_type);
     }
 
     qb.where((whereQb) => {
@@ -247,6 +252,9 @@ export default class Integration implements IntegrationType {
         integration.config = partialExtract(config, [
           'client',
           ['connection', 'database'],
+          // extract params related to sqlite
+          ['connection', 'filepath'],
+          ['connection', 'connection', 'filepath'],
           ['searchPath'],
         ]);
       }

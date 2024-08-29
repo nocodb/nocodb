@@ -235,7 +235,7 @@ const handleCancel = () => {
         </span>
       </template>
     </NcPageHeader>
-    <div class="p-6 h-[calc(100vh_-_100px)] border-t-1 border-gray-200 flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
+    <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="max-w-202 mx-auto h-full w-full" data-testid="nc-token-list">
         <div class="flex gap-4 items-baseline justify-between">
           <h6 class="text-xl text-left font-bold my-0" data-rec="true">{{ $t('title.apiTokens') }}</h6>

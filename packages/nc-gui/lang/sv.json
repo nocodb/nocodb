@@ -1,24 +1,24 @@
 {
   "dashboards": {
-    "create_new_dashboard_project": "Create New Interface",
-    "connect_data_sources": "Connect data sources",
-    "alert": "Alert",
-    "alert-message": "No databases have been connected. Connect database bases to build interfaces. Skip this step and add databases from the base home page later.",
-    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Select Database Bases that you want to link to this Interface.",
-    "create_interface": "Create interface",
-    "project_name": "Base Name",
-    "connect": "Connect",
+    "create_new_dashboard_project": "Skapa nytt gränssnitt",
+    "connect_data_sources": "Anslut datakällor",
+    "alert": "Varning",
+    "alert-message": "Inga databaser har anslutits. Anslut databasbaser för att bygga gränssnitt. Hoppa över det här steget och lägg till databaser från projektets startsida senare.",
+    "select_database_projects_that_you_want_to_link_to_this_dashboard_projects": "Välj de databasprojekt som du vill länka till detta gränssnitt.",
+    "create_interface": "Skapa gränssnitt",
+    "project_name": "Projektnamn",
+    "connect": "Anslut",
     "buttonActionTypes": {
-      "open_external_url": "Open external link",
-      "delete_record": "Delete record",
-      "update_record": "Update record",
-      "open_layout": "Open layout"
+      "open_external_url": "Öppna extern länk",
+      "delete_record": "Ta bort en post",
+      "update_record": "Uppdatera post",
+      "open_layout": "Öppna layout"
     },
     "widgets": {
       "static_text": "Text",
       "chart": "Chart",
-      "table": "Table",
-      "image": "Image",
+      "table": "Tabell",
+      "image": "Bild",
       "map": "Map",
       "button": "Button",
       "number": "Number",
@@ -93,11 +93,13 @@
     "none": "None"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
     "trigger": "Trigger",
-    "addLookupField": "Add {count} lookup fields",
+    "addLookupField": "Lägg till {count} uppslagsfält",
     "style": "Style",
     "label": "Label",
     "role": "Role",
@@ -210,6 +212,7 @@
     "confirm": "Bekräfta",
     "generate": "Generera",
     "copy": "Kopiera",
+    "copied": "Copied",
     "are": "are",
     "misc": "Diverse",
     "lock": "Lås",
@@ -283,7 +286,8 @@
     "connection": "Connection",
     "connections": "Connections",
     "private": "Private",
-    "request": "Request"
+    "request": "Request",
+    "languages": "Languages"
   },
   "objects": {
     "files": "files",
@@ -313,7 +317,7 @@
     "webhooks": "Webhooks",
     "view": "Se",
     "views": "Åsikter",
-    "sidebar": "Sidebar",
+    "sidebar": "Sidopanel",
     "viewType": {
       "grid": "Rutnät",
       "gallery": "Galleri",
@@ -358,6 +362,7 @@
       "googleDrive": "Google Drive",
       "googleSheets": "Google Sheets",
       "hubspot": "Hubspot",
+      "serviceHub": "Service Hub",
       "jira": "Jira",
       "mailchimp": "Mailchimp",
       "microsoftAccess": "Microsoft Access",
@@ -365,6 +370,7 @@
       "microsoftOutlook": "Microsoft Outlook",
       "miro": "Miro",
       "salesforce": "Salesforce",
+      "serviceCloud": "Service Cloud",
       "snowflake": "Snowflake",
       "stripe": "Stripe",
       "surveyMonkey": "SurveyMonkey",
@@ -375,7 +381,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -394,7 +400,8 @@
       "openai": "OpenAI",
       "claude": "Claude",
       "ollama": "Ollama",
-      "groq": "Groq"
+      "groq": "Groq",
+      "freshdesk": "FreshDesk"
     },
     "integrationCategories": {
       "allIntegrations": "All Integrations",
@@ -614,6 +621,14 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
+    "fieldID": "Field ID",
+    "addDescription": "Add description",
+    "editDescription": "Edit description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",
@@ -657,6 +672,7 @@
     "metaSync": "Meta Sync",
     "mention": "Mention",
     "today": "Today",
+    "currentDate": "Current date",
     "workspace": "Workspace",
     "txt": "TXT Record value",
     "transferOwnership": "Transfer Ownership",
@@ -817,9 +833,9 @@
     "roleDescription": "Rollbeskrivning",
     "databaseType": "Skriv in databasen",
     "lengthValue": "Längd / värde",
-    "dbType": "Databas typ",
+    "dbType": "Databastyp",
     "servername": "servername / hostAddr",
-    "sqliteFile": "Sqlite-fil",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "Användarnamn",
@@ -979,9 +995,11 @@
     "fitImage": "Fit image",
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1235,9 +1253,11 @@
       "lockedFieldTooltip": "Pre-filled value"
     },
     "getPreFilledLink": "Get Pre-filled Link",
-    "group": "Group"
+    "group": "Group",
+    "goToDocs": "Go to Docs"
   },
   "tooltip": {
+    "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
     "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",
     "optionalSchemaName": "Optional. Uses default schema \"{schema}\" if left blank.",
@@ -1537,7 +1557,7 @@
       "apiOptions": "Åtkomstprojekt via",
       "submitAnotherForm": "Visa \"Skicka en annan formulär\" -knapp",
       "showBlankForm": "Visa en tom form efter 5 sekunder",
-      "emailForm": "E-posta mig på",
+      "emailForm": "Email responses to",
       "showSysFields": "Visa systemfält",
       "filterAutoApply": "Auto ansöker",
       "formDisplayMessage": "Display Message",
@@ -1593,6 +1613,9 @@
       "tablesMetadataInSync": "Tabeller Metadata är synkroniserad",
       "addMultipleUsers": "Du kan lägga till flera kommatecken (,) separerade e-postmeddelanden",
       "enterTableName": "Ange tabellnamn",
+      "enterTableDescription": "Enter table description...",
+      "enterFieldDescription": "Enter field description...",
+      "enterViewDescription": "Enter view description...",
       "enterLayoutName": "Enter Layout name",
       "enterDashboardName": "Enter Dashboard name",
       "defaultColumns": "Default fields",
@@ -1779,7 +1802,7 @@
       "columnDuplicated": "Kolumnen duplicerades framgångsrikt",
       "rowDuplicatedWithoutSavedYet": "Row duplicated (not saved)",
       "updatedUIACL": "Uppdaterade UI ACL för tabeller framgångsrikt",
-      "pluginUninstalled": "Plugin avinstallerades framgångsrikt",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "Plugin-inställningarna har sparats framgångsrikt",
       "pluginTested": "Testade framgångsrikt inställningar för insticksmodulet",
       "tableRenamed": "Tabellen har bytt namn framgångsrikt",

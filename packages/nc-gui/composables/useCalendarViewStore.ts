@@ -91,6 +91,8 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const { api } = useApi()
 
+    const { isMysql } = useBase()
+
     const { base } = storeToRefs(useBase())
 
     const { $api, $e } = useNuxtApp()
@@ -113,6 +115,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       limit: paginationData.value.pageSize ?? defaultPageSize,
       where: where?.value ?? '',
     }))
+
+    const updateFormat = computed(() => {
+      return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+    })
 
     const calendarRange = ref<
       Array<{
@@ -772,7 +778,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
         await fetchActiveDates()
         return updatedRowData
       } catch (e: any) {
-        message.error(`${t('msg.error.rowUpdateFailed')} ${await extractSdkResponseErrorMsg(e)}`)
+        message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
 
@@ -913,6 +919,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       selectedDateRange,
       paginateCalendarView,
       viewMetaProperties,
+      updateFormat,
     }
   },
 )

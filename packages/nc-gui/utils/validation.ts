@@ -236,7 +236,9 @@ export const emailValidator = {
 export const urlValidator = {
   validator: (_: unknown, v: string) => {
     return new Promise((resolve, reject) => {
-      if (!v.length || isValidURL(v)) return resolve()
+      const { t } = getI18n().global
+
+      if (!v.length || isValidURL(v)) return resolve(true)
 
       reject(new Error(t('msg.error.invalidURL')))
     })

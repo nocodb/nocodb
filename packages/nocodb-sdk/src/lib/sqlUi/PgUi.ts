@@ -1,5 +1,6 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
+import { ColumnType } from '~/lib';
 
 const dbTypes = [
   'int',
@@ -2030,6 +2031,13 @@ export class PgUi {
 
   static getUnsupportedFnList() {
     return [];
+  }
+
+  static getCurrentDateDefault(col: Partial<ColumnType>) {
+    if (col.uidt === UITypes.DateTime || col.uidt === UITypes.Date) {
+      return 'NOW()';
+    }
+    return null;
   }
 
   static isEqual(dataType1: string, dataType2: string) {

@@ -10,23 +10,23 @@ const emits = defineEmits(['rename', 'duplicate', 'showDetails', 'clearData', 'd
 
 <template>
   <div class="flex items-center">
-    <NcDropdown :trigger="['click']">
-      <NcButton type="text" :size="fullscreen ? 'small' : 'xxsmall'">
+    <NcDropdown :trigger="['click']" placement="bottomRight">
+      <NcButton type="text" :size="fullscreen ? 'small' : 'xs'" class="!px-1">
         <GeneralIcon icon="threeDotVertical" />
       </NcButton>
 
       <template #overlay>
         <NcMenu>
           <template v-if="!activeError">
-            <NcMenuItem data-rec="true" class="!hover:text-primary" @click="emits('rename')">
+            <NcMenuItem data-rec="true" @click="emits('rename')">
               <GeneralIcon icon="edit" />
               Rename
             </NcMenuItem>
-            <NcMenuItem data-rec="true" class="!hover:text-primary" @click="emits('duplicate')">
+            <NcMenuItem data-rec="true" @click="emits('duplicate')">
               <GeneralIcon icon="duplicate" />
               Duplicate
             </NcMenuItem>
-            <NcMenuItem data-rec="true" class="!hover:text-primary" @click="emits('showDetails')">
+            <NcMenuItem data-rec="true" @click="emits('showDetails')">
               <GeneralIcon icon="info" />
               Details
             </NcMenuItem>
@@ -34,7 +34,7 @@ const emits = defineEmits(['rename', 'duplicate', 'showDetails', 'clearData', 'd
           </template>
           <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="emits('clearData')">
             <GeneralIcon icon="reload" />
-            Clear Data
+            Clear data
           </NcMenuItem>
           <NcMenuItem data-rec="true" class="!text-red-500 !hover:bg-red-50" @click="emits('delete')">
             <GeneralIcon icon="delete" />

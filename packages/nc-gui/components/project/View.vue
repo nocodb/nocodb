@@ -112,10 +112,10 @@ watch(
   <div class="h-full nc-base-view">
     <div
       v-if="!isAdminPanel"
-      class="flex flex-row px-2 py-2 gap-1 justify-between w-full border-b-1 border-gray-200"
+      class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-gray-200"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >
-      <div class="flex flex-row items-center gap-x-3">
+      <div class="flex-1 flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
         <div class="flex flex-row items-center h-full gap-x-2 px-2">
           <GeneralProjectIcon :color="parseProp(currentBase?.meta).iconColor" :type="currentBase?.type" />
@@ -127,10 +127,13 @@ watch(
           </NcTooltip>
         </div>
       </div>
+
+      <SmartsheetTopbarCmdK v-if="!isSharedBase" />
+
       <LazyGeneralShareProject />
     </div>
     <div
-      class="flex nc-base-view-tab container"
+      class="flex nc-base-view-tab"
       :style="{
         height: 'calc(100% - var(--topbar-height))',
       }"
@@ -216,6 +219,9 @@ watch(
 }
 :deep(.ant-tabs-tab) {
   @apply pt-2 pb-3;
+}
+:deep(.ant-tabs-content) {
+  @apply nc-content-max-w;
 }
 :deep(.ant-tabs-tab .tab-title) {
   @apply text-gray-500;

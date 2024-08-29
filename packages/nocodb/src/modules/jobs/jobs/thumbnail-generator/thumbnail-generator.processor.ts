@@ -1,38 +1,39 @@
 import path from 'path';
 import { Readable } from 'stream';
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
 import { Logger } from '@nestjs/common';
 import slash from 'slash';
 import type { IStorageAdapterV2 } from '~/types/nc-plugin';
+import type { Job } from 'bull';
 import type { AttachmentResType } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import type Sharp from 'sharp';
-import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
 
-@Processor(JOBS_QUEUE)
 export class ThumbnailGeneratorProcessor {
-  constructor() {}
-
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
 
-  @Process(JobTypes.ThumbnailGenerator)
   async job(job: Job<ThumbnailGeneratorJobData>) {
     const { attachments } = job.data;
 
-    const thumbnailPromises = attachments.map(async (attachment) => {
+    const results = [];
+
+    for (const attachment of attachments) {
       const thumbnail = await this.generateThumbnail(attachment);
-      return {
+
+      if (!thumbnail) {
+        continue;
+      }
+
+      results.push({
         path: attachment.path ?? attachment.url,
         card_cover: thumbnail?.card_cover,
         small: thumbnail?.small,
         tiny: thumbnail?.tiny,
-      };
-    });
+      });
+    }
 
-    return await Promise.all(thumbnailPromises);
+    return results;
   }
 
   private async generateThumbnail(
@@ -53,6 +54,8 @@ export class ThumbnailGeneratorProcessor {
       return;
     }
 
+    sharp.concurrency(1);
+
     try {
       const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
@@ -72,51 +75,53 @@ export class ThumbnailGeneratorProcessor {
         tiny: path.join('nc', 'thumbnails', relativePath, 'tiny.jpg'),
       };
 
-      await Promise.all(
-        Object.entries(thumbnailPaths).map(async ([size, thumbnailPath]) => {
-          let height;
-          switch (size) {
-            case 'card_cover':
-              height = 512;
-              break;
-            case 'small':
-              height = 128;
-              break;
-            case 'tiny':
-              height = 64;
-              break;
-            default:
-              height = 32;
-              break;
-          }
+      const sharpImage = sharp(file, {
+        limitInputPixels: false,
+      });
 
-          const resizedImage = await sharp(file, {
-            limitInputPixels: false,
+      for (const [size, thumbnailPath] of Object.entries(thumbnailPaths)) {
+        let height;
+        switch (size) {
+          case 'card_cover':
+            height = 512;
+            break;
+          case 'small':
+            height = 128;
+            break;
+          case 'tiny':
+            height = 64;
+            break;
+          default:
+            height = 32;
+            break;
+        }
+
+        const resizedImage = await sharpImage
+          .resize(undefined, height, {
+            fit: sharp.fit.cover,
+            kernel: 'lanczos3',
           })
-            .resize(undefined, height, {
-              fit: sharp.fit.cover,
-              kernel: 'lanczos3',
-            })
-            .toBuffer();
+          .toBuffer();
 
-          await (storageAdapter as any).fileCreateByStream(
-            slash(thumbnailPath),
-            Readable.from(resizedImage),
-            {
-              mimetype: 'image/jpeg',
-            },
-          );
-        }),
-      );
+        await (storageAdapter as any).fileCreateByStream(
+          slash(thumbnailPath),
+          Readable.from(resizedImage),
+          {
+            mimetype: 'image/jpeg',
+          },
+        );
+      }
 
       return thumbnailPaths;
     } catch (error) {
-      this.logger.error(
-        `Failed to generate thumbnails for ${
+      this.logger.error({
+        message: `Failed to generate thumbnails for ${
           attachment.path ?? attachment.url
         }`,
-        error.stack as string,
-      );
+        error: error?.message,
+      });
+
+      return null;
     }
   }
 
@@ -130,7 +135,7 @@ export class ThumbnailGeneratorProcessor {
       relativePath = path.join(
         'nc',
         'uploads',
-        attachment.path.replace(/^download\//, ''),
+        attachment.path.replace(/^download[/\\]/i, ''),
       );
     } else if (attachment.url) {
       relativePath = getPathFromUrl(attachment.url).replace(/^\/+/, '');
@@ -139,7 +144,7 @@ export class ThumbnailGeneratorProcessor {
     const file = await storageAdapter.fileRead(relativePath);
 
     // remove everything before 'nc/uploads/' (including nc/uploads/) in relativePath
-    relativePath = relativePath.replace(/.*?nc\/uploads\//, '');
+    relativePath = relativePath.replace(/^.*?nc[/\\]uploads[/\\]/, '');
 
     return { file, relativePath };
   }

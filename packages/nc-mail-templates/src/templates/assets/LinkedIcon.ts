@@ -7,7 +7,7 @@ export default defineComponent({
             return h(
                 "img",
                 {
-                    src: "https://app.nocodb.com/linkedin.png",
+                    src: "https://cdn.nocodb.com/email/linkedin.png",
                     alt: "LinkedIn Icon",
                     width: "24",
                     height: "24",

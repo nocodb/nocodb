@@ -43,8 +43,6 @@ export default defineComponent({
                     box-sizing: border-box;
                     font-family: Manrope, sans-serif;
                 }
-
-
                 `
                         ),
                     ]),

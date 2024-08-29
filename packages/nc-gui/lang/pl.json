@@ -93,6 +93,8 @@
     "none": "Brak"
   },
   "general": {
+    "configure": "Configure",
+    "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
     "manual": "Manual",
@@ -210,6 +212,7 @@
     "confirm": "Potwierdź",
     "generate": "Generuj",
     "copy": "Kopiuj",
+    "copied": "Copied",
     "are": "są",
     "misc": "Różne",
     "lock": "Zablokuj",
@@ -283,7 +286,8 @@
     "connection": "Connection",
     "connections": "Connections",
     "private": "Private",
-    "request": "Request"
+    "request": "Request",
+    "languages": "Languages"
   },
   "objects": {
     "files": "files",
@@ -358,6 +362,7 @@
       "googleDrive": "Google Drive",
       "googleSheets": "Google Sheets",
       "hubspot": "Hubspot",
+      "serviceHub": "Service Hub",
       "jira": "Jira",
       "mailchimp": "Mailchimp",
       "microsoftAccess": "Microsoft Access",
@@ -365,6 +370,7 @@
       "microsoftOutlook": "Microsoft Outlook",
       "miro": "Miro",
       "salesforce": "Salesforce",
+      "serviceCloud": "Service Cloud",
       "snowflake": "Snowflake",
       "stripe": "Stripe",
       "surveyMonkey": "SurveyMonkey",
@@ -375,7 +381,7 @@
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",
-      "sqlServer": "SQL Server",
+      "sqlite": "SQLite",
       "dataBricks": "DataBricks",
       "mssqlServer": "MSSQL Server",
       "oracle": "Oracle",
@@ -394,7 +400,8 @@
       "openai": "OpenAI",
       "claude": "Claude",
       "ollama": "Ollama",
-      "groq": "Groq"
+      "groq": "Groq",
+      "freshdesk": "FreshDesk"
     },
     "integrationCategories": {
       "allIntegrations": "All Integrations",
@@ -614,6 +621,14 @@
     "categories": "Categories"
   },
   "labels": {
+    "modifiedOn": "Modified on",
+    "configuration": "Configuration",
+    "setup": "Setup",
+    "configLabel": "Configure {label}",
+    "switchToProd": "Switch to a production-ready app database",
+    "fieldID": "Field ID",
+    "addDescription": "Add description",
+    "editDescription": "Edit description",
     "urlFormula": "URL Formula",
     "selectIcon": "none",
     "selectAWebhook": "--select a webhook--",
@@ -657,6 +672,7 @@
     "metaSync": "Synchronizacja Meta",
     "mention": "Wzmianka",
     "today": "Dziś",
+    "currentDate": "Current date",
     "workspace": "Obszar roboczy",
     "txt": "Wartość rekordu TXT",
     "transferOwnership": "Zmień właściciela",
@@ -819,7 +835,7 @@
     "lengthValue": "Długość / wartość",
     "dbType": "Typ bazy danych",
     "servername": "servername / hostAddr",
-    "sqliteFile": "Plik SQLite",
+    "sqliteFile": "SQLite file path",
     "hostAddress": "Host address",
     "port": "Port number",
     "username": "Nazwa użytkownika",
@@ -979,9 +995,11 @@
     "fitImage": "Dopasuj zdjęcie",
     "coverImageArea": "Obraz okładki",
     "syncData": "Sync data",
-    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available"
+    "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
+    "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "pending": "Pending",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Ukryj weekendy",
     "renameBase": "Zmień nazwę tabeli",
@@ -1235,9 +1253,11 @@
       "lockedFieldTooltip": "Wstępnie wypełniona wartość"
     },
     "getPreFilledLink": "Uzyskaj link z wstępnie wypełnionymi danymi",
-    "group": "Grupa"
+    "group": "Grupa",
+    "goToDocs": "Go to Docs"
   },
   "tooltip": {
+    "currentDateNotAvail": "Current date option not available for this data source / data type",
     "privateConnection": "Enable to make this connection private and hidden from other creators in this workspace.",
     "optionalDatabaseName": "Optional. Uses default database \"{database}\" if left blank",
     "optionalSchemaName": "Optional. Uses default schema \"{schema}\" if left blank.",
@@ -1537,7 +1557,7 @@
       "apiOptions": "Dostęp do projektu przez",
       "submitAnotherForm": "Pokaż przycisk \"Prześlij inny formularz\"",
       "showBlankForm": "Pokaż pustą formę po 5 sekundach",
-      "emailForm": "E-mail mnie",
+      "emailForm": "Email responses to",
       "showSysFields": "Pokaż pola systemowe.",
       "filterAutoApply": "Automatyczne zastosowanie",
       "formDisplayMessage": "Wyświetl wiadomość",
@@ -1593,6 +1613,9 @@
       "tablesMetadataInSync": "Metadane tabel są zsynchronizowane",
       "addMultipleUsers": "Możesz dodać wielu użytkowników, oddzielając adresy e-mail przecinkami (,)",
       "enterTableName": "Wpisz nazwę tabeli",
+      "enterTableDescription": "Enter table description...",
+      "enterFieldDescription": "Enter field description...",
+      "enterViewDescription": "Enter view description...",
       "enterLayoutName": "Wpisz nazwę układu",
       "enterDashboardName": "Wpisz nazwę deski rozdzielczej",
       "defaultColumns": "Domyślne pola",
@@ -1779,7 +1802,7 @@
       "columnDuplicated": "Kolumna powielona z powodzeniem",
       "rowDuplicatedWithoutSavedYet": "Wiersz zduplikowany (niezapisany)",
       "updatedUIACL": "Pomyślnie zaktualizowano UI ACL dla tabel",
-      "pluginUninstalled": "Wtyczka odinstalowana pomyślnie",
+      "pluginUninstalled": "Configuration reset successfully",
       "pluginSettingsSaved": "Ustawienia wtyczki zapisane pomyślnie",
       "pluginTested": "Pomyślnie przetestowano ustawienia wtyczki",
       "tableRenamed": "Zmieniono nazwę tabeli",

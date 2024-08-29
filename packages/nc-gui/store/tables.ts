@@ -228,6 +228,12 @@ export const useTablesStore = defineStore('tablesStore', () => {
     return url.href
   }
 
+  const reloadTableMeta = async (tableId: string) => {
+    const { getMeta } = useMetas()
+
+    await getMeta(tableId, true)
+  }
+
   return {
     baseTables,
     loadProjectTables,
@@ -239,6 +245,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     activeTableId,
     navigateToTable,
     tableUrl,
+    reloadTableMeta,
   }
 })
 

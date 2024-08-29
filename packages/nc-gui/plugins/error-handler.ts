@@ -4,13 +4,25 @@ export default defineNuxtPlugin((nuxtApp) => {
   const QUERY_PARAM_NAME = 'reload_attempt'
 
   const reload = () => {
-    const searchParams = new URLSearchParams(window.location.search)
+    const url = new URL(window.location.href)
+    const hash = url.hash || '' // Get the current hash part
+
+    // Extract path and query from the hash
+    const [path, queryString] = hash.split('?')
+    const searchParams = new URLSearchParams(queryString || '')
     const currentRetry = Number(searchParams.get(QUERY_PARAM_NAME)) || 0
+
     if (currentRetry < MAX_RETRIES) {
       console.log('[nuxt]: Reloading due to chunk error')
       searchParams.set(QUERY_PARAM_NAME, (currentRetry + 1).toString())
-      // Changing the search also causes a refresh
-      window.location.search = searchParams.toString()
+
+      // Rebuild the hash with updated query params
+      const newHash = `${path}?${searchParams.toString()}`
+      url.hash = newHash
+
+      window.location.replace(url.toString())
+      // sometimes replace will not causes a refresh so we have to reload page
+      window.location.reload()
     }
   }
 

@@ -1452,7 +1452,7 @@ export class ImportService {
 
     elapsedTime(hrTime, 'create views', 'importModels');
 
-    // create hooks filters
+    // create hook filters for hooks
     for (const data of param.data) {
       if (param.existingModel) break;
       if (!data?.hooks) break;

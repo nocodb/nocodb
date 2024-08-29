@@ -56,6 +56,7 @@
     "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^0.0.48",
     "@ai-sdk/openai": "^0.0.46",
     "@aws-sdk/client-kafka": "^3.620.0",
     "@aws-sdk/client-kinesis": "^3.620.0",

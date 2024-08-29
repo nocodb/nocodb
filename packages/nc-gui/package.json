@@ -79,7 +79,7 @@
     "marked": "^4.3.0",
     "monaco-editor": "^0.50.0",
     "monaco-sql-languages": "^0.11.0",
-    "nocodb-sdk": "0.255.2",
+    "nocodb-sdk": "workspace:^",
     "papaparse": "^5.4.1",
     "parse-github-url": "^1.0.2",
     "pdfobject": "^2.3.0",

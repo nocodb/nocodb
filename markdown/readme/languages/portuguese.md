@@ -98,15 +98,16 @@ Acesse o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/
 
 # Recursos
 
-### Interface de planilha rica
+### Rica Interface de Planilha
 
-- ⚡ Pesquisar, classificar, filtrar, esconder colunas com uber facilidade
-- ⚡ Criar visualizações: Grade, Galeria, Kanban, Formulário
-- ⚡ Compartilhar Visualizações: Public & Senha Protegido
-- ⚡ Vistas pessoais e bloqueadas
-- ⚡ Carregar imagens para as células (funciona com S3, Minio, GCP, Azure, Digitalocean, Linodo, OVH, Backblaze) !!
-- ⚡ Funções: proprietário, criador, editor, comentarista, visualizador, comentador, funções personalizadas.
-- ⚡ Controle de acesso: controle de acesso fino, mesmo no banco de dados, no nível da tabela e da coluna.
+- ⚡ Operações básicas: Criar, Ler, Atualizar e Deletar Tabelas, Colunas e Linhas<i>(Rows)</i>
+- ⚡ Operação de campos: Sort, Filtro, Esconder / Mostrar Colunas
+- ⚡ Multíplos tipos de visualização: Grade (Por padrão), Galeria, Visualização por Formulário e Visualização por Kanban
+- ⚡ Visualização por tipos de permissão: Colabarativo e Bloqueados
+- ⚡ Bases de compartilhamento / Visualizaç~eos: Tantao pública, quanto privada (com proteção por senha)
+- ⚡ Variantes por tipos de células: D, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, etc
+- ⚡ Controle de Acesso por Funções: controle de acesso detalhado em diferentes níveis
+- ⚡ E mais...
 
 ### App Store para fluxo de automoção:
 
@@ -114,11 +115,11 @@ Acesse o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/
 - ⚡ Email: SMTP, SES, MailChimp
 - ⚡ SMS: Twilio
 - ⚡ whatsapp.
-- ⚡ Qualquer APIs da 3ª parte
+- ⚡ Qualquer APIs de terceiros
 
 ### Acesso programático da API via:
 
-- ⚡ repouso APIs (Swagger)
+- ⚡ APIs Rest
 - ⚡ APIs GraphQl.
 - ⚡ Inclui autenticação JWT e autenticação social
 - ⚡ Tokens de API para integrar com Zapier, integromat.

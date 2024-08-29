@@ -429,9 +429,9 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
   >
     <div class="flex gap-0.5 items-center" @dblclick.stop>
       <div v-if="isExpandedForm" class="h-[1px]">&nbsp;</div>
-      <NcTooltip v-if="column.description?.length && !isExpandedForm" class="flex">
+      <NcTooltip v-if="column?.description?.length && !isExpandedForm" class="flex">
         <template #title>
-          {{ column.description }}
+          {{ column?.description }}
         </template>
         <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
       </NcTooltip>

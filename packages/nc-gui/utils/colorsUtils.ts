@@ -391,20 +391,20 @@ export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light')
  * ###### Text Color
  * To apply a text color, you can use:
  * ```html
- * <p class="text-nc-grey-subtle">This is subtle grey text.</p>
+ * <p class="text-nc-content-grey-subtle">This is subtle grey text.</p>
  * ```
  *
  * ###### Border Color
  * To apply a border color, you can use:
  * ```html
- * <div class="border-nc-gray-light">This div has a light grey border.</div>
+ * <div class="border-nc-border-gray-light">This div has a light grey border.</div>
  * ```
  *
  * ###### Background Color
  * To apply a background color, you can use:
  * ```html
- * <div class="bg-nc-brand">This div has a brand color background.</div>
- * <div class="bg-nc-blue-dark">This div has a blue dark color background.</div>
+ * <div class="bg-nc-bg-brand">This div has a brand color background.</div>
+ * <div class="bg-nc-bg-blue-dark">This div has a blue dark color background.</div>
  * ```
  *
  * ###### Fill Color
@@ -429,7 +429,7 @@ export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light')
  */
 export const lightTheme = {
   content: {
-    'nc-gray': {
+    'nc-content-gray': {
       extreme: themeV3Colors.base.black,
       emphasis: themeV3Colors.gray[900],
       DEFAULT: themeV3Colors.gray[800],
@@ -437,136 +437,136 @@ export const lightTheme = {
       subtle2: themeV3Colors.gray[600],
       muted: themeV3Colors.gray[500],
     },
-    'nc-brand': {
+    'nc-content-brand': {
       DEFAULT: themeV3Colors.brand[500],
       disabled: themeV3Colors.brand[600],
       hover: themeV3Colors.gray[300],
     },
-    'nc-inverted-primary': {
+    'nc-content-inverted-primary': {
       DEFAULT: themeV3Colors.base.white,
       hover: themeV3Colors.base.white,
       disabled: themeV3Colors.gray[400],
     },
-    'nc-inverted-secondary': {
+    'nc-content-inverted-secondary': {
       DEFAULT: themeV3Colors.gray[700],
       hover: themeV3Colors.gray[700],
       disabled: themeV3Colors.gray[400],
     },
-    'nc-red': {
+    'nc-content-red': {
       dark: themeV3Colors.red[700],
       medium: themeV3Colors.red[500],
       light: themeV3Colors.red[300],
     },
-    'nc-green': {
+    'nc-content-green': {
       dark: themeV3Colors.green[700],
       medium: themeV3Colors.green[500],
       light: themeV3Colors.green[300],
     },
-    'nc-yellow': {
+    'nc-content-yellow': {
       dark: themeV3Colors.yellow[700],
       medium: themeV3Colors.yellow[500],
       light: themeV3Colors.yellow[300],
     },
-    'nc-blue': {
+    'nc-content-blue': {
       dark: themeV3Colors.blue[700],
       medium: themeV3Colors.blue[500],
       light: themeV3Colors.blue[300],
     },
-    'nc-purple': {
+    'nc-content-purple': {
       dark: themeV3Colors.purple[700],
       medium: themeV3Colors.purple[500],
       light: themeV3Colors.purple[300],
     },
-    'nc-pink': {
+    'nc-content-pink': {
       dark: themeV3Colors.pink[700],
       medium: themeV3Colors.pink[500],
       light: themeV3Colors.pink[300],
     },
-    'nc-orange': {
+    'nc-content-orange': {
       dark: themeV3Colors.orange[700],
       medium: themeV3Colors.orange[500],
       light: themeV3Colors.orange[300],
     },
-    'nc-maroon': {
+    'nc-content-maroon': {
       dark: themeV3Colors.maroon[700],
       medium: themeV3Colors.maroon[500],
       light: themeV3Colors.maroon[300],
     },
   },
   background: {
-    'nc-default': themeV3Colors.base.white,
-    'nc-brand': themeV3Colors.brand[50],
-    'nc-gray': {
+    'nc-bg-default': themeV3Colors.base.white,
+    'nc-bg-brand': themeV3Colors.brand[50],
+    'nc-bg-gray': {
       extralight: themeV3Colors.gray[50],
       light: themeV3Colors.gray[100],
       medium: themeV3Colors.gray[200],
       dark: themeV3Colors.gray[300],
       extradark: themeV3Colors.gray[400],
     },
-    'nc-red': {
+    'nc-bg-red': {
       light: themeV3Colors.red[50],
       dark: themeV3Colors.red[100],
     },
-    'nc-green': {
+    'nc-bg-green': {
       light: themeV3Colors.green[50],
       dark: themeV3Colors.green[100],
     },
-    'nc-yellow': {
+    'nc-bg-yellow': {
       light: themeV3Colors.yellow[50],
       dark: themeV3Colors.yellow[100],
     },
-    'nc-blue': {
+    'nc-bg-blue': {
       light: themeV3Colors.blue[50],
       dark: themeV3Colors.blue[100],
     },
-    'nc-purple': {
+    'nc-bg-purple': {
       light: themeV3Colors.purple[50],
       dark: themeV3Colors.purple[100],
     },
-    'nc-pink': {
+    'nc-bg-pink': {
       light: themeV3Colors.pink[50],
       dark: themeV3Colors.pink[100],
     },
-    'nc-orange': {
+    'nc-bg-orange': {
       light: themeV3Colors.orange[50],
       dark: themeV3Colors.orange[100],
     },
-    'nc-maroon': {
+    'nc-bg-maroon': {
       light: themeV3Colors.maroon[50],
       dark: themeV3Colors.maroon[100],
     },
   },
   border: {
-    'nc-brand': themeV3Colors.brand[500],
-    'nc-gray': {
+    'nc-border-brand': themeV3Colors.brand[500],
+    'nc-border-gray': {
       extralight: themeV3Colors.gray[50],
       light: themeV3Colors.gray[100],
       medium: themeV3Colors.gray[200],
       dark: themeV3Colors.gray[300],
       extradark: themeV3Colors.gray[400],
     },
-    'nc-red': {
+    'nc-border-red': {
       DEFAULT: themeV3Colors.red[500],
     },
-    'nc-green': {
+    'nc-border-green': {
       DEFAULT: themeV3Colors.green[500],
     },
-    'nc-yellow': {
+    'nc-border-yellow': {
       DEFAULT: themeV3Colors.yellow[500],
     },
-    'nc-blue': {
+    'nc-border-blue': {
       DEFAULT: themeV3Colors.blue[500],
     },
-    'nc-purple': {
+    'nc-border-purple': {
       DEFAULT: themeV3Colors.purple[500],
     },
-    'nc-pink': {
+    'nc-border-pink': {
       DEFAULT: themeV3Colors.pink[500],
     },
-    'nc-orange': {
+    'nc-border-orange': {
       DEFAULT: themeV3Colors.orange[500],
     },
-    'nc-maroon': {
+    'nc-border-maroon': {
       DEFAULT: themeV3Colors.maroon[500],
     },
   },

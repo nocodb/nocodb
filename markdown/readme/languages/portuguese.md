@@ -149,9 +149,9 @@ cd pg
 docker-compose up -d
 ```
 
-## Environment variables
+## Variáveis de Ambiente
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
+Por favor, consulte em [Variáveis de Ambiente](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
 # Development setup
 

@@ -2,8 +2,8 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ A alternativa de opção de fonte aberta✨ <br>
-
+      ✨ Alternativa do Airtable em código aberto ✨ 
+    <br>
 </h1>
 <p align="center">
 Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma planilha inteligente. 

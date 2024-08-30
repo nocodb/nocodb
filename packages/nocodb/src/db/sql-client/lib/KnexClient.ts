@@ -135,7 +135,7 @@ function columnCreate(sqlClient, table, colUiObj) {
     }
   }
 
-  // specifc type
+  // specific type
   if (colUiObj.dtx === 'specificType' && !skip) {
     // console.log(colUiObj);
     const precision =

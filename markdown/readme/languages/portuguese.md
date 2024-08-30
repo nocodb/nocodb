@@ -163,7 +163,9 @@ Por favor, consultar em [Guia de Contribuição](https://github.com/nocodb/nocod
 
 # Por que estamos construindo isso?
 
-A maioria das empresas da Internet equipar-se com a planilha ou um banco de dados para resolver suas necessidades de negócios. Planilhas são usadas por um bilhão de seres humanos colaborativamente todos os dias. No entanto, estamos longe de trabalhar em velocidades semelhantes em bancos de dados que são muito mais poderosas ferramentas quando se trata de computação. As tentativas de resolver isso com ofertas de SaaS significam controles de acesso horríveis, lockin do fornecedor, lockin de dados, alterações abruptas de preços e mais importante, um teto de vidro no futuro.
+A maioria das empresas da internet equipam-se tanto com panilhas ou banco de dados para solucionar as necessidades de seus negócios.
+Planilhas são usadas por mais de bilhões de humanos colaborativamente todos os dias.<br/> Contudo, nós estamos alguns passos atrás de atingir velocidades similares em bancos de dados - que são ferramentas poderosas - quando se trata de computação.
+As tentaivas de solucionar isto oferecendo um SaaS vem significando controles de acesso horríveis, <i>vendor lock-in</i>, <i>data lock-in</i>, preços abruptos que mudam e o mais importante, um teto de vidro sobre o que é o possível futuro.
 
 # Nossa missão
 

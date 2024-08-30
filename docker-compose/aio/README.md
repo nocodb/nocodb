@@ -1,4 +1,4 @@
-# Install full stack nocodb with Docker (compose)
+# Install all-in-one nocodb with Docker (compose)
 
 This page provides instructions to install nocodb all-in-one (aio) using Docker-Compse. The installation will run multiple contianers in single node which includes
 - nocodb
@@ -17,7 +17,7 @@ TIP: you could simply run [./pre-req-check.sh](./pre-req-check.sh) which perform
 
 ## Install 
 Run [install.sh](./install.sh), This script performs pre-requisite check, prompts you through required application properties and finally performs `docker-compose up -d`. 
-Note: For most cases where any external integration is not required. The defaults properties are just fine. 
+Note: For most cases where no external integration required. The defaults properties are just fine. 
 ```
 ./install.sh 
 ```
@@ -36,7 +36,7 @@ Note: For most cases where any external integration is not required. The default
  | Press Y to continue or N to skip (Y/N)? 
 Preparing environment file before install..
  | Press Y to continue with defaults or N to customise app properties (Y/N)
-backing up previous docker-compose/aio/conf/nc_properties.env file to nocodb/docker-compose/aio/conf/nc_properties.env-1707455571.bak
+Backing up previous docker-compose/aio/conf/nc_properties.env file to nocodb/docker-compose/aio/conf/nc_properties.env-1707455571.bak
 Environment variables written to docker-compose/aio/conf/nc_properties.env file.
 Installing docker containers
 ```
@@ -59,8 +59,11 @@ During installation the default properties are configured at [nc_properties.env]
 ```
 
 
-## Read below, if you wish to understand what does install.sh do
-install script performs the following steps
+## what does install.sh do
+[Install script](./install.sh) performs the following steps
 1. pre-req-check.sh and warns if there is anything missing which could potentially cause issues at later stage. However it will let you proceed if you wish to.
 2. create application properties file under conf dir which will then be used for future upgrades etc.
 3. runs docker-compose up -d
+
+## Advanced Operations
+Refer [advanced secion](./advanced.md) for advanced operations like setting up ssl, updating configurations, restarts etc

@@ -108,7 +108,7 @@ Acesse o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/
 - ⚡ Funções: proprietário, criador, editor, comentarista, visualizador, comentador, funções personalizadas.
 - ⚡ Controle de acesso: controle de acesso fino, mesmo no banco de dados, no nível da tabela e da coluna.
 
-### App Store for Workflow Automations:
+### App Store para fluxo de automoção:
 
 - ⚡ Bate-papo: Equipes Microsoft, folga, discórdia, material
 - ⚡ Email: SMTP, SES, MailChimp

@@ -90,7 +90,7 @@ urlencode() {
 }
 
 generate_password() {
-    openssl rand -base64 48 | tr -dc 'a-zA-Z0-9!@#$%^&*()-_+=' | head -c 32
+    openssl rand -base64 48 | tr -dc 'a-zA-Z0-9_+*' | head -c 32
 }
 
 get_public_ip() {
@@ -705,7 +705,7 @@ EOF
 
     if [ "${CONFIG_REDIS_ENABLED}" = "Y" ]; then
         cat >> "$env_file" <<EOF
-REDIS_PASSWORD=${ENCODED_REDIS_PASSWORD}
+REDIS_PASSWORD=${CONFIG_REDIS_PASSWORD}
 NC_REDIS_URL=redis://:${ENCODED_REDIS_PASSWORD}@redis:6379/0
 EOF
     fi

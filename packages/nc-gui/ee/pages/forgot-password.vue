@@ -42,9 +42,13 @@ async function resetPassword() {
 
   resetError()
 
-  await api.auth.passwordForgot(form).then(() => {
-    success.value = true
-  })
+  try {
+    await api.auth.passwordForgot(form).then(() => {
+      success.value = true
+    })
+  } catch {
+    // ignore since error value is set by useApi and will be displayed in UI
+  }
 }
 
 function resetError() {

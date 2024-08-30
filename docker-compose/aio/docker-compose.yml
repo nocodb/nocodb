@@ -35,6 +35,11 @@ services:
       - ${NC_INSTALL_ROOT:-/opt/nocodb}/data/postgres:/var/lib/postgresql/data    
     networks:
       - nocodb-001
+    healthcheck: 
+      interval: 10s
+      retries: 10
+      test: "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+      timeout: 2s      
     deploy:
       resources:
         limits:

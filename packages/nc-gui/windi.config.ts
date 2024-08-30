@@ -99,17 +99,14 @@ export default defineConfig({
       textColor: {
         primary: 'rgba(var(--color-primary), var(--tw-text-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-text-opacity))',
-        ...lightTheme.content,
       },
       borderColor: {
         primary: 'rgba(51, 102, 255, 1)',
         accent: 'rgba(var(--color-accent), var(--tw-border-opacity))',
-        ...lightTheme.border,
       },
       backgroundColor: {
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
-        ...lightTheme.background,
       },
       ringColor: {
         primary: 'rgba(var(--color-primary), var(--tw-ring-opacity))',
@@ -127,6 +124,9 @@ export default defineConfig({
         ...themeColors,
         ...themeV2Colors,
         ...themeV3Colors,
+        ...lightTheme.content,
+        ...lightTheme.border,
+        ...lightTheme.background,
         ...lightTheme.fill,
         primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
         accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',

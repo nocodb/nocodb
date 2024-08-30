@@ -110,12 +110,11 @@ Acesse o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/
 - ⚡ E mais...
 
 ### App Store para fluxo de automoção:
+Nós fornecemos difernetes tipos de integração na árvore principal de categórias. Veja [AppStore](https://docs.nocodb.com/account-settings/oss-specific-details/#app-store) para mais detalhes.
 
-- ⚡ Bate-papo: Equipes Microsoft, folga, discórdia, material
-- ⚡ Email: SMTP, SES, MailChimp
-- ⚡ SMS: Twilio
-- ⚡ whatsapp.
-- ⚡ Qualquer APIs de terceiros
+- ⚡ Bate-papo: Discord, Mattermost e outros
+- ⚡ Email: AWS SES, SMTP, MailerSend e outros
+- ⚡ Armazenamento: AWS S3, Google Cloud Storage, Minio e outros
 
 ### Acesso programático da API via:
 

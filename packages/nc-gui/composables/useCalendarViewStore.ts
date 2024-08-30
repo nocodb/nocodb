@@ -67,8 +67,10 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const isCalendarMetaLoading = ref<boolean>(false)
 
+    // show/hide side menu in calendar
     const showSideMenu = ref(!isMobileMode.value)
 
+    // reactive ref for the selected date range - used in week view
     const selectedDateRange = ref<{
       start: dayjs.Dayjs
       end: dayjs.Dayjs
@@ -87,6 +89,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
 
     const activeDates = ref<dayjs.Dayjs[]>([])
 
+    // The active filter in the sidebar
     const sideBarFilterOption = ref<string>(activeCalendarView.value ?? 'allRecords')
 
     const { api } = useApi()
@@ -116,10 +119,12 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       where: where?.value ?? '',
     }))
 
+    // In timezone is removed from the date string for mysql for reverse compatibility upto mysql5
     const updateFormat = computed(() => {
       return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
     })
 
+    // The range of columns that are used for the calendar view
     const calendarRange = ref<
       Array<{
         fk_from_col: ColumnType
@@ -134,6 +139,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       return calendarRange.value[0]?.fk_from_col?.uidt
     })
 
+    // The current view meta properties
     const viewMetaProperties = computed<{
       active_view: string
       hide_weekend: boolean
@@ -152,14 +158,18 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     })
 
+    // sideBarFilter - The sideBar filter is automatically generated based on the current calendar view
+    // and the search query
     const sideBarFilter = computed(() => {
       let combinedFilters: any = []
 
       if (!calendarRange.value) return []
 
       if (sideBarFilterOption.value === 'allRecords') {
+        // If the sideBarFilterOption is allRecords, then we don't need to apply any filters
         combinedFilters = []
       } else if (sideBarFilterOption.value === 'withoutDates') {
+        // If the sideBarFilterOption is withoutDates, then we need to filter out records that don't have a date
         calendarRange.value.forEach((range) => {
           const fromCol = range.fk_from_col
           const toCol = range.fk_to_col
@@ -371,6 +381,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
+    // Fetch the dates which have records in the calendar
     const fetchActiveDates = async () => {
       if (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id || !calendarRange.value?.length) return
       let prevDate: dayjs.Dayjs | string | null = null
@@ -429,6 +440,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
       }
     }
 
+    // Update the calendar view
     const changeCalendarView = async (view: 'month' | 'year' | 'day' | 'week') => {
       $e('c:calendar:change-calendar-view', view)
 

@@ -68,4 +68,4 @@ During installation the default properties are configured at [nc_properties.env]
 3. runs docker-compose up -d
 
 ## Advanced Operations
-Refer [advanced secion](./advanced.md) for advanced operations like setting up ssl, updating configurations, restarts etc
+Refer [advanced section](./advanced.md) for advanced operations like setting up ssl, updating configurations, restarts etc

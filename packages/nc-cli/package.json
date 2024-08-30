@@ -78,7 +78,7 @@
     "glob": "^7.1.6",
     "inquirer": "^7.3.3",
     "jsonfile": "^6.0.1",
-    "knex": "^0.21.5",
+    "knex": "^3.1.0",
     "linux-os-info": "^2.0.0",
     "mkdirp": "^1.0.4",
     "mssql": "^6.2.1",

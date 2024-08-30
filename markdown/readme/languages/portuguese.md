@@ -123,9 +123,9 @@ Acesse o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/
 - ⚡ Inclui autenticação JWT e autenticação social
 - ⚡ Tokens de API para integrar com Zapier, integromat.
 
-# Production Setup
+# Configuração de ambiente de Produção
 
-O NOCODB requer um banco de dados para armazenar metadados de exibições de planilhas e bancos de dados externos. E parâmetros de conexão para este banco de dados podem ser especificados na variável de ambiente NC_DB.
+Por padrão, o SQLite é usado para armazenar metadados(metadata). Todavia, você pode específicar seu banco de dados. Os parametros de conexão com o banco de dados podem serem feitas usando a variável de ambiente `NC_DB`. E também disponibilizamos variáveis de ambientes para configuração.
 
 ## Docker
 

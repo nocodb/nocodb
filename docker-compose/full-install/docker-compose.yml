@@ -72,9 +72,12 @@ services:
       - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nc_properties.env    
     volumes:
       - ${NC_INSTALL_ROOT:-/opt/nocodb}/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nginx/conf.d:/etc/nginx/custom-conf.d:ro
       - ${NC_INSTALL_ROOT:-/opt/nocodb}/nginx/conf:/opt/nocohub/nginx/conf
       - ${NC_INSTALL_ROOT:-/opt/nocodb}/nginx/conf/nginx.conf:/etc/nginx/nginx.conf:ro
       - ${NC_INSTALL_ROOT:-/opt/nocodb}/data/nginx:/opt/nocohub/nginx/data
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nginx/certbot/www:/var/www/certbot/:ro
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nginx/certbot/conf/:/etc/nginx/ssl/:ro      
       # -  ../nginx/conf/ssl:/etc/nginx/ssl/:ro   
     expose:
       - "80"                 
@@ -88,4 +91,9 @@ services:
       resources:
         limits:
           cpus: '1'
-          memory: 1000M     
+          memory: 1000M    
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nginx/certbot/www:/var/www/certbot/:rw
+      - ${NC_INSTALL_ROOT:-/opt/nocodb}/conf/nginx/certbot/conf/:/etc/letsencrypt/:rw           

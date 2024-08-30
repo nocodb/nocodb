@@ -171,3 +171,7 @@ As tentaivas de solucionar isto oferecendo um SaaS vem significando controles de
 
 Nossa missão é fornecer uma ferramenta com uma interface <i>no-code</i> poderosa e com banco de dados que é código aberto para todos os tipos de negócios no mundo.<br/>
 Isto não somente para democratizar o acesso para uma computação poderosa, mas também trazer mais de quatro bilhões de pessoas que têm habilidades mais radicais em <i>"consertar e construir"</i> na internet.
+
+# Licença
+
+Este projeto está sobre a licença de [AGPLv3](https://github.com/nocodb/nocodb/blob/develop/LICENSE).

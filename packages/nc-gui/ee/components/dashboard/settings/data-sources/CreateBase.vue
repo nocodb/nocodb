@@ -616,7 +616,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
   }
 }
 const isModalClosable = computed(() => {
-  return !creatingSource.value && !goToDashboard.value
+  return !creatingSource.value
 })
 
 const filterIntegrationCategory = (c: IntegrationCategoryItemType) => [IntegrationCategoryType.DATABASE].includes(c.value)
@@ -694,7 +694,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
           >
             Add Source
           </NcButton>
-          <NcButton :disabled="creatingSource || goToDashboard" size="small" type="text" @click="vOpen = false">
+          <NcButton :disabled="creatingSource" size="small" type="text" @click="vOpen = false">
             <GeneralIcon icon="close" class="text-gray-600" />
           </NcButton>
         </div>

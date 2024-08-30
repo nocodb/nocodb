@@ -151,15 +151,15 @@ docker-compose up -d
 
 ## Variáveis de Ambiente
 
-Por favor, consulte em [Variáveis de Ambiente](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
+Por favor, consultar em [Variáveis de Ambiente](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
-# Development setup
+# Configuração de Ambiente de Desenvolvimento
 
-Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
+Por favor, consultar em [Ambiente de Desenvolvimento](https://docs.nocodb.com/engineering/development-setup)
 
-# Contributing
+# Guia de Contribuição
 
-Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+Por favor, consultar em [Guia de Contribuição](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # Por que estamos construindo isso?
 

@@ -1,0 +1,44 @@
+name: NodeJS with Gulp
+
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Build
+      run: |
+        npm install
+        gulp
+            - name: New Relic JUnit Reporter
+  # You may pin to the exact commit or the version.
+  # uses: newrelic/junit-reporter-action@a225f3d3753f08921149ddd803040fe593c4ad5c
+  uses: newrelic/junit-reporter-action@v0.3.0
+  with:
+    # Your New Relic Ingest License key.
+    ingestLicenseKey: 
+    # Your New Relic account ID. Custom events representing your test run will be posted to this account.
+    accountId: 
+    # The geographical region for your New Relic account - US or EU. Default: US
+    region: # optional, default is US
+    # The path to the JUnit output file.
+    testOutputPath: 
+    # Any custom attributes to include in JSON format.
+    customAttributes: # optional
+          

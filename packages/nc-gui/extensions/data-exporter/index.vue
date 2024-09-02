@@ -158,6 +158,25 @@ const urlHelper = (url: string) => {
   }
 }
 
+const handleDownload = async (url: string) => {
+  const isExpired = await isLinkExpired(url)
+
+  if (isExpired) {
+    navigateTo(url, {
+      open: navigateToBlankTargetOpenOption,
+    })
+    return
+  }
+
+  const link = document.createElement('a')
+  link.href = url
+  link.style.display = 'none' // Hide the link
+
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
 function titleHelper() {
   const table = tables.value.find((t) => t.id === exportPayload.value.tableId)
   const view = views.value.find((v) => v.id === exportPayload.value.viewId)
@@ -294,11 +313,11 @@ onMounted(() => {
                   {{ jobStatusTooltip[exp.status] }}
                 </template>
                 <GeneralIcon
-                  :icon="exp.status === JobStatus.COMPLETED ? 'circleCheck2' : 'alertTriangle'"
+                  :icon="exp.status === JobStatus.COMPLETED ? 'circleCheckSolid' : 'alertTriangleSolid'"
                   class="flex-none h-4 w-4"
                   :class="{
-                    '!text-green-500': exp.status === JobStatus.COMPLETED,
-                    '!text-red-500': exp.status === JobStatus.FAILED,
+                    '!text-green-700': exp.status === JobStatus.COMPLETED,
+                    '!text-red-700': exp.status === JobStatus.FAILED,
                   }"
                 />
               </NcTooltip>
@@ -329,20 +348,22 @@ onMounted(() => {
               </div>
             </div>
 
-            <div v-if="exp.status === JobStatus.COMPLETED" class="flex items-center">
-              <a :href="urlHelper(exp.result.url)">
-                <NcTooltip class="flex items-center">
-                  <template #title>
-                    {{ $t('general.download') }}
-                  </template>
+            <div
+              v-if="exp.status === JobStatus.COMPLETED"
+              class="flex items-center"
+              @click="handleDownload(urlHelper(exp.result.url))"
+            >
+              <NcTooltip class="flex items-center">
+                <template #title>
+                  {{ $t('general.download') }}
+                </template>
 
-                  <NcButton type="secondary" size="xs" class="!px-[5px]">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="download" />
-                    </div>
-                  </NcButton>
-                </NcTooltip>
-              </a>
+                <NcButton type="secondary" size="xs" class="!px-[5px]">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="download" />
+                  </div>
+                </NcButton>
+              </NcTooltip>
             </div>
 
             <div class="flex items-center">

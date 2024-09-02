@@ -98,7 +98,7 @@ const onAddExtension = (ext: any) => {
 
                         <div class="max-h-[32px] text-xs text-gray-500 line-clamp-2">{{ ext.subTitle }}</div>
                       </div>
-                      <NcButton size="xsmall" type="secondary" class="flex-none !px-7px" @click.stop="onAddExtension(ext)">
+                      <NcButton size="small" type="secondary" class="flex-none !px-7px" @click.stop="onAddExtension(ext)">
                         <div class="flex items-center gap-1 -ml-3px text-small">
                           <GeneralIcon icon="plus" />
                           {{ $t('general.add') }}

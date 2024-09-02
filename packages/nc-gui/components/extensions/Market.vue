@@ -25,7 +25,7 @@ const tabs = [
   {
     title: 'Scripts',
     tabKey: 'scripts',
-    icon: 'ncPlaceholderIcon',
+    icon: 'ncScript',
     isDisabled: true,
   },
   {
@@ -111,7 +111,7 @@ const handleSetActiveTab = (tab: TabItem) => {
                 }"
                 @click="handleSetActiveTab(tab)"
               >
-                <GeneralIcon :icon="tab.icon" class="h-4 w-4 flex-none stroke-transparent opacity-75" />
+                <GeneralIcon :icon="tab.icon" class="h-4 w-4 flex-none !stroke-transparent opacity-75" />
                 {{ tab.title }}
               </div>
             </NcTooltip>

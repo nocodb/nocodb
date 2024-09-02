@@ -133,7 +133,6 @@ onMounted(() => {
     :size="panelSize"
     max-size="60%"
     class="nc-extension-pane"
-    :title="`${isReady}`"
     :style="
       !isReady
         ? {

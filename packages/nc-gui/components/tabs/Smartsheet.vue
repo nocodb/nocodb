@@ -208,11 +208,7 @@ const onReady = () => {
         @ready="() => onReady()"
         @resized="onResize"
       >
-        <Pane
-          class="flex flex-col h-full min-w-0"
-          :max-size="contentMaxSize"
-          :size="contentSize"
-        >
+        <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
           <LazySmartsheetToolbar v-if="!isForm" />
           <div
             :style="{ height: isForm || isMobileMode ? '100%' : 'calc(100% - var(--toolbar-height))' }"

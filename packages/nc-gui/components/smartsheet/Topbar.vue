@@ -73,7 +73,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
               class="overflow-hidden trasition-all duration-200"
               :class="{ 'w-[0px] invisible': isPanelExpanded, 'ml-1 w-[74px]': !isPanelExpanded }"
             >
-              Extensions
+              {{ $t('general.extensions') }}
             </span>
           </div>
         </NcButton>

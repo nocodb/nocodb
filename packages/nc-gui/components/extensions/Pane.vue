@@ -155,7 +155,7 @@ onMounted(() => {
             }"
           >
             <GeneralIcon icon="ncPuzzleSolid" class="h-5 w-5 text-gray-700 opacity-85" />
-            <span v-if="!isOpenSearchBox || width >= 507">Extensions</span>
+            <span v-if="!isOpenSearchBox || width >= 507">{{ $t('general.extensions') }}</span>
           </div>
           <div
             class="flex justify-end"
@@ -185,7 +185,7 @@ onMounted(() => {
           <NcButton type="secondary" size="xs" @click="toggleMarket">
             <div class="flex items-center gap-1 text-xs max-w-full -ml-3px">
               <GeneralIcon icon="plus" />
-              {{ $t('general.install') }}
+              {{ $t('general.add') }}
             </div>
           </NcButton>
         </div>
@@ -198,7 +198,7 @@ onMounted(() => {
             <NcButton size="small" @click="toggleMarket">
               <div class="flex items-center gap-1 -ml-3px">
                 <GeneralIcon icon="plus" />
-                {{ $t('general.install') }}
+                {{ $t('general.add') }} {{ $t('general.extension') }}
               </div>
             </NcButton>
             <!-- Todo: add docs link  -->

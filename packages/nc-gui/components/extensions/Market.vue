@@ -73,24 +73,23 @@ const onAddExtension = (ext: any) => {
           >
             <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
               <div
-                class="nc-market-extension-item flex border-1 rounded-xl p-3 w-[360px] cursor-pointer hover:bg-gray-50 transition-all"
+                class="nc-market-extension-item flex-1 flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
                 @click="onExtensionClick(ext.id)"
               >
-                <div class="h-[60px] w-[60px] overflow-hidden m-auto">
+                <div class="h-[60px] w-[60px] overflow-hidden m-auto flex-none">
                   <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />
                 </div>
-                <div class="flex flex-grow flex-col gap-1 ml-3">
-                  <div class="flex justify-between gap-1">
-                    <div class="font-weight-600 text-base">{{ ext.title }}</div>
-                    <NcButton size="xsmall" type="secondary" class="!px-7px" @click.stop="onAddExtension(ext)">
-                      <div class="flex items-center gap-1 -ml-3px text-small">
-                        <GeneralIcon icon="plus" />
-                        {{ $t('general.install') }}
-                      </div>
-                    </NcButton>
-                  </div>
-                  <div class="w-[250px] h-[32px] text-xs text-gray-500 line-clamp-2">{{ ext.subTitle }}</div>
+                <div class="flex flex-grow flex-col gap-1">
+                  <div class="font-weight-600 text-base truncate">{{ ext.title }}</div>
+
+                  <div class="max-h-[32px] text-xs text-gray-500 line-clamp-2">{{ ext.subTitle }}</div>
                 </div>
+                <NcButton size="xsmall" type="secondary" class="flex-none !px-7px" @click.stop="onAddExtension(ext)">
+                  <div class="flex items-center gap-1 -ml-3px text-small">
+                    <GeneralIcon icon="plus" />
+                    {{ $t('general.add') }}
+                  </div>
+                </NcButton>
               </div>
             </template>
             <div

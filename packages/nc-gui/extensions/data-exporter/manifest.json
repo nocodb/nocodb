@@ -6,11 +6,19 @@
   "entry": "data-exporter",
   "version": "0.1",
   "iconUrl": "data-exporter/assets/icon.svg",
-  "publisherName": "NocoDB",
-  "publisherEmail": "contact@nocodb.com",
-  "publisherUrl": "https://www.nocodb.com",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "csv-import-ee/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
   "config": {
-    "modalMaxWith": "sm",
+    "modalSize": "sm",
     "contentMinHeight": "310px"
   }
 }

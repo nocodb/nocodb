@@ -2,6 +2,9 @@
 import type { UploadFile } from 'ant-design-vue'
 import { type ColumnType, UITypes } from 'nocodb-sdk'
 import papaparse from 'papaparse'
+import dayjs from 'dayjs'
+
+import ImportStatus from './ImportStatus.vue'
 
 const CHUNK_SIZE = 200
 
@@ -20,7 +23,58 @@ const GENERATED_COLUMN_TYPES = [
   UITypes.Rollup,
 ]
 
-const { fullscreen, extension, tables, insertData, upsertData, getTableMeta, reloadData } = useExtensionHelperOrThrow()
+interface ImportType {
+  type: 'insert' | 'update' | 'insertAndUpdate'
+  title: string
+  tooltip: string
+}
+
+interface ImportColumnType {
+  enabled: boolean
+  mapIndex: string
+  columnId: string
+}
+
+interface ImportPayloadType {
+  step: number
+  file: {
+    name: string
+    size: string
+  }
+  lastUsed: number
+  tableId?: string
+  tableName?: string
+  tableIcon?: string
+  upsert: boolean
+  header: boolean
+  upsertColumnId?: string
+  importColumns: ImportColumnType[]
+  importType: ImportType['type']
+  stats: { inserted: number | null; updated: number | null; error?: { title?: string; message: string } }
+  status?: 'initial' | 'inprogress' | 'completed' | 'failed'
+  order: number
+}
+
+const importTypeOptions = [
+  {
+    type: 'insert',
+    title: 'Create new records only',
+    tooltip: 'Identifies and creates new records from csv.',
+  },
+  {
+    type: 'update',
+    title: 'Update existing records only',
+    tooltip: 'Identifies updated records from csv and updates values in nocodb table.',
+  },
+  {
+    type: 'insertAndUpdate',
+    title: 'Create and update records',
+    tooltip: 'Updates existing records and creates new records from csv to the nocodb table.',
+  },
+] as ImportType[]
+
+const { fullscreen, fullscreenModalSize, extension, tables, insertData, upsertData, getTableMeta, reloadData } =
+  useExtensionHelperOrThrow()
 
 const fileList = ref<UploadFile[]>([])
 
@@ -30,64 +84,89 @@ const fileList = ref<UploadFile[]>([])
 // step 3: stats
 const step = ref(0)
 
-const stats = ref<{ inserted: number; updated: number; error?: { title?: string; message: string } }>({
-  inserted: 0,
-  updated: 0,
+const stats = ref<{ inserted: number | null; updated: number | null; error?: { title?: string; message: string } }>({
+  inserted: null,
+  updated: null,
 })
 
-const processingFile = ref(false)
+const fileInfo = ref({
+  name: '',
+  size: '0 MB',
+  processingFile: false,
+})
 
 const totalRecords = ref(0)
 
 const processedRecords = ref(0)
 
+const isImportingRecords = ref(false)
+
+const viewImportHistory = ref(false)
+
 const parsedData = ref<any>()
 
 const columns = ref<Record<string, ColumnType>>({})
 
-const tableList = computed(() => {
-  return tables.value.map((table) => {
-    return {
-      label: table.title,
-      value: table.id,
-    }
-  })
-})
-
-interface ImportColumnType {
-  enabled: boolean
-  mapIndex: string
-  columnId: string
+const importPayloadPlaceholder: ImportPayloadType = {
+  step: 0,
+  file: {
+    name: '',
+    size: '0 MB',
+  },
+  lastUsed: Date.now(),
+  tableId: undefined,
+  tableIcon: undefined,
+  tableName: undefined,
+  upsert: false,
+  header: true,
+  upsertColumnId: undefined,
+  importColumns: [],
+  importType: 'insertAndUpdate',
+  stats: {
+    inserted: null,
+    updated: null,
+  },
+  order: 0,
 }
 
-const savedPayloads = ref<
-  {
-    csvFields: number
-    lastUsed: number
-    tableId?: string
-    upsert: boolean
-    header: boolean
-    upsertColumnId?: string
-    importColumns: ImportColumnType[]
-  }[]
->([])
+const savedPayloads = ref<ImportPayloadType[]>([])
 
-const importPayload = computed(() => {
-  const fieldsInCsv = parsedData.value?.data[0]?.length || 0
-  const saved = savedPayloads.value.find((payload) => payload.csvFields === fieldsInCsv)
-  if (saved) {
-    return saved
+const importHistory = computed(() => {
+  return savedPayloads.value.filter((payload) => payload.step > 1).sort((a, b) => b.order - a.order)
+})
+
+const openImportDetailsItemIndex = ref<number | null>(0)
+
+const importPayload = computedAsync(async () => {
+  if (!savedPayloads.value.length) {
+    let saved = await extension.value.kvStore.get('savedPayloads')
+
+    saved =
+      (Array.isArray(saved) ? saved : [])
+        .filter((payload) => {
+          if (
+            payload?.step === undefined ||
+            payload?.order === undefined ||
+            (payload?.step === 1 && (!parsedData.value || !parsedData.value?.data[0]?.length))
+          ) {
+            return false
+          }
+
+          return true
+        })
+        .sort((a, b) => b.order - a.order) || []
+
+    if (saved && saved.length) {
+      savedPayloads.value = saved
+    } else {
+      savedPayloads.value.unshift({
+        ...importPayloadPlaceholder,
+        lastUsed: Date.now(),
+        order: getNextOrder(savedPayloads.value),
+      })
+    }
   }
-  savedPayloads.value.push({
-    csvFields: fieldsInCsv,
-    lastUsed: Date.now(),
-    tableId: undefined,
-    upsert: false,
-    header: true,
-    upsertColumnId: undefined,
-    importColumns: [],
-  })
-  return savedPayloads.value[savedPayloads.value.length - 1]
+  return savedPayloads.value[0]
 })
 
 const updateHistory = async () => {
@@ -95,13 +174,19 @@ const updateHistory = async () => {
   importPayload.value.lastUsed = Date.now()
 
   // keep only last 5
-  savedPayloads.value = savedPayloads.value.sort((a, b) => b.lastUsed - a.lastUsed).slice(0, 5)
+  savedPayloads.value = savedPayloads.value.sort((a, b) => b.order - a.order).slice(0, 5)
 
   await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
 }
 
+function getNextOrder(data: ImportPayloadType[]) {
+  const validOrders = data.map((item) => item?.order).filter(Number) // Filters out non-numeric values, null, undefined, NaN
+
+  return validOrders.length > 0 ? Math.max(...validOrders) + 1 : 0
+}
+
 const headers = computed(() => {
-  if (!parsedData.value || !parsedData.value.data[0].length) return []
+  if (!parsedData.value || !parsedData.value?.data[0]?.length) return []
   if (importPayload.value.header) {
     return parsedData.value.data[0].map((header: string, index: number) => {
       return { label: header, value: `${index}` }
@@ -127,14 +212,27 @@ const tableColumns = computed(() => {
 })
 
 const readyForImport = computed(() => {
+  const isUpsertColumnSelected = importPayload.value.upsert
+    ? importPayload.value.upsertColumnId &&
+      importPayload.value.importColumns.find(
+        (column) => column.columnId === importPayload.value.upsertColumnId && !!column.mapIndex,
+      )
+    : true
   return (
     importPayload.value.tableId &&
     Object.values(importPayload.value.importColumns).some((column) => column.enabled && column.mapIndex) &&
-    (!importPayload.value.upsert || importPayload.value.upsertColumnId)
+    isUpsertColumnSelected
   )
 })
 
-const onTableSelect = async () => {
+const selectedFieldDetails = computed(() => {
+  return {
+    total: importPayload.value?.importColumns?.length ?? 0,
+    selected: (importPayload.value?.importColumns || []).filter((c) => !!c?.enabled)?.length ?? 0,
+  }
+})
+
+const onTableSelect = async (resetUpsertColumnId = false) => {
   const table = tables.value.find((table) => table.id === importPayload.value.tableId)
   if (table?.id) {
     const tableMeta = await getTableMeta(table.id)
@@ -145,14 +243,18 @@ const onTableSelect = async () => {
         return acc
       }, {} as Record<string, ColumnType>)
 
-      importPayload.value.importColumns.push(
-        ...tableMeta.columns.reduce((acc, column) => {
-          if (!column.id || column.system || GENERATED_COLUMN_TYPES.includes(column.uidt as UITypes)) return acc
-          if (importPayload.value.importColumns.find((m) => m.columnId === column.id)) return acc
-          acc.push({ enabled: false, mapIndex: '', columnId: column.id })
-          return acc
-        }, [] as ImportColumnType[]),
-      )
+      importPayload.value.importColumns = tableMeta.columns.reduce((acc, column) => {
+        if (!column.id || column.system || GENERATED_COLUMN_TYPES.includes(column.uidt as UITypes)) return acc
+
+        acc.push({ enabled: false, mapIndex: '', columnId: column.id })
+
+        return acc
+      }, [] as ImportColumnType[])
+    }
+    importPayload.value.tableName = table?.title
+    importPayload.value.tableIcon = table?.meta?.icon
+    if (resetUpsertColumnId) {
+      importPayload.value.upsertColumnId = undefined
     }
   }
 
@@ -160,27 +262,65 @@ const onTableSelect = async () => {
 }
 
 const handleChange = (info: { file: UploadFile }) => {
-  processingFile.value = true
+  fileInfo.value = {
+    ...fileInfo.value,
+    name: info?.file?.name || '',
+    size: info?.file?.size ? `${(info?.file?.size / 1048576).toFixed(2)} MB` : '0 MB',
+    processingFile: true,
+  }
+  importPayload.value.file.name = fileInfo.value.name
+  importPayload.value.file.size = fileInfo.value.size
+
   const reader = new FileReader()
   reader.onload = (e) => {
     const text = e.target?.result
     if (!text || typeof text !== 'string') {
       fileList.value = []
+      fileInfo.value = {
+        ...fileInfo.value,
+        processingFile: false,
+      }
       return
     }
+
     papaparse.parse(text.trim(), {
       worker: true,
       complete: (results) => {
         parsedData.value = results
         step.value = 1
-        processingFile.value = false
-        if (importPayload.value.tableId) {
-          onTableSelect()
+        importPayload.value.step = 1
+
+        fileInfo.value = {
+          ...fileInfo.value,
+          processingFile: false,
+        }
+
+        updateHistory()
+
+        if (!importPayload.value.tableId && tables.value?.length) {
+          importPayload.value.tableId = tables.value[0].id
+        }
+
+        onTableSelect()
+
+        if (!fullscreen.value) {
+          fullscreen.value = true
         }
       },
       error: () => {
         fileList.value = []
-        processingFile.value = false
+
+        fileInfo.value = {
+          ...fileInfo.value,
+          processingFile: false,
+          name: '',
+          size: '0 MB',
+        }
+        importPayload.value.file.name = ''
+        importPayload.value.file.size = '0 MB'
+
+        updateHistory()
+
         message.error('There was an error parsing the file. Please check the file and try again.')
       },
     })
@@ -203,56 +343,36 @@ const onUpsertColumnChange = (columnId: string) => {
   updateHistory()
 }
 
+const filterTableOption = (input: string = '', params: { key: string }) => {
+  return params.key?.toLowerCase().includes(input?.toLowerCase())
+}
+
+const selectedTable = computed(() => {
+  return tables.value.find((table) => table.id === importPayload.value.tableId)
+})
+
 const clearImport = () => {
+  fileInfo.value = {
+    name: '',
+    size: '0 MB',
+    processingFile: false,
+  }
   fileList.value = []
   step.value = 0
   parsedData.value = null
-  stats.value = { inserted: 0, updated: 0 }
+  stats.value = { inserted: null, updated: null }
   totalRecords.value = 0
   processedRecords.value = 0
+  isImportingRecords.value = false
   Object.assign(importPayload.value, {
-    tableId: undefined,
-    upsert: false,
-    header: true,
-    upsertColumnId: undefined,
-    importColumns: {},
+    ...importPayloadPlaceholder,
+    lastUsed: Date.now(),
   })
   fullscreen.value = false
 }
 
-const previewPage = ref(1)
-
-const previewData = computed(() => {
-  if (!parsedData.value || !Object.values(importPayload.value.importColumns).some((m) => m.enabled && m.mapIndex)) return []
-  let data = parsedData.value.data
-  if (importPayload.value.header) {
-    data = data.slice(1 + (previewPage.value - 1) * 10, 1 + (previewPage.value - 1) * 10 + 10)
-  } else {
-    data = data.slice((previewPage.value - 1) * 10, (previewPage.value - 1) * 10 + 10)
-  }
-
-  return data.map((row: string[]) => {
-    return importPayload.value.importColumns.reduce((acc, importMeta) => {
-      const column = columns.value[importMeta.columnId]
-      if (importMeta.enabled && importMeta.mapIndex && column.title) {
-        acc[column.title] = row[parseInt(importMeta.mapIndex)]
-      }
-      return acc
-    }, {} as Record<string, any>)
-  })
-})
-
 // dummy row store for preview
 useProvideSmartsheetRowStore({} as any)
-
-const previewColumns = computed(() => {
-  return importPayload.value.importColumns.reduce((acc, importMeta) => {
-    const column = columns.value[importMeta.columnId]
-    if (!column.id || !column.title || GENERATED_COLUMN_TYPES.includes(column.uidt as UITypes)) return acc
-    acc[column.title] = column
-    return acc
-  }, {} as Record<string, ColumnType>)
-})
 
 const onImport = async () => {
   if (!importPayload.value.tableId) {
@@ -263,7 +383,7 @@ const onImport = async () => {
     return message.error('Please select a column for upsert')
   }
 
-  step.value = 2
+  isImportingRecords.value = true
 
   // prepare data
   let data = parsedData.value.data
@@ -298,10 +418,19 @@ const onImport = async () => {
           tableId: importPayload.value.tableId,
           upsertField: columns.value[importPayload.value.upsertColumnId!],
           data: chunk,
+          importType: importPayload.value.importType,
         })
 
-        stats.value.inserted += upsertStats.inserted
-        stats.value.updated += upsertStats.updated
+        stats.value = {
+          ...stats.value,
+          inserted: (stats.value.inserted ?? 0) + upsertStats.inserted,
+          updated: (stats.value.updated ?? 0) + upsertStats.updated,
+        }
+        importPayload.value.stats = {
+          ...importPayload.value.stats,
+          inserted: (importPayload.value.stats.inserted ?? 0) + upsertStats.inserted,
+          updated: (importPayload.value.stats.updated ?? 0) + upsertStats.updated,
+        }
       } else {
         // insert data
         const insertStats = await insertData({
@@ -309,209 +438,643 @@ const onImport = async () => {
           data: chunk,
         })
 
-        stats.value.inserted += insertStats.inserted
+        stats.value = {
+          ...stats.value,
+          inserted: (stats.value.inserted ?? 0) + insertStats.inserted,
+        }
+        importPayload.value.stats = {
+          ...importPayload.value.stats,
+          inserted: (importPayload.value.stats.inserted ?? 0) + insertStats.inserted,
+        }
       }
 
       processedRecords.value += chunk.length
     }
+
+    step.value = 2
+    importPayload.value.step = 2
   } catch (e: any) {
     stats.value.error = {
       title: `Import failed for records between ${processedRecords.value} - ${processedRecords.value + CHUNK_SIZE}`,
       message: await extractSdkResponseErrorMsg(e),
     }
+    step.value = 3
+
+    importPayload.value.stats.error = {
+      title: `Import failed for records between ${processedRecords.value} - ${processedRecords.value + CHUNK_SIZE}`,
+      message: await extractSdkResponseErrorMsg(e),
+    }
+    importPayload.value.step = 3
+  } finally {
+    openImportDetailsItemIndex.value = 0
+    isImportingRecords.value = false
+    importPayload.value.lastUsed = Date.now()
+    updateHistory()
   }
 
-  step.value = 3
-
+  fullscreen.value = false
   reloadData()
 
   if (!stats.value.error) message.success('Data imported successfully')
 }
 
-onMounted(async () => {
-  const saved = await extension.value.kvStore.get('savedPayloads')
-  if (saved) {
-    savedPayloads.value = saved
+const importRecordPercentage = computed(() => {
+  return parseInt(`${(processedRecords.value / totalRecords.value) * 100}`)
+})
+
+const newImport = () => {
+  if (viewImportHistory.value) {
+    viewImportHistory.value = false
+    return
+  }
+
+  savedPayloads.value.unshift({
+    ...importPayloadPlaceholder,
+    lastUsed: Date.now(),
+    order: getNextOrder(savedPayloads.value),
+  })
+  updateHistory()
+
+  fileInfo.value = {
+    name: '',
+    size: '0 MB',
+    processingFile: false,
+  }
+  fileList.value = []
+  step.value = 0
+  parsedData.value = null
+  stats.value = { inserted: null, updated: null }
+  totalRecords.value = 0
+  processedRecords.value = 0
+  isImportingRecords.value = false
+}
+
+const isAllFieldsSelected = computed(() => {
+  return importPayload.value.importColumns.length && importPayload.value.importColumns.every((c) => c.enabled === true)
+})
+
+const onClickSelectAllFields = (value) => {
+  for (const importMeta of importPayload.value.importColumns) {
+    if (!importMeta.mapIndex) continue
+
+    if (!value && importPayload.value.upsertColumnId === importMeta.columnId) continue
+
+    importMeta.enabled = value
+  }
+
+  updateHistory()
+}
+
+const handleUpdateOpenImportDetailsItemIndex = (index: number) => {
+  if (openImportDetailsItemIndex.value === index) {
+    openImportDetailsItemIndex.value = null
+  } else {
+    openImportDetailsItemIndex.value = index
+  }
+}
+
+const fieldMappingColumns: NcTableColumnProps[] = [
+  {
+    key: 'select',
+    title: '',
+    minWidth: 52,
+    width: 52,
+    padding: '0 16px',
+  },
+  {
+    key: 'nocodb-field',
+    title: 'NocoDB Field',
+    minWidth: 252,
+    padding: '0 16px',
+  },
+  {
+    key: 'mapping',
+    title: '<-',
+    minWidth: 48,
+    width: 48,
+    padding: '0 16px',
+  },
+  {
+    key: 'csv-column',
+    title: 'CSV Column',
+    minWidth: 252,
+    padding: '0 16px',
+  },
+]
+
+function updateModalSize() {
+  if (importPayload.value.step === 1 ? fullscreenModalSize.value === 'lg' : fullscreenModalSize.value === 'sm') {
+    return
+  }
+
+  fullscreenModalSize.value = importPayload.value.step === 1 ? 'lg' : 'sm'
+}
+
+watch(fullscreen, () => {
+  if (fullscreen.value && !Object.keys(columns.value).length && importPayload.value.tableId) {
+    onTableSelect()
   }
 })
+
+watch(
+  [() => importPayload.value.step, () => importPayload.value.order],
+  () => {
+    updateModalSize()
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
-  <template v-if="step === 0">
-    <template v-if="processingFile">
-      <div class="flex flex-col h-full items-center justify-center p-4">
-        <GeneralLoader size="xlarge" />
-      </div>
+  <ExtensionsExtensionWrapper>
+    <template v-if="importPayload.step === 1" #headerExtra>
+      <NcButton :disabled="isImportingRecords" size="small" type="secondary" @click="clearImport()">Cancel</NcButton>
+
+      <NcButton size="small" :disabled="!readyForImport" :loading="isImportingRecords" @click="onImport">Import</NcButton>
     </template>
-    <a-upload-dragger v-else v-model:fileList="fileList" name="file" accept=".csv" :multiple="false" @change="handleChange">
-      <GeneralIcon class="text-[30px]" icon="inbox" />
-      <p class="ant-upload-text">Drag and drop a CSV file</p>
-      <p class="ant-upload-hint">Or click to select a file</p>
-    </a-upload-dragger>
-  </template>
-  <template v-else-if="step === 1">
-    <template v-if="fullscreen">
-      <div class="flex flex-col h-full">
-        <div class="flex flex-1 w-full">
-          <div class="flex flex-col w-1/3 p-2">
-            <div class="text-sm font-weight-700">Table</div>
-            <NcDivider class="mb-2" />
-            <div class="input-wrapper">
-              <NcSelect v-model:value="importPayload.tableId" :options="tableList" class="w-full" @change="onTableSelect" />
-            </div>
-            <div class="input-wrapper">
-              <NcCheckbox v-model:checked="importPayload.upsert" @change="updateHistory()">Merge existing records</NcCheckbox>
-              <template v-if="importPayload.upsert">
-                <div class="p-2">
-                  <NcSelect
-                    v-model:value="importPayload.upsertColumnId"
-                    :options="tableColumns"
-                    class="w-full"
-                    @change="onUpsertColumnChange"
-                  />
-                  <span class="text-xs">
-                    Rows on your table will be merged with records that have same values for this field in CSV file
-                  </span>
+
+    <div class="h-full flex children:(flex-none w-full)">
+      <div
+        v-if="importPayload.step === 2 || importPayload.step === 3 || viewImportHistory"
+        class="h-full flex flex-col justify-between"
+        :class="{
+          'p-4': fullscreen,
+        }"
+      >
+        <div class="border-1 border-nc-border-gray-medium rounded-lg flex flex-col h-[calc(100%_-_40px)] overflow-hidden">
+          <div class="border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-light text-tiny py-1 px-3 text-gray-600">
+            Recent Imports
+          </div>
+          <div class="flex-1 flex flex-col nc-scrollbar-thin">
+            <ImportStatus
+              v-for="(history, idx) of importHistory"
+              :key="idx"
+              :status="history.step === 2 ? 'compeleted' : 'failed'"
+              :filename="history.file.name"
+              :tablename="history.tableName || 'table'"
+              :tableicon="history.tableIcon"
+              :inserted="history.stats.inserted"
+              :updated="history.stats.updated"
+              :is-open="openImportDetailsItemIndex === idx"
+              @click="handleUpdateOpenImportDetailsItemIndex(idx)"
+            >
+              <template v-if="history.step === 3" #error>
+                {{ history.stats?.error?.title || 'There was an error with import' }} :
+
+                <div>
+                  <NcTooltip v-if="history.stats?.error?.message" class="truncate" show-on-truncate-only>
+                    <template #title>
+                      {{ history.stats?.error?.message }}
+                    </template>
+                    {{ history.stats?.error?.message }}
+                  </NcTooltip>
                 </div>
               </template>
+              <template v-if="history.lastUsed" #timestamp>
+                {{ timeAgo(dayjs(history.lastUsed).toString()) }}
+              </template>
+            </ImportStatus>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <NcButton size="small" @click="newImport">New import</NcButton>
+        </div>
+      </div>
+      <template v-else-if="importPayload.step === 0">
+        <div
+          v-if="fileInfo.processingFile"
+          class="h-full flex flex-col justify-between gap-3"
+          :class="{
+            'p-4': fullscreen,
+          }"
+        >
+          <div
+            class="w-full flex items-center p-2 rounded-lg flex gap-4 border-1 border-nc-border-gray-medium cursor-pointer"
+            @click="fullscreen = true"
+          >
+            <div
+              class="aspect-square w-[48px] h-[48px] p-2 bg-nc-bg-gray-extralight rounded-lg flex items-center justify-center children:flex-none"
+            >
+              <GeneralLoader size="large" />
             </div>
-            <div class="input-wrapper">
-              <NcCheckbox v-model:checked="importPayload.header" @change="updateHistory()">First row as header</NcCheckbox>
+            <div class="flex-1 w-[calc(100%_-_108px)]">
+              <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                <template #title>{{ importPayload.file.name }}</template>
+                {{ importPayload.file.name }}
+              </NcTooltip>
+              <div class="text-nc-content-gray-muted text-sm">{{ importPayload.file.size }}</div>
             </div>
-            <div class="text-sm font-weight-700 mt-2">Field Mappings</div>
-            <NcDivider class="mb-2" />
-            <template v-for="importMeta in importPayload.importColumns" :key="importMeta.columnId">
-              <template v-if="importMeta.columnId">
-                <div class="flex items-center gap-2 justify-between">
-                  <div class="w-1/3 flex items-center gap-4">
+
+            <NcButton size="xs" type="text" class="!px-1" @click.stop="clearImport()">
+              <GeneralIcon icon="close" class="opacity-80" />
+            </NcButton>
+          </div>
+
+          <div class="flex justify-end">
+            <NcButton size="small" disabled @click="fullscreen = true">Continue</NcButton>
+          </div>
+        </div>
+        <div
+          v-else
+          :class="{
+            'p-4': fullscreen,
+          }"
+        >
+          <a-upload-dragger
+            v-model:fileList="fileList"
+            name="file"
+            accept=".csv"
+            class="nc-csv-file-uploader"
+            :class="{
+              'max-h-[calc(100%_-_40px)]': importHistory.length,
+            }"
+            :multiple="false"
+            @change="handleChange"
+          >
+            <p class="ant-upload-drag-icon !mb-2">
+              <GeneralIcon class="h-6 w-6" icon="upload" />
+            </p>
+            <p class="ant-upload-text !text-nc-content-gray !text-sm">
+              Drop your CSV here or <span class="text-nc-content-brand hover:underline">browse file</span>
+            </p>
+          </a-upload-dragger>
+          <div v-if="importHistory.length" class="mt-2 flex items-center justify-end">
+            <NcButton size="small" type="secondary" @click="viewImportHistory = true">View import history</NcButton>
+          </div>
+        </div>
+      </template>
+      <template v-else-if="importPayload.step === 1">
+        <div v-if="fullscreen" class="h-full relative">
+          <div class="flex w-full h-full">
+            <div class="h-full w-[420px] flex flex-col gap-6 nc-scrollbar-thin pr-2.5 pl-4 py-4">
+              <div class="flex flex-col gap-3">
+                <div class="text-sm font-weight-700 text-nc-content-gray">Table name</div>
+                <a-form-item class="!my-0 w-full">
+                  <NcSelect
+                    v-model:value="importPayload.tableId"
+                    class="w-full nc-select-shadow"
+                    placeholder="-select table-"
+                    :filter-option="filterTableOption"
+                    :show-search="tables?.length > 6"
+                    @change="onTableSelect(true)"
+                  >
+                    <a-select-option v-for="table of tables || []" :key="table.title" :value="table.id">
+                      <div class="w-full flex items-center gap-2">
+                        <LazyGeneralEmojiPicker :emoji="table?.meta?.icon" readonly size="xsmall">
+                          <template #default>
+                            <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
+                          </template>
+                        </LazyGeneralEmojiPicker>
+                        <NcTooltip show-on-truncate-only class="flex-1 truncate">
+                          <template #title>
+                            {{ table.title }}
+                          </template>
+                          {{ table.title }}
+                        </NcTooltip>
+
+                        <component
+                          :is="iconMap.check"
+                          v-if="importPayload.tableId === table.id"
+                          id="nc-selected-item-icon"
+                          class="flex-none text-primary w-4 h-4"
+                        />
+                      </div>
+                    </a-select-option>
+                  </NcSelect>
+                </a-form-item>
+              </div>
+
+              <div v-if="importPayload.tableId" class="flex flex-col gap-3">
+                <div class="text-sm font-weight-700 text-nc-content-gray">Import Settings</div>
+
+                <div class="nc-import-upsert-type">
+                  <a-radio-group v-model:value="importPayload.upsert" name="upsert" @change="updateHistory()">
+                    <div class="input-wrapper border-1 border-nc-border-gray-medium rounded-lg px-3 py-2 flex flex-col gap-2">
+                      <a-radio :value="false">
+                        <div class="flex items-center justify-between gap-2">
+                          <div>Add records</div>
+                          <div class="text-small leading-[18px] text-nc-content-gray-muted">Adds all records from CSV.</div>
+                        </div>
+                      </a-radio>
+                    </div>
+                    <div class="input-wrapper border-1 border-nc-border-gray-medium rounded-lg px-3 py-2 flex flex-col gap-2">
+                      <a-radio :value="true">
+                        <div class="flex items-center justify-between gap-2">
+                          <div>Merge records</div>
+                          <div class="text-small leading-[18px] text-nc-content-gray-muted">
+                            Updates existing records from CSV.
+                          </div>
+                        </div>
+                      </a-radio>
+                      <div v-if="importPayload.upsert" class="pl-6 flex flex-col gap-3" @click.stop>
+                        <div class="flex gap-2">
+                          <div class="text-sm text-nc-content-gray flex items-center gap-1 min-w-[100px]">Import type</div>
+                          <a-form-item class="!my-0 w-full">
+                            <NcSelect
+                              v-model:value="importPayload.importType"
+                              class="w-full nc-select-shadow"
+                              @change="updateHistory()"
+                            >
+                              <a-select-option v-for="(opt, i) of importTypeOptions" :key="i" :value="opt.type">
+                                <NcTooltip class="!w-full" placement="right">
+                                  <template #title>
+                                    {{ opt.tooltip }}
+                                  </template>
+                                  <div class="flex items-center gap-2 w-full">
+                                    <div class="truncate flex-1">
+                                      {{ opt.title }}
+                                    </div>
+
+                                    <component
+                                      :is="iconMap.check"
+                                      v-if="importPayload.importType === opt.type"
+                                      id="nc-selected-item-icon"
+                                      class="flex-none text-primary w-4 h-4"
+                                    />
+                                  </div>
+                                </NcTooltip>
+                              </a-select-option>
+                            </NcSelect>
+                          </a-form-item>
+                        </div>
+                        <div class="flex gap-2">
+                          <div class="text-sm text-nc-content-gray flex items-center gap-1 min-w-[100px]">
+                            Merge field
+                            <NcTooltip placement="bottomLeft">
+                              <template #title
+                                >Rows on your table will be merged with records that have same values for this field in CSV
+                                file</template
+                              >
+                              <GeneralIcon icon="info" class="text-nc-content-gray-muted h-4 w-4" />
+                            </NcTooltip>
+                          </div>
+                          <a-form-item class="!my-0 w-full">
+                            <NcSelect
+                              v-model:value="importPayload.upsertColumnId"
+                              class="w-full nc-select-shadow"
+                              placeholder="-select a field-"
+                              @change="onUpsertColumnChange"
+                            >
+                              <a-select-option v-for="(opt, i) of tableColumns" :key="i" :value="opt.value">
+                                <div class="flex items-center gap-2 w-full">
+                                  <NcTooltip class="flex-1" show-on-truncate-only>
+                                    <template #title>
+                                      {{ opt.label }}
+                                    </template>
+                                    <div class="truncate flex-1">
+                                      {{ opt.label }}
+                                    </div>
+                                  </NcTooltip>
+                                  <component
+                                    :is="iconMap.check"
+                                    v-if="importPayload.upsertColumnId === opt.value"
+                                    id="nc-selected-item-icon"
+                                    class="flex-none text-primary w-4 h-4"
+                                  />
+                                </div>
+                              </a-select-option>
+                            </NcSelect>
+                          </a-form-item>
+                        </div>
+                      </div>
+                    </div>
+                  </a-radio-group>
+                </div>
+                <div>
+                  <NcCheckbox v-model:checked="importPayload.header" @change="updateHistory()">
+                    Use first record as header
+                  </NcCheckbox>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col w-[calc(100%_-_420px)] gap-3 overflow-auto h-full pl-2.5 pr-4 py-4">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-sm font-weight-700 text-nc-content-gray">Select destination fields</div>
+                <div>
+                  <NcBadge class="!text-sm !h-5 bg-nc-bg-gray-medium truncate" :border="false"
+                    >{{ selectedFieldDetails.selected }}/{{ selectedFieldDetails.total }} selected
+                  </NcBadge>
+                </div>
+              </div>
+
+              <NcTable
+                :columns="fieldMappingColumns"
+                :data="importPayload.importColumns"
+                class="flex-1"
+                header-row-height="40px"
+                row-height="48px"
+              >
+                <template #headerCell="{ column }">
+                  <template v-if="column.key === 'select'">
+                    <NcCheckbox :checked="isAllFieldsSelected" @update:checked="onClickSelectAllFields" />
+                  </template>
+                  <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-3">
+                    {{ column.title }}
+
+                    <NcBadge v-if="importPayload.tableId" class="!text-sm !h-5 bg-nc-bg-gray-medium truncate" :border="false">
+                      <LazyGeneralEmojiPicker
+                        :emoji="importPayload.tableIcon || selectedTable?.meta?.icon"
+                        readonly
+                        size="xsmall"
+                      >
+                        <template #default>
+                          <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
+                        </template>
+                      </LazyGeneralEmojiPicker>
+                      <NcTooltip class="max-w-[80px] ml-1 text-nc-content-gray-subtle2 truncate" show-on-truncate-only>
+                        <template #title>
+                          {{ importPayload.tableName || selectedTable.title }}
+                        </template>
+
+                        {{ importPayload.tableName || selectedTable.title }}
+                      </NcTooltip>
+                    </NcBadge>
+                  </div>
+                  <template v-if="column.key === 'mapping'">
+                    <GeneralIcon icon="ncArrowLeft" />
+                  </template>
+                  <div v-if="column.key === 'csv-column'" class="w-full pl-3 text-left">
+                    {{ column.title }}
+                  </div>
+                </template>
+
+                <template #bodyCell="{ column, record: importMeta }">
+                  <template v-if="column.key === 'select'">
                     <NcCheckbox
                       v-model:checked="importMeta.enabled"
-                      :disabled="importPayload.upsertColumnId === importMeta.columnId"
+                      :disabled="importPayload.upsertColumnId === importMeta.columnId || !importMeta.mapIndex"
                       @change="updateHistory()"
                     />
-                    <div class="flex-1 font-weight-600">{{ columns[importMeta.columnId].title }}</div>
+                  </template>
+                  <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-2">
+                    <template v-if="columns[importMeta.columnId]">
+                      <component
+                        :is="getUIDTIcon(columns[importMeta.columnId].uidt!)"
+                        v-if="columns[importMeta.columnId]?.uidt"
+                        class="flex-none w-3.5 h-3.5"
+                      />
+                      {{ columns[importMeta.columnId].title }}
+                    </template>
                   </div>
-                  <GeneralIcon class="text-[20px] mr-4" icon="ncArrowLeft" />
-                  <div class="w-1/3 flex items-center">
-                    <NcSelect
-                      v-model:value="importMeta.mapIndex"
-                      :options="headers"
-                      class="w-full"
-                      @change="onMappingField(importMeta.columnId, $event)"
-                    />
-                  </div>
-                </div>
-                <NcDivider class="mb-2" />
-              </template>
-            </template>
-          </div>
-          <div class="flex flex-col w-2/3 gap-2 overflow-auto p-2 h-full">
-            <div v-if="previewData.length" class="flex flex-col h-full">
-              <div class="flex justify-between items-center">
-                <div class="text-sm font-weight-700">Preview</div>
-              </div>
-              <NcDivider class="mb-2" />
-              <div class="flex flex-col gap-2 p-2">
-                <div v-for="(row, index) in previewData" :key="index" class="flex gap-2">
-                  <div class="flex flex-col border-1 rounded-lg w-full p-2 justify-between">
-                    <div class="flex">
-                      <template v-for="importMeta in Object.values(importPayload.importColumns)" :key="importMeta.columnId">
-                        <div v-if="importMeta.enabled && importMeta.mapIndex" class="w-[200px] flex items-center justify-center">
-                          <LazySmartsheetHeaderCell :column="columns[importMeta.columnId]" :hide-menu="true" />
-                        </div>
-                      </template>
-                    </div>
-                    <div class="flex">
-                      <template v-for="[title, value] in Object.entries(row)" :key="`${title}${index}`">
-                        <div class="w-[200px] flex items-center justify-center">
-                          <SmartsheetCell
-                            :model-value="value"
-                            :column="previewColumns[title]"
-                            :edit-enabled="false"
-                            :read-only="true"
-                          />
-                        </div>
-                      </template>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="flex justify-center items-center p-2 flex-1">
-                <a-pagination
-                  :current="previewPage"
-                  :total="parsedData.data.length - (importPayload.header ? 1 : 0)"
-                  :page-size="10"
-                  :show-quick-jumper="false"
-                  :show-size-changer="false"
-                  @change="previewPage = $event"
-                />
-              </div>
+                  <template v-if="column.key === 'mapping'">
+                    <GeneralIcon icon="ncArrowLeft" />
+                  </template>
+                  <template v-if="column.key === 'csv-column'">
+                    <a-form-item class="!my-0 w-full">
+                      <NcSelect
+                        :value="importMeta.mapIndex || null"
+                        class="nc-field-select-input w-full nc-select-shadow !border-none"
+                        placeholder="-select a field-"
+                        @update:value="(value) => (importMeta.mapIndex = value)"
+                        @change="onMappingField(importMeta.columnId, $event)"
+                      >
+                        <a-select-option v-for="(col, i) of headers" :key="i" :value="col.value">
+                          <div class="flex items-center gap-2 w-full">
+                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                              <template #title>
+                                {{ col.label }}
+                              </template>
+                              {{ col.label }}
+                            </NcTooltip>
+                            <component
+                              :is="iconMap.check"
+                              v-if="importMeta.mapIndex === col.value"
+                              id="nc-selected-item-icon"
+                              class="flex-none text-primary w-4 h-4"
+                            />
+                          </div>
+                        </a-select-option>
+                      </NcSelect>
+                    </a-form-item>
+                  </template>
+                </template>
+              </NcTable>
             </div>
           </div>
+          <general-overlay :model-value="isImportingRecords" inline transition class="!bg-opacity-15">
+            <div class="flex flex-col items-center justify-center h-full w-full !bg-white !bg-opacity-55">
+              <a-spin size="large" />
+              <div class="text-brand-600">Importing {{ processedRecords }}/{{ totalRecords }}</div>
+            </div>
+          </general-overlay>
         </div>
-        <div class="w-full flex justify-end items-center py-2 pr-2 gap-2">
-          <NcButton type="ghost" @click="clearImport()">Cancel</NcButton>
-          <NcButton :disabled="!readyForImport" @click="onImport">Import</NcButton>
-        </div>
-      </div>
-    </template>
-    <template v-else>
-      <div class="m-auto flex justify-center items-center py-4 gap-2">
-        <NcButton class="w-1/3" @click="fullscreen = true">Expand To Continue</NcButton>
-        <NcButton type="ghost" @click="clearImport()">Cancel</NcButton>
-      </div>
-    </template>
-  </template>
-  <template v-else-if="step === 2">
-    <div class="flex flex-col h-full p-4 items-center justify-center">
-      <div class="font-weight-600">Importing {{ processedRecords }} / {{ totalRecords }}</div>
-      <div class="mt-4">
-        <GeneralLoader size="xlarge" />
-      </div>
-    </div>
-  </template>
-  <template v-else-if="step === 3">
-    <div class="flex flex-col h-full p-4 items-center justify-center">
-      <div class="flex">
-        <div class="w-[200px] border-1 border-r-0 p-2">
-          <div class="text-gray-500 pb-2">Inserted</div>
-          <div class="text-[30px]">{{ stats.inserted }}</div>
-        </div>
-        <div class="w-[200px] border-1 p-2">
-          <div class="text-gray-500 pb-2">Updated</div>
-          <div class="text-[30px]">{{ stats.updated }}</div>
-        </div>
-      </div>
-      <template v-if="stats.error">
-        <div class="mt-4 flex flex-col gap-2">
-          <a-alert type="error">
-            <template #message>
-              <div class="flex gap-2 items-center text-red-500">
-                <GeneralIcon class="text-[25px]" icon="error" />
-                <span>{{ stats.error.title || 'There was an error with import' }}</span>
-              </div>
-            </template>
-            <template #description>
-              <div class="p-2 text-gray-500"><span class="font-weight-600">Error:</span> {{ stats.error.message }}</div>
-            </template>
-          </a-alert>
-          <div class="flex gap-2 items-center justify-center">
-            <NcButton @click="clearImport()">Okay</NcButton>
-            <NcButton type="ghost" @click="step = 1">Return</NcButton>
+
+        <div v-else class="h-full flex flex-col justify-between gap-3">
+          <div v-if="isImportingRecords">
+            <ImportStatus
+              status="inprogress"
+              :filename="importPayload.file.name"
+              :inprogress-percentage="importRecordPercentage"
+              :tablename="importPayload.tableName || 'table'"
+              :tableicon="importPayload.tableIcon"
+              :inserted="importPayload.stats.inserted"
+              :updated="importPayload.stats.updated"
+            ></ImportStatus>
           </div>
-        </div>
-      </template>
-      <template v-else>
-        <div class="mt-4">
-          <NcButton @click="clearImport()">Okay</NcButton>
+          <template v-else>
+            <div
+              class="w-full flex items-center p-2 rounded-lg flex gap-4 border-1 border-nc-border-gray-medium cursor-pointer"
+              @click="fullscreen = true"
+            >
+              <div
+                class="w-[48px] h-[48px] p-2 bg-nc-bg-gray-extralight rounded-lg flex items-center justify-center children:flex-none text-nc-content-gray-subtle2"
+              >
+                <GeneralIcon icon="fileBig" class="h-8 w-8" />
+              </div>
+
+              <div class="flex-1 w-[calc(100%_-_108px)]">
+                <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                  <template #title>{{ importPayload.file.name }}</template>
+                  {{ importPayload.file.name }}
+                </NcTooltip>
+                <div class="text-nc-content-gray-muted text-sm">{{ importPayload.file.size }}</div>
+              </div>
+
+              <NcButton size="xs" type="text" class="!px-1" @click.stop="clearImport()">
+                <GeneralIcon icon="delete" class="opacity-80" />
+              </NcButton>
+            </div>
+
+            <div class="flex justify-end">
+              <NcButton size="small" @click="fullscreen = true">Continue</NcButton>
+            </div>
+          </template>
         </div>
       </template>
     </div>
-  </template>
+  </ExtensionsExtensionWrapper>
 </template>
 
 <style lang="scss" scoped>
-.input-wrapper {
-  @apply mb-2;
+:deep(.extension-content-container) {
+  &.fullscreen {
+    @apply p-0;
+  }
+}
+:deep(.nc-import-upsert-type .ant-radio-group) {
+  @apply flex flex-col gap-2;
+
+  .ant-radio-wrapper {
+    @apply transition-all justify-between !mr-0;
+
+    // &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled):focus-within {
+    //   @apply border-brand-500;
+    // }
+
+    span:not(.ant-radio):not(.nc-ltar-icon) {
+      @apply flex-1 pl-2 pr-0 gap-2;
+    }
+
+    .ant-radio {
+      @apply top-[3px];
+    }
+
+    .nc-ltar-icon {
+      @apply inline-flex items-center p-1 rounded-md;
+    }
+  }
+}
+
+:deep(.ant-spin-nested-loading) {
+  .ant-spin-container {
+    @apply h-full;
+  }
+}
+
+:deep(.nc-field-select-input.ant-select) {
+  .ant-select-selector {
+    @apply !bg-transparent;
+  }
+
+  &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+  &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+    @apply !shadow-none;
+  }
+
+  &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
+    @apply shadow-none;
+  }
+  &:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
+    @apply !border-transparent;
+  }
+}
+
+:deep(.ant-select-selection-item) {
+  @apply font-weight-400 text-sm !text-nc-content-gray;
+}
+</style>
+
+<style>
+.nc-csv-file-uploader {
+  &.ant-upload.ant-upload-drag {
+    @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
+  }
+  .ant-upload-btn {
+    @apply !flex flex-col items-center justify-center;
+  }
 }
 </style>

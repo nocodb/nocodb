@@ -1,15 +1,28 @@
 {
   "id": "nc-csv-import",
-  "title": "CSV Import",
-  "subTitle": "Import data from CSV files into your existing NocoDB table.",
+  "title": "Upload data from CSV",
+  "subTitle": "Upload data from CSV files into your existing NocoDB table.",
   "description": "csv-import-ee/description.md",
   "entry": "csv-import-ee",
   "version": "0.1",
   "iconUrl": "csv-import-ee/assets/icon.svg",
-  "publisherName": "NocoDB",
-  "publisherEmail": "contact@nocodb.com",
-  "publisherUrl": "https://www.nocodb.com",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "csv-import-ee/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [
+    {
+      "title": "Documentation",
+      "href": ""
+    }
+  ],
   "config": {
-    "contentMinHeight": "215px"
+    "contentMinHeight": "340px"
   }
 }

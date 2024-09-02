@@ -19,12 +19,23 @@ export interface ExtensionManifest {
   entry: string
   version: string
   iconUrl: string
-  publisherName: string
-  publisherEmail: string
-  publisherUrl: string
+  publisher: {
+    name: string
+    email: string
+    url: string
+    icon?: {
+      src: string
+      width?: number
+      height?: number
+    }
+  }
   disabled?: boolean
-  config?: {
-    modalMaxWith?: 'xs' | 'sm' | 'md' | 'lg'
+  links: {
+    title: string
+    href: string
+  }[]
+  config: {
+    modalSize?: 'xs' | 'sm' | 'md' | 'lg'
     contentMinHeight?: string
   }
 }
@@ -374,6 +385,17 @@ export const useExtensions = createSharedComposable(() => {
           // Load the module
           const mod = (await modules[path]()) as any
           const manifest = mod.default as ExtensionManifest
+
+          if (!Array.isArray(manifest.links)) {
+            manifest.links = []
+          }
+
+          if (!manifest?.config || !manifest?.config?.modalSize) {
+            manifest.config = {
+              ...(manifest.config || {}),
+              modalSize: 'lg',
+            }
+          }
 
           if (manifest?.disabled !== true) {
             availableExtensions.value.push(manifest)

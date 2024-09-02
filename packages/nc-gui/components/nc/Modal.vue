@@ -3,7 +3,8 @@ const props = withDefaults(
   defineProps<{
     visible: boolean
     width?: string | number
-    size?: 'small' | 'medium' | 'large'
+    height?: string | number
+    size?: 'small' | 'medium' | 'large' | keyof typeof modalSizes
     destroyOnClose?: boolean
     maskClosable?: boolean
     showSeparator?: boolean
@@ -22,7 +23,7 @@ const props = withDefaults(
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
+const { width: propWidth, height: propHeight, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
 
 const { maskClosable } = toRefs(props)
 
@@ -49,12 +50,20 @@ const width = computed(() => {
     return '80rem'
   }
 
+  if (modalSizes[props.size]) {
+    return modalSizes[props.size].width
+  }
+
   return 'max(30vw, 600px)'
 })
 
 const height = computed(() => {
   if (isMobileMode.value) {
     return '95vh'
+  }
+
+  if (propHeight) {
+    return propHeight
   }
 
   if (props.size === 'small') {
@@ -67,6 +76,10 @@ const height = computed(() => {
 
   if (props.size === 'large') {
     return '80vh'
+  }
+
+  if (modalSizes[props.size]) {
+    return modalSizes[props.size].height
   }
 
   return 'auto'

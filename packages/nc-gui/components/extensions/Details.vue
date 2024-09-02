@@ -67,8 +67,7 @@ const detailsBody = computed(() => {
     v-model:visible="vModel"
     :class="{ active: vModel }"
     :footer="null"
-    :width="1154"
-    size="medium"
+    size="lg"
     wrap-class-name="nc-modal-extension-details"
   >
     <div v-if="activeExtension" class="flex flex-col w-full h-full">
@@ -172,7 +171,7 @@ const detailsBody = computed(() => {
 
 <style lang="scss" scoped>
 .extension-details {
-  @apply flex w-full h-[calc(100%_-_65px)];
+  @apply flex w-full h-[calc(100%_-_83px)];
 
   .extension-details-left {
     @apply p-6 flex-1 flex flex-col gap-6 nc-scrollbar-thin;
@@ -202,8 +201,8 @@ const detailsBody = computed(() => {
   }
   .nc-modal {
     @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
+    height: min(calc(100vh - 100px), 864px);
+    max-height: min(calc(100vh - 100px), 864px) !important;
 
     .nc-edit-or-add-integration-left-panel {
       @apply w-full p-6 flex-1 flex justify-center;

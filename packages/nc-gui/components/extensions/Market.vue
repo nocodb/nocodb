@@ -75,8 +75,7 @@ const handleSetActiveTab = (tab: TabItem) => {
     v-model:visible="vModel"
     :class="{ active: vModel }"
     :footer="null"
-    :width="1280"
-    size="medium"
+    size="lg"
     wrap-class-name="nc-modal-extension-market"
   >
     <div class="h-full">
@@ -228,8 +227,8 @@ const handleSetActiveTab = (tab: TabItem) => {
 .nc-modal-extension-market {
   .nc-modal {
     @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
+    height: min(calc(100vh - 100px), 864px);
+    max-height: min(calc(100vh - 100px), 864px) !important;
 
     .nc-edit-or-add-integration-left-panel {
       @apply w-full p-6 flex-1 flex justify-center;

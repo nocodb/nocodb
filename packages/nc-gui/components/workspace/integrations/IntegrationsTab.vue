@@ -408,7 +408,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
       @apply flex gap-4 flex-wrap;
 
       .source-card {
-        @apply flex items-center gap-4 border-1 border-gray-200 rounded-xl p-3 w-[280px] cursor-pointer;
+        @apply flex items-center gap-4 border-1 border-gray-200 rounded-xl p-3 w-[280px] cursor-pointer transition-all duration-300;
 
         .integration-icon-wrapper {
           @apply flex-none h-[44px] w-[44px] rounded-lg flex items-center justify-center;

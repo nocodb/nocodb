@@ -91,12 +91,20 @@ const handleSetActiveTab = (tab: TabItem) => {
         </div>
         <div class="flex bg-nc-gray-medium rounded-lg p-1">
           <div class="flex items-center">
-            <NcTooltip v-for="(tab, idx) of tabs" :key="idx" :disabled="tab.tabKey === 'extensions'">
+            <NcTooltip
+              v-for="(tab, idx) of tabs"
+              :key="idx"
+              :disabled="tab.tabKey === 'extensions'"
+              class="nc-extension-market-header-tab-item"
+              :class="{
+                'selected ': activeTab === tab.tabKey,
+              }"
+            >
               <template #title> {{ $t('msg.toast.futureRelease') }}</template>
               <div
                 class="px-3 py-1 flex items-center gap-2 text-xs rounded-md select-none"
                 :class="{
-                  'active-tab bg-white text-nc-gray-emphasis': activeTab === tab.tabKey,
+                  'bg-white text-nc-gray-emphasis': activeTab === tab.tabKey,
                   'text-nc-gray-subtle2': activeTab !== tab.tabKey,
                   'cursor-not-allowed opacity-60': tab.isDisabled,
                   'cursor-pointer': !tab.isDisabled,
@@ -239,8 +247,32 @@ const handleSetActiveTab = (tab: TabItem) => {
   }
 
   .nc-extension-market-header {
-    .active-tab {
-      box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+    .nc-extension-market-header-tab-item {
+      @apply relative;
+
+      // Add vertical line to all items except the last one
+      &:not(:last-child)::after {
+        @apply absolute right-0 top-[4px] h-[16px] w-[1px] bg-nc-gray-dark; // Use WindiCSS utilities for line
+
+        content: '';
+        transform: scaleY(0); // Hide by default
+        transition: transform 0.18s;
+      }
+
+      // Handle lines visibility based on selection
+      &.selected {
+        box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+      }
+
+      // Ensure lines are shown between non-selected items
+      &:not(.selected)::after {
+        transform: scaleY(1);
+      }
+
+      // If supported, this will hide the line to the right of the selected item
+      &:has(+ .selected)::after {
+        transform: scaleY(0); // Hide the line on the right of the selected item
+      }
     }
   }
 }

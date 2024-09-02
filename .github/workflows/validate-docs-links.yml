@@ -1,0 +1,28 @@
+name: "Validate: Docs"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    branches: [develop]
+    paths:
+      - "packages/noco-docs/**"
+
+jobs:
+  validate-docs:
+    runs-on: [self-hosted, aws]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.19.1
+      - name: Build docs
+        run: |
+          cd packages/noco-docs
+          npm install
+          npm run generate
+          npm run remark:once

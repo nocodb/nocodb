@@ -330,7 +330,7 @@ onMounted(() => {
             </div>
 
             <div v-if="exp.status === JobStatus.COMPLETED" class="flex items-center">
-              <a :href="urlHelper(exp.result.url)" target="_blank">
+              <a :href="urlHelper(exp.result.url)">
                 <NcTooltip class="flex items-center">
                   <template #title>
                     {{ $t('general.download') }}

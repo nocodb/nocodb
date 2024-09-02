@@ -5,9 +5,9 @@ interface Props {
 
 defineProps<Props>()
 
-const { activeError } = useExtensionHelperOrThrow()
-
 const emits = defineEmits(['rename', 'duplicate', 'showDetails', 'clearData', 'delete'])
+
+const { activeError } = useExtensionHelperOrThrow()
 </script>
 
 <template>

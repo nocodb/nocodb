@@ -123,7 +123,12 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       }
     }
 
-    const upsertData = async (params: { tableId: string; data: Record<string, any>; upsertField: ColumnType }) => {
+    const upsertData = async (params: {
+      tableId: string
+      data: Record<string, any>
+      upsertField: ColumnType
+      importType: 'insert' | 'update' | 'insertAndUpdate'
+    }) => {
       const { tableId, data, upsertField } = params
 
       const chunkSize = 100
@@ -151,28 +156,32 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
           limit: chunkSize,
         })
 
-        insert.push(
-          ...chunk.filter(
-            (record: Record<string, any>) =>
-              !list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
-          ),
-        )
+        if (params.importType !== 'update') {
+          insert.push(
+            ...chunk.filter(
+              (record: Record<string, any>) =>
+                !list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
+            ),
+          )
+        }
 
-        update.push(
-          ...chunk
-            .filter((record: Record<string, any>) =>
-              list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
-            )
-            .map((record: Record<string, any>) => {
-              const existingRecord = list.find(
-                (r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`,
+        if (params.importType !== 'insert') {
+          update.push(
+            ...chunk
+              .filter((record: Record<string, any>) =>
+                list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
               )
-              return {
-                ...rowPkData(existingRecord!, tableMeta.columns!),
-                ...record,
-              }
-            }),
-        )
+              .map((record: Record<string, any>) => {
+                const existingRecord = list.find(
+                  (r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`,
+                )
+                return {
+                  ...rowPkData(existingRecord!, tableMeta.columns!),
+                  ...record,
+                }
+              }),
+          )
+        }
       }
 
       if (insert.length) {

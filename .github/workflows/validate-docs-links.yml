@@ -19,9 +19,10 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18.19.1
       - name: Build docs
         run: |
           cd packages/noco-docs
           npm install
           npm run generate
+          npm run remark:once

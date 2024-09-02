@@ -50,7 +50,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <SmartsheetTopbarSelectMode />
       </div>
 
-      <div class="flex items-center justify-end gap-3 flex-1">
+      <div class="flex items-center justify-end gap-2 flex-1">
         <GeneralApiLoader v-if="!isMobileMode" />
 
         <NcButton

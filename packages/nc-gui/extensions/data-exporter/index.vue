@@ -204,7 +204,14 @@ onMounted(() => {
 
 <template>
   <ExtensionsExtensionWrapper>
-    <div ref="dataExporterRef" class="data-exporter">
+    <div
+      ref="dataExporterRef"
+      class="data-exporter"
+      :class="{
+        'p-4': fullscreen,
+        'p-3': !fullscreen,
+      }"
+    >
       <div class="pb-3 flex items-center justify-between gap-2.5 flex-wrap">
         <div
           class="flex-1 flex items-center"
@@ -215,70 +222,77 @@ onMounted(() => {
             'max-w-[900px]': fullscreen,
           }"
         >
-          <NcSelect
-            v-model:value="exportPayload.tableId"
-            placeholder="-select table-"
-            :disabled="isExporting"
-            class="nc-data-exporter-table-select"
-            :class="{
-              'flex-1 max-w-[240px]': fullscreen,
-              'min-w-1/2 max-w-[175px]': !fullscreen,
-            }"
-            :filter-option="filterOption"
-            dropdown-class-name="w-[250px]"
-            show-search
-            @change="onTableSelect"
+          <div
+            class="flex items-center border-1 border-gray-200 rounded-lg focus-within:(border-brand-500 shadow-selected) transition-colors transition-shadow"
           >
-            <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
-              <div class="w-full flex items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
-                  <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+            <NcSelect
+              v-model:value="exportPayload.tableId"
+              placeholder="-select table-"
+              :disabled="isExporting"
+              class="nc-data-exporter-table-select"
+              :class="{
+                'flex-1 max-w-[240px]': fullscreen,
+                'min-w-1/2 max-w-[175px]': !fullscreen,
+              }"
+              :bordered="false"
+              :filter-option="filterOption"
+              dropdown-class-name="w-[250px]"
+              show-search
+              @change="onTableSelect"
+            >
+              <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
+                <div class="w-full flex items-center gap-2">
+                  <div class="min-w-5 flex items-center justify-center">
+                    <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+                  </div>
+                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                    <template #title>{{ table.label }}</template>
+                    <span>{{ table.label }}</span>
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.check"
+                    v-if="exportPayload.tableId === table.value"
+                    id="nc-selected-item-icon"
+                    class="flex-none text-primary w-4 h-4"
+                  />
                 </div>
-                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                  <template #title>{{ table.label }}</template>
-                  <span>{{ table.label }}</span>
-                </NcTooltip>
-                <component
-                  :is="iconMap.check"
-                  v-if="exportPayload.tableId === table.value"
-                  id="nc-selected-item-icon"
-                  class="flex-none text-primary w-4 h-4"
-                />
-              </div>
-            </a-select-option>
-          </NcSelect>
+              </a-select-option>
+            </NcSelect>
+            <div class="flex-none h-8 border-l-1 border-gray-200"></div>
 
-          <NcSelect
-            v-model:value="exportPayload.viewId"
-            placeholder="-select view-"
-            :disabled="isExporting"
-            class="nc-data-exporter-view-select"
-            :class="{
-              'flex-1 max-w-[240px]': fullscreen,
-              'min-w-1/2 max-w-[175px]': !fullscreen,
-            }"
-            dropdown-class-name="w-[250px]"
-            :filter-option="filterOption"
-            show-search
-            @change="onViewSelect"
-          >
-            <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
-              <div class="w-full flex items-center gap-2">
-                <div class="min-w-5 flex items-center justify-center">
-                  <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
-                </div>
-                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                  <template #title>{{ view.label }}</template>
-                  <span>{{ view.label }}</span>
-                </NcTooltip>
-                <component
-                  :is="iconMap.check"
-                  v-if="exportPayload.viewId === view.value"
-                  id="nc-selected-item-icon"
-                  class="flex-none text-primary w-4 h-4"
-                />
-              </div> </a-select-option
-          ></NcSelect>
+            <NcSelect
+              v-model:value="exportPayload.viewId"
+              placeholder="-select view-"
+              :disabled="isExporting"
+              class="nc-data-exporter-view-select"
+              :class="{
+                'flex-1 max-w-[240px]': fullscreen,
+                'min-w-1/2 max-w-[175px]': !fullscreen,
+              }"
+              :bordered="false"
+              dropdown-class-name="w-[250px]"
+              :filter-option="filterOption"
+              show-search
+              @change="onViewSelect"
+            >
+              <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
+                <div class="w-full flex items-center gap-2">
+                  <div class="min-w-5 flex items-center justify-center">
+                    <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                  </div>
+                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                    <template #title>{{ view.label }}</template>
+                    <span>{{ view.label }}</span>
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.check"
+                    v-if="exportPayload.viewId === view.value"
+                    id="nc-selected-item-icon"
+                    class="flex-none text-primary w-4 h-4"
+                  />
+                </div> </a-select-option
+            ></NcSelect>
+          </div>
         </div>
         <div class="flex-none flex justify-end">
           <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
@@ -380,22 +394,25 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
+:deep(.extension-content-container) {
+  @apply !p-0;
+}
 .data-exporter {
   @apply flex flex-col overflow-hidden h-full;
   .data-exporter-header {
     @apply px-3 py-1 bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
   }
 
-  .nc-data-exporter-table-select {
-    :deep(.ant-select-selector) {
-      @apply !border-r-[0.5px] rounded-lg !rounded-r-none shadow-none;
-    }
-  }
-  .nc-data-exporter-view-select {
-    :deep(.ant-select-selector) {
-      @apply !border-l-[0.5px] rounded-lg !rounded-l-none shadow-none;
-    }
-  }
+  // .nc-data-exporter-table-select {
+  //   :deep(.ant-select-selector) {
+  //     @apply !border-r-1 rounded-lg !rounded-r-none shadow-none;
+  //   }
+  // }
+  // .nc-data-exporter-view-select {
+  //   :deep(.ant-select-selector) {
+  //     @apply !border-l-0 rounded-lg !rounded-l-none shadow-none;
+  //   }
+  // }
 
   .data-exporter-body {
     @apply flex-1 rounded-lg border-1 overflow-hidden;
@@ -404,5 +421,11 @@ onMounted(() => {
   .data-exporter-footer {
     @apply flex items-center justify-end bg-gray-100;
   }
+}
+</style>
+
+<style>
+.nc-nc-data-exporter .extension-content {
+  @apply !p-0;
 }
 </style>

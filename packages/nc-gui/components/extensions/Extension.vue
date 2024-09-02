@@ -107,7 +107,7 @@ eventBus.on((event, payload) => {
 </script>
 
 <template>
-  <div ref="extensionRef" class="w-full px-4" :data-testid="extension.id">
+  <div ref="extensionRef" class="w-full px-4" :class="`nc-${extensionManifest?.id}`" :data-testid="extension.id">
     <div
       class="extension-wrapper"
       :class="[

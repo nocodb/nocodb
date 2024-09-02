@@ -196,6 +196,7 @@ import NcReddit from '~icons/nc-icons/reddit'
 import NcTwitter from '~icons/nc-icons/twitter'
 
 import NcFile from '~icons/nc-icons/file'
+import NcFileBig from '~icons/nc-icons/file-big'
 import NcSettings from '~icons/nc-icons/settings'
 import NcHelp from '~icons/nc-icons/help'
 import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
@@ -985,6 +986,7 @@ export const iconMap = {
   ncReddit: NcReddit,
   ncTwitter: NcTwitter,
   file: NcFile,
+  fileBig: NcFileBig,
   ncSettings: NcSettings,
   ncHelp: NcHelp,
   puzzle: MdiPuzzle,

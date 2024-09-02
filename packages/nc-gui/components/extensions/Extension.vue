@@ -16,6 +16,8 @@ const {
   showExtensionDetails,
 } = useExtensions()
 
+const isLoadedExtension = ref<boolean>(false)
+
 const activeError = ref(error)
 
 const extensionRef = ref<HTMLElement>()
@@ -31,6 +33,12 @@ const extension = computed(() => {
   }
   return ext
 })
+
+const extensionManifest = computed<ExtensionManifest | undefined>(() => {
+  return availableExtensions.value.find((ext) => ext.id === extension.value?.extensionId)
+})
+
+const { fullscreen, collapsed } = useProvideExtensionHelper(extension, extensionManifest, activeError)
 
 const titleInput = ref<HTMLInputElement | null>(null)
 
@@ -54,11 +62,7 @@ const updateExtensionTitle = async () => {
   titleEditMode.value = false
 }
 
-const { fullscreen, collapsed } = useProvideExtensionHelper(extension)
-
 const component = ref<any>(null)
-
-const extensionManifest = ref<ExtensionManifest | undefined>()
 
 const extensionHeight = computed(() => {
   const heigthInInt = parseInt(extensionManifest.value?.config?.contentMinHeight || '') || undefined
@@ -87,40 +91,6 @@ const expandExtension = () => {
   collapsed.value = false
 }
 
-onMounted(() => {
-  until(extensionsLoaded)
-    .toMatch((v) => v)
-    .then(() => {
-      extensionManifest.value = availableExtensions.value.find((ext) => ext.id === extension.value.extensionId)
-
-      if (!extensionManifest.value) {
-        return
-      }
-
-      import(`../../extensions/${extensionManifest.value.entry}/index.vue`).then((mod) => {
-        component.value = markRaw(mod.default)
-      })
-    })
-    .catch((err) => {
-      if (!extensionManifest.value) {
-        activeError.value = 'There was an error loading the extension'
-        return
-      }
-      activeError.value = err
-    })
-})
-
-// close fullscreen on escape key press
-useEventListener('keydown', (e) => {
-  // Check if the event target or its closest parent is an input, select, or textarea
-  const isFormElement = (e?.target as HTMLElement)?.closest('input, select, textarea')
-
-  // If the target is not a form element and the key is 'Escape', close fullscreen
-  if (e.key === 'Escape' && !isFormElement) {
-    fullscreen.value = false
-  }
-})
-
 // close fullscreen on clicking extensionModalRef directly
 const closeFullscreen = (e: MouseEvent) => {
   if (e.target === extensionModalRef.value) {
@@ -137,7 +107,42 @@ const handleDuplicateExtension = async (id: string, open: boolean = false) => {
   }
 }
 
+onMounted(() => {
+  until(extensionsLoaded)
+    .toMatch((v) => v)
+    .then(() => {
+      if (!extensionManifest.value) {
+        return
+      }
+
+      import(`../../extensions/${extensionManifest.value.entry}/index.vue`).then((mod) => {
+        component.value = markRaw(mod.default)
+        isLoadedExtension.value = true
+      })
+    })
+    .catch((err) => {
+      if (!extensionManifest.value) {
+        activeError.value = 'There was an error loading the extension'
+        return
+      }
+      activeError.value = err
+      isLoadedExtension.value = true
+    })
+})
+
 // #Listeners
+
+// close fullscreen on escape key press
+useEventListener('keydown', (e) => {
+  // Check if the event target or its closest parent is an input, select, or textarea
+  const isFormElement = (e?.target as HTMLElement)?.closest('input, select, textarea')
+
+  // If the target is not a form element and the key is 'Escape', close fullscreen
+  if (e.key === 'Escape' && !isFormElement) {
+    fullscreen.value = false
+  }
+})
+
 eventBus.on((event, payload) => {
   if (event === ExtensionsEvents.DUPLICATE && extension.value.id === payload) {
     setTimeout(() => {
@@ -171,67 +176,7 @@ eventBus.on((event, payload) => {
       @mousedown="isMouseDown = true"
       @mouseup="isMouseDown = false"
     >
-      <div
-        class="extension-header px-3 py-2"
-        :class="{
-          'border-b-1 border-gray-200 h-[49px]': !collapsed,
-          'collapsed border-transparent h-[48px]': collapsed,
-        }"
-        @click="expandExtension"
-      >
-        <div class="extension-header-left max-w-[calc(100%_-_100px)]">
-          <!-- Todo: enable later when we support extension reordering -->
-          <!-- eslint-disable vue/no-constant-condition -->
-          <NcButton size="xs" type="text" class="nc-extension-drag-handler !px-1" @click.stop>
-            <GeneralIcon icon="ncDrag" class="flex-none text-gray-500" />
-          </NcButton>
-
-          <img
-            v-if="extensionManifest"
-            :src="getExtensionAssetsUrl(extensionManifest.iconUrl)"
-            alt="icon"
-            class="h-8 w-8 object-contain"
-          />
-          <a-input
-            v-if="titleEditMode && !fullscreen"
-            ref="titleInput"
-            v-model:value="tempTitle"
-            type="text"
-            class="flex-grow !h-8 !px-1 !py-1 !-ml-1 !rounded-lg w-4/5 extension-title"
-            @click.stop
-            @keyup.enter="updateExtensionTitle"
-            @keyup.esc="updateExtensionTitle"
-            @blur="updateExtensionTitle"
-          >
-          </a-input>
-
-          <NcTooltip v-else show-on-truncate-only class="truncate">
-            <template #title>
-              {{ extension.title }}
-            </template>
-            <span class="extension-title cursor-pointer" @dblclick.stop="enableEditMode" @click.stop>
-              {{ extension.title }}
-            </span>
-          </NcTooltip>
-        </div>
-        <div class="extension-header-right" @click.stop>
-          <ExtensionsExtensionMenu
-            :active-error="activeError"
-            class="nc-extension-menu"
-            @rename="enableEditMode"
-            @duplicate="handleDuplicateExtension(extension.id, true)"
-            @show-details="showExtensionDetails(extension.extensionId, 'extension')"
-            @clear-data="extension.clear()"
-            @delete="extension.delete()"
-          />
-          <NcButton v-if="!activeError" type="text" size="xs" class="nc-extension-expand-btn !px-1" @click="fullscreen = true">
-            <GeneralIcon icon="ncMaximize2" class="h-3.5 w-3.5" />
-          </NcButton>
-          <NcButton size="xs" type="text" class="!px-1" @click="collapsed = !collapsed">
-            <GeneralIcon :icon="collapsed ? 'arrowDown' : 'arrowUp'" class="flex-none" />
-          </NcButton>
-        </div>
-      </div>
+      <ExtensionsExtensionHeader :is-fullscreen="false" />
 
       <template v-if="activeError">
         <div
@@ -310,7 +255,7 @@ eventBus.on((event, payload) => {
                   </span>
                 </NcTooltip>
 
-                <ExtensionsExtensionMenu
+                <ExtensionsExtensionHeaderMenu
                   :active-error="activeError"
                   :fullscreen="fullscreen"
                   @rename="enableEditMode"
@@ -349,29 +294,6 @@ eventBus.on((event, payload) => {
     &.mousedown {
       overflow-y: auto;
     }
-  }
-}
-
-.extension-header {
-  @apply flex justify-between;
-
-  &.collapsed:not(:hover) {
-    .nc-extension-expand-btn,
-    .nc-extension-menu {
-      @apply hidden;
-    }
-  }
-
-  .extension-header-left {
-    @apply flex-1 flex items-center gap-2;
-  }
-
-  .extension-header-right {
-    @apply flex items-center gap-1;
-  }
-
-  .extension-title {
-    @apply font-weight-600;
   }
 }
 

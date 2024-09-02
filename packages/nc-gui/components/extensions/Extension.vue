@@ -6,15 +6,7 @@ interface Prop {
 
 const { extensionId, error } = defineProps<Prop>()
 
-const {
-  extensionList,
-  extensionsLoaded,
-  availableExtensions,
-  eventBus,
-  getExtensionAssetsUrl,
-  duplicateExtension,
-  showExtensionDetails,
-} = useExtensions()
+const { extensionList, extensionsLoaded, availableExtensions, eventBus } = useExtensions()
 
 const isLoadedExtension = ref<boolean>(false)
 
@@ -40,27 +32,7 @@ const extensionManifest = computed<ExtensionManifest | undefined>(() => {
 
 const { fullscreen, collapsed } = useProvideExtensionHelper(extension, extensionManifest, activeError)
 
-const titleInput = ref<HTMLInputElement | null>(null)
-
-const titleEditMode = ref<boolean>(false)
-
-const tempTitle = ref<string>(extension.value.title)
-
 const { height } = useElementSize(extensionRef)
-
-const enableEditMode = () => {
-  titleEditMode.value = true
-  tempTitle.value = extension.value.title
-  nextTick(() => {
-    titleInput.value?.focus()
-    titleInput.value?.select()
-  })
-}
-
-const updateExtensionTitle = async () => {
-  await extension.value.setTitle(tempTitle.value)
-  titleEditMode.value = false
-}
 
 const component = ref<any>(null)
 
@@ -85,25 +57,10 @@ const fullscreenModalMaxWidth = computed(() => {
     : modalMaxWidth.lg
 })
 
-const expandExtension = () => {
-  if (!collapsed.value) return
-
-  collapsed.value = false
-}
-
 // close fullscreen on clicking extensionModalRef directly
 const closeFullscreen = (e: MouseEvent) => {
   if (e.target === extensionModalRef.value) {
     fullscreen.value = false
-  }
-}
-
-const handleDuplicateExtension = async (id: string, open: boolean = false) => {
-  const duplicatedExt = await duplicateExtension(id)
-
-  if (duplicatedExt?.id && open) {
-    fullscreen.value = false
-    eventBus.emit(ExtensionsEvents.DUPLICATE, duplicatedExt.id)
   }
 }
 
@@ -225,7 +182,7 @@ eventBus.on((event, payload) => {
               <div
                 v-show="fullscreen || !collapsed"
                 class="extension-content h-full"
-                :class="{ 'fullscreen': fullscreen, 'h-full': !fullscreen }"
+                :class="{ 'fullscreen': fullscreen, 'h-full nc-scrollbar-thin': !fullscreen }"
               >
                 <component :is="component" :key="extension.uiKey" class="h-full" />
               </div>

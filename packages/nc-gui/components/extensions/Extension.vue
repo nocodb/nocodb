@@ -38,6 +38,8 @@ const titleEditMode = ref<boolean>(false)
 
 const tempTitle = ref<string>(extension.value.title)
 
+const { height } = useElementSize(extensionRef)
+
 const enableEditMode = () => {
   titleEditMode.value = true
   tempTitle.value = extension.value.title
@@ -57,6 +59,14 @@ const { fullscreen, collapsed } = useProvideExtensionHelper(extension)
 const component = ref<any>(null)
 
 const extensionManifest = ref<ExtensionManifest | undefined>()
+
+const extensionHeight = computed(() => {
+  const heigthInInt = parseInt(extensionManifest.value?.config?.contentMinHeight || '') || undefined
+
+  if (!heigthInInt || height.value > heigthInInt) return `${height.value}px`
+
+  return extensionManifest.value?.config?.contentMinHeight
+})
 
 const fullscreenModalMaxWidth = computed(() => {
   const modalMaxWidth = {
@@ -153,7 +163,7 @@ eventBus.on((event, payload) => {
       :style="
         !collapsed
           ? {
-              height: extensionManifest?.config?.contentMinHeight,
+              height: extensionHeight,
               minHeight: extensionManifest?.config?.contentMinHeight,
             }
           : {}

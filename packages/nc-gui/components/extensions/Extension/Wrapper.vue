@@ -1,4 +1,10 @@
 <script lang="ts" setup>
+/**
+ * ExtensionHeaderWrapper component.
+ *
+ * @slot headerPrefix - Slot for custom content to be displayed at the start of the header when in fullscreen mode.
+ * @slot headerExtra - Slot for additional custom content to be displayed in the header when in fullscreen mode.
+ */
 const { fullscreen } = useExtensionHelperOrThrow()
 
 const headerRef = ref<HTMLDivElement>()
@@ -10,6 +16,9 @@ const { height } = useElementSize(headerRef)
   <div class="h-full">
     <div ref="headerRef" class="extension-header-wrapper">
       <ExtensionsExtensionHeader>
+        <template #prefix>
+          <slot name="headerPrefix"></slot>
+        </template>
         <template #extra>
           <slot name="headerExtra"></slot>
         </template>

@@ -47,8 +47,8 @@ const activeTab = ref<TabKeysType>('extensions')
 const filteredAvailableExtensions = computed(() =>
   (availableExtensions.value || []).filter(
     (ext) =>
-      ext.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      ext.subTitle.toLowerCase().includes(searchQuery.value.toLowerCase()),
+      ext.title.toLowerCase().includes(searchQuery.value.toLowerCase()?.trim()) ||
+      ext.subTitle.toLowerCase().includes(searchQuery.value.toLowerCase()?.trim()),
   ),
 )
 
@@ -132,9 +132,10 @@ const handleSetActiveTab = (tab: TabItem) => {
 
       <div class="flex flex-col h-[calc(100%_-_65px)]">
         <div v-if="activeTab === 'extensions'" class="h-full py-4">
-          <div class="h-full flex flex-col gap-6 flex-1">
+          <div class="h-full flex flex-col gap-6 flex-1 pt-2 px-6 max-w-[900px] w-full mx-auto">
+            <div v-if="searchQuery" class="text-base text-nc-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
             <div
-              class="flex flex-wrap gap-4 nc-scrollbar-thin px-6 max-w-[900px] mx-auto py-2"
+              class="flex flex-wrap gap-4 overflow-auto nc-scrollbar-thin pb-2"
               :class="{
                 'h-full': searchQuery && !filteredAvailableExtensions.length && availableExtensions.length,
               }"

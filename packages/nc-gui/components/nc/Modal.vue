@@ -115,6 +115,7 @@ const slots = useSlots()
       class="flex flex-col nc-modal p-6 h-full"
       :style="{
         maxHeight: height,
+        ...(modalSizes[size] ? { height: height } : {}),
       }"
     >
       <div

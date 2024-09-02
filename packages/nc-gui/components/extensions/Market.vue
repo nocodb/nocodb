@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
+
 interface Prop {
   modelValue?: boolean
 }
@@ -39,6 +41,10 @@ const tabs = [
 const vModel = useVModel(props, 'modelValue', emit)
 
 const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails } = useExtensions()
+
+const searchRef: VNodeRef = (el) => {
+  return el && (el as HTMLInputElement)?.focus()
+}
 
 const searchQuery = ref<string>('')
 
@@ -120,6 +126,7 @@ const handleSetActiveTab = (tab: TabItem) => {
         <div class="flex-1 flex gap-3 justify-end">
           <div class="flex-1 flex max-w-[290px]">
             <a-input
+              :ref="searchRef"
               v-model:value="searchQuery"
               type="text"
               class="nc-input-border-on-value !h-8 !px-3 !py-1 !rounded-lg"
@@ -235,15 +242,6 @@ const handleSetActiveTab = (tab: TabItem) => {
 .nc-modal-extension-market {
   .nc-modal {
     @apply !p-0;
-    height: min(calc(100vh - 100px), 864px);
-    max-height: min(calc(100vh - 100px), 864px) !important;
-
-    .nc-edit-or-add-integration-left-panel {
-      @apply w-full p-6 flex-1 flex justify-center;
-    }
-    .nc-edit-or-add-integration-right-panel {
-      @apply p-5 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
-    }
   }
 
   .nc-extension-market-header {

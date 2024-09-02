@@ -1,6 +1,11 @@
 import { Integration as IntegrationCE } from 'src/models';
-import type { IntegrationsType, SourceType } from 'nocodb-sdk';
-import type { BoolType, IntegrationType } from 'nocodb-sdk';
+import { integrationCategoryNeedDefault } from 'nocodb-sdk';
+import type {
+  BoolType,
+  IntegrationsType,
+  IntegrationType,
+  SourceType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
@@ -24,6 +29,7 @@ export default class Integration extends IntegrationCE {
   order?: number;
   enabled?: BoolType;
   is_private?: BoolType;
+  is_default?: BoolType;
   meta?: any;
   created_by?: string;
   sources?: Partial<SourceType>[];
@@ -71,6 +77,24 @@ export default class Integration extends IntegrationCE {
       fk_workspace_id: insertObj.fk_workspace_id,
     });
 
+    if (integrationCategoryNeedDefault(insertObj.type)) {
+      // get if default integration exists for the type
+      const defaultIntegration = await this.getCategoryDefault(
+        {
+          workspace_id: insertObj.fk_workspace_id,
+        },
+        insertObj.type,
+        ncMeta,
+      );
+
+      // if default integration already exists then set is_default to false
+      if (defaultIntegration) {
+        insertObj.is_default = false;
+      } else {
+        insertObj.is_default = true;
+      }
+    }
+
     const { id } = await ncMeta.metaInsert2(
       insertObj.fk_workspace_id,
       RootScopes.WORKSPACE,
@@ -116,6 +140,7 @@ export default class Integration extends IntegrationCE {
       'config',
       'is_private',
       'is_encrypted',
+      'is_default',
     ]);
 
     if (updateObj.config) {
@@ -155,6 +180,57 @@ export default class Integration extends IntegrationCE {
     );
 
     return returnBase;
+  }
+
+  public static async setDefault(
+    context: Omit<NcContext, 'base_id'>,
+    integrationId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const integration = await this.get(context, integrationId, false, ncMeta);
+
+    if (!integration) {
+      NcError.integrationNotFound(integrationId);
+    }
+
+    // return if integration is already default
+    if (integration.is_default) {
+      return integration;
+    }
+
+    // get if default integration exists for the type
+    const defaultIntegration = await this.getCategoryDefault(
+      {
+        workspace_id: context.workspace_id,
+      },
+      integration.type,
+      ncMeta,
+    );
+
+    // if default integration already exists then set is_default to false
+    if (defaultIntegration) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        RootScopes.WORKSPACE,
+        MetaTable.INTEGRATIONS,
+        {
+          is_default: false,
+        },
+        defaultIntegration.id,
+      );
+    }
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      RootScopes.WORKSPACE,
+      MetaTable.INTEGRATIONS,
+      {
+        is_default: true,
+      },
+      integrationId,
+    );
+
+    return await this.get(context, integrationId, false, ncMeta);
   }
 
   static async list(
@@ -306,25 +382,31 @@ export default class Integration extends IntegrationCE {
     return this.castType(baseData);
   }
 
-  static async getWithType(
+  static async getCategoryDefault(
     context: Omit<NcContext, 'base_id'>,
     type: string,
-    force = false,
     ncMeta = Noco.ncMeta,
   ): Promise<Integration> {
+    if (context.workspace_id === RootScopes.BYPASS) {
+      NcError.badRequest(
+        'Workspace ID is required for getting default integration',
+      );
+    }
+
     const baseData = await ncMeta.metaGet2(
       context.workspace_id,
-      context.workspace_id === RootScopes.BYPASS
-        ? RootScopes.BYPASS
-        : RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
-      context.workspace_id === RootScopes.BYPASS
-        ? type
-        : { type, fk_workspace_id: context.workspace_id },
+      { type, fk_workspace_id: context.workspace_id },
       null,
-      force
-        ? {}
-        : {
+      {
+        _and: [
+          {
+            is_default: {
+              eq: true,
+            },
+          },
+          {
             _or: [
               {
                 deleted: {
@@ -338,6 +420,8 @@ export default class Integration extends IntegrationCE {
               },
             ],
           },
+        ],
+      },
     );
 
     if (baseData) {

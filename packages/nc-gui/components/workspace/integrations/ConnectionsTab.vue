@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { integrationCategoryNeedDefault } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -16,6 +17,7 @@ const {
   editIntegration,
   duplicateIntegration,
   getIntegration,
+  setDefaultIntegration,
 } = useIntegrationStore()
 
 const { $api, $e } = useNuxtApp()
@@ -518,6 +520,13 @@ onKeyStroke('ArrowDown', onDown)
                       </NcButton>
                       <template #overlay>
                         <NcMenu>
+                          <NcMenuItem
+                            v-if="integrationCategoryNeedDefault && !integration.is_default"
+                            @click="setDefaultIntegration(integration)"
+                          >
+                            <GeneralIcon class="text-gray-800" icon="star" />
+                            <span>Set as default</span>
+                          </NcMenuItem>
                           <NcMenuItem @click="editIntegration(integration)">
                             <GeneralIcon class="text-gray-800" icon="edit" />
                             <span>{{ $t('general.edit') }}</span>

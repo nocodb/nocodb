@@ -13,16 +13,21 @@ export default [
   {
     type: FormBuilderInputType.Input,
     label: 'API Key',
-    width: 50,
+    width: 48,
     model: 'config.apiKey',
     placeholder: 'API Key',
     category: 'Credentials',
     required: true,
   },
   {
+    type: FormBuilderInputType.Space,
+    width: 4,
+    category: 'Credentials',
+  },
+  {
     type: FormBuilderInputType.Input,
     label: 'Organization ID (Optional)',
-    width: 50,
+    width: 48,
     model: 'config.organizationId',
     placeholder: 'Organization ID',
     category: 'Credentials',

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { TableType } from 'nocodb-sdk'
+
 const props = defineProps<{
   modelValue: boolean
   sourceId: string
@@ -21,27 +23,36 @@ const { loadProjectTables, addTable } = useTablesStore()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { table, createTable, generateUniqueTitle, tables, base } = useTableNew({
-  async onTableCreate(table) {
-    // await loadProject(props.baseId)
+const onTableCreate = async (table: TableType) => {
+  // await loadProject(props.baseId)
 
-    await addTab({
-      id: table.id as string,
-      title: table.title,
-      type: TabType.TABLE,
-      baseId: props.baseId,
-      // sourceId: props.sourceId,
-    })
+  await addTab({
+    id: table.id as string,
+    title: table.title,
+    type: TabType.TABLE,
+    baseId: props.baseId,
+    // sourceId: props.sourceId,
+  })
 
-    addTable(props.baseId, table)
-    await loadProjectTables(props.baseId, true)
+  addTable(props.baseId, table)
+  await loadProjectTables(props.baseId, true)
 
-    emit('create', table)
-    dialogShow.value = false
-  },
+  emit('create', table)
+  dialogShow.value = false
+}
+
+const { table, createTable, generateUniqueTitle, tables, base, openTable } = useTableNew({
+  onTableCreate,
   sourceId: props.sourceId,
   baseId: props.baseId,
 })
+
+const onAiTableCreate = async (table: TableType) => {
+  await onTableCreate(table)
+  await openTable(table)
+}
+
+const { aiIntegrationAvailable, aiLoading, generateTable } = useNocoAi()
 
 const useForm = Form.useForm
 
@@ -259,6 +270,14 @@ onMounted(() => {
               {{ $t('activity.createTable') }}
               <template #loading> {{ $t('title.creatingTable') }} </template>
             </NcButton>
+
+            <div
+              v-if="aiIntegrationAvailable && validateInfos.title.validateStatus !== 'error'"
+              class="flex mb-2 cursor-pointer"
+              @click="generateTable(table.title, table.description, onAiTableCreate)"
+            >
+              <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': aiLoading }" class="w-full flex mt-2 text-orange-400" />
+            </div>
           </div>
         </div>
       </a-form>

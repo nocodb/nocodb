@@ -16,6 +16,8 @@ const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
 const { loadViews, navigateToView } = viewsStore
 
+const { aiIntegrationAvailable, aiLoading, generateViews } = useNocoAi()
+
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
 
@@ -128,6 +130,17 @@ async function onOpenModal({
     close(1000)
   }
 }
+
+const onAiViewCreate = async () => {
+  refreshCommandPalette()
+
+  await loadViews({
+    tableId: table.value.id!,
+    force: true,
+  })
+
+  isOpen.value = false
+}
 </script>
 
 <template>
@@ -188,6 +201,21 @@ async function onOpenModal({
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.CALENDAR && isViewListLoading" />
+            <GeneralIcon v-else class="plus" icon="plus" />
+          </div>
+        </NcMenuItem>
+        <NcMenuItem
+          v-if="aiIntegrationAvailable"
+          data-testid="sidebar-view-create-ai"
+          @click="generateViews(table.id!, onAiViewCreate)"
+        >
+          <div class="item">
+            <div class="item-inner">
+              <GeneralIcon icon="magic" class="!w-4 !h-4 text-orange-500" />
+              <div>Use AI</div>
+            </div>
+
+            <GeneralLoader v-if="aiLoading" />
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>

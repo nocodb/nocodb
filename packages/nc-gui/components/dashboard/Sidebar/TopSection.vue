@@ -14,6 +14,8 @@ const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrat
 
 const { isSharedBase } = storeToRefs(baseStore)
 
+const { aiIntegrationAvailable } = useNocoAi()
+
 const isCreateProjectOpen = ref(false)
 
 const navigateToSettings = () => {
@@ -121,6 +123,7 @@ const generateModal = ref(false)
       </WorkspaceCreateProjectBtn>
 
       <div
+        v-if="aiIntegrationAvailable"
         class="nc-sidebar-top-button flex items-center !hover:(bg-gray-200 text-gray-700) !xs:hidden !h-7 my-0.5 group cursor-pointer"
         @click="generateModal = true"
       >

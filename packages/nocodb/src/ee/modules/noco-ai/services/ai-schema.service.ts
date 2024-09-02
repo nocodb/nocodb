@@ -64,7 +64,7 @@ export class AiSchemaService {
       throw new Error('Base not found');
     }
 
-    const integration = await Integration.getWithType(
+    const integration = await Integration.getCategoryDefault(
       context,
       IntegrationCategoryType.AI,
     );
@@ -106,8 +106,8 @@ export class AiSchemaService {
                   'Rating',
                   'DateTime',
                   'JSON',
-                  'CreatedAt',
-                  'LastModifiedAt',
+                  'CreatedTime',
+                  'LastModifiedTime',
                 ]),
                 options: z.array(z.string()).optional(),
               }),
@@ -129,7 +129,7 @@ export class AiSchemaService {
           You can create any number of tables & columns in your spreadsheet.
           
           Following column types are available for you to use:
-          ID, SingleLineText, LongText, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, DateTime, JSON, CreatedAt, LastModifiedAt.
+          ID, SingleLineText, LongText, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, DateTime, JSON, CreatedTime, LastModifiedTime.
           
           You can create relationships between tables (columns will be automatically created for relations):
           - oo: one to one relationship, like a person and their passport ({ "from": "Person", "to": "Passport", "type": "oo" })
@@ -159,6 +159,144 @@ export class AiSchemaService {
     console.log(`Generate Schema: ${usage.total} tokens`);
 
     return this.createSchema(context, { base, schema: data, req });
+  }
+
+  async generateTable(
+    context: NcContext,
+    params: {
+      baseId: string;
+      input: string;
+      instructions?: string;
+      req?: any;
+    },
+  ) {
+    const { baseId, input, instructions, req } = params;
+
+    const base = await Base.get(context, baseId);
+
+    if (!base) {
+      throw new Error('Base not found');
+    }
+
+    const integration = await Integration.getCategoryDefault(
+      context,
+      IntegrationCategoryType.AI,
+    );
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper =
+      (await integration.getIntegrationWrapper()) as AiIntegration;
+
+    const { data, usage } = await wrapper.generateObject<{
+      table?: {
+        title?: string;
+        columns?: {
+          title?: string;
+          type?: string;
+          options?: string[];
+        }[];
+      };
+      relationships?: {
+        from?: string;
+        to?: string;
+        type?: string;
+      }[];
+    }>({
+      schema: z.object({
+        table: z.object({
+          title: z.string(),
+          columns: z.array(
+            z.object({
+              title: z.string(),
+              type: z.enum([
+                'ID',
+                'SingleLineText',
+                'LongText',
+                'Attachment',
+                'Checkbox',
+                'MultiSelect',
+                'SingleSelect',
+                'Date',
+                'Year',
+                'Time',
+                'PhoneNumber',
+                'Email',
+                'URL',
+                'Number',
+                'Decimal',
+                'Currency',
+                'Percent',
+                'Duration',
+                'Rating',
+                'DateTime',
+                'JSON',
+                'CreatedTime',
+                'LastModifiedTime',
+              ]),
+              options: z.array(z.string()).optional(),
+            }),
+          ),
+        }),
+        relationships: z.array(
+          z.object({
+            from: z.string(),
+            to: z.string(),
+            type: z.enum(['oo', 'hm', 'mm']),
+          }),
+        ),
+      }),
+      messages: [
+        {
+          role: 'system',
+          content: `You are a smart-spreadsheet designer.
+          There can be any number of tables & columns in your spreadsheet.
+          
+          Following column types are available for you to use:
+          ID, SingleLineText, LongText, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, DateTime, JSON, CreatedTime, LastModifiedTime.
+          
+          You can create relationships between tables (columns will be automatically created for relations):
+          - oo: one to one relationship, like a person and their passport ({ "from": "Person", "to": "Passport", "type": "oo" })
+          - hm: has many relationship, like a country and its cities ({ "from": "Country", "to": "City", "type": "hm" })
+          - mm: many to many relationship, like a student and their classes ({ "from": "Student", "to": "Class", "type": "mm" })
+
+          Rules:
+          - Each table must have one and only one ID column
+          - Spaces are allowed in table & column names
+          - Try to make use of SingleSelect columns where possible
+          
+          Here is a sample JSON schema
+          \`\`\`json
+          {"tables":[{"title":"Countries","columns":[{"title":"Id","type":"ID"},{"title":"Name","type":"SingleLineText"},{"title":"Region","type":"SingleSelect","options":["Asia","Europe","Africa","North America","South America","Australia","Antarctica"]}]},{"title":"Cities","columns":[{"title":"Id","type":"ID"},{"title":"Name","type":"SingleLineText"},{"title":"Population","type":"Number"},{"title":"Capital","type":"Checkbox"}]}],"relationships":[{"from":"Countries","to":"Cities","type":"hm"}]}
+          \`\`\`
+          `,
+        },
+        {
+          role: 'user',
+          content: `Your existing schema with title "${base.title}" is:
+          \`\`\`json
+          ${JSON.stringify(
+            await this.serializeSchema(context, { baseId: base.id, req }),
+          )}
+          \`\`\`
+          We need to add a new table to the schema.
+          Design best possible table for "${input}"${
+            instructions ? `\n${instructions}` : ''
+          }`,
+        },
+      ],
+    });
+
+    console.log(`Generate Schema: ${usage.total} tokens`);
+
+    const payload = {
+      tables: [data.table],
+      relationships: data.relationships,
+    };
+
+    return this.createSchema(context, { base, schema: payload, req });
   }
 
   private async createSchema(
@@ -251,6 +389,7 @@ export class AiSchemaService {
     context: NcContext,
     params: {
       baseId: string;
+      tableIds?: string[];
       instructions?: string;
       req?: any;
     },
@@ -263,7 +402,7 @@ export class AiSchemaService {
       throw new Error('Base not found');
     }
 
-    const integration = await Integration.getWithType(
+    const integration = await Integration.getCategoryDefault(
       context,
       IntegrationCategoryType.AI,
     );
@@ -319,6 +458,7 @@ export class AiSchemaService {
           You can create views with the following types: Grid, Gallery, Kanban, Form, Calendar.
           Grid views can have filters with following comparison operators: allof, anyof, nallof, nanyof, blank, checked, eq, ge, gt, gte, le, lt, lte, like, neq, nlike, notblank, notchecked.
           Grid views can have logical operators: and, or (only one can be used for same view).
+          Grid views must have at least one filter or group by.
 
           Rules:
           - Grid views can have multiple filters, sorts and group by
@@ -326,6 +466,8 @@ export class AiSchemaService {
           - Kanban views must be grouped by a SingleSelect column
           - Galleries are favorable if there are Attachments in the schema
           - Forms are favorable if you think users will be entering data frequently
+          - Filters can't have dynamic values
+          - Duplicate views are not allowed
 
           This is a sample schema:
           \`\`\`json
@@ -343,7 +485,11 @@ export class AiSchemaService {
           content: `Please generate views for following schema:
           \`\`\`json
           ${JSON.stringify(
-            await this.serializeSchema(context, { baseId: base.id, req }),
+            await this.serializeSchema(context, {
+              baseId: base.id,
+              tableIds: params.tableIds,
+              req,
+            }),
           )}
           \`\`\`${instructions ? `\n${instructions}` : ''}`,
         },
@@ -568,7 +714,7 @@ export class AiSchemaService {
       throw new Error('No sources found');
     }
 
-    const integration = await Integration.getWithType(
+    const integration = await Integration.getCategoryDefault(
       context,
       IntegrationCategoryType.AI,
     );
@@ -813,7 +959,7 @@ export class AiSchemaService {
 
   async serializeSchema(
     context: NcContext,
-    params: { baseId: string; req: any },
+    params: { baseId: string; tableIds?: string[]; req: any },
   ) {
     const { baseId, req } = params;
 
@@ -831,12 +977,16 @@ export class AiSchemaService {
 
     const source = sources[0];
 
-    const tables = await this.tablesService.getAccessibleTables(context, {
+    let tables = await this.tablesService.getAccessibleTables(context, {
       baseId: base.id,
       sourceId: source.id,
       includeM2M: false,
       roles: extractRolesObj(req.user.base_roles),
     });
+
+    if (params.tableIds && params.tableIds.length > 0) {
+      tables = tables.filter((table) => params.tableIds.includes(table.id));
+    }
 
     const serializedObject = {
       tables: [],

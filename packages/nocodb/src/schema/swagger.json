@@ -18937,6 +18937,62 @@
         ]
       }
     },
+    "/api/v2/ai/{baseId}/utils": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "w124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        }
+      ],
+      "post": {
+        "summary": "AI Utils",
+        "operationId": "ai-utils",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Ai"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operation": {
+                    "type": "string"
+                  },
+                  "input": {}
+                },
+                "required": [
+                  "input"
+                ]
+              }
+            }
+          }
+        },
+        "description": "AI Utils",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v2/meta/integrations": {
       "get": {
         "summary": "List integrations",
@@ -19114,6 +19170,21 @@
           "required": true
         }
       ]
+    },
+    "/api/v2/meta/integrations/{integrationId}/default": {
+      "patch": {
+        "summary": "Set integration as category default",
+        "operationId": "integration-set-default",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Set integration as category default"
+      }
     },
     "/api/v2/integrations": {
       "get": {
@@ -19806,6 +19877,9 @@
             "type": "string"
           },
           "is_private": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "is_default": {
             "$ref": "#/components/schemas/Bool"
           },
           "type": {

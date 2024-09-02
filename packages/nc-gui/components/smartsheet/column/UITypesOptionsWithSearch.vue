@@ -3,6 +3,7 @@ import { UITypes, UITypesName, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes
+  extraIcons?: Record<string, string>
 }>()
 
 const emits = defineEmits<{ selected: [UITypes] }>()
@@ -68,6 +69,14 @@ onMounted(() => {
   searchQuery.value = ''
   activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
 })
+
+watch(
+  () => options.value,
+  () => {
+    searchQuery.value = ''
+    activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
+  },
+)
 </script>
 
 <template>
@@ -119,7 +128,7 @@ onMounted(() => {
           :data-testid="option.name"
           @click="onClick(option.name)"
         >
-          <div class="flex gap-2 items-center">
+          <div class="flex flex-1 gap-2 items-center">
             <component
               :is="option.icon"
               class="w-4 h-4"
@@ -128,6 +137,7 @@ onMounted(() => {
             <div class="flex-1 text-sm">{{ UITypesName[option.name] }}</div>
             <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
           </div>
+          <GeneralIcon v-if="extraIcons && extraIcons[option.name]" class="!text-gray-500" :icon="extraIcons[option.name]" />
         </div>
       </GeneralSourceRestrictionTooltip>
     </div>

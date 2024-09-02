@@ -14,6 +14,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { AiSchemaService } from '~/modules/noco-ai/services/ai-schema.service';
 import { BasesService } from '~/services/bases.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -23,27 +24,9 @@ export class AiSchemaController {
     private readonly basesService: BasesService,
   ) {}
 
-  @Post(['/api/v2/ai/schema/:baseId'])
-  @HttpCode(200)
-  async generateSchema(
-    @TenantContext() context: NcContext,
-    @Req() req: Request,
-    @Body()
-    body: {
-      input: string;
-    },
-    @Param('baseId') baseId: string,
-  ) {
-    const { input } = body;
-    return await this.aiSchemaService.generateSchema(context, {
-      baseId,
-      input,
-      req,
-    });
-  }
-
   @Post(['/api/v2/ai/schema/:baseId/views'])
   @HttpCode(200)
+  @Acl('gridViewCreate')
   async generateViews(
     @TenantContext() context: NcContext,
     @Req() req: Request,
@@ -55,22 +38,11 @@ export class AiSchemaController {
     });
   }
 
-  @Post(['/api/v2/ai/schema/:baseId/preview'])
-  @HttpCode(200)
-  async generateSchemaPreview(
-    @TenantContext() context: NcContext,
-    @Req() req: Request,
-    @Body() body,
-    @Param('baseId') baseId: string,
-  ) {
-    return await this.aiSchemaService.serializeSchema(context, {
-      baseId,
-      req,
-    });
-  }
-
   @Post(['/api/v2/ai/template/:workspaceId'])
   @HttpCode(200)
+  @Acl('baseCreate', {
+    scope: 'workspace',
+  })
   async generateTemplate(
     @TenantContext() context: NcContext,
     @Req() req: Request,

@@ -1,7 +1,6 @@
 import type { FormDefinition, IntegrationType, PaginatedType } from 'nocodb-sdk'
 import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
-import GeneralIcon from '~/components/general/Icon.vue'
 import type { IntegrationItemType, IntegrationStoreEvents as IntegrationStoreEventsTypes } from '#imports'
 
 enum IntegrationsPageMode {
@@ -215,6 +214,24 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
+  const setDefaultIntegration = async (integration: IntegrationType) => {
+    if (!integration.id) return
+
+    try {
+      await api.integration.setDefault(integration.id)
+
+      $e('a:integration:set-default')
+      await loadIntegrations()
+
+      pageMode.value = null
+      activeIntegration.value = null
+
+      await message.success(`Connection "${integration.title}" set as default successfully`)
+    } catch (e) {
+      await message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   const saveIntegration = async (
     integration: IntegrationType,
     mode: 'create' | 'duplicate' = 'create',
@@ -393,6 +410,19 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   })
 
+  const integrationsIconMap = computed(() => {
+    // eslint-disable-next-line no-unused-expressions
+    integrationsRefreshKey.value
+
+    const map: Record<string, any> = {}
+
+    for (const integration of allIntegrations) {
+      map[integration.subType] = integration.icon
+    }
+
+    return map
+  })
+
   return {
     IntegrationsPageMode,
     integrationType,
@@ -419,6 +449,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     duplicateIntegration,
     saveIntegraitonRequest,
     getIntegration,
+    setDefaultIntegration,
+    integrationsIconMap,
   }
 }, 'integrations-store')
 

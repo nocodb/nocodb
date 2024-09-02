@@ -65,7 +65,7 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
-const { predictColumnType: _predictColumnType } = useNocoEe()
+const { predictFieldType } = useNocoAi()
 
 const meta = inject(MetaInj, ref())
 
@@ -143,6 +143,12 @@ const uiFilters = (t: { name: UITypes; virtual?: number; deprecated?: boolean })
   return systemFiledNotEdited && geoDataToggle && !specificDBType && showDeprecatedField
 }
 
+const extraIcons = ref<Record<string, string>>({})
+
+const predictedFieldType = ref<UITypes | null>(null)
+
+const lastPredictedAt = ref<number>(0)
+
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   const types = [
     ...uiTypes.filter(uiFilters),
@@ -168,6 +174,20 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
 
       return 0
     })
+  }
+
+  // if prediction is available, move it to the top
+  if (predictedFieldType.value) {
+    types.sort((a, b) => {
+      if (a.name === predictedFieldType.value) return -1
+      if (b.name === predictedFieldType.value) return 1
+
+      return 0
+    })
+
+    if (!(predictedFieldType.value in extraIcons.value)) {
+      extraIcons.value[predictedFieldType.value] = 'magic'
+    }
   }
 
   return types
@@ -395,6 +415,22 @@ const isFullUpdateAllowed = computed(() => {
 
   return true
 })
+
+const onPredictFieldType = async () => {
+  if (readOnly.value || (lastPredictedAt.value > 0 && Date.now() - lastPredictedAt.value < 5000)) return
+
+  if (formState.value.title.length > 4) {
+    lastPredictedAt.value = Date.now()
+
+    const res = await predictFieldType(formState.value.title)
+    if (res) {
+      extraIcons.value = {}
+      predictedFieldType.value = res
+    }
+  }
+}
+
+const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
 </script>
 
 <template>
@@ -432,6 +468,7 @@ const isFullUpdateAllowed = computed(() => {
             :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
             class="flex flex-grow nc-fields-input text-sm font-semibold outline-none bg-inherit min-h-6"
             :contenteditable="true"
+            @change="debouncedOnPredictFieldType"
             @input="formState.userHasChangedTitle = true"
           />
         </div>
@@ -443,13 +480,18 @@ const isFullUpdateAllowed = computed(() => {
           class="nc-column-name-input !rounded-lg"
           :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
           :disabled="isKanban || readOnly || !isFullUpdateAllowed"
+          @change="debouncedOnPredictFieldType"
           @input="onAlter(8)"
         />
       </a-form-item>
 
       <div class="flex items-center gap-1">
         <template v-if="!props.hideType && !formState.uidt">
-          <SmartsheetColumnUITypesOptionsWithSearch :options="uiTypesOptions" @selected="onSelectType" />
+          <SmartsheetColumnUITypesOptionsWithSearch
+            :options="uiTypesOptions"
+            :extra-icons="extraIcons"
+            @selected="onSelectType"
+          />
         </template>
 
         <a-form-item
@@ -509,9 +551,6 @@ const isFullUpdateAllowed = computed(() => {
             </a-select-option>
           </a-select>
         </a-form-item>
-        <!-- <div v-if="isEeUI && !props.hideType" class="mt-2 cursor-pointer" @click="predictColumnType()">
-            <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
-          </div> -->
       </div>
 
       <template v-if="!readOnly && formState.uidt">

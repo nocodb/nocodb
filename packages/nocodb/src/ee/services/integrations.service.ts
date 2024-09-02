@@ -75,6 +75,29 @@ export class IntegrationsService {
     return integration;
   }
 
+  async integrationSetDefault(
+    context: NcContext,
+    param: {
+      integrationId: string;
+      req: NcRequest;
+    },
+  ) {
+    const integration = await Integration.setDefault(
+      context,
+      param.integrationId,
+    );
+
+    integration.config = undefined;
+
+    this.appHooksService.emit(AppEvents.INTEGRATION_UPDATE, {
+      integration,
+      req: param.req,
+      user: param.req?.user,
+    });
+
+    return integration;
+  }
+
   async integrationList(param: {
     workspaceId: string;
     req: NcRequest;

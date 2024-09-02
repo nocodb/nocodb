@@ -1160,7 +1160,7 @@ const loadColumn = (title: string, tp: string, colOptions?: any) => {
   preloadColumn.value = {
     title,
     uidt: tp,
-    colOptions,
+    ...colOptions,
   }
   persistMenu.value = false
 }
@@ -1171,7 +1171,7 @@ const onVisibilityChange = () => {
   addColumnDropdown.value = true
   if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
     addColumnDropdown.value = false
-    // persistMenu.value = altModifier
+    persistMenu.value = altModifier.value
   }
 }
 
@@ -1862,84 +1862,77 @@ onKeyStroke('ArrowDown', onDown)
                         <component :is="iconMap.plus" class="text-base nc-column-add text-gray-500 !group-hover:text-black" />
                       </div>
 
-                      <template v-if="isEeUI && persistMenu" #overlay>
-                        <NcMenu>
-                          <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
+                      <template v-if="isEeUI && persistMenu && meta?.id" #overlay>
+                        <NcMenu class="predict-menu">
+                          <NcSubMenu v-if="predictedNextColumn?.length" key="predict-column" class="py-0 px-0 w-full">
                             <template #title>
-                              <div class="flex flex-row items-center py-3">
+                              <div class="flex flex-row items-center px-1 py-0.5 gap-1 w-full">
                                 <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">
+                                <div class="text-xs flex-1">
                                   {{ $t('activity.predictColumns') }}
                                 </div>
-                                <MdiChevronRight class="text-gray-500 ml-2" />
+                                <MdiChevronRight class="text-gray-500" />
                               </div>
                             </template>
                             <template #expandIcon></template>
-                            <NcMenu>
-                              <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
-                                <NcMenuItem>
-                                  <div class="flex flex-row items-center py-3" @click="loadColumn(col.title, col.type)">
-                                    <div class="text-xs pl-2">{{ col.title }}</div>
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-
-                              <NcMenuItem>
-                                <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                                  <div class="text-red-500 text-xs pl-2">
-                                    <MdiReload />
-                                    Generate Again
-                                  </div>
-                                </div>
+                            <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
+                              <NcMenuItem class="w-full flex items-center" @click="loadColumn(col.title, col.type)">
+                                <div class="text-xs">{{ col.title }}</div>
                               </NcMenuItem>
-                            </NcMenu>
-                          </a-sub-menu>
-                          <NcMenuItem v-else>
-                            <!-- Predict Columns -->
-                            <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                              <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
-                              <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">
-                                {{ $t('activity.predictColumns') }}
+                            </template>
+
+                            <NcMenuItem class="flex flex-row items-center" @click="predictNextColumn(meta.id)">
+                              <div class="text-red-500 text-xs">
+                                <MdiReload />
+                                Generate Again
                               </div>
+                            </NcMenuItem>
+                          </NcSubMenu>
+                          <NcMenuItem v-else class="flex flex-row items-center py-3" @click="predictNextColumn(meta.id)">
+                            <!-- Predict Columns -->
+                            <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
+                            <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs">
+                              {{ $t('activity.predictColumns') }}
                             </div>
                           </NcMenuItem>
-                          <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
+                          <NcSubMenu v-if="predictedNextFormulas?.length" key="predict-formula" class="py-0 px-0 w-full">
                             <template #title>
-                              <div class="flex flex-row items-center py-3">
+                              <div class="flex flex-row items-center px-1 py-0.5 gap-1 w-full">
                                 <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">
+                                <div class="text-xs flex-1">
                                   {{ $t('activity.predictFormulas') }}
                                 </div>
-                                <MdiChevronRight class="text-gray-500 ml-2" />
+                                <MdiChevronRight class="text-gray-500" />
                               </div>
                             </template>
                             <template #expandIcon></template>
-                            <NcMenu>
-                              <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
-                                <NcMenuItem>
-                                  <div
-                                    class="flex flex-row items-center py-3"
-                                    @click="
-                                      loadColumn(col.title, 'Formula', {
-                                        formula_raw: col.formula,
-                                      })
-                                    "
-                                  >
-                                    <div class="text-xs pl-2">{{ col.title }}</div>
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-                            </NcMenu>
-                          </a-sub-menu>
-                          <NcMenuItem v-else>
-                            <!-- Predict Formulas -->
-                            <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
-                              <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
-                              <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">
-                                {{ $t('activity.predictFormulas') }}
+                            <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
+                              <NcMenuItem
+                                class="flex flex-row items-center"
+                                @click="
+                                  loadColumn(col.title, 'Formula', {
+                                    formula_raw: col.formula,
+                                  })
+                                "
+                              >
+                                <div class="text-xs">{{ col.title }}</div>
+                              </NcMenuItem>
+                            </template>
+
+                            <NcMenuItem class="flex flex-row items-center" @click="predictNextFormulas(meta.id)">
+                              <div class="text-red-500 text-xs">
+                                <MdiReload />
+                                Generate Again
                               </div>
+                            </NcMenuItem>
+                          </NcSubMenu>
+                          <NcMenuItem v-else class="flex flex-row items-center py-3" @click="predictNextFormulas(meta.id)">
+                            <!-- Predict Formulas -->
+                            <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
+                            <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs">
+                              {{ $t('activity.predictFormulas') }}
                             </div>
                           </NcMenuItem>
                         </NcMenu>
@@ -2602,6 +2595,12 @@ onKeyStroke('ArrowDown', onDown)
   }
 
   @apply !rounded-lg;
+}
+
+.predict-menu {
+  .ant-dropdown-menu-title-content > div > div {
+    @apply !w-full;
+  }
 }
 </style>
 

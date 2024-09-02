@@ -49,6 +49,7 @@ export default class Integration implements IntegrationType {
   order?: number;
   enabled?: BoolType;
   is_private?: BoolType;
+  is_default?: BoolType;
   meta?: any;
   created_by?: string;
   sources?: Partial<SourceType>[];

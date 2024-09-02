@@ -155,12 +155,6 @@ export const allIntegrations: IntegrationItemType[] = [
 
   // AI
   {
-    title: 'objects.syncData.claude',
-    subType: SyncDataType.CLAUDE,
-    icon: iconMap.claude,
-    type: `${IntegrationCategoryType.AI}-coming-soon`,
-  },
-  {
     title: 'objects.syncData.ollama',
     subType: SyncDataType.OLLAMA,
     icon: iconMap.ollama,
@@ -380,9 +374,9 @@ export const allIntegrations: IntegrationItemType[] = [
   // Ticketing
   {
     title: 'objects.syncData.freshdesk',
-    value: SyncDataType.FRESHDESK,
+    subType: SyncDataType.FRESHDESK,
     icon: iconMap.freshdesk,
-    categories: [IntegrationCategoryType.TICKETING],
+    type: IntegrationCategoryType.TICKETING,
   },
   {
     title: 'objects.syncData.intercom',
@@ -399,16 +393,16 @@ export const allIntegrations: IntegrationItemType[] = [
   {
     title: 'objects.syncData.salesforce',
     subtitle: 'objects.syncData.serviceCloud',
-    value: SyncDataType.SALESFORCE_SERVICE_CLOUD,
+    subType: SyncDataType.SALESFORCE_SERVICE_CLOUD,
     icon: iconMap.salesforce,
-    categories: [IntegrationCategoryType.TICKETING],
+    type: IntegrationCategoryType.TICKETING,
   },
   {
     title: 'objects.syncData.hubspot',
     subtitle: 'objects.syncData.serviceHub',
-    value: SyncDataType.HUBSPOT_SERVICE_HUB,
+    subType: SyncDataType.HUBSPOT_SERVICE_HUB,
     icon: iconMap.hubspot,
-    categories: [IntegrationCategoryType.TICKETING],
+    type: IntegrationCategoryType.TICKETING,
   },
 
   // Storage
@@ -454,8 +448,3 @@ export const allIntegrations: IntegrationItemType[] = [
   //   type: IntegrationCategoryType.OTHERS,
   // },
 ]
-
-export const allIntegrationsMapByValue = allIntegrations.reduce((acc, curr) => {
-  acc[curr.subType] = curr
-  return acc
-}, {} as Record<string, IntegrationItemType>)

@@ -108,6 +108,26 @@ export class IntegrationsController {
     return integration;
   }
 
+  @Patch(['/api/v2/meta/integrations/:integrationId/default'])
+  @Acl('integrationUpdate', {
+    scope: 'workspace',
+  })
+  async integrationSetDefault(
+    @TenantContext() context: NcContext,
+    @Param('integrationId') integrationId: string,
+    @Req() req: NcRequest,
+  ) {
+    const integration = await this.integrationsService.integrationSetDefault(
+      context,
+      {
+        integrationId,
+        req,
+      },
+    );
+
+    return integration;
+  }
+
   @Get(['/api/v2/meta/workspaces/:workspaceId/integrations'])
   @Acl('integrationList', {
     scope: 'workspace',

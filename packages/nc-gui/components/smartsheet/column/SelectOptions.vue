@@ -32,7 +32,9 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 
 // const { base } = storeToRefs(useBase())
 
-const { optionsMagic: _optionsMagic } = useNocoEe()
+const { aiIntegrationAvailable, aiLoading, predictSelectOptions } = useNocoAi()
+
+const meta = inject(MetaInj, ref())
 
 const optionsWrapperDomRef = ref<HTMLElement>()
 
@@ -150,10 +152,6 @@ const addNewOption = () => {
     isAddingOption.value = false
   })
 }
-
-// const optionsMagic = async () => {
-//   await _optionsMagic(base, formState, getNextColor, options.value, renderedOptions.value)
-// }
 
 const syncOptions = (saveChanges: boolean = false, submit: boolean = false, payload?: Option) => {
   // set initial colOptions if not set
@@ -328,6 +326,39 @@ const loadListData = async ($state: any) => {
   }
 
   $state.loaded()
+}
+
+const predictOptions = async () => {
+  if (!vModel.value?.title || !meta.value?.id) return
+
+  const predictedOptions = await predictSelectOptions(vModel.value?.title, meta.value?.id)
+
+  if (predictedOptions) {
+    for (const option of predictedOptions) {
+      // skip if option already exists
+      if (options.value.find((el) => el.title === option)) continue
+
+      options.value.push({
+        title: option,
+        color: getNextColor(),
+        index: options.value.length,
+        ...(isKanbanStack.value ? { status: 'new' } : {}),
+      })
+    }
+
+    if (isKanbanStack.value) {
+      renderedOptions.value = options.value
+    } else {
+      isReverseLazyLoad.value = true
+
+      loadedOptionAnchor.value = options.value.length - OPTIONS_PAGE_COUNT
+      loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
+
+      renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+    }
+
+    optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+  }
 }
 
 onMounted(() => {
@@ -601,9 +632,9 @@ if (isKanbanStack.value) {
         <span class="flex-auto">Add option</span>
       </div>
     </NcButton>
-    <!-- <div v-if="isEeUI" class="w-full cursor-pointer" @click="optionsMagic()">
-      <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': loadMagic }" class="w-full flex mt-2 text-orange-400" />
-    </div> -->
+    <div v-if="aiIntegrationAvailable" class="w-full cursor-pointer" @click="predictOptions()">
+      <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': aiLoading }" class="w-full flex mt-2 text-orange-400" />
+    </div>
   </div>
 </template>
 

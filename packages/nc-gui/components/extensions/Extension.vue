@@ -223,55 +223,9 @@ eventBus.on((event, payload) => {
               "
             >
               <div
-                v-if="fullscreen"
-                class="flex items-center gap-3 cursor-default px-4 pt-4 pb-[15px] border-b-1 border-nc-gray-medium"
-              >
-                <img
-                  v-if="extensionManifest"
-                  :src="getExtensionAssetsUrl(extensionManifest.iconUrl)"
-                  alt="icon"
-                  class="flex-none w-8 h-8"
-                />
-
-                <div v-if="titleEditMode" class="flex-1 flex">
-                  <a-input
-                    ref="titleInput"
-                    v-model:value="tempTitle"
-                    type="text"
-                    class="flex-1 flex-grow !h-8 !px-1 !py-1 !-ml-1 !rounded-lg !text-lg font-semibold extension-title max-w-[420px]"
-                    @click.stop
-                    @keyup.enter.stop="updateExtensionTitle"
-                    @keyup.esc.stop="updateExtensionTitle"
-                    @blur="updateExtensionTitle"
-                  >
-                  </a-input>
-                </div>
-                <NcTooltip v-else show-on-truncate-only class="extension-title truncate text-lg flex-1">
-                  <template #title>
-                    {{ extension.title }}
-                  </template>
-                  <span class="cursor-pointer text-gray-800 font-semibold" @dblclick="enableEditMode">
-                    {{ extension.title }}
-                  </span>
-                </NcTooltip>
-
-                <ExtensionsExtensionHeaderMenu
-                  :active-error="activeError"
-                  :fullscreen="fullscreen"
-                  @rename="enableEditMode"
-                  @duplicate="handleDuplicateExtension(extension.id, true)"
-                  @show-details="showExtensionDetails(extension.extensionId, 'extension')"
-                  @clear-data="extension.clear()"
-                  @delete="extension.delete()"
-                />
-                <NcButton size="xs" type="text" class="flex-none !px-1" @click="fullscreen = false">
-                  <GeneralIcon icon="close" />
-                </NcButton>
-              </div>
-              <div
                 v-show="fullscreen || !collapsed"
-                class="extension-content"
-                :class="{ 'fullscreen h-[calc(100%-40px)] p-6': fullscreen, 'h-full': !fullscreen }"
+                class="extension-content h-full"
+                :class="{ 'fullscreen': fullscreen, 'h-full': !fullscreen }"
               >
                 <component :is="component" :key="extension.uiKey" class="h-full" />
               </div>

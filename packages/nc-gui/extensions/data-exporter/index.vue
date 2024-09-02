@@ -296,14 +296,14 @@ onMounted(() => {
             <div
               v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
               :key="exp.id"
-              class="px-3 py-2 flex gap-2 justify-between border-b-1 hover:bg-gray-50"
+              class="p-3 flex gap-2 justify-between border-b-1 hover:bg-gray-50"
               :class="{
                 'px-4 py-3': fullscreen,
                 'px-3 py-2': !fullscreen,
               }"
             >
               <div
-                class="flex-1 flex items-center gap-3"
+                class="flex-1 flex items-start gap-3"
                 :class="{
                   'max-w-[calc(100%_-_74px)]': exp.status === JobStatus.COMPLETED,
                   'max-w-[calc(100%_-_38px)]': exp.status !== JobStatus.COMPLETED,
@@ -338,23 +338,15 @@ onMounted(() => {
                       {{ exp.result.title || titleHelper() }}
                     </NcTooltip>
                   </div>
-                  <div v-if="exp.result.timestamp" class="text-[10px] leading-4 text-gray-600">
-                    <NcTooltip class="truncate" show-on-truncate-only>
-                      <template #title>
-                        {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
-                      </template>
-                      {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
-                    </NcTooltip>
+
+                  <div v-if="exp.result.timestamp" name="error" class="text-small leading-[18px] text-nc-gray-muted">
+                    {{ timeAgo(dayjs(exp.result.timestamp).toString()) }}
                   </div>
                 </div>
               </div>
 
-              <div
-                v-if="exp.status === JobStatus.COMPLETED"
-                class="flex items-center"
-                @click="handleDownload(urlHelper(exp.result.url))"
-              >
-                <NcTooltip class="flex items-center">
+              <div v-if="exp.status === JobStatus.COMPLETED" class="flex" @click="handleDownload(urlHelper(exp.result.url))">
+                <NcTooltip class="flex">
                   <template #title>
                     {{ $t('general.download') }}
                   </template>
@@ -367,7 +359,7 @@ onMounted(() => {
                 </NcTooltip>
               </div>
 
-              <div class="flex items-center">
+              <div class="flex">
                 <NcTooltip class="flex">
                   <template #title>
                     {{ $t('general.remove') }}

@@ -68,7 +68,7 @@ export function addAxiosInterceptors(api: Api<any>) {
       // if no active refresh token request in the current session then check the local storage
       if (!refreshTokenPromise && isTokenRefreshInProgress.value) {
         // if token refresh is already in progress, wait for it to finish and then retry the request if token is available
-        await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 10000 })
+        await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 5000 })
         isTokenRefreshInProgress.value = false
 
         // check if the user is signed in by checking the token presence and retry the request with the new token
@@ -135,6 +135,7 @@ export function addAxiosInterceptors(api: Api<any>) {
       return axiosInstance
         .post('/auth/token/refresh', null, {
           withCredentials: true,
+          cancelToken: undefined,
         })
         .then((token) => {
           // New request with new token

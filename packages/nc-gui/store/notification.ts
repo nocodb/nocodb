@@ -175,13 +175,19 @@ export const useNotification = defineStore('notificationStore', () => {
   })
 
   // function to clear polling and cancel any pending requests
-  const clearPolling = () => {
+  const clearPolling = async () => {
     if (timeOutId) {
       clearTimeout(timeOutId)
       timeOutId = null
     }
-    cancelTokenSource?.cancel()
+    // take a reference of the cancel token source and set the current one to null
+    // so that we can cancel the polling request even if token changes
+    const source = cancelTokenSource
     cancelTokenSource = null
+    // wait if refresh token generation is in progress and cancel the polling after that
+    // set a timeout of 10 seconds to avoid hanging
+    await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 10000 })
+    source?.cancel()
   }
 
   const init = async () => {
@@ -189,7 +195,7 @@ export const useNotification = defineStore('notificationStore', () => {
     // For playwright, polling will cause the test to hang indefinitely
     // as we wait for the networkidle event. So, we disable polling for playwright
     if (!(window as any).isPlaywright) {
-      clearPolling()
+      clearPolling().catch((e) => console.log(e))
       pollNotifications().catch((e) => console.log(e))
     }
   }
@@ -201,11 +207,8 @@ export const useNotification = defineStore('notificationStore', () => {
       try {
         if (newToken && newToken !== oldToken) {
           await init()
-        }
-        // clear polling if there is no refresh token request in progress
-        // and access token is removed
-        else if (!newToken && !isTokenRefreshInProgress.value) {
-          clearPolling()
+        } else if (!newToken) {
+          clearPolling().catch((e) => console.log(e))
         }
       } catch (e) {
         console.error(e)

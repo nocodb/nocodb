@@ -73,14 +73,16 @@ const onAddExtension = (ext: any) => {
           >
             <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
               <div
-                class="nc-market-extension-item flex-1 flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
+                class="nc-market-extension-item w-full md:w-[calc(50%_-_6px)] flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
                 @click="onExtensionClick(ext.id)"
               >
                 <div class="h-[60px] w-[60px] overflow-hidden m-auto flex-none">
                   <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />
                 </div>
-                <div class="flex flex-grow flex-col gap-1">
-                  <div class="font-weight-600 text-base truncate">{{ ext.title }}</div>
+                <div class="flex-1 flex flex-grow flex-col gap-1">
+                  <div class="font-weight-600 text-base line-clamp-1">
+                    {{ ext.title }}
+                  </div>
 
                   <div class="max-h-[32px] text-xs text-gray-500 line-clamp-2">{{ ext.subTitle }}</div>
                 </div>
@@ -92,6 +94,7 @@ const onAddExtension = (ext: any) => {
                 </NcButton>
               </div>
             </template>
+
             <div
               v-if="searchQuery && !filteredAvailableExtensions.length && availableExtensions.length"
               class="w-full h-full flex items-center justify-center"

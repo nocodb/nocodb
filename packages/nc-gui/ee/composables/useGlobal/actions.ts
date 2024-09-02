@@ -21,12 +21,16 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     redirectToSignin,
     signinUrl = '/signin',
     skipRedirect = true,
+    skipApiCall = false,
   }: SignOutParams = {}) => {
     let signoutRes
     const nuxtApp = useNuxtApp()
     try {
-      // invalidate token and refresh token on server
-      signoutRes = await nuxtApp.$api.auth.signout()
+      // call and invalidate refresh token only if user manually triggered logout
+      if (!skipApiCall) {
+        // invalidate token and refresh token on server
+        signoutRes = await nuxtApp.$api.auth.signout()
+      }
     } catch {
       // ignore error
     } finally {
@@ -142,7 +146,9 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
           if (isAmplifyConfigured.value) {
             await checkForCognitoToken()
           } else if (state.token.value && state.user.value) {
-            await signOut()
+            await signOut({
+              skipApiCall: true
+            })
             message.error(t('msg.error.youHaveBeenSignedOut'))
           }
         })

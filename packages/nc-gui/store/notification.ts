@@ -2,8 +2,11 @@ import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
 import axios, { type CancelTokenSource } from 'axios'
 import { CancelToken } from 'axios'
+import { useStorage } from '@vueuse/core'
 
 export const useNotification = defineStore('notificationStore', () => {
+  const isTokenRefreshInProgress = useStorage(TOKEN_REFRESH_PROGRESS_KEY, false)
+
   const readNotifications = ref<NotificationType[]>([])
 
   const unreadNotifications = ref<NotificationType[]>([])
@@ -198,7 +201,10 @@ export const useNotification = defineStore('notificationStore', () => {
       try {
         if (newToken && newToken !== oldToken) {
           await init()
-        } else if (!newToken) {
+        }
+        // clear polling if there is no refresh token request in progress
+        // and access token is removed
+        else if (!newToken && !isTokenRefreshInProgress.value) {
           clearPolling()
         }
       } catch (e) {

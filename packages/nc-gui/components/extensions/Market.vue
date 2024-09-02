@@ -25,13 +25,13 @@ const tabs = [
   {
     title: 'Scripts',
     tabKey: 'scripts',
-    icon: 'ncPuzzleOutline',
+    icon: 'ncPlaceholderIcon',
     isDisabled: true,
   },
   {
     title: 'Build an extension',
     tabKey: 'build-an-extension',
-    icon: 'ncSettings2',
+    icon: 'ncSpanner',
     isDisabled: true,
   },
 ] as TabItem[]
@@ -99,7 +99,7 @@ const handleSetActiveTab = (tab: TabItem) => {
                 :class="{
                   'active-tab bg-white text-nc-gray-emphasis': activeTab === tab.tabKey,
                   'text-nc-gray-subtle2': activeTab !== tab.tabKey,
-                  'cursor-not-allowed opacity-70': tab.isDisabled,
+                  'cursor-not-allowed opacity-60': tab.isDisabled,
                   'cursor-pointer': !tab.isDisabled,
                 }"
                 @click="handleSetActiveTab(tab)"

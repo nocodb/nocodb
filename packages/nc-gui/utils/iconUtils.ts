@@ -558,6 +558,8 @@ import NcPuzzleSolid from '~icons/nc-icons/puzzle-solid'
 import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
 
 import NcInfoSolid from '~icons/nc-icons/info-solid'
+import NcPlaceholderIcon from '~icons/nc-icons/placeholder-icon'
+import NcSpanner from '~icons/nc-icons/spanner'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1332,6 +1334,8 @@ export const iconMap = {
   ncPuzzleSolid: NcPuzzleSolid,
   ncPuzzleOutline: NcPuzzleOutline,
   ncInfoSolid: NcInfoSolid,
+  ncPlaceholderIcon: NcPlaceholderIcon,
+  ncSpanner: NcSpanner,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -277,55 +277,56 @@ eventBus.on((event, payload) => {
                   : {}
               "
             >
-              <div v-if="fullscreen" class="flex items-center justify-between cursor-default">
-                <div class="flex-1 max-w-[calc(100%_-_96px)] flex items-center gap-2 text-gray-800 font-semibold">
-                  <img
-                    v-if="extensionManifest"
-                    :src="getExtensionAssetsUrl(extensionManifest.iconUrl)"
-                    alt="icon"
-                    class="flex-none w-8 h-8"
-                  />
+              <div
+                v-if="fullscreen"
+                class="flex items-center gap-3 cursor-default px-4 pt-4 pb-[15px] border-b-1 border-nc-gray-medium"
+              >
+                <img
+                  v-if="extensionManifest"
+                  :src="getExtensionAssetsUrl(extensionManifest.iconUrl)"
+                  alt="icon"
+                  class="flex-none w-8 h-8"
+                />
 
+                <div v-if="titleEditMode" class="flex-1 flex">
                   <a-input
-                    v-if="titleEditMode"
                     ref="titleInput"
                     v-model:value="tempTitle"
                     type="text"
-                    class="flex-grow !h-8 !px-1 !py-1 !-ml-1 !rounded-lg !text-lg font-semibold extension-title max-w-[420px]"
+                    class="flex-1 flex-grow !h-8 !px-1 !py-1 !-ml-1 !rounded-lg !text-lg font-semibold extension-title max-w-[420px]"
                     @click.stop
                     @keyup.enter.stop="updateExtensionTitle"
                     @keyup.esc.stop="updateExtensionTitle"
                     @blur="updateExtensionTitle"
                   >
                   </a-input>
-                  <NcTooltip v-else show-on-truncate-only class="extension-title truncate text-lg">
-                    <template #title>
-                      {{ extension.title }}
-                    </template>
-                    <span class="cursor-pointer" @dblclick="enableEditMode">
-                      {{ extension.title }}
-                    </span>
-                  </NcTooltip>
                 </div>
-                <div class="flex items-center gap-4">
-                  <ExtensionsExtensionMenu
-                    :active-error="activeError"
-                    :fullscreen="fullscreen"
-                    @rename="enableEditMode"
-                    @duplicate="handleDuplicateExtension(extension.id, true)"
-                    @show-details="showExtensionDetails(extension.extensionId, 'extension')"
-                    @clear-data="extension.clear()"
-                    @delete="extension.delete()"
-                  />
-                  <NcButton size="small" type="text" class="flex-none" @click="fullscreen = false">
-                    <GeneralIcon icon="close" />
-                  </NcButton>
-                </div>
+                <NcTooltip v-else show-on-truncate-only class="extension-title truncate text-lg flex-1">
+                  <template #title>
+                    {{ extension.title }}
+                  </template>
+                  <span class="cursor-pointer text-gray-800 font-semibold" @dblclick="enableEditMode">
+                    {{ extension.title }}
+                  </span>
+                </NcTooltip>
+
+                <ExtensionsExtensionMenu
+                  :active-error="activeError"
+                  :fullscreen="fullscreen"
+                  @rename="enableEditMode"
+                  @duplicate="handleDuplicateExtension(extension.id, true)"
+                  @show-details="showExtensionDetails(extension.extensionId, 'extension')"
+                  @clear-data="extension.clear()"
+                  @delete="extension.delete()"
+                />
+                <NcButton size="xs" type="text" class="flex-none !px-1" @click="fullscreen = false">
+                  <GeneralIcon icon="close" />
+                </NcButton>
               </div>
               <div
                 v-show="fullscreen || !collapsed"
                 class="extension-content"
-                :class="{ 'fullscreen h-[calc(100%-40px)]': fullscreen, 'h-full': !fullscreen }"
+                :class="{ 'fullscreen h-[calc(100%-40px)] p-6': fullscreen, 'h-full': !fullscreen }"
               >
                 <component :is="component" :key="extension.uiKey" class="h-full" />
               </div>
@@ -386,7 +387,7 @@ eventBus.on((event, payload) => {
   @apply absolute top-0 left-0 z-1000 w-full h-full bg-black bg-opacity-50;
 
   .extension-modal-content {
-    @apply bg-white rounded-2xl w-[90%] h-[90vh] mt-[5vh] mx-auto p-6 flex flex-col gap-3;
+    @apply bg-white rounded-2xl w-[90%] h-[90vh] mt-[5vh] mx-auto flex flex-col;
   }
 }
 

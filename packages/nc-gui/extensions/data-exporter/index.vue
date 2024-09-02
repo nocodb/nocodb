@@ -315,7 +315,7 @@ onMounted(() => {
                   </template>
                   <GeneralIcon
                     :icon="exp.status === JobStatus.COMPLETED ? 'circleCheckSolid' : 'alertTriangleSolid'"
-                    class="flex-none h-4 w-4"
+                    class="flex-none h-5 w-5"
                     :class="{
                       '!text-green-700': exp.status === JobStatus.COMPLETED,
                       '!text-red-700': exp.status === JobStatus.FAILED,

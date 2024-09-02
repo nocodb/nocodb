@@ -556,6 +556,8 @@ import NcCalendarViewIcon from '~icons/nc-icons/calendar'
 import NcPuzzleSolid from '~icons/nc-icons/puzzle-solid'
 import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
 
+import NcInfoSolid from '~icons/nc-icons/info-solid'
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -1327,6 +1329,7 @@ export const iconMap = {
   langC: NcLangC,
   ncPuzzleSolid: NcPuzzleSolid,
   ncPuzzleOutline: NcPuzzleOutline,
+  ncInfoSolid: NcInfoSolid,
 }
 
 export const getMdiIcon = (type: string): any => {

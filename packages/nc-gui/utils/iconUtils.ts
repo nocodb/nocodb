@@ -1337,7 +1337,7 @@ export const iconMap = {
   ncInfoSolid: NcInfoSolid,
   ncPlaceholderIcon: NcPlaceholderIcon,
   ncSpanner: NcSpanner,
-  ncScript: NcScript
+  ncScript: NcScript,
 }
 
 export const getMdiIcon = (type: string): any => {

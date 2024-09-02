@@ -8,7 +8,7 @@ const { extensionId, error } = defineProps<Prop>()
 
 const { extensionList, extensionsLoaded, availableExtensions, eventBus } = useExtensions()
 
-const isLoadedExtension = ref<boolean>(false)
+const isLoadedExtension = ref<boolean>(true)
 
 const activeError = ref(error)
 
@@ -74,7 +74,7 @@ onMounted(() => {
 
       import(`../../extensions/${extensionManifest.value.entry}/index.vue`).then((mod) => {
         component.value = markRaw(mod.default)
-        isLoadedExtension.value = true
+        isLoadedExtension.value = false
       })
     })
     .catch((err) => {
@@ -83,7 +83,7 @@ onMounted(() => {
         return
       }
       activeError.value = err
-      isLoadedExtension.value = true
+      isLoadedExtension.value = false
     })
 })
 
@@ -190,6 +190,12 @@ eventBus.on((event, payload) => {
           </div>
         </Teleport>
       </template>
+
+      <general-overlay :model-value="isLoadedExtension" inline transition class="!bg-opacity-15 rounded-xl overflow-hidden">
+        <div class="flex flex-col items-center justify-center h-full w-full !bg-white !bg-opacity-80">
+          <a-spin size="large" />
+        </div>
+      </general-overlay>
     </div>
   </div>
 </template>

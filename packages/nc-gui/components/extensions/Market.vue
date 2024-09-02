@@ -89,7 +89,7 @@ const handleSetActiveTab = (tab: TabItem) => {
           <GeneralIcon icon="ncPuzzleSolid" class="h-6 w-6 flex-none text-gray-700" />
           <div class="flex-1 font-semibold text-xl">Marketplace</div>
         </div>
-        <div class="flex bg-nc-gray-medium rounded-lg p-1">
+        <div class="flex bg-nc-bg-gray-medium rounded-lg p-1">
           <div class="flex items-center">
             <NcTooltip
               v-for="(tab, idx) of tabs"
@@ -104,8 +104,8 @@ const handleSetActiveTab = (tab: TabItem) => {
               <div
                 class="px-3 py-1 flex items-center gap-2 text-xs rounded-md select-none"
                 :class="{
-                  'bg-white text-nc-gray-emphasis': activeTab === tab.tabKey,
-                  'text-nc-gray-subtle2': activeTab !== tab.tabKey,
+                  'bg-white text-nc-content-gray-emphasis': activeTab === tab.tabKey,
+                  'text-nc-content-gray-subtle2': activeTab !== tab.tabKey,
                   'cursor-not-allowed opacity-60': tab.isDisabled,
                   'cursor-pointer': !tab.isDisabled,
                 }"
@@ -140,7 +140,7 @@ const handleSetActiveTab = (tab: TabItem) => {
       <div class="flex flex-col h-[calc(100%_-_65px)]">
         <div v-if="activeTab === 'extensions'" class="h-full py-4">
           <div class="h-full flex flex-col gap-6 flex-1 pt-2 px-6 max-w-[900px] w-full mx-auto">
-            <div v-if="searchQuery" class="text-base text-nc-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
+            <div v-if="searchQuery" class="text-base text-nc-content-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
             <div
               class="flex flex-wrap gap-4 overflow-auto nc-scrollbar-thin pb-2"
               :class="{
@@ -252,7 +252,7 @@ const handleSetActiveTab = (tab: TabItem) => {
 
       // Add vertical line to all items except the last one
       &:not(:last-child)::after {
-        @apply absolute right-0 top-[4px] h-[16px] w-[1px] bg-nc-gray-dark; // Use WindiCSS utilities for line
+        @apply absolute right-0 top-[4px] h-[16px] w-[1px] bg-nc-bg-gray-dark; // Use WindiCSS utilities for line
 
         content: '';
         transform: scaleY(0); // Hide by default

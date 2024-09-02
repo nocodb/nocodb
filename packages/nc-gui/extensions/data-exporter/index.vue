@@ -353,7 +353,7 @@ onMounted(() => {
                     </NcTooltip>
                   </div>
 
-                  <div v-if="exp.result.timestamp" name="error" class="text-small leading-[18px] text-nc-gray-muted">
+                  <div v-if="exp.result.timestamp" name="error" class="text-small leading-[18px] text-nc-content-gray-muted">
                     {{ timeAgo(dayjs(exp.result.timestamp).toString()) }}
                   </div>
                 </div>

@@ -199,9 +199,6 @@ Our mission is to provide the most powerful no-code interface for databases that
 This project is licensed under <a href="./LICENSE">AGPLv3</a>.
 </p>
 
-# Join Our Team
-
-<p align=""><a href="http://careers.nocodb.com" target="_blank"><img src="https://user-images.githubusercontent.com/61551451/169663818-45643495-e95b-48e2-be13-01d6a77dc2fd.png" width="250"/></a></p>
 
 # Join Our Community
 

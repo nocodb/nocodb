@@ -287,7 +287,9 @@
     "connections": "连接",
     "private": "私人",
     "request": "请求",
-    "languages": "语言"
+    "languages": "语言",
+    "extension": "Extension",
+    "extensions": "Extensions"
   },
   "objects": {
     "files": "文件",

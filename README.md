@@ -44,60 +44,53 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 # Installation
-There are different ways to start using NocoDB. You can either signup on <a href="https://app.nocodb.com/?ref=github">NocoDB Cloud</a> or self-host it.
-The self-hosting can be done using Docker, Docker Compose, Binaries, or using the script.
+ 
+Else you can always rely on Docker or Binaries if you are trying locally.
 
-## One-Click Install
+## Auto-upstall 
+Auto-upstall is the fastest and easiest way to self-host NocoDB on a server. Behind the scenes it auto-generates docker-compose for you.
 
-This script installs NocoDB with PostgreSQL, Redis, and Minio (for file storage) using Docker Compose.
 ```bash
 bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
-````
-
-
-## Docker
-
-```bash
-# with PostgreSQL
-docker run -d --name nocodb-postgres \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-
-# with SQLite : mounting volume `/usr/app/data/` is crucial to avoid data loss.
-docker run -d --name nocodb \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
-nocodb/nocodb:latest
 ```
 
-## Binaries
-🚥 Binaries are intended for ONLY quick trials or testing purposes and are not recommended for production use.
+Follow the simple steps below & enjoy the seamless installation.
 
-  | OS      | Architecture | Command                                                                                      |
-  |---------|--------------|----------------------------------------------------------------------------------------------|
-  | macOS   | arm64        | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`         |
-  | macOS   | x64          | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`           |
-  | Linux   | x64          | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`           |
-  | Linux   | arm64        | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`         |
-  | Windows | x64          | `iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe &&.\Noco-win-x64.exe`             |
-  | Windows | arm64        | `iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe && .\Noco-win-arm64.exe`      |
-  
+- Step 1. 🔐 SSH into your server. 
+- Step 2. 🚀 Run the below command & follow instructions :
+  ```bash 
+  bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
+  ```
+- Step 3. 🌐 Open your browser and go to URL
+  - For 🌍 HTTP: `http://<your-domain-or-ip>` 
+  - For 🔒 HTTPS: `https://<your-domain-or-ip>` 
+- Step 4. 🐦 Don't keep the command a secret. Tweet how easy it is. This step is a must! 
 
-## Docker Compose
+### Notes 
+Auto-upstall is a single command that : 🕊 
+- 🐳 Automatically installs all pre-requisites like docker, docker-compose  
+- 🚀 Automatically installs NocoDB with PostgreSQL, Redis, Minio, Traefik gateway using Docker Compose. 🐘 🗄️ 🌐
+- 🔄 Automatically upgrades NocoDB to the latest version when you run the command again. 
+- 🔒 Automatically setups SSL and also renews it. Needs a domain or subdomain as input while installation.
 
-We provide different docker-compose.yml files under [this directory](https://github.com/nocodb/nocodb/tree/master/docker-compose). Here are some examples.
+> install.nocodb.com/noco.sh script can be found [here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/setup-script/noco.sh)
 
-```bash
-git clone https://github.com/nocodb/nocodb
-cd nocodb/docker-compose/pg
-```
+## Installation Methods
 
-# GUI
+| Install Method                                                                     | Command to install                                                                                                                                                                                                                                                                                                                                            | Comments                                                                                                                                     |
+|------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------|
+| 🚀 Auto Upstall <br>&emsp;&emsp;&emsp;&emsp;&emsp;or<br>&emsp;&emsp;&emsp; 1-cmd setup | `bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)`                                                                                                                                                                                                                                                                                      | install.nocodb.com/noco.sh script [is here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/setup-script/noco.sh) |
+| 🐳 Docker (with SQLite)                                                            | `docker run -d --name nocodb \`<br> &emsp;&emsp;&emsp;`-v ""$(pwd)"":/nocodb:/usr/app/data/ \`<br> &emsp;&emsp;&emsp;`-p 8080:8080 \`<br> &emsp;&emsp;&emsp;`nocodb/nocodb:latest`                                                                                                                                                                            | Placeholder text                                                                                                                             |
+| 🐳 Docker (with Postgres 🐘)                                                       | `docker run -d --name nocodb-postgres \`<br> &emsp;&emsp;&emsp;`-v "${pwd}"/nocodb:/usr/app/data/ \`<br> &emsp;&emsp;&emsp;`-p 8080:8080 \`<br> &emsp;&emsp;&emsp;`-e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \`<br> &emsp;&emsp;&emsp;`-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \`<br> &emsp;&emsp;&emsp;`nocodb/nocodb:latest` | Please point NC_DB to a fresh postgres database.                                                                                             |
+| 🍏 MacOS arm64 (Binary)                                                             | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                          | Only for quick trial. Not recommended for production.                                                                                        |
+| 🍏 MacOS x64 (Binary)                                                               | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                            | Only for quick trial. Not recommended for production.                                                                                        |
+| 🐧 Linux arm64 (Binary)                                                             | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                          | Only for quick trial. Not recommended for production.                                                                                        |
+| 🐧 Linux x64 (Binary)                                                               | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                            | Only for quick trial. Not recommended for production.                                                                                        |
+| 🪟 Windows arm64 (Binary)                                                           | `iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe && .\Noco-win-arm64.exe`                                                                                                                                                                                                                                                                       | Only for quick trial. Not recommended for production.                                                                                        |
+| 🪟 Windows x64 (Binary)                                                             | `iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe && .\Noco-win-x64.exe`                                                                                                                                                                                                                                                                             | Only for quick trial. Not recommended for production.                                                                                        |
 
-Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+
+> When running locally access nocodb by visiting: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # Screenshots
 ![2](https://github.com/nocodb/nocodb/assets/86527202/a127c05e-2121-4af2-a342-128e0e2d0291)
@@ -119,11 +112,8 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 
 - [Quick try](#quick-try)
 - [Installation](#installation)
-  - [One-Click Install](#one-click-install)
-  - [Binaries](#binaries)
-  - [Docker](#docker)
-  - [Docker Compose](#docker-compose)
-- [GUI](#gui)
+  - [Auto-Upstall or 1-Command Setup](#auto-upstall)
+  - [Installation Methods](#installation-methods)
 - [Join Our Community](#join-our-community)
 - [Screenshots](#screenshots)
 - [Table of Contents](#table-of-contents)

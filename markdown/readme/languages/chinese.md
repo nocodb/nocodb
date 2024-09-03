@@ -77,7 +77,7 @@ nocodb/nocodb:latest
 ```bash
 git clone https://github.com/nocodb/nocodb
 # 如果使用 PostgreSQL 的话
-cd nocodb/docker-compose/pg
+cd nocodb/docker-compose/2_pg
 ```
 
 > 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。

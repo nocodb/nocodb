@@ -134,7 +134,7 @@ iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe
 ```bash
 git clone https://github.com/nocodb/nocodb
 # для PostgreSQL
-cd nocodb/docker-compose/pg
+cd nocodb/docker-compose/2_pg
 docker-compose up -d
 ```
 

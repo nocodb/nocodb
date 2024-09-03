@@ -29,8 +29,9 @@ Elevate your data handling capabilities with the NocoDB Data Exporter extension!
 </br></br>
 
 <div class="flex">
-    <img src="data-exporter/assets/recent-exports.png" width="50%" class="object-contain"/>
+    <img src="data-exporter/assets/recent-exports.png" width="50%" class="object-contain rounded-xl"/>
 </div>
+</br>
 <div>
- <img src="data-exporter/assets/recent-exports-modal.png" width="100%" class="object-contain"/>
+ <img src="data-exporter/assets/recent-exports-modal.png" width="100%" class="object-contain rounded-xl"/>
 </div>

@@ -204,14 +204,7 @@ onMounted(() => {
 
 <template>
   <ExtensionsExtensionWrapper>
-    <div
-      ref="dataExporterRef"
-      class="data-exporter"
-      :class="{
-        'p-4': fullscreen,
-        'p-3': !fullscreen,
-      }"
-    >
+    <div ref="dataExporterRef" class="data-exporter">
       <div class="pb-3 flex items-center justify-between gap-2.5 flex-wrap">
         <div
           class="flex-1 flex items-center"
@@ -219,99 +212,73 @@ onMounted(() => {
             'max-w-[min(350px,calc(100%-124px))]': isExporting && !fullscreen && width > 325,
             'max-w-[min(350px,calc(100%_-_84px))]': !isExporting && !fullscreen && width > 325,
             'max-w-full': width <= 325,
-            'max-w-[480px]': fullscreen,
+            'max-w-[900px]': fullscreen,
           }"
         >
-          <div
-            class="flex-1 flex items-center border-1 border-gray-200 rounded-lg focus-within:(border-brand-500 shadow-selected) transition-colors transition-shadow"
+          <NcSelect
+            v-model:value="exportPayload.tableId"
+            placeholder="-select table-"
+            :disabled="isExporting"
+            class="nc-data-exporter-table-select"
+            :class="{
+              'flex-1 max-w-[240px]': fullscreen,
+              'min-w-1/2 max-w-[175px]': !fullscreen,
+            }"
+            :filter-option="filterOption"
+            dropdown-class-name="w-[250px]"
+            show-search
+            @change="onTableSelect"
           >
-            <NcSelect
-              v-model:value="exportPayload.tableId"
-              placeholder="-select table-"
-              :disabled="isExporting"
-              class="nc-data-exporter-table-select"
-              :class="{
-                'flex-1 max-w-[240px]': fullscreen,
-                'min-w-1/2 max-w-[175px]': !fullscreen,
-              }"
-              :bordered="false"
-              :filter-option="filterOption"
-              dropdown-class-name="w-[250px]"
-              show-search
-              @change="onTableSelect"
-            >
-              <NcTooltip v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
-                <template #title>
-                  {{ jobStatusTooltip[exp.status] }}
-                </template>
-                <GeneralIcon
-                  :icon="exp.status === JobStatus.COMPLETED ? 'circleCheckSolid' : 'alertTriangleSolid'"
-                  class="flex-none h-4 w-4"
-                  :class="{
-                    '!text-green-700': exp.status === JobStatus.COMPLETED,
-                    '!text-red-700': exp.status === JobStatus.FAILED,
-                  }"
-                />
-              </NcTooltip>
-              <div v-else class="h-5 flex items-center">
-                <GeneralLoader size="regular" class="flex-none" />
-              </div>
-
-              <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1">
-                <div class="inline-flex gap-1 text-sm text-gray-800 -ml-[1px]">
-                  <span class="inline-flex items-center h-5">
-                    <GeneralIcon icon="file" class="flex-none text-gray-600/80 h-3.5 w-3.5" />
-                  </span>
-                  <NcTooltip class="truncate max-w-[calc(100%_-_20px)]" show-on-truncate-only>
-                    <template #title>
-                      {{ exp.result.title || titleHelper() }}
-                    </template>
-                    {{ exp.result.title || titleHelper() }}
-                  </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="exportPayload.tableId === table.value"
-                    id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
-                  />
+            <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
+              <div class="w-full flex items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
                 </div>
-              </a-select-option>
-            </NcSelect>
-            <div class="flex-none h-8 border-l-1 border-gray-200"></div>
+                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ table.label }}</template>
+                  <span>{{ table.label }}</span>
+                </NcTooltip>
+                <component
+                  :is="iconMap.check"
+                  v-if="exportPayload.tableId === table.value"
+                  id="nc-selected-item-icon"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </div>
+            </a-select-option>
+          </NcSelect>
 
-            <NcSelect
-              v-model:value="exportPayload.viewId"
-              placeholder="-select view-"
-              :disabled="isExporting"
-              class="nc-data-exporter-view-select"
-              :class="{
-                'flex-1 max-w-[240px]': fullscreen,
-                'min-w-1/2 max-w-[175px]': !fullscreen,
-              }"
-              :bordered="false"
-              dropdown-class-name="w-[250px]"
-              :filter-option="filterOption"
-              show-search
-              @change="onViewSelect"
-            >
-              <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
-                <div class="w-full flex items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
-                    <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
-                  </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ view.label }}</template>
-                    <span>{{ view.label }}</span>
-                  </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="exportPayload.viewId === view.value"
-                    id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
-                  />
-                </div> </a-select-option
-            ></NcSelect>
-          </div>
+          <NcSelect
+            v-model:value="exportPayload.viewId"
+            placeholder="-select view-"
+            :disabled="isExporting"
+            class="nc-data-exporter-view-select"
+            :class="{
+              'flex-1 max-w-[240px]': fullscreen,
+              'min-w-1/2 max-w-[175px]': !fullscreen,
+            }"
+            dropdown-class-name="w-[250px]"
+            :filter-option="filterOption"
+            show-search
+            @change="onViewSelect"
+          >
+            <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
+              <div class="w-full flex items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                </div>
+                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ view.label }}</template>
+                  <span>{{ view.label }}</span>
+                </NcTooltip>
+                <component
+                  :is="iconMap.check"
+                  v-if="exportPayload.viewId === view.value"
+                  id="nc-selected-item-icon"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </div> </a-select-option
+          ></NcSelect>
         </div>
         <div class="flex-none flex justify-end">
           <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
@@ -329,14 +296,19 @@ onMounted(() => {
             <div
               v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
               :key="exp.id"
-              class="p-3 flex gap-2 justify-between border-b-1 hover:bg-gray-50"
+              class="px-3 py-2 flex gap-2 justify-between border-b-1 hover:bg-gray-50"
               :class="{
                 'px-4 py-3': fullscreen,
                 'px-3 py-2': !fullscreen,
               }"
+              :bordered="false"
+              :filter-option="filterOption"
+              dropdown-class-name="w-[250px]"
+              show-search
+              @change="onTableSelect"
             >
               <div
-                class="flex-1 flex items-start gap-3"
+                class="flex-1 flex items-center gap-3"
                 :class="{
                   'max-w-[calc(100%_-_74px)]': exp.status === JobStatus.COMPLETED,
                   'max-w-[calc(100%_-_38px)]': exp.status !== JobStatus.COMPLETED,
@@ -348,7 +320,7 @@ onMounted(() => {
                   </template>
                   <GeneralIcon
                     :icon="exp.status === JobStatus.COMPLETED ? 'circleCheckSolid' : 'alertTriangleSolid'"
-                    class="flex-none h-5 w-5"
+                    class="flex-none h-4 w-4"
                     :class="{
                       '!text-green-700': exp.status === JobStatus.COMPLETED,
                       '!text-red-700': exp.status === JobStatus.FAILED,
@@ -371,32 +343,36 @@ onMounted(() => {
                       {{ exp.result.title || titleHelper() }}
                     </NcTooltip>
                   </div>
-
-                  <div v-if="exp.result.timestamp" name="error" class="text-small leading-[18px] text-nc-content-gray-muted">
-                    {{ timeAgo(dayjs(exp.result.timestamp).toString()) }}
+                  <div v-if="exp.result.timestamp" class="text-[10px] leading-4 text-gray-600">
+                    <NcTooltip class="truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
+                      </template>
+                      {{ dayjs(exp.result.timestamp).format('MM/DD/YYYY [at] hh:mm A') }}
+                    </NcTooltip>
                   </div>
                 </div>
               </div>
 
-            <div
-              v-if="exp.status === JobStatus.COMPLETED"
-              class="flex items-center"
-              @click="handleDownload(urlHelper(exp.result.url))"
-            >
-              <NcTooltip class="flex items-center">
-                <template #title>
-                  {{ $t('general.download') }}
-                </template>
+              <div
+                v-if="exp.status === JobStatus.COMPLETED"
+                class="flex items-center"
+                @click="handleDownload(urlHelper(exp.result.url))"
+              >
+                <NcTooltip class="flex items-center">
+                  <template #title>
+                    {{ $t('general.download') }}
+                  </template>
 
-                <NcButton type="secondary" size="xs" class="!px-[5px]">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="download" />
-                  </div>
-                </NcButton>
-              </NcTooltip>
-            </div>
+                  <NcButton type="secondary" size="xs" class="!px-[5px]">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="download" />
+                    </div>
+                  </NcButton>
+                </NcTooltip>
+              </div>
 
-              <div class="flex">
+              <div class="flex items-center">
                 <NcTooltip class="flex">
                   <template #title>
                     {{ $t('general.remove') }}

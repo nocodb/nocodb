@@ -240,14 +240,33 @@ onMounted(() => {
               show-search
               @change="onTableSelect"
             >
-              <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
-                <div class="w-full flex items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
-                    <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
-                  </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ table.label }}</template>
-                    <span>{{ table.label }}</span>
+              <NcTooltip v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
+                <template #title>
+                  {{ jobStatusTooltip[exp.status] }}
+                </template>
+                <GeneralIcon
+                  :icon="exp.status === JobStatus.COMPLETED ? 'circleCheckSolid' : 'alertTriangleSolid'"
+                  class="flex-none h-4 w-4"
+                  :class="{
+                    '!text-green-700': exp.status === JobStatus.COMPLETED,
+                    '!text-red-700': exp.status === JobStatus.FAILED,
+                  }"
+                />
+              </NcTooltip>
+              <div v-else class="h-5 flex items-center">
+                <GeneralLoader size="regular" class="flex-none" />
+              </div>
+
+              <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1">
+                <div class="inline-flex gap-1 text-sm text-gray-800 -ml-[1px]">
+                  <span class="inline-flex items-center h-5">
+                    <GeneralIcon icon="file" class="flex-none text-gray-600/80 h-3.5 w-3.5" />
+                  </span>
+                  <NcTooltip class="truncate max-w-[calc(100%_-_20px)]" show-on-truncate-only>
+                    <template #title>
+                      {{ exp.result.title || titleHelper() }}
+                    </template>
+                    {{ exp.result.title || titleHelper() }}
                   </NcTooltip>
                   <component
                     :is="iconMap.check"
@@ -359,20 +378,23 @@ onMounted(() => {
                 </div>
               </div>
 
-            <div v-if="exp.status === JobStatus.COMPLETED" class="flex items-center">
-              <a :href="urlHelper(exp.result.url)">
-                <NcTooltip class="flex items-center">
-                  <template #title>
-                    {{ $t('general.download') }}
-                  </template>
+            <div
+              v-if="exp.status === JobStatus.COMPLETED"
+              class="flex items-center"
+              @click="handleDownload(urlHelper(exp.result.url))"
+            >
+              <NcTooltip class="flex items-center">
+                <template #title>
+                  {{ $t('general.download') }}
+                </template>
 
-                  <NcButton type="secondary" size="xs" class="!px-[5px]">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="download" />
-                    </div>
-                  </NcButton>
-                </NcTooltip>
-              </div>
+                <NcButton type="secondary" size="xs" class="!px-[5px]">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="download" />
+                  </div>
+                </NcButton>
+              </NcTooltip>
+            </div>
 
               <div class="flex">
                 <NcTooltip class="flex">

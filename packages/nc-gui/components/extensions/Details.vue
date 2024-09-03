@@ -67,8 +67,7 @@ const detailsBody = computed(() => {
     v-model:visible="vModel"
     :class="{ active: vModel }"
     :footer="null"
-    :width="1154"
-    size="medium"
+    size="lg"
     wrap-class-name="nc-modal-extension-details"
   >
     <div v-if="activeExtension" class="flex flex-col w-full h-full">
@@ -85,7 +84,7 @@ const detailsBody = computed(() => {
         <div class="self-start flex items-center gap-2.5">
           <NcButton size="small" class="w-full" @click="onAddExtension(activeExtension)">
             <div class="flex items-center justify-center gap-1 -ml-3px">
-              <GeneralIcon icon="plus" /> {{ $t('general.install') }}
+              <GeneralIcon icon="plus" /> {{ $t('general.add') }} {{ $t('general.extension') }}
             </div>
           </NcButton>
           <NcButton size="small" type="text" @click="vModel = false">
@@ -103,30 +102,64 @@ const detailsBody = computed(() => {
             <div class="extension-details-right-title">Version</div>
             <div class="extension-details-right-subtitle">{{ activeExtension.version }}</div>
           </div>
+
           <NcDivider />
-          <div class="extension-details-right-section">
-            <div v-if="activeExtension.publisherName" class="extension-details-right-title">Publisher</div>
-            <div class="extension-details-right-subtitle">{{ activeExtension.publisherName }}</div>
-          </div>
-          <template v-if="activeExtension.publisherEmail">
-            <NcDivider />
-            <div class="extension-details-right-section">
-              <div class="extension-details-right-title">Publisher Email</div>
-              <div class="extension-details-right-subtitle">
-                <a :href="`mailto:${activeExtension.publisherEmail}`" target="_blank" rel="noopener noreferrer">
-                  {{ activeExtension.publisherEmail }}
-                </a>
-              </div>
+          <div v-if="activeExtension.publisher" class="extension-details-right-section">
+            <div class="extension-details-right-title">Publisher</div>
+            <div class="flex items-center gap-2">
+              <img
+                v-if="activeExtension.publisher?.icon?.src"
+                :src="getExtensionAssetsUrl(activeExtension.publisher.icon.src)"
+                alt="Publisher icon"
+                class="object-contain flex-none"
+                :style="{
+                  width: activeExtension.publisher?.icon?.width ? `${activeExtension.publisher?.icon?.width}px` : '24px',
+                  height: activeExtension.publisher?.icon?.height ? `${activeExtension.publisher?.icon?.height}px` : '24px',
+                }"
+              />
+              <div class="extension-details-right-subtitle">{{ activeExtension.publisher.name }}</div>
             </div>
-          </template>
-          <template v-if="activeExtension.publisherUrl">
+            <div class="flex items-center gap-3 text-sm font-semibold text-nc-content-brand">
+              <a
+                v-if="activeExtension.publisher?.url"
+                :href="activeExtension.publisher.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="!no-underline !hover:underline"
+              >
+                Website
+              </a>
+              <template v-if="activeExtension.publisher?.email">
+                <div class="border-l-1 border-nc-border-gray-medium h-5"></div>
+                <a
+                  :href="`mailto:${activeExtension.publisher.email}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="!no-underline !hover:underline"
+                >
+                  Contact
+                </a>
+              </template>
+            </div>
+          </div>
+          <template v-if="activeExtension.links && activeExtension.links.length">
             <NcDivider />
             <div class="extension-details-right-section">
-              <div class="extension-details-right-title">Publisher Website</div>
-              <div class="extension-details-right-subtitle">
-                <a :href="activeExtension.publisherUrl" target="_blank" rel="noopener noreferrer">
-                  {{ activeExtension.publisherUrl }}
-                </a>
+              <div class="extension-details-right-title">Links</div>
+              <div>
+                <div v-for="(doc, idx) of activeExtension.links" :key="idx" class="flex items-center gap-1">
+                  <div class="h-7 w-7 flex items-center justify-center">
+                    <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
+                  </div>
+                  <a
+                    :href="doc.href"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="!text-gray-700 text-sm !no-underline !hover:underline"
+                  >
+                    {{ doc.title }}
+                  </a>
+                </div>
               </div>
             </div>
           </template>
@@ -138,7 +171,7 @@ const detailsBody = computed(() => {
 
 <style lang="scss" scoped>
 .extension-details {
-  @apply flex w-full h-[calc(100%_-_65px)];
+  @apply flex w-full h-[calc(100%_-_83px)];
 
   .extension-details-left {
     @apply p-6 flex-1 flex flex-col gap-6 nc-scrollbar-thin;
@@ -148,7 +181,7 @@ const detailsBody = computed(() => {
     @apply p-5 w-[320px] flex flex-col space-y-4 border-l-1 border-gray-200 bg-gray-50 nc-scrollbar-thin;
 
     .extension-details-right-section {
-      @apply flex flex-col gap-2;
+      @apply flex flex-col gap-3;
     }
 
     .extension-details-right-title {
@@ -168,18 +201,11 @@ const detailsBody = computed(() => {
   }
   .nc-modal {
     @apply !p-0;
-    height: min(calc(100vh - 100px), 1024px);
-    max-height: min(calc(100vh - 100px), 1024px) !important;
-
-    .nc-edit-or-add-integration-left-panel {
-      @apply w-full p-6 flex-1 flex justify-center;
-    }
-    .nc-edit-or-add-integration-right-panel {
-      @apply p-5 w-[320px] border-l-1 border-gray-200 flex flex-col gap-4 bg-gray-50 rounded-br-2xl;
-    }
   }
 
   .nc-extension-details-body {
+    @apply max-w-[768px] mx-auto;
+
     p {
       @apply !m-0 !leading-5;
     }

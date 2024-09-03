@@ -17,7 +17,10 @@ const isEE = process.env.EE
 
 export default defineConfig({
   extract: {
-    include: [isEE ? '../**/*.{vue,html,jsx,tsx,css,scss}' : '**/*.{vue,html,jsx,tsx,css,scss}'],
+    include: [
+      isEE ? '../**/*.{vue,html,jsx,tsx,css,scss}' : '**/*.{vue,html,jsx,tsx,css,scss}',
+      isEE ? '../extensions/**/*.md' : 'extensions/**/*.md',
+    ],
     exclude: ['node_modules', '.git'],
   },
 

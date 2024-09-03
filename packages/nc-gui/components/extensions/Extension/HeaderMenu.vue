@@ -1,17 +1,19 @@
 <script setup lang="ts">
 interface Props {
-  fullscreen?: boolean
-  activeError?: boolean
+  isFullscreen?: boolean
 }
 
-const { fullscreen, activeError } = defineProps<Props>()
+defineProps<Props>()
+
 const emits = defineEmits(['rename', 'duplicate', 'showDetails', 'clearData', 'delete'])
+
+const { activeError } = useExtensionHelperOrThrow()
 </script>
 
 <template>
-  <div class="flex items-center">
+  <div class="flex items-center" @click.stop>
     <NcDropdown :trigger="['click']" placement="bottomRight">
-      <NcButton type="text" :size="fullscreen ? 'small' : 'xs'" class="!px-1">
+      <NcButton type="text" :size="isFullscreen ? 'small' : 'xs'" class="!px-1">
         <GeneralIcon icon="threeDotVertical" />
       </NcButton>
 

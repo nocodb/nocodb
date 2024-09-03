@@ -50,7 +50,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <SmartsheetTopbarSelectMode />
       </div>
 
-      <div class="flex items-center justify-end gap-3 flex-1">
+      <div class="flex items-center justify-end gap-2 flex-1">
         <GeneralApiLoader v-if="!isMobileMode" />
 
         <NcButton
@@ -73,7 +73,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
               class="overflow-hidden trasition-all duration-200"
               :class="{ 'w-[0px] invisible': isPanelExpanded, 'ml-1 w-[74px]': !isPanelExpanded }"
             >
-              Extensions
+              {{ $t('general.extensions') }}
             </span>
           </div>
         </NcButton>

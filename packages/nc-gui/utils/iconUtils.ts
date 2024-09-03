@@ -196,6 +196,7 @@ import NcReddit from '~icons/nc-icons/reddit'
 import NcTwitter from '~icons/nc-icons/twitter'
 
 import NcFile from '~icons/nc-icons/file'
+import NcFileBig from '~icons/nc-icons/file-big'
 import NcSettings from '~icons/nc-icons/settings'
 import NcHelp from '~icons/nc-icons/help'
 import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
@@ -555,6 +556,11 @@ import NcKanbanViewIcon from '~icons/nc-icons/kanban'
 import NcCalendarViewIcon from '~icons/nc-icons/calendar'
 import NcPuzzleSolid from '~icons/nc-icons/puzzle-solid'
 import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
+
+import NcInfoSolid from '~icons/nc-icons/info-solid'
+import NcPlaceholderIcon from '~icons/nc-icons/placeholder-icon'
+import NcSpanner from '~icons/nc-icons/spanner'
+import NcScript from '~icons/nc-icons/script'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -983,6 +989,7 @@ export const iconMap = {
   ncReddit: NcReddit,
   ncTwitter: NcTwitter,
   file: NcFile,
+  fileBig: NcFileBig,
   ncSettings: NcSettings,
   ncHelp: NcHelp,
   puzzle: MdiPuzzle,
@@ -1327,6 +1334,10 @@ export const iconMap = {
   langC: NcLangC,
   ncPuzzleSolid: NcPuzzleSolid,
   ncPuzzleOutline: NcPuzzleOutline,
+  ncInfoSolid: NcInfoSolid,
+  ncPlaceholderIcon: NcPlaceholderIcon,
+  ncSpanner: NcSpanner,
+  ncScript: NcScript,
 }
 
 export const getMdiIcon = (type: string): any => {

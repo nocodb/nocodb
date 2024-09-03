@@ -54,33 +54,40 @@ Auto-upstall is the fastest and easiest way to self-host NocoDB on a server. Beh
 bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 ```
 
-Follow the simple steps below & enjoy the seamless installation.
-
-- Step 1. 🔐 SSH into your server. 
-- Step 2. 🚀 Run the below command & follow instructions :
-  ```bash 
-  bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
-  ```
-- Step 3. 🌐 Open your browser and go to URL
-  - For 🌍 HTTP: `http://<your-domain-or-ip>` 
-  - For 🔒 HTTPS: `https://<your-domain-or-ip>` 
-- Step 4. 🐦 Don't keep the command a secret. Tweet how easy it is. This step is a must! 
-
-### Notes 
-Auto-upstall is a single command that : 🕊 
-- 🐳 Automatically installs all pre-requisites like docker, docker-compose  
+#### Notes
+Auto-upstall is a single command that : 🕊
+- 🐳 Automatically installs all pre-requisites like docker, docker-compose
 - 🚀 Automatically installs NocoDB with PostgreSQL, Redis, Minio, Traefik gateway using Docker Compose. 🐘 🗄️ 🌐
-- 🔄 Automatically upgrades NocoDB to the latest version when you run the command again. 
+- 🔄 Automatically upgrades NocoDB to the latest version when you run the command again.
 - 🔒 Automatically setups SSL and also renews it. Needs a domain or subdomain as input while installation.
-
 > install.nocodb.com/noco.sh script can be found [here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/setup-script/noco.sh)
 
-## Installation Methods
+## Docker with SQLite
+
+```bash 
+docker run -d --name nocodb 
+           -v "$(pwd)"/nocodb:/usr/app/data/ 
+           -p 8080:8080 
+           nocodb/nocodb:latest
+```
+
+## Docker with PG
+```bash
+docker run -d --name nocodb-postgres 
+           -v "${pwd}"/nocodb:/usr/app/data/ 
+           -p 8080:8080 
+           -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" 
+           -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" 
+           nocodb/nocodb:latest
+```
+
+
+## Other Methods
+
+> Binaries are only for quick testing locally.
+
 | Install Method                | Command to install                                                                                                                                                                                                                                                                                                                                                         |
 |-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| <br>🚀 Auto Upstall<br>       | <br>`bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)` <br>                                                                                                                                                                                                                                                                                                       |
-| 🐳 Docker <br>(with SQLite)   | `docker run -d --name nocodb \`<br> &emsp;&emsp;&emsp;`-v ""$(pwd)"":/nocodb:/usr/app/data/ \`<br> &emsp;&emsp;&emsp;`-p 8080:8080 \`<br> &emsp;&emsp;&emsp;`nocodb/nocodb:latest`                                                                                                                                                                                         |
-| 🐳 Docker <br>(with PG 🐘)    | `docker run -d --name nocodb-postgres \`<br> &emsp;&emsp;&emsp;`-v "${pwd}"/nocodb:/usr/app/data/ \`<br> &emsp;&emsp;&emsp;`-p 8080:8080 \`<br> &emsp;&emsp;&emsp;`-e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \`<br> &emsp;&emsp;&emsp;`-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \`<br> &emsp;&emsp;&emsp;`nocodb/nocodb:latest` |
 | 🍏 MacOS arm64 <br>(Binary)   | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                       |
 | 🍏 MacOS x64 <br>(Binary)     | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                         |
 | 🐧 Linux arm64 <br>(Binary)   | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                       |
@@ -112,7 +119,8 @@ Auto-upstall is a single command that : 🕊
 - [Quick try](#quick-try)
 - [Installation](#installation)
   - [Auto-Upstall or 1-Command Setup](#auto-upstall)
-  - [Installation Methods](#installation-methods)
+  - [Docker with SQLite](#docker-with-sqlite)
+  - [Docker with PG](#docker-with-pg)
 - [Join Our Community](#join-our-community)
 - [Screenshots](#screenshots)
 - [Table of Contents](#table-of-contents)

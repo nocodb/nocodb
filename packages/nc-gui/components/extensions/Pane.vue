@@ -17,8 +17,6 @@ const {
 
 const { $e } = useNuxtApp()
 
-const isReady = ref(false)
-
 const searchExtensionRef = ref<HTMLInputElement>()
 
 const extensionHeaderRef = ref<HTMLDivElement>()
@@ -99,20 +97,6 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number; ele
   $e('a:extension:reorder')
 }
 
-defineExpose({
-  onReady: () => {
-    isReady.value = true
-  },
-})
-
-watch(isPanelExpanded, (newValue) => {
-  if (newValue && !isReady.value) {
-    setTimeout(() => {
-      isReady.value = true
-    }, 300)
-  }
-})
-
 onClickOutside(searchExtensionRef, () => {
   if (searchQuery.value) {
     return
@@ -129,21 +113,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <Pane
-    v-show="isPanelExpanded || isReady"
-    :size="panelSize"
-    max-size="60%"
-    class="nc-extension-pane"
-    :style="
-      !isReady
-        ? {
-            maxWidth: `${extensionPanelSize}%`,
-          }
-        : {}
-    "
-  >
+  <Pane :size="panelSize" max-size="60%" class="nc-extension-pane">
     <Transition name="layout" :duration="150">
-      <div v-if="isPanelExpanded" class="flex flex-col h-full">
+      <div v-if="isPanelExpanded" class="flex flex-col">
         <div
           ref="extensionHeaderRef"
           class="h-[var(--toolbar-height)] flex items-center gap-3 px-4 py-2 border-b-1 border-gray-200 bg-white"
@@ -155,7 +127,7 @@ onMounted(() => {
             }"
           >
             <GeneralIcon icon="ncPuzzleSolid" class="h-5 w-5 text-gray-700 opacity-85" />
-            <span v-if="!isOpenSearchBox || width >= 507">{{ $t('general.extensions') }}</span>
+            <span v-if="!isOpenSearchBox || width >= 507">Extensions</span>
           </div>
           <div
             class="flex justify-end"
@@ -185,7 +157,7 @@ onMounted(() => {
           <NcButton type="secondary" size="xs" @click="toggleMarket">
             <div class="flex items-center gap-1 text-xs max-w-full -ml-3px">
               <GeneralIcon icon="plus" />
-              {{ $t('general.add') }}
+              {{ $t('general.install') }}
             </div>
           </NcButton>
         </div>
@@ -198,7 +170,7 @@ onMounted(() => {
             <NcButton size="small" @click="toggleMarket">
               <div class="flex items-center gap-1 -ml-3px">
                 <GeneralIcon icon="plus" />
-                {{ $t('general.add') }} {{ $t('general.extension') }}
+                {{ $t('general.install') }}
               </div>
             </NcButton>
             <!-- Todo: add docs link  -->

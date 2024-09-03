@@ -315,11 +315,6 @@ onMounted(() => {
                 'px-4 py-3': fullscreen,
                 'px-3 py-2': !fullscreen,
               }"
-              :bordered="false"
-              :filter-option="filterOption"
-              dropdown-class-name="w-[250px]"
-              show-search
-              @change="onTableSelect"
             >
               <div
                 class="flex-1 flex items-start gap-3"

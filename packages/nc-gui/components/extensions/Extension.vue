@@ -26,9 +26,22 @@ const extension = computed(() => {
   return ext
 })
 
-const extensionManifest = computed<ExtensionManifest | undefined>(() => {
-  return availableExtensions.value.find((ext) => ext.id === extension.value?.extensionId)
-})
+const titleInput = ref<HTMLInputElement | null>(null)
+
+const titleEditMode = ref<boolean>(false)
+
+const tempTitle = ref<string>(extension.value.title)
+
+const { height } = useElementSize(extensionRef)
+
+const enableEditMode = () => {
+  titleEditMode.value = true
+  tempTitle.value = extension.value.title
+  nextTick(() => {
+    titleInput.value?.focus()
+    titleInput.value?.select()
+  })
+}
 
 const {
   fullscreen,
@@ -43,7 +56,21 @@ const component = ref<any>(null)
 const extensionHeight = computed(() => {
   const heigthInInt = parseInt(extensionManifest.value?.config?.contentMinHeight || '') || undefined
 
+const extensionHeight = computed(() => {
+  const heigthInInt = parseInt(extensionManifest.value?.config?.contentMinHeight || '') || undefined
+
   if (!heigthInInt || height.value > heigthInInt) return `${height.value}px`
+
+  return extensionManifest.value?.config?.contentMinHeight
+})
+
+const fullscreenModalMaxWidth = computed(() => {
+  const modalMaxWidth = {
+    xs: 'min(calc(100vw - 32px), 448px)',
+    sm: 'min(calc(100vw - 32px), 640px)',
+    md: 'min(calc(100vw - 48px), 900px)',
+    lg: 'min(calc(100vw - 48px), 1280px)',
+  }
 
   return extensionManifest.value?.config?.contentMinHeight
 })

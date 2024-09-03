@@ -43,6 +43,15 @@ NocoDB is the fastest and easiest way to build databases online.
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
+# Join Our Community
+
+<a href="https://discord.gg/5RgZmkW" target="_blank">
+<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
+</a>
+
+[![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
+
+
 # Installation
 
 
@@ -116,31 +125,6 @@ Auto-upstall does the following : 🕊
 ![11](https://user-images.githubusercontent.com/35857179/194844903-c1e47f40-e782-4f5d-8dce-6449cc70b181.png)
 ![12](https://user-images.githubusercontent.com/35857179/194844907-09277d3e-cbbf-465c-9165-6afc4161e279.png)
 
-# Table of Contents
-
-- [Quick try](#quick-try)
-- [Installation](#installation)
-  - [Auto-Upstall or 1-Command Setup](#auto-upstall)
-  - [Docker with SQLite](#docker-with-sqlite)
-  - [Docker with PG](#docker-with-pg)
-- [Join Our Community](#join-our-community)
-- [Screenshots](#screenshots)
-- [Table of Contents](#table-of-contents)
-- [Features](#features)
-    - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-    - [App Store for Workflow Automations](#app-store-for-workflow-automations)
-    - [Programmatic Access](#programmatic-access)
-    - [Sync Schema](#sync-schema)
-    - [Audit](#audit)
-- [Production Setup](#production-setup)
-    - [Environment variables](#environment-variables)
-- [Development Setup](#development-setup)
-- [Contributing](#contributing)
-- [Why are we building this?](#why-are-we-building-this)
-- [Our Mission](#our-mission)
-- [License](#license)
-- [Contributors](#contributors)
-
 # Features
 
 ### Rich Spreadsheet Interface
@@ -169,18 +153,6 @@ We provide the following ways to let users programmatically invoke actions. You 
 - ⚡ &nbsp;REST APIs
 - ⚡ &nbsp;NocoDB SDK
 
-### Sync Schema
-
-We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from one environment to another. See <a href="https://docs.nocodb.com/data-sources/sync-with-data-source" target="_blank">Sync Schema</a> for details.
-
-### Audit
-
-We are keeping all the user operation logs in one place. See <a href="https://docs.nocodb.com/data-sources/actions-on-data-sources/#audit-logs" target="_blank">Audit</a> for details.
-
-## Environment variables
-
-Please refer to the [Environment variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
-
 # Contributing
 
 Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
@@ -199,14 +171,6 @@ Our mission is to provide the most powerful no-code interface for databases that
 This project is licensed under <a href="./LICENSE">AGPLv3</a>.
 </p>
 
-
-# Join Our Community
-
-<a href="https://discord.gg/5RgZmkW" target="_blank">
-<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
-</a>
-
-[![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
 
 
 # Contributors

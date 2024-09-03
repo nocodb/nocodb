@@ -8,11 +8,11 @@ export const modalSizes = {
     height: 'min(90vh, 424px)',
   },
   md: {
-    width: 'min(80vw, 900px)',
+    width: 'min(calc(100vw - 48px), 900px)',
     height: 'min(90vh, 540px)',
   },
   lg: {
-    width: 'min(80vw, 1280px)',
+    width: 'min(calc(100vw - 48px), 1280px)',
     height: 'min(90vh, 864px)',
   },
 }

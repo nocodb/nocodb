@@ -30,7 +30,11 @@ const extensionManifest = computed<ExtensionManifest | undefined>(() => {
   return availableExtensions.value.find((ext) => ext.id === extension.value?.extensionId)
 })
 
-const { fullscreen, collapsed } = useProvideExtensionHelper(extension, extensionManifest, activeError)
+const {
+  fullscreen,
+  fullscreenModalSize: currenExtensionModalSize,
+  collapsed,
+} = useProvideExtensionHelper(extension, extensionManifest, activeError)
 
 const { height } = useElementSize(extensionRef)
 
@@ -44,15 +48,8 @@ const extensionHeight = computed(() => {
   return extensionManifest.value?.config?.contentMinHeight
 })
 
-const fullscreenModalMaxWidth = computed(() => {
-  const modalMaxWidth = {
-    xs: 'min(calc(100vw - 32px), 448px)',
-    sm: 'min(calc(100vw - 32px), 640px)',
-    md: 'min(calc(100vw - 48px), 900px)',
-    lg: 'min(calc(100vw - 48px), 1280px)',
-  }
-
-  return extensionManifest.value?.config?.contentMinHeight
+const fullscreenModalSize = computed(() => {
+  return currenExtensionModalSize.value ? modalSizes[currenExtensionModalSize.value] || modalSizes.lg : modalSizes.lg
 })
 
 // close fullscreen on clicking extensionModalRef directly
@@ -225,7 +222,7 @@ eventBus.on((event, payload) => {
   @apply absolute top-0 left-0 z-1000 w-full h-full bg-black bg-opacity-50 flex items-center justify-center;
 
   .extension-modal-content {
-    @apply bg-white rounded-2xl w-[90%] h-[90vh] mt-[5vh] mx-auto flex flex-col;
+    @apply bg-white rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col;
   }
 }
 

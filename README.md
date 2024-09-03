@@ -44,23 +44,23 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 # Installation
- 
-Else you can always rely on Docker or Binaries if you are trying locally.
 
-## Auto-upstall 
-Auto-upstall is the fastest and easiest way to self-host NocoDB on a server. Behind the scenes it auto-generates docker-compose for you.
+## Auto-upstall
+Auto-upstall is a single command that sets up NocoDB on a server for production usage. 
+Behind the scenes it auto-generates docker-compose for you.
 
 ```bash
 bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 ```
 
 #### Notes
-Auto-upstall is a single command that : 🕊
+Auto-upstall does the following : 🕊
 - 🐳 Automatically installs all pre-requisites like docker, docker-compose
 - 🚀 Automatically installs NocoDB with PostgreSQL, Redis, Minio, Traefik gateway using Docker Compose. 🐘 🗄️ 🌐
 - 🔄 Automatically upgrades NocoDB to the latest version when you run the command again.
 - 🔒 Automatically setups SSL and also renews it. Needs a domain or subdomain as input while installation.
 > install.nocodb.com/noco.sh script can be found [here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/setup-script/noco.sh)
+
 
 ## Docker with SQLite
 

@@ -17,6 +17,8 @@ const {
 
 const { $e } = useNuxtApp()
 
+const isReady = ref(false)
+
 const searchExtensionRef = ref<HTMLInputElement>()
 
 const extensionHeaderRef = ref<HTMLDivElement>()
@@ -97,6 +99,20 @@ const onMove = async (_event: { moved: { newIndex: number; oldIndex: number; ele
   $e('a:extension:reorder')
 }
 
+defineExpose({
+  onReady: () => {
+    isReady.value = true
+  },
+})
+
+watch(isPanelExpanded, (newValue) => {
+  if (newValue && !isReady.value) {
+    setTimeout(() => {
+      isReady.value = true
+    }, 300)
+  }
+})
+
 onClickOutside(searchExtensionRef, () => {
   if (searchQuery.value) {
     return
@@ -113,7 +129,19 @@ onMounted(() => {
 </script>
 
 <template>
-  <Pane :size="panelSize" max-size="60%" class="nc-extension-pane">
+  <Pane
+    :size="panelSize"
+    max-size="60%"
+    class="nc-extension-pane"
+    :title="`${isReady}`"
+    :style="
+      !isReady
+        ? {
+            maxWidth: `${extensionPanelSize}%`,
+          }
+        : {}
+    "
+  >
     <Transition name="layout" :duration="150">
       <div v-if="isPanelExpanded" class="flex flex-col">
         <div

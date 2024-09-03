@@ -2,7 +2,7 @@ import type { ColumnType, ViewType } from 'nocodb-sdk'
 import type { ExtensionManifest, ExtensionType } from '#imports'
 
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
-  (extension: Ref<ExtensionType>, extensionManifest: ComputedRef<ExtensionManifest | undefined>, activeError: Ref<any>) => {
+  (extension: Ref<ExtensionType>, extensionManifest: ComputedRef<ExtensionManifest | undefined>, activeError) => {
     const { $api } = useNuxtApp()
 
     const basesStore = useBases()
@@ -22,10 +22,6 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     const { eventBus } = useSmartsheetStoreOrThrow()
 
     const fullscreen = ref(false)
-
-    const showExpandBtn = ref(true)
-
-    const fullscreenModalSize = ref<keyof typeof modalSizes>(extensionManifest.value?.config?.modalSize || 'lg')
 
     const collapsed = computed({
       get: () => extension.value?.meta?.collapsed ?? false,
@@ -125,12 +121,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       }
     }
 
-    const upsertData = async (params: {
-      tableId: string
-      data: Record<string, any>
-      upsertField: ColumnType
-      importType: 'insert' | 'update' | 'insertAndUpdate'
-    }) => {
+    const upsertData = async (params: { tableId: string; data: Record<string, any>; upsertField: ColumnType }) => {
       const { tableId, data, upsertField } = params
 
       const chunkSize = 100
@@ -158,32 +149,28 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
           limit: chunkSize,
         })
 
-        if (params.importType !== 'update') {
-          insert.push(
-            ...chunk.filter(
-              (record: Record<string, any>) =>
-                !list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
-            ),
-          )
-        }
+        insert.push(
+          ...chunk.filter(
+            (record: Record<string, any>) =>
+              !list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
+          ),
+        )
 
-        if (params.importType !== 'insert') {
-          update.push(
-            ...chunk
-              .filter((record: Record<string, any>) =>
-                list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
+        update.push(
+          ...chunk
+            .filter((record: Record<string, any>) =>
+              list.some((r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`),
+            )
+            .map((record: Record<string, any>) => {
+              const existingRecord = list.find(
+                (r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`,
               )
-              .map((record: Record<string, any>) => {
-                const existingRecord = list.find(
-                  (r: Record<string, any>) => `${r[upsertField.title!]}` === `${record[upsertField.title!]}`,
-                )
-                return {
-                  ...rowPkData(existingRecord!, tableMeta.columns!),
-                  ...record,
-                }
-              }),
-          )
-        }
+              return {
+                ...rowPkData(existingRecord!, tableMeta.columns!),
+                ...record,
+              }
+            }),
+        )
       }
 
       if (insert.length) {
@@ -219,8 +206,6 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       extensionManifest,
       activeError,
       tables,
-      showExpandBtn,
-      fullscreenModalSize,
       getViewsForTable,
       getData,
       getTableMeta,

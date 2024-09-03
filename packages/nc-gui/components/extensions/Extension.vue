@@ -10,6 +10,8 @@ const { extensionList, extensionsLoaded, availableExtensions, eventBus } = useEx
 
 const isLoadedExtension = ref<boolean>(true)
 
+const isLoadedExtension = ref<boolean>(false)
+
 const activeError = ref(error)
 
 const extensionRef = ref<HTMLElement>()
@@ -25,6 +27,12 @@ const extension = computed(() => {
   }
   return ext
 })
+
+const extensionManifest = computed<ExtensionManifest | undefined>(() => {
+  return availableExtensions.value.find((ext) => ext.id === extension.value?.extensionId)
+})
+
+const { fullscreen, collapsed } = useProvideExtensionHelper(extension, extensionManifest, activeError)
 
 const titleInput = ref<HTMLInputElement | null>(null)
 
@@ -49,12 +57,7 @@ const {
   collapsed,
 } = useProvideExtensionHelper(extension, extensionManifest, activeError)
 
-const { height } = useElementSize(extensionRef)
-
 const component = ref<any>(null)
-
-const extensionHeight = computed(() => {
-  const heigthInInt = parseInt(extensionManifest.value?.config?.contentMinHeight || '') || undefined
 
 const extensionHeight = computed(() => {
   const heigthInInt = parseInt(extensionManifest.value?.config?.contentMinHeight || '') || undefined
@@ -86,6 +89,22 @@ const closeFullscreen = (e: MouseEvent) => {
   }
 }
 
+// close fullscreen on clicking extensionModalRef directly
+const closeFullscreen = (e: MouseEvent) => {
+  if (e.target === extensionModalRef.value) {
+    fullscreen.value = false
+  }
+}
+
+const handleDuplicateExtension = async (id: string, open: boolean = false) => {
+  const duplicatedExt = await duplicateExtension(id)
+
+  if (duplicatedExt?.id && open) {
+    fullscreen.value = false
+    eventBus.emit(ExtensionsEvents.DUPLICATE, duplicatedExt.id)
+  }
+}
+
 onMounted(() => {
   until(extensionsLoaded)
     .toMatch((v) => v)
@@ -96,7 +115,7 @@ onMounted(() => {
 
       import(`../../extensions/${extensionManifest.value.entry}/index.vue`).then((mod) => {
         component.value = markRaw(mod.default)
-        isLoadedExtension.value = false
+        isLoadedExtension.value = true
       })
     })
     .catch((err) => {
@@ -105,7 +124,7 @@ onMounted(() => {
         return
       }
       activeError.value = err
-      isLoadedExtension.value = false
+      isLoadedExtension.value = true
     })
 })
 
@@ -235,7 +254,7 @@ eventBus.on((event, payload) => {
                   </span>
                 </NcTooltip>
 
-                <ExtensionsExtensionMenu
+                <ExtensionsExtensionHeaderMenu
                   :active-error="activeError"
                   :fullscreen="fullscreen"
                   @rename="enableEditMode"

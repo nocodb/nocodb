@@ -119,7 +119,7 @@ const detailsBody = computed(() => {
               />
               <div class="extension-details-right-subtitle">{{ activeExtension.publisher.name }}</div>
             </div>
-            <div class="flex items-center gap-3 text-sm font-semibold text-nc-brand">
+            <div class="flex items-center gap-3 text-sm font-semibold text-nc-content-brand">
               <a
                 v-if="activeExtension.publisher?.url"
                 :href="activeExtension.publisher.url"
@@ -130,7 +130,7 @@ const detailsBody = computed(() => {
                 Website
               </a>
               <template v-if="activeExtension.publisher?.email">
-                <div class="border-l-1 border-nc-gray-medium h-5"></div>
+                <div class="border-l-1 border-nc-border-gray-medium h-5"></div>
                 <a
                   :href="`mailto:${activeExtension.publisher.email}`"
                   target="_blank"

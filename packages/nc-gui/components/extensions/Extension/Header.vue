@@ -69,10 +69,10 @@ const handleDuplicateExtension = async (id: string, open: boolean = false) => {
     v-if="(isFullscreen && fullscreen) || !isFullscreen"
     class="extension-header flex items-center"
     :class="{
-      'border-b-1 border-nc-gray-medium h-[49px]': !collapsed && !isFullscreen,
+      'border-b-1 border-nc-border-gray-medium h-[49px]': !collapsed && !isFullscreen,
       'collapsed border-transparent h-[48px]': collapsed && !isFullscreen,
       'px-3 py-2 gap-1': !isFullscreen,
-      'gap-3 px-4 pt-4 pb-[15px] border-b-1 border-nc-gray-medium': isFullscreen,
+      'gap-3 px-4 pt-4 pb-[15px] border-b-1 border-nc-border-gray-medium': isFullscreen,
     }"
     @click="expandExtension"
   >

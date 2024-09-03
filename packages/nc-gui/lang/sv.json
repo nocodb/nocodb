@@ -287,7 +287,9 @@
     "connections": "Connections",
     "private": "Private",
     "request": "Request",
-    "languages": "Språk"
+    "languages": "Språk",
+    "extension": "Extension",
+    "extensions": "Extensions"
   },
   "objects": {
     "files": "filer",

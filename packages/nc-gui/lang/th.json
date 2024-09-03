@@ -287,7 +287,9 @@
     "connections": "Connections",
     "private": "Private",
     "request": "Request",
-    "languages": "Languages"
+    "languages": "Languages",
+    "extension": "Extension",
+    "extensions": "Extensions"
   },
   "objects": {
     "files": "files",

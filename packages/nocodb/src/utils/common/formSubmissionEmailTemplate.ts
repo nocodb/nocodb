@@ -130,7 +130,7 @@ export default `<!doctype html>
                                    <tr>
                                    <td style="font-family: sans-serif; font-size: 14px;padding: 20px 5px 10px 5px; " colspan="2">
                                      <a href="https://github.com/nocodb/nocodb" target="_blank">
-                                        <img src="https://www.nocodb.com/brand/x1.png" alt="NocoDB" width="70" style=" vertical-align: middle"> <h2 style="margin-left: 10px;display: inline-block">NocoDB</h2>
+                                        <img src="https://cdn.nocodb.com/email/logo.png" alt="NocoDB" width="150" style=" vertical-align: middle">
                                      </a>
                                    </td>
                                    </tr>

@@ -32,7 +32,7 @@ const extensionManifest = computed<ExtensionManifest | undefined>(() => {
 
 const {
   fullscreen,
-  fullscreenModalSize: currenExtensionModalSize,
+  fullscreenModalSize: currentExtensionModalSize,
   collapsed,
 } = useProvideExtensionHelper(extension, extensionManifest, activeError)
 
@@ -49,7 +49,7 @@ const extensionHeight = computed(() => {
 })
 
 const fullscreenModalSize = computed(() => {
-  return currenExtensionModalSize.value ? modalSizes[currenExtensionModalSize.value] || modalSizes.lg : modalSizes.lg
+  return currentExtensionModalSize.value ? modalSizes[currentExtensionModalSize.value] || modalSizes.lg : modalSizes.lg
 })
 
 // close fullscreen on clicking extensionModalRef directly

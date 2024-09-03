@@ -8,7 +8,11 @@ export function useGlobalActions(state: State): Actions {
   }
 
   /** Sign out by deleting the token from localStorage */
-  const signOut: Actions['signOut'] = async ({ redirectToSignin, signinUrl = '/signin', skipApiCall = false }: SignOutParams = {}) => {
+  const signOut: Actions['signOut'] = async ({
+    redirectToSignin,
+    signinUrl = '/signin',
+    skipApiCall = false,
+  }: SignOutParams = {}) => {
     try {
       // call and invalidate refresh token only if user manually triggered logout
       if (!skipApiCall) {
@@ -72,7 +76,9 @@ export function useGlobalActions(state: State): Actions {
         })
         .catch(async () => {
           if (state.token.value && state.user.value) {
-            await signOut()
+            await signOut({
+              skipApiCall: true,
+            })
             message.error(t('msg.error.youHaveBeenSignedOut'))
           }
         })

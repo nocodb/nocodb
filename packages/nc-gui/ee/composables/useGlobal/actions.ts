@@ -147,7 +147,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
             await checkForCognitoToken()
           } else if (state.token.value && state.user.value) {
             await signOut({
-              skipApiCall: true
+              skipApiCall: true,
             })
             message.error(t('msg.error.youHaveBeenSignedOut'))
           }

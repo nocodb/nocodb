@@ -219,11 +219,11 @@ onMounted(() => {
             'max-w-[min(350px,calc(100%-124px))]': isExporting && !fullscreen && width > 325,
             'max-w-[min(350px,calc(100%_-_84px))]': !isExporting && !fullscreen && width > 325,
             'max-w-full': width <= 325,
-            'max-w-[900px]': fullscreen,
+            'max-w-[480px]': fullscreen,
           }"
         >
           <div
-            class="flex items-center border-1 border-gray-200 rounded-lg focus-within:(border-brand-500 shadow-selected) transition-colors transition-shadow"
+            class="flex-1 flex items-center border-1 border-gray-200 rounded-lg focus-within:(border-brand-500 shadow-selected) transition-colors transition-shadow"
           >
             <NcSelect
               v-model:value="exportPayload.tableId"

@@ -67,7 +67,7 @@ const onDelete = async () => {
       await navigateToWorkspace(workspacesList.value[0].id)
     } else if (!isAdminPanel.value) {
       // As signin page will clear the workspaces, we need to check if there are more than one workspace
-      await signOut(false)
+      await signOut({ skipRedirect: false })
       setTimeout(() => {
         window.location.href = '/'
       }, 100)

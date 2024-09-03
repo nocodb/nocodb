@@ -1,6 +1,6 @@
 import { getActivePinia } from 'pinia'
 import { Auth } from 'aws-amplify'
-import type { Actions, AppInfo, State } from '../../../composables/useGlobal/types'
+import type { Actions, AppInfo, SignOutParams, State } from '../../../composables/useGlobal/types'
 import { NcProjectType } from '#imports'
 
 export interface ActionsEE {
@@ -17,25 +17,22 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   const isAmplifyConfigured = useState('is-amplify-configured', () => false)
 
   /** Sign out by deleting the token from localStorage */
-  const signOut: Actions['signOut'] = async (skipRedirect = true) => {
+  const signOut: Actions['signOut'] = async ({
+    redirectToSignin,
+    signinUrl = '/signin',
+    skipRedirect = true,
+  }: SignOutParams = {}) => {
     let signoutRes
     const nuxtApp = useNuxtApp()
     try {
       // invalidate token and refresh token on server
       signoutRes = await nuxtApp.$api.auth.signout()
+    } catch {
+      // ignore error
     } finally {
       // clear token and user data
       state.token.value = null
       state.user.value = null
-
-      // clear all stores data on logout
-      const pn = getActivePinia()
-      if (pn) {
-        pn._s.forEach((store) => {
-          store.$dispose()
-          delete pn.state.value[store.$id]
-        })
-      }
     }
 
     // clear amplify session if configured
@@ -48,6 +45,19 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     // todo: update type in swagger.json
     if (!skipRedirect && (signoutRes as any).redirect_url) {
       location.href = (signoutRes as any).redirect_url
+    }
+
+    if (redirectToSignin) {
+      await navigateTo(signinUrl)
+    }
+
+    // clear all stores data on logout
+    const pn = getActivePinia()
+    if (pn) {
+      pn._s.forEach((store) => {
+        store.$dispose()
+        delete pn.state.value[store.$id]
+      })
     }
   }
 
@@ -72,7 +82,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   let tokenGenerationProgress: Promise<any> | null = null
   let resolveTokenGenerationProgress: (value: any) => void = null
 
-  const checkForCognitoToken = async ({ skipRedirect = false } = {}) => {
+  const checkForCognitoToken = async () => {
     if (tokenGenerationProgress) {
       await tokenGenerationProgress
     }

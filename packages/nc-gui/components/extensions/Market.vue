@@ -126,6 +126,7 @@ const handleSetActiveTab = (tab: TabItem) => {
         <div class="flex-1 flex gap-3 justify-end">
           <div class="flex-1 flex max-w-[290px]">
             <a-input
+              :ref="searchRef"
               v-model:value="searchQuery"
               type="text"
               class="nc-input-border-on-value !h-8 !px-3 !py-1 !rounded-lg"
@@ -241,37 +242,6 @@ const handleSetActiveTab = (tab: TabItem) => {
 .nc-modal-extension-market {
   .nc-modal {
     @apply !p-0;
-    height: min(calc(100vh - 100px), 864px);
-    max-height: min(calc(100vh - 100px), 864px) !important;
-
-  .nc-extension-market-header {
-    .nc-extension-market-header-tab-item {
-      @apply relative;
-
-      // Add vertical line to all items except the last one
-      &:not(:last-child)::after {
-        @apply absolute right-0 top-[4px] h-[16px] w-[1px] bg-nc-bg-gray-dark; // Use WindiCSS utilities for line
-
-        content: '';
-        transform: scaleY(0); // Hide by default
-        transition: transform 0.18s;
-      }
-
-      // Handle lines visibility based on selection
-      &.selected {
-        box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
-      }
-
-      // Ensure lines are shown between non-selected items
-      &:not(.selected)::after {
-        transform: scaleY(1);
-      }
-
-      // If supported, this will hide the line to the right of the selected item
-      &:has(+ .selected)::after {
-        transform: scaleY(0); // Hide the line on the right of the selected item
-      }
-    }
   }
 
   .nc-extension-market-header {

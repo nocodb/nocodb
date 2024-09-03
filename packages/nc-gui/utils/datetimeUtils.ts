@@ -49,5 +49,9 @@ export const timeAgo = (date: string) => {
   if (months < 12) {
     return `${months}mo ago`
   }
+  if (years < 1) {
+    return `1y ago`
+  }
+
   return `${years}y ago`
 }

@@ -713,16 +713,9 @@ export function _transformSubmittedFormDataForEmail(
       }
       transformedData[col.title] = (transformedData[col.title] || [])
         .map((attachment) => {
-          if (
-            ['jpeg', 'gif', 'png', 'apng', 'svg', 'bmp', 'ico', 'jpg'].includes(
-              attachment.title.split('.').pop(),
-            )
-          ) {
-            return `<a href="${attachment.url}" target="_blank"><img height="50px" src="${attachment.url}"/></a>`;
-          }
-          return `<a href="${attachment.url}" target="_blank">${attachment.title}</a>`;
+          return attachment.title;
         })
-        .join('&nbsp;');
+        .join('<br/>');
     } else if (
       transformedData[col.title] &&
       typeof transformedData[col.title] === 'object'

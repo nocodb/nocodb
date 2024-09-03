@@ -34,8 +34,8 @@ export interface ExtensionManifest {
     title: string
     href: string
   }[]
-  config: {
-    modalSize?: 'xs' | 'sm' | 'md' | 'lg'
+  config?: {
+    modalMaxWith?: 'xs' | 'sm' | 'md' | 'lg'
     contentMinHeight?: string
   }
 }
@@ -388,13 +388,6 @@ export const useExtensions = createSharedComposable(() => {
 
           if (!Array.isArray(manifest.links)) {
             manifest.links = []
-          }
-
-          if (!manifest?.config || !manifest?.config?.modalSize) {
-            manifest.config = {
-              ...(manifest.config || {}),
-              modalSize: 'lg',
-            }
           }
 
           if (manifest?.disabled !== true) {

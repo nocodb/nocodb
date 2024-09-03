@@ -178,14 +178,16 @@ const handleSetActiveTab = (tab: TabItem) => {
                 </div>
               </template>
               <div
-                class="nc-market-extension-item flex-1 flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
+                class="nc-market-extension-item w-full md:w-[calc(50%_-_6px)] flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
                 @click="onExtensionClick(ext.id)"
               >
                 <div class="h-[60px] w-[60px] overflow-hidden m-auto flex-none">
                   <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />
                 </div>
-                <div class="flex flex-grow flex-col gap-1">
-                  <div class="font-weight-600 text-base truncate">{{ ext.title }}</div>
+                <div class="flex-1 flex flex-grow flex-col gap-1">
+                  <div class="font-weight-600 text-base line-clamp-1">
+                    {{ ext.title }}
+                  </div>
 
                   <div class="max-h-[32px] text-xs text-gray-500 line-clamp-2">{{ ext.subTitle }}</div>
                 </div>
@@ -195,6 +197,21 @@ const handleSetActiveTab = (tab: TabItem) => {
                     {{ $t('general.add') }}
                   </div>
                 </NcButton>
+              </div>
+            </template>
+
+            <div
+              v-if="searchQuery && !filteredAvailableExtensions.length && availableExtensions.length"
+              class="w-full h-full flex items-center justify-center"
+            >
+              <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
+                <img
+                  src="~assets/img/placeholder/no-search-result-found.png"
+                  class="!w-[164px] flex-none"
+                  alt="No search results found"
+                />
+
+                {{ $t('title.noResultsMatchedYourSearch') }}
               </div>
             </div>
           </div>

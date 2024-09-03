@@ -169,7 +169,8 @@ export function addAxiosInterceptors(api: Api<any>) {
 
           await state.signOut({
             redirectToSignin: !route.value.meta.public,
-          }, true);
+            skipApiCall: true,
+          })
 
           // reject the refresh token promise and reset
           refreshTokenPromiseRej(refreshTokenError)

@@ -149,14 +149,14 @@ const handleSetActiveTab = (tab: TabItem) => {
           <div class="h-full flex flex-col gap-6 flex-1 pt-2 px-6 max-w-[900px] w-full mx-auto">
             <div v-if="searchQuery" class="text-base text-nc-content-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
             <div
-              class="flex flex-wrap gap-4 overflow-auto nc-scrollbar-thin pb-2"
+              class="flex flex-wrap gap-6 overflow-auto nc-scrollbar-thin pb-2"
               :class="{
                 'h-full': searchQuery && !filteredAvailableExtensions.length && availableExtensions.length,
               }"
             >
               <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
                 <div
-                  class="nc-market-extension-item w-full md:w-[calc(50%_-_8px)] flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
+                  class="nc-market-extension-item w-full md:w-[calc(50%_-_12px)] flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
                   @click="onExtensionClick(ext.id)"
                 >
                   <div class="h-[60px] w-[60px] overflow-hidden m-auto flex-none">
@@ -177,7 +177,6 @@ const handleSetActiveTab = (tab: TabItem) => {
                   </NcButton>
                 </div>
               </template>
-
               <div
                 v-if="searchQuery && !filteredAvailableExtensions.length && availableExtensions.length"
                 class="w-full h-full flex items-center justify-center"

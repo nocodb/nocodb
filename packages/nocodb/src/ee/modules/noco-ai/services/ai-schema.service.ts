@@ -266,10 +266,16 @@ export class AiSchemaService {
           - Each table must have one and only one ID column
           - Spaces are allowed in table & column names
           - Try to make use of SingleSelect columns where possible
+          - Try to create relations if there are existing tables
           
-          Here is a sample JSON schema
+          Here is a sample input JSON schema
           \`\`\`json
-          {"tables":[{"title":"Countries","columns":[{"title":"Id","type":"ID"},{"title":"Name","type":"SingleLineText"},{"title":"Region","type":"SingleSelect","options":["Asia","Europe","Africa","North America","South America","Australia","Antarctica"]}]},{"title":"Cities","columns":[{"title":"Id","type":"ID"},{"title":"Name","type":"SingleLineText"},{"title":"Population","type":"Number"},{"title":"Capital","type":"Checkbox"}]}],"relationships":[{"from":"Countries","to":"Cities","type":"hm"}]}
+          {"tables":{"title":"Cities","columns":[{"title":"Id","type":"ID"},{"title":"Name","type":"SingleLineText"},{"title":"Population","type":"Number"},{"title":"Capital","type":"Checkbox"}]},"relationships":[]}
+          \`\`\`
+
+          Here is a sample output JSON schema
+          \`\`\`json
+          {"table":{"title":"Countries","columns":[{"title":"Id","type":"ID"},{"title":"Name","type":"SingleLineText"},{"title":"Region","type":"SingleSelect","options":["Asia","Europe","Africa","North America","South America","Australia","Antarctica"]}]},"relationships":[{"from":"Countries","to":"Cities","type":"hm"}]}
           \`\`\`
           `,
         },
@@ -357,13 +363,25 @@ export class AiSchemaService {
       );
     }
 
+    const generatedLinksFromTo = [];
+
     for (const relation of relationships) {
-      const fromTable = generatedTables.find(
-        (table) => table.title === relation.from,
-      );
-      const toTable = generatedTables.find(
-        (table) => table.title === relation.to,
-      );
+      // Skip if same direction relation already exists
+      if (
+        generatedLinksFromTo.some(
+          (r) => r.from === relation.from && r.to === relation.to,
+        )
+      ) {
+        continue;
+      }
+
+      const tables = await Model.list(context, {
+        base_id: base.id,
+        source_id: undefined,
+      });
+
+      const fromTable = tables.find((table) => table.title === relation.from);
+      const toTable = tables.find((table) => table.title === relation.to);
 
       if (fromTable && toTable) {
         await this.columnsService.columnAdd(context, {
@@ -380,6 +398,8 @@ export class AiSchemaService {
           req,
         });
       }
+
+      generatedLinksFromTo.push(relation);
     }
 
     return generatedTables;

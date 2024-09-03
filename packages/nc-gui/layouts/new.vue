@@ -33,8 +33,9 @@ watch(hasSidebar, (val) => {
 })
 
 const logout = async () => {
-  await signOut(false)
-  await navigateTo('/signin')
+  await signOut({
+    redirectToSignin: true,
+  })
   await clearWorkspaces()
 }
 </script>

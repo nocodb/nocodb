@@ -1,5 +1,5 @@
 import { getActivePinia } from 'pinia'
-import type { Actions, AppInfo, State } from './types'
+import type { Actions, AppInfo, SignOutParams, State } from './types'
 import type { NcProjectType } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
@@ -8,14 +8,19 @@ export function useGlobalActions(state: State): Actions {
   }
 
   /** Sign out by deleting the token from localStorage */
-  const signOut: Actions['signOut'] = async (_skipRedirect = false) => {
+  const signOut: Actions['signOut'] = async ({ redirectToSignin, signinUrl = '/signin' }: SignOutParams = {}) => {
     try {
       const nuxtApp = useNuxtApp()
       await nuxtApp.$api.auth.signout()
     } catch {
+      // ignore error
     } finally {
       state.token.value = null
       state.user.value = null
+
+      if (redirectToSignin) {
+        await navigateTo(signinUrl)
+      }
 
       // clear all stores data on logout
       const pn = getActivePinia()

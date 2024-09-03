@@ -46,9 +46,9 @@ const passwordChange = async () => {
 
   message.success(t('msg.success.passwordChanged'))
 
-  await signOut()
-
-  await navigateTo('/signin')
+  await signOut({
+    redirectToSignin: true,
+  })
 }
 
 const resetError = () => {

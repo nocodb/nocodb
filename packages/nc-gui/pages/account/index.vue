@@ -20,8 +20,9 @@ const selectedKeys = computed(() => [
 const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 
 const logout = async () => {
-  await signOut(false)
-  navigateTo('/signin')
+  await signOut({
+    redirectToSignin: true,
+  })
 }
 
 const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && !isEeUI)

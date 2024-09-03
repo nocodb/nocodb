@@ -12,8 +12,9 @@ const hasSider = ref(false)
 const sidebar = ref<HTMLDivElement>()
 
 const logout = async () => {
-  await signOut(false)
-  await navigateTo('/signin')
+  await signOut({
+    redirectToSignin: true,
+  })
 }
 
 const { hooks } = useNuxtApp()

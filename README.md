@@ -65,7 +65,7 @@ Auto-upstall does the following : 🕊
 ## Docker with SQLite
 
 ```bash 
-docker run -d --name nocodb 
+docker run -d --name noco 
            -v "$(pwd)"/nocodb:/usr/app/data/ 
            -p 8080:8080 
            nocodb/nocodb:latest
@@ -73,7 +73,7 @@ docker run -d --name nocodb
 
 ## Docker with PG
 ```bash
-docker run -d --name nocodb-postgres 
+docker run -d --name noco 
            -v "${pwd}"/nocodb:/usr/app/data/ 
            -p 8080:8080 
             # replace with your pg connection string

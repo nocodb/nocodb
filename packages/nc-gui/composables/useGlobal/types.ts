@@ -84,6 +84,7 @@ export interface SignOutParams {
   redirectToSignin?: boolean
   signinUrl?: string
   skipRedirect?: boolean
+  skipApiCall?: boolean
 }
 
 export interface Actions {

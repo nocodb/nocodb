@@ -8,7 +8,7 @@ const { extensionId, error } = defineProps<Prop>()
 
 const { extensionList, extensionsLoaded, availableExtensions, eventBus } = useExtensions()
 
-const isLoadedExtension = ref<boolean>(false)
+const isLoadedExtension = ref<boolean>(true)
 
 const activeError = ref(error)
 
@@ -72,7 +72,7 @@ onMounted(() => {
 
       import(`../../extensions/${extensionManifest.value.entry}/index.vue`).then((mod) => {
         component.value = markRaw(mod.default)
-        isLoadedExtension.value = true
+        isLoadedExtension.value = false
       })
     })
     .catch((err) => {
@@ -81,7 +81,7 @@ onMounted(() => {
         return
       }
       activeError.value = err
-      isLoadedExtension.value = true
+      isLoadedExtension.value = false
     })
 })
 

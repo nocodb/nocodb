@@ -130,6 +130,7 @@ onMounted(() => {
 
 <template>
   <Pane
+    v-show="isPanelExpanded || isReady"
     :size="panelSize"
     max-size="60%"
     class="nc-extension-pane"

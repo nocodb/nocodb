@@ -47,9 +47,9 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 There are different ways to start using NocoDB. You can either signup on <a href="https://app.nocodb.com/?ref=github">NocoDB Cloud</a> or self-host it.
 The self-hosting can be done using Docker, Docker Compose, Binaries, or using the script.
 
-## Easy Installation
+## One-Click Install
 
-This script installs NocoDB with PostgreSQL, Redis, and Minio for a complete setup in a docker environment.
+This script installs NocoDB with PostgreSQL, Redis, and Minio (for file storage) using Docker Compose.
 ```bash
 bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 ````
@@ -119,7 +119,7 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 
 - [Quick try](#quick-try)
 - [Installation](#installation)
-  - [Easy Installation](#easy-installation)
+  - [One-Click Install](#one-click-install)
   - [Binaries](#binaries)
   - [Docker](#docker)
   - [Docker Compose](#docker-compose)

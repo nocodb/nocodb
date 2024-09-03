@@ -22,12 +22,10 @@ const logout = async () => {
   try {
     const isSsoUser = !!(user?.value as any)?.sso_client_id
 
-    await signOut(false)
-
-    // No need as all stores are cleared on signout
-    // await clearWorkspaces()
-
-    await navigateTo(isSsoUser ? '/sso' : '/signin')
+    await signOut({
+      redirectToSignin: true,
+      signinUrl: isSsoUser ? '/sso' : '/signin',
+    })
   } catch (e) {
     console.error(e)
   } finally {

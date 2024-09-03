@@ -7,8 +7,8 @@ const { height } = useElementSize(headerRef)
 </script>
 
 <template>
-  <div>
-    <div ref="headerRef">
+  <div class="h-full">
+    <div ref="headerRef" class="extension-header-wrapper">
       <ExtensionsExtensionHeader>
         <template #extra>
           <slot name="headerExtra"></slot>
@@ -16,8 +16,9 @@ const { height } = useElementSize(headerRef)
       </ExtensionsExtensionHeader>
     </div>
     <div
+      class="extension-content-container"
       :class="{
-        'p-6 max': fullscreen,
+        'fullscreen p-6': fullscreen,
         'h-full': !fullscreen,
       }"
       :style="fullscreen ? { height: height ? `calc(100% - ${height}px)` : 'calc(100% - 64px)' } : {}"

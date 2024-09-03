@@ -2,7 +2,7 @@ import type { ColumnType, ViewType } from 'nocodb-sdk'
 import type { ExtensionManifest, ExtensionType } from '#imports'
 
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
-  (extension: Ref<ExtensionType>, extensionManifest: ComputedRef<ExtensionManifest | undefined>, activeError) => {
+  (extension: Ref<ExtensionType>, extensionManifest: ComputedRef<ExtensionManifest | undefined>, activeError: Ref<any>) => {
     const { $api } = useNuxtApp()
 
     const basesStore = useBases()
@@ -22,6 +22,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     const { eventBus } = useSmartsheetStoreOrThrow()
 
     const fullscreen = ref(false)
+
+    const showExpandBtn = ref(false)
 
     const collapsed = computed({
       get: () => extension.value?.meta?.collapsed ?? false,
@@ -206,6 +208,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       extensionManifest,
       activeError,
       tables,
+      showExpandBtn,
       getViewsForTable,
       getData,
       getTableMeta,

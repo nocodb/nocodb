@@ -11,7 +11,7 @@
     "email": "contact@nocodb.com",
     "url": "https://www.nocodb.com",
     "icon": {
-      "src": "csv-import-ee/assets/publisher-icon.svg",
+      "src": "json-exporter/assets/publisher-icon.svg",
       "width": 24,
       "height": 24
     }

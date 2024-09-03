@@ -23,7 +23,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
     const fullscreen = ref(false)
 
-    const showExpandBtn = ref(false)
+    const showExpandBtn = ref(true)
 
     const collapsed = computed({
       get: () => extension.value?.meta?.collapsed ?? false,

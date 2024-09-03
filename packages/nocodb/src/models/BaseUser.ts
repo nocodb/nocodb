@@ -181,7 +181,7 @@ export default class BaseUser {
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
 
-    const fullVersionCols = ['invite_token', 'created_at'];
+    const fullVersionCols = ['invite_token'];
 
     if (!isNoneList && !baseUsers.length) {
       const queryBuilder = ncMeta

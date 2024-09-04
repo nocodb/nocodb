@@ -1213,7 +1213,7 @@ watch(
                                 >
                                   {{
                                     $t('labels.idColon', {
-                                      fieldId: field.id,
+                                      id: field.id,
                                     })
                                   }}
                                 </div>
@@ -1398,7 +1398,7 @@ watch(
                               >
                                 {{
                                   $t('labels.idColon', {
-                                    fieldId: displayColumn.id,
+                                    id: displayColumn.id,
                                   })
                                 }}
                               </div>

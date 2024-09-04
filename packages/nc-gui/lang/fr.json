@@ -761,7 +761,7 @@
     "icon": "Icône",
     "max": "Maximum",
     "enableRichText": "Activer le texte enrichi",
-    "idColon": "Identifiant:",
+    "idColon": "Id: {id}",
     "copiedRecordURL": "URL de l'enregistrement copié",
     "copyRecordURL": "Copier l'URL de l'enregistrement",
     "duplicateRecord": "Dupliquer la ligne",

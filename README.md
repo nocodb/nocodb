@@ -1,6 +1,6 @@
 <h1 align="center" style="border-bottom: none">
     <div>
-        <a href="https://www.nocodb.com">
+        <a style="color:#36f" href="https://www.nocodb.com">
             <img src="/packages/nc-gui/assets/img/icons/512x512.png" width="80" />
             <br>
             NocoDB
@@ -13,12 +13,6 @@
 Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadsheet.
 </p>
 
-<div align="center">
-
-[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.19.1-brightgreen)](http://nodejs.org/download/)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
-
-</div>
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
@@ -49,19 +43,17 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
-# Join Our Team
+# Installation
+There are different ways to start using NocoDB. You can either signup on <a href="https://app.nocodb.com/?ref=github">NocoDB Cloud</a> or self-host it.
+The self-hosting can be done using Docker, Docker Compose, Binaries, or using the script.
 
-<p align=""><a href="http://careers.nocodb.com" target="_blank"><img src="https://user-images.githubusercontent.com/61551451/169663818-45643495-e95b-48e2-be13-01d6a77dc2fd.png" width="250"/></a></p>
+## Easy Installation
 
-# Join Our Community
+This script installs NocoDB with PostgreSQL, Redis, and Minio for a complete setup in a docker environment.
+```bash
+bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
+````
 
-<a href="https://discord.gg/5RgZmkW" target="_blank">
-<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
-</a>
-
-[![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
-
-# Quick try
 
 ## Docker
 
@@ -83,6 +75,7 @@ nocodb/nocodb:latest
 
 ## Binaries
 🚥 Binaries are intended for ONLY quick trials or testing purposes and are not recommended for production use.
+
   | OS      | Architecture | Command                                                                                      |
   |---------|--------------|----------------------------------------------------------------------------------------------|
   | macOS   | arm64        | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`         |
@@ -125,8 +118,11 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 # Table of Contents
 
 - [Quick try](#quick-try)
-    - [Docker](#docker)
-    - [Docker Compose](#docker-compose)
+- [Installation](#installation)
+  - [Easy Installation](#easy-installation)
+  - [Binaries](#binaries)
+  - [Docker](#docker)
+  - [Docker Compose](#docker-compose)
 - [GUI](#gui)
 - [Join Our Community](#join-our-community)
 - [Screenshots](#screenshots)
@@ -151,11 +147,11 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 ### Rich Spreadsheet Interface
 
 - ⚡ &nbsp;Basic Operations: Create, Read, Update and Delete Tables, Columns, and Rows
-- ⚡ &nbsp;Fields Operations: Sort, Filter, Hide / Unhide Columns
-- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery, Form View and Kanban View
+- ⚡ &nbsp;Fields Operations: Sort, Filter, Group, Hide / Unhide Columns
+- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery, Form, Kanban and Calendar View
 - ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views
 - ⚡ &nbsp;Share Bases / Views: either Public or Private (with Password Protected)
-- ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, etc
+- ⚡ &nbsp;Variant Cell Types: ID, Links, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, User, etc
 - ⚡ &nbsp;Access Control with Roles: Fine-grained Access Control at different levels
 - ⚡ &nbsp;and more ...
 
@@ -182,17 +178,9 @@ We allow you to sync schema changes if you have made changes outside NocoDB GUI.
 
 We are keeping all the user operation logs in one place. See <a href="https://docs.nocodb.com/data-sources/actions-on-data-sources/#audit-logs" target="_blank">Audit</a> for details.
 
-# Production Setup
-
-By default, SQLite is used for storing metadata. However, you can specify your database. The connection parameters for this database can be specified in `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
-
 ## Environment variables
 
 Please refer to the [Environment variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
-
-# Development Setup
-
-Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
 
 # Contributing
 
@@ -211,6 +199,19 @@ Our mission is to provide the most powerful no-code interface for databases that
 <p>
 This project is licensed under <a href="./LICENSE">AGPLv3</a>.
 </p>
+
+# Join Our Team
+
+<p align=""><a href="http://careers.nocodb.com" target="_blank"><img src="https://user-images.githubusercontent.com/61551451/169663818-45643495-e95b-48e2-be13-01d6a77dc2fd.png" width="250"/></a></p>
+
+# Join Our Community
+
+<a href="https://discord.gg/5RgZmkW" target="_blank">
+<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
+</a>
+
+[![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
+
 
 # Contributors
 

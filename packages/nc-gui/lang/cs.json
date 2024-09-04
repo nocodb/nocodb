@@ -761,7 +761,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Enable rich text",
-    "idColon": "Id: {fieldId}",
+    "idColon": "Id: {id}",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Kopírovat URL záznamu",
     "duplicateRecord": "Duplicate record",

@@ -761,7 +761,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Rich-Text-Format aktivieren",
-    "idColon": "ID:",
+    "idColon": "Id: {fieldId}",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
     "duplicateRecord": "Duplicate record",

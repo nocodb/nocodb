@@ -761,7 +761,7 @@
     "icon": "Ikons",
     "max": "Maksimums",
     "enableRichText": "Ieslēgt bagātīgu tekstu",
-    "idColon": "Id:",
+    "idColon": "Id: {fieldId}",
     "copiedRecordURL": "Kopēts ieraksta URL",
     "copyRecordURL": "Kopēt ieraksta URL",
     "duplicateRecord": "Duplicēt ierakstu",

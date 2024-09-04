@@ -246,18 +246,17 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     return
   }
 
-  switch (e.key) {
-    case ';':
-      localState.value = dayjs(new Date())
-      e.preventDefault()
-      break
-    default:
-      if (!isOpen.value && datePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
-        isClearedInputMode.value = true
-        datePickerRef.value.focus()
-        editable.value = true
-        open.value = true
-      }
+  if ((e.metaKey || e.ctrlKey) && e.key === ';') {
+    localState.value = dayjs(new Date())
+    e.preventDefault()
+    return
+  }
+
+  if (!isOpen.value && datePickerRef.value && /^[0-9a-z]$/i.test(e.key)) {
+    isClearedInputMode.value = true
+    datePickerRef.value.focus()
+    editable.value = true
+    open.value = true
   }
 })
 

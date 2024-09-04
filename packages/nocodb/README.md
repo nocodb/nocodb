@@ -10,7 +10,7 @@
 </h1>
 
 <p align="center">
-Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadsheet.
+NocoDB is the fastest and easiest way to build databases online.
 </p>
 
 <div align="center">

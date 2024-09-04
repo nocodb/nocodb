@@ -761,7 +761,7 @@
     "icon": "Simge",
     "max": "Max",
     "enableRichText": "Zengin Metni Etkinleştir",
-    "idColon": "Id:",
+    "idColon": "Id: {id}",
     "copiedRecordURL": "Kayıt URL'si Kopyalandı",
     "copyRecordURL": "Kayıt URL'sini Kopyala",
     "duplicateRecord": "Kaydı Çoğalt",

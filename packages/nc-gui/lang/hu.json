@@ -761,7 +761,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Enable Rich Text",
-    "idColon": "Id:",
+    "idColon": "Id: {id}",
     "copiedRecordURL": "Rekord URL másolva",
     "copyRecordURL": "Rekord URL másolása",
     "duplicateRecord": "Rekord duplikálása",

@@ -10,7 +10,7 @@
 </h1>
 
 <p align="center">
-NocoDB is the fastest and easiest way to build online databases for business users.
+NocoDB is the fastest and easiest way to build databases online.
 </p>
 
 <div align="center">

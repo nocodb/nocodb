@@ -477,7 +477,7 @@ const onClickCopyFieldUrl = async (field: ColumnType) => {
               <div class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold">
                 {{
                   $t('labels.idColon', {
-                    fieldId: column.id,
+                    id: column.id,
                   })
                 }}
               </div>

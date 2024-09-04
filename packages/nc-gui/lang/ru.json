@@ -761,7 +761,7 @@
     "icon": "Иконка",
     "max": "Макс",
     "enableRichText": "Включить насыщенный текст",
-    "idColon": "Id: {fieldId}",
+    "idColon": "Id: {id}",
     "copiedRecordURL": "URL скопированной записи",
     "copyRecordURL": "Копировать URL записи",
     "duplicateRecord": "Дублировать запись",

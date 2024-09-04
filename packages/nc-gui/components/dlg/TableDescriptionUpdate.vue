@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
-import type { ComponentPublicInstance } from '@vue/runtime-core'
 
 interface Props {
   modelValue?: boolean

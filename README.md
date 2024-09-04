@@ -45,22 +45,6 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 
 # Installation
 
-## Auto-upstall
-Auto-upstall is a single command that sets up NocoDB on a server for production usage. 
-Behind the scenes it auto-generates docker-compose for you.
-
-```bash
-bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
-```
-
-#### Notes
-Auto-upstall does the following : 🕊
-- 🐳 Automatically installs all pre-requisites like docker, docker-compose
-- 🚀 Automatically installs NocoDB with PostgreSQL, Redis, Minio, Traefik gateway using Docker Compose. 🐘 🗄️ 🌐
-- 🔄 Automatically upgrades NocoDB to the latest version when you run the command again.
-- 🔒 Automatically setups SSL and also renews it. Needs a domain or subdomain as input while installation.
-> install.nocodb.com/noco.sh script can be found [here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/setup-script/noco.sh)
-
 
 ## Docker with SQLite
 
@@ -82,6 +66,22 @@ docker run -d --name noco
            -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010"  
            nocodb/nocodb:latest
 ```
+
+## Auto-upstall
+Auto-upstall is a single command that sets up NocoDB on a server for production usage.
+Behind the scenes it auto-generates docker-compose for you.
+
+```bash
+bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
+```
+
+Auto-upstall does the following : 🕊
+- 🐳 Automatically installs all pre-requisites like docker, docker-compose
+- 🚀 Automatically installs NocoDB with PostgreSQL, Redis, Minio, Traefik gateway using Docker Compose. 🐘 🗄️ 🌐
+- 🔄 Automatically upgrades NocoDB to the latest version when you run the command again.
+- 🔒 Automatically setups SSL and also renews it. Needs a domain or subdomain as input while installation.
+> install.nocodb.com/noco.sh script can be found [here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/setup-script/noco.sh)
+
 
 
 ## Other Methods

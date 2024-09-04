@@ -33,24 +33,24 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  const predictSelectOptions = async (title: string, tableId: string) => {
-    const res = await callAiApi('predictSelectOptions', { title, tableId })
+  const predictSelectOptions = async (title: string, tableId: string, history?: string[]) => {
+    const res = await callAiApi('predictSelectOptions', { title, tableId, history })
 
     if (res.options) {
       return res.options
     }
   }
 
-  const predictNextFields = async (tableId: string) => {
-    const res = await callAiApi('predictNextFields', { tableId })
+  const predictNextFields = async (tableId: string, history?: string[]) => {
+    const res = await callAiApi('predictNextFields', { tableId, history })
 
     if (res.fields) {
       return res.fields
     }
   }
 
-  const predictNextFormulas = async (tableId: string) => {
-    const res = await callAiApi('predictNextFormulas', { tableId })
+  const predictNextFormulas = async (tableId: string, history?: string[]) => {
+    const res = await callAiApi('predictNextFormulas', { tableId, history })
 
     if (res.formulas) {
       return res.formulas

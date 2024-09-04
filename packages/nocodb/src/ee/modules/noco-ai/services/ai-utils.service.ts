@@ -94,6 +94,7 @@ export class AiUtilsService {
       input: {
         title: string;
         tableId: string;
+        history?: string[];
       };
       req?: any;
     },
@@ -134,7 +135,12 @@ export class AiUtilsService {
           content: `Predict most suitable select options for following schema:
           Table: ${model.title}
           Field: ${title.length > 3 ? title : 'SelectField'}
-          Fields: ${columns.map((c) => c.title).join(', ')}`,
+          Fields: ${columns.map((c) => c.title).join(', ')}
+          ${
+            params.input.history
+              ? `Existing options: ${params.input.history.join(', ')}`
+              : ''
+          }`,
         },
       ],
     });
@@ -149,6 +155,7 @@ export class AiUtilsService {
     params: {
       input: {
         tableId: string;
+        history?: string[];
       };
       req?: any;
     },
@@ -177,7 +184,13 @@ export class AiUtilsService {
 
     const { data, usage } = await wrapper.generateObject({
       schema: z.object({
-        fields: z.array(z.object({ title: z.string(), type: z.string() })),
+        fields: z.array(
+          z.object({
+            title: z.string(),
+            type: z.string(),
+            options: z.array(z.string()).optional(),
+          }),
+        ),
       }),
       messages: [
         {
@@ -185,7 +198,8 @@ export class AiUtilsService {
           content: `You are a smart-spreadsheet designer.
           Following column types are available to use:
           SingleLineText, LongText, Lookup, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, Formula, Rollup, DateTime, CreatedTime, LastModifiedTime, JSON, Barcode, QrCode, Button, Links, User, CreatedBy, LastModifiedBy.
-          Duplicate columns are not allowed.`,
+          Duplicate columns are not allowed.
+          SingleSelect and MultiSelect columns require options.`,
         },
         {
           role: 'user',
@@ -193,6 +207,7 @@ export class AiUtilsService {
             model.title
           }" which already have following columns "${columns
             .map((c) => c.title)
+            .concat(params.input.history || [])
             .join(', ')}"`,
         },
       ],
@@ -208,6 +223,7 @@ export class AiUtilsService {
     params: {
       input: {
         tableId: string;
+        history?: string[];
       };
       req?: any;
     },
@@ -300,6 +316,7 @@ export class AiUtilsService {
           }" which already have following columns "${columns
             .filter((c) => !isVirtualCol(c) || c.uidt === UITypes.Formula)
             .map((c) => c.title)
+            .concat(params.input.history || [])
             .join(', ')}"`,
         },
       ],

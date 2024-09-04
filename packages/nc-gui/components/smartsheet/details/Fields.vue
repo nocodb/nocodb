@@ -57,7 +57,11 @@ const viewsStore = useViewsStore()
 
 const { openedViewsTab } = storeToRefs(viewsStore)
 
+const { aiIntegrationAvailable, aiLoading, predictNextFields, predictNextFormulas } = useNocoAi()
+
 const localMetaColumns = ref<ColumnType[] | undefined>([])
+
+const localPredictions = ref<string[] | undefined>([])
 
 const moveOps = ref<moveOp[]>([])
 
@@ -690,6 +694,7 @@ const clearChanges = () => {
   moveOps.value = []
   newFields.value = []
   visibilityOps.value = []
+  localPredictions.value = []
   changeField()
 }
 
@@ -1010,6 +1015,62 @@ watch(
     oldField.column_name = defaultColumnName
   },
 )
+
+const onPredictNextFields = async (formula?: boolean) => {
+  const res: {
+    title: string
+    type: UITypes
+    column_name?: string
+    options?: string[]
+    colOptions?: Record<string, any>
+    formula?: string
+  }[] = formula
+    ? await predictNextFormulas(meta.value?.id as string, localPredictions.value)
+    : await predictNextFields(meta.value?.id as string, localPredictions.value)
+
+  if (res.length) {
+    for (const field of res) {
+      if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(field.type)) {
+        if (field.options) {
+          const options: {
+            title: string
+            index: number
+            color?: string
+          }[] = []
+          for (const option of field.options) {
+            // skip if option already exists
+            if (options.find((el) => el.title === option)) continue
+
+            options.push({
+              title: option,
+              index: options.length,
+              color: enumColor.light[options.length % enumColor.light.length],
+            })
+          }
+
+          field.colOptions = {
+            options,
+          }
+        }
+      }
+
+      localPredictions.value.push(field.title)
+
+      onFieldAdd(
+        updateDefaultColumnValues({
+          title: field.title,
+          uidt: formula ? UITypes.Formula : field.type,
+          column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
+          ...(field.formula ? { formula_raw: field.formula } : {}),
+          ...(field.colOptions ? { colOptions: field.colOptions } : {}),
+          meta: {
+            ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
+          },
+        }),
+      )
+    }
+  }
+}
 </script>
 
 <template>
@@ -1045,6 +1106,12 @@ watch(
             </template>
           </a-input>
           <div class="flex gap-2">
+            <div v-if="aiIntegrationAvailable" class="flex mb-2 cursor-pointer" @click="onPredictNextFields(true)">
+              <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': aiLoading }" class="w-full flex mt-2 text-orange-400" />
+            </div>
+            <div v-if="aiIntegrationAvailable" class="flex mb-2 cursor-pointer" @click="onPredictNextFields()">
+              <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': aiLoading }" class="w-full flex mt-2 text-orange-400" />
+            </div>
             <NcTooltip :disabled="isLocked">
               <template #title> {{ `${renderAltOrOptlKey()} + C` }}</template>
               <NcButton

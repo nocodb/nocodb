@@ -300,10 +300,13 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
     return
   }
 
-  if ((e.metaKey || e.ctrlKey) && e.key === ';') {
-    localState.value = dayjs(new Date())
-    e.preventDefault()
-    return
+  if (e.metaKey || e.ctrlKey) {
+    if (e.key === ';') {
+      if (isGrid.value && !isExpandedForm.value && !isEditColumn.value) {
+        localState.value = dayjs(new Date())
+        e.preventDefault()
+      }
+    } else return
   }
 
   if (!isOpen.value && (datePickerRef.value || timePickerRef.value) && /^[0-9a-z]$/i.test(e.key)) {

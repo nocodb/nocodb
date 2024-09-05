@@ -761,7 +761,7 @@
     "icon": "סמל",
     "max": "מקסימום",
     "enableRichText": "Enable rich text",
-    "idColon": "מזהה:",
+    "idColon": "Id: {fieldId}",
     "copiedRecordURL": "כתובת URL של הרשומה הועתקה",
     "copyRecordURL": "העתק כתובת URL של הרשומה",
     "duplicateRecord": "רשומה כפולה",

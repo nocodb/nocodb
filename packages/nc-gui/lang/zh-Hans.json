@@ -761,7 +761,7 @@
     "icon": "图标",
     "max": "最大",
     "enableRichText": "启用富文本",
-    "idColon": "Id: {id}",
+    "idColon": "Id: {fieldId}",
     "copiedRecordURL": "复制的记录 URL",
     "copyRecordURL": "复制该记录卡片的 URL",
     "duplicateRecord": "复制该行",

@@ -1,0 +1,15 @@
+{
+  "name": "nc-integration-scaffolder",
+  "version": "0.1.0",
+  "description": "This is a scaffolder for creating integrations for NocoDB. It will create required files and folders for you to start building your own integration.",
+  "main": "index.js",
+  "scripts": {
+    "start": "ts-node src/index"
+  },
+  "author": "mertmit",
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "@inquirer/prompts": "^5.3.8",
+    "nocodb-sdk": "link:../nocodb-sdk"
+  }
+}

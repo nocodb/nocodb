@@ -51,13 +51,18 @@ export class AiUtilsController {
         input: body.input,
         req,
       });
-    } else if (operation === 'generateTable') {
-      return await this.aiUtilsService.generateTable(context, {
+    } else if (operation === 'generateTables') {
+      return await this.aiUtilsService.generateTables(context, {
         input: body.input,
         req,
       });
     } else if (operation === 'generateViews') {
       return await this.aiUtilsService.generateViews(context, {
+        input: body.input,
+        req,
+      });
+    } else if (operation === 'predictNextTables') {
+      return await this.aiUtilsService.predictNextTables(context, {
         input: body.input,
         req,
       });

@@ -161,16 +161,16 @@ export class AiSchemaService {
     return this.createSchema(context, { base, schema: data, req });
   }
 
-  async generateTable(
+  async generateTables(
     context: NcContext,
     params: {
       baseId: string;
-      input: string;
+      input: string | string[];
       instructions?: string;
       req?: any;
     },
   ) {
-    const { baseId, input, instructions, req } = params;
+    const { baseId, instructions, req } = params;
 
     const base = await Base.get(context, baseId);
 
@@ -190,15 +190,17 @@ export class AiSchemaService {
     const wrapper =
       (await integration.getIntegrationWrapper()) as AiIntegration;
 
+    const input = Array.isArray(params.input) ? params.input : [params.input];
+
     const { data, usage } = await wrapper.generateObject<{
-      table?: {
+      tables?: {
         title?: string;
         columns?: {
           title?: string;
           type?: string;
           options?: string[];
         }[];
-      };
+      }[];
       relationships?: {
         from?: string;
         to?: string;
@@ -206,40 +208,42 @@ export class AiSchemaService {
       }[];
     }>({
       schema: z.object({
-        table: z.object({
-          title: z.string(),
-          columns: z.array(
-            z.object({
-              title: z.string(),
-              type: z.enum([
-                'ID',
-                'SingleLineText',
-                'LongText',
-                'Attachment',
-                'Checkbox',
-                'MultiSelect',
-                'SingleSelect',
-                'Date',
-                'Year',
-                'Time',
-                'PhoneNumber',
-                'Email',
-                'URL',
-                'Number',
-                'Decimal',
-                'Currency',
-                'Percent',
-                'Duration',
-                'Rating',
-                'DateTime',
-                'JSON',
-                'CreatedTime',
-                'LastModifiedTime',
-              ]),
-              options: z.array(z.string()).optional(),
-            }),
-          ),
-        }),
+        tables: z.array(
+          z.object({
+            title: z.string(),
+            columns: z.array(
+              z.object({
+                title: z.string(),
+                type: z.enum([
+                  'ID',
+                  'SingleLineText',
+                  'LongText',
+                  'Attachment',
+                  'Checkbox',
+                  'MultiSelect',
+                  'SingleSelect',
+                  'Date',
+                  'Year',
+                  'Time',
+                  'PhoneNumber',
+                  'Email',
+                  'URL',
+                  'Number',
+                  'Decimal',
+                  'Currency',
+                  'Percent',
+                  'Duration',
+                  'Rating',
+                  'DateTime',
+                  'JSON',
+                  'CreatedTime',
+                  'LastModifiedTime',
+                ]),
+                options: z.array(z.string()).optional(),
+              }),
+            ),
+          }),
+        ),
         relationships: z.array(
           z.object({
             from: z.string(),
@@ -266,7 +270,7 @@ export class AiSchemaService {
           - Each table must have one and only one ID column
           - Spaces are allowed in table & column names
           - Try to make use of SingleSelect columns where possible
-          - Try to create relations if there are existing tables
+          - Try to make use of relationships between new to existing tables or new to new tables
           
           Here is a sample input JSON schema
           \`\`\`json
@@ -275,7 +279,7 @@ export class AiSchemaService {
 
           Here is a sample output JSON schema
           \`\`\`json
-          {"table":{"title":"Countries","columns":[{"title":"Id","type":"ID"},{"title":"Name","type":"SingleLineText"},{"title":"Region","type":"SingleSelect","options":["Asia","Europe","Africa","North America","South America","Australia","Antarctica"]}]},"relationships":[{"from":"Countries","to":"Cities","type":"hm"}]}
+          {"tables":[{"title":"Countries","columns":[{"title":"Id","type":"ID"},{"title":"Name","type":"SingleLineText"},{"title":"Region","type":"SingleSelect","options":["Asia","Europe","Africa","North America","South America","Australia","Antarctica"]}]}],"relationships":[{"from":"Countries","to":"Cities","type":"hm"}]}
           \`\`\`
           `,
         },
@@ -287,22 +291,17 @@ export class AiSchemaService {
             await this.serializeSchema(context, { baseId: base.id, req }),
           )}
           \`\`\`
-          We need to add a new table to the schema.
-          Design best possible table for "${input}"${
-            instructions ? `\n${instructions}` : ''
-          }`,
+          We need to add some new tables to the schema.
+          Design best possible table for ${input
+            .map((i) => `"${i}"`)
+            .join(',')}${instructions ? `\n${instructions}` : ''}`,
         },
       ],
     });
 
     console.log(`Generate Schema: ${usage.total} tokens`);
 
-    const payload = {
-      tables: [data.table],
-      relationships: data.relationships,
-    };
-
-    return this.createSchema(context, { base, schema: payload, req });
+    return this.createSchema(context, { base, schema: data, req });
   }
 
   private async createSchema(

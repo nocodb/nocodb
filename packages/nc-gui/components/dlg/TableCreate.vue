@@ -47,12 +47,108 @@ const { table, createTable, generateUniqueTitle, tables, base, openTable } = use
   baseId: props.baseId,
 })
 
+const initTitle = ref<string>()
+
 const onAiTableCreate = async (table: TableType) => {
   await onTableCreate(table)
   await openTable(table)
 }
 
-const { aiIntegrationAvailable, aiLoading, generateTable } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading, generateTables, predictNextTables } = useNocoAi()
+
+const aiMode = ref(false)
+
+enum AiStep {
+  init = 'init',
+  pick = 'pick',
+}
+
+const aiModeStep = ref<AiStep | null>(null)
+
+const predictedTables = ref<string[]>([])
+
+const predictHistory = ref<string[]>([])
+
+const selectedTables = ref<string[]>([])
+
+const calledFunction = ref<string>()
+
+const toggleAiMode = async () => {
+  if (aiMode.value) return
+
+  aiMode.value = true
+  aiModeStep.value = AiStep.init
+  predictedTables.value = []
+  predictHistory.value = []
+
+  if (table.title === initTitle.value) {
+    table.title = ''
+  }
+
+  const predictions = await predictNextTables(predictHistory.value)
+
+  if (predictions.length) {
+    predictedTables.value = predictions
+    predictHistory.value.push(...predictions)
+    aiModeStep.value = AiStep.pick
+  }
+}
+
+const predictMore = async () => {
+  calledFunction.value = 'predictMore'
+
+  const predictions: string[] = await predictNextTables(predictHistory.value)
+
+  if (predictions.length) {
+    predictedTables.value.push(...predictions.filter((t) => !predictedTables.value.includes(t)))
+    predictHistory.value.push(...predictions)
+  }
+}
+
+const predictRefresh = async () => {
+  calledFunction.value = 'predictRefresh'
+
+  const predictions = await predictNextTables(predictHistory.value)
+
+  if (predictions.length) {
+    predictedTables.value = predictions
+    predictHistory.value.push(...predictions)
+    aiModeStep.value = AiStep.pick
+  }
+}
+
+const onTagClick = (tag: string) => {
+  selectedTables.value.push(tag)
+  predictedTables.value = predictedTables.value.filter((t) => t !== tag)
+}
+
+const onTagClose = (tag: string) => {
+  selectedTables.value = selectedTables.value.filter((t) => t !== tag)
+  if (predictHistory.value.includes(tag)) {
+    predictedTables.value.push(tag)
+  }
+}
+
+const onSelectAll = () => {
+  selectedTables.value.push(...predictedTables.value)
+  predictedTables.value = []
+}
+
+const onDeselectAll = () => {
+  predictedTables.value.push(...selectedTables.value.filter((t) => predictHistory.value.includes(t)))
+  selectedTables.value = selectedTables.value.filter((t) => !predictHistory.value.includes(t))
+}
+
+const onAiEnter = async () => {
+  if (table.title.length) {
+    selectedTables.value.push(table.title)
+    table.title = ''
+  }
+
+  if (selectedTables.value.length) {
+    await generateTables(selectedTables.value, undefined, onAiTableCreate)
+  }
+}
 
 const useForm = Form.useForm
 
@@ -111,6 +207,10 @@ const systemColumnsCheckboxInfo = SYSTEM_COLUMNS.map((c, index) => ({
 const creating = ref(false)
 
 const _createTable = async () => {
+  if (aiMode.value) {
+    return onAiEnter()
+  }
+
   if (creating.value) return
   try {
     creating.value = true
@@ -145,8 +245,21 @@ onMounted(() => {
   nextTick(() => {
     inputEl.value?.focus()
     inputEl.value?.select()
+    initTitle.value = table.title
   })
 })
+
+const fullAuto = async () => {
+  if (!aiModeStep.value) {
+    await toggleAiMode()
+  } else if (aiModeStep.value === AiStep.pick && selectedTables.value.length === 0) {
+    await onSelectAll()
+  } else if (aiModeStep.value === AiStep.pick && selectedTables.value.length > 0) {
+    await onAiEnter()
+  }
+}
+
+useEventListener('dblclick', fullAuto)
 </script>
 
 <template>
@@ -178,8 +291,9 @@ onMounted(() => {
         @keydown.esc="dialogShow = false"
       >
         <div class="flex flex-col gap-5">
-          <a-form-item v-bind="validateInfos.title">
+          <a-form-item v-bind="aiMode ? {} : validateInfos.title">
             <a-input
+              v-if="!aiMode"
               ref="inputEl"
               v-model:value="table.title"
               class="nc-input-sm nc-input-shadow"
@@ -187,7 +301,110 @@ onMounted(() => {
               data-testid="create-table-title-input"
               :placeholder="$t('msg.info.enterTableName')"
             />
+            <a-input
+              v-else
+              ref="inputEl"
+              v-model:value="table.title"
+              class="nc-input-sm nc-input-shadow"
+              hide-details
+              data-testid="create-table-title-input"
+              :placeholder="selectedTables.length ? '' : 'Enter table names or choose from suggestions'"
+            />
+            <!-- overlay selected tags with close icon on input -->
+            <div
+              v-if="aiMode"
+              class="absolute top-0 right-0 flex mt-1.5 mr-[35px] max-w-[200px] nc-scrollbar-thin overflow-x-auto"
+            >
+              <a-tag
+                v-for="t in selectedTables"
+                :key="t"
+                class="cursor-pointer !rounded-lg !bg-purple-500 !border-1 !border-purple-500"
+              >
+                <div class="flex flex-row items-center gap-1 text-white">
+                  <span>{{ t }}</span>
+                  <GeneralIcon icon="close" class="text-xs cursor-pointer mt-0.5" @click="onTagClose(t)" />
+                </div>
+              </a-tag>
+            </div>
+            <!-- Black overlay button on end of input -->
+            <div
+              v-if="aiIntegrationAvailable"
+              class="absolute right-0 top-0 w-[30px] rounded-r-lg h-full flex items-center justify-center"
+              :class="{
+                'cursor-pointer bg-purple-200 hover:shadow': !aiMode,
+                'bg-purple-500': aiMode,
+              }"
+              @click="toggleAiMode"
+            >
+              <GeneralIcon icon="magic" class="text-xs text-yellow-300 m-[2px]" :class="{ 'text-yellow-500': aiMode }" />
+            </div>
           </a-form-item>
+
+          <template v-if="aiMode">
+            <div
+              v-if="aiModeStep === AiStep.init"
+              class="flex flex-col gap-2 border-1 border-purple-500 rounded-lg bg-purple-50 p-4"
+            >
+              <div class="flex gap-4 justify-start">
+                <GeneralIcon icon="magic" class="text-sm text-purple-500 mt-1" />
+                <div class="flex flex-col flex-1 gap-2">
+                  <span class="text-sm font-bold">Generating auto suggestions...</span>
+                  <span class="text-xs text-gray-500">Working on possible tables for {{ base?.title }}</span>
+                </div>
+                <GeneralLoader class="h-[20px] mt-1" />
+              </div>
+            </div>
+            <div
+              v-else-if="aiModeStep === AiStep.pick"
+              class="flex flex-col gap-2 border-1 border-purple-500 rounded-lg bg-purple-50 p-4"
+            >
+              <div class="flex gap-4 justify-start">
+                <GeneralIcon icon="magic" class="text-sm text-purple-500 mt-1" />
+                <div class="flex flex-col flex-1 gap-2">
+                  <div class="flex gap-2 items-center">
+                    <span class="text-sm font-bold">Auto Suggestions</span>
+                    <NcTooltip title="Refresh" placement="top">
+                      <GeneralLoader v-if="aiLoading && calledFunction === 'predictRefresh'" class="h-[14px]" />
+                      <GeneralIcon
+                        v-else
+                        icon="refresh"
+                        class="h-[14px] text-purple-500 cursor-pointer"
+                        @click="predictRefresh"
+                      />
+                    </NcTooltip>
+                    <NcTooltip v-if="predictHistory.length < 8" title="Predict More" placement="top">
+                      <GeneralLoader v-if="aiLoading && calledFunction === 'predictMore'" class="h-[14px]" />
+                      <GeneralIcon
+                        v-else
+                        icon="plus"
+                        class="text-lg text-purple-500 cursor-pointer mt-[2px]"
+                        @click="predictMore"
+                      />
+                    </NcTooltip>
+                    <div class="flex-1"></div>
+                    <NcTooltip v-if="predictedTables.length" title="Select All" placement="top">
+                      <GeneralIcon icon="ncPlusSquare" class="text-lg text-purple-500 cursor-pointer" @click="onSelectAll" />
+                    </NcTooltip>
+                    <NcTooltip v-else title="Remove All" placement="top">
+                      <GeneralIcon icon="ncMinusSquare" class="text-lg text-purple-500 cursor-pointer" @click="onDeselectAll" />
+                    </NcTooltip>
+                  </div>
+                  <span class="text-xs text-gray-500">You can pick multiple from the following suggestions</span>
+                </div>
+              </div>
+              <!-- selectable tags -->
+              <div class="flex flex-wrap gap-2 mt-2 ml-4">
+                <a-tag
+                  v-for="t in predictedTables"
+                  :key="t"
+                  class="cursor-pointer !rounded-lg !bg-purple-100 !border-1 !border-purple-500"
+                  @click="onTagClick(t)"
+                >
+                  {{ t }}
+                </a-tag>
+              </div>
+            </div>
+          </template>
 
           <a-form-item
             v-if="enableDescription"
@@ -246,7 +463,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex flex-row justify-between gap-x-2">
-          <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="toggleDescription">
+          <NcButton v-if="!enableDescription && !aiMode" size="small" type="text" @click.stop="toggleDescription">
             <div class="flex !text-gray-700 items-center gap-2">
               <GeneralIcon icon="plus" class="h-4 w-4" />
 
@@ -260,6 +477,7 @@ onMounted(() => {
             <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
             <NcButton
+              v-if="!aiMode"
               v-e="['a:table:create']"
               type="primary"
               size="small"
@@ -270,14 +488,18 @@ onMounted(() => {
               {{ $t('activity.createTable') }}
               <template #loading> {{ $t('title.creatingTable') }} </template>
             </NcButton>
-
-            <div
-              v-if="aiIntegrationAvailable && validateInfos.title.validateStatus !== 'error'"
-              class="flex mb-2 cursor-pointer"
-              @click="generateTable(table.title, table.description, onAiTableCreate)"
+            <NcButton
+              v-else
+              v-e="['a:table:create']"
+              type="primary"
+              size="small"
+              :disabled="selectedTables.length === 0 && validateInfos.title.validateStatus === 'error'"
+              :loading="aiLoading"
+              @click="_createTable"
             >
-              <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': aiLoading }" class="w-full flex mt-2 text-orange-400" />
-            </div>
+              {{ $t('activity.createTable') }}
+              <template #loading> {{ $t('title.creatingTable') }} </template>
+            </NcButton>
           </div>
         </div>
       </a-form>

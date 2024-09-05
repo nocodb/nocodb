@@ -3,7 +3,7 @@ import { IntegrationCategoryType, isVirtualCol, UITypes } from 'nocodb-sdk';
 import { z } from 'zod';
 import type { NcContext } from '~/interface/config';
 import type AiIntegration from '~/integrations/ai/ai.interface';
-import { Integration, Model } from '~/models';
+import { Base, Integration, Model } from '~/models';
 import { AiSchemaService } from '~/modules/noco-ai/services/ai-schema.service';
 
 @Injectable()
@@ -327,25 +327,15 @@ export class AiUtilsService {
     return data;
   }
 
-  async predictNextView(
+  async predictNextTables(
     context: NcContext,
     params: {
       input: {
-        tableId: string;
+        history?: string[];
       };
       req?: any;
     },
   ) {
-    const { tableId } = params.input;
-
-    const model = await Model.get(context, tableId);
-
-    if (!model) {
-      throw new Error('Model not found');
-    }
-
-    await model.getColumns(context);
-
     const integration = await Integration.getCategoryDefault(
       context,
       IntegrationCategoryType.AI,
@@ -358,42 +348,49 @@ export class AiUtilsService {
     const wrapper =
       (await integration.getIntegrationWrapper()) as AiIntegration;
 
+    const base = await Base.get(context, context.base_id);
+
+    if (!base) {
+      throw new Error('Base not found');
+    }
+
+    const tables = await Model.list(context, {
+      base_id: context.base_id,
+      source_id: undefined,
+    });
+
     const { data, usage } = await wrapper.generateObject({
       schema: z.object({
-        views: z.array(z.object({ title: z.string(), type: z.string() })),
+        tables: z.array(z.string()),
       }),
       messages: [
         {
           role: 'system',
           content: `You are a smart-spreadsheet designer.
-          NocoDB supports following views:
-          Table
-          Form
-          Calendar
-          Kanban
-          Gallery
-          Chart
-          Report
-          Dashboard
-          Each view can be customized with different fields and filters.`,
+          Duplicate tables are not allowed.`,
         },
         {
           role: 'user',
-          content: `Predict next 3 to 5 views for table "${model.title}"`,
+          content: `Your schema "${base.title}" already have following tables:
+          "${tables
+            .map((t) => t.title)
+            .concat(params.input.history || [])
+            .join(', ')}"
+          Predict next 3 to 5 tables`,
         },
       ],
     });
 
-    console.log(`Predict Next Views: ${usage.total} tokens`);
+    console.log(`Predict Next Tables: ${usage.total} tokens`);
 
     return data;
   }
 
-  async generateTable(
+  async generateTables(
     context: NcContext,
     params: {
       input: {
-        title: string;
+        title: string | string[];
         description?: string;
       };
       req?: any;
@@ -401,7 +398,7 @@ export class AiUtilsService {
   ) {
     const { title, description } = params.input;
 
-    return await this.aiSchemaService.generateTable(context, {
+    return await this.aiSchemaService.generateTables(context, {
       baseId: context.base_id,
       input: title,
       instructions: description,

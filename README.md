@@ -1,6 +1,6 @@
 <h1 align="center" style="border-bottom: none">
     <div>
-        <a href="https://www.nocodb.com">
+        <a style="color:#36f" href="https://www.nocodb.com">
             <img src="/packages/nc-gui/assets/img/icons/512x512.png" width="80" />
             <br>
             NocoDB
@@ -10,15 +10,9 @@
 </h1>
 
 <p align="center">
-Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadsheet.
+NocoDB is the fastest and easiest way to build databases online.
 </p>
 
-<div align="center">
-
-[![Node version](https://img.shields.io/badge/node-%3E%3D%2018.19.1-brightgreen)](http://nodejs.org/download/)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
-
-</div>
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
@@ -49,10 +43,6 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
-# Join Our Team
-
-<p align=""><a href="http://careers.nocodb.com" target="_blank"><img src="https://user-images.githubusercontent.com/61551451/169663818-45643495-e95b-48e2-be13-01d6a77dc2fd.png" width="250"/></a></p>
-
 # Join Our Community
 
 <a href="https://discord.gg/5RgZmkW" target="_blank">
@@ -61,50 +51,63 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 
 [![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
 
-# Quick try
 
-## Docker
+# Installation
 
-```bash
-# with PostgreSQL
-docker run -d --name nocodb-postgres \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
 
-# with SQLite : mounting volume `/usr/app/data/` is crucial to avoid data loss.
-docker run -d --name nocodb \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
-nocodb/nocodb:latest
+## Docker with SQLite
+
+```bash 
+docker run -d --name noco 
+           -v "$(pwd)"/nocodb:/usr/app/data/ 
+           -p 8080:8080 
+           nocodb/nocodb:latest
 ```
 
-## Binaries
-🚥 Binaries are intended for ONLY quick trials or testing purposes and are not recommended for production use.
-  | OS      | Architecture | Command                                                                                      |
-  |---------|--------------|----------------------------------------------------------------------------------------------|
-  | macOS   | arm64        | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`         |
-  | macOS   | x64          | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`           |
-  | Linux   | x64          | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`           |
-  | Linux   | arm64        | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`         |
-  | Windows | x64          | `iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe &&.\Noco-win-x64.exe`             |
-  | Windows | arm64        | `iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe && .\Noco-win-arm64.exe`      |
-  
-
-## Docker Compose
-
-We provide different docker-compose.yml files under [this directory](https://github.com/nocodb/nocodb/tree/master/docker-compose). Here are some examples.
-
+## Docker with PG
 ```bash
-git clone https://github.com/nocodb/nocodb
-cd nocodb/docker-compose/pg
+docker run -d --name noco 
+           -v "${pwd}"/nocodb:/usr/app/data/ 
+           -p 8080:8080 
+            # replace with your pg connection string
+           -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" 
+           # replace with a random secret
+           -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010"  
+           nocodb/nocodb:latest
 ```
 
-# GUI
+## Auto-upstall
+Auto-upstall is a single command that sets up NocoDB on a server for production usage.
+Behind the scenes it auto-generates docker-compose for you.
 
-Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+```bash
+bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
+```
+
+Auto-upstall does the following : 🕊
+- 🐳 Automatically installs all pre-requisites like docker, docker-compose
+- 🚀 Automatically installs NocoDB with PostgreSQL, Redis, Minio, Traefik gateway using Docker Compose. 🐘 🗄️ 🌐
+- 🔄 Automatically upgrades NocoDB to the latest version when you run the command again.
+- 🔒 Automatically setups SSL and also renews it. Needs a domain or subdomain as input while installation.
+> install.nocodb.com/noco.sh script can be found [here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/1_Auto_Upstall/noco.sh)
+
+
+
+## Other Methods
+
+> Binaries are only for quick testing locally.
+
+| Install Method                | Command to install                                                                                                                                                                                                                                                                                                                                                         |
+|-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 🍏 MacOS arm64 <br>(Binary)   | `curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                       |
+| 🍏 MacOS x64 <br>(Binary)     | `curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                         |
+| 🐧 Linux arm64 <br>(Binary)   | `curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                       |
+| 🐧 Linux x64 <br>(Binary)     | `curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb`                                                                                                                                                                                                                                                                                         |
+| 🪟 Windows arm64 <br>(Binary) | `iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe && .\Noco-win-arm64.exe`                                                                                                                                                                                                                                                                                    |
+| 🪟 Windows x64 <br>(Binary)   | `iwr http://get.nocodb.com/win-x64.exe -o Noco-win-x64.exe && .\Noco-win-x64.exe`                                                                                                                                                                                                                                                                                          |
+
+
+> When running locally access nocodb by visiting: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # Screenshots
 ![2](https://github.com/nocodb/nocodb/assets/86527202/a127c05e-2121-4af2-a342-128e0e2d0291)
@@ -122,40 +125,16 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 ![11](https://user-images.githubusercontent.com/35857179/194844903-c1e47f40-e782-4f5d-8dce-6449cc70b181.png)
 ![12](https://user-images.githubusercontent.com/35857179/194844907-09277d3e-cbbf-465c-9165-6afc4161e279.png)
 
-# Table of Contents
-
-- [Quick try](#quick-try)
-    - [Docker](#docker)
-    - [Docker Compose](#docker-compose)
-- [GUI](#gui)
-- [Join Our Community](#join-our-community)
-- [Screenshots](#screenshots)
-- [Table of Contents](#table-of-contents)
-- [Features](#features)
-    - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-    - [App Store for Workflow Automations](#app-store-for-workflow-automations)
-    - [Programmatic Access](#programmatic-access)
-    - [Sync Schema](#sync-schema)
-    - [Audit](#audit)
-- [Production Setup](#production-setup)
-    - [Environment variables](#environment-variables)
-- [Development Setup](#development-setup)
-- [Contributing](#contributing)
-- [Why are we building this?](#why-are-we-building-this)
-- [Our Mission](#our-mission)
-- [License](#license)
-- [Contributors](#contributors)
-
 # Features
 
 ### Rich Spreadsheet Interface
 
 - ⚡ &nbsp;Basic Operations: Create, Read, Update and Delete Tables, Columns, and Rows
-- ⚡ &nbsp;Fields Operations: Sort, Filter, Hide / Unhide Columns
-- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery, Form View and Kanban View
+- ⚡ &nbsp;Fields Operations: Sort, Filter, Group, Hide / Unhide Columns
+- ⚡ &nbsp;Multiple Views Types: Grid (By default), Gallery, Form, Kanban and Calendar View
 - ⚡ &nbsp;View Permissions Types: Collaborative Views, & Locked Views
 - ⚡ &nbsp;Share Bases / Views: either Public or Private (with Password Protected)
-- ⚡ &nbsp;Variant Cell Types: ID, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, etc
+- ⚡ &nbsp;Variant Cell Types: ID, Links, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, User, etc
 - ⚡ &nbsp;Access Control with Roles: Fine-grained Access Control at different levels
 - ⚡ &nbsp;and more ...
 
@@ -174,26 +153,6 @@ We provide the following ways to let users programmatically invoke actions. You 
 - ⚡ &nbsp;REST APIs
 - ⚡ &nbsp;NocoDB SDK
 
-### Sync Schema
-
-We allow you to sync schema changes if you have made changes outside NocoDB GUI. However, it has to be noted then you will have to bring your own schema migrations for moving from one environment to another. See <a href="https://docs.nocodb.com/data-sources/sync-with-data-source" target="_blank">Sync Schema</a> for details.
-
-### Audit
-
-We are keeping all the user operation logs in one place. See <a href="https://docs.nocodb.com/data-sources/actions-on-data-sources/#audit-logs" target="_blank">Audit</a> for details.
-
-# Production Setup
-
-By default, SQLite is used for storing metadata. However, you can specify your database. The connection parameters for this database can be specified in `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
-
-## Environment variables
-
-Please refer to the [Environment variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
-
-# Development Setup
-
-Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
-
 # Contributing
 
 Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
@@ -211,6 +170,8 @@ Our mission is to provide the most powerful no-code interface for databases that
 <p>
 This project is licensed under <a href="./LICENSE">AGPLv3</a>.
 </p>
+
+
 
 # Contributors
 

@@ -761,7 +761,7 @@
     "icon": "아이콘",
     "max": "최대",
     "enableRichText": "Enable rich text",
-    "idColon": "Id: {id}",
+    "idColon": "Id: {fieldId}",
     "copiedRecordURL": "레코드 URL을 복사했습니다.",
     "copyRecordURL": "레코드 URL 복사",
     "duplicateRecord": "행 복제",

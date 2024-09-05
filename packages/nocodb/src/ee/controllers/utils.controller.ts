@@ -38,15 +38,6 @@ export class UtilsController extends UtilsControllerCE {
     super(utilsService, telemetryService);
   }
 
-  @Post(['/api/v1/db/meta/magic', '/api/v2/meta/magic'])
-  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Acl('genericGPT')
-  async genericGPT(@Body() body: any) {
-    return await this.utilsService.genericGPT({
-      body,
-    });
-  }
-
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/db/meta/connection/test', '/api/v2/meta/connection/test'])
   @Acl('testConnection', {

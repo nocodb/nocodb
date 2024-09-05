@@ -478,7 +478,6 @@ get_advanced_options() {
 }
 
 set_default_options() {
-    CONFIG_SSL_ENABLED="N"
     CONFIG_EDITION="CE"
     CONFIG_REDIS_ENABLED="Y"
     CONFIG_MINIO_ENABLED="Y"

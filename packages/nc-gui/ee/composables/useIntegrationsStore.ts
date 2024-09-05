@@ -377,20 +377,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
-  const loadIntegrationStore = async (integration: IntegrationType) => {
-    if (!integration?.id) return
-
-    try {
-      const integrationStore = await $api.integration.store(integration.id, {
-        op: 'sum',
-        fields: ['input_tokens', 'output_tokens', 'total_tokens'],
-      })
-      console.log(integrationStore)
-    } catch (e) {
-      await message.error(await extractSdkResponseErrorMsg(e))
-    }
-  }
-
   onMounted(async () => {
     if (integrationsInitialized.value) return
 
@@ -465,7 +451,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     getIntegration,
     setDefaultIntegration,
     integrationsIconMap,
-    loadIntegrationStore,
   }
 }, 'integrations-store')
 

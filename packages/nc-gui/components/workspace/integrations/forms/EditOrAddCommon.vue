@@ -20,7 +20,6 @@ const {
   activeIntegrationItem,
   saveIntegration,
   updateIntegration,
-  loadIntegrationStore,
 } = useIntegrationStore()
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
@@ -72,8 +71,6 @@ onMounted(async () => {
       ...initState.value,
     }
     initialState.value = JSON.parse(JSON.stringify(formState.value))
-
-    await loadIntegrationStore(activeIntegration.value)
   }
 
   nextTick(() => {

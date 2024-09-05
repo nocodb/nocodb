@@ -83,7 +83,7 @@ export class AiUtilsService {
       ],
     });
 
-    console.log(`Predict Column Type: ${usage.total} tokens`);
+    await integration.storeInsert(context, params.req?.user?.id, usage);
 
     return data;
   }
@@ -145,7 +145,7 @@ export class AiUtilsService {
       ],
     });
 
-    console.log(`Predict Select Options: ${usage.total} tokens`);
+    await integration.storeInsert(context, params.req?.user?.id, usage);
 
     return data;
   }
@@ -213,7 +213,7 @@ export class AiUtilsService {
       ],
     });
 
-    console.log(`Predict Next Fields: ${usage.total} tokens`);
+    await integration.storeInsert(context, params.req?.user?.id, usage);
 
     return data;
   }
@@ -322,7 +322,7 @@ export class AiUtilsService {
       ],
     });
 
-    console.log(`Predict Next Formulas: ${usage.total} tokens`);
+    await integration.storeInsert(context, params.req?.user?.id, usage);
 
     return data;
   }
@@ -381,7 +381,7 @@ export class AiUtilsService {
       ],
     });
 
-    console.log(`Predict Next Tables: ${usage.total} tokens`);
+    await integration.storeInsert(context, params.req?.user?.id, usage);
 
     return data;
   }

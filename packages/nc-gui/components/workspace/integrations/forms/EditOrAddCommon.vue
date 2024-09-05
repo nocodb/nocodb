@@ -20,6 +20,7 @@ const {
   activeIntegrationItem,
   saveIntegration,
   updateIntegration,
+  loadIntegrationStore,
 } = useIntegrationStore()
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
@@ -37,8 +38,6 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
     if (isEditMode.value && !activeIntegration.value?.id) return
 
     isLoading.value = true
-
-    console.log('formState.value', formState.value)
 
     try {
       if (pageMode.value === IntegrationsPageMode.ADD) {
@@ -73,6 +72,8 @@ onMounted(async () => {
       ...initState.value,
     }
     initialState.value = JSON.parse(JSON.stringify(formState.value))
+
+    await loadIntegrationStore(activeIntegration.value)
   }
 
   nextTick(() => {

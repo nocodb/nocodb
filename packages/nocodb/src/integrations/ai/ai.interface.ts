@@ -8,11 +8,13 @@ export default abstract class AiIntegration extends IntegrationWrapper {
   public abstract generateObject<T>(args: {
     messages: CoreMessage[];
     schema: Schema;
+    customModel?: string;
   }): Promise<{
     usage: {
-      input: number;
-      output: number;
-      total: number;
+      input_tokens: number;
+      output_tokens: number;
+      total_tokens: number;
+      model: string;
     };
     data: T;
   }>;

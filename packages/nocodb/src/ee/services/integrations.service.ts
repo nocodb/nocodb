@@ -299,6 +299,36 @@ export class IntegrationsService {
     return integration;
   }
 
+  async integrationStore(
+    context: NcContext,
+    integration: Integration,
+    payload?:
+      | {
+          op: 'list';
+          limit: number;
+          offset: number;
+        }
+      | {
+          op: 'get';
+        }
+      | {
+          op: 'sum';
+          fields: string[];
+        },
+  ) {
+    if (payload.op === 'list') {
+      return await integration.storeList(
+        context,
+        payload.limit,
+        payload.offset,
+      );
+    } else if (payload.op === 'sum') {
+      return await integration.storeSum(context, payload.fields);
+    } else if (payload.op === 'get') {
+      return await integration.storeGetLatest(context);
+    }
+  }
+
   // function to update all the integration source config which are using this integration
   // we are overwriting the source config with the new integration config excluding database name and schema name
   private async updateIntegrationSourceConfig(

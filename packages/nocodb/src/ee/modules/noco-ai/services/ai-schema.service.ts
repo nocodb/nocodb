@@ -156,7 +156,7 @@ export class AiSchemaService {
       ],
     });
 
-    console.log(`Generate Schema: ${usage.total} tokens`);
+    await integration.storeInsert(context, params.req?.user?.id, usage);
 
     return this.createSchema(context, { base, schema: data, req });
   }
@@ -299,7 +299,7 @@ export class AiSchemaService {
       ],
     });
 
-    console.log(`Generate Schema: ${usage.total} tokens`);
+    await integration.storeInsert(context, params.req?.user?.id, usage);
 
     return this.createSchema(context, { base, schema: data, req });
   }
@@ -515,7 +515,7 @@ export class AiSchemaService {
       ],
     });
 
-    console.log(`Generate Views: ${usage.total} tokens`);
+    await integration.storeInsert(context, params.req?.user?.id, usage);
 
     return this.createViews(context, { base, views: (data as any).views, req });
   }
@@ -815,7 +815,7 @@ export class AiSchemaService {
       ],
     });
 
-    console.log(`Generate Data: ${usage.total} tokens`);
+    await integration.storeInsert(context, params.req?.user?.id, usage);
 
     return this.createData(context, { base, data, req });
   }

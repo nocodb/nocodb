@@ -194,4 +194,36 @@ export class IntegrationsController {
       meta: integration.meta,
     };
   }
+
+  @Post(['/api/v2/integrations/:integrationId/store'])
+  async storeIntegration(
+    @TenantContext() context: NcContext,
+    @Param('integrationId') integrationId: string,
+    @Body()
+    payload?:
+      | {
+          op: 'list';
+          limit: number;
+          offset: number;
+        }
+      | {
+          op: 'get';
+        }
+      | {
+          op: 'sum';
+          fields: string[];
+        },
+  ) {
+    const integration = await Integration.get(context, integrationId);
+
+    if (!integration) {
+      throw new Error('Integration not found!');
+    }
+
+    return await this.integrationsService.integrationStore(
+      context,
+      integration,
+      payload,
+    );
+  }
 }

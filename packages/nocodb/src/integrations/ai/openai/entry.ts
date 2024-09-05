@@ -9,20 +9,22 @@ export default class OpenAiIntegration extends AiIntegration {
   public async generateObject<T>(args: {
     messages: CoreMessage[];
     schema: Schema;
+    customModel?: string;
   }): Promise<{
     usage: {
-      input: number;
-      output: number;
-      total: number;
+      input_tokens: number;
+      output_tokens: number;
+      total_tokens: number;
+      model: string;
     };
     data: T;
   }> {
     const { messages, schema } = args;
 
-    if (!this.model) {
+    if (!this.model || args.customModel) {
       const config = this.getConfig();
 
-      const model = config.model;
+      const model = args.customModel || config.model;
 
       if (!model) {
         throw new Error('Integration not configured properly');
@@ -50,9 +52,10 @@ export default class OpenAiIntegration extends AiIntegration {
 
     return {
       usage: {
-        input: usage.promptTokens,
-        output: usage.completionTokens,
-        total: usage.totalTokens,
+        input_tokens: usage.promptTokens,
+        output_tokens: usage.completionTokens,
+        total_tokens: usage.totalTokens,
+        model: this.model.modelId,
       },
       data: object,
     };

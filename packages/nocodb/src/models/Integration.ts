@@ -24,6 +24,7 @@ import {
   partialExtract,
 } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { IntegrationStore } from '~/models';
 
 export default class Integration implements IntegrationType {
   public static availableIntegrations: {
@@ -498,5 +499,56 @@ export default class Integration implements IntegrationType {
     }
 
     return this.wrapper as T;
+  }
+
+  async storeInsert(
+    context: Omit<NcContext, 'base_id'>,
+    fk_user_id: string | null,
+    data: Record<string, any>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await IntegrationStore.insert(
+      context,
+      this,
+      fk_user_id,
+      data,
+      ncMeta,
+    );
+  }
+
+  async storeList(
+    context: Omit<NcContext, 'base_id'>,
+    limit: number,
+    offset: number,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await IntegrationStore.list(
+      context,
+      this,
+      {
+        limit,
+        offset,
+      },
+      ncMeta,
+    );
+  }
+
+  async storeSum(
+    context: Omit<NcContext, 'base_id'>,
+    fields: string | string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!Array.isArray(fields)) {
+      fields = [fields];
+    }
+
+    return await IntegrationStore.sum(context, this, fields, ncMeta);
+  }
+
+  async storeGetLatest(
+    context: Omit<NcContext, 'base_id'>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await IntegrationStore.getLatest(context, this, ncMeta);
   }
 }

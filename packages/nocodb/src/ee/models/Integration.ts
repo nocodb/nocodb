@@ -12,7 +12,7 @@ import {
   prepareForDb,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
-import { partialExtract } from '~/utils';
+import {decryptPropIfRequired, encryptPropIfRequired, partialExtract} from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export default class Integration extends IntegrationCE {
@@ -57,10 +57,9 @@ export default class Integration extends IntegrationCE {
       'is_private',
     ]);
 
-    insertObj.config = CryptoJS.AES.encrypt(
-      JSON.stringify(insertObj.config),
-      Noco.getConfig()?.auth?.jwt?.secret,
-    ).toString();
+    insertObj.config = encryptPropIfRequired({
+      data: insertObj,
+    });
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -119,10 +118,9 @@ export default class Integration extends IntegrationCE {
     ]);
 
     if (updateObj.config) {
-      updateObj.config = CryptoJS.AES.encrypt(
-        JSON.stringify(integration.config),
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString();
+      updateObj.config =  await encryptPropIfRequired({
+        data: updateObj,
+      });
     }
 
     // type property is undefined even if not provided
@@ -323,10 +321,9 @@ export default class Integration extends IntegrationCE {
 
   public getConfig(): any {
     const config = JSON.parse(
-      CryptoJS.AES.decrypt(
-        this.config,
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString(CryptoJS.enc.Utf8),
+      await decryptPropIfRequired({
+        data: this,
+      })
     );
 
     return config;

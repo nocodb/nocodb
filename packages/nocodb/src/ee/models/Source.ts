@@ -10,6 +10,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
 import { ModelStat } from '~/models';
+import {encryptPropIfRequired} from "~/utils";
 
 export default class Source extends SourceCE implements SourceType {
   is_local?: BoolType;
@@ -47,10 +48,9 @@ export default class Source extends SourceCE implements SourceType {
       'is_data_readonly',
       'fk_integration_id',
     ]);
-    insertObj.config = CryptoJS.AES.encrypt(
-      JSON.stringify(source.config),
-      Noco.getConfig()?.auth?.jwt?.secret,
-    ).toString();
+    insertObj.config = encryptPropIfRequired({
+      data: insertObj
+      });
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);

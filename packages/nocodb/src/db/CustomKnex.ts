@@ -657,7 +657,7 @@ const parseCondition = (obj, columnAliases, qb, pKey?) => {
         });
         break;
       default:
-        if (val && typeof val === 'object' && !Array.isArray(val)) {
+        if (val && typeof val === 'object' && !(val instanceof Date) && !Array.isArray(val)) {
           qb = parseCondition(val, columnAliases, qb, key);
         } else {
           const fieldName = columnAliases[pKey] || pKey;

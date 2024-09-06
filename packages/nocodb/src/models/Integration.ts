@@ -60,7 +60,7 @@ export default class Integration implements IntegrationType {
       'is_private',
     ]);
 
-    insertObj.config = await encryptPropIfRequired({
+    insertObj.config =  encryptPropIfRequired({
       data: insertObj,
     });
 
@@ -127,7 +127,7 @@ export default class Integration implements IntegrationType {
     ]);
 
     if (updateObj.config) {
-      updateObj.config = await encryptPropIfRequired({
+      updateObj.config =  encryptPropIfRequired({
         data: updateObj,
       });
     }

@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import type { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import { Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
 

@@ -118,7 +118,7 @@ export default class Integration extends IntegrationCE {
     ]);
 
     if (updateObj.config) {
-      updateObj.config =  await encryptPropIfRequired({
+      updateObj.config =   encryptPropIfRequired({
         data: updateObj,
       });
     }
@@ -321,7 +321,7 @@ export default class Integration extends IntegrationCE {
 
   public getConfig(): any {
     const config = JSON.parse(
-      await decryptPropIfRequired({
+       decryptPropIfRequired({
         data: this,
       })
     );

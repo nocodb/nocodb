@@ -1,5 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
-import type { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { Base } from '~/models';
 import Noco from '~/Noco';

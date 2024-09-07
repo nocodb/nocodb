@@ -385,4 +385,33 @@ export class IntegrationsService {
       }
     }
   }
+
+  public async callIntegrationEndpoint(
+    context: NcContext,
+    params: {
+      integrationId: string;
+      endpoint: string;
+      payload?: any;
+    },
+  ) {
+    const integration = await Integration.get(context, params.integrationId);
+
+    const integrationMeta = integration.getIntegrationMeta();
+
+    const wrapper = integration.getIntegrationWrapper();
+
+    if (!integrationMeta || !wrapper) {
+      NcError.badRequest('Invalid integration');
+    }
+
+    if (
+      !integrationMeta.exposedEndpoints?.includes(params.endpoint) ||
+      !(params.endpoint in wrapper) ||
+      typeof wrapper[params.endpoint] !== 'function'
+    ) {
+      NcError.genericNotFound('Endpoint', params.endpoint);
+    }
+
+    return wrapper[params.endpoint](context, params.payload);
+  }
 }

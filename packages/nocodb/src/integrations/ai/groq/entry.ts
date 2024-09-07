@@ -24,7 +24,7 @@ export default class GroqIntegration extends AiIntegration {
     if (!this.model || args.customModel) {
       const config = this.getConfig();
 
-      const model = args.customModel || config.model;
+      const model = args.customModel || config?.models?.[0];
 
       if (!model) {
         throw new Error('Integration not configured properly');
@@ -60,5 +60,9 @@ export default class GroqIntegration extends AiIntegration {
       },
       data: object,
     };
+  }
+
+  public availableModels(): string[] {
+    return this.getConfig().models;
   }
 }

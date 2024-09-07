@@ -8,7 +8,12 @@ export default [
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
-    required: true,
+    validators: [
+      {
+        type: 'required',
+        message: 'Integration name is required',
+      },
+    ],
   },
   {
     type: FormBuilderInputType.Input,
@@ -17,7 +22,12 @@ export default [
     model: 'config.apiKey',
     placeholder: 'API Key',
     category: 'Credentials',
-    required: true,
+    validators: [
+      {
+        type: 'required',
+        message: 'API Key is required',
+      },
+    ],
   },
   {
     type: FormBuilderInputType.Space,
@@ -31,15 +41,16 @@ export default [
     model: 'config.organizationId',
     placeholder: 'Organization ID',
     category: 'Credentials',
-    required: false,
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Model',
+    label: 'Models',
     width: 100,
-    model: 'config.model',
-    placeholder: 'Model',
+    model: 'config.models',
+    placeholder: 'Allowed models',
+    helpText: 'Select models allowed for this integration',
     category: 'Settings',
+    selectMode: 'multipleWithInput',
     options: [
       { value: 'gpt-4o', label: 'GPT-4o' },
       { value: 'gpt-4', label: 'GPT-4' },
@@ -47,7 +58,11 @@ export default [
       { value: 'gpt-3.5', label: 'GPT-3.5' },
       { value: 'gpt-3', label: 'GPT-3' },
     ],
-    defaultValue: 'gpt-4o',
-    required: true,
+    validators: [
+      {
+        type: 'required',
+        message: 'At least one model is required',
+      },
+    ],
   },
 ];

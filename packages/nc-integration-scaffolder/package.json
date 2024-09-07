@@ -11,5 +11,8 @@
   "dependencies": {
     "@inquirer/prompts": "^5.3.8",
     "nocodb-sdk": "link:../nocodb-sdk"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2"
   }
 }

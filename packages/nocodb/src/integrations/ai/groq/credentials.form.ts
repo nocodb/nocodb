@@ -8,7 +8,12 @@ export default [
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
-    required: true,
+    validators: [
+      {
+        type: 'required',
+        message: 'Integration name is required',
+      },
+    ],
   },
   {
     type: FormBuilderInputType.Input,
@@ -17,20 +22,32 @@ export default [
     model: 'config.apiKey',
     placeholder: 'API Key',
     category: 'Credentials',
-    required: true,
+    validators: [
+      {
+        type: 'required',
+        message: 'API Key is required',
+      },
+    ],
   },
   {
     type: FormBuilderInputType.Select,
-    label: 'Model',
+    label: 'Models',
     width: 100,
-    model: 'config.model',
-    placeholder: 'Model',
+    model: 'config.models',
+    placeholder: 'Allowed models',
+    helpText: 'Select models allowed for this integration',
     category: 'Settings',
+    selectMode: 'multipleWithInput',
     options: [
       { value: 'llama-3.1-70b-versatile', label: 'llama-3.1-70b-versatile' },
       { value: 'llama-3.1-8b-instant', label: 'llama-3.1-8b-instant' },
     ],
     defaultValue: 'llama-3.1-70b-versatile',
-    required: true,
+    validators: [
+      {
+        type: 'required',
+        message: 'At least one model is required',
+      },
+    ],
   },
 ];

@@ -357,7 +357,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     } catch {}
   }
 
-  const saveIntegraitonRequest = async (msg: string) => {
+  const saveIntegrationRequest = async (msg: string) => {
     if (!msg?.trim()) return
 
     requestIntegration.value.isLoading = true
@@ -375,6 +375,16 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       requestIntegration.value.isLoading = false
       await message.error(await extractSdkResponseErrorMsg(e))
     }
+  }
+
+  const listIntegrationByType = async (type: IntegrationsType) => {
+    if (!activeWorkspaceId.value) return
+
+    const { list } = await $api.integration.list(activeWorkspaceId.value, {
+      type,
+    })
+
+    return list
   }
 
   onMounted(async () => {
@@ -447,10 +457,11 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     saveIntegration,
     editIntegration,
     duplicateIntegration,
-    saveIntegraitonRequest,
+    saveIntegrationRequest,
     getIntegration,
     setDefaultIntegration,
     integrationsIconMap,
+    listIntegrationByType,
   }
 }, 'integrations-store')
 

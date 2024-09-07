@@ -25,7 +25,7 @@ const { t } = useI18n()
 
 const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 
-const { pageMode, IntegrationsPageMode, requestIntegration, addIntegration, saveIntegraitonRequest, integrationsRefreshKey } = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, requestIntegration, addIntegration, saveIntegrationRequest, integrationsRefreshKey } = useIntegrationStore()
 
 const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
 
@@ -316,7 +316,7 @@ const handleAddIntegration = async (category: IntegrationCategoryType, integrati
                 :disabled="!requestIntegration.msg?.trim()"
                 :loading="requestIntegration.isLoading"
                 size="small"
-                @click="saveIntegraitonRequest(requestIntegration.msg)"
+                @click="saveIntegrationRequest(requestIntegration.msg)"
               >
                 {{ $t('general.submit') }}
               </NcButton>

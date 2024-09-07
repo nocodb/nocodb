@@ -64,11 +64,11 @@ async function generateEntryBoilerplate(type: string, subType: string) {
         ) {
           const methodName = member.name.getText();
           const parameters = member.parameters
-            .map((p) => p.getText())
+            ?.map((p) => p.getText())
             .join(", ");
           const returnType = member.type?.getText() ?? "void";
           const typeParameters = member.typeParameters
-            .map((p) => p.getText())
+            ?.map((p) => p.getText())
             .join(", ");
 
           let scope: "public" | "private" | "protected" = "public";
@@ -161,9 +161,11 @@ async function generateEntryBoilerplate(type: string, subType: string) {
   boilerplate += `\n`;
 
   abstractMethods.forEach((method) => {
-    boilerplate += `  ${method.scope}${method.async ? ' async' : ''} ${method.name}${
-      method.typeParameters.length ? `<${method.typeParameters}>` : ""
-    }(${method.parameters}): ${method.returnType} {\n`;
+    boilerplate += `  ${method.scope}${method.async ? " async" : ""} ${
+      method.name
+    }${method.typeParameters?.length ? `<${method.typeParameters}>` : ""}(${
+      method.parameters ?? ""
+    }): ${method.returnType} {\n`;
     boilerplate += `    // TODO: Implement ${method.name}\n`;
     boilerplate += `    return ${
       method.returnType === "void" ? "" : "null"
@@ -282,10 +284,16 @@ async function generateFormBoilerplate(type: string, subType: string) {
       model: 'config.${model}',
       category: '${category}',` +
         `${placeholder ? `\nplaceholder: '${placeholder}',\n` : ""}` +
-        `${menu === "Select" ? `\noptions: ${JSON.stringify(options)},\n` : ""}` +
+        `${
+          menu === "Select" ? `\noptions: ${JSON.stringify(options)},\n` : ""
+        }` +
         `${defaultValue ? `\ndefaultValue: '${defaultValue}',\n` : ""}` +
-        `required: ${isRequired},
-    }`
+        `${
+          isRequired
+            ? `\nvalidators: [\n  {\n    type: 'required',\n    message: '${label} is required',\n  }],\n`
+            : ""
+        }` +
+        `}`
     );
   }
 
@@ -298,7 +306,12 @@ export default [
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
-    required: true,
+    validators: [
+      {
+        type: 'required',
+        message: 'Integration name is required',
+      },
+    ],
   },
   ${dynamicComponents.join(",\n  ")}
 ];`;

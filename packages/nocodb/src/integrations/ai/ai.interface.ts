@@ -18,4 +18,6 @@ export default abstract class AiIntegration extends IntegrationWrapper {
     };
     data: T;
   }>;
+
+  public abstract availableModels(): string[];
 }

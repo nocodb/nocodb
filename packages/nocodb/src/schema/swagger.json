@@ -18689,7 +18689,55 @@
           "required": true
         }
       ]
+    },
+    "/api/v2/integrations/:integrationId/:endpoint": {
+      "post": {
+        "summary": "Call exposed integration endpoint",
+        "operationId": "integrations-endpoint",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "tags": ["Integrations"],
+        "description": "Call exposed integration endpoint"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "integrationId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "endpoint",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
+    
   },
   "components": {
     "schemas": {

@@ -38,6 +38,7 @@ export default class Integration implements IntegrationType {
       icon?: string;
       type?: IntegrationsType;
       description?: string;
+      exposedEndpoints?: string[];
     };
   }[] = [];
 
@@ -70,9 +71,9 @@ export default class Integration implements IntegrationType {
   }
 
   public static async init() {
-    const files = await glob('src/integrations/**/*.ts', {
-      // ignore root level .ts files
-      ignore: ['src/integrations/*.ts', 'src/integrations/*/*.ts'],
+    const files = await glob('src/integrations/**/*', {
+      // ignore root level files
+      ignore: ['src/integrations/*', 'src/integrations/*/*'],
       cwd: process.cwd(),
       absolute: true,
     });
@@ -84,6 +85,12 @@ export default class Integration implements IntegrationType {
         ?.split('/')?.[0] as IntegrationsType;
 
       if (!integrationType) continue;
+
+      const commonMeta = (
+        await import(
+          `src/integrations/${integrationType}/${integrationType}.manifest`
+        )
+      )?.default;
 
       // get between integrations/${integrationType}/ and next /
 
@@ -116,7 +123,10 @@ export default class Integration implements IntegrationType {
       } else if (file.includes('form')) {
         integration.form = (await import(file)).default;
       } else if (file.includes('manifest')) {
-        integration.meta = (await import(file)).default;
+        integration.meta = {
+          ...commonMeta,
+          ...(await import(file)).default,
+        };
       }
     }
   }
@@ -483,7 +493,7 @@ export default class Integration implements IntegrationType {
 
   public wrapper: IntegrationWrapper;
 
-  async getIntegrationWrapper<T extends IntegrationWrapper>() {
+  getIntegrationWrapper<T extends IntegrationWrapper>() {
     if (!this.wrapper) {
       const integrationWrapper = Integration.availableIntegrations.find(
         (el) =>
@@ -499,6 +509,20 @@ export default class Integration implements IntegrationType {
     }
 
     return this.wrapper as T;
+  }
+
+  getIntegrationMeta() {
+    const integrationMeta = Integration.availableIntegrations.find(
+      (el) =>
+        el.integrationType === this.type &&
+        el.integrationSubType === this.sub_type,
+    );
+
+    if (!integrationMeta) {
+      throw new Error('Integration meta not found');
+    }
+
+    return integrationMeta?.meta;
   }
 
   async storeInsert(

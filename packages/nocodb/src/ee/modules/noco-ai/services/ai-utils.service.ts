@@ -28,8 +28,7 @@ export class AiUtilsService {
       throw new Error('AI integration not found');
     }
 
-    const wrapper =
-      (await integration.getIntegrationWrapper()) as AiIntegration;
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
     const { data, usage } = await wrapper.generateObject({
       schema: z.object({
@@ -118,8 +117,7 @@ export class AiUtilsService {
       throw new Error('AI integration not found');
     }
 
-    const wrapper =
-      (await integration.getIntegrationWrapper()) as AiIntegration;
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
     const { data, usage } = await wrapper.generateObject({
       schema: z.object({
@@ -179,8 +177,7 @@ export class AiUtilsService {
       throw new Error('AI integration not found');
     }
 
-    const wrapper =
-      (await integration.getIntegrationWrapper()) as AiIntegration;
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
     const { data, usage } = await wrapper.generateObject({
       schema: z.object({
@@ -247,8 +244,7 @@ export class AiUtilsService {
       throw new Error('AI integration not found');
     }
 
-    const wrapper =
-      (await integration.getIntegrationWrapper()) as AiIntegration;
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
     const { data, usage } = await wrapper.generateObject({
       schema: z.object({
@@ -345,8 +341,7 @@ export class AiUtilsService {
       throw new Error('AI integration not found');
     }
 
-    const wrapper =
-      (await integration.getIntegrationWrapper()) as AiIntegration;
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
     const base = await Base.get(context, context.base_id);
 

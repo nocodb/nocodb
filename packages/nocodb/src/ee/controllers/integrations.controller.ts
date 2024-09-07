@@ -226,4 +226,18 @@ export class IntegrationsController {
       payload,
     );
   }
+
+  @Post(['/api/v2/integrations/:integrationId/:endpoint'])
+  async integrationEndpointGet(
+    @TenantContext() context: NcContext,
+    @Param('integrationId') integrationId: string,
+    @Param('endpoint') endpoint: string,
+    @Body() body: any,
+  ) {
+    return await this.integrationsService.callIntegrationEndpoint(context, {
+      integrationId,
+      endpoint,
+      payload: body,
+    });
+  }
 }

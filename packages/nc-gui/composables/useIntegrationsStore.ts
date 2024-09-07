@@ -312,7 +312,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     } catch {}
   }
 
-  const saveIntegraitonRequest = async (msg: string) => {
+  const saveIntegrationRequest = async (msg: string) => {
     if (!msg?.trim()) return
 
     requestIntegration.value.isLoading = true
@@ -354,7 +354,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     saveIntegration,
     editIntegration,
     duplicateIntegration,
-    saveIntegraitonRequest,
+    saveIntegrationRequest,
     getIntegration,
   }
 }, 'integrations-store')

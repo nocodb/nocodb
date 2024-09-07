@@ -1,7 +1,7 @@
 import { nocoModuleMetadata } from 'src/modules/noco.module';
 import { Module } from '@nestjs/common';
 
-import { NocoAiModule } from '~/modules/noco-ai/ai.module';
+import { NocoAiModule } from '~/integrations/ai/module/ai.module';
 
 /* Generic */
 import { Producer } from '~/services/producer/producer';

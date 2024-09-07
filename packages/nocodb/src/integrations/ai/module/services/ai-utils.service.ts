@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { NcContext } from '~/interface/config';
 import type AiIntegration from '~/integrations/ai/ai.interface';
 import { Base, Integration, Model } from '~/models';
-import { AiSchemaService } from '~/modules/noco-ai/services/ai-schema.service';
+import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 
 @Injectable()
 export class AiUtilsService {

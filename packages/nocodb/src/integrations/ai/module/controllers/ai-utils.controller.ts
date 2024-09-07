@@ -11,7 +11,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { AiUtilsService } from '~/modules/noco-ai/services/ai-utils.service';
+import { AiUtilsService } from '~/integrations/ai/module/services/ai-utils.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()

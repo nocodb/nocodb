@@ -1,9 +1,9 @@
 import { UITypes } from 'nocodb-sdk';
-import { throwTimeoutError } from '~/version-upgrader/ncUpgradeErrors';
 import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
 import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import type { SourceType } from 'nocodb-sdk';
+import { throwTimeoutError } from '~/version-upgrader/ncUpgradeErrors';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Model from '~/models/Model';
 import Source from '~/models/Source';

@@ -4,17 +4,17 @@ import Noco from '~/Noco';
 export const encryptPropIfRequired = ({
   data,
   prop = 'config',
-  key = Noco.getConfig()?.credentialSecret,
+  secret = Noco.getConfig()?.credentialSecret,
 }: {
   data: Record<string, any>;
   prop?: string;
-  key?: string;
+  secret?: string;
 }) => {
   if (!data || data[prop] === null || data[prop] === undefined) {
     return;
   }
 
-  if (!key) {
+  if (!secret) {
     return data[prop];
   }
 
@@ -27,23 +27,23 @@ export const encryptPropIfRequired = ({
 export const decryptPropIfRequired = ({
   data,
   prop = 'config',
-  key = Noco.getConfig()?.credentialSecret,
+  secret = Noco.getConfig()?.credentialSecret,
 }: {
   data: Record<string, any>;
   prop?: string;
-  key?: string;
+  secret?: string;
 }) => {
   if (!data || data[prop] === null || data[prop] === undefined) {
     return;
   }
 
-  if (!key) {
+  if (!secret) {
     return data[prop];
   }
 
   try {
     return JSON.parse(
-      CryptoJS.AES.decrypt(data[prop], key).toString(CryptoJS.enc.Utf8),
+      CryptoJS.AES.decrypt(data[prop], secret).toString(CryptoJS.enc.Utf8),
     );
   } catch (e) {
     return data[prop];

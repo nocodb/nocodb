@@ -10,7 +10,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
 import { ModelStat } from '~/models';
-import {encryptPropIfRequired} from "~/utils";
+import { encryptPropIfRequired } from '~/utils';
 
 export default class Source extends SourceCE implements SourceType {
   is_local?: BoolType;
@@ -49,8 +49,8 @@ export default class Source extends SourceCE implements SourceType {
       'fk_integration_id',
     ]);
     insertObj.config = encryptPropIfRequired({
-      data: insertObj
-      });
+      data: insertObj,
+    });
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);

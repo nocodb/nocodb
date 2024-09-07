@@ -12,7 +12,11 @@ import {
   prepareForDb,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
-import {decryptPropIfRequired, encryptPropIfRequired, partialExtract} from '~/utils';
+import {
+  decryptPropIfRequired,
+  encryptPropIfRequired,
+  partialExtract,
+} from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export default class Integration extends IntegrationCE {
@@ -118,7 +122,7 @@ export default class Integration extends IntegrationCE {
     ]);
 
     if (updateObj.config) {
-      updateObj.config =   encryptPropIfRequired({
+      updateObj.config = encryptPropIfRequired({
         data: updateObj,
       });
     }
@@ -321,9 +325,9 @@ export default class Integration extends IntegrationCE {
 
   public getConfig(): any {
     const config = JSON.parse(
-       decryptPropIfRequired({
+      decryptPropIfRequired({
         data: this,
-      })
+      }),
     );
 
     return config;

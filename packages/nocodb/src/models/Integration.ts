@@ -28,15 +28,14 @@ import { IntegrationStore } from '~/models';
 
 export default class Integration implements IntegrationType {
   public static availableIntegrations: {
-    integrationType: IntegrationsType;
-    integrationSubType: string;
+    type: IntegrationsType;
+    subType: string;
     form?: FormDefinition;
     wrapper?: typeof IntegrationWrapper;
     meta?: {
       title?: string;
       value?: string;
       icon?: string;
-      type?: IntegrationsType;
       description?: string;
       exposedEndpoints?: string[];
     };
@@ -73,7 +72,7 @@ export default class Integration implements IntegrationType {
   public static async init() {
     const files = await glob('src/integrations/**/*', {
       // ignore root level files
-      ignore: ['src/integrations/*', 'src/integrations/*/*'],
+      ignore: ['src/integrations/*', 'src/integrations/*/*', 'src/integrations/ai/module/**/*'],
       cwd: process.cwd(),
       absolute: true,
     });
@@ -104,15 +103,15 @@ export default class Integration implements IntegrationType {
 
       let integration = this.availableIntegrations.find((el) => {
         return (
-          integrationType === el.integrationType &&
-          integrationSubType === el.integrationSubType
+          integrationType === el.type &&
+          integrationSubType === el.subType
         );
       });
 
       if (!integration) {
         integration = {
-          integrationType,
-          integrationSubType,
+          type: integrationType,
+          subType: integrationSubType,
         };
 
         this.availableIntegrations.push(integration);
@@ -497,8 +496,8 @@ export default class Integration implements IntegrationType {
     if (!this.wrapper) {
       const integrationWrapper = Integration.availableIntegrations.find(
         (el) =>
-          el.integrationType === this.type &&
-          el.integrationSubType === this.sub_type,
+          el.type === this.type &&
+          el.subType === this.sub_type,
       );
 
       if (!integrationWrapper) {
@@ -514,8 +513,8 @@ export default class Integration implements IntegrationType {
   getIntegrationMeta() {
     const integrationMeta = Integration.availableIntegrations.find(
       (el) =>
-        el.integrationType === this.type &&
-        el.integrationSubType === this.sub_type,
+        el.type === this.type &&
+        el.subType === this.sub_type,
     );
 
     if (!integrationMeta) {

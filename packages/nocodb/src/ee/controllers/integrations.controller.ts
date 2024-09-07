@@ -165,11 +165,11 @@ export class IntegrationsController {
   @Get(['/api/v2/integrations'])
   async availableIntegrations() {
     return Integration.availableIntegrations
-      .sort((a, b) => a.integrationType.localeCompare(b.integrationType))
-      .sort((a, b) => a.integrationSubType.localeCompare(b.integrationSubType))
+      .sort((a, b) => a.type.localeCompare(b.type))
+      .sort((a, b) => a.subType.localeCompare(b.subType))
       .map((i) => ({
-        type: i.integrationType,
-        subType: i.integrationSubType,
+        type: i.type,
+        subType: i.subType,
         meta: i.meta,
       }));
   }
@@ -180,7 +180,7 @@ export class IntegrationsController {
     @Param('subType') subType: string,
   ) {
     const integration = Integration.availableIntegrations.find(
-      (i) => i.integrationType === type && i.integrationSubType === subType,
+      (i) => i.type === type && i.subType === subType,
     );
 
     if (!integration) {
@@ -188,8 +188,8 @@ export class IntegrationsController {
     }
 
     return {
-      integrationType: integration.integrationType,
-      integrationSubType: integration.integrationSubType,
+      integrationType: integration.type,
+      integrationSubType: integration.subType,
       form: integration.form,
       meta: integration.meta,
     };

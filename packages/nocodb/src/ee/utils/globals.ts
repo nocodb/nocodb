@@ -74,6 +74,7 @@ export enum MetaTable {
   JOBS = 'nc_jobs',
   COL_BUTTON = 'nc_col_button_v2',
   INTEGRATIONS = 'nc_integrations_v2',
+  INTEGRATIONS_STORE = 'nc_integrations_store_v2',
   FILE_REFERENCES = 'nc_file_references',
 }
 

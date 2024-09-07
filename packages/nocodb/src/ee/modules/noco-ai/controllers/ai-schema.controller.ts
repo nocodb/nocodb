@@ -24,18 +24,40 @@ export class AiSchemaController {
     private readonly basesService: BasesService,
   ) {}
 
-  @Post(['/api/v2/ai/schema/:baseId/views'])
+  @Post(['/api/v2/ai/:baseId/schema'])
+  @Acl('aiSchema', {
+    scope: 'base',
+  })
   @HttpCode(200)
-  @Acl('gridViewCreate')
   async generateViews(
     @TenantContext() context: NcContext,
     @Req() req: Request,
-    @Param('baseId') baseId: string,
+    @Body()
+    body: {
+      operation: string;
+      input: any;
+    },
   ) {
-    return await this.aiSchemaService.generateViews(context, {
-      baseId,
-      req,
-    });
+    const { operation } = body;
+
+    if (operation === 'generateTables') {
+      const { title, description } = body.input;
+
+      return await this.aiSchemaService.generateTables(context, {
+        baseId: context.base_id,
+        input: title,
+        instructions: description,
+        req: req,
+      });
+    } else if (operation === 'generateViews') {
+      const { tableId } = body.input;
+
+      return await this.aiSchemaService.generateViews(context, {
+        baseId: context.base_id,
+        tableIds: [tableId],
+        req: req,
+      });
+    }
   }
 
   @Post(['/api/v2/ai/template/:workspaceId'])

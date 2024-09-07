@@ -163,6 +163,10 @@ const permissionScopes = {
     'hookTrigger',
 
     'userInvite',
+
+    // AI
+    'aiUtils',
+    'aiSchema',
   ],
 };
 
@@ -283,6 +287,9 @@ const rolePermissions:
       // upload: true,
       // uploadViaURL: true,
       hookTrigger: true,
+
+      // AI
+      aiUtils: true,
     },
   },
   [ProjectRoles.CREATOR]: {

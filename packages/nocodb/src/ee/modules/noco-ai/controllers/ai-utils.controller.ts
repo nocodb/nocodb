@@ -12,6 +12,7 @@ import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { AiUtilsService } from '~/modules/noco-ai/services/ai-utils.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -19,6 +20,9 @@ export class AiUtilsController {
   constructor(private readonly aiUtilsService: AiUtilsService) {}
 
   @Post(['/api/v2/ai/:baseId/utils'])
+  @Acl('aiUtils', {
+    scope: 'base',
+  })
   @HttpCode(200)
   async generateViews(
     @TenantContext() context: NcContext,
@@ -48,16 +52,6 @@ export class AiUtilsController {
       });
     } else if (operation === 'predictNextFormulas') {
       return await this.aiUtilsService.predictNextFormulas(context, {
-        input: body.input,
-        req,
-      });
-    } else if (operation === 'generateTables') {
-      return await this.aiUtilsService.generateTables(context, {
-        input: body.input,
-        req,
-      });
-    } else if (operation === 'generateViews') {
-      return await this.aiUtilsService.generateViews(context, {
         input: body.input,
         req,
       });

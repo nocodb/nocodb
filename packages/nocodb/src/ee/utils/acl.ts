@@ -231,6 +231,10 @@ const permissionScopes = {
 
     // Webhooks
     'hookTrigger',
+
+    // AI
+    'aiUtils',
+    'aiSchema',
   ],
 };
 
@@ -467,6 +471,9 @@ const rolePermissions:
       widgetUpdate: true,
       widgetDelete: true,
       widgetFilterCreate: true,
+
+      // AI
+      aiUtils: true,
     },
   },
   [ProjectRoles.CREATOR]: {

@@ -380,42 +380,4 @@ export class AiUtilsService {
 
     return data;
   }
-
-  async generateTables(
-    context: NcContext,
-    params: {
-      input: {
-        title: string | string[];
-        description?: string;
-      };
-      req?: any;
-    },
-  ) {
-    const { title, description } = params.input;
-
-    return await this.aiSchemaService.generateTables(context, {
-      baseId: context.base_id,
-      input: title,
-      instructions: description,
-      req: params.req,
-    });
-  }
-
-  async generateViews(
-    context: NcContext,
-    params: {
-      input: {
-        tableId: string;
-      };
-      req?: any;
-    },
-  ) {
-    const { tableId } = params.input;
-
-    return await this.aiSchemaService.generateViews(context, {
-      baseId: context.base_id,
-      tableIds: [tableId],
-      req: params.req,
-    });
-  }
 }

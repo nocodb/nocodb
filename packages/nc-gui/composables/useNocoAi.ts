@@ -12,35 +12,45 @@ export const useNocoAi = createSharedComposable(() => {
   const aiLoading = ref(false)
 
   const callAiUtilsApi = async (operation: string, input: any, customBaseId?: string) => {
-    const baseId = customBaseId || activeProjectId.value
+    try {
+      const baseId = customBaseId || activeProjectId.value
 
-    if (!aiIntegrationAvailable.value || !baseId) {
-      return
+      if (!aiIntegrationAvailable.value || !baseId) {
+        return
+      }
+
+      aiLoading.value = true
+
+      const res = await $api.ai.utils(baseId, { operation, input })
+
+      aiLoading.value = false
+
+      return res
+    } catch (e) {
+      console.error(e)
+      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
-
-    aiLoading.value = true
-
-    const res = await $api.ai.utils(baseId, { operation, input })
-
-    aiLoading.value = false
-
-    return res
   }
 
   const callAiSchemaApi = async (operation: string, input: any, customBaseId?: string) => {
-    const baseId = customBaseId || activeProjectId.value
+    try {
+      const baseId = customBaseId || activeProjectId.value
 
-    if (!aiIntegrationAvailable.value || !baseId) {
-      return
+      if (!aiIntegrationAvailable.value || !baseId) {
+        return
+      }
+
+      aiLoading.value = true
+
+      const res = await $api.ai.schema(baseId, { operation, input })
+
+      aiLoading.value = false
+
+      return res
+    } catch (e) {
+      console.error(e)
+      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
-
-    aiLoading.value = true
-
-    const res = await $api.ai.schema(baseId, { operation, input })
-
-    aiLoading.value = false
-
-    return res
   }
 
   const predictFieldType = async (title: string) => {

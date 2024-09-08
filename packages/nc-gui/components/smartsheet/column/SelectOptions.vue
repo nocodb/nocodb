@@ -331,7 +331,7 @@ const loadListData = async ($state: any) => {
 const predictOptions = async () => {
   if (!vModel.value?.title || !meta.value?.id) return
 
-  const predictedOptions = await predictSelectOptions(vModel.value?.title, meta.value?.id)
+  const predictedOptions = await predictSelectOptions(vModel.value?.title, meta.value?.id, [], meta.value?.base_id)
 
   if (predictedOptions) {
     for (const option of predictedOptions) {

@@ -207,7 +207,7 @@ const onAiViewCreate = async () => {
         <NcMenuItem
           v-if="aiIntegrationAvailable"
           data-testid="sidebar-view-create-ai"
-          @click="generateViews(table.id!, onAiViewCreate)"
+          @click="generateViews(table.id!, onAiViewCreate, base.id)"
         >
           <div class="item">
             <div class="item-inner">

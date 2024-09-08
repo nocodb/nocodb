@@ -85,7 +85,7 @@ const toggleAiMode = async () => {
     table.title = ''
   }
 
-  const predictions = await predictNextTables(predictHistory.value)
+  const predictions = await predictNextTables(predictHistory.value, props.baseId)
 
   if (predictions.length) {
     predictedTables.value = predictions
@@ -97,7 +97,7 @@ const toggleAiMode = async () => {
 const predictMore = async () => {
   calledFunction.value = 'predictMore'
 
-  const predictions: string[] = await predictNextTables(predictHistory.value)
+  const predictions: string[] = await predictNextTables(predictHistory.value, props.baseId)
 
   if (predictions.length) {
     predictedTables.value.push(...predictions.filter((t) => !predictedTables.value.includes(t)))
@@ -108,7 +108,7 @@ const predictMore = async () => {
 const predictRefresh = async () => {
   calledFunction.value = 'predictRefresh'
 
-  const predictions = await predictNextTables(predictHistory.value)
+  const predictions = await predictNextTables(predictHistory.value, props.baseId)
 
   if (predictions.length) {
     predictedTables.value = predictions
@@ -146,7 +146,7 @@ const onAiEnter = async () => {
   }
 
   if (selectedTables.value.length) {
-    await generateTables(selectedTables.value, undefined, onAiTableCreate)
+    await generateTables(selectedTables.value, undefined, onAiTableCreate, props.baseId)
   }
 }
 

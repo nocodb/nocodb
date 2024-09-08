@@ -422,7 +422,7 @@ const onPredictFieldType = async () => {
   if (formState.value.title.length > 4) {
     lastPredictedAt.value = Date.now()
 
-    const res = await predictFieldType(formState.value.title)
+    const res = await predictFieldType(formState.value.title, meta.value?.base_id)
     if (res) {
       extraIcons.value = {}
       predictedFieldType.value = res

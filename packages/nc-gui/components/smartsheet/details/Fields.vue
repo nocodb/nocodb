@@ -1025,8 +1025,8 @@ const onPredictNextFields = async (formula?: boolean) => {
     colOptions?: Record<string, any>
     formula?: string
   }[] = formula
-    ? await predictNextFormulas(meta.value?.id as string, localPredictions.value)
-    : await predictNextFields(meta.value?.id as string, localPredictions.value)
+    ? await predictNextFormulas(meta.value?.id as string, localPredictions.value, meta.value?.base_id)
+    : await predictNextFields(meta.value?.id as string, localPredictions.value, meta.value?.base_id)
 
   if (res.length) {
     for (const field of res) {

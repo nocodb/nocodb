@@ -1,5 +1,4 @@
-import CryptoJS from 'crypto-js';
-import { Source as SourceCE } from 'src/models';
+import { default as SourceCE } from 'src/models/Source';
 import type { BoolType, SourceType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';

@@ -25,6 +25,7 @@
     "build:cli:module": "webpack  --config webpack.cli.config.js",
     "build:on-prem": "EE=true webpack  --config webpack.ee-on-prem.config.js",
     "obfuscate:build:publish": "pnpm run build:obfuscate && pnpm publish .",
+    "registerIntegrations": "node build-utils/registerIntegrations.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "pnpm run watch:run",
     "start:prod": "node docker/main",

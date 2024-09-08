@@ -1,4 +1,5 @@
 import { glob } from 'glob';
+import path from 'path';
 import type {
   BoolType,
   FormDefinition,
@@ -39,7 +40,7 @@ export default class Integration implements IntegrationType {
       description?: string;
       exposedEndpoints?: string[];
     };
-  }[] = [];
+  }[];
 
   id?: string;
   fk_workspace_id?: string;
@@ -70,64 +71,10 @@ export default class Integration implements IntegrationType {
   }
 
   public static async init() {
-    const files = await glob('src/integrations/**/*', {
-      // ignore root level files
-      ignore: ['src/integrations/*', 'src/integrations/*/*', 'src/integrations/ai/module/**/*'],
-      cwd: process.cwd(),
-      absolute: true,
-    });
-
-    for (const file of files) {
-      // get between integrations/ and next /
-      const integrationType = file
-        .replace(/.*integrations\//, '')
-        ?.split('/')?.[0] as IntegrationsType;
-
-      if (!integrationType) continue;
-
-      const commonMeta = (
-        await import(
-          `src/integrations/${integrationType}/${integrationType}.manifest`
-        )
-      )?.default;
-
-      // get between integrations/${integrationType}/ and next /
-
-      const subTypeRegex = new RegExp(`.*integrations/${integrationType}/`);
-
-      const integrationSubType = file
-        .replace(subTypeRegex, '')
-        ?.split('/')?.[0];
-
-      if (!integrationSubType) continue;
-
-      let integration = this.availableIntegrations.find((el) => {
-        return (
-          integrationType === el.type &&
-          integrationSubType === el.subType
-        );
-      });
-
-      if (!integration) {
-        integration = {
-          type: integrationType,
-          subType: integrationSubType,
-        };
-
-        this.availableIntegrations.push(integration);
-      }
-
-      if (file.includes('entry')) {
-        integration.wrapper = (await import(file)).default;
-      } else if (file.includes('form')) {
-        integration.form = (await import(file)).default;
-      } else if (file.includes('manifest')) {
-        integration.meta = {
-          ...commonMeta,
-          ...(await import(file)).default,
-        };
-      }
-    }
+    // we use dynamic import to avoid circular reference
+    Integration.availableIntegrations = (await import(
+      'src/integrations/integrations'
+    )).default;
   }
 
   public static async createIntegration(
@@ -488,6 +435,55 @@ export default class Integration implements IntegrationType {
       });
 
     return (this.sources = sources);
+  }
+
+  static async getCategoryDefault(
+    context: Omit<NcContext, 'base_id'>,
+    type: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Integration> {
+    if (context.workspace_id === RootScopes.BYPASS) {
+      NcError.badRequest(
+        'Workspace ID is required for getting default integration',
+      );
+    }
+
+    const baseData = await ncMeta.metaGet2(
+      context.workspace_id,
+      RootScopes.WORKSPACE,
+      MetaTable.INTEGRATIONS,
+      { type, fk_workspace_id: context.workspace_id },
+      null,
+      {
+        _and: [
+          {
+            is_default: {
+              eq: true,
+            },
+          },
+          {
+            _or: [
+              {
+                deleted: {
+                  neq: true,
+                },
+              },
+              {
+                deleted: {
+                  eq: null,
+                },
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    if (baseData) {
+      baseData.meta = parseMetaProp(baseData, 'meta');
+    }
+
+    return this.castType(baseData);
   }
 
   public wrapper: IntegrationWrapper;

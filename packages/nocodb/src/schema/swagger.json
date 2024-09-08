@@ -18379,6 +18379,58 @@
         ]
       }
     },
+    "/api/v2/ai/{baseId}/schema": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "w124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        }
+      ],
+      "post": {
+        "summary": "AI Schema",
+        "operationId": "ai-schema",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": ["Ai"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "operation": {
+                    "type": "string"
+                  },
+                  "input": {}
+                },
+                "required": ["input"]
+              }
+            }
+          }
+        },
+        "description": "AI Schema",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v2/meta/integrations": {
       "get": {
         "summary": "List integrations",

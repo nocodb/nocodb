@@ -24,7 +24,7 @@ export class AiUtilsController {
     scope: 'base',
   })
   @HttpCode(200)
-  async generateViews(
+  async aiUtils(
     @TenantContext() context: NcContext,
     @Req() req: Request,
     @Body()

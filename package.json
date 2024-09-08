@@ -32,8 +32,8 @@
     ]
   },
   "scripts": {
-    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build:ee && pnpm --filter=nocodb --filter=nc-gui --filter=knex-snowflake --filter=knex-databricks --filter=nc-sql-executor --filter=playwright install",
-    "bootstrap:ce": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-gui --filter=nc-sql-executor --filter=playwright install",
+    "bootstrap": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build:ee && pnpm --filter=nocodb --filter=nc-gui --filter=knex-snowflake --filter=knex-databricks --filter=nc-sql-executor --filter=playwright install && pnpm run registerIntegrations",
+    "bootstrap:ce": "pnpm --filter=nocodb-sdk install && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-gui --filter=nc-sql-executor --filter=playwright install && pnpm run registerIntegrations",
     "start:frontend": "pnpm --filter=nc-gui run dev",
     "start:backend": "pnpm --filter=nocodb run start",
     "start:sql-executor": "pnpm --filter=nc-sql-executor run dev",
@@ -44,6 +44,7 @@
     "stop:pg": "docker-compose -f ./tests/playwright/scripts/docker-compose-pg.yml down",
     "prepare": "husky install",
     "preinstall": "npx only-allow pnpm",
+    "registerIntegrations": "pnpm --filter=nocodb run registerIntegrations",
     "install:local-sdk": "node scripts/installLocalSdk.js",
     "sync:ee:to:ce": "rsync -arzhv --delete --exclude-from='scripts/sync/exclude-list.txt' --filter=':- .gitignore' ./ ../nocodb/",
     "sync:ce:to:ee": "rsync -arzhv --delete --exclude-from='scripts/sync/exclude-list.txt' --filter=':- .gitignore' ../nocodb/ ./"

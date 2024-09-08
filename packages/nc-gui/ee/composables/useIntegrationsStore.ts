@@ -397,9 +397,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       subType: string
       meta: {
         title?: string
-        subType?: string
         icon?: string
-        type?: IntegrationsType
         description?: string
       }
     }[]
@@ -407,9 +405,9 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     for (const di of dynamicIntegrations) {
       const integration: IntegrationItemType = {
         title: di.meta.title || di.subType,
-        subType: di.meta.subType || di.subType,
+        subType: di.subType,
         icon: di.meta.icon ? iconMap[di.meta.icon] : iconMap.puzzle,
-        type: di.meta.type || [di.type],
+        type: di.type,
         isAvailable: true,
         dynamic: true,
       }

@@ -29,7 +29,7 @@ export class AiSchemaController {
     scope: 'base',
   })
   @HttpCode(200)
-  async generateViews(
+  async aiSchema(
     @TenantContext() context: NcContext,
     @Req() req: Request,
     @Body()

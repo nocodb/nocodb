@@ -11,7 +11,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const aiLoading = ref(false)
 
-  const callAiApi = async (operation: string, input: any, customBaseId?: string) => {
+  const callAiUtilsApi = async (operation: string, input: any, customBaseId?: string) => {
     const baseId = customBaseId || activeProjectId.value
 
     if (!aiIntegrationAvailable.value || !baseId) {
@@ -27,8 +27,24 @@ export const useNocoAi = createSharedComposable(() => {
     return res
   }
 
+  const callAiSchemaApi = async (operation: string, input: any, customBaseId?: string) => {
+    const baseId = customBaseId || activeProjectId.value
+
+    if (!aiIntegrationAvailable.value || !baseId) {
+      return
+    }
+
+    aiLoading.value = true
+
+    const res = await $api.ai.schema(baseId, { operation, input })
+
+    aiLoading.value = false
+
+    return res
+  }
+
   const predictFieldType = async (title: string) => {
-    const res = await callAiApi('predictFieldType', title)
+    const res = await callAiUtilsApi('predictFieldType', title)
 
     if (res.type) {
       return res.type
@@ -36,7 +52,7 @@ export const useNocoAi = createSharedComposable(() => {
   }
 
   const predictSelectOptions = async (title: string, tableId: string, history?: string[]) => {
-    const res = await callAiApi('predictSelectOptions', { title, tableId, history })
+    const res = await callAiUtilsApi('predictSelectOptions', { title, tableId, history })
 
     if (res.options) {
       return res.options
@@ -44,7 +60,7 @@ export const useNocoAi = createSharedComposable(() => {
   }
 
   const predictNextFields = async (tableId: string, history?: string[]) => {
-    const res = await callAiApi('predictNextFields', { tableId, history })
+    const res = await callAiUtilsApi('predictNextFields', { tableId, history })
 
     if (res.fields) {
       return res.fields
@@ -52,7 +68,7 @@ export const useNocoAi = createSharedComposable(() => {
   }
 
   const predictNextFormulas = async (tableId: string, history?: string[]) => {
-    const res = await callAiApi('predictNextFormulas', { tableId, history })
+    const res = await callAiUtilsApi('predictNextFormulas', { tableId, history })
 
     if (res.formulas) {
       return res.formulas
@@ -61,7 +77,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const generateTables = async (title: string[], description?: string, onTableCreate?: (firstTableMeta: TableType) => void) => {
     try {
-      const res = await callAiApi('generateTables', { title, description })
+      const res = await callAiSchemaApi('generateTables', { title, description })
 
       if (res.length) {
         await onTableCreate?.(res[0])
@@ -73,7 +89,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const generateViews = async (tableId: string, onViewCreate?: () => void) => {
     try {
-      await callAiApi('generateViews', {
+      await callAiSchemaApi('generateViews', {
         tableId,
       })
 
@@ -84,7 +100,7 @@ export const useNocoAi = createSharedComposable(() => {
   }
 
   const predictNextTables = async (history?: string[], baseId?: string) => {
-    const res = await callAiApi('predictNextTables', { history }, baseId)
+    const res = await callAiUtilsApi('predictNextTables', { history }, baseId)
 
     if (res.tables) {
       return res.tables

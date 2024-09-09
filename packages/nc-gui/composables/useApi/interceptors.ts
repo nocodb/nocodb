@@ -49,6 +49,8 @@ export function addAxiosInterceptors(api: Api<any>) {
     },
     // Handle Error
     async (error) => {
+      let isSharedPage = route.value?.params?.typeOrId === 'base' || route.value?.params?.typeOrId === 'ERD' || route.value.meta.public;
+
       // if cancel request then throw error
       if (error.code === 'ERR_CANCELED') return Promise.reject(error)
 
@@ -171,7 +173,7 @@ export function addAxiosInterceptors(api: Api<any>) {
           }
 
           await state.signOut({
-            redirectToSignin: !route.value.meta.public,
+            redirectToSignin: !isSharedPage,
             skipApiCall: true,
           })
 

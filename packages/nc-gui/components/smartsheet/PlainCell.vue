@@ -198,7 +198,7 @@ const getIntValue = (modelValue: string | null | number) => {
 }
 
 const getTextAreaValue = (modelValue: string | null, col: ColumnType) => {
-  const isRichMode = parseProp(col.meta)?.richMode
+  const isRichMode = parseProp(col.meta).richMode
   if (isRichMode) {
     return modelValue?.replace(/[*_~\[\]]|<\/?[^>]+(>|$)/g, '') || ''
   }

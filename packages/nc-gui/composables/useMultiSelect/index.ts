@@ -782,7 +782,7 @@ export function useMultiSelect(
               if (columnObj.uidt === UITypes.LongText) {
                 if (rowObj.row[columnObj.title] === '<br />') {
                   rowObj.row[columnObj.title] = e.key
-                } else if (parseProp(columnObj.meta)?.richMode) {
+                } else if (parseProp(columnObj.meta).richMode) {
                   rowObj.row[columnObj.title] = rowObj.row[columnObj.title] ? rowObj.row[columnObj.title] + e.key : e.key
                 }
               } else {

@@ -57,8 +57,9 @@
     "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^0.0.48",
-    "@ai-sdk/openai": "^0.0.46",
+    "@ai-sdk/anthropic": "^0.0.49",
+    "@ai-sdk/google": "^0.0.47",
+    "@ai-sdk/openai": "^0.0.58",
     "@aws-sdk/client-kafka": "^3.620.0",
     "@aws-sdk/client-kinesis": "^3.620.0",
     "@aws-sdk/client-s3": "^3.620.0",
@@ -85,7 +86,7 @@
     "@sentry/node": "^6.19.7",
     "@techpass/passport-openidconnect": "^0.3.3",
     "@types/chai": "^4.3.16",
-    "ai": "^3.3.7",
+    "ai": "^3.3.28",
     "airtable": "^0.12.2",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",

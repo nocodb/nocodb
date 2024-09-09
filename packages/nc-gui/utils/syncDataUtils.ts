@@ -1,11 +1,12 @@
 import type { FormDefinition } from 'nocodb-sdk'
+import type { VNode } from '@vue/runtime-dom'
 import type { CSSProperties, FunctionalComponent, SVGAttributes } from 'nuxt/dist/app/compat/capi'
 import { ClientType, IntegrationCategoryType, SyncDataType } from '~/lib/enums'
 
 export const integrationsInitialized = ref(false)
 export interface IntegrationItemType {
   title: string
-  icon: FunctionalComponent<SVGAttributes, {}, any, {}>
+  icon: FunctionalComponent<SVGAttributes, {}, any, {}> | VNode
   subType: SyncDataType | ClientType
   type: IntegrationCategoryType
   isAvailable?: boolean

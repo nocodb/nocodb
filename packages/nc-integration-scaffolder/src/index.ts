@@ -337,13 +337,9 @@ async function generateManifest(type: string, subType: string) {
     message: "Enter icon URL or name",
   });
 
-  const boilerplate = `import { IntegrationCategoryType } from 'nocodb-sdk';
-
-export default {
+  const boilerplate = `export default {
   title: '${title}',
-  subType: '${subType}',
   icon: '${icon}',
-  type: IntegrationCategoryType.${type.toUpperCase()},
 };`;
 
   const options = await prettier.resolveConfig(manifestFile);

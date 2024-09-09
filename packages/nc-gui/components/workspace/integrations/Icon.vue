@@ -49,7 +49,7 @@ const pxWrapperPadding = computed(() => {
     />
     <component
       :is="integrationItem.icon"
-      v-else-if="integrationItem.icon?.render"
+      v-else-if="integrationItem.icon"
       class="text-gray-700"
       :style="{ width: pxSize, height: pxSize }"
     />

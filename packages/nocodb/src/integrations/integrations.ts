@@ -11,6 +11,9 @@ import AiCommonManifest from '~/integrations/ai/ai.manifest';
 import AiClaudeEntry from '~/integrations/ai/claude/entry';
 import AiClaudeForm from '~/integrations/ai/claude/credentials.form';
 import AiClaudeManifest from '~/integrations/ai/claude/manifest';
+import AiGoogleEntry from '~/integrations/ai/google/entry';
+import AiGoogleForm from '~/integrations/ai/google/credentials.form';
+import AiGoogleManifest from '~/integrations/ai/google/manifest';
 import AiGroqEntry from '~/integrations/ai/groq/entry';
 import AiGroqForm from '~/integrations/ai/groq/credentials.form';
 import AiGroqManifest from '~/integrations/ai/groq/manifest';
@@ -28,6 +31,16 @@ export default [
     meta: {
       ...AiCommonManifest,
       ...AiClaudeManifest,
+    },
+  },
+  {
+    type: 'ai',
+    subType: 'google',
+    wrapper: AiGoogleEntry,
+    form: AiGoogleForm,
+    meta: {
+      ...AiCommonManifest,
+      ...AiGoogleManifest,
     },
   },
   {

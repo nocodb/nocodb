@@ -406,10 +406,27 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     dynamicIntegrations.sort((a, b) => (a.meta.order ?? Infinity) - (b.meta.order ?? Infinity))
 
     for (const di of dynamicIntegrations) {
+      let icon: FunctionalComponent<SVGAttributes, {}, any, {}> | VNode
+
+      if (di.meta.icon) {
+        if (di.meta.icon in iconMap) {
+          icon = iconMap[di.meta.icon as keyof typeof iconMap]
+        } else {
+          if (isValidURL(di.meta.icon)) {
+            icon = h('img', {
+              src: di.meta.icon,
+              alt: di.meta.title || di.subType,
+            })
+          }
+        }
+      } else {
+        icon = iconMap.puzzle
+      }
+
       const integration: IntegrationItemType = {
         title: di.meta.title || di.subType,
         subType: di.subType,
-        icon: di.meta.icon ? iconMap[di.meta.icon] : iconMap.puzzle,
+        icon,
         type: di.type,
         isAvailable: true,
         dynamic: true,

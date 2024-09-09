@@ -1,4 +1,4 @@
-import { T } from 'nc-help';
+import { T } from '~/utils';
 import { Injectable } from '@nestjs/common';
 import type User from '~/models/User';
 import type { LayoutReqType, LayoutUpdateReqType } from 'nocodb-sdk';

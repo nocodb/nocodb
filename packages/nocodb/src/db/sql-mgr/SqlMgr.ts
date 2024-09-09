@@ -6,7 +6,7 @@ import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
 import inflection from 'inflection';
 import slash from 'slash';
-import { T } from 'nc-help';
+import { T } from '~/utils';
 import { customAlphabet } from 'nanoid';
 import type MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
 import type MysqlClient from '~/db/sql-client/lib/mysql/MysqlClient';

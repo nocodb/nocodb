@@ -1,4 +1,4 @@
-import { T } from 'nc-help';
+import { T } from '~/utils';
 import { Injectable } from '@nestjs/common';
 import { DataSourceType } from 'nocodb-sdk';
 import type { WidgetReqType, WidgetUpdateReqType } from 'nocodb-sdk';

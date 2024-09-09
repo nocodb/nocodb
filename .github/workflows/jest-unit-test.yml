@@ -59,4 +59,4 @@ jobs:
           pnpm run build:ee:main
       - name: run unit tests
         working-directory: ./packages/nocodb
-        run: pnpm run jest
+        run: pnpm run test

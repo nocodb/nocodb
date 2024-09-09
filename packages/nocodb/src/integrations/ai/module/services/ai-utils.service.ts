@@ -56,8 +56,6 @@ export class AiUtilsService {
           'Formula',
           'Rollup',
           'DateTime',
-          'CreatedTime',
-          'LastModifiedTime',
           'JSON',
           'Barcode',
           'QrCode',
@@ -73,7 +71,7 @@ export class AiUtilsService {
           role: 'system',
           content: `You are a smart-spreadsheet designer.
           Following column types are available to use:
-          SingleLineText, LongText, Lookup, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, Formula, Rollup, DateTime, CreatedTime, LastModifiedTime, JSON, Barcode, QrCode, Button, Links, User, CreatedBy, LastModifiedBy.`,
+          SingleLineText, LongText, Lookup, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, Formula, Rollup, DateTime, JSON, Barcode, QrCode, Button, Links, User, CreatedBy, LastModifiedBy.`,
         },
         {
           role: 'user',
@@ -194,7 +192,7 @@ export class AiUtilsService {
           role: 'system',
           content: `You are a smart-spreadsheet designer.
           Following column types are available to use:
-          SingleLineText, LongText, Lookup, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, Formula, Rollup, DateTime, CreatedTime, LastModifiedTime, JSON, Barcode, QrCode, Button, Links, User, CreatedBy, LastModifiedBy.
+          SingleLineText, LongText, Lookup, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, Formula, Rollup, DateTime, JSON, Barcode, QrCode, Button, Links, User, CreatedBy, LastModifiedBy.
           Duplicate columns are not allowed.
           SingleSelect and MultiSelect columns require options.`,
         },

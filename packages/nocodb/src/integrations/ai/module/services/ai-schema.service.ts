@@ -105,8 +105,6 @@ export class AiSchemaService {
                   'Rating',
                   'DateTime',
                   'JSON',
-                  'CreatedTime',
-                  'LastModifiedTime',
                 ]),
                 options: z.array(z.string()).optional(),
               }),
@@ -128,7 +126,7 @@ export class AiSchemaService {
           You can create any number of tables & columns in your spreadsheet.
           
           Following column types are available for you to use:
-          ID, SingleLineText, LongText, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, DateTime, JSON, CreatedTime, LastModifiedTime.
+          ID, SingleLineText, LongText, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, DateTime, JSON.
           
           You can create relationships between tables (columns will be automatically created for relations):
           - oo: one to one relationship, like a person and their passport ({ "from": "Person", "to": "Passport", "type": "oo" })
@@ -234,8 +232,6 @@ export class AiSchemaService {
                   'Rating',
                   'DateTime',
                   'JSON',
-                  'CreatedTime',
-                  'LastModifiedTime',
                 ]),
                 options: z.array(z.string()).optional(),
               }),
@@ -257,7 +253,7 @@ export class AiSchemaService {
           There can be any number of tables & columns in your spreadsheet.
           
           Following column types are available for you to use:
-          ID, SingleLineText, LongText, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, DateTime, JSON, CreatedTime, LastModifiedTime.
+          ID, SingleLineText, LongText, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, DateTime, JSON.
           
           You can create relationships between tables (columns will be automatically created for relations):
           - oo: one to one relationship, like a person and their passport ({ "from": "Person", "to": "Passport", "type": "oo" })

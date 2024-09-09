@@ -265,6 +265,7 @@ export class AiSchemaService {
           - Spaces are allowed in table & column names
           - Try to make use of SingleSelect columns where possible
           - Try to make use of relationships between new to existing tables or new to new tables
+          - If there is an emoji which can explain the table, use it as a suffix for table title
           
           Here is a sample input JSON schema
           \`\`\`json
@@ -480,6 +481,7 @@ export class AiSchemaService {
           - Forms are favorable if you think users will be entering data frequently
           - Filters can't have dynamic values
           - Duplicate views are not allowed
+          - If there is an emoji which can explain the view, use it as a suffix for view title
 
           This is a sample schema:
           \`\`\`json

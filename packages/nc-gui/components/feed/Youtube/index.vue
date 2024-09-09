@@ -35,17 +35,21 @@ const gotoChannel = () => {
     <div v-else-if="isLoading && !youtubeFeed.length" class="flex items-center justify-center h-full w-full">
       <GeneralLoader size="xlarge" />
     </div>
-    <div v-else class="max-w-[764px] mx-auto">
-      <div class="flex gap-3 items-center justify-between">
+    <div v-else class="youtube-feed mx-auto">
+      <div class="flex gap-3 items-center mt-4 justify-between">
         <span class="text-gray-900 font-semibold"> Recent Videos </span>
         <NcButton type="secondary" size="small" @click="gotoChannel"> Go to Youtube </NcButton>
       </div>
 
       <div class="flex gap-2 flex-col">
-        <FeedYoutubePlayer v-for="feed in youtubeFeed" :key="feed.id" :item="feed" />
+        <FeedYoutubePlayer v-for="feed in youtubeFeed" :key="feed.Id" :item="feed" />
       </div>
     </div>
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.youtube-feed {
+  @apply !max-w-[47.75rem];
+}
+</style>

@@ -53,8 +53,13 @@ const renderedText = computedAsync(async () => {
       </div>
     </div>
     <template v-if="source === 'Github'">
-      <LazyCellAttachmentPreviewImage v-if="Images?.length" :srcs="getPossibleAttachmentSrc(Images[0], 'card_cover')" />
-      <div class="prose px-5 mt-5" v-html="renderedText"></div>
+      <LazyCellAttachmentPreviewImage
+        v-if="Images?.length"
+        class="cursor-pointer"
+        :srcs="getPossibleAttachmentSrc(Images[0], 'card_cover')"
+        @click="openLink(Url)"
+      />
+      <div class="prose px-5 pb-5 mt-5" v-html="renderedText"></div>
     </template>
     <template v-else-if="source === 'Youtube'">
       <YoutubeVue3 :videoid="extractYoutubeVideoId(Url)" :controls="1" :height="410" :width="656" :autoplay="0" />
@@ -71,14 +76,21 @@ const renderedText = computedAsync(async () => {
   </div>
 </template>
 
-<style scoped lang="scss">
-.prose {
-  a {
-    @apply !text-gray-900;
-  }
-}
-
+<style lang="scss">
 .recent-card {
   box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
+
+  .prose {
+    a {
+      @apply !text-gray-900;
+    }
+
+    h1 {
+      @apply !text-2xl !font-semibold truncate;
+    }
+    p {
+      @apply !text-md !leading-6;
+    }
+  }
 }
 </style>

@@ -7,6 +7,7 @@ import {
   HttpCode,
   Post,
   Req,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ProjectRoles, validateAndExtractSSLProp } from 'nocodb-sdk';
@@ -165,5 +166,17 @@ export class UtilsController {
   async aggregatedMetaInfo() {
     // todo: refactor
     return (await this.utilsService.aggregatedMetaInfo()) as any;
+  }
+
+  @UseGuards(PublicApiLimiterGuard)
+  @Get('/api/v1/feed')
+  async feed(@Request() req: NcRequest) {
+    return await this.utilsService.feed(req);
+  }
+
+  @UseGuards(PublicApiLimiterGuard)
+  @Get('/api/v1/new-feed')
+  async newFeed(@Request() req: NcRequest) {
+    return await this.utilsService.getLatestFeed(req);
   }
 }

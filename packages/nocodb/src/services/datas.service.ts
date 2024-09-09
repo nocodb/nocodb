@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { isSystemColumn } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
-import { nocoExecute } from 'nc-help';
+import { nocoExecute } from '~/utils';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';

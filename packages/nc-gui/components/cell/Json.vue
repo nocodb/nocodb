@@ -86,6 +86,9 @@ const onSave = () => {
 
   editEnabled.value = false
 
+  // avoid saving if error exists or value is same as previous
+  if (error.value || localValue.value === vModel.value) return false
+
   vModel.value = formatValue(localValue.value) === null ? null : formatJson(localValue.value as string)
 }
 

@@ -399,8 +399,11 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         title?: string
         icon?: string
         description?: string
+        order?: number
       }
     }[]
+
+    dynamicIntegrations.sort((a, b) => (a.meta.order ?? Infinity) - (b.meta.order ?? Infinity))
 
     for (const di of dynamicIntegrations) {
       const integration: IntegrationItemType = {

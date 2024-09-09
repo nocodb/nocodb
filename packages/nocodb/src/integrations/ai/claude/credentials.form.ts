@@ -38,11 +38,13 @@ export default [
     category: 'Settings',
     selectMode: 'multipleWithInput',
     options: [
-      { value: 'claude-3-5-sonnet-20240620', label: 'Sonnet' },
-      { value: 'claude-3-opus-20240229', label: 'Opus' },
+      { value: 'claude-3-5-sonnet-20240620', label: 'Claude 3.5 Sonnet' },
+      { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
+      { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet' },
+      { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' },
     ],
 
-    defaultValue: 'claude-3-5-sonnet-20240620',
+    defaultValue: ['claude-3-5-sonnet-20240620'],
     validators: [
       {
         type: 'required',

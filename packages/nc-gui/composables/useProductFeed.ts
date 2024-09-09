@@ -1,15 +1,11 @@
-import axios from 'axios'
 import type { ProductFeedItem } from '../lib/types'
-
-const axiosInstance = axios.create({
-  baseURL: 'https://nocodb.com/api/v1',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-})
 
 export const useProductFeed = createSharedComposable(() => {
   const activeTab = ref('recents')
+
+  const { $api } = useNuxtApp()
+
+  const { appInfo } = useGlobal()
 
   const youtubeFeed = ref<ProductFeedItem[]>([])
 
@@ -23,7 +19,9 @@ export const useProductFeed = createSharedComposable(() => {
     social: false,
   })
 
-  const loadFeed = async ({ loadMore, type }: { loadMore: boolean; type: 'youtube' | 'github' | 'all' | 'twitter' }) => {
+  const newFeedCount = ref(0)
+
+  const loadFeed = async ({ loadMore, type }: { loadMore: boolean; type: 'youtube' | 'github' | 'all' }) => {
     try {
       let page = 1
 
@@ -41,15 +39,13 @@ export const useProductFeed = createSharedComposable(() => {
         }
       }
 
-      const response = await axiosInstance.get<ProductFeedItem[]>('/social/feed', {
-        params: {
-          per_page: 10,
-          page,
-          type,
-        },
-      })
+      const response = await $api.utils.feed2({ page, per_page: 10, type })
 
-      return response.data
+      if (type === 'all' && page === 1 && response.length) {
+        localStorage.setItem('last_published_at', response[0]['Published Time'] as string)
+      }
+
+      return response
     } catch (error) {
       switch (type) {
         case 'youtube':
@@ -66,6 +62,39 @@ export const useProductFeed = createSharedComposable(() => {
       return []
     }
   }
+
+  const checkForNewFeed = async () => {
+    const lastPublishedAt = localStorage.getItem('last_published_at')
+
+    if (!lastPublishedAt) {
+      return
+    }
+
+    try {
+      const newFeeds = await $api.utils.feed({ last_published_at: lastPublishedAt })
+
+      newFeedCount.value = newFeeds as unknown as number
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const intervalId = ref()
+
+  const checkFeedWithInterval = async () => {
+    await checkForNewFeed()
+    intervalId.value = setTimeout(checkFeedWithInterval, 3 * 60 * 60 * 1000)
+  }
+
+  onMounted(() => {
+    if (appInfo.value.feedEnabled) {
+      checkFeedWithInterval()
+    }
+  })
+
+  onUnmounted(() => {
+    if (intervalId) clearTimeout(intervalId.value)
+  })
 
   return {
     isErrorOccurred,

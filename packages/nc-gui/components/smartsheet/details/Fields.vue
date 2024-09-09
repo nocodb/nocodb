@@ -61,7 +61,7 @@ const { aiIntegrationAvailable, aiLoading, predictNextFields, predictNextFormula
 
 const localMetaColumns = ref<ColumnType[] | undefined>([])
 
-const localPredictions = ref<string[] | undefined>([])
+const localPredictions = ref<string[]>([])
 
 const moveOps = ref<moveOp[]>([])
 
@@ -1030,6 +1030,9 @@ const onPredictNextFields = async (formula?: boolean) => {
 
   if (res.length) {
     for (const field of res) {
+      // skip if field already exists
+      if (fields.value.find((f) => f.title === field.title)) continue
+
       if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(field.type)) {
         if (field.options) {
           const options: {

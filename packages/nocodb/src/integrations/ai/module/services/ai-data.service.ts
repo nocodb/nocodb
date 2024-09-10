@@ -108,10 +108,7 @@ export class AiDataService {
       }),
     );
 
-    const integration = await Integration.getCategoryDefault(
-      context,
-      IntegrationCategoryType.AI,
-    );
+    const integration = await Integration.get(context, ai.fk_integration_id);
 
     if (!integration) {
       throw new Error('AI integration not found');
@@ -164,6 +161,7 @@ export class AiDataService {
           content: userMessage,
         },
       ],
+      ...(ai.model ? { customModel: ai.model } : {}),
     });
 
     await integration.storeInsert(context, req?.user?.id, usage);

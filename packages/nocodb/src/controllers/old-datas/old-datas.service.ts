@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { nocoExecute } from 'nc-help';
+import { nocoExecute } from '~/utils';
 import type { OldPathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import getAst from '~/helpers/getAst';

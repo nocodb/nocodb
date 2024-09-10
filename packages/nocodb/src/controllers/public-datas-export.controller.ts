@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { isSystemColumn, ViewTypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
-import { nocoExecute } from 'nc-help';
+import { nocoExecute } from '~/utils';
 import papaparse from 'papaparse';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';

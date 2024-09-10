@@ -1,6 +1,6 @@
 export const defaultLimitConfig = {
   limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
-  limitMin: Math.max(+process.env.DB_QUERY_LIMIT_MIN || 10, 10),
+  limitMin: Math.max(+process.env.DB_QUERY_LIMIT_MIN || 10, 1),
   limitMax: Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1),
 };
 

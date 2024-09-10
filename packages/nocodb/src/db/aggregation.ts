@@ -156,13 +156,15 @@ export default async function applyAggregation({
       break;
 
     case UITypes.Formula:
-      const formula = await column.getColOptions<FormulaColumn>(context);
-      if (formula.error) {
-        aggregation = CommonAggregations.None;
-      } else {
-        column_name_query = (
-          await baseModelSqlv2.getSelectQueryBuilderForFormula(column)
-        ).builder;
+      {
+        const formula = await column.getColOptions<FormulaColumn>(context);
+        if (formula.error) {
+          aggregation = CommonAggregations.None;
+        } else {
+          column_name_query = (
+            await baseModelSqlv2.getSelectQueryBuilderForFormula(column)
+          ).builder;
+        }
       }
       break;
 

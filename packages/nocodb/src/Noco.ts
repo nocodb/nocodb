@@ -2,7 +2,6 @@ import path from 'path';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
-import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 import { IoAdapter } from '@nestjs/platform-socket.io';
@@ -15,7 +14,7 @@ import type { Express } from 'express';
 import type http from 'http';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
-import { isEE } from '~/utils';
+import { isEE, T } from '~/utils';
 
 dotenv.config();
 

@@ -1,5 +1,4 @@
 import debug from 'debug';
-import { T } from 'nc-help';
 import boxen from 'boxen';
 import ncAttachmentUpgrader from './ncAttachmentUpgrader';
 import ncAttachmentUpgrader_0104002 from './ncAttachmentUpgrader_0104002';
@@ -14,6 +13,7 @@ import ncXcdbLTARIndexUpgrader from './ncXcdbLTARIndexUpgrader';
 import ncXcdbCreatedAndUpdatedSystemFieldsUpgrader from './ncXcdbCreatedAndUpdatedSystemFieldsUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcConfig } from '~/interface/config';
+import { T } from '~/utils';
 import { MetaTable, RootScopes } from '~/utils/globals';
 
 const log = debug('nc:version-upgrader');

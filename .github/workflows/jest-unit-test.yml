@@ -1,4 +1,4 @@
-name: "CI/CD"
+name: "NestJS Unit Test"
 on:
   push:
     branches: [develop]

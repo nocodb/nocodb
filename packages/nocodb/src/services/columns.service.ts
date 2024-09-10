@@ -364,6 +364,8 @@ export class ColumnsService {
       colOptions?: any;
       fk_webhook_id?: string;
       type?: 'webhook' | 'url';
+      prompt?: string;
+      prompt_raw?: string;
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
 
     if (
@@ -380,6 +382,7 @@ export class ColumnsService {
         UITypes.ForeignKey,
         UITypes.Links,
         UITypes.Button,
+        UITypes.AI,
       ].includes(column.uidt)
     ) {
       if (column.uidt === colBody.uidt) {
@@ -491,6 +494,33 @@ export class ColumnsService {
               NcError.badRequest('Webhook not found');
             }
           }
+
+          await Column.update(context, column.id, {
+            // title: colBody.title,
+            ...column,
+            ...colBody,
+          });
+        } else if (column.uidt === UITypes.AI) {
+          let prompt = '';
+
+          /*
+            Substitute column alias with id in prompt
+          */
+          if (colBody.prompt_raw) {
+            await table.getColumns(context);
+
+            prompt = colBody.prompt_raw.replace(/{{(.*?)}}/g, (match, p1) => {
+              const column = table.columns.find((c) => c.title === p1);
+
+              if (!column) {
+                NcError.badRequest(`Field '${p1}' not found`);
+              }
+
+              return `{${column.id}}`;
+            });
+          }
+
+          colBody.prompt = prompt;
 
           await Column.update(context, column.id, {
             // title: colBody.title,
@@ -1953,7 +1983,6 @@ export class ColumnsService {
         });
         break;
       }
-
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
       case UITypes.CreatedBy:
@@ -2219,6 +2248,33 @@ export class ColumnsService {
 
               colBody.cdf = ids.join(',');
             }
+          }
+
+          if (colBody.uidt === UITypes.AI) {
+            if (!colBody.fk_integration_id) {
+              NcError.badRequest('AI integration is required');
+            }
+
+            let prompt = '';
+
+            /*
+              Substitute column alias with id in prompt
+            */
+            if (colBody.prompt_raw) {
+              await table.getColumns(context);
+
+              prompt = colBody.prompt_raw.replace(/{{(.*?)}}/g, (match, p1) => {
+                const column = table.columns.find((c) => c.title === p1);
+
+                if (!column) {
+                  NcError.badRequest(`Field '${p1}' not found`);
+                }
+
+                return `{${column.id}}`;
+              });
+            }
+
+            colBody.prompt = prompt;
           }
 
           const tableUpdateBody = {

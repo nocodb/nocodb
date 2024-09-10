@@ -591,6 +591,7 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
           v-model:value="formState"
           :from-table-explorer="props.fromTableExplorer || false"
         />
+        <SmartsheetColumnAIOptions v-if="formState.uidt === UITypes.AI" v-model="formState" />
       </template>
       <template v-if="formState.uidt">
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
@@ -624,7 +625,8 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
           !isAttachment(formState) &&
           !isMssql(meta!.source_id) &&
           !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
-          !(isDatabricks(meta!.source_id) && formState.unique)
+          !(isDatabricks(meta!.source_id) && formState.unique) &&
+          !isAI(formState)
           "
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"

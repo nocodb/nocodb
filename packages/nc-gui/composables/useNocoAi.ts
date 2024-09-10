@@ -138,6 +138,23 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
+  const generatingRows = ref<string[]>([])
+
+  const generateRows = async (modelId: string, columnId: string, rowIds: string[]) => {
+    try {
+      aiLoading.value = true
+
+      const res = await $api.ai.dataGenerate(modelId, columnId, { rowIds })
+
+      aiLoading.value = false
+
+      return res
+    } catch (e) {
+      console.error(e)
+      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+    }
+  }
+
   return {
     aiIntegrationAvailable,
     aiLoading,
@@ -148,5 +165,7 @@ export const useNocoAi = createSharedComposable(() => {
     generateViews,
     predictNextTables,
     generateTables,
+    generateRows,
+    generatingRows,
   }
 })

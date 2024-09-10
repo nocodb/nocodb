@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
-import { isSystemColumn } from 'nocodb-sdk'
+import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import { NavigateDir } from '#imports'
 
 interface Props {
@@ -89,7 +89,11 @@ const vModel = computed({
     } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)
-      if (column.value.pk || column.value.unique) {
+      if (column.value.uidt === UITypes.AI) {
+        if (editEnabled.value) {
+          syncValue()
+        }
+      } else if (column.value.pk || column.value.unique) {
         updateWhenEditCompleted()
       } else if (isAutoSaved(column.value)) {
         syncValue()
@@ -202,6 +206,7 @@ const currentDate = () => {
       <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
       <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
       <LazyCellUser v-else-if="isUser(column)" v-model="vModel" :row-index="props.rowIndex" />
+      <LazyCellAI v-else-if="isAI(column)" v-model="vModel" @save="emit('save')" />
       <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
       <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
       <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />

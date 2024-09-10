@@ -844,6 +844,50 @@ const deleteSelectedRangeOfRows = () => {
   })
 }
 
+const isSelectedOnlyAI = computed(() => {
+  // selectedRange
+  if (selectedRange.start.col === selectedRange.end.col) {
+    const field = fields.value[selectedRange.start.col]
+    return field.uidt === UITypes.AI
+  }
+  return false
+})
+
+const { generateRows, generatingRows } = useNocoAi()
+
+const generateAIBulk = async () => {
+  if (!isSelectedOnlyAI.value || !meta?.value?.id || !meta.value.columns) return
+
+  const field = fields.value[selectedRange.start.col]
+
+  if (!field.id) return
+
+  const rows = dataRef.value.slice(selectedRange.start.row, selectedRange.end.row + 1)
+
+  if (!rows || rows.length === 0) return
+
+  const pks = rows.map((row) => extractPkFromRow(row.row, meta.value!.columns!)).filter((pk) => pk !== null)
+
+  generatingRows.value.push(...pks)
+
+  const res = await generateRows(meta.value.id, field.id, pks)
+
+  if (res) {
+    // find rows using pk and update with generated rows
+    for (const row of res) {
+      const oldRow = dataRef.value.find(
+        (r) => extractPkFromRow(r.row, meta.value!.columns!) === extractPkFromRow(row, meta.value!.columns!),
+      )
+
+      if (oldRow) {
+        oldRow.row = { ...oldRow.row, ...row }
+      }
+    }
+  }
+
+  generatingRows.value = generatingRows.value.filter((pk) => !pks.includes(pk))
+}
+
 const selectColumn = (columnId: string) => {
   // this is triggered with click event, so do nothing & clear resizingColumn flag if it's true
   if (resizingColumn.value) {
@@ -2311,6 +2355,19 @@ onKeyStroke('ArrowDown', onDown)
             <!--                {{ $t('activity.insertRow') }} -->
             <!--              </div> -->
             <!--            </NcMenuItem> -->
+
+            <NcMenuItem
+              v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && isSelectedOnlyAI"
+              class="nc-base-menu-item"
+              data-testid="context-menu-item-bulk"
+              @click="generateAIBulk"
+            >
+              <div class="flex gap-2 items-center">
+                <GeneralIcon icon="magic" />
+                <!-- Generate All -->
+                Generate {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+              </div>
+            </NcMenuItem>
 
             <NcMenuItem
               v-if="contextMenuTarget"

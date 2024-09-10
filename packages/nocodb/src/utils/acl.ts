@@ -167,6 +167,7 @@ const permissionScopes = {
     // AI
     'aiUtils',
     'aiSchema',
+    'aiData',
   ],
 };
 
@@ -290,6 +291,7 @@ const rolePermissions:
 
       // AI
       aiUtils: true,
+      aiData: true,
     },
   },
   [ProjectRoles.CREATOR]: {

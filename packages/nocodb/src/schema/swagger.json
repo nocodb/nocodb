@@ -18431,6 +18431,68 @@
         ]
       }
     },
+    "/api/v2/ai/:modelId/:columnId/generate": {
+      "post": {
+        "summary": "Generate AI Data",
+        "operationId": "ai-data-generate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {}
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Ai"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rowIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["rowIds"]
+              }
+            }
+          }
+        },
+        "description": "Generate AI data for specified rows",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "name": "modelId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Model ID"
+          },
+          {
+            "name": "columnId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Column ID"
+          }
+        ]
+      }
+    },
     "/api/v2/meta/integrations": {
       "get": {
         "summary": "List integrations",
@@ -19970,7 +20032,8 @@
               "Links",
               "User",
               "CreatedBy",
-              "LastModifiedBy"
+              "LastModifiedBy",
+              "Ai"
             ],
             "type": "string"
           },
@@ -23617,7 +23680,8 @@
               "Links",
               "User",
               "CreatedBy",
-              "LastModifiedBy"
+              "LastModifiedBy",
+              "Ai"
             ],
             "type": "string",
             "description": "UI Data Type"
@@ -27111,6 +27175,27 @@
           "order": {
             "type": "number",
             "description": "Order of the extension"
+          }
+        }
+      },
+      "AIRecord": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "description": "Value"
+          },
+          "lastModifiedBy": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Last Modified By User ID"
+          },
+          "lastModifiedTime": {
+            "type": "string",
+            "description": "Last Modified Time"
+          },
+          "isStale": {
+            "type": "boolean",
+            "description": "Is any referenced value updated?"
           }
         }
       }

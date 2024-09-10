@@ -38,6 +38,7 @@ export const isSpecificDBType = (column: ColumnType) => column.uidt === UITypes.
 export const isGeometry = (column: ColumnType) => column.uidt === UITypes.Geometry
 export const isUser = (column: ColumnType) => column.uidt === UITypes.User
 export const isButton = (column: ColumnType) => column.uidt === UITypes.Button
+export const isAI = (column: ColumnType) => column.uidt === UITypes.AI
 export const isAutoSaved = (column: ColumnType) =>
   [
     UITypes.SingleLineText,

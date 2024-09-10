@@ -44,6 +44,7 @@ enum UITypes {
   User = 'User',
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
+  AI = 'AI',
 }
 
 export const UITypesName = {
@@ -89,6 +90,7 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.AI]: 'AI',
 };
 
 export const FieldNameFromUITypes = {

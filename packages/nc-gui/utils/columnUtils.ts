@@ -3,6 +3,10 @@ import { RelationTypes, UITypes } from 'nocodb-sdk'
 
 const uiTypes = [
   {
+    name: UITypes.AI,
+    icon: iconMap.magic,
+  },
+  {
     name: UITypes.Links,
     icon: iconMap.cellLinks,
     virtual: 1,

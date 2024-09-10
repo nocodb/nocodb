@@ -1,7 +1,7 @@
-import { T } from 'nc-help';
 import { Injectable } from '@nestjs/common';
 import { DataSourceType } from 'nocodb-sdk';
 import type { WidgetReqType, WidgetUpdateReqType } from 'nocodb-sdk';
+import { T } from '~/utils';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import Layout from '~/models/Layout';

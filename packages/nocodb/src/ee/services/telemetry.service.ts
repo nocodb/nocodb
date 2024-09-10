@@ -1,10 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { packageInfo } from 'nc-help';
 import { PostHog } from 'posthog-node';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { ConfigService } from '@nestjs/config';
 import { Producer } from './producer/producer';
 import type { AppConfig, NcRequest } from '~/interface/config';
+import { packageInfo } from '~/utils';
 
 @Injectable()
 export class TelemetryService {

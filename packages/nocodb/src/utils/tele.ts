@@ -30,7 +30,7 @@ const sendEvt = () => {
 };
 setInterval(sendEvt, 8 * 60 * 60 * 1000);
 
-export class Tele {
+class Tele {
   static emitter;
   static machineId;
   static config: Record<string, any>;
@@ -88,7 +88,7 @@ export class Tele {
               global.NC_COUNT = msg.count;
             }
 
-            await axios.post('https://telemetry.nocodb.com/v1/telemetry', {
+            await axios.post('https://telemetry.nocodb.com/api/v1/telemetry', {
               ...teleData,
               evt_type: 'started',
               payload: {
@@ -125,7 +125,7 @@ export class Tele {
               global.NC_COUNT = +global.NC_COUNT || 1;
             }
 
-            await axios.post('https://telemetry.nocodb.com/v1/telemetry', {
+            await axios.post('https://telemetry.nocodb.com/api/v1/telemetry', {
               ...teleData,
               evt_type: payload.evt_type,
               payload: { ...instanceMeta, ...(payload || {}) },
@@ -156,7 +156,7 @@ export class Tele {
             };
             if (isDisabled) return;
             await axios.post(
-              'https://telemetry.nocodb.com/v1/telemetry/apis_created',
+              'https://telemetry.nocodb.com/api/v1/telemetry/apis_created',
               stats,
             );
           } catch (e) {}
@@ -166,7 +166,7 @@ export class Tele {
           try {
             if (isDisabled) return;
             await axios.post(
-              'https://telemetry.nocodb.com/v1/newsletter/sdhjh34u3yuy34bj343jhj4iwolaAdsdj3434uiut4nn',
+              'https://telemetry.nocodb.com/api/v1/newsletter/sdhjh34u3yuy34bj343jhj4iwolaAdsdj3434uiut4nn',
               {
                 email,
               },
@@ -250,8 +250,6 @@ export class Tele {
   }
 }
 
-export { Tele as T };
-
 async function waitForMachineId(teleData) {
   let i = 5;
   while (i-- && !teleData.machine_id) {
@@ -278,3 +276,5 @@ if (process.env.NC_ONE_CLICK) {
     });
   } catch {}
 }
+
+export { Tele };

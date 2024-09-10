@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { packageInfo } from '~/utils';
-import { T } from '~/utils';
+import { packageInfo, T } from '~/utils';
 
 @Injectable()
 export class TelemetryService {

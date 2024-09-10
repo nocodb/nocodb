@@ -1,6 +1,6 @@
-import { T } from '~/utils';
 import type { FactoryProvider } from '@nestjs/common';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
+import { T } from '~/utils';
 import { populatePluginsForCloud } from '~/utils/cloud/populateCloudPlugins';
 import { MetaService } from '~/meta/meta.service';
 import Noco from '~/Noco';

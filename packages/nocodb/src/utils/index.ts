@@ -3,7 +3,7 @@ export * from './sanitiseUserObj';
 export * from './emailUtils';
 export * from './circularReplacer';
 export * from './nocoExecute';
-export * from './Tele';
+export { Tele as T } from './tele';
 export * from './packageVersion';
 
 export const isEE = false;

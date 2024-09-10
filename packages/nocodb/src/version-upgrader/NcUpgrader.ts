@@ -1,5 +1,5 @@
 import debug from 'debug';
-import { T } from 'nc-help';
+import { T } from '~/utils';
 import boxen from 'boxen';
 import ncAttachmentUpgrader from './ncAttachmentUpgrader';
 import ncAttachmentUpgrader_0104002 from './ncAttachmentUpgrader_0104002';

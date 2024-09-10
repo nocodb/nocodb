@@ -3,7 +3,7 @@ import fs from 'fs';
 import { promisify } from 'util';
 import path from 'path';
 import { knex } from 'knex';
-import { T } from 'nc-help';
+import { T } from '~/utils';
 import findIndex from 'lodash/findIndex';
 import find from 'lodash/find';
 import jsonfile from 'jsonfile';

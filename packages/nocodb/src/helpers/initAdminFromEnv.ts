@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
-import { T } from 'nc-help';
+import { T } from '~/utils';
 import isEmail from 'validator/lib/isEmail';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';

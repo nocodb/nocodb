@@ -1,4 +1,4 @@
-import { T } from 'nc-help';
+import { T } from '~/utils';
 import type { Request } from 'express';
 
 const countMap = {};

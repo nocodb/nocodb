@@ -2,7 +2,7 @@ import path from 'path';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
-import { T } from 'nc-help';
+import { T } from '~/utils';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 import { IoAdapter } from '@nestjs/platform-socket.io';

@@ -7,14 +7,10 @@ const { isLoading } = useInfiniteScroll(
   scrollContainer,
   async () => {
     if (isLoading.value) return
-    const data = (
-      await loadFeed({
-        type: 'all',
-        loadMore: true,
-      })
-    ).filter((item) => item['Feed Source'] !== 'Twitter')
-
-    socialFeed.value = [...socialFeed.value, ...data]
+    await loadFeed({
+      type: 'all',
+      loadMore: true,
+    })
   },
   { distance: 1, interval: 2000 },
 )

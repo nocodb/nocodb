@@ -45,7 +45,17 @@ export const useProductFeed = createSharedComposable(() => {
         localStorage.setItem('last_published_at', response[0]['Published Time'] as string)
       }
 
-      return response
+      switch (type) {
+        case 'youtube':
+          youtubeFeed.value = [...youtubeFeed.value, ...response] as ProductFeedItem[]
+          break
+        case 'github':
+          githubFeed.value = [...githubFeed.value, ...response] as ProductFeedItem[]
+          break
+        case 'all':
+          socialFeed.value = [...socialFeed.value, ...response] as ProductFeedItem[]
+          break
+      }
     } catch (error) {
       switch (type) {
         case 'youtube':

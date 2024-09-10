@@ -509,13 +509,16 @@ export class UtilsService {
     let response;
 
     try {
-      response = await axios.get('https://nocodb.com/api/v1/social/feed', {
-        params: {
-          per_page,
-          page,
-          type,
+      response = await axios.get(
+        'http://product-feed.nocodb.com/v1/social/feed',
+        {
+          params: {
+            per_page,
+            page,
+            type,
+          },
         },
-      });
+      );
     } catch (e) {
       console.log(e);
       return [];

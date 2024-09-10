@@ -2,15 +2,19 @@
 import dayjs from 'dayjs'
 
 const { navigateToFeed } = useWorkspace()
-const { loadFeed } = useProductFeed()
+const productFeed = useProductFeed()
 
-const isNewFeedAvailable = ref(true)
+const { loadFeed } = productFeed
+
+const { socialFeed } = toRefs(productFeed)
+
+const isNewFeedAvailable = ref(false)
 
 const checkNewFeed = async () => {
-  const feed = await loadFeed({ type: 'all', loadMore: false })
-  if (!feed.length) return
+  await loadFeed({ type: 'all', loadMore: false })
+  if (!socialFeed.value.length) return
 
-  const [latestFeed] = feed
+  const [latestFeed] = socialFeed.value
   const lastFeedTime = localStorage.getItem('lastFeedPublishedTime')
   const lastFeed = dayjs(lastFeedTime)
 

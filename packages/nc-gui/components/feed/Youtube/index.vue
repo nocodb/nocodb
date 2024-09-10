@@ -7,11 +7,10 @@ const { isLoading } = useInfiniteScroll(
   scrollContainer,
   async () => {
     if (isLoading.value) return
-    const data = await loadFeed({
+    await loadFeed({
       type: 'youtube',
       loadMore: true,
     })
-    youtubeFeed.value = [...youtubeFeed.value, ...data]
   },
   { distance: 1, interval: 2000 },
 )

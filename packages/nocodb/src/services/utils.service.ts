@@ -510,7 +510,7 @@ export class UtilsService {
 
     try {
       response = await axios.get(
-        'http://product-feed.nocodb.com/v1/social/feed',
+        'https://product-feed.nocodb.com/api/v1/social/feed',
         {
           params: {
             per_page,

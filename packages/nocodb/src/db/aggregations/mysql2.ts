@@ -1,4 +1,5 @@
 import {
+  AllAggregations,
   AttachmentAggregations,
   BooleanAggregations,
   CommonAggregations,
@@ -395,6 +396,14 @@ export function genMysql2AggregatedQuery({
   }
 
   if (alias && aggregationSql) {
+    if (
+      ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
+        aggregation as any,
+      )
+    ) {
+      aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
+    }
+
     aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
   }
 

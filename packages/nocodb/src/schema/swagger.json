@@ -16015,7 +16015,7 @@
         ]
       }
     },
-    "/api/v1/new-feed": {
+    "/api/v2/new-feed": {
       "get": {
         "summary": "Get Feed",
         "operationId": "utils-feed",
@@ -16042,7 +16042,7 @@
         ]
       }
     },
-    "/api/v1/feed": {
+    "/api/v2/feed": {
       "get": {
         "summary": "Get Feed",
         "operationId": "utils-feed",

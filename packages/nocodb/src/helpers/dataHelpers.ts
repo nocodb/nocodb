@@ -1,4 +1,4 @@
-import { nocoExecute } from 'nc-help';
+import { nocoExecute } from '~/utils';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';

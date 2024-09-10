@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
 import equal from 'fast-deep-equal';
-import { nocoExecute } from 'nc-help';
+import { nocoExecute } from '~/utils';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,

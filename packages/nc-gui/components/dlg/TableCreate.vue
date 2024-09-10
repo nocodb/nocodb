@@ -267,7 +267,8 @@ useEventListener('dblclick', fullAuto)
     v-model:visible="dialogShow"
     :show-separator="false"
     :header="$t('activity.createTable')"
-    size="small"
+    size="sm"
+    height="auto"
     @keydown.esc="dialogShow = false"
   >
     <template #header>
@@ -339,6 +340,8 @@ useEventListener('dblclick', fullAuto)
               <GeneralIcon icon="magic" class="text-xs text-yellow-300 m-[2px]" :class="{ 'text-yellow-500': aiMode }" />
             </div>
           </a-form-item>
+
+          <!-- Ai table wizard  -->
 
           <template v-if="aiMode">
             <div

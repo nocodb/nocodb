@@ -20033,7 +20033,7 @@
               "User",
               "CreatedBy",
               "LastModifiedBy",
-              "Ai"
+              "AI"
             ],
             "type": "string"
           },
@@ -23681,7 +23681,7 @@
               "User",
               "CreatedBy",
               "LastModifiedBy",
-              "Ai"
+              "AI"
             ],
             "type": "string",
             "description": "UI Data Type"

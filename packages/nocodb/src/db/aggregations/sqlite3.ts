@@ -1,4 +1,5 @@
 import {
+  AllAggregations,
   AttachmentAggregations,
   BooleanAggregations,
   CommonAggregations,
@@ -327,16 +328,7 @@ export function genSqlite3AggregateQuery({
         break;
       case NumericalAggregations.Median:
         aggregationSql = knex.raw(
-          `(
-        SELECT AVG((??))
-        FROM (
-          SELECT (??)
-          FROM ??
-          ORDER BY (??)
-          LIMIT 2 - (SELECT COUNT(*) FROM ??) % 2    -- Handle even/odd number of rows
-          OFFSET (SELECT (COUNT(*) - 1) / 2 FROM ??) -- Calculate the median offset
-        )
-      )`,
+          `(SELECT AVG((??)) FROM (SELECT (??) FROM ?? ORDER BY (??) LIMIT 2 - (SELECT COUNT(*) FROM ??) % 2 OFFSET (SELECT (COUNT(*) - 1) / 2 FROM ??)))`,
           [
             column_query,
             column_query,
@@ -394,8 +386,7 @@ export function genSqlite3AggregateQuery({
         break;
       case DateAggregations.MonthRange:
         aggregationSql = knex.raw(
-          `((strftime('%Y', MAX(??)) * 12 + strftime('%m', MAX(??))) - 
-        (strftime('%Y', MIN(??)) * 12 + strftime('%m', MIN(??))))`,
+          `((strftime('%Y', MAX(??)) * 12 + strftime('%m', MAX(??))) - (strftime('%Y', MIN(??)) * 12 + strftime('%m', MIN(??))))`,
           [column_query, column_query, column_query, column_query],
         );
         break;
@@ -406,8 +397,7 @@ export function genSqlite3AggregateQuery({
     switch (aggregation) {
       case AttachmentAggregations.AttachmentSize:
         aggregationSql = knex.raw(
-          `(SELECT SUM(CAST(json_extract(value, '$.size') AS INTEGER)) 
-       FROM ??, json_each(??))`,
+          `(SELECT SUM(CAST(json_extract(value, '$.size') AS INTEGER)) FROM ??, json_each(??))`,
           [baseModelSqlv2.tnPath, column_query],
         );
         break;
@@ -417,6 +407,13 @@ export function genSqlite3AggregateQuery({
   }
 
   if (alias && aggregationSql) {
+    if (
+      ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
+        aggregation as any,
+      )
+    ) {
+      aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
+    }
     aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
   }
 

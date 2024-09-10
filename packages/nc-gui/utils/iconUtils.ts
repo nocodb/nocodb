@@ -568,6 +568,9 @@ import NcInfoSolid from '~icons/nc-icons/info-solid'
 import NcPlaceholderIcon from '~icons/nc-icons/placeholder-icon'
 import NcSpanner from '~icons/nc-icons/spanner'
 import NcScript from '~icons/nc-icons/script'
+import NcAutoAwesome from '~icons/nc-icons/auto-awesome'
+import NcPlusAi from '~icons/nc-icons/plus-ai'
+import NcPlusMultiple from '~icons/nc-icons/plus-multiple'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1353,6 +1356,9 @@ export const iconMap = {
   ncSpanner: NcSpanner,
   ncScript: NcScript,
   youtube: NcYoutube2Icon,
+  ncAutoAwesome: h(NcAutoAwesome, { stroke: 'transparent' }),
+  ncPlusAi: NcPlusAi,
+  ncPlusMultiple: NcPlusMultiple,
 }
 
 export const getMdiIcon = (type: string): any => {

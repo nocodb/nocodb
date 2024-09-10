@@ -292,7 +292,7 @@ useEventListener('dblclick', fullAuto)
         @keydown.esc="dialogShow = false"
       >
         <div class="flex flex-col gap-5">
-          <a-form-item v-bind="aiMode ? {} : validateInfos.title">
+          <a-form-item v-bind="aiMode ? {} : validateInfos.title" class="relative">
             <a-input
               v-if="!aiMode"
               ref="inputEl"
@@ -312,32 +312,17 @@ useEventListener('dblclick', fullAuto)
               :placeholder="selectedTables.length ? '' : 'Enter table names or choose from suggestions'"
             />
             <!-- overlay selected tags with close icon on input -->
-            <div
-              v-if="aiMode"
-              class="absolute top-0 right-0 flex mt-1.5 mr-[35px] max-w-[200px] nc-scrollbar-thin overflow-x-auto"
-            >
+            <div v-if="aiMode" class="absolute top-0 right-0 left-0 flex mt-1 mx-2 nc-scrollbar-thin overflow-x-auto">
               <a-tag
                 v-for="t in selectedTables"
                 :key="t"
-                class="cursor-pointer !rounded-lg !bg-purple-500 !border-1 !border-purple-500"
+                class="cursor-pointer !rounded-md !bg-nc-bg-purple-light !text-nc-content-purple-dark !border-none font-semibold"
               >
-                <div class="flex flex-row items-center gap-1 text-white">
+                <div class="flex flex-row items-center gap-1 py-0.5">
                   <span>{{ t }}</span>
                   <GeneralIcon icon="close" class="text-xs cursor-pointer mt-0.5" @click="onTagClose(t)" />
                 </div>
               </a-tag>
-            </div>
-            <!-- Black overlay button on end of input -->
-            <div
-              v-if="aiIntegrationAvailable"
-              class="absolute right-0 top-0 w-[30px] rounded-r-lg h-full flex items-center justify-center"
-              :class="{
-                'cursor-pointer bg-purple-200 hover:shadow': !aiMode,
-                'bg-purple-500': aiMode,
-              }"
-              @click="toggleAiMode"
-            >
-              <GeneralIcon icon="magic" class="text-xs text-yellow-300 m-[2px]" :class="{ 'text-yellow-500': aiMode }" />
             </div>
           </a-form-item>
 
@@ -400,7 +385,7 @@ useEventListener('dblclick', fullAuto)
                 <a-tag
                   v-for="t in predictedTables"
                   :key="t"
-                  class="cursor-pointer !rounded-lg !bg-purple-100 !border-1 !border-purple-500"
+                  class="cursor-pointer !rounded-md !bg-purple-100 !border-1 !border-purple-500"
                   @click="onTagClick(t)"
                 >
                   {{ t }}
@@ -408,6 +393,69 @@ useEventListener('dblclick', fullAuto)
               </div>
             </div>
           </template>
+
+          <AiWizardCard>
+            <template #title> AI Table Wizard </template>
+            <template #subtitle>
+              <div v-if="aiModeStep === AiStep.init">
+                <div>Noco AI is analyzing to suggest the best table configuration.</div>
+                <div>Please wait as we prepare your customized fields.</div>
+              </div>
+              <div v-if="aiModeStep === AiStep.pick">Click on each AI-generated table to accept the automatic suggestions.</div>
+              <div v-else>Create AI-generated table(s) including fields optimized for {{ base?.title }}</div>
+            </template>
+
+            <template #tags>
+              <a-tag
+                v-for="t in predictedTables"
+                :key="t"
+                class="cursor-pointer !rounded-md !bg-nc-bg-purple-dark !text-nc-content-purple-dark !mx-0"
+                @click="onTagClick(t)"
+              >
+                {{ t }}
+              </a-tag>
+            </template>
+
+            <template #footer>
+              <div class="flex-1 flex items-center justify-end gap-2">
+                <NcButton
+                  v-if="aiModeStep === AiStep.init || true"
+                  size="xs"
+                  class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
+                  type="secondary"
+                  loading
+                >
+                  <div class="flex items-center gap-2">Generating Tables</div>
+                </NcButton>
+                <NcButton
+                  v-else-if="aiModeStep === AiStep.pick"
+                  size="xs"
+                  class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
+                  type="secondary"
+                  @click="onSelectAll"
+                >
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="ncPlusMultiple" class="flex-none" />
+
+                    Accept All Tables
+                  </div>
+                </NcButton>
+                <NcButton
+                  v-else
+                  size="xs"
+                  class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
+                  type="secondary"
+                  @click="toggleAiMode"
+                >
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="ncZap" class="flex-none" />
+
+                    Auto Suggest Tables
+                  </div>
+                </NcButton>
+              </div>
+            </template>
+          </AiWizardCard>
 
           <a-form-item
             v-if="enableDescription"

@@ -186,9 +186,9 @@ function roundUpToPrecision(number: number, precision: number = 0) {
     let pair = `${number}e`.split('e');
     const value = Math.round(Number(`${pair[0]}e${+pair[1] + precision}`));
     pair = `${value}e`.split('e');
-    return +`${pair[0]}e${+pair[1] - precision}`;
+    return (+`${pair[0]}e${+pair[1] - precision}`).toFixed(precision);
   }
-  return Math.round(number);
+  return Math.round(number).toFixed(precision);
 }
 
 export {

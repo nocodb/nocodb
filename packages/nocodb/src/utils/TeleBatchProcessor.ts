@@ -1,4 +1,4 @@
-const axios = require('axios');
+import axios from 'axios';
 
 // This class is used to batch process telemetry data
 class TeleBatchProcessor {
@@ -13,7 +13,7 @@ class TeleBatchProcessor {
     this.flushInterval = flushInterval;
   }
 
-  capture(item) {
+  capture(item: Record<string, any>) {
     this.batch.push(item);
 
     if (this.batch.length >= this.flushAt) {

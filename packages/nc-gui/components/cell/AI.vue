@@ -2,7 +2,7 @@
 import type { AIRecordType } from 'nocodb-sdk'
 
 interface Props {
-  modelValue?: AIRecordType | string | null
+  modelValue?: AIRecordType | null
 }
 
 const props = defineProps<Props>()
@@ -23,28 +23,12 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const aiRecordMeta = ref<AIRecordType>({})
+const isAiEdited = ref(false)
 
 const pk = computed(() => {
   if (!meta.value?.columns) return
   return extractPkFromRow(unref(row).row, meta.value.columns)
 })
-
-const handleDataChange = () => {
-  if (vModel.value) {
-    if (typeof vModel.value === 'string') {
-      aiRecordMeta.value = {
-        value: vModel.value,
-      }
-    } else {
-      aiRecordMeta.value = {
-        ...vModel.value,
-      }
-
-      vModel.value = aiRecordMeta.value.value
-    }
-  }
-}
 
 const generate = async () => {
   if (!meta?.value?.id || !meta.value.columns || !column?.value?.id) return
@@ -59,19 +43,21 @@ const generate = async () => {
     const row = res[0]
     const obj: AIRecordType = row[column.value.title!]
     if (obj && typeof obj === 'object') {
-      vModel.value = obj.value
-      aiRecordMeta.value = {
-        ...obj,
-      }
+      vModel.value = obj
+      nextTick(() => {
+        isAiEdited.value = false
+      })
     }
   }
 
   generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)
 }
 
-onMounted(() => {
-  handleDataChange()
-})
+const handleSave = () => {
+  emits('save')
+}
+
+const debouncedSave = useDebounceFn(handleSave, 1000)
 </script>
 
 <template>
@@ -91,10 +77,12 @@ onMounted(() => {
   </div>
 
   <LazyCellTextArea
-    v-else-if="typeof vModel === 'string'"
-    v-model="vModel"
+    v-else-if="vModel"
+    v-model="vModel.value"
+    v-model:is-ai-edited="isAiEdited"
     :is-ai="true"
-    :ai-meta="aiRecordMeta"
+    :ai-meta="vModel"
+    @update:model-value="debouncedSave"
     @generate="generate"
     @close="editEnabled = false"
   />

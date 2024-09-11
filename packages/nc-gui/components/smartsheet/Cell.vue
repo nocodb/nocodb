@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
-import { UITypes, isSystemColumn } from 'nocodb-sdk'
+import { isSystemColumn } from 'nocodb-sdk'
 import { NavigateDir } from '#imports'
 
 interface Props {
@@ -89,11 +89,7 @@ const vModel = computed({
     } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
       emit('update:modelValue', val)
-      if (column.value.uidt === UITypes.AI) {
-        if (editEnabled.value) {
-          syncValue()
-        }
-      } else if (column.value.pk || column.value.unique) {
+      if (column.value.pk || column.value.unique) {
         updateWhenEditCompleted()
       } else if (isAutoSaved(column.value)) {
         syncValue()

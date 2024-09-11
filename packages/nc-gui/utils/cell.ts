@@ -57,7 +57,7 @@ export const isAutoSaved = (column: ColumnType) =>
     UITypes.Duration,
   ].includes(column.uidt as UITypes)
 
-export const isManualSaved = (column: ColumnType) => [UITypes.Currency].includes(column.uidt as UITypes)
+export const isManualSaved = (column: ColumnType) => [UITypes.Currency, UITypes.AI].includes(column.uidt as UITypes)
 
 export const isPrimary = (column: ColumnType) => !!column.pv
 

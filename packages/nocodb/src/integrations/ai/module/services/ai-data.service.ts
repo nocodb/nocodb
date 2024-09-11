@@ -47,7 +47,7 @@ export class AiDataService {
 
     await model.getColumns(context);
 
-    const column = model.columns.find((c) => c.id === columnId);
+    const column = model.columnsById[columnId];
 
     if (!column) {
       NcError.fieldNotFound(columnId);
@@ -68,7 +68,7 @@ export class AiDataService {
     }
 
     const promptTemplate = ai.prompt.replace(/{(.*?)}/g, (match, p1) => {
-      const column = model.columns.find((c) => c.id === p1);
+      const column = model.columnsById[p1];
 
       if (!column) {
         NcError.badRequest(`Field '${p1}' not found`);

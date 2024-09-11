@@ -1486,7 +1486,7 @@ class BaseModelSqlv2 {
       let viewColumns = (
         await GridViewColumn.list(this.context, this.viewId)
       ).filter((c) => {
-        const col = columns.find((col) => col.id === c.fk_column_id);
+        const col = this.model.columnsById[c.fk_column_id];
         return c.show && (view.show_system_fields || !isSystemColumn(col));
       });
 
@@ -1517,7 +1517,7 @@ class BaseModelSqlv2 {
 
       // Construct aggregate expressions for each view column
       for (const viewColumn of viewColumns) {
-        const col = columns.find((c) => c.id === viewColumn.fk_column_id);
+        const col = this.model.columnsById[viewColumn.fk_column_id];
         if (
           !col ||
           !viewColumn.aggregation ||
@@ -1667,7 +1667,7 @@ class BaseModelSqlv2 {
       let viewColumns = (
         await GridViewColumn.list(this.context, this.viewId)
       ).filter((c) => {
-        const col = columns.find((col) => col.id === c.fk_column_id);
+        const col = this.model.columnsById[c.fk_column_id];
         return c.show && (view.show_system_fields || !isSystemColumn(col));
       });
 
@@ -6909,8 +6909,8 @@ class BaseModelSqlv2 {
     onlyUpdateAuditLogs?: boolean;
     prevData?: Record<string, any>;
   }) {
-    const columns = await this.model.getColumns(this.context);
-    const column = columns.find((c) => c.id === colId);
+    await this.model.getColumns(this.context);
+    const column = this.model.columnsById[colId];
 
     if (
       !column ||
@@ -7612,8 +7612,8 @@ class BaseModelSqlv2 {
     childId: string;
     cookie?: any;
   }) {
-    const columns = await this.model.getColumns(this.context);
-    const column = columns.find((c) => c.id === colId);
+    await this.model.getColumns(this.context);
+    const column = this.model.columnsById[colId];
     if (
       !column ||
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
@@ -8885,8 +8885,8 @@ class BaseModelSqlv2 {
     colId: string;
     rowId: string;
   }) {
-    const columns = await this.model.getColumns(this.context);
-    const column = columns.find((c) => c.id === colId);
+    await this.model.getColumns(this.context);
+    const column = this.model.columnsById[colId];
 
     if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
 
@@ -9275,8 +9275,8 @@ class BaseModelSqlv2 {
     colId: string;
     rowId: string;
   }) {
-    const columns = await this.model.getColumns(this.context);
-    const column = columns.find((c) => c.id === colId);
+    await this.model.getColumns(this.context);
+    const column = this.model.columnsById[colId];
 
     if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
 
@@ -9631,12 +9631,12 @@ class BaseModelSqlv2 {
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
     try {
-      const columns = await this.model.getColumns(this.context);
+      await this.model.getColumns(this.context);
 
       const { where, sort } = this._getListArgs(args as any);
       // todo: get only required fields
 
-      const relColumn = columns.find((c) => c.id === colId);
+      const relColumn = this.model.columnsById[colId];
 
       const row = await this.execAndParse(
         this.dbDriver(this.tnPath).where(await this._wherePk(id)),
@@ -9750,6 +9750,7 @@ class BaseModelSqlv2 {
     data,
     isInsertData = false,
     cookie?: { user?: any; system?: boolean },
+    // oldData uses title as key where as data uses column_name as key
     oldData?,
   ) {
     for (const column of this.model.columns) {
@@ -10034,6 +10035,12 @@ class BaseModelSqlv2 {
         }
       } else if (UITypes.AI === column.uidt) {
         if (data[column.column_name]) {
+          let value = data[column.column_name];
+
+          if (typeof value === 'object') {
+            value = value.value;
+          }
+
           const obj: {
             value?: string;
             lastModifiedBy?: string;
@@ -10043,7 +10050,7 @@ class BaseModelSqlv2 {
 
           if (cookie?.system === true) {
             Object.assign(obj, {
-              value: data[column.column_name],
+              value,
               lastModifiedBy: null,
               lastModifiedTime: null,
               isStale: false,
@@ -10052,7 +10059,7 @@ class BaseModelSqlv2 {
             const oldObj = oldData?.[column.title];
             const isStale = oldObj ? oldObj.isStale : false;
             Object.assign(obj, {
-              value: data[column.column_name],
+              value,
               lastModifiedBy: cookie?.user?.id,
               lastModifiedTime: this.now(),
               isStale,
@@ -10061,6 +10068,38 @@ class BaseModelSqlv2 {
 
           data[column.column_name] = JSON.stringify(obj);
         }
+      }
+    }
+
+    // AI column isStale handling
+    const aiColumns = this.model.columns.filter((c) => c.uidt === UITypes.AI);
+
+    for (const aiColumn of aiColumns) {
+      if (
+        !oldData ||
+        !oldData[aiColumn.title] ||
+        oldData[aiColumn.title]?.isStale === true
+      ) {
+        continue;
+      }
+
+      const oldAiData = data[aiColumn.column_name]
+        ? JSON.parse(data[aiColumn.column_name])
+        : oldData[aiColumn.title];
+
+      const referencedColumnIds = aiColumn.colOptions.prompt
+        .match(/{(.*?)}/g)
+        .map((id) => id.replace(/{|}/g, ''));
+
+      const referencedColumns = referencedColumnIds.map(
+        (id) => this.model.columnsById[id],
+      );
+
+      if (referencedColumns.some((c) => c.column_name in data)) {
+        data[aiColumn.column_name] = JSON.stringify({
+          ...oldAiData,
+          isStale: true,
+        });
       }
     }
   }

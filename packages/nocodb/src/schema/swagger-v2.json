@@ -10,51 +10,30 @@
   },
   "x-tagGroups": [
     {
-      "name": "Auth APIs",
-      "tags": [
-        "Auth",
-        "API Token"
-      ]
-    },
-    {
-      "name": "Public APIs",
-      "tags": [
-        "Public"
-      ]
-    },
-    {
-      "name": "Data APIs",
-      "tags": [
-        "DB Table Row",
-        "DB View Row",
-        "Storage"
-      ]
-    },
-    {
       "name": "Meta APIs",
       "tags": [
-        "Source",
-        "DB Table",
-        "DB Table Column",
-        "DB Table Filter",
-        "DB Table Sort",
-        "DB Table Webhook",
-        "DB Table Webhook Filter",
-        "DB View",
-        "DB View Column",
-        "DB View Share",
-        "Plugin",
-        "Base",
-        "Utils"
+        "Bases",
+        "Sources",
+        "Tables",
+        "Views",
+        "Fields",
+        "Filters",
+        "Sorts"
       ]
     },
     {
-      "name": "Organisation APIs",
+      "name": "Collaboration APIs",
       "tags": [
-        "Org App Settings",
-        "Org License",
-        "Org Tokens",
-        "Org Users"
+        "Users",
+        "Comments",
+        "Shared Views"
+      ]
+    },
+    {
+      "name": "Automation",
+      "tags": [
+        "Webhooks",
+        "API Tokens"
       ]
     }
   ],
@@ -132,7 +111,7 @@
         },
         "description": "List all users in the given base.",
         "tags": [
-          "Auth"
+          "Auth", "Users"
         ],
         "parameters": [
           {
@@ -265,7 +244,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Auth", "Users"
         ],
         "description": "Create a user and add it to the given base",
         "parameters": [
@@ -364,7 +343,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Base", "Bases"
         ],
         "description": "Get info such as node version, arch, platform, is docker, rootdb and package version of a given base",
         "parameters": [
@@ -451,7 +430,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Auth", "Users"
         ],
         "description": "Update a given user in a given base. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
@@ -496,7 +475,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Auth", "Users"
         ],
         "description": "Delete a given user in a given base. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
@@ -578,7 +557,7 @@
         },
         "description": "Hide / show views based on user role",
         "tags": [
-          "Base"
+          "Base", "Internal"
         ],
         "parameters": [
           {
@@ -650,7 +629,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Base", "Internal"
         ],
         "description": "Hide / show views based on user role",
         "parameters": [
@@ -736,7 +715,7 @@
           }
         ],
         "tags": [
-          "Base"
+          "Base", "Bases"
         ]
       },
       "post": {
@@ -814,7 +793,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Base", "Bases"
         ],
         "description": "Create a new base",
         "parameters": [
@@ -1042,7 +1021,7 @@
           }
         ],
         "tags": [
-          "Base"
+          "Base", "Bases"
         ],
         "responses": {
           "200": {
@@ -1116,7 +1095,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Base", "Bases"
         ],
         "description": "Delete the given base",
         "parameters": [
@@ -1150,7 +1129,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Base", "Bases"
         ],
         "requestBody": {
           "content": {
@@ -1199,7 +1178,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Base", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -1246,7 +1225,7 @@
           }
         ],
         "tags": [
-          "Source"
+          "Source", "Sources"
         ],
         "responses": {
           "200": {
@@ -1415,7 +1394,7 @@
           }
         ],
         "tags": [
-          "Source"
+          "Source", "Sources"
         ],
         "responses": {
           "200": {
@@ -1520,7 +1499,7 @@
           }
         },
         "tags": [
-          "Source"
+          "Source", "Sources"
         ],
         "description": "Create a new source on a given base",
         "parameters": [
@@ -1553,7 +1532,7 @@
         "summary": "share ERD view",
         "operationId": "source-share-erd",
         "tags": [
-          "Source"
+          "Source", "Internal"
         ],
         "responses": {
           "200": {
@@ -1577,7 +1556,7 @@
           }
         },
         "tags": [
-          "Source"
+          "Source", "Internal"
         ]
       }
     },
@@ -1605,7 +1584,7 @@
           }
         ],
         "tags": [
-          "Base"
+          "Base", "Shared Base"
         ],
         "responses": {
           "200": {
@@ -1671,7 +1650,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Base", "Shared Base"
         ],
         "description": "Delete Base Shared Base",
         "parameters": [
@@ -1707,7 +1686,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Base", "Shared Base"
         ],
         "requestBody": {
           "content": {
@@ -1784,7 +1763,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Base", "Shared Base"
         ],
         "description": "Update Base Shared Base",
         "parameters": [
@@ -1818,7 +1797,7 @@
           }
         ],
         "tags": [
-          "Base"
+          "Base", "Internal"
         ],
         "responses": {
           "200": {
@@ -2239,7 +2218,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB Table", "Tables"
         ],
         "description": "Create a new table in a given base",
         "parameters": [
@@ -2293,7 +2272,7 @@
           }
         ],
         "tags": [
-          "DB Table"
+          "DB Table", "Tables"
         ],
         "description": "List all tables in a given base"
       }
@@ -2689,7 +2668,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB Table", "Tables"
         ],
         "description": "Read the table meta data by the given table ID",
         "parameters": [
@@ -2733,7 +2712,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB Table", "Tables"
         ],
         "requestBody": {
           "content": {
@@ -2805,7 +2784,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB Table", "Tables"
         ],
         "description": "Delete the table meta data by the given table ID",
         "parameters": [
@@ -2879,7 +2858,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB Table", "Internal"
         ],
         "description": "Duplicate a table",
         "parameters": [
@@ -2980,7 +2959,7 @@
           }
         ],
         "tags": [
-          "Source"
+          "Source", "Sources"
         ],
         "description": "List all tables in a given Base and Source"
       },
@@ -3472,7 +3451,7 @@
           }
         },
         "tags": [
-          "Source"
+          "Source", "Sources"
         ],
         "description": "Create a new table in a given Base and Source",
         "parameters": [
@@ -3541,7 +3520,7 @@
           }
         },
         "tags": [
-          "DB Table"
+          "DB Table", "Internal"
         ],
         "description": "Update the order of the given Table",
         "parameters": [
@@ -3624,7 +3603,7 @@
           }
         },
         "tags": [
-          "DB Table Column"
+          "DB Table Column", "Fields"
         ],
         "description": "Create a new column in a given Table",
         "parameters": [
@@ -3673,7 +3652,7 @@
           }
         },
         "tags": [
-          "DB Table Column"
+          "DB Table Column", "Fields"
         ],
         "description": "Update the existing column by the given column ID",
         "parameters": [
@@ -3694,7 +3673,7 @@
           }
         },
         "tags": [
-          "DB Table Column"
+          "DB Table Column", "Fields"
         ],
         "description": "Delete the existing column by the given column ID",
         "parameters": [
@@ -3715,7 +3694,7 @@
           }
         },
         "tags": [
-          "DB Table Column"
+          "DB Table Column", "Fields"
         ],
         "description": "Get the existing column by the given column ID",
         "parameters": [
@@ -3760,7 +3739,7 @@
           }
         },
         "tags": [
-          "DB Table Column"
+          "DB Table Column", "Fields"
         ],
         "description": "Set a primary value on a given column",
         "parameters": [
@@ -3882,7 +3861,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "description": "List all views in a given Table.",
         "parameters": [
@@ -3968,7 +3947,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Internal"
         ],
         "description": "Update the view with the given view Id.",
         "parameters": [
@@ -4001,7 +3980,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "description": "Delete the view with the given view Id.",
         "parameters": [
@@ -4048,7 +4027,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Internal"
         ],
         "description": "Show All Columns in a given View",
         "parameters": [
@@ -4102,7 +4081,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Internal"
         ],
         "parameters": [
           {
@@ -4195,7 +4174,7 @@
         },
         "description": "List all shared views in a given Table",
         "tags": [
-          "DB View Share"
+          "DB View Share", "Shared Views"
         ],
         "parameters": [
           {
@@ -4244,7 +4223,7 @@
           }
         },
         "tags": [
-          "DB View Share"
+          "DB View Share", "Shared Views"
         ],
         "description": "Create a shared view in a given View..",
         "parameters": [
@@ -4282,7 +4261,7 @@
           "description": ""
         },
         "tags": [
-          "DB View Share"
+          "DB View Share", "Shared Views"
         ],
         "description": "Update a shared view in a given View..",
         "parameters": [
@@ -4316,7 +4295,7 @@
         },
         "description": "Delete a shared view in a given View.",
         "tags": [
-          "DB View Share"
+          "DB View Share", "Shared Views"
         ],
         "parameters": [
           {
@@ -4408,7 +4387,7 @@
           }
         },
         "tags": [
-          "DB View Column"
+          "DB View Column", "Views"
         ],
         "description": "List all columns by ViewID",
         "parameters": [
@@ -4476,7 +4455,7 @@
           }
         },
         "tags": [
-          "DB View Column"
+          "DB View Column", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -4551,7 +4530,7 @@
           }
         },
         "tags": [
-          "DB View Column"
+          "DB View Column", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -4634,7 +4613,7 @@
           }
         },
         "tags": [
-          "DB Table Sort"
+          "DB Table Sort", "Sorts"
         ],
         "description": "List all the sort data in a given View",
         "parameters": [
@@ -4667,7 +4646,7 @@
           }
         },
         "tags": [
-          "DB Table Sort"
+          "DB Table Sort", "Sorts"
         ],
         "requestBody": {
           "content": {
@@ -4745,7 +4724,7 @@
           }
         },
         "tags": [
-          "DB Table Sort"
+          "DB Table Sort", "Sorts"
         ],
         "description": "Get the sort data by Sort ID",
         "parameters": [
@@ -4779,7 +4758,7 @@
           }
         },
         "tags": [
-          "DB Table Sort"
+          "DB Table Sort", "Sorts"
         ],
         "requestBody": {
           "content": {
@@ -4829,7 +4808,7 @@
           }
         },
         "tags": [
-          "DB Table Sort"
+          "DB Table Sort", "Sorts"
         ],
         "description": "Delete the sort data by Sort ID",
         "parameters": [
@@ -4903,7 +4882,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB Table Filter", "Filters"
         ],
         "description": "Get the filter data in a given View",
         "parameters": [
@@ -4952,7 +4931,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB Table Filter", "Filters"
         ],
         "requestBody": {
           "content": {
@@ -5047,7 +5026,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook Filter"
+          "DB Table Webhook Filter", "Webhooks"
         ],
         "description": "Get the filter data in a given Hook",
         "parameters": [
@@ -5096,7 +5075,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook Filter"
+          "DB Table Webhook Filter", "Webhooks"
         ],
         "requestBody": {
           "content": {
@@ -5189,7 +5168,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook Logs"
+          "DB Table Webhook Logs", "Internal"
         ],
         "description": "List the log data in a given Hook",
         "parameters": [
@@ -5268,7 +5247,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB Table Filter", "Filters"
         ],
         "description": "Get the filter data with a given Filter ID",
         "parameters": [
@@ -5301,7 +5280,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB Table Filter", "Filters"
         ],
         "requestBody": {
           "content": {
@@ -5355,7 +5334,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB Table Filter", "Filters"
         ],
         "description": "Delete the filter data with a given Filter ID",
         "parameters": [
@@ -5429,7 +5408,7 @@
           }
         },
         "tags": [
-          "DB Table Filter"
+          "DB Table Filter", "Filters"
         ],
         "description": "Get Filter Group Children of a given group ID",
         "parameters": [
@@ -5494,7 +5473,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -5517,6 +5496,198 @@
           }
         },
         "description": "Create a new grid view in a given Table",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/meta/grids/{viewId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "vw_wtdg2meyig5l4q"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update Grid View",
+        "operationId": "db-view-grid-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB View", "Views"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GridUpdateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "row_height": 1,
+                    "meta": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update Grid View",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/meta/grids/{gridId}/grid-columns": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "vw_q6k13mmygdi3yz"
+          },
+          "name": "gridId",
+          "in": "path",
+          "required": true,
+          "description": "Grid View ID"
+        }
+      ],
+      "get": {
+        "summary": "List Grid Columns",
+        "operationId": "db-view-grid-columns-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GridColumn"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "id": "nc_c8jz4kxe6xvh11",
+                        "fk_view_id": "vw_p2jcatxz4mvcfw",
+                        "fk_column_id": "cl_c5knoi4xs4sfpt",
+                        "base_id": "p_xm3thidrblw4n7",
+                        "source_id": "ds_g4ccx6e77h1dmi",
+                        "show": 0,
+                        "order": 1,
+                        "width": "200px",
+                        "help": null
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB View", "Views"
+        ],
+        "description": "List all columns in the given Grid",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/meta/grid-columns/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Column ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update Grid Column",
+        "operationId": "db-view-grid-column-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB View", "Views"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GridColumnReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "fk_column_id": "cl_c5knoi4xs4sfpt",
+                    "label": "My Column",
+                    "width": "200px"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update grid column(s) in the given Grid",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -5580,7 +5751,7 @@
         },
         "description": "Create a new form view in a given Table",
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -5646,7 +5817,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -5753,7 +5924,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "description": "Get the form data by Form ID",
         "parameters": [
@@ -5809,7 +5980,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -5821,198 +5992,6 @@
           }
         },
         "description": "Update the form column(s) by Form View Column ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v2/meta/grids/{viewId}": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "example": "vw_wtdg2meyig5l4q"
-          },
-          "name": "viewId",
-          "in": "path",
-          "required": true,
-          "description": "Unique View ID"
-        }
-      ],
-      "patch": {
-        "summary": "Update Grid View",
-        "operationId": "db-view-grid-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB View"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GridUpdateReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "row_height": 1,
-                    "meta": null
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update Grid View",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v2/meta/grids/{gridId}/grid-columns": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string",
-            "example": "vw_q6k13mmygdi3yz"
-          },
-          "name": "gridId",
-          "in": "path",
-          "required": true,
-          "description": "Grid View ID"
-        }
-      ],
-      "get": {
-        "summary": "List Grid Columns",
-        "operationId": "db-view-grid-columns-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GridColumn"
-                  }
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": [
-                      {
-                        "id": "nc_c8jz4kxe6xvh11",
-                        "fk_view_id": "vw_p2jcatxz4mvcfw",
-                        "fk_column_id": "cl_c5knoi4xs4sfpt",
-                        "base_id": "p_xm3thidrblw4n7",
-                        "source_id": "ds_g4ccx6e77h1dmi",
-                        "show": 0,
-                        "order": 1,
-                        "width": "200px",
-                        "help": null
-                      }
-                    ]
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB View"
-        ],
-        "description": "List all columns in the given Grid",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-auth"
-          }
-        ]
-      }
-    },
-    "/api/v2/meta/grid-columns/{columnId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "cl_8iw2o4ejzvdyna",
-            "type": "string"
-          },
-          "name": "columnId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Column ID"
-        }
-      ],
-      "patch": {
-        "summary": "Update Grid Column",
-        "operationId": "db-view-grid-column-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "number"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": 1
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB View"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GridColumnReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "fk_column_id": "cl_c5knoi4xs4sfpt",
-                    "label": "My Column",
-                    "width": "200px"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update grid column(s) in the given Grid",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -6074,7 +6053,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -6140,7 +6119,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -6185,7 +6164,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "description": "Get the Gallery View data with Gallery ID",
         "parameters": [
@@ -6250,7 +6229,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -6317,7 +6296,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "requestBody": {
           "content": {
@@ -6405,7 +6384,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Views"
         ],
         "description": "Get the Kanban View data by Kanban ID",
         "parameters": [
@@ -6470,7 +6449,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -6538,7 +6517,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -6583,7 +6562,7 @@
           }
         },
         "tags": [
-          "DB View"
+          "DB View", "Internal"
         ],
         "description": "Get the Map View data by Map ID",
         "parameters": [
@@ -6642,7 +6621,7 @@
           }
         },
         "tags": [
-          "Base"
+          "Base", "Internal"
         ],
         "description": "Synchronise the meta data difference between NC_DB and external data sources ",
         "parameters": [
@@ -6663,7 +6642,7 @@
           }
         ],
         "tags": [
-          "Base"
+          "Base", "Internal"
         ],
         "responses": {
           "200": {
@@ -6824,7 +6803,7 @@
           }
         },
         "tags": [
-          "Source"
+          "Source", "Internal"
         ],
         "description": "Synchronise the meta data difference between NC_DB and external data sources in a given Source",
         "parameters": [
@@ -6842,7 +6821,7 @@
           }
         ],
         "tags": [
-          "Source"
+          "Source", "Internal"
         ],
         "responses": {
           "200": {
@@ -6967,7 +6946,7 @@
           }
         ],
         "tags": [
-          "Base"
+          "Base", "Internal"
         ],
         "responses": {
           "200": {
@@ -7152,7 +7131,7 @@
           }
         },
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "parameters": [
           {
@@ -7300,7 +7279,7 @@
           }
         },
         "tags": [
-          "Public"
+          "Public", "Internal"
         ]
       }
     },
@@ -7387,7 +7366,7 @@
           }
         },
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "parameters": [
           {
@@ -7504,7 +7483,7 @@
         "operationId": "public-data-table-bulk-aggregate",
         "description": "Read bulk aggregated data from a given table with provided filters",
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "parameters": [
           {
@@ -7663,7 +7642,7 @@
           }
         },
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "parameters": [
           {
@@ -7781,7 +7760,7 @@
           "description": ""
         },
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "parameters": [
           {
@@ -7822,7 +7801,7 @@
         "operationId": "public-data-table-aggregate",
         "description": "Read aggregated data from a given table",
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "parameters": [
           {
@@ -7920,7 +7899,7 @@
           }
         },
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "parameters": [
           {
@@ -8127,7 +8106,7 @@
           }
         },
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "parameters": [
           {
@@ -8256,7 +8235,7 @@
           }
         },
         "tags": [
-          "Public"
+          "Public", "Internal"
         ]
       }
     },
@@ -8377,7 +8356,7 @@
           }
         ],
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "description": "List Nested Data Relation"
       }
@@ -8433,7 +8412,7 @@
           }
         },
         "tags": [
-          "Public"
+          "Public", "Internal"
         ]
       }
     },
@@ -8537,7 +8516,7 @@
           }
         },
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "description": "Get Share View Meta"
       }
@@ -8557,7 +8536,7 @@
         "summary": "",
         "operationId": "public-shared-erd-meta-get",
         "tags": [
-          "Public"
+          "Public", "Internal"
         ],
         "description": "",
         "parameters": []
@@ -8673,7 +8652,7 @@
           }
         ],
         "tags": [
-          "Utils"
+          "Utils", "Internal"
         ]
       }
     },
@@ -8781,7 +8760,7 @@
           }
         ],
         "tags": [
-          "Utils"
+          "Utils", "Comments"
         ]
       },
       "post": {
@@ -8839,7 +8818,7 @@
           }
         },
         "tags": [
-          "Utils"
+          "Utils", "Comments"
         ],
         "description": "Create a new comment in a row. Logged in Audit.",
         "parameters": [
@@ -8893,7 +8872,7 @@
           }
         },
         "tags": [
-          "Utils"
+          "Utils", "Comments"
         ],
         "description": "Update comment",
         "requestBody": {
@@ -8935,7 +8914,7 @@
           }
         },
         "tags": [
-          "Utils"
+          "Utils", "Comments"
         ],
         "description": "Delete comment",
         "requestBody": {
@@ -9028,7 +9007,7 @@
           }
         ],
         "tags": [
-          "Utils"
+          "Utils", "Internal"
         ]
       }
     },
@@ -9122,7 +9101,7 @@
           }
         ],
         "tags": [
-          "Utils"
+          "Utils", "Internal"
         ]
       }
     },
@@ -9231,7 +9210,7 @@
           }
         ],
         "tags": [
-          "Base"
+          "Base", "Internal"
         ]
       }
     },
@@ -9279,7 +9258,7 @@
           }
         },
         "tags": [
-          "Utils"
+          "Utils", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -9379,7 +9358,7 @@
           }
         ],
         "tags": [
-          "DB Table Webhook"
+          "DB Table Webhook", "Webhooks"
         ]
       },
       "post": {
@@ -9452,7 +9431,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook"
+          "DB Table Webhook", "Webhooks"
         ]
       }
     },
@@ -9505,7 +9484,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook"
+          "DB Table Webhook", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -9653,7 +9632,7 @@
           }
         ],
         "tags": [
-          "DB Table Webhook"
+          "DB Table Webhook", "Internal"
         ]
       }
     },
@@ -9709,7 +9688,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook"
+          "DB Table Webhook", "Webhooks"
         ],
         "requestBody": {
           "content": {
@@ -9771,7 +9750,7 @@
           }
         },
         "tags": [
-          "DB Table Webhook"
+          "DB Table Webhook", "Webhooks"
         ],
         "description": "Delete the exsiting hook by its ID",
         "parameters": [
@@ -9825,7 +9804,7 @@
           }
         ],
         "tags": [
-          "Plugin"
+          "Plugin", "Internal"
         ]
       }
     },
@@ -9873,7 +9852,7 @@
           }
         ],
         "tags": [
-          "Plugin"
+          "Plugin", "Internal"
         ]
       }
     },
@@ -9914,7 +9893,7 @@
           }
         ],
         "tags": [
-          "Plugin"
+          "Plugin", "Internal"
         ],
         "x-internal": false
       }
@@ -9948,7 +9927,7 @@
           }
         ],
         "tags": [
-          "Plugin"
+          "Plugin", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -9999,7 +9978,7 @@
           }
         },
         "tags": [
-          "Plugin"
+          "Plugin", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -10037,7 +10016,7 @@
           }
         },
         "tags": [
-          "Plugin"
+          "Plugin", "Internal"
         ],
         "description": "Get the plugin data by ID",
         "x-internal": false
@@ -10091,7 +10070,7 @@
           }
         },
         "tags": [
-          "Utils"
+          "Utils", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -10366,7 +10345,7 @@
           }
         },
         "tags": [
-          "Utils"
+          "Utils", "Internal"
         ],
         "x-internal": true,
         "parameters": [
@@ -10380,7 +10359,7 @@
       "get": {
         "summary": "Get Cache",
         "tags": [
-          "Utils"
+          "Utils", "Internal"
         ],
         "responses": {},
         "operationId": "utils-cache-get",
@@ -10416,7 +10395,7 @@
         },
         "description": "Delete All K/V pairs in NocoCache",
         "tags": [
-          "Utils"
+          "Utils", "Internal"
         ],
         "parameters": [
           {
@@ -10434,7 +10413,7 @@
       "get": {
         "summary": "List API Tokens in Base",
         "tags": [
-          "API Token"
+          "API Token", "API Tokens"
         ],
         "responses": {
           "200": {
@@ -10526,7 +10505,7 @@
           "description": ""
         },
         "tags": [
-          "API Token"
+          "API Token", "API Tokens"
         ],
         "description": "Create API Token in a base",
         "parameters": [
@@ -10575,7 +10554,7 @@
           }
         },
         "tags": [
-          "API Token"
+          "API Token", "API Tokens"
         ],
         "description": "Delete the given API Token in base",
         "parameters": [
@@ -10614,7 +10593,7 @@
         "operationId": "storage-upload",
         "responses": {},
         "tags": [
-          "Storage"
+          "Storage", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -10660,7 +10639,7 @@
         "operationId": "storage-upload-by-url",
         "responses": {},
         "tags": [
-          "Storage"
+          "Storage", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -10753,7 +10732,7 @@
           }
         },
         "tags": [
-          "Auth"
+          "Auth", "Internal"
         ],
         "description": "Resend Invitation to a specific user",
         "parameters": [
@@ -10799,7 +10778,7 @@
           }
         },
         "tags": [
-          "DB Table Column"
+          "DB Table Column", "Internal"
         ],
         "description": "Get columns hash for table",
         "parameters": [
@@ -10899,7 +10878,7 @@
           }
         },
         "tags": [
-          "DB Table Column"
+          "DB Table Column", "Internal"
         ],
         "description": "Bulk create-update-delete columns",
         "parameters": [
@@ -11856,7 +11835,7 @@
         "operationId": "jobs-list",
         "description": "Get list of jobs for a given base for the user",
         "tags": [
-          "Jobs"
+          "Jobs", "Internal"
         ],
         "requestBody": {
           "content": {
@@ -11899,7 +11878,7 @@
         "operationId": "export-data",
         "description": "Trigger export as job",
         "tags": [
-          "Export"
+          "Export", "Internal"
         ],
         "requestBody": {
           "content": {

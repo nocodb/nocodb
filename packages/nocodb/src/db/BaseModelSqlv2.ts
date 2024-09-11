@@ -4790,10 +4790,13 @@ class BaseModelSqlv2 {
 
       await this.execAndParse(query, null, { raw: true });
 
-      const newId = this.extractPksValues({
-        ...prevData,
-        ...updateObj
-      }, true)
+      const newId = this.extractPksValues(
+        {
+          ...prevData,
+          ...updateObj,
+        },
+        true,
+      );
 
       const newData = await this.readByPk(
         newId,
@@ -5659,10 +5662,16 @@ class BaseModelSqlv2 {
               prevData.push(oldRecord);
             }
 
-            for (const { pk, data } of tempToRead) {
+            for (let i = 0; i < tempToRead.length; i++) {
+              const { pk, data } = tempToRead[i];
               const wherePk = await this._wherePk(pk, true);
               toBeUpdated.push({ d: data, wherePk });
-              updatePkValues.push(pk);
+              updatePkValues.push(
+                getCompositePkValue(this.model.primaryKeys, {
+                  ...prevData[i],
+                  ...data,
+                }),
+              );
             }
           }
         } else {
@@ -5672,7 +5681,12 @@ class BaseModelSqlv2 {
 
           toBeUpdated.push({ d, wherePk });
 
-          updatePkValues.push(pkValues);
+          updatePkValues.push(
+            getCompositePkValue(this.model.primaryKeys, {
+              ...pkValues,
+              ...d,
+            }),
+          );
         }
       }
 

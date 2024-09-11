@@ -67,6 +67,8 @@ const aiModeStep = ref<AiStep | null>(null)
 
 const predictedTables = ref<string[]>([])
 
+const removedFromPredictedTables = ref<Set<string>>(new Set())
+
 const predictHistory = ref<string[]>([])
 
 const selectedTables = ref<string[]>([])
@@ -103,6 +105,8 @@ const predictMore = async () => {
     predictedTables.value.push(...predictions.filter((t) => !predictedTables.value.includes(t)))
     predictHistory.value.push(...predictions)
   }
+
+  calledFunction.value = undefined
 }
 
 const predictRefresh = async () => {
@@ -115,6 +119,8 @@ const predictRefresh = async () => {
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
   }
+
+  calledFunction.value = undefined
 }
 
 const onTagClick = (tag: string) => {
@@ -127,6 +133,11 @@ const onTagClose = (tag: string) => {
   if (predictHistory.value.includes(tag)) {
     predictedTables.value.push(tag)
   }
+}
+
+const onTagRemoveFromPrediction = (tag: string) => {
+  removedFromPredictedTables.value.add(tag)
+  predictedTables.value = predictedTables.value.filter((t) => t !== tag)
 }
 
 const onSelectAll = () => {
@@ -318,7 +329,7 @@ const isDisabled = ref(false)
               <a-tag
                 v-for="t in selectedTables"
                 :key="t"
-                class="cursor-pointer !rounded-md !bg-nc-bg-purple-light !text-nc-content-purple-dark !border-none font-semibold"
+                class="cursor-pointer !rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none font-semibold"
               >
                 <div class="flex flex-row items-center gap-1 py-0.5">
                   <span>{{ t }}</span>
@@ -346,14 +357,18 @@ const isDisabled = ref(false)
             </template>
 
             <template #tags>
-              <a-tag
-                v-for="t in predictedTables"
-                :key="t"
-                class="cursor-pointer !rounded-md !bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-none !mx-0 !py-0.5"
-                @click="onTagClick(t)"
-              >
-                {{ t }}
-              </a-tag>
+              <template v-for="t of predictedTables" :key="t">
+                <a-tag
+                  v-if="!removedFromPredictedTables.has(t)"
+                  class="cursor-pointer !rounded-md !bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-none !mx-0"
+                  @click="onTagClick(t)"
+                >
+                  <div class="flex flex-row items-center gap-1 py-0.5">
+                    <span>{{ t }}</span>
+                    <GeneralIcon icon="close" class="text-xs cursor-pointer mt-0.5" @click.stop="onTagRemoveFromPrediction(t)" />
+                  </div>
+                </a-tag>
+              </template>
             </template>
 
             <template #footer>
@@ -412,10 +427,15 @@ const isDisabled = ref(false)
                 </NcButton>
                 <template v-else-if="aiModeStep === AiStep.pick">
                   <NcButton
-                    v-if="predictedTables.length"
+                    v-if="predictedTables.length || !selectedTables.length"
                     size="xs"
-                    class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
+                    class="!bg-nc-bg-purple-light !border-purple-200"
                     type="secondary"
+                    :disabled="!predictedTables.length"
+                    :class="{
+                      'hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark': predictedTables.length,
+                      '!text-nc-content-purple-light': !predictedTables.length,
+                    }"
                     @click="onSelectAll"
                   >
                     <div class="flex items-center gap-2">

@@ -16,19 +16,26 @@ const {} = toRefs(props)
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const handleEnable = () => {
+  if (!vIsDisabled.value) return
+
+  vIsDisabled.value = false
+}
 </script>
 
 <template>
   <div
     class="nc-ai-wizard-card rounded-2xl overflow-hidden transition-colors"
     :class="{
-      'is-disabled': isDisabled,
+      'is-disabled': vIsDisabled,
     }"
+    @click="handleEnable"
   >
     <div
       class="nc-ai-wizard-card-content"
       :class="{
-        'min-h-[132px]': !isDisabled,
+        'min-h-[132px]': !vIsDisabled,
       }"
     >
       <div class="nc-ai-wizard-card-content-title-wrapper">
@@ -41,19 +48,19 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
         <div class="nc-ai-wizard-card-content-title-action -mt-0.5">
           <slot name="titleAction">
-            <NcButton v-if="isDisabled" type="text" size="xs" @click="vIsDisabled = false">
+            <NcButton v-if="vIsDisabled" type="text" size="xs" @click.stop="vIsDisabled = false">
               <div class="flex items-center gap-2">
                 {{ $t('general.enable') }}
                 <GeneralIcon icon="chevronDown" />
               </div>
             </NcButton>
-            <NcButton v-else type="text" size="xs" class="!px-1 !text-current" @click="vIsDisabled = true">
+            <NcButton v-else type="text" size="xs" class="!px-1 !text-current" @click.stop="vIsDisabled = true">
               <GeneralIcon icon="close" />
             </NcButton>
           </slot>
         </div>
       </div>
-      <template v-if="!isDisabled">
+      <template v-if="!vIsDisabled">
         <div v-if="$slots.subtitle" class="nc-ai-wizard-card-content-subtitle pl-10">
           <slot name="subtitle"></slot>
         </div>
@@ -72,12 +79,12 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
         </div>
         <slot name="settings">
           <AiSettings :settings="{}" :workspace-id="activeWorkspaceId" placement="bottomLeft">
-            <NcButton size="xs" class="nc-ai-wizard-card-footer-settings !px-1 !text-current" type="text">
+            <NcButton size="xs" class="nc-ai-wizard-card-footer-settings !px-1 !text-current" type="text" :disabled="vIsDisabled">
               <GeneralIcon icon="settings" />
             </NcButton>
           </AiSettings>
         </slot>
-        <slot v-if="!isDisabled" name="footer"></slot>
+        <slot v-if="!vIsDisabled" name="footer"></slot>
       </slot>
     </div>
   </div>

@@ -259,7 +259,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     if (options.bulkAggregate) {
       data = data.map(async (d) => {
-        for (const [key, data] of Object.entries(d)) {
+        for (let [key, data] of Object.entries(d)) {
+          if (typeof data === 'string' && data.startsWith('{')) {
+            try {
+              data = JSON.parse(data);
+            } catch (e) {
+              // do nothing
+            }
+          }
+
           d[key] =
             (
               await this.substituteColumnIdsWithColumnTitles(

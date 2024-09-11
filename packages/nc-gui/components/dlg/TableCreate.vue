@@ -259,7 +259,9 @@ const fullAuto = async () => {
   }
 }
 
-useEventListener('dblclick', fullAuto)
+const isDisabled = ref(false)
+
+// useEventListener('dblclick', fullAuto)
 </script>
 
 <template>
@@ -327,81 +329,19 @@ useEventListener('dblclick', fullAuto)
           </a-form-item>
 
           <!-- Ai table wizard  -->
-
-          <template v-if="aiMode">
-            <div
-              v-if="aiModeStep === AiStep.init"
-              class="flex flex-col gap-2 border-1 border-purple-500 rounded-lg bg-purple-50 p-4"
-            >
-              <div class="flex gap-4 justify-start">
-                <GeneralIcon icon="magic" class="text-sm text-purple-500 mt-1" />
-                <div class="flex flex-col flex-1 gap-2">
-                  <span class="text-sm font-bold">Generating auto suggestions...</span>
-                  <span class="text-xs text-gray-500">Working on possible tables for {{ base?.title }}</span>
-                </div>
-                <GeneralLoader class="h-[20px] mt-1" />
-              </div>
-            </div>
-            <div
-              v-else-if="aiModeStep === AiStep.pick"
-              class="flex flex-col gap-2 border-1 border-purple-500 rounded-lg bg-purple-50 p-4"
-            >
-              <div class="flex gap-4 justify-start">
-                <GeneralIcon icon="magic" class="text-sm text-purple-500 mt-1" />
-                <div class="flex flex-col flex-1 gap-2">
-                  <div class="flex gap-2 items-center">
-                    <span class="text-sm font-bold">Auto Suggestions</span>
-                    <NcTooltip title="Refresh" placement="top">
-                      <GeneralLoader v-if="aiLoading && calledFunction === 'predictRefresh'" class="h-[14px]" />
-                      <GeneralIcon
-                        v-else
-                        icon="refresh"
-                        class="h-[14px] text-purple-500 cursor-pointer"
-                        @click="predictRefresh"
-                      />
-                    </NcTooltip>
-                    <NcTooltip v-if="predictHistory.length < 8" title="Predict More" placement="top">
-                      <GeneralLoader v-if="aiLoading && calledFunction === 'predictMore'" class="h-[14px]" />
-                      <GeneralIcon
-                        v-else
-                        icon="plus"
-                        class="text-lg text-purple-500 cursor-pointer mt-[2px]"
-                        @click="predictMore"
-                      />
-                    </NcTooltip>
-                    <div class="flex-1"></div>
-                    <NcTooltip v-if="predictedTables.length" title="Select All" placement="top">
-                      <GeneralIcon icon="ncPlusSquare" class="text-lg text-purple-500 cursor-pointer" @click="onSelectAll" />
-                    </NcTooltip>
-                    <NcTooltip v-else title="Remove All" placement="top">
-                      <GeneralIcon icon="ncMinusSquare" class="text-lg text-purple-500 cursor-pointer" @click="onDeselectAll" />
-                    </NcTooltip>
-                  </div>
-                  <span class="text-xs text-gray-500">You can pick multiple from the following suggestions</span>
-                </div>
-              </div>
-              <!-- selectable tags -->
-              <div class="flex flex-wrap gap-2 mt-2 ml-4">
-                <a-tag
-                  v-for="t in predictedTables"
-                  :key="t"
-                  class="cursor-pointer !rounded-md !bg-purple-100 !border-1 !border-purple-500"
-                  @click="onTagClick(t)"
-                >
-                  {{ t }}
-                </a-tag>
-              </div>
-            </div>
-          </template>
-
-          <AiWizardCard>
+          <AiWizardCard v-model:is-disabled="isDisabled">
             <template #title> AI Table Wizard </template>
             <template #subtitle>
               <div v-if="aiModeStep === AiStep.init">
                 <div>Noco AI is analyzing to suggest the best table configuration.</div>
                 <div>Please wait as we prepare your customized fields.</div>
               </div>
-              <div v-if="aiModeStep === AiStep.pick">Click on each AI-generated table to accept the automatic suggestions.</div>
+              <div v-else-if="aiModeStep === AiStep.pick">
+                <template v-if="selectedTables.length && !predictedTables.length">
+                  You have accepted {{ selectedTables.length }} auto suggested tables. Click create button to proceed.
+                </template>
+                <template v-else> Click on each AI-generated table to accept the automatic suggestions. </template>
+              </div>
               <div v-else>Create AI-generated table(s) including fields optimized for {{ base?.title }}</div>
             </template>
 
@@ -409,7 +349,7 @@ useEventListener('dblclick', fullAuto)
               <a-tag
                 v-for="t in predictedTables"
                 :key="t"
-                class="cursor-pointer !rounded-md !bg-nc-bg-purple-dark !text-nc-content-purple-dark !mx-0"
+                class="cursor-pointer !rounded-md !bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-none !mx-0 !py-0.5"
                 @click="onTagClick(t)"
               >
                 {{ t }}
@@ -418,28 +358,86 @@ useEventListener('dblclick', fullAuto)
 
             <template #footer>
               <div class="flex-1 flex items-center justify-end gap-2">
+                <template v-if="aiModeStep === AiStep.pick">
+                  <NcTooltip title="Re-suggest" placement="top">
+                    <NcButton
+                      size="xs"
+                      class="!px-1 !text-current hover:!bg-purple-200"
+                      type="text"
+                      :loading="aiLoading && calledFunction === 'predictRefresh'"
+                      @click="predictRefresh"
+                    >
+                      <template #loadingIcon>
+                        <template></template>
+                      </template>
+                      <GeneralIcon
+                        icon="refresh"
+                        class="!text-current"
+                        :class="{
+                          'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
+                        }"
+                      />
+                    </NcButton>
+                  </NcTooltip>
+                  <NcTooltip v-if="predictHistory.length < 8" title="Suggest more" placement="top">
+                    <NcButton
+                      size="xs"
+                      class="!px-1 !text-current hover:!bg-purple-200"
+                      type="text"
+                      :loading="aiLoading && calledFunction === 'predictMore'"
+                      @click="predictMore"
+                    >
+                      <template #loadingIcon>
+                        <GeneralLoader class="!text-current" />
+                      </template>
+                      <GeneralIcon
+                        v-if="!(aiLoading && calledFunction === 'predictMore')"
+                        icon="ncPlusAi"
+                        class="!text-current"
+                      />
+                    </NcButton>
+                  </NcTooltip>
+                </template>
                 <NcButton
-                  v-if="aiModeStep === AiStep.init || true"
+                  v-if="aiModeStep === AiStep.init"
                   size="xs"
                   class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
                   type="secondary"
                   loading
                 >
+                  <template #loadingIcon>
+                    <GeneralLoader class="!text-current" />
+                  </template>
                   <div class="flex items-center gap-2">Generating Tables</div>
                 </NcButton>
-                <NcButton
-                  v-else-if="aiModeStep === AiStep.pick"
-                  size="xs"
-                  class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
-                  type="secondary"
-                  @click="onSelectAll"
-                >
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="ncPlusMultiple" class="flex-none" />
+                <template v-else-if="aiModeStep === AiStep.pick">
+                  <NcButton
+                    v-if="predictedTables.length"
+                    size="xs"
+                    class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
+                    type="secondary"
+                    @click="onSelectAll"
+                  >
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="ncPlusMultiple" class="flex-none" />
 
-                    Accept All Tables
-                  </div>
-                </NcButton>
+                      Accept All Tables
+                    </div>
+                  </NcButton>
+                  <NcButton
+                    v-else
+                    size="xs"
+                    class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
+                    type="secondary"
+                    @click="onDeselectAll"
+                  >
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="ncMinus" class="flex-none" />
+
+                      Remove All Tables
+                    </div>
+                  </NcButton>
+                </template>
                 <NcButton
                   v-else
                   size="xs"
@@ -548,7 +546,13 @@ useEventListener('dblclick', fullAuto)
               :loading="aiLoading"
               @click="_createTable"
             >
-              {{ $t('activity.createTable') }}
+              <div class="flex items-center gap-2 h-5">
+                {{ $t('activity.createTable') }}
+
+                <div v-if="selectedTables.length" class="rounded-md border-1 border-brand-200 px-1 h-full flex items-center">
+                  {{ selectedTables.length }}
+                </div>
+              </div>
               <template #loading> {{ $t('title.creatingTable') }} </template>
             </NcButton>
           </div>

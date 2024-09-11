@@ -291,7 +291,8 @@
     "request": "Request",
     "languages": "Languages",
     "extension": "Extension",
-    "extensions": "Extensions"
+    "extensions": "Extensions",
+    "enable": "Enable"
   },
   "objects": {
     "files": "files",

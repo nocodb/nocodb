@@ -66,10 +66,12 @@ onMounted(async () => {
 
 <template>
   <NcDropdown v-model:visible="isDropdownOpen" :trigger="['click']" placement="bottomRight">
-    <GeneralIcon icon="ncSettings" class="text-gray-500 cursor-pointer" />
+    <slot>
+      <GeneralIcon icon="ncSettings" class="text-gray-500 cursor-pointer" />
+    </slot>
 
     <template #overlay>
-      <div class="flex flex-col w-[320px]">
+      <div class="flex flex-col w-[320px] overflow-hidden">
         <div class="flex items-center w-full px-4 py-2 bg-purple-50">
           <span class="text-sm font-bold text-purple-600">Settings</span>
         </div>

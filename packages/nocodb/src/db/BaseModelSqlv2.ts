@@ -5,7 +5,6 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
 import equal from 'fast-deep-equal';
-import { nocoExecute } from '~/utils';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
@@ -42,6 +41,7 @@ import type {
   SelectOption,
   User,
 } from '~/models';
+import { nocoExecute } from '~/utils';
 import {
   Audit,
   BaseUser,
@@ -1621,7 +1621,16 @@ class BaseModelSqlv2 {
 
         tQb.select(jsonBuildObject);
 
-        selectors.push(this.dbDriver.raw(`(??) as ??`, [tQb, `${f.alias}`]));
+        if (this.dbDriver.client.config.client === 'mysql2') {
+          selectors.push(
+            this.dbDriver.raw('JSON_UNQUOTE(??) as ??', [
+              jsonBuildObject,
+              `${f.alias}`,
+            ]),
+          );
+        } else {
+          selectors.push(this.dbDriver.raw('(??) as ??', [tQb, `${f.alias}`]));
+        }
       }
 
       qb.select(...selectors);

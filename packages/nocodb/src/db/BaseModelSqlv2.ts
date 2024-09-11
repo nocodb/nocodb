@@ -1623,13 +1623,13 @@ class BaseModelSqlv2 {
 
         if (this.dbDriver.client.config.client === 'mysql2') {
           selectors.push(
-            this.dbDriver.raw(`JSON_UNQUOTE((??)) as ??`, [
+            this.dbDriver.raw('JSON_UNQUOTE(??) as ??', [
               jsonBuildObject,
               `${f.alias}`,
             ]),
           );
         } else {
-          selectors.push(this.dbDriver.raw(`(??) as ??`, [tQb, `${f.alias}`]));
+          selectors.push(this.dbDriver.raw('(??) as ??', [tQb, `${f.alias}`]));
         }
       }
 

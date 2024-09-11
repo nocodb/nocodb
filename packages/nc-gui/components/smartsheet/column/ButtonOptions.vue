@@ -26,7 +26,8 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen } = useColumnCreateStoreOrThrow()
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen, validate } =
+  useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -77,7 +78,7 @@ const validators = {
       validator: (_: any, formula: any) => {
         return (async () => {
           if (vModel.value.type === 'url') {
-            if (!formula?.trim()) throw new Error('Required')
+            if (!formula?.trim()) throw new Error('Formula is required for URL Button')
 
             try {
               await validateFormulaAndExtractTreeWithType({
@@ -191,6 +192,8 @@ if ((column.value?.colOptions as any)?.formula_raw) {
       meta?.value?.columns as ColumnType[],
       (column.value?.colOptions as any)?.formula_raw,
     ) || ''
+} else {
+  vModel.value.formula_raw = ''
 }
 
 const colorClass = {

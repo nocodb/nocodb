@@ -503,6 +503,19 @@ export default class Column<T = any> implements ColumnType {
         break;
       case UITypes.Button:
         res = await ButtonColumn.read(context, this.id, ncMeta);
+
+        // add default values if options are missing
+        if (!res) {
+          res = {
+            type: 'url',
+            theme: 'solid',
+            color: 'brand',
+            label: 'Button',
+            error: 'Invalid configuration',
+            formula_raw: '',
+          };
+        }
+
         break;
       case UITypes.QrCode:
         res = await QrCodeColumn.read(context, this.id, ncMeta);

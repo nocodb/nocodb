@@ -674,7 +674,7 @@
     "connectionDetails": "Source Connection Details",
     "metaSync": "Meta Sync",
     "mention": "Mention",
-    "today": "Today",
+    "today": "Cегодня",
     "currentDate": "Current date",
     "workspace": "Workspace",
     "txt": "TXT Record value",
@@ -1244,7 +1244,7 @@
     "toggleMobileMode": "Переключить мобильный режим",
     "startCommenting": "Start commenting!",
     "noCommentsYet": "No comments yet!",
-    "clearForm": "Clear Form",
+    "clearForm": "Очистить форму",
     "addFieldFromFormView": "Add Field",
     "selectAllFields": "Select all fields",
     "preFilledFields": {

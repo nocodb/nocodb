@@ -5,7 +5,7 @@
 module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts', 'node'],
   rootDir: 'src',
-  testRegex: 'users\\.service\\.spec\\.ts$',
+  testRegex: '(Integration|Source)\\.spec\\.ts$',
   // transform: {
   //   '^.+\\.(t|j)s$': 'ts-jest',
   // },

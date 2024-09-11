@@ -1,4 +1,3 @@
-import CryptoJS from 'crypto-js';
 import type { IntegrationsType, SourceType } from 'nocodb-sdk';
 import type { BoolType, IntegrationType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';

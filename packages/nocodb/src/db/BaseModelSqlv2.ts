@@ -4790,12 +4790,13 @@ class BaseModelSqlv2 {
 
       await this.execAndParse(query, null, { raw: true });
 
-      // const newData = await this.readByPk(id, false, {}, { ignoreView: true , getHiddenColumn: true});
-
-      // const prevData = await this.readByPk(id);
+      const newId = this.extractPksValues({
+        ...prevData,
+        ...updateObj
+      }, true)
 
       const newData = await this.readByPk(
-        id,
+        newId,
         false,
         {},
         { ignoreView: true, getHiddenColumn: true },
@@ -4804,7 +4805,7 @@ class BaseModelSqlv2 {
       if (btColumn && Object.keys(data || {}).length === 1) {
         await this.addChild({
           colId: btColumn.id,
-          rowId: id,
+          rowId: newId,
           childId: updateObj[btForeignKeyColumn.title],
           cookie,
           onlyUpdateAuditLogs: true,
@@ -6469,7 +6470,7 @@ class BaseModelSqlv2 {
   protected async errorUpdate(_e, _data, _trx, _cookie) {}
 
   // todo: handle composite primary key
-  public extractPksValues(data: any) {
+  public extractPksValues(data: any, asString = false) {
     // data can be still inserted without PK
 
     // if composite primary key return an object with all the primary keys
@@ -6478,7 +6479,7 @@ class BaseModelSqlv2 {
       for (const pk of this.model.primaryKeys) {
         pkValues[pk.title] = data[pk.title] ?? data[pk.column_name];
       }
-      return pkValues;
+      return asString ? Object.values(pkValues).join('___') : pkValues;
     } else if (this.model.primaryKey) {
       return (
         data[this.model.primaryKey.title] ??

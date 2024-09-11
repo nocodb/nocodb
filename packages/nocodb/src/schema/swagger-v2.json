@@ -343,7 +343,7 @@
           }
         },
         "tags": [
-          "Base, BASE"
+          "Base, Bases"
         ],
         "description": "Get info such as node version, arch, platform, is docker, rootdb and package version of a given base",
         "parameters": [

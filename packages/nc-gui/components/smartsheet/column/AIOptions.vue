@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, UITypes } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -10,14 +9,19 @@ const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
-const { fields, metaColumnById } = useViewColumnsOrThrow()
+const meta = inject(MetaInj)!
+
+const availableFields = computed(() => {
+  if (!meta.value?.columns) return []
+  return meta.value.columns.filter((c) => !c.system && c.uidt !== UITypes.ID).map((c) => c.title)
+})
 
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations, validateInfos, column, isEdit } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
 onMounted(() => {
   // set default value
@@ -37,7 +41,7 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
       <AiSettings v-model:settings="vModel" :workspace-id="activeWorkspaceId" />
     </a-form-item>
     <a-form-item class="flex">
-      <a-textarea v-model:value="vModel.prompt_raw" class="nc-ai-field-prompt-input !rounded-lg !outline-0 !ring-0" :rows="5" />
+      <AiPromptWithFields v-model="vModel.prompt_raw" :keywords="availableFields" />
       <div class="absolute w-full bottom-[-1px] bg-purple-50 rounded-b-lg flex items-center gap-2 p-1">
         <GeneralIcon icon="info" />
         <span class="text-xs text-gray-500">Mention fields using curly braces, e.g. {Field name}.</span>

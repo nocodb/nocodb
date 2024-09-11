@@ -8,7 +8,8 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import tippy from 'tippy.js'
 import { Mention } from '~/helpers/tiptapExtensions/mention'
-import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
+import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList'
+import suggestion from '~/helpers/tiptapExtensions/mention/suggestion.ts'
 import { Link } from '~/helpers/dbTiptapExtensions/links'
 
 const props = withDefaults(
@@ -133,7 +134,7 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 const tiptapExtensions = [
   Mention.configure({
     suggestion: {
-      ...suggestion,
+      ...suggestion(UserMentionList),
       items: ({ query }) =>
         baseUsers.value
           .filter((user) => user.deleted !== true)

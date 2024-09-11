@@ -509,7 +509,7 @@ export class ColumnsService {
           if (colBody.prompt_raw) {
             await table.getColumns(context);
 
-            prompt = colBody.prompt_raw.replace(/{{(.*?)}}/g, (match, p1) => {
+            prompt = colBody.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
               const column = table.columns.find((c) => c.title === p1);
 
               if (!column) {
@@ -2263,7 +2263,7 @@ export class ColumnsService {
             if (colBody.prompt_raw) {
               await table.getColumns(context);
 
-              prompt = colBody.prompt_raw.replace(/{{(.*?)}}/g, (match, p1) => {
+              prompt = colBody.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
                 const column = table.columns.find((c) => c.title === p1);
 
                 if (!column) {

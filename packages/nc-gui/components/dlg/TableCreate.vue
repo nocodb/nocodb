@@ -310,7 +310,7 @@ const isDisabled = ref(false)
               v-if="!aiMode"
               ref="inputEl"
               v-model:value="table.title"
-              class="nc-input-sm nc-input-shadow"
+              class="nc-input-md nc-input-shadow"
               hide-details
               data-testid="create-table-title-input"
               :placeholder="$t('msg.info.enterTableName')"
@@ -319,21 +319,24 @@ const isDisabled = ref(false)
               v-else
               ref="inputEl"
               v-model:value="table.title"
-              class="nc-input-sm nc-input-shadow"
+              class="nc-input-md nc-input-shadow"
               hide-details
               data-testid="create-table-title-input"
               :placeholder="selectedTables.length ? '' : 'Enter table names or choose from suggestions'"
             />
             <!-- overlay selected tags with close icon on input -->
-            <div v-if="aiMode" class="absolute top-0 right-0 left-0 flex mt-1 mx-2 nc-scrollbar-thin overflow-x-auto">
+            <div
+              v-if="aiMode"
+              class="absolute top-0 max-w-[calc(100%_-_16px)] left-0 h-10 flex items-center gap-2 mx-2 nc-scrollbar-thin overflow-x-auto"
+            >
               <a-tag
                 v-for="t in selectedTables"
                 :key="t"
-                class="cursor-pointer !rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none font-semibold"
+                class="cursor-pointer !rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none font-semibold !mx-0"
               >
-                <div class="flex flex-row items-center gap-1 py-0.5">
+                <div class="flex flex-row items-center gap-1 py-1 text-sm">
                   <span>{{ t }}</span>
-                  <GeneralIcon icon="close" class="text-xs cursor-pointer mt-0.5" @click="onTagClose(t)" />
+                  <GeneralIcon icon="close" class="cursor-pointer" @click="onTagClose(t)" />
                 </div>
               </a-tag>
             </div>
@@ -351,6 +354,7 @@ const isDisabled = ref(false)
                 <template v-if="selectedTables.length && !predictedTables.length">
                   You have accepted {{ selectedTables.length }} auto suggested tables. Click create button to proceed.
                 </template>
+                <template v-if="aiLoading && !calledFunction"> Creating auto suggested tables now, please wait. </template>
                 <template v-else> Click on each AI-generated table to accept the automatic suggestions. </template>
               </div>
               <div v-else>Create AI-generated table(s) including fields optimized for {{ base?.title }}</div>
@@ -403,13 +407,10 @@ const isDisabled = ref(false)
                       @click="predictMore"
                     >
                       <template #loadingIcon>
-                        <GeneralLoader class="!text-current" />
+                        <template> </template>
                       </template>
-                      <GeneralIcon
-                        v-if="!(aiLoading && calledFunction === 'predictMore')"
-                        icon="ncPlusAi"
-                        class="!text-current"
-                      />
+                      <GeneralLoader v-if="aiLoading && calledFunction === 'predictMore'" class="!text-current" />
+                      <GeneralIcon v-else icon="ncPlusAi" class="!text-current" />
                     </NcButton>
                   </NcTooltip>
                 </template>

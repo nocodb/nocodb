@@ -1357,7 +1357,7 @@ export const iconMap = {
   ncScript: NcScript,
   youtube: NcYoutube2Icon,
   ncAutoAwesome: h(NcAutoAwesome, { stroke: 'transparent' }),
-  ncPlusAi: NcPlusAi,
+  ncPlusAi: h(NcPlusAi, { stroke: 'transparent' }),
   ncPlusMultiple: NcPlusMultiple,
 }
 

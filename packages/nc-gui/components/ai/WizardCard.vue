@@ -35,7 +35,7 @@ const handleEnable = () => {
     <div
       class="nc-ai-wizard-card-content"
       :class="{
-        'min-h-[132px]': !vIsDisabled,
+        'min-h-[128px]': !vIsDisabled,
       }"
     >
       <div class="nc-ai-wizard-card-content-title-wrapper">

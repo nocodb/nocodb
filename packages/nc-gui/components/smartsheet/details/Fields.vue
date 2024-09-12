@@ -1215,7 +1215,9 @@ const onPredictNextFields = async (formula?: boolean) => {
                       v-if="field.id && viewFieldsMap[field.id]"
                       :disabled="isLocked"
                       :checked="
-                        !!visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show
+                        !!(
+                          visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show
+                        )
                       "
                       data-testid="nc-field-visibility-checkbox"
                       @change="

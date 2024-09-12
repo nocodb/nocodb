@@ -35,13 +35,6 @@
         "Webhooks",
         "API Tokens"
       ]
-    },
-    {
-      "name": "Workspace APIss ☁",
-      "tags": [
-        "Workspace",
-        "Workspace base"
-      ]
     }
   ],
   "servers": [

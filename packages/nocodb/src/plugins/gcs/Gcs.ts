@@ -184,19 +184,40 @@ export default class Gcs implements IStorageAdapterV2 {
   }
 
   public async scanFiles(globPattern: string): Promise<Readable> {
+    // Remove all dots from the prefix
+    globPattern = globPattern.replace(/\./g, '');
+
+    // Remove the leading slash
+    globPattern = globPattern.replace(/^\//, '');
+
+    // Make sure pattern starts with nc/uploads/
+    if (!globPattern.startsWith('nc/uploads/')) {
+      globPattern = `nc/uploads/${globPattern}`;
+    }
+
     const stream = new Readable({
       objectMode: true,
       read() {},
     });
 
-    const [files] = await this.storageClient.bucket(this.bucketName).getFiles({
-      prefix: globPattern.replace(/^\*/, ''),
+    const fileStream = this.storageClient
+      .bucket(this.input.bucket)
+      .getFilesStream({
+        prefix: globPattern,
+        autoPaginate: true,
+      });
+
+    fileStream.on('error', (error) => {
+      stream.emit('error', error);
     });
 
-    for (const file of files) {
+    fileStream.on('data', (file) => {
       stream.push(file.name);
-    }
-    stream.push(null);
+    });
+
+    fileStream.on('end', () => {
+      stream.push(null);
+    });
 
     return stream;
   }

@@ -16,7 +16,7 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
   try {
     // if configured, check for any non-encrypted data source by checking is_encrypted flag
     const sources = await ncMeta
-      .knex(MetaTable.BASES)
+      .knex(MetaTable.SOURCES)
       .where((qb) => {
         qb.where('is_encrypted', false).orWhereNull('is_encrypted');
       })
@@ -33,7 +33,7 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
       await ncMeta.metaUpdate(
         source.fk_workspace_id,
         source.id,
-        MetaTable.BASES,
+        MetaTable.SOURCES,
         {
           config: encryptPropIfRequired({
             data: source,

@@ -36,7 +36,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   }
 
   // get all external sources
-  const sources = await ncMeta.knexConnection(MetaTable.BASES).condition({
+  const sources = await ncMeta.knexConnection(MetaTable.SOURCES).condition({
     _not: {
       _or: [
         {
@@ -64,7 +64,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     if (source?.config) {
       try {
         const decrypted = await decyptConfig(source.config, encryptionKey);
-        await ncMeta.knexConnection(MetaTable.BASES).update({
+        await ncMeta.knexConnection(MetaTable.SOURCES).update({
           config: decrypted,
         });
         passed.push(true);

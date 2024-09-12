@@ -151,7 +151,7 @@ export default class DbMux {
   }
 
   public async getSources(ncMeta = Noco.ncMeta) {
-    return await ncMeta.knexConnection(MetaTable.BASES).where({
+    return await ncMeta.knexConnection(MetaTable.SOURCES).where({
       fk_sql_executor_id: this.id,
     });
   }
@@ -209,7 +209,7 @@ export default class DbMux {
     const sources = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       {
         condition: {
           fk_sql_executor_id: this.id,
@@ -346,7 +346,7 @@ export default class DbMux {
     if (!dbMuxId) NcError.badRequest('DbMux id is required');
 
     return (
-      ncMeta.metaCount(RootScopes.BYPASS, RootScopes.BYPASS, MetaTable.BASES, {
+      ncMeta.metaCount(RootScopes.BYPASS, RootScopes.BYPASS, MetaTable.SOURCES, {
         condition: {
           fk_sql_executor_id: dbMuxId,
         },

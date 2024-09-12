@@ -213,12 +213,12 @@ export default class Integration extends IntegrationCE {
       listQb
         .select(
           `${MetaTable.INTEGRATIONS}.*`,
-          ncMeta.knex.raw(`count(${MetaTable.BASES}.id) as source_count`),
+          ncMeta.knex.raw(`count(${MetaTable.SOURCES}.id) as source_count`),
         )
         .leftJoin(
-          MetaTable.BASES,
+          MetaTable.SOURCES,
           `${MetaTable.INTEGRATIONS}.id`,
-          `${MetaTable.BASES}.fk_integration_id`,
+          `${MetaTable.SOURCES}.fk_integration_id`,
         )
         .groupBy(`${MetaTable.INTEGRATIONS}.id`);
     }
@@ -357,30 +357,30 @@ export default class Integration extends IntegrationCE {
   }
 
   async getSources(ncMeta = Noco.ncMeta): Promise<any> {
-    const qb = ncMeta.knex(MetaTable.BASES);
+    const qb = ncMeta.knex(MetaTable.SOURCES);
 
     const sources = await qb
-      .select(`${MetaTable.BASES}.id`)
-      .select(`${MetaTable.BASES}.alias`)
+      .select(`${MetaTable.SOURCES}.id`)
+      .select(`${MetaTable.SOURCES}.alias`)
       .select(`${MetaTable.PROJECT}.title as project_title`)
-      .select(`${MetaTable.BASES}.base_id`)
+      .select(`${MetaTable.SOURCES}.base_id`)
       .innerJoin(
         MetaTable.PROJECT,
-        `${MetaTable.BASES}.base_id`,
+        `${MetaTable.SOURCES}.base_id`,
         `${MetaTable.PROJECT}.id`,
       )
-      .where(`${MetaTable.BASES}.fk_integration_id`, this.id)
+      .where(`${MetaTable.SOURCES}.fk_integration_id`, this.id)
       .where((whereQb) => {
         whereQb
-          .where(`${MetaTable.BASES}.deleted`, false)
-          .orWhereNull(`${MetaTable.BASES}.deleted`);
+          .where(`${MetaTable.SOURCES}.deleted`, false)
+          .orWhereNull(`${MetaTable.SOURCES}.deleted`);
       })
       .where((whereQb) => {
         whereQb
           .where(`${MetaTable.PROJECT}.deleted`, false)
           .orWhereNull(`${MetaTable.PROJECT}.deleted`);
       })
-      .where(`${MetaTable.BASES}.fk_workspace_id`, this.fk_workspace_id);
+      .where(`${MetaTable.SOURCES}.fk_workspace_id`, this.fk_workspace_id);
 
     return (this.sources = sources);
   }

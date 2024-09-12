@@ -36,8 +36,8 @@ const up = async (knex: Knex) => {
     });
   }
 
-  if (!(await knex.schema.hasColumn(MetaTable.BASES, 'fk_integration_id'))) {
-    await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  if (!(await knex.schema.hasColumn(MetaTable.SOURCES, 'fk_integration_id'))) {
+    await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
       table.string('fk_integration_id', 20).index();
     });
   }
@@ -45,18 +45,18 @@ const up = async (knex: Knex) => {
   hrTime = process.hrtime();
 
   // get all external sources, add them to integrations table and map back to bases
-  const sources = await knex(MetaTable.BASES)
-    .select(`${MetaTable.BASES}.*`)
+  const sources = await knex(MetaTable.SOURCES)
+    .select(`${MetaTable.SOURCES}.*`)
     .select(`${MetaTable.PROJECT_USERS}.fk_user_id as created_by`)
     .innerJoin(
       MetaTable.PROJECT,
-      `${MetaTable.BASES}.base_id`,
+      `${MetaTable.SOURCES}.base_id`,
       `${MetaTable.PROJECT}.id`,
     )
     .where((qb) =>
       qb
-        .where(`${MetaTable.BASES}.is_meta`, false)
-        .orWhereNull(`${MetaTable.BASES}.is_meta`),
+        .where(`${MetaTable.SOURCES}.is_meta`, false)
+        .orWhereNull(`${MetaTable.SOURCES}.is_meta`),
     )
     .leftJoin(MetaTable.PROJECT_USERS, (qb) => {
       qb.on(
@@ -86,7 +86,7 @@ const up = async (knex: Knex) => {
     };
 
     await knex(MetaTable.INTEGRATIONS).insert(integration);
-    await knex(MetaTable.BASES).where('id', source.id).update({
+    await knex(MetaTable.SOURCES).where('id', source.id).update({
       fk_integration_id: integrationId,
     });
   }
@@ -97,7 +97,7 @@ const up = async (knex: Knex) => {
 const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.INTEGRATIONS);
 
-  await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
     table.dropColumn('fk_integration_id');
   });
 };

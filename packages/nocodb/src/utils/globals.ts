@@ -1,6 +1,6 @@
 export enum MetaTable {
   PROJECT = 'nc_bases_v2',
-  BASES = 'nc_sources_v2',
+  SOURCES = 'nc_sources_v2',
   MODELS = 'nc_models_v2',
   COLUMNS = 'nc_columns_v2',
   COLUMN_VALIDATIONS = 'nc_columns_validations_v2',
@@ -100,7 +100,7 @@ export const orderedMetaTables = [
   MetaTable.COLUMN_VALIDATIONS,
   MetaTable.COLUMNS,
   MetaTable.MODELS,
-  MetaTable.BASES,
+  MetaTable.SOURCES,
   MetaTable.PROJECT,
 ];
 
@@ -132,7 +132,7 @@ export const sakilaTableNames = [
 
 export enum CacheScope {
   PROJECT = 'base',
-  BASE = 'source',
+  SOURCE = 'source',
   MODEL = 'model',
   COLUMN = 'column',
   COL_PROP = 'colProp',

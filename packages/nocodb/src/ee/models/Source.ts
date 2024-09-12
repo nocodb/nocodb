@@ -55,14 +55,14 @@ export default class Source extends SourceCE implements SourceType {
       insertObj.meta = stringifyMetaProp(insertObj);
     }
 
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.SOURCES, {
       base_id: source.baseId,
     });
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       insertObj,
     );
 
@@ -70,9 +70,9 @@ export default class Source extends SourceCE implements SourceType {
     const returnBase = await this.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
-      CacheScope.BASE,
+      CacheScope.SOURCE,
       [source.baseId],
-      `${CacheScope.BASE}:${id}`,
+      `${CacheScope.SOURCE}:${id}`,
     );
 
     return returnBase;
@@ -135,7 +135,7 @@ export default class Source extends SourceCE implements SourceType {
     );
 
     await NocoCache.deepDel(
-      `${CacheScope.BASE}:${this.id}`,
+      `${CacheScope.SOURCE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
   }
@@ -166,7 +166,7 @@ export default class Source extends SourceCE implements SourceType {
   }
 
   protected static extendQb(qb: any, context: NcContext) {
-    qb.where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id);
+    qb.where(`${MetaTable.SOURCES}.fk_workspace_id`, context.workspace_id);
     return super.extendQb(qb, context);
   }
 }

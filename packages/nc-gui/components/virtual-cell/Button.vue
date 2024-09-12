@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ButtonType, ColumnType } from 'nocodb-sdk'
+import { ButtonActionsType, type ButtonType, type ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 const column = inject(ColumnInj) as Ref<
@@ -33,7 +33,7 @@ const isLoading = ref(false)
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
 
-  if (colOptions.type === 'webhook') {
+  if (colOptions.type === ButtonActionsType.Webhook) {
     try {
       isLoading.value = true
 
@@ -48,7 +48,7 @@ const triggerAction = async () => {
 }
 
 const componentProps = computed(() => {
-  if (column.value.colOptions.type === 'url') {
+  if (column.value.colOptions.type === ButtonActionsType.Url) {
     let url = `${cellValue.value?.url}`
     url = /^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `https://${url}` : ''
 
@@ -85,7 +85,7 @@ const componentProps = computed(() => {
     class="w-full flex items-center"
   >
     <component
-      :is="column.colOptions.type === 'url' ? 'a' : 'button'"
+      :is="column.colOptions.type === ButtonActionsType.Url ? 'a' : 'button'"
       v-bind="componentProps"
       data-testid="nc-button-cell"
       :class="[

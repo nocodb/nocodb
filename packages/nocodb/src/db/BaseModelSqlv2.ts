@@ -9,6 +9,7 @@ import {
   AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
+  ButtonActionsType,
   extractFilterFromXwhere,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -4321,7 +4322,7 @@ class BaseModelSqlv2 {
         case UITypes.Button: {
           try {
             const colOption = column.colOptions as ButtonColumn;
-            if (colOption.type === 'url') {
+            if (colOption.type === ButtonActionsType.Url) {
               const selectQb = await this.getSelectQueryBuilderForFormula(
                 column,
                 alias,
@@ -4371,7 +4372,7 @@ class BaseModelSqlv2 {
                 default:
                   qb.select(this.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
               }
-            } else if (colOption.type === 'webhook') {
+            } else if (colOption.type === ButtonActionsType.Webhook) {
               switch (this.dbDriver.client.config.client) {
                 case 'mysql2':
                   qb.select(

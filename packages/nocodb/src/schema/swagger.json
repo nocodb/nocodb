@@ -21274,7 +21274,7 @@
           },
           "type": {
             "description": "Whether button is webhook or url",
-            "enum": ["webhook", "url"]
+            "$ref": "#/components/schemas/ButtonActions"
           },
           "label": {
             "description": "Label of Button",
@@ -21362,7 +21362,7 @@
           },
           "type": {
             "description": "Whether button is webhook or url",
-            "enum": ["webhook", "url"]
+            "$ref": "#/components/schemas/ButtonActions"
           },
           "theme": {
             "description": "Button Theme",
@@ -27198,6 +27198,10 @@
             "description": "Is any referenced value updated?"
           }
         }
+      },
+      "ButtonActions": {
+        "type": "string",
+        "enum": ["webhook", "url", "ai"]
       }
     },
     "responses": {

@@ -6,7 +6,7 @@ import {
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
-import { type ButtonType, type ColumnType, type HookType } from 'nocodb-sdk'
+import { ButtonActionsType, type ButtonType, type ColumnType, type HookType } from 'nocodb-sdk'
 import { searchIcons } from '../../../utils/iconUtils'
 
 const props = defineProps<{
@@ -48,11 +48,11 @@ const manualHooks = computed(() => {
 const buttonTypes = [
   {
     label: t('labels.openUrl'),
-    value: 'url',
+    value: ButtonActionsType.Url,
   },
   {
     label: t('labels.runWebHook'),
-    value: 'webhook',
+    value: ButtonActionsType.Webhook,
   },
 ]
 
@@ -74,10 +74,10 @@ const supportedColumns = computed(
 const validators = {
   formula_raw: [
     {
-      required: vModel.value.type === 'url',
+      required: vModel.value.type === ButtonActionsType.Url,
       validator: (_: any, formula: any) => {
         return (async () => {
-          if (vModel.value.type === 'url') {
+          if (vModel.value.type === ButtonActionsType.Url) {
             if (!formula?.trim()) throw new Error('Formula is required for URL Button')
 
             try {
@@ -102,10 +102,10 @@ const validators = {
   ],
   fk_webhook_id: [
     {
-      required: vModel.value.type === 'webhook',
+      required: vModel.value.type === ButtonActionsType.Webhook,
       validator: (_: any, fk_webhook_id: any) => {
         return new Promise<void>((resolve, reject) => {
-          if (vModel.value.type === 'webhook' && !fk_webhook_id) {
+          if (vModel.value.type === ButtonActionsType.Webhook && !fk_webhook_id) {
             reject(new Error(t('general.required')))
           }
           resolve()
@@ -141,7 +141,7 @@ const validators = {
     {
       validator: (_: any, type: any) => {
         return new Promise<void>((resolve, reject) => {
-          if (!['url', 'webhook'].includes(type)) {
+          if (!Object.values(ButtonActionsType).includes(type)) {
             reject(new Error(t('msg.invalidType')))
           }
           resolve()
@@ -430,7 +430,7 @@ const selectIcon = (icon: string) => {
         </a-form-item>
       </a-col>
     </a-row>
-    <div v-if="vModel?.type === 'url'" class="!mt-4">
+    <div v-if="vModel?.type === ButtonActionsType.Url" class="!mt-4">
       <SmartsheetColumnFormulaInputHelper
         v-model:value="vModel.formula_raw"
         suggestion-height="medium"
@@ -441,7 +441,7 @@ const selectIcon = (icon: string) => {
       />
     </div>
 
-    <a-form-item v-if="vModel?.type === 'webhook'" class="!mt-4">
+    <a-form-item v-if="vModel?.type === ButtonActionsType.Webhook" class="!mt-4">
       <div class="mb-2 text-gray-800 text-[13px] flex justify-between">
         {{ $t('labels.webhook') }}
         <a

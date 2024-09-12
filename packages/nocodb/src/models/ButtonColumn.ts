@@ -1,3 +1,4 @@
+import type { ButtonActionsType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -6,7 +7,7 @@ import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class ButtonColumn {
-  type: 'webhook' | 'url';
+  type: ButtonActionsType;
   label: string;
   theme: 'solid' | 'light' | 'text';
   icon?: string;

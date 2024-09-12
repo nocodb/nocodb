@@ -2,6 +2,7 @@
 import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
 import {
+  ButtonActionsType,
   UITypes,
   isLinksOrLTAR,
   isSystemColumn,
@@ -9,7 +10,7 @@ import {
   partialUpdateAllowedTypes,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FilterType, SelectOptionsType, TableType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
@@ -23,6 +24,32 @@ interface TableExplorerColumn extends ColumnType {
   }
   view_id?: string
   userHasChangedTitle?: boolean
+
+  // extras
+  colOptions?: any
+  type?: ButtonActionsType
+  theme?: string
+  color?: string
+  icon?: string
+  label?: string
+  fk_column_id?: string
+  fk_webhook_id?: string
+  fk_qr_value_column_id?: string
+  fk_barcode_value_column_id?: string
+  fk_lookup_column_id?: string
+  fk_relation_column_id?: string
+  fk_rollup_column_id?: string
+  rollup_function?: string
+  formula_raw?: string
+  filters?: FilterType[]
+  childTable?: TableType
+  childColumn?: ColumnType
+  childId?: string
+  custom?: {
+    ref_model_id?: string
+    ref_column_id?: string
+    ref_column_title?: string
+  }
 }
 
 interface op {
@@ -564,8 +591,8 @@ const isColumnValid = (column: TableExplorerColumn) => {
   }
 
   if (column.uidt === UITypes.Button && isNew) {
-    if (column.type === 'url' && !column.formula_raw) return false
-    if (column.type === 'webhook' && !column.fk_webhook_id) return false
+    if (column.type === ButtonActionsType.Url && !column.formula_raw) return false
+    if (column.type === ButtonActionsType.Webhook && !column.fk_webhook_id) return false
   }
 
   return true
@@ -705,8 +732,8 @@ const metaToLocal = () => {
     if (c.uidt && c.uidt in columnDefaultMeta) {
       if (!c.meta) c.meta = {}
       c.meta = {
-        ...columnDefaultMeta[c.uidt],
-        ...(c.meta || {}),
+        ...columnDefaultMeta[c.uidt as keyof typeof columnDefaultMeta],
+        ...((c.meta as object) || {}),
       }
     }
     return {
@@ -1188,7 +1215,7 @@ const onPredictNextFields = async (formula?: boolean) => {
                       v-if="field.id && viewFieldsMap[field.id]"
                       :disabled="isLocked"
                       :checked="
-                        visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show
+                        !!visibilityOps.find((op) => op.column.fk_column_id === field.id)?.visible ?? viewFieldsMap[field.id].show
                       "
                       data-testid="nc-field-visibility-checkbox"
                       @change="

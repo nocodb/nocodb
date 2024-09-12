@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  ButtonActionsType,
   FormulaDataTypes,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -363,7 +364,7 @@ export class ColumnsService {
       parsed_tree?: any;
       colOptions?: any;
       fk_webhook_id?: string;
-      type?: 'webhook' | 'url';
+      type?: ButtonActionsType;
       prompt?: string;
       prompt_raw?: string;
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
@@ -439,7 +440,7 @@ export class ColumnsService {
             ...colBody,
           });
         } else if (column.uidt === UITypes.Button) {
-          if (colBody.type === 'url') {
+          if (colBody.type === ButtonActionsType.Url) {
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
@@ -483,7 +484,7 @@ export class ColumnsService {
               console.error(e);
               NcError.badRequest('Invalid Formula');
             }
-          } else if (colBody.type === 'webhook') {
+          } else if (colBody.type === ButtonActionsType.Webhook) {
             if (!colBody.fk_webhook_id) {
               NcError.badRequest('Webhook not found');
             }
@@ -1921,7 +1922,7 @@ export class ColumnsService {
 
         break;
       case UITypes.Button: {
-        if (colBody.type === 'url') {
+        if (colBody.type === ButtonActionsType.Url) {
           colBody.formula = await substituteColumnAliasWithIdInFormula(
             colBody.formula_raw || colBody.formula,
             table.columns,
@@ -1965,7 +1966,7 @@ export class ColumnsService {
             console.error(e);
             NcError.badRequest('Invalid URL Formula');
           }
-        } else if (colBody.type === 'webhook') {
+        } else if (colBody.type === ButtonActionsType.Webhook) {
           if (!colBody.fk_webhook_id) {
             colBody.fk_webhook_id = null;
           }

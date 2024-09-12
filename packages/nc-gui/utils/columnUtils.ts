@@ -1,5 +1,5 @@
 import type { ButtonType, ColumnType, FormulaType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk'
 
 const uiTypes = [
   {
@@ -248,9 +248,9 @@ const isColumnInvalid = (col: ColumnType) => {
       return !!(col.colOptions as FormulaType).error
     case UITypes.Button: {
       const colOptions = col.colOptions as ButtonType
-      if (colOptions.type === 'webhook') {
+      if (colOptions.type === ButtonActionsType.Webhook) {
         return !colOptions.fk_webhook_id
-      } else if (colOptions.type === 'url') {
+      } else if (colOptions.type === ButtonActionsType.Url) {
         return !!colOptions.error
       }
     }

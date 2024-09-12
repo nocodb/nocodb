@@ -520,7 +520,7 @@
       },
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ]
     },
@@ -578,17 +578,12 @@
           }
         },
         "description": "Authenticate existing user with their email and password. Successful login will return a JWT access-token. "
-      },
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-auth"
-        }
-      ]
+      }
     },
     "/api/v2/auth/user/me": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "get": {
@@ -697,7 +692,7 @@
       },
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ]
     },
@@ -758,7 +753,7 @@
       },
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ]
     },
@@ -804,7 +799,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -864,7 +859,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -940,7 +935,7 @@
         },
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -997,13 +992,13 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ]
     },
@@ -1103,7 +1098,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -1237,7 +1232,7 @@
         "description": "Create a user and add it to the given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -1336,7 +1331,7 @@
         "description": "Get info such as node version, arch, platform, is docker, rootdb and package version of a given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -1423,7 +1418,7 @@
         "description": "Update a given user in a given base. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -1468,7 +1463,7 @@
         "description": "Delete a given user in a given base. Exclusive for Super Admin. Access with API Tokens will be blocked.",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -1556,7 +1551,7 @@
             "name": "includeM2M"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -1622,7 +1617,7 @@
         "description": "Hide / show views based on user role",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -1630,7 +1625,7 @@
     "/api/v2/meta/bases/": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "get": {
@@ -1699,7 +1694,7 @@
         "description": "List all base meta data",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -1786,7 +1781,7 @@
         "description": "Create a new base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -1868,7 +1863,7 @@
         "description": "Duplicate a base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           },
           {
             "schema": {
@@ -1969,7 +1964,7 @@
         "description": "Duplicate a base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           },
           {
             "schema": {
@@ -2005,7 +2000,7 @@
         "description": "Get the info of a given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -2088,7 +2083,7 @@
         "description": "Delete the given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -2141,7 +2136,7 @@
         "description": "Update the given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -2209,7 +2204,7 @@
         "description": "Get the source details of a given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -2277,7 +2272,7 @@
         "description": "Delete the source details of a given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -2353,7 +2348,7 @@
         "description": "Update the source details of a given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -2378,7 +2373,7 @@
         "description": "Get base source list",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -2492,7 +2487,7 @@
         "description": "Create a new source on a given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -2568,7 +2563,7 @@
         "description": "Get Base Shared Base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -2643,7 +2638,7 @@
         "description": "Delete Base Shared Base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -2696,7 +2691,7 @@
         "description": "Create Base Shared Base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -2756,7 +2751,7 @@
         "description": "Update Base Shared Base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -2781,7 +2776,7 @@
         "description": "Calculate the Base Cost",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -3211,7 +3206,7 @@
         "description": "Create a new table in a given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -3228,7 +3223,7 @@
         },
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           },
           {
             "schema": {
@@ -3661,7 +3656,7 @@
         "description": "Read the table meta data by the given table ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -3744,7 +3739,7 @@
         "description": "Update the table meta data by the given table ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -3777,7 +3772,7 @@
         "description": "Delete the table meta data by the given table ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -3851,7 +3846,7 @@
         "description": "Duplicate a table",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           },
           {
             "schema": {
@@ -3915,7 +3910,7 @@
         },
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           },
           {
             "schema": {
@@ -4444,7 +4439,7 @@
         "description": "Create a new table in a given Base and Source",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -4513,7 +4508,7 @@
         "description": "Update the order of the given Table",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -4596,7 +4591,7 @@
         "description": "Create a new column in a given Table",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -4645,7 +4640,7 @@
         "description": "Update the existing column by the given column ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -4666,7 +4661,7 @@
         "description": "Delete the existing column by the given column ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -4687,7 +4682,7 @@
         "description": "Get the existing column by the given column ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -4732,7 +4727,7 @@
         "description": "Set a primary value on a given column",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -4854,7 +4849,7 @@
         "description": "List all views in a given Table.",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -4940,7 +4935,7 @@
         "description": "Update the view with the given view Id.",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -4973,7 +4968,7 @@
         "description": "Delete the view with the given view Id.",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -5027,7 +5022,7 @@
             "name": "ignoreIds"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -5080,7 +5075,7 @@
             "name": "ignoreIds"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "description": "Hide All Columns in a given View"
@@ -5166,7 +5161,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -5216,7 +5211,7 @@
         "description": "Create a shared view in a given View..",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -5254,7 +5249,7 @@
         "description": "Update a shared view in a given View..",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -5287,7 +5282,7 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -5380,7 +5375,7 @@
         "description": "List all columns by ViewID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -5466,7 +5461,7 @@
         "description": "Create a new column in a given View",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -5540,7 +5535,7 @@
         "description": "Update a column in a View",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -5606,7 +5601,7 @@
         "description": "List all the sort data in a given View",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -5662,7 +5657,7 @@
         "description": "Update the sort data in a given View",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -5717,7 +5712,7 @@
         "description": "Get the sort data by Sort ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -5768,7 +5763,7 @@
         "description": "Update the sort data by Sort ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -5801,7 +5796,7 @@
         "description": "Delete the sort data by Sort ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -5875,7 +5870,7 @@
         "description": "Get the filter data in a given View",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -5945,7 +5940,7 @@
         "description": "Update the filter data in a given View",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6019,7 +6014,7 @@
         "description": "Get the filter data in a given Hook",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -6089,7 +6084,7 @@
         "description": "Create filter(s) in a given Hook",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6177,7 +6172,7 @@
             "name": "offset"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6240,7 +6235,7 @@
         "description": "Get the filter data with a given Filter ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -6294,7 +6289,7 @@
         "description": "Update the filter data with a given Filter ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -6327,7 +6322,7 @@
         "description": "Delete the filter data with a given Filter ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6401,7 +6396,7 @@
         "description": "Get Filter Group Children of a given group ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6486,7 +6481,7 @@
         "description": "Create a new grid view in a given Table",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6550,7 +6545,7 @@
         "description": "Update Grid View",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6612,7 +6607,7 @@
         "description": "List all columns in the given Grid",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6678,7 +6673,7 @@
         "description": "Update grid column(s) in the given Grid",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6763,7 +6758,7 @@
         },
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6843,7 +6838,7 @@
         "description": "Update the form data by Form ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -6917,7 +6912,7 @@
         "description": "Get the form data by Form ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -6982,7 +6977,7 @@
         "description": "Update the form column(s) by Form View Column ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -7065,7 +7060,7 @@
         },
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -7129,7 +7124,7 @@
         "description": "Update the Gallery View data with Gallery ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -7157,7 +7152,7 @@
         "description": "Get the Gallery View data with Gallery ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -7242,7 +7237,7 @@
         "description": "Create a new Kanban View",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -7349,7 +7344,7 @@
         "description": "Update the Kanban View data with Kanban ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -7377,7 +7372,7 @@
         "description": "Get the Kanban View data by Kanban ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -7463,7 +7458,7 @@
         "description": "Create a new Map View",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -7527,7 +7522,7 @@
         "description": "Update the Map View data by Map ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -7555,7 +7550,7 @@
         "description": "Get the Map View data by Map ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -7614,7 +7609,7 @@
         "description": "Synchronise the meta data difference between NC_DB and external data sources ",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -7623,10 +7618,10 @@
         "operationId": "base-meta-diff-get",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -7796,7 +7791,7 @@
         "description": "Synchronise the meta data difference between NC_DB and external data sources in a given Source",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -7805,7 +7800,7 @@
         "operationId": "source-meta-diff-get",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -7930,7 +7925,7 @@
         "operationId": "base-has-empty-or-null-filters",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -8250,7 +8245,7 @@
             "name": "offset"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "responses": {
@@ -9368,7 +9363,7 @@
         "description": "Get Share Source Meta",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "responses": {
@@ -9533,7 +9528,7 @@
     "/api/v2/meta/audits": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "get": {
@@ -9636,7 +9631,7 @@
             "description": "Foreign Key to Model"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -9647,7 +9642,7 @@
     "/api/v2/meta/comments": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "get": {
@@ -9744,7 +9739,7 @@
             "description": "Foreign Key to Model"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -9811,7 +9806,7 @@
         "description": "Create a new comment in a row. Logged in Audit.",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -9914,7 +9909,7 @@
     "/api/v2/meta/comments/count": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "get": {
@@ -9991,7 +9986,7 @@
             "description": "Foreign Key to Model"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -10194,7 +10189,7 @@
             "name": "orderBy"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -10271,7 +10266,7 @@
         "description": "Update Audit Row",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -10342,7 +10337,7 @@
         "description": "List all hook records in the given Table",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -10525,7 +10520,7 @@
         "description": "Test the hook in the given Table",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -10616,7 +10611,7 @@
         "description": "Get the sample hook payload",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -10710,7 +10705,7 @@
         "description": "Update the exsiting hook by its ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -10743,7 +10738,7 @@
         "description": "Delete the exsiting hook by its ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -10751,7 +10746,7 @@
     "/api/v2/meta/plugins": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "get": {
@@ -10788,7 +10783,7 @@
         "description": "List all plugins",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -10799,7 +10794,7 @@
     "/api/v2/meta/plugins/webhook": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "get": {
@@ -10836,7 +10831,7 @@
         "description": "List all webhook plugins",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -10877,7 +10872,7 @@
         "description": "Check plugin is active or not",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -10889,7 +10884,7 @@
     "/api/v2/meta/plugins/test": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "post": {
@@ -10911,7 +10906,7 @@
         "description": "Test if the plugin is working with the given configurations",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "tags": [
@@ -10980,7 +10975,7 @@
         "description": "Update the plugin data by ID",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "x-internal": false
@@ -11013,7 +11008,7 @@
     "/api/v2/meta/connection/test": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "post": {
@@ -11135,7 +11130,7 @@
         "description": "Test the DB Connection",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -11143,7 +11138,7 @@
     "/api/v2/meta/nocodb/info": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "get": {
@@ -11292,7 +11287,7 @@
         "description": "Get the application info such as authType, defaultLimit, version and etc.",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -11300,7 +11295,7 @@
     "/api/v2/meta/axiosRequestMake": {
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "post": {
@@ -11338,7 +11333,7 @@
         "x-internal": true,
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -11354,7 +11349,7 @@
         "description": "Get All K/V pairs in NocoCache",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -11387,13 +11382,13 @@
         ],
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
       "parameters": [
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ]
     },
@@ -11443,7 +11438,7 @@
         "description": "List API Tokens in the given base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -11498,7 +11493,7 @@
         "description": "Create API Token in a base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -11547,7 +11542,7 @@
         "description": "Delete the given API Token in base",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       },
@@ -11615,7 +11610,7 @@
             "description": "Target File Path"
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "description": "Upload attachment"
@@ -11654,7 +11649,7 @@
             "required": true
           },
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ],
         "description": "Upload attachment by URL. Used in Airtable Migration."
@@ -11725,7 +11720,7 @@
         "description": "Resend Invitation to a specific user",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -11771,7 +11766,7 @@
         "description": "Get columns hash for table",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -11871,7 +11866,7 @@
         "description": "Bulk create-update-delete columns",
         "parameters": [
           {
-            "$ref": "#/components/parameters/xc-auth"
+            "$ref": "#/components/parameters/xc-token"
           }
         ]
       }
@@ -12906,7 +12901,7 @@
           "description": "Export as format"
         },
         {
-          "$ref": "#/components/parameters/xc-auth"
+          "$ref": "#/components/parameters/xc-token"
         }
       ]
     }

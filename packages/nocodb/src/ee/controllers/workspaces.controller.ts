@@ -35,7 +35,7 @@ export class WorkspacesController {
   ) {}
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Get('/api/v1/workspaces/')
+  @Get(['/api/v1/workspaces/', '/api/v2/meta/workspaces/'])
   @Acl('workspaceList', {
     scope: 'org',
   })
@@ -47,7 +47,10 @@ export class WorkspacesController {
   }
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Get('/api/v1/workspaces/:workspaceId')
+  @Get([
+    '/api/v1/workspaces/:workspaceId',
+    '/api/v2/meta/workspaces/:workspaceId',
+  ])
   @Acl('workspaceGet', {
     scope: 'workspace',
   })
@@ -67,7 +70,7 @@ export class WorkspacesController {
   }
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Post('/api/v1/workspaces/')
+  @Post(['/api/v1/workspaces/', '/api/v2/meta/workspaces/'])
   @Acl('workspaceCreate', {
     scope: 'org',
     blockApiTokenAccess: true,
@@ -81,7 +84,10 @@ export class WorkspacesController {
   }
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Patch('/api/v1/workspaces/:workspaceId')
+  @Patch([
+    '/api/v1/workspaces/:workspaceId',
+    '/api/v2/meta/workspaces/:workspaceId',
+  ])
   @Acl('workspaceUpdate', {
     scope: 'workspace',
     blockApiTokenAccess: true,
@@ -101,7 +107,8 @@ export class WorkspacesController {
 
   /*
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Post('/api/v1/workspaces/:workspaceId/upgrade')
+  @Post(['/api/v1/workspaces/:workspaceId/upgrade',
+  '/api/v2/meta/workspaces/:workspaceId/upgrade'])
   @Acl('workspaceUpgrade', {
     scope: 'workspace',
     blockApiTokenAccess: true,
@@ -115,7 +122,10 @@ export class WorkspacesController {
   */
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Delete('/api/v1/workspaces/:workspaceId')
+  @Delete([
+    '/api/v1/workspaces/:workspaceId',
+    '/api/v2/meta/workspaces/:workspaceId',
+  ])
   @Acl('workspaceDelete', {
     scope: 'workspace',
     blockApiTokenAccess: true,
@@ -132,7 +142,10 @@ export class WorkspacesController {
   }
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Post('/api/v1/workspaces/:workspaceId/bases/:baseId/move')
+  @Post([
+    '/api/v1/workspaces/:workspaceId/bases/:baseId/move',
+    '/api/v2/meta/workspaces/:workspaceId/bases/:baseId/move',
+  ])
   @Acl('moveProjectToWorkspace', {
     scope: 'workspace',
     blockApiTokenAccess: true,
@@ -150,7 +163,10 @@ export class WorkspacesController {
   }
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-  @Get('/api/v1/workspaces/:workspaceId/bases')
+  @Get([
+    '/api/v1/workspaces/:workspaceId/bases',
+    '/api/v2/meta/workspaces/:workspaceId/bases',
+  ])
   @Acl('workspaceBaseList', {
     scope: 'workspace',
   })
@@ -165,7 +181,10 @@ export class WorkspacesController {
     });
   }
 
-  @Patch('/api/v1/workspaces/:workspaceId/status')
+  @Patch([
+    '/api/v1/workspaces/:workspaceId/status',
+    '/api/v2/meta/workspaces/:workspaceId/status',
+  ])
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async updateStatus(
     @Req() req: NcRequest,

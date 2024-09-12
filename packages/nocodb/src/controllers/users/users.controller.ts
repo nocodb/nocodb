@@ -24,7 +24,7 @@ export class UsersController {
     protected readonly config: ConfigService<AppConfig>,
   ) {}
 
-  @Patch(['/api/v1/user/profile'])
+  @Patch(['/api/v1/user/profile', '/api/v2/meta/user/profile'])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @HttpCode(200)
   async update(@Body() body, @Request() req, @Response() res) {

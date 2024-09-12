@@ -566,9 +566,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       await this.execAndParse(query, null, { raw: true });
 
-      // const newData = await this.readByPk(id, false, {}, { ignoreView: true, getHiddenColumn: true });
-
-      // const prevData = await this.readByPk(id);
+      const newId = this.extractPksValues({ ...prevData, ...updateObj }, true);
 
       const newData = (await canUseOptimisedQuery(this.context, {
         source,
@@ -576,14 +574,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }))
         ? await getSingleQueryReadFn(source)(this.context, {
             model: this.model,
-            id,
+            id: newId,
             view: null,
             params: {},
             source,
             getHiddenColumn: true,
           })
         : await this.readByPk(
-            id,
+            newId,
             false,
             {},
             { ignoreView: true, getHiddenColumn: true },
@@ -591,7 +589,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if (btColumn && Object.keys(data || {}).length === 1) {
         await this.addChild({
           colId: btColumn.id,
-          rowId: id,
+          rowId: newId,
           childId: updateObj[btForeignKeyColumn.title],
           cookie,
           onlyUpdateAuditLogs: true,
@@ -1526,7 +1524,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               prevData.push(oldRecord);
             }
 
-            for (const { pk, data } of tempToRead) {
+            for (let i = 0; i < tempToRead.length; i++) {
+              const { pk, data } = tempToRead[i];
               const wherePk = await this._wherePk(pk, true);
 
               // remove pk from update data for databricks
@@ -1544,7 +1543,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 toBeUpdated.push({ d: data, wherePk });
               }
 
-              updatePkValues.push(pk);
+              updatePkValues.push(
+                getCompositePkValue(this.model.primaryKeys, {
+                  ...prevData[i],
+                  ...data,
+                }),
+              );
             }
           }
         } else {
@@ -1567,7 +1571,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             toBeUpdated.push({ d, wherePk });
           }
 
-          updatePkValues.push(pkValues);
+          updatePkValues.push(
+            getCompositePkValue(this.model.primaryKeys, {
+              ...pkValues,
+              ...d,
+            }),
+          );
         }
       }
 

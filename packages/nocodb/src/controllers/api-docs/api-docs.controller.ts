@@ -15,7 +15,7 @@ import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
-import Noco from '~/ee/Noco';
+import Noco from '~/Noco';
 
 @Controller()
 export class ApiDocsController {

@@ -13,7 +13,7 @@ const meta = inject(MetaInj)!
 
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
-  return meta.value.columns.filter((c) => !c.system && c.uidt !== UITypes.ID).map((c) => c.title)
+  return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID).map((c) => c.title!)
 })
 
 const workspaceStore = useWorkspace()

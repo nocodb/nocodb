@@ -1319,7 +1319,7 @@
           }
         },
         "tags": [
-          "Base", "Bases"
+          "Base", "Internal"
         ],
         "description": "Get info such as node version, arch, platform, is docker, rootdb and package version of a given base",
         "parameters": [
@@ -1988,7 +1988,7 @@
         }
       ],
       "get": {
-        "summary": "Get Base",
+        "summary": "Get Base Schema",
         "operationId": "base-read",
         "description": "Get the info of a given base",
         "parameters": [
@@ -2047,39 +2047,6 @@
           }
         }
       },
-      "delete": {
-        "summary": "Delete Base",
-        "operationId": "base-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": true
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Base", "Bases"
-        ],
-        "description": "Delete the given base",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ]
-      },
       "patch": {
         "summary": "Update Base",
         "operationId": "base-update",
@@ -2132,6 +2099,39 @@
             "$ref": "#/components/parameters/xc-token"
           }
         ]
+      },
+      "delete": {
+        "summary": "Delete Base",
+        "operationId": "base-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Base", "Bases"
+        ],
+        "description": "Delete the given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
       }
     },
     "/api/v2/meta/bases/{baseId}/user": {
@@ -2165,185 +2165,6 @@
             }
           }
         }
-      }
-    },
-    "/api/v2/meta/bases/{baseId}/sources/{sourceId}": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "p_124hhlkbeasewh",
-            "type": "string"
-          },
-          "name": "baseId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Base ID"
-        },
-        {
-          "schema": {
-            "type": "string",
-            "pattern": "ds_j04jmxh5xg10lu"
-          },
-          "name": "sourceId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Source ID"
-        }
-      ],
-      "get": {
-        "summary": "Get Source",
-        "operationId": "source-read",
-        "description": "Get the source details of a given base",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ],
-        "tags": [
-          "Source", "Sources"
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Source"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "alias": null,
-                      "config": "<ENCRYPTED>",
-                      "enabled": 1,
-                      "id": "ds_krsappzu9f8vmo",
-                      "inflection_column": "camelize",
-                      "inflection_table": "camelize",
-                      "is_meta": 1,
-                      "meta": null,
-                      "order": 1,
-                      "base_id": "p_01clqvzik3izk6",
-                      "type": "mysql2"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete Source",
-        "operationId": "source-delete",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": true
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Source"
-        ],
-        "description": "Delete the source details of a given base",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ]
-      },
-      "patch": {
-        "summary": "Update Source",
-        "operationId": "source-update",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "id": "ds_rrplkgy0pq1f3c",
-                      "base_id": "p_63b4q0qengen1x",
-                      "alias": "sakila",
-                      "meta": null,
-                      "is_meta": null,
-                      "type": "mysql2",
-                      "inflection_column": "camelize",
-                      "inflection_table": "camelize",
-                      "created_at": "2023-03-11T10:31:15.341Z",
-                      "updated_at": "2023-03-11T10:32:25.763Z",
-                      "enabled": true,
-                      "order": 2
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Source"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "alias": "sakila",
-                    "type": "mysql2",
-                    "config": {
-                      "client": "mysql2",
-                      "connection": {
-                        "host": "localhost",
-                        "port": "3306",
-                        "user": "root",
-                        "password": "password",
-                        "database": "sakila"
-                      }
-                    },
-                    "inflection_column": "camelize",
-                    "inflection_table": "camelize"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Update the source details of a given base",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ]
       }
     },
     "/api/v2/meta/bases/{baseId}/sources/": {
@@ -2478,6 +2299,185 @@
           "Source", "Sources"
         ],
         "description": "Create a new source on a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      }
+    },
+    "/api/v2/meta/bases/{baseId}/sources/{sourceId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p_124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "pattern": "ds_j04jmxh5xg10lu"
+          },
+          "name": "sourceId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Source ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Source Schema",
+        "operationId": "source-read",
+        "description": "Get the source details of a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "tags": [
+          "Source", "Sources"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Source"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": null,
+                      "config": "<ENCRYPTED>",
+                      "enabled": 1,
+                      "id": "ds_krsappzu9f8vmo",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "is_meta": 1,
+                      "meta": null,
+                      "order": 1,
+                      "base_id": "p_01clqvzik3izk6",
+                      "type": "mysql2"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update Source",
+        "operationId": "source-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "ds_rrplkgy0pq1f3c",
+                      "base_id": "p_63b4q0qengen1x",
+                      "alias": "sakila",
+                      "meta": null,
+                      "is_meta": null,
+                      "type": "mysql2",
+                      "inflection_column": "camelize",
+                      "inflection_table": "camelize",
+                      "created_at": "2023-03-11T10:31:15.341Z",
+                      "updated_at": "2023-03-11T10:32:25.763Z",
+                      "enabled": true,
+                      "order": 2
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Source"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "alias": "sakila",
+                    "type": "mysql2",
+                    "config": {
+                      "client": "mysql2",
+                      "connection": {
+                        "host": "localhost",
+                        "port": "3306",
+                        "user": "root",
+                        "password": "password",
+                        "database": "sakila"
+                      }
+                    },
+                    "inflection_column": "camelize",
+                    "inflection_table": "camelize"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update the source details of a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Source",
+        "operationId": "source-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Source"
+        ],
+        "description": "Delete the source details of a given base",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -2808,6 +2808,55 @@
           "description": "Unique Base ID"
         }
       ],
+      "get": {
+        "summary": "List Tables",
+        "operationId": "db-table-list",
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/TableList"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "page"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "pageSize"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "includeM2M"
+          }
+        ],
+        "tags": [
+          "DB Table", "Tables"
+        ],
+        "description": "List all tables in a given base"
+      },
       "post": {
         "summary": "Create Table",
         "operationId": "db-table-create",
@@ -3202,55 +3251,6 @@
             "$ref": "#/components/parameters/xc-token"
           }
         ]
-      },
-      "get": {
-        "summary": "List Tables",
-        "operationId": "db-table-list",
-        "responses": {
-          "200": {
-            "$ref": "#/components/responses/TableList"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "in": "query",
-            "name": "page"
-          },
-          {
-            "schema": {
-              "type": "number"
-            },
-            "in": "query",
-            "name": "pageSize"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "boolean"
-            },
-            "in": "query",
-            "name": "includeM2M"
-          }
-        ],
-        "tags": [
-          "DB Table", "Tables"
-        ],
-        "description": "List all tables in a given base"
       }
     },
     "/api/v2/meta/tables/{tableId}": {
@@ -3268,7 +3268,7 @@
         }
       ],
       "get": {
-        "summary": "Read Table",
+        "summary": "Get Table Metadata",
         "operationId": "db-table-read",
         "responses": {
           "200": {
@@ -4600,6 +4600,27 @@
           "required": true
         }
       ],
+      "get": {
+        "summary": "Get Column Metadata",
+        "operationId": "db-table-column-get",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Column", "Fields"
+        ],
+        "description": "Get the existing column by the given column ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      },
       "patch": {
         "summary": "Update Column",
         "operationId": "db-table-column-update",
@@ -4652,27 +4673,6 @@
           "DB Table Column", "Fields"
         ],
         "description": "Delete the existing column by the given column ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ]
-      },
-      "get": {
-        "summary": "Get Column",
-        "operationId": "db-table-column-get",
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Column", "Fields"
-        ],
-        "description": "Get the existing column by the given column ID",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -5294,7 +5294,7 @@
         }
       ],
       "get": {
-        "summary": "List Columns In View",
+        "summary": "List View Columns",
         "operationId": "db-view-column-list",
         "responses": {
           "200": {
@@ -5599,7 +5599,7 @@
         ]
       },
       "post": {
-        "summary": "Update View Sort",
+        "summary": "Create View Sort",
         "operationId": "db-table-sort-create",
         "responses": {
           "200": {
@@ -5669,7 +5669,7 @@
         }
       ],
       "get": {
-        "summary": "Get Sort",
+        "summary": "Get Sort Metadata",
         "operationId": "db-table-sort-get",
         "responses": {
           "200": {
@@ -5808,7 +5808,7 @@
         }
       ],
       "get": {
-        "summary": "Get View Filter",
+        "summary": "List View Filters",
         "operationId": "db-table-filter-read",
         "responses": {
           "200": {
@@ -5938,150 +5938,6 @@
         ]
       }
     },
-    "/api/v2/meta/hooks/{hookId}/filters": {
-      "parameters": [
-        {
-          "schema": {
-            "$ref": "#/components/schemas/Id",
-            "example": "hk_0063k4o1frnxbr"
-          },
-          "name": "hookId",
-          "in": "path",
-          "required": true,
-          "description": "Unique Hook ID"
-        }
-      ],
-      "get": {
-        "summary": "Get Hook Filter",
-        "operationId": "db-table-webhook-filter-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterList"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "list": [
-                        {
-                          "source_id": "ds_g4ccx6e77h1dmi",
-                          "comparison_op": "eq",
-                          "comparison_sub_op": null,
-                          "created_at": "2023-03-02 18:18:05",
-                          "fk_column_id": "cl_d7ah9n2qfupgys",
-                          "fk_hook_id": null,
-                          "fk_parent_id": null,
-                          "fk_view_id": "vw_b739e29vqmrxnf",
-                          "id": "fi_xn647tpmdq8fu8",
-                          "is_group": null,
-                          "logical_op": "and",
-                          "order": 1,
-                          "base_id": "p_xm3thidrblw4n7",
-                          "updated_at": "2023-03-02 18:18:05",
-                          "value": "foo"
-                        }
-                      ],
-                      "pageInfo": {
-                        "isFirstPage": true,
-                        "isLastPage": true,
-                        "page": 1,
-                        "pageSize": 10,
-                        "totalRows": 1
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Webhook Filter", "Webhooks"
-        ],
-        "description": "Get the filter data in a given Hook",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ]
-      },
-      "post": {
-        "summary": "Create Hook Filter",
-        "operationId": "db-table-webhook-filter-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Filter"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "source_id": "ds_g4ccx6e77h1dmi",
-                      "comparison_op": "eq",
-                      "comparison_sub_op": null,
-                      "created_at": "2023-03-02 18:18:05",
-                      "fk_column_id": "cl_d7ah9n2qfupgys",
-                      "fk_hook_id": null,
-                      "fk_parent_id": null,
-                      "fk_view_id": "vw_b739e29vqmrxnf",
-                      "id": "fi_xn647tpmdq8fu8",
-                      "is_group": null,
-                      "logical_op": "and",
-                      "order": 1,
-                      "base_id": "p_xm3thidrblw4n7",
-                      "updated_at": "2023-03-02 18:18:05",
-                      "value": "foo"
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB Table Webhook Filter", "Webhooks"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterReq"
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "comparison_op": "eq",
-                    "comparison_sub_op": null,
-                    "fk_column_id": "cl_d7ah9n2qfupgys",
-                    "is_group": false,
-                    "logical_op": "and",
-                    "value": "foo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "description": "Create filter(s) in a given Hook",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ]
-      }
-    },
     "/api/v2/meta/hooks/{hookId}/logs": {
       "parameters": [
         {
@@ -6184,7 +6040,7 @@
         }
       ],
       "get": {
-        "summary": "Get Filter",
+        "summary": "Get Filter Metadata",
         "operationId": "db-table-filter-get",
         "responses": {
           "200": {
@@ -6557,7 +6413,7 @@
         }
       ],
       "get": {
-        "summary": "List Grid Columns",
+        "summary": "List Grid View Columns",
         "operationId": "db-view-grid-columns-list",
         "responses": {
           "200": {
@@ -6620,7 +6476,7 @@
         }
       ],
       "patch": {
-        "summary": "Update Grid Column",
+        "summary": "Update Grid View Column",
         "operationId": "db-view-grid-column-update",
         "responses": {
           "200": {
@@ -6836,7 +6692,7 @@
         ]
       },
       "get": {
-        "summary": "Get Form",
+        "summary": "Get Form View Metadata",
         "operationId": "db-view-form-read",
         "responses": {
           "200": {
@@ -6925,7 +6781,7 @@
         }
       ],
       "patch": {
-        "summary": "Update Form Column",
+        "summary": "Update Form View Column",
         "operationId": "db-view-form-column-update",
         "responses": {
           "200": {
@@ -7071,6 +6927,34 @@
           "description": "Unique Gallery View ID"
         }
       ],
+      "get": {
+        "summary": "Get Gallery View Metadata",
+        "operationId": "db-view-gallery-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Gallery"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB View", "Views"
+        ],
+        "description": "Get the Gallery View data with Gallery ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      },
       "patch": {
         "summary": "Update Gallery View",
         "operationId": "db-view-gallery-update",
@@ -7115,34 +6999,6 @@
           }
         },
         "description": "Update the Gallery View data with Gallery ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ]
-      },
-      "get": {
-        "summary": "Get Gallery View",
-        "operationId": "db-view-gallery-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Gallery"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB View", "Views"
-        ],
-        "description": "Get the Gallery View data with Gallery ID",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -7248,6 +7104,34 @@
           "description": "Unique Kanban View ID"
         }
       ],
+      "get": {
+        "summary": "Get Kanban View Metadata",
+        "operationId": "db-view-kanban-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Kanban"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB View", "Views"
+        ],
+        "description": "Get the Kanban View data by Kanban ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      },
       "patch": {
         "summary": "Update Kanban View",
         "operationId": "db-view-kanban-update",
@@ -7335,34 +7219,6 @@
           }
         },
         "description": "Update the Kanban View data with Kanban ID",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ]
-      },
-      "get": {
-        "summary": "Get Kanban View",
-        "operationId": "db-view-kanban-read",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Kanban"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "DB View", "Views"
-        ],
-        "description": "Get the Kanban View data by Kanban ID",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -9740,7 +9596,7 @@
         ]
       },
       "post": {
-        "summary": "Comment Rows",
+        "summary": "Add Comment",
         "operationId": "utils-comment-row",
         "responses": {
           "200": {
@@ -10626,7 +10482,7 @@
         }
       ],
       "patch": {
-        "summary": "Update Hook",
+        "summary": "Update Table Hook",
         "operationId": "db-table-webhook-update",
         "responses": {
           "200": {
@@ -10703,7 +10559,7 @@
         ]
       },
       "delete": {
-        "summary": "Delete Hook",
+        "summary": "Delete Table Hook",
         "operationId": "db-table-webhook-delete",
         "responses": {
           "200": {
@@ -10729,6 +10585,150 @@
           "DB Table Webhook", "Webhooks"
         ],
         "description": "Delete the exsiting hook by its ID",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      }
+    },
+    "/api/v2/meta/hooks/{hookId}/filters": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "hk_0063k4o1frnxbr"
+          },
+          "name": "hookId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Hook ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Table Hook Filter",
+        "operationId": "db-table-webhook-filter-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "source_id": "ds_g4ccx6e77h1dmi",
+                          "comparison_op": "eq",
+                          "comparison_sub_op": null,
+                          "created_at": "2023-03-02 18:18:05",
+                          "fk_column_id": "cl_d7ah9n2qfupgys",
+                          "fk_hook_id": null,
+                          "fk_parent_id": null,
+                          "fk_view_id": "vw_b739e29vqmrxnf",
+                          "id": "fi_xn647tpmdq8fu8",
+                          "is_group": null,
+                          "logical_op": "and",
+                          "order": 1,
+                          "base_id": "p_xm3thidrblw4n7",
+                          "updated_at": "2023-03-02 18:18:05",
+                          "value": "foo"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Webhook Filter", "Webhooks"
+        ],
+        "description": "Get the filter data in a given Hook",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Table Hook Filter",
+        "operationId": "db-table-webhook-filter-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Filter"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "source_id": "ds_g4ccx6e77h1dmi",
+                      "comparison_op": "eq",
+                      "comparison_sub_op": null,
+                      "created_at": "2023-03-02 18:18:05",
+                      "fk_column_id": "cl_d7ah9n2qfupgys",
+                      "fk_hook_id": null,
+                      "fk_parent_id": null,
+                      "fk_view_id": "vw_b739e29vqmrxnf",
+                      "id": "fi_xn647tpmdq8fu8",
+                      "is_group": null,
+                      "logical_op": "and",
+                      "order": 1,
+                      "base_id": "p_xm3thidrblw4n7",
+                      "updated_at": "2023-03-02 18:18:05",
+                      "value": "foo"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Webhook Filter", "Webhooks"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "comparison_op": "eq",
+                    "comparison_sub_op": null,
+                    "fk_column_id": "cl_d7ah9n2qfupgys",
+                    "is_group": false,
+                    "logical_op": "and",
+                    "value": "foo"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Create filter(s) in a given Hook",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -11389,7 +11389,7 @@
       "get": {
         "summary": "List API Tokens in Base",
         "tags": [
-          "API Token", "API Tokens"
+          "API Token", "Internal"
         ],
         "responses": {
           "200": {

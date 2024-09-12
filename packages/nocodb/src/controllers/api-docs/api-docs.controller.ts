@@ -15,6 +15,7 @@ import { PublicApiLimiterGuard } from '~/guards/public-api-limiter.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
+import Noco from '~/Noco';
 
 @Controller()
 export class ApiDocsController {
@@ -55,24 +56,44 @@ export class ApiDocsController {
   @Get(['/api/v1/db/meta/projects/:baseId/swagger'])
   @UseGuards(PublicApiLimiterGuard)
   swaggerHtml(@Param('baseId') baseId: string, @Response() res) {
-    res.send(getSwaggerHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
+    res.send(
+      getSwaggerHtml({
+        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        dashboardPath: Noco.getConfig().dashboardPath || '',
+      }),
+    );
   }
 
   @UseGuards(PublicApiLimiterGuard)
   @Get(['/api/v1/db/meta/projects/:baseId/redoc'])
   redocHtml(@Param('baseId') baseId: string, @Response() res) {
-    res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
+    res.send(
+      getRedocHtml({
+        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        dashboardPath: Noco.getConfig().dashboardPath || '',
+      }),
+    );
   }
 
   @Get(['/api/v2/meta/bases/:baseId/swagger'])
   @UseGuards(PublicApiLimiterGuard)
   swaggerHtmlV2(@Param('baseId') baseId: string, @Response() res) {
-    res.send(getSwaggerHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
+    res.send(
+      getSwaggerHtml({
+        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        dashboardPath: Noco.getConfig().dashboardPath || '',
+      }),
+    );
   }
 
   @UseGuards(PublicApiLimiterGuard)
   @Get(['/api/v2/meta/bases/:baseId/redoc'])
   redocHtmlV2(@Param('baseId') baseId: string, @Response() res) {
-    res.send(getRedocHtml({ ncSiteUrl: process.env.NC_PUBLIC_URL || '' }));
+    res.send(
+      getRedocHtml({
+        ncSiteUrl: process.env.NC_PUBLIC_URL || '',
+        dashboardPath: Noco.getConfig().dashboardPath || '',
+      }),
+    );
   }
 }

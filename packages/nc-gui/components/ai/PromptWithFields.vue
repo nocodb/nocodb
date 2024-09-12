@@ -54,6 +54,8 @@ const editor = useEditor({
         text += `{${node.attrs.id}}`
       } else if (node.text) {
         text += node.text
+      } else if (node.type.name === 'paragraph') {
+        text += '\n'
       }
     })
 
@@ -68,7 +70,11 @@ onMounted(async () => {
   await until(() => vModel.value).toBeTruthy()
 
   // replace {id} with <span data-type="mention" data-id="id"></span>
-  const renderContent = vModel.value.replace(/\{(.*?)\}/g, '<span data-type="mention" data-id="$1"></span>')
+  const renderContent = vModel.value
+    .replace(/\{(.*?)\}/g, '<span data-type="mention" data-id="$1"></span>')
+    .replace(/^\n/g, '')
+    .replace(/\n$/g, '')
+    .replace(/\n/g, '<br>')
 
   editor.value?.commands.setContent(renderContent)
 

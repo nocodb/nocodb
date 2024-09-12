@@ -1,6 +1,8 @@
 import { IntegrationsType } from 'nocodb-sdk';
 import { Integration } from '~/models';
 import { MetaTable } from '~/utils/globals';
+import Noco from '~/Noco';
+import { decryptPropIfRequired, encryptPropIfRequired } from '~/utils';
 
 // Mock dependencies
 jest.mock('~/helpers/catchError');
@@ -114,7 +116,9 @@ describe('Integration Model', () => {
         id: 'new-id',
         title: 'New Integration',
         workspaceId: 'workspace-1',
-        config: {},
+        config: {
+          client: 'pg'
+        },
       };
       mockNcMeta.metaInsert2.mockResolvedValue({
         ...newIntegration,
@@ -148,6 +152,61 @@ describe('Integration Model', () => {
           id: undefined,
         },
       );
+    });
+
+    it('should create a new integration with encrypted config', async () => {
+      // overwrite env variable
+      const config = Noco.getConfig();
+
+      Noco.getConfig = jest.fn().mockReturnValue({
+        ...config,
+        credentialSecret: 'test-secret',
+      });
+
+      const newIntegration = {
+        id: 'new-id',
+        title: 'New Integration',
+        workspaceId: 'workspace-1',
+        config: {
+          client: 'pg'
+        },
+      };
+      mockNcMeta.metaInsert2.mockResolvedValue({
+        ...newIntegration,
+      });
+      mockNcMeta.metaInsert2.mockResolvedValue({
+        ...newIntegration,
+      });
+      mockNcMeta.metaGet2.mockResolvedValue({
+        ...newIntegration,
+      });
+      mockNcMeta.metaGetNextOrder.mockResolvedValue(2);
+
+      const result = await Integration.createIntegration(
+        newIntegration,
+        mockNcMeta,
+      );
+
+      expect(result).toBeInstanceOf(Integration);
+      expect(result).toEqual(
+        expect.objectContaining({ id: 'new-id', ...newIntegration }),
+      );
+
+      console.log(encryptPropIfRequired({ data: newIntegration }));
+      console.log(encryptPropIfRequired({ data: newIntegration }));
+      console.log(encryptPropIfRequired({ data: newIntegration }));
+
+      // Extract the arguments used in the call
+      const calledWithArgs = mockNcMeta.metaInsert2.mock.calls[0][3];
+
+      // veify the 'config' field is encrypted
+      expect(calledWithArgs.config).not.toEqual(newIntegration.config);
+
+      // Decrypt the 'config' field
+      const decryptedConfig = decryptPropIfRequired({ data: calledWithArgs });
+
+      // Verify the decrypted config matches the original integration
+      expect(decryptedConfig).toEqual(newIntegration.config);
     });
   });
 

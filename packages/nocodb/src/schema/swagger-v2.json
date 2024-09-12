@@ -43,6 +43,407 @@
     }
   ],
   "paths": {
+    "/api/v2/meta/workspaces": {
+      "get": {
+        "summary": "List workspaces",
+        "operationId": "workspace-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "List workspaces"
+      },
+      "post": {
+        "summary": "List workspaces",
+        "operationId": "workspace-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Workspace"
+                      }
+                    },
+                    {
+                      "$ref": "#/components/schemas/Workspace"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/Workspace"
+                    }
+                  },
+                  {
+                    "$ref": "#/components/schemas/Workspace"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "List workspaces"
+      },
+      "parameters": []
+    },
+    "/api/v2/meta/workspaces/{workspaceId}": {
+      "get": {
+        "summary": "Read workspace",
+        "operationId": "workspace-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "workspace": {
+                      "$ref": "#/components/schemas/Workspace",
+                      "required": true
+                    },
+                    "workspaceUserCount": {
+                      "type": "number",
+                      "required": true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Read workspace"
+      },
+      "patch": {
+        "summary": "Update workspace",
+        "operationId": "workspace-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Workspace"
+              }
+            }
+          }
+        },
+        "description": "Update workspace"
+      },
+      "delete": {
+        "summary": "Delete workspace",
+        "operationId": "workspace-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Delete workspace"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/workspaces/{workspaceId}/upgrade": {
+      "post": {
+        "summary": "Upgrade workspace",
+        "operationId": "workspace-upgrade",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace"
+        ],
+        "description": "Upgrade workspace"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/workspaces/{workspaceId}/users": {
+      "get": {
+        "summary": "Workspace users list",
+        "operationId": "workspace-user-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUserList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace users list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/workspaces/{workspaceId}/bases": {
+      "get": {
+        "summary": "Workspace bases list",
+        "operationId": "workspace-base-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace base"
+        ],
+        "description": "Workspace bases list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/workspaces/{toWorkspaceId}/bases/{baseId}/move": {
+      "post": {
+        "summary": "Workspace base move",
+        "operationId": "workspace-base-move",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {}
+            }
+          }
+        },
+        "tags": [
+          "Workspace base"
+        ],
+        "description": "Workspace bases list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "toWorkspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/workspaces/{workspaceId}/invitations": {
+      "post": {
+        "summary": "Workspace user invite",
+        "operationId": "workspace-user-invite",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceUserInvite"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user invite"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/workspaces/{workspaceId}/users/{userId}": {
+      "get": {
+        "summary": "Workspace user read",
+        "operationId": "workspace-user-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUser"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user read"
+      },
+      "patch": {
+        "summary": "Update workspace user",
+        "operationId": "workspace-user-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roles": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update workspace user"
+      },
+      "delete": {
+        "summary": "Delete workspace user",
+        "operationId": "workspace-user-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace User"
+        ],
+        "description": "Delete workspace user"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+
+
     "/api/v2/meta/bases/{baseId}/users": {
       "get": {
         "summary": "List Base Users",

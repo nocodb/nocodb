@@ -13,7 +13,7 @@ const meta = inject(MetaInj)!
 
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
-  return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID).map((c) => c.title!)
+  return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID)
 })
 
 const workspaceStore = useWorkspace()
@@ -47,7 +47,7 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
       />
     </a-form-item>
     <a-form-item class="flex">
-      <AiPromptWithFields v-model="vModel.prompt_raw" :keywords="availableFields" />
+      <AiPromptWithFields v-model="vModel.prompt_raw" :options="availableFields" />
       <div class="absolute w-full bottom-[-1px] bg-purple-50 rounded-b-lg flex items-center gap-2 p-1">
         <GeneralIcon icon="info" />
         <span class="text-xs text-gray-500">Mention fields using curly braces, e.g. {Field name}.</span>

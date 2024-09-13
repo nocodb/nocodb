@@ -12,7 +12,7 @@ const cellValue = inject(CellValueInj, ref())
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const { aiIntegrationAvailable, generateRows, generatingRows } = useNocoAi()
+const { aiIntegrationAvailable, generateRows, generatingRows, generatingColumns } = useNocoAi()
 
 const meta = inject(MetaInj, ref())
 
@@ -44,6 +44,10 @@ const generate = async () => {
 
   generatingRows.value.push(pk.value)
 
+  const outputColumnIds = (column.value.colOptions as ButtonType)?.output_column_ids?.split(',')
+
+  generatingColumns.value.push(...(outputColumnIds ?? []))
+
   const res = await generateRows(meta.value.id, column.value.id, [pk.value])
 
   if (res?.length) {
@@ -53,8 +57,6 @@ const generate = async () => {
       (column.value.colOptions as ButtonType)?.output_column_ids &&
       ((column.value.colOptions as ButtonType)?.output_column_ids as string).split(',').length > 0
     ) {
-      const outputColumnIds = (column.value.colOptions as ButtonType)?.output_column_ids?.split(',')
-
       if (outputColumnIds) {
         const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById?.[id] as ColumnType)
         for (const col of outputColumns) {
@@ -67,6 +69,7 @@ const generate = async () => {
   }
 
   generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)
+  generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
 }
 
 const triggerAction = async () => {

@@ -3,12 +3,13 @@ import Placeholder from '@tiptap/extension-placeholder'
 import StarterKit from '@tiptap/starter-kit'
 import Mention from '@tiptap/extension-mention'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
+import { type ColumnType, UITypes } from 'nocodb-sdk'
 import FieldList from '~/helpers/tiptapExtensions/mention/FieldList'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion.ts'
 
 const props = defineProps<{
   modelValue: string
-  keywords?: string[]
+  options?: ColumnType[]
 }>()
 
 const emits = defineEmits(['update:modelValue'])
@@ -18,6 +19,10 @@ const vModel = computed({
   set: (v) => {
     emits('update:modelValue', v)
   },
+})
+
+const keywords = computed(() => {
+  return props.options?.map((option) => option.title) ?? []
 })
 
 const editor = useEditor({
@@ -34,14 +39,22 @@ const editor = useEditor({
       suggestion: {
         ...suggestion(FieldList),
         items: ({ query }) => {
-          if (query.length === 0) return props.keywords ?? []
-          return props.keywords?.filter((keyword) => keyword.includes(query)) ?? []
+          if (query.length === 0) return keywords.value ?? []
+          return keywords.value?.filter((kw) => kw?.includes(query)) ?? []
         },
         char: '{',
         allowSpaces: true,
       },
       renderHTML: ({ node }) => {
-        return ['span', { class: 'prompt-field-tag' }, `${node.attrs.id}`]
+        return [
+          'span',
+          {
+            class: `prompt-field-tag ${
+              props.options?.find((option) => option.title === node.attrs.id)?.uidt === UITypes.Attachment ? '!bg-green-200' : ''
+            }`,
+          },
+          `${node.attrs.id}`,
+        ]
       },
     }),
   ],
@@ -55,6 +68,8 @@ const editor = useEditor({
       } else if (node.text) {
         text += node.text
       } else if (node.type.name === 'paragraph') {
+        text += '\n'
+      } else if (node.type.name === 'hardBreak') {
         text += '\n'
       }
     })
@@ -75,8 +90,7 @@ onMounted(async () => {
   // replace {id} with <span data-type="mention" data-id="id"></span>
   const renderContent = vModel.value
     .replace(/\{(.*?)\}/g, '<span data-type="mention" data-id="$1"></span>')
-    .replace(/^\n/g, '')
-    .replace(/\n$/g, '')
+    .trim()
     .replace(/\n/g, '<br>')
 
   editor.value?.commands.setContent(renderContent)
@@ -92,8 +106,6 @@ onMounted(async () => {
     <EditorContent ref="editorDom" class="h-[200px]" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop />
   </div>
 </template>
-
-<style lang="scss" scoped></style>
 
 <style lang="scss">
 .nc-ai-prompt-with-fields {

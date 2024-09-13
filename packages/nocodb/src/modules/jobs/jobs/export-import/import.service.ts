@@ -1725,6 +1725,7 @@ export class ImportService {
             for (const file of dataFiles) {
               const readStream = await (storageAdapter as any).fileReadByStream(
                 `${path}/data/${file}`,
+                { encoding: 'utf8' },
               );
 
               const modelId = findWithIdentifier(
@@ -1757,7 +1758,9 @@ export class ImportService {
 
             const linkReadStream = await (
               storageAdapter as any
-            ).fileReadByStream(linkFile);
+            ).fileReadByStream(linkFile, {
+              encoding: 'utf8',
+            });
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             handledLinks = await this.importLinkFromCsvStream(context, {

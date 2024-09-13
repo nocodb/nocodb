@@ -343,7 +343,7 @@ const selectIcon = (icon: string) => {
 
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
-  return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID).map((c) => c.title!)
+  return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID)
 })
 
 const outputFieldOptions = computed(() => {
@@ -601,7 +601,7 @@ onMounted(() => {
 
     <template v-if="vModel?.type === buttonActionsType.Ai">
       <a-form-item class="flex !mt-4" v-bind="validateInfos.formula_raw">
-        <AiPromptWithFields v-model="vModel.formula_raw" :keywords="availableFields" />
+        <AiPromptWithFields v-model="vModel.formula_raw" :options="availableFields" />
         <div class="absolute w-full bottom-[-1px] bg-purple-50 rounded-b-lg flex items-center gap-2 p-1">
           <GeneralIcon icon="info" />
           <span class="text-xs text-gray-500">Mention fields using curly braces, e.g. {Field name}.</span>

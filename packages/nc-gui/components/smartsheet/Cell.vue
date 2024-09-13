@@ -53,6 +53,17 @@ const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { sqlUis } = storeToRefs(useBase())
 
+const { generatingRows, generatingColumns } = useNocoAi()
+
+const pk = computed(() => {
+  if (!meta.value?.columns) return
+  return extractPkFromRow(currentRow.value?.row, meta.value.columns)
+})
+
+const isGenerating = computed(
+  () => pk.value && column.value.id && generatingRows.value.includes(pk.value) && generatingColumns.value.includes(column.value.id),
+)
+
 const sourceId = meta.value?.source_id || column.value?.source_id
 
 const sqlUi = ref(sourceId && sqlUis.value[sourceId] ? sqlUis.value[sourceId] : Object.values(sqlUis.value)[0])
@@ -161,7 +172,8 @@ const currentDate = () => {
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
   >
     <template v-if="column">
-      <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
+      <GeneralLoader v-if="isGenerating" />
+      <LazyCellTextArea v-else-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
       <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />

@@ -110,6 +110,9 @@ export class AiDataService {
 
         return {
           [column.title]: promptTemplate.replace(/{(.*?)}/g, (match, p1) => {
+            if (column.uidt === UITypes.Attachment) {
+              return 'attached file';
+            }
             return row[p1];
           }),
           ...pkObj,
@@ -220,12 +223,16 @@ export class AiDataService {
       NcError.unprocessableEntity('Circular reference not allowed');
     }
 
+    const referencedColumns: Column[] = [];
+
     const promptTemplate = aiButton.formula.replace(/{(.*?)}/g, (match, p1) => {
       const column = model.columnsById[p1];
 
       if (!column) {
         NcError.badRequest(`Field '${p1}' not found`);
       }
+
+      referencedColumns.push(column);
 
       return `{${column.title}}`;
     });
@@ -276,71 +283,144 @@ export class AiDataService {
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
-    const { data, usage } = await wrapper.generateObject<{
-      rows: { [key: string]: string }[];
-    }>({
-      schema: z.object({
-        rows: z.array(
-          z.object({
-            ...Object.fromEntries(
-              outputColumns.map((col) => [col.title, z.any()]),
-            ),
-            ...Object.fromEntries(
-              baseModel.model.primaryKeys.map((pk) => [pk.title, z.any()]),
-            ),
-          }),
+    let data, usage;
+
+    if (referencedColumns.some((col) => col.uidt === UITypes.Attachment)) {
+      if (records.length > 1) {
+        NcError.unprocessableEntity(
+          'Cannot use attachments with multiple rows',
+        );
+      }
+
+      const atCols = referencedColumns.filter(
+        (col) => col.uidt === UITypes.Attachment,
+      );
+
+      const attachments = atCols
+        .map((col) => records?.[0]?.[col.title])
+        .flat()
+        .filter((at) => at);
+
+      const res = await (wrapper as any).fileSearch({
+        schema: z.object({
+          ...Object.fromEntries(
+            outputColumns.map((col) => {
+              if (
+                col.uidt === UITypes.SingleSelect ||
+                col.uidt === UITypes.MultiSelect
+              ) {
+                return [
+                  col.title,
+                  z.enum(col.colOptions.options.map((o) => o.title)).nullable(),
+                ];
+              } else if (col.uidt === UITypes.Checkbox) {
+                return [col.title, z.boolean().nullable()];
+              } else if (col.uidt === UITypes.Number) {
+                return [col.title, z.number().nullable()];
+              }
+              return [col.title, z.any()];
+            }),
+          ),
+        }),
+        messages: [
+          {
+            role: 'user',
+            content: userMessage,
+          },
+        ],
+        extractFields: outputColumns.map((col) => col.title),
+        attachments,
+      });
+
+      // add primary keys to the output
+      res.data = {
+        ...res.data,
+        ...Object.fromEntries(
+          baseModel.model.primaryKeys.map((pk) => [
+            pk.title,
+            records[0][pk.title],
+          ]),
         ),
-      }),
-      messages: [
-        {
-          role: 'system',
-          content: `You are a smart-spreadsheet assistant.
-          You are given a list of prompts as JSON array.
-          You need to generate a list of responses as JSON array.
-          Avoid modifying following fields (primary keys): ${baseModel.model.primaryKeys
-            .map((pk) => `"${pk.title}"`)
-            .join(', ')}.
+      };
 
-          In response you must return following fields along with the primary keys: ${outputColumns
-            .map((col) => `"${col.title}"`)
-            .join(', ')}.
-
-          Sample Input:
-          \`\`\`json
-          [
-            { "Id": 1, "question": "What is the capital of France?" },
-            { "Id": 2, "question": "What is the capital of Germany?" }
-          ]
-          \`\`\`
-
-          Sample Output:
-          \`\`\`json
-          [
-            { "Id": 1, "answer": "Paris" },
-            { "Id": 2, "answer": "Berlin" }
-          ]
-          \`\`\`
-          `,
-        },
-        {
-          role: 'user',
-          content: userMessage,
-        },
-      ],
-      ...(aiButton.model ? { customModel: aiButton.model } : {}),
-    });
+      data = {
+        rows: [res.data],
+      };
+      usage = res.usage;
+    } else {
+      const res = await wrapper.generateObject<{
+        rows: { [key: string]: string }[];
+      }>({
+        schema: z.object({
+          rows: z.array(
+            z.object({
+              ...Object.fromEntries(
+                outputColumns.map((col) => [col.title, z.any()]),
+              ),
+              ...Object.fromEntries(
+                baseModel.model.primaryKeys.map((pk) => [pk.title, z.any()]),
+              ),
+            }),
+          ),
+        }),
+        messages: [
+          {
+            role: 'system',
+            content: `You are a smart-spreadsheet assistant.
+            You are given a list of prompts as JSON array.
+            You need to generate a list of responses as JSON array.
+            Avoid modifying following fields (primary keys): ${baseModel.model.primaryKeys
+              .map((pk) => `"${pk.title}"`)
+              .join(', ')}.
+  
+            In response you must return following fields along with the primary keys: ${outputColumns
+              .map((col) => `"${col.title}"`)
+              .join(', ')}.
+  
+            Sample Input:
+            \`\`\`json
+            [
+              { "Id": 1, "question": "What is the capital of France?" },
+              { "Id": 2, "question": "What is the capital of Germany?" }
+            ]
+            \`\`\`
+  
+            Sample Output:
+            \`\`\`json
+            [
+              { "Id": 1, "answer": "Paris" },
+              { "Id": 2, "answer": "Berlin" }
+            ]
+            \`\`\`
+            `,
+          },
+          {
+            role: 'user',
+            content: userMessage,
+          },
+        ],
+        ...(aiButton.model ? { customModel: aiButton.model } : {}),
+      });
+      data = res.data;
+      usage = res.usage;
+    }
 
     await integration.storeInsert(context, req?.user?.id, usage);
 
     const { rows } = data;
 
-    const updatedRows = await baseModel.bulkUpdate(rows, {
-      cookie: {
-        ...req,
-        system: true,
-      },
-    });
+    try {
+      const updatedRows = await baseModel.bulkUpdate(rows, {
+        cookie: {
+          ...req,
+          system: true,
+        },
+      });
 
-    return updatedRows;
+      return updatedRows;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
   }
 }

@@ -149,6 +149,8 @@ export const useNocoAi = createSharedComposable(() => {
 
   const generatingRows = ref<string[]>([])
 
+  const generatingColumns = ref<string[]>([])
+
   const generateRows = async (modelId: string, columnId: string, rowIds: string[]) => {
     try {
       aiLoading.value = true
@@ -176,5 +178,6 @@ export const useNocoAi = createSharedComposable(() => {
     generateTables,
     generateRows,
     generatingRows,
+    generatingColumns,
   }
 })

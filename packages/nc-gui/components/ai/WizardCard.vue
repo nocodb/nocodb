@@ -1,17 +1,24 @@
 <script lang="ts" setup>
 interface Props {
   isDisabled?: boolean
+  activeTab: string
+  tabs: {
+    title: string
+    key: string
+  }[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isDisabled: false,
 })
 
-const emits = defineEmits(['update:isDisabled'])
+const emits = defineEmits(['update:isDisabled', 'update:activeTab'])
 
 const vIsDisabled = useVModel(props, 'isDisabled', emits)
 
-const {} = toRefs(props)
+const activeTab = useVModel(props, 'activeTab', emits)
+
+const { tabs } = toRefs(props)
 
 const workspaceStore = useWorkspace()
 
@@ -34,136 +41,59 @@ const handleEnable = () => {
     }"
     @click="handleEnable"
   >
-    <div
-      class="nc-ai-wizard-card-content"
-      :class="{
-        'min-h-[128px]': !vIsDisabled,
-      }"
-    >
-      <div class="nc-ai-wizard-card-content-title-wrapper">
-        <slot name="icon">
-          <GeneralIcon icon="ncAutoAwesome" class="flex-none !text-current" />
-        </slot>
-        <div v-if="$slots.title" class="nc-ai-wizard-card-content-title flex-1">
-          <slot name="title"> </slot>
-        </div>
-
-        <div class="nc-ai-wizard-card-content-title-action -mt-0.5">
-          <slot name="titleAction">
-            <NcButton v-if="vIsDisabled" type="text" size="xs" @click.stop="vIsDisabled = false">
-              <div class="flex items-center gap-2">
-                {{ $t('general.enable') }}
-                <GeneralIcon icon="chevronDown" />
-              </div>
-            </NcButton>
-            <NcButton v-else type="text" size="xs" class="!px-1 !text-current" @click.stop="vIsDisabled = true">
-              <GeneralIcon icon="close" />
-            </NcButton>
-          </slot>
+    <div class="nc-ai-wizard-card-tab-header">
+      <div class="flex nc-ai-wizard-card-tab-wrapper">
+        <div
+          v-for="tab of tabs"
+          :key="tab.key"
+          class="nc-ai-wizard-card-tab"
+          :class="{
+            'active-tab ': activeTab === tab.key,
+          }"
+          @click="activeTab = tab.key"
+        >
+          {{ tab.title }}
         </div>
       </div>
-
-      <template v-if="!vIsDisabled">
-        <template v-if="!aiIntegrationAvailable">
-          <div class="flex gap-3 p-3 bg-white rounded-lg">
-            <GeneralIcon icon="alertTriangleSolid" class="flex-none !text-nc-content-orange-medium" />
-            <div class="flex-1">
-              <div>Add AI integration to enable Noco AI</div>
-              <div>Allows for seamless AI powered table generation!</div>
-              <NcButton size="small" type="text" class="!text-nc-content-brand -ml-2"> Create AI integration </NcButton>
-            </div>
-
-            <a target="_blank" rel="noopener noreferrer">
-              <NcButton size="small" type="text">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="externalLink" />
-                  {{ $t('title.docs') }}
-                </div>
-              </NcButton>
-            </a>
-          </div>
-        </template>
-        <template v-else>
-          <div v-if="$slots.subtitle" class="nc-ai-wizard-card-content-subtitle pl-10">
-            <slot name="subtitle"></slot>
-          </div>
-
-          <div v-if="$slots.tags" class="nc-ai-wizard-card-content-tags pl-10">
-            <slot name="tags"></slot>
-          </div>
-        </template>
-      </template>
+      <div class="nc-ai-wizard-card-tab-extra-right">
+        <slot name="tabExtraRight"></slot>
+      </div>
     </div>
-
-    <div class="nc-ai-wizard-card-footer">
-      <slot name="footerWrapper">
-        <div class="nc-ai-wizard-card-footer-branding text-xs">
-          Powered by
-          <a class="!no-underline font-semibold !text-inherit"> Noco AI </a>
-        </div>
-        <slot name="settings">
-          <AiSettings :settings="{}" :workspace-id="activeWorkspaceId" placement="bottomLeft">
-            <NcButton size="xs" class="nc-ai-wizard-card-footer-settings !px-1 !text-current" type="text" :disabled="vIsDisabled">
-              <GeneralIcon icon="settings" />
-            </NcButton>
-          </AiSettings>
-        </slot>
-        <slot v-if="!vIsDisabled" name="footer"></slot>
-      </slot>
+    <div class="nc-ai-wizard-card-tab-content">
+      <slot name="tabContent"> </slot>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .nc-ai-wizard-card {
-  .nc-ai-wizard-card-content {
-    @apply p-4 flex flex-col gap-3 bg-nc-bg-purple-light;
+  @apply border-1 border-purple-200 rounded-lg;
 
-    .nc-ai-wizard-card-content-title-wrapper {
-      @apply flex justify-between gap-4 text-nc-content-purple-dark;
+  .nc-ai-wizard-card-tab-header {
+    @apply bg-nc-bg-purple-light flex justify-between h-10 -mt-[1px] -ml-[1px] border-b-1 border-purple-200;
+
+    .nc-ai-wizard-card-tab {
+      @apply relative px-4 py-2 text-sm cursor-pointer rounded-t-lg border-t-1 border-x-1;
+
+      &.active-tab {
+        @apply text-nc-content-purple-dark bg-white border-purple-200 font-semibold;
+
+        &::after {
+          @apply absolute content-[''] -bottom-[1px] left-0 right-0 border-b-1 border-white;
+        }
+      }
+      &:not(.active-tab) {
+        @apply text-nc-content-purple-light border-transparent font-weight-500;
+      }
     }
 
-    .nc-ai-wizard-card-content-title {
-      @apply text-base font-weight-700;
-    }
-
-    .nc-ai-wizard-card-content-subtitle {
-      @apply text-sm text-nc-content-gray-subtle2;
-    }
-
-    .nc-ai-wizard-card-content-tags {
-      @apply flex flex-wrap gap-2;
+    .nc-ai-wizard-card-tab-extra-right {
+      @apply flex items-center gap-2 pr-2 text-nc-content-purple-dark;
     }
   }
 
-  .nc-ai-wizard-card-footer {
-    @apply px-4 py-2 text-nc-content-purple-dark bg-nc-bg-purple-dark flex items-center gap-3;
-
-    .nc-ai-wizard-card-footer-settings {
-      @apply hover:!bg-purple-200;
-    }
-  }
-
-  &.is-disabled {
-    .nc-ai-wizard-card-content {
-      @apply bg-nc-bg-gray-extralight;
-
-      .nc-ai-wizard-card-content-title-wrapper {
-        @apply text-nc-content-gray-subtle2;
-      }
-
-      .nc-ai-wizard-card-content-subtitle {
-        @apply text-nc-content-gray-subtle2;
-      }
-    }
-
-    .nc-ai-wizard-card-footer {
-      @apply text-nc-content-gray-subtle2 bg-nc-bg-gray-light;
-
-      .nc-ai-wizard-card-footer-settings {
-        @apply hover:!bg-gray-100;
-      }
-    }
+  .nc-ai-wizard-card-tab-content {
+    @apply bg-white;
   }
 }
 </style>

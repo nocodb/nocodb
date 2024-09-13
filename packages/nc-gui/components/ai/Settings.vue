@@ -114,7 +114,7 @@ onMounted(async () => {
                 class="w-full"
                 size="middle"
                 :disabled="!vFkIntegrationId"
-                :loading="vFkIntegrationId.length > 0 && availableModels.length === 0"
+                :loading="vFkIntegrationId?.length > 0 && availableModels.length === 0"
               >
                 <a-select-option v-for="md in availableModels" :key="md" :value="md">
                   {{ md }}

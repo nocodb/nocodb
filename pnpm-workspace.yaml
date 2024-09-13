@@ -8,3 +8,4 @@ packages:
   - 'tests/playwright'
   - 'packages/nc-mail-templates'
   - 'packages/nc-plugin'
+  - 'packages/nc-secret-cli'

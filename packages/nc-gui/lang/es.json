@@ -39,7 +39,7 @@
     }
   },
   "aggregation": {
-    "sum": "",
+    "sum": "Sum",
     "count": "Count",
     "min": "Min",
     "max": "Max",

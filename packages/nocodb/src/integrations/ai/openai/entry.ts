@@ -3,10 +3,13 @@ import { type CoreMessage, generateObject, type LanguageModel } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import OpenAI from 'openai';
 import { type Schema } from 'zod';
+import { Logger } from '@nestjs/common';
 import type { ThreadCreateParams } from 'openai/resources/beta/threads/threads';
 import AiIntegration from '~/integrations/ai/ai.interface';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
+
+const logger = new Logger('OpenAiIntegration');
 
 export default class OpenAiIntegration extends AiIntegration {
   model: LanguageModel;
@@ -114,7 +117,7 @@ export default class OpenAiIntegration extends AiIntegration {
 
     // remove all vector stores
     for (const vectorStore of vectorStores.data) {
-      console.log('deleting vector store', vectorStore.id);
+      logger.log('deleting vector store', vectorStore.id);
       await openai.beta.vectorStores.del(vectorStore.id);
     }
     */
@@ -187,7 +190,7 @@ export default class OpenAiIntegration extends AiIntegration {
         run_id: run.id,
       });
     } catch (e) {
-      console.log(e);
+      logger.log(e);
     } finally {
       const clearAssistant = async () => {
         for (const vectorStore of tempVectorStores) {
@@ -198,7 +201,7 @@ export default class OpenAiIntegration extends AiIntegration {
       };
 
       clearAssistant().catch((e) => {
-        console.log('There was an error cleaning up the assistant', e);
+        logger.log('There was an error cleaning up the assistant', e);
       });
     }
 
@@ -207,9 +210,9 @@ export default class OpenAiIntegration extends AiIntegration {
     try {
       response = (rawResponse.data[0].content[0] as any).text.value;
 
-      console.log(response);
+      logger.log(response);
     } catch (e) {
-      console.log(e);
+      logger.error(e);
     }
 
     if (args.schema) {

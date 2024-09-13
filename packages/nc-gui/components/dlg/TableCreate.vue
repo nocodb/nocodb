@@ -251,6 +251,26 @@ const toggleDescription = () => {
   }
 }
 
+const localIsDisabledAiWizard = ref(false)
+
+const isDisabled = computed({
+  get: () => localIsDisabledAiWizard.value,
+  set: (value: boolean) => {
+    localIsDisabledAiWizard.value = value
+
+    if (value) {
+      aiMode.value = false
+      aiModeStep.value = null
+      predictedTables.value = []
+      predictHistory.value = []
+
+      table.title = initTitle.value || ''
+    } else {
+      aiIntegrationAvailable.value = true
+    }
+  },
+})
+
 onMounted(() => {
   generateUniqueTitle()
   nextTick(() => {
@@ -260,7 +280,10 @@ onMounted(() => {
   })
 })
 
-const fullAuto = async () => {
+const fullAuto = async (e) => {
+  const target = e.target as HTMLElement
+  if (target.closest('button, input, .nc-button')) return
+
   if (!aiModeStep.value) {
     await toggleAiMode()
   } else if (aiModeStep.value === AiStep.pick && selectedTables.value.length === 0) {
@@ -269,10 +292,6 @@ const fullAuto = async () => {
     await onAiEnter()
   }
 }
-
-const isDisabled = ref(false)
-
-// useEventListener('dblclick', fullAuto)
 </script>
 
 <template>
@@ -285,7 +304,7 @@ const isDisabled = ref(false)
     @keydown.esc="dialogShow = false"
   >
     <template #header>
-      <div class="flex justify-between w-full items-center">
+      <div class="flex justify-between w-full items-center" @dblclick.stop="fullAuto">
         <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-gray-800">
           <GeneralIcon icon="table" class="!text-gray-600 w-5 h-5" />
           {{ $t('activity.createTable') }}
@@ -295,7 +314,7 @@ const isDisabled = ref(false)
         </a>
       </div>
     </template>
-    <div class="flex flex-col mt-1">
+    <div class="flex flex-col mt-1" @dblclick.stop="fullAuto">
       <a-form
         layout="vertical"
         :model="table"
@@ -321,6 +340,7 @@ const isDisabled = ref(false)
               v-model:value="table.title"
               class="nc-input-md nc-input-shadow"
               hide-details
+              :disabled="!aiIntegrationAvailable"
               data-testid="create-table-title-input"
               :placeholder="selectedTables.length ? '' : 'Enter table names or choose from suggestions'"
             />
@@ -414,8 +434,23 @@ const isDisabled = ref(false)
                     </NcButton>
                   </NcTooltip>
                 </template>
+
                 <NcButton
-                  v-if="aiModeStep === AiStep.init"
+                  v-if="!aiIntegrationAvailable || !aiModeStep"
+                  size="xs"
+                  class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
+                  type="secondary"
+                  @click="toggleAiMode"
+                  :disabled="!aiIntegrationAvailable"
+                >
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="ncZap" class="flex-none" />
+
+                    Auto Suggest Tables
+                  </div>
+                </NcButton>
+                <NcButton
+                  v-else-if="aiModeStep === AiStep.init"
                   size="xs"
                   class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
                   type="secondary"
@@ -453,25 +488,12 @@ const isDisabled = ref(false)
                     @click="onDeselectAll"
                   >
                     <div class="flex items-center gap-2">
-                      <GeneralIcon icon="ncMinus" class="flex-none" />
+                      <GeneralIcon icon="ncMinusSquare" class="flex-none" />
 
                       Remove All Tables
                     </div>
                   </NcButton>
                 </template>
-                <NcButton
-                  v-else
-                  size="xs"
-                  class="!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-purple-200"
-                  type="secondary"
-                  @click="toggleAiMode"
-                >
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="ncZap" class="flex-none" />
-
-                    Auto Suggest Tables
-                  </div>
-                </NcButton>
               </div>
             </template>
           </AiWizardCard>

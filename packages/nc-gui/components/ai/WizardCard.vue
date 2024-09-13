@@ -17,6 +17,8 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
+const { aiIntegrationAvailable } = useNocoAi()
+
 const handleEnable = () => {
   if (!vIsDisabled.value) return
 
@@ -60,14 +62,36 @@ const handleEnable = () => {
           </slot>
         </div>
       </div>
-      <template v-if="!vIsDisabled">
-        <div v-if="$slots.subtitle" class="nc-ai-wizard-card-content-subtitle pl-10">
-          <slot name="subtitle"></slot>
-        </div>
 
-        <div v-if="$slots.tags" class="nc-ai-wizard-card-content-tags pl-10">
-          <slot name="tags"></slot>
-        </div>
+      <template v-if="!vIsDisabled">
+        <template v-if="!aiIntegrationAvailable">
+          <div class="flex gap-3 p-3 bg-white rounded-lg">
+            <GeneralIcon icon="alertTriangleSolid" class="flex-none !text-nc-content-orange-medium" />
+            <div class="flex-1">
+              <div>Add AI integration to enable Noco AI</div>
+              <div>Allows for seamless AI powered table generation!</div>
+              <NcButton size="small" type="text" class="!text-nc-content-brand -ml-2"> Create AI integration </NcButton>
+            </div>
+
+            <a target="_blank" rel="noopener noreferrer">
+              <NcButton size="small" type="text">
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="externalLink" />
+                  {{ $t('title.docs') }}
+                </div>
+              </NcButton>
+            </a>
+          </div>
+        </template>
+        <template v-else>
+          <div v-if="$slots.subtitle" class="nc-ai-wizard-card-content-subtitle pl-10">
+            <slot name="subtitle"></slot>
+          </div>
+
+          <div v-if="$slots.tags" class="nc-ai-wizard-card-content-tags pl-10">
+            <slot name="tags"></slot>
+          </div>
+        </template>
       </template>
     </div>
 

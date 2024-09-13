@@ -1,5 +1,7 @@
 import type { TableType } from 'nocodb-sdk'
 
+const aiIntegrationNotFound = 'AI integration not found'
+
 export const useNocoAi = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
@@ -23,12 +25,17 @@ export const useNocoAi = createSharedComposable(() => {
 
       const res = await $api.ai.utils(baseId, { operation, input })
 
-      aiLoading.value = false
-
       return res
     } catch (e) {
       console.error(e)
+      const error = await extractSdkResponseErrorMsg(e)
+
+      if (error === aiIntegrationNotFound) {
+        aiIntegrationAvailable.value = false
+      }
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+    } finally {
+      aiLoading.value = false
     }
   }
 
@@ -44,12 +51,12 @@ export const useNocoAi = createSharedComposable(() => {
 
       const res = await $api.ai.schema(baseId, { operation, input })
 
-      aiLoading.value = false
-
       return res
     } catch (e) {
       console.error(e)
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+    } finally {
+      aiLoading.value = false
     }
   }
 
@@ -136,6 +143,8 @@ export const useNocoAi = createSharedComposable(() => {
     if (res?.tables) {
       return res.tables
     }
+
+    return []
   }
 
   const generatingRows = ref<string[]>([])
@@ -146,12 +155,12 @@ export const useNocoAi = createSharedComposable(() => {
 
       const res = await $api.ai.dataGenerate(modelId, columnId, { rowIds })
 
-      aiLoading.value = false
-
       return res
     } catch (e) {
       console.error(e)
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+    } finally {
+      aiLoading.value = false
     }
   }
 

@@ -136,7 +136,7 @@ export default `<!doctype html>
                                    </tr>
                                    <tr>
                                    <td style="font-family: sans-serif; font-size: 14px;line-height: 20px; vertical-align: top;padding: 10px 5px 40px 5px; " colspan="2">
-                                     Someone has responded to Form. A record has been added to the subscriptions table in <span style="font-weight: bold"><%- _tn %></span>.
+                                     Someone has responded to Form. A record has been added to the subscriptions table in <span style="font-weight: bold"><%= _tn %></span>.
                                    </td>
                                    </tr>
                                    
@@ -146,11 +146,11 @@ export default `<!doctype html>
                                   <tr>
                                       <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;padding: 20px 5px 20px 5px;text-transform: capitalize "
                                           valign="top">
-                                            <%- prop %>
+                                            <%= prop %>
                                       </td>
                                       <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;padding: 20px 5px 20px 5px;"
                                           valign="top">
-                                            <%- data[prop] %>
+                                            <%= data[prop] %>
                                       </td>
                                   </tr>
                                 <% }

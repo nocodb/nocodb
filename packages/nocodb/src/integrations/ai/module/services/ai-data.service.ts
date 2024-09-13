@@ -8,17 +8,17 @@ import type { AIColumn, ButtonColumn, Column } from '~/models';
 import Model from '~/models/Model';
 
 import { TablesService } from '~/services/tables.service';
-import { DataTableService } from '~/services/data-table.service';
 import { Integration, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { NcError } from '~/helpers/catchError';
+import {
+  generateFromButtonSystemMessage,
+  generateRowsSystemMessage,
+} from '~/integrations/ai/module/prompts/index';
 
 @Injectable()
 export class AiDataService {
-  constructor(
-    protected readonly tablesService: TablesService,
-    private readonly dataTableService: DataTableService,
-  ) {}
+  constructor(protected readonly tablesService: TablesService) {}
 
   async generateRows(
     context: NcContext,
@@ -144,29 +144,9 @@ export class AiDataService {
       messages: [
         {
           role: 'system',
-          content: `You are a smart-spreadsheet assistant.
-          You are given a list of prompts as JSON array.
-          You need to generate a list of responses as JSON array.
-          Avoid modifying following fields: ${baseModel.model.primaryKeys
-            .map((pk) => `"${pk.title}"`)
-            .join(', ')}.
-
-          Sample Input:
-          \`\`\`json
-          [
-            { "Id": 1, "fieldName": "What is the capital of France?" },
-            { "Id": 2, "fieldName": "What is the capital of Germany?" }
-          ]
-          \`\`\`
-
-          Sample Output:
-          \`\`\`json
-          [
-            { "Id": 1, "fieldName": "Paris" },
-            { "Id": 2, "fieldName": "Berlin" }
-          ]
-          \`\`\`
-          `,
+          content: generateRowsSystemMessage(
+            baseModel.model.primaryKeys.map((pk) => pk.title),
+          ),
         },
         {
           role: 'user',
@@ -366,33 +346,10 @@ export class AiDataService {
         messages: [
           {
             role: 'system',
-            content: `You are a smart-spreadsheet assistant.
-            You are given a list of prompts as JSON array.
-            You need to generate a list of responses as JSON array.
-            Avoid modifying following fields (primary keys): ${baseModel.model.primaryKeys
-              .map((pk) => `"${pk.title}"`)
-              .join(', ')}.
-  
-            In response you must return following fields along with the primary keys: ${outputColumns
-              .map((col) => `"${col.title}"`)
-              .join(', ')}.
-  
-            Sample Input:
-            \`\`\`json
-            [
-              { "Id": 1, "question": "What is the capital of France?" },
-              { "Id": 2, "question": "What is the capital of Germany?" }
-            ]
-            \`\`\`
-  
-            Sample Output:
-            \`\`\`json
-            [
-              { "Id": 1, "answer": "Paris" },
-              { "Id": 2, "answer": "Berlin" }
-            ]
-            \`\`\`
-            `,
+            content: generateFromButtonSystemMessage(
+              baseModel.model.primaryKeys.map((pk) => pk.title),
+              outputColumns.map((col) => col.title),
+            ),
           },
           {
             role: 'user',

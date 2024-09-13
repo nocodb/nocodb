@@ -110,6 +110,9 @@ const validators = computed(() => {
     case ClientType.SQLITE:
       clientValidations = {}
       break
+    case ClientType.LIBSQL:
+      clientValidations = {}
+      break
     case ClientType.SNOWFLAKE:
       clientValidations = {
         'dataSource.connection.database': [fieldRequiredValidator()],

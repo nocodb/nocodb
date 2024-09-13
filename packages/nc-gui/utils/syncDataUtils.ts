@@ -119,6 +119,14 @@ export const allIntegrations: IntegrationItemType[] = [
     isOssOnly: true,
   },
   {
+    title: 'objects.syncData.libsql',
+    value: ClientType.LIBSQL,
+    icon: iconMap.libsql,
+    categories: [IntegrationCategoryType.DATABASE],
+    isAvailable: true,
+    isOssOnly: true,
+  },
+  {
     title: 'objects.syncData.snowflake',
     value: ClientType.SNOWFLAKE,
     icon: iconMap.snowflake,

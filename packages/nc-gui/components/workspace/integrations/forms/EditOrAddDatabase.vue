@@ -8,6 +8,7 @@ import {
   ClientType,
   type DatabricksConnection,
   type DefaultConnection,
+  type LibsqlConnection,
   type ProjectCreateForm,
   type SQLiteConnection,
   SSLUsage,
@@ -119,6 +120,11 @@ const validators = computed(() => {
   }
 
   switch (formState.value.dataSource.client) {
+    case ClientType.LIBSQL:
+      clientValidations = {
+        'dataSource.connection.url': [fieldRequiredValidator()],
+      }
+      break
     case ClientType.SQLITE:
       clientValidations = {
         'dataSource.connection.connection.filename': [fieldRequiredValidator()],
@@ -605,7 +611,11 @@ watch(
 
                   <!-- Use Connection URL -->
                   <NcDropdown
-                    v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
+                    v-if="
+                      ![ClientType.SQLITE, ClientType.LIBSQL, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(
+                        formState.dataSource.client,
+                      )
+                    "
                     v-model:visible="importURLDlg"
                     placement="bottomRight"
                   >
@@ -677,6 +687,30 @@ watch(
                           <a-input
                             v-model:value="(formState.dataSource.connection as SQLiteConnection).connection.filename"
                             placeholder="Enter absolute file path"
+                          />
+                        </a-form-item>
+                      </a-col>
+                    </a-row>
+                  </template>
+                  <template v-else-if="formState.dataSource.client === ClientType.LIBSQL">
+                    <a-row :gutter="24">
+                      <a-col :span="12">
+                        <a-form-item :label="$t('labels.connectionUrl')" v-bind="validateInfos['dataSource.connection.url']">
+                          <a-input
+                            v-model:value="(formState.dataSource.connection as LibsqlConnection).url"
+                            placeholder="Enter connection url"
+                          />
+                        </a-form-item>
+                      </a-col>
+                      <a-col :span="12">
+                        <a-form-item
+                          :label="$t('labels.authToken')"
+                          class="nc-form-item-connection-password"
+                          v-bind="validateInfos['dataSource.connection.authToken']"
+                        >
+                          <a-input-password
+                            v-model:value="(formState.dataSource.connection as LibsqlConnection).authToken"
+                            class="nc-extdb-host-password"
                           />
                         </a-form-item>
                       </a-col>
@@ -919,7 +953,11 @@ watch(
               </div>
 
               <template
-                v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
+                v-if="
+                  ![ClientType.SQLITE, ClientType.LIBSQL, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(
+                    formState.dataSource.client,
+                  )
+                "
               >
                 <NcDivider />
 

@@ -16,6 +16,19 @@ const isEditOrAddIntegrationModalOpen = computed({
   },
 })
 
+// TODO TITOUAN FIND OUT WHY IS DOESNT WORK WHEN USING THE IMPORTED TYPE
+// this seems to not pick up the added LIBSQL key
+enum ClientType {
+  MYSQL = 'mysql2',
+  MSSQL = 'mssql',
+  PG = 'pg',
+  SQLITE = 'sqlite3',
+  VITESS = 'vitess',
+  SNOWFLAKE = 'snowflake',
+  DATABRICKS = 'databricks',
+  LIBSQL = 'libsql',
+}
+
 const connectionType = computed(() => {
   switch (
     pageMode.value === IntegrationsPageMode.EDIT
@@ -28,6 +41,8 @@ const connectionType = computed(() => {
       return ClientType.MYSQL
     case integrationType.SQLITE:
       return ClientType.SQLITE
+    case integrationType.LIBSQL:
+      return ClientType.LIBSQL
     default: {
       return undefined
     }

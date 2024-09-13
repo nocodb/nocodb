@@ -258,7 +258,9 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                             <component :is="integration.icon" class="integration-icon" :style="integration.iconStyle" />
                           </div>
                           <div class="flex-1">
-                            <div class="name">{{ $t(integration.title) }}</div>
+                            <div class="name">
+                              {{ $t(integration.title) }}
+                            </div>
                             <div v-if="integration.subtitle" class="subtitle flex-1">{{ $t(integration.subtitle) }}</div>
                           </div>
                           <div v-if="integration?.isAvailable" class="action-btn">+</div>

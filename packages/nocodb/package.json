@@ -54,6 +54,7 @@
     "@aws-sdk/s3-request-presigner": "^3.620.0",
     "@google-cloud/storage": "^7.7.0",
     "@jm18457/kafkajs-msk-iam-authentication-mechanism": "^3.1.2",
+    "@libsql/knex-libsql": "^0.1.0",
     "@nestjs/bull": "^10.0.1",
     "@nestjs/common": "^10.3.8",
     "@nestjs/config": "^3.1.1",

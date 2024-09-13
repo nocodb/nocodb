@@ -29,6 +29,9 @@ export class SqlUiFactory {
       return MysqlUi;
     }
 
+    if (connectionConfig.client === 'libsql') {
+      return SqliteUi;
+    }
     if (connectionConfig.client === 'sqlite3') {
       return SqliteUi;
     }

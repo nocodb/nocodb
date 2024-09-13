@@ -126,62 +126,81 @@ export default class OpenAiIntegration extends AiIntegration {
       tools: [{ type: 'file_search' }],
     });
 
-    const storageAdapter = await NcPluginMgrv2.storageAdapter();
-
-    let relativePath;
-
-    const aiAttachments = [];
-
-    for (const attachment of attachments) {
-      if (attachment.path) {
-        relativePath = path.join(
-          'nc',
-          'uploads',
-          attachment.path.replace(/^download[/\\]/i, ''),
-        );
-      } else if (attachment.url) {
-        relativePath = getPathFromUrl(attachment.url).replace(/^\/+/, '');
-      }
-
-      const fileStream = await storageAdapter.fileReadByStream(relativePath);
-
-      const uploadToAI = await openai.files.create({
-        file: fileStream as any,
-        purpose: 'assistants',
-      });
-
-      aiAttachments.push({
-        file_id: uploadToAI.id,
-        tools: [{ type: 'file_search' as const }],
-      });
-    }
-
-    const thread = await openai.beta.threads.create({
-      messages: messages.map((message) => ({
-        ...message,
-        content: `${
-          message.content
-        }\nOnly output extracted or prompted info\nMake sure to extract at least these: ${
-          extractFields?.join(', ') || ''
-        }`,
-        attachments: aiAttachments,
-      })),
-    });
-
     const tempVectorStores = [];
 
-    if (thread.tool_resources?.file_search?.vector_store_ids?.length) {
-      tempVectorStores.push(
-        ...(thread.tool_resources?.file_search?.vector_store_ids || []),
-      );
-    }
-    const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
-      assistant_id: assistant.id,
-    });
+    let rawResponse;
 
-    const rawResponse = await openai.beta.threads.messages.list(thread.id, {
-      run_id: run.id,
-    });
+    try {
+      const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+      let relativePath;
+
+      const aiAttachments = [];
+
+      for (const attachment of attachments) {
+        if (attachment.path) {
+          relativePath = path.join(
+            'nc',
+            'uploads',
+            attachment.path.replace(/^download[/\\]/i, ''),
+          );
+        } else if (attachment.url) {
+          relativePath = getPathFromUrl(attachment.url).replace(/^\/+/, '');
+        }
+
+        const fileStream = await storageAdapter.fileReadByStream(relativePath);
+
+        const uploadToAI = await openai.files.create({
+          file: fileStream as any,
+          purpose: 'assistants',
+        });
+
+        aiAttachments.push({
+          file_id: uploadToAI.id,
+          tools: [{ type: 'file_search' as const }],
+        });
+      }
+
+      const thread = await openai.beta.threads.create({
+        messages: messages.map((message) => ({
+          ...message,
+          content: `${
+            message.content
+          }\nOnly output extracted or prompted info\nMake sure to extract at least these: ${
+            extractFields?.join(', ') || ''
+          }`,
+          attachments: aiAttachments,
+        })),
+      });
+
+      if (thread.tool_resources?.file_search?.vector_store_ids?.length) {
+        tempVectorStores.push(
+          ...(thread.tool_resources?.file_search?.vector_store_ids || []),
+        );
+      }
+
+      const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+        assistant_id: assistant.id,
+      });
+
+      rawResponse = await openai.beta.threads.messages.list(thread.id, {
+        run_id: run.id,
+      });
+    } catch (e) {
+      console.log(e);
+    } finally {
+      const clearAssistant = async () => {
+        for (const vectorStore of tempVectorStores) {
+          await openai.beta.vectorStores.del(vectorStore);
+        }
+
+        await openai.beta.assistants.del(assistant.id);
+      };
+
+      clearAssistant().catch((e) => {
+        console.log('There was an error cleaning up the assistant', e);
+      });
+    }
 
     let response;
 
@@ -192,18 +211,6 @@ export default class OpenAiIntegration extends AiIntegration {
     } catch (e) {
       console.log(e);
     }
-
-    const clearAssistant = async () => {
-      for (const vectorStore of tempVectorStores) {
-        await openai.beta.vectorStores.del(vectorStore);
-      }
-
-      await openai.beta.assistants.del(assistant.id);
-    };
-
-    clearAssistant().catch((e) => {
-      console.log('There was an error cleaning up the assistant', e);
-    });
 
     if (args.schema) {
       return this.generateObject({

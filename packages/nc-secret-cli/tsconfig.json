@@ -9,6 +9,8 @@
       "esModuleInterop": true,
       "moduleResolution": "node",
       "skipLibCheck": true,
-      "noImplicitAny": false
+      "noImplicitAny": false,
+      "allowJs": true,
+      "experimentalDecorators": true
     }
-  }
+}

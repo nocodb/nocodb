@@ -22,6 +22,7 @@
   "scripts": {
     "build": "pnpm run docker:build",
     "build:obfuscate": "EE=true webpack  --config webpack.config.js",
+    "build:cli:module": "webpack  --config webpack.cli.config.js",
     "build:on-prem": "EE=true webpack  --config webpack.ee-on-prem.config.js",
     "obfuscate:build:publish": "pnpm run build:obfuscate && pnpm publish .",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",

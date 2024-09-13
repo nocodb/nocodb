@@ -2,24 +2,47 @@
   "name": "packages",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/cli.js",
+  "bin": "dist/cli.js",
   "scripts": {
-    "build": "npx tsc",
-    "dev": "cross-env NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=meta_2024_08_09\" nodemon --watch 'src/**/*.ts' --exec 'ts-node --project tsconfig.json' src/index.ts -- a b",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --config webpack.config.js",
+    "dev": "cross-env NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=meta_2024_09_07\" nodemon --watch 'src/**/*.ts' --exec 'ts-node --project tsconfig.json' src/index.ts -- a b",
+    "test": "mocha --require ts-node/register src/**/*.spec.ts",
+    "build:pkg": "npx pkg . --out-path dist --compress GZip"
+  },
+  "pkg": {
+    "assets": [
+      "node_modules/**/*"
+    ],
+    "targets": [
+      "node16-linux-arm64",
+      "node16-macos-arm64",
+      "node16-win-arm64",
+      "node16-linux-x64",
+      "node16-macos-x64",
+      "node16-win-x64"
+    ]
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "commander": "^12.1.0",
+    "enquirer": "^2.4.1",
     "figlet": "^1.7.0",
-    "parse-database-url" : "^0.3.0"
+    "knex": "^3.1.0",
+    "mysql": "^2.18.1",
+    "parse-database-url": "^0.3.0",
+    "pg": "^8.12.0",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
     "@types/figlet": "^1.5.8",
+    "chai": "^4.4.1",
+    "class-transformer": "0.3.1",
+    "cross-env": "^7.0.3",
+    "mocha": "^10.3.0",
     "nodemon": "^3.0.3",
-    "nocodb": "workspace:^",
-    "cross-env": "^7.0.3"
+    "pkg": "^5.8.0"
   }
 }

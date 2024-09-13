@@ -1,4 +1,6 @@
-import { SqlClientFactory, MetaTable, decryptPropIfRequired, encryptPropIfRequired } from 'nocodb';
+import {NcError} from "./NcError";
+
+const { SqlClientFactory, MetaTable, decryptPropIfRequired, encryptPropIfRequired } =  require('../nocodb/cli')
 
 export class SecretManager {
 
@@ -14,19 +16,34 @@ export class SecretManager {
     // use the sqlClientFactory to create a new sql client and then use testConnection to test the connection
     const isValid = await this.sqlClient.testConnection();
     if (!isValid) {
-      throw new Error('Invalid database configuration');
+      throw new NcError('Invalid database configuration');
     }
   }
 
 
   async validateAndExtract() {
+    // check if tables are present in the database
+    if (!(await this.sqlClient.knex.schema.hasTable(MetaTable.SOURCES))) {
+      throw new NcError('Sources table not found');
+    }
+
+    if (!(await this.sqlClient.knex.schema.hasTable(MetaTable.INTEGRATIONS))) {
+      throw new NcError('Integrations table not found');
+    }
+
+    // if is_encrypted column is not present in the sources table then throw an error
+    if(
+      !(await this.sqlClient.knex.schema.hasColumn(MetaTable.SOURCES, 'is_encrypted')) ||
+      !(await this.sqlClient.knex.schema.hasColumn(MetaTable.INTEGRATIONS, 'is_encrypted'))){
+      throw new NcError('Looks like you are using an older version of NocoDB. Please upgrade to the latest version and try again.');
+    }
+
+
     const sources = await this.sqlClient.knex(MetaTable.SOURCES).where(qb => {
       qb.where('is_meta', false).orWhere('is_meta', null)
     });
 
-    const integrations = await this.sqlClient.knex(MetaTable.INTEGRATIONS).where(qb => {
-      qb.where('is_meta', false).orWhere('is_meta', null)
-    });
+    const integrations = await this.sqlClient.knex(MetaTable.INTEGRATIONS);
 
     const sourcesToUpdate: Record<string, any>[] = [];
     const integrationsToUpdate: Record<string, any>[] = [];
@@ -63,8 +80,9 @@ export class SecretManager {
 
     // if all of the decyptions are failed then throw an error
     if (!isValid) {
-      throw new Error('Invalid old secret or no sources/integrations found');
+      throw new NcError('Invalid old secret or no sources/integrations found');
     }
+
 
 
     return { sourcesToUpdate, integrationsToUpdate };

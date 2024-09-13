@@ -1,0 +1,35 @@
+{
+  "name": "Noco",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "upgrade": "npm uninstall --save nocodb && npm install --save nocodb",
+    "build": "npx pkg . --out-path dist --compress GZip"
+  },
+  "pkg": {
+    "assets": [
+      "node_modules/**/*"
+    ],
+    "targets": [
+      "node16-linux-arm64",
+      "node16-macos-arm64",
+      "node16-win-arm64",
+      "node16-linux-x64",
+      "node16-macos-x64",
+      "node16-win-x64"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nocodb": "0.202.5",
+    "@nestjs/common": "^10.2.1",
+    "@nestjs/core": "^10.2.1"
+  }
+}

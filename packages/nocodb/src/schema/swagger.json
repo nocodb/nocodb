@@ -21330,6 +21330,18 @@
           "fk_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
+          },
+          "output_column_ids": {
+            "description": "Comma separated column ids to be updated with the generated value",
+            "type": "string"
+          },
+          "fk_integration_id": {
+            "description": "Foreign key to AI integration",
+            "type": "string"
+          },
+          "model": {
+            "description": "AI model",
+            "type": "string"
           }
         },
         "x-stoplight": {
@@ -25507,7 +25519,10 @@
           },
           "columnsById": {
             "description": "Column Models grouped by IDs",
-            "type": "object"
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/ColumnType"
+            }
           },
           "deleted": {
             "$ref": "#/components/schemas/Bool"

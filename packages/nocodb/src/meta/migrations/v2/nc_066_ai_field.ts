@@ -10,7 +10,6 @@ const up = async (knex: Knex) => {
 
     table.string('fk_integration_id', 20);
     table.string('model', 255);
-    table.string('randomness', 255);
 
     table.text('prompt');
     table.text('prompt_raw');
@@ -24,10 +23,21 @@ const up = async (knex: Knex) => {
     table.index(['base_id', 'fk_workspace_id']);
     table.index('fk_column_id');
   });
+
+  await knex.schema.alterTable(MetaTable.COL_BUTTON, (table) => {
+    table.string('fk_integration_id', 20);
+    table.string('model', 255);
+    table.text('output_column_ids');
+  });
 };
 
 const down = async (knex: Knex) => {
   await knex.schema.dropTableIfExists(MetaTable.COL_AI);
+  await knex.schema.alterTable(MetaTable.COL_BUTTON, (table) => {
+    table.dropColumn('fk_integration_id');
+    table.dropColumn('model');
+    table.dropColumn('output_column_ids');
+  });
 };
 
 export { up, down };

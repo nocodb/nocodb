@@ -2,14 +2,20 @@
 import { type IntegrationType, IntegrationsType } from 'nocodb-sdk'
 
 const props = defineProps<{
-  settings: Record<string, any>
+  fkIntegrationId: string
+  model?: string
+  randomness?: string
   workspaceId: string
   scope?: string
 }>()
 
-const vModel = useVModel(props, 'settings', undefined, {
-  defaultValue: {},
-})
+const emits = defineEmits(['update:fkIntegrationId', 'update:model', 'update:randomness'])
+
+const vFkIntegrationId = useVModel(props, 'fkIntegrationId', emits)
+
+const vModel = useVModel(props, 'model', emits)
+
+// const vRandomness = useVModel(props, 'randomness', emits)
 
 const { $api } = useNuxtApp()
 
@@ -24,17 +30,21 @@ const integrations = ref<IntegrationType[]>([])
 const availableModels = ref<string[]>([])
 
 const onIntegrationChange = async () => {
-  if (!vModel.value.fk_integration_id) return
+  if (!vFkIntegrationId.value) return
 
   availableModels.value = []
 
-  if (lastIntegrationId.value !== vModel.value.fk_integration_id) {
-    vModel.value.model = null
+  if (lastIntegrationId.value !== vFkIntegrationId.value) {
+    vModel.value = undefined
   }
 
   try {
-    const response = await $api.integrations.endpoint(vModel.value.fk_integration_id, 'availableModels', {})
+    const response = await $api.integrations.endpoint(vFkIntegrationId.value, 'availableModels', {})
     availableModels.value = response as string[]
+
+    if (!vModel.value && availableModels.value.length > 0) {
+      vModel.value = availableModels.value[0]
+    }
   } catch (error) {
     console.error(error)
   }
@@ -43,23 +53,15 @@ const onIntegrationChange = async () => {
 onMounted(async () => {
   integrations.value = (await listIntegrationByType(IntegrationsType.Ai)) || []
 
-  if (!vModel.value.fk_integration_id) {
-    if (integrations.value.length > 0) {
-      vModel.value.fk_integration_id = integrations.value[0].id
-
-      if (!vModel.value.model) {
-        await onIntegrationChange()
-        if (availableModels.value.length > 0) {
-          vModel.value.model = availableModels.value[0]
-        }
-      }
+  if (!vFkIntegrationId.value) {
+    if (integrations.value.length > 0 && integrations.value[0].id) {
+      vFkIntegrationId.value = integrations.value[0].id
+      nextTick(() => {
+        onIntegrationChange()
+      })
     }
   } else {
-    lastIntegrationId.value = vModel.value.fk_integration_id
-  }
-
-  if (!vModel.value.randomness) {
-    vModel.value.randomness = 'low'
+    lastIntegrationId.value = vFkIntegrationId.value
   }
 })
 </script>
@@ -88,7 +90,7 @@ onMounted(async () => {
               </NcTooltip>
             </div>
             <div class="w-3/6">
-              <NcSelect v-model:value="vModel.fk_integration_id" class="w-full" size="middle" @change="onIntegrationChange">
+              <NcSelect v-model:value="vFkIntegrationId" class="w-full" size="middle" @change="onIntegrationChange">
                 <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
                   {{ integration.title }}
                 </a-select-option>
@@ -108,19 +110,19 @@ onMounted(async () => {
             </div>
             <div class="w-3/6">
               <NcSelect
-                v-model:value="vModel.model"
+                v-model:value="vModel"
                 class="w-full"
                 size="middle"
-                :disabled="!vModel.fk_integration_id"
-                :loading="vModel.fk_integration_id && availableModels.length === 0"
+                :disabled="!vFkIntegrationId"
+                :loading="vFkIntegrationId.length > 0 && availableModels.length === 0"
               >
-                <a-select-option v-for="model in availableModels" :key="model" :value="model">
-                  {{ model }}
+                <a-select-option v-for="md in availableModels" :key="md" :value="md">
+                  {{ md }}
                 </a-select-option>
               </NcSelect>
             </div>
           </div>
-          <!-- Randomness -->
+          <!-- Randomness 
           <div class="flex items-center gap-2">
             <span class="font-bold text-gray-600 w-2/6">Randomness</span>
             <div class="w-1/6 flex justify-end">
@@ -139,6 +141,7 @@ onMounted(async () => {
               </NcSelect>
             </div>
           </div>
+          -->
         </div>
       </div>
     </template>

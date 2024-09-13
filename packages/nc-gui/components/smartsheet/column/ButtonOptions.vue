@@ -16,11 +16,18 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:value'])
 
+const buttonActionsType = {
+  ...ButtonActionsType,
+}
+
 const { t } = useI18n()
 
 const { isUIAllowed } = useRoles()
 
 const { getMeta } = useMetas()
+
+const workspaceStore = useWorkspace()
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const vModel = useVModel(props, 'value', emit)
 
@@ -53,6 +60,10 @@ const buttonTypes = [
   {
     label: t('labels.runWebHook'),
     value: ButtonActionsType.Webhook,
+  },
+  {
+    label: 'AI Button',
+    value: ButtonActionsType.Ai,
   },
 ]
 
@@ -161,6 +172,22 @@ const validators = {
       },
     },
   ],
+  ...(vModel.value.type === ButtonActionsType.Ai
+    ? {
+        output_column_ids: [
+          {
+            required: true,
+            message: 'At least one output required for AI Button',
+          },
+        ],
+        formula_raw: [
+          {
+            required: true,
+            message: 'Prompt required for AI Button',
+          },
+        ],
+      }
+    : {}),
 }
 
 if (isEdit.value) {
@@ -173,11 +200,15 @@ if (isEdit.value) {
   vModel.value.icon = colOptions?.icon
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
 } else {
-  vModel.value.type = buttonTypes[0].value
+  vModel.value.type = vModel.value?.type || buttonTypes[0].value
   vModel.value.theme = 'solid'
   vModel.value.label = 'Button'
   vModel.value.color = 'brand'
   vModel.value.formula_raw = ''
+
+  if (vModel.value.type === ButtonActionsType.Ai) {
+    vModel.value.output_column_ids = ''
+  }
 }
 
 setAdditionalValidations({
@@ -185,15 +216,17 @@ setAdditionalValidations({
 })
 
 // set default value
-if ((column.value?.colOptions as any)?.formula_raw) {
-  vModel.value.formula_raw =
-    substituteColumnIdWithAliasInFormula(
-      (column.value?.colOptions as ButtonType)?.formula,
-      meta?.value?.columns as ColumnType[],
-      (column.value?.colOptions as any)?.formula_raw,
-    ) || ''
-} else {
-  vModel.value.formula_raw = ''
+if (vModel.value?.type === ButtonActionsType.Url || (column.value?.colOptions as any)?.type === ButtonActionsType.Url) {
+  if ((column.value?.colOptions as any)?.formula_raw) {
+    vModel.value.formula_raw =
+      substituteColumnIdWithAliasInFormula(
+        (column.value?.colOptions as ButtonType)?.formula,
+        meta?.value?.columns as ColumnType[],
+        (column.value?.colOptions as any)?.formula_raw,
+      ) || ''
+  } else {
+    vModel.value.formula_raw = ''
+  }
 }
 
 const colorClass = {
@@ -305,6 +338,39 @@ const selectIcon = (icon: string) => {
   vModel.value.icon = icon
   isButtonIconDropdownOpen.value = false
 }
+
+// AI options
+
+const availableFields = computed(() => {
+  if (!meta.value?.columns) return []
+  return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID).map((c) => c.title!)
+})
+
+const outputFieldOptions = computed(() => {
+  if (!meta.value?.columns) return []
+  return meta.value.columns
+    .filter((c) => !c.system && !c.pk && c.id !== column.value?.id)
+    .map((c) => ({ label: c.title, value: c.id }))
+})
+
+const outputColumnIds = computed({
+  get: () => {
+    if (!vModel.value?.output_column_ids?.length) return []
+    const colIds = vModel.value.output_column_ids?.split(',') || []
+    return colIds
+  },
+  set: (val) => {
+    vModel.value.output_column_ids = val.join(',')
+  },
+})
+
+onMounted(() => {
+  if (vModel.value.type === ButtonActionsType.Ai) {
+    // set default value
+    vModel.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
+    vModel.value.output_column_ids = (column?.value?.colOptions as Record<string, any>)?.output_column_ids || ''
+  }
+})
 </script>
 
 <template>
@@ -430,7 +496,7 @@ const selectIcon = (icon: string) => {
         </a-form-item>
       </a-col>
     </a-row>
-    <div v-if="vModel?.type === ButtonActionsType.Url" class="!mt-4">
+    <div v-if="vModel?.type === buttonActionsType.Url" class="!mt-4">
       <SmartsheetColumnFormulaInputHelper
         v-model:value="vModel.formula_raw"
         suggestion-height="medium"
@@ -441,7 +507,7 @@ const selectIcon = (icon: string) => {
       />
     </div>
 
-    <a-form-item v-if="vModel?.type === ButtonActionsType.Webhook" class="!mt-4">
+    <a-form-item v-if="vModel?.type === buttonActionsType.Webhook" class="!mt-4">
       <div class="mb-2 text-gray-800 text-[13px] flex justify-between">
         {{ $t('labels.webhook') }}
         <a
@@ -532,6 +598,33 @@ const selectIcon = (icon: string) => {
         </NcButton>
       </div>
     </a-form-item>
+
+    <template v-if="vModel?.type === buttonActionsType.Ai">
+      <a-form-item class="flex !mt-4" v-bind="validateInfos.formula_raw">
+        <AiPromptWithFields v-model="vModel.formula_raw" :keywords="availableFields" />
+        <div class="absolute w-full bottom-[-1px] bg-purple-50 rounded-b-lg flex items-center gap-2 p-1">
+          <GeneralIcon icon="info" />
+          <span class="text-xs text-gray-500">Mention fields using curly braces, e.g. {Field name}.</span>
+        </div>
+      </a-form-item>
+      <a-form-item label="Output Fields" class="!mt-4" v-bind="validateInfos.output_column_ids">
+        <AiSettings
+          v-model:fk-integration-id="vModel.fk_integration_id"
+          v-model:model="vModel.model"
+          v-model:randomness="vModel.randomness"
+          class="absolute right-[5px] top-[-25px]"
+          :workspace-id="activeWorkspaceId"
+        />
+        <NcSelect v-model:value="outputColumnIds" :options="outputFieldOptions" mode="multiple" placeholder="Select" />
+      </a-form-item>
+      <div class="shadow-default flex p-2 text-xs items-center !mt-4">
+        <div class="flex flex-col flex-1 gap-1">
+          <span class="font-bold text-gray-600">Preview</span>
+          <span class="text-gray-400 text-[11px]">Include at least 1 field in prompt to generate</span>
+        </div>
+        <NcButton class="!bg-purple-50" size="small"> <span class="text-purple-600">Generate</span></NcButton>
+      </div>
+    </template>
 
     <Webhook
       v-if="isWebhookModal"

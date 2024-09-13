@@ -59,6 +59,9 @@ const editor = useEditor({
       }
     })
 
+    // remove leading & trailing new lines
+    text = text.trim()
+
     vModel.value = text
   },
   editable: true,

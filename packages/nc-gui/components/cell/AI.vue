@@ -40,13 +40,24 @@ const generate = async () => {
   const res = await generateRows(meta.value.id, column.value.id, [pk.value])
 
   if (res?.length) {
-    const row = res[0]
-    const obj: AIRecordType = row[column.value.title!]
-    if (obj && typeof obj === 'object') {
-      vModel.value = obj
-      nextTick(() => {
-        isAiEdited.value = false
-      })
+    const resRow = res[0]
+
+    if (column.value.colOptions?.output_column_ids && column.value.colOptions.output_column_ids.split(',').length > 1) {
+      const outputColumnIds = column.value.colOptions.output_column_ids.split(',')
+      const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById[id])
+      for (const col of outputColumns) {
+        if (col) {
+          unref(row).row[col.title!] = resRow[col.title!]
+        }
+      }
+    } else {
+      const obj: AIRecordType = resRow[column.value.title!]
+      if (obj && typeof obj === 'object') {
+        vModel.value = obj
+        setTimeout(() => {
+          isAiEdited.value = false
+        }, 100)
+      }
     }
   }
 

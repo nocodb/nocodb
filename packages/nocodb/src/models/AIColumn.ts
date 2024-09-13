@@ -11,7 +11,6 @@ export default class AIColumn {
 
   fk_integration_id?: string;
   model?: string;
-  randomness?: number;
 
   fk_workspace_id?: string;
   base_id: string;
@@ -35,7 +34,6 @@ export default class AIColumn {
     const insertObj = extractProps(AIColumn, [
       'fk_integration_id',
       'model',
-      'randomness',
       'fk_workspace_id',
       'base_id',
       'fk_column_id',

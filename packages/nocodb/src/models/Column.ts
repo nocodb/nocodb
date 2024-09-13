@@ -341,6 +341,9 @@ export default class Column<T = any> implements ColumnType {
           color: column.color,
           fk_webhook_id: column?.fk_webhook_id,
           label: column.label,
+          fk_integration_id: column.fk_integration_id,
+          model: column.model,
+          output_column_ids: column.output_column_ids,
         });
 
         break;
@@ -430,7 +433,6 @@ export default class Column<T = any> implements ColumnType {
             fk_column_id: colId,
             fk_integration_id: column.fk_integration_id,
             model: column.model,
-            randomness: column.randomness,
             prompt: column.prompt,
             prompt_raw: column.prompt_raw,
             rich_text: column.rich_text,

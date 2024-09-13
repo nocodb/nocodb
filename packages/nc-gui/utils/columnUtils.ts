@@ -7,6 +7,11 @@ const uiTypes = [
     icon: iconMap.magic,
   },
   {
+    name: 'AIButton',
+    icon: iconMap.magic,
+    virtual: 1,
+  },
+  {
     name: UITypes.Links,
     icon: iconMap.cellLinks,
     virtual: 1,

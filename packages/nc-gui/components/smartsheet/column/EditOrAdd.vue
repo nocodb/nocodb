@@ -193,9 +193,18 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
   return types
 })
 
-const onSelectType = (uidt: UITypes) => {
-  formState.value.uidt = uidt
-  onUidtOrIdTypeChange()
+const onSelectType = (uidt: UITypes | 'AIButton') => {
+  let preload
+
+  if (uidt === 'AIButton') {
+    formState.value.uidt = 'Button'
+    preload = {
+      type: 'ai',
+    }
+  } else {
+    formState.value.uidt = uidt
+  }
+  onUidtOrIdTypeChange(preload)
 }
 
 const reloadMetaAndData = async () => {
@@ -514,7 +523,7 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
             :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"
-            @change="onUidtOrIdTypeChange"
+            @change="onSelectType"
             @dblclick="showDeprecated = !showDeprecated"
           >
             <template #suffixIcon>

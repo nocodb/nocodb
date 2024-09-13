@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ButtonActionsType, type ButtonType, type ColumnType } from 'nocodb-sdk'
+import { type AIRecordType, ButtonActionsType, type ButtonType, type ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 const column = inject(ColumnInj) as Ref<
@@ -11,6 +11,8 @@ const column = inject(ColumnInj) as Ref<
 const cellValue = inject(CellValueInj, ref())
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
+
+const { aiIntegrationAvailable, generateRows, generatingRows } = useNocoAi()
 
 const meta = inject(MetaInj, ref())
 
@@ -30,6 +32,43 @@ const rowId = computed(() => {
 
 const isLoading = ref(false)
 
+const pk = computed(() => {
+  if (!meta.value?.columns) return
+  return extractPkFromRow(currentRow.value?.row, meta.value.columns)
+})
+
+const generate = async () => {
+  if (!meta?.value?.id || !meta.value.columns || !column?.value?.id) return
+
+  if (!pk.value) return
+
+  generatingRows.value.push(pk.value)
+
+  const res = await generateRows(meta.value.id, column.value.id, [pk.value])
+
+  if (res?.length) {
+    const resRow = res[0]
+
+    if (
+      (column.value.colOptions as ButtonType)?.output_column_ids &&
+      ((column.value.colOptions as ButtonType)?.output_column_ids as string).split(',').length > 0
+    ) {
+      const outputColumnIds = (column.value.colOptions as ButtonType)?.output_column_ids?.split(',')
+
+      if (outputColumnIds) {
+        const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById?.[id] as ColumnType)
+        for (const col of outputColumns) {
+          if (col && currentRow.value.row) {
+            currentRow.value.row[col.title!] = resRow[col.title!]
+          }
+        }
+      }
+    }
+  }
+
+  generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)
+}
+
 const triggerAction = async () => {
   const colOptions = column.value.colOptions
 
@@ -44,6 +83,8 @@ const triggerAction = async () => {
     } finally {
       isLoading.value = false
     }
+  } else if (colOptions.type === ButtonActionsType.Ai) {
+    await generate()
   }
 }
 
@@ -64,7 +105,7 @@ const componentProps = computed(() => {
       target: '_blank',
       ...(column.value?.colOptions.error ? { disabled: true } : {}),
     }
-  } else {
+  } else if (column.value.colOptions.type === ButtonActionsType.Webhook) {
     return {
       disabled:
         isPublic.value ||
@@ -72,6 +113,10 @@ const componentProps = computed(() => {
         isLoading.value ||
         !column.value.colOptions.fk_webhook_id ||
         !cellValue.value?.fk_webhook_id,
+    }
+  } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
+    return {
+      disabled: !aiIntegrationAvailable.value || isLoading.value || (pk.value && generatingRows.value.includes(pk.value)),
     }
   }
 })
@@ -96,7 +141,7 @@ const componentProps = computed(() => {
       @click="triggerAction"
     >
       <GeneralLoader
-        v-if="isLoading"
+        v-if="isLoading || (pk && generatingRows.includes(pk))"
         :class="{
           solid: column.colOptions.theme === 'solid',
           text: column.colOptions.theme === 'text',

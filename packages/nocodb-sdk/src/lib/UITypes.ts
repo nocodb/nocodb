@@ -90,7 +90,8 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
-  [UITypes.AI]: 'AI',
+  [UITypes.AI]: 'AI Prompt',
+  AIButton: 'AI Button',
 };
 
 export const FieldNameFromUITypes = {

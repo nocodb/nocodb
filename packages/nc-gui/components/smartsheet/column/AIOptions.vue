@@ -26,6 +26,7 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 onMounted(() => {
   // set default value
   vModel.value.prompt_raw = (column?.value?.colOptions as Record<string, any>)?.prompt_raw || ''
+  vModel.value.output_column_ids = (column?.value?.colOptions as Record<string, any>)?.output_column_ids || ''
 })
 
 setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('general.required') }] })
@@ -38,7 +39,12 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
         <span class="text-sm font-bold text-gray-600">Enable rich text</span>
       </NcSwitch>
       <div class="flex-1"></div>
-      <AiSettings v-model:settings="vModel" :workspace-id="activeWorkspaceId" />
+      <AiSettings
+        v-model:fk-integration-id="vModel.fk_integration_id"
+        v-model:model="vModel.model"
+        v-model:randomness="vModel.randomness"
+        :workspace-id="activeWorkspaceId"
+      />
     </a-form-item>
     <a-form-item class="flex">
       <AiPromptWithFields v-model="vModel.prompt_raw" :keywords="availableFields" />

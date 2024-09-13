@@ -91,7 +91,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       ...clone(column.value || {}),
     })
 
-    const onUidtOrIdTypeChange = () => {
+    const onUidtOrIdTypeChange = (preload?: Record<string, any>) => {
       disableSubmitBtn.value = false
 
       const newTitle = updateFieldName(false)
@@ -122,6 +122,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         un: false,
         dtx: 'specificType',
         ...colProp,
+      }
+
+      if (preload) {
+        formState.value = { ...formState.value, ...preload }
       }
 
       formState.value.dtxp = sqlUi.value.getDefaultLengthForDatatype(formState.value.dt)

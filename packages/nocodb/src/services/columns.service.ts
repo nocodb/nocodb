@@ -367,6 +367,7 @@ export class ColumnsService {
       type?: ButtonActionsType;
       prompt?: string;
       prompt_raw?: string;
+      fk_integration_id?: string;
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
 
     if (
@@ -494,6 +495,30 @@ export class ColumnsService {
             if (!hook || !hook.active || hook.event !== 'manual') {
               NcError.badRequest('Webhook not found');
             }
+          } else if (colBody.type === ButtonActionsType.Ai) {
+            if (!colBody.fk_integration_id) {
+              NcError.badRequest('AI Integration not found');
+            }
+
+            /*
+              Substitute column alias with id in prompt
+            */
+            if (colBody.formula_raw) {
+              await table.getColumns(context);
+
+              colBody.formula = colBody.formula_raw.replace(
+                /{(.*?)}/g,
+                (match, p1) => {
+                  const column = table.columns.find((c) => c.title === p1);
+
+                  if (!column) {
+                    NcError.badRequest(`Field '${p1}' not found`);
+                  }
+
+                  return `{${column.id}}`;
+                },
+              );
+            }
           }
 
           await Column.update(context, column.id, {
@@ -502,6 +527,10 @@ export class ColumnsService {
             ...colBody,
           });
         } else if (column.uidt === UITypes.AI) {
+          if (!colBody.fk_integration_id) {
+            NcError.badRequest('AI Integration not found');
+          }
+
           let prompt = '';
 
           /*
@@ -1975,6 +2004,30 @@ export class ColumnsService {
 
           if (!hook || !hook.active || hook.event !== 'manual') {
             colBody.fk_webhook_id = null;
+          }
+        } else if (colBody.type === ButtonActionsType.Ai) {
+          if (!colBody.fk_integration_id) {
+            NcError.badRequest('AI Integration not found');
+          }
+
+          /*
+            Substitute column alias with id in prompt
+          */
+          if (colBody.formula_raw) {
+            await table.getColumns(context);
+
+            colBody.formula = colBody.formula_raw.replace(
+              /{(.*?)}/g,
+              (match, p1) => {
+                const column = table.columns.find((c) => c.title === p1);
+
+                if (!column) {
+                  NcError.badRequest(`Field '${p1}' not found`);
+                }
+
+                return `{${column.id}}`;
+              },
+            );
           }
         }
 

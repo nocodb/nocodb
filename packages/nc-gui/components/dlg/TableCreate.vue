@@ -193,10 +193,13 @@ const onAiEnter = async () => {
     selectedTables.value.push(table.title)
     table.title = ''
   }
+  calledFunction.value = 'generateTables'
 
   if (selectedTables.value.length) {
     await generateTables(selectedTables.value, undefined, onAiTableCreate, props.baseId)
   }
+
+  calledFunction.value = undefined
 }
 
 const useForm = Form.useForm
@@ -551,7 +554,11 @@ const isPredictFromPromptLoading = computed(() => {
               </template>
 
               <div
-                v-if="aiModeStep === 'pick'"
+                v-if="
+                  (activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS && aiModeStep === 'pick') ||
+                  (activeAiTab === TableWizardTabs.PROMPT &&
+                    (predictedTables.length || selectedTables.length || isPromtAlreadyGenerated))
+                "
                 class="flex gap-2 flex-wrap p-4"
                 :class="{
                   'p-4': activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS,
@@ -699,15 +706,21 @@ const isPredictFromPromptLoading = computed(() => {
               type="primary"
               size="small"
               :disabled="selectedTables.length === 0 && validateInfos.title.validateStatus === 'error'"
-              :loading="aiLoading"
+              :loading="aiLoading && calledFunction === 'generateTables'"
               @click="_createTable"
             >
               <div class="flex items-center gap-2 h-5">
-                {{ $t('activity.createTable') }}
-
-                <div v-if="selectedTables.length" class="rounded-md border-1 border-brand-200 px-1 h-full flex items-center">
-                  {{ selectedTables.length }}
-                </div>
+                {{
+                  selectedTables.length
+                    ? selectedTables.length > 1
+                      ? $t('activity.createTables_plural', {
+                          count: selectedTables.length,
+                        })
+                      : $t('activity.createTables', {
+                          count: selectedTables.length,
+                        })
+                    : $t('activity.createTable')
+                }}
               </div>
               <template #loading> {{ $t('title.creatingTable') }} </template>
             </NcButton>

@@ -225,7 +225,7 @@
     },
     "/api/v2/meta/workspaces/{workspaceId}/bases": {
       "get": {
-        "summary": "Workspace bases list ☁",
+        "summary": "List Bases",
         "operationId": "workspace-base-list",
         "responses": {
           "200": {
@@ -240,9 +240,88 @@
           }
         },
         "tags": [
-          "Workspace base"
+          "Workspace base", "Bases"
         ],
-        "description": "Workspace bases list"
+        "description": "This API fetches list of bases associated with the specified workspace ID. The workspace ID must be provided in the path as a required parameter. The API returns a list in JSON format, containing metadata and configuration for each base.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Base",
+        "operationId": "workspace-base-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ProjectReq"
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "sources": [
+                      {
+                        "alias": "string",
+                        "config": null,
+                        "enabled": true,
+                        "id": "string",
+                        "inflection_column": "camelize",
+                        "inflection_table": "camelize",
+                        "is_meta": true,
+                        "order": 1,
+                        "base_id": "string",
+                        "type": "mysql2",
+                        "updated_at": "2023-03-01 14:27:36"
+                      }
+                    ],
+                    "color": "#24716E",
+                    "created_at": "2023-03-01 14:27:36",
+                    "deleted": true,
+                    "description": "This is my base description",
+                    "id": "p_124hhlkbeasewh",
+                    "is_meta": true,
+                    "meta": {},
+                    "order": 0,
+                    "prefix": "nc_vm5q__",
+                    "status": "string",
+                    "title": "my-base",
+                    "external": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base", "Bases"
+        ],
+        "description": "This API endpoint creates a new base within a given workspace, identified by the workspace ID. The API returns the created base in JSON format.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
       },
       "parameters": [
         {
@@ -1615,170 +1694,6 @@
         ]
       }
     },
-    "/api/v2/meta/bases/": {
-      "parameters": [
-        {
-          "$ref": "#/components/parameters/xc-token"
-        }
-      ],
-      "get": {
-        "summary": "List Bases",
-        "operationId": "base-list",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ProjectList"
-                },
-                "examples": {
-                  "Example 1": {
-                    "value": {
-                      "list": [
-                        {
-                          "sources": [
-                            {
-                              "alias": "string",
-                              "config": null,
-                              "created_at": "2023-03-01 14:27:36",
-                              "enabled": true,
-                              "id": "string",
-                              "inflection_column": "camelize",
-                              "inflection_table": "camelize",
-                              "is_meta": true,
-                              "order": 1,
-                              "base_id": "string",
-                              "type": "mysql2",
-                              "updated_at": "2023-03-01 14:27:36"
-                            }
-                          ],
-                          "color": "#24716E",
-                          "created_at": "2023-03-01 14:27:36",
-                          "deleted": true,
-                          "description": "This is my base description",
-                          "id": "p_124hhlkbeasewh",
-                          "is_meta": true,
-                          "meta": {},
-                          "order": 0,
-                          "prefix": "nc_vm5q__",
-                          "status": "string",
-                          "title": "my-base",
-                          "updated_at": "2023-03-01 14:27:36"
-                        }
-                      ],
-                      "pageInfo": {
-                        "isFirstPage": true,
-                        "isLastPage": true,
-                        "page": 1,
-                        "pageSize": 10,
-                        "totalRows": 1
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "description": "List all base meta data",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ],
-        "tags": [
-          "Base", "Bases"
-        ]
-      },
-      "post": {
-        "summary": "Create Base",
-        "operationId": "base-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Base"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/ProjectReq"
-                  },
-                  {
-                    "type": "object",
-                    "properties": {
-                      "external": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "If true, the base will us an external database else it will use the root database"
-                      }
-                    }
-                  }
-                ]
-              },
-              "examples": {
-                "Example 1": {
-                  "value": {
-                    "sources": [
-                      {
-                        "alias": "string",
-                        "config": null,
-                        "enabled": true,
-                        "id": "string",
-                        "inflection_column": "camelize",
-                        "inflection_table": "camelize",
-                        "is_meta": true,
-                        "order": 1,
-                        "base_id": "string",
-                        "type": "mysql2",
-                        "updated_at": "2023-03-01 14:27:36"
-                      }
-                    ],
-                    "color": "#24716E",
-                    "created_at": "2023-03-01 14:27:36",
-                    "deleted": true,
-                    "description": "This is my base description",
-                    "id": "p_124hhlkbeasewh",
-                    "is_meta": true,
-                    "meta": {},
-                    "order": 0,
-                    "prefix": "nc_vm5q__",
-                    "status": "string",
-                    "title": "my-base",
-                    "external": false
-                  }
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Base", "Bases"
-        ],
-        "description": "Create a new base",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/xc-token"
-          }
-        ]
-      }
-    },
     "/api/v2/meta/duplicate/{baseId}/{sourceId}": {
       "post": {
         "summary": "Duplicate Base Source",
@@ -1990,7 +1905,7 @@
       "get": {
         "summary": "Get Base Schema",
         "operationId": "base-read",
-        "description": "Get the info of a given base",
+        "description": "This API fetches detailed information about the base specified by its unique baseId. It provides metadata such as the base's title, description, creation date, color, and configuration settings. ",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -2093,7 +2008,7 @@
             }
           }
         },
-        "description": "Update the given base",
+        "description": "This API updates the properties of a specified base, such as its title, color, order, or metadata. The baseId is required to identify the base to be updated. ",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -2126,7 +2041,161 @@
         "tags": [
           "Base", "Bases"
         ],
-        "description": "Delete the given base",
+        "description": "This API deletes the base identified by its baseId. Deleting a base is a permanent action that removes all its associated data and cannot be undone. Use this API with caution when managing your workspaces.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      }
+    },
+    "/api/v2/meta/bases/": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-token"
+        }
+      ],
+      "get": {
+        "summary": "List Bases (OSS)",
+        "operationId": "base-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectList"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "sources": [
+                            {
+                              "alias": "string",
+                              "config": null,
+                              "created_at": "2023-03-01 14:27:36",
+                              "enabled": true,
+                              "id": "string",
+                              "inflection_column": "camelize",
+                              "inflection_table": "camelize",
+                              "is_meta": true,
+                              "order": 1,
+                              "base_id": "string",
+                              "type": "mysql2",
+                              "updated_at": "2023-03-01 14:27:36"
+                            }
+                          ],
+                          "color": "#24716E",
+                          "created_at": "2023-03-01 14:27:36",
+                          "deleted": true,
+                          "description": "This is my base description",
+                          "id": "p_124hhlkbeasewh",
+                          "is_meta": true,
+                          "meta": {},
+                          "order": 0,
+                          "prefix": "nc_vm5q__",
+                          "status": "string",
+                          "title": "my-base",
+                          "updated_at": "2023-03-01 14:27:36"
+                        }
+                      ],
+                      "pageInfo": {
+                        "isFirstPage": true,
+                        "isLastPage": true,
+                        "page": 1,
+                        "pageSize": 10,
+                        "totalRows": 1
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "Retrieve a list of all available bases (OSS version).",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ],
+        "tags": [
+          "Base", "Bases"
+        ]
+      },
+      "post": {
+        "summary": "Create Base (OSS)",
+        "operationId": "base-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Base"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/ProjectReq"
+                  }
+                ]
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "sources": [
+                      {
+                        "alias": "string",
+                        "config": null,
+                        "enabled": true,
+                        "id": "string",
+                        "inflection_column": "camelize",
+                        "inflection_table": "camelize",
+                        "is_meta": true,
+                        "order": 1,
+                        "base_id": "string",
+                        "type": "mysql2",
+                        "updated_at": "2023-03-01 14:27:36"
+                      }
+                    ],
+                    "color": "#24716E",
+                    "created_at": "2023-03-01 14:27:36",
+                    "deleted": true,
+                    "description": "This is my base description",
+                    "id": "p_124hhlkbeasewh",
+                    "is_meta": true,
+                    "meta": {},
+                    "order": 0,
+                    "prefix": "nc_vm5q__",
+                    "status": "string",
+                    "title": "my-base",
+                    "external": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base", "Bases"
+        ],
+        "description": "Create a new base in the system (OSS version).",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -17839,24 +17908,6 @@
           }
         ],
         "properties": {
-          "sources": {
-            "description": "Array of Bases",
-            "items": {
-              "$ref": "#/components/schemas/BaseReq"
-            },
-            "type": "array"
-          },
-          "color": {
-            "description": "Primary Theme Color",
-            "example": "#24716E",
-            "maxLength": 50,
-            "type": "string"
-          },
-          "description": {
-            "description": "Base Description",
-            "example": "This is my base description",
-            "type": "string"
-          },
           "title": {
             "description": "Base Title",
             "example": "My Base",
@@ -17864,25 +17915,16 @@
             "minLength": 1,
             "type": "string"
           },
-          "status": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Base Status",
-            "example": "locked"
+          "description": {
+            "description": "Base Description",
+            "example": "This is my base description",
+            "type": "string"
           },
-          "type": {
-            "type": "string",
-            "enum": [
-              "database",
-              "documentation",
-              "dashboard"
-            ]
-          },
-          "linked_db_project_ids": {
-            "description": "List of Linked Database Base IDs (only used for Dashboard Projects so far)",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "color": {
+            "description": "Primary Theme Color",
+            "example": "#24716E",
+            "maxLength": 50,
+            "type": "string"
           },
           "meta": {
             "$ref": "#/components/schemas/Meta",
@@ -17914,19 +17956,6 @@
         "title": "Base Update Request Model",
         "type": "object",
         "properties": {
-          "color": {
-            "description": "Primary Theme Color",
-            "example": "#24716E",
-            "maxLength": 50,
-            "type": "string"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta",
-            "description": "Base Meta",
-            "x-stoplight": {
-              "id": "m05w9sbwqgul3"
-            }
-          },
           "title": {
             "description": "Base Title",
             "example": "My Base",
@@ -17934,23 +17963,24 @@
             "minLength": 1,
             "type": "string"
           },
-          "status": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Base Status",
-            "example": "locked"
-          },
-          "linked_db_project_ids": {
-            "description": "List of Linked Database Base IDs (only used for Dashboard Projects so far)",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
+          "color": {
+            "description": "Primary Theme Color",
+            "example": "#24716E",
+            "maxLength": 50,
+            "type": "string"
           },
           "order": {
             "type": "number",
             "description": "The order of the list of projects.",
             "example": 1,
             "minimum": 0
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Base Meta",
+            "x-stoplight": {
+              "id": "m05w9sbwqgul3"
+            }
           }
         }
       },

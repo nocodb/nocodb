@@ -684,11 +684,11 @@ export class ColumnsService {
                   }
                 }
                 for (const v of values) {
-                  if (!existingOptions.includes(v.trim())) {
+                  if (!existingOptions.includes(v)) {
                     acc.push({
-                      title: v.trim(),
+                      title: v,
                     });
-                    existingOptions.push(v.trim());
+                    existingOptions.push(v);
                   }
                 }
               }

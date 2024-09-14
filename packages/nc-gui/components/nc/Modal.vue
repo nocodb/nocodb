@@ -10,6 +10,7 @@ const props = withDefaults(
     showSeparator?: boolean
     wrapClassName?: string
     closable?: boolean
+    ncModalClassName?: string
   }>(),
   {
     size: 'medium',
@@ -18,6 +19,7 @@ const props = withDefaults(
     showSeparator: true,
     wrapClassName: '',
     closable: false,
+    ncModalClassName: '',
   },
 )
 
@@ -25,7 +27,7 @@ const emits = defineEmits(['update:visible'])
 
 const { width: propWidth, height: propHeight, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
 
-const { maskClosable } = toRefs(props)
+const { maskClosable, ncModalClassName } = toRefs(props)
 
 const { isMobileMode } = useGlobal()
 
@@ -113,6 +115,7 @@ const slots = useSlots()
   >
     <div
       class="flex flex-col nc-modal p-6 h-full"
+      :class="[`${ncModalClassName}`]"
       :style="{
         maxHeight: height,
         ...(modalSizes[size] ? { height } : {}),

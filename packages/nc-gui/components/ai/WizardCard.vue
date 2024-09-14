@@ -14,19 +14,19 @@ const props = withDefaults(defineProps<Props>(), {
   aiLoading: false,
 })
 
-const emits = defineEmits(['update:isDisabled', 'update:activeTab'])
+const emits = defineEmits(['update:isDisabled', 'update:activeTab', 'navigateToIntegrations'])
 
 const vIsDisabled = useVModel(props, 'isDisabled', emits)
 
 const activeTab = useVModel(props, 'activeTab', emits)
 
-const { tabs, aiLoading } = toRefs(props)
+const { tabs } = toRefs(props)
 
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const { aiIntegrationAvailable } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading } = useNocoAi()
 
 const handleEnable = () => {
   if (!vIsDisabled.value) return
@@ -68,6 +68,14 @@ const handleChangeTab = (tab: string) => {
       </div>
     </div>
     <div class="nc-ai-wizard-card-tab-content">
+      <div v-if="!aiIntegrationAvailable" class="py-2.5 pl-3 pr-1.5 flex items-center gap-3">
+        <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium" />
+        <div class="text-sm text-nc-content-gray-subtle flex-1">No AI Integrations available.</div>
+
+        <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="emits('navigateToIntegrations')">
+          Create AI integration
+        </NcButton>
+      </div>
       <slot name="tabContent"> </slot>
     </div>
   </div>

@@ -22,6 +22,8 @@ const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
+const workspaceStore = useWorkspace()
+
 const { isMysql, isMssql, isPg, isSnowflake } = useBase()
 
 const { loadProjectTables, addTable } = useTablesStore()
@@ -114,6 +116,7 @@ const disableAiMode = () => {
   predictHistory.value = []
   prompt.value = ''
   isPromtAlreadyGenerated.value = false
+  activeAiTab.value = TableWizardTabs.AUTO_SUGGESTIONS
 
   table.title = initTitle.value || ''
 }
@@ -179,7 +182,7 @@ const onTagRemoveFromPrediction = (tag: string) => {
 }
 
 const onSelectAll = () => {
-  selectedTables.value.push(...predictedTables.value)
+  selectedTables.value.push(...predictedTables.value.filter((t) => !removedFromPredictedTables.value.has(t)))
   predictedTables.value = []
 }
 
@@ -365,6 +368,12 @@ const aiTabs = [
 const isPredictFromPromptLoading = computed(() => {
   return aiLoading.value && calledFunction.value === 'predictFromPrompt'
 })
+
+const handleNavigateToIntegrations = () => {
+  dialogShow.value = false
+
+  workspaceStore.navigateToIntegrations()
+}
 </script>
 
 <template>
@@ -374,10 +383,11 @@ const isPredictFromPromptLoading = computed(() => {
     :header="$t('activity.createTable')"
     size="sm"
     height="auto"
+    nc-modal-class-name="!px-0 !pb-0"
     @keydown.esc="dialogShow = false"
   >
     <template #header>
-      <div class="flex justify-between w-full items-center" @dblclick.stop="fullAuto">
+      <div class="px-6 flex justify-between w-full items-center" @dblclick.stop="fullAuto">
         <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-gray-800">
           <GeneralIcon icon="table" class="!text-gray-600 w-5 h-5" />
           {{ $t('activity.createTable') }}
@@ -387,7 +397,7 @@ const isPredictFromPromptLoading = computed(() => {
         </a>
       </div>
     </template>
-    <div class="flex flex-col mt-1" @dblclick.stop="fullAuto">
+    <div class="px-6 pb-6 flex flex-col mt-1" @dblclick.stop="fullAuto">
       <a-form
         layout="vertical"
         :model="table"
@@ -457,7 +467,7 @@ const isPredictFromPromptLoading = computed(() => {
             v-model:is-disabled="isDisabled"
             v-model:active-tab="activeAiTab"
             :tabs="aiTabs"
-            :ai-loading="aiLoading"
+            @navigate-to-integrations="handleNavigateToIntegrations"
           >
             <template #tabExtraRight>
               <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
@@ -482,7 +492,15 @@ const isPredictFromPromptLoading = computed(() => {
                       />
                     </NcButton>
                   </NcTooltip>
-                  <NcTooltip v-if="predictHistory.length < 8" title="Suggest more" placement="top">
+                  <NcTooltip
+                    v-if="
+                      predictHistory.length < selectedTables.length
+                        ? predictHistory.length + selectedTables.length < 8
+                        : predictHistory.length < 8
+                    "
+                    title="Suggest more"
+                    placement="top"
+                  >
                     <NcButton
                       size="xs"
                       class="!px-1 !text-current hover:!bg-nc-bg-purple-dark"
@@ -737,6 +755,20 @@ const isPredictFromPromptLoading = computed(() => {
         </div>
       </a-form>
     </div>
+    <div class="nc-nocoai-footer">
+      <!-- Footer -->
+
+      <div class="nc-ai-wizard-card-footer-branding text-xs">
+        Powered by
+        <a class="!no-underline font-semibold !text-inherit"> Noco AI </a>
+      </div>
+
+      <AiSettings :settings="{}" placement="bottomLeft">
+        <NcButton size="xs" class="nc-nocoai-settings !px-1 !text-current" type="text" :disabled="aiLoading">
+          <GeneralIcon icon="settings" />
+        </NcButton>
+      </AiSettings>
+    </div>
   </NcModal>
 </template>
 
@@ -756,6 +788,14 @@ const isPredictFromPromptLoading = computed(() => {
 
   &.active {
     max-height: 100px;
+  }
+}
+
+.nc-nocoai-footer {
+  @apply px-6 py-1 flex items-center gap-2 text-nc-content-purple-dark border-t-1 border-purple-100;
+
+  .nc-nocoai-settings {
+    @apply hover:!bg-purple-100;
   }
 }
 </style>

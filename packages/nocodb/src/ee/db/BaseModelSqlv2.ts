@@ -297,12 +297,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {
-    const queries = await Promise.all(ops);
+    const queries = await Promise.all(ops).then((q) => this.sanitizeQuery(q));
     if ((this.dbDriver as any).isExternal) {
       await runExternal(queries, (this.dbDriver as any).extDb);
     } else {
       for (const query of queries) {
-        await trx.raw(query);
+        await trx.raw(this.sanitizeQuery(query));
       }
     }
   }
@@ -1275,14 +1275,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if (!foreign_key_checks) {
         if (this.isPg) {
           queries.push(
-            this.dbDriver
-              .raw('set session_replication_role to replica;')
-              .toQuery(),
+            this.sanitizeQuery(
+              this.dbDriver
+                .raw('set session_replication_role to replica;')
+                .toQuery(),
+            ),
           );
           trimLeading++;
         } else if (this.isMySQL) {
           queries.push(
-            this.dbDriver.raw('SET foreign_key_checks = 0;').toQuery(),
+            this.sanitizeQuery(
+              this.dbDriver.raw('SET foreign_key_checks = 0;').toQuery(),
+            ),
           );
           trimLeading++;
         }
@@ -1296,7 +1300,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         // const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
 
         for (const insertData of insertDatas) {
-          queries.push(this.dbDriver(this.tnPath).insert(insertData).toQuery());
+          queries.push(
+            this.sanitizeQuery(
+              this.dbDriver(this.tnPath).insert(insertData).toQuery(),
+            ),
+          );
         }
       } else {
         const batches = [];
@@ -1314,15 +1322,23 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         for (const batch of batches) {
           if (this.isPg || this.isMssql) {
             queries.push(
-              this.dbDriver(this.tnPath)
-                .insert(batch)
-                .returning(
-                  this.model.primaryKeys?.length ? (returningObj as any) : '*',
-                )
-                .toQuery(),
+              this.sanitizeQuery(
+                this.dbDriver(this.tnPath)
+                  .insert(batch)
+                  .returning(
+                    this.model.primaryKeys?.length
+                      ? (returningObj as any)
+                      : '*',
+                  )
+                  .toQuery(),
+              ),
             );
           } else {
-            queries.push(this.dbDriver(this.tnPath).insert(batch).toQuery());
+            queries.push(
+              this.sanitizeQuery(
+                this.dbDriver(this.tnPath).insert(batch).toQuery(),
+              ),
+            );
           }
         }
       }
@@ -1330,14 +1346,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if (!foreign_key_checks) {
         if (this.isPg) {
           queries.push(
-            this.dbDriver
-              .raw('set session_replication_role to origin;')
-              .toQuery(),
+            this.sanitizeQuery(
+              this.dbDriver
+                .raw('set session_replication_role to origin;')
+                .toQuery(),
+            ),
           );
           trimTrailing++;
         } else if (this.isMySQL) {
           queries.push(
-            this.dbDriver.raw('SET foreign_key_checks = 1;').toQuery(),
+            this.sanitizeQuery(
+              this.dbDriver.raw('SET foreign_key_checks = 1;').toQuery(),
+            ),
           );
           trimTrailing++;
         }

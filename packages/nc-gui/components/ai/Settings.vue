@@ -2,7 +2,7 @@
 import { type IntegrationType, IntegrationsType } from 'nocodb-sdk'
 
 const props = defineProps<{
-  fkIntegrationId: string
+  fkIntegrationId?: string
   model?: string
   randomness?: string
   workspaceId: string
@@ -67,15 +67,22 @@ onMounted(async () => {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isDropdownOpen" :trigger="['click']" placement="bottomRight">
+  <NcDropdown v-model:visible="isDropdownOpen" :trigger="['click']" placement="bottomRight" overlay-class-name="overflow-hidden">
     <slot>
       <GeneralIcon icon="ncSettings" class="text-gray-500 cursor-pointer" />
     </slot>
 
     <template #overlay>
       <div class="flex flex-col w-[320px] overflow-hidden">
-        <div class="flex items-center w-full px-4 py-2 bg-purple-50">
+        <div class="flex items-center justify-between w-full px-4 py-2 bg-purple-50">
           <span class="text-sm font-bold text-purple-600">Settings</span>
+          <!-- Todo: add docs link  -->
+          <a
+            target="_blank"
+            rel="noopener noreferrer"
+            class="!no-underline !hover:(underline text-nc-content-purple-dark) text-nc-content-purple-dark"
+            >{{ $t('title.docs') }}</a
+          >
         </div>
         <div class="flex flex-col px-4 py-2 text-sm gap-2">
           <!-- Integration Select -->

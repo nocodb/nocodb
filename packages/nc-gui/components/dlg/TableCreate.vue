@@ -24,6 +24,8 @@ const { addTab } = useTabs()
 
 const workspaceStore = useWorkspace()
 
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
 const { isMysql, isMssql, isPg, isSnowflake } = useBase()
 
 const { loadProjectTables, addTable } = useTablesStore()
@@ -85,6 +87,12 @@ const calledFunction = ref<string>()
 const prompt = ref<string>('')
 
 const isPromtAlreadyGenerated = ref<boolean>(false)
+
+const availableIntegration = ref<{
+  fkIntegrationId?: string
+  model?: string
+  randomness?: string
+}>({})
 
 const toggleAiMode = async () => {
   if (aiMode.value) return
@@ -763,7 +771,13 @@ const handleNavigateToIntegrations = () => {
         <a class="!no-underline font-semibold !text-inherit"> Noco AI </a>
       </div>
 
-      <AiSettings :settings="{}" placement="bottomLeft">
+      <AiSettings
+        v-model:fk-integration-id="availableIntegration.fkIntegrationId"
+        v-model:model="availableIntegration.model"
+        v-model:randomness="availableIntegration.randomness"
+        :workspace-id="activeWorkspaceId"
+        placement="bottom"
+      >
         <NcButton size="xs" class="nc-nocoai-settings !px-1 !text-current" type="text" :disabled="aiLoading">
           <GeneralIcon icon="settings" />
         </NcButton>

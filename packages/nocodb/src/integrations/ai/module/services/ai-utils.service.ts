@@ -278,6 +278,7 @@ export class AiUtilsService {
     params: {
       input: {
         history?: string[];
+        prompt?: string;
       };
       req?: any;
     },
@@ -319,6 +320,7 @@ export class AiUtilsService {
             base.title,
             tables.map((t) => t.title),
             params.input.history,
+            params.input.prompt,
           ),
         },
       ],

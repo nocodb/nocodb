@@ -109,8 +109,9 @@ export const predictNextTablesPrompt = (
   baseTitle: string,
   existingTables: string[],
   history?: string[],
+  prompt?: string,
 ) =>
   `Your schema "${baseTitle}" already have following tables: "${existingTables
     .concat(history || [])
     .join(', ')}"
-Predict next 3 to 5 tables`;
+Predict next 3 to 5 ${prompt ? 'most suitable tables for' + prompt : 'tables'}`;

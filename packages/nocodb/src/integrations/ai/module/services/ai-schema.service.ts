@@ -192,47 +192,52 @@ export class AiSchemaService {
       }[];
     }>({
       schema: z.object({
-        tables: z.array(
-          z.object({
-            title: z.string(),
-            columns: z.array(
-              z.object({
-                title: z.string(),
-                type: z.enum([
-                  'ID',
-                  'SingleLineText',
-                  'LongText',
-                  'Attachment',
-                  'Checkbox',
-                  'MultiSelect',
-                  'SingleSelect',
-                  'Date',
-                  'Year',
-                  'Time',
-                  'PhoneNumber',
-                  'Email',
-                  'URL',
-                  'Number',
-                  'Decimal',
-                  'Currency',
-                  'Percent',
-                  'Duration',
-                  'Rating',
-                  'DateTime',
-                  'JSON',
-                ]),
-                options: z.array(z.string()).optional(),
-              }),
-            ),
-          }),
-        ),
-        relationships: z.array(
-          z.object({
-            from: z.string(),
-            to: z.string(),
-            type: z.enum(['oo', 'hm', 'mm']),
-          }),
-        ),
+        tables: z
+          .array(
+            z.object({
+              title: z.string(),
+              columns: z.array(
+                z.object({
+                  title: z.string(),
+                  type: z.enum([
+                    'ID',
+                    'SingleLineText',
+                    'LongText',
+                    'Attachment',
+                    'Checkbox',
+                    'MultiSelect',
+                    'SingleSelect',
+                    'Date',
+                    'Year',
+                    'Time',
+                    'PhoneNumber',
+                    'Email',
+                    'URL',
+                    'Number',
+                    'Decimal',
+                    'Currency',
+                    'Percent',
+                    'Duration',
+                    'Rating',
+                    'DateTime',
+                    'JSON',
+                  ]),
+                  options: z.array(z.string()).optional(),
+                }),
+              ),
+            }),
+          )
+          .optional(),
+        relationships: z
+          .array(
+            z.object({
+              from: z.string(),
+              to: z.string(),
+              type: z.enum(['oo', 'hm', 'mm']),
+            }),
+          )
+          .optional()
+          .default([]), // Ensure default empty array if relationships are not provided
       }),
       messages: [
         {

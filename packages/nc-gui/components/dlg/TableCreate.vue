@@ -80,7 +80,7 @@ const selectedTables = ref<string[]>([])
 
 const calledFunction = ref<string>()
 
-const promt = ref<string>('')
+const prompt = ref<string>('')
 
 const isPromtAlreadyGenerated = ref<boolean>(false)
 
@@ -91,7 +91,7 @@ const toggleAiMode = async () => {
   aiModeStep.value = AiStep.init
   predictedTables.value = []
   predictHistory.value = []
-  promt.value = ''
+  prompt.value = ''
   isPromtAlreadyGenerated.value = false
 
   if (table.title === initTitle.value) {
@@ -112,7 +112,7 @@ const disableAiMode = () => {
   aiModeStep.value = null
   predictedTables.value = []
   predictHistory.value = []
-  promt.value = ''
+  prompt.value = ''
   isPromtAlreadyGenerated.value = false
 
   table.title = initTitle.value || ''
@@ -141,6 +141,22 @@ const predictRefresh = async () => {
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
   }
+
+  calledFunction.value = undefined
+}
+
+const predictFromPrompt = async () => {
+  calledFunction.value = 'predictFromPrompt'
+
+  const predictions = await predictNextTables(predictHistory.value, props.baseId, prompt.value)
+
+  if (predictions.length) {
+    predictedTables.value = predictions
+    predictHistory.value.push(...predictions)
+    aiModeStep.value = AiStep.pick
+  }
+
+  isPromtAlreadyGenerated.value = true
 
   calledFunction.value = undefined
 }
@@ -325,8 +341,9 @@ const activeAiTab = computed({
     activeAiTabLocal.value = value
 
     predictedTables.value = []
+    predictHistory.value = [...selectedTables.value]
 
-    promt.value = ''
+    prompt.value = ''
     isPromtAlreadyGenerated.value = false
   },
 })
@@ -341,6 +358,10 @@ const aiTabs = [
     key: TableWizardTabs.PROMPT,
   },
 ]
+
+const isPredictFromPromptLoading = computed(() => {
+  return aiLoading.value && calledFunction.value === 'predictFromPrompt'
+})
 </script>
 
 <template>
@@ -474,25 +495,34 @@ const aiTabs = [
                   size="xs"
                   class="hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark"
                   :class="{
-                    '!text-nc-content-purple-light cursor-not-allowed pointer-events-none': true,
+                    '!text-nc-content-purple-light': isPredictFromPromptLoading,
                   }"
                   type="text"
-                  @click="toggleAiMode"
-                  :disabled="!aiIntegrationAvailable"
+                  :loading="isPredictFromPromptLoading"
+                  @click="predictFromPrompt"
                 >
                   <div
                     class="flex items-center gap-2"
                     :class="{
-                      'min-w-[95px]': true,
+                      'min-w-[95px]': isPredictFromPromptLoading && !isPromtAlreadyGenerated,
+                      'min-w-[124px]': isPredictFromPromptLoading && isPromtAlreadyGenerated,
                     }"
                   >
                     <GeneralIcon icon="ncZap" class="flex-none" />
                     <div
                       :class="{
-                        'nc-animate-dots': true,
+                        'nc-animate-dots': isPredictFromPromptLoading,
                       }"
                     >
-                      Generate
+                      {{
+                        isPredictFromPromptLoading
+                          ? isPromtAlreadyGenerated
+                            ? 'Re-generating'
+                            : 'Generating'
+                          : isPromtAlreadyGenerated
+                          ? 'Re-generate'
+                          : 'Generate'
+                      }}
                     </div>
                   </div>
                 </NcButton>
@@ -510,6 +540,7 @@ const aiTabs = [
               <template v-else>
                 <div>
                   <a-textarea
+                    v-model:value="prompt"
                     :bordered="false"
                     placeholder="Enter your prompt to get table suggestions.."
                     class="!px-4 !py-2 !text-sm !min-h-[120px]"

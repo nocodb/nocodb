@@ -137,8 +137,8 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  const predictNextTables = async (history?: string[], baseId?: string) => {
-    const res = await callAiUtilsApi('predictNextTables', { history }, baseId)
+  const predictNextTables = async (history?: string[], baseId?: string, prompt?: string) => {
+    const res = await callAiUtilsApi('predictNextTables', { history, prompt }, baseId)
 
     if (res?.tables) {
       return res.tables

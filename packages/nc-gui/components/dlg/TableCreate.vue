@@ -452,7 +452,13 @@ const isPredictFromPromptLoading = computed(() => {
           </a-form-item>
 
           <!-- Ai table wizard  -->
-          <AiWizardCard v-if="aiMode" v-model:is-disabled="isDisabled" v-model:active-tab="activeAiTab" :tabs="aiTabs">
+          <AiWizardCard
+            v-if="aiMode"
+            v-model:is-disabled="isDisabled"
+            v-model:active-tab="activeAiTab"
+            :tabs="aiTabs"
+            :ai-loading="aiLoading"
+          >
             <template #tabExtraRight>
               <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
                 <template v-if="aiModeStep === AiStep.pick">
@@ -504,10 +510,13 @@ const isPredictFromPromptLoading = computed(() => {
                   :loading="isPredictFromPromptLoading"
                   @click="predictFromPrompt"
                 >
+                  <template #loadingIcon>
+                    <template></template>
+                  </template>
                   <div
                     class="flex items-center gap-2"
                     :class="{
-                      'min-w-[95px]': isPredictFromPromptLoading && !isPromtAlreadyGenerated,
+                      'min-w-[104px]': isPredictFromPromptLoading && !isPromtAlreadyGenerated,
                       'min-w-[124px]': isPredictFromPromptLoading && isPromtAlreadyGenerated,
                     }"
                   >

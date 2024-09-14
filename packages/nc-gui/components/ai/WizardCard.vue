@@ -6,10 +6,12 @@ interface Props {
     title: string
     key: string
   }[]
+  aiLoading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isDisabled: false,
+  aiLoading: false,
 })
 
 const emits = defineEmits(['update:isDisabled', 'update:activeTab'])
@@ -18,7 +20,7 @@ const vIsDisabled = useVModel(props, 'isDisabled', emits)
 
 const activeTab = useVModel(props, 'activeTab', emits)
 
-const { tabs } = toRefs(props)
+const { tabs, aiLoading } = toRefs(props)
 
 const workspaceStore = useWorkspace()
 
@@ -30,6 +32,11 @@ const handleEnable = () => {
   if (!vIsDisabled.value) return
 
   vIsDisabled.value = false
+}
+
+const handleChangeTab = (tab: string) => {
+  if (aiLoading.value) return
+  activeTab.value = tab
 }
 </script>
 
@@ -48,9 +55,10 @@ const handleEnable = () => {
           :key="tab.key"
           class="nc-ai-wizard-card-tab"
           :class="{
-            'active-tab ': activeTab === tab.key,
+            'active-tab': activeTab === tab.key,
+            '!cursor-wait': aiLoading,
           }"
-          @click="activeTab = tab.key"
+          @click="handleChangeTab(tab.key)"
         >
           {{ tab.title }}
         </div>

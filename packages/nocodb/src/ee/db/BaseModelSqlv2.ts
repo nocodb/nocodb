@@ -198,15 +198,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       qb = qb.limit(1);
     }
 
-    let query = typeof qb === 'string' ? qb : qb.toQuery();
+    const query = typeof qb === 'string' ? qb : qb.toQuery();
 
     let data;
 
     if ((this.dbDriver as any).isExternal) {
-      query = this.sanitizeQuery(query);
-
       data = await runExternal(
-        this.dbDriver.raw(query).toQuery(),
+        this.sanitizeQuery(query),
         (this.dbDriver as any).extDb,
       );
     } else {
@@ -299,10 +297,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {
     const queries = await Promise.all(ops);
     if ((this.dbDriver as any).isExternal) {
-      await runExternal(queries, (this.dbDriver as any).extDb);
+      await runExternal(
+        this.sanitizeQuery(queries),
+        (this.dbDriver as any).extDb,
+      );
     } else {
       for (const query of queries) {
-        await trx.raw(query);
+        await trx.raw(this.sanitizeQuery(query));
       }
     }
   }
@@ -1008,7 +1009,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       let responses;
 
       if ((this.dbDriver as any).isExternal) {
-        responses = await runExternal(queries, (this.dbDriver as any).extDb);
+        responses = await runExternal(
+          this.sanitizeQuery(queries),
+          (this.dbDriver as any).extDb,
+        );
         responses = Array.isArray(responses) ? responses : [responses];
       } else {
         const trx = await this.dbDriver.transaction();
@@ -1016,7 +1020,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         try {
           responses = [];
           for (const q of queries) {
-            responses.push(await trx.raw(q));
+            responses.push(await trx.raw(this.sanitizeQuery(q)));
           }
           await trx.commit();
         } catch (e) {
@@ -1378,7 +1382,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       };
 
       if ((this.dbDriver as any).isExternal) {
-        responses = await runExternal(queries, (this.dbDriver as any).extDb);
+        responses = await runExternal(
+          this.sanitizeQuery(queries),
+          (this.dbDriver as any).extDb,
+        );
         responses = Array.isArray(responses) ? responses : [responses];
         if (!raw) await postSingleRecordInsertionCbk(responses);
       } else {
@@ -1587,12 +1594,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if ((this.dbDriver as any).isExternal) {
-        await runExternal(queries, (this.dbDriver as any).extDb);
+        await runExternal(
+          this.sanitizeQuery(queries),
+          (this.dbDriver as any).extDb,
+        );
       } else {
         const trx = await this.dbDriver.transaction();
         try {
           for (const q of queries) {
-            await trx.raw(q);
+            await trx.raw(this.sanitizeQuery(q));
           }
           await trx.commit();
         } catch (e) {
@@ -1794,12 +1804,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if ((this.dbDriver as any).isExternal) {
-        await runExternal(queries, (this.dbDriver as any).extDb);
+        await runExternal(
+          this.sanitizeQuery(queries),
+          (this.dbDriver as any).extDb,
+        );
       } else {
         const trx = await this.dbDriver.transaction();
         try {
           for (const q of queries) {
-            await trx.raw(q);
+            await trx.raw(this.sanitizeQuery(q));
           }
           await trx.commit();
         } catch (e) {
@@ -2038,16 +2051,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       let responses;
 
       if ((this.dbDriver as any).isExternal) {
-        responses = await runExternal(queries, (this.dbDriver as any).extDb, {
-          raw: true,
-        });
+        responses = await runExternal(
+          this.sanitizeQuery(queries),
+          (this.dbDriver as any).extDb,
+          {
+            raw: true,
+          },
+        );
         responses = Array.isArray(responses) ? responses : [responses];
       } else {
         const trx = await this.dbDriver.transaction();
         try {
           responses = [];
           for (const q of queries) {
-            const res = await trx.raw(q);
+            const res = await trx.raw(this.sanitizeQuery(q));
             responses.push(res);
           }
           await trx.commit();

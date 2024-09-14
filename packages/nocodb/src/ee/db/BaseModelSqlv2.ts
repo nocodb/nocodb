@@ -1582,7 +1582,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       for (const o of toBeUpdated) {
         queries.push(
-          this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
+          this.this.sanitizeQuery(
+            this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
+          ),
         );
       }
 

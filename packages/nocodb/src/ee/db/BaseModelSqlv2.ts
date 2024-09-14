@@ -198,15 +198,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       qb = qb.limit(1);
     }
 
-    let query = typeof qb === 'string' ? qb : qb.toQuery();
+    const query = typeof qb === 'string' ? qb : qb.toQuery();
 
     let data;
 
     if ((this.dbDriver as any).isExternal) {
-      query = this.sanitizeQuery(query);
-
       data = await runExternal(
-        this.dbDriver.raw(query).toQuery(),
+        this.sanitizeQuery(query),
         (this.dbDriver as any).extDb,
       );
     } else {
@@ -297,11 +295,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {
-    const queries = await Promise.all(ops).then((q) =>
-      q.map(this.sanitizeQuery),
-    );
+    const queries = await Promise.all(ops);
     if ((this.dbDriver as any).isExternal) {
-      await runExternal(queries, (this.dbDriver as any).extDb);
+      await runExternal(
+        this.sanitizeQuery(queries),
+        (this.dbDriver as any).extDb,
+      );
     } else {
       for (const query of queries) {
         await trx.raw(this.sanitizeQuery(query));
@@ -1002,19 +1001,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const where = await this._wherePk(id);
 
       for (const q of execQueries) {
-        queries.push(this.sanitizeQuery(q(this.dbDriver).toQuery()));
+        queries.push(q(this.dbDriver).toQuery());
       }
 
-      queries.push(
-        this.sanitizeQuery(
-          this.dbDriver(this.tnPath).del().where(where).toQuery(),
-        ),
-      );
+      queries.push(this.dbDriver(this.tnPath).del().where(where).toQuery());
 
       let responses;
 
       if ((this.dbDriver as any).isExternal) {
-        responses = await runExternal(queries, (this.dbDriver as any).extDb);
+        responses = await runExternal(
+          this.sanitizeQuery(queries),
+          (this.dbDriver as any).extDb,
+        );
         responses = Array.isArray(responses) ? responses : [responses];
       } else {
         const trx = await this.dbDriver.transaction();
@@ -1022,7 +1020,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         try {
           responses = [];
           for (const q of queries) {
-            responses.push(await trx.raw(q));
+            responses.push(await trx.raw(this.sanitizeQuery(q)));
           }
           await trx.commit();
         } catch (e) {
@@ -1281,18 +1279,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if (!foreign_key_checks) {
         if (this.isPg) {
           queries.push(
-            this.sanitizeQuery(
-              this.dbDriver
-                .raw('set session_replication_role to replica;')
-                .toQuery(),
-            ),
+            this.dbDriver
+              .raw('set session_replication_role to replica;')
+              .toQuery(),
           );
           trimLeading++;
         } else if (this.isMySQL) {
           queries.push(
-            this.sanitizeQuery(
-              this.dbDriver.raw('SET foreign_key_checks = 0;').toQuery(),
-            ),
+            this.dbDriver.raw('SET foreign_key_checks = 0;').toQuery(),
           );
           trimLeading++;
         }
@@ -1306,11 +1300,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         // const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
 
         for (const insertData of insertDatas) {
-          queries.push(
-            this.sanitizeQuery(
-              this.dbDriver(this.tnPath).insert(insertData).toQuery(),
-            ),
-          );
+          queries.push(this.dbDriver(this.tnPath).insert(insertData).toQuery());
         }
       } else {
         const batches = [];
@@ -1328,23 +1318,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         for (const batch of batches) {
           if (this.isPg || this.isMssql) {
             queries.push(
-              this.sanitizeQuery(
-                this.dbDriver(this.tnPath)
-                  .insert(batch)
-                  .returning(
-                    this.model.primaryKeys?.length
-                      ? (returningObj as any)
-                      : '*',
-                  )
-                  .toQuery(),
-              ),
+              this.dbDriver(this.tnPath)
+                .insert(batch)
+                .returning(
+                  this.model.primaryKeys?.length ? (returningObj as any) : '*',
+                )
+                .toQuery(),
             );
           } else {
-            queries.push(
-              this.sanitizeQuery(
-                this.dbDriver(this.tnPath).insert(batch).toQuery(),
-              ),
-            );
+            queries.push(this.dbDriver(this.tnPath).insert(batch).toQuery());
           }
         }
       }
@@ -1352,18 +1334,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       if (!foreign_key_checks) {
         if (this.isPg) {
           queries.push(
-            this.sanitizeQuery(
-              this.dbDriver
-                .raw('set session_replication_role to origin;')
-                .toQuery(),
-            ),
+            this.dbDriver
+              .raw('set session_replication_role to origin;')
+              .toQuery(),
           );
           trimTrailing++;
         } else if (this.isMySQL) {
           queries.push(
-            this.sanitizeQuery(
-              this.dbDriver.raw('SET foreign_key_checks = 1;').toQuery(),
-            ),
+            this.dbDriver.raw('SET foreign_key_checks = 1;').toQuery(),
           );
           trimTrailing++;
         }
@@ -1404,7 +1382,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       };
 
       if ((this.dbDriver as any).isExternal) {
-        responses = await runExternal(queries, (this.dbDriver as any).extDb);
+        responses = await runExternal(
+          this.sanitizeQuery(queries),
+          (this.dbDriver as any).extDb,
+        );
         responses = Array.isArray(responses) ? responses : [responses];
         if (!raw) await postSingleRecordInsertionCbk(responses);
       } else {
@@ -1608,19 +1589,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       for (const o of toBeUpdated) {
         queries.push(
-          this.sanitizeQuery(
-            this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
-          ),
+          this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
         );
       }
 
       if ((this.dbDriver as any).isExternal) {
-        await runExternal(queries, (this.dbDriver as any).extDb);
+        await runExternal(
+          this.sanitizeQuery(queries),
+          (this.dbDriver as any).extDb,
+        );
       } else {
         const trx = await this.dbDriver.transaction();
         try {
           for (const q of queries) {
-            await trx.raw(q);
+            await trx.raw(this.sanitizeQuery(q));
           }
           await trx.commit();
         } catch (e) {
@@ -1813,27 +1795,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       if (base.isMeta() && execQueries.length > 0) {
         for (const execQuery of execQueries) {
-          queries.push(
-            this.sanitizeQuery(execQuery(this.dbDriver, idsVals).toQuery()),
-          );
+          queries.push(execQuery(this.dbDriver, idsVals).toQuery());
         }
       }
 
       for (const d of res) {
-        queries.push(
-          this.sanitizeQuery(
-            this.dbDriver(this.tnPath).del().where(d).toQuery(),
-          ),
-        );
+        queries.push(this.dbDriver(this.tnPath).del().where(d).toQuery());
       }
 
       if ((this.dbDriver as any).isExternal) {
-        await runExternal(queries, (this.dbDriver as any).extDb);
+        await runExternal(
+          this.sanitizeQuery(queries),
+          (this.dbDriver as any).extDb,
+        );
       } else {
         const trx = await this.dbDriver.transaction();
         try {
           for (const q of queries) {
-            await trx.raw(q);
+            await trx.raw(this.sanitizeQuery(q));
           }
           await trx.commit();
         } catch (e) {
@@ -2063,27 +2042,29 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // unlink LTAR data
       if (source.isMeta()) {
         for (const execQuery of execQueries) {
-          queries.push(
-            this.sanitizeQuery(execQuery(this.dbDriver, qb.clone()).toQuery()),
-          );
+          queries.push(execQuery(this.dbDriver, qb.clone()).toQuery());
         }
       }
 
-      queries.push(this.sanitizeQuery(qb.clone().del().toQuery()));
+      queries.push(qb.clone().del().toQuery());
 
       let responses;
 
       if ((this.dbDriver as any).isExternal) {
-        responses = await runExternal(queries, (this.dbDriver as any).extDb, {
-          raw: true,
-        });
+        responses = await runExternal(
+          this.sanitizeQuery(queries),
+          (this.dbDriver as any).extDb,
+          {
+            raw: true,
+          },
+        );
         responses = Array.isArray(responses) ? responses : [responses];
       } else {
         const trx = await this.dbDriver.transaction();
         try {
           responses = [];
           for (const q of queries) {
-            const res = await trx.raw(q);
+            const res = await trx.raw(this.sanitizeQuery(q));
             responses.push(res);
           }
           await trx.commit();

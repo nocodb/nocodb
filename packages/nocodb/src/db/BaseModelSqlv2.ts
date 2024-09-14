@@ -7955,12 +7955,15 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  protected sanitizeQuery(query: string) {
-    if (!this.isPg && !this.isMssql && !this.isSnowflake) {
-      return unsanitize(query);
-    } else {
-      return sanitize(query);
-    }
+  protected sanitizeQuery(query: string | string[]) {
+    const fn = (q: string) => {
+      if (!this.isPg && !this.isMssql && !this.isSnowflake) {
+        return unsanitize(q);
+      } else {
+        return sanitize(q);
+      }
+    };
+    return Array.isArray(query) ? query.map(fn) : fn(query);
   }
 
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {

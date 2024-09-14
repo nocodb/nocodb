@@ -297,7 +297,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {
-    const queries = await Promise.all(ops).then((q) => this.sanitizeQuery(q));
+    const queries = await Promise.all(ops).then((q) =>
+      q.map(this.sanitizeQuery),
+    );
     if ((this.dbDriver as any).isExternal) {
       await runExternal(queries, (this.dbDriver as any).extDb);
     } else {
@@ -1000,10 +1002,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const where = await this._wherePk(id);
 
       for (const q of execQueries) {
-        queries.push(q(this.dbDriver).toQuery());
+        queries.push(this.sanitizeQuery(q(this.dbDriver).toQuery()));
       }
 
-      queries.push(this.dbDriver(this.tnPath).del().where(where).toQuery());
+      queries.push(
+        this.sanitizeQuery(
+          this.dbDriver(this.tnPath).del().where(where).toQuery(),
+        ),
+      );
 
       let responses;
 
@@ -1602,7 +1608,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       for (const o of toBeUpdated) {
         queries.push(
-          this.this.sanitizeQuery(
+          this.sanitizeQuery(
             this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
           ),
         );
@@ -1807,12 +1813,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       if (base.isMeta() && execQueries.length > 0) {
         for (const execQuery of execQueries) {
-          queries.push(execQuery(this.dbDriver, idsVals).toQuery());
+          queries.push(
+            this.sanitizeQuery(execQuery(this.dbDriver, idsVals).toQuery()),
+          );
         }
       }
 
       for (const d of res) {
-        queries.push(this.dbDriver(this.tnPath).del().where(d).toQuery());
+        queries.push(
+          this.sanitizeQuery(
+            this.dbDriver(this.tnPath).del().where(d).toQuery(),
+          ),
+        );
       }
 
       if ((this.dbDriver as any).isExternal) {
@@ -2051,11 +2063,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       // unlink LTAR data
       if (source.isMeta()) {
         for (const execQuery of execQueries) {
-          queries.push(execQuery(this.dbDriver, qb.clone()).toQuery());
+          queries.push(
+            this.sanitizeQuery(execQuery(this.dbDriver, qb.clone()).toQuery()),
+          );
         }
       }
 
-      queries.push(qb.clone().del().toQuery());
+      queries.push(this.sanitizeQuery(qb.clone().del().toQuery()));
 
       let responses;
 

@@ -63,7 +63,7 @@
     "@aws-sdk/lib-storage": "^3.620.0",
     "@aws-sdk/s3-request-presigner": "^3.620.0",
     "@databricks/sql": "^1.7.1",
-    "@google-cloud/storage": "^7.7.0",
+    "@google-cloud/storage": "^7.12.1",
     "@jm18457/kafkajs-msk-iam-authentication-mechanism": "^3.1.2",
     "@nestjs/bull": "^10.0.1",
     "@nestjs/common": "^10.3.8",

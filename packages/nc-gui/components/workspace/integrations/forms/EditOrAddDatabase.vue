@@ -853,7 +853,7 @@ watch(
                           <!-- Database : create if not exists -->
                           <a-input
                             v-model:value="formState.dataSource.connection.database"
-                            :placeholder="`${$t('labels.database')} ${$t('general.name').toLowerCase()}`"
+                            :placeholder="`${$t('labels.dbCreateIfNotExists')}`"
                             class="nc-extdb-host-database"
                           />
                         </a-form-item>

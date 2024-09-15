@@ -204,7 +204,49 @@ export default class Minio implements IStorageAdapterV2 {
     });
   }
 
-  public async scanFiles(_globPattern: string): Promise<Readable> {
-    return Promise.resolve(undefined);
+  public async scanFiles(globPattern: string): Promise<Readable> {
+    // Remove all dots from the glob pattern
+    globPattern = globPattern.replace(/\./g, '');
+
+    // Remove the leading slash
+    globPattern = globPattern.replace(/^\//, '');
+
+    // Make sure pattern starts with nc/uploads/
+    if (!globPattern.startsWith('nc/uploads/')) {
+      globPattern = `nc/uploads/${globPattern}`;
+    }
+
+    // Minio does not support glob so remove *
+    globPattern = globPattern.replace(/\*/g, '');
+
+    const stream = new Readable({
+      read() {},
+    });
+
+    stream.setEncoding('utf8');
+
+    const listObjects = async () => {
+      try {
+        const objectStream = this.minioClient.listObjectsV2(
+          this.input.bucket,
+          globPattern,
+          true,
+        );
+
+        for await (const item of objectStream) {
+          stream.push(item.name);
+        }
+
+        stream.push(null);
+      } catch (error) {
+        stream.emit('error', error);
+      }
+    };
+
+    listObjects().catch((error) => {
+      stream.emit('error', error);
+    });
+
+    return stream;
   }
 }

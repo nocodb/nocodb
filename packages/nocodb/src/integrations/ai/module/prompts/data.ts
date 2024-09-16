@@ -30,7 +30,7 @@ export const generateFromButtonSystemMessage = (
 ) => `You are a smart-spreadsheet assistant.
 You are given a list of prompts as JSON array.
 You need to generate a list of responses as JSON array.
-Avoid modifying following fields (primary keys): ${primaryKeyTitles
+Preserve value for following (primary keys): ${primaryKeyTitles
   .map((pk) => `"${pk}"`)
   .join(', ')}.
 

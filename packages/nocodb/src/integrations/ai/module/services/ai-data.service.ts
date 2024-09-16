@@ -1,5 +1,7 @@
+import path from 'path';
 import { Injectable } from '@nestjs/common';
 import { ButtonActionsType, UITypes } from 'nocodb-sdk';
+import mime from 'mime/lite';
 
 import { z } from 'zod';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -11,10 +13,45 @@ import { TablesService } from '~/services/tables.service';
 import { Integration, Source } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { NcError } from '~/helpers/catchError';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
   generateFromButtonSystemMessage,
   generateRowsSystemMessage,
 } from '~/integrations/ai/module/prompts/index';
+import { getPathFromUrl } from '~/helpers/attachmentHelpers';
+import { serialize } from '~/integrations/ai/module/helpers/serialize';
+
+const FILE_SEARCH_SUPPORTED_MIMETYPES = [
+  'text/x-c',
+  'text/x-c++',
+  'text/css',
+  'text/csv',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/html',
+  'text/x-java',
+  'text/javascript',
+  'application/json',
+  'text/markdown',
+  'application/pdf',
+  'text/x-php',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/x-python',
+  'text/x-script.python',
+  'text/x-ruby',
+  'text/x-tex',
+  'application/typescript',
+  'text/plain',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/xml',
+];
+
+const INLINE_SUPPORTED_MIMETYPES = [
+  'image/*',
+  'text/*',
+  'application/pdf',
+  'application/json',
+  'application/xml',
+];
 
 @Injectable()
 export class AiDataService {
@@ -205,17 +242,318 @@ export class AiDataService {
 
     const referencedColumns: Column[] = [];
 
-    const promptTemplate = aiButton.formula.replace(/{(.*?)}/g, (match, p1) => {
-      const column = model.columnsById[p1];
+    // get all referenced columns from the prompt
+    aiButton.formula.replace(/{(.*?)}/g, (match, p1) => {
+      const col = model.columnsById[p1];
 
-      if (!column) {
+      if (!col) {
         NcError.badRequest(`Field '${p1}' not found`);
       }
 
-      referencedColumns.push(column);
+      referencedColumns.push(col);
 
-      return `{${column.title}}`;
+      return p1;
     });
+
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      model,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const records = await baseModel.list(
+      {
+        pks: rowIds.join(','),
+      },
+      {
+        ignoreViewFilterAndSort: true,
+      },
+    );
+
+    const outputColumnIds = aiButton.output_column_ids?.split(',') || [];
+
+    const outputColumns = outputColumnIds.map((id) => model.columnsById[id]);
+
+    const integration = await Integration.get(
+      context,
+      aiButton.fk_integration_id,
+    );
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
+
+    const atCols = referencedColumns.filter(
+      (col) => col.uidt === UITypes.Attachment,
+    );
+
+    // get all supported attachments
+    const allAttachments = atCols
+      .map((col) => [
+        ...(records?.[0]?.[col.title] || []).map((at) => {
+          let relativePath;
+
+          if (at.path) {
+            relativePath = path.join(
+              'nc',
+              'uploads',
+              at.path.replace(/^download[/\\]/i, ''),
+            );
+          } else if (at.url) {
+            relativePath = getPathFromUrl(at.url).replace(/^\/+/, '');
+          }
+
+          return {
+            ...at,
+            mimetype:
+              at.mimetype !== 'application/octet-stream'
+                ? at.mimetype
+                : mime.getType(at.path || at.url),
+            colId: col.id,
+            relativePath,
+          };
+        }),
+      ])
+      .flat()
+      .filter(
+        (at) =>
+          at &&
+          INLINE_SUPPORTED_MIMETYPES.some((m) =>
+            at.mimetype?.match(new RegExp(m.replace('*', '.*'))),
+          ),
+      );
+
+    const imageAttachments = [];
+
+    const otherAttachments = [];
+
+    for (const attachment of allAttachments) {
+      if (attachment.mimetype?.match(/image\/*/)) {
+        imageAttachments.push(attachment);
+      } else {
+        otherAttachments.push(attachment);
+      }
+    }
+
+    const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+    const encodedImages = [];
+
+    for (const attachment of imageAttachments) {
+      const file = await storageAdapter.fileRead(attachment.relativePath);
+
+      // convert file to base64
+      const base64 = file.toString('base64');
+
+      encodedImages.push({
+        type: 'image',
+        image: base64,
+      });
+    }
+
+    const inlineAttachments: Record<string, string[]> = {};
+
+    for (const attachment of otherAttachments) {
+      const fileStream = await storageAdapter.fileReadByStream(
+        attachment.relativePath,
+      );
+      const serialized = await serialize(attachment.mimetype, fileStream);
+
+      if (serialized) {
+        if (!inlineAttachments[attachment.colId]) {
+          inlineAttachments[attachment.colId] = [];
+        }
+
+        inlineAttachments[attachment.colId].push(serialized.text);
+        encodedImages.push(...serialized.images);
+      }
+    }
+
+    let userMessage = JSON.stringify(
+      records.map((row) => {
+        const pkObj = baseModel.model.primaryKeys.reduce((acc, pk) => {
+          acc[pk.title] = row[pk.title];
+          return acc;
+        }, {});
+
+        return {
+          [column.title]: aiButton.formula.replace(/{(.*?)}/g, (match, p1) => {
+            const col = model.columnsById[p1];
+
+            if (!col) {
+              NcError.badRequest(`Field '${p1}' not found`);
+            }
+
+            if (col.uidt === UITypes.Attachment) {
+              if (inlineAttachments[col.id]) {
+                return inlineAttachments[col.id]
+                  .map((i) => `\n\nFile:\n\`\`\`${i}\n\`\`\`\n`)
+                  .join('');
+              }
+
+              return '@image';
+            }
+
+            return row[p1];
+          }),
+          ...pkObj,
+        };
+      }),
+    );
+
+    const res = await wrapper.generateObject<{
+      rows: { [key: string]: string }[];
+    }>({
+      schema: z.object({
+        rows: z.array(
+          z.object({
+            ...Object.fromEntries(
+              outputColumns.map((col) => {
+                if (
+                  col.uidt === UITypes.SingleSelect ||
+                  col.uidt === UITypes.MultiSelect
+                ) {
+                  userMessage += `\n\n${
+                    col.title
+                  } can be one of following ${col.colOptions.options
+                    .map((o) => `"${o.title}"`)
+                    .join(', ')}`;
+
+                  return [
+                    col.title,
+                    z
+                      .enum(col.colOptions.options.map((o) => o.title))
+                      .nullable()
+                      .optional(),
+                  ];
+                } else if (col.uidt === UITypes.Checkbox) {
+                  return [col.title, z.boolean().nullable().optional()];
+                } else if (col.uidt === UITypes.Number) {
+                  return [col.title, z.number().nullable().optional()];
+                } else if (col.uidt === UITypes.URL) {
+                  userMessage += `\n\n${col.title} must be a valid URL`;
+                  return [col.title, z.string().url().nullable().optional()];
+                }
+                return [col.title, z.any().optional()];
+              }),
+            ),
+            ...Object.fromEntries(
+              baseModel.model.primaryKeys.map((pk) => [
+                pk.title,
+                z.string().or(z.number()),
+              ]),
+            ),
+          }),
+        ),
+      }),
+      messages: [
+        {
+          role: 'system',
+          content: generateFromButtonSystemMessage(
+            baseModel.model.primaryKeys.map((pk) => pk.title),
+            outputColumns.map((col) => col.title),
+          ),
+        },
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: userMessage,
+            },
+            ...(encodedImages.length ? encodedImages : []),
+          ],
+        },
+      ],
+      ...(aiButton.model ? { customModel: aiButton.model } : {}),
+    });
+
+    const data = res.data;
+    const usage = res.usage;
+
+    await integration.storeInsert(context, req?.user?.id, usage);
+
+    const { rows } = data;
+
+    try {
+      const updatedRows = await baseModel.bulkUpdate(rows, {
+        cookie: {
+          ...req,
+          system: true,
+        },
+      });
+
+      return updatedRows;
+    } catch (e) {
+      console.error(e);
+      throw e;
+    }
+  }
+
+  async fileSearch(
+    context: NcContext,
+    params: {
+      model: Model;
+      column: Column;
+      rowIds: string[];
+      req: NcRequest;
+    },
+  ) {
+    const { model, column, rowIds, req } = params;
+
+    if (!rowIds.length) {
+      return [];
+    }
+
+    if (rowIds.length > 25) {
+      NcError.badRequest('Only 25 rows can be processed at a time!');
+    }
+
+    if ((column.colOptions as ButtonColumn).type !== ButtonActionsType.Ai) {
+      NcError.unprocessableEntity('Only AI buttons are supported');
+    }
+
+    const aiButton = await column.getColOptions<ButtonColumn>(context);
+
+    if (!aiButton) {
+      NcError.unprocessableEntity('AI Button is not configured properly');
+    }
+
+    if (aiButton.formula.includes(`${column.id}`)) {
+      NcError.unprocessableEntity('Circular reference not allowed');
+    }
+
+    if (rowIds.length > 1) {
+      NcError.unprocessableEntity(
+        'Only single row is supported for file search',
+      );
+    }
+
+    const referencedColumns: Column[] = [];
+
+    // get all referenced columns from the prompt
+    aiButton.formula.replace(/{(.*?)}/g, (match, p1) => {
+      const col = model.columnsById[p1];
+
+      if (!col) {
+        NcError.badRequest(`Field '${p1}' not found`);
+      }
+
+      referencedColumns.push(col);
+
+      return p1;
+    });
+
+    // check if any of the referenced columns are attachments
+    const attachmentColumns = referencedColumns.filter(
+      (col) => col.uidt === UITypes.Attachment,
+    );
+
+    if (!attachmentColumns.length) {
+      NcError.unprocessableEntity('No attachment columns found in the formula');
+    }
 
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -240,7 +578,17 @@ export class AiDataService {
         }, {});
 
         return {
-          [column.title]: promptTemplate.replace(/{(.*?)}/g, (match, p1) => {
+          [column.title]: aiButton.formula.replace(/{(.*?)}/g, (match, p1) => {
+            const col = model.columnsById[p1];
+
+            if (!col) {
+              NcError.badRequest(`Field '${p1}' not found`);
+            }
+
+            if (col.uidt === UITypes.Attachment) {
+              return '@file';
+            }
+
             return row[p1];
           }),
           ...pkObj,
@@ -263,104 +611,67 @@ export class AiDataService {
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
-    let data, usage;
+    const attachments = attachmentColumns
+      .map((col) => records?.[0]?.[col.title])
+      .flat()
+      .filter((at) => at);
 
-    if (referencedColumns.some((col) => col.uidt === UITypes.Attachment)) {
-      if (records.length > 1) {
+    for (const attachment of attachments) {
+      const mimeType = attachment.mimetype;
+
+      if (!FILE_SEARCH_SUPPORTED_MIMETYPES.includes(mimeType)) {
         NcError.unprocessableEntity(
-          'Cannot use attachments with multiple rows',
+          `File search is not supported for ${mimeType}`,
         );
       }
-
-      const atCols = referencedColumns.filter(
-        (col) => col.uidt === UITypes.Attachment,
-      );
-
-      const attachments = atCols
-        .map((col) => records?.[0]?.[col.title])
-        .flat()
-        .filter((at) => at);
-
-      const res = await (wrapper as any).fileSearch({
-        schema: z.object({
-          ...Object.fromEntries(
-            outputColumns.map((col) => {
-              if (
-                col.uidt === UITypes.SingleSelect ||
-                col.uidt === UITypes.MultiSelect
-              ) {
-                return [
-                  col.title,
-                  z.enum(col.colOptions.options.map((o) => o.title)).nullable(),
-                ];
-              } else if (col.uidt === UITypes.Checkbox) {
-                return [col.title, z.boolean().nullable()];
-              } else if (col.uidt === UITypes.Number) {
-                return [col.title, z.number().nullable()];
-              }
-              return [col.title, z.any()];
-            }),
-          ),
-        }),
-        messages: [
-          {
-            role: 'user',
-            content: userMessage,
-          },
-        ],
-        extractFields: outputColumns.map((col) => col.title),
-        attachments,
-      });
-
-      // add primary keys to the output
-      res.data = {
-        ...res.data,
-        ...Object.fromEntries(
-          baseModel.model.primaryKeys.map((pk) => [
-            pk.title,
-            records[0][pk.title],
-          ]),
-        ),
-      };
-
-      data = {
-        rows: [res.data],
-      };
-      usage = res.usage;
-    } else {
-      const res = await wrapper.generateObject<{
-        rows: { [key: string]: string }[];
-      }>({
-        schema: z.object({
-          rows: z.array(
-            z.object({
-              ...Object.fromEntries(
-                outputColumns.map((col) => [col.title, z.any()]),
-              ),
-              ...Object.fromEntries(
-                baseModel.model.primaryKeys.map((pk) => [pk.title, z.any()]),
-              ),
-            }),
-          ),
-        }),
-        messages: [
-          {
-            role: 'system',
-            content: generateFromButtonSystemMessage(
-              baseModel.model.primaryKeys.map((pk) => pk.title),
-              outputColumns.map((col) => col.title),
-            ),
-          },
-          {
-            role: 'user',
-            content: userMessage,
-          },
-        ],
-        ...(aiButton.model ? { customModel: aiButton.model } : {}),
-      });
-      data = res.data;
-      usage = res.usage;
     }
+
+    const res = await (wrapper as any).fileSearch({
+      schema: z.object({
+        ...Object.fromEntries(
+          outputColumns.map((col) => {
+            if (
+              col.uidt === UITypes.SingleSelect ||
+              col.uidt === UITypes.MultiSelect
+            ) {
+              return [
+                col.title,
+                z.enum(col.colOptions.options.map((o) => o.title)).nullable(),
+              ];
+            } else if (col.uidt === UITypes.Checkbox) {
+              return [col.title, z.boolean().nullable()];
+            } else if (col.uidt === UITypes.Number) {
+              return [col.title, z.number().nullable()];
+            }
+            return [col.title, z.any()];
+          }),
+        ),
+      }),
+      messages: [
+        {
+          role: 'user',
+          content: userMessage,
+        },
+      ],
+      extractFields: outputColumns.map((col) => col.title),
+      attachments,
+    });
+
+    // add primary keys to the output
+    res.data = {
+      ...res.data,
+      ...Object.fromEntries(
+        baseModel.model.primaryKeys.map((pk) => [
+          pk.title,
+          records[0][pk.title],
+        ]),
+      ),
+    };
+
+    const data = {
+      rows: [res.data],
+    };
+    const usage = res.usage;
 
     await integration.storeInsert(context, req?.user?.id, usage);
 

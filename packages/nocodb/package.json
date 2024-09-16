@@ -182,6 +182,7 @@
     "tedious": "^16.6.1",
     "tinycolor2": "^1.6.0",
     "twilio": "^4.23.0",
+    "unstructured-client": "^0.16.0",
     "uuid": "^9.0.1",
     "validator": "^13.11.0",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",

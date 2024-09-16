@@ -420,7 +420,7 @@ const handleNavigateToIntegrations = () => {
               v-if="!aiMode"
               ref="inputEl"
               v-model:value="table.title"
-              class="nc-input-sm nc-input-shadow"
+              class="nc-input-sm nc-input-shadow !max-w-[calc(100%_-_32px)] z-11"
               hide-details
               data-testid="create-table-title-input"
               :placeholder="$t('msg.info.enterTableName')"
@@ -429,7 +429,7 @@ const handleNavigateToIntegrations = () => {
               v-else
               ref="inputEl"
               v-model:value="table.title"
-              class="nc-input-sm nc-input-shadow"
+              class="nc-input-sm nc-input-shadow max-w-[calc(100%_-_32px)] z-11"
               hide-details
               data-testid="create-table-title-input"
               :placeholder="selectedTables.length ? '' : 'Enter table names or choose from suggestions'"
@@ -456,16 +456,20 @@ const handleNavigateToIntegrations = () => {
               :title="aiMode ? 'Disable AI suggestions' : 'Suggest tables using AI'"
               class="absolute right-0 top-0 h-full"
             >
-              <div
-                class="w-[32px] rounded-r-lg h-full flex items-center justify-center border-1 cursor-pointer"
+              <NcButton
+                size="small"
+                type="secondary"
+                class="z-10 !border-l-0 !rounded-l-none !pl-3.8"
                 :class="{
-                  'bg-nc-bg-purple-light border-purple-100 text-nc-fill-purple-dark': !aiMode,
-                  'bg-purple-700 border-purple-700 text-white': aiMode,
+                  '!bg-nc-bg-purple-light !border-purple-100 !text-nc-fill-purple-dark': !aiMode,
+                  '!bg-purple-700 !border-purple-700 !text-white': aiMode,
                 }"
                 @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
               >
-                <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current" />
-              </div>
+                <div class="w-full flex items-center justify-end">
+                  <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current w-4 h-4" />
+                </div>
+              </NcButton>
             </NcTooltip>
           </a-form-item>
 
@@ -477,7 +481,7 @@ const handleNavigateToIntegrations = () => {
             :tabs="aiTabs"
             @navigate-to-integrations="handleNavigateToIntegrations"
           >
-            <template #tabExtraRight>
+            <template #tabExtraRight v-if="aiIntegrationAvailable">
               <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
                 <template v-if="aiModeStep === AiStep.pick">
                   <NcTooltip title="Re-suggest" placement="top">
@@ -566,7 +570,7 @@ const handleNavigateToIntegrations = () => {
                 </NcButton>
               </template>
             </template>
-            <template #tabContent>
+            <template #tabContent v-if="aiIntegrationAvailable">
               <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
                 <div v-if="aiModeStep === 'init'" class="p-4">
                   <div class="text-nc-content-purple-light text-sm h-7 flex items-center">

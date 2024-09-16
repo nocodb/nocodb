@@ -19,13 +19,28 @@ const props = withDefaults(
 
 const { isModal, filterCategory, filterIntegration } = props
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
 const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 
-const { pageMode, IntegrationsPageMode, requestIntegration, addIntegration, saveIntegrationRequest, integrationsRefreshKey } = useIntegrationStore()
+const router = useRouter()
+const route = router.currentRoute
+
+const categoriesQuery = computed(() => {
+  const availableCategories = Object.values(IntegrationCategoryType)
+
+  const query = ((route.value.query.categories as string) || '')
+    .split(',')
+    .map((c) => c.trim())
+    .filter((c) => availableCategories.includes(c))
+
+  return query
+})
+
+const { pageMode, IntegrationsPageMode, requestIntegration, addIntegration, saveIntegrationRequest, integrationsRefreshKey } =
+  useIntegrationStore()
 
 const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
 
@@ -71,8 +86,14 @@ const integrationsMapByCategory = computed(() => {
   integrationsRefreshKey.value
 
   return integrationCategories
-    .filter(filterCategory)
-    .filter((c) => (activeCategory.value ? c.value === activeCategory.value.value : true))
+    .filter((c) => {
+      const filterByActiveCategory = activeCategory.value ? c.value === activeCategory.value.value : true
+
+      const filterByUrlQuery = categoriesQuery.value.length ? categoriesQuery.value.includes(c.value) : true
+
+      return filterCategory(c) && filterByActiveCategory && filterByUrlQuery
+    })
+
     .reduce(
       (acc, curr) => {
         acc[curr.value] = {

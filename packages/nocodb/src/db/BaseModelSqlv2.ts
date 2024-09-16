@@ -88,6 +88,9 @@ const GROUP_COL = '__nc_group_id';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
+const isPrimitiveType = (val) =>
+  typeof val === 'string' || typeof val === 'number';
+
 export async function populatePk(
   context: NcContext,
   model: Model,
@@ -4830,6 +4833,12 @@ class BaseModelSqlv2 {
   }
 
   comparePks(pk1, pk2) {
+    // If either pk1 or pk2 is a string or number, convert both to strings and compare
+    if (isPrimitiveType(pk1) || isPrimitiveType(pk2)) {
+      return `${pk1}` === `${pk2}`;
+    }
+
+    // If both are objects (composite keys), compare them using deep equality check
     return equal(pk1, pk2);
   }
 

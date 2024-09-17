@@ -94,6 +94,8 @@ const {
   fieldMappings,
   isValidRedirectUrl,
   loadAllviewFilters,
+  allViewFilters,
+  checkFieldVisibility,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
@@ -520,7 +522,9 @@ function setFormData() {
   localColumns.value = col
     .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
-    .map((c) => ({ ...c, required: !!c.required }))
+    .map((c) => ({ ...c, required: !!c.required, visible: true }))
+
+  checkFieldVisibility()
 }
 
 async function updateEmail() {
@@ -700,6 +704,7 @@ onMounted(async () => {
   await Promise.all([loadFormView(), loadReleatedMetas(), loadAllviewFilters()])
 
   setFormData()
+
   isLoadingFormView.value = false
 })
 
@@ -1215,13 +1220,25 @@ useEventListener(
                                 />
                               </NcButton>
                             </div>
-                            <div class="text-sm font-semibold text-gray-800">
-                              <span data-testid="nc-form-input-label">
-                                {{ element.label || element.title }}
-                              </span>
-                              <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
-                                >&nbsp;*</span
-                              >
+                            <div class="flex items-center gap-3">
+                              <div v-if="allViewFilters[element.fk_column_id]?.length" class="relative h-4 w-4 flex">
+                                <Transition name="icon-fade">
+                                  <GeneralIcon
+                                    v-if="element?.visible"
+                                    icon="eye"
+                                    class="w-4 h-4 flex-none text-nc-content-gray-muted"
+                                  />
+                                  <GeneralIcon v-else icon="eyeSlash" class="w-4 h-4 flex-none text-nc-content-gray-muted" />
+                                </Transition>
+                              </div>
+                              <div class="text-sm font-semibold text-gray-800">
+                                <span data-testid="nc-form-input-label">
+                                  {{ element.label || element.title }}
+                                </span>
+                                <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
+                                  >&nbsp;*</span
+                                >
+                              </div>
                             </div>
 
                             <LazyCellRichText
@@ -2009,6 +2026,32 @@ useEventListener(
       }
     }
   }
+}
+
+.icon-fade-enter-active,
+.icon-fade-leave-active {
+  transition: opacity 0.5s ease, transform 0.5s ease; /* Added scaling transition */
+  position: absolute;
+}
+
+.icon-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.5); /* Start smaller and scale up */
+}
+
+.icon-fade-enter-to {
+  opacity: 1;
+  transform: scale(1); /* Scale to full size */
+}
+
+.icon-fade-leave-from {
+  opacity: 1;
+  transform: scale(1); /* Start at full size */
+}
+
+.icon-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.5); /* Scale down and fade out */
 }
 </style>
 

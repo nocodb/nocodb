@@ -10,6 +10,7 @@ export class Filter {
   nestedGroupedFilters: Record<string, FilterType[]>
   meta?: TableType
   formViewColumns: FormViewColumn[]
+  formViewColumnsMapByFkColumnId: Record<string, FormViewColumn>
   formState: Record<string, any>
   value: any
   activeFieldFilters: FilterType[]
@@ -20,8 +21,8 @@ export class Filter {
     nestedGroupedFilters = {},
     meta = undefined,
     formViewColumns = [],
+    formViewColumnsMapByFkColumnId = {},
     formState = {},
-    value = undefined,
     isMysql = undefined,
   ) {
     this.allViewFilters = data
@@ -29,8 +30,8 @@ export class Filter {
     this.nestedGroupedFilters = nestedGroupedFilters
     this.meta = meta
     this.formViewColumns = formViewColumns
+    this.formViewColumnsMapByFkColumnId = formViewColumnsMapByFkColumnId
     this.formState = formState
-    this.value = value
     this.activeFieldFilters = []
     this.isMysql = isMysql
   }
@@ -97,19 +98,23 @@ export class Filter {
     return nestedGroupedFilters
   }
 
-  validateCondition(filters: FilterType[] = [], column: FormViewColumn): boolean {
+  validateCondition(filters: FilterType[] = [], _parentCol: FormViewColumn): boolean {
     if (!filters.length) {
       return true
     }
 
-    let isValid: boolean = false
+    let isValid
 
     for (const filter of filters) {
       let res
 
       if (filter.is_group) {
-        res = this.validateCondition(filter.children, column)
+        res = this.validateCondition(filter.children, _parentCol)
       } else {
+        if (!filter.fk_column_id || !this.formViewColumnsMapByFkColumnId[filter.fk_column_id]) return false
+
+        const column = this.formViewColumnsMapByFkColumnId[filter.fk_column_id]
+
         const field = column.title
 
         let val = this.formState[field]
@@ -342,12 +347,16 @@ export class Filter {
   }
 
   validateVisibility() {
-    console.log('validate', this.formState, this.formViewColumns)
+    const res: Record<string, boolean> = {}
 
     for (const column of this.formViewColumns) {
       const columnFilters = this.nestedGroupedFilters[column.fk_column_id] ?? []
 
       const isValid = this.validateCondition(columnFilters, column)
+
+      column.visible = !!isValid
     }
+
+    return res
   }
 }

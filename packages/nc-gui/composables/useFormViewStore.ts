@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import type { ColumnType, FormType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, FormType, TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
 
@@ -19,6 +19,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     const { t } = useI18n()
 
     const formResetHook = createEventHook<void>()
+
+    const allViewFilters = ref<Record<string, FilterType[]>>({})
 
     const formState = ref<Record<string, any>>({})
 
@@ -168,6 +170,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       return required || (columnObj && columnObj.rqd && !columnObj.cdf)
     }
 
+    function checkFieldVisibility() {}
+
     return {
       onReset: formResetHook.on,
       formState,
@@ -185,6 +189,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       fieldMappings,
       isValidRedirectUrl,
       formViewData,
+      allViewFilters,
+      checkFieldVisibility,
     }
   },
   'form-view-store',

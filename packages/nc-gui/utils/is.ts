@@ -7,15 +7,27 @@
  * @example
  * ```typescript
  * const value = { key: 'value' };
- * console.log(isObject(value)); // true
+ * console.log(ncIsObject(value)); // true
  * ```
  */
-export function isObject(value: any): boolean {
-  return value !== null && typeof value === 'object' && !isArray(value)
+export function ncIsObject(value: any): boolean {
+  return value !== null && typeof value === 'object' && !ncIsArray(value)
 }
 
-export function isEmptyObject(value: any): boolean {
-  return isObject(value) && Object.keys(value).length === 0
+/**
+ * Checks if a value is an empty object.
+ *
+ * @param value - The value to check.
+ * @returns {boolean} - True if the value is an empty object, false otherwise.
+ *
+ * @example
+ * ```typescript
+ * const value = {};
+ * console.log(ncIsEmptyObject(value)); // true
+ * ```
+ */
+export function ncIsEmptyObject(value: any): boolean {
+  return ncIsObject(value) && Object.keys(value).length === 0
 }
 
 /**
@@ -27,10 +39,10 @@ export function isEmptyObject(value: any): boolean {
  * @example
  * ```typescript
  * const value = [1, 2, 3];
- * console.log(isArray(value)); // true
+ * console.log(ncIsArray(value)); // true
  * ```
  */
-export function isArray(value: any): boolean {
+export function ncIsArray(value: any): boolean {
   return Array.isArray(value)
 }
 
@@ -43,14 +55,14 @@ export function isArray(value: any): boolean {
  * @example
  * ```typescript
  * const value = [];
- * console.log(isEmptyArray(value)); // true
+ * console.log(ncIsEmptyArray(value)); // true
  *
  * const nonEmptyArray = [1, 2, 3];
- * console.log(isEmptyArray(nonEmptyArray)); // false
+ * console.log(ncIsEmptyArray(nonEmptyArray)); // false
  * ```
  */
-export function isEmptyArray(value: any): boolean {
-  return isArray(value) && value.length === 0
+export function ncIsEmptyArray(value: any): boolean {
+  return ncIsArray(value) && value.length === 0
 }
 
 /**
@@ -62,10 +74,10 @@ export function isEmptyArray(value: any): boolean {
  * @example
  * ```typescript
  * const value = 'Hello, world!';
- * console.log(isString(value)); // true
+ * console.log(ncIsString(value)); // true
  * ```
  */
-export function isString(value: any): boolean {
+export function ncIsString(value: any): boolean {
   return typeof value === 'string'
 }
 
@@ -78,10 +90,10 @@ export function isString(value: any): boolean {
  * @example
  * ```typescript
  * const value = 42;
- * console.log(isNumber(value)); // true
+ * console.log(ncIsNumber(value)); // true
  * ```
  */
-export function isNumber(value: any): boolean {
+export function ncIsNumber(value: any): boolean {
   return typeof value === 'number' && !isNaN(value)
 }
 
@@ -94,10 +106,10 @@ export function isNumber(value: any): boolean {
  * @example
  * ```typescript
  * const value = true;
- * console.log(isBoolean(value)); // true
+ * console.log(ncIsBoolean(value)); // true
  * ```
  */
-export function isBoolean(value: any): boolean {
+export function ncIsBoolean(value: any): boolean {
   return typeof value === 'boolean'
 }
 
@@ -110,10 +122,10 @@ export function isBoolean(value: any): boolean {
  * @example
  * ```typescript
  * const value = undefined;
- * console.log(isUndefined(value)); // true
+ * console.log(ncIsUndefined(value)); // true
  * ```
  */
-export function isUndefined(value: any): boolean {
+export function ncIsUndefined(value: any): boolean {
   return typeof value === 'undefined'
 }
 
@@ -126,10 +138,10 @@ export function isUndefined(value: any): boolean {
  * @example
  * ```typescript
  * const value = null;
- * console.log(isNull(value)); // true
+ * console.log(ncIsNull(value)); // true
  * ```
  */
-export function isNull(value: any): boolean {
+export function ncIsNull(value: any): boolean {
   return value === null
 }
 
@@ -142,10 +154,10 @@ export function isNull(value: any): boolean {
  * @example
  * ```typescript
  * const value = () => {};
- * console.log(isFunction(value)); // true
+ * console.log(ncIsFunction(value)); // true
  * ```
  */
-export function isFunction(value: any): boolean {
+export function ncIsFunction(value: any): boolean {
   return typeof value === 'function'
 }
 
@@ -158,9 +170,9 @@ export function isFunction(value: any): boolean {
  * @example
  * ```typescript
  * const value = new Promise((resolve) => resolve(true));
- * console.log(isPromise(value)); // true
+ * console.log(ncIsPromise(value)); // true
  * ```
  */
-export function isPromise(value: any): boolean {
+export function ncIsPromise(value: any): boolean {
   return value instanceof Promise
 }

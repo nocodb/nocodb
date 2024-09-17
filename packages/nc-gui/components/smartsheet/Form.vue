@@ -420,6 +420,8 @@ async function onMove(event: any, isVisibleFormFields = false) {
     return 0
   })
 
+  checkFieldVisibility()
+
   $e('a:form-view:reorder')
 }
 

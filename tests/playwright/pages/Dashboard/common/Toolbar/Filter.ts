@@ -62,7 +62,7 @@ export class ToolbarFilterPage extends BasePage {
     filterGroupIndex?: number;
     filterLogicalOperator?: string;
   }) {
-    await this.get().getByTestId('add-filter-group-menu').last().click();
+    await this.get().getByTestId('add-filter-group').last().click();
     const filterDropdown = this.get().locator('.menu-filter-dropdown').nth(filterGroupIndex);
     await filterDropdown.waitFor({ state: 'visible' });
     const ADD_BUTTON_SELECTOR = `span:has-text("add")`;

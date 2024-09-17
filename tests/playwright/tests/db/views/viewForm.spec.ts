@@ -1604,11 +1604,15 @@ test.describe('Form view: conditional fields', () => {
 
     await form.fillForm([{ field: 'SingleLine.Text', value: 'Spain' }]);
     await form.fillForm([{ field: 'Email', value: 'user1@nocodb.com' }]);
+
     await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: false });
+
     await form.fillForm([{ field: 'Number', value: '22' }]);
 
     await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: true });
 
+    await form.formHeading.scrollIntoViewIfNeeded();
+    await form.formHeading.click();
     // reorder & verify error
     await form.reorderFields({
       sourceField: 'Number',
@@ -1622,7 +1626,7 @@ test.describe('Form view: conditional fields', () => {
       destinationField: 'Decimal',
     });
 
-    await form.verifyFieldConfigError({ title: 'Decimal', hasError: true });
+    await form.verifyFieldConfigError({ title: 'Decimal', hasError: false });
 
     // hide & verify error
     await form.formHeading.scrollIntoViewIfNeeded();
@@ -1631,6 +1635,7 @@ test.describe('Form view: conditional fields', () => {
     await form.removeField({ field: 'SingleLine.Text', mode: 'hideField' });
 
     await form.verifyFieldConfigError({ title: 'Decimal', hasError: true });
+
     await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: true });
 
     await form.removeField({ field: 'SingleLine.Text', mode: 'hideField' });

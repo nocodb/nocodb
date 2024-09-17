@@ -318,7 +318,7 @@ async function submitForm() {
     }
 
     // handle filter out conditionally hidden field data
-    if (!col.visible || !col.show && col.title) {
+    if ((!col.visible || !col.show) && col.title) {
       delete formState.value[col.title]
       delete state.value[col.title]
     }

@@ -11,11 +11,11 @@
  * ```
  */
 export function isObject(value: any): boolean {
-  return value !== null && typeof value === 'object' && !isArray(value);
+  return value !== null && typeof value === 'object' && !isArray(value)
 }
 
 export function isEmptyObject(value: any): boolean {
-  return isObject(value) && Object.keys(value).length === 0;
+  return isObject(value) && Object.keys(value).length === 0
 }
 
 /**
@@ -31,7 +31,7 @@ export function isEmptyObject(value: any): boolean {
  * ```
  */
 export function isArray(value: any): boolean {
-  return Array.isArray(value);
+  return Array.isArray(value)
 }
 
 /**
@@ -50,7 +50,7 @@ export function isArray(value: any): boolean {
  * ```
  */
 export function isEmptyArray(value: any): boolean {
-  return isArray(value) && value.length === 0;
+  return isArray(value) && value.length === 0
 }
 
 /**
@@ -66,7 +66,7 @@ export function isEmptyArray(value: any): boolean {
  * ```
  */
 export function isString(value: any): boolean {
-  return typeof value === 'string';
+  return typeof value === 'string'
 }
 
 /**
@@ -82,7 +82,7 @@ export function isString(value: any): boolean {
  * ```
  */
 export function isNumber(value: any): boolean {
-  return typeof value === 'number' && !isNaN(value);
+  return typeof value === 'number' && !isNaN(value)
 }
 
 /**
@@ -98,7 +98,7 @@ export function isNumber(value: any): boolean {
  * ```
  */
 export function isBoolean(value: any): boolean {
-  return typeof value === 'boolean';
+  return typeof value === 'boolean'
 }
 
 /**
@@ -114,7 +114,7 @@ export function isBoolean(value: any): boolean {
  * ```
  */
 export function isUndefined(value: any): boolean {
-  return typeof value === 'undefined';
+  return typeof value === 'undefined'
 }
 
 /**
@@ -130,7 +130,7 @@ export function isUndefined(value: any): boolean {
  * ```
  */
 export function isNull(value: any): boolean {
-  return value === null;
+  return value === null
 }
 
 /**
@@ -146,7 +146,7 @@ export function isNull(value: any): boolean {
  * ```
  */
 export function isFunction(value: any): boolean {
-  return typeof value === 'function';
+  return typeof value === 'function'
 }
 
 /**
@@ -162,5 +162,5 @@ export function isFunction(value: any): boolean {
  * ```
  */
 export function isPromise(value: any): boolean {
-  return value instanceof Promise;
+  return value instanceof Promise
 }

@@ -15,6 +15,7 @@ import {
   extractCondition,
   extractFilterFromXwhere,
   extractSortsObject,
+  getAs,
   getColumnName,
   getCompositePkValue,
   getListArgs,
@@ -2205,4 +2206,5 @@ export {
   getListArgs,
   haveFormulaColumn,
   getColumnName,
+  getAs,
 };

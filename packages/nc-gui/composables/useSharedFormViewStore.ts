@@ -100,7 +100,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       nestedGroupedFilters: allViewFilters.value,
       formViewColumns: localColumns.value,
       formViewColumnsMapByFkColumnId: localColumnsMapByFkColumnId.value,
-      formState: formState.value,
+      formState: { ...(formState.value || {}), ...(additionalState.value || {}) },
       isSharedForm: true,
       isMysql: (_sourceId?: string) => {
         return ['mysql', ClientType.MYSQL].includes(sharedView.value?.client || ClientType.MYSQL)
@@ -311,11 +311,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { validate, validateInfos, clearValidate } = useForm(validationFieldState, validators)
 
-  const handleAddMissingRequiredFieldDefaultState = () => {
-    for (const col of formColumns.value) {
+  const handleAddMissingRequiredFieldDefaultState = async () => {
+    for (const col of localColumns.value) {
       if (
         col.title &&
         col.show &&
+        col.visible &&
         isRequired(col) &&
         formState.value[col.title] === undefined &&
         additionalState.value[col.title] === undefined
@@ -329,11 +330,17 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           formState.value[col.title] = null
         }
       }
+
+      // handle filter out conditionally hidden field data
+      if (!col.visible && col.title) {
+        delete formState.value[col.title]
+        delete additionalState.value[col.title]
+      }
     }
   }
 
   const validateAllFields = async () => {
-    handleAddMissingRequiredFieldDefaultState()
+    await handleAddMissingRequiredFieldDefaultState()
 
     try {
       // filter `undefined` keys which is hidden prefilled fields

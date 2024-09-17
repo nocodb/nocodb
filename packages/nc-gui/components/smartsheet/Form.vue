@@ -312,9 +312,15 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
 async function submitForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
-  for (const col of visibleColumns.value) {
-    if (isRequired(col, col.required) && formState.value[col.title] === undefined) {
+  for (const col of localColumns.value) {
+    if (col.show && col.title && isRequired(col, col.required) && formState.value[col.title] === undefined) {
       formState.value[col.title] = null
+    }
+
+    // handle filter out conditionally hidden field data
+    if (!col.visible || !col.show && col.title) {
+      delete formState.value[col.title]
+      delete state.value[col.title]
     }
   }
 

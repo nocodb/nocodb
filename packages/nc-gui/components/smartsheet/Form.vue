@@ -762,8 +762,8 @@ watch(activeField, (newValue, oldValue) => {
   }
 })
 
-watch([focusLabel, activeField], () => {
-  if (activeField && focusLabel.value) {
+watch(focusLabel, () => {
+  if (activeField.value && focusLabel.value) {
     nextTick(() => {
       focusLabel.value?.focus()
     })

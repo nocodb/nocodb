@@ -959,6 +959,10 @@ export default class Column<T = any> implements ColumnType {
         await Filter.delete(context, filter.id, ncMeta);
       }
     }
+    {
+      await Filter.deleteAllByParentColumn(context, id, ncMeta);
+    }
+
     // Set Gallery & Kanban view `fk_cover_image_col_id` value to null
     await Column.deleteCoverImageColumnId(context, id, ncMeta);
 

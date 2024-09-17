@@ -25,7 +25,7 @@ export default class Filter extends FilterCE implements FilterType {
 
   public static async insert(
     context: NcContext,
-    filter: Partial<FilterType> & { order?: number },
+    filter: Partial<FilterType>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(filter, [
@@ -33,6 +33,7 @@ export default class Filter extends FilterCE implements FilterType {
       'fk_view_id',
       'fk_hook_id',
       'fk_widget_id',
+      'fk_parent_column_id',
       'fk_column_id',
       'fk_link_col_id',
       'fk_value_col_id',
@@ -54,6 +55,8 @@ export default class Filter extends FilterCE implements FilterType {
       referencedModelColName = 'fk_widget_id';
     } else if (filter.fk_link_col_id) {
       referencedModelColName = 'fk_link_col_id';
+    } else if (filter.fk_parent_column_id) {
+      referencedModelColName = 'fk_parent_column_id';
     }
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
@@ -62,7 +65,7 @@ export default class Filter extends FilterCE implements FilterType {
 
     if (!filter.source_id) {
       let model: { base_id?: string; source_id?: string };
-      if (filter.fk_view_id) {
+      if (filter.fk_view_id && !filter.fk_parent_column_id) {
         model = await View.get(context, filter.fk_view_id, ncMeta);
       } else if (filter.fk_hook_id) {
         model = await Hook.get(context, filter.fk_hook_id, ncMeta);
@@ -70,6 +73,12 @@ export default class Filter extends FilterCE implements FilterType {
         model = await Column.get(
           context,
           { colId: filter.fk_link_col_id },
+          ncMeta,
+        );
+      } else if (filter.fk_parent_column_id) {
+        model = await Column.get(
+          context,
+          { colId: filter.fk_parent_column_id },
           ncMeta,
         );
       } else if (filter.fk_column_id) {
@@ -123,11 +132,12 @@ export default class Filter extends FilterCE implements FilterType {
         (filter.fk_view_id ||
           filter.fk_hook_id ||
           filter.fk_link_col_id ||
-          filter.fk_widget_id)
+          filter.fk_widget_id ||
+          filter.fk_parent_column_id)
       )
     ) {
       throw new Error(
-        `Mandatory fields missing in FITLER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_link_col_id(${filter.fk_link_col_id}), fk_hook_id(${filter.fk_hook_id}, fk_widget_id(${filter.fk_widget_id})`,
+        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_link_col_id(${filter.fk_link_col_id}), fk_hook_id(${filter.fk_hook_id}, fk_widget_id(${filter.fk_widget_id}), fk_parent_column_id(${filter.fk_parent_column_id})`,
       );
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;
@@ -159,6 +169,15 @@ export default class Filter extends FilterCE implements FilterType {
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
               [filter.fk_hook_id],
+              key,
+            ),
+          );
+        }
+        if (filter.fk_parent_column_id) {
+          p.push(
+            NocoCache.appendToList(
+              CacheScope.FILTER_EXP,
+              [filter.fk_parent_column_id],
               key,
             ),
           );
@@ -205,6 +224,15 @@ export default class Filter extends FilterCE implements FilterType {
               NocoCache.appendToList(
                 CacheScope.FILTER_EXP,
                 [filter.fk_link_col_id, filter.fk_parent_id],
+                key,
+              ),
+            );
+          }
+          if (filter.fk_parent_column_id) {
+            p.push(
+              NocoCache.appendToList(
+                CacheScope.FILTER_EXP,
+                [filter.fk_parent_column_id, filter.fk_parent_id],
                 key,
               ),
             );

@@ -620,7 +620,9 @@
     "fromScratch": "From scratch",
     "fromFileAndExternalSources": "From files & external sources",
     "directlyInRealTime": "Directly in real time",
-    "categories": "Categories"
+    "categories": "Categories",
+    "fieldInaccessible": "Field inaccessible",
+    "noConditionsAdded": "No conditions added"
   },
   "labels": {
     "modifiedOn": "Modified on",
@@ -985,7 +987,7 @@
     "appearanceSettings": "Appearance settings",
     "backgroundColor": "Background Color",
     "hideNocodbBranding": "Hide NocoDB Branding",
-    "showOnConditions": "Show on condtions",
+    "showOnConditions": "Show on conditions",
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
     "limitOptions": "Limit options",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
@@ -1256,7 +1258,9 @@
     },
     "getPreFilledLink": "Get Pre-filled Link",
     "group": "Group",
-    "goToDocs": "Go to Docs"
+    "goToDocs": "Go to Docs",
+    "addCondition": "Add condition",
+    "addConditionGroup": "Add condition group"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for the data source or the data type",

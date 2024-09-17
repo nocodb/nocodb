@@ -417,6 +417,7 @@ export default class View implements ViewType {
           {
             ...extractProps(filter, [
               'id',
+              'fk_parent_column_id',
               'fk_column_id',
               'comparison_op',
               'comparison_sub_op',
@@ -1761,7 +1762,10 @@ export default class View implements ViewType {
 
     if (viewColumns) {
       for (let i = 0; i < viewColumns.length; i++) {
-        const column = viewColumns[i];
+        const column =
+          view.type === ViewTypes.FORM
+            ? prepareForDb(viewColumns[i])
+            : viewColumns[i];
 
         insertObjs.push({
           ...extractProps(column, [
@@ -2136,6 +2140,7 @@ export default class View implements ViewType {
 
           filterInsertObjs.push({
             ...extractProps(filter, [
+              'fk_parent_column_id',
               'fk_column_id',
               'comparison_op',
               'comparison_sub_op',

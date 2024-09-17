@@ -74,10 +74,15 @@ const handleRemoveValidator = (index: number) => {
 
 const removeEmptyValidators = () => {
   if (activeField.value && activeField.value?.meta?.validators) {
-    activeField.value.meta.validators = activeField.value.meta.validators.filter((v) => {
+    const oldLength = (activeField.value?.meta?.validators || []).length
+
+    activeField.value.meta.validators = (activeField.value.meta.validators || []).filter((v) => {
       return v.type
     })
-    updateColMeta(activeField.value)
+
+    if (oldLength !== activeField.value.meta.validators.length) {
+      updateColMeta(activeField.value)
+    }
   }
 }
 
@@ -96,45 +101,34 @@ onMounted(() => {
   <div v-if="isCustomValidationSupported" class="p-4 border-b border-gray-200">
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
-        <div class="text-sm font-bold text-gray-800">Custom validations</div>
+        <div class="text-gray-800 font-medium">Custom validations</div>
 
         <div class="flex flex-col">
-          <div
-            class="nc-custom-validation-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none"
-            :class="{
-              '!border-brand-500': isOpen,
-              'border-gray-200': !isOpen,
-              'bg-[#F0F3FF]': filteredValidators.length,
-            }"
-            @click="isOpen = !isOpen"
-          >
+          <NcDropdown v-model:visible="isOpen" placement="bottomLeft" overlay-class-name="nc-custom-validator-dropdown">
             <div
-              class="nc-custom-validation-count flex-1"
+              class="nc-custom-validation-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm"
               :class="{
-                'text-brand-500 ': filteredValidators.length,
+                '!border-brand-500 shadow-selected': isOpen,
+                'border-gray-200': !isOpen,
+                'bg-[#F0F3FF]': filteredValidators.length,
               }"
+              @click="isOpen = !isOpen"
             >
-              {{
-                filteredValidators.length
-                  ? `${filteredValidators.length} validation${filteredValidators.length !== 1 ? 's' : ''}`
-                  : 'No validations'
-              }}
-            </div>
+              <div
+                class="nc-custom-validation-count flex-1"
+                :class="{
+                  'text-brand-500 ': filteredValidators.length,
+                }"
+              >
+                {{
+                  filteredValidators.length
+                    ? `${filteredValidators.length} validation${filteredValidators.length !== 1 ? 's' : ''}`
+                    : 'No validations'
+                }}
+              </div>
 
-            <NcButton
-              v-if="hasValidationError"
-              class="nc-custom-validation-error-icon flex items-center justify-between !text-gray-800 !hover:text-gray-500 !min-w-4"
-              type="link"
-              size="xsmall"
-            >
-              <GeneralIcon icon="alertTriangle" class="flex-none !text-red-500" />
-            </NcButton>
+              <GeneralIcon v-if="hasValidationError" icon="alertTriangle" class="flex-none !text-red-500" />
 
-            <NcButton
-              class="!border-none flex items-center justify-between !text-gray-600 !hover:text-gray-800 !min-w-4"
-              type="link"
-              size="xsmall"
-            >
               <GeneralIcon
                 icon="settings"
                 class="flex-none w-4 h-4"
@@ -142,10 +136,7 @@ onMounted(() => {
                   'text-brand-500 ': filteredValidators.length,
                 }"
               />
-            </NcButton>
-          </div>
-          <NcDropdown v-model:visible="isOpen" placement="bottomLeft" overlay-class-name="nc-custom-validator-dropdown">
-            <div></div>
+            </div>
             <template #overlay>
               <div class="p-4 nc-custom-validator-dropdown-container">
                 <div class="flex flex-col gap-3">
@@ -201,7 +192,7 @@ onMounted(() => {
           </NcDropdown>
         </div>
       </div>
-      <div class="text-sm">Apply rules and regular expressions on inputs.</div>
+      <div class="text-sm text-gray-500">Apply rules and regular expressions on inputs.</div>
     </div>
   </div>
 </template>

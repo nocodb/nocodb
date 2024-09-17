@@ -74,15 +74,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
           </div>
         </div>
 
-        <!-- Todo: Show on conditions,... -->
-        <!-- eslint-disable vue/no-constant-condition -->
-        <div v-if="false" class="flex items-start justify-between gap-3">
-          <div>
-            <div class="font-medium text-gray-800">{{ $t('labels.showOnConditions') }}</div>
-            <div class="text-gray-500 mt-2">{{ $t('labels.showFieldOnConditionsMet') }}</div>
-          </div>
-          <a-switch v-e="['a:form-view:field:show-on-condition']" size="small" class="nc-form-switch-focus" />
-        </div>
+        <SmartsheetFormFieldSettingsVisibility />
 
         <!-- Limit options -->
         <div v-if="isSelectTypeCol(activeField.uidt)" class="w-full flex items-start justify-between gap-3">
@@ -100,7 +92,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
             </div>
             <div class="text-gray-500 mt-1">{{ $t('labels.limitOptionsSubtext') }}.</div>
             <div v-if="activeField.meta.isLimitOption" class="mt-3">
-              <LazySmartsheetFormLimitOptions
+              <SmartsheetFormLimitOptions
                 v-model:model-value="activeField.meta.limitOptions"
                 :form-field-state="formState[activeField.title] || ''"
                 :column="activeField"
@@ -109,7 +101,7 @@ const columnSupportsScanning = (elementType: UITypes) =>
                 @update:form-field-state="(value)=>{
                                   formState[activeField!.title] = value
                                 }"
-              ></LazySmartsheetFormLimitOptions>
+              ></SmartsheetFormLimitOptions>
             </div>
           </div>
 
@@ -123,22 +115,22 @@ const columnSupportsScanning = (elementType: UITypes) =>
         </div>
 
         <!-- Char/range Limit -->
-        <LazySmartsheetFormDateTimeValidaiton
+        <SmartsheetFormDateTimeValidaiton
           v-if="[UITypes.Time, UITypes.Date, UITypes.DateTime, UITypes.Year].includes(activeField.uidt)"
         />
-        <LazySmartsheetFormPhoneEmailUrlValidation
+        <SmartsheetFormPhoneEmailUrlValidation
           v-else-if="[UITypes.Email, UITypes.PhoneNumber, UITypes.URL].includes(activeField.uidt)"
         />
-        <LazySmartsheetFormAttachmentValidation v-else-if="activeField.uidt === UITypes.Attachment" />
-        <LazySmartsheetFormNumericTypeValidation v-else-if="isNumericFieldType(activeField, abstractType)" />
-        <LazySmartsheetFormMultiselectTypeValidation
+        <SmartsheetFormAttachmentValidation v-else-if="activeField.uidt === UITypes.Attachment" />
+        <SmartsheetFormNumericTypeValidation v-else-if="isNumericFieldType(activeField, abstractType)" />
+        <SmartsheetFormMultiselectTypeValidation
           v-else-if="isMultiSelect(activeField) || (isUser(activeField) && activeField.meta?.is_multi) || isLink(activeField)"
         />
       </div>
     </div>
 
     <!-- Custom Validations -->
-    <LazySmartsheetFormCustomValidation></LazySmartsheetFormCustomValidation>
+    <SmartsheetFormCustomValidation></SmartsheetFormCustomValidation>
 
     <!-- Field Appearance Settings -->
     <div

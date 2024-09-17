@@ -6626,6 +6626,13 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeAllFilters",
+            "in": "query"
           }
         ]
       },
@@ -20121,6 +20128,7 @@
             "comparison_op": "eq",
             "comparison_sub_op": null,
             "created_at": "2023-03-02 18:18:05",
+            "fk_parent_column_id": "cd_d7ah9n2qfupgys",
             "fk_column_id": "cl_d7ah9n2qfupgys",
             "fk_hook_id": null,
             "fk_parent_id": null,
@@ -20220,6 +20228,10 @@
             ],
             "description": "Comparison Sub-Operator"
           },
+          "fk_parent_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to parent column"
+          },
           "fk_column_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
@@ -20282,6 +20294,11 @@
           },
           "value": {
             "description": "The filter value. Can be NULL for some operators."
+          },
+          "order": {
+            "type": "number",
+            "description": "The order of the filter",
+            "example": 1
           }
         },
         "readOnly": true,

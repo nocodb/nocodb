@@ -245,16 +245,6 @@ const onFilterLabelClick = () => {
 
   limitRecToCond.value = !limitRecToCond.value
 }
-
-watch(
-  () => vModel.value?.filters,
-  () => {
-    console.log('vModel.value?.filters', JSON.stringify(vModel.value?.filters))
-  },
-  {
-    deep: true,
-  },
-)
 </script>
 
 <template>

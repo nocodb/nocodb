@@ -173,7 +173,7 @@ export default class Filter implements FilterType {
   ) {
     if (!(id && (filter.fk_view_id || filter.fk_hook_id))) {
       throw new Error(
-        `Mandatory fields missing in FITLER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_hook_id(${filter.fk_hook_id})`,
+        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_hook_id(${filter.fk_hook_id})`,
       );
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;

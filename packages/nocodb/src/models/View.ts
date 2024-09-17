@@ -1764,6 +1764,16 @@ export default class View implements ViewType {
       for (let i = 0; i < viewColumns.length; i++) {
         const column = viewColumns[i];
 
+        if (
+          view.type === ViewTypes.FORM &&
+          (column as FormViewColumn).meta &&
+          typeof (column as FormViewColumn).meta === 'object'
+        ) {
+          (column as FormViewColumn).meta = JSON.stringify(
+            (column as FormViewColumn).meta,
+          );
+        }
+
         insertObjs.push({
           ...extractProps(column, [
             'fk_view_id',

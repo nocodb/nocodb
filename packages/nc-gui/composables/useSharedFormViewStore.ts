@@ -251,19 +251,19 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         {
           validator: (_rule: RuleObject, value: any) => {
             return new Promise((resolve, reject) => {
-              if (isRequired(column)) {
+              if (isRequired(column) && column.show) {
                 if (typeof value === 'string') {
                   value = value.trim()
+                }
+
+                if (column.uidt === UITypes.Rating && (!value || Number(value) < 1)) {
+                  return reject(t('msg.error.fieldRequired'))
                 }
 
                 if (
                   (column.uidt === UITypes.Checkbox && !value) ||
                   (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
                 ) {
-                  return reject(t('msg.error.fieldRequired'))
-                }
-
-                if (column.uidt === UITypes.Rating && (!value || Number(value) < 1)) {
                   return reject(t('msg.error.fieldRequired'))
                 }
               }
@@ -315,12 +315,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     for (const col of formColumns.value) {
       if (
         col.title &&
+        col.show &&
         isRequired(col) &&
         formState.value[col.title] === undefined &&
         additionalState.value[col.title] === undefined
       ) {
         if (isVirtualCol(col)) {
-          additionalState.value[col.title] = null
+          additionalState.value = {
+            ...(additionalState.value || {}),
+            [col.title]: null,
+          }
         } else {
           formState.value[col.title] = null
         }

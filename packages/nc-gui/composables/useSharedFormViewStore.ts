@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import type {
   BoolType,
   ColumnType,
+  FilterType,
   FormColumnType,
   FormType,
   LinkToAnotherRecordType,
@@ -67,6 +68,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const preFilledDefaultValueformState = ref<Record<string, any>>({})
 
+  const allViewFilters = ref<Record<string, FilterType[]>>({})
+
   const isValidRedirectUrl = computed(
     () => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim(),
   )
@@ -80,14 +83,44 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }),
   )
 
+  const localColumns = computed<(ColumnType & Record<string, any>)[]>(() => {
+    return (columns.value || [])?.filter((c) => supportedFields(c))
+  })
+
+  const localColumnsMapByFkColumnId = computed(() => {
+    return localColumns.value.reduce((acc, c) => {
+      acc[c.fk_column_id] = c
+
+      return acc
+    }, {} as Record<string, ColumnType & Record<string, any>>)
+  })
+
+  const fieldVisibilityValidator = computed(() => {
+    return new FormFilters({
+      nestedGroupedFilters: allViewFilters.value,
+      formViewColumns: localColumns.value,
+      formViewColumnsMapByFkColumnId: localColumnsMapByFkColumnId.value,
+      formState: { ...(formState.value || {}), ...(additionalState.value || {}) },
+      isSharedForm: true,
+      isMysql: (_sourceId?: string) => {
+        return ['mysql', ClientType.MYSQL].includes(sharedView.value?.client || ClientType.MYSQL)
+      },
+      getMeta,
+    })
+  })
+
   const formColumns = computed(
     () =>
-      columns.value
-        ?.filter((c) => c.show)
-        .filter(
-          (col) => !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
-        ) || [],
+      columns.value?.filter((col) => {
+        const isVisible = col.show
+
+        return isVisible && supportedFields(col)
+      }) || [],
   )
+
+  function supportedFields(col: ColumnType) {
+    return !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))
+  }
 
   const loadSharedView = async () => {
     passwordError.value = null
@@ -105,6 +138,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       sharedFormView.value = viewMeta.view
       meta.value = viewMeta.model
 
+      loadAllviewFilters(Array.isArray(viewMeta?.filter?.children) ? viewMeta?.filter?.children : [])
+
       const fieldById = (viewMeta.columns || []).reduce(
         (o: Record<string, any>, f: Record<string, any>) => ({
           ...o,
@@ -114,8 +149,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       )
 
       columns.value = (viewMeta.model?.columns || [])
-        .filter((c) => fieldById[c.id])
-        .map((c) => {
+        .filter((c: ColumnType) => fieldById[c.id])
+        .map((c: ColumnType) => {
           if (
             !isSystemColumn(c) &&
             !isVirtualCol(c) &&
@@ -145,10 +180,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
           return {
             ...c,
+            order: fieldById[c.id].order || c.order,
+            visible: true,
             meta: { ...parseProp(fieldById[c.id].meta), ...parseProp(c.meta) },
             description: fieldById[c.id].description,
           }
         })
+        .sort((a: ColumnType, b: ColumnType) => (a.order ?? Infinity) - (b.order ?? Infinity))
 
       const _sharedViewMeta = (viewMeta as any).meta
       sharedViewMeta.value = isString(_sharedViewMeta) ? JSON.parse(_sharedViewMeta) : _sharedViewMeta
@@ -175,6 +213,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       }
 
       await handlePreFillForm()
+
+      checkFieldVisibility()
     } catch (e: any) {
       const error = await extractSdkResponseErrorMsgv2(e)
 
@@ -212,9 +252,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         {
           validator: (_rule: RuleObject, value: any) => {
             return new Promise((resolve, reject) => {
-              if (isRequired(column)) {
+              if (isRequired(column) && column.show) {
                 if (typeof value === 'string') {
                   value = value.trim()
+                }
+
+                if (column.uidt === UITypes.Rating && (!value || Number(value) < 1)) {
+                  return reject(t('msg.error.fieldRequired'))
                 }
 
                 if (
@@ -223,12 +267,16 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
                 ) {
                   return reject(t('msg.error.fieldRequired'))
                 }
-
-                if (column.uidt === UITypes.Rating && (!value || Number(value) < 1)) {
-                  return reject(t('msg.error.fieldRequired'))
-                }
               }
 
+              return resolve()
+            })
+          },
+        },
+        {
+          validator: (_rule: RuleObject) => {
+            return new Promise((resolve) => {
+              checkFieldVisibility()
               return resolve()
             })
           },
@@ -264,25 +312,36 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { validate, validateInfos, clearValidate } = useForm(validationFieldState, validators)
 
-  const handleAddMissingRequiredFieldDefaultState = () => {
-    for (const col of formColumns.value) {
+  const handleAddMissingRequiredFieldDefaultState = async () => {
+    for (const col of localColumns.value) {
       if (
         col.title &&
+        col.show &&
+        col.visible &&
         isRequired(col) &&
         formState.value[col.title] === undefined &&
         additionalState.value[col.title] === undefined
       ) {
         if (isVirtualCol(col)) {
-          additionalState.value[col.title] = null
+          additionalState.value = {
+            ...(additionalState.value || {}),
+            [col.title]: null,
+          }
         } else {
           formState.value[col.title] = null
         }
+      }
+
+      // handle filter out conditionally hidden field data
+      if (!col.visible && col.title) {
+        delete formState.value[col.title]
+        delete additionalState.value[col.title]
       }
     }
   }
 
   const validateAllFields = async () => {
-    handleAddMissingRequiredFieldDefaultState()
+    await handleAddMissingRequiredFieldDefaultState()
 
     try {
       // filter `undefined` keys which is hidden prefilled fields
@@ -362,6 +421,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     }
 
     clearValidate()
+    checkFieldVisibility()
   }
 
   async function handlePreFillForm() {
@@ -403,6 +463,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
               switch (sharedViewMeta.value.preFilledMode) {
                 case PreFilledMode.Hidden: {
                   c.show = false
+                  c.meta = { ...parseProp(c.meta), preFilledHiddenField: true }
                   break
                 }
                 case PreFilledMode.Locked: {
@@ -636,7 +697,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         clearInterval(intvl)
       }
       clearForm()
-      clearValidate()
     }
   })
 
@@ -659,6 +719,20 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       return true
     }
     return false
+  }
+
+  function loadAllviewFilters(formViewFilters: FilterType[]) {
+    if (!formViewFilters.length) return
+
+    const formFilter = new FormFilters({ data: formViewFilters })
+
+    const allFilters = formFilter.getNestedGroupedFilters()
+
+    allViewFilters.value = { ...allFilters }
+  }
+
+  async function checkFieldVisibility() {
+    await fieldVisibilityValidator.value.validateVisibility()
   }
 
   watch(password, (next, prev) => {
@@ -720,6 +794,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     handleAddMissingRequiredFieldDefaultState,
     fieldMappings,
     isValidRedirectUrl,
+    loadAllviewFilters,
+    checkFieldVisibility,
   }
 }, 'shared-form-view-store')
 

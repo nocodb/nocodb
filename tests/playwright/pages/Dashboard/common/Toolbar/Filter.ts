@@ -34,7 +34,7 @@ export class ToolbarFilterPage extends BasePage {
   }
 
   async clickAddFilter() {
-    await this.get().locator(`button:has-text("Add Filter")`).first().click();
+    await this.get().getByTestId('add-filter').first().click();
   }
 
   // can reuse code for addFilterGroup and addFilter
@@ -62,12 +62,12 @@ export class ToolbarFilterPage extends BasePage {
     filterGroupIndex?: number;
     filterLogicalOperator?: string;
   }) {
-    await this.get().locator(`button:has-text("Add Filter Group")`).last().click();
+    await this.get().getByTestId('add-filter-group').last().click();
     const filterDropdown = this.get().locator('.menu-filter-dropdown').nth(filterGroupIndex);
     await filterDropdown.waitFor({ state: 'visible' });
     const ADD_BUTTON_SELECTOR = `span:has-text("add")`;
     const FILTER_GROUP_SUB_MENU_SELECTOR = `.nc-dropdown-filter-group-sub-menu`;
-    const ADD_FILTER_SELECTOR = `.nc-menu-item:has-text("Add Filter")`;
+    const ADD_FILTER_SELECTOR = `[data-testid="add-filter-menu"].nc-menu-item`;
 
     await filterDropdown.locator(ADD_BUTTON_SELECTOR).first().click();
     const filterGroupSubMenu = this.rootPage.locator(FILTER_GROUP_SUB_MENU_SELECTOR).last();
@@ -132,7 +132,7 @@ export class ToolbarFilterPage extends BasePage {
     skipWaitingResponse?: boolean;
   }) {
     if (!openModal) {
-      await this.get().locator(`button:has-text("Add Filter")`).first().click();
+      await this.get().getByTestId('add-filter').first().click();
     }
 
     const filterCount = await this.get().locator('.nc-filter-wrapper').count();
@@ -164,9 +164,9 @@ export class ToolbarFilterPage extends BasePage {
       }
     }
 
-    const selectedOpType = await getTextExcludeIconText(this.rootPage.locator('.nc-filter-operation-select'));
+    const selectedOpType = await getTextExcludeIconText(this.rootPage.locator('.nc-filter-operation-select').last());
     if (selectedOpType !== operation) {
-      await this.rootPage.locator('.nc-filter-operation-select').click();
+      await this.rootPage.locator('.nc-filter-operation-select').last().click();
       // first() : filter list has >, >=
 
       if (skipWaitingResponse || filterCount === 1) {
@@ -448,7 +448,7 @@ export class ToolbarFilterPage extends BasePage {
   }
 
   async columnOperatorList(param: { columnTitle: string }) {
-    await this.get().locator(`button:has-text("Add Filter")`).first().click();
+    await this.get().getByTestId('add-filter').first().click();
 
     const selectedField = await this.rootPage.locator('.nc-filter-field-select').textContent();
     if (selectedField !== param.columnTitle) {

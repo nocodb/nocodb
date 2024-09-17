@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import type { ColumnType, FormType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, FormType, TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
 
@@ -20,14 +20,25 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const formResetHook = createEventHook<void>()
 
-    const formState = ref<Record<string, any>>({})
+    const allViewFilters = ref<Record<string, FilterType[]>>({})
 
-    const localColumns = ref<Record<string, any>[]>([])
+    const formState = ref<Record<string, any>>({})
 
     const activeRow = ref('')
 
-    const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).sort((a, b) => a.order - b.order))
+    const localColumns = ref<Record<string, any>[]>([])
 
+    const localColumnsMapByFkColumnId = computed(() => {
+      return localColumns.value.reduce((acc, c) => {
+        acc[c.fk_column_id] = c
+
+        return acc
+      }, {} as Record<string, ColumnType & Record<string, any>>)
+    })
+
+    const visibleColumns = computed(() =>
+      localColumns.value.filter((f) => f.show).sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)),
+    )
     const activeField = computed(() => visibleColumns.value.find((c) => c.id === activeRow.value) || null)
 
     const activeColumn = computed(() => {
@@ -168,6 +179,10 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       return required || (columnObj && columnObj.rqd && !columnObj.cdf)
     }
 
+    const loadAllviewFilters = async () => {}
+
+    function checkFieldVisibility() {}
+
     return {
       onReset: formResetHook.on,
       formState,
@@ -185,6 +200,10 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       fieldMappings,
       isValidRedirectUrl,
       formViewData,
+      loadAllviewFilters,
+      allViewFilters,
+      localColumnsMapByFkColumnId,
+      checkFieldVisibility,
     }
   },
   'form-view-store',

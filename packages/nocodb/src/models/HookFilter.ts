@@ -107,7 +107,7 @@ export default class Filter {
   ) {
     if (!(id && filter.fk_view_id)) {
       throw new Error(
-        `Mandatory fields missing in FITLER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_parent_id(${filter.fk_view_id})`,
+        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_parent_id(${filter.fk_view_id})`,
       );
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;

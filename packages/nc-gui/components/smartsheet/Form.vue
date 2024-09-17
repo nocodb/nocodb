@@ -93,6 +93,7 @@ const {
   clearValidate,
   fieldMappings,
   isValidRedirectUrl,
+  loadAllviewFilters,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
@@ -696,7 +697,7 @@ onMounted(async () => {
 
   isLoadingFormView.value = true
 
-  await Promise.all([loadFormView(), loadReleatedMetas()])
+  await Promise.all([loadFormView(), loadReleatedMetas(), loadAllviewFilters()])
 
   setFormData()
   isLoadingFormView.value = false

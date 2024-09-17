@@ -483,7 +483,7 @@ export default class Filter implements FilterType {
     if (!isNoneList && !filters.length) {
       const condition: Record<string, string> = {};
 
-      if (viewId) {
+      if (viewId && !parentColId) {
         condition.fk_view_id = viewId;
       } else if (hookId) {
         condition.fk_hook_id = hookId;
@@ -665,7 +665,6 @@ export default class Filter implements FilterType {
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
 
-    console.log('filter list', viewId, isNoneList, filterObjs);
     if (!isNoneList && !filterObjs.length) {
       filterObjs = await ncMeta.metaList2(
         context.workspace_id,

@@ -23,6 +23,7 @@ export function useViewFilters(
   isLink?: boolean,
   linkColId?: Ref<string>,
   fieldsToFilter?: Ref<ColumnType[]>,
+  parentColId?: Ref<string>,
 ) {
   const savingStatus: Record<number, boolean> = {}
 
@@ -34,7 +35,7 @@ export function useViewFilters(
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
-  const { nestedFilters, allFilters } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, allFilters, isForm } = useSmartsheetStoreOrThrow()
 
   const { baseMeta } = storeToRefs(useBase())
 
@@ -204,16 +205,18 @@ export function useViewFilters(
         fieldsToFilter?.value?.filter((col) => {
           return !isSystemColumn(col)
         })?.[0]?.id ?? undefined,
+      ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
     }
   }
 
   const placeholderGroupFilter = (): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
-
+    console.log('parentColId', parentColId?.value)
     return {
       is_group: true,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
+      ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
     }
   }
 
@@ -568,6 +571,8 @@ export function useViewFilters(
     if (nestedMode.value) placeHolderGroupFilter.children = [child]
 
     filters.value.push(placeHolderGroupFilter)
+
+    console.log('group', placeHolderGroupFilter)
 
     const index = filters.value.length - 1
 

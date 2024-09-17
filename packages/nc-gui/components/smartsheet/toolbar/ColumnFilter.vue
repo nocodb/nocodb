@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { type ColumnType, type FilterType, isCreatedOrLastModifiedTimeCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type FilterType,
+  isCreatedOrLastModifiedTimeCol,
+  isSystemColumn,
+  isVirtualCol,
+  ViewTypes,
+} from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 
 interface Props {
@@ -15,7 +22,10 @@ interface Props {
   isOpen?: boolean
   rootMeta?: any
   linkColId?: string
+  parentColId?: string
   actionBtnType?: 'text' | 'secondary'
+  /** Custom filter function */
+  filterOption?: (column: ColumnType) => boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -27,6 +37,7 @@ const props = withDefaults(defineProps<Props>(), {
   webHook: false,
   link: false,
   linkColId: undefined,
+  parentColId: undefined,
   actionBtnType: 'text',
 })
 
@@ -40,7 +51,7 @@ const draftFilter = useVModel(props, 'draftFilter', emit)
 
 const modelValue = useVModel(props, 'modelValue', emit)
 
-const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook, link, linkColId } = toRefs(props)
+const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook, link, linkColId, parentColId } = toRefs(props)
 
 const nested = computed(() => nestedLevel.value > 0)
 
@@ -63,7 +74,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { $e } = useNuxtApp()
 
-const { nestedFilters } = useSmartsheetStoreOrThrow()
+const { nestedFilters, isForm } = useSmartsheetStoreOrThrow()
 
 const currentFilters = modelValue.value || (!link.value && !webHook.value && nestedFilters.value) || []
 
@@ -72,7 +83,10 @@ const columns = computed(() => meta.value?.columns)
 const fieldsToFilter = computed(() =>
   (columns.value || []).filter((c) => {
     if (link.value && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
-    return !excludedFilterColUidt.includes(c.uidt as UITypes)
+
+    const customFilter = props.filterOption ? props.filterOption(c) : true
+
+    return !excludedFilterColUidt.includes(c.uidt as UITypes) && customFilter
   }),
 )
 
@@ -105,6 +119,7 @@ const {
   link.value,
   linkColId,
   fieldsToFilter,
+  parentColId,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -200,6 +215,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
 watch(
   () => activeView.value?.id,
   (n, o) => {
+    console.log('active view n o', n, o)
     // if nested no need to reload since it will get reloaded from parent
     if (!nested.value && n !== o && (hookId?.value || !webHook.value) && (linkColId?.value || !link.value))
       loadFilters({
@@ -227,7 +243,7 @@ const filtersCount = computed(() => {
   }, 0)
 })
 
-const applyChanges = async (hookOrColId?: string, nested = false, isConditionSupported = true) => {
+const applyChanges = async (hookOrColId?: string, nested = false, isConditionSupported = true, parentColId?: string) => {
   // if condition is not supported, delete all filters present
   // it's used for bulk webhooks with filters since bulk webhooks don't support conditions at the moment
   if (!isConditionSupported) {
@@ -238,16 +254,16 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   }
   if (link.value) {
     if (!hookOrColId && !props.nestedLevel) return
-    await sync({ linkId: hookOrColId, nested })
+    await sync({ linkId: hookOrColId, nested, parentColId })
   } else {
-    await sync({ hookId: hookOrColId, nested })
+    await sync({ hookId: hookOrColId, nested, parentColId })
   }
 
   if (!localNestedFilters.value?.length) return
 
   for (const nestedFilter of localNestedFilters.value) {
     if (nestedFilter.parentId) {
-      await nestedFilter.applyChanges(hookOrColId, true)
+      await nestedFilter.applyChanges(hookOrColId, true, undefined, parentColId)
     }
   }
 }
@@ -598,6 +614,7 @@ const changeToDynamic = async (filter, i) => {
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="i"
+                  :title="`children ${Filter.children}`"
                   ref="localNestedFilters"
                   v-model="filter.children"
                   :nested-level="nestedLevel + 1"
@@ -608,6 +625,7 @@ const changeToDynamic = async (filter, i) => {
                   :show-loading="false"
                   :root-meta="rootMeta"
                   :link-col-id="linkColId"
+                  :parent-col-id="parentColId"
                 >
                   <template #start>
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{

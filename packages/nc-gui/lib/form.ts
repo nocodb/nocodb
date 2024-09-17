@@ -7,26 +7,30 @@ export class FormFilters {
   allViewFilters: FilterType[]
   protected groupedFilters: Record<string, FilterType[]>
   nestedGroupedFilters: Record<string, FilterType[]>
-  meta?: TableType
   formViewColumns: FormViewColumn[]
   formViewColumnsMapByFkColumnId: Record<string, FormViewColumn>
   formState: Record<string, any>
   value: any
   isMysql?: (sourceId?: string) => boolean
 
-  constructor(
-    data: FilterType[] = [],
+  constructor({
+    data = [],
     nestedGroupedFilters = {},
-    meta = undefined,
     formViewColumns = [],
     formViewColumnsMapByFkColumnId = {},
     formState = {},
     isMysql = undefined,
-  ) {
+  }: {
+    data?: FilterType[]
+    nestedGroupedFilters?: Record<string, FilterType[]>
+    formViewColumns?: FormViewColumn[]
+    formViewColumnsMapByFkColumnId?: Record<string, FormViewColumn>
+    formState?: Record<string, any>
+    isMysql?: (sourceId?: string) => boolean
+  } = {}) {
     this.allViewFilters = data
     this.groupedFilters = {}
     this.nestedGroupedFilters = nestedGroupedFilters
-    this.meta = meta
     this.formViewColumns = formViewColumns
     this.formViewColumnsMapByFkColumnId = formViewColumnsMapByFkColumnId
     this.formState = formState

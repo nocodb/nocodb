@@ -1221,7 +1221,7 @@ useEventListener(
                               </NcButton>
                             </div>
                             <div class="flex items-center gap-3">
-                              <NcTooltip v-if="allViewFilters[element.fk_column_id]?.length" class="relative h-4 w-4 flex" placement="topLeft">
+                              <NcTooltip v-if="allViewFilters[element.fk_column_id]?.length" class="relative h-4 w-4 flex cursor-pointer" placement="topLeft">
                                 <template #title> Conditionally visible field </template>
                                 <Transition name="icon-fade">
                                   <GeneralIcon

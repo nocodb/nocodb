@@ -17,15 +17,15 @@ export async function prepareEnv({
 databaseUrlFile = process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
 databaseUrl = process.env.NC_DATABASE_URL || process.env.DATABASE_URL,
                                  } = {}) {
-  if (process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE) {
+  if (databaseUrlFile) {
     const database_url = await promisify(fs.readFile)(
-      process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
+      databaseUrlFile,
       'utf-8',
     );
     process.env.NC_DB = jdbcToXcUrl(database_url);
-  } else if (process.env.NC_DATABASE_URL || process.env.DATABASE_URL) {
+  } else if (databaseUrl) {
     process.env.NC_DB = jdbcToXcUrl(
-      process.env.NC_DATABASE_URL || process.env.DATABASE_URL,
+      databaseUrl,
     );
   }
 }

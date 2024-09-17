@@ -20,18 +20,19 @@ program
   .option('--database-url-file <char>', 'JDBC database url file path, equivalent to DATABASE_URL_FILE env variable')
   .option('-o, --old-secret <char>', 'old secret string to decrypt sources and integrations')
   .option('-n, --new-secret <char>', 'new secret string to encrypt sources and integrations')
-  .action(async (key, value) => {
+  .action(async (prevVal, newVal) => {
 
     try {
       // extract options
       const options = program.opts();
       const config = await getNocoConfig(options);
+      const { prevSecret = prevVal, newSecret = newVal } = program.opts();
 
-      if (!key || !value) {
-        console.error('Error: Both key and value are required.');
+      if (!prevSecret || !newSecret) {
+        console.error('Error: Both prevSecret and newSecret are required.');
         program.help();
       } else {
-        const secretManager = new SecretManager(key, value, config);
+        const secretManager = new SecretManager(prevSecret, newSecret, config);
 
         // validate meta db config which is resolved from env variables
         await secretManager.validateConfig();
@@ -52,13 +53,17 @@ program
         process.exit(1);
       }
       console.error(e);
+      process.exit(1);
     }
   });
 
 
 
 // Add error handling
-program.exitOverride();
+program.exitOverride((err) => {
+  console.error(err.message);
+  process.exit(1);
+});
 
 program.parse(process.argv);
 

@@ -3,10 +3,10 @@ import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
-    table.boolean('is_encrypted').defaultTo(false).index();
+    table.boolean('is_encrypted').defaultTo(false);
   });
   await knex.schema.alterTable(MetaTable.INTEGRATIONS, (table) => {
-    table.boolean('is_encrypted').defaultTo(false).index();
+    table.boolean('is_encrypted').defaultTo(false);
   });
 };
 

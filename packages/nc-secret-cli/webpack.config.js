@@ -20,7 +20,7 @@ module.exports = {
   },
 
   optimization: {
-    minimize: true, //Update this to true or false
+    minimize: true,
     minimizer: [new TerserPlugin()],
     nodeEnv: false
   },

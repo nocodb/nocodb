@@ -12,7 +12,7 @@ const logger = {
   },
 };
 
-const decyptConfig = async (encryptedConfig: string, secret: string) => {
+const decryptConfig = async (encryptedConfig: string, secret: string) => {
   return CryptoJS.AES.decrypt(encryptedConfig, secret).toString(
     CryptoJS.enc.Utf8,
   );
@@ -63,14 +63,17 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   for (const source of sources) {
     if (source?.config) {
       try {
-        const decrypted = await decyptConfig(source.config, encryptionKey);
-        await ncMeta.knexConnection(MetaTable.SOURCES).update({
-          config: decrypted,
-        });
+        const decrypted = await decryptConfig(source.config, encryptionKey);
+        await ncMeta
+          .knexConnection(MetaTable.SOURCES)
+          .update({
+            config: decrypted,
+          })
+          .where('id', source.id);
         passed.push(true);
       } catch (e) {
         logger.error(`Failed to decrypt source ${source.id}`);
-        passed.push(e);
+        passed.push(false);
       }
     }
   }
@@ -82,10 +85,16 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   for (const integration of integrations) {
     if (integration?.config) {
       try {
-        const decrypted = await decyptConfig(integration.config, encryptionKey);
-        await ncMeta.knexConnection(MetaTable.INTEGRATIONS).update({
-          config: decrypted,
-        });
+        const decrypted = await decryptConfig(
+          integration.config,
+          encryptionKey,
+        );
+        await ncMeta
+          .knexConnection(MetaTable.INTEGRATIONS)
+          .update({
+            config: decrypted,
+          })
+          .where('id', integration.id);
         passed.push(true);
       } catch (e) {
         logger.error(`Failed to decrypt integration ${integration.id}`);
@@ -93,4 +102,12 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       }
     }
   }
+
+  // if all failed, log and exit
+  if (passed.length > 0 && passed.every((v) => !v)) {
+    logger.error(`Failed to decrypt all source or integration. Please configure correct encryption key. `);
+    return;
+  }
+
+  logger.log(`Decrypted ${passed.length} sources and integrations`);
 }

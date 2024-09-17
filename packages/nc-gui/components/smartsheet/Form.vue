@@ -1221,7 +1221,8 @@ useEventListener(
                               </NcButton>
                             </div>
                             <div class="flex items-center gap-3">
-                              <div v-if="allViewFilters[element.fk_column_id]?.length" class="relative h-4 w-4 flex">
+                              <NcTooltip v-if="allViewFilters[element.fk_column_id]?.length" class="relative h-4 w-4 flex" placement="topLeft">
+                                <template #title> Conditionally visible field </template>
                                 <Transition name="icon-fade">
                                   <GeneralIcon
                                     v-if="element?.visible"
@@ -1230,7 +1231,7 @@ useEventListener(
                                   />
                                   <GeneralIcon v-else icon="eyeSlash" class="w-4 h-4 flex-none text-nc-content-gray-muted" />
                                 </Transition>
-                              </div>
+                              </NcTooltip>
                               <div class="text-sm font-semibold text-gray-800">
                                 <span data-testid="nc-form-input-label">
                                   {{ element.label || element.title }}

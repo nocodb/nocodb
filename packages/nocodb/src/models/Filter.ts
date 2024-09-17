@@ -219,7 +219,7 @@ export default class Filter implements FilterType {
           );
         }
         if (filter.fk_parent_id) {
-          if (filter.fk_view_id && !filter.fk_parent_column_id) {
+          if (filter.fk_view_id) {
             p.push(
               NocoCache.appendToList(
                 CacheScope.FILTER_EXP,
@@ -237,15 +237,15 @@ export default class Filter implements FilterType {
               ),
             );
           }
-          // if (filter.fk_parent_column_id) {
-          //   p.push(
-          //     NocoCache.appendToList(
-          //       CacheScope.FILTER_EXP,
-          //       [filter.fk_parent_column_id, filter.fk_parent_id],
-          //       key,
-          //     ),
-          //   );
-          // }
+          if (filter.fk_parent_column_id) {
+            p.push(
+              NocoCache.appendToList(
+                CacheScope.FILTER_EXP,
+                [filter.fk_parent_column_id, filter.fk_parent_id],
+                key,
+              ),
+            );
+          }
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
@@ -474,7 +474,7 @@ export default class Filter implements FilterType {
   ): Promise<FilterType> {
     const cachedList = await NocoCache.getList(
       CacheScope.FILTER_EXP,
-      [viewId || hookId || linkColId || parentColId],
+      [parentColId || viewId || hookId || linkColId],
       {
         key: 'order',
       },
@@ -508,7 +508,7 @@ export default class Filter implements FilterType {
 
       await NocoCache.setList(
         CacheScope.FILTER_EXP,
-        [viewId || hookId || linkColId || parentColId],
+        [parentColId || viewId || hookId || linkColId],
         filters,
       );
     }

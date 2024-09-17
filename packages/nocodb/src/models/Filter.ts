@@ -656,6 +656,31 @@ export default class Filter implements FilterType {
     return this.castType(filterObj);
   }
 
+  static async allViewFilterList(
+    context: NcContext,
+    { viewId }: { viewId: any },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [viewId]);
+    let { list: filterObjs } = cachedList;
+    const { isNoneList } = cachedList;
+
+    console.log('filter list', viewId, isNoneList, filterObjs);
+    if (!isNoneList && !filterObjs.length) {
+      filterObjs = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_view_id: viewId },
+        },
+      );
+      await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filterObjs);
+    }
+
+    return filterObjs?.map((f) => this.castType(f)) || [];
+  }
+
   static async rootFilterList(
     context: NcContext,
     { viewId }: { viewId: any },
@@ -670,6 +695,7 @@ export default class Filter implements FilterType {
     );
     let { list: filterObjs } = cachedList;
     const { isNoneList } = cachedList;
+
     if (!isNoneList && !filterObjs.length) {
       filterObjs = await ncMeta.metaList2(
         context.workspace_id,
@@ -684,6 +710,7 @@ export default class Filter implements FilterType {
       );
       await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filterObjs);
     }
+
     return filterObjs
       ?.filter((f) => !f.fk_parent_id)
       ?.map((f) => this.castType(f));

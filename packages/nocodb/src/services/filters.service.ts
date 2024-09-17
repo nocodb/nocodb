@@ -134,10 +134,16 @@ export class FiltersService {
     return filter;
   }
 
-  async filterList(context: NcContext, param: { viewId: string }) {
-    const filter = await Filter.rootFilterList(context, {
-      viewId: param.viewId,
-    });
+  async filterList(
+    context: NcContext,
+    param: { viewId: string; includeAllFilters?: boolean },
+  ) {
+    const filterMethod = param.includeAllFilters
+      ? Filter.allViewFilterList
+      : Filter.rootFilterList;
+
+    const filter = await filterMethod(context, { viewId: param.viewId });
+
     return filter;
   }
 
@@ -152,5 +158,12 @@ export class FiltersService {
   ): Promise<any> {
     // placeholder method
     return null;
+  }
+
+  async allViewFilterList(context: NcContext, param: { viewId: string }) {
+    const filter = await Filter.allViewFilterList(context, {
+      viewId: param.viewId,
+    });
+    return filter;
   }
 }

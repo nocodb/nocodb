@@ -6626,6 +6626,13 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeAllFilters",
+            "in": "query"
           }
         ]
       },

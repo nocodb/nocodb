@@ -214,7 +214,7 @@ export function useViewFilters(
 
   const placeholderGroupFilter = (): ColumnFilterType => {
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
-    console.log('parentColId', parentColId?.value)
+
     return {
       is_group: true,
       status: 'create',

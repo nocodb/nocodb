@@ -620,7 +620,9 @@
     "fromScratch": "从头开始",
     "fromFileAndExternalSources": "来自文件和外部来源",
     "directlyInRealTime": "直接实时使用",
-    "categories": "类别"
+    "categories": "类别",
+    "fieldInaccessible": "Field inaccessible",
+    "noConditionsAdded": "No conditions added"
   },
   "labels": {
     "modifiedOn": "修改于",
@@ -985,7 +987,7 @@
     "appearanceSettings": "外观设置",
     "backgroundColor": "背景颜色",
     "hideNocodbBranding": "隐藏 NocoDB 标识",
-    "showOnConditions": "在条件中显示",
+    "showOnConditions": "Show on conditions",
     "showFieldOnConditionsMet": "在满足条件时显示字段",
     "limitOptions": "限制选项",
     "limitOptionsSubtext": "限制用户可见",
@@ -1256,7 +1258,9 @@
     },
     "getPreFilledLink": "获取预填链接",
     "group": "分组",
-    "goToDocs": "转到文档"
+    "goToDocs": "转到文档",
+    "addCondition": "Add condition",
+    "addConditionGroup": "Add condition group"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

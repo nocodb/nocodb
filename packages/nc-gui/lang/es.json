@@ -39,7 +39,7 @@
     }
   },
   "aggregation": {
-    "sum": "Sum",
+    "sum": "",
     "count": "Count",
     "min": "Min",
     "max": "Max",
@@ -620,7 +620,9 @@
     "fromScratch": "From scratch",
     "fromFileAndExternalSources": "From files & external sources",
     "directlyInRealTime": "Directly in real time",
-    "categories": "Categories"
+    "categories": "Categories",
+    "fieldInaccessible": "Field inaccessible",
+    "noConditionsAdded": "No conditions added"
   },
   "labels": {
     "modifiedOn": "Modified on",
@@ -1256,7 +1258,9 @@
     },
     "getPreFilledLink": "Get Pre-filled Link",
     "group": "Group",
-    "goToDocs": "Go to Docs"
+    "goToDocs": "Go to Docs",
+    "addCondition": "Add condition",
+    "addConditionGroup": "Add condition group"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

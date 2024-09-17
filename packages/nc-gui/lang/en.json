@@ -621,7 +621,8 @@
     "fromFileAndExternalSources": "From files & external sources",
     "directlyInRealTime": "Directly in real time",
     "categories": "Categories",
-    "fieldInaccessible": "Field inaccessible"
+    "fieldInaccessible": "Field inaccessible",
+    "noConditionsAdded": "No conditions added"
   },
   "labels": {
     "modifiedOn": "Modified on",
@@ -1257,7 +1258,9 @@
     },
     "getPreFilledLink": "Get Pre-filled Link",
     "group": "Group",
-    "goToDocs": "Go to Docs"
+    "goToDocs": "Go to Docs",
+    "addCondition": "Add condition",
+    "addConditionGroup": "Add condition group"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for the data source or the data type",

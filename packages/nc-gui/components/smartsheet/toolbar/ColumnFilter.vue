@@ -577,7 +577,7 @@ const changeToDynamic = async (filter, i) => {
                   <div class="flex items-center gap-1">
                     <component :is="iconMap.plus" />
                     <!-- Add Filter -->
-                    {{ $t('activity.addFilter') }}
+                    {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
                   </div>
                 </NcMenuItem>
 
@@ -585,7 +585,7 @@ const changeToDynamic = async (filter, i) => {
                   <div class="flex items-center gap-1">
                     <!-- Add Filter Group -->
                     <component :is="iconMap.plusSquare" />
-                    {{ $t('activity.addFilterGroup') }}
+                    {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
                   </div>
                 </NcMenuItem>
               </template>
@@ -595,7 +595,7 @@ const changeToDynamic = async (filter, i) => {
                 <div class="flex items-center gap-1">
                   <component :is="iconMap.plus" />
                   <!-- Add Filter -->
-                  {{ $t('activity.addFilter') }}
+                  {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
                 </div>
               </NcMenuItem>
 
@@ -603,7 +603,7 @@ const changeToDynamic = async (filter, i) => {
                 <div class="flex items-center gap-1">
                   <!-- Add Filter Group -->
                   <component :is="iconMap.plusSquare" />
-                  {{ $t('activity.addFilterGroup') }}
+                  {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
                 </div>
               </NcButton>
             </template>
@@ -629,7 +629,6 @@ const changeToDynamic = async (filter, i) => {
                 <LazySmartsheetToolbarColumnFilter
                   v-if="filter.id || filter.children || !autoSave"
                   :key="i"
-                  :title="`children ${Filter.children}`"
                   ref="localNestedFilters"
                   v-model="filter.children"
                   :nested-level="nestedLevel + 1"
@@ -957,7 +956,7 @@ const changeToDynamic = async (filter, i) => {
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
-              {{ $t('activity.addFilter') }}
+              {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
             </div>
           </NcButton>
 
@@ -972,7 +971,7 @@ const changeToDynamic = async (filter, i) => {
             <div class="flex items-center gap-1">
               <!-- Add Filter Group -->
               <component :is="iconMap.plus" />
-              {{ $t('activity.addFilterGroup') }}
+              {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
             </div>
           </NcButton>
         </div>
@@ -990,7 +989,7 @@ const changeToDynamic = async (filter, i) => {
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
-              {{ $t('activity.addFilter') }}
+              {{ isForm && !webHook ? $t('activity.addCondition') : $t('activity.addFilter') }}
             </div>
           </NcButton>
 
@@ -1004,7 +1003,7 @@ const changeToDynamic = async (filter, i) => {
             <div class="flex items-center gap-1">
               <!-- Add Filter Group -->
               <component :is="iconMap.plus" />
-              {{ $t('activity.addFilterGroup') }}
+              {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
             </div>
           </NcButton>
         </div>
@@ -1018,7 +1017,7 @@ const changeToDynamic = async (filter, i) => {
         'ml-0.5': !nested,
       }"
     >
-      {{ $t('title.noFiltersAdded') }}
+      {{ isForm && !webHook ? $t('title.noConditionsAdded') : $t('title.noFiltersAdded') }}
     </div>
 
     <slot />

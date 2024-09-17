@@ -408,7 +408,7 @@ export class DuplicateProcessor {
       });
     }
 
-    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateModel})`);
+    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateColumn})`);
 
     return { id: findWithIdentifier(idMap, sourceColumn.id) };
   }

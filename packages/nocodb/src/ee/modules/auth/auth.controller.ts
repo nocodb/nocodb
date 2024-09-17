@@ -128,7 +128,7 @@ export class AuthController extends AuthControllerCE {
   }
 
   @UseGuards(PublicApiLimiterGuard, GlobalGuard)
-  @Post(['/api/v1/auth/user/signout','/api/v2/auth/user/signout'])
+  @Post(['/api/v1/auth/user/signout', '/api/v2/auth/user/signout'])
   @HttpCode(200)
   async signOut(@Req() req: NcRequest, @Res() res: Response): Promise<any> {
     const result: Record<string, string> = await this.usersService.signOut({

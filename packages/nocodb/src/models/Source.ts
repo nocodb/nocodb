@@ -70,7 +70,7 @@ export default class Source implements SourceType {
       created_at?;
       updated_at?;
       meta?: any;
-      is_encrypted?: any;
+      is_encrypted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {

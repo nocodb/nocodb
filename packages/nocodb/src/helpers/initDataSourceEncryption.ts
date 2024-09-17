@@ -1,4 +1,3 @@
-import process from 'process';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { encryptPropIfRequired } from '~/utils';
@@ -70,7 +69,7 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
     await ncMeta.commit();
   } catch (e) {
     await ncMeta.rollback();
-    console.error('Failed to encrypt data sources', e);
-    process.exit(1);
+    console.error('Failed to encrypt data sources');
+    throw e;
   }
 }

@@ -346,11 +346,16 @@ export default class DbMux {
     if (!dbMuxId) NcError.badRequest('DbMux id is required');
 
     return (
-      ncMeta.metaCount(RootScopes.BYPASS, RootScopes.BYPASS, MetaTable.SOURCES, {
-        condition: {
-          fk_sql_executor_id: dbMuxId,
+      ncMeta.metaCount(
+        RootScopes.BYPASS,
+        RootScopes.BYPASS,
+        MetaTable.SOURCES,
+        {
+          condition: {
+            fk_sql_executor_id: dbMuxId,
+          },
         },
-      }) || 0
+      ) || 0
     );
   }
 

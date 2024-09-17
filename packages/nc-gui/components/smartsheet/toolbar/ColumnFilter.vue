@@ -119,7 +119,11 @@ const {
   parentId,
   computed(() => autoSave.value),
   () => {
-    reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0, isFormFieldFilters: isForm.value && !webHook.value })
+    reloadDataHook.trigger({
+      shouldShowLoading: showLoading.value,
+      offset: 0,
+      isFormFieldFilters: isForm.value && !webHook.value,
+    })
     reloadAggregate?.trigger()
   },
   currentFilters,

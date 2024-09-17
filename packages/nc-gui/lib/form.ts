@@ -1,5 +1,5 @@
 import type { ColumnType } from 'ant-design-vue/lib/table'
-import { type FilterType, type TableType } from 'nocodb-sdk'
+import { type FilterType } from 'nocodb-sdk'
 
 type FormViewColumn = ColumnType & Record<string, any>
 

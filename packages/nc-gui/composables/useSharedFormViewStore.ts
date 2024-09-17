@@ -273,8 +273,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           },
         },
         {
-          validator: (_rule: RuleObject, value: any) => {
-            return new Promise((resolve, reject) => {
+          validator: (_rule: RuleObject) => {
+            return new Promise((resolve) => {
               checkFieldVisibility()
               return resolve()
             })

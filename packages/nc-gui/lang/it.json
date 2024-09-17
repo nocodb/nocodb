@@ -620,7 +620,9 @@
     "fromScratch": "Partire da zero",
     "fromFileAndExternalSources": "Da file e fonti esterne",
     "directlyInRealTime": "Direttamente in tempo reale",
-    "categories": "Categorie"
+    "categories": "Categorie",
+    "fieldInaccessible": "Field inaccessible",
+    "noConditionsAdded": "No conditions added"
   },
   "labels": {
     "modifiedOn": "Modificato il",
@@ -1256,7 +1258,9 @@
     },
     "getPreFilledLink": "Ottenere il link precompilato",
     "group": "Gruppo",
-    "goToDocs": "Vai ai documenti"
+    "goToDocs": "Vai ai documenti",
+    "addCondition": "Add condition",
+    "addConditionGroup": "Add condition group"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

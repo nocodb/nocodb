@@ -93,7 +93,7 @@ export class AuthController {
   }
 
   @UseGuards(GlobalGuard)
-  @Post(['/api/v1/auth/user/signout','/api/v2/auth/user/signout'])
+  @Post(['/api/v1/auth/user/signout', '/api/v2/auth/user/signout'])
   @HttpCode(200)
   async signOut(@Req() req: NcRequest, @Res() res: Response): Promise<any> {
     if (!(req as any).isAuthenticated?.()) {
@@ -121,7 +121,12 @@ export class AuthController {
     // google strategy will take care the request
   }
 
-  @Get(['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me', '/api/v2/auth/user/me'])
+  @Get([
+    '/auth/user/me',
+    '/api/v1/db/auth/user/me',
+    '/api/v1/auth/user/me',
+    '/api/v2/auth/user/me',
+  ])
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async me(@Req() req: NcRequest) {
     const user = {

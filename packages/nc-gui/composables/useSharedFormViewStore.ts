@@ -451,6 +451,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
               switch (sharedViewMeta.value.preFilledMode) {
                 case PreFilledMode.Hidden: {
                   c.show = false
+                  c.meta = { ...parseProp(c.meta), preFilledHiddenField: true }
                   break
                 }
                 case PreFilledMode.Locked: {

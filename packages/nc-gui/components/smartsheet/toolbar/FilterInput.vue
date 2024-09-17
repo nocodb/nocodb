@@ -167,6 +167,13 @@ const componentProps = computed(() => {
     case 'isCurrency': {
       return { hidePrefix: true }
     }
+    case 'isRating': {
+      return {
+        style: {
+          minWidth: `${(column.value?.meta?.max || 5) * 19}px`,
+        },
+      }
+    }
     default: {
       return {}
     }

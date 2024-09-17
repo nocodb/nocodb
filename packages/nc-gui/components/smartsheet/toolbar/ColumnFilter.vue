@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  type ColumnType,
-  type FilterType,
-  isCreatedOrLastModifiedTimeCol,
-  isSystemColumn,
-  isVirtualCol,
-  ViewTypes,
-} from 'nocodb-sdk'
+import { type ColumnType, type FilterType, isCreatedOrLastModifiedTimeCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { PlanLimitTypes, UITypes } from 'nocodb-sdk'
 
 interface Props {
@@ -27,6 +20,7 @@ interface Props {
   /** Custom filter function */
   filterOption?: (column: ColumnType) => boolean
   visibilityError?: Record<string, string>
+  disableAddNewFilter?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -41,6 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
   parentColId: undefined,
   actionBtnType: 'text',
   visibilityError: () => ({}),
+  disableAddNewFilter: false,
 })
 
 const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue'])
@@ -53,8 +48,19 @@ const draftFilter = useVModel(props, 'draftFilter', emit)
 
 const modelValue = useVModel(props, 'modelValue', emit)
 
-const { nestedLevel, parentId, autoSave, hookId, showLoading, webHook, link, linkColId, parentColId, visibilityError } =
-  toRefs(props)
+const {
+  nestedLevel,
+  parentId,
+  autoSave,
+  hookId,
+  showLoading,
+  webHook,
+  link,
+  linkColId,
+  parentColId,
+  visibilityError,
+  disableAddNewFilter,
+} = toRefs(props)
 
 const nested = computed(() => nestedLevel.value > 0)
 
@@ -554,8 +560,10 @@ const changeToDynamic = async (filter, i) => {
         <slot name="start"></slot>
       </div>
       <div class="flex-grow"></div>
-      <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu">
-        <GeneralIcon icon="plus" class="cursor-pointer" />
+      <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu" :disabled="disableAddNewFilter">
+        <GeneralIcon icon="plus" class="cursor-pointer" :class="{
+          'opacity-40 cursor-not-allowed': disableAddNewFilter
+        }"/>
 
         <template #overlay>
           <NcMenu>
@@ -629,7 +637,9 @@ const changeToDynamic = async (filter, i) => {
                   :root-meta="rootMeta"
                   :link-col-id="linkColId"
                   :parent-col-id="parentColId"
+                  :filter-option="filterOption"
                   :visibility-error="visibilityError"
+                  :disable-add-new-filter="disableAddNewFilter"
                 >
                   <template #start>
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
@@ -722,10 +732,7 @@ const changeToDynamic = async (filter, i) => {
               class="flex-1 flex items-center gap-2 px-2 !text-red-500 cursor-pointer"
               :disabled="!filter.fk_column_id || !visibilityError[filter.fk_column_id]"
             >
-              <template #title
-                >This condition will not be used for determining field visibility because it
-                {{ visibilityError[filter.fk_column_id!]?.replace(/^Condition\s*/, '') ?? '' }}</template
-              >
+              <template #title> {{ visibilityError[filter.fk_column_id!] ?? '' }}</template>
               <GeneralIcon icon="alertTriangle" class="flex-none" />
               Field inaccesible
             </NcTooltip>
@@ -940,7 +947,13 @@ const changeToDynamic = async (filter, i) => {
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton size="small" :type="actionBtnType" class="nc-btn-focus" @click.stop="addFilter()">
+          <NcButton
+            size="small"
+            :type="actionBtnType"
+            :disabled="disableAddNewFilter"
+            class="nc-btn-focus"
+            @click.stop="addFilter()"
+          >
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
@@ -948,7 +961,14 @@ const changeToDynamic = async (filter, i) => {
             </div>
           </NcButton>
 
-          <NcButton v-if="nestedLevel < 5" class="nc-btn-focus" :type="actionBtnType" size="small" @click.stop="addFilterGroup()">
+          <NcButton
+            v-if="nestedLevel < 5"
+            class="nc-btn-focus"
+            :disabled="disableAddNewFilter"
+            :type="actionBtnType"
+            size="small"
+            @click.stop="addFilterGroup()"
+          >
             <div class="flex items-center gap-1">
               <!-- Add Filter Group -->
               <component :is="iconMap.plus" />

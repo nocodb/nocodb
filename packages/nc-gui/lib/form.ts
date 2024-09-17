@@ -122,12 +122,12 @@ export class Filter {
 
         // If the filter condition col is below parent column then this will be invalid condition so return false
         if (!this.isFieldAboveParentColumn(column, parentCol)) {
-          errors[column.fk_column_id] = `Condition references a field(${column.title}) that comes later in the form.`
+          errors[column.fk_column_id] = `Condition references a field (${column.title}) that comes later in the form.`
           res = true
         }
 
         if (!column.show) {
-          errors[column.fk_column_id] = `Condition references a field(${column.title}) that was removed from the form.`
+          errors[column.fk_column_id] = `Condition references a field (${column.title}) that was removed from the form.`
 
           res = true
         }

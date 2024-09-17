@@ -28,8 +28,9 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const activeRow = ref('')
 
-    const visibleColumns = computed(() => localColumns.value.filter((f) => f.show).sort((a, b) => a.order - b.order))
-
+    const visibleColumns = computed(() =>
+      localColumns.value.filter((f) => f.show).sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)),
+    )
     const activeField = computed(() => visibleColumns.value.find((c) => c.id === activeRow.value) || null)
 
     const activeColumn = computed(() => {

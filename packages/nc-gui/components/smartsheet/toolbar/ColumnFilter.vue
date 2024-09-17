@@ -119,7 +119,7 @@ const {
   parentId,
   computed(() => autoSave.value),
   () => {
-    reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0 })
+    reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0, isFormFieldFilters: isForm.value })
     reloadAggregate?.trigger()
   },
   currentFilters,
@@ -561,9 +561,13 @@ const changeToDynamic = async (filter, i) => {
       </div>
       <div class="flex-grow"></div>
       <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu" :disabled="disableAddNewFilter">
-        <GeneralIcon icon="plus" class="cursor-pointer" :class="{
-          'opacity-40 cursor-not-allowed': disableAddNewFilter
-        }"/>
+        <GeneralIcon
+          icon="plus"
+          class="cursor-pointer"
+          :class="{
+            'opacity-40 cursor-not-allowed': disableAddNewFilter,
+          }"
+        />
 
         <template #overlay>
           <NcMenu>

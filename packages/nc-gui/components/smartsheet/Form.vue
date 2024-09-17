@@ -102,9 +102,13 @@ const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 
 const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
-reloadEventHook.on(async () => {
-  await Promise.all([loadFormView(), loadReleatedMetas()])
-  setFormData()
+reloadEventHook.on(async (params) => {
+  if (params?.isFormFieldFilters) {
+    checkFieldVisibility()
+  } else {
+    await Promise.all([loadFormView(), loadReleatedMetas()])
+    setFormData()
+  }
 })
 
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()
@@ -692,6 +696,13 @@ async function loadReleatedMetas() {
       return c
     }),
   )
+}
+
+const updateActiveFieldDescription = (value) => {
+  if (!activeField.value || activeField.value?.description === value) return
+
+  activeField.value.description = value
+  updateColMeta(activeField.value)
 }
 
 onMounted(async () => {
@@ -1448,13 +1459,13 @@ useEventListener(
                     />
 
                     <LazyCellRichText
-                      v-model:value="activeField.description"
+                      :value="activeField.description"
                       :placeholder="$t('msg.info.formHelpText')"
                       class="form-meta-input nc-form-input-help-text"
                       is-form-field
                       :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
                       data-testid="nc-form-input-help-text"
-                      @update:value="updateColMeta(activeField)"
+                      @update:value="updateActiveFieldDescription"
                     />
                   </div>
                   <LazySmartsheetFormFieldSettings v-if="activeField"></LazySmartsheetFormFieldSettings>

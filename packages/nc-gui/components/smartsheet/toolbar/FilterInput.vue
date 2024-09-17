@@ -164,6 +164,9 @@ const componentProps = computed(() => {
       }
       return {}
     }
+    case 'isCurrency': {
+      return { hidePrefix: true }
+    }
     default: {
       return {}
     }

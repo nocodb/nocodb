@@ -82,11 +82,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const formColumns = computed(
     () =>
-      columns.value
-        ?.filter((c) => c.show)
-        .filter(
-          (col) => !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt)),
-        ) || [],
+      columns.value?.filter((col) => {
+        const isVisible = col.show
+        const supportedFields =
+          !isSystemColumn(col) && col.uidt !== UITypes.SpecificDBType && (!isVirtualCol(col) || isLinksOrLTAR(col.uidt))
+
+        return isVisible && supportedFields
+      }) || [],
   )
 
   const loadSharedView = async () => {

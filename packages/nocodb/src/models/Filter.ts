@@ -98,10 +98,10 @@ export default class Filter implements FilterType {
     ]);
 
     const referencedModelColName = [
+      'fk_parent_column_id',
       'fk_view_id',
       'fk_hook_id',
       'fk_link_col_id',
-      'fk_parent_column_id',
     ].find((k) => filter[k]);
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {

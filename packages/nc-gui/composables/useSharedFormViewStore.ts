@@ -105,6 +105,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       isMysql: (_sourceId?: string) => {
         return ['mysql', ClientType.MYSQL].includes(sharedView.value?.client || ClientType.MYSQL)
       },
+      getMeta,
     })
   })
 
@@ -730,8 +731,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     allViewFilters.value = { ...allFilters }
   }
 
-  function checkFieldVisibility() {
-    fieldVisibilityValidator.value.validateVisibility()
+  async function checkFieldVisibility() {
+    await fieldVisibilityValidator.value.validateVisibility()
   }
 
   watch(password, (next, prev) => {

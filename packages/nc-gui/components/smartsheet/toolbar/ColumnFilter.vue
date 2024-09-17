@@ -738,7 +738,7 @@ const changeToDynamic = async (filter, i) => {
             >
               <template #title> {{ visibilityError[filter.fk_column_id!] ?? '' }}</template>
               <GeneralIcon icon="alertTriangle" class="flex-none" />
-              Field inaccesible
+              {{ $t('title.fieldInaccessible') }}
             </NcTooltip>
 
             <template v-else>

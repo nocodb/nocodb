@@ -1246,9 +1246,13 @@ useEventListener(
                                   <GeneralIcon
                                     v-if="element?.visible"
                                     icon="eye"
-                                    class="w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
+                                    class="nc-field-visibility-icon nc-field-visible w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
                                   />
-                                  <GeneralIcon v-else icon="eyeSlash" class="w-3.5 h-3.5 flex-none text-nc-content-gray-muted" />
+                                  <GeneralIcon
+                                    v-else
+                                    icon="eyeSlash"
+                                    class="nc-field-visibility-icon w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
+                                  />
                                 </Transition>
                               </NcTooltip>
                               <div class="text-sm font-semibold text-gray-800">

@@ -577,7 +577,7 @@ const changeToDynamic = async (filter, i) => {
           <NcMenu>
             <template v-if="isEeUI && !isPublic">
               <template v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)">
-                <NcMenuItem @click.stop="addFilter()">
+                <NcMenuItem @click.stop="addFilter()" data-testid="add-filter-menu">
                   <div class="flex items-center gap-1">
                     <component :is="iconMap.plus" />
                     <!-- Add Filter -->
@@ -585,7 +585,7 @@ const changeToDynamic = async (filter, i) => {
                   </div>
                 </NcMenuItem>
 
-                <NcMenuItem v-if="nestedLevel < 5" @click.stop="addFilterGroup()">
+                <NcMenuItem v-if="nestedLevel < 5" @click.stop="addFilterGroup()" data-testid="add-filter-group-menu">
                   <div class="flex items-center gap-1">
                     <!-- Add Filter Group -->
                     <component :is="iconMap.plusSquare" />
@@ -595,7 +595,7 @@ const changeToDynamic = async (filter, i) => {
               </template>
             </template>
             <template v-else>
-              <NcMenuItem @click.stop="addFilter()">
+              <NcMenuItem @click.stop="addFilter()" data-testid="add-filter-menu">
                 <div class="flex items-center gap-1">
                   <component :is="iconMap.plus" />
                   <!-- Add Filter -->
@@ -603,7 +603,7 @@ const changeToDynamic = async (filter, i) => {
                 </div>
               </NcMenuItem>
 
-              <NcButton v-if="!webHook && nestedLevel < 5" @click.stop="addFilterGroup()">
+              <NcButton v-if="!webHook && nestedLevel < 5" @click.stop="addFilterGroup()" data-testid="add-filter-group-menu">
                 <div class="flex items-center gap-1">
                   <!-- Add Filter Group -->
                   <component :is="iconMap.plusSquare" />
@@ -956,6 +956,7 @@ const changeToDynamic = async (filter, i) => {
             :disabled="disableAddNewFilter"
             class="nc-btn-focus"
             @click.stop="addFilter()"
+            data-testid="add-filter"
           >
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
@@ -971,6 +972,7 @@ const changeToDynamic = async (filter, i) => {
             :type="actionBtnType"
             size="small"
             @click.stop="addFilterGroup()"
+            data-testid="add-filter-group"
           >
             <div class="flex items-center gap-1">
               <!-- Add Filter Group -->

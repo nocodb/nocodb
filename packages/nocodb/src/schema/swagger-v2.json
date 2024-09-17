@@ -3778,24 +3778,17 @@
                     "type": "string",
                     "description": "Table title",
                     "example": "Users"
-                  },
-                  "base_id": {
-                    "type": "string",
-                    "description": "Base ID",
-                    "example": "p_124hhlkbeasewh"
-                  },
-                  "meta": {
-                    "$ref": "#/components/schemas/Meta"
                   }
-                }
+                },
+                "required": [
+                  "table_name"
+                ]
               },
               "examples": {
                 "Example 1": {
                   "value": {
                     "table_name": "users",
-                    "title": "Users",
-                    "base_id": "p_124hhlkbeasewh",
-                    "meta": null
+                    "title": "Users"
                   }
                 }
               }
@@ -20922,14 +20915,9 @@
             },
             "type": "array"
           },
-          "meta": {
-            "$ref": "#/components/schemas/Meta",
-            "description": "the meta data for this table"
-          },
-          "order": {
-            "description": "The order of table list",
-            "example": 1,
-            "type": "number"
+          "description": {
+            "description": "Table description",
+            "type": "string"
           },
           "title": {
             "description": "Table title",

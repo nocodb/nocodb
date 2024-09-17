@@ -553,7 +553,8 @@ const changeToDynamic = async (filter, i) => {
     data-testid="nc-filter"
     class="menu-filter-dropdown w-min"
     :class="{
-      'max-h-[max(80vh,500px)] min-w-112 py-2 pl-4': !nested,
+      'max-h-[max(80vh,500px)] min-w-122 py-2 pl-4': !nested,
+      '!min-w-127.5': isForm && !webHook,
       '!min-w-full !w-full !pl-0': !nested && webHook,
       'min-w-full': nested,
     }"

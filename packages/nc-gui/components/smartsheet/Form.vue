@@ -1307,7 +1307,9 @@ useEventListener(
                                   </LazySmartsheetDivDataCell>
                                 </a-form-item>
 
-                                <LazySmartsheetFormFieldConfigError :column="element" />
+                                <div>
+                                  <LazySmartsheetFormFieldConfigError :column="element" />
+                                </div>
                               </div>
                             </div>
                           </div>

@@ -55,10 +55,13 @@ export function useViewFilters(
 
   const filters = computed<ColumnFilterType[]>({
     get: () => {
-      return nestedMode.value && !isLink && !isWebhook ? currentFilters.value! : _filters.value
+      return (nestedMode.value && !isLink && !isWebhook) || isForm.value ? currentFilters.value! : _filters.value
     },
     set: (value: ColumnFilterType[]) => {
-      if (nestedMode.value) {
+      if (isForm.value) {
+        currentFilters.value = value
+        return
+      } else if (nestedMode.value) {
         currentFilters.value = value
         if (!isLink && !isWebhook) {
           if (!isNestedRoot) {
@@ -261,7 +264,7 @@ export function useViewFilters(
   } = {}) => {
     if (!view.value?.id) return
 
-    if (nestedMode.value) {
+    if (nestedMode.value || isForm.value) {
       // ignore restoring if not root filter group
       return
     }

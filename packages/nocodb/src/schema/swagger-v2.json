@@ -14491,6 +14491,11 @@
           },
           "value": {
             "description": "The filter value. Can be NULL for some operators."
+          },
+          "order": {
+            "type": "number",
+            "description": "The order of the filter",
+            "example": 1
           }
         },
         "readOnly": true,

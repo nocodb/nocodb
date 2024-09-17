@@ -24,7 +24,7 @@ export class Filter {
 
   getRootFilters(parentColId: string) {
     return (this.groupedFilters[parentColId] || [])
-      .filter((f) => !f.fk_column_id)
+      .filter((f) => !f.fk_parent_id)
       .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
   }
 

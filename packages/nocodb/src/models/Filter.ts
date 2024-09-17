@@ -41,6 +41,7 @@ export default class Filter implements FilterType {
   base_id?: string;
   source_id?: string;
   column?: Column;
+  order?: number;
 
   constructor(data: Filter | FilterType) {
     Object.assign(this, data);
@@ -74,7 +75,7 @@ export default class Filter implements FilterType {
 
   public static async insert(
     context: NcContext,
-    filter: Partial<FilterType> & { order?: number },
+    filter: Partial<FilterType>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(filter, [
@@ -190,7 +191,7 @@ export default class Filter implements FilterType {
       await NocoCache.set(key, value).then(async () => {
         /* append key to relevant lists */
         const p = [];
-        if (filter.fk_view_id && !filter.fk_parent_column_id) {
+        if (filter.fk_view_id) {
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,
@@ -236,15 +237,15 @@ export default class Filter implements FilterType {
               ),
             );
           }
-          if (filter.fk_parent_column_id) {
-            p.push(
-              NocoCache.appendToList(
-                CacheScope.FILTER_EXP,
-                [filter.fk_parent_column_id, filter.fk_parent_id],
-                key,
-              ),
-            );
-          }
+          // if (filter.fk_parent_column_id) {
+          //   p.push(
+          //     NocoCache.appendToList(
+          //       CacheScope.FILTER_EXP,
+          //       [filter.fk_parent_column_id, filter.fk_parent_id],
+          //       key,
+          //     ),
+          //   );
+          // }
           p.push(
             NocoCache.appendToList(
               CacheScope.FILTER_EXP,

@@ -5,6 +5,10 @@ const aiIntegrationNotFound = 'AI integration not found'
 export const useNocoAi = createSharedComposable(() => {
   const { $api } = useNuxtApp()
 
+  const workspaceStore = useWorkspace()
+
+  const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
   const basesStore = useBases()
 
   const { activeProjectId } = storeToRefs(basesStore)
@@ -50,6 +54,25 @@ export const useNocoAi = createSharedComposable(() => {
       aiLoading.value = true
 
       const res = await $api.ai.schema(baseId, { operation, input })
+
+      return res
+    } catch (e) {
+      console.error(e)
+      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+    } finally {
+      aiLoading.value = false
+    }
+  }
+
+  const callAiSchemaCreateApi = async (operation: string, input: any) => {
+    try {
+      if (!aiIntegrationAvailable.value || !activeWorkspaceId.value) {
+        return
+      }
+
+      aiLoading.value = true
+
+      const res = await $api.ai.schemaCreate(activeWorkspaceId.value, { operation, input })
 
       return res
     } catch (e) {
@@ -166,6 +189,18 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
+  const predictSchema = async (input: any) => {
+    const res = await callAiSchemaCreateApi('predictSchema', input)
+
+    return res
+  }
+
+  const createSchema = async (schema: any) => {
+    const res = await callAiSchemaCreateApi('createSchema', schema)
+
+    return res
+  }
+
   return {
     aiIntegrationAvailable,
     aiLoading,
@@ -179,5 +214,7 @@ export const useNocoAi = createSharedComposable(() => {
     generateRows,
     generatingRows,
     generatingColumns,
+    predictSchema,
+    createSchema,
   }
 })

@@ -32,12 +32,12 @@ import { Integration } from '~/models';
 import {
   generateDummyDataPrompt,
   generateDummyDataSystemMessage,
-  generateSchemaSystemMessage,
-  generateSchemaUserMessage,
   generateTablesPrompt,
   generateTablesSystemMessage,
   generateViewsPrompt,
   generateViewsSystemMessage,
+  predictSchemaPrompt,
+  predictSchemaSystemMessage,
 } from '~/integrations/ai/module/prompts/index';
 
 @Injectable()
@@ -57,22 +57,15 @@ export class AiSchemaService {
     private dataTableService: DataTableService,
   ) {}
 
-  async generateSchema(
+  async predictSchema(
     context: NcContext,
     params: {
-      baseId: string;
       input: string;
       instructions?: string;
       req?: any;
     },
   ) {
-    const { baseId, input, instructions, req } = params;
-
-    const base = await Base.get(context, baseId);
-
-    if (!base) {
-      throw new Error('Base not found');
-    }
+    const { input, instructions } = params;
 
     const integration = await Integration.getCategoryDefault(
       context,
@@ -85,8 +78,23 @@ export class AiSchemaService {
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
-    const { data, usage } = await wrapper.generateObject({
+    const { data, usage } = await wrapper.generateObject<{
+      tables?: {
+        title?: string;
+        columns?: {
+          title?: string;
+          type?: string;
+          options?: string[];
+        }[];
+      }[];
+      relationships?: {
+        from?: string;
+        to?: string;
+        type?: string;
+      }[];
+    }>({
       schema: z.object({
+        title: z.string(),
         tables: z.array(
           z.object({
             title: z.string(),
@@ -128,22 +136,60 @@ export class AiSchemaService {
             type: z.enum(['oo', 'hm', 'mm']),
           }),
         ),
+        views: z.array(
+          z.object({
+            type: z.enum(['grid', 'kanban', 'calendar', 'form', 'gallery']),
+            table: z.string(),
+            title: z.string(),
+            filters: z
+              .array(
+                z.object({
+                  comparison_op: z.string(),
+                  logical_op: z.string(),
+                  value: z.string(),
+                  column: z.string(),
+                }),
+              )
+              .optional(),
+            sorts: z
+              .array(
+                z.object({
+                  column: z.string(),
+                  order: z.enum(['asc', 'desc']),
+                }),
+              )
+              .optional(),
+            calendar_range: z
+              .array(
+                z.object({
+                  from_column: z.string(),
+                }),
+              )
+              .optional(),
+            gridGroupBy: z.string().or(z.array(z.string())).optional(),
+            kanbanGroupBy: z.string().optional(),
+          }),
+        ),
       }),
       messages: [
         {
           role: 'system',
-          content: generateSchemaSystemMessage(),
+          content: predictSchemaSystemMessage(),
         },
         {
           role: 'user',
-          content: generateSchemaUserMessage(input, instructions),
+          content: predictSchemaPrompt(input, instructions),
         },
       ],
     });
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
 
-    return this.createSchema(context, { base, schema: data, req });
+    return {
+      title: input.trim().substring(0, 50),
+      ...data,
+    };
+    // return this.createSchema(context, { base, schema: data, req });
   }
 
   async generateTables(
@@ -260,13 +306,16 @@ export class AiSchemaService {
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
 
-    return this.createSchema(context, { base, schema: data, req });
+    return this.createSchema(context, { base, schema: data, req }).then(
+      (res) => res.tables,
+    );
   }
 
-  private async createSchema(
+  public async createSchema(
     context: NcContext,
     params: {
-      base: Base;
+      base?: Base;
+      baseId?: string;
       schema: {
         tables?: {
           title?: string;
@@ -281,10 +330,38 @@ export class AiSchemaService {
           to?: string;
           type?: string;
         }[];
+        views?: {
+          type?: string;
+          table?: string;
+          title?: string;
+          filters?: {
+            comparison_op?: string;
+            logical_op?: string;
+            value?: string;
+            column?: string;
+          }[];
+          sorts?: {
+            column?: string;
+            order?: 'asc' | 'desc';
+          }[];
+          calendar_range?: {
+            from_column?: string;
+          }[];
+          gridGroupBy?: string | string[];
+          kanbanGroupBy?: string;
+        }[];
       };
       req: any;
     },
   ) {
+    if (!params.base && !params.baseId) {
+      throw new Error('Base not found');
+    }
+
+    if (params.baseId) {
+      params.base = await Base.get(context, params.baseId);
+    }
+
     const { base, schema, req } = params;
 
     const tables = schema.tables || [];
@@ -360,7 +437,14 @@ export class AiSchemaService {
       generatedLinksFromTo.push(relation);
     }
 
-    return generatedTables;
+    if (schema.views) {
+      await this.createViews(context, { base, views: schema.views, req });
+    }
+
+    return {
+      ...base,
+      tables: generatedTables,
+    };
   }
 
   async generateViews(
@@ -423,7 +507,7 @@ export class AiSchemaService {
                 }),
               )
               .optional(),
-            gridGroupBy: z.array(z.string()).optional(),
+            gridGroupBy: z.string().or(z.array(z.string())).optional(),
             kanbanGroupBy: z.string().optional(),
           }),
         ),
@@ -474,7 +558,7 @@ export class AiSchemaService {
         calendar_range?: {
           from_column?: string;
         }[];
-        gridGroupBy?: string[];
+        gridGroupBy?: string | string[];
         kanbanGroupBy?: string;
       }[];
       req: any;
@@ -524,7 +608,7 @@ export class AiSchemaService {
         type: viewTypes[view.type],
       };
 
-      switch (view.type) {
+      switch (view.type?.toLowerCase()) {
         case 'grid':
           {
             const grid = await this.gridsService.gridViewCreate(context, {
@@ -535,7 +619,13 @@ export class AiSchemaService {
 
             await grid.getColumns(context);
 
-            for (const groupBy of view.gridGroupBy || []) {
+            view.gridGroupBy = Array.isArray(view.gridGroupBy)
+              ? view.gridGroupBy
+              : view.gridGroupBy
+              ? [view.gridGroupBy]
+              : [];
+
+            for (const groupBy of view.gridGroupBy) {
               const columnId = getColumnId(groupBy);
 
               if (!columnId) {
@@ -1014,8 +1104,8 @@ export class AiSchemaService {
           calendar_range?: {
             from_column: string;
           }[];
-          gridGroupBy?: string[];
-          kanbanGroupBy?: string;
+          gridGroupBy?: string | string[];
+          kanbanGroupBy?: string | string[];
         } = {
           type: serializedViewTypes[view.type],
           table: table.title,

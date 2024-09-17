@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   HttpCode,
-  Param,
   Post,
   Req,
   UseGuards,
@@ -13,8 +12,8 @@ import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
-import { BasesService } from '~/services/bases.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { BasesService } from '~/services/bases.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -57,9 +56,83 @@ export class AiSchemaController {
         tableIds: [tableId],
         req: req,
       });
+    } else if (operation === 'predictSchema') {
+      return await this.aiSchemaService.predictSchema(context, {
+        input: body.input,
+        req: req,
+      });
+    } else if (operation === 'createSchema') {
+      const { input } = body.input;
+
+      const base = await this.basesService.baseCreate({
+        base: {
+          title: input.title.trim().substring(0, 50),
+          type: 'database',
+          ...({ fk_workspace_id: context.workspace_id } || {}),
+        },
+        user: { id: req.user.id },
+        req: req,
+      });
+
+      context.base_id = base.id;
+
+      return await this.aiSchemaService.createSchema(context, {
+        baseId: context.base_id,
+        schema: body.input,
+        req: req,
+      });
     }
   }
 
+  @Post(['/api/v2/ai/schema/:workspaceId'])
+  @Acl('aiSchema', {
+    scope: 'base',
+  })
+  @HttpCode(200)
+  async aiSchemaCreate(
+    @TenantContext() context: NcContext,
+    @Req() req: Request,
+    @Body()
+    body: {
+      operation: string;
+      input: any;
+    },
+  ) {
+    const { operation } = body;
+
+    if (operation === 'predictSchema') {
+      return await this.aiSchemaService.predictSchema(context, {
+        input: body.input,
+        req: req,
+      });
+    } else if (operation === 'createSchema') {
+      const { input } = body;
+
+      if (!input.title) {
+        throw new Error('Title is required');
+      }
+
+      const base = await this.basesService.baseCreate({
+        base: {
+          title: input.title.trim().substring(0, 50),
+          type: 'database',
+          ...({ fk_workspace_id: context.workspace_id } || {}),
+        },
+        user: { id: req.user.id },
+        req: req,
+      });
+
+      context.base_id = base.id;
+
+      return await this.aiSchemaService.createSchema(context, {
+        baseId: context.base_id,
+        schema: body.input,
+        req: req,
+      });
+    }
+  }
+
+  /*
   @Post(['/api/v2/ai/template/:workspaceId'])
   @HttpCode(200)
   @Acl('baseCreate', {
@@ -92,7 +165,7 @@ export class AiSchemaController {
 
     context.base_id = base.id;
 
-    await this.aiSchemaService.generateSchema(context, {
+    await this.aiSchemaService.predictSchema(context, {
       baseId: base.id,
       input,
       instructions,
@@ -117,4 +190,5 @@ export class AiSchemaController {
 
     return base;
   }
+  */
 }

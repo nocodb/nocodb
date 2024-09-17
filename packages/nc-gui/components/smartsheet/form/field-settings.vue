@@ -60,6 +60,8 @@ const columnSupportsScanning = (elementType: UITypes) =>
           </div>
         </div>
 
+        <LazySmartsheetFormFieldSettingsVisibility />
+
         <!-- Limit options -->
         <div v-if="isSelectTypeCol(activeField.uidt)" class="w-full flex items-start justify-between gap-3">
           <div class="flex-1 max-w-[calc(100%_-_40px)]">

@@ -24,9 +24,17 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const formState = ref<Record<string, any>>({})
 
+    const activeRow = ref('')
+
     const localColumns = ref<Record<string, any>[]>([])
 
-    const activeRow = ref('')
+    const localColumnsMapByFkColumnId = computed(() => {
+      return localColumns.value.reduce((acc, c) => {
+        acc[c.fk_column_id] = c
+
+        return acc
+      }, {} as Record<string, ColumnType & Record<string, any>>)
+    })
 
     const visibleColumns = computed(() =>
       localColumns.value.filter((f) => f.show).sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity)),
@@ -171,6 +179,8 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       return required || (columnObj && columnObj.rqd && !columnObj.cdf)
     }
 
+    const loadAllviewFilters = async () => {}
+
     function checkFieldVisibility() {}
 
     return {
@@ -190,7 +200,9 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       fieldMappings,
       isValidRedirectUrl,
       formViewData,
+      loadAllviewFilters,
       allViewFilters,
+      localColumnsMapByFkColumnId,
       checkFieldVisibility,
     }
   },

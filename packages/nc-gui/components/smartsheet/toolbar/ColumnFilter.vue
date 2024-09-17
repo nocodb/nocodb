@@ -883,10 +883,6 @@ const changeToDynamic = async (filter, i) => {
                         <div
                           class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
                           style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
-                          :class="{
-                            '-left-32.5': !isAddNewRecordGridMode,
-                            '-left-21.5': isAddNewRecordGridMode,
-                          }"
                         >
                           <div
                             class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"

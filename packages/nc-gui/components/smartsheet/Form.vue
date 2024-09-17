@@ -1312,7 +1312,7 @@ useEventListener(
                                 </a-form-item>
 
                                 <div>
-                                  <LazySmartsheetFormFieldConfigError :column="element" />
+                                  <LazySmartsheetFormFieldConfigError :column="element" mode="preview" />
                                 </div>
                               </div>
                             </div>
@@ -1632,9 +1632,13 @@ useEventListener(
                                           </NcTooltip>
                                           <span>)</span>
                                         </div>
-                                        <span v-if="isRequired(field, field.required)" class="text-red-500 text-sm align-top"
-                                          >&nbsp;*</span
-                                        >
+
+                                        <span v-if="isRequired(field, field.required)" class="text-red-500 text-sm align-top">
+                                          &nbsp;*
+                                        </span>
+                                        <div class="flex items-center">
+                                          <LazySmartsheetFormFieldConfigError :column="field" mode="list" />
+                                        </div>
                                       </div>
                                     </div>
                                   </div>

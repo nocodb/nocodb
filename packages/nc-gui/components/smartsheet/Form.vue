@@ -104,7 +104,9 @@ const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
 reloadEventHook.on(async (params) => {
   if (params?.isFormFieldFilters) {
-    checkFieldVisibility()
+    setTimeout(() => {
+      checkFieldVisibility()
+    }, 100)
   } else {
     await Promise.all([loadFormView(), loadReleatedMetas()])
     setFormData()
@@ -1236,7 +1238,7 @@ useEventListener(
                             <div class="flex items-center gap-3">
                               <NcTooltip
                                 v-if="allViewFilters[element.fk_column_id]?.length"
-                                class="relative h-4 w-4 flex cursor-pointer"
+                                class="relative h-3.5 w-3.5 flex cursor-pointer"
                                 placement="topLeft"
                               >
                                 <template #title> Conditionally visible field </template>
@@ -1244,9 +1246,9 @@ useEventListener(
                                   <GeneralIcon
                                     v-if="element?.visible"
                                     icon="eye"
-                                    class="w-4 h-4 flex-none text-nc-content-gray-muted"
+                                    class="w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
                                   />
-                                  <GeneralIcon v-else icon="eyeSlash" class="w-4 h-4 flex-none text-nc-content-gray-muted" />
+                                  <GeneralIcon v-else icon="eyeSlash" class="w-3.5 h-3.5 flex-none text-nc-content-gray-muted" />
                                 </Transition>
                               </NcTooltip>
                               <div class="text-sm font-semibold text-gray-800">

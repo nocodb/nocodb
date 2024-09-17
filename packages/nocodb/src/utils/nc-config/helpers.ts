@@ -14,19 +14,15 @@ import { DriverClient } from './interfaces';
 import type { Connection, DbConfig } from './interfaces';
 
 export async function prepareEnv({
-databaseUrlFile = process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
-databaseUrl = process.env.NC_DATABASE_URL || process.env.DATABASE_URL,
-                                 } = {}) {
+  databaseUrlFile = process.env.NC_DATABASE_URL_FILE ||
+    process.env.DATABASE_URL_FILE,
+  databaseUrl = process.env.NC_DATABASE_URL || process.env.DATABASE_URL,
+} = {}) {
   if (databaseUrlFile) {
-    const database_url = await promisify(fs.readFile)(
-      databaseUrlFile,
-      'utf-8',
-    );
+    const database_url = await promisify(fs.readFile)(databaseUrlFile, 'utf-8');
     process.env.NC_DB = jdbcToXcUrl(database_url);
   } else if (databaseUrl) {
-    process.env.NC_DB = jdbcToXcUrl(
-      databaseUrl,
-    );
+    process.env.NC_DB = jdbcToXcUrl(databaseUrl);
   }
 }
 

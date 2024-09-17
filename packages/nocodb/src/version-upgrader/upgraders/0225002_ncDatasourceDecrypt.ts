@@ -36,26 +36,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   }
 
   // get all external sources
-  const sources = await ncMeta.knexConnection(MetaTable.SOURCES).condition({
-    _not: {
-      _or: [
-        {
-          is_meta: {
-            eq: 1,
-          },
-        },
-        ...(Noco.isEE()
-          ? [
-              {
-                is_local: {
-                  eq: 1,
-                },
-              },
-            ]
-          : []),
-      ],
-    },
-  });
+  const sources = await ncMeta.knexConnection(MetaTable.SOURCES);
 
   const passed = [];
 

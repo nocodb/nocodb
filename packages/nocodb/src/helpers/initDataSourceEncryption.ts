@@ -1,6 +1,6 @@
 import process from 'process';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { encryptPropIfRequired } from '~/utils';
 
 export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
@@ -28,13 +28,11 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
         qb.where('is_local', false).orWhereNull('is_local');
       });
 
-    const isAtleastOneSourceEncrypted = false;
-
     for (const source of sources) {
       // encrypt the data source
       await ncMeta.metaUpdate(
         source.fk_workspace_id,
-        source.id,
+        source.base_id,
         MetaTable.SOURCES,
         {
           config: encryptPropIfRequired({
@@ -43,6 +41,7 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
           }),
           is_encrypted: true,
         },
+        source.id,
       );
     }
 
@@ -55,8 +54,8 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
     for (const integration of integrations) {
       // encrypt the data source
       await ncMeta.metaUpdate(
-        integration.fk_workspace_id,
-        integration.id,
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
         MetaTable.INTEGRATIONS,
         {
           config: encryptPropIfRequired({
@@ -65,9 +64,9 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
           }),
           is_encrypted: true,
         },
+        integration.id,
       );
     }
-
     await ncMeta.commit();
   } catch (e) {
     await ncMeta.rollback();

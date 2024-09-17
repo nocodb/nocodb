@@ -55,10 +55,10 @@ export function useViewFilters(
 
   const filters = computed<ColumnFilterType[]>({
     get: () => {
-      return (nestedMode.value && !isLink && !isWebhook) || isForm.value ? currentFilters.value! : _filters.value
+      return (nestedMode.value && !isLink && !isWebhook) || (isForm.value && !isWebhook) ? currentFilters.value! : _filters.value
     },
     set: (value: ColumnFilterType[]) => {
-      if (isForm.value) {
+      if (isForm.value && !isWebhook) {
         currentFilters.value = value
         return
       } else if (nestedMode.value) {
@@ -264,7 +264,7 @@ export function useViewFilters(
   } = {}) => {
     if (!view.value?.id) return
 
-    if (nestedMode.value || isForm.value) {
+    if (nestedMode.value || (isForm.value && !isWebhook)) {
       // ignore restoring if not root filter group
       return
     }
@@ -369,7 +369,7 @@ export function useViewFilters(
 
     if (!view.value && !linkColId?.value) return
 
-    if (!undo && !isForm.value) {
+    if (!undo && !(isForm.value && !isWebhook)) {
       const lastFilter = lastFilters.value[i]
       if (lastFilter) {
         const delta = clone(getFieldDelta(filter, lastFilter))
@@ -479,7 +479,7 @@ export function useViewFilters(
   const deleteFilter = async (filter: ColumnFilterType, i: number, undo = false) => {
     // update the filter status
     filter.status = 'delete'
-    if (!undo && !filter.is_group && !isForm.value) {
+    if (!undo && !filter.is_group && !(isForm.value && !isWebhook)) {
       addUndo({
         undo: {
           fn: async (fl: ColumnFilterType) => {
@@ -540,7 +540,7 @@ export function useViewFilters(
     filters.value.push(
       (draftFilter?.fk_column_id ? { ...placeholderFilter(), ...draftFilter } : placeholderFilter()) as ColumnFilterType,
     )
-    if (!undo && !isForm.value) {
+    if (!undo && !(isForm.value && !isWebhook)) {
       addUndo({
         undo: {
           fn: async function undo(this: UndoRedoAction, i: number) {

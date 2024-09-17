@@ -119,7 +119,7 @@ const {
   parentId,
   computed(() => autoSave.value),
   () => {
-    reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0, isFormFieldFilters: isForm.value })
+    reloadDataHook.trigger({ shouldShowLoading: showLoading.value, offset: 0, isFormFieldFilters: isForm.value && !webHook.value })
     reloadAggregate?.trigger()
   },
   currentFilters,
@@ -731,7 +731,7 @@ const changeToDynamic = async (filter, i) => {
             </NcSelect>
 
             <NcTooltip
-              v-if="isForm && !fieldsToFilter.find((c) => c?.id === filter.fk_column_id)"
+              v-if="isForm && !webHook && !fieldsToFilter.find((c) => c?.id === filter.fk_column_id)"
               class="flex-1 flex items-center gap-2 px-2 !text-red-500 cursor-pointer"
               :disabled="!filter.fk_column_id || !visibilityError[filter.fk_column_id]"
             >

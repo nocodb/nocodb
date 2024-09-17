@@ -1603,8 +1603,8 @@ useEventListener(
                                     class="flex-1 flex items-center cursor-pointer max-w-[calc(100%_-_40px)]"
                                     @click.prevent="onFormItemClick(field, true)"
                                   >
-                                    <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
-                                    <SmartsheetHeaderCellIcon v-else :column-meta="field" />
+                                    <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" class="!text-gray-600"/>
+                                    <SmartsheetHeaderCellIcon v-else :column-meta="field" class="!text-gray-600" />
                                     <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_28px)]">
                                       <div class="w-full flex items-center">
                                         <div class="ml-1 inline-flex" :class="field.label?.trim() ? 'max-w-1/2' : 'max-w-[95%]'">

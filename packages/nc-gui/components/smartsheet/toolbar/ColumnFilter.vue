@@ -990,7 +990,7 @@ const changeToDynamic = async (filter, i) => {
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton class="nc-btn-focus" size="small" :type="actionBtnType" @click.stop="addFilter()">
+          <NcButton class="nc-btn-focus" size="small" :type="actionBtnType" data-testid="add-filter" @click.stop="addFilter()">
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
@@ -1003,6 +1003,7 @@ const changeToDynamic = async (filter, i) => {
             class="nc-btn-focus"
             :type="actionBtnType"
             size="small"
+            data-testid="add-filter-group"
             @click.stop="addFilterGroup()"
           >
             <div class="flex items-center gap-1">

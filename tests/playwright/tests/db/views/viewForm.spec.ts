@@ -1469,8 +1469,8 @@ test.describe('Form view: conditional fields', () => {
       },
 
       {
-        column_name: 'SingleLine.Text',
-        title: 'SingleLine.Text',
+        column_name: 'Text',
+        title: 'Text',
         uidt: UITypes.SingleLineText,
       },
       {
@@ -1569,14 +1569,14 @@ test.describe('Form view: conditional fields', () => {
     });
 
     // 1. Verify first field conditions btn is disabled: we can't add conditions on first form field
-    await form.selectVisibleField({ title: 'SingleLine.Text' });
+    await form.selectVisibleField({ title: 'Text' });
 
     await form.conditionalFields.verify({ isDisabled: true });
 
     await form.selectVisibleField({ title: 'Decimal' });
 
     const fieldConditionsList = [
-      { column: 'SingleLine.Text', op: 'is equal', value: 'Spain', dataType: UITypes.SingleLineText },
+      { column: 'Text', op: 'is equal', value: 'Spain', dataType: UITypes.SingleLineText },
       { column: 'Email', op: 'is not equal', value: 'user@nocodb.com', dataType: UITypes.Email },
       { column: 'Number', op: '=', value: '22', dataType: UITypes.Number },
     ];
@@ -1602,7 +1602,7 @@ test.describe('Form view: conditional fields', () => {
 
     await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: false });
 
-    await form.fillForm([{ field: 'SingleLine.Text', value: 'Spain' }]);
+    await form.fillForm([{ field: 'Text', value: 'Spain' }]);
     await form.fillForm([{ field: 'Email', value: 'user1@nocodb.com' }]);
 
     await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: false });
@@ -1632,13 +1632,13 @@ test.describe('Form view: conditional fields', () => {
     await form.formHeading.scrollIntoViewIfNeeded();
     await form.formHeading.click();
 
-    await form.removeField({ field: 'SingleLine.Text', mode: 'hideField' });
+    await form.removeField({ field: 'Text', mode: 'hideField' });
 
     await form.verifyFieldConfigError({ title: 'Decimal', hasError: true });
 
     await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: true });
 
-    await form.removeField({ field: 'SingleLine.Text', mode: 'hideField' });
+    await form.removeField({ field: 'Text', mode: 'hideField' });
 
     await form.verifyFieldConfigError({ title: 'Decimal', hasError: false });
 
@@ -1662,7 +1662,7 @@ test.describe('Form view: conditional fields', () => {
     await sharedForm.verifyField({ title: 'Decimal', isVisible: false });
 
     await sharedForm.cell.fillText({
-      columnHeader: 'SingleLine.Text',
+      columnHeader: 'Text',
       text: 'Spain',
       type: UITypes.SingleLineText,
     });

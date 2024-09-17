@@ -522,7 +522,7 @@ function setFormData() {
   localColumns.value = col
     .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
-    .map((c) => ({ ...c, required: !!c.required, visible: true }))
+    .map((c) => ({ ...c, required: !!c.required }))
 
   checkFieldVisibility()
 }
@@ -1221,7 +1221,11 @@ useEventListener(
                               </NcButton>
                             </div>
                             <div class="flex items-center gap-3">
-                              <NcTooltip v-if="allViewFilters[element.fk_column_id]?.length" class="relative h-4 w-4 flex cursor-pointer" placement="topLeft">
+                              <NcTooltip
+                                v-if="allViewFilters[element.fk_column_id]?.length"
+                                class="relative h-4 w-4 flex cursor-pointer"
+                                placement="topLeft"
+                              >
                                 <template #title> Conditionally visible field </template>
                                 <Transition name="icon-fade">
                                   <GeneralIcon

@@ -79,7 +79,6 @@ export class Filter {
   // Method to group filters by fk_parent_column_id
   getNestedGroupedFilters() {
     const groupedFiltes = this.allViewFilters.reduce((acc, filter) => {
-      console.log('filter.fk_parent_column_id', filter.fk_parent_column_id, filter)
       const groupingKey = filter.fk_parent_column_id || 'ungrouped'
 
       if (!acc[groupingKey]) {
@@ -98,7 +97,11 @@ export class Filter {
     return nestedGroupedFilters
   }
 
-  validateCondition(filters: FilterType[] = [], _parentCol: FormViewColumn): boolean {
+  isFieldAboveParentColumn(column: FormViewColumn, parentColumn: FormViewColumn) {
+    return column.order < parentColumn.order
+  }
+
+  validateCondition(filters: FilterType[] = [], parentCol: FormViewColumn, errors: Record<string, string>): boolean {
     if (!filters.length) {
       return true
     }
@@ -109,223 +112,239 @@ export class Filter {
       let res
 
       if (filter.is_group) {
-        res = this.validateCondition(filter.children, _parentCol)
+        res = this.validateCondition(filter.children, parentCol, errors)
       } else {
-        if (!filter.fk_column_id || !this.formViewColumnsMapByFkColumnId[filter.fk_column_id]) return false
+        if (!filter.fk_column_id || !this.formViewColumnsMapByFkColumnId[filter.fk_column_id]) {
+          res = false
+        }
 
         const column = this.formViewColumnsMapByFkColumnId[filter.fk_column_id]
+
+        // If the filter condition col is below parent column then this will be invalid condition so return false
+        if (!this.isFieldAboveParentColumn(column, parentCol)) {
+          errors[column.fk_column_id] = `Condition references a field(${column.title}) that comes later in the form.`
+          res = true
+        }
+
+        if (!column.show) {
+          errors[column.fk_column_id] = `Condition references a field(${column.title}) that was removed from the form.`
+
+          res = true
+        }
 
         const field = column.title
 
         let val = this.formState[field]
 
-        if (
-          [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column.uidt) &&
-          !['empty', 'blank', 'notempty', 'notblank'].includes(filter.comparison_op)
-        ) {
-          const dateFormat = this.isMysql?.(column.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+        if (res === undefined) {
+          if (
+            [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(column.uidt) &&
+            !['empty', 'blank', 'notempty', 'notblank'].includes(filter.comparison_op)
+          ) {
+            const dateFormat = this.isMysql?.(column.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
-          let now = dayjs(new Date())
-          const dateFormatFromMeta = column?.meta?.date_format
-          const dataVal: any = val
-          let filterVal: any = filter.value
-          if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
-            // reset to 1st
-            now = dayjs(now).date(1)
-            if (val) val = dayjs(val).date(1)
-          }
-          if (filterVal) res = dayjs(filterVal).isSame(dataVal, 'day')
+            let now = dayjs(new Date())
+            const dateFormatFromMeta = column?.meta?.date_format
+            const dataVal: any = val
+            let filterVal: any = filter.value
+            if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
+              // reset to 1st
+              now = dayjs(now).date(1)
+              if (val) val = dayjs(val).date(1)
+            }
+            if (filterVal) res = dayjs(filterVal).isSame(dataVal, 'day')
 
-          // handle sub operation
-          switch (filter.comparison_sub_op) {
-            case 'today':
-              filterVal = now
-              break
-            case 'tomorrow':
-              filterVal = now.add(1, 'day')
-              break
-            case 'yesterday':
-              filterVal = now.add(-1, 'day')
-              break
-            case 'oneWeekAgo':
-              filterVal = now.add(-1, 'week')
-              break
-            case 'oneWeekFromNow':
-              filterVal = now.add(1, 'week')
-              break
-            case 'oneMonthAgo':
-              filterVal = now.add(-1, 'month')
-              break
-            case 'oneMonthFromNow':
-              filterVal = now.add(1, 'month')
-              break
-            case 'daysAgo':
-              if (!filterVal) return
-              filterVal = now.add(-filterVal, 'day')
-              break
-            case 'daysFromNow':
-              if (!filterVal) return
-              filterVal = now.add(filterVal, 'day')
-              break
-            case 'exactDate':
-              if (!filterVal) return
-              break
-            // sub-ops for `isWithin` comparison
-            case 'pastWeek':
-              filterVal = now.add(-1, 'week')
-              break
-            case 'pastMonth':
-              filterVal = now.add(-1, 'month')
-              break
-            case 'pastYear':
-              filterVal = now.add(-1, 'year')
-              break
-            case 'nextWeek':
-              filterVal = now.add(1, 'week')
-              break
-            case 'nextMonth':
-              filterVal = now.add(1, 'month')
-              break
-            case 'nextYear':
-              filterVal = now.add(1, 'year')
-              break
-            case 'pastNumberOfDays':
-              if (!filterVal) return
-              filterVal = now.add(-filterVal, 'day')
-              break
-            case 'nextNumberOfDays':
-              if (!filterVal) return
-              filterVal = now.add(filterVal, 'day')
-              break
-          }
+            // handle sub operation
+            switch (filter.comparison_sub_op) {
+              case 'today':
+                filterVal = now
+                break
+              case 'tomorrow':
+                filterVal = now.add(1, 'day')
+                break
+              case 'yesterday':
+                filterVal = now.add(-1, 'day')
+                break
+              case 'oneWeekAgo':
+                filterVal = now.add(-1, 'week')
+                break
+              case 'oneWeekFromNow':
+                filterVal = now.add(1, 'week')
+                break
+              case 'oneMonthAgo':
+                filterVal = now.add(-1, 'month')
+                break
+              case 'oneMonthFromNow':
+                filterVal = now.add(1, 'month')
+                break
+              case 'daysAgo':
+                if (!filterVal) return
+                filterVal = now.add(-filterVal, 'day')
+                break
+              case 'daysFromNow':
+                if (!filterVal) return
+                filterVal = now.add(filterVal, 'day')
+                break
+              case 'exactDate':
+                if (!filterVal) return
+                break
+              // sub-ops for `isWithin` comparison
+              case 'pastWeek':
+                filterVal = now.add(-1, 'week')
+                break
+              case 'pastMonth':
+                filterVal = now.add(-1, 'month')
+                break
+              case 'pastYear':
+                filterVal = now.add(-1, 'year')
+                break
+              case 'nextWeek':
+                filterVal = now.add(1, 'week')
+                break
+              case 'nextMonth':
+                filterVal = now.add(1, 'month')
+                break
+              case 'nextYear':
+                filterVal = now.add(1, 'year')
+                break
+              case 'pastNumberOfDays':
+                if (!filterVal) return
+                filterVal = now.add(-filterVal, 'day')
+                break
+              case 'nextNumberOfDays':
+                if (!filterVal) return
+                filterVal = now.add(filterVal, 'day')
+                break
+            }
 
-          if (dataVal) {
-            switch (filter.comparison_op) {
-              case 'eq':
-                res = dayjs(dataVal).isSame(filterVal, 'day')
-                break
-              case 'neq':
-                res = !dayjs(dataVal).isSame(filterVal, 'day')
-                break
-              case 'gt':
-                res = dayjs(dataVal).isAfter(filterVal, 'day')
-                break
-              case 'lt':
-                res = dayjs(dataVal).isBefore(filterVal, 'day')
-                break
-              case 'lte':
-              case 'le':
-                res = dayjs(dataVal).isSameOrBefore(filterVal, 'day')
-                break
-              case 'gte':
-              case 'ge':
-                res = dayjs(dataVal).isSameOrAfter(filterVal, 'day')
-                break
-              case 'empty':
-              case 'blank':
-                res = dataVal === '' || dataVal === null || dataVal === undefined
-                break
-              case 'notempty':
-              case 'notblank':
-                res = !(dataVal === '' || dataVal === null || dataVal === undefined)
-                break
-              case 'isWithin': {
-                let now = dayjs(new Date()).format(dateFormat).toString()
-                now = column.uidt === UITypes.Date ? now.substring(0, 10) : now
-                switch (filter.comparison_sub_op) {
-                  case 'pastWeek':
-                  case 'pastMonth':
-                  case 'pastYear':
-                  case 'pastNumberOfDays':
-                    res = dayjs(dataVal).isBetween(filterVal, now, 'day')
-                    break
-                  case 'nextWeek':
-                  case 'nextMonth':
-                  case 'nextYear':
-                  case 'nextNumberOfDays':
-                    res = dayjs(dataVal).isBetween(now, filterVal, 'day')
-                    break
+            if (dataVal) {
+              switch (filter.comparison_op) {
+                case 'eq':
+                  res = dayjs(dataVal).isSame(filterVal, 'day')
+                  break
+                case 'neq':
+                  res = !dayjs(dataVal).isSame(filterVal, 'day')
+                  break
+                case 'gt':
+                  res = dayjs(dataVal).isAfter(filterVal, 'day')
+                  break
+                case 'lt':
+                  res = dayjs(dataVal).isBefore(filterVal, 'day')
+                  break
+                case 'lte':
+                case 'le':
+                  res = dayjs(dataVal).isSameOrBefore(filterVal, 'day')
+                  break
+                case 'gte':
+                case 'ge':
+                  res = dayjs(dataVal).isSameOrAfter(filterVal, 'day')
+                  break
+                case 'empty':
+                case 'blank':
+                  res = dataVal === '' || dataVal === null || dataVal === undefined
+                  break
+                case 'notempty':
+                case 'notblank':
+                  res = !(dataVal === '' || dataVal === null || dataVal === undefined)
+                  break
+                case 'isWithin': {
+                  let now = dayjs(new Date()).format(dateFormat).toString()
+                  now = column.uidt === UITypes.Date ? now.substring(0, 10) : now
+                  switch (filter.comparison_sub_op) {
+                    case 'pastWeek':
+                    case 'pastMonth':
+                    case 'pastYear':
+                    case 'pastNumberOfDays':
+                      res = dayjs(dataVal).isBetween(filterVal, now, 'day')
+                      break
+                    case 'nextWeek':
+                    case 'nextMonth':
+                    case 'nextYear':
+                    case 'nextNumberOfDays':
+                      res = dayjs(dataVal).isBetween(now, filterVal, 'day')
+                      break
+                  }
                 }
               }
             }
-          }
-        } else {
-          switch (typeof filter.value) {
-            case 'boolean':
-              val = !!this.formState[field]
-              break
-            case 'number':
-              val = +this.formState[field]
-              break
-          }
+          } else {
+            switch (typeof filter.value) {
+              case 'boolean':
+                val = !!this.formState[field]
+                break
+              case 'number':
+                val = +this.formState[field]
+                break
+            }
 
-          switch (filter.comparison_op) {
-            case 'eq':
-              res = val == filter.value
-              break
-            case 'neq':
-              res = val != filter.value
-              break
-            case 'like':
-              res = this.formState[field]?.toString?.()?.toLowerCase()?.indexOf(filter.value?.toLowerCase()) > -1
-              break
-            case 'nlike':
-              res = this.formState[field]?.toString?.()?.toLowerCase()?.indexOf(filter.value?.toLowerCase()) === -1
-              break
-            case 'empty':
-            case 'blank':
-              res = this.formState[field] === '' || this.formState[field] === null || this.formState[field] === undefined
-              break
-            case 'notempty':
-            case 'notblank':
-              res = !(this.formState[field] === '' || this.formState[field] === null || this.formState[field] === undefined)
-              break
-            case 'checked':
-              res = !!this.formState[field]
-              break
-            case 'notchecked':
-              res = !this.formState[field]
-              break
-            case 'null':
-              res = res = this.formState[field] === null
-              break
-            case 'notnull':
-              res = this.formState[field] !== null
-              break
-            case 'allof':
-              res = (filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-                (this.formState[field]?.split(',') ?? []).includes(item),
-              )
-              break
-            case 'anyof':
-              res = (filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-                (this.formState[field]?.split(',') ?? []).includes(item),
-              )
-              break
-            case 'nallof':
-              res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
-                (this.formState[field]?.split(',') ?? []).includes(item),
-              )
-              break
-            case 'nanyof':
-              res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
-                (this.formState[field]?.split(',') ?? []).includes(item),
-              )
-              break
-            case 'lt':
-              res = +this.formState[field] < +filter.value
-              break
-            case 'lte':
-            case 'le':
-              res = +this.formState[field] <= +filter.value
-              break
-            case 'gt':
-              res = +this.formState[field] > +filter.value
-              break
-            case 'gte':
-            case 'ge':
-              res = +this.formState[field] >= +filter.value
-              break
+            switch (filter.comparison_op) {
+              case 'eq':
+                res = val == filter.value
+                break
+              case 'neq':
+                res = val != filter.value
+                break
+              case 'like':
+                res = this.formState[field]?.toString?.()?.toLowerCase()?.indexOf(filter.value?.toLowerCase()) > -1
+                break
+              case 'nlike':
+                res = this.formState[field]?.toString?.()?.toLowerCase()?.indexOf(filter.value?.toLowerCase()) === -1
+                break
+              case 'empty':
+              case 'blank':
+                res = this.formState[field] === '' || this.formState[field] === null || this.formState[field] === undefined
+                break
+              case 'notempty':
+              case 'notblank':
+                res = !(this.formState[field] === '' || this.formState[field] === null || this.formState[field] === undefined)
+                break
+              case 'checked':
+                res = !!this.formState[field]
+                break
+              case 'notchecked':
+                res = !this.formState[field]
+                break
+              case 'null':
+                res = res = this.formState[field] === null
+                break
+              case 'notnull':
+                res = this.formState[field] !== null
+                break
+              case 'allof':
+                res = (filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
+                  (this.formState[field]?.split(',') ?? []).includes(item),
+                )
+                break
+              case 'anyof':
+                res = (filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
+                  (this.formState[field]?.split(',') ?? []).includes(item),
+                )
+                break
+              case 'nallof':
+                res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).every((item) =>
+                  (this.formState[field]?.split(',') ?? []).includes(item),
+                )
+                break
+              case 'nanyof':
+                res = !(filter.value?.split(',').map((item) => item.trim()) ?? []).some((item) =>
+                  (this.formState[field]?.split(',') ?? []).includes(item),
+                )
+                break
+              case 'lt':
+                res = +this.formState[field] < +filter.value
+                break
+              case 'lte':
+              case 'le':
+                res = +this.formState[field] <= +filter.value
+                break
+              case 'gt':
+                res = +this.formState[field] > +filter.value
+                break
+              case 'gte':
+              case 'ge':
+                res = +this.formState[field] >= +filter.value
+                break
+            }
           }
         }
       }
@@ -352,11 +371,22 @@ export class Filter {
     for (const column of this.formViewColumns) {
       const columnFilters = this.nestedGroupedFilters[column.fk_column_id] ?? []
 
-      const isValid = this.validateCondition(columnFilters, column)
+      const errors: Record<string, string> = {}
+
+      const isValid = this.validateCondition(columnFilters, column, errors)
 
       column.visible = !!isValid
+
+      column.meta = {
+        ...parseProp(column.meta),
+        visibility: {
+          errors,
+        },
+      }
     }
 
     return res
   }
+
+  validateErrors() {}
 }

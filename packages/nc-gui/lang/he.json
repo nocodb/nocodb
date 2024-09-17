@@ -620,7 +620,9 @@
     "fromScratch": "From scratch",
     "fromFileAndExternalSources": "From files & external sources",
     "directlyInRealTime": "Directly in real time",
-    "categories": "Categories"
+    "categories": "Categories",
+    "fieldInaccessible": "Field inaccessible",
+    "noConditionsAdded": "No conditions added"
   },
   "labels": {
     "modifiedOn": "Modified on",
@@ -985,7 +987,7 @@
     "appearanceSettings": "הגדרות מראה",
     "backgroundColor": "צבע רקע",
     "hideNocodbBranding": "הסתרת מיתוג NocoDB",
-    "showOnConditions": "הצג בתנאים",
+    "showOnConditions": "Show on conditions",
     "showFieldOnConditionsMet": "הצגת השדה רק כאשר התנאים מתקיימים",
     "limitOptions": "הגבל אפשרויות",
     "limitOptionsSubtext": "הגבל אפשרויות שנראות למשתמשים על ידי בחירת האפשרויות הזמינות",
@@ -1256,7 +1258,9 @@
     },
     "getPreFilledLink": "קבל קישור מומלא מראש",
     "group": "קבוצה",
-    "goToDocs": "Go to Docs"
+    "goToDocs": "Go to Docs",
+    "addCondition": "Add condition",
+    "addConditionGroup": "Add condition group"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

@@ -559,19 +559,15 @@ const changeToDynamic = async (filter, i) => {
       'min-w-full': nested,
     }"
   >
-    <div v-if="nested" class="flex min-w-full w-min items-center mb-2">
+    <div v-if="nested" class="flex min-w-full w-min items-center gap-1 mb-2">
       <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]">
         <slot name="start"></slot>
       </div>
       <div class="flex-grow"></div>
       <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu" :disabled="disableAddNewFilter">
-        <GeneralIcon
-          icon="plus"
-          class="cursor-pointer"
-          :class="{
-            'opacity-40 cursor-not-allowed': disableAddNewFilter,
-          }"
-        />
+        <NcButton size="xs" type="text" :disabled="disableAddNewFilter">
+          <GeneralIcon icon="plus" class="cursor-pointer" />
+        </NcButton>
 
         <template #overlay>
           <NcMenu>

@@ -1,4 +1,3 @@
-import CryptoJS from 'crypto-js';
 import { Integration as IntegrationCE } from 'src/models';
 import type { IntegrationsType, SourceType } from 'nocodb-sdk';
 import type { BoolType, IntegrationType } from 'nocodb-sdk';
@@ -15,6 +14,7 @@ import {
 import {
   decryptPropIfRequired,
   encryptPropIfRequired,
+  isEncryptionRequired,
   partialExtract,
 } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -47,6 +47,7 @@ export default class Integration extends IntegrationCE {
       created_at?;
       updated_at?;
       meta?: any;
+      is_encrypted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -59,11 +60,14 @@ export default class Integration extends IntegrationCE {
       'meta',
       'created_by',
       'is_private',
+      'is_encrypted',
     ]);
 
     insertObj.config = encryptPropIfRequired({
       data: insertObj,
     });
+
+    insertObj.is_encrypted = isEncryptionRequired();
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -97,6 +101,7 @@ export default class Integration extends IntegrationCE {
     integration: IntegrationType & {
       meta?: any;
       deleted?: boolean;
+      is_encrypted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -119,12 +124,14 @@ export default class Integration extends IntegrationCE {
       'deleted',
       'config',
       'is_private',
+      'is_encrypted',
     ]);
 
     if (updateObj.config) {
       updateObj.config = encryptPropIfRequired({
         data: updateObj,
       });
+      updateObj.is_encrypted = isEncryptionRequired();
     }
 
     // type property is undefined even if not provided

@@ -12,7 +12,7 @@ import {
 } from '~/utils/modelUtils';
 import {
   decryptPropIfRequired,
-  encryptPropIfRequired,
+  encryptPropIfRequired, isEncryptionRequired,
   partialExtract,
 } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -30,6 +30,7 @@ export default class Integration implements IntegrationType {
   meta?: any;
   created_by?: string;
   sources?: Partial<SourceType>[];
+  is_encrypted?: BoolType;
 
   constructor(integration: Partial<IntegrationType>) {
     Object.assign(this, integration);
@@ -45,6 +46,7 @@ export default class Integration implements IntegrationType {
       created_at?;
       updated_at?;
       meta?: any;
+      is_encrypted?: BoolType;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -57,11 +59,14 @@ export default class Integration implements IntegrationType {
       'meta',
       'created_by',
       'is_private',
+      'is_encrypted',
     ]);
 
     insertObj.config = encryptPropIfRequired({
       data: insertObj,
     });
+
+    insertObj.is_encrypted = isEncryptionRequired();
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -101,6 +106,7 @@ export default class Integration implements IntegrationType {
     integration: IntegrationType & {
       meta?: any;
       deleted?: boolean;
+      is_encrypted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -123,12 +129,14 @@ export default class Integration implements IntegrationType {
       'deleted',
       'config',
       'is_private',
+      'is_encrypted'
     ]);
 
     if (updateObj.config) {
       updateObj.config = encryptPropIfRequired({
         data: updateObj,
       });
+      updateObj.is_encrypted = isEncryptionRequired();
     }
 
     // type property is undefined even if not provided

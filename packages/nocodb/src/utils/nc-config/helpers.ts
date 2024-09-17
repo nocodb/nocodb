@@ -13,7 +13,10 @@ import {
 import { DriverClient } from './interfaces';
 import type { Connection, DbConfig } from './interfaces';
 
-export async function prepareEnv() {
+export async function prepareEnv({
+databaseUrlFile = process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
+databaseUrl = process.env.NC_DATABASE_URL || process.env.DATABASE_URL,
+                                 } = {}) {
   if (process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE) {
     const database_url = await promisify(fs.readFile)(
       process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,

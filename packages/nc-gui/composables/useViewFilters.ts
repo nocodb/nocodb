@@ -219,7 +219,7 @@ export function useViewFilters(
       is_group: true,
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
-      ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
+      ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
     }
   }
 

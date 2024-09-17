@@ -228,7 +228,6 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
 watch(
   () => activeView.value?.id,
   (n, o) => {
-    console.log('active view n o', n, o)
     // if nested no need to reload since it will get reloaded from parent
     if (!nested.value && n !== o && (hookId?.value || !webHook.value) && (linkColId?.value || !link.value))
       loadFilters({
@@ -256,7 +255,7 @@ const filtersCount = computed(() => {
   }, 0)
 })
 
-const applyChanges = async (hookOrColId?: string, nested = false, isConditionSupported = true, parentColId?: string) => {
+const applyChanges = async (hookOrColId?: string, nested = false, isConditionSupported = true) => {
   // if condition is not supported, delete all filters present
   // it's used for bulk webhooks with filters since bulk webhooks don't support conditions at the moment
   if (!isConditionSupported) {
@@ -267,16 +266,16 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   }
   if (link.value) {
     if (!hookOrColId && !props.nestedLevel) return
-    await sync({ linkId: hookOrColId, nested, parentColId })
+    await sync({ linkId: hookOrColId, nested })
   } else {
-    await sync({ hookId: hookOrColId, nested, parentColId })
+    await sync({ hookId: hookOrColId, nested })
   }
 
   if (!localNestedFilters.value?.length) return
 
   for (const nestedFilter of localNestedFilters.value) {
     if (nestedFilter.parentId) {
-      await nestedFilter.applyChanges(hookOrColId, true, undefined, parentColId)
+      await nestedFilter.applyChanges(hookOrColId, true, undefined)
     }
   }
 }
@@ -571,9 +570,9 @@ const changeToDynamic = async (filter, i) => {
 
         <template #overlay>
           <NcMenu>
-            <template v-if="isEeUI && !isPublic">
+            <template v-if="!isEeUI && !isPublic">
               <template v-if="filtersCount < getPlanLimit(PlanLimitTypes.FILTER_LIMIT)">
-                <NcMenuItem data-testid="add-filter-menu" @click.stop="addFilter()">
+                <NcMenuItem data-testid="add-filter-menu" @click.stop="addFilter">
                   <div class="flex items-center gap-1">
                     <component :is="iconMap.plus" />
                     <!-- Add Filter -->
@@ -581,7 +580,7 @@ const changeToDynamic = async (filter, i) => {
                   </div>
                 </NcMenuItem>
 
-                <NcMenuItem v-if="nestedLevel < 5" data-testid="add-filter-group-menu" @click.stop="addFilterGroup()">
+                <NcMenuItem v-if="nestedLevel < 5" data-testid="add-filter-group-menu" @click.stop="addFilterGroup">
                   <div class="flex items-center gap-1">
                     <!-- Add Filter Group -->
                     <component :is="iconMap.plusSquare" />
@@ -591,7 +590,7 @@ const changeToDynamic = async (filter, i) => {
               </template>
             </template>
             <template v-else>
-              <NcMenuItem data-testid="add-filter-menu" @click.stop="addFilter()">
+              <NcMenuItem data-testid="add-filter-menu" @click.stop="addFilter">
                 <div class="flex items-center gap-1">
                   <component :is="iconMap.plus" />
                   <!-- Add Filter -->
@@ -599,13 +598,13 @@ const changeToDynamic = async (filter, i) => {
                 </div>
               </NcMenuItem>
 
-              <NcButton v-if="!webHook && nestedLevel < 5" data-testid="add-filter-group-menu" @click.stop="addFilterGroup()">
+              <NcMenuItem v-if="!webHook && nestedLevel < 5" data-testid="add-filter-group-menu" @click.stop="addFilterGroup">
                 <div class="flex items-center gap-1">
                   <!-- Add Filter Group -->
                   <component :is="iconMap.plusSquare" />
                   {{ isForm && !webHook ? $t('activity.addConditionGroup') : $t('activity.addFilterGroup') }}
                 </div>
-              </NcButton>
+              </NcMenuItem>
             </template>
           </NcMenu>
         </template>

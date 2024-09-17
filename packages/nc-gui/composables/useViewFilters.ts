@@ -369,7 +369,7 @@ export function useViewFilters(
 
     if (!view.value && !linkColId?.value) return
 
-    if (!undo) {
+    if (!undo && !isForm.value) {
       const lastFilter = lastFilters.value[i]
       if (lastFilter) {
         const delta = clone(getFieldDelta(filter, lastFilter))
@@ -479,7 +479,7 @@ export function useViewFilters(
   const deleteFilter = async (filter: ColumnFilterType, i: number, undo = false) => {
     // update the filter status
     filter.status = 'delete'
-    if (!undo && !filter.is_group) {
+    if (!undo && !filter.is_group && !isForm.value) {
       addUndo({
         undo: {
           fn: async (fl: ColumnFilterType) => {
@@ -540,7 +540,7 @@ export function useViewFilters(
     filters.value.push(
       (draftFilter?.fk_column_id ? { ...placeholderFilter(), ...draftFilter } : placeholderFilter()) as ColumnFilterType,
     )
-    if (!undo) {
+    if (!undo && !isForm.value) {
       addUndo({
         undo: {
           fn: async function undo(this: UndoRedoAction, i: number) {
@@ -574,8 +574,6 @@ export function useViewFilters(
     if (nestedMode.value) placeHolderGroupFilter.children = [child]
 
     filters.value.push(placeHolderGroupFilter)
-
-    console.log('group', placeHolderGroupFilter)
 
     const index = filters.value.length - 1
 

@@ -659,7 +659,7 @@ export default class Filter implements FilterType {
 
   static async allViewFilterList(
     context: NcContext,
-    { viewId }: { viewId: any },
+    { viewId }: { viewId: string },
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [viewId]);
@@ -683,7 +683,7 @@ export default class Filter implements FilterType {
 
   static async rootFilterList(
     context: NcContext,
-    { viewId }: { viewId: any },
+    { viewId }: { viewId: string },
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(
@@ -718,7 +718,7 @@ export default class Filter implements FilterType {
 
   static async rootFilterListByHook(
     context: NcContext,
-    { hookId }: { hookId: any },
+    { hookId }: { hookId: string },
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(
@@ -749,7 +749,7 @@ export default class Filter implements FilterType {
 
   static async rootFilterListByParentColumn(
     context: NcContext,
-    { parentColId }: { parentColId: any },
+    { parentColId }: { parentColId: string },
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(
@@ -783,7 +783,7 @@ export default class Filter implements FilterType {
     {
       parentId,
     }: {
-      parentId: any;
+      parentId: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -820,8 +820,8 @@ export default class Filter implements FilterType {
       hookId,
       parentId,
     }: {
-      hookId: any;
-      parentId: any;
+      hookId: string;
+      parentId: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -864,8 +864,8 @@ export default class Filter implements FilterType {
       parentColId,
       parentId,
     }: {
-      parentColId: any;
-      parentId: any;
+      parentColId: string;
+      parentId: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -946,7 +946,7 @@ export default class Filter implements FilterType {
 
   static async rootFilterListByLink(
     _context: NcContext,
-    { columnId: _columnId }: { columnId: any },
+    { columnId: _columnId }: { columnId: string },
     _ncMeta = Noco.ncMeta,
   ) {
     return [];

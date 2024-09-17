@@ -417,6 +417,7 @@ export default class View implements ViewType {
           {
             ...extractProps(filter, [
               'id',
+              'fk_parent_column_id',
               'fk_column_id',
               'comparison_op',
               'comparison_sub_op',
@@ -2136,6 +2137,7 @@ export default class View implements ViewType {
 
           filterInsertObjs.push({
             ...extractProps(filter, [
+              'fk_parent_column_id',
               'fk_column_id',
               'comparison_op',
               'comparison_sub_op',

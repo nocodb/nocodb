@@ -861,7 +861,6 @@ const changeToDynamic = async (filter, i) => {
                     class="nc-filter-value-select rounded-md min-w-34"
                     :class="{
                       '!w-full': webHook,
-                      '!w-18': !webHook,
                     }"
                     :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
                     :filter="filter"

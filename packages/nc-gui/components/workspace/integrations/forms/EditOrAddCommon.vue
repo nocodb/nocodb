@@ -119,10 +119,10 @@ onMounted(async () => {
     </div>
 
     <div class="h-[calc(100%_-_66px)] flex">
-      <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin relative">
-        <div class="w-full gap-4 max-w-[768px]">
+      <div class="nc-edit-or-add-integration-left-panel nc-scrollbar-thin relative !px-4">
+        <div class="w-full gap-4 max-w-[784px]">
           <div class="nc-edit-or-add-integration bg-white relative flex flex-col justify-center gap-2 w-full">
-            <NcFormBuilder />
+            <NcFormBuilder class="px-2"/>
             <div class="mt-10"></div>
           </div>
         </div>

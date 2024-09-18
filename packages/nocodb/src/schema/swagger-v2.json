@@ -9719,23 +9719,7 @@
     "/api/v2/meta/comment/{commentId}": {
       "parameters": [
         {
-          "schema": {
-            "type": "string",
-            "example": "adt_zlskd6rlf3liay"
-          },
-          "name": "commentId",
-          "in": "path",
-          "required": true,
-          "description": "Comment ID"
-        },
-        {
-          "name": "xc-auth",
-          "in": "header",
-          "required": false,
-          "schema": {
-            "type": "string"
-          },
-          "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "patch": {
@@ -14212,7 +14196,10 @@
             "description": "Foreign Key to Model",
             "example": "md_ehn5izr99m7d45"
           }
-        }
+        },
+        "required": [
+          "fk_model_id"
+        ]
       },
       "Filter": {
         "description": "Model for Filter",

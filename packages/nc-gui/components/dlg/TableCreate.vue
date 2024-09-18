@@ -432,7 +432,7 @@ watch(
               v-if="!aiMode"
               ref="inputEl"
               v-model:value="table.title"
-              class="nc-input-sm nc-input-shadow !max-w-[calc(100%_-_32px)] z-11"
+              class="nc-table-input nc-input-sm nc-input-shadow !max-w-[calc(100%_-_32px)] z-11"
               hide-details
               data-testid="create-table-title-input"
               :placeholder="$t('msg.info.enterTableName')"
@@ -441,7 +441,7 @@ watch(
               v-else
               ref="inputEl"
               v-model:value="table.title"
-              class="nc-input-sm nc-input-shadow max-w-[calc(100%_-_32px)] z-11"
+              class="nc-table-input nc-input-sm nc-input-shadow max-w-[calc(100%_-_32px)] z-11"
               hide-details
               data-testid="create-table-title-input"
               :placeholder="selectedTables.length ? '' : 'Enter table names or choose from suggestions'"
@@ -466,14 +466,14 @@ watch(
             <!-- Black overlay button on end of input -->
             <NcTooltip
               :title="aiMode ? 'Disable AI suggestions' : 'Suggest tables using AI'"
-              class="absolute right-0 top-0 h-full"
+              class="nc-table-ai-toggle-btn absolute right-0 top-0 h-full"
             >
               <NcButton
                 size="small"
                 type="secondary"
                 class="z-10 !border-l-0 !rounded-l-none !pl-3.8"
                 :class="{
-                  '!bg-nc-bg-purple-light !border-purple-100 !text-nc-fill-purple-dark': !aiMode,
+                  '!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !border-purple-100 !text-nc-fill-purple-dark': !aiMode,
                   '!bg-purple-700 !border-purple-700 !text-white': aiMode,
                 }"
                 @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
@@ -831,7 +831,19 @@ watch(
 
   .nc-nocoai-settings {
     &:not(:disabled) {
-      @apply hover:!bg-purple-100;
+      @apply hover:!bg-nc-bg-purple-light;
+    }
+  }
+}
+
+.nc-table-input {
+  &:not(:focus) {
+    @apply !rounded-r-none !border-r-0;
+
+    & ~ .nc-table-ai-toggle-btn {
+      button {
+        @apply !pl-[7px] z-11 !border-l-1;
+      }
     }
   }
 }

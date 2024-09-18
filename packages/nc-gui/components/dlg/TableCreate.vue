@@ -382,6 +382,18 @@ const handleNavigateToIntegrations = () => {
 
   workspaceStore.navigateToIntegrations()
 }
+
+watch(
+  dialogShow,
+  (value) => {
+    if (value) {
+      if (!aiIntegrationAvailable.value) {
+        aiIntegrationAvailable.value = true
+      }
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -437,7 +449,7 @@ const handleNavigateToIntegrations = () => {
             <!-- overlay selected tags with close icon on input -->
             <div
               v-if="aiMode"
-              class="absolute top-0 max-w-[calc(100%_-_48px)] left-0 h-8 flex items-center gap-2 mx-2 nc-scrollbar-thin overflow-x-auto"
+              class="absolute top-0 max-w-[calc(100%_-_48px)] left-0 z-12 h-8 flex items-center gap-2 mx-2 nc-scrollbar-thin overflow-x-auto"
             >
               <a-tag
                 v-for="t in selectedTables"
@@ -658,7 +670,7 @@ const handleNavigateToIntegrations = () => {
           </AiWizardCard>
 
           <a-form-item
-            v-if="enableDescription"
+            v-if="enableDescription && !aiMode"
             v-bind="validateInfos.description"
             :class="{ '!mb-1': isSnowflake(props.sourceId), '!mb-0': !isSnowflake(props.sourceId) }"
           >
@@ -786,7 +798,7 @@ const handleNavigateToIntegrations = () => {
           size="xs"
           class="nc-nocoai-settings !px-1 !text-current"
           type="text"
-          :disabled="aiLoading || !aiIntegrationAvailable"
+          :disabled="aiLoading || !aiIntegrationAvailable || !aiMode"
         >
           <GeneralIcon icon="settings" />
         </NcButton>

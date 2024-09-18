@@ -782,7 +782,12 @@ const handleNavigateToIntegrations = () => {
         :workspace-id="activeWorkspaceId"
         placement="bottom"
       >
-        <NcButton size="xs" class="nc-nocoai-settings !px-1 !text-current" type="text" :disabled="aiLoading">
+        <NcButton
+          size="xs"
+          class="nc-nocoai-settings !px-1 !text-current"
+          type="text"
+          :disabled="aiLoading || aiIntegrationAvailable"
+        >
           <GeneralIcon icon="settings" />
         </NcButton>
       </AiSettings>
@@ -813,7 +818,9 @@ const handleNavigateToIntegrations = () => {
   @apply px-6 py-1 flex items-center gap-2 text-nc-content-purple-dark border-t-1 border-purple-100;
 
   .nc-nocoai-settings {
-    @apply hover:!bg-purple-100;
+    &:not(:disabled) {
+      @apply hover:!bg-purple-100;
+    }
   }
 }
 </style>

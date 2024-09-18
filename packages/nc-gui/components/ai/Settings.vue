@@ -1,13 +1,19 @@
 <script lang="ts" setup>
 import { type IntegrationType, IntegrationsType } from 'nocodb-sdk'
 
-const props = defineProps<{
-  fkIntegrationId?: string
-  model?: string
-  randomness?: string
-  workspaceId: string
-  scope?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    fkIntegrationId?: string
+    model?: string
+    randomness?: string
+    workspaceId: string
+    scope?: string
+    showTooltip?: boolean
+  }>(),
+  {
+    showTooltip: true,
+  },
+)
 
 const emits = defineEmits(['update:fkIntegrationId', 'update:model', 'update:randomness'])
 
@@ -74,8 +80,8 @@ onMounted(async () => {
 
     <template #overlay>
       <div class="flex flex-col w-[320px] overflow-hidden">
-        <div class="flex items-center justify-between w-full px-4 py-2 bg-purple-50">
-          <span class="text-sm font-bold text-purple-600">Settings</span>
+        <div class="flex items-center justify-between w-full p-3 bg-purple-50">
+          <span class="text-sm font-bold text-nc-content-gray">Settings</span>
           <!-- Todo: add docs link  -->
           <a
             target="_blank"
@@ -84,11 +90,11 @@ onMounted(async () => {
             >{{ $t('title.docs') }}</a
           >
         </div>
-        <div class="flex flex-col px-4 py-2 text-sm gap-2">
+        <div class="flex flex-col p-3 text-sm gap-3">
           <!-- Integration Select -->
           <div class="flex items-center gap-2">
-            <span class="font-bold text-gray-600 w-2/6">Integration</span>
-            <div class="w-1/6 flex justify-end">
+            <span class="text-nc-content-gray w-2/6">Integration</span>
+            <div v-if="showTooltip" class="w-1/6 flex justify-end">
               <NcTooltip placement="top">
                 <template #title>
                   <span>Integration to use for this operation</span>
@@ -96,18 +102,32 @@ onMounted(async () => {
                 <GeneralIcon icon="info" class="text-sm text-gray-500" />
               </NcTooltip>
             </div>
-            <div class="w-3/6">
+            <div class="flex-1">
               <NcSelect v-model:value="vFkIntegrationId" class="w-full" size="middle" @change="onIntegrationChange">
                 <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
-                  {{ integration.title }}
+                  <div class="w-full flex gap-2 items-center">
+                    <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ integration.title }}
+                      </template>
+                      {{ integration.title }}
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="vFkIntegrationId === integration.id"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
                 </a-select-option>
               </NcSelect>
             </div>
           </div>
           <!-- Model Select -->
           <div class="flex items-center gap-2">
-            <span class="font-bold text-gray-600 w-2/6">Model</span>
-            <div class="w-1/6 flex justify-end">
+            <span class="text-nc-content-gray w-2/6">Model</span>
+            <div v-if="showTooltip" class="w-1/6 flex justify-end">
               <NcTooltip placement="top">
                 <template #title>
                   <span>Model to use for this operation</span>
@@ -115,7 +135,7 @@ onMounted(async () => {
                 <GeneralIcon icon="info" class="text-sm text-gray-500" />
               </NcTooltip>
             </div>
-            <div class="w-3/6">
+            <div class="flex-1">
               <NcSelect
                 v-model:value="vModel"
                 class="w-full"
@@ -131,8 +151,8 @@ onMounted(async () => {
           </div>
           <!-- Randomness 
           <div class="flex items-center gap-2">
-            <span class="font-bold text-gray-600 w-2/6">Randomness</span>
-            <div class="w-1/6 flex justify-end">
+            <span class="text-nc-content-gray w-2/6">Randomness</span>
+            <div v-if="showTooltip" class="w-1/6 flex justify-end">
               <NcTooltip placement="top">
                 <template #title>
                   <span>Randomness of the response</span>
@@ -140,7 +160,7 @@ onMounted(async () => {
                 <GeneralIcon icon="info" class="text-sm text-gray-500" />
               </NcTooltip>
             </div>
-            <div class="w-3/6">
+            <div class="flex-1">
               <NcSelect v-model:value="vModel.randomness" class="w-full" size="middle" :disabled="!vModel.fk_integration_id">
                 <a-select-option value="high">High</a-select-option>
                 <a-select-option value="medium">Medium</a-select-option>

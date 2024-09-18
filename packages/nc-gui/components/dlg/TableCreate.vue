@@ -328,7 +328,7 @@ onMounted(() => {
 
 const fullAuto = async (e) => {
   const target = e.target as HTMLElement
-  if (!aiIntegrationAvailable.value || !aiError.value || target.closest('button, input, .nc-button, textarea')) return
+  if (!aiIntegrationAvailable.value || aiError.value || target.closest('button, input, .nc-button, textarea')) return
 
   if (!aiModeStep.value) {
     await toggleAiMode()
@@ -814,7 +814,7 @@ watch(
 
       <div class="nc-ai-wizard-card-footer-branding text-xs">
         Powered by
-        <a class="!no-underline font-semibold !text-inherit"> Noco AI </a>
+        <span class="font-semibold !text-inherit"> Noco AI </span>
       </div>
 
       <AiSettings
@@ -822,11 +822,15 @@ watch(
         v-model:model="availableIntegration.model"
         v-model:randomness="availableIntegration.randomness"
         :workspace-id="activeWorkspaceId"
+        :show-tooltip="false"
         placement="bottom"
       >
         <NcButton
           size="xs"
           class="nc-nocoai-settings !px-1 !text-current"
+          :class="{
+            'nc-ai-loading': aiLoading,
+          }"
           type="text"
           :disabled="aiLoading || !aiIntegrationAvailable || !aiMode"
         >
@@ -862,6 +866,9 @@ watch(
   .nc-nocoai-settings {
     &:not(:disabled) {
       @apply hover:!bg-nc-bg-purple-light;
+    }
+    &.nc-ai-loading {
+      @apply !cursor-wait;
     }
   }
 }

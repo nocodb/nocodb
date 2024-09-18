@@ -136,20 +136,25 @@ const predictMore = async () => {
 
   if (predictions.length) {
     predictedTables.value.push(
-      ...predictions.filter((t) => !predictedTables.value.includes(t) && !removedFromPredictedTables.value.has(t)),
+      ...predictions.filter(
+        (t) =>
+          !predictedTables.value.includes(t) && !selectedTables.value.includes(t) && !removedFromPredictedTables.value.has(t),
+      ),
     )
-    predictHistory.value.push(...predictions)
+    predictHistory.value.push(...predictions.filter((t) => !selectedTables.value.includes(t)))
   }
 }
 
 const predictRefresh = async () => {
   calledFunction.value = 'predictRefresh'
 
-  const predictions: string[] = await predictNextTables(predictHistory.value, props.baseId)
+  const predictions: string[] = (await predictNextTables(predictHistory.value, props.baseId)).filter(
+    (t) => !selectedTables.value.includes(t) && !removedFromPredictedTables.value.has(t),
+  )
 
   if (predictions.length) {
-    predictedTables.value = predictions.filter((t) => !removedFromPredictedTables.value.has(t))
-    predictHistory.value.push(...predictions.filter((t) => !removedFromPredictedTables.value.has(t)))
+    predictedTables.value = predictions
+    predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
   }
 }
@@ -157,7 +162,9 @@ const predictRefresh = async () => {
 const predictFromPrompt = async () => {
   calledFunction.value = 'predictFromPrompt'
 
-  const predictions = await predictNextTables(predictHistory.value, props.baseId, prompt.value)
+  const predictions: string[] = (await predictNextTables(predictHistory.value, props.baseId, prompt.value)).filter(
+    (t) => !selectedTables.value.includes(t) && !removedFromPredictedTables.value.has(t),
+  )
 
   if (predictions.length) {
     predictedTables.value = predictions
@@ -169,6 +176,8 @@ const predictFromPrompt = async () => {
 }
 
 const onTagClick = (tag: string) => {
+  if (selectedTables.value.includes(tag)) return
+
   selectedTables.value.push(tag)
   predictedTables.value = predictedTables.value.filter((t) => t !== tag)
 }
@@ -186,7 +195,9 @@ const onTagRemoveFromPrediction = (tag: string) => {
 }
 
 const onSelectAll = () => {
-  selectedTables.value.push(...predictedTables.value.filter((t) => !removedFromPredictedTables.value.has(t)))
+  selectedTables.value.push(
+    ...predictedTables.value.filter((t) => !removedFromPredictedTables.value.has(t) && !selectedTables.value.includes(t)),
+  )
   predictedTables.value = []
 }
 

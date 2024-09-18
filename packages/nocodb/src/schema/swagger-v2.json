@@ -5431,7 +5431,7 @@
         "tags": [
           "DB View Column", "Views"
         ],
-        "description": "List all columns by ViewID",
+        "description": "This endpoint allows you to list all columns within a specified view. The API returns a paginated list of columns.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of columns available in the specified View ID.\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of column items listed on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of column records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of column records in the dataset.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -5930,13 +5930,6 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
-          },
-          {
-            "schema": {
-              "type": "boolean"
-            },
-            "name": "includeAllFilters",
-            "in": "query"
           }
         ]
       },
@@ -6391,9 +6384,7 @@
                   "value": {
                     "title": "My Grid View",
                     "type": 3,
-                    "copy_from_id": null,
-                    "fk_grp_col_id": null,
-                    "fk_geo_data_col_id": null
+                    "fk_grp_col_id": null
                   }
                 }
               }
@@ -6524,7 +6515,7 @@
           }
         },
         "tags": [
-          "DB View", "Views"
+          "DB View", "Internal"
         ],
         "description": "List all columns in the given Grid",
         "parameters": [
@@ -6669,9 +6660,7 @@
                   "value": {
                     "title": "My Form View",
                     "type": 1,
-                    "copy_from_id": null,
-                    "fk_grp_col_id": null,
-                    "fk_geo_data_col_id": null
+                    "fk_grp_col_id": null
                   }
                 }
               }
@@ -6971,9 +6960,7 @@
                   "value": {
                     "title": "My Gallery View",
                     "type": 2,
-                    "copy_from_id": null,
-                    "fk_grp_col_id": null,
-                    "fk_geo_data_col_id": null
+                    "fk_grp_col_id": null
                   }
                 }
               }
@@ -7147,9 +7134,7 @@
                   "value": {
                     "title": "My Kanban View",
                     "type": 4,
-                    "copy_from_id": null,
-                    "fk_grp_col_id": "cl_g0a89q9xdry3lu",
-                    "fk_geo_data_col_id": null
+                    "fk_grp_col_id": "cl_g0a89q9xdry3lu"
                   }
                 }
               }
@@ -7367,9 +7352,7 @@
                   "value": {
                     "title": "My Map View",
                     "type": 5,
-                    "copy_from_id": null,
-                    "fk_grp_col_id": null,
-                    "fk_geo_data_col_id": "cl_uu1meolj00tlrq"
+                    "fk_grp_col_id": null
                   }
                 }
               }
@@ -9736,23 +9719,7 @@
     "/api/v2/meta/comment/{commentId}": {
       "parameters": [
         {
-          "schema": {
-            "type": "string",
-            "example": "adt_zlskd6rlf3liay"
-          },
-          "name": "commentId",
-          "in": "path",
-          "required": true,
-          "description": "Comment ID"
-        },
-        {
-          "name": "xc-auth",
-          "in": "header",
-          "required": false,
-          "schema": {
-            "type": "string"
-          },
-          "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
+          "$ref": "#/components/parameters/xc-token"
         }
       ],
       "patch": {
@@ -14165,98 +14132,7 @@
         }
       },
       "ColumnReq": {
-        "allOf": [
-          {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/FormulaColumnReq"
-              },
-              {
-                "$ref": "#/components/schemas/LinkToAnotherColumnReq"
-              },
-              {
-                "$ref": "#/components/schemas/LookupColumnReq"
-              },
-              {
-                "$ref": "#/components/schemas/NormalColumnRequest"
-              },
-              {
-                "$ref": "#/components/schemas/RollupColumnReq"
-              }
-            ]
-          },
-          {
-            "properties": {
-              "column_name": {
-                "type": "string"
-              },
-              "column_order": {
-                "description": "Column order in a specific view",
-                "properties": {
-                  "order": {
-                    "type": "number"
-                  },
-                  "view_id": {
-                    "type": "string"
-                  }
-                },
-                "type": "object"
-              },
-              "title": {
-                "maxLength": 255,
-                "minLength": 1,
-                "type": "string"
-              }
-            },
-            "required": [
-              "title"
-            ]
-          }
-        ],
-        "description": "Model for Column Request",
-        "examples": [
-          {
-            "ai": 0,
-            "au": 0,
-            "source_id": "ds_krsappzu9f8vmo",
-            "cc": "",
-            "cdf": null,
-            "clen": "45",
-            "column_name": "title",
-            "cop": "2",
-            "created_at": "2023-03-02 13:14:16",
-            "csn": "utf8mb4",
-            "ct": "varchar(45)",
-            "deleted": null,
-            "dt": "varchar",
-            "dtx": "specificType",
-            "dtxp": "45",
-            "dtxs": null,
-            "fk_model_id": "md_yvwvbt2i78rgcm",
-            "id": "cl_0j9gv0oi8vjy46",
-            "meta": null,
-            "np": null,
-            "ns": null,
-            "order": 2,
-            "pk": 0,
-            "base_id": "p_01clqvzik3izk6",
-            "pv": 1,
-            "rqd": 0,
-            "system": 0,
-            "title": "Title",
-            "uidt": "SingleLineText",
-            "un": 0,
-            "unique": 0,
-            "updated_at": "2023-03-02 13:14:16",
-            "validate": null,
-            "virtual": null
-          }
-        ],
-        "title": "Column Request Model",
-        "type": "object",
-        "x-stoplight": {
-          "id": "aipiq4098ocg3"
-        }
+        "$ref": "#/components/schemas/NormalColumnRequest"
       },
       "CommentReq": {
         "description": "Model for Comment Request",
@@ -14320,7 +14196,10 @@
             "description": "Foreign Key to Model",
             "example": "md_ehn5izr99m7d45"
           }
-        }
+        },
+        "required": [
+          "fk_model_id"
+        ]
       },
       "Filter": {
         "description": "Model for Filter",
@@ -14330,7 +14209,6 @@
             "comparison_op": "eq",
             "comparison_sub_op": null,
             "created_at": "2023-03-02 18:18:05",
-            "fk_parent_column_id": "cd_d7ah9n2qfupgys",
             "fk_column_id": "cl_d7ah9n2qfupgys",
             "fk_hook_id": null,
             "fk_parent_id": null,
@@ -14430,10 +14308,6 @@
             ],
             "description": "Comparison Sub-Operator"
           },
-          "fk_parent_column_id": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Foreign Key to parent column"
-          },
           "fk_column_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
@@ -14488,11 +14362,6 @@
           },
           "value": {
             "description": "The filter value. Can be NULL for some operators."
-          },
-          "order": {
-            "type": "number",
-            "description": "The order of the filter",
-            "example": 1
           }
         },
         "readOnly": true,
@@ -15829,16 +15698,6 @@
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Column"
           },
-          "help": {
-            "maxLength": 255,
-            "type": "string"
-          },
-          "label": {
-            "description": "The label of the column",
-            "example": "My Column",
-            "maxLength": 255,
-            "type": "string"
-          },
           "width": {
             "description": "The width of the column",
             "example": "200px",
@@ -15908,18 +15767,9 @@
         "examples": [
           {
             "active": 0,
-            "async": 0,
-            "description": "This is my hook description",
-            "env": "all",
-            "event": "after",
-            "fk_model_id": "md_rsu68aqjsbyqtl",
             "id": "string",
             "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
-            "null": null,
             "operation": "insert",
-            "retries": 10,
-            "retry_interval": 60000,
-            "timeout": 60000,
             "title": "My Webhook"
           }
         ],
@@ -15929,41 +15779,13 @@
           "id": "5jvfnece2nu6w"
         },
         "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Hook ID"
+          },
           "active": {
             "$ref": "#/components/schemas/Bool",
             "description": "Is the hook active?"
-          },
-          "async": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is the hook aysnc?"
-          },
-          "description": {
-            "type": "string",
-            "description": "Hook Description",
-            "example": "This is my hook description"
-          },
-          "env": {
-            "type": "string",
-            "example": "all",
-            "description": "Environment for the hook"
-          },
-          "event": {
-            "enum": [
-              "after",
-              "before"
-            ],
-            "type": "string",
-            "description": "Event Type for the operation",
-            "example": "after"
-          },
-          "fk_model_id": {
-            "type": "string",
-            "description": "Foreign Key to Model",
-            "example": "md_rsu68aqjsbyqtl"
-          },
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
           },
           "notification": {
             "description": "Hook Notification including info such as type, payload, method, body, and etc",
@@ -15985,21 +15807,6 @@
             "description": "Hook Operation",
             "example": "insert"
           },
-          "retries": {
-            "type": "number",
-            "description": "Retry Count",
-            "example": 10
-          },
-          "retry_interval": {
-            "type": "number",
-            "description": "Retry Interval",
-            "example": 60000
-          },
-          "timeout": {
-            "type": "number",
-            "example": 60000,
-            "description": "Timeout"
-          },
           "title": {
             "type": "string",
             "description": "Hook Title",
@@ -16008,18 +15815,6 @@
           "type": {
             "type": "string",
             "description": "Hook Type"
-          },
-          "version": {
-            "type": "string",
-            "x-stoplight": {
-              "id": "socewqvadj91n"
-            },
-            "example": "v2",
-            "description": "Hook Version",
-            "enum": [
-              "v1",
-              "v2"
-            ]
           }
         }
       },
@@ -16030,67 +15825,19 @@
         },
         "examples": [
           {
-            "active": 0,
-            "async": 0,
-            "description": "This is my hook description",
-            "env": "all",
-            "event": "after",
-            "fk_model_id": "md_rsu68aqjsbyqtl",
-            "id": "string",
-            "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
-            "null": null,
-            "operation": "insert",
-            "retries": 10,
-            "retry_interval": 60000,
-            "timeout": 60000,
             "title": "My Webhook",
-            "condition": false
+            "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
+            "operation": "insert",
+            "type": "url"
           }
         ],
         "title": "Hook Request Model",
         "type": "object",
         "properties": {
-          "active": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is the hook active?"
-          },
-          "async": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is the hook aysnc?"
-          },
-          "description": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Hook Description"
-          },
-          "env": {
+          "title": {
             "type": "string",
-            "example": "all",
-            "description": "Environment for the hook"
-          },
-          "event": {
-            "enum": [
-              "after",
-              "before"
-            ],
-            "type": "string",
-            "description": "Event Type for the operation",
-            "example": "after"
-          },
-          "fk_model_id": {
-            "type": "string",
-            "description": "Foreign Key to Model",
-            "example": "md_rsu68aqjsbyqtl"
-          },
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "notification": {
-            "description": "Hook Notification including info such as type, payload, method, body, and etc",
-            "type": [
-              "object",
-              "string"
-            ]
+            "description": "Hook Title",
+            "example": "My Webhook"
           },
           "operation": {
             "enum": [
@@ -16105,25 +15852,12 @@
             "description": "Hook Operation",
             "example": "insert"
           },
-          "retries": {
-            "type": "number",
-            "description": "Retry Count",
-            "example": 10
-          },
-          "retry_interval": {
-            "type": "number",
-            "description": "Retry Interval",
-            "example": 60000
-          },
-          "timeout": {
-            "type": "number",
-            "example": 60000,
-            "description": "Timeout"
-          },
-          "title": {
-            "type": "string",
-            "description": "Hook Title",
-            "example": "My Webhook"
+          "notification": {
+            "description": "Hook Notification including info such as type, payload, method, body, and etc",
+            "type": [
+              "object",
+              "string"
+            ]
           },
           "type": {
             "type": [
@@ -16131,20 +15865,13 @@
               "null"
             ],
             "description": "Hook Type"
-          },
-          "condition": {
-            "$ref": "#/components/schemas/Bool",
-            "x-stoplight": {
-              "id": "wwzoum7rrlwun"
-            },
-            "description": "Is this hook assoicated with some filters"
           }
         },
         "required": [
-          "event",
+          "title",
           "notification",
           "operation",
-          "title"
+          "type"
         ]
       },
       "HookList": {
@@ -21416,38 +21143,26 @@
         "examples": [
           {
             "title": "My Grid View",
-            "type": 3,
-            "copy_from_id": null,
-            "fk_grp_col_id": null,
-            "fk_geo_data_col_id": null
+            "type": 3
           },
           {
             "title": "My Gallery View",
             "type": 2,
-            "copy_from_id": null,
-            "fk_grp_col_id": null,
-            "fk_geo_data_col_id": null
+            "fk_grp_col_id": null
           },
           {
             "title": "My Form View",
-            "type": 1,
-            "copy_from_id": null,
-            "fk_grp_col_id": null,
-            "fk_geo_data_col_id": null
+            "type": 1
           },
           {
             "title": "My Kanban View",
             "type": 4,
-            "copy_from_id": null,
-            "fk_grp_col_id": "cl_g0a89q9xdry3lu",
-            "fk_geo_data_col_id": null
+            "fk_grp_col_id": "cl_g0a89q9xdry3lu"
           },
           {
             "title": "My Map View",
             "type": 5,
-            "copy_from_id": null,
-            "fk_grp_col_id": null,
-            "fk_geo_data_col_id": "cl_uu1meolj00tlrq"
+            "fk_grp_col_id": null
           }
         ],
         "properties": {
@@ -21458,23 +21173,16 @@
           },
           "type": {
             "type": "number",
-            "description": "View Type"
-          },
-          "copy_from_id": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "ID of view to be copied from. Used in Copy View."
+            "description": "View Type.\n\n 1. `Form`\n\n 2. `Gallery`\n\n 3. `Grid`\n\n 4. `Kanban`\n\n 5. `Map` (internal testing)\n\n 6. `Calendar`"
           },
           "fk_grp_col_id": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Foreign Key to Grouping Column. Used in creating Kanban View."
-          },
-          "fk_geo_data_col_id": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Foreign Key to Geo Data Column. Used in creating Map View."
+            "description": "Foreign Key to Grouping Column. Used in creating Gallery / Kanban / Calendar View. Optional in Gallery view",
+            "type": "string"
           }
         },
         "required": [
-          "title"
+          "title",
+          "type"
         ]
       },
       "ViewUpdateReq": {

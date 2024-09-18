@@ -521,7 +521,7 @@ onKeyStroke('ArrowDown', onDown)
                       <template #overlay>
                         <NcMenu>
                           <NcMenuItem
-                            v-if="integrationCategoryNeedDefault && !integration.is_default"
+                            v-if="integration.sub_type && integrationCategoryNeedDefault(integration.sub_type) && !integration.is_default"
                             @click="setDefaultIntegration(integration)"
                           >
                             <GeneralIcon class="text-gray-800" icon="star" />

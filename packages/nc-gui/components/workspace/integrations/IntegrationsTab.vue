@@ -9,11 +9,13 @@ const props = withDefaults(
     isModal?: boolean
     filterCategory?: (c: IntegrationCategoryItemType) => boolean
     filterIntegration?: (i: IntegrationItemType) => boolean
+    showFilter?: boolean
   }>(),
   {
     isModal: false,
     filterCategory: () => true,
     filterIntegration: () => true,
+    showFilter: false,
   },
 )
 
@@ -28,8 +30,16 @@ const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 const router = useRouter()
 const route = router.currentRoute
 
-const { pageMode, IntegrationsPageMode, requestIntegration, addIntegration, saveIntegrationRequest, integrationsRefreshKey } =
-  useIntegrationStore()
+const {
+  pageMode,
+  IntegrationsPageMode,
+  requestIntegration,
+  addIntegration,
+  saveIntegrationRequest,
+  integrationsRefreshKey,
+  integrationsCategoryFilter,
+  activeViewTab,
+} = useIntegrationStore()
 
 const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
 
@@ -82,19 +92,25 @@ const categoriesQuery = computed({
   get: () => {
     const availableCategories = integrationCategoriesRef.value.map((c) => c.value)
 
-    if (route.value.query.categories === undefined) return availableCategories
+    if (route.value.query.categories === undefined) {
+      return integrationsCategoryFilter.value
+    }
 
     const query = ((route.value.query.categories as string) || '')
       .split(',')
       .map((c) => c.trim())
       .filter((c) => availableCategories.includes(c))
 
-    return query
+    integrationsCategoryFilter.value = query
+
+    router.push({ query: { ...route.value.query, categories: undefined } })
+
+    return integrationsCategoryFilter.value
   },
   set: (value: Array<string>) => {
     if (!ncIsArray(value)) return
 
-    router.push({ query: { ...route.value.query, categories: value.join(',') } })
+    integrationsCategoryFilter.value = value
   },
 })
 
@@ -191,9 +207,21 @@ const toggleShowOrHideAllCategory = () => {
   if (isVisibleAllCategory.value) {
     categoriesQuery.value = []
   } else {
-    categoriesQuery.value = integrationCategories.map((c) => c.value)
+    categoriesQuery.value = integrationCategoriesRef.value.map((c) => c.value)
   }
 }
+
+onMounted(() => {
+  if (!integrationsCategoryFilter.value.length) {
+    integrationsCategoryFilter.value = integrationCategoriesRef.value.map((c) => c.value)
+  }
+})
+
+watch(activeViewTab, (value) => {
+  if (value !== 'integrations' && isOpenFilter.value) {
+    isOpenFilter.value = false
+  }
+})
 </script>
 
 <template>
@@ -257,7 +285,7 @@ const toggleShowOrHideAllCategory = () => {
                       <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
                     </template>
                   </a-input>
-                  <NcDropdown v-model:visible="isOpenFilter">
+                  <NcDropdown v-if="showFilter" v-model:visible="isOpenFilter">
                     <NcButton size="small" type="secondary">
                       <div class="flex items-center gap-2">
                         <GeneralIcon icon="filter" />

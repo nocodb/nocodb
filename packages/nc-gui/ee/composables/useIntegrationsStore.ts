@@ -64,6 +64,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const searchQuery = ref('')
 
+  const integrationsCategoryFilter = ref<string[]>([])
+
   const integrationPaginationData = ref<PaginatedType>({ page: 1, pageSize: 25, totalRows: 0 })
 
   const deleteConfirmText = ref<string | null>()
@@ -468,6 +470,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     isFromIntegrationPage,
     successConfirmModal,
     searchQuery,
+    integrationsCategoryFilter,
     addIntegration,
     loadIntegrations,
     deleteIntegration,

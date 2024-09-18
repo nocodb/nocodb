@@ -17,7 +17,9 @@ export const useNocoAi = createSharedComposable(() => {
 
   const aiLoading = ref(false)
 
-  const callAiUtilsApi = async (operation: string, input: any, customBaseId?: string) => {
+  const aiError = ref<string>('')
+
+  const callAiUtilsApi = async (operation: string, input: any, customBaseId?: string, skipMsgToast = false) => {
     try {
       const baseId = customBaseId || activeProjectId.value
 
@@ -26,6 +28,7 @@ export const useNocoAi = createSharedComposable(() => {
       }
 
       aiLoading.value = true
+      aiError.value = ''
 
       const res = await $api.ai.utils(baseId, { operation, input })
 
@@ -36,8 +39,13 @@ export const useNocoAi = createSharedComposable(() => {
 
       if (error === aiIntegrationNotFound) {
         aiIntegrationAvailable.value = false
+      } else {
+        aiError.value = error
       }
-      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+
+      if (!skipMsgToast) {
+        message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+      }
     } finally {
       aiLoading.value = false
     }
@@ -156,12 +164,13 @@ export const useNocoAi = createSharedComposable(() => {
 
       await onViewCreate?.()
     } catch (e: any) {
+      console.error(e)
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
   }
 
-  const predictNextTables = async (history?: string[], baseId?: string, prompt?: string) => {
-    const res = await callAiUtilsApi('predictNextTables', { history, prompt }, baseId)
+  const predictNextTables = async (history?: string[], baseId?: string, prompt?: string, skipMsgToast = true) => {
+    const res = await callAiUtilsApi('predictNextTables', { history, prompt }, baseId, skipMsgToast)
 
     if (res?.tables) {
       return res.tables
@@ -204,6 +213,7 @@ export const useNocoAi = createSharedComposable(() => {
   return {
     aiIntegrationAvailable,
     aiLoading,
+    aiError,
     predictFieldType,
     predictSelectOptions,
     predictNextFields,

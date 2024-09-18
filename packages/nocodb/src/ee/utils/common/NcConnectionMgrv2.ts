@@ -99,7 +99,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
       },
     } as any;
 
-    const { client, connection, searchPath: _searchPath, pool } = finalConfig;
+    const { client, connection, searchPath, pool } = finalConfig;
 
     let se: DbMux;
 
@@ -150,7 +150,7 @@ export default class NcConnectionMgrv2 extends NcConnectionMgrv2CE {
         sourceId: source.id,
         client,
         connection,
-        // searchPath,
+        searchPath,
         pool,
       },
     );

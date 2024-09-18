@@ -786,7 +786,7 @@ const handleNavigateToIntegrations = () => {
           size="xs"
           class="nc-nocoai-settings !px-1 !text-current"
           type="text"
-          :disabled="aiLoading || aiIntegrationAvailable"
+          :disabled="aiLoading || !aiIntegrationAvailable"
         >
           <GeneralIcon icon="settings" />
         </NcButton>

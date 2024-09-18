@@ -97,7 +97,9 @@ export default class Column<T = any> implements ColumnType {
   public validate: any;
   public meta: any;
 
-  constructor(data: Partial<ColumnType | Column>) {
+  public asId?: string;
+
+  constructor(data: Partial<(ColumnType & { asId?: string }) | Column>) {
     Object.assign(this, data);
   }
 

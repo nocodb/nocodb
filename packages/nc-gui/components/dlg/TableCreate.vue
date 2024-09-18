@@ -387,7 +387,9 @@ const isPredictFromPromptLoading = computed(() => {
 const handleNavigateToIntegrations = () => {
   dialogShow.value = false
 
-  workspaceStore.navigateToIntegrations()
+  workspaceStore.navigateToIntegrations(undefined, undefined, {
+    categories: 'ai',
+  })
 }
 
 const handleRefreshOnError = () => {

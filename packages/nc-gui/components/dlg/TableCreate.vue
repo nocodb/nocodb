@@ -405,6 +405,7 @@ watch(
     :header="$t('activity.createTable')"
     size="sm"
     height="auto"
+    :centered="false"
     nc-modal-class-name="!px-0 !pb-0"
     @keydown.esc="dialogShow = false"
   >

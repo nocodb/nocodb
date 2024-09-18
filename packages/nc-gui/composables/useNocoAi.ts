@@ -210,6 +210,22 @@ export const useNocoAi = createSharedComposable(() => {
     return res
   }
 
+  const predictFormula = async (input: string, oldFormula?: string) => {
+    const res = await callAiUtilsApi('predictFormula', { input, formula: oldFormula?.length ? oldFormula : undefined })
+
+    if (res?.formula) {
+      return res.formula
+    }
+  }
+
+  const repairFormula = async (oldFormula: string, error?: string) => {
+    const res = await callAiUtilsApi('repairFormula', { formula: oldFormula, error })
+
+    if (res?.formula) {
+      return res.formula
+    }
+  }
+
   return {
     aiIntegrationAvailable,
     aiLoading,
@@ -226,5 +242,7 @@ export const useNocoAi = createSharedComposable(() => {
     generatingColumns,
     predictSchema,
     createSchema,
+    predictFormula,
+    repairFormula,
   }
 })

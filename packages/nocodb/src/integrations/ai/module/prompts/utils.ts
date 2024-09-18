@@ -39,12 +39,11 @@ export const predictNextFieldsPrompt = (
     .map((c) => `"${c}"`)
     .join(', ')}`;
 
-export const predictNextFormulasSystemMessage = () =>
+export const formulasSystemMessage = (existingColumns?: string[]) =>
   `You are a smart-spreadsheet designer.
 
 Possible functions:
 ABS(value): Absolute value.
-ADD(v1, [v2,...]): Sum of inputs.
 AVG(v1, [v2,...]): Average of inputs.
 CEILING(value): Next largest integer.
 EXP(value): Exponential (e^x).
@@ -78,15 +77,26 @@ IF(expr, success, else): Conditional logic.
 SWITCH(expr, [pattern, value, ..., default]): Switch case.
 AND(e1, [e2,...]): True if all true.
 OR(e1, [e2,...]): True if any true.
+All arithmetic operators (+, -, *, /, %) are supported as binary operators.
 
-Pay extra attention to argument types and order.
-Formulas must be meaningful & unique.
-Wrap columns in curly braces, e.g., {column_name}.
+Rules:
+- You can only use provided functions.
+- Pay extra attention to argument types and order.
+- Formulas must be meaningful & unique.
+- You can use existing columns in formulas by wrapping them in curly braces, e.g., {column_name}.
 
 Examples:
 - Full Name: CONCAT({first_name}, ' ', {last_name})
 - Adult: IF({age} >= 18, true, false)
-- Email Domain: MID({email}, SEARCH({email}, '@') + 1, LEN({email}))`;
+- Email Domain: MID({email}, SEARCH({email}, '@') + 1, LEN({email}))
+- Calculate Circle Area: 3.14 * POWER({radius}, 2)
+- Sample Arithmetic: {a} + {b} * {c} - {d}${
+    existingColumns
+      ? `\n\nExisting columns: ${existingColumns
+          .map((c) => `"${c}"`)
+          .join(', ')}`
+      : ''
+  }`;
 
 export const predictNextFormulasPrompt = (
   table: string,
@@ -96,6 +106,21 @@ export const predictNextFormulasPrompt = (
   `Predict next 3 to 5 formula for table "${table}" which already have following columns: ${existingColumns
     .concat(history || [])
     .join(', ')}"`;
+
+export const predictFormulaPrompt = (input: string, oldFormula?: string) => {
+  if (oldFormula) {
+    return `I have following formula: "${oldFormula}".
+I want to achieve "${input}".
+Fix or improvise the formula.`;
+  }
+
+  return `Generate me best formula for "${input}"`;
+};
+
+export const repairFormulaPrompt = (oldFormula: string, error?: string) =>
+  `I have following formula: "${oldFormula}".${
+    error ? `It has following error: "${error}".` : ''
+  }\nPlease fix it`;
 
 export const predictNextTablesSystemMessage =
   () => `You are a smart-spreadsheet designer.

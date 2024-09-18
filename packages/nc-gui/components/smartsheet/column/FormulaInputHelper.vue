@@ -452,6 +452,14 @@ function handleInput() {
   const text = model.getValue()
   const offset = model.getOffsetAt(position)
 
+  if (text.length === 0) {
+    // clear error if formula is empty
+    if (validateInfos.formula_raw.validateStatus === 'error') {
+      validateInfos.formula_raw.validateStatus = 'success'
+      validateInfos.formula_raw.help = []
+    }
+  }
+
   // IF cursor is inside string, don't show any suggestions
   if (isCursorInsideString(text, offset)) {
     autocomplete.value = false
@@ -575,6 +583,46 @@ const handleKeydown = (e: KeyboardEvent) => {
     }
   }
 }
+
+const { aiIntegrationAvailable, aiLoading, predictFormula, repairFormula } = useNocoAi()
+
+enum AI_MODE {
+  NONE = 'none',
+  PROMPT = 'prompt',
+}
+
+const aiMode = ref<AI_MODE>(AI_MODE.NONE)
+
+const aiPrompt = ref('')
+
+const aiSuggestions = ref<{ title: string; formula: string }[]>([])
+
+const promptAI = async () => {
+  if (!aiPrompt.value) return
+
+  const formula = await predictFormula(aiPrompt.value, value.value)
+
+  if (formula) {
+    editor.setValue(formula)
+    aiPrompt.value = ''
+  }
+}
+
+const repairFormulaAI = async () => {
+  const formula = await repairFormula(value.value, validateInfos?.formula_raw?.help.join(' | '))
+
+  if (formula) {
+    editor.setValue(formula)
+  }
+}
+
+const enableAI = async () => {
+  if (validateInfos?.formula_raw?.validateStatus === 'error') {
+    await repairFormulaAI()
+  } else {
+    aiMode.value = AI_MODE.PROMPT
+  }
+}
 </script>
 
 <template>
@@ -641,6 +689,48 @@ const handleKeydown = (e: KeyboardEvent) => {
       @keydown.stop="handleKeydown"
     ></div>
   </a-form-item>
+  <div v-if="aiMode === AI_MODE.NONE" class="w-full flex justify-end mt-2">
+    <div class="flex gap-2 items-center text-sm cursor-pointer" @click="enableAI">
+      <GeneralLoader v-if="aiLoading" />
+      <GeneralIcon v-else icon="magic" class="text-purple-300" />
+      <span v-if="validateInfos?.formula_raw?.validateStatus === 'error'" class="text-[13px] font-semibold">Fix Formula</span>
+      <span v-else class="text-[13px] font-semibold">Formula Helper</span>
+    </div>
+  </div>
+  <div v-else-if="aiMode === AI_MODE.PROMPT" class="prompt-wrapper w-full flex">
+    <a-textarea
+      v-model:value="aiPrompt"
+      class="!rounded-lg"
+      :auto-size="{
+        minRows: 4,
+        maxRows: 4,
+      }"
+      :placeholder="`Enter prompt to ${value ? 'modify' : 'generate'} formula`"
+    ></a-textarea>
+    <div class="absolute bottom-2 right-2 flex items-center gap-2">
+      <NcButton
+        v-if="validateInfos?.formula_raw?.validateStatus === 'error'"
+        type="ghost"
+        size="xsmall"
+        class="!bg-purple-100 !px-2"
+        :disabled="aiLoading"
+        @click="repairFormulaAI"
+      >
+        <div class="flex items-center gap-1">
+          <GeneralLoader v-if="aiLoading" />
+          <GeneralIcon v-else icon="magic" class="text-purple-300" />
+          <span class="text-[13px] font-semibold text-purple-400">Repair</span>
+        </div>
+      </NcButton>
+      <NcButton type="ghost" size="xsmall" class="!bg-purple-100 !px-2" @click="promptAI">
+        <div class="flex items-center gap-1">
+          <GeneralLoader v-if="aiLoading" />
+          <GeneralIcon v-else icon="magic" class="text-purple-300" />
+          <span class="text-[13px] font-semibold text-purple-400">Generate</span>
+        </div>
+      </NcButton>
+    </div>
+  </div>
   <div
     :class="{
       'h-[250px]': suggestionHeight === 'large',
@@ -781,6 +871,29 @@ const handleKeydown = (e: KeyboardEvent) => {
   .view-line {
     width: auto !important;
   }
+}
+
+.prompt-wrapper {
+  display: inline-block;
+  position: relative;
+  margin-top: 10px;
+}
+
+.prompt-wrapper::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 48%;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid rgba(177, 125, 225, 1);
+  transition: all 0.3s;
+}
+
+.prompt-wrapper:hover::after {
+  border-bottom-color: var(--color-primary);
 }
 </style>
 

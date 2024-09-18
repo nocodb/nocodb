@@ -6,16 +6,18 @@ import type AiIntegration from '~/integrations/ai/ai.interface';
 import { Base, Integration, Model } from '~/models';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 import {
+  formulasSystemMessage,
   predictFieldTypePrompt,
   predictFieldTypeSystemMessage,
+  predictFormulaPrompt,
   predictNextFieldsPrompt,
   predictNextFieldsSystemMessage,
   predictNextFormulasPrompt,
-  predictNextFormulasSystemMessage,
   predictNextTablesPrompt,
   predictNextTablesSystemMessage,
   predictSelectOptionsPrompt,
   predictSelectOptionsSystemMessage,
+  repairFormulaPrompt,
 } from '~/integrations/ai/module/prompts';
 
 @Injectable()
@@ -253,7 +255,7 @@ export class AiUtilsService {
       messages: [
         {
           role: 'system',
-          content: predictNextFormulasSystemMessage(),
+          content: formulasSystemMessage(),
         },
         {
           role: 'user',
@@ -322,6 +324,112 @@ export class AiUtilsService {
             params.input.history,
             params.input.prompt,
           ),
+        },
+      ],
+    });
+
+    await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    return data;
+  }
+
+  async predictFormula(
+    context: NcContext,
+    params: {
+      input: {
+        tableId: string;
+        input: string;
+        formula?: string;
+      };
+      req?: any;
+    },
+  ) {
+    const { tableId, input, formula } = params.input;
+
+    const model = await Model.get(context, tableId);
+
+    if (!model) {
+      throw new Error('Model not found');
+    }
+
+    const columns = await model.getColumns(context);
+
+    const integration = await Integration.getCategoryDefault(
+      context,
+      IntegrationCategoryType.AI,
+    );
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
+
+    const { data, usage } = await wrapper.generateObject({
+      schema: z.object({
+        formula: z.string(),
+      }),
+      messages: [
+        {
+          role: 'system',
+          content: formulasSystemMessage(columns.map((c) => c.title)),
+        },
+        {
+          role: 'user',
+          content: predictFormulaPrompt(input, formula),
+        },
+      ],
+    });
+
+    await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    return data;
+  }
+
+  async repairFormula(
+    context: NcContext,
+    params: {
+      input: {
+        tableId: string;
+        formula: string;
+        error?: string;
+      };
+      req?: any;
+    },
+  ) {
+    const { tableId, formula, error } = params.input;
+
+    const model = await Model.get(context, tableId);
+
+    if (!model) {
+      throw new Error('Model not found');
+    }
+
+    const columns = await model.getColumns(context);
+
+    const integration = await Integration.getCategoryDefault(
+      context,
+      IntegrationCategoryType.AI,
+    );
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
+
+    const { data, usage } = await wrapper.generateObject({
+      schema: z.object({
+        formula: z.string(),
+      }),
+      messages: [
+        {
+          role: 'system',
+          content: formulasSystemMessage(columns.map((c) => c.title)),
+        },
+        {
+          role: 'user',
+          content: repairFormulaPrompt(formula, error),
         },
       ],
     });

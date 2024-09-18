@@ -60,6 +60,16 @@ export class AiUtilsController {
         input: body.input,
         req,
       });
+    } else if (operation === 'predictFormula') {
+      return await this.aiUtilsService.predictFormula(context, {
+        input: body.input,
+        req,
+      });
+    } else if (operation === 'repairFormula') {
+      return await this.aiUtilsService.repairFormula(context, {
+        input: body.input,
+        req,
+      });
     }
   }
 }

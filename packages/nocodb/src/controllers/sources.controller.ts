@@ -37,6 +37,7 @@ export class SourcesController {
     if (source.isMeta()) {
       source.config = undefined;
     }
+    source.integration_config = undefined;
 
     return source;
   }
@@ -60,6 +61,9 @@ export class SourcesController {
       req,
     });
 
+    source.config = undefined;
+    source.integration_config = undefined;
+
     return source;
   }
 
@@ -77,9 +81,8 @@ export class SourcesController {
     });
 
     for (const source of sources) {
-      if (source.isMeta()) {
-        source.config = undefined;
-      }
+      source.config = undefined;
+      source.integration_config = undefined;
     }
 
     return new PagedResponseImpl(sources, {

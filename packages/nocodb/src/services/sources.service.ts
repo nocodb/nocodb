@@ -21,6 +21,10 @@ export class SourcesService {
   async baseGetWithConfig(context: NcContext, param: { sourceId: any }) {
     const source = await Source.get(context, param.sourceId);
 
+    if (!source) {
+      NcError.sourceNotFound(param.sourceId);
+    }
+
     source.config = await source.getSourceConfig();
 
     return source;

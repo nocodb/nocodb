@@ -14,6 +14,13 @@ export class SecretManager {
 
   // validate config by checking if database config is valid
   async validateConfig() {
+    // if sqlite then check the file exist in provided path
+    if (this.config.meta.db.client === 'sqlite3') {
+      if (!existsSync(this.config.meta.db.connection.filename)) {
+        throw new NcError('SQLite database file not found at path: ' + this.config.meta.db.connection.filename);
+      }
+    }
+
     // use the sqlClientFactory to create a new sql client and then use testConnection to test the connection
     const isValid = await this.sqlClient.testConnection();
     if (!isValid) {

@@ -135,7 +135,9 @@ const predictMore = async () => {
   const predictions: string[] = await predictNextTables(predictHistory.value, props.baseId)
 
   if (predictions.length) {
-    predictedTables.value.push(...predictions.filter((t) => !predictedTables.value.includes(t)))
+    predictedTables.value.push(
+      ...predictions.filter((t) => !predictedTables.value.includes(t) && !removedFromPredictedTables.value.has(t)),
+    )
     predictHistory.value.push(...predictions)
   }
 
@@ -145,11 +147,11 @@ const predictMore = async () => {
 const predictRefresh = async () => {
   calledFunction.value = 'predictRefresh'
 
-  const predictions = await predictNextTables(predictHistory.value, props.baseId)
+  const predictions: string[] = await predictNextTables(predictHistory.value, props.baseId)
 
   if (predictions.length) {
-    predictedTables.value = predictions
-    predictHistory.value.push(...predictions)
+    predictedTables.value = predictions.filter((t) => !removedFromPredictedTables.value.has(t))
+    predictHistory.value.push(...predictions.filter((t) => !removedFromPredictedTables.value.has(t)))
     aiModeStep.value = AiStep.pick
   }
 
@@ -636,13 +638,12 @@ watch(
                 <NcButton
                   v-if="predictedTables.length || !selectedTables.length"
                   size="xs"
-                  class="!bg-nc-bg-purple-dark !h-6"
-                  type="text"
+                  class="!h-6"
+                  :type="predictedTables.length ? 'text' : 'secondary'"
                   :disabled="!predictedTables.length"
                   :class="{
-                    'hover:!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark':
-                      predictedTables.length,
-                    '!text-nc-content-purple-light': !predictedTables.length,
+                    '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark': predictedTables.length,
+                    '!text-nc-content-purple-light !border-purple-200 !bg-nc-bg-purple-light': !predictedTables.length,
                   }"
                   @click="onSelectAll"
                 >

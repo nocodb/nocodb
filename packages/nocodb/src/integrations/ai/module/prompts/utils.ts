@@ -41,56 +41,52 @@ export const predictNextFieldsPrompt = (
 
 export const predictNextFormulasSystemMessage = () =>
   `You are a smart-spreadsheet designer.
-NocoDB supports following formula functions:
-Numeric Functions
-ABS(x): Absolute value.
-ADD(x, [y, ...]): Sum.
-AVG(x, [y, ...]): Average.
-CEILING(x): Round up.
-COUNT(x, [y, ...]): Count numbers.
-COUNTA(x, [y, ...]): Count non-empty.
-COUNTALL(x, [y, ...]): Count all.
-EVEN(x): Nearest even number.
-EXP(x): e^x.
-FLOOR(x): Round down.
-INT(x): Integer part.
-LOG(base, x): Logarithm.
-MAX(x, [y, ...]): Maximum.
-MIN(x, [y, ...]): Minimum.
-MOD(x, y): Remainder.
-ODD(x): Nearest odd number.
-POWER(x, y): x^y.
-ROUND(x, [precision]): Round.
-ROUNDDOWN(x, [precision]): Round down.
-ROUNDUP(x, [precision]): Round up.
-SQRT(x): Square root.
-VALUE(str): Convert to number.
-String Functions
-CONCAT(x, [y, ...]): Concatenate.
-LEFT(str, n): Leftmost n chars.
-LEN(str): String length.
-LOWER(str): Lowercase.
-MID(str, pos, [count]): Substring.
-REPEAT(str, n): Repeat n times.
-REPLACE(str, old, new): Replace text.
-RIGHT(str, n): Rightmost n chars.
-SEARCH(str, target): Find position.
-SUBSTR(str, pos, [count]): Substring.
-TRIM(str): Remove spaces.
-UPPER(str): Uppercase.
-URL(str): Convert to URL.
-Date Functions
-NOW(): Current date/time.
-DATEADD(date, n, unit): Add time.
-DATETIME_DIFF(date1, date2, unit): Date difference.
-WEEKDAY(date, [start]): Day of the week.
-Conditional Expressions
-IF(cond, trueVal, falseVal): Conditional logic.
-AND(x, [y, ...]): Logical AND.
-OR(x, [y, ...]): Logical OR.
 
-Each column can be used by wrapping it by curly braces. For example, {column_name}.
-Example: CONCAT({first_name}, ' ', {last_name})`;
+Possible functions:
+ABS(value): Absolute value.
+ADD(v1, [v2,...]): Sum of inputs.
+AVG(v1, [v2,...]): Average of inputs.
+CEILING(value): Next largest integer.
+EXP(value): Exponential (e^x).
+FLOOR(value): Largest integer <= input.
+INT(value): Integer value.
+LOG([base], value): Logarithm (default base e).
+MAX(v1, [v2,...]): Maximum of inputs.
+MIN(v1, [v2,...]): Minimum of inputs.
+MOD(v1, v2): Remainder after division.
+POWER(base, exp): Base ^ exponent.
+ROUND(value, precision): Round to decimal places.
+SQRT(value): Square root.
+CONCAT(s1, [s2,...]): Concatenate strings.
+LEFT(s, n): First n chars.
+LEN(s): String length.
+LOWER(s): Lowercase string.
+MID(s, pos, [count]): Substring starting at pos.
+REPEAT(s, count): Repeat string.
+REPLACE(s, search, replace): Replace substrings.
+RIGHT(s, n): Last n chars.
+SEARCH(searchIn, searchStr): Index of searchStr.
+SUBSTR(s, pos, [count]): Substring.
+TRIM(s): Remove whitespace.
+UPPER(s): Uppercase string.
+URL(s): Convert to hyperlink.
+NOW(): Current date/time.
+DATEADD(date, val, ["day", "week", "month", "year"]): Add time to date.
+DATETIME_DIFF(d1, d2, ["ms", "s", "m", "h", "d", "w", "M", "Q", "y"]): Date difference in unit.
+WEEKDAY(date, [startDay]): Day of week (0-6).
+IF(expr, success, else): Conditional logic.
+SWITCH(expr, [pattern, value, ..., default]): Switch case.
+AND(e1, [e2,...]): True if all true.
+OR(e1, [e2,...]): True if any true.
+
+Pay extra attention to argument types and order.
+Formulas must be meaningful & unique.
+Wrap columns in curly braces, e.g., {column_name}.
+
+Examples:
+- Full Name: CONCAT({first_name}, ' ', {last_name})
+- Adult: IF({age} >= 18, true, false)
+- Email Domain: MID({email}, SEARCH({email}, '@') + 1, LEN({email}))`;
 
 export const predictNextFormulasPrompt = (
   table: string,

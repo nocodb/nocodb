@@ -56,6 +56,7 @@ export default class OpenAiIntegration extends AiIntegration {
       model: this.model,
       schema,
       messages,
+      temperature: 0.5,
     });
 
     return {

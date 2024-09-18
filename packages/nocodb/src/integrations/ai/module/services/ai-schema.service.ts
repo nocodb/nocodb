@@ -165,6 +165,11 @@ export class AiSchemaService {
                   from_column: z.string(),
                 }),
               )
+              .or(
+                z.object({
+                  from_column: z.string(),
+                }),
+              )
               .optional(),
             gridGroupBy: z.string().or(z.array(z.string())).optional(),
             kanbanGroupBy: z.string().optional(),
@@ -344,9 +349,13 @@ export class AiSchemaService {
             column?: string;
             order?: 'asc' | 'desc';
           }[];
-          calendar_range?: {
-            from_column?: string;
-          }[];
+          calendar_range?:
+            | {
+                from_column?: string;
+              }
+            | {
+                from_column?: string;
+              }[];
           gridGroupBy?: string | string[];
           kanbanGroupBy?: string;
         }[];
@@ -506,6 +515,11 @@ export class AiSchemaService {
                   from_column: z.string(),
                 }),
               )
+              .or(
+                z.object({
+                  from_column: z.string(),
+                }),
+              )
               .optional(),
             gridGroupBy: z.string().or(z.array(z.string())).optional(),
             kanbanGroupBy: z.string().optional(),
@@ -555,9 +569,13 @@ export class AiSchemaService {
           column?: string;
           order?: 'asc' | 'desc';
         }[];
-        calendar_range?: {
-          from_column?: string;
-        }[];
+        calendar_range?:
+          | {
+              from_column?: string;
+            }
+          | {
+              from_column?: string;
+            }[];
         gridGroupBy?: string | string[];
         kanbanGroupBy?: string;
       }[];
@@ -699,19 +717,27 @@ export class AiSchemaService {
             req,
           });
           break;
-        case 'calendar':
+        case 'calendar': {
+          const calendarRange = view.calendar_range
+            ? Array.isArray(view.calendar_range)
+              ? view.calendar_range
+              : [view.calendar_range]
+            : null;
           await this.calendarsService.calendarViewCreate(context, {
             tableId: table.id,
             calendar: {
               ...viewData,
-              calendar_range: view.calendar_range.map((range) => ({
-                fk_from_column_id: getColumnId(range.from_column),
-              })),
+              calendar_range: calendarRange
+                ? calendarRange.map((range) => ({
+                    fk_from_column_id: getColumnId(range.from_column),
+                  }))
+                : null,
             },
             user: req.user,
             req,
           });
           break;
+        }
         case 'form':
           await this.formsService.formViewCreate(context, {
             tableId: table.id,

@@ -1,5 +1,3 @@
-import { glob } from 'glob';
-import path from 'path';
 import type {
   BoolType,
   FormDefinition,
@@ -72,9 +70,9 @@ export default class Integration implements IntegrationType {
 
   public static async init() {
     // we use dynamic import to avoid circular reference
-    Integration.availableIntegrations = (await import(
-      'src/integrations/integrations'
-    )).default;
+    Integration.availableIntegrations = (
+      await import('src/integrations/integrations')
+    ).default;
   }
 
   public static async createIntegration(
@@ -491,9 +489,7 @@ export default class Integration implements IntegrationType {
   getIntegrationWrapper<T extends IntegrationWrapper>() {
     if (!this.wrapper) {
       const integrationWrapper = Integration.availableIntegrations.find(
-        (el) =>
-          el.type === this.type &&
-          el.subType === this.sub_type,
+        (el) => el.type === this.type && el.subType === this.sub_type,
       );
 
       if (!integrationWrapper) {
@@ -508,9 +504,7 @@ export default class Integration implements IntegrationType {
 
   getIntegrationMeta() {
     const integrationMeta = Integration.availableIntegrations.find(
-      (el) =>
-        el.type === this.type &&
-        el.subType === this.sub_type,
+      (el) => el.type === this.type && el.subType === this.sub_type,
     );
 
     if (!integrationMeta) {

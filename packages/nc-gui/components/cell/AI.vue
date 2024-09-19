@@ -73,15 +73,10 @@ const debouncedSave = useDebounceFn(handleSave, 1000)
 
 <template>
   <div v-if="!readOnly && !vModel" class="flex justify-center w-full">
-    <button
-      class="nc-cell-button !shadow-default"
-      size="small"
-      :disabled="!aiIntegrationAvailable || aiLoading"
-      @click="generate"
-    >
+    <button class="nc-cell-button" size="small" :disabled="!aiIntegrationAvailable || aiLoading" @click="generate">
       <div class="flex items-center gap-1">
         <GeneralLoader v-if="pk && generatingRows.includes(pk)" size="small" />
-        <GeneralIcon v-else icon="magic" class="text-purple-500" />
+        <GeneralIcon v-else icon="ncAutoAwesome" class="text-nc-content-purple-dark" />
         <span class="text-sm font-bold">Generate</span>
       </div>
     </button>
@@ -101,6 +96,8 @@ const debouncedSave = useDebounceFn(handleSave, 1000)
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply rounded-lg px-2 py-1 flex items-center gap-2 transition-all justify-center bg-gray-100 hover:bg-gray-200;
+  @apply rounded-lg px-2 flex items-center gap-2 transition-all justify-center md:(hover:bg-gray-100) border-1 border-nc-border-gray-medium;
+
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }
 </style>

@@ -103,25 +103,25 @@ onMounted(async () => {
 
 <template>
   <div class="nc-ai-prompt-with-fields w-full">
-    <EditorContent ref="editorDom" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop @click.stop />
+    <EditorContent ref="editorDom" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop />
   </div>
 </template>
 
 <style lang="scss">
 .nc-ai-prompt-with-fields {
   .prompt-field-tag {
-    @apply bg-gray-100 rounded-md px-1 py-0.5;
+    @apply bg-gray-100 rounded-md px-1;
   }
 
   .ProseMirror {
-    @apply px-3 pb-3 pt-2 h-[180px] min-h-[180px] overflow-y-auto nc-scrollbar-thin outline-none border-1 border-gray-200 bg-white rounded-lg transition-shadow;
+    @apply px-3 pb-3 pt-2 h-[180px] min-h-[180px] overflow-y-auto nc-scrollbar-thin outline-none border-1 border-gray-200 bg-white text-nc-content-gray-muted rounded-lg !rounded-b-none transition-shadow ease-linear -mx-[1px] -mt-[1px];
     resize: vertical;
     min-width: 100%;
     max-height: min(800px, calc(100vh - 200px)) !important;
   }
 
   .ProseMirror-focused {
-    @apply outline-none border-nc-fill-purple-medium shadow-selected-ai;
+    @apply !rounded-b-lg outline-none border-nc-fill-purple-medium shadow-selected-ai;
   }
 
   p {

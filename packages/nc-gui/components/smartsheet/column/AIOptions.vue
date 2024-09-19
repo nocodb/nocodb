@@ -17,7 +17,6 @@ const availableFields = computed(() => {
 })
 
 const workspaceStore = useWorkspace()
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -27,10 +26,6 @@ const localIsEnabledGenerateText = ref(false)
 
 const isEnabledGenerateText = computed({
   get: () => {
-    if (vModel.value.prompt_raw && !localIsEnabledGenerateText.value) {
-      localIsEnabledGenerateText.value = true
-    }
-
     return !!vModel.value.prompt_raw || localIsEnabledGenerateText.value
   },
   set: (value: boolean) => {
@@ -39,10 +34,14 @@ const isEnabledGenerateText = computed({
   },
 })
 
+const preview = ref('')
+
 onMounted(() => {
   // set default value
   vModel.value.prompt_raw = (column?.value?.colOptions as Record<string, any>)?.prompt_raw || ''
   vModel.value.output_column_ids = (column?.value?.colOptions as Record<string, any>)?.output_column_ids || ''
+
+  localIsEnabledGenerateText.value = !!vModel.value.prompt_raw
 })
 
 setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('general.required') }] })
@@ -70,7 +69,7 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
       <div class="flex-1"></div>
     </a-form-item>
     <template v-if="isEnabledGenerateText">
-      <a-form-item class="flex bg-nc-bg-gray-light rounded-lg">
+      <a-form-item class="nc-prompt-input-wrapper flex bg-nc-bg-gray-light rounded-lg">
         <div class="w-full">
           <AiPromptWithFields v-model="vModel.prompt_raw" :options="availableFields" />
           <div class="rounded-b-lg flex items-center gap-2 p-1">
@@ -81,12 +80,19 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
           </div>
         </div>
       </a-form-item>
-      <div class="shadow-default flex p-2 text-xs items-center">
-        <div class="flex flex-col flex-1 gap-1">
-          <span class="font-bold text-gray-600">Preview</span>
-          <span class="text-gray-400 text-[11px]">Include at least 1 field in prompt to generate</span>
+      <div class="nc-ai-options-preview">
+        <div v-if="preview" class="">
+          <!-- Todo: add input box  -->
         </div>
-        <NcButton class="!bg-purple-50" size="small"> <span class="text-purple-600">Generate</span></NcButton>
+        <div v-else class="pl-3 py-2 pr-2 flex items-center">
+          <div class="flex flex-col flex-1 gap-1">
+            <span class="text-small font-medium text-nc-content-gray">Preview</span>
+            <span class="text-[11px] leading-[18px] text-nc-content-gray-muted"
+              >Include at least 1 field in prompt to generate</span
+            >
+          </div>
+          <NcButton class="!bg-purple-50" size="xs"> <div class="text-purple-600">Generate</div></NcButton>
+        </div>
       </div>
     </template>
   </div>
@@ -99,5 +105,15 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
 
 :deep(.ant-form-item-control-input-content) {
   @apply flex items-center;
+}
+
+.nc-prompt-input-wrapper {
+  @apply border-1 border-nc-border-gray-medium;
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+}
+
+.nc-ai-options-preview {
+  @apply rounded-lg border-1 border-nc-border-gray-medium;
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
 }
 </style>

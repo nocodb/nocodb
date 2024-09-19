@@ -568,11 +568,12 @@ watch(
               <template v-else>
                 <NcButton
                   size="xs"
-                  class="hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark"
+                  class="hover:!bg-nc-bg-purple-dark disabled:hover:!bg-transparent !text-nc-content-purple-dark disabled:!text-nc-content-purple-light"
                   :class="{
                     '!text-nc-content-purple-light': isPredictFromPromptLoading,
                   }"
                   type="text"
+                  :disabled="!prompt.trim()"
                   :loading="isPredictFromPromptLoading"
                   @click="predictFromPrompt"
                 >

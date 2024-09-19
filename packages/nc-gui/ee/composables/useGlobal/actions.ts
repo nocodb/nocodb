@@ -9,6 +9,8 @@ export interface ActionsEE {
 }
 
 export function useGlobalActions(state: State): Actions & ActionsEE {
+  const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
+
   const setIsMobileMode = (isMobileMode: boolean) => {
     state.isMobileMode.value = isMobileMode
   }
@@ -69,6 +71,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
    * keepProps - is for keeping any existing role info if user id is same as previous user
    */
   const signIn: Actions['signIn'] = async (newToken, keepProps = false) => {
+    isTokenUpdatedTab.value = true;
     state.token.value = newToken
 
     if (state.jwtPayload.value) {

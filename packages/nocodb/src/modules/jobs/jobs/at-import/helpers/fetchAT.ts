@@ -1,5 +1,8 @@
 import { Logger } from '@nestjs/common';
 import axios from 'axios';
+import { streamObject } from 'stream-json/streamers/StreamObject';
+import { parser } from 'stream-json/Parser';
+import { ignore } from 'stream-json/filters/Ignore';
 
 const logger = new Logger('FetchAT');
 
@@ -126,11 +129,33 @@ async function read() {
         referrerPolicy: 'no-referrer',
         body: null,
         method: 'GET',
+        responseType: 'stream',
       });
 
-      if (resreq?.data?.data) {
+      const data: any = await new Promise((resolve, reject) => {
+        const jsonStream = resreq.data
+          .pipe(parser())
+          .pipe(ignore({ filter: 'data.tableDatas' }))
+          .pipe(streamObject());
+
+        const fullObject = {};
+
+        jsonStream.on('data', (chunk) => {
+          if (chunk.key) fullObject[chunk.key] = chunk.value;
+        });
+
+        jsonStream.on('error', (err) => {
+          reject(err);
+        });
+
+        jsonStream.on('end', () => {
+          resolve(fullObject);
+        });
+      });
+
+      if (data?.data) {
         return {
-          schema: resreq.data.data,
+          schema: data?.data,
           baseId: info.baseId,
           baseInfo: info.baseInfo,
         };
@@ -194,11 +219,34 @@ async function readView(viewId) {
           referrerPolicy: 'no-referrer',
           body: null,
           method: 'GET',
+          responseType: 'stream',
         },
       );
 
-      if (resreq?.data?.data) {
-        return { view: resreq.data.data };
+      const data: any = await new Promise((resolve, reject) => {
+        const jsonStream = resreq.data
+          .pipe(parser())
+          .pipe(ignore({ filter: 'data.rowOrder' }))
+          .pipe(streamObject());
+
+        const fullObject = {};
+
+        jsonStream.on('data', (chunk) => {
+          if (chunk.key) fullObject[chunk.key] = chunk.value;
+        });
+
+        jsonStream.on('error', (err) => {
+          reject(err);
+        });
+
+        jsonStream.on('end', () => {
+          resolve(fullObject);
+        });
+      });
+      
+
+      if (data?.data) {
+        return { view: data.data };
       } else {
         throw new Error('Error Reading :: Data missing');
       }

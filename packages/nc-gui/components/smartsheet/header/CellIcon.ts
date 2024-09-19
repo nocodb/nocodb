@@ -52,7 +52,7 @@ const renderIcon = (column: ColumnType, abstractType: any) => {
     }
     return iconMap.cellUser
   } else if (isAI(column)) {
-    return iconMap.magic
+    return iconMap.cellAi
   } else if (isInt(column, abstractType) || isFloat(column, abstractType)) {
     return iconMap.cellNumber
   } else if (isString(column, abstractType)) {

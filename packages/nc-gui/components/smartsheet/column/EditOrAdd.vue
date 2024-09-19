@@ -43,6 +43,7 @@ const {
   isEdit,
   disableSubmitBtn,
   column,
+  isAiMode,
 } = useColumnCreateStoreOrThrow()
 
 const editDescription = toRef(props, 'editDescription')
@@ -62,6 +63,9 @@ const { $e } = useNuxtApp()
 const { appInfo } = useGlobal()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const workspaceStore = useWorkspace()
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
@@ -134,7 +138,7 @@ const showDeprecated = ref(false)
 const isSystemField = (t: { name: UITypes }) =>
   [UITypes.CreatedBy, UITypes.CreatedTime, UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(t.name)
 
-const uiFilters = (t: { name: UITypes; virtual?: number; deprecated?: boolean }) => {
+const uiFilters = (t: UiTypesType) => {
   const systemFiledNotEdited = !isSystemField(t) || formState.value.uidt === t.name || !isEdit.value
   const geoDataToggle = geoDataToggleCondition(t) && (!isEdit.value || !t.virtual || t.name === formState.value.uidt)
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
@@ -453,6 +457,7 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-xl p-5': !embedMode,
+      'nc-ai-mode !pb-0': isAiMode,
     }"
     @keydown="handleEscape"
     @click.stop
@@ -475,7 +480,10 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
             v-model="formState.title"
             :disabled="readOnly || !isFullUpdateAllowed"
             :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
-            class="flex flex-grow nc-fields-input text-sm font-semibold outline-none bg-inherit min-h-6"
+            class="flex flex-grow nc-fields-input nc-input-shadow text-sm font-semibold outline-none bg-inherit min-h-6"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
             :contenteditable="true"
             @change="debouncedOnPredictFieldType"
             @input="formState.userHasChangedTitle = true"
@@ -486,7 +494,10 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
         <a-input
           ref="antInput"
           v-model:value="formState.title"
-          class="nc-column-name-input !rounded-lg"
+          class="nc-column-name-input nc-input-shadow !rounded-lg"
+          :class="{
+            'nc-ai-input': isAiMode,
+          }"
           :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
           :disabled="isKanban || readOnly || !isFullUpdateAllowed"
           @change="debouncedOnPredictFieldType"
@@ -512,7 +523,10 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
           <a-select
             v-model:value="formState.uidt"
             show-search
-            class="nc-column-type-input !rounded-lg"
+            class="nc-column-type-input nc-select-shadow !rounded-lg"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
             :disabled="
               (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
               isKanban ||
@@ -541,7 +555,7 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
               @mouseover="handleResetHoverEffect"
             >
               <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
-                <div class="flex gap-2 items-center">
+                <div class="flex-1 flex gap-2 items-center">
                   <component
                     :is="opt.icon"
                     class="w-4 h-4"
@@ -549,6 +563,7 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
                   />
                   <div class="flex-1">{{ UITypesName[opt.name] }}</div>
                   <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+                  <!-- <NcBadge v-if="opt.isNew" :border="false" class="!text-sm !text-nc-content-purple-dark !bg-nc-bg-purple-light !h-5">{{ $t('general.new') }}</NcBadge> -->
                 </div>
                 <component
                   :is="iconMap.check"
@@ -694,6 +709,7 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
             :class="{
               '!min-h-[200px]': fromTableExplorer,
               'h-[150px] !min-h-[100px]': !fromTableExplorer,
+              'nc-ai-input': isAiMode,
             }"
             class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 !max-h-[300px]"
             hide-details
@@ -762,6 +778,10 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
           </div>
         </template>
       </template>
+
+      <template v-if="isAiMode">
+        <SmartsheetColumnAIFooterOptions v-model="formState" class="-mx-5 sticky bottom-0 bg-white z-10" />
+      </template>
     </a-form>
   </div>
 </template>
@@ -770,6 +790,12 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
 .nc-dropdown-column-type {
   .ant-select-item-option-active-selected {
     @apply !bg-gray-100;
+  }
+}
+
+.nc-edit-or-add-provider-wrapper .nc-ai-mode {
+  .nc-fields-input,
+  .nc-column-name-input {
   }
 }
 </style>

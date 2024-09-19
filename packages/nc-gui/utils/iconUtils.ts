@@ -189,6 +189,7 @@ import NcCellSystemUser from '~icons/nc-icons/system-user'
 import NcCellSystemText from '~icons/nc-icons/system-text'
 import NcCellAttachment from '~icons/nc-icons/cell-attachment'
 import NcCellButton from '~icons/nc-icons/cell-button'
+import NcCellAi from '~icons/nc-icons/cell-ai'
 
 import NcCircleCheck from '~icons/nc-icons/circle-check'
 import OnetoOneIcon from '~icons/nc-icons/onetoone'
@@ -769,6 +770,7 @@ export const iconMap = {
   cellSystemText: NcCellSystemText,
   cellAttachment: NcCellAttachment,
   cellButton: NcCellButton,
+  cellAi: h(NcCellAi, { stroke: 'transparent' }),
   camera: NcCamera,
   megaPhone: NcMegaPhone,
   nocodb: NcNocoDB,

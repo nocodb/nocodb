@@ -103,7 +103,7 @@ onMounted(async () => {
 
 <template>
   <div class="nc-ai-prompt-with-fields w-full">
-    <EditorContent ref="editorDom" class="h-[200px]" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop />
+    <EditorContent ref="editorDom" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop @click.stop />
   </div>
 </template>
 
@@ -114,11 +114,14 @@ onMounted(async () => {
   }
 
   .ProseMirror {
-    @apply p-1 h-[200px] max-h-[200px] overflow-y-auto outline-none border-1 border-gray-200 rounded-lg;
+    @apply px-3 pb-3 pt-2 h-[180px] min-h-[180px] overflow-y-auto nc-scrollbar-thin outline-none border-1 border-gray-200 bg-white rounded-lg transition-shadow;
+    resize: vertical;
+    min-width: 100%;
+    max-height: min(800px, calc(100vh - 200px)) !important;
   }
 
   .ProseMirror-focused {
-    @apply outline-none border-brand-500;
+    @apply outline-none border-nc-fill-purple-medium shadow-selected-ai;
   }
 
   p {

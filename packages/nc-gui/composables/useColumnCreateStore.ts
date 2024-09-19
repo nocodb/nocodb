@@ -91,6 +91,14 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       ...clone(column.value || {}),
     })
 
+    const isAiMode = computed(() => {
+      if (formState.value.uidt === UITypes.AI || (formState.value.uidt === UITypes.Button && formState.value.type === 'ai')) {
+        return true
+      }
+
+      return false
+    })
+
     const onUidtOrIdTypeChange = (preload?: Record<string, any>) => {
       disableSubmitBtn.value = false
 
@@ -427,6 +435,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       setPostSaveOrUpdateCbk,
       updateFieldName,
       fromTableExplorer,
+      isAiMode,
     }
   },
 )

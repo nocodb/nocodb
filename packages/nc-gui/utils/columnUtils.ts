@@ -1,15 +1,27 @@
+import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { ButtonType, ColumnType, FormulaType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk'
 
-const uiTypes = [
+export interface UiTypesType {
+  name: UITypes | string
+  icon: FunctionalComponent<SVGAttributes, {}, any, {}> | VNode
+  virtual?: number | boolean
+  deprecated?: number | boolean
+  isNew?: number | boolean
+}
+
+const uiTypes: UiTypesType[] = [
   {
     name: UITypes.AI,
-    icon: iconMap.magic,
+    icon: iconMap.cellAi,
+    isNew: 1,
   },
   {
     name: 'AIButton',
     icon: iconMap.magic,
     virtual: 1,
+    isNew: 1,
+    deprecated: 0,
   },
   {
     name: UITypes.Links,

@@ -12,9 +12,19 @@ const logger = {
 };
 
 const decryptConfig = async (encryptedConfig: string, secret: string) => {
-  return CryptoJS.AES.decrypt(encryptedConfig, secret).toString(
+  if (!encryptedConfig) return encryptedConfig;
+
+  const decryptedVal = CryptoJS.AES.decrypt(encryptedConfig, secret).toString(
     CryptoJS.enc.Utf8,
   );
+
+  // validate by parsing JSON
+  try {
+    JSON.parse(decryptedVal);
+  } catch {
+    throw new Error('Config decryption failed');
+  }
+  return decryptedVal;
 };
 
 // decrypt datasource details in source table and integration table

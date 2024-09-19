@@ -274,8 +274,8 @@ export async function populateMeta(
   // await this.syncRelations();
 
   const tableMetasInsert = tables.map((table) => {
-    logger?.(`Populating meta for table '${table.title}'`);
     return async () => {
+      logger?.(`Populating meta for table '${table.title}'`);
       /* filter relation where this table is present */
       const tableRelations = relations.filter(
         (r) => r.tn === table.tn || r.rtn === table.tn,
@@ -386,6 +386,8 @@ export async function populateMeta(
           column.title = `${column.title}${c || ''}`;
           columnNames[column.title] = true;
 
+          logger?.(`Populating meta for column '${column.title}'`);
+
           const rel = column.hm || column.bt;
 
           const rel_column_id = (
@@ -429,8 +431,12 @@ export async function populateMeta(
           } catch (e) {
             console.log(e);
           }
+
+          logger?.(`Populated meta for column '${column.title}'`);
         }
       });
+
+      logger?.(`Populated meta for table '${table.title}'`);
     };
   });
 
@@ -462,7 +468,6 @@ export async function populateMeta(
   info.viewsCount = views.length;
 
   const viewMetasInsert = views.map((table) => {
-    logger?.(`Populating meta for view '${table.title}'`);
     return async () => {
       const columns = (
         await sqlClient.columnList({
@@ -501,6 +506,8 @@ export async function populateMeta(
           uidt: getColumnUiType(source, column),
         });
       }
+
+      logger?.(`Populated meta for view '${table.title}'`);
     };
   });
 

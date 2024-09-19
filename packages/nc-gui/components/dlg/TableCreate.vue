@@ -692,54 +692,66 @@ watch(
                   }"
                 >
                   <template v-for="t of predictedTables" :key="t">
-                    <a-tag
-                      v-if="!removedFromPredictedTables.has(t)"
-                      class="!rounded-md !bg-nc-bg-purple-light !border-none !mx-0"
-                      :class="{
-                        'cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark':
-                          selectedTables.length < maxSelectionCount,
-                        'cursor-not-allowed !text-nc-content-purple-light': selectedTables.length >= maxSelectionCount,
-                      }"
-                      :disabled="selectedTables.length >= maxSelectionCount"
-                      @click="onTagClick(t)"
-                    >
-                      <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
-                        <div>{{ t }}</div>
+                    <NcTooltip v-if="!removedFromPredictedTables.has(t)" :disabled="selectedTables.length < maxSelectionCount">
+                      <template #title>
+                        <div class="w-[150px]">You can only select 5 tables to create at a time.</div>
+                      </template>
 
-                        <div class="flex items-center p-0.5 mt-0.5">
-                          <GeneralIcon
-                            icon="close"
-                            class="h-3 w-3 opacity-80"
-                            :class="{
-                              'cursor-pointer ': selectedTables.length < maxSelectionCount,
-                            }"
-                            @click.stop="onTagRemoveFromPrediction(t)"
-                          />
+                      <a-tag
+                        class="!rounded-md !bg-nc-bg-purple-light !border-none !mx-0"
+                        :class="{
+                          'cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark':
+                            selectedTables.length < maxSelectionCount,
+                          'cursor-not-allowed !text-nc-content-purple-light': selectedTables.length >= maxSelectionCount,
+                        }"
+                        :disabled="selectedTables.length >= maxSelectionCount"
+                        @click="onTagClick(t)"
+                      >
+                        <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                          <div>{{ t }}</div>
+
+                          <div class="flex items-center p-0.5 mt-0.5">
+                            <GeneralIcon
+                              icon="close"
+                              class="h-3 w-3 opacity-80"
+                              :class="{
+                                'cursor-pointer ': selectedTables.length < maxSelectionCount,
+                              }"
+                              @click.stop="onTagRemoveFromPrediction(t)"
+                            />
+                          </div>
                         </div>
-                      </div>
-                    </a-tag>
+                      </a-tag>
+                    </NcTooltip>
                   </template>
 
-                  <NcButton
+                  <NcTooltip
                     v-if="predictedTables.length || !selectedTables.length"
-                    size="xs"
-                    class="!h-6 bg-nc-bg-purple-dark"
-                    :type="predictedTables.length && selectedTables.length < maxSelectionCount ? 'text' : 'secondary'"
-                    :disabled="!predictedTables.length || selectedTables.length >= maxSelectionCount"
-                    :class="{
-                      '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark':
-                        predictedTables.length && selectedTables.length < maxSelectionCount,
-                      '!text-nc-content-purple-light !border-purple-200 !bg-nc-bg-purple-light':
-                        !predictedTables.length || selectedTables.length >= maxSelectionCount,
-                    }"
-                    @click="onSelectAll"
+                    :disabled="selectedTables.length < maxSelectionCount"
                   >
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="ncPlusMultiple" class="flex-none" />
+                    <template #title>
+                      <div class="w-[150px]">You can only select 5 tables to create at a time.</div>
+                    </template>
+                    <NcButton
+                      size="xs"
+                      class="!h-6 bg-nc-bg-purple-dark"
+                      :type="predictedTables.length && selectedTables.length < maxSelectionCount ? 'text' : 'secondary'"
+                      :disabled="!predictedTables.length || selectedTables.length >= maxSelectionCount"
+                      :class="{
+                        '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark':
+                          predictedTables.length && selectedTables.length < maxSelectionCount,
+                        '!text-nc-content-purple-light !border-purple-200 !bg-nc-bg-purple-light':
+                          !predictedTables.length || selectedTables.length >= maxSelectionCount,
+                      }"
+                      @click="onSelectAll"
+                    >
+                      <div class="flex items-center gap-2">
+                        <GeneralIcon icon="ncPlusMultiple" class="flex-none" />
 
-                      Accept All Tables
-                    </div>
-                  </NcButton>
+                        Accept all
+                      </div>
+                    </NcButton>
+                  </NcTooltip>
                   <NcButton
                     v-else
                     size="xs"
@@ -750,7 +762,7 @@ watch(
                     <div class="flex items-center gap-2">
                       <GeneralIcon icon="ncMinusSquare" class="flex-none" />
 
-                      Remove All Tables
+                      Remove all
                     </div>
                   </NcButton>
                 </div>
@@ -824,13 +836,6 @@ watch(
               </span>
             </div>
           </NcButton>
-          <div
-            v-if="aiMode && selectedTables.length >= maxSelectionCount && predictedTables.length"
-            class="flex items-center gap-2"
-          >
-            <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
-            <div class="text-sm text-nc-content-gray-subtle flex-1">You can only select 5 tables to create at a time.</div>
-          </div>
           <div v-else></div>
           <div class="flex gap-2 items-center">
             <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
@@ -883,7 +888,10 @@ watch(
         <span class="font-semibold !text-inherit"> Noco AI </span>
       </div>
 
+      <!-- eslint-disable vue/no-constant-condition -->
+      <div v-if="true" class="h-7"></div>
       <AiSettings
+        v-else
         v-model:fk-integration-id="availableIntegration.fkIntegrationId"
         v-model:model="availableIntegration.model"
         v-model:randomness="availableIntegration.randomness"

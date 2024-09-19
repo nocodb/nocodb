@@ -816,6 +816,7 @@ export default class Column<T = any> implements ColumnType {
 
         if (button.type === 'url') {
           if (
+            button.formula &&
             addFormulaErrorIfMissingColumn({
               formula: button,
               columnId: id,
@@ -858,6 +859,7 @@ export default class Column<T = any> implements ColumnType {
           formulaCol,
         ).getColOptions<FormulaColumn>(context, ncMeta);
         if (
+          formula.formula &&
           addFormulaErrorIfMissingColumn({
             formula,
             columnId: id,

@@ -330,6 +330,20 @@ export class AiUtilsService {
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
 
+    // Filter out duplicate tables
+    {
+      let resTables = (data as { tables: string[] }).tables || [];
+
+      const existingTables = [
+        ...tables.map((t) => t.title),
+        ...(params.input.history || []),
+      ];
+
+      (data as { tables: string[] }).tables = resTables.filter(
+        (t) => !existingTables.includes(t),
+      );
+    }
+
     return data;
   }
 

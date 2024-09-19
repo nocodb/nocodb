@@ -93,7 +93,7 @@
     "none": "Нічого"
   },
   "general": {
-    "configure": "Configure",
+    "configure": "Налаштування",
     "switch": "Switch",
     "on": "On",
     "onMultiple": "On Multiple",
@@ -319,7 +319,7 @@
     "webhooks": "Вебхуки",
     "view": "Вигляд",
     "views": "Вигляди",
-    "sidebar": "Sidebar",
+    "sidebar": "Бічна панель",
     "viewType": {
       "grid": "Сітка",
       "gallery": "Галерея",
@@ -339,7 +339,7 @@
       "editor": "Редактор",
       "commenter": "Коментатор",
       "viewer": "Глядач",
-      "noaccess": "No Access",
+      "noaccess": "Немає доступу",
       "superAdmin": "Головний адміністратор",
       "orgLevelOwner": "Organization Level Owner",
       "orgLevelCreator": "Творець рівня організації",
@@ -360,9 +360,9 @@
       "box": "Box",
       "github": "Github",
       "gitlab": "Gitlab",
-      "googleCalendar": "Google Calendar",
+      "googleCalendar": "Календар Google",
       "googleDrive": "Google Drive",
-      "googleSheets": "Google Sheets",
+      "googleSheets": "Google таблиці",
       "hubspot": "Hubspot",
       "serviceHub": "Service Hub",
       "jira": "Jira",

@@ -12,6 +12,8 @@ const props = defineProps<{
   baseId: string
 }>()
 
+const maxSelectionCount = 5
+
 const emit = defineEmits(['update:modelValue', 'create'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
@@ -176,7 +178,7 @@ const predictFromPrompt = async () => {
 }
 
 const onTagClick = (tag: string) => {
-  if (selectedTables.value.includes(tag)) return
+  if (selectedTables.value.length >= maxSelectionCount || selectedTables.value.includes(tag)) return
 
   selectedTables.value.push(tag)
   predictedTables.value = predictedTables.value.filter((t) => t !== tag)
@@ -190,15 +192,34 @@ const onTagClose = (tag: string) => {
 }
 
 const onTagRemoveFromPrediction = (tag: string) => {
+  if (selectedTables.value.length >= maxSelectionCount) return
+
   removedFromPredictedTables.value.add(tag)
   predictedTables.value = predictedTables.value.filter((t) => t !== tag)
 }
 
 const onSelectAll = () => {
-  selectedTables.value.push(
-    ...predictedTables.value.filter((t) => !removedFromPredictedTables.value.has(t) && !selectedTables.value.includes(t)),
-  )
-  predictedTables.value = []
+  if (selectedTables.value.length >= maxSelectionCount) return
+  let count = selectedTables.value.length
+
+  const remainingPredictedTables: string[] = []
+  const tablesToAdd: string[] = []
+
+  predictedTables.value.forEach((t) => {
+    // Check if the item can be selected
+    if (count < maxSelectionCount && !removedFromPredictedTables.value.has(t) && !selectedTables.value.includes(t)) {
+      tablesToAdd.push(t) // Add to selected tables if it meets the criteria
+      count++
+    } else {
+      remainingPredictedTables.push(t) // Keep in predicted tables if it doesn't meet the criteria
+    }
+  })
+
+  // Add selected items to the selected tables array
+  selectedTables.value.push(...tablesToAdd)
+
+  // Update predictedTables with the remaining ones
+  predictedTables.value = remainingPredictedTables
 }
 
 const onDeselectAll = () => {
@@ -339,7 +360,14 @@ onMounted(() => {
 
 const fullAuto = async (e) => {
   const target = e.target as HTMLElement
-  if (!aiIntegrationAvailable.value || aiError.value || target.closest('button, input, .nc-button, textarea')) return
+  if (
+    !aiIntegrationAvailable.value ||
+    aiLoading.value ||
+    aiError.value ||
+    target.closest('button, input, .nc-button, textarea')
+  ) {
+    return
+  }
 
   if (!aiModeStep.value) {
     await toggleAiMode()
@@ -480,9 +508,11 @@ watch(
                 :key="t"
                 class="cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none font-semibold !mx-0"
               >
-                <div class="flex flex-row items-center gap-1 py-0.5 text-sm">
+                <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
                   <span>{{ t }}</span>
-                  <GeneralIcon icon="close" class="cursor-pointer" @click="onTagClose(t)" />
+                  <div class="flex items-center p-0.5 mt-0.5">
+                    <GeneralIcon icon="close" class="h-3 w-3 cursor-pointer opacity-80" @click="onTagClose(t)" />
+                  </div>
                 </div>
               </a-tag>
             </div>
@@ -498,7 +528,8 @@ watch(
                 class="z-10 !border-l-0 !rounded-l-none !pl-3.8"
                 :class="{
                   '!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !border-purple-100 !text-nc-fill-purple-dark': !aiMode,
-                  '!bg-purple-700 !border-purple-700 !text-white': aiMode,
+                  '!bg-purple-700 !border-purple-700 hover:(!bg-nc-fill-purple-medium !border-nc-fill-purple-medium) !text-white':
+                    aiMode,
                 }"
                 @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
               >
@@ -663,16 +694,28 @@ watch(
                   <template v-for="t of predictedTables" :key="t">
                     <a-tag
                       v-if="!removedFromPredictedTables.has(t)"
-                      class="cursor-pointer !rounded-md !bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !text-nc-content-purple-dark !border-none !mx-0"
+                      class="!rounded-md !bg-nc-bg-purple-light !border-none !mx-0"
+                      :class="{
+                        'cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark':
+                          selectedTables.length < maxSelectionCount,
+                        'cursor-not-allowed !text-nc-content-purple-light': selectedTables.length >= maxSelectionCount,
+                      }"
+                      :disabled="selectedTables.length >= maxSelectionCount"
                       @click="onTagClick(t)"
                     >
-                      <div class="flex flex-row items-center gap-1 py-0.5">
-                        <span>{{ t }}</span>
-                        <GeneralIcon
-                          icon="close"
-                          class="text-xs cursor-pointer mt-0.5"
-                          @click.stop="onTagRemoveFromPrediction(t)"
-                        />
+                      <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                        <div>{{ t }}</div>
+
+                        <div class="flex items-center p-0.5 mt-0.5">
+                          <GeneralIcon
+                            icon="close"
+                            class="h-3 w-3 opacity-80"
+                            :class="{
+                              'cursor-pointer ': selectedTables.length < maxSelectionCount,
+                            }"
+                            @click.stop="onTagRemoveFromPrediction(t)"
+                          />
+                        </div>
                       </div>
                     </a-tag>
                   </template>
@@ -680,12 +723,14 @@ watch(
                   <NcButton
                     v-if="predictedTables.length || !selectedTables.length"
                     size="xs"
-                    class="!h-6"
-                    :type="predictedTables.length ? 'text' : 'secondary'"
-                    :disabled="!predictedTables.length"
+                    class="!h-6 bg-nc-bg-purple-dark"
+                    :type="predictedTables.length && selectedTables.length < maxSelectionCount ? 'text' : 'secondary'"
+                    :disabled="!predictedTables.length || selectedTables.length >= maxSelectionCount"
                     :class="{
-                      '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark': predictedTables.length,
-                      '!text-nc-content-purple-light !border-purple-200 !bg-nc-bg-purple-light': !predictedTables.length,
+                      '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark':
+                        predictedTables.length && selectedTables.length < maxSelectionCount,
+                      '!text-nc-content-purple-light !border-purple-200 !bg-nc-bg-purple-light':
+                        !predictedTables.length || selectedTables.length >= maxSelectionCount,
                     }"
                     @click="onSelectAll"
                   >
@@ -779,6 +824,13 @@ watch(
               </span>
             </div>
           </NcButton>
+          <div
+            v-if="aiMode && selectedTables.length >= maxSelectionCount && predictedTables.length"
+            class="flex items-center gap-2"
+          >
+            <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
+            <div class="text-sm text-nc-content-gray-subtle flex-1">You can only select 5 tables to create at a time.</div>
+          </div>
           <div v-else></div>
           <div class="flex gap-2 items-center">
             <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>

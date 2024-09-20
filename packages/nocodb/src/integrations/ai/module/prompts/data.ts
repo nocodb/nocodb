@@ -30,13 +30,11 @@ export const generateFromButtonSystemMessage = (
 ) => `You are a smart-spreadsheet assistant.
 You are given a list of prompts as JSON array.
 You need to generate a list of responses as JSON array.
-Preserve value for following (primary keys): ${primaryKeyTitles
+Avoid modifying following fields: ${primaryKeyTitles
   .map((pk) => `"${pk}"`)
   .join(', ')}.
 
-Each object in the input array must have a primary key.
-
-In response you must return following fields along with the primary keys: ${outputColumns
+In response you must return following fields along with unmodified ones: ${outputColumns
   .map((col) => `"${col}"`)
   .join(', ')}.
 
@@ -54,5 +52,13 @@ Sample Output:
   { "Id": 1, "answer": "Paris" },
   { "Id": 2, "answer": "Berlin" }
 ]
+\`\`\`
+
+Response TS Interface:
+\`\`\`ts
+interface Response {
+  ${primaryKeyTitles.map((pk) => `${pk}: string`).join(';\n  ')}
+  ${outputColumns.map((col) => `${col}: string`).join(';\n  ')}
+}
 \`\`\`
 `;

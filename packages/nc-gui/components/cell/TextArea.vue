@@ -523,8 +523,9 @@ textarea:focus {
   @apply h-[min(795px,100vh_-_300px)] w-[min(1256px,100vw_-_124px)];
 
   max-height: min(795px, 100vh - 170px);
-  min-width: 256px;
+  min-width: -webkit-fill-available;
   max-width: min(1256px, 100vw - 126px);
+  transition-property: shadow, colors, border;
   scrollbar-width: thin !important;
   &::-webkit-scrollbar-thumb {
     @apply rounded-lg;

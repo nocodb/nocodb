@@ -3,7 +3,7 @@ import PQueue from 'p-queue';
 import { Logger } from '@nestjs/common';
 
 const NC_EXECUTE_OPERATIONS_CONCURRENCY =
-  +process.env.NC_EXECUTE_OPERATIONS_CONCURRENCY || 5;
+  parseInt(process.env.NC_EXECUTE_OPERATIONS_CONCURRENCY) || 5;
 
 export default class NcHelp {
   public static logger = new Logger('NcHelp');
@@ -19,23 +19,27 @@ export default class NcHelp {
           : NC_EXECUTE_OPERATIONS_CONCURRENCY,
     });
 
-    let error = null;
+    const errors = [];
 
     for (const fn of fns) {
       queue.add(async () => {
+        if (errors.length) {
+          return;
+        }
+
         try {
           await fn();
         } catch (e) {
           this.logger.error(e);
-          error = e;
+          errors.push(e);
         }
       });
     }
 
     await queue.onIdle();
 
-    if (error) {
-      throw error;
+    if (errors.length) {
+      throw errors[0];
     }
   }
 

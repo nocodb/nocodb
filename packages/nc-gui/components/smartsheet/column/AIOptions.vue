@@ -69,8 +69,8 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
       <div class="flex-1"></div>
     </a-form-item>
     <template v-if="isEnabledGenerateText">
-      <a-form-item class="nc-prompt-input-wrapper flex bg-nc-bg-gray-light rounded-lg">
-        <div class="w-full">
+      <a-form-item class="flex">
+        <div class="nc-prompt-input-wrapper bg-nc-bg-gray-light rounded-lg w-full">
           <AiPromptWithFields v-model="vModel.prompt_raw" :options="availableFields" />
           <div class="rounded-b-lg flex items-center gap-2 p-1">
             <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />

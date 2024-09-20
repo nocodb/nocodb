@@ -123,6 +123,7 @@ watch(
               'hover:bg-gray-100 cursor-pointer': !isDisabledUIType(option.name),
               'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
               '!text-gray-400 cursor-not-allowed': isDisabledUIType(option.name),
+              '!text-nc-content-purple-dark': option.name === UITypes.AI || option.name === 'AIButton',
             },
           ]"
           :data-testid="option.name"

@@ -561,7 +561,14 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
                     class="w-4 h-4"
                     :class="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name) ? 'text-gray-300' : 'text-gray-700'"
                   />
-                  <div class="flex-1">{{ UITypesName[opt.name] }}</div>
+                  <div
+                    class="flex-1"
+                    :class="{
+                      '!text-nc-content-purple-dark': opt.name === UITypes.AI || opt.name === 'AIButton',
+                    }"
+                  >
+                    {{ UITypesName[opt.name] }}
+                  </div>
                   <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                   <!-- <NcBadge v-if="opt.isNew" :border="false" class="!text-sm !text-nc-content-purple-dark !bg-nc-bg-purple-light !h-5">{{ $t('general.new') }}</NcBadge> -->
                 </div>
@@ -569,7 +576,11 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
                   :is="iconMap.check"
                   v-if="formState.uidt === opt.name"
                   id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
+                  class="w-4 h-4"
+                  :class="{
+                    'text-primary': !isAiMode,
+                    'text-nc-content-purple-medium': isAiMode,
+                  }"
                 />
               </div>
             </a-select-option>

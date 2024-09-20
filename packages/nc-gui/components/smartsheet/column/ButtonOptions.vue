@@ -33,7 +33,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen, validate } =
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen, validate, isAiMode } =
   useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
@@ -290,6 +290,8 @@ const eventList = ref<Record<string, any>[]>([
   { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
 ])
 
+const preview = ref('')
+
 const isWebhookModal = ref(false)
 
 const newWebhook = () => {
@@ -374,11 +376,18 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative flex flex-col gap-4">
     <a-row :gutter="8">
       <a-col :span="12">
         <a-form-item v-bind="validateInfos.label" class="mt-4" :label="$t('general.label')">
-          <a-input v-model:value="vModel.label" class="nc-column-label-input !rounded-lg" placeholder="Button" />
+          <a-input
+            v-model:value="vModel.label"
+            class="nc-column-label-input nc-input-shadow !rounded-lg"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
+            placeholder="Button"
+          />
         </a-form-item>
       </a-col>
       <a-col :span="6">
@@ -386,7 +395,9 @@ onMounted(() => {
           <NcDropdown v-model:visible="isDropdownOpen" class="nc-color-picker-dropdown-trigger">
             <div
               :class="{
-                '!border-brand-500 shadow-selected nc-button-style-dropdown ': isDropdownOpen,
+                'nc-button-style-dropdown': isDropdownOpen,
+                '!border-nc-border-purple !shadow-selected-ai': isDropdownOpen && isAiMode,
+                '!border-brand-500 !shadow-selected': isDropdownOpen && !isAiMode,
               }"
               class="flex items-center justify-between border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
             >
@@ -424,7 +435,9 @@ onMounted(() => {
           <NcDropdown v-model:visible="isButtonIconDropdownOpen" class="nc-color-picker-dropdown-trigger">
             <div
               :class="{
-                '!border-brand-500 shadow-selected nc-button-style-dropdown ': isButtonIconDropdownOpen,
+                'nc-button-style-dropdown ': isButtonIconDropdownOpen,
+                '!border-nc-border-purple !shadow-selected-ai': isButtonIconDropdownOpen && isAiMode,
+                '!border-brand-500 !shadow-selected': isButtonIconDropdownOpen && !isAiMode,
               }"
               class="flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
             >
@@ -443,7 +456,10 @@ onMounted(() => {
                     ref="inputRef"
                     v-model:value="iconSearchQuery"
                     :placeholder="$t('placeholder.searchIcons')"
-                    class="nc-dropdown-search-unified-input z-10"
+                    class="nc-dropdown-search-unified-input z-10 nc-input-shadow"
+                    :class="{
+                      'nc-ai-input': isAiMode,
+                    }"
                   >
                     <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
                   ></a-input>
@@ -470,12 +486,15 @@ onMounted(() => {
         </a-form-item>
       </a-col>
     </a-row>
-    <a-row class="mt-4" :gutter="8">
+    <a-row :gutter="8">
       <a-col :span="24">
         <a-form-item :label="$t('labels.onClick')" v-bind="validateInfos.type">
           <a-select
             v-model:value="vModel.type"
-            class="w-52 nc-button-type-select"
+            class="w-52 nc-button-type-select nc-select-shadow"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
             dropdown-class-name="nc-dropdown-button-cell-type"
           >
             <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-500" /> </template>
@@ -496,7 +515,7 @@ onMounted(() => {
         </a-form-item>
       </a-col>
     </a-row>
-    <div v-if="vModel?.type === buttonActionsType.Url" class="!mt-4">
+    <div v-if="vModel?.type === buttonActionsType.Url" >
       <SmartsheetColumnFormulaInputHelper
         v-model:value="vModel.formula_raw"
         suggestion-height="medium"
@@ -507,7 +526,7 @@ onMounted(() => {
       />
     </div>
 
-    <a-form-item v-if="vModel?.type === buttonActionsType.Webhook" class="!mt-4">
+    <a-form-item v-if="vModel?.type === buttonActionsType.Webhook" >
       <div class="mb-2 text-gray-800 text-[13px] flex justify-between">
         {{ $t('labels.webhook') }}
         <a
@@ -600,29 +619,39 @@ onMounted(() => {
     </a-form-item>
 
     <template v-if="vModel?.type === buttonActionsType.Ai">
-      <a-form-item class="flex !mt-4" v-bind="validateInfos.formula_raw">
-        <AiPromptWithFields v-model="vModel.formula_raw" :options="availableFields" />
-        <div class="absolute w-full bottom-[-1px] bg-purple-50 rounded-b-lg flex items-center gap-2 p-1">
-          <GeneralIcon icon="info" />
-          <span class="text-xs text-gray-500">Mention fields using curly braces, e.g. {Field name}.</span>
+      <a-form-item class="flex" v-bind="validateInfos.formula_raw">
+        <div class="nc-prompt-input-wrapper bg-nc-bg-gray-light rounded-lg w-full">
+          <AiPromptWithFields v-model="vModel.formula_raw" :options="availableFields" />
+          <div class="rounded-b-lg flex items-center gap-2 p-1">
+            <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />
+            <span class="text-xs text-nc-content-gray-subtle2"
+              >Mention fields using curly braces, e.g. <span class="text-nc-content-purple-dark">{Field name}</span>.</span
+            >
+          </div>
         </div>
       </a-form-item>
-      <a-form-item label="Output Fields" class="!mt-4" v-bind="validateInfos.output_column_ids">
-        <AiSettings
-          v-model:fk-integration-id="vModel.fk_integration_id"
-          v-model:model="vModel.model"
-          v-model:randomness="vModel.randomness"
-          class="absolute right-[5px] top-[-25px]"
-          :workspace-id="activeWorkspaceId"
+      <a-form-item label="Output Fields"  v-bind="validateInfos.output_column_ids">
+        <NcSelect
+          v-model:value="outputColumnIds"
+          :options="outputFieldOptions"
+          mode="multiple"
+          placeholder="Select"
+          class="nc-select-shadow nc-ai-input"
         />
-        <NcSelect v-model:value="outputColumnIds" :options="outputFieldOptions" mode="multiple" placeholder="Select" />
       </a-form-item>
-      <div class="shadow-default flex p-2 text-xs items-center !mt-4">
-        <div class="flex flex-col flex-1 gap-1">
-          <span class="font-bold text-gray-600">Preview</span>
-          <span class="text-gray-400 text-[11px]">Include at least 1 field in prompt to generate</span>
+      <div class="nc-ai-button-options-preview">
+        <div v-if="preview" class="">
+          <!-- Todo: add input box  -->
         </div>
-        <NcButton class="!bg-purple-50" size="small"> <span class="text-purple-600">Generate</span></NcButton>
+        <div v-else class="pl-3 py-2 pr-2 flex items-center">
+          <div class="flex flex-col flex-1 gap-1">
+            <span class="text-small font-medium text-nc-content-gray">Preview</span>
+            <span class="text-[11px] leading-[18px] text-nc-content-gray-muted"
+              >Include at least 1 field in prompt to generate</span
+            >
+          </div>
+          <NcButton class="!bg-purple-50" size="xs"> <div class="text-purple-600">Generate</div></NcButton>
+        </div>
       </div>
     </template>
 
@@ -800,5 +829,15 @@ onMounted(() => {
       @apply text-gray-600;
     }
   }
+}
+
+.nc-prompt-input-wrapper {
+  @apply border-1 border-nc-border-gray-medium;
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+}
+
+.nc-ai-button-options-preview {
+  @apply rounded-lg border-1 border-nc-border-gray-medium;
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
 }
 </style>

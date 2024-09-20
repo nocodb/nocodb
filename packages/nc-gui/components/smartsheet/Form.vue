@@ -32,6 +32,7 @@ const hiddenColTypes = [
   UITypes.QrCode,
   UITypes.Barcode,
   UITypes.Button,
+  UITypes.AI,
   UITypes.SpecificDBType,
   UITypes.CreatedTime,
   UITypes.LastModifiedTime,

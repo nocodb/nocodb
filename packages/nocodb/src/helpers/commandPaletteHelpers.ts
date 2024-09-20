@@ -46,6 +46,7 @@ export async function getCommandPaletteForUserWorkspace(
         })
         .where('bu.fk_user_id', userId)
         .andWhereNot('bu.roles', 'no_access')
+        .andWhere('t.mm', false)
         .andWhere(function () {
           this.where('dm.disabled', false).orWhereNull('dm.disabled');
         })

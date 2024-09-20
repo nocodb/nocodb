@@ -34,6 +34,8 @@ Preserve value for following (primary keys): ${primaryKeyTitles
   .map((pk) => `"${pk}"`)
   .join(', ')}.
 
+Each object in the input array must have a primary key.
+
 In response you must return following fields along with the primary keys: ${outputColumns
   .map((col) => `"${col}"`)
   .join(', ')}.

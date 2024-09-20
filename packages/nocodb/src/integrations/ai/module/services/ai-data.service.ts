@@ -64,9 +64,10 @@ export class AiDataService {
       columnId: string;
       rowIds: string[];
       req: NcRequest;
+      preview?: boolean;
     },
   ) {
-    const { modelId, columnId, rowIds, req } = params;
+    const { modelId, columnId, rowIds, req, preview = false } = params;
 
     if (!rowIds.length) {
       return [];
@@ -99,6 +100,7 @@ export class AiDataService {
         model,
         column,
         rowIds,
+        preview,
         req,
       });
     }
@@ -197,6 +199,10 @@ export class AiDataService {
 
     const { rows } = data;
 
+    if (preview) {
+      return rows;
+    }
+
     const updatedRows = await baseModel.bulkUpdate(rows, {
       cookie: {
         ...req,
@@ -214,9 +220,10 @@ export class AiDataService {
       column: Column;
       rowIds: string[];
       req: NcRequest;
+      preview?: boolean;
     },
   ) {
-    const { model, column, rowIds, req } = params;
+    const { model, column, rowIds, req, preview = false } = params;
 
     if (!rowIds.length) {
       return [];
@@ -396,7 +403,7 @@ export class AiDataService {
               return '@image';
             }
 
-            return row[p1];
+            return row[col.title];
           }),
           ...pkObj,
         };
@@ -476,6 +483,10 @@ export class AiDataService {
     await integration.storeInsert(context, req?.user?.id, usage);
 
     const { rows } = data;
+
+    if (preview) {
+      return rows;
+    }
 
     try {
       const updatedRows = await baseModel.bulkUpdate(rows, {
@@ -589,7 +600,7 @@ export class AiDataService {
               return '@file';
             }
 
-            return row[p1];
+            return row[col.title];
           }),
           ...pkObj,
         };

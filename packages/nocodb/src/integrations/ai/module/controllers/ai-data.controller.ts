@@ -33,12 +33,14 @@ export class AiDataController {
     @Body()
     body: {
       rowIds: string[];
+      preview?: boolean;
     },
   ) {
     return await this.aiDataService.generateRows(context, {
       modelId,
       columnId,
       rowIds: body.rowIds,
+      preview: body.preview,
       req,
     });
   }

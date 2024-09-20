@@ -18447,6 +18447,9 @@
                     "items": {
                       "type": "string"
                     }
+                  },
+                  "preview": {
+                    "type": "boolean"
                   }
                 },
                 "required": ["rowIds"]

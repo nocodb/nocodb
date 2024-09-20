@@ -18,12 +18,12 @@ const emit = defineEmits(['change', 'update:checked'])
 
 const checked = useVModel(props, 'checked', emit)
 
-const { loading } = toRefs(props)
+const { loading, disabled } = toRefs(props)
 
 const switchSize = computed(() => (['default', 'small'].includes(props.size) ? props.size : undefined))
 
 const onChange = (e: boolean, updateValue = false) => {
-  if (loading.value) return
+  if (loading.value || disabled.value) return
 
   if (updateValue) {
     checked.value = e

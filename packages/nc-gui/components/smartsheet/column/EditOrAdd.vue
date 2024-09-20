@@ -458,6 +458,7 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
       'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-xl p-5': !embedMode,
       'nc-ai-mode !pb-0': isAiMode,
+      'h-full': props.fromTableExplorer
     }"
     @keydown="handleEscape"
     @click.stop
@@ -468,9 +469,9 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
       name="column-create-or-edit"
       layout="vertical"
       data-testid="add-or-edit-column"
-      class="flex flex-col gap-4"
+      class="flex flex-col gap-4 h-full"
     >
-      <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex flex-grow">
+      <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex">
         <div
           class="flex flex-grow px-2 py-1 items-center rounded-md bg-gray-100 focus:bg-gray-100 outline-none"
           style="outline-style: solid; outline-width: thin"
@@ -791,6 +792,7 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
       </template>
 
       <template v-if="isAiMode">
+        <div class="flex-1"></div>
         <SmartsheetColumnAIFooterOptions v-model="formState" class="-mx-5 sticky bottom-0 bg-white z-10" />
       </template>
     </a-form>

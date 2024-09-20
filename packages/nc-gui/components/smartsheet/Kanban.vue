@@ -814,8 +814,17 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                     </div>
                                   </template>
                                   <div class="flex flex-col gap-3 !children:pointer-events-none">
-                                    <h2 v-if="displayField" class="nc-card-display-value-wrapper">
-                                      <template v-if="!isRowEmpty(record, displayField)">
+                                    <h2
+                                      v-if="displayField"
+                                      class="nc-card-display-value-wrapper"
+                                      :class="{
+                                        '!children:pointer-events-auto':
+                                          isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField),
+                                      }"
+                                    >
+                                      <template
+                                        v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)"
+                                      >
                                         <LazySmartsheetVirtualCell
                                           v-if="isVirtualCol(displayField)"
                                           v-model="record.row[displayField.title]"
@@ -840,7 +849,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                       v-for="col in fieldsWithoutDisplay"
                                       :key="`record-${record.row.id}-${col.id}`"
                                       :class="{
-                                        '!children:pointer-events-auto': isButton(col),
+                                        '!children:pointer-events-auto':
+                                          isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
                                       }"
                                       @click="handleCellClick(col, $event)"
                                     >
@@ -858,7 +868,7 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
                                         </div>
 
                                         <div
-                                          v-if="!isRowEmpty(record, col)"
+                                          v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
                                           class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
                                         >
                                           <LazySmartsheetVirtualCell

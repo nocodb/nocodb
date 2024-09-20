@@ -23,6 +23,10 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const isGallery = inject(IsGalleryInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
+
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
@@ -79,7 +83,7 @@ const debouncedSave = useDebounceFn(handleSave, 1000)
 
 <template>
   <div
-    v-if="!readOnly && !vModel"
+    v-if="(!readOnly || isGallery || isKanban) && !vModel"
     class="flex items-center w-full"
     :class="{
       'justify-center': isGrid && !isExpandedForm,
@@ -89,10 +93,13 @@ const debouncedSave = useDebounceFn(handleSave, 1000)
       class="nc-cell-ai-button nc-cell-button h-7"
       size="small"
       :disabled="!aiIntegrationAvailable || aiLoading"
-      @click="generate"
+      @click.stop="generate"
     >
       <div class="flex items-center gap-1">
-        <GeneralLoader v-if="pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id)" size="regular" />
+        <GeneralLoader
+          v-if="pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id)"
+          size="regular"
+        />
         <GeneralIcon v-else icon="ncAutoAwesome" class="text-nc-content-purple-dark h-4 w-4" />
         <span class="text-sm font-bold">Generate</span>
       </div>

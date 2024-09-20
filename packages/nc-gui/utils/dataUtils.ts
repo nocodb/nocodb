@@ -430,3 +430,11 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
   }
   return isValid
 }
+
+export const isAllowToRenderRowEmptyField = (col: ColumnType) => {
+  if (!col) return false
+
+  if (isAI(col)) {
+    return true
+  }
+}

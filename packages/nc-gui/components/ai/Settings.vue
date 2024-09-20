@@ -102,8 +102,13 @@ onMounted(async () => {
                 <GeneralIcon icon="info" class="text-sm text-gray-500" />
               </NcTooltip>
             </div>
-            <div class="flex-1">
-              <NcSelect v-model:value="vFkIntegrationId" class="w-full" size="middle" @change="onIntegrationChange">
+            <a-form-item class="flex-1 !my-0">
+              <NcSelect
+                v-model:value="vFkIntegrationId"
+                class="w-full nc-select-shadow nc-ai-input"
+                size="middle"
+                @change="onIntegrationChange"
+              >
                 <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
                   <div class="w-full flex gap-2 items-center">
                     <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
@@ -117,12 +122,12 @@ onMounted(async () => {
                       :is="iconMap.check"
                       v-if="vFkIntegrationId === integration.id"
                       id="nc-selected-item-icon"
-                      class="text-primary w-4 h-4"
+                      class="text-nc-content-purple-medium w-4 h-4"
                     />
                   </div>
                 </a-select-option>
               </NcSelect>
-            </div>
+            </a-form-item>
           </div>
           <!-- Model Select -->
           <div class="flex items-center gap-2">
@@ -135,10 +140,11 @@ onMounted(async () => {
                 <GeneralIcon icon="info" class="text-sm text-gray-500" />
               </NcTooltip>
             </div>
-            <div class="flex-1">
+
+            <a-form-item class="flex-1 !my-0">
               <NcSelect
                 v-model:value="vModel"
-                class="w-full"
+                class="w-full nc-select-shadow nc-ai-input"
                 size="middle"
                 :disabled="!vFkIntegrationId"
                 :loading="vFkIntegrationId?.length > 0 && availableModels.length === 0"
@@ -147,7 +153,7 @@ onMounted(async () => {
                   {{ md }}
                 </a-select-option>
               </NcSelect>
-            </div>
+            </a-form-item>
           </div>
           <!-- Randomness 
           <div class="flex items-center gap-2">

@@ -9,7 +9,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'save'])
 
-const { aiIntegrationAvailable, aiLoading, generateRows, generatingRows } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading, generateRows, generatingRows, generatingColumnRows } = useNocoAi()
 
 const { row } = useSmartsheetRowStoreOrThrow()
 
@@ -20,6 +20,10 @@ const column = inject(ColumnInj)
 const editEnabled = inject(EditModeInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
+
+const isGrid = inject(IsGridInj, ref(false))
+
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -36,6 +40,7 @@ const generate = async () => {
   if (!pk.value) return
 
   generatingRows.value.push(pk.value)
+  generatingColumnRows.value.push(column.value.id)
 
   const res = await generateRows(meta.value.id, column.value.id, [pk.value])
 
@@ -62,6 +67,7 @@ const generate = async () => {
   }
 
   generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)
+  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== column.value.id)
 }
 
 const handleSave = () => {
@@ -72,11 +78,22 @@ const debouncedSave = useDebounceFn(handleSave, 1000)
 </script>
 
 <template>
-  <div v-if="!readOnly && !vModel" class="flex justify-center w-full">
-    <button class="nc-cell-button" size="small" :disabled="!aiIntegrationAvailable || aiLoading" @click="generate">
+  <div
+    v-if="!readOnly && !vModel"
+    class="flex items-center w-full"
+    :class="{
+      'justify-center': isGrid && !isExpandedForm,
+    }"
+  >
+    <button
+      class="nc-cell-ai-button nc-cell-button h-7"
+      size="small"
+      :disabled="!aiIntegrationAvailable || aiLoading"
+      @click="generate"
+    >
       <div class="flex items-center gap-1">
-        <GeneralLoader v-if="pk && generatingRows.includes(pk)" size="small" />
-        <GeneralIcon v-else icon="ncAutoAwesome" class="text-nc-content-purple-dark" />
+        <GeneralLoader v-if="pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id)" size="regular" />
+        <GeneralIcon v-else icon="ncAutoAwesome" class="text-nc-content-purple-dark h-4 w-4" />
         <span class="text-sm font-bold">Generate</span>
       </div>
     </button>
@@ -99,5 +116,14 @@ const debouncedSave = useDebounceFn(handleSave, 1000)
   @apply rounded-lg px-2 flex items-center gap-2 transition-all justify-center md:(hover:bg-gray-100) border-1 border-nc-border-gray-medium;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+}
+</style>
+
+<style lang="scss">
+.nc-data-cell {
+  &:has(.nc-cell-ai-button) {
+    @apply !border-none;
+    box-shadow: none !important;
+  }
 }
 </style>

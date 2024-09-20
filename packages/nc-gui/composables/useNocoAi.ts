@@ -181,6 +181,8 @@ export const useNocoAi = createSharedComposable(() => {
 
   const generatingRows = ref<string[]>([])
 
+  const generatingColumnRows = ref<string[]>([])
+
   const generatingColumns = ref<string[]>([])
 
   const generateRows = async (modelId: string, columnId: string, rowIds: string[]) => {
@@ -239,6 +241,7 @@ export const useNocoAi = createSharedComposable(() => {
     generateTables,
     generateRows,
     generatingRows,
+    generatingColumnRows,
     generatingColumns,
     predictSchema,
     createSchema,

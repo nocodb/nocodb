@@ -44,7 +44,7 @@ const { user } = useGlobal()
 
 const selected = ref<string>()
 
-const { cmdPlaceholder } = useCommandPalette()
+const { cmdPlaceholder, loadScope, cmdLoading } = useCommandPalette()
 
 const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(() => {
   const rt: (CmdAction & { weight: number })[] = []
@@ -206,6 +206,10 @@ const setScope = (scope: string) => {
 const show = () => {
   if (!user.value) return
   if (props.scope === 'disabled') return
+  if (!vOpen.value) {
+    loadScope()
+  }
+
   vOpen.value = true
   cmdInput.value = ''
   nextTick(() => {
@@ -329,46 +333,49 @@ defineExpose({
             <div
               class="text-gray-600 text-sm cursor-pointer flex gap-2 px-2 py-1 items-center justify-center font-medium capitalize"
             >
-              <GeneralWorkspaceIcon
-                v-if="el.icon && el.id.startsWith('ws')"
-                :workspace="{
-                  id: el.id.split('-')[1],
-                  meta: {
-                    color: el.iconColor,
-                  },
-                }"
-                hide-label
-                size="small"
-              />
+              <GeneralLoader v-if="cmdLoading && !el.label" />
+              <template v-else>
+                <GeneralWorkspaceIcon
+                  v-if="el.icon && el.id.startsWith('ws')"
+                  :workspace="{
+                    id: el.id.split('-')[1],
+                    meta: {
+                      color: el.iconColor,
+                    },
+                  }"
+                  hide-label
+                  size="small"
+                />
 
-              <component
-                :is="(iconMap as any)[el.icon]"
-                v-else-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
-                :class="{
-                  '!text-blue-500': el.icon === 'grid',
-                  '!text-purple-500': el.icon === 'form',
-                  '!text-[#FF9052]': el.icon === 'kanban',
-                  '!text-pink-500': el.icon === 'gallery',
-                  '!text-maroon-500': el.icon === 'calendar',
-                }"
-                class="cmdk-action-icon"
-              />
-              <div v-else-if="el.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
-                <LazyGeneralEmojiPicker :emoji="el.icon" class="!text-sm !h-4 !w-4" readonly size="small" />
-              </div>
-              <span
-                class="text-ellipsis truncate capitalize max-w-16"
-                style="word-break: keep-all; white-space: nowrap; display: inline"
-              >
-                <NcTooltip show-on-truncate-only>
-                  <template #title>
-                    {{ el.label }}
-                  </template>
-                  <span class="text-ellipsis max-w-16">
-                    {{ el.label }}
-                  </span>
-                </NcTooltip>
-              </span>
+                <component
+                  :is="(iconMap as any)[el.icon]"
+                  v-else-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
+                  :class="{
+                    '!text-blue-500': el.icon === 'grid',
+                    '!text-purple-500': el.icon === 'form',
+                    '!text-[#FF9052]': el.icon === 'kanban',
+                    '!text-pink-500': el.icon === 'gallery',
+                    '!text-maroon-500': el.icon === 'calendar',
+                  }"
+                  class="cmdk-action-icon"
+                />
+                <div v-else-if="el.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
+                  <LazyGeneralEmojiPicker :emoji="el.icon" class="!text-sm !h-4 !w-4" readonly size="small" />
+                </div>
+                <span
+                  class="text-ellipsis truncate capitalize max-w-16"
+                  style="word-break: keep-all; white-space: nowrap; display: inline"
+                >
+                  <NcTooltip show-on-truncate-only>
+                    <template #title>
+                      {{ el.label }}
+                    </template>
+                    <span class="text-ellipsis max-w-16">
+                      {{ el.label }}
+                    </span>
+                  </NcTooltip>
+                </span>
+              </template>
             </div>
 
             <span class="text-gray-700 text-sm pl-1 font-medium">/</span>
@@ -385,7 +392,10 @@ defineExpose({
       </div>
       <div class="cmdk-body">
         <div class="cmdk-actions nc-scrollbar-md">
-          <div v-if="searchedActionList.length === 0">
+          <div v-if="searchedActionList.length === 0 && cmdLoading" class="w-full h-[250px] flex justify-center items-center">
+            <GeneralLoader :size="30" />
+          </div>
+          <div v-else-if="searchedActionList.length === 0">
             <div class="cmdk-action">
               <div class="cmdk-action-content">No action found.</div>
             </div>

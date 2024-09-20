@@ -66,16 +66,17 @@ export default class ApiToken implements ApiTokenType {
     return tokens?.map((t) => new ApiToken(t));
   }
 
-  static async delete(token, ncMeta = Noco.ncMeta) {
+  static async delete(tokenId: string, ncMeta = Noco.ncMeta) {
+    const tokenData = await this.get(tokenId, ncMeta);
     await NocoCache.deepDel(
-      `${CacheScope.API_TOKEN}:${token}`,
+      `${CacheScope.API_TOKEN}:${tokenData.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
     return await ncMeta.metaDelete(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.API_TOKENS,
-      { token },
+      tokenId,
     );
   }
 
@@ -164,5 +165,14 @@ export default class ApiToken implements ApiTokenType {
     }
 
     return queryBuilder;
+  }
+
+  static async get(tokenId: string, ncMeta = Noco.ncMeta) {
+    return await ncMeta.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      tokenId,
+    );
   }
 }

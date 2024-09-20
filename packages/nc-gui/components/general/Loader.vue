@@ -2,7 +2,7 @@
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps<{
-  size?: 'small' | 'medium' | 'large' | 'xlarge' | 'regular'
+  size?: 'small' | 'medium' | 'large' | 'xlarge' | 'regular' | number
   loaderClass?: string
 }>()
 
@@ -25,6 +25,7 @@ function getFontSize() {
 
 const indicator = h(LoadingOutlined, {
   class: `!${getFontSize()} flex flex-row items-center !bg-inherit !hover:bg-inherit !text-inherit ${props.loaderClass || ''}}`,
+  style: { ...(typeof props.size === 'number' && props.size ? { fontSize: `${props.size}px` } : {}) },
   spin: true,
 })
 </script>

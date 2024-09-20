@@ -96,8 +96,14 @@ main {
       @apply shadow-selected ring-0;
     }
     &.nc-ai-input:focus {
-      @apply !shadow-selected-ai ring-0 !border-nc-border-purple;
+      @apply shadow-selected-ai ring-0 !border-nc-border-purple;
     }
+  }
+}
+
+.ant-form-item-has-error .nc-input-shadow.ant-input{
+  &.nc-ai-input:focus {
+    @apply !shadow-error;
   }
 }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, type AIRecordType } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -20,7 +20,7 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
-const { aiIntegrationAvailable } = useNocoAi()
+const { aiIntegrationAvailable, generateRows } = useNocoAi()
 
 const localIsEnabledGenerateText = ref(false)
 
@@ -34,7 +34,42 @@ const isEnabledGenerateText = computed({
   },
 })
 
-const preview = ref('')
+const preview = ref<AIRecordType>({})
+
+const generatingPreview = ref(false)
+
+const isAlreadyGenerated = ref(false)
+
+const isPreviewEnabled = computed(() => {
+  const isFieldAddedInPromt = availableFields.value.some((f) => {
+    return vModel.value.prompt_raw?.includes(`{${f.title}}`)
+  })
+
+  return isFieldAddedInPromt && !!vModel.value.title
+})
+
+const generate = async () => {
+  generatingPreview.value = true
+
+  const res = await generateRows(
+    meta.value?.id!,
+    {
+      title: vModel.value?.title,
+      prompt_raw: vModel.value.prompt_raw,
+      fk_integration_id: vModel.value.fk_integration_id,
+      uidt: UITypes.AI,
+    },
+    ['1'],
+  )
+
+  if (res?.length && res[0]?.[vModel.value?.title]) {
+    preview.value.value = res[0]?.[vModel.value?.title]
+
+    isAlreadyGenerated.value = true
+  }
+
+  generatingPreview.value = false
+}
 
 onMounted(() => {
   // set default value
@@ -85,17 +120,65 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
         </div>
       </a-form-item>
       <div class="nc-ai-options-preview">
-        <div v-if="preview" class="">
-          <!-- Todo: add input box  -->
-        </div>
-        <div v-else class="pl-3 py-2 pr-2 flex items-center">
-          <div class="flex flex-col flex-1 gap-1">
-            <span class="text-small font-medium text-nc-content-gray">Preview</span>
-            <span class="text-[11px] leading-[18px] text-nc-content-gray-muted"
-              >Include at least 1 field in prompt to generate</span
-            >
+        <div class="">
+          <div
+            class="flex items-center transition-all duration-300"
+            :class="{
+              'pl-3 py-2 pr-2': !isAlreadyGenerated,
+              'pl-3 py-1 pr-1 border-b-1 border-nc-border-gray-medium': isAlreadyGenerated,
+            }"
+          >
+            <div class="flex flex-col flex-1 gap-1">
+              <span class="text-small font-medium text-nc-content-gray">Preview</span>
+              <span v-if="!isAlreadyGenerated" class="text-[11px] leading-[18px] text-nc-content-gray-muted"
+                >Include at least 1 field in prompt to generate</span
+              >
+            </div>
+            <NcTooltip :disabled="isPreviewEnabled">
+              <template #title>
+                {{ !vModel.title ? 'Field name is required' : 'Include at least 1 field in prompt to generate' }}
+              </template>
+              <NcButton
+                class="!text-nc-content-purple-dark disabled:!text-nc-content-purple-light"
+                :class="{
+                  '!bg-transparent hover:!bg-nc-bg-purple-light disabled:!bg-transparent': isAlreadyGenerated,
+                  '!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark': !isAlreadyGenerated,
+                }"
+                size="xs"
+                type="text"
+                :disabled="!isPreviewEnabled"
+                @click.stop="generate"
+              >
+                <div
+                  :class="{
+                    'nc-animate-dots min-w-[91px] text-left': generatingPreview,
+                    'min-w-[102px]': isAlreadyGenerated && generatingPreview,
+                    'min-w-[80px]': !isAlreadyGenerated && generatingPreview,
+                  }"
+                >
+                  {{
+                    isAlreadyGenerated
+                      ? generatingPreview
+                        ? 'Re-generating'
+                        : 'Re-generate'
+                      : generatingPreview
+                      ? 'Generating'
+                      : 'Generate'
+                  }}
+                </div>
+              </NcButton>
+            </NcTooltip>
           </div>
-          <NcButton class="!bg-purple-50" size="xs"> <div class="text-purple-600">Generate</div></NcButton>
+          <div v-if="preview.value">
+            <div class="relative pr-3 pl-1 pt-2 pb-3">
+              <LazySmartsheetCell
+                :edit-enabled="true"
+                :model-value="preview"
+                :column="vModel"
+                class="!border-none h-auto my-auto"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </template>
@@ -112,10 +195,6 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
 </template>
 
 <style lang="scss" scoped>
-.nc-ai-field-prompt-input {
-  @apply shadow-default;
-}
-
 :deep(.ant-form-item-control-input-content) {
   @apply flex items-center;
 }

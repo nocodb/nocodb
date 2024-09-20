@@ -185,11 +185,24 @@ export const useNocoAi = createSharedComposable(() => {
 
   const generatingColumns = ref<string[]>([])
 
-  const generateRows = async (modelId: string, columnId: string, rowIds: string[]) => {
+  const generateRows = async (
+    modelId: string,
+    column:
+      | string
+      | {
+          title: string
+          prompt_raw: string
+          fk_integration_id: string
+          uidt: string
+          model?: string
+          output_column_ids?: string
+        },
+    rowIds: string[],
+  ) => {
     try {
       aiLoading.value = true
 
-      const res = await $api.ai.dataGenerate(modelId, columnId, { rowIds })
+      const res = await $api.ai.dataGenerate(modelId, { rowIds, column })
 
       return res
     } catch (e) {

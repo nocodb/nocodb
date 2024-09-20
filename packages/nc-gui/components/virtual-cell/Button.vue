@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type AIRecordType, ButtonActionsType, type ButtonType, type ColumnType } from 'nocodb-sdk'
+import { ButtonActionsType, type ButtonType, type ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 const column = inject(ColumnInj) as Ref<
@@ -121,7 +121,13 @@ const componentProps = computed(() => {
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {
-      disabled: !aiIntegrationAvailable.value || isLoading.value || (pk.value && generatingRows.value.includes(pk.value) && column.value?.id && generatingColumnRows.value.includes(column.value.id)),
+      disabled:
+        !aiIntegrationAvailable.value ||
+        isLoading.value ||
+        (pk.value &&
+          generatingRows.value.includes(pk.value) &&
+          column.value?.id &&
+          generatingColumnRows.value.includes(column.value.id)),
     }
   }
 })

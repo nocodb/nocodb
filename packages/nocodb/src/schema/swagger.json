@@ -18418,7 +18418,7 @@
         ]
       }
     },
-    "/api/v2/ai/:modelId/:columnId/generate": {
+    "/api/v2/ai/:modelId/generate": {
       "post": {
         "summary": "Generate AI Data",
         "operationId": "ai-data-generate",
@@ -18448,6 +18448,37 @@
                       "type": "string"
                     }
                   },
+                  "column": {
+                    "oneOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "title": {
+                            "type": "string"
+                          },
+                          "prompt_raw": {
+                            "type": "string"
+                          },
+                          "fk_integration_id": {
+                            "type": "string"
+                          },
+                          "uidt": {
+                            "type": "string"
+                          },
+                          "model": {
+                            "type": "string"
+                          },
+                          "output_column_ids": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["title", "prompt_raw", "fk_integration_id", "uidt"]
+                      }
+                    ]
+                  },
                   "preview": {
                     "type": "boolean"
                   }
@@ -18470,15 +18501,6 @@
               "type": "string"
             },
             "description": "Model ID"
-          },
-          {
-            "name": "columnId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Column ID"
           }
         ]
       }

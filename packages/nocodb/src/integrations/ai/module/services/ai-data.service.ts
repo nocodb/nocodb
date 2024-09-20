@@ -61,13 +61,28 @@ export class AiDataService {
     context: NcContext,
     params: {
       modelId: string;
-      columnId: string;
       rowIds: string[];
       req: NcRequest;
+      columnId?: string;
+      aiPayload?: {
+        title: string;
+        prompt_raw: string;
+        fk_integration_id: string;
+        uidt: UITypes.AI | UITypes.Button;
+        output_column_ids?: string;
+        model?: string;
+      };
       preview?: boolean;
     },
   ) {
-    const { modelId, columnId, rowIds, req, preview = false } = params;
+    const {
+      modelId,
+      columnId,
+      aiPayload,
+      rowIds,
+      req,
+      preview = false,
+    } = params;
 
     if (!rowIds.length) {
       return [];
@@ -85,45 +100,68 @@ export class AiDataService {
 
     await model.getColumns(context);
 
-    const column = model.columnsById[columnId];
+    let ai: Partial<AIColumn>;
+    let returnTitle: string;
 
-    if (!column) {
-      NcError.fieldNotFound(columnId);
-    }
-
-    if (column.uidt !== UITypes.AI && column.uidt !== UITypes.Button) {
-      NcError.unprocessableEntity('Only AI columns are supported');
-    }
-
-    if (column.uidt === UITypes.Button) {
-      return this.generateFromButton(context, {
-        model,
-        column,
-        rowIds,
-        preview,
-        req,
-      });
-    }
-
-    const ai = await column.getColOptions<AIColumn>(context);
-
-    if (!ai) {
-      NcError.unprocessableEntity('AI column not found');
-    }
-
-    if (ai.prompt.includes(`${column.id}`)) {
-      NcError.unprocessableEntity('Circular reference not allowed');
-    }
-
-    const promptTemplate = ai.prompt.replace(/{(.*?)}/g, (match, p1) => {
-      const column = model.columnsById[p1];
+    if (columnId) {
+      const column = model.columnsById[columnId];
 
       if (!column) {
-        NcError.badRequest(`Field '${p1}' not found`);
+        NcError.fieldNotFound(columnId);
       }
 
-      return `{${column.title}}`;
-    });
+      if (column.uidt !== UITypes.AI && column.uidt !== UITypes.Button) {
+        NcError.unprocessableEntity('Only AI columns are supported');
+      }
+
+      returnTitle = column.title;
+
+      if (column.uidt === UITypes.Button) {
+        return this.generateFromButton(context, {
+          model,
+          column,
+          rowIds,
+          preview,
+          req,
+        });
+      }
+
+      ai = await column.getColOptions<AIColumn>(context);
+
+      if (!ai) {
+        NcError.unprocessableEntity('AI column not found');
+      }
+
+      if (ai.prompt.includes(`${column.id}`)) {
+        NcError.unprocessableEntity('Circular reference not allowed');
+      }
+    } else if (aiPayload) {
+      ai = aiPayload;
+
+      if (aiPayload.uidt === UITypes.Button) {
+        return this.generateFromButton(context, {
+          model,
+          aiPayload,
+          rowIds,
+          preview,
+          req,
+        });
+      }
+
+      returnTitle = aiPayload.title;
+
+      ai.prompt = ai.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
+        const col = model.columns.find((c) => c.title === p1);
+
+        if (!col) {
+          NcError.badRequest(`Field '${p1}' not found`);
+        }
+
+        return `{${col.id}}`;
+      });
+    } else {
+      NcError.badRequest('Column or AI payload is required');
+    }
 
     const source = await Source.get(context, model.source_id);
     const baseModel = await Model.getBaseModelSQL(context, {
@@ -148,11 +186,18 @@ export class AiDataService {
         }, {});
 
         return {
-          [column.title]: promptTemplate.replace(/{(.*?)}/g, (match, p1) => {
+          [returnTitle]: ai.prompt.replace(/{(.*?)}/g, (match, p1) => {
+            const column = model.columnsById[p1];
+
+            if (!column) {
+              NcError.badRequest(`Field '${p1}' not found`);
+            }
+
             if (column.uidt === UITypes.Attachment) {
               return 'attached file';
             }
-            return row[p1];
+
+            return row[column.title];
           }),
           ...pkObj,
         };
@@ -173,7 +218,7 @@ export class AiDataService {
       schema: z.object({
         rows: z.array(
           z.object({
-            [column.title]: z.string(),
+            [returnTitle]: z.string(),
             ...Object.fromEntries(
               baseModel.model.primaryKeys.map((pk) => [pk.title, z.any()]),
             ),
@@ -199,7 +244,7 @@ export class AiDataService {
 
     const { rows } = data;
 
-    if (preview) {
+    if (preview || aiPayload) {
       return rows;
     }
 
@@ -217,13 +262,21 @@ export class AiDataService {
     context: NcContext,
     params: {
       model: Model;
-      column: Column;
       rowIds: string[];
       req: NcRequest;
+      column?: Column;
+      aiPayload?: {
+        title: string;
+        prompt_raw: string;
+        fk_integration_id: string;
+        uidt: UITypes.AI | UITypes.Button;
+        output_column_ids?: string;
+        model?: string;
+      };
       preview?: boolean;
     },
   ) {
-    const { model, column, rowIds, req, preview = false } = params;
+    const { model, column, aiPayload, rowIds, req, preview = false } = params;
 
     if (!rowIds.length) {
       return [];
@@ -233,18 +286,49 @@ export class AiDataService {
       NcError.badRequest('Only 25 rows can be processed at a time!');
     }
 
-    if ((column.colOptions as ButtonColumn).type !== ButtonActionsType.Ai) {
-      NcError.unprocessableEntity('Only AI buttons are supported');
-    }
+    let aiButton: Partial<ButtonColumn>;
+    let buttonTitle: string;
 
-    const aiButton = await column.getColOptions<ButtonColumn>(context);
+    if (column) {
+      if ((column.colOptions as ButtonColumn).type !== ButtonActionsType.Ai) {
+        NcError.unprocessableEntity('Only AI buttons are supported');
+      }
+
+      aiButton = await column.getColOptions<ButtonColumn>(context);
+
+      buttonTitle = column.title;
+
+      if (aiButton.formula.includes(`${column.id}`)) {
+        NcError.unprocessableEntity('Circular reference not allowed');
+      }
+    } else if (aiPayload) {
+      if (aiPayload.uidt !== UITypes.Button) {
+        NcError.unprocessableEntity('Only AI buttons are supported');
+      }
+
+      buttonTitle = aiPayload.title;
+
+      aiButton = {
+        ...aiPayload,
+        formula_raw: aiPayload.prompt_raw,
+      };
+
+      aiButton.formula = aiButton.formula_raw.replace(
+        /{(.*?)}/g,
+        (match, p1) => {
+          const col = model.columns.find((c) => c.title === p1);
+
+          if (!col) {
+            NcError.badRequest(`Field '${p1}' not found`);
+          }
+
+          return `{${col.id}}`;
+        },
+      );
+    }
 
     if (!aiButton) {
       NcError.unprocessableEntity('AI Button is not configured properly');
-    }
-
-    if (aiButton.formula.includes(`${column.id}`)) {
-      NcError.unprocessableEntity('Circular reference not allowed');
     }
 
     const referencedColumns: Column[] = [];
@@ -386,7 +470,7 @@ export class AiDataService {
         }, {});
 
         return {
-          [column.title]: aiButton.formula.replace(/{(.*?)}/g, (match, p1) => {
+          [buttonTitle]: aiButton.formula.replace(/{(.*?)}/g, (match, p1) => {
             const col = model.columnsById[p1];
 
             if (!col) {
@@ -484,7 +568,7 @@ export class AiDataService {
 
     const { rows } = data;
 
-    if (preview) {
+    if (preview || aiPayload) {
       return rows;
     }
 

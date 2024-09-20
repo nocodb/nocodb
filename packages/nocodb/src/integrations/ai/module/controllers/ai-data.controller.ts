@@ -8,6 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import type { UITypes } from 'nocodb-sdk';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -20,7 +21,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class AiDataController {
   constructor(private readonly aiDataService: AiDataService) {}
 
-  @Post(['/api/v2/ai/:modelId/:columnId/generate'])
+  @Post(['/api/v2/ai/:modelId/generate'])
   @Acl('aiData', {
     scope: 'base',
   })
@@ -29,16 +30,27 @@ export class AiDataController {
     @TenantContext() context: NcContext,
     @Req() req: Request,
     @Param('modelId') modelId: string,
-    @Param('columnId') columnId: string,
     @Body()
     body: {
       rowIds: string[];
+      column:
+        | string
+        | {
+            title: string;
+            prompt_raw: string;
+            fk_integration_id: string;
+            uidt: UITypes.AI | UITypes.Button;
+            output_column_ids?: string;
+            model?: string;
+          };
       preview?: boolean;
     },
   ) {
     return await this.aiDataService.generateRows(context, {
       modelId,
-      columnId,
+      ...(typeof body.column === 'string'
+        ? { columnId: body.column }
+        : { aiPayload: body.column }),
       rowIds: body.rowIds,
       preview: body.preview,
       req,

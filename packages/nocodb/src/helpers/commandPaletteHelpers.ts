@@ -34,12 +34,7 @@ export async function getCommandPaletteForUserWorkspace(
           'v.order as view_order',
           'dm.disabled',
         )
-        .innerJoin(
-          `${MetaTable.PROJECT_USERS} as bu`,
-          `bu.fk_workspace_id`,
-          `ws.id`,
-        )
-        .innerJoin(`${MetaTable.PROJECT} as b`, `bu.base_id`, `b.id`)
+        .innerJoin(`${MetaTable.PROJECT_USERS} as bu`, `b.id`, `bu.base_id`)
         .innerJoin(`${MetaTable.MODELS} as t`, `t.base_id`, `b.id`)
         .innerJoin(`${MetaTable.VIEWS} as v`, `v.fk_model_id`, `t.id`)
         .leftJoin(`${MetaTable.MODEL_ROLE_VISIBILITY} as dm`, function () {

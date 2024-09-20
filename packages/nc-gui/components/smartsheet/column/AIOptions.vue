@@ -50,8 +50,8 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
 <template>
   <div class="flex flex-col gap-3">
     <a-form-item class="flex items-center" v-bind="validateInfos.richText">
-      <NcSwitch v-model:checked="vModel.rich_text" class="nc-ai-field-rich-text nc-ai-input">
-        <span class="text-sm font-semibold text-nc-content-gray">Enable rich text</span>
+      <NcSwitch v-model:checked="vModel.rich_text" disabled class="nc-ai-field-rich-text nc-ai-input">
+        <span class="text-sm font-semibold text-nc-content-gray-muted">Enable rich text</span>
       </NcSwitch>
       <div class="flex-1"></div>
     </a-form-item>

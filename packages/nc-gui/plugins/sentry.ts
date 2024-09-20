@@ -20,14 +20,14 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   let initialized = false
 
-  const init = () => {
+  const init = (dsn: string) => {
     // prevent multiple init
     if (initialized) return
     initialized = true
 
     Sentry.init({
       app: [vueApp],
-      dsn: 'https://64cb4904bcbec03a1b9a0be02a2d10a9@o4505953073889280.ingest.us.sentry.io/4507725383663616',
+      dsn,
       environment: env,
       integrations: [
         new Sentry.BrowserTracing({
@@ -56,11 +56,14 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   // load sentry only if enabled
   watch(
-    () => (nuxtApp.$state as ReturnType<typeof useGlobal>).appInfo?.value?.errorReportingEnabled,
-    (enabled) => {
+    [
+      () => (nuxtApp.$state as ReturnType<typeof useGlobal>).appInfo?.value?.errorReportingEnabled,
+      () => (nuxtApp.$state as ReturnType<typeof useGlobal>).appInfo?.value?.sentryDSN,
+    ],
+    ([enabled, sentryDSN]) => {
       try {
-        if (enabled) init()
-      } catch (e) {
+        if (enabled && sentryDSN) init(sentryDSN)
+      } catch {
         // ignore
       }
     },

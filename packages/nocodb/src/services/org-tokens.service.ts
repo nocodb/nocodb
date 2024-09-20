@@ -73,7 +73,7 @@ export class OrgTokensService {
     const res = await ApiToken.delete(param.tokenId);
 
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_DELETE, {
-      tokenId: param.token,
+      tokenId: param.tokenId,
       userId: param.user?.id,
       req: param['req'],
     });

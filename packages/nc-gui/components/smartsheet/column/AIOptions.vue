@@ -5,7 +5,7 @@ const props = defineProps<{
   modelValue: any
 }>()
 
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'navigateToIntegrations'])
 
 const { t } = useI18n()
 
@@ -16,17 +16,17 @@ const availableFields = computed(() => {
   return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID)
 })
 
-const workspaceStore = useWorkspace()
-
 const vModel = useVModel(props, 'modelValue', emit)
 
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
+
+const { aiIntegrationAvailable } = useNocoAi()
 
 const localIsEnabledGenerateText = ref(false)
 
 const isEnabledGenerateText = computed({
   get: () => {
-    return !!vModel.value.prompt_raw || localIsEnabledGenerateText.value
+    return aiIntegrationAvailable.value && (!!vModel.value.prompt_raw || localIsEnabledGenerateText.value)
   },
   set: (value: boolean) => {
     localIsEnabledGenerateText.value = value
@@ -56,7 +56,11 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
       <div class="flex-1"></div>
     </a-form-item>
     <a-form-item class="flex items-center">
-      <NcSwitch v-model:checked="isEnabledGenerateText" class="nc-ai-field-generate-text nc-ai-input">
+      <NcSwitch
+        v-model:checked="isEnabledGenerateText"
+        :disabled="!aiIntegrationAvailable"
+        class="nc-ai-field-generate-text nc-ai-input"
+      >
         <span
           class="text-sm font-semibold"
           :class="{
@@ -95,6 +99,15 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
         </div>
       </div>
     </template>
+
+    <div v-if="!aiIntegrationAvailable" class="py-2 pl-3 pr-2 flex items-center gap-2 bg-nc-bg-orange-light rounded-lg">
+      <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
+      <div class="text-sm text-nc-content-gray-subtle flex-1">No AI Integrations added.</div>
+
+      <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="emit('navigateToIntegrations')">
+        Add integration
+      </NcButton>
+    </div>
   </div>
 </template>
 

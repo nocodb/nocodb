@@ -22,10 +22,6 @@ const activeTab = useVModel(props, 'activeTab', emits)
 
 const { tabs } = toRefs(props)
 
-const workspaceStore = useWorkspace()
-
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
-
 const { aiIntegrationAvailable, aiLoading } = useNocoAi()
 
 const handleEnable = () => {

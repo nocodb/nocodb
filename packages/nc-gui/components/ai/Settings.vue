@@ -27,6 +27,8 @@ const { $api } = useNuxtApp()
 
 const { listIntegrationByType } = useIntegrationStore()
 
+const { aiIntegrationAvailable } = useNocoAi()
+
 const lastIntegrationId = ref<string | null>(null)
 
 const isDropdownOpen = ref(false)
@@ -58,6 +60,12 @@ const onIntegrationChange = async () => {
 
 onMounted(async () => {
   integrations.value = (await listIntegrationByType(IntegrationsType.Ai)) || []
+
+  if (integrations.value.length) {
+    aiIntegrationAvailable.value = true
+  } else {
+    aiIntegrationAvailable.value = false
+  }
 
   if (!vFkIntegrationId.value) {
     if (integrations.value.length > 0 && integrations.value[0].id) {

@@ -444,6 +444,14 @@ const onPredictFieldType = async () => {
 }
 
 const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
+
+const handleNavigateToIntegrations = () => {
+  emit('cancel')
+
+  workspaceStore.navigateToIntegrations(undefined, undefined, {
+    categories: 'ai',
+  })
+}
 </script>
 
 <template>
@@ -458,7 +466,7 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
       'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-xl p-5': !embedMode,
       'nc-ai-mode !pb-0': isAiMode,
-      'h-full': props.fromTableExplorer
+      'h-full': props.fromTableExplorer,
     }"
     @keydown="handleEscape"
     @click.stop
@@ -627,7 +635,11 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
           v-model:value="formState"
           :from-table-explorer="props.fromTableExplorer || false"
         />
-        <SmartsheetColumnAIOptions v-if="formState.uidt === UITypes.AI" v-model="formState" />
+        <SmartsheetColumnAIOptions
+          v-if="formState.uidt === UITypes.AI"
+          v-model="formState"
+          @navigate-to-integrations="handleNavigateToIntegrations"
+        />
       </template>
       <template v-if="formState.uidt">
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
@@ -792,7 +804,7 @@ const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)
       </template>
 
       <template v-if="isAiMode">
-        <div class="flex-1"></div>
+        <div v-if="props.fromTableExplorer" class="flex-1"></div>
         <SmartsheetColumnAIFooterOptions v-model="formState" class="-mx-5 sticky bottom-0 bg-white z-10" />
       </template>
     </a-form>

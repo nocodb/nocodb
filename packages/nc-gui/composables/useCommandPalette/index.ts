@@ -34,6 +34,8 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const { token, user, signOut } = useGlobal()
 
+  const { workspacesList } = storeToRefs(useWorkspace())
+
   const commands = ref({
     homeCommands,
     baseCommands: [],
@@ -61,7 +63,25 @@ export const useCommandPalette = createSharedComposable(() => {
 
     staticCmd.push(...commands.value.baseCommands)
 
-    return staticCmd
+    return (workspacesList.value || [])
+      .map((workspace: { id: string; title: string; meta?: { color: string } }) => ({
+        id: `ws-nav-${workspace.id}`,
+        title: workspace.title,
+        icon: 'workspace',
+        iconColor: workspace.meta?.color,
+        section: 'Workspaces',
+        scopePayload: {
+          scope: `ws-${workspace.id}`,
+          data: {
+            workspace_id: workspace.id,
+          },
+        },
+        handler: processHandler({
+          type: 'navigate',
+          payload: `/${workspace.id}/settings`,
+        }),
+      }))
+      .concat(staticCmd)
   })
 
   const dynamicData = ref<any>([])
@@ -74,7 +94,7 @@ export const useCommandPalette = createSharedComposable(() => {
     if (cmdLoading.value) {
       return [{ id: 'loading', title: 'Loading...' }, ...staticData.value]
     } else {
-      return [...dynamicData.value, ...staticData.value]
+      return [...dynamicData.value, ...tempData.value, ...staticData.value]
     }
   })
 

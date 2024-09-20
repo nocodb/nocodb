@@ -71,12 +71,6 @@
       }
     },
     "securitySchemes": {
-      "xcAuth": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "xc-auth",
-        "description": "JWT access token"
-      },
       "xcToken": {
         "type": "apiKey",
         "in": "header",

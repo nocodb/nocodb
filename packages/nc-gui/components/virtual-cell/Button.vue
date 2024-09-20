@@ -12,7 +12,7 @@ const cellValue = inject(CellValueInj, ref())
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const { aiIntegrationAvailable, generateRows, generatingRows, generatingColumns } = useNocoAi()
+const { aiIntegrationAvailable, generateRows, generatingRows, generatingColumnRows, generatingColumns } = useNocoAi()
 
 const meta = inject(MetaInj, ref())
 
@@ -43,6 +43,7 @@ const generate = async () => {
   if (!pk.value) return
 
   generatingRows.value.push(pk.value)
+  generatingColumnRows.value.push(column.value.id)
 
   const outputColumnIds = (column.value.colOptions as ButtonType)?.output_column_ids?.split(',')
 
@@ -69,6 +70,7 @@ const generate = async () => {
   }
 
   generatingRows.value = generatingRows.value.filter((v) => v !== pk.value)
+  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== column.value.id)
   generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
 }
 
@@ -119,7 +121,7 @@ const componentProps = computed(() => {
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {
-      disabled: !aiIntegrationAvailable.value || isLoading.value || (pk.value && generatingRows.value.includes(pk.value)),
+      disabled: !aiIntegrationAvailable.value || isLoading.value || (pk.value && generatingRows.value.includes(pk.value) && column.value?.id && generatingColumnRows.value.includes(column.value.id)),
     }
   }
 })
@@ -144,7 +146,7 @@ const componentProps = computed(() => {
       @click="triggerAction"
     >
       <GeneralLoader
-        v-if="isLoading || (pk && generatingRows.includes(pk))"
+        v-if="isLoading || (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))"
         :class="{
           solid: column.colOptions.theme === 'solid',
           text: column.colOptions.theme === 'text',

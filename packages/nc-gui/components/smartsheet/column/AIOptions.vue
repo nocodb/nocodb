@@ -81,8 +81,26 @@ onMounted(() => {
 
 setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('general.required') }] })
 
-provide(EditColumnInj, ref(true))
+setAdditionalValidations({
+  fk_integration_id: [{ required: true, message: t('general.required') }],
+  prompt_raw: [
+    {
+      validator: (_, value: string) => {
+        return new Promise((resolve, reject) => {
+          const isFieldAddedInPromt = availableFields.value.some((f) => {
+            return value?.includes(`{${f.title}}`)
+          })
+          if (!isFieldAddedInPromt) {
+            return reject('Include at least 1 field in prompt to generate')
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+})
 
+provide(EditColumnInj, ref(true))
 </script>
 
 <template>
@@ -144,8 +162,8 @@ provide(EditColumnInj, ref(true))
               <NcButton
                 class="!text-nc-content-purple-dark disabled:!text-nc-content-purple-light"
                 :class="{
-                  '!bg-transparent hover:!bg-nc-bg-purple-light disabled:!bg-transparent': isAlreadyGenerated,
-                  '!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark': !isAlreadyGenerated,
+                  '!bg-transparent hover:(!bg-nc-bg-purple-light disabled:!bg-transparent)': isAlreadyGenerated,
+                  '!bg-nc-bg-purple-light hover:(!bg-nc-bg-purple-dark disabled:!bg-nc-bg-purple-light)': !isAlreadyGenerated,
                 }"
                 size="xs"
                 type="text"

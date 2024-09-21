@@ -790,6 +790,9 @@ const handleNavigateToIntegrations = () => {
                   :label="submitBtnLabel.label"
                   :loading-label="submitBtnLabel.loadingLabel"
                   data-testid="nc-field-modal-submit-btn"
+                  :class="{
+                    '!bg-nc-fill-purple-dark': isAiMode,
+                  }"
                   @click.prevent="onSubmit"
                 >
                   {{ submitBtnLabel.label }}

@@ -1038,6 +1038,7 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
 type CustomKnex = Knex;
 
 import KnexFull from 'knex';
+
 function CustomKnex(
   arg: string | Knex.Config<any> | any,
   extDb?: any,
@@ -1053,8 +1054,15 @@ function CustomKnex(
       ? knex(arg)
       : KnexFull({
           client: Client_Libsql,
-          connection: {
-            filename: HARDODED_URL + '?authToken=' + HARDCODED_AUTH_TOKEN,
+          connection: async () => {
+            console.log('running new async connection for KNEX');
+            const connection = {
+              filename:
+                arg.connection.url + '?authToken=' + arg.connection.authToken,
+              expirationChecker: () => true,
+            };
+            return connection;
+            // connectionConfig.connection.authToken,
           },
         });
 

@@ -82,7 +82,7 @@ export default {
       const item = this.items[index]
       if (item) {
         this.command({
-          id: item,
+          id: item.title,
         })
       }
     },
@@ -97,10 +97,11 @@ export default {
         v-for="(item, index) in items"
         :key="index"
         :class="{ 'is-selected': index === selectedIndex }"
-        class="py-2 flex hover:bg-gray-100 transition-all cursor-pointer items-center text-gray-800 pl-4"
+        class="py-2 flex hover:bg-gray-100 transition-all cursor-pointer items-center gap-2 text-gray-800 pl-4"
         @click="selectItem(index, $event)"
       >
-        {{ item }}
+        <component v-if="item?.uidt" :is="getUIDTIcon(item.uidt)" class="flex-none w-3.5 h-3.5" />
+        {{ item?.title || '' }}
       </div>
     </template>
     <div v-else class="px-4">No field available</div>

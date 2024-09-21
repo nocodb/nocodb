@@ -7,10 +7,15 @@ import { type ColumnType, UITypes } from 'nocodb-sdk'
 import FieldList from '~/helpers/tiptapExtensions/mention/FieldList'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion.ts'
 
-const props = defineProps<{
-  modelValue: string
-  options?: ColumnType[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: string
+    options?: ColumnType[]
+  }>(),
+  {
+    options: () => [],
+  },
+)
 
 const emits = defineEmits(['update:modelValue'])
 
@@ -39,8 +44,8 @@ const editor = useEditor({
       suggestion: {
         ...suggestion(FieldList),
         items: ({ query }) => {
-          if (query.length === 0) return keywords.value ?? []
-          return keywords.value?.filter((kw) => kw?.includes(query)) ?? []
+          if (query.length === 0) return props.options ?? []
+          return props.options?.filter((o) => o.title?.toLowerCase()?.includes(query.toLowerCase())) ?? []
         },
         char: '{',
         allowSpaces: true,

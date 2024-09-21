@@ -80,6 +80,9 @@ onMounted(() => {
 })
 
 setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('general.required') }] })
+
+provide(EditColumnInj, ref(true))
+
 </script>
 
 <template>

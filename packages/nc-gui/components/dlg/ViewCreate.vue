@@ -13,8 +13,10 @@ import {
   type LookupType,
   type MapType,
   type SerializedAiViewType,
+  stringToViewTypeMap,
   type TableType,
   type ViewType,
+  viewTypeToStringMap,
 } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
 
@@ -500,6 +502,11 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
   })
 }
 
+const _predictViews = async (prompt?: string): Promise<SerializedAiViewType[]> => {
+  const viewType = form.type && viewTypeToStringMap[form.type] ? viewTypeToStringMap[form.type] : undefined
+  return await predictViews(tableId.value, predictHistory.value, baseId.value, prompt, viewType)
+}
+
 const toggleAiMode = async () => {
   if (aiMode.value) return
 
@@ -513,7 +520,7 @@ const toggleAiMode = async () => {
   if (form.title === initTitle.value) {
     form.title = ''
   }
-  const predictions = await predictViews(tableId.value, predictHistory.value, baseId.value)
+  const predictions = await _predictViews()
 
   if (predictions.length) {
     predictedViews.value = predictions
@@ -537,7 +544,7 @@ const disableAiMode = () => {
 const predictMore = async () => {
   calledFunction.value = 'predictMore'
 
-  const predictions: SerializedAiViewType[] = await predictViews(tableId.value, predictHistory.value, baseId.value)
+  const predictions = await _predictViews()
 
   if (predictions.length) {
     predictedViews.value.push(
@@ -555,7 +562,7 @@ const predictMore = async () => {
 const predictRefresh = async () => {
   calledFunction.value = 'predictRefresh'
 
-  const predictions = ((await predictViews(tableId.value, predictHistory.value, baseId.value)) as SerializedAiViewType[]).filter(
+  const predictions = (await _predictViews()).filter(
     (pv) =>
       !ncIsArrayIncludes(selectedViews.value, pv.title, 'title') &&
       !ncIsArrayIncludes(removedFromPredictedViews.value, pv.title, 'title'),
@@ -571,9 +578,7 @@ const predictRefresh = async () => {
 const predictFromPrompt = async () => {
   calledFunction.value = 'predictFromPrompt'
 
-  const predictions = (
-    (await predictViews(tableId.value, predictHistory.value, props.baseId, prompt.value)) as SerializedAiViewType[]
-  ).filter(
+  const predictions = (await _predictViews(prompt.value)).filter(
     (pv) =>
       !ncIsArrayIncludes(selectedViews.value, pv.title, 'title') &&
       !ncIsArrayIncludes(removedFromPredictedViews.value, pv.title, 'title'),
@@ -727,22 +732,6 @@ const handleRefreshOnError = () => {
       return
   }
 }
-
-const serializedViewTypes = {
-  [ViewTypes.FORM]: 'form',
-  [ViewTypes.GALLERY]: 'gallery',
-  [ViewTypes.GRID]: 'grid',
-  [ViewTypes.KANBAN]: 'kanban',
-  [ViewTypes.CALENDAR]: 'calendar',
-}
-
-const deserializedViewTypes = {
-  form: ViewTypes.FORM,
-  gallery: ViewTypes.GALLERY,
-  grid: ViewTypes.GRID,
-  kanban: ViewTypes.KANBAN,
-  calendar: ViewTypes.CALENDAR,
-}
 </script>
 
 <template>
@@ -860,7 +849,7 @@ const deserializedViewTypes = {
               class="cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none font-semibold !mx-0"
             >
               <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
-                <GeneralViewIcon :meta="{ type: deserializedViewTypes[v.type] }" />
+                <GeneralViewIcon :meta="{ type: stringToViewTypeMap[v.type] }" />
                 <span>{{ v.title }}</span>
                 <div class="flex items-center p-0.5 mt-0.5">
                   <GeneralIcon icon="close" class="h-3 w-3 cursor-pointer opacity-80" @click="onTagClose(v)" />
@@ -1284,7 +1273,7 @@ const deserializedViewTypes = {
                   >
                     <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
                       <GeneralViewIcon
-                        :meta="{ type: deserializedViewTypes[v.type] }"
+                        :meta="{ type: stringToViewTypeMap[v.type] }"
                         :class="{
                           'opacity-60': selectedViews.length >= maxSelectionCount,
                         }"

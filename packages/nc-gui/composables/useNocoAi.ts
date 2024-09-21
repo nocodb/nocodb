@@ -189,8 +189,15 @@ export const useNocoAi = createSharedComposable(() => {
     return []
   }
 
-  const predictViews = async (tableId: string, history?: any[], baseId?: string, description?: string, skipMsgToast = true) => {
-    const res = await callAiSchemaApi('predictViews', { tableId, history, description }, baseId, skipMsgToast)
+  const predictViews = async (
+    tableId: string,
+    history?: any[],
+    baseId?: string,
+    description?: string,
+    type?: string,
+    skipMsgToast = true,
+  ) => {
+    const res = await callAiSchemaApi('predictViews', { tableId, history, description, type }, baseId, skipMsgToast)
 
     if (res?.views) {
       return res.views

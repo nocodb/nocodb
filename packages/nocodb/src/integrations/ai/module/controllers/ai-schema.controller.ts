@@ -49,13 +49,14 @@ export class AiSchemaController {
         req: req,
       });
     } else if (operation === 'predictViews') {
-      const { tableId, history = [], description } = body.input;
+      const { tableId, history = [], description, type } = body.input;
 
       return await this.aiSchemaService.predictViews(context, {
         baseId: context.base_id,
         tableIds: [tableId],
         history,
         instructions: description,
+        type,
         req: req,
       });
     } else if (operation === 'createViews') {

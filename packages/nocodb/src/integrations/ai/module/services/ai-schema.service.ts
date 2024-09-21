@@ -4,8 +4,10 @@ import {
   IntegrationCategoryType,
   type RelationTypes,
   SerializedAiViewType,
+  stringToViewTypeMap,
   UITypes,
   ViewTypes,
+  viewTypeToStringMap,
 } from 'nocodb-sdk';
 
 import { z } from 'zod';
@@ -464,10 +466,16 @@ export class AiSchemaService {
       tableIds?: string[];
       history?: any[];
       instructions?: string;
+      type?: string;
       req?: any;
     },
   ) {
     const { baseId, history, instructions, req } = params;
+
+    const viewType =
+      params.type && stringToViewTypeMap[params.type] !== undefined
+        ? params.type
+        : undefined;
 
     const base = await Base.get(context, baseId);
 
@@ -485,6 +493,13 @@ export class AiSchemaService {
     }
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
+
+    const serializedSchema = await this.serializeSchema(context, {
+      baseId: base.id,
+      predictedViews: history,
+      viewType,
+      req,
+    });
 
     const { data, usage } = await wrapper.generateObject({
       schema: z.object({
@@ -536,20 +551,32 @@ export class AiSchemaService {
         {
           role: 'user',
           content: predictViewsPrompt(
-            JSON.stringify(
-              await this.serializeSchema(context, {
-                baseId: base.id,
-                predictedViews: history,
-                req,
-              }),
-            ),
+            JSON.stringify(serializedSchema),
             instructions,
+            viewType,
           ),
         },
       ],
     });
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    // Filter out duplicate views
+    {
+      const resViews = (data as { views: SerializedAiViewType[] }).views || [];
+
+      (data as { views: SerializedAiViewType[] }).views = resViews.filter(
+        (pv) => {
+          const filterByViewType = viewType ? viewType === pv.type : true;
+
+          const filterByExistingView = (
+            serializedSchema.views as SerializedAiViewType[]
+          ).some((sv) => sv.title === pv.title && sv.type === pv.title);
+
+          return filterByViewType && !filterByExistingView;
+        },
+      );
+    }
 
     return data;
   }
@@ -616,17 +643,9 @@ export class AiSchemaService {
         return column?.id;
       };
 
-      const viewTypes = {
-        form: ViewTypes.FORM,
-        gallery: ViewTypes.GALLERY,
-        grid: ViewTypes.GRID,
-        kanban: ViewTypes.KANBAN,
-        calendar: ViewTypes.CALENDAR,
-      };
-
       const viewData = {
         title: view.title,
-        type: viewTypes[view.type],
+        type: stringToViewTypeMap[view.type],
       };
 
       switch (view.type?.toLowerCase()) {
@@ -1017,7 +1036,8 @@ export class AiSchemaService {
     params: {
       baseId: string;
       tableIds?: string[];
-      predictedViews?: any[];
+      predictedViews?: SerializedAiViewType[];
+      viewType?: string;
       req: any;
     },
   ) {
@@ -1051,9 +1071,7 @@ export class AiSchemaService {
     const serializedObject = {
       tables: [],
       relationships: [],
-      views: [
-        ...(Array.isArray(params.predictedViews) ? params.predictedViews : []),
-      ],
+      views: [],
     };
 
     for (const table of tables) {
@@ -1114,17 +1132,15 @@ export class AiSchemaService {
 
       const views = await table.getViews(context);
 
-      for (const view of views.filter((v) => !v.is_default)) {
-        const serializedViewTypes = {
-          [ViewTypes.FORM]: 'form',
-          [ViewTypes.GALLERY]: 'gallery',
-          [ViewTypes.GRID]: 'grid',
-          [ViewTypes.KANBAN]: 'kanban',
-          [ViewTypes.CALENDAR]: 'calendar',
-        };
+      for (const view of views.filter((v) => {
+        const filterByViewType = params.viewType
+          ? params.viewType === viewTypeToStringMap[v.type]
+          : true;
 
+        return !v.is_default && filterByViewType;
+      })) {
         const serializedView: SerializedAiViewType = {
-          type: serializedViewTypes[view.type],
+          type: viewTypeToStringMap[view.type],
           table: table.title,
           title: view.title,
         };
@@ -1200,6 +1216,23 @@ export class AiSchemaService {
 
         // remove empty arrays
         serializedObject.views.push(serializedView);
+      }
+
+      {
+        // Sanitize already predicted views
+        for (const view of Array.isArray(params.predictedViews)
+          ? params.predictedViews
+          : []) {
+          if (
+            stringToViewTypeMap[view.type] === undefined ||
+            !view.title?.trim() ||
+            !view.table?.trim()
+          ) {
+            continue;
+          }
+
+          serializedObject.views.push(view);
+        }
       }
     }
 

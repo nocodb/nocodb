@@ -332,7 +332,7 @@ export class AiUtilsService {
 
     // Filter out duplicate tables
     {
-      let resTables = (data as { tables: string[] }).tables || [];
+      const resTables = (data as { tables: string[] }).tables || [];
 
       const existingTables = [
         ...tables.map((t) => t.title),

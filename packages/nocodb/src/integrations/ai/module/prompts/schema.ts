@@ -191,7 +191,10 @@ Here is a sample JSON for generating views for sample schema:
 export const predictViewsPrompt = (
   existingSchema: string,
   instructions: string,
-) => `Please predict next 3 to 5 views for following schema:
+  viewType?: string,
+) => `Please predict next 3 to 5 ${
+  viewType ? viewType : ''
+} views for following schema:
 \`\`\`json
 ${existingSchema}
 \`\`\`${instructions ? `\n${instructions}` : ''}`;

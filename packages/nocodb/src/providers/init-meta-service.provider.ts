@@ -13,6 +13,7 @@ import { User } from '~/models';
 import { NcConfig, prepareEnv } from '~/utils/nc-config';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { updateMigrationJobsState } from '~/helpers/migrationJobs';
+import { initBaseBehavior } from '~/helpers/initBaseBehaviour';
 
 export const InitMetaServiceProvider: FactoryProvider = {
   // initialize app,
@@ -25,6 +26,9 @@ export const InitMetaServiceProvider: FactoryProvider = {
   useFactory: async (eventEmitter: IEventEmitter) => {
     // NC_DATABASE_URL_FILE, DATABASE_URL_FILE, DATABASE_URL, NC_DATABASE_URL to NC_DB
     await prepareEnv();
+
+    // decide base behavior based on env and database permissions
+    await initBaseBehavior();
 
     const config = await NcConfig.createByEnv();
 

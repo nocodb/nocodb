@@ -22,6 +22,10 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 
 const { aiIntegrationAvailable, generateRows } = useNocoAi()
 
+const { xWhere, view } = useSmartsheetStoreOrThrow()
+
+const { formattedData, loadData } = useViewData(meta, view, xWhere)
+
 const localIsEnabledGenerateText = ref(false)
 
 const isEnabledGenerateText = computed({
@@ -48,8 +52,25 @@ const isPreviewEnabled = computed(() => {
   return isFieldAddedInPromt && !!vModel.value.title
 })
 
+const loadViewData = async () => {
+  if (!formattedData.value.length) {
+    await loadData()
+  }
+}
+
 const generate = async () => {
   generatingPreview.value = true
+
+  await loadViewData()
+
+  const pk = formattedData.value.length ? extractPkFromRow(unref(formattedData.value[0].row), meta.value?.columns || []) : ''
+
+  if (!formattedData.value.length || !pk) {
+    message.error('Include at least 1 sample record in table to generate')
+    generatingPreview.value = false
+
+    return
+  }
 
   const res = await generateRows(
     meta.value?.id!,
@@ -59,7 +80,7 @@ const generate = async () => {
       fk_integration_id: vModel.value.fk_integration_id,
       uidt: UITypes.AI,
     },
-    ['1'],
+    [pk],
   )
 
   if (res?.length && res[0]?.[vModel.value?.title]) {

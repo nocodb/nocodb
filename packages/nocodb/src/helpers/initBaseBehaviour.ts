@@ -15,7 +15,7 @@ export async function initBaseBehavior() {
   }
 
   // if NC_MINIMAL_DBS already exists, return
-  if (process.env.NC_MINIMAL_DBS || process.env.NC_BASE_BEHAVIOUR) {
+  if (process.env.NC_MINIMAL_DBS) {
     return;
   }
 

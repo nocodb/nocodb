@@ -27,9 +27,6 @@ export const InitMetaServiceProvider: FactoryProvider = {
     // NC_DATABASE_URL_FILE, DATABASE_URL_FILE, DATABASE_URL, NC_DATABASE_URL to NC_DB
     await prepareEnv();
 
-    // decide base behavior based on env and database permissions
-    await initBaseBehavior();
-
     const config = await NcConfig.createByEnv();
 
     // set version
@@ -43,6 +40,9 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     // init meta service
     const metaService = new MetaService(config);
+    
+    // decide base behavior based on env and database permissions
+    await initBaseBehavior();
 
     // check if nc_store exists
     const ncStoreExists = await metaService.knexConnection.schema.hasTable(

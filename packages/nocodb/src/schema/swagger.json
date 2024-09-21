@@ -819,16 +819,16 @@
         "description": "Creat an organisation API token. Access with API tokens will be blocked."
       }
     },
-    "/api/v1/tokens/{token}": {
+    "/api/v1/tokens/{tokenId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "token",
+          "name": "tokenId",
           "in": "path",
           "required": true,
-          "description": "API Token"
+          "description": "API Token ID"
         }
       ],
       "delete": {
@@ -16429,7 +16429,7 @@
         }
       ]
     },
-    "/api/v1/db/meta/projects/{baseId}/api-tokens/{token}": {
+    "/api/v1/db/meta/projects/{baseId}/api-tokens/{tokenId}": {
       "delete": {
         "summary": "Delete API Token",
         "operationId": "api-token-delete",
@@ -16479,12 +16479,12 @@
         {
           "schema": {
             "type": "string",
-            "example": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
+            "example": "DYh540o8hbWpU"
           },
-          "name": "token",
+          "name": "tokenId",
           "in": "path",
           "required": true,
-          "description": "API Token"
+          "description": "API Token ID"
         }
       ]
     },

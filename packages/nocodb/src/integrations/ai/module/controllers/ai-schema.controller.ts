@@ -60,7 +60,7 @@ export class AiSchemaController {
         req: req,
       });
     } else if (operation === 'createViews') {
-      const { input } = body.input;
+      const { views } = body.input;
 
       const base = await this.basesService.getProject(context, {
         baseId: context.base_id,
@@ -68,7 +68,7 @@ export class AiSchemaController {
 
       return await this.aiSchemaService.createViews(context, {
         base,
-        views: input,
+        views,
         req: req,
       });
     } else if (operation === 'predictSchema') {

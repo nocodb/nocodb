@@ -159,7 +159,7 @@ const onAiViewCreate = async (view: ViewType) => {
   // Todo: Navigate to new view
 }
 
-const { aiIntegrationAvailable, aiLoading, aiError, predictViews } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading, aiError, predictViews, createViews } = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -221,7 +221,18 @@ function init() {
   })
 }
 
+const onAiEnter = async () => {
+  calledFunction.value = 'createViews'
+  if (selectedViews.value.length) {
+    await createViews(selectedViews.value, undefined, baseId.value)
+  }
+}
+
 async function onSubmit() {
+  if (aiMode.value) {
+    return onAiEnter()
+  }
+
   let isValid = null
 
   try {
@@ -645,17 +656,6 @@ const onSelectAll = () => {
 const onDeselectAll = () => {
   predictedViews.value.push(...selectedViews.value.filter((sv) => ncIsArrayIncludes(predictHistory.value, sv.title, 'title')))
   selectedViews.value = selectedViews.value.filter((sv) => !ncIsArrayIncludes(predictHistory.value, sv.title, 'title'))
-}
-
-const onAiEnter = async () => {
-  // if (table.title.length) {
-  //   selectedViews.value.push(table.title)
-  //   table.title = ''
-  // }
-  // calledFunction.value = 'generateTables'
-  // if (selectedViews.value.length) {
-  //   await generateTables(selectedViews.value, undefined, onAiTableCreate, props.baseId)
-  // }
 }
 
 const fullAuto = async (e) => {
@@ -1396,7 +1396,8 @@ const handleRefreshOnError = () => {
             type="primary"
             size="small"
             :disabled="selectedViews.length === 0"
-            :loading="aiLoading && calledFunction === 'generateViews'"
+            :loading="aiLoading && calledFunction === 'createViews'"
+            @click="onSubmit"
           >
             <div class="flex items-center gap-2 h-5">
               {{

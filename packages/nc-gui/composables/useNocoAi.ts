@@ -1,4 +1,4 @@
-import type { TableType } from 'nocodb-sdk'
+import type { SerializedAiViewType, TableType } from 'nocodb-sdk'
 
 const aiIntegrationNotFound = 'AI integration not found'
 
@@ -160,19 +160,19 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  const createViews = async (tableId: string, onViewCreate?: () => void, customBaseId?: string) => {
+  const createViews = async (views: SerializedAiViewType[], onViewCreate?: () => void, customBaseId?: string) => {
     try {
       const baseId = customBaseId || activeProjectId.value
 
       await callAiSchemaApi(
         'createViews',
         {
-          tableId,
+          views,
         },
         baseId,
       )
 
-      // await onViewCreate?.()
+      await onViewCreate?.()
     } catch (e: any) {
       console.error(e)
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')

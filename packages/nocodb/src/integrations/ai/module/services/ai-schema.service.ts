@@ -612,7 +612,7 @@ export class AiSchemaService {
       req: any;
     },
   ) {
-    const { base, views, req } = params;
+    const { base, views = [], req } = params;
 
     const sources = await base.getSources();
 

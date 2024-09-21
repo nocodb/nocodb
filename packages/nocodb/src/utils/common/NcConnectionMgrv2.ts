@@ -1,8 +1,12 @@
+import { promisify } from 'util';
+import fs from 'fs';
 import { Logger } from '@nestjs/common';
 import type Source from '~/models/Source';
 import {
   defaultConnectionConfig,
   defaultConnectionOptions,
+  jdbcToXcConfig,
+  metaUrlToDbConfig,
 } from '~/utils/nc-config';
 import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '~/db/CustomKnex';
@@ -110,5 +114,9 @@ export default class NcConnectionMgrv2 {
       knex,
       ...(await source.getConnectionConfig()),
     });
+  }
+
+  public static async getDataConfig?() {
+    return Noco.getConfig()?.meta?.db;
   }
 }

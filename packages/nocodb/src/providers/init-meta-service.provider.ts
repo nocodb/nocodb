@@ -40,9 +40,6 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     // init meta service
     const metaService = new MetaService(config);
-    
-    // decide base behavior based on env and database permissions
-    await initBaseBehavior();
 
     // check if nc_store exists
     const ncStoreExists = await metaService.knexConnection.schema.hasTable(
@@ -86,6 +83,9 @@ export const InitMetaServiceProvider: FactoryProvider = {
     Noco._ncMeta = metaService;
     Noco.config = config;
     Noco.eventEmitter = eventEmitter;
+
+    // decide base behavior based on env and database permissions
+    await initBaseBehavior();
 
     if (!instanceConfig) {
       // bump to latest version for fresh install

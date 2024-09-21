@@ -51,7 +51,7 @@
     "watch:run:playwright:pg:cyquick": "rm -f ./test_noco.db; cp ../../tests/playwright/fixtures/noco_0_91_7.db ./test_noco.db; cross-env NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG_CyQuick.ts --log-error --project tsconfig.json\"",
     "test:unit": "cross-env TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
     "test:unit:pg": "cp tests/unit/.pg.env tests/unit/.env; cross-env TS_NODE_PROJECT=./tests/unit/tsconfig.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
-    "test:unit:pg:ee": "cp tests/unit/.pg.env tests/unit/.env; cross-env EE=true NODE_ENV=test TS_NODE_PROJECT=./tests/unit/tsconfig.ee.json mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
+    "test:unit:pg:ee": "cp tests/unit/.pg.env tests/unit/.env; cross-env EE=true NODE_ENV=test TS_NODE_PROJECT=./tests/unit/tsconfig.ee.json NC_MINIMAL_DBS=false mocha -r ts-node/register   tests/unit/index.test.ts --recursive --timeout 300000  --exit --delay",
     "docker:build": "EE=\"true-xc-test\" webpack  --config docker/webpack.config.js"
   },
   "dependencies": {

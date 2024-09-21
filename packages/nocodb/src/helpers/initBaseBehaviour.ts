@@ -1,6 +1,5 @@
 import { Logger } from '@nestjs/common';
 import { Knex } from 'knex';
-import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/ee/utils/common/NcConnectionMgrv2';
 import CustomKnex from '~/db/CustomKnex';
 import PgConnectionConfig = Knex.PgConnectionConfig;

@@ -365,6 +365,7 @@ function onOpenModal({
     'views': views,
     calendarRange,
     coverImageColumnId,
+    'baseId': base.value.id,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()

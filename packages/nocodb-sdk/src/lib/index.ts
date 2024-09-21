@@ -35,3 +35,4 @@ export * from '~/lib/connectionConfigUtils';
 export * from '~/lib/filterHelpers';
 export * from '~/lib/errorUtils';
 export * from '~/lib/formBuilder';
+export * from '~/lib/ai';

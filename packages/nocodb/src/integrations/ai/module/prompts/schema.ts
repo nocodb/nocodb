@@ -188,10 +188,10 @@ Here is a sample JSON for generating views for sample schema:
 \`\`\`
 `;
 
-export const generateViewsPrompt = (
+export const predictViewsPrompt = (
   existingSchema: string,
   instructions: string,
-) => `Please generate views for following schema:
+) => `Please predict next 3 to 5 views for following schema:
 \`\`\`json
 ${existingSchema}
 \`\`\`${instructions ? `\n${instructions}` : ''}`;

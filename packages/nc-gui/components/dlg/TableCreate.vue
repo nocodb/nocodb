@@ -329,26 +329,6 @@ const toggleDescription = () => {
   }
 }
 
-const localIsDisabledAiWizard = ref(false)
-
-const isDisabled = computed({
-  get: () => localIsDisabledAiWizard.value,
-  set: (value: boolean) => {
-    localIsDisabledAiWizard.value = value
-
-    if (value) {
-      aiMode.value = false
-      aiModeStep.value = null
-      predictedTables.value = []
-      predictHistory.value = []
-
-      table.title = initTitle.value || ''
-    } else {
-      aiIntegrationAvailable.value = true
-    }
-  },
-})
-
 onMounted(() => {
   generateUniqueTitle()
   nextTick(() => {
@@ -531,6 +511,7 @@ watch(
                   '!bg-purple-700 !border-purple-700 hover:(!bg-nc-fill-purple-medium !border-nc-fill-purple-medium) !text-white':
                     aiMode,
                 }"
+                :disabled="aiLoading"
                 @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
               >
                 <div class="w-full flex items-center justify-end">
@@ -543,7 +524,6 @@ watch(
           <!-- Ai table wizard  -->
           <AiWizardCard
             v-if="aiMode"
-            v-model:is-disabled="isDisabled"
             v-model:active-tab="activeAiTab"
             :tabs="aiTabs"
             @navigate-to-integrations="handleNavigateToIntegrations"
@@ -691,8 +671,12 @@ watch(
                     'border-t-1 border-purple-200': activeAiTab === TableWizardTabs.PROMPT,
                   }"
                 >
-                  <template v-for="t of predictedTables" :key="t">
-                    <NcTooltip v-if="!removedFromPredictedTables.has(t)" :disabled="selectedTables.length < maxSelectionCount">
+                  <template v-for="t of predictedTables">
+                    <NcTooltip
+                      v-if="!removedFromPredictedTables.has(t)"
+                      :key="t"
+                      :disabled="selectedTables.length < maxSelectionCount"
+                    >
                       <template #title>
                         <div class="w-[150px]">You can only select 5 tables to create at a time.</div>
                       </template>
@@ -880,7 +864,7 @@ watch(
         </div>
       </a-form>
     </div>
-    <div class="nc-nocoai-footer">
+    <div class="nc-nocoai-footer min-h-9">
       <!-- Footer -->
 
       <div class="nc-ai-wizard-card-footer-branding text-xs">
@@ -889,9 +873,8 @@ watch(
       </div>
 
       <!-- eslint-disable vue/no-constant-condition -->
-      <div v-if="true" class="h-7"></div>
       <AiSettings
-        v-else
+        v-if="false"
         v-model:fk-integration-id="availableIntegration.fkIntegrationId"
         v-model:model="availableIntegration.model"
         v-model:randomness="availableIntegration.randomness"

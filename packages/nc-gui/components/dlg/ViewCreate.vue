@@ -12,19 +12,29 @@ import {
   type KanbanType,
   type LookupType,
   type MapType,
+  type SerializedAiViewType,
   type TableType,
+  type ViewType,
 } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
+
+enum TableWizardTabs {
+  AUTO_SUGGESTIONS = 'AUTO_SUGGESTIONS',
+  PROMPT = 'PROMPT',
+}
+
+const maxSelectionCount = 5
 
 interface Props {
   modelValue: boolean
   type: ViewTypes
+  baseId: string
+  tableId: string
   title?: string
   selectedViewId?: string
   groupingFieldColumnId?: string
   geoDataFieldColumnId?: string
   description?: string
-  tableId: string
   calendarRange?: Array<{
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
@@ -71,7 +81,7 @@ const { viewsByTable } = storeToRefs(useViewsStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId, coverImageColumnId } = toRefs(props)
+const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId, coverImageColumnId, baseId } = toRefs(props)
 
 const meta = ref<TableType | undefined>()
 
@@ -141,6 +151,37 @@ const typeAlias = computed(
     }[props.type]),
 )
 
+const initTitle = ref<string>()
+
+const onAiViewCreate = async (view: ViewType) => {
+  // Todo: Navigate to new view
+}
+
+const { aiIntegrationAvailable, aiLoading, aiError, predictViews } = useNocoAi()
+
+const aiMode = ref(false)
+
+enum AiStep {
+  init = 'init',
+  pick = 'pick',
+}
+
+const aiModeStep = ref<AiStep | null>(null)
+
+const predictedViews = ref<SerializedAiViewType[]>([])
+
+const removedFromPredictedViews = ref<SerializedAiViewType[]>([])
+
+const predictHistory = ref<SerializedAiViewType[]>([])
+
+const selectedViews = ref<SerializedAiViewType[]>([])
+
+const calledFunction = ref<string>()
+
+const prompt = ref<string>('')
+
+const isPromtAlreadyGenerated = ref<boolean>(false)
+
 onBeforeMount(init)
 
 watch(
@@ -165,6 +206,8 @@ function init() {
       form.title = `${form.title}-${repeatCount}`
     }
   }
+
+  initTitle.value = form.title
 
   nextTick(() => {
     const el = inputEl.value?.$el as HTMLInputElement
@@ -452,10 +495,253 @@ onMounted(async () => {
 const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; fk_to_column_id: string | null }>) => {
   if (!calendarRange) return false
   return calendarRange.some((range) => {
-    console.log(range)
     const column = viewSelectFieldOptions.value?.find((c) => c.value === range?.fk_from_column_id)
     return !column || ![UITypes.DateTime, UITypes.Date].includes(column.uidt)
   })
+}
+
+const toggleAiMode = async () => {
+  if (aiMode.value) return
+
+  aiMode.value = true
+  aiModeStep.value = AiStep.init
+  predictedViews.value = []
+  predictHistory.value = []
+  prompt.value = ''
+  isPromtAlreadyGenerated.value = false
+
+  if (form.title === initTitle.value) {
+    form.title = ''
+  }
+  const predictions = await predictViews(tableId.value, predictHistory.value, baseId.value)
+
+  if (predictions.length) {
+    predictedViews.value = predictions
+    predictHistory.value.push(...predictions)
+    aiModeStep.value = AiStep.pick
+  }
+}
+
+const disableAiMode = () => {
+  aiMode.value = false
+  aiModeStep.value = null
+  predictedViews.value = []
+  predictHistory.value = []
+  prompt.value = ''
+  isPromtAlreadyGenerated.value = false
+  activeAiTab.value = TableWizardTabs.AUTO_SUGGESTIONS
+
+  form.title = initTitle.value || ''
+}
+
+const predictMore = async () => {
+  calledFunction.value = 'predictMore'
+
+  const predictions: SerializedAiViewType[] = await predictViews(tableId.value, predictHistory.value, baseId.value)
+
+  if (predictions.length) {
+    predictedViews.value.push(
+      ...predictions.filter(
+        (v) =>
+          !ncIsArrayIncludes(predictedViews.value, v.title, 'title') &&
+          !ncIsArrayIncludes(selectedViews.value, v.title, 'title') &&
+          !ncIsArrayIncludes(removedFromPredictedViews.value, v.title, 'title'),
+      ),
+    )
+    predictHistory.value.push(...predictions.filter((v) => !ncIsArrayIncludes(selectedViews.value, v.title, 'title')))
+  }
+}
+
+const predictRefresh = async () => {
+  calledFunction.value = 'predictRefresh'
+
+  const predictions = ((await predictViews(tableId.value, predictHistory.value, baseId.value)) as SerializedAiViewType[]).filter(
+    (pv) =>
+      !ncIsArrayIncludes(selectedViews.value, pv.title, 'title') &&
+      !ncIsArrayIncludes(removedFromPredictedViews.value, pv.title, 'title'),
+  )
+
+  if (predictions.length) {
+    predictedViews.value = predictions
+    predictHistory.value.push(...predictions)
+    aiModeStep.value = AiStep.pick
+  }
+}
+
+const predictFromPrompt = async () => {
+  calledFunction.value = 'predictFromPrompt'
+
+  const predictions = (
+    (await predictViews(tableId.value, predictHistory.value, props.baseId, prompt.value)) as SerializedAiViewType[]
+  ).filter(
+    (pv) =>
+      !ncIsArrayIncludes(selectedViews.value, pv.title, 'title') &&
+      !ncIsArrayIncludes(removedFromPredictedViews.value, pv.title, 'title'),
+  )
+
+  if (predictions.length) {
+    predictedViews.value = predictions
+    predictHistory.value.push(...predictions)
+    aiModeStep.value = AiStep.pick
+  }
+
+  isPromtAlreadyGenerated.value = true
+}
+
+const onTagClick = (view: SerializedAiViewType) => {
+  if (selectedViews.value.length >= maxSelectionCount || ncIsArrayIncludes(selectedViews.value, view.title, 'title')) return
+
+  selectedViews.value.push(view)
+  predictedViews.value = predictedViews.value.filter((v) => v.title !== view.title)
+}
+
+const onTagClose = (view: SerializedAiViewType) => {
+  selectedViews.value = selectedViews.value.filter((v) => v.title !== view.title)
+  if (ncIsArrayIncludes(predictHistory.value, view.title, 'title')) {
+    predictedViews.value.push(view)
+  }
+}
+
+const onTagRemoveFromPrediction = (view: SerializedAiViewType) => {
+  if (selectedViews.value.length >= maxSelectionCount) return
+
+  removedFromPredictedViews.value.push(view)
+  predictedViews.value = predictedViews.value.filter((pv) => pv.title !== view.title)
+}
+
+const onSelectAll = () => {
+  if (selectedViews.value.length >= maxSelectionCount) return
+  let count = selectedViews.value.length
+
+  const remainingPredictedTables: SerializedAiViewType[] = []
+  const viewsToAdd: SerializedAiViewType[] = []
+
+  predictedViews.value.forEach((pv) => {
+    // Check if the item can be selected
+    if (
+      count < maxSelectionCount &&
+      !ncIsArrayIncludes(removedFromPredictedViews.value, pv.title, 'title') &&
+      !ncIsArrayIncludes(selectedViews.value, pv.title, 'title')
+    ) {
+      viewsToAdd.push(pv) // Add to selected view if it meets the criteria
+      count++
+    } else {
+      remainingPredictedTables.push(pv) // Keep in predicted view if it doesn't meet the criteria
+    }
+  })
+
+  // Add selected items to the selected view array
+  selectedViews.value.push(...viewsToAdd)
+
+  // Update predictedViews with the remaining ones
+  predictedViews.value = remainingPredictedTables
+}
+
+const onDeselectAll = () => {
+  predictedViews.value.push(...selectedViews.value.filter((sv) => ncIsArrayIncludes(predictHistory.value, sv.title, 'title')))
+  selectedViews.value = selectedViews.value.filter((sv) => !ncIsArrayIncludes(predictHistory.value, sv.title, 'title'))
+}
+
+const onAiEnter = async () => {
+  // if (table.title.length) {
+  //   selectedViews.value.push(table.title)
+  //   table.title = ''
+  // }
+  // calledFunction.value = 'generateTables'
+  // if (selectedViews.value.length) {
+  //   await generateTables(selectedViews.value, undefined, onAiTableCreate, props.baseId)
+  // }
+}
+
+const fullAuto = async (e) => {
+  const target = e.target as HTMLElement
+  if (
+    !aiIntegrationAvailable.value ||
+    aiLoading.value ||
+    aiError.value ||
+    target.closest('button, input, .nc-button, textarea')
+  ) {
+    return
+  }
+
+  if (!aiModeStep.value) {
+    await toggleAiMode()
+  } else if (aiModeStep.value === AiStep.pick && selectedViews.value.length === 0) {
+    await onSelectAll()
+  } else if (aiModeStep.value === AiStep.pick && selectedViews.value.length > 0) {
+    await onAiEnter()
+  }
+}
+
+const activeAiTabLocal = ref<keyof typeof TableWizardTabs>(TableWizardTabs.AUTO_SUGGESTIONS)
+
+const activeAiTab = computed({
+  get: () => {
+    return activeAiTabLocal.value
+  },
+  set: (value: keyof typeof TableWizardTabs) => {
+    activeAiTabLocal.value = value
+
+    predictedViews.value = []
+    predictHistory.value = [...selectedViews.value]
+
+    prompt.value = ''
+    isPromtAlreadyGenerated.value = false
+
+    aiError.value = ''
+  },
+})
+
+const aiTabs = [
+  {
+    title: 'Auto Suggestions',
+    key: TableWizardTabs.AUTO_SUGGESTIONS,
+  },
+  {
+    title: 'Prompt',
+    key: TableWizardTabs.PROMPT,
+  },
+]
+
+const isPredictFromPromptLoading = computed(() => {
+  return aiLoading.value && calledFunction.value === 'predictFromPrompt'
+})
+
+const handleNavigateToIntegrations = () => {
+  // dialogShow.value = false
+  // workspaceStore.navigateToIntegrations(undefined, undefined, {
+  //   categories: 'ai',
+  // })
+}
+
+const handleRefreshOnError = () => {
+  switch (calledFunction.value) {
+    case 'predictMore':
+      return predictMore()
+    case 'predictRefresh':
+      return predictRefresh()
+    case 'predictFromPrompt':
+      return predictFromPrompt()
+
+    default:
+      return
+  }
+}
+
+const serializedViewTypes = {
+  [ViewTypes.FORM]: 'form',
+  [ViewTypes.GALLERY]: 'gallery',
+  [ViewTypes.GRID]: 'grid',
+  [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.CALENDAR]: 'calendar',
+}
+
+const deserializedViewTypes = {
+  form: ViewTypes.FORM,
+  gallery: ViewTypes.GALLERY,
+  grid: ViewTypes.GRID,
+  kanban: ViewTypes.KANBAN,
+  calendar: ViewTypes.CALENDAR,
 }
 </script>
 
@@ -464,10 +750,13 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
     v-model:visible="vModel"
     class="nc-view-create-modal"
     :show-separator="false"
-    :size="[ViewTypes.MAP].includes(form.type) ? 'medium' : 'small'"
+    size="sm"
+    height="auto"
+    :centered="false"
+    nc-modal-class-name="!px-0 !pb-0"
   >
     <template #header>
-      <div class="flex w-full flex-row justify-between items-center">
+      <div class="px-6 flex w-full flex-row justify-between items-center">
         <div class="flex font-bold text-base gap-x-3 items-center">
           <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-[24px] !leading-6 max-h-6 max-w-6" />
           <template v-if="form.type === ViewTypes.GRID">
@@ -529,149 +818,213 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
         </a>
       </div>
     </template>
-    <div class="mt-1">
+    <div class="px-6 pb-6 flex flex-col mt-1">
       <a-form v-if="isNecessaryColumnsPresent" ref="formValidator" :model="form" layout="vertical" class="flex flex-col gap-y-5">
-        <a-form-item :rules="viewNameRules" name="title">
+        <a-form-item
+          :rules="aiMode ? [] : viewNameRules"
+          name="title"
+          class="relative"
+          :class="{
+            'nc-view-ai-mode': !form.copy_from_id,
+          }"
+        >
           <a-input
+            v-if="!aiMode"
             ref="inputEl"
             v-model:value="form.title"
             :placeholder="$t('labels.viewName')"
             autofocus
-            class="nc-input-sm nc-input-shadow"
+            class="nc-view-input nc-input-sm nc-input-shadow z-11"
+            :class="{
+              '!max-w-[calc(100%_-_32px)]': !form.copy_from_id,
+            }"
             @keydown.enter="onSubmit"
           />
-        </a-form-item>
-        <a-form-item
-          v-if="form.type === ViewTypes.GALLERY && !form.copy_from_id"
-          :label="`${$t('labels.coverImageField')}`"
-          name="fk_cover_image_col_id"
-        >
-          <NcSelect
-            v-model:value="form.fk_cover_image_col_id"
-            :disabled="isMetaLoading"
-            :loading="isMetaLoading"
-            dropdown-match-select-width
-            :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
-            :placeholder="$t('placeholder.selectCoverImageField')"
-            class="nc-select-shadow w-full nc-gallery-cover-image-field-select"
-          >
-            <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
-              <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
-                  <SmartsheetHeaderIcon v-if="option.value" :column="option" class="!ml-0" />
-
-                  <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
-                    <template #title>
-                      {{ option.label }}
-                    </template>
-                    <template #default>{{ option.label }}</template>
-                  </NcTooltip>
-                </div>
-                <GeneralIcon
-                  v-if="form.fk_cover_image_col_id === option.value"
-                  id="nc-selected-item-icon"
-                  icon="check"
-                  class="flex-none text-primary w-4 h-4"
-                />
-              </div>
-            </a-select-option>
-          </NcSelect>
-        </a-form-item>
-        <a-form-item
-          v-if="form.type === ViewTypes.KANBAN && !form.copy_from_id"
-          :label="$t('general.groupingField')"
-          :rules="groupingFieldColumnRules"
-          name="fk_grp_col_id"
-        >
-          <NcSelect
-            v-model:value="form.fk_grp_col_id"
-            :disabled="isMetaLoading"
-            :loading="isMetaLoading"
-            dropdown-match-select-width
-            :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
-            :placeholder="$t('placeholder.selectGroupField')"
-            class="nc-select-shadow w-full nc-kanban-grouping-field-select"
-          >
-            <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
-              <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
-                  <SmartsheetHeaderIcon :column="option" class="!ml-0" />
-
-                  <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
-                    <template #title>
-                      {{ option.label }}
-                    </template>
-                    <template #default>{{ option.label }}</template>
-                  </NcTooltip>
-                </div>
-                <GeneralIcon
-                  v-if="form.fk_grp_col_id === option.value"
-                  id="nc-selected-item-icon"
-                  icon="check"
-                  class="flex-none text-primary w-4 h-4"
-                />
-              </div>
-            </a-select-option>
-          </NcSelect>
-        </a-form-item>
-        <a-form-item
-          v-if="form.type === ViewTypes.MAP"
-          :label="$t('general.geoDataField')"
-          :rules="geoDataFieldColumnRules"
-          name="fk_geo_data_col_id"
-        >
-          <NcSelect
-            v-model:value="form.fk_geo_data_col_id"
-            :disabled="isMetaLoading"
-            :loading="isMetaLoading"
-            :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
-            :options="viewSelectFieldOptions"
-            :placeholder="$t('placeholder.selectGeoField')"
-            class="nc-select-shadow w-full"
+          <a-input
+            v-else
+            ref="inputEl"
+            v-model:value="form.title"
+            class="nc-view-input nc-input-sm nc-input-shadow !max-w-[calc(100%_-_32px)] z-11"
+            hide-details
+            data-testid="create-table-title-input"
+            :placeholder="selectedViews.length ? '' : 'Enter view names or choose from suggestions'"
           />
+          <!-- overlay selected tags with close icon on input -->
+          <div
+            v-if="aiMode"
+            class="absolute top-0 max-w-[calc(100%_-_48px)] left-0 z-12 h-8 flex items-center gap-2 mx-2 nc-scrollbar-thin overflow-x-auto"
+          >
+            <a-tag
+              v-for="(v, idx) of selectedViews"
+              :key="idx"
+              class="cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none font-semibold !mx-0"
+            >
+              <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                <GeneralViewIcon :meta="{ type: deserializedViewTypes[v.type] }" />
+                <span>{{ v.title }}</span>
+                <div class="flex items-center p-0.5 mt-0.5">
+                  <GeneralIcon icon="close" class="h-3 w-3 cursor-pointer opacity-80" @click="onTagClose(v)" />
+                </div>
+              </div>
+            </a-tag>
+          </div>
+
+          <!-- Black overlay button on end of input -->
+          <NcTooltip
+            v-if="!form.copy_from_id"
+            :title="aiMode ? 'Disable AI suggestions' : 'Suggest views using AI'"
+            class="nc-view-ai-toggle-btn absolute right-0 top-0 h-full"
+          >
+            <NcButton
+              size="small"
+              type="secondary"
+              class="z-10 !border-l-0 !rounded-l-none !pl-3.8"
+              :class="{
+                '!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !border-purple-100 !text-nc-fill-purple-dark': !aiMode,
+                '!bg-purple-700 !border-purple-700 hover:(!bg-nc-fill-purple-medium !border-nc-fill-purple-medium) !text-white':
+                  aiMode,
+              }"
+              :disabled="aiLoading"
+              @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
+            >
+              <div class="w-full flex items-center justify-end">
+                <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current w-4 h-4" />
+              </div>
+            </NcButton>
+          </NcTooltip>
         </a-form-item>
-        <template v-if="form.type === ViewTypes.CALENDAR && !form.copy_from_id">
-          <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full items-center gap-2">
-            <span class="text-gray-800">
-              {{ $t('labels.organiseBy') }}
-            </span>
+        <template v-if="!aiMode">
+          <a-form-item
+            v-if="form.type === ViewTypes.GALLERY && !form.copy_from_id"
+            :label="`${$t('labels.coverImageField')}`"
+            name="fk_cover_image_col_id"
+          >
             <NcSelect
-              v-model:value="range.fk_from_column_id"
+              v-model:value="form.fk_cover_image_col_id"
               :disabled="isMetaLoading"
               :loading="isMetaLoading"
-              class="nc-select-shadow nc-from-select"
+              dropdown-match-select-width
+              :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
+              :placeholder="$t('placeholder.selectCoverImageField')"
+              class="nc-select-shadow w-full nc-gallery-cover-image-field-select"
             >
-              <a-select-option
-                v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
+              <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
+                <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                  <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
+                    <SmartsheetHeaderIcon v-if="option.value" :column="option" class="!ml-0" />
+
+                    <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ option.label }}
+                      </template>
+                      <template #default>{{ option.label }}</template>
+                    </NcTooltip>
+                  </div>
+                  <GeneralIcon
+                    v-if="form.fk_cover_image_col_id === option.value"
+                    id="nc-selected-item-icon"
+                    icon="check"
+                    class="flex-none text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </NcSelect>
+          </a-form-item>
+          <a-form-item
+            v-if="form.type === ViewTypes.KANBAN && !form.copy_from_id"
+            :label="$t('general.groupingField')"
+            :rules="groupingFieldColumnRules"
+            name="fk_grp_col_id"
+          >
+            <NcSelect
+              v-model:value="form.fk_grp_col_id"
+              :disabled="isMetaLoading"
+              :loading="isMetaLoading"
+              dropdown-match-select-width
+              :not-found-content="$t('placeholder.selectGroupFieldNotFound')"
+              :placeholder="$t('placeholder.selectGroupField')"
+              class="nc-select-shadow w-full nc-kanban-grouping-field-select"
+            >
+              <a-select-option v-for="option of viewSelectFieldOptions" :key="option.value" :value="option.value">
+                <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                  <div class="flex-1 flex items-center gap-1 max-w-[calc(100%_-_24px)]">
+                    <SmartsheetHeaderIcon :column="option" class="!ml-0" />
+
+                    <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ option.label }}
+                      </template>
+                      <template #default>{{ option.label }}</template>
+                    </NcTooltip>
+                  </div>
+                  <GeneralIcon
+                    v-if="form.fk_grp_col_id === option.value"
+                    id="nc-selected-item-icon"
+                    icon="check"
+                    class="flex-none text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </NcSelect>
+          </a-form-item>
+          <a-form-item
+            v-if="form.type === ViewTypes.MAP"
+            :label="$t('general.geoDataField')"
+            :rules="geoDataFieldColumnRules"
+            name="fk_geo_data_col_id"
+          >
+            <NcSelect
+              v-model:value="form.fk_geo_data_col_id"
+              :disabled="isMetaLoading"
+              :loading="isMetaLoading"
+              :not-found-content="$t('placeholder.selectGeoFieldNotFound')"
+              :options="viewSelectFieldOptions"
+              :placeholder="$t('placeholder.selectGeoField')"
+              class="nc-select-shadow w-full"
+            />
+          </a-form-item>
+          <template v-if="form.type === ViewTypes.CALENDAR && !form.copy_from_id">
+            <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full items-center gap-2">
+              <span class="text-gray-800">
+                {{ $t('labels.organiseBy') }}
+              </span>
+              <NcSelect
+                v-model:value="range.fk_from_column_id"
+                :disabled="isMetaLoading"
+                :loading="isMetaLoading"
+                class="nc-select-shadow nc-from-select"
+              >
+                <a-select-option
+                  v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
                   // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
                   // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
                   if (index === 0) return true
                   const firstRange = viewSelectFieldOptions!.find((f) => f.value === form.calendar_range[0].fk_from_column_id)
                   return firstRange?.uidt === f.uidt
                 })"
-                :key="id"
-                class="w-40"
-                :value="option.value"
-              >
-                <div class="flex w-full gap-2 justify-between items-center">
-                  <div class="flex gap-2 items-center">
-                    <SmartsheetHeaderIcon :column="option" class="!ml-0" />
-                    <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
-                      <template #title>{{ option.label }}</template>
-                      {{ option.label }}
-                    </NcTooltip>
+                  :key="id"
+                  class="w-40"
+                  :value="option.value"
+                >
+                  <div class="flex w-full gap-2 justify-between items-center">
+                    <div class="flex gap-2 items-center">
+                      <SmartsheetHeaderIcon :column="option" class="!ml-0" />
+                      <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
+                        <template #title>{{ option.label }}</template>
+                        {{ option.label }}
+                      </NcTooltip>
+                    </div>
+                    <div class="flex-1" />
+                    <component
+                      :is="iconMap.check"
+                      v-if="option.value === range.fk_from_column_id"
+                      id="nc-selected-item-icon"
+                      class="text-primary min-w-4 h-4"
+                    />
                   </div>
-                  <div class="flex-1" />
-                  <component
-                    :is="iconMap.check"
-                    v-if="option.value === range.fk_from_column_id"
-                    id="nc-selected-item-icon"
-                    class="text-primary min-w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
-            <!--            <div
+                </a-select-option>
+              </NcSelect>
+              <!--            <div
               v-if="range.fk_to_column_id === null && isEeUI"
               class="cursor-pointer flex items-center text-gray-800 gap-1"
               @click="range.fk_to_column_id = undefined"
@@ -731,24 +1084,25 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
             </template>
           </div> -->
 
-            <!--          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
+              <!--          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
             <component :is="iconMap.plus" />
             Add another date field
           </NcButton> -->
-          </div>
+            </div>
 
-          <div
-            v-if="isCalendarReadonly(form.calendar_range)"
-            class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full"
-          >
-            <div class="text-gray-500 flex gap-4">
-              <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="info" />
-              <div class="flex flex-col gap-1">
-                <h2 class="font-semibold text-sm mb-0 text-gray-800">Calendar is readonly</h2>
-                <span class="text-gray-500 font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
+            <div
+              v-if="isCalendarReadonly(form.calendar_range)"
+              class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full"
+            >
+              <div class="text-gray-500 flex gap-4">
+                <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="info" />
+                <div class="flex flex-col gap-1">
+                  <h2 class="font-semibold text-sm mb-0 text-gray-800">Calendar is readonly</h2>
+                  <span class="text-gray-500 font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
+                </div>
               </div>
             </div>
-          </div>
+          </template>
         </template>
       </a-form>
       <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
@@ -761,7 +1115,244 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
         </div>
       </div>
 
-      <a-form-item v-if="enableDescription">
+      <!-- Ai table wizard  -->
+      <AiWizardCard
+        v-if="aiMode"
+        v-model:active-tab="activeAiTab"
+        :tabs="aiTabs"
+        class="mt-4"
+        @navigate-to-integrations="handleNavigateToIntegrations"
+      >
+        <template #tabExtraRight v-if="aiIntegrationAvailable">
+          <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
+            <template v-if="aiModeStep === AiStep.pick">
+              <NcTooltip title="Re-suggest" placement="top">
+                <NcButton
+                  size="xs"
+                  class="!px-1 !text-current hover:!bg-nc-bg-purple-dark"
+                  type="text"
+                  :loading="aiLoading && calledFunction === 'predictRefresh'"
+                  @click="predictRefresh"
+                >
+                  <template #loadingIcon>
+                    <template></template>
+                  </template>
+                  <GeneralIcon
+                    icon="refresh"
+                    class="!text-current"
+                    :class="{
+                      'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
+                    }"
+                  />
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip
+                v-if="
+                  predictHistory.length < selectedViews.length
+                    ? predictHistory.length + selectedViews.length < 8
+                    : predictHistory.length < 8
+                "
+                title="Suggest more"
+                placement="top"
+              >
+                <NcButton
+                  size="xs"
+                  class="!px-1 !text-current hover:!bg-nc-bg-purple-dark"
+                  type="text"
+                  :loading="aiLoading && calledFunction === 'predictMore'"
+                  @click="predictMore"
+                >
+                  <template #loadingIcon>
+                    <template> </template>
+                  </template>
+                  <GeneralLoader v-if="aiLoading && calledFunction === 'predictMore'" class="!text-current" />
+                  <GeneralIcon v-else icon="ncPlusAi" class="!text-current" />
+                </NcButton>
+              </NcTooltip>
+            </template>
+          </template>
+          <template v-else>
+            <NcButton
+              size="xs"
+              class="hover:!bg-nc-bg-purple-dark disabled:hover:!bg-transparent !text-nc-content-purple-dark disabled:!text-nc-content-purple-light"
+              :class="{
+                '!text-nc-content-purple-light': isPredictFromPromptLoading,
+              }"
+              type="text"
+              :disabled="!prompt.trim()"
+              :loading="isPredictFromPromptLoading"
+              @click="predictFromPrompt"
+            >
+              <template #loadingIcon>
+                <template></template>
+              </template>
+              <div
+                class="flex items-center gap-2"
+                :class="{
+                  'min-w-[104px]': isPredictFromPromptLoading && !isPromtAlreadyGenerated,
+                  'min-w-[124px]': isPredictFromPromptLoading && isPromtAlreadyGenerated,
+                }"
+              >
+                <GeneralIcon icon="ncZap" class="flex-none" />
+                <div
+                  :class="{
+                    'nc-animate-dots': isPredictFromPromptLoading,
+                  }"
+                >
+                  {{
+                    isPredictFromPromptLoading
+                      ? isPromtAlreadyGenerated
+                        ? 'Re-generating'
+                        : 'Generating'
+                      : isPromtAlreadyGenerated
+                      ? 'Re-generate'
+                      : 'Generate'
+                  }}
+                </div>
+              </div>
+            </NcButton>
+          </template>
+        </template>
+        <template #tabContent>
+          <template v-if="aiError">
+            <div class="py-3 pl-3 pr-2 flex items-center gap-3">
+              <GeneralIcon icon="ncInfoSolid" class="!text-nc-content-red-dark w-4 h-4" />
+
+              <div class="text-sm text-nc-content-gray-subtle flex-1">
+                <NcTooltip class="truncate" show-on-truncate-only>
+                  <template #title>
+                    {{ aiError }}
+                  </template>
+                  {{ aiError }}
+                </NcTooltip>
+              </div>
+
+              <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="handleRefreshOnError">
+                {{ $t('general.refresh') }}
+              </NcButton>
+            </div>
+          </template>
+          <template v-else>
+            <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
+              <div v-if="aiModeStep === 'init'" class="p-4">
+                <div class="text-nc-content-purple-light text-sm h-7 flex items-center">
+                  Auto suggesting view based on your base name and existing views
+                  <div class="nc-animate-dots"></div>
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <div>
+                <a-textarea
+                  v-model:value="prompt"
+                  :bordered="false"
+                  placeholder="Enter your prompt to get table suggestions.."
+                  class="!px-4 !py-2 !text-sm !min-h-[120px]"
+                  @keydown.enter.stop
+                >
+                </a-textarea>
+              </div>
+            </template>
+
+            <div
+              v-if="
+                (activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS && aiModeStep === 'pick') ||
+                (activeAiTab === TableWizardTabs.PROMPT &&
+                  (predictedViews.length || selectedViews.length || isPromtAlreadyGenerated))
+              "
+              class="flex gap-2 flex-wrap p-4"
+              :class="{
+                'p-4': activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS,
+                'border-t-1 border-purple-200': activeAiTab === TableWizardTabs.PROMPT,
+              }"
+            >
+              <template v-for="(v, idx) of predictedViews">
+                <NcTooltip v-if="v?.title" :key="idx" :disabled="selectedViews.length < maxSelectionCount">
+                  <template #title>
+                    <div class="w-[150px]">You can only select 5 views to create at a time.</div>
+                  </template>
+
+                  <a-tag
+                    class="!rounded-md !bg-nc-bg-purple-light !border-none !mx-0"
+                    :class="{
+                      'cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark':
+                        selectedViews.length < maxSelectionCount,
+                      'cursor-not-allowed !text-nc-content-purple-light': selectedViews.length >= maxSelectionCount,
+                    }"
+                    :disabled="selectedViews.length >= maxSelectionCount"
+                    @click="onTagClick(v)"
+                  >
+                    <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                      <GeneralViewIcon
+                        :meta="{ type: deserializedViewTypes[v.type] }"
+                        :class="{
+                          'opacity-60': selectedViews.length >= maxSelectionCount,
+                        }"
+                      />
+
+                      <div>{{ v.title }}</div>
+
+                      <div class="flex items-center p-0.5 mt-0.5">
+                        <GeneralIcon
+                          icon="close"
+                          class="h-3 w-3 opacity-80"
+                          :class="{
+                            'cursor-pointer ': selectedViews.length < maxSelectionCount,
+                          }"
+                          @click.stop="onTagRemoveFromPrediction(v)"
+                        />
+                      </div>
+                    </div>
+                  </a-tag>
+                </NcTooltip>
+              </template>
+
+              <NcTooltip
+                v-if="predictedViews.length || !selectedViews.length"
+                :disabled="selectedViews.length < maxSelectionCount"
+              >
+                <template #title>
+                  <div class="w-[150px]">You can only select 5 views to create at a time.</div>
+                </template>
+                <NcButton
+                  size="xs"
+                  class="!h-6 bg-nc-bg-purple-dark"
+                  :type="predictedViews.length && selectedViews.length < maxSelectionCount ? 'text' : 'secondary'"
+                  :disabled="!predictedViews.length || selectedViews.length >= maxSelectionCount"
+                  :class="{
+                    '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark':
+                      predictedViews.length && selectedViews.length < maxSelectionCount,
+                    '!text-nc-content-purple-light !border-purple-200 !bg-nc-bg-purple-light':
+                      !predictedViews.length || selectedViews.length >= maxSelectionCount,
+                  }"
+                  @click="onSelectAll"
+                >
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="ncPlusMultiple" class="flex-none" />
+
+                    Accept all
+                  </div>
+                </NcButton>
+              </NcTooltip>
+              <NcButton
+                v-else
+                size="xs"
+                class="!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark !border-transparent !h-6"
+                type="text"
+                @click="onDeselectAll"
+              >
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncMinusSquare" class="flex-none" />
+
+                  Remove all
+                </div>
+              </NcButton>
+            </div>
+          </template>
+        </template>
+      </AiWizardCard>
+
+      <a-form-item v-if="enableDescription && !aiMode">
         <div class="flex gap-3 text-gray-800 h-7 mt-4 mb-1 items-center justify-between">
           <span class="text-[13px]">
             {{ $t('labels.description') }}
@@ -783,7 +1374,7 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
       </a-form-item>
 
       <div class="flex flex-row w-full justify-between gap-x-2 mt-5">
-        <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="toggleDescription">
+        <NcButton v-if="!enableDescription && !aiMode" size="small" type="text" @click.stop="toggleDescription">
           <div class="flex !text-gray-700 items-center gap-2">
             <GeneralIcon icon="plus" class="h-4 w-4" />
 
@@ -799,6 +1390,7 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
           </NcButton>
 
           <NcButton
+            v-if="!aiMode"
             v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
             :disabled="!isNecessaryColumnsPresent"
             :loading="isViewCreating"
@@ -809,7 +1401,37 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
             {{ $t('labels.createView') }}
             <template #loading> {{ $t('labels.creatingView') }}</template>
           </NcButton>
+          <NcButton
+            v-else
+            v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
+            type="primary"
+            size="small"
+            :disabled="selectedViews.length === 0"
+            :loading="aiLoading && calledFunction === 'generateViews'"
+          >
+            <div class="flex items-center gap-2 h-5">
+              {{
+                selectedViews.length
+                  ? selectedViews.length > 1
+                    ? $t('labels.createViews_plural', {
+                        count: selectedViews.length,
+                      })
+                    : $t('labels.createViews', {
+                        count: selectedViews.length,
+                      })
+                  : $t('labels.createView')
+              }}
+            </div>
+            <template #loading> {{ $t('title.creatingView') }} </template>
+          </NcButton>
         </div>
+      </div>
+    </div>
+    <div v-if="!form.copy_from_id" class="nc-nocoai-footer min-h-9">
+      <!-- Footer -->
+      <div class="nc-ai-wizard-card-footer-branding text-xs">
+        Powered by
+        <span class="font-semibold !text-inherit"> Noco AI </span>
       </div>
     </div>
   </NcModal>
@@ -858,6 +1480,32 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
 :deep(.ant-select) {
   .ant-select-selector {
     @apply !rounded-lg;
+  }
+}
+
+.nc-nocoai-footer {
+  @apply px-6 py-1 flex items-center gap-2 text-nc-content-purple-dark border-t-1 border-purple-100;
+
+  .nc-nocoai-settings {
+    &:not(:disabled) {
+      @apply hover:!bg-nc-bg-purple-light;
+    }
+    &.nc-ai-loading {
+      @apply !cursor-wait;
+    }
+  }
+}
+.nc-view-ai-mode {
+  .nc-view-input {
+    &:not(:focus) {
+      @apply !rounded-r-none !border-r-0;
+
+      & ~ .nc-view-ai-toggle-btn {
+        button {
+          @apply !pl-[7px] z-11 !border-l-1;
+        }
+      }
+    }
   }
 }
 </style>

@@ -48,12 +48,26 @@ export class AiSchemaController {
         instructions: description,
         req: req,
       });
-    } else if (operation === 'generateViews') {
-      const { tableId } = body.input;
+    } else if (operation === 'predictViews') {
+      const { tableId, history = [], description } = body.input;
 
-      return await this.aiSchemaService.generateViews(context, {
+      return await this.aiSchemaService.predictViews(context, {
         baseId: context.base_id,
         tableIds: [tableId],
+        history,
+        instructions: description,
+        req: req,
+      });
+    } else if (operation === 'createViews') {
+      const { input } = body.input;
+
+      const base = await this.basesService.getProject(context, {
+        baseId: context.base_id,
+      });
+
+      return await this.aiSchemaService.createViews(context, {
+        base,
+        views: input,
         req: req,
       });
     } else if (operation === 'predictSchema') {

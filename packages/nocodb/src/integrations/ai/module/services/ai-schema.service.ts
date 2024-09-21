@@ -3,6 +3,7 @@ import {
   extractRolesObj,
   IntegrationCategoryType,
   type RelationTypes,
+  SerializedAiViewType,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -34,7 +35,7 @@ import {
   generateDummyDataSystemMessage,
   generateTablesPrompt,
   generateTablesSystemMessage,
-  generateViewsPrompt,
+  predictViewsPrompt,
   generateViewsSystemMessage,
   predictSchemaPrompt,
   predictSchemaSystemMessage,
@@ -456,16 +457,17 @@ export class AiSchemaService {
     };
   }
 
-  async generateViews(
+  async predictViews(
     context: NcContext,
     params: {
       baseId: string;
       tableIds?: string[];
+      history?: any[];
       instructions?: string;
       req?: any;
     },
   ) {
-    const { baseId, instructions, req } = params;
+    const { baseId, history, instructions, req } = params;
 
     const base = await Base.get(context, baseId);
 
@@ -533,10 +535,11 @@ export class AiSchemaService {
         },
         {
           role: 'user',
-          content: generateViewsPrompt(
+          content: predictViewsPrompt(
             JSON.stringify(
               await this.serializeSchema(context, {
                 baseId: base.id,
+                predictedViews: history,
                 req,
               }),
             ),
@@ -548,7 +551,7 @@ export class AiSchemaService {
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
 
-    return this.createViews(context, { base, views: (data as any).views, req });
+    return data;
   }
 
   async createViews(
@@ -1011,7 +1014,12 @@ export class AiSchemaService {
 
   async serializeSchema(
     context: NcContext,
-    params: { baseId: string; tableIds?: string[]; req: any },
+    params: {
+      baseId: string;
+      tableIds?: string[];
+      predictedViews?: any[];
+      req: any;
+    },
   ) {
     const { baseId, req } = params;
 
@@ -1043,7 +1051,9 @@ export class AiSchemaService {
     const serializedObject = {
       tables: [],
       relationships: [],
-      views: [],
+      views: [
+        ...(Array.isArray(params.predictedViews) ? params.predictedViews : []),
+      ],
     };
 
     for (const table of tables) {
@@ -1113,26 +1123,7 @@ export class AiSchemaService {
           [ViewTypes.CALENDAR]: 'calendar',
         };
 
-        const serializedView: {
-          type: string;
-          table: string;
-          title: string;
-          filters?: {
-            comparison_op: string;
-            logical_op: string;
-            value: number;
-            column: string;
-          }[];
-          sorts?: {
-            column: string;
-            order: 'asc' | 'desc';
-          }[];
-          calendar_range?: {
-            from_column: string;
-          }[];
-          gridGroupBy?: string | string[];
-          kanbanGroupBy?: string | string[];
-        } = {
+        const serializedView: SerializedAiViewType = {
           type: serializedViewTypes[view.type],
           table: table.title,
           title: view.title,

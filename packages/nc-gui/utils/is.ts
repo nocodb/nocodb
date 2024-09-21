@@ -176,3 +176,32 @@ export function ncIsFunction(value: any): boolean {
 export function ncIsPromise(value: any): boolean {
   return value instanceof Promise
 }
+
+/**
+ * Checks whether an array includes a specific value.
+ *
+ * If an `objectKey` is provided and the array consists of objects, it will check
+ * whether the value of the specified `objectKey` in any object matches the given value.
+ *
+ * @param {T[]} array - The array to check.
+ * @param {any} value - The value to search for in the array.
+ * @param {keyof T} [objectKey] - The key to check in objects, if the array contains objects.
+ *
+ * @returns {boolean} - Returns `true` if the value or object with matching `objectKey` is found, otherwise `false`.
+ *
+ * @example
+ * // For primitive arrays
+ * ncIsArrayIncludes([1, 2, 3], 2) // true
+ *
+ * // For arrays with objects
+ * ncIsArrayIncludes([{ id: 1 }, { id: 2 }], 2, 'id') // true
+ */
+export function ncIsArrayIncludes<T>(array: T[] = [], value: any, objectKey?: keyof T): boolean {
+  if (!ncIsArray(array) || !array.length) return false
+
+  if (objectKey && ncIsObject(array[0])) {
+    return array.some((item) => item[objectKey] === value)
+  }
+
+  return array.includes(value)
+}

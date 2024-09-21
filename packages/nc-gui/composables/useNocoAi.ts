@@ -51,7 +51,7 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  const callAiSchemaApi = async (operation: string, input: any, customBaseId?: string) => {
+  const callAiSchemaApi = async (operation: string, input: any, customBaseId?: string, skipMsgToast = false) => {
     try {
       const baseId = customBaseId || activeProjectId.value
 
@@ -66,7 +66,17 @@ export const useNocoAi = createSharedComposable(() => {
       return res
     } catch (e) {
       console.error(e)
-      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+      const error = await extractSdkResponseErrorMsg(e)
+
+      if (error === aiIntegrationNotFound) {
+        aiIntegrationAvailable.value = false
+      } else {
+        aiError.value = error
+      }
+
+      if (!skipMsgToast) {
+        message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+      }
     } finally {
       aiLoading.value = false
     }
@@ -150,19 +160,19 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  const generateViews = async (tableId: string, onViewCreate?: () => void, customBaseId?: string) => {
+  const createViews = async (tableId: string, onViewCreate?: () => void, customBaseId?: string) => {
     try {
       const baseId = customBaseId || activeProjectId.value
 
       await callAiSchemaApi(
-        'generateViews',
+        'createViews',
         {
           tableId,
         },
         baseId,
       )
 
-      await onViewCreate?.()
+      // await onViewCreate?.()
     } catch (e: any) {
       console.error(e)
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
@@ -174,6 +184,16 @@ export const useNocoAi = createSharedComposable(() => {
 
     if (res?.tables) {
       return res.tables
+    }
+
+    return []
+  }
+
+  const predictViews = async (tableId: string, history?: any[], baseId?: string, description?: string, skipMsgToast = true) => {
+    const res = await callAiSchemaApi('predictViews', { tableId, history, description }, baseId, skipMsgToast)
+
+    if (res?.views) {
+      return res.views
     }
 
     return []
@@ -249,7 +269,7 @@ export const useNocoAi = createSharedComposable(() => {
     predictSelectOptions,
     predictNextFields,
     predictNextFormulas,
-    generateViews,
+    createViews,
     predictNextTables,
     generateTables,
     generateRows,
@@ -260,5 +280,6 @@ export const useNocoAi = createSharedComposable(() => {
     createSchema,
     predictFormula,
     repairFormula,
+    predictViews,
   }
 })

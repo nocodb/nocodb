@@ -123,6 +123,7 @@ async function onOpenModal({
     groupingFieldColumnId,
     coverImageColumnId,
     'onUpdate:modelValue': closeDialog,
+    'baseId': base.value.id,
     'onCreated': async (view: ViewType) => {
       closeDialog()
 

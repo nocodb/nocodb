@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 interface Props {
-  isDisabled?: boolean
   activeTab: string
   tabs: {
     title: string
@@ -10,25 +9,16 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  isDisabled: false,
   aiLoading: false,
 })
 
-const emits = defineEmits(['update:isDisabled', 'update:activeTab', 'navigateToIntegrations'])
-
-const vIsDisabled = useVModel(props, 'isDisabled', emits)
+const emits = defineEmits(['update:activeTab', 'navigateToIntegrations'])
 
 const activeTab = useVModel(props, 'activeTab', emits)
 
 const { tabs } = toRefs(props)
 
 const { aiIntegrationAvailable, aiLoading } = useNocoAi()
-
-const handleEnable = () => {
-  if (!vIsDisabled.value) return
-
-  vIsDisabled.value = false
-}
 
 const handleChangeTab = (tab: string) => {
   if (aiLoading.value) return
@@ -37,13 +27,7 @@ const handleChangeTab = (tab: string) => {
 </script>
 
 <template>
-  <div
-    class="nc-ai-wizard-card rounded-2xl overflow-hidden transition-colors"
-    :class="{
-      'is-disabled': vIsDisabled,
-    }"
-    @click="handleEnable"
-  >
+  <div class="nc-ai-wizard-card rounded-2xl overflow-hidden transition-colors">
     <div class="nc-ai-wizard-card-tab-header">
       <div class="flex nc-ai-wizard-card-tab-wrapper">
         <div

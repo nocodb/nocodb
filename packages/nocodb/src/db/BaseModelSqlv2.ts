@@ -912,7 +912,10 @@ class BaseModelSqlv2 {
                         [columnName, columnName, column.id],
                       ),
                     );
-                  } else if (this.dbDriver.clientType() === 'sqlite3') {
+                  } else if (
+                    this.dbDriver.clientType() === 'sqlite3' ||
+                    this.dbDriver.clientType() === 'libsql'
+                  ) {
                     colSelectors.push(
                       this.dbDriver.raw(
                         `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -1032,6 +1035,7 @@ class BaseModelSqlv2 {
               this.dbDriver.raw(`(??) as ??`, [subQuery, `${f.alias}`]),
             );
             break;
+          case 'libsql':
           case 'sqlite3':
             subQuery = this.dbDriver
               .select(
@@ -1231,7 +1235,10 @@ class BaseModelSqlv2 {
                         [columnName, columnName, column.id],
                       ),
                     );
-                  } else if (this.dbDriver.clientType() === 'sqlite3') {
+                  } else if (
+                    this.dbDriver.clientType() === 'sqlite3' ||
+                    this.dbDriver.clientType() === 'libsql'
+                  ) {
                     colSelectors.push(
                       this.dbDriver.raw(
                         `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -1420,6 +1427,7 @@ class BaseModelSqlv2 {
               this.dbDriver.raw(`(??) as ??`, [subQuery, f.alias]),
             );
             break;
+          case 'libsql':
           case 'sqlite3':
             subQuery = this.dbDriver
               .select(
@@ -1606,6 +1614,7 @@ class BaseModelSqlv2 {
             break;
           }
 
+          case 'libsql':
           case 'sqlite3': {
             jsonBuildObject = this.dbDriver.raw(`json_object(
                 ${Object.keys(aggregateExpressions)
@@ -1650,6 +1659,7 @@ class BaseModelSqlv2 {
   }
 
   async aggregate(args: { filterArr?: Filter[]; where?: string }, view: View) {
+    console.log('running aggregate 1662');
     try {
       const { where, aggregation } = this._getListArgs(args as any);
 
@@ -1901,7 +1911,10 @@ class BaseModelSqlv2 {
                     [columnName, columnName, column.id],
                   ),
                 );
-              } else if (this.dbDriver.clientType() === 'sqlite3') {
+              } else if (
+                this.dbDriver.clientType() === 'sqlite3' ||
+                this.dbDriver.clientType() === 'libsql'
+              ) {
                 selectors.push(
                   this.dbDriver.raw(
                     `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -2204,7 +2217,10 @@ class BaseModelSqlv2 {
                     [columnName, columnName, column.id],
                   ),
                 );
-              } else if (this.dbDriver.clientType() === 'sqlite3') {
+              } else if (
+                this.dbDriver.clientType() === 'sqlite3' ||
+                this.dbDriver.clientType() === 'libsql'
+              ) {
                 selectors.push(
                   this.dbDriver.raw(
                     `strftime ('%Y-%m-%d %H:%M:00',:column:) ||
@@ -4339,6 +4355,7 @@ class BaseModelSqlv2 {
                     ),
                   );
                   break;
+                case 'libsql':
                 case 'sqlite3':
                   qb.select(
                     this.dbDriver.raw(
@@ -4383,6 +4400,7 @@ class BaseModelSqlv2 {
                     ),
                   );
                   break;
+                case 'libsql':
                 case 'sqlite3':
                   qb.select(
                     this.dbDriver.raw(
@@ -4868,7 +4886,7 @@ class BaseModelSqlv2 {
   }
 
   get isSqlite() {
-    return this.clientType === 'sqlite3';
+    return this.clientType === 'sqlite3' || this.clientType === 'libsql';
   }
 
   get isMssql() {
@@ -8063,7 +8081,8 @@ class BaseModelSqlv2 {
           } else {
             item[alias] = value;
           }
-          delete item[key];
+          console.log('here 8083 deleting key', key, 'from item', item);
+          // delete item[key];
         }
       });
     });

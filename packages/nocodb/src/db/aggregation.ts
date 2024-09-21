@@ -202,7 +202,11 @@ export default async function applyAggregation({
       aggType,
       alias: alias,
     });
-  } else if (knex.client.config.client === 'sqlite3') {
+  } else if (
+    knex.client.config.client === 'sqlite3' ||
+    knex.client.config.client === 'libsql'
+  ) {
+    console.log('here calling genSqlite3AggregateQuery');
     return genSqlite3AggregateQuery({
       column,
       baseModelSqlv2,

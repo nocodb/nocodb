@@ -909,7 +909,9 @@ watch(
 
                     <a-row
                       v-if="
-                        ![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)
+                        ![ClientType.SQLITE, ClientType.LIBSQL, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(
+                          formState.dataSource.client,
+                        )
                       "
                       :gutter="24"
                     >

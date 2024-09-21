@@ -211,17 +211,15 @@ export class DatasService {
       (async () => {
         let data = [];
         try {
-          data = await nocoExecute(
-            ast,
-            await baseModel.list(listArgs, {
-              ignoreViewFilterAndSort,
-              throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
-              ignorePagination: param.ignorePagination,
-              limitOverride: param.limitOverride,
-            }),
-            {},
-            listArgs,
-          );
+          console.log('Before baseModel.list call:', listArgs);
+          const listResult = await baseModel.list(listArgs, {
+            ignoreViewFilterAndSort,
+            throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+            ignorePagination: param.ignorePagination,
+            limitOverride: param.limitOverride,
+          });
+          console.log('After baseModel.list call:', listResult);
+          data = await nocoExecute(ast, listResult, {}, listArgs);
         } catch (e) {
           if (e instanceof NcBaseError) throw e;
           this.logger.error(e);

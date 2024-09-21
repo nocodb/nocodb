@@ -47,6 +47,7 @@ export const validatePayload = (schema: string, payload: any) => {
   if (!valid) {
     const errors: ErrorObject[] | null | undefined =
       ajv.errors || validate.errors;
+    console.log(JSON.stringify(ajv.errors || validate.errors, null, 2));
 
     // If the request body is invalid, throw error with error message  and errors
     NcError.ajvValidationError({

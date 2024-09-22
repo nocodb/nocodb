@@ -765,6 +765,8 @@ export interface FilterType {
         | 'tomorrow'
         | ('yesterday' & null)
       );
+  /** Foreign Key to parent column */
+  fk_parent_column_id?: StringOrNullType;
   /** Foreign Key to Column */
   fk_column_id?: StringOrNullType;
   /** Foreign Key to Hook */
@@ -789,6 +791,11 @@ export interface FilterType {
   base_id?: string;
   /** The filter value. Can be NULL for some operators. */
   value?: any;
+  /**
+   * The order of the filter
+   * @example 1
+   */
+  order?: number;
 }
 
 /**
@@ -7757,7 +7764,13 @@ export class Api<
 
 }`
  */
-    read: (viewId: string, params: RequestParams = {}) =>
+    read: (
+      viewId: string,
+      query?: {
+        includeAllFilters?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<
         FilterListType,
         {
@@ -7767,6 +7780,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),

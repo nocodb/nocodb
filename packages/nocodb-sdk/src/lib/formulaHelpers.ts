@@ -70,7 +70,7 @@ function validateDateWithUnknownFormat(v: string) {
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,
-  columns: ColumnType[]
+  columns: ColumnType[],
 ) {
   const substituteId = async (pt: any) => {
     if (pt.type === 'CallExpression') {
@@ -85,7 +85,7 @@ export async function substituteColumnAliasWithIdInFormula(
         (c) =>
           c.id === colNameOrId ||
           c.column_name === colNameOrId ||
-          c.title === colNameOrId
+          c.title === colNameOrId,
       );
       pt.name = '{' + column.id + '}';
     } else if (pt.type === 'BinaryExpression') {
@@ -118,7 +118,7 @@ export enum FormulaErrorType {
 export function substituteColumnIdWithAliasInFormula(
   formula,
   columns: ColumnType[],
-  rawFormula?
+  rawFormula?,
 ) {
   const substituteId = (pt: any, ptRaw?: any) => {
     if (pt.type === 'CallExpression') {
@@ -134,7 +134,7 @@ export function substituteColumnIdWithAliasInFormula(
         (c) =>
           c.id === colNameOrId ||
           c.column_name === colNameOrId ||
-          c.title === colNameOrId
+          c.title === colNameOrId,
       );
       pt.name = column?.title || ptRaw?.name || pt?.name;
     } else if (pt.type === 'BinaryExpression') {
@@ -331,7 +331,7 @@ export const formulas: Record<string, FormulaMeta> = {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.firstParamDateAddHaveDate' },
-              'First parameter of DATEADD should be a date'
+              'First parameter of DATEADD should be a date',
             );
           }
         }
@@ -341,20 +341,20 @@ export const formulas: Record<string, FormulaMeta> = {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.secondParamDateAddHaveNumber' },
-              'Second parameter of DATEADD should be a number'
+              'Second parameter of DATEADD should be a number',
             );
           }
         }
         if (parsedTree.arguments[2].type === JSEPNode.LITERAL) {
           if (
             !['day', 'week', 'month', 'year'].includes(
-              parsedTree.arguments[2].value
+              parsedTree.arguments[2].value,
             )
           ) {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.thirdParamDateAddHaveDate' },
-              "Third parameter of DATEADD should be one of 'day', 'week', 'month', 'year'"
+              "Third parameter of DATEADD should be one of 'day', 'week', 'month', 'year'",
             );
           }
         }
@@ -443,7 +443,7 @@ export const formulas: Record<string, FormulaMeta> = {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.firstParamDateDiffHaveDate' },
-              'First parameter of DATETIME_DIFF should be a date'
+              'First parameter of DATETIME_DIFF should be a date',
             );
           }
         }
@@ -453,7 +453,7 @@ export const formulas: Record<string, FormulaMeta> = {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.secondParamDateDiffHaveDate' },
-              'Second parameter of DATETIME_DIFF should be a date'
+              'Second parameter of DATETIME_DIFF should be a date',
             );
           }
         }
@@ -486,7 +486,7 @@ export const formulas: Record<string, FormulaMeta> = {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.thirdParamDateDiffHaveDate' },
-              "Third parameter of DATETIME_DIFF should be one of 'milliseconds', 'ms', 'seconds', 's', 'minutes', 'm', 'hours', 'h', 'days', 'd', 'weeks', 'w', 'months', 'M', 'quarters', 'Q', 'years', 'y'"
+              "Third parameter of DATETIME_DIFF should be one of 'milliseconds', 'ms', 'seconds', 's', 'minutes', 'm', 'hours', 'h', 'days', 'd', 'weeks', 'w', 'months', 'M', 'quarters', 'Q', 'years', 'y'",
             );
           }
         }
@@ -733,7 +733,7 @@ export const formulas: Record<string, FormulaMeta> = {
               calleeName: parsedTree.callee?.name?.toUpperCase(),
               position: 2,
             },
-            'The REPEAT function requires a numeric as the parameter at position 2'
+            'The REPEAT function requires a numeric as the parameter at position 2',
           );
         }
       },
@@ -981,7 +981,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: (argTypes: FormulaDataTypes[]) => {
       // extract all return types except NULL, since null can be returned by any type
       const returnValueTypes = new Set(
-        argTypes.slice(1).filter((type) => type !== FormulaDataTypes.NULL)
+        argTypes.slice(1).filter((type) => type !== FormulaDataTypes.NULL),
       );
       // if there are more than one return types or if there is a string return type
       // return type as string else return the type
@@ -1026,7 +1026,7 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: (argTypes: FormulaDataTypes[]) => {
       // extract all return types except NULL, since null can be returned by any type
       const returnValueTypes = new Set(
-        argTypes.slice(2).filter((_, i) => i % 2 === 0)
+        argTypes.slice(2).filter((_, i) => i % 2 === 0),
       );
 
       // if there are more than one return types or if there is a string return type
@@ -1104,7 +1104,7 @@ export const formulas: Record<string, FormulaMeta> = {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.firstParamWeekDayHaveDate' },
-              'First parameter of WEEKDAY should be a date'
+              'First parameter of WEEKDAY should be a date',
             );
           }
         }
@@ -1130,7 +1130,7 @@ export const formulas: Record<string, FormulaMeta> = {
             throw new FormulaError(
               FormulaErrorType.TYPE_MISMATCH,
               { key: 'msg.formula.secondParamWeekDayHaveDate' },
-              'Second parameter of WEEKDAY should be day of week string'
+              'Second parameter of WEEKDAY should be day of week string',
             );
           }
         }
@@ -1379,6 +1379,24 @@ export const formulas: Record<string, FormulaMeta> = {
     docsUrl:
       'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#value',
   },
+  JSON_EXTRACT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/json-functions#json_extract',
+    validation: {
+      args: {
+        min: 2,
+        max: 2,
+        type: [FormulaDataTypes.STRING, FormulaDataTypes.STRING],
+      },
+    },
+    description: 'Extracts a value from a JSON string using a jq-like syntax',
+    syntax: 'JSON_EXTRACT(json_string, path)',
+    examples: [
+      'JSON_EXTRACT(\'{"a": {"b": "c"}}\', \'.a.b\') => "c"',
+      "JSON_EXTRACT({json_column}, '.key')",
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
   // Disabling these functions for now; these act as alias for CreatedAt & UpdatedAt fields;
   // Issue: Error noticed if CreatedAt & UpdatedAt fields are removed from the table after creating these formulas
   //
@@ -1413,7 +1431,7 @@ export class FormulaError extends Error {
     extra: {
       [key: string]: any;
     },
-    message: string = 'Formula Error'
+    message: string = 'Formula Error',
   ) {
     super(message);
     this.type = type;
@@ -1511,19 +1529,19 @@ async function extractColumnIdentifierType({
         } else {
           const relationColumnOpt = columns.find(
             (column) =>
-              column.id === (<RollupType>col.colOptions).fk_relation_column_id
+              column.id === (<RollupType>col.colOptions).fk_relation_column_id,
           );
 
           // the value is based on the foreign rollup column type
           const refTableMeta = await getMeta(
             (<LinkToAnotherRecordType>relationColumnOpt.colOptions)
-              .fk_related_model_id
+              .fk_related_model_id,
           );
 
           const refTableColumns = refTableMeta.columns;
           const childFieldColumn = refTableColumns.find(
             (column: ColumnType) =>
-              column.id === col.colOptions.fk_rollup_column_id
+              column.id === col.colOptions.fk_rollup_column_id,
           );
 
           // extract type and add to res
@@ -1534,7 +1552,7 @@ async function extractColumnIdentifierType({
               columns: refTableColumns,
               getMeta,
               clientOrSqlUi,
-            })
+            }),
           );
         }
       }
@@ -1641,13 +1659,13 @@ export async function validateFormulaAndExtractTreeWithType({
         throw new FormulaError(
           FormulaErrorType.INVALID_FUNCTION_NAME,
           {},
-          `Function ${calleeName} is not available`
+          `Function ${calleeName} is not available`,
         );
       } else if (sqlUI?.getUnsupportedFnList().includes(calleeName)) {
         throw new FormulaError(
           FormulaErrorType.INVALID_FUNCTION_NAME,
           {},
-          `Function ${calleeName} is unavailable for your database`
+          `Function ${calleeName} is unavailable for your database`,
         );
       }
 
@@ -1666,7 +1684,7 @@ export async function validateFormulaAndExtractTreeWithType({
               requiredArguments: validation.args.rqd,
               calleeName,
             },
-            'Required arguments missing'
+            'Required arguments missing',
           );
         } else if (
           validation.args.min !== undefined &&
@@ -1679,7 +1697,7 @@ export async function validateFormulaAndExtractTreeWithType({
               minRequiredArguments: validation.args.min,
               calleeName,
             },
-            'Minimum arguments required'
+            'Minimum arguments required',
           );
         } else if (
           validation.args.max !== undefined &&
@@ -1692,7 +1710,7 @@ export async function validateFormulaAndExtractTreeWithType({
               maxRequiredArguments: validation.args.max,
               calleeName,
             },
-            'Maximum arguments missing'
+            'Maximum arguments missing',
           );
         }
       }
@@ -1700,7 +1718,7 @@ export async function validateFormulaAndExtractTreeWithType({
       const validateResult = (res.arguments = await Promise.all(
         parsedTree.arguments.map((arg) => {
           return validateAndExtract(arg);
-        })
+        }),
       ));
 
       const argTypes = validateResult.map((v: any) => v.dataType);
@@ -1716,7 +1734,7 @@ export async function validateFormulaAndExtractTreeWithType({
 
           // if type
           const expectedArgType = Array.isArray(
-            formulas[calleeName].validation.args.type
+            formulas[calleeName].validation.args.type,
           )
             ? formulas[calleeName].validation.args.type[i]
             : formulas[calleeName].validation.args.type;
@@ -1730,7 +1748,7 @@ export async function validateFormulaAndExtractTreeWithType({
             if (argPt.type === JSEPNode.IDENTIFIER) {
               const name =
                 columns?.find(
-                  (c) => c.id === argPt.name || c.title === argPt.name
+                  (c) => c.id === argPt.name || c.title === argPt.name,
                 )?.title || argPt.name;
 
               throw new FormulaError(
@@ -1741,7 +1759,7 @@ export async function validateFormulaAndExtractTreeWithType({
                   columnType: argPt.dataType,
                   expectedType: expectedArgType,
                 },
-                `Field ${name} with ${argPt.dataType} type is found but ${expectedArgType} type is expected`
+                `Field ${name} with ${argPt.dataType} type is found but ${expectedArgType} type is expected`,
               );
             } else {
               let key = '';
@@ -1769,7 +1787,7 @@ export async function validateFormulaAndExtractTreeWithType({
                 },
                 `${calleeName?.toUpperCase()} requires a ${
                   type || expectedArgType
-                } at position ${position}`
+                } at position ${position}`,
               );
             }
           }
@@ -1786,7 +1804,7 @@ export async function validateFormulaAndExtractTreeWithType({
 
       if (typeof formulas[calleeName].returnType === 'function') {
         res.dataType = (formulas[calleeName].returnType as any)?.(
-          argTypes
+          argTypes,
         ) as FormulaDataTypes;
       } else if (formulas[calleeName].returnType) {
         res.dataType = formulas[calleeName].returnType as FormulaDataTypes;
@@ -1802,7 +1820,7 @@ export async function validateFormulaAndExtractTreeWithType({
             key: 'msg.formula.columnNotAvailable',
             columnName: parsedTree.name,
           },
-          `Invalid column name/id ${JSON.stringify(parsedTree.name)} in formula`
+          `Invalid column name/id ${JSON.stringify(parsedTree.name)} in formula`,
         );
       }
 
@@ -1825,7 +1843,7 @@ export async function validateFormulaAndExtractTreeWithType({
               columns,
               clientOrSqlUi,
               getMeta,
-            }
+            },
           ));
 
         res.dataType = (formulaRes as any)?.dataType;
@@ -1838,7 +1856,7 @@ export async function validateFormulaAndExtractTreeWithType({
             columns,
             getMeta,
             clientOrSqlUi,
-          })
+          }),
         );
       }
     } else if (parsedTree.type === JSEPNode.LITERAL) {
@@ -1863,7 +1881,7 @@ export async function validateFormulaAndExtractTreeWithType({
         throw new FormulaError(
           FormulaErrorType.NOT_SUPPORTED,
           {},
-          `Unary expression '${parsedTree.operator}' is not supported`
+          `Unary expression '${parsedTree.operator}' is not supported`,
         );
       }
     } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
@@ -1884,7 +1902,7 @@ export async function validateFormulaAndExtractTreeWithType({
                 FormulaDataTypes.BOOLEAN,
                 FormulaDataTypes.NULL,
                 FormulaDataTypes.UNKNOWN,
-              ].includes(r.dataType)
+              ].includes(r.dataType),
           )
         ) {
           res.dataType = FormulaDataTypes.STRING;
@@ -1896,19 +1914,19 @@ export async function validateFormulaAndExtractTreeWithType({
       throw new FormulaError(
         FormulaErrorType.NOT_SUPPORTED,
         {},
-        'Bracket notation is not supported'
+        'Bracket notation is not supported',
       );
     } else if (parsedTree.type === JSEPNode.ARRAY_EXP) {
       throw new FormulaError(
         FormulaErrorType.NOT_SUPPORTED,
         {},
-        'Array is not supported'
+        'Array is not supported',
       );
     } else if (parsedTree.type === JSEPNode.COMPOUND) {
       throw new FormulaError(
         FormulaErrorType.NOT_SUPPORTED,
         {},
-        'Compound statement is not supported'
+        'Compound statement is not supported',
       );
     }
 
@@ -1938,9 +1956,9 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
             (colId: string) =>
               columns.filter(
                 (col: ColumnType) =>
-                  col.id === colId && col.uidt === UITypes.Formula
-              ).length
-          )
+                  col.id === colId && col.uidt === UITypes.Formula,
+              ).length,
+          ),
         ),
       ];
       if (neighbours.length > 0) {
@@ -1952,7 +1970,8 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
 
   // include target formula column (i.e. the one to be saved if applicable)
   const targetFormulaCol = columns.find(
-    (c: ColumnType) => c.title === parsedTree.name && c.uidt === UITypes.Formula
+    (c: ColumnType) =>
+      c.title === parsedTree.name && c.uidt === UITypes.Formula,
   );
 
   if (targetFormulaCol && formulaCol?.id) {
@@ -2013,7 +2032,7 @@ function checkForCircularFormulaRef(formulaCol, parsedTree, columns) {
         {
           key: 'msg.formula.cantSaveCircularReference',
         },
-        'Circular reference detected'
+        'Circular reference detected',
       );
     }
   }

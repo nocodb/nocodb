@@ -1016,6 +1016,7 @@ class PGClient extends KnexClient {
     return result;
   }
 
+
   /**
    *
    * @param {Object} - args
@@ -1033,9 +1034,13 @@ class PGClient extends KnexClient {
 
     const foreignKeyName = args.foreignKeyName || null;
 
-    args.childTableWithSchema = args.childTable;
+    args.childTableWithSchema = args.schema
+      ? `${args.schema}.${args.childTable}`
+      : args.childTable;
 
-    args.parentTableWithSchema = args.parentTable;
+    args.parentTableWithSchema = args.schema
+      ? `${args.schema}.${args.parentTable}`
+      : args.parentTable;
 
     try {
       // const self = this;
@@ -2847,7 +2852,9 @@ class PGClient extends KnexClient {
 
     query += this.alterTablePK(table, args.columns, [], query, true);
 
-    query = this.genQuery(`CREATE TABLE ?? (${query});`, [args.tn]);
+    query = this.genQuery(`CREATE TABLE ?? (${query});`, [
+      args.schema ? `${args.schema}.${args.tn}` : args.tn,
+    ]);
 
     return query;
   }

@@ -34,6 +34,7 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
+import {Source} from "~/ee/models";
 
 const logger = new Logger('Model');
 
@@ -475,6 +476,7 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(context, args.id, ncMeta));
+    const source = await Source.get(context, model.source_id, false, ncMeta);
 
     if (!args?.viewId && args.extractDefaultView) {
       const view = await View.getDefaultView(context, model.id, ncMeta);
@@ -486,6 +488,7 @@ export default class Model implements TableType {
       dbDriver: args.dbDriver,
       viewId: args.viewId,
       model,
+      schema: source.getConfig()?.schema,
     });
   }
 

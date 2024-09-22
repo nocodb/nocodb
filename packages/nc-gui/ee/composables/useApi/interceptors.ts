@@ -1,6 +1,5 @@
 import type { Api } from 'nocodb-sdk'
 import { addAxiosInterceptors as addAxiosInterceptorsCE } from '../../../composables/useApi/interceptors'
-import {} from '~/ee/store/workspace'
 
 const dataApiRegex = /\/api\/v1\/data\/\w+\/\w+\/\w+\/views\/\w+/i
 const reqLatencyKey = Symbol('reqLatencyKey')

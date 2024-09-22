@@ -34,7 +34,7 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
-import {Source} from "~/ee/models";
+import { Source } from '~/models';
 
 const logger = new Logger('Model');
 

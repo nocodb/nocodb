@@ -567,9 +567,9 @@ export default class Source implements SourceType {
       if (_mode === 0) {
         return this.is_meta;
       }
-      return false;
+      return this.is_local;
     } else {
-      return this.is_meta;
+      return this.is_meta || this.is_local;
     }
   }
 

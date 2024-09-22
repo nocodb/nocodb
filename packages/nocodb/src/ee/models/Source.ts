@@ -110,17 +110,6 @@ export default class Source extends SourceCE implements SourceType {
     return super.sourceCleanup(ncMeta);
   }
 
-  isMeta(_only = false, _mode = 0) {
-    if (_only) {
-      if (_mode === 0) {
-        return this.is_meta;
-      }
-      return this.is_local;
-    } else {
-      return this.is_meta || this.is_local;
-    }
-  }
-
   async softDelete(
     context: NcContext,
     ncMeta = Noco.ncMeta,

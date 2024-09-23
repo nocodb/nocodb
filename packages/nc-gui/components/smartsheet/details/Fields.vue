@@ -652,8 +652,9 @@ const fieldErrors = computed<Record<string, string>>(() => {
   const errors: Record<string, string> = {}
   for (const op of ops.value) {
     if (op?.error) {
-      if (op.column.id) errors[op.column.id] = op.error
-      else if (op.column.temp_id) errors[op.column.temp_id] = op.error
+      const id = op.column.id || op.column.temp_id
+
+      if (id) errors[id] = op.error
     }
   }
   return errors
@@ -1185,7 +1186,7 @@ watch(
                         </template>
 
                         <NcBadge
-                          color="yed"
+                          color="red"
                           :border="false"
                           class="ml-1 bg-red-50 text-red-700"
                           data-testid="nc-field-status-error-configuration"

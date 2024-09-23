@@ -24,12 +24,14 @@ export default defineNuxtPlugin(function (nuxtApp) {
 
   // put inside app:created hook to ensure global state is available
   nuxtApp.hooks.hook('app:created', () => {
-    const { token } = useGlobal()
+    const {token} = useGlobal()
     watch(
       () => token.value ?? (nuxtApp.$state as ReturnType<typeof useGlobal>)?.token?.value,
       async (newToken, oldToken) => {
         try {
-          if (newToken && newToken !== oldToken && isTokenUpdatedTab.value) {
+          // if token updated and continueAfterSignIn query param is present, redirect to that page
+          // or if token updated and isTokenUpdatedTab is true, redirect to the page stored in localStorage
+          if (newToken && newToken !== oldToken && (isTokenUpdatedTab.value || route.value.query?.continueAfterSignIn)) {
             try {
               if (route.value.query?.continueAfterSignIn) {
                 await navigateTo(route.value.query.continueAfterSignIn as string, {
@@ -52,7 +54,7 @@ export default defineNuxtPlugin(function (nuxtApp) {
           console.error(e)
         }
       },
-      { immediate: true },
+      {immediate: true},
     )
   })
 })

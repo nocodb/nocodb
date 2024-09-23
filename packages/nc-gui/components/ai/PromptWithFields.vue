@@ -11,9 +11,11 @@ const props = withDefaults(
   defineProps<{
     modelValue: string
     options?: ColumnType[]
+    autoFocus?: boolean
   }>(),
   {
     options: () => [],
+    autoFocus: true,
   },
 )
 
@@ -25,6 +27,8 @@ const vModel = computed({
     emits('update:modelValue', v)
   },
 })
+
+const { autoFocus } = toRefs(props)
 
 const editor = useEditor({
   content: vModel.value,
@@ -81,7 +85,7 @@ const editor = useEditor({
     vModel.value = text
   },
   editable: true,
-  autofocus: true,
+  autofocus: autoFocus.value,
   editorProps: { scrollThreshold: 100 },
 })
 
@@ -96,9 +100,11 @@ onMounted(async () => {
 
   editor.value?.commands.setContent(renderContent)
 
-  setTimeout(() => {
-    editor.value?.chain().focus().setTextSelection(vModel.value.length).run()
-  }, 100)
+  if (autoFocus.value) {
+    setTimeout(() => {
+      editor.value?.chain().focus().setTextSelection(vModel.value.length).run()
+    }, 100)
+  }
 })
 </script>
 

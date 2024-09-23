@@ -7,15 +7,19 @@ class ErrorReporting {
   // debounce error reporting to avoid sending multiple reports for the same error
   private report = useDebounceFn(
     () => {
-      const errors = this.errors
-        // filter out duplicate errors and only include 2 lines of stack trace
-        .filter((error, index, self) => index === self.findIndex((t) => t.message === error.message))
-        .map((error) => ({
-          message: error.message,
-          stack: error.stack?.split('\n').slice(0, 2).join('\n'),
-        }))
-      this.errors = []
-      this.$api.utils.errorReport({ errors, extra: {} })
+      try {
+        const errors = this.errors
+          // filter out duplicate errors and only include 2 lines of stack trace
+          .filter((error, index, self) => index === self.findIndex((t) => t.message === error.message))
+          .map((error) => ({
+            message: error.message,
+            stack: error.stack?.split('\n').slice(0, 2).join('\n'),
+          }))
+        this.errors = []
+        this.$api.utils.errorReport({ errors, extra: {} })
+      } catch {
+        // ignore
+      }
     },
     3000,
     {
@@ -29,16 +33,18 @@ class ErrorReporting {
   collect(error: Error) {
     this.errors.push(error)
     // report errors after 3 seconds
-    this.report().catch(() => {
-      // do nothing
-    })
+    this.report()
   }
 }
 
 export default defineNuxtPlugin((nuxtApp) => {
   if (isEeUI) {
     nuxtApp.provide('report', function (error: Error) {
-      Sentry.captureException(error)
+      try {
+        Sentry.captureException(error)
+      } catch {
+        // ignore
+      }
     })
     return
   }

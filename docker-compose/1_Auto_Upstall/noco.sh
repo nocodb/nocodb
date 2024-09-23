@@ -636,7 +636,6 @@ EOF
       - "traefik.http.routers.minio.rule=Host(\`${CONFIG_MINIO_DOMAIN_NAME}\`)"
 EOF
 # If minio SSL is enabled, set the entry point to websecure
-fi
     if [ "$CONFIG_MINIO_SSL_ENABLED" = "Y" ]; then
         cat >> "$compose_file" <<EOF
       - "traefik.http.routers.minio.entrypoints=websecure"
@@ -660,6 +659,7 @@ EOF
       - nocodb-network
 
 EOF
+fi
     if [ "${CONFIG_WATCHTOWER_ENABLED}" = "Y" ]; then
         cat >> "$compose_file" <<EOF
   watchtower:

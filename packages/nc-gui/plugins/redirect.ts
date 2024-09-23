@@ -29,8 +29,9 @@ export default defineNuxtPlugin(function (nuxtApp) {
       () => token.value ?? (nuxtApp.$state as ReturnType<typeof useGlobal>)?.token?.value,
       async (newToken, oldToken) => {
         try {
-          // if token updated and continueAfterSignIn query param is present, redirect to that page
-          // or if token updated and isTokenUpdatedTab is true, redirect to the page stored in localStorage
+          // if token updated redirect if one of the following condition matches,
+          // 1. `continueAfterSignIn` query param is present in the url
+          // 2. If signin happened in current tab which can be detected by `isTokenUpdatedTab` flag
           if (newToken && newToken !== oldToken && (isTokenUpdatedTab.value || route.value.query?.continueAfterSignIn)) {
             try {
               if (route.value.query?.continueAfterSignIn) {

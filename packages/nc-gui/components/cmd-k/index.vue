@@ -166,6 +166,8 @@ const actionListGroupedBySection = computed(() => {
 
 const keys = useMagicKeys()
 
+const shiftModifier = keys.shift
+
 const setAction = (action: string) => {
   selected.value = action
   nextTick(() => {
@@ -294,7 +296,7 @@ whenever(keys.Enter, () => {
     const selectedEl = formattedData.value.find((el) => el.id === selected.value)
     cmdInput.value = ''
     if (selectedEl) {
-      fireAction(selectedEl, keys.shift.value)
+      fireAction(selectedEl, shiftModifier.value)
     }
   }
 })

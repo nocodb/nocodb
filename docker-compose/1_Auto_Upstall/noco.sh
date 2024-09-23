@@ -497,7 +497,7 @@ generate_credentials() {
 create_docker_compose_file() {
 
     if [ "${CONFIG_EDITION}" = "EE" ] || [ "${CONFIG_EDITION}" = "ee" ]; then
-        image="nocodb/ee:latest"
+        image="nocodb/nocodb-ee:latest"
     else
         image="nocodb/nocodb:latest"
     fi

@@ -26,10 +26,6 @@ const vModel = computed({
   },
 })
 
-const keywords = computed(() => {
-  return props.options?.map((option) => option.title) ?? []
-})
-
 const editor = useEditor({
   content: vModel.value,
   extensions: [
@@ -90,7 +86,7 @@ const editor = useEditor({
 })
 
 onMounted(async () => {
-  await until(() => vModel.value).toBeTruthy()
+  await until(() => vModel.value !== null && vModel.value !== undefined).toBeTruthy()
 
   // replace {id} with <span data-type="mention" data-id="id"></span>
   const renderContent = vModel.value

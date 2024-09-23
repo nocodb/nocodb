@@ -15,9 +15,7 @@ class ErrorReporting {
           stack: error.stack?.split('\n').slice(0, 2).join('\n'),
         }))
       this.errors = []
-      this.$api.utils.errorReport({ errors, extra: {
-
-        } })
+      this.$api.utils.errorReport({ errors, extra: {} })
     },
     3000,
     {
@@ -38,7 +36,12 @@ class ErrorReporting {
 }
 
 export default defineNuxtPlugin((nuxtApp) => {
-  if (isEeUI) return
+  if (isEeUI) {
+    nuxtApp.provide('report', function (error: Error) {
+      Sentry.captureException(error)
+    })
+    return
+  }
 
   const env = process.env.NODE_ENV === 'production' ? 'production' : 'development'
   let isSentryConfigured = false

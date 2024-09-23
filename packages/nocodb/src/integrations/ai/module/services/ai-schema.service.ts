@@ -470,7 +470,7 @@ export class AiSchemaService {
       req?: any;
     },
   ) {
-    const { baseId, history, instructions, req } = params;
+    const { baseId, tableIds, history, instructions, req } = params;
 
     const viewType =
       params.type && stringToViewTypeMap[params.type] !== undefined
@@ -496,6 +496,7 @@ export class AiSchemaService {
 
     const serializedSchema = await this.serializeSchema(context, {
       baseId: base.id,
+      tableIds,
       predictedViews: history,
       viewType,
       req,

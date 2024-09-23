@@ -160,11 +160,11 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  const createViews = async (views: SerializedAiViewType[], onViewCreate?: () => void, customBaseId?: string) => {
+  const createViews = async (views: SerializedAiViewType[], customBaseId?: string) => {
     try {
       const baseId = customBaseId || activeProjectId.value
 
-      await callAiSchemaApi(
+      const res = await callAiSchemaApi(
         'createViews',
         {
           views,
@@ -172,7 +172,7 @@ export const useNocoAi = createSharedComposable(() => {
         baseId,
       )
 
-      await onViewCreate?.()
+      return res
     } catch (e: any) {
       console.error(e)
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')

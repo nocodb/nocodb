@@ -16,13 +16,13 @@ const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
 const { loadViews, navigateToView } = viewsStore
 
-const { aiIntegrationAvailable, aiLoading, generateViews } = useNocoAi()
+const { aiIntegrationAvailable } = useNocoAi()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
 
 const isViewListLoading = ref(false)
-const toBeCreateType = ref<ViewTypes>()
+const toBeCreateType = ref<ViewTypes | 'AI'>()
 
 const isOpen = ref(false)
 
@@ -64,7 +64,7 @@ async function onOpenModal({
   coverImageColumnId,
 }: {
   title?: string
-  type: ViewTypes
+  type: ViewTypes | 'AI'
   copyViewId?: string
   groupingFieldColumnId?: string
   calendarRange?: Array<{
@@ -87,6 +87,8 @@ async function onOpenModal({
 
   const isDlgOpen = ref(true)
 
+  console.log('table id', table.value.title, table.value.id)
+
   const { close } = useDialog(resolveComponent('DlgViewCreate'), {
     'modelValue': isDlgOpen,
     title,
@@ -98,7 +100,7 @@ async function onOpenModal({
     coverImageColumnId,
     'baseId': base.value.id,
     'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view: ViewType) => {
+    'onCreated': async (view?: ViewType) => {
       closeDialog()
 
       refreshCommandPalette()
@@ -113,14 +115,16 @@ async function onOpenModal({
         hasNonDefaultViews: true,
       }
 
-      navigateToView({
-        view,
-        tableId: table.value.id!,
-        baseId: base.value.id!,
-        doNotSwitchTab: true,
-      })
+      if (view) {
+        navigateToView({
+          view,
+          tableId: table.value.id!,
+          baseId: base.value.id!,
+          doNotSwitchTab: true,
+        })
+      }
 
-      $e('a:view:create', { view: view.type })
+      $e('a:view:create', { view: view?.type || 'AI' })
     },
   })
 
@@ -205,19 +209,13 @@ const onAiViewCreate = async () => {
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <NcMenuItem
-          v-if="aiIntegrationAvailable"
-          data-testid="sidebar-view-create-ai"
-          @click="generateViews(table.id!, onAiViewCreate, base.id)"
-        >
+        <NcDivider />
+        <NcMenuItem v-if="aiIntegrationAvailable" data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
           <div class="item">
             <div class="item-inner">
-              <GeneralIcon icon="magic" class="!w-4 !h-4 text-orange-500" />
-              <div>Use AI</div>
+              <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+              <div>AI suggested</div>
             </div>
-
-            <GeneralLoader v-if="aiLoading" />
-            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
       </NcMenu>

@@ -29,7 +29,7 @@ const maxSelectionCount = 5
 
 interface Props {
   modelValue: boolean
-  type: ViewTypes
+  type: ViewTypes | 'AI'
   baseId: string
   tableId: string
   title?: string
@@ -52,7 +52,7 @@ interface Emits {
 
 interface Form {
   title: string
-  type: ViewTypes
+  type: ViewTypes | 'AI'
   description?: string
   copy_from_id: string | null
   // for kanban view only
@@ -78,6 +78,8 @@ const props = withDefaults(defineProps<Props>(), {
 const emits = defineEmits<Emits>()
 
 const { metas, getMeta } = useMetas()
+
+const workspaceStore = useWorkspace()
 
 const { viewsByTable } = storeToRefs(useViewsStore())
 
@@ -150,6 +152,7 @@ const typeAlias = computed(
       [ViewTypes.KANBAN]: 'kanban',
       [ViewTypes.MAP]: 'map',
       [ViewTypes.CALENDAR]: 'calendar',
+      AI: 'ai-view',
     }[props.type]),
 )
 
@@ -221,10 +224,23 @@ function init() {
   })
 }
 
+const isAIViewCreateMode = computed(() => props.type === 'AI')
+
 const onAiEnter = async () => {
   calledFunction.value = 'createViews'
+
   if (selectedViews.value.length) {
-    await createViews(selectedViews.value, undefined, baseId.value)
+    try {
+      const data = await createViews(selectedViews.value, baseId.value)
+
+      emits('created', data)
+    } catch (e) {
+      message.error(e)
+    } finally {
+      await refreshCommandPalette()
+    }
+
+    vModel.value = false
   }
 }
 
@@ -514,7 +530,8 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
 }
 
 const _predictViews = async (prompt?: string): Promise<SerializedAiViewType[]> => {
-  const viewType = form.type && viewTypeToStringMap[form.type] ? viewTypeToStringMap[form.type] : undefined
+  const viewType =
+    !isAIViewCreateMode.value && form.type && viewTypeToStringMap[form.type] ? viewTypeToStringMap[form.type] : undefined
   return await predictViews(tableId.value, predictHistory.value, baseId.value, prompt, viewType)
 }
 
@@ -541,6 +558,8 @@ const toggleAiMode = async () => {
 }
 
 const disableAiMode = () => {
+  if (isAIViewCreateMode.value) return
+
   aiMode.value = false
   aiModeStep.value = null
   predictedViews.value = []
@@ -713,10 +732,11 @@ const isPredictFromPromptLoading = computed(() => {
 })
 
 const handleNavigateToIntegrations = () => {
-  // dialogShow.value = false
-  // workspaceStore.navigateToIntegrations(undefined, undefined, {
-  //   categories: 'ai',
-  // })
+  vModel.value = false
+
+  workspaceStore.navigateToIntegrations(undefined, undefined, {
+    categories: 'ai',
+  })
 }
 
 const handleRefreshOnError = () => {
@@ -730,6 +750,42 @@ const handleRefreshOnError = () => {
 
     default:
       return
+  }
+}
+
+onBeforeMount(init)
+
+watch(
+  () => props.type,
+  (newType) => {
+    form.type = newType
+  },
+)
+
+function init() {
+  if (props.type === 'AI') {
+    toggleAiMode()
+  } else {
+    form.title = `${capitalize(typeAlias.value)}`
+
+    const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
+    if (repeatCount) {
+      form.title = `${form.title}-${repeatCount}`
+    }
+    if (selectedViewId.value) {
+      form.copy_from_id = selectedViewId?.value
+    }
+
+    initTitle.value = form.title
+
+    nextTick(() => {
+      const el = inputEl.value?.$el as HTMLInputElement
+
+      if (el) {
+        el.focus()
+        el.select()
+      }
+    })
   }
 }
 </script>
@@ -832,11 +888,9 @@ const handleRefreshOnError = () => {
           <a-input
             v-else
             ref="inputEl"
-            v-model:value="form.title"
             class="nc-view-input nc-input-sm nc-input-shadow !max-w-[calc(100%_-_32px)] z-11"
             hide-details
-            data-testid="create-table-title-input"
-            :placeholder="selectedViews.length ? '' : 'Enter view names or choose from suggestions'"
+            :placeholder="selectedViews.length ? '' : 'Select from suggested views...'"
           />
           <!-- overlay selected tags with close icon on input -->
           <div
@@ -869,11 +923,12 @@ const handleRefreshOnError = () => {
               type="secondary"
               class="z-10 !border-l-0 !rounded-l-none !pl-3.8"
               :class="{
-                '!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !border-purple-100 !text-nc-fill-purple-dark': !aiMode,
-                '!bg-purple-700 !border-purple-700 hover:(!bg-nc-fill-purple-medium !border-nc-fill-purple-medium) !text-white':
+                '!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark disabled:!bg-nc-bg-purple-light !border-purple-100 !text-nc-fill-purple-dark':
+                  !aiMode,
+                '!bg-purple-700 !border-purple-700 hover:(!bg-nc-fill-purple-medium disabled:!bg-purple-700 !border-nc-fill-purple-medium) !text-white':
                   aiMode,
               }"
-              :disabled="aiLoading"
+              :disabled="aiLoading || isAIViewCreateMode"
               @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
             >
               <div class="w-full flex items-center justify-end">
@@ -1163,7 +1218,7 @@ const handleRefreshOnError = () => {
           <template v-else>
             <NcButton
               size="xs"
-              class="hover:!bg-nc-bg-purple-dark disabled:hover:!bg-transparent !text-nc-content-purple-dark disabled:!text-nc-content-purple-light"
+              class="hover:(!bg-nc-bg-purple-dark disabled:!bg-transparent) !text-nc-content-purple-dark disabled:!text-nc-content-purple-light"
               :class="{
                 '!text-nc-content-purple-light': isPredictFromPromptLoading,
               }"

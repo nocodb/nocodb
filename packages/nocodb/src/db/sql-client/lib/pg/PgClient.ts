@@ -2245,8 +2245,12 @@ class PGClient extends KnexClient {
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au) {
-        const triggerFnName = `xc_au_${args.tn}_${column.cn}`;
-        const triggerName = `xc_trigger_${args.tn}_${column.cn}`;
+        const triggerFnName = args.schema
+          ? `xc_au_${args.schema}_${args.tn}_${column.cn}`
+          : `xc_au_${args.tn}_${column.cn}`;
+        const triggerName = args.schema
+          ? `xc_trigger_${args.schema}_${args.tn}_${column.cn}`
+          : `xc_trigger_${args.tn}_${column.cn}`;
 
         const triggerFnQuery = this.genQuery(
           `CREATE OR REPLACE FUNCTION ??()
@@ -2268,14 +2272,18 @@ class PGClient extends KnexClient {
             BEFORE UPDATE ON ??
             FOR EACH ROW
             EXECUTE PROCEDURE ??();`,
-            [triggerName, args.tn, triggerFnName],
+            [
+              triggerName,
+              args.schema ? `${args.schema}.${args.tn}` : args.tn,
+              triggerFnName,
+            ],
           );
 
         downQuery +=
           this.querySeparator() +
           this.genQuery(`DROP TRIGGER IF EXISTS ?? ON ??;`, [
             triggerName,
-            args.tn,
+            args.schema ? `${args.schema}.${args.tn}` : args.tn,
           ]) +
           this.querySeparator() +
           this.genQuery(`DROP FUNCTION IF EXISTS ??()`, [triggerFnName]);
@@ -2296,8 +2304,12 @@ class PGClient extends KnexClient {
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au && column.altered === 1) {
-        const triggerFnName = `xc_au_${args.tn}_${column.cn}`;
-        const triggerName = `xc_trigger_${args.tn}_${column.cn}`;
+        const triggerFnName = args.schema
+          ? `xc_au_${args.schema}_${args.tn}_${column.cn}`
+          : `xc_au_${args.tn}_${column.cn}`;
+        const triggerName = args.schema
+          ? `xc_trigger_${args.schema}_${args.tn}_${column.cn}`
+          : `xc_trigger_${args.tn}_${column.cn}`;
 
         const triggerFnQuery = this.genQuery(
           `CREATE OR REPLACE FUNCTION ??()
@@ -2319,7 +2331,11 @@ class PGClient extends KnexClient {
             BEFORE UPDATE ON ??
             FOR EACH ROW
             EXECUTE PROCEDURE ??();`,
-            [triggerName, args.tn, triggerFnName],
+            [
+              triggerName,
+              args.schema ? `${args.schema}.${args.tn}` : args.tn,
+              triggerFnName,
+            ],
           );
 
         downQuery +=
@@ -2372,7 +2388,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      args.table = args.tn;
+      args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
       const originalColumns = args.originalColumns;
       args.connectionConfig = this._connectionConfig;
       args.sqlClient = this.sqlClient;
@@ -2493,7 +2509,9 @@ class PGClient extends KnexClient {
       /** ************** create up & down statements *************** */
       const upStatement =
         this.querySeparator() +
-        this.sqlClient.schema.dropTable(args.tn).toString();
+        this.sqlClient.schema
+          .dropTable(args.schema ? `${args.schema}.${args.tn}` : args.tn)
+          .toString();
       let downQuery = this.createTable(args.tn, args);
 
       /**
@@ -2579,7 +2597,9 @@ class PGClient extends KnexClient {
 
       /** ************** drop tn *************** */
       await this.sqlClient.raw(
-        this.sqlClient.schema.dropTable(args.tn).toQuery(),
+        this.sqlClient.schema
+          .dropTable(args.schema ? `${args.schema}.${args.tn}` : args.tn)
+          .toQuery(),
       );
 
       /** ************** return files *************** */

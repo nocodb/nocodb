@@ -24,7 +24,7 @@ export default defineNuxtPlugin(function (nuxtApp) {
 
   // put inside app:created hook to ensure global state is available
   nuxtApp.hooks.hook('app:created', () => {
-    const {token} = useGlobal()
+    const { token } = useGlobal()
     watch(
       () => token.value ?? (nuxtApp.$state as ReturnType<typeof useGlobal>)?.token?.value,
       async (newToken, oldToken) => {
@@ -55,7 +55,7 @@ export default defineNuxtPlugin(function (nuxtApp) {
           console.error(e)
         }
       },
-      {immediate: true},
+      { immediate: true },
     )
   })
 })

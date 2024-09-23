@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { Knex } from 'knex';
+import PgConnectionConfig = Knex.PgConnectionConfig;
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import CustomKnex from '~/db/CustomKnex';
-import PgConnectionConfig = Knex.PgConnectionConfig;
 const logger = new Logger('initBaseBehavior');
 
 export async function initBaseBehavior() {
@@ -14,7 +14,7 @@ export async function initBaseBehavior() {
   }
 
   // if NC_MINIMAL_DBS already exists, return
-  if (process.env.NC_MINIMAL_DBS) {
+  if (process.env.NC_MINIMAL_DBS === 'false') {
     return;
   }
 
@@ -34,6 +34,13 @@ export async function initBaseBehavior() {
 
     // if schema creation is not allowed, return
     if (!schemaCreateAllowed.rows[0]?.has_database_privilege) {
+      // set NC_MINIMAL_DBS to false if it's set to true and log warning
+      if (process.env.NC_MINIMAL_DBS === 'true') {
+        process.env.NC_MINIMAL_DBS = 'false';
+      }
+      logger.warn(
+        `User ${dataConfig.connection?.user} does not have permission to create schema, minimal databases feature will be disabled`,
+      );
       return;
     }
 

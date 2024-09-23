@@ -150,7 +150,7 @@ async function onOpenModal({
         })
       }
 
-      $e('a:view:create', { view: view?.type || 'AI' })
+      $e('a:view:create', { view: view?.type || type })
     },
   })
 

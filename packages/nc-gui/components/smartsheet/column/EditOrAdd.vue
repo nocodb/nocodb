@@ -65,7 +65,6 @@ const { appInfo } = useGlobal()
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const workspaceStore = useWorkspace()
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 

@@ -61,7 +61,8 @@ const pk = computed(() => {
 })
 
 const isGenerating = computed(
-  () => pk.value && column.value.id && generatingRows.value.includes(pk.value) && generatingColumns.value.includes(column.value.id),
+  () =>
+    pk.value && column.value.id && generatingRows.value.includes(pk.value) && generatingColumns.value.includes(column.value.id),
 )
 
 const sourceId = meta.value?.source_id || column.value?.source_id

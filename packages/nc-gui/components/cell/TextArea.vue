@@ -197,7 +197,7 @@ const generate = () => {
 }
 
 if (props.isAi) {
-  watch(vModel, (o, n) => {
+  watch(vModel, (_o, _n) => {
     isAiEdited.value = true
   })
 }

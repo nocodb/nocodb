@@ -13,12 +13,22 @@ import {
   type LookupType,
   type MapType,
   type SerializedAiViewType,
-  stringToViewTypeMap,
   type TableType,
   type ViewType,
+  stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
+
+const props = withDefaults(defineProps<Props>(), {
+  selectedViewId: undefined,
+  groupingFieldColumnId: undefined,
+  geoDataFieldColumnId: undefined,
+  calendarRange: undefined,
+  coverImageColumnId: undefined,
+})
+
+const emits = defineEmits<Emits>()
 
 enum TableWizardTabs {
   AUTO_SUGGESTIONS = 'AUTO_SUGGESTIONS',
@@ -66,16 +76,6 @@ interface Form {
   }>
   fk_cover_image_col_id: string | null
 }
-
-const props = withDefaults(defineProps<Props>(), {
-  selectedViewId: undefined,
-  groupingFieldColumnId: undefined,
-  geoDataFieldColumnId: undefined,
-  calendarRange: undefined,
-  coverImageColumnId: undefined,
-})
-
-const emits = defineEmits<Emits>()
 
 const { metas, getMeta } = useMetas()
 
@@ -159,10 +159,6 @@ const typeAlias = computed(
 
 const initTitle = ref<string>()
 
-const onAiViewCreate = async (view: ViewType) => {
-  // Todo: Navigate to new view
-}
-
 const { aiIntegrationAvailable, aiLoading, aiError, predictViews, createViews } = useNocoAi()
 
 const aiMode = ref(false)
@@ -226,6 +222,25 @@ function init() {
 }
 
 const isAIViewCreateMode = computed(() => props.type === 'AI')
+
+const activeAiTabLocal = ref<keyof typeof TableWizardTabs>(TableWizardTabs.AUTO_SUGGESTIONS)
+
+const activeAiTab = computed({
+  get: () => {
+    return activeAiTabLocal.value
+  },
+  set: (value: keyof typeof TableWizardTabs) => {
+    activeAiTabLocal.value = value
+
+    predictedViews.value = []
+    predictHistory.value = [...selectedViews.value]
+
+    prompt.value = ''
+    isPromtAlreadyGenerated.value = false
+
+    aiError.value = ''
+  },
+})
 
 const onAiEnter = async () => {
   calledFunction.value = 'createViews'
@@ -701,25 +716,6 @@ const fullAuto = async (e) => {
   }
 }
 
-const activeAiTabLocal = ref<keyof typeof TableWizardTabs>(TableWizardTabs.AUTO_SUGGESTIONS)
-
-const activeAiTab = computed({
-  get: () => {
-    return activeAiTabLocal.value
-  },
-  set: (value: keyof typeof TableWizardTabs) => {
-    activeAiTabLocal.value = value
-
-    predictedViews.value = []
-    predictHistory.value = [...selectedViews.value]
-
-    prompt.value = ''
-    isPromtAlreadyGenerated.value = false
-
-    aiError.value = ''
-  },
-})
-
 const aiTabs = [
   {
     title: 'Auto Suggestions',
@@ -753,7 +749,6 @@ const handleRefreshOnError = () => {
       return predictFromPrompt()
 
     default:
-      return
   }
 }
 
@@ -1175,7 +1170,7 @@ function init() {
         class="mt-4"
         @navigate-to-integrations="handleNavigateToIntegrations"
       >
-        <template #tabExtraRight v-if="aiIntegrationAvailable">
+        <template v-if="aiIntegrationAvailable" #tabExtraRight>
           <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
             <template v-if="aiModeStep === AiStep.pick">
               <NcTooltip title="Re-suggest" placement="top">

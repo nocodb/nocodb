@@ -1,20 +1,20 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 
-enum TableWizardTabs {
-  AUTO_SUGGESTIONS = 'AUTO_SUGGESTIONS',
-  PROMPT = 'PROMPT',
-}
-
 const props = defineProps<{
   modelValue: boolean
   sourceId: string
   baseId: string
 }>()
 
-const maxSelectionCount = 5
-
 const emit = defineEmits(['update:modelValue', 'create'])
+
+enum TableWizardTabs {
+  AUTO_SUGGESTIONS = 'AUTO_SUGGESTIONS',
+  PROMPT = 'PROMPT',
+}
+
+const maxSelectionCount = 5
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -95,6 +95,25 @@ const availableIntegration = ref<{
   model?: string
   randomness?: string
 }>({})
+
+const activeAiTabLocal = ref<keyof typeof TableWizardTabs>(TableWizardTabs.AUTO_SUGGESTIONS)
+
+const activeAiTab = computed({
+  get: () => {
+    return activeAiTabLocal.value
+  },
+  set: (value: keyof typeof TableWizardTabs) => {
+    activeAiTabLocal.value = value
+
+    predictedTables.value = []
+    predictHistory.value = [...selectedTables.value]
+
+    prompt.value = ''
+    isPromtAlreadyGenerated.value = false
+
+    aiError.value = ''
+  },
+})
 
 const toggleAiMode = async () => {
   if (aiMode.value) return
@@ -360,25 +379,6 @@ const fullAuto = async (e) => {
   }
 }
 
-const activeAiTabLocal = ref<keyof typeof TableWizardTabs>(TableWizardTabs.AUTO_SUGGESTIONS)
-
-const activeAiTab = computed({
-  get: () => {
-    return activeAiTabLocal.value
-  },
-  set: (value: keyof typeof TableWizardTabs) => {
-    activeAiTabLocal.value = value
-
-    predictedTables.value = []
-    predictHistory.value = [...selectedTables.value]
-
-    prompt.value = ''
-    isPromtAlreadyGenerated.value = false
-
-    aiError.value = ''
-  },
-})
-
 const aiTabs = [
   {
     title: 'Auto Suggestions',
@@ -412,7 +412,6 @@ const handleRefreshOnError = () => {
       return predictFromPrompt()
 
     default:
-      return
   }
 }
 
@@ -531,7 +530,7 @@ watch(
             :tabs="aiTabs"
             @navigate-to-integrations="handleNavigateToIntegrations"
           >
-            <template #tabExtraRight v-if="aiIntegrationAvailable">
+            <template v-if="aiIntegrationAvailable" #tabExtraRight>
               <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
                 <template v-if="aiModeStep === AiStep.pick">
                   <NcTooltip title="Re-suggest" placement="top">

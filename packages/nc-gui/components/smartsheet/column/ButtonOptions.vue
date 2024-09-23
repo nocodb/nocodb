@@ -515,7 +515,7 @@ onMounted(() => {
         </a-form-item>
       </a-col>
     </a-row>
-    <div v-if="vModel?.type === buttonActionsType.Url" >
+    <div v-if="vModel?.type === buttonActionsType.Url">
       <SmartsheetColumnFormulaInputHelper
         v-model:value="vModel.formula_raw"
         suggestion-height="medium"
@@ -526,7 +526,7 @@ onMounted(() => {
       />
     </div>
 
-    <a-form-item v-if="vModel?.type === buttonActionsType.Webhook" >
+    <a-form-item v-if="vModel?.type === buttonActionsType.Webhook">
       <div class="mb-2 text-gray-800 text-[13px] flex justify-between">
         {{ $t('labels.webhook') }}
         <a
@@ -630,7 +630,7 @@ onMounted(() => {
           </div>
         </div>
       </a-form-item>
-      <a-form-item label="Output Fields"  v-bind="validateInfos.output_column_ids">
+      <a-form-item label="Output Fields" v-bind="validateInfos.output_column_ids">
         <NcSelect
           v-model:value="outputColumnIds"
           :options="outputFieldOptions"

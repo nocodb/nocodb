@@ -87,8 +87,6 @@ async function onOpenModal({
 
   const isDlgOpen = ref(true)
 
-  console.log('table id', table.value.title, table.value.id)
-
   const { close } = useDialog(resolveComponent('DlgViewCreate'), {
     'modelValue': isDlgOpen,
     title,
@@ -124,7 +122,7 @@ async function onOpenModal({
         })
       }
 
-      $e('a:view:create', { view: view?.type || 'AI' })
+      $e('a:view:create', { view: view?.type || type })
     },
   })
 
@@ -134,17 +132,6 @@ async function onOpenModal({
 
     close(1000)
   }
-}
-
-const onAiViewCreate = async () => {
-  refreshCommandPalette()
-
-  await loadViews({
-    tableId: table.value.id!,
-    force: true,
-  })
-
-  isOpen.value = false
 }
 </script>
 

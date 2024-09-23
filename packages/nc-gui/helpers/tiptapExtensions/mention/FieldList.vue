@@ -100,7 +100,7 @@ export default {
         class="py-2 flex hover:bg-gray-100 transition-all cursor-pointer items-center gap-2 text-gray-800 pl-4"
         @click="selectItem(index, $event)"
       >
-        <component v-if="item?.uidt" :is="getUIDTIcon(item.uidt)" class="flex-none w-3.5 h-3.5" />
+        <component :is="getUIDTIcon(item.uidt)" v-if="item?.uidt" class="flex-none w-3.5 h-3.5" />
         {{ item?.title || '' }}
       </div>
     </template>

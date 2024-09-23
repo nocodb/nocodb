@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, type AIRecordType } from 'nocodb-sdk'
+import { type AIRecordType, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -112,7 +112,7 @@ setAdditionalValidations({
             return value?.includes(`{${f.title}}`)
           })
           if (!isFieldAddedInPromt) {
-            return reject('Include at least 1 field in prompt to generate')
+            return reject(new Error('Include at least 1 field in prompt to generate'))
           }
           resolve()
         })

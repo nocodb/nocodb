@@ -134,7 +134,7 @@ const {
  * Compares the given value with the current vModel value.
  * If the component is in multi-select mode, it checks if the value is included in the vModel array.
  * Otherwise, it performs a direct equality check.
- * 
+ *
  * @param value - The value to compare with the vModel value.
  * @returns {boolean} - True if the value matches the vModel value, false otherwise.
  */

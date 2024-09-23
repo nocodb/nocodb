@@ -5,12 +5,9 @@ interface Props {
     title: string
     key: string
   }[]
-  aiLoading?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  aiLoading: false,
-})
+const props = withDefaults(defineProps<Props>(), {})
 
 const emits = defineEmits(['update:activeTab', 'navigateToIntegrations'])
 

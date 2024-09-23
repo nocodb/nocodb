@@ -28,6 +28,7 @@ interface TableExplorerColumn extends ColumnType {
 interface op {
   op: 'add' | 'update' | 'delete'
   column: TableExplorerColumn
+  error?: string
 }
 
 interface fieldsVisibilityOps {
@@ -647,6 +648,23 @@ const fieldStatus = (field?: TableExplorerColumn) => {
   return id ? fieldStatuses.value[id] : ''
 }
 
+const fieldErrors = computed<Record<string, string>>(() => {
+  const errors: Record<string, string> = {}
+  for (const op of ops.value) {
+    if (op?.error) {
+      const id = op.column.id || op.column.temp_id
+
+      if (id) errors[id] = op.error
+    }
+  }
+  return errors
+})
+
+const fieldError = (field?: TableExplorerColumn) => {
+  const id = field?.id || field?.temp_id
+  return id ? fieldErrors.value[id] : ''
+}
+
 const clearChanges = () => {
   ops.value = []
   moveOps.value = []
@@ -743,6 +761,10 @@ const saveChanges = async () => {
       })
     }
 
+    ops.value = ops.value.map(({ error: _err, ...rest }) => {
+      return rest
+    })
+
     const res = await $api.dbTableColumn.bulk(meta.value?.id, {
       hash: columnsHash.value,
       ops: ops.value,
@@ -751,10 +773,7 @@ const saveChanges = async () => {
     await loadViewColumns()
 
     if (res) {
-      ops.value =
-        res.failedOps && res.failedOps?.length
-          ? (res.failedOps as (op & { error: unknown })[]).map(({ error: _, ...rest }) => rest)
-          : []
+      ops.value = res.failedOps && res.failedOps?.length ? res.failedOps : []
       newFields.value = newFields.value.filter((col) => {
         if (res.failedOps) {
           const op = res.failedOps.find((fop) => {
@@ -1161,6 +1180,20 @@ watch(
                       >
                         {{ $t('labels.multiField.incompleteConfiguration') }}
                       </NcBadge>
+                      <NcTooltip v-if="!!fieldError(field)" class="cursor-pointer">
+                        <template #title>
+                          {{ fieldError(field) }}
+                        </template>
+
+                        <NcBadge
+                          color="red"
+                          :border="false"
+                          class="ml-1 bg-red-50 text-red-700"
+                          data-testid="nc-field-status-error-configuration"
+                        >
+                          <GeneralIcon icon="info" class="!text-current" />
+                        </NcBadge>
+                      </NcTooltip>
                     </div>
                     <NcButton
                       v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'"

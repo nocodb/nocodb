@@ -39,7 +39,7 @@ export async function initBaseBehavior() {
         process.env.NC_MINIMAL_DBS = 'false';
       }
       logger.warn(
-        `User ${dataConfig.connection?.user} does not have permission to create schema, minimal databases feature will be disabled`,
+        `User ${(dataConfig.connection as PgConnectionConfig)?.user} does not have permission to create schema, minimal databases feature will be disabled`,
       );
       return;
     }

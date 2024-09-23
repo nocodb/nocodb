@@ -79,7 +79,7 @@ tolerations: []
 affinity: {}
 
 extraEnvs:
-  NC_PUBLIC_URL: https:/nocodb.local.org
+  NC_PUBLIC_URL: https://nocodb.local.org
 
 extraSecretEnvs:
   NC_AUTH_JWT_SECRET: secretString

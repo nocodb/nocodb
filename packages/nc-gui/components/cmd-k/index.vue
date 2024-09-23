@@ -40,6 +40,8 @@ const cmdInputEl = ref<HTMLInputElement>()
 
 const cmdInput = ref('')
 
+const debouncedCmdInput = ref('')
+
 const { user } = useGlobal()
 
 const selected = ref<string>()
@@ -56,7 +58,7 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
       parent: el.parent || 'root',
       weight: commandScore(
         `${el.section}${el?.section === 'Views' && el?.is_default ? t('title.defaultView') : el.title}${el.keywords?.join()}`,
-        cmdInput.value,
+        debouncedCmdInput.value,
       ),
     })
   }
@@ -117,7 +119,7 @@ const actionList = computed(() => {
     return 0
   })
   return formattedData.value.filter((el) => {
-    if (cmdInput.value === '') {
+    if (debouncedCmdInput.value === '') {
       if (el.parent === activeScope.value) {
         if (!el.handler) {
           return isThereAnyActionInScope(el.id)
@@ -137,8 +139,20 @@ const actionList = computed(() => {
   })
 })
 
+const updateDebouncedInput = useDebounceFn(() => {
+  debouncedCmdInput.value = cmdInput.value
+}, 300)
+
+watch(cmdInput, () => {
+  if (cmdInput.value === '') {
+    debouncedCmdInput.value = ''
+  } else {
+    updateDebouncedInput()
+  }
+})
+
 const searchedActionList = computed(() => {
-  if (cmdInput.value === '') return actionList.value
+  if (debouncedCmdInput.value === '') return actionList.value
   actionList.value.sort((a, b) => {
     if (a.weight > b.weight) return -1
     if (a.weight < b.weight) return 1

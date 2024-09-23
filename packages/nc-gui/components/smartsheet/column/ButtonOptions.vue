@@ -620,40 +620,7 @@ onMounted(() => {
     </a-form-item>
 
     <template v-if="vModel?.type === buttonActionsType.Ai">
-      <a-form-item class="flex" v-bind="validateInfos.formula_raw">
-        <div class="nc-prompt-input-wrapper bg-nc-bg-gray-light rounded-lg w-full">
-          <AiPromptWithFields v-model="vModel.formula_raw" :options="availableFields" />
-          <div class="rounded-b-lg flex items-center gap-2 p-1">
-            <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />
-            <span class="text-xs text-nc-content-gray-subtle2"
-              >Mention fields using curly braces, e.g. <span class="text-nc-content-purple-dark">{Field name}</span>.</span
-            >
-          </div>
-        </div>
-      </a-form-item>
-      <a-form-item label="Output Fields" v-bind="validateInfos.output_column_ids">
-        <NcSelect
-          v-model:value="outputColumnIds"
-          :options="outputFieldOptions"
-          mode="multiple"
-          placeholder="Select"
-          class="nc-select-shadow nc-ai-input"
-        />
-      </a-form-item>
-      <div class="nc-ai-button-options-preview">
-        <div v-if="preview" class="">
-          <!-- Todo: add input box  -->
-        </div>
-        <div v-else class="pl-3 py-2 pr-2 flex items-center">
-          <div class="flex flex-col flex-1 gap-1">
-            <span class="text-small font-medium text-nc-content-gray">Preview</span>
-            <span class="text-[11px] leading-[18px] text-nc-content-gray-muted"
-              >Include at least 1 field in prompt to generate</span
-            >
-          </div>
-          <NcButton class="!bg-purple-50" size="xs"> <div class="text-purple-600">Generate</div></NcButton>
-        </div>
-      </div>
+      <SmartsheetColumnAiButtonOptions v-model:value="vModel" />
     </template>
 
     <Webhook
@@ -830,15 +797,5 @@ onMounted(() => {
       @apply text-gray-600;
     }
   }
-}
-
-.nc-prompt-input-wrapper {
-  @apply border-1 border-nc-border-gray-medium;
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
-}
-
-.nc-ai-button-options-preview {
-  @apply rounded-lg border-1 border-nc-border-gray-medium;
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
 }
 </style>

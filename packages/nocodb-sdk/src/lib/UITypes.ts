@@ -94,7 +94,7 @@ export const UITypesName = {
   AIButton: 'AI Button',
 };
 
-export const FieldNameFromUITypes = {
+export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.ID]: 'ID',
   [UITypes.LinkToAnotherRecord]: '{TableName}',
   [UITypes.ForeignKey]: 'Foreign key',
@@ -136,6 +136,7 @@ export const FieldNameFromUITypes = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.AI]: 'AI Prompt',
 };
 
 export const numericUITypes = [

@@ -472,35 +472,25 @@ export default class Model implements TableType {
       dbDriver: XKnex;
       model?: Model;
       extractDefaultView?: boolean;
+      source?: Source;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(context, args.id, ncMeta));
-    const source = await Source.get(context, model.source_id, false, ncMeta);
+    const source =
+      args.source ||
+      (await Source.get(context, model.source_id, false, ncMeta));
 
     if (!args?.viewId && args.extractDefaultView) {
       const view = await View.getDefaultView(context, model.id, ncMeta);
       args.viewId = view.id;
     }
+    let schema: string;
 
-    if (source && source.isMeta(true, 1)) {
-      return new BaseModelSqlv2({
-        context,
-        dbDriver: args.dbDriver,
-        viewId: args.viewId,
-        model,
-        schema: source.getConfig()?.schema,
-      });
-    }
-
-    if (source && source.type === 'pg') {
-      return new BaseModelSqlv2({
-        context,
-        dbDriver: args.dbDriver,
-        viewId: args.viewId,
-        model,
-        schema: source.getConfig()?.searchPath?.[0],
-      });
+    if (source?.isMeta(true, 1)) {
+      schema = source.getConfig()?.schema;
+    } else if (source?.type === 'pg') {
+      schema = source.getConfig()?.searchPath?.[0];
     }
 
     return new BaseModelSqlv2({
@@ -508,6 +498,7 @@ export default class Model implements TableType {
       dbDriver: args.dbDriver,
       viewId: args.viewId,
       model,
+      schema,
     });
   }
 

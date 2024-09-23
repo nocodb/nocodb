@@ -250,7 +250,7 @@ class PGClient extends PGClientCE {
               where c.table_catalog=:database and c.table_schema=:schema and c.table_name=:table
               order by c.table_name, c.ordinal_position`,
         {
-          schema: args.schema || this.schema,
+          schema: this.getEffectiveSchema(args),
           table: args.tn,
           database: args.databaseName,
         },
@@ -392,7 +392,7 @@ class PGClient extends PGClientCE {
       and i.oid<>0
       AND f.attnum > 0
       ORDER BY i.relname, f.attnum;`,
-        [args.schema || this.schema, args.tn],
+        [this.getEffectiveSchema(args), args.tn],
       );
       result.data.list = rows;
     } catch (e) {
@@ -665,7 +665,7 @@ class PGClient extends PGClientCE {
           LEFT JOIN pg_namespace f_sch ON f_sch.oid = f_tbl.relnamespace
           LEFT JOIN pg_attribute f_col ON (f_col.attrelid = f_tbl.oid AND f_col.attnum = f_u.attnum)
         WHERE pc.contype = 'f' AND sch.nspname = ? AND f_sch.nspname = sch.nspname AND tbl.relname=?;`,
-        [args.schema || this.schema, args.tn],
+        [this.getEffectiveSchema(args), args.tn],
       );
 
       const ruleMapping = {
@@ -718,7 +718,7 @@ class PGClient extends PGClientCE {
 
       const { rows } = await this.sqlClient.raw(
         `select * from information_schema.triggers where trigger_schema=? and event_object_table=?`,
-        [args.schema || this.schema, args.tn],
+        [this.getEffectiveSchema(args), args.tn],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -768,7 +768,7 @@ class PGClient extends PGClientCE {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [args.schema || this.schema],
+        [this.getEffectiveSchema(args)],
       );
       const functionRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -823,7 +823,7 @@ class PGClient extends PGClientCE {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [args.schema || this.schema],
+        [this.getEffectiveSchema(args)],
       );
       const procedureRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -865,7 +865,7 @@ class PGClient extends PGClientCE {
         `select *
            from INFORMATION_SCHEMA.views
            WHERE table_schema = ?;`,
-        [args.schema || this.schema],
+        [this.getEffectiveSchema(args)],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -903,7 +903,7 @@ class PGClient extends PGClientCE {
         `SELECT format('%I.%I(%s)', ns.nspname, p.proname, oidvectortypes(p.proargtypes)) as function_declaration, pg_get_functiondef(p.oid) as create_function
                 FROM pg_proc p INNER JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
             WHERE ns.nspname = ? and p.proname = ?;`,
-        [args.schema || this.schema, args.function_name],
+        [this.getEffectiveSchema(args), args.function_name],
       );
 
       // log.debug(response);

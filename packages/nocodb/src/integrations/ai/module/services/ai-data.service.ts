@@ -53,6 +53,45 @@ const INLINE_SUPPORTED_MIMETYPES = [
   'application/xml',
 ];
 
+const uidtHelper = (cols: Column[]) => {
+  let userMessageAddition = '';
+  const schema = cols.map((col) => {
+    if (col.uidt === UITypes.SingleSelect) {
+      userMessageAddition += `\n\n${
+        col.title
+      } can be one of following ${col.colOptions.options
+        .map((o) => `"${o.title}"`)
+        .join(', ')}`;
+
+      return [
+        col.title,
+        z
+          .enum(col.colOptions.options.map((o) => o.title))
+          .nullable()
+          .optional(),
+      ];
+    } else if (col.uidt === UITypes.MultiSelect) {
+      userMessageAddition += `\n\n${
+        col.title
+      } must be an comma separated string with one or more of following ${col.colOptions.options
+        .map((o) => `"${o.title}"`)
+        .join(', ')}`;
+
+      return [col.title, z.string().nullable().optional()];
+    } else if (col.uidt === UITypes.Checkbox) {
+      return [col.title, z.boolean().nullable().optional()];
+    } else if (col.uidt === UITypes.Number) {
+      return [col.title, z.number().nullable().optional()];
+    } else if (col.uidt === UITypes.URL) {
+      userMessageAddition += `\n\n${col.title} must be a valid URL`;
+      return [col.title, z.string().url().nullable().optional()];
+    }
+    return [col.title, z.any().optional()];
+  });
+
+  return { schema, userMessageAddition };
+};
+
 @Injectable()
 export class AiDataService {
   constructor(protected readonly tablesService: TablesService) {}
@@ -494,42 +533,17 @@ export class AiDataService {
       }),
     );
 
+    const uidtHelp = uidtHelper(outputColumns);
+
+    userMessage += uidtHelp.userMessageAddition;
+
     const res = await wrapper.generateObject<{
       rows: { [key: string]: string }[];
     }>({
       schema: z.object({
         rows: z.array(
           z.object({
-            ...Object.fromEntries(
-              outputColumns.map((col) => {
-                if (
-                  col.uidt === UITypes.SingleSelect ||
-                  col.uidt === UITypes.MultiSelect
-                ) {
-                  userMessage += `\n\n${
-                    col.title
-                  } can be one of following ${col.colOptions.options
-                    .map((o) => `"${o.title}"`)
-                    .join(', ')}`;
-
-                  return [
-                    col.title,
-                    z
-                      .enum(col.colOptions.options.map((o) => o.title))
-                      .nullable()
-                      .optional(),
-                  ];
-                } else if (col.uidt === UITypes.Checkbox) {
-                  return [col.title, z.boolean().nullable().optional()];
-                } else if (col.uidt === UITypes.Number) {
-                  return [col.title, z.number().nullable().optional()];
-                } else if (col.uidt === UITypes.URL) {
-                  userMessage += `\n\n${col.title} must be a valid URL`;
-                  return [col.title, z.string().url().nullable().optional()];
-                }
-                return [col.title, z.any().optional()];
-              }),
-            ),
+            ...Object.fromEntries(uidtHelp.schema),
             ...Object.fromEntries(
               baseModel.model.primaryKeys.map((pk) => [
                 pk.title,
@@ -665,7 +679,7 @@ export class AiDataService {
       },
     );
 
-    const userMessage = JSON.stringify(
+    let userMessage = JSON.stringify(
       records.map((row) => {
         const pkObj = baseModel.model.primaryKeys.reduce((acc, pk) => {
           acc[pk.title] = row[pk.title];
@@ -721,26 +735,13 @@ export class AiDataService {
       }
     }
 
+    const uidtHelp = uidtHelper(outputColumns);
+
+    userMessage += uidtHelp.userMessageAddition;
+
     const res = await (wrapper as any).fileSearch({
       schema: z.object({
-        ...Object.fromEntries(
-          outputColumns.map((col) => {
-            if (
-              col.uidt === UITypes.SingleSelect ||
-              col.uidt === UITypes.MultiSelect
-            ) {
-              return [
-                col.title,
-                z.enum(col.colOptions.options.map((o) => o.title)).nullable(),
-              ];
-            } else if (col.uidt === UITypes.Checkbox) {
-              return [col.title, z.boolean().nullable()];
-            } else if (col.uidt === UITypes.Number) {
-              return [col.title, z.number().nullable()];
-            }
-            return [col.title, z.any()];
-          }),
-        ),
+        ...Object.fromEntries(uidtHelp.schema),
       }),
       messages: [
         {

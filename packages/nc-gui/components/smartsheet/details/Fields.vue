@@ -760,7 +760,7 @@ const saveChanges = async () => {
       })
     }
 
-    ops.value = ops.value.map(({ error, ...rest }) => {
+    ops.value = ops.value.map(({ error: _err, ...rest }) => {
       return rest
     })
 
@@ -772,8 +772,7 @@ const saveChanges = async () => {
     await loadViewColumns()
 
     if (res) {
-      ops.value =
-        res.failedOps && res.failedOps?.length ? (res.failedOps as (op & { error: unknown })[]).map(({ ...rest }) => rest) : []
+      ops.value = res.failedOps && res.failedOps?.length ? res.failedOps : []
       newFields.value = newFields.value.filter((col) => {
         if (res.failedOps) {
           const op = res.failedOps.find((fop) => {

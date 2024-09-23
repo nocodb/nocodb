@@ -652,7 +652,8 @@ const fieldErrors = computed<Record<string, string>>(() => {
   const errors: Record<string, string> = {}
   for (const op of ops.value) {
     if (op?.error) {
-      if (op.column.temp_id) errors[op.column.temp_id] = op.error
+      if (op.column.id) errors[op.column.id] = op.error
+      else if (op.column.temp_id) errors[op.column.temp_id] = op.error
     }
   }
   return errors

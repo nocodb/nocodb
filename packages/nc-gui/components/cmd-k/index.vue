@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { UseVirtualList } from '@vueuse/components'
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
 import type { CommandPaletteType } from '~/lib/types'
@@ -47,9 +46,15 @@ const { user } = useGlobal()
 
 const selected = ref<string>()
 
-const virtualList = ref()
+const cmdkActionsRef = ref<HTMLElement>()
+
+const cmdkActionSelectedRef = ref<HTMLElement>()
 
 const ACTION_HEIGHT = 48
+
+const WRAPPER_HEIGHT = 300
+
+const SCROLL_MARGIN = ACTION_HEIGHT / 2
 
 const { cmdPlaceholder, loadScope, cmdLoading } = useCommandPalette()
 
@@ -156,14 +161,27 @@ const searchedActionList = computed(() => {
     .sort((a, b) => b.section?.toLowerCase().localeCompare(a.section?.toLowerCase() as string) || 0)
 })
 
+const visibleSections = computed(() => {
+  const sections: string[] = []
+  searchedActionList.value.forEach((el) => {
+    if (el.section && !sections.includes(el.section)) {
+      sections.push(el.section)
+    }
+  })
+  return sections
+})
+
 const actionListNormalized = computed(() => {
   const rt: (CmdAction | { sectionTitle: string })[] = []
-  const sections = new Set(searchedActionList.value.filter((el) => el.section).map((el) => el.section))
-  sections.forEach((el) => {
+  visibleSections.value.forEach((el) => {
     rt.push({ sectionTitle: el || 'default' })
     rt.push(...searchedActionList.value.filter((el2) => el2.section === el))
   })
   return rt
+})
+
+const { list, containerProps, wrapperProps } = useVirtualList(actionListNormalized, {
+  itemHeight: ACTION_HEIGHT,
 })
 
 const keys = useMagicKeys()
@@ -171,36 +189,62 @@ const keys = useMagicKeys()
 const shiftModifier = keys.shift
 
 const setAction = (action: string) => {
+  const oldActionIndex = searchedActionList.value.findIndex((el) => el.id === selected.value)
   selected.value = action
   nextTick(() => {
     const actionIndex = searchedActionList.value.findIndex((el) => el.id === action)
     if (actionIndex === -1) return
-    // check if selected action rendered
-    const actionEl = document.querySelector('.cmdk-action.selected')
-    if (!actionEl) {
-      virtualList.value?.scrollTo(actionIndex)
+
+    if (actionIndex === 0) {
+      containerProps.ref.value?.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    } else if (actionIndex === searchedActionList.value.length - 1) {
+      containerProps.ref.value?.scrollTo({
+        top: actionIndex * ACTION_HEIGHT,
+        behavior: 'smooth',
+      })
+      return
     }
+
+    // check if selected action rendered
+    const actionEl = Array.isArray(cmdkActionSelectedRef.value) ? cmdkActionSelectedRef.value[0] : cmdkActionSelectedRef.value
+
+    if (!actionEl || !actionEl.classList?.contains('selected')) {
+      // if above the old selected action
+      if (actionIndex < oldActionIndex) {
+        containerProps.ref.value?.scrollTo({ top: (actionIndex + 1) * ACTION_HEIGHT - SCROLL_MARGIN, behavior: 'smooth' })
+      } else {
+        containerProps.ref.value?.scrollTo({
+          top: (actionIndex + 2) * ACTION_HEIGHT - WRAPPER_HEIGHT + SCROLL_MARGIN,
+          behavior: 'smooth',
+        })
+      }
+      return
+    }
+
+    // count sections before the selected action
+    const sectionBefore = visibleSections.value.findIndex((el) => el === searchedActionList.value[actionIndex].section) + 1
+
     // check if selected action is visible in the list
     const actionRect = actionEl?.getBoundingClientRect()
-    if (actionRect) {
-      const listRect = document.querySelector('.cmdk-actions')?.getBoundingClientRect()
-      if (listRect) {
-        if (actionRect.top < listRect.top) {
-          virtualList.value?.scrollTo(actionIndex)
-        } else if (actionRect.bottom > listRect.bottom) {
-          virtualList.value?.scrollTo(actionIndex)
+    const listRect = cmdkActionsRef.value?.getBoundingClientRect()
+    if (actionRect && listRect) {
+      if (actionRect.top < listRect.top || actionRect.bottom > listRect.bottom) {
+        // if above the old selected action
+        if (actionIndex < oldActionIndex) {
+          containerProps.ref.value?.scrollTo({
+            top: (actionIndex + sectionBefore) * ACTION_HEIGHT - SCROLL_MARGIN,
+            behavior: 'smooth',
+          })
+        } else {
+          containerProps.ref.value?.scrollTo({
+            top: (actionIndex + 1 + sectionBefore) * ACTION_HEIGHT - WRAPPER_HEIGHT + SCROLL_MARGIN,
+            behavior: 'smooth',
+          })
         }
       }
     }
   })
-}
-
-const selectFirstAction = () => {
-  if (searchedActionList.value.length > 0) {
-    setAction(searchedActionList.value[0].id)
-  } else {
-    selected.value = undefined
-  }
 }
 
 const setScope = (scope: string) => {
@@ -210,7 +254,6 @@ const setScope = (scope: string) => {
 
   nextTick(() => {
     cmdInputEl.value?.focus()
-    selectFirstAction()
   })
 }
 
@@ -255,7 +298,6 @@ const updateDebouncedInput = useDebounceFn(() => {
 
   nextTick(() => {
     cmdInputEl.value?.focus()
-    selectFirstAction()
   })
 }, 100)
 
@@ -338,6 +380,12 @@ onClickOutside(modalEl, () => {
   if (vOpen.value) hide()
 })
 
+watch(searchedActionList, () => {
+  if (searchedActionList.value.length > 0) {
+    setAction(searchedActionList.value[0].id)
+  }
+})
+
 defineExpose({
   open: show,
   close: hide,
@@ -408,18 +456,11 @@ defineExpose({
 
             <span class="text-gray-700 text-sm pl-1 font-medium">/</span>
           </div>
-          <input
-            ref="cmdInputEl"
-            v-model="cmdInput"
-            class="cmdk-input"
-            type="text"
-            :placeholder="cmdPlaceholder"
-            @input="selectFirstAction"
-          />
+          <input ref="cmdInputEl" v-model="cmdInput" class="cmdk-input" type="text" :placeholder="cmdPlaceholder" />
         </div>
       </div>
       <div class="cmdk-body">
-        <div class="cmdk-actions nc-scrollbar-md">
+        <div ref="cmdkActionsRef" class="cmdk-actions nc-scrollbar-md">
           <div v-if="searchedActionList.length === 0 && cmdLoading" class="w-full h-[250px] flex justify-center items-center">
             <GeneralLoader :size="30" />
           </div>
@@ -430,91 +471,94 @@ defineExpose({
           </div>
           <template v-else>
             <div class="cmdk-action-list border-t-1 border-gray-200">
-              <UseVirtualList
-                ref="virtualList"
-                :list="actionListNormalized"
-                height="300px"
-                :options="{ itemHeight: ACTION_HEIGHT }"
-              >
-                <template #default="{ data: act }">
-                  <template v-if="act.sectionTitle">
-                    <div
-                      class="cmdk-action-section-header capitalize"
-                      :style="{
-                        height: `${ACTION_HEIGHT}px`,
-                      }"
-                    >
-                      {{ act.sectionTitle }}
-                    </div>
-                  </template>
-                  <template v-else>
-                    <div
-                      :key="act.id"
-                      v-e="['a:cmdk:action']"
-                      class="cmdk-action group flex items-center"
-                      :style="{
-                        height: `${ACTION_HEIGHT}px`,
-                      }"
-                      :class="{ selected: selected === act.id }"
-                      @mouseenter="setAction(act.id)"
-                      @click="fireAction(act)"
-                    >
-                      <div class="cmdk-action-content w-full">
-                        <GeneralWorkspaceIcon
-                          v-if="act.icon && act.id.startsWith('ws')"
-                          :workspace="{
-                            id: act.id.split('-')[2],
-                            meta: {
-                              color: act?.iconColor,
-                            },
-                          }"
-                          class="mr-2"
-                          size="small"
-                        />
-                        <template v-else-if="act.section === 'Bases' || act.icon === 'project'">
-                          <GeneralBaseIconColorPicker :key="act.iconColor" :model-value="act.iconColor" type="database" readonly>
-                          </GeneralBaseIconColorPicker>
-                        </template>
-                        <template v-else>
-                          <component
-                            :is="(iconMap as any)[act.icon]"
-                            v-if="act.icon && typeof act.icon === 'string' && (iconMap as any)[act.icon]"
-                            :class="{
-                              '!text-blue-500': act.icon === 'grid',
-                              '!text-purple-500': act.icon === 'form',
-                              '!text-[#FF9052]': act.icon === 'kanban',
-                              '!text-pink-500': act.icon === 'gallery',
-                              '!text-maroon-500 w-4 h-4': act.icon === 'calendar',
+              <div v-bind="containerProps" :style="`height: ${WRAPPER_HEIGHT}px`">
+                <div v-bind="wrapperProps">
+                  <div v-for="item in list" :key="item.index" :style="`height: ${ACTION_HEIGHT}px`">
+                    <template v-if="'sectionTitle' in item.data">
+                      <div
+                        class="cmdk-action-section-header capitalize"
+                        :style="{
+                          height: `${ACTION_HEIGHT}px`,
+                        }"
+                      >
+                        {{ item.data.sectionTitle }}
+                      </div>
+                    </template>
+                    <template v-else>
+                      <div
+                        :ref="item.data.id === selected ? 'cmdkActionSelectedRef' : undefined"
+                        :key="`${item.data.id}-${item.data.id === selected}`"
+                        v-e="['a:cmdk:action']"
+                        class="cmdk-action group flex items-center"
+                        :style="{
+                          height: `${ACTION_HEIGHT}px`,
+                        }"
+                        :class="{ selected: selected === item.data.id }"
+                        @mouseenter="setAction(item.data.id)"
+                        @click="fireAction(item.data)"
+                      >
+                        <div class="cmdk-action-content w-full">
+                          <GeneralWorkspaceIcon
+                            v-if="item.data.icon && item.data.id.startsWith('ws')"
+                            :workspace="{
+                              id: item.data.id.split('-')[2],
+                              meta: {
+                                color: item.data?.iconColor,
+                              },
                             }"
-                            class="cmdk-action-icon"
+                            class="mr-2"
+                            size="small"
                           />
-                          <div v-else-if="act.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
-                            <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="act.icon" readonly />
-                          </div>
-                        </template>
-                        <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
-                          <template #title>
-                            {{ act.title }}
+                          <template v-else-if="item.data.section === 'Bases' || item.data.icon === 'project'">
+                            <GeneralBaseIconColorPicker
+                              :key="item.data.iconColor"
+                              :model-value="item.data.iconColor"
+                              type="database"
+                              readonly
+                            >
+                            </GeneralBaseIconColorPicker>
                           </template>
-                          <span class="truncate capitalize mr-4 py-0.5">
-                            {{ act.title }}
-                          </span>
-                        </a-tooltip>
-                        <div
-                          class="bg-gray-200 text-gray-600 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
-                        >
-                          Enter
+                          <template v-else>
+                            <component
+                              :is="(iconMap as any)[item.data.icon]"
+                              v-if="item.data.icon && typeof item.data.icon === 'string' && (iconMap as any)[item.data.icon]"
+                              :class="{
+                                '!text-blue-500': item.data.icon === 'grid',
+                                '!text-purple-500': item.data.icon === 'form',
+                                '!text-[#FF9052]': item.data.icon === 'kanban',
+                                '!text-pink-500': item.data.icon === 'gallery',
+                                '!text-maroon-500 w-4 h-4': item.data.icon === 'calendar',
+                              }"
+                              class="cmdk-action-icon"
+                            />
+                            <div v-else-if="item.data.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
+                              <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="item.data.icon" readonly />
+                            </div>
+                          </template>
+                          <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                            <template #title>
+                              {{ item.data.title }}
+                            </template>
+                            <span class="truncate capitalize mr-4 py-0.5">
+                              {{ item.data.title }}
+                            </span>
+                          </a-tooltip>
                           <div
-                            class="bg-white border-1 items-center flex justify-center border-gray-300 text-gray-700 rounded h-5 w-5 px-0.25"
+                            class="bg-gray-200 text-gray-600 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
                           >
-                            ↩
+                            Enter
+                            <div
+                              class="bg-white border-1 items-center flex justify-center border-gray-300 text-gray-700 rounded h-5 w-5 px-0.25"
+                            >
+                              ↩
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </template>
-                </template>
-              </UseVirtualList>
+                    </template>
+                  </div>
+                </div>
+              </div>
             </div>
           </template>
         </div>

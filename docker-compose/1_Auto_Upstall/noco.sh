@@ -34,6 +34,7 @@ CONFIG_REDIS_PASSWORD=""
 CONFIG_MINIO_ACCESS_KEY=""
 CONFIG_MINIO_ACCESS_SECRET=""
 CONFIG_DOCKER_COMMAND=""
+CONFIG_POSTGRES_SQLITE=""
 
 declare -a message_arr
 
@@ -451,6 +452,8 @@ get_advanced_options() {
 
     if [ "$CONFIG_EDITION" = "EE" ] || [ "$CONFIG_EDITION" = "ee" ]; then
         CONFIG_LICENSE_KEY=$(prompt_required "Enter the NocoDB license key")
+    else
+        CONFIG_POSTGRES_SQLITE=$(prompt "Select PostgreSQL or SQLite as your database [P/S]" "P")
     fi
 
     CONFIG_REDIS_ENABLED=$(confirm "Do you want to enable Redis for caching?" "Y" && echo "Y" || echo "N" "Y")
@@ -479,6 +482,7 @@ get_advanced_options() {
 
 set_default_options() {
     CONFIG_EDITION="CE"
+    CONFIG_POSTGRES_SQLITE="P"
     CONFIG_REDIS_ENABLED="Y"
     CONFIG_MINIO_ENABLED="Y"
     CONFIG_MINIO_DOMAIN_NAME=$(get_public_ip)
@@ -510,6 +514,9 @@ create_docker_compose_file() {
     if [ "${CONFIG_MINIO_ENABLED}" = "Y" ]; then
         gen_minio=1
     fi
+    if [ "${CONFIG_POSTGRES_SQLITE}" = "P" ] || [ "${CONFIG_POSTGRES_SQLITE}" = "p" ]; then
+        gen_postgres=1
+    fi
 
     local compose_file="docker-compose.yml"
 
@@ -521,10 +528,18 @@ services:
     deploy:
       mode: replicated
       replicas: ${CONFIG_NUM_INSTANCES}
+EOF
+
+    if [ -n "$gen_postgres" ] || [ -n "$gen_redis" ] || [ "$gen_redis" ]; then
+        cat >> "$compose_file" <<EOF
     depends_on:
-      - db
+      ${gen_postgres:+- db}
       ${gen_redis:+- redis}
       ${gen_minio:+- minio}
+EOF
+    fi
+
+    cat >> "$compose_file" <<EOF
     restart: unless-stopped
     volumes:
       - ./nocodb:/usr/app/data
@@ -551,7 +566,10 @@ EOF
   cat >> "$compose_file" <<EOF
     networks:
       - nocodb-network
+EOF
 
+  if [ "$CONFIG_POSTGRES_SQLITE" = "P" ] || [ "${CONFIG_POSTGRES_SQLITE}" = "p" ]; then
+cat >> "$compose_file" <<EOF
   db:
     image: postgres:16.1
     env_file: docker.env
@@ -565,7 +583,10 @@ EOF
       retries: 5
     networks:
       - nocodb-network
+EOF
+  fi
 
+cat >> "$compose_file" <<EOF
   traefik:
     image: traefik:v3.1
     command:
@@ -711,7 +732,7 @@ EOF
     if [ "${CONFIG_EDITION}" = "EE" ] || [ "${CONFIG_EDITION}" = "ee" ]; then
         echo "DATABASE_URL=postgres://postgres:${encoded_password}@db:5432/nocodb" >> "$env_file"
         echo "NC_LICENSE_KEY=${CONFIG_LICENSE_KEY}" >> "$env_file"
-    else
+    elif [ "${CONFIG_POSTGRES_SQLITE}" = "P" ]; then
         echo "NC_DB=pg://db:5432?d=nocodb&user=postgres&password=${encoded_password}" >> "$env_file"
     fi
 

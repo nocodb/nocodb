@@ -18,7 +18,7 @@ const uiTypes: UiTypesType[] = [
   },
   {
     name: 'AIButton',
-    icon: iconMap.magic,
+    icon: iconMap.cellAiButton,
     virtual: 1,
     isNew: 1,
     deprecated: 0,

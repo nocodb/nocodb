@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType, type LinkToAnotherRecordType } from 'nocodb-sdk'
 import {
   UITypes,
   UITypesName,

@@ -25,6 +25,12 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
     case UITypes.Formula:
       return { icon: iconMap.cellFormula, color: 'text-grey' }
     case UITypes.Button:
+      switch ((column.colOptions as LinkToAnotherRecordType)?.type) {
+        case 'ai':
+          return { icon: iconMap.cellAiButton, color: 'text-grey' }
+        default:
+          return { icon: iconMap.cellButton, color: 'text-grey' }
+      }
       return { icon: iconMap.cellButton, color: 'text-grey' }
     case UITypes.QrCode:
       return { icon: iconMap.cellQrCode, color: 'text-grey' }

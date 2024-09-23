@@ -496,11 +496,20 @@ generate_credentials() {
 
 create_docker_compose_file() {
 
-  image="nocodb/nocodb:latest"
+    if [ "${CONFIG_EDITION}" = "EE" ] || [ "${CONFIG_EDITION}" = "ee" ]; then
+        image="nocodb/ee:latest"
+    else
+        image="nocodb/nocodb:latest"
+    fi
 
-  if [ "${CONFIG_EDITION}" = "EE" ] || [ "${CONFIG_EDITION}" = "ee" ]; then
-    image="nocodb/ee:latest"
-  fi
+
+    # for easier string interpolation
+    if [ "${CONFIG_REDIS_ENABLED}" = "Y" ]; then
+        gen_redis=1
+    fi
+    if [ "${CONFIG_MINIO_ENABLED}" = "Y" ]; then
+        gen_minio=1
+    fi
 
     local compose_file="docker-compose.yml"
 
@@ -514,8 +523,8 @@ services:
       replicas: ${CONFIG_NUM_INSTANCES}
     depends_on:
       - db
-      ${CONFIG_REDIS_ENABLED:+- redis}
-      ${CONFIG_MINIO_ENABLED:+- minio}
+      ${gen_redis:+- redis}
+      ${gen_minio:+- minio}
     restart: unless-stopped
     volumes:
       - ./nocodb:/usr/app/data
@@ -674,10 +683,14 @@ fi
 EOF
     fi
 
-    cat >> "$compose_file" <<EOF
+    if [ "$CONFIG_REDIS_ENABLED" = "Y" ]; then
+cat >> "$compose_file" <<EOF
 volumes:
-  ${CONFIG_REDIS_ENABLED:+redis:}
+    redis:
+EOF
+    fi
 
+cat >> "$compose_file" <<EOF
 networks:
   nocodb-network:
     driver: bridge

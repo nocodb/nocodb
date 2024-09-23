@@ -1,6 +1,7 @@
 import { type Readable } from 'stream';
 import { UnstructuredClient } from 'unstructured-client';
 import { Strategy } from 'unstructured-client/sdk/models/shared';
+import pdf from 'pdf-parse';
 
 const key = process.env.UNSTRUCTURED_API_KEY;
 const url = process.env.UNSTRUCTURED_API_URL;
@@ -21,11 +22,16 @@ const serializers = {
       image: string;
     }[];
   }> => {
-    if (!unstructuredAvailable) {
-      throw new Error('Unstructured is not available');
-    }
-
     const data = await getDataFromStream(stream);
+
+    if (!unstructuredAvailable) {
+      const pdfData = await pdf(data);
+
+      return {
+        text: pdfData.text,
+        images: [],
+      };
+    }
 
     const res = await client.general.partition({
       partitionParameters: {

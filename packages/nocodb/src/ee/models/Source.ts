@@ -9,7 +9,6 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
 import { ModelStat } from '~/models';
-import { encryptPropIfRequired, isEncryptionRequired } from '~/utils';
 
 export default class Source extends SourceCE implements SourceType {
   is_local?: BoolType;
@@ -49,11 +48,8 @@ export default class Source extends SourceCE implements SourceType {
       'fk_integration_id',
       'is_encrypted',
     ]);
-    insertObj.config = encryptPropIfRequired({
-      data: insertObj,
-    });
 
-    insertObj.is_encrypted = isEncryptionRequired();
+    this.encryptConfigIfRequired(insertObj);
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);

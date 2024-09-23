@@ -13,8 +13,6 @@ import {
 } from '~/utils/modelUtils';
 import {
   decryptPropIfRequired,
-  encryptPropIfRequired,
-  isEncryptionRequired,
   partialExtract,
 } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -63,11 +61,7 @@ export default class Integration extends IntegrationCE {
       'is_encrypted',
     ]);
 
-    insertObj.config = encryptPropIfRequired({
-      data: insertObj,
-    });
-
-    insertObj.is_encrypted = isEncryptionRequired();
+    this.encryptConfigIfRequired(insertObj);
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -128,10 +122,7 @@ export default class Integration extends IntegrationCE {
     ]);
 
     if (updateObj.config) {
-      updateObj.config = encryptPropIfRequired({
-        data: updateObj,
-      });
-      updateObj.is_encrypted = isEncryptionRequired();
+      this.encryptConfigIfRequired(updateObj);
     }
 
     // type property is undefined even if not provided

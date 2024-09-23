@@ -649,7 +649,7 @@ export class AiSchemaService {
       };
 
       switch (view.type?.toLowerCase()) {
-        case 'grid':
+        case viewTypeToStringMap[ViewTypes.GRID]:
           {
             const grid = await this.gridsService.gridViewCreate(context, {
               tableId: table.id,
@@ -728,7 +728,7 @@ export class AiSchemaService {
             }
           }
           break;
-        case 'kanban':
+        case viewTypeToStringMap[ViewTypes.KANBAN]:
           await this.kanbansService.kanbanViewCreate(context, {
             tableId: table.id,
             kanban: {
@@ -739,7 +739,7 @@ export class AiSchemaService {
             req,
           });
           break;
-        case 'calendar': {
+        case viewTypeToStringMap[ViewTypes.CALENDAR]: {
           const calendarRange = view.calendar_range
             ? Array.isArray(view.calendar_range)
               ? view.calendar_range
@@ -760,7 +760,7 @@ export class AiSchemaService {
           });
           break;
         }
-        case 'form':
+        case viewTypeToStringMap[ViewTypes.FORM]:
           await this.formsService.formViewCreate(context, {
             tableId: table.id,
             body: viewData,
@@ -768,7 +768,7 @@ export class AiSchemaService {
             req,
           });
           break;
-        case 'gallery':
+        case viewTypeToStringMap[ViewTypes.GALLERY]:
           await this.galleriesService.galleryViewCreate(context, {
             tableId: table.id,
             gallery: viewData,

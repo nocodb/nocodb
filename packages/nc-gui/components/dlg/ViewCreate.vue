@@ -159,7 +159,7 @@ const typeAlias = computed(
 
 const initTitle = ref<string>()
 
-const { aiIntegrationAvailable, aiLoading, aiError, predictViews, createViews } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading, aiError, predictViews, createViews, loadAiIntegrations } = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -364,6 +364,8 @@ const isMetaLoading = ref(false)
 onMounted(async () => {
   if (form.copy_from_id) {
     enableDescription.value = true
+  } else {
+    loadAiIntegrations()
   }
 
   if ([ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(props.type)) {
@@ -797,10 +799,10 @@ function init() {
     size="sm"
     height="auto"
     :centered="false"
-    nc-modal-class-name="!px-0 !pb-0"
+    nc-modal-class-name="!p-0"
   >
     <template #header>
-      <div class="px-6 flex w-full flex-row justify-between items-center">
+      <div class="px-6 pt-6 flex w-full flex-row justify-between items-center" @dblclick.stop="fullAuto">
         <div class="flex font-bold text-base gap-x-3 items-center">
           <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-[24px] !leading-6 max-h-6 max-w-6" />
           <template v-if="form.type === ViewTypes.GRID">
@@ -865,7 +867,7 @@ function init() {
         </a>
       </div>
     </template>
-    <div class="px-6 pb-6 flex flex-col mt-1">
+    <div class="px-6 pb-6 flex flex-col mt-1" @dblclick.stop="fullAuto">
       <a-form v-if="isNecessaryColumnsPresent" ref="formValidator" :model="form" layout="vertical" class="flex flex-col gap-y-5">
         <a-form-item
           :rules="aiMode ? [] : viewNameRules"
@@ -1182,6 +1184,7 @@ function init() {
                   @click="predictRefresh"
                 >
                   <template #loadingIcon>
+                    <!-- eslint-disable vue/no-lone-template -->
                     <template></template>
                   </template>
                   <GeneralIcon
@@ -1210,6 +1213,7 @@ function init() {
                   @click="predictMore"
                 >
                   <template #loadingIcon>
+                    <!-- eslint-disable vue/no-lone-template -->
                     <template> </template>
                   </template>
                   <GeneralLoader v-if="aiLoading && calledFunction === 'predictMore'" class="!text-current" />
@@ -1231,6 +1235,7 @@ function init() {
               @click="predictFromPrompt"
             >
               <template #loadingIcon>
+                <!-- eslint-disable vue/no-lone-template -->
                 <template></template>
               </template>
               <div

@@ -1,4 +1,4 @@
-import type { SerializedAiViewType, TableType } from 'nocodb-sdk'
+import { type IntegrationType, IntegrationsType, type SerializedAiViewType, type TableType } from 'nocodb-sdk'
 
 const aiIntegrationNotFound = 'AI integration not found'
 
@@ -18,6 +18,10 @@ export const useNocoAi = createSharedComposable(() => {
   const aiLoading = ref(false)
 
   const aiError = ref<string>('')
+
+  const aiIntegrations = ref<IntegrationType[]>([])
+
+  const { listIntegrationByType } = useProvideIntegrationViewStore()
 
   const callAiUtilsApi = async (operation: string, input: any, customBaseId?: string, skipMsgToast = false) => {
     try {
@@ -268,6 +272,16 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
+  const loadAiIntegrations = async () => {
+    aiIntegrations.value = (await listIntegrationByType(IntegrationsType.Ai)) || []
+
+    if (aiIntegrations.value.length) {
+      aiIntegrationAvailable.value = true
+    } else {
+      aiIntegrationAvailable.value = false
+    }
+  }
+
   return {
     aiIntegrationAvailable,
     aiLoading,
@@ -288,5 +302,7 @@ export const useNocoAi = createSharedComposable(() => {
     predictFormula,
     repairFormula,
     predictViews,
+    aiIntegrations,
+    loadAiIntegrations,
   }
 })

@@ -25,15 +25,11 @@ const vModel = useVModel(props, 'model', emits)
 
 const { $api } = useNuxtApp()
 
-const { listIntegrationByType } = useIntegrationStore()
-
-const { aiIntegrationAvailable } = useNocoAi()
+const { aiIntegrationAvailable, aiIntegrations, loadAiIntegrations } = useNocoAi()
 
 const lastIntegrationId = ref<string | null>(null)
 
 const isDropdownOpen = ref(false)
-
-const integrations = ref<IntegrationType[]>([])
 
 const availableModels = ref<string[]>([])
 
@@ -59,17 +55,17 @@ const onIntegrationChange = async () => {
 }
 
 onMounted(async () => {
-  integrations.value = (await listIntegrationByType(IntegrationsType.Ai)) || []
+  await loadAiIntegrations()
 
-  if (integrations.value.length) {
+  if (aiIntegrations.value.length) {
     aiIntegrationAvailable.value = true
   } else {
     aiIntegrationAvailable.value = false
   }
 
   if (!vFkIntegrationId.value) {
-    if (integrations.value.length > 0 && integrations.value[0].id) {
-      vFkIntegrationId.value = integrations.value[0].id
+    if (aiIntegrations.value.length > 0 && aiIntegrations.value[0].id) {
+      vFkIntegrationId.value = aiIntegrations.value[0].id
       nextTick(() => {
         onIntegrationChange()
       })
@@ -117,7 +113,7 @@ onMounted(async () => {
                 size="middle"
                 @change="onIntegrationChange"
               >
-                <a-select-option v-for="integration in integrations" :key="integration.id" :value="integration.id">
+                <a-select-option v-for="integration in aiIntegrations" :key="integration.id" :value="integration.id">
                   <div class="w-full flex gap-2 items-center">
                     <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>

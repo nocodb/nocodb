@@ -65,7 +65,7 @@ const onAiTableCreate = async (table: TableType) => {
   await openTable(table)
 }
 
-const { aiIntegrationAvailable, aiLoading, aiError, generateTables, predictNextTables } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading, aiError, generateTables, predictNextTables, loadAiIntegrations } = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -352,6 +352,7 @@ const toggleDescription = () => {
 
 onMounted(() => {
   generateUniqueTitle()
+  loadAiIntegrations()
   nextTick(() => {
     inputEl.value?.focus()
     inputEl.value?.select()
@@ -436,11 +437,11 @@ watch(
     size="sm"
     height="auto"
     :centered="false"
-    nc-modal-class-name="!px-0 !pb-0"
+    nc-modal-class-name="!p-0"
     @keydown.esc="dialogShow = false"
   >
     <template #header>
-      <div class="px-6 flex justify-between w-full items-center" @dblclick.stop="fullAuto">
+      <div class="px-6 pt-6 flex justify-between w-full items-center" @dblclick.stop="fullAuto">
         <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-gray-800">
           <GeneralIcon icon="table" class="!text-gray-600 w-5 h-5" />
           {{ $t('activity.createTable') }}
@@ -570,6 +571,7 @@ watch(
                       @click="predictMore"
                     >
                       <template #loadingIcon>
+                        <!-- eslint-disable vue/no-lone-template -->
                         <template> </template>
                       </template>
                       <GeneralLoader v-if="aiLoading && calledFunction === 'predictMore'" class="!text-current" />
@@ -591,6 +593,7 @@ watch(
                   @click="predictFromPrompt"
                 >
                   <template #loadingIcon>
+                    <!-- eslint-disable vue/no-lone-template -->
                     <template></template>
                   </template>
                   <div

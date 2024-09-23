@@ -473,6 +473,7 @@ watch(
               v-else
               ref="inputEl"
               v-model:value="table.title"
+              autocomplete="off"
               class="nc-table-input nc-input-sm nc-input-shadow max-w-[calc(100%_-_32px)] z-11"
               hide-details
               data-testid="create-table-title-input"
@@ -868,8 +869,8 @@ watch(
       <!-- Footer -->
 
       <div class="nc-ai-wizard-card-footer-branding text-xs">
-        Powered by
-        <span class="font-semibold !text-inherit"> Noco AI </span>
+        {{ $t('general.poweredBy') }}
+        <span class="font-semibold !text-inherit"> {{ $t('general.nocoAI') }} </span>
       </div>
 
       <!-- eslint-disable vue/no-constant-condition -->

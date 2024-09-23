@@ -262,7 +262,7 @@ async function onOpenModal({
                 >
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
-                    <div>AI suggested</div>
+                    <div>{{ $t('labels.aiSuggested') }}</div>
                   </div>
                 </a-menu-item>
               </a-sub-menu>

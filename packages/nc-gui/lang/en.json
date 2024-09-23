@@ -292,7 +292,9 @@
     "languages": "Languages",
     "extension": "Extension",
     "extensions": "Extensions",
-    "enable": "Enable"
+    "enable": "Enable",
+    "poweredBy": "Powered by",
+    "nocoAI": "Noco AI"
   },
   "objects": {
     "files": "files",
@@ -837,6 +839,7 @@
     "duplicateCalendarView": "Duplicate Calendar View",
     "createKanbanView": "Create Kanban View",
     "createCalendarView": "Create Calendar View",
+    "createViewUsingAi": "Create view using AI",
     "viewName": "View name",
     "viewLink": "View Link",
     "columnName": "Field Name",
@@ -1009,7 +1012,8 @@
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
-    "redirectToUrl": "Redirect to URL"
+    "redirectToUrl": "Redirect to URL",
+    "aiSuggested": "AI suggested"
   },
   "activity": {
     "assignView": "Assign view",

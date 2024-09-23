@@ -214,7 +214,7 @@ const onAiViewCreate = async () => {
           <div class="item">
             <div class="item-inner">
               <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
-              <div>AI suggested</div>
+              <div>{{ $t('labels.aiSuggested') }}</div>
             </div>
           </div>
         </NcMenuItem>

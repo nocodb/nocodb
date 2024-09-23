@@ -152,7 +152,8 @@ const typeAlias = computed(
       [ViewTypes.KANBAN]: 'kanban',
       [ViewTypes.MAP]: 'map',
       [ViewTypes.CALENDAR]: 'calendar',
-      AI: 'ai-view',
+      // Todo: add ai view docs route
+      AI: '',
     }[props.type]),
 )
 
@@ -538,6 +539,8 @@ const _predictViews = async (prompt?: string): Promise<SerializedAiViewType[]> =
 const toggleAiMode = async () => {
   if (aiMode.value) return
 
+  formValidator.value?.clearValidate()
+
   aiMode.value = true
   aiModeStep.value = AiStep.init
   predictedViews.value = []
@@ -844,6 +847,9 @@ function init() {
               {{ $t('labels.createCalendarView') }}
             </template>
           </template>
+          <template v-else-if="form.type === 'AI'">
+            {{ $t('labels.createViewUsingAi') }}
+          </template>
           <template v-else>
             <template v-if="form.copy_from_id">
               {{ $t('labels.duplicateMapView') }}
@@ -888,6 +894,7 @@ function init() {
           <a-input
             v-else
             ref="inputEl"
+            autocomplete="off"
             class="nc-view-input nc-input-sm nc-input-shadow !max-w-[calc(100%_-_32px)] z-11"
             hide-details
             :placeholder="selectedViews.length ? '' : 'Select from suggested views...'"
@@ -1475,8 +1482,8 @@ function init() {
     <div v-if="!form.copy_from_id" class="nc-nocoai-footer min-h-9">
       <!-- Footer -->
       <div class="nc-ai-wizard-card-footer-branding text-xs">
-        Powered by
-        <span class="font-semibold !text-inherit"> Noco AI </span>
+        {{ $t('general.poweredBy') }}
+        <span class="font-semibold !text-inherit"> {{ $t('general.nocoAI') }} </span>
       </div>
     </div>
   </NcModal>

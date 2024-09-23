@@ -5,7 +5,7 @@ export interface SerializedAiViewType {
   filters?: {
     comparison_op: string;
     logical_op: string;
-    value: number;
+    value?: number | null;
     column: string;
   }[];
   sorts?: {

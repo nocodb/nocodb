@@ -44,7 +44,7 @@ export const useNocoAi = createSharedComposable(() => {
       }
 
       if (!skipMsgToast) {
-        message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+        message.warning(error || 'NocoAI: Underlying GPT API are busy. Please try after sometime.')
       }
     } finally {
       aiLoading.value = false
@@ -75,7 +75,7 @@ export const useNocoAi = createSharedComposable(() => {
       }
 
       if (!skipMsgToast) {
-        message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+        message.warning(error || 'NocoAI: Underlying GPT API are busy. Please try after sometime.')
       }
     } finally {
       aiLoading.value = false
@@ -158,7 +158,7 @@ export const useNocoAi = createSharedComposable(() => {
     } catch (e: any) {
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
-  }
+}
 
   const createViews = async (views: SerializedAiViewType[], customBaseId?: string) => {
     try {

@@ -514,7 +514,7 @@ export class AiSchemaService {
                 z.object({
                   comparison_op: z.string(),
                   logical_op: z.string(),
-                  value: z.string(),
+                  value: z.string().nullable(),
                   column: z.string(),
                 }),
               )
@@ -1218,22 +1218,22 @@ export class AiSchemaService {
         // remove empty arrays
         serializedObject.views.push(serializedView);
       }
+    }
 
-      {
-        // Sanitize already predicted views
-        for (const view of Array.isArray(params.predictedViews)
-          ? params.predictedViews
-          : []) {
-          if (
-            stringToViewTypeMap[view.type] === undefined ||
-            !view.title?.trim() ||
-            !view.table?.trim()
-          ) {
-            continue;
-          }
-
-          serializedObject.views.push(view);
+    {
+      // Sanitize already predicted views
+      for (const view of Array.isArray(params.predictedViews)
+        ? params.predictedViews
+        : []) {
+        if (
+          stringToViewTypeMap[view.type] === undefined ||
+          !view.title?.trim() ||
+          !view.table?.trim()
+        ) {
+          continue;
         }
+
+        serializedObject.views.push(view);
       }
     }
 

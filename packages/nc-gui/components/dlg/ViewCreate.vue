@@ -540,6 +540,7 @@ const toggleAiMode = async () => {
   if (aiMode.value) return
 
   formValidator.value?.clearValidate()
+  aiError.value = ''
 
   aiMode.value = true
   aiModeStep.value = AiStep.init
@@ -1267,9 +1268,9 @@ function init() {
         <template #tabContent>
           <template v-if="aiError">
             <div class="py-3 pl-3 pr-2 flex items-center gap-3">
-              <GeneralIcon icon="ncInfoSolid" class="!text-nc-content-red-dark w-4 h-4" />
+              <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
 
-              <div class="text-sm text-nc-content-gray-subtle flex-1">
+              <div class="text-sm text-nc-content-gray-subtle flex-1 max-w-[calc(100%_-_24px)]">
                 <NcTooltip class="truncate" show-on-truncate-only>
                   <template #title>
                     {{ aiError }}

@@ -62,7 +62,7 @@ const buttonTypes = [
     value: ButtonActionsType.Webhook,
   },
   {
-    label: 'AI Button',
+    label: t('labels.generateFieldDataUsingAi'),
     value: ButtonActionsType.Ai,
   },
 ]
@@ -501,8 +501,9 @@ onMounted(() => {
 
             <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
               <div class="flex gap-2 w-full capitalize text-gray-800 truncate items-center">
-                {{ type.label }}
-
+                <div class="flex-1">
+                  {{ type.label }}
+                </div>
                 <component
                   :is="iconMap.check"
                   v-if="vModel.type === type.value"

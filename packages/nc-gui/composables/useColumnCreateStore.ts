@@ -46,6 +46,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { activeView } = storeToRefs(viewsStore)
 
+    const { xWhere, view } = useSmartsheetStoreOrThrow()
+
+    const { formattedData, loadData } = useViewData(meta, view, xWhere)
+
     const disableSubmitBtn = ref(false)
 
     const isWebhookCreateModalOpen = ref(false)
@@ -436,6 +440,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       updateFieldName,
       fromTableExplorer,
       isAiMode,
+      formattedData,
+      loadData,
     }
   },
 )

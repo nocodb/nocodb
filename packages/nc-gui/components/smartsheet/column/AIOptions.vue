@@ -18,13 +18,10 @@ const availableFields = computed(() => {
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, column, formattedData, loadData } = useColumnCreateStoreOrThrow()
 
 const { aiIntegrationAvailable, generateRows } = useNocoAi()
 
-const { xWhere, view } = useSmartsheetStoreOrThrow()
-
-const { formattedData, loadData } = useViewData(meta, view, xWhere)
 
 const localIsEnabledGenerateText = ref(false)
 

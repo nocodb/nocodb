@@ -1,12 +1,5 @@
 <script setup lang="ts">
-import {
-  UITypes,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isHiddenCol,
-  isSystemColumn,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { ButtonActionsType, type ButtonType, type ColumnType, type HookType } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -24,31 +17,18 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const {
-  formState,
-  isEdit,
-  setAdditionalValidations,
-  validateInfos,
+const { formState, isEdit, setAdditionalValidations, validateInfos, column, validate, loadData, formattedData } =
+  useColumnCreateStoreOrThrow()
 
-  column,
-  validate,
-} = useColumnCreateStoreOrThrow()
-
-const { aiIntegrationAvailable, aiError } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
-
-const webhooksStore = useWebhooksStore()
-
-const { loadHooksList } = webhooksStore
-
-await loadHooksList()
-
-const { hooks } = toRefs(webhooksStore)
 
 const isOpenConfigModal = ref<boolean>(false)
 
 const isOpenSelectOutputFieldDropdown = ref<boolean>(false)
+
+const isOpenSelectRecordDropdown = ref<boolean>(false)
 
 const previewOutput = ref<Record<string, any>>({})
 
@@ -77,10 +57,58 @@ setAdditionalValidations({
 
 const preview = ref('')
 
+const isLoadingViewData = ref(false)
+
+const loadViewData = async () => {
+  if (!formattedData.value.length && !isLoadingViewData.value) {
+    isLoadingViewData.value = true
+
+    await loadData()
+
+    isLoadingViewData.value = false
+  }
+}
+
+const displayField = computed(() => meta.value?.columns?.find((c) => c.pv) ?? null)
+
+const sampleRecords = computed<
+  {
+    label: any
+    value: any
+  }[]
+>(() => {
+  return (formattedData.value || [])
+    .map((row) => {
+      const pk = extractPkFromRow(unref(row.row), meta.value?.columns || [])
+
+      const displayValue = row.row?.[displayField.value?.title]
+
+      return {
+        label: displayValue,
+        value: pk,
+      }
+    })
+    .filter((r) => !!(r.label && r.value))
+})
+
+const selectedRecordPk = ref('')
+
+const selectedRecordDisplayValue = computed(() => {
+  return sampleRecords.value.find((r) => r.value === selectedRecordPk.value)?.label
+})
+
 // AI options
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
-  return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID)
+  return meta.value.columns.filter(
+    (c) => c.title && !c.system && c.uidt !== UITypes.ID && (isEdit.value ? column.value?.id !== c.id : true),
+  )
+})
+
+const inputColumns = computed(() => {
+  return availableFields.value.filter((f) => {
+    return vModel.value.formula_raw?.includes(`{${f.title}}`)
+  })
 })
 
 const outputFieldOptions = computed(() => {
@@ -120,6 +148,10 @@ const cellIcon = (column: ColumnType) =>
 const handleCloseDropdown = () => {
   if (isOpenSelectOutputFieldDropdown.value) {
     isOpenSelectOutputFieldDropdown.value = false
+  }
+
+  if (isOpenSelectRecordDropdown.value) {
+    isOpenSelectRecordDropdown.value = false
   }
 }
 
@@ -227,7 +259,7 @@ provide(IsFormInj, ref(true))
                   </div>
                 </a-form-item>
 
-                <a-form-item v-bind="validateInfos.output_column_ids">
+                <a-form-item v-bind="validateInfos.output_column_ids" class="!my-0">
                   <div class="flex items-center">
                     <span class="flex-1"> Select fields to generate data </span>
 
@@ -292,7 +324,137 @@ provide(IsFormInj, ref(true))
                 <div class="text-base text-nc-content-gray font-bold">
                   {{ $t('labels.preview') }}
                 </div>
-                <a-form-item> </a-form-item>
+                <a-form-item class="!my-0">
+                  <div class="mb-2 text-sm text-nc-content-gray-subtle2">Select sample record</div>
+                  <div class="flex items-center rounded-lg border-1 border-purple-200">
+                    <NcDropdown
+                      v-model:visible="isOpenSelectRecordDropdown"
+                      placement="bottomLeft"
+                      overlay-class-name="!min-w-64"
+                    >
+                      <div class="flex-1 flex items-center gap-2 px-2 cursor-pointer" @click.stop="loadViewData">
+                        <NcTooltip
+                          v-if="selectedRecordDisplayValue"
+                          class="truncate flex-1"
+                          show-on-truncate-only
+                          :disabled="isOpenSelectRecordDropdown"
+                        >
+                          <template #title>
+                            <LazySmartsheetPlainCell v-model="selectedRecordDisplayValue" :column="displayField" />
+                          </template>
+                          <LazySmartsheetPlainCell v-model="selectedRecordDisplayValue" :column="displayField" />
+                        </NcTooltip>
+
+                        <div v-else class="flex-1 text-nc-content-gray-subtle2">- Select record -</div>
+                        <GeneralIcon
+                          icon="chevronDown"
+                          class="flex-none"
+                          :class="{
+                            'transform rotate-180': isOpenSelectRecordDropdown,
+                          }"
+                        />
+                      </div>
+
+                      <template #overlay>
+                        <div
+                          v-if="isLoadingViewData"
+                          class="w-full relative flex flex-col items-center justify-center gap-2 min-h-25 text-nc-content-brand"
+                        >
+                          <GeneralLoader size="large" class="flex-none" />
+                          Loading records
+                        </div>
+                        <NcList
+                          v-else
+                          v-model:value="selectedRecordPk"
+                          v-model:open="isOpenSelectRecordDropdown"
+                          :list="sampleRecords"
+                        >
+                          <template #listItem="{ option, isSelected }">
+                            <div class="inline-flex items-center gap-2 flex-1 truncate">
+                              <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                                <template #title>
+                                  <div>
+                                    <LazySmartsheetPlainCell v-model="option.label" :column="displayField" />
+                                  </div>
+                                </template>
+                                <LazySmartsheetPlainCell v-model="option.label" :column="displayField" />
+                              </NcTooltip>
+
+                              <GeneralIcon
+                                v-if="isSelected()"
+                                id="nc-selected-item-icon"
+                                icon="check"
+                                class="flex-none text-primary w-4 h-4"
+                              />
+                            </div>
+                          </template>
+                        </NcList>
+                      </template>
+                    </NcDropdown>
+                    <NcButton size="small" type="secondary" class="nc-ai-button-test-generate" :disabled="aiLoading">
+                      <div class="flex items-center gap-2">
+                        <GeneralIcon icon="ncAutoAwesome" class="text-nc-content-yellow-medium h-4 w-4" />
+
+                        Test Generate
+                      </div>
+                    </NcButton>
+                  </div>
+                </a-form-item>
+              </div>
+              <div class="nc-ai-button-config-right-section">
+                <div class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5">
+                  Input fields
+                  <a-tag v-if="inputColumns.length" class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0">
+                    {{ inputColumns.length }}</a-tag
+                  >
+
+                  <GeneralIcon icon="arrowRight" />
+                </div>
+                <template v-for="field in inputColumns">
+                  <a-form-item
+                    v-if="field.title"
+                    :key="field.id"
+                    :name="field.title"
+                    class="!my-0 nc-input-required-error"
+                  >
+                    <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
+                      <component :is="cellIcon(field)" class="!mx-0" />
+                      <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                        <template #title>
+                          {{ field?.title }}
+                        </template>
+                        {{ field?.title }}
+                      </NcTooltip>
+                    </div>
+
+                    <LazySmartsheetDivDataCell
+                      class="relative min-h-[37px] flex items-center"
+                      :class="{
+                        '!select-text nc-system-field': isReadOnlyVirtualCell(field),
+                        '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
+                      }"
+                    >
+                      <LazySmartsheetVirtualCell
+                        v-if="isVirtualCol(field)"
+                        :model-value="previewOutput[field.title]"
+                        class="mt-0 nc-input nc-cell"
+                        :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                        :column="field"
+                        :read-only="true"
+                      />
+
+                      <LazySmartsheetCell
+                        v-else
+                        v-model="previewOutput[field.title]"
+                        class="nc-input truncate"
+                        :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                        :column="field"
+                        :edit-enabled="true"
+                        :read-only="true"
+                      />
+                    </LazySmartsheetDivDataCell>
+                  </a-form-item>
+                </template>
               </div>
               <div class="nc-ai-button-config-right-section">
                 <div class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5">
@@ -394,6 +556,14 @@ provide(IsFormInj, ref(true))
 
 .nc-ai-button-output-field {
   @apply cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none !mx-0;
+}
+
+.nc-ai-button-test-generate {
+  @apply !rounded-l-none -m-[1px] border-purple-200 !bg-nc-bg-purple-light !text-nc-content-purple-dark hover:(!bg-nc-bg-purple-dark);
+
+  &:disabled {
+    @apply !text-nc-content-purple-light !hover:(text-nc-content-purple-light bg-nc-bg-purple-light);
+  }
 }
 
 :deep(.ant-select-selector) {

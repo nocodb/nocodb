@@ -633,6 +633,7 @@ const handleNavigateToIntegrations = () => {
           v-if="formState.uidt === UITypes.Button"
           v-model:value="formState"
           :from-table-explorer="props.fromTableExplorer || false"
+          @navigate-to-integrations="handleNavigateToIntegrations"
         />
         <SmartsheetColumnAIOptions
           v-if="formState.uidt === UITypes.AI"

@@ -14,7 +14,7 @@ const props = defineProps<{
   fromTableExplorer?: boolean
 }>()
 
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value', 'navigateToIntegrations'])
 
 const buttonActionsType = {
   ...ButtonActionsType,
@@ -620,7 +620,14 @@ onMounted(() => {
     </a-form-item>
 
     <template v-if="vModel?.type === buttonActionsType.Ai">
-      <SmartsheetColumnAiButtonOptions v-model:value="vModel" />
+      <SmartsheetColumnAiButtonOptions
+        v-model:value="vModel"
+        @navigate-to-integrations="
+          () => {
+            emit('navigateToIntegrations')
+          }
+        "
+      />
     </template>
 
     <Webhook

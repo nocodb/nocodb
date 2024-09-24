@@ -13,7 +13,7 @@ const props = defineProps<{
   value: any
 }>()
 
-const emit = defineEmits(['update:value'])
+const emit = defineEmits(['update:value', 'navigateToIntegrations'])
 
 const { t } = useI18n()
 
@@ -154,11 +154,13 @@ provide(IsFormInj, ref(true))
         <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
         <div class="text-sm text-nc-content-gray-subtle flex-1">No AI Integrations added.</div>
 
-        <NcButton size="small" type="text" class="!text-nc-content-brand"> Add integration </NcButton>
+        <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="emit('navigateToIntegrations')">
+          Add integration
+        </NcButton>
       </div>
     </template>
 
-    <template v-if="!!aiError"> </template>
+    <template v-else-if="!!aiError"> </template>
     <template v-else>
       <NcButton
         type="secondary"

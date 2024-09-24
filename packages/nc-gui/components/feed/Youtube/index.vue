@@ -26,7 +26,7 @@ const gotoChannel = () => {
     :style="{
       height: 'calc(100dvh - var(--toolbar-height) - 3rem)',
     }"
-    class="overflow-y-auto nc-scrollbar-md pt-9 mx-auto w-full"
+    class="overflow-y-auto nc-scrollbar-md mx-auto w-full"
   >
     <div v-if="isErrorOccurred?.youtube && !youtubeFeed.length" class="h-full flex justify-center items-center">
       <FeedError page="youtube" />
@@ -35,11 +35,6 @@ const gotoChannel = () => {
       <GeneralLoader size="xlarge" />
     </div>
     <div v-else class="youtube-feed mx-auto">
-      <div class="flex gap-3 items-center mt-4 justify-between">
-        <span class="text-gray-900 font-semibold"> Recent Videos </span>
-        <NcButton type="secondary" size="small" @click="gotoChannel"> Go to Youtube </NcButton>
-      </div>
-
       <div class="flex gap-2 flex-col">
         <FeedYoutubePlayer v-for="feed in youtubeFeed" :key="feed.Id" :item="feed" />
       </div>
@@ -49,6 +44,6 @@ const gotoChannel = () => {
 
 <style scoped lang="scss">
 .youtube-feed {
-  @apply !max-w-[47.75rem];
+  @apply !max-w-[33.75rem];
 }
 </style>

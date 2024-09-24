@@ -152,6 +152,7 @@ import NcControlPanel from '~icons/nc-icons/control-panel'
 import NcHome from '~icons/nc-icons/home'
 import NcHome1 from '~icons/nc-icons/home1'
 import NcWorkspace from '~icons/nc-icons/workspace'
+import NcMegaPhone from '~icons/nc-icons/megaphone'
 
 import NcCellBarcode from '~icons/nc-icons/cell-barcode'
 import NcCellCheckbox from '~icons/nc-icons/cell-checkbox'
@@ -761,6 +762,7 @@ export const iconMap = {
   cellAttachment: NcCellAttachment,
   cellButton: NcCellButton,
   camera: NcCamera,
+  megaPhone: NcMegaPhone,
 
   office: NcOffice,
   sort: Sort,

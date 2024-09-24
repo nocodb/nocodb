@@ -31,7 +31,7 @@ const { isLoading } = useInfiniteScroll(
       <GeneralLoader size="xlarge" />
     </div>
 
-    <div v-else class="max-w-300 mx-auto">
+    <div v-else class="w-[47.75rem] mx-auto">
       <FeedChangelogItem v-for="feed in githubFeed" :key="feed.Id" :item="feed" />
     </div>
   </div>

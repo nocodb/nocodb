@@ -2,7 +2,7 @@
 import FeedRecents from './Recents/index.vue'
 import FeedChangelog from './Changelog/index.vue'
 import FeedYoutube from './Youtube/index.vue'
-import FeedTwitter from './Twitter/index.vue'
+import FeedTwitter from './Twitter.vue'
 // import FeedRoadmap from './Roadmap.vue'
 const { activeTab } = useProductFeed()
 
@@ -48,7 +48,7 @@ const tabs: Array<{
 <template>
   <FeedHeader />
 
-  <FeedSocial v-if="activeTab === 'recents'" class="absolute right-4 top-28" />
+  <FeedSocial class="absolute right-4 top-28" />
   <div class="flex flex-col h-full">
     <NcTabs v-model:activeKey="activeTab" centered>
       <a-tab-pane v-for="tab in tabs" :key="tab.key" class="bg-gray-50 !h-full">

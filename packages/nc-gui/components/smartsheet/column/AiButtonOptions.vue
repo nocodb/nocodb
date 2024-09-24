@@ -20,7 +20,7 @@ const meta = inject(MetaInj, ref())
 const { formState, isEdit, setAdditionalValidations, validateInfos, column, validate, loadData, formattedData } =
   useColumnCreateStoreOrThrow()
 
-const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading, aiError, generateRows } = useNocoAi()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -30,15 +30,13 @@ const isOpenSelectOutputFieldDropdown = ref<boolean>(false)
 
 const isOpenSelectRecordDropdown = ref<boolean>(false)
 
-const previewOutput = ref<Record<string, any>>({})
-
 const validators = {
   ...(vModel.value.type === ButtonActionsType.Ai
     ? {
         output_column_ids: [
           {
             required: true,
-            message: 'At least one output required for AI Button',
+            message: 'At least one output field is required for AI Button',
           },
         ],
         formula_raw: [
@@ -55,7 +53,11 @@ setAdditionalValidations({
   ...validators,
 })
 
-const preview = ref('')
+const previewOutput = ref<Record<string, any>>({})
+
+const generatingPreview = ref(false)
+
+const isAlreadyGenerated = ref(false)
 
 const isLoadingViewData = ref(false)
 
@@ -69,12 +71,13 @@ const loadViewData = async () => {
   }
 }
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c.pv) ?? null)
+const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) ?? null)
 
 const sampleRecords = computed<
   {
     label: any
     value: any
+    row: any
   }[]
 >(() => {
   return (formattedData.value || [])
@@ -86,6 +89,7 @@ const sampleRecords = computed<
       return {
         label: displayValue,
         value: pk,
+        row: row,
       }
     })
     .filter((r) => !!(r.label && r.value))
@@ -93,8 +97,8 @@ const sampleRecords = computed<
 
 const selectedRecordPk = ref('')
 
-const selectedRecordDisplayValue = computed(() => {
-  return sampleRecords.value.find((r) => r.value === selectedRecordPk.value)?.label
+const selectedRecord = computed(() => {
+  return sampleRecords.value.find((r) => r.value === selectedRecordPk.value)
 })
 
 // AI options
@@ -152,6 +156,43 @@ const handleCloseDropdown = () => {
 
   if (isOpenSelectRecordDropdown.value) {
     isOpenSelectRecordDropdown.value = false
+  }
+}
+
+const generate = async () => {
+  if (!selectedRecordPk.value || !outputColumnIds.value.length) return
+
+  generatingPreview.value = true
+
+  const res = await generateRows(
+    meta.value?.id!,
+    {
+      title: vModel.value?.title,
+      prompt_raw: vModel.value.formula_raw,
+      fk_integration_id: vModel.value.fk_integration_id,
+      uidt: UITypes.Button,
+      output_column_ids: outputColumnIds.value.join(','),
+    },
+    [selectedRecordPk.value],
+  )
+
+  if (res?.length) {
+    previewOutput.value = res[0]
+
+    isAlreadyGenerated.value = true
+  }
+
+  generatingPreview.value = false
+}
+
+const inputFieldsExpansionPanel = ref<string[]>([])
+
+const handleUpdateInputFieldExpansionPanel = (open: boolean) => {
+  if (!inputColumns.value.length) return
+  if (open) {
+    inputFieldsExpansionPanel.value = ['1']
+  } else {
+    inputFieldsExpansionPanel.value = []
   }
 }
 
@@ -326,7 +367,12 @@ provide(IsFormInj, ref(true))
                 </div>
                 <a-form-item class="!my-0">
                   <div class="mb-2 text-sm text-nc-content-gray-subtle2">Select sample record</div>
-                  <div class="flex items-center rounded-lg border-1 border-purple-200">
+                  <div
+                    class="flex items-center rounded-lg border-1 border-purple-200 transition-all"
+                    :class="{
+                      'shadow-selected-ai border-nc-border-purple z-11': isOpenSelectRecordDropdown,
+                    }"
+                  >
                     <NcDropdown
                       v-model:visible="isOpenSelectRecordDropdown"
                       placement="bottomLeft"
@@ -334,21 +380,21 @@ provide(IsFormInj, ref(true))
                     >
                       <div class="flex-1 flex items-center gap-2 px-2 cursor-pointer" @click.stop="loadViewData">
                         <NcTooltip
-                          v-if="selectedRecordDisplayValue"
-                          class="truncate flex-1"
+                          v-if="selectedRecord?.label"
+                          class="truncate flex-1 text-nc-content-purple-dark font-semibold"
                           show-on-truncate-only
                           :disabled="isOpenSelectRecordDropdown"
                         >
                           <template #title>
-                            <LazySmartsheetPlainCell v-model="selectedRecordDisplayValue" :column="displayField" />
+                            <LazySmartsheetPlainCell v-model="selectedRecord.label" :column="displayField" />
                           </template>
-                          <LazySmartsheetPlainCell v-model="selectedRecordDisplayValue" :column="displayField" />
+                          <LazySmartsheetPlainCell v-model="selectedRecord.label" :column="displayField" />
                         </NcTooltip>
 
-                        <div v-else class="flex-1 text-nc-content-gray-subtle2">- Select record -</div>
+                        <div v-else class="flex-1 text-nc-content-gray-muted">- Select record -</div>
                         <GeneralIcon
                           icon="chevronDown"
-                          class="flex-none"
+                          class="flex-none opacity-60"
                           :class="{
                             'transform rotate-180': isOpenSelectRecordDropdown,
                           }"
@@ -391,70 +437,124 @@ provide(IsFormInj, ref(true))
                         </NcList>
                       </template>
                     </NcDropdown>
-                    <NcButton size="small" type="secondary" class="nc-ai-button-test-generate" :disabled="aiLoading">
-                      <div class="flex items-center gap-2">
-                        <GeneralIcon icon="ncAutoAwesome" class="text-nc-content-yellow-medium h-4 w-4" />
-
-                        Test Generate
-                      </div>
-                    </NcButton>
+                    <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length)">
+                      <template #title>
+                        {{
+                          !outputColumnIds.length
+                            ? 'At least one output field is required for preview'
+                            : !selectedRecordPk
+                            ? 'Select sample record first'
+                            : ''
+                        }}
+                      </template>
+                      <NcButton
+                        size="small"
+                        type="secondary"
+                        class="nc-ai-button-test-generate"
+                        :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length"
+                        :class="{
+                          'nc-is-open-select-record-dropdown': isOpenSelectRecordDropdown,
+                        }"
+                        :loading="aiLoading && generatingPreview"
+                        @click.stop="generate"
+                      >
+                        <template #icon>
+                          <GeneralIcon icon="ncAutoAwesome" class="text-nc-content-yellow-medium h-4 w-4" />
+                        </template>
+                        <template #loadingIcon>
+                          <GeneralLoader class="!text-current" size="regular" />
+                        </template>
+                        <div class="flex items-center gap-2">
+                          {{ aiLoading && generatingPreview ? 'Test Generating' : 'Test Generate' }}
+                        </div>
+                      </NcButton>
+                    </NcTooltip>
                   </div>
                 </a-form-item>
               </div>
               <div class="nc-ai-button-config-right-section">
-                <div class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5">
-                  Input fields
-                  <a-tag v-if="inputColumns.length" class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0">
-                    {{ inputColumns.length }}</a-tag
-                  >
+                <a-collapse v-model:active-key="inputFieldsExpansionPanel" ghost>
+                  <template #expandIcon> </template>
+                  <a-collapse-panel key="1" collapsible="disabled">
+                    <template #header>
+                      <div class="flex">
+                        <div
+                          class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5 min-h-7"
+                          @click="handleUpdateInputFieldExpansionPanel(!inputFieldsExpansionPanel.length)"
+                        >
+                          Input fields
 
-                  <GeneralIcon icon="arrowRight" />
-                </div>
-                <template v-for="field in inputColumns">
-                  <a-form-item
-                    v-if="field.title"
-                    :key="field.id"
-                    :name="field.title"
-                    class="!my-0 nc-input-required-error"
-                  >
-                    <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                      <component :is="cellIcon(field)" class="!mx-0" />
-                      <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                        <template #title>
-                          {{ field?.title }}
-                        </template>
-                        {{ field?.title }}
-                      </NcTooltip>
+                          <template v-if="inputColumns.length">
+                            <a-tag class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0">
+                              {{ inputColumns.length }}</a-tag
+                            >
+
+                            <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-medium !px-1">
+                              <GeneralIcon
+                                icon="arrowRight"
+                                class="transform"
+                                :class="{
+                                  'rotate-270': inputFieldsExpansionPanel.length,
+                                }"
+                              />
+                            </NcButton>
+                          </template>
+                        </div>
+                      </div>
+                    </template>
+
+                    <div class="flex flex-col gap-4">
+                      <template v-for="field in inputColumns">
+                        <a-form-item
+                          v-if="field.title"
+                          :key="`${field.id}-${generatingPreview}`"
+                          :name="field.title"
+                          class="!my-0 nc-input-required-error"
+                        >
+                          <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
+                            <component :is="cellIcon(field)" class="!mx-0" />
+                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                              <template #title>
+                                {{ field?.title }}
+                              </template>
+                              {{ field?.title }}
+                            </NcTooltip>
+                          </div>
+
+                          <LazySmartsheetDivDataCell
+                            class="relative flex items-center min-h-8 children:h-full"
+                            :class="{
+                              '!select-text nc-system-field': isReadOnlyVirtualCell(field),
+                              '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
+                            }"
+                          >
+                            <LazySmartsheetVirtualCell
+                              v-if="isVirtualCol(field)"
+                              :model-value="selectedRecord?.row?.row?.[field.title]"
+                              class="mt-0 nc-input nc-cell"
+                              :class="[
+                                `nc-form-input-${field.title?.replaceAll(' ', '')}`,
+                                { 'px-1': isReadOnlyVirtualCell(col), y },
+                              ]"
+                              :column="field"
+                              :read-only="true"
+                            />
+
+                            <LazySmartsheetCell
+                              v-else
+                              :model-value="selectedRecord?.row?.row?.[field.title]"
+                              class="nc-input truncate"
+                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                              :column="field"
+                              :edit-enabled="true"
+                              :read-only="true"
+                            />
+                          </LazySmartsheetDivDataCell>
+                        </a-form-item>
+                      </template>
                     </div>
-
-                    <LazySmartsheetDivDataCell
-                      class="relative min-h-[37px] flex items-center"
-                      :class="{
-                        '!select-text nc-system-field': isReadOnlyVirtualCell(field),
-                        '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
-                      }"
-                    >
-                      <LazySmartsheetVirtualCell
-                        v-if="isVirtualCol(field)"
-                        :model-value="previewOutput[field.title]"
-                        class="mt-0 nc-input nc-cell"
-                        :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                        :column="field"
-                        :read-only="true"
-                      />
-
-                      <LazySmartsheetCell
-                        v-else
-                        v-model="previewOutput[field.title]"
-                        class="nc-input truncate"
-                        :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                        :column="field"
-                        :edit-enabled="true"
-                        :read-only="true"
-                      />
-                    </LazySmartsheetDivDataCell>
-                  </a-form-item>
-                </template>
+                  </a-collapse-panel>
+                </a-collapse>
               </div>
               <div class="nc-ai-button-config-right-section">
                 <div class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5">
@@ -484,7 +584,7 @@ provide(IsFormInj, ref(true))
                     </div>
 
                     <LazySmartsheetDivDataCell
-                      class="relative min-h-[37px] flex items-center"
+                      class="relative min-h-8 flex items-center children:h-full"
                       :class="{
                         '!select-text nc-system-field': isReadOnlyVirtualCell(field),
                         '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
@@ -525,6 +625,10 @@ provide(IsFormInj, ref(true))
 <style lang="scss">
 .nc-ai-button-config-modal-wrapper {
   @apply !z-1050;
+
+  .ant-modal-content {
+    @apply overflow-hidden;
+  }
 }
 </style>
 
@@ -564,6 +668,21 @@ provide(IsFormInj, ref(true))
   &:disabled {
     @apply !text-nc-content-purple-light !hover:(text-nc-content-purple-light bg-nc-bg-purple-light);
   }
+
+  &.nc-is-open-select-record-dropdown {
+    @apply !border-t-nc-border-purple !border-b-nc-border-purple !border-r-nc-border-purple;
+  }
+}
+
+:deep(.ant-collapse-header) {
+  @apply !p-0 flex items-center !cursor-default children:first:flex;
+}
+:deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
+  @apply !right-0;
+}
+
+:deep(.ant-collapse-content-box) {
+  @apply !px-0 !pb-0 !pt-3;
 }
 
 :deep(.ant-select-selector) {
@@ -594,7 +713,7 @@ provide(IsFormInj, ref(true))
 
     .nc-cell,
     .nc-virtual-cell {
-      @apply text-gray-400;
+      @apply text-nc-content-purple-dark;
     }
   }
   &.nc-readonly-div-data-cell:focus-within,
@@ -603,7 +722,7 @@ provide(IsFormInj, ref(true))
   }
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
-    @apply !shadow-selected;
+    @apply !shadow-selected-ai;
   }
 
   &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
@@ -635,7 +754,7 @@ provide(IsFormInj, ref(true))
   }
 }
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500;
+  @apply !border-1 !border-purple-500;
 }
 
 :deep(.nc-system-field input) {

@@ -1014,7 +1014,8 @@
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
     "redirectToUrl": "Redirect to URL",
     "aiSuggested": "AI suggested",
-    "generateFieldDataUsingAi": "Generate field data using AI"
+    "generateFieldDataUsingAi": "Generate field data using AI",
+    "preview": "Preview"
   },
   "activity": {
     "assignView": "Assign view",

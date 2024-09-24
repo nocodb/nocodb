@@ -239,6 +239,7 @@ class PGClient extends PGClientCE {
                     left join information_schema.key_column_usage as kc
                       on pc.conname = kc.constraint_name 
                       and col.attname = kc.column_name
+                      and kc.constraint_schema = n.nspname
                       and pc.conrelid::regclass::text = kc.table_name
                     WHERE n.nspname = :schema
                       AND rel.relname = :table 

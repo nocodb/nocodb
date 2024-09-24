@@ -3,6 +3,8 @@ import type { Actions, AppInfo, State } from './types'
 import type { NcProjectType } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
+  const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
+
   const setIsMobileMode = (isMobileMode: boolean) => {
     state.isMobileMode.value = isMobileMode
   }
@@ -44,6 +46,7 @@ export function useGlobalActions(state: State): Actions {
    * keepProps - is for keeping any existing role info if user id is same as previous user
    * */
   const signIn: Actions['signIn'] = async (newToken, keepProps = false) => {
+    isTokenUpdatedTab.value = true
     state.token.value = newToken
 
     if (state.jwtPayload.value) {

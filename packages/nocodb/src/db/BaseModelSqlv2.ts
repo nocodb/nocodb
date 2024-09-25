@@ -210,6 +210,7 @@ class BaseModelSqlv2 {
   protected source: Source;
   public model: Model;
   public context: NcContext;
+  public schema?: string;
 
   public static config: any = defaultLimitConfig;
 
@@ -222,14 +223,17 @@ class BaseModelSqlv2 {
     model,
     viewId,
     context,
+    schema,
   }: {
     [key: string]: any;
     model: Model;
+    schema?: string;
   }) {
     this._dbDriver = dbDriver;
     this.model = model;
     this.viewId = viewId;
     this.context = context;
+    this.schema = schema;
     autoBind(this);
   }
 
@@ -4854,7 +4858,9 @@ class BaseModelSqlv2 {
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
     const schema = (this.dbDriver as any).searchPath?.();
-    if (this.isMssql && schema) {
+    if (this.isPg && this.schema) {
+      return `${this.schema}.${tn}${alias ? ` as ${alias}` : ``}`;
+    } else if (this.isMssql && schema) {
       return this.dbDriver.raw(`??.??${alias ? ' as ??' : ''}`, [
         schema,
         tn,

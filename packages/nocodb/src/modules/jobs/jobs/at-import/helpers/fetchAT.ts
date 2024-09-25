@@ -243,7 +243,6 @@ async function readView(viewId) {
           resolve(fullObject);
         });
       });
-      
 
       if (data?.data) {
         return { view: data.data };

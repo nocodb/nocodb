@@ -13,6 +13,7 @@ import { User } from '~/models';
 import { NcConfig, prepareEnv } from '~/utils/nc-config';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { updateMigrationJobsState } from '~/helpers/migrationJobs';
+import { initBaseBehavior } from '~/helpers/initBaseBehaviour';
 
 export const InitMetaServiceProvider: FactoryProvider = {
   // initialize app,
@@ -82,6 +83,9 @@ export const InitMetaServiceProvider: FactoryProvider = {
     Noco._ncMeta = metaService;
     Noco.config = config;
     Noco.eventEmitter = eventEmitter;
+
+    // decide base behavior based on env and database permissions
+    await initBaseBehavior();
 
     if (!instanceConfig) {
       // bump to latest version for fresh install

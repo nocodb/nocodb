@@ -945,7 +945,6 @@ class PGClient extends KnexClient {
 
     return result;
   }
-
   /**
    *
    * @param {Object} - args - Input arguments
@@ -1369,7 +1368,7 @@ class PGClient extends KnexClient {
     try {
       args.databaseName = this.connectionConfig.connection.database;
 
-      const { rows } = await this.raw(
+      const { rows } = await this.sqlClient.raw(
         `SELECT *
               FROM pg_catalog.pg_namespace n
                      JOIN pg_catalog.pg_proc p
@@ -1424,7 +1423,7 @@ class PGClient extends KnexClient {
     try {
       args.databaseName = this.connectionConfig.connection.database;
 
-      const { rows } = await this.raw(
+      const { rows } = await this.sqlClient.raw(
         `SELECT *
               FROM pg_catalog.pg_namespace n
                      JOIN pg_catalog.pg_proc p

@@ -32,7 +32,7 @@ const renderedText = computedAsync(async () => {
     .use(rehypeStringify)
     .process(
       Description.replace(/!\[.*?\]\(.*?\)/g, '')
-        .substring(0, 300)
+        .substring(0, 250)
         .concat('...')
         .concat(`&nbsp;   [Read more](${Url})`),
     )
@@ -44,11 +44,11 @@ const renderedText = computedAsync(async () => {
     <div class="flex items-center justify-between px-5 py-4">
       <div class="flex items-center gap-3">
         <component :is="feedIcon[source as any]" class="w-4 h-4 stroke-transparent" />
-        <span class="font-weight-medium leading-5 cursor-pointer" @click="openLink(Url)">
+        <span class="font-weight-medium text-nc-content-gray leading-5 cursor-pointer" @click="openLink(Url)">
           {{ source }}
         </span>
       </div>
-      <div class="text-sm text-gray-700 leading-5">
+      <div class="text-sm text-nc-content-gray-muted leading-5">
         {{ timeAgo(CreatedAt) }}
       </div>
     </div>
@@ -63,12 +63,12 @@ const renderedText = computedAsync(async () => {
     </template>
     <template v-else-if="source === 'Youtube'">
       <YoutubeVue3 :videoid="extractYoutubeVideoId(Url)" :controls="1" :height="330" :width="538" :autoplay="0" />
-      <div class="p-5 flex flex-col text-gray-900 gap-4">
-        <div class="text-2xl font-semibold">
+      <div class="p-5 flex flex-col text-nc-content-gray-emphasis gap-4">
+        <div class="text-2xl font-semibold truncate">
           {{ Title }}
         </div>
 
-        <div class="font-weight-base">
+        <div class="font-weight-base text-md">
           {{ Description.substring(0, 200).concat('...') }}
         </div>
       </div>
@@ -85,11 +85,12 @@ const renderedText = computedAsync(async () => {
     }
 
     h1 {
-      @apply text-2xl font-semibold truncate;
-      font-weight: 500;
+      @apply text-2xl text-nc-content-gray-emphasis truncate leading-9 mb-0;
+      font-weight: 700;
     }
     p {
-      @apply text-md text-nc-content-gray-emphasis leading-6;
+      @apply text-nc-content-gray-emphasis leading-5;
+      font-size: 14px !important;
     }
   }
 }

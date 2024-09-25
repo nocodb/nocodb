@@ -173,6 +173,41 @@ prompt() {
     fi
 }
 
+prompt_oneof() {
+    local response
+    local resp_upper
+    local oneof_text
+    local prompt_text="$1"
+    local default_response="$2"
+    shift 1
+
+    prompt_text+=" (default: $default_response) "
+    oneof_text+="["
+    for one in "$@"; do
+        oneof_text+="$one,"
+    done
+    oneof_text="${oneof_text%%,}]"
+    prompt_text+="${oneof_text}: "
+
+    while true; do
+        read -r -p "$prompt_text" response
+        if [ -z "$response" ]; then
+            echo "$default_response"
+            return
+        fi
+
+        for one in "$@"; do
+            resp_upper="${response^^}"
+            one_upper="${one^^}"
+            if [ "$resp_upper" = "$one_upper" ]; then
+                echo "$one"
+                return
+            fi
+        done
+        print_error "This field should be one of ${oneof_text}."
+    done
+}
+
 prompt_required() {
     local prompt_text="$1"
     local response
@@ -206,24 +241,20 @@ prompt_number() {
 confirm() {
     local prompt_text="$1"
     local default_response="${2:-N}"
+    local secondary_response
     local response
+    case "$default_response" in
+        "Y") secondary_response="N";;
+        "N") secondary_response="Y";;
+    esac
 
-    if [ "$default_response" = "Y" ] || [ "$default_response" = "y" ]; then
-        prompt_text+=" [Y/n]: "
-    else
-        prompt_text+=" [y/N]: "
-    fi
-
-    read -r -p "$prompt_text" response
-    response="${response:-$default_response}"
-
-    if [ "$response" = "Y" ] || [ "$response" = "y" ]; then
+    response="$(prompt_oneof "$prompt_text" "$default_response" "$secondary_response")"
+    if [ "$response" = "Y" ]; then
         return 0
-    else
+    elif [ "$response" = "N" ]; then
         return 1
     fi
 }
-
 
 generate_contact_email() {
     local domain="$1"
@@ -430,15 +461,11 @@ check_system_requirements() {
 get_user_inputs() {
     CONFIG_DOMAIN_NAME=$(prompt "Enter the IP address or domain name for the NocoDB instance" "$(get_public_ip)")
 
-     if is_valid_domain "$CONFIG_DOMAIN_NAME"; then
-            if confirm "Do you want to configure SSL for $CONFIG_DOMAIN_NAME?"; then
-                CONFIG_SSL_ENABLED="Y"
-            else
-                CONFIG_SSL_ENABLED="N"
-            fi
-        else
-            CONFIG_SSL_ENABLED="N"
-        fi
+    if is_valid_domain "$CONFIG_DOMAIN_NAME"; then
+        CONFIG_SSL_ENABLED="$(prompt_oneof "Do you want to configure SSL for $CONFIG_DOMAIN_NAME" "Y" "N")"
+    else
+        CONFIG_SSL_ENABLED="N"
+    fi
 
     if confirm "Show Advanced Options?"; then
         get_advanced_options
@@ -448,33 +475,29 @@ get_user_inputs() {
 }
 
 get_advanced_options() {
-    CONFIG_EDITION=$(prompt "Choose Community or Enterprise Edition [CE/EE]" "CE")
+    CONFIG_EDITION=$(prompt_oneof "Choose Community or Enterprise Edition" "CE" "EE")
 
-    if [ "$CONFIG_EDITION" = "EE" ] || [ "$CONFIG_EDITION" = "ee" ]; then
+    if [ "$CONFIG_EDITION" = "EE" ]; then
         CONFIG_LICENSE_KEY=$(prompt_required "Enter the NocoDB license key")
     else
-        CONFIG_POSTGRES_SQLITE=$(prompt "Select PostgreSQL or SQLite as your database [P/S]" "P")
+        CONFIG_POSTGRES_SQLITE=$(prompt_oneof "Select PostgreSQL or SQLite as your database" "P" "S")
     fi
 
-    CONFIG_REDIS_ENABLED=$(confirm "Do you want to enable Redis for caching?" "Y" && echo "Y" || echo "N" "Y")
-    CONFIG_MINIO_ENABLED=$(confirm "Do you want to enable Minio for file storage?" "Y" && echo "Y" || echo "N" "Y")
+    CONFIG_REDIS_ENABLED=$(prompt_oneof "Do you want to enable Redis for caching?" "Y" "N")
+    CONFIG_MINIO_ENABLED=$(prompt_oneof "Do you want to enable Minio for file storage?" "Y" "N")
 
-    if [ "$CONFIG_MINIO_ENABLED" = "Y" ] || [ "$CONFIG_MINIO_ENABLED" = "y" ]; then
+    if [ "$CONFIG_MINIO_ENABLED" = "Y" ]; then
 
       CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter the MinIO domain name" "$(get_public_ip)")
 
         if is_valid_domain "$CONFIG_MINIO_DOMAIN_NAME"; then
-                if confirm "Do you want to configure SSL for $CONFIG_MINIO_DOMAIN_NAME?"; then
-                    CONFIG_MINIO_SSL_ENABLED="Y"
-                else
-                    CONFIG_MINIO_SSL_ENABLED="N"
-                fi
+            CONFIG_MINIO_SSL_ENABLED="$(prompt_oneof "Do you want to configure SSL for $CONFIG_MINIO_DOMAIN_NAME" "Y" "N")"
         else
-                CONFIG_MINIO_SSL_ENABLED="N"
+            CONFIG_MINIO_SSL_ENABLED="N"
         fi
     fi
 
-    CONFIG_WATCHTOWER_ENABLED=$(confirm "Do you want to enable Watchtower for automatic updates?" "Y" && echo "Y" || echo "N")
+    CONFIG_WATCHTOWER_ENABLED=$(prompt_oneof "Do you want to enable Watchtower for automatic updates?" "Y" "N")
 
     NUM_CORES=$(get_nproc)
     CONFIG_NUM_INSTANCES=$(read_number_range "How many instances of NocoDB do you want to run?" 1 "$NUM_CORES" 1)
@@ -500,7 +523,7 @@ generate_credentials() {
 
 create_docker_compose_file() {
 
-    if [ "${CONFIG_EDITION}" = "EE" ] || [ "${CONFIG_EDITION}" = "ee" ]; then
+    if [ "${CONFIG_EDITION}" = "EE" ]; then
         image="nocodb/nocodb-ee:latest"
     else
         image="nocodb/nocodb:latest"
@@ -514,7 +537,7 @@ create_docker_compose_file() {
     if [ "${CONFIG_MINIO_ENABLED}" = "Y" ]; then
         gen_minio=1
     fi
-    if [ "${CONFIG_POSTGRES_SQLITE}" = "P" ] || [ "${CONFIG_POSTGRES_SQLITE}" = "p" ]; then
+    if [ "${CONFIG_POSTGRES_SQLITE}" = "P" ]; then
         gen_postgres=1
     fi
 
@@ -568,7 +591,7 @@ EOF
       - nocodb-network
 EOF
 
-  if [ "$CONFIG_POSTGRES_SQLITE" = "P" ] || [ "${CONFIG_POSTGRES_SQLITE}" = "p" ]; then
+  if [ "$CONFIG_POSTGRES_SQLITE" = "P" ]; then
 cat >> "$compose_file" <<EOF
   db:
     image: postgres:16.1
@@ -729,7 +752,7 @@ POSTGRES_USER=postgres
 POSTGRES_PASSWORD=${CONFIG_POSTGRES_PASSWORD}
 EOF
 
-    if [ "${CONFIG_EDITION}" = "EE" ] || [ "${CONFIG_EDITION}" = "ee" ]; then
+    if [ "${CONFIG_EDITION}" = "EE" ]; then
         echo "DATABASE_URL=postgres://postgres:${encoded_password}@db:5432/nocodb" >> "$env_file"
         echo "NC_LICENSE_KEY=${CONFIG_LICENSE_KEY}" >> "$env_file"
     elif [ "${CONFIG_POSTGRES_SQLITE}" = "P" ]; then
@@ -973,7 +996,7 @@ main() {
     start_services
     display_completion_message
 
-    if confirm "Do you want to start the management menu?"; then
+    if confirm "Do you want to start the management menu?" "Y"; then
         management_menu
     fi
 }

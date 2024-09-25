@@ -1,5 +1,6 @@
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useMotion } from '@vueuse/motion'
 
 const props = defineProps({
   modelValue: {
@@ -31,10 +32,6 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
-  transition: {
-    type: String,
-    default: 'fade',
-  },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -48,6 +45,31 @@ const popoverStyle = computed(() => ({
   zIndex: props.zIndex,
   width: props.width,
 }))
+
+const { variant } = useMotion(popoverRef, {
+  initial: {
+    opacity: 0,
+    scale: 0.1,
+  },
+  enter: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 20,
+    },
+  },
+  leave: {
+    opacity: 0,
+    scale: 0.1,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 20,
+    },
+  },
+})
 
 const updatePopoverPosition = () => {
   if (!triggerRef.value || !popoverRef.value) return
@@ -96,12 +118,18 @@ const updatePopoverPosition = () => {
 const openPopover = () => {
   isOpen.value = true
   emit('update:modelValue', true)
-  nextTick(updatePopoverPosition)
+  nextTick(() => {
+    updatePopoverPosition()
+    variant.value = 'enter'
+  })
 }
 
 const closePopover = () => {
-  isOpen.value = false
-  emit('update:modelValue', false)
+  variant.value = 'leave'
+  setTimeout(() => {
+    isOpen.value = false
+    emit('update:modelValue', false)
+  }, 300)
 }
 
 const handleClickOutside = (event) => {
@@ -139,7 +167,14 @@ watch(
   () => props.modelValue,
   (newValue) => {
     isOpen.value = newValue
-    if (newValue) nextTick(updatePopoverPosition)
+    if (newValue) {
+      nextTick(() => {
+        updatePopoverPosition()
+        variant.value = 'enter'
+      })
+    } else {
+      variant.value = 'leave'
+    }
   },
 )
 </script>
@@ -153,31 +188,24 @@ watch(
     </div>
 
     <Teleport to="body">
-      <Transition :name="transition">
-        <div v-if="isOpen" ref="popoverRef" :style="popoverStyle" class="popover-content">
-          <slot name="content" :close="closePopover">
-            <div class="p-4">
-              <p>Default popover content</p>
-              <button @click="closePopover">Close</button>
-            </div>
-          </slot>
-        </div>
-      </Transition>
+      <div v-if="isOpen" ref="popoverRef" v-motion :style="popoverStyle" class="popover-content">
+        <slot name="content" :close="closePopover">
+          <div class="p-4">
+            <p>Default popover content</p>
+            <button @click="closePopover">Close</button>
+          </div>
+        </slot>
+      </div>
     </Teleport>
   </div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .popover-content {
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 </style>

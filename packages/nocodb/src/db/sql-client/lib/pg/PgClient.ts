@@ -1229,6 +1229,74 @@ class PGClient extends KnexClient {
 
   /**
    *
+   * @param {Object} - args
+   * @param {String} - args.parentTable
+   * @param {String} - args.parentColumn
+   * @param {String} - args.childColumn
+   * @param {String} - args.childTable
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async relationCreate(args) {
+    const _func = this.relationCreate.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const foreignKeyName = args.foreignKeyName || null;
+
+    args.childTableWithSchema = args.schema
+      ? `${args.schema}.${args.childTable}`
+      : args.childTable;
+
+    args.parentTableWithSchema = args.schema
+      ? `${args.schema}.${args.parentTable}`
+      : args.parentTable;
+
+    try {
+      const upQb = this.sqlClient.schema.table(
+        args.childTableWithSchema,
+        function (table) {
+          table = table
+            .foreign(args.childColumn, foreignKeyName)
+            .references(args.parentColumn)
+            .on(args.parentTableWithSchema);
+
+          if (args.onUpdate) {
+            table = table.onUpdate(args.onUpdate);
+          }
+          if (args.onDelete) {
+            table.onDelete(args.onDelete);
+          }
+        },
+      );
+
+      await this.sqlClient.raw(upQb.toQuery());
+
+      const upStatement = this.querySeparator() + upQb.toQuery();
+
+      this.emit(`Success : ${upStatement}`);
+
+      const downStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.childTableWithSchema, function (table) {
+            table.dropForeign(args.childColumn, foreignKeyName);
+          })
+          .toQuery();
+
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+
+  /**
+   *
    * @param {Object} - args - Input arguments
    * @param {Object} - args.tn -
    * @returns {Object[]} - relations
@@ -3094,6 +3162,151 @@ class PGClient extends KnexClient {
           .toQuery();
 
       /** ************** return files *************** */
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.tn
+   * @param {String} - args.indexName
+   * @param {String} - args.non_unique
+   * @param {String[]} - args.columns
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async indexCreate(args) {
+    const _func = this.indexCreate.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const indexName = args.indexName || null;
+
+    try {
+      args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
+
+      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique) {
+              table.index(args.columns, indexName);
+            } else {
+              table.unique(args.columns, indexName);
+            }
+          })
+          .toQuery(),
+      );
+
+      const upStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique) {
+              table.index(args.columns, indexName);
+            } else {
+              table.unique(args.columns, indexName);
+            }
+          })
+          .toQuery();
+
+      this.emit(`Success : ${upStatement}`);
+
+      const downStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique) {
+              table.dropIndex(args.columns, indexName);
+            } else {
+              table.dropUnique(args.columns, indexName);
+            }
+          })
+          .toQuery();
+
+      result.data.object = {
+        upStatement: [{ sql: upStatement }],
+        downStatement: [{ sql: downStatement }],
+      };
+
+      // result.data.object = {
+      //   upStatement,
+      //   downStatement
+      // };
+    } catch (e) {
+      log.ppe(e, _func);
+      throw e;
+    }
+
+    return result;
+  }
+
+  /**
+   *
+   * @param {Object} - args
+   * @param {String} - args.tn
+   * @param {String[]} - args.columns
+   * @param {String} - args.indexName
+   * @param {String} - args.non_unique
+   * @returns {Promise<{upStatement, downStatement}>}
+   */
+  async indexDelete(args) {
+    const _func = this.indexDelete.name;
+    const result = new Result();
+    log.api(`${_func}:args:`, args);
+
+    const indexName = args.indexName || null;
+
+    try {
+      args.table = args.schema ? `${args.schema}.${args.tn}` : args.tn;
+
+      // s = await this.sqlClient.schema.index(Object.keys(args.columns));
+      await this.sqlClient.raw(
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique_original) {
+              table.dropIndex(args.columns, indexName);
+            } else {
+              table.dropUnique(args.columns, indexName);
+            }
+          })
+          .toQuery(),
+      );
+
+      const upStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique_original) {
+              table.dropIndex(args.columns, indexName);
+            } else {
+              table.dropUnique(args.columns, indexName);
+            }
+          })
+          .toQuery();
+
+      this.emit(`Success : ${upStatement}`);
+
+      const downStatement =
+        this.querySeparator() +
+        this.sqlClient.schema
+          .table(args.table, function (table) {
+            if (args.non_unique_original) {
+              table.index(args.columns, indexName);
+            } else {
+              table.unique(args.columns, indexName);
+            }
+          })
+          .toQuery();
+
       result.data.object = {
         upStatement: [{ sql: upStatement }],
         downStatement: [{ sql: downStatement }],

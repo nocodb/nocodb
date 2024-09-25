@@ -159,6 +159,8 @@ Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/maste
 
 # Why are we building this?
 
+NocoDB is an open-source platform that transforms your existing databases into a no-code, spreadsheet-like interface. It is designed to make database management accessible to users without technical expertise, allowing them to perform CRUD operations (Create, Read, Update, Delete) on tables and rows visually. NocoDB supports various database systems, including MySQL, PostgreSQL, and SQLite, providing flexibility in how users manage their data. The project aims to democratize access to database tools, reducing dependency on complex software systems and eliminating vendor lock-in. Ultimately, NocoDB enables businesses and individuals to manage, share, and collaborate on data more efficiently.
+
 Most internet businesses equip themselves with either spreadsheet or a database to solve their business needs. Spreadsheets are used by Billion+ humans collaboratively every single day. However, we are way off working at similar speeds on databases which are way more powerful tools when it comes to computing. Attempts to solve this with SaaS offerings have meant horrible access controls, vendor lock-in, data lock-in, abrupt price changes & most importantly a glass ceiling on what's possible in the future.
 
 # Our Mission

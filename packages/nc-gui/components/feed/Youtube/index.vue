@@ -44,6 +44,6 @@ const gotoChannel = () => {
 
 <style scoped lang="scss">
 .youtube-feed {
-  @apply !max-w-[33.75rem];
+  @apply max-w-[540px] xl:max-w-[640px];
 }
 </style>

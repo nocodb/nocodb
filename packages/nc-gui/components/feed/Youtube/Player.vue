@@ -11,6 +11,8 @@ const props = defineProps<{
 const {
   item: { Title, Description, Url },
 } = props
+
+const { width } = useWindowSize()
 </script>
 
 <template>
@@ -18,8 +20,8 @@ const {
     <YoutubeVue3
       :videoid="extractYoutubeVideoId(Url)"
       class="!rounded-t-xl"
-      :height="330"
-      :width="538"
+      :height="width < 1280 ? 330 : 392"
+      :width="width < 1280 ? 538 : 638"
       :autoplay="0"
       :controls="1"
     />

@@ -164,6 +164,10 @@ const renderedText = computedAsync(async () => {
       @apply text-nc-content-gray-emphasis leading-6;
       font-size: 14px !important;
     }
+
+    h3 {
+      @apply text-nc-content-gray-emphasis text-lg leading-5 mb-0;
+    }
   }
 }
 

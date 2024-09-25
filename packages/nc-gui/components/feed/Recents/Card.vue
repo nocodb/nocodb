@@ -24,6 +24,8 @@ const feedIcon = {
   Github: iconMap.githubSolid,
 }
 
+const truncate = ref(true)
+
 const renderedText = computedAsync(async () => {
   return await unified()
     .use(remarkParse)
@@ -31,16 +33,19 @@ const renderedText = computedAsync(async () => {
     .use(rehypeSanitize)
     .use(rehypeStringify)
     .process(
-      Description.replace(/!\[.*?\]\(.*?\)/g, '')
-        .substring(0, 250)
-        .concat('...')
-        .concat(`&nbsp;   [Read more](${Url})`),
+      truncate.value
+        ? Description.replace(/!\[.*?\]\(.*?\)/g, '')
+            .substring(0, 250)
+            .concat('...')
+        : Description,
     )
 })
+
+const { width } = useWindowSize()
 </script>
 
 <template>
-  <div class="bg-white recent-card border-gray-200 border-1 rounded-2xl" style="width: 540px">
+  <div class="bg-white recent-card border-gray-200 border-1 rounded-2xl max-w-[540px] xl:max-w-[640px]">
     <div class="flex items-center justify-between px-5 py-4">
       <div class="flex items-center gap-3">
         <component :is="feedIcon[source as any]" class="w-4 h-4 stroke-transparent" />
@@ -53,16 +58,31 @@ const renderedText = computedAsync(async () => {
       </div>
     </div>
     <template v-if="source === 'Github'">
-      <LazyCellAttachmentPreviewImage
-        v-if="Images?.length"
-        class="cursor-pointer"
-        :srcs="getPossibleAttachmentSrc(Images[0], 'card_cover')"
-        @click="openLink(Url)"
-      />
-      <div class="prose px-5 pb-5 mt-5" v-html="renderedText"></div>
+      <div class="pb-5">
+        <LazyCellAttachmentPreviewImage
+          v-if="Images?.length"
+          class="cursor-pointer"
+          :srcs="getPossibleAttachmentSrc(Images[0], 'card_cover')"
+          @click="openLink(Url)"
+        />
+        <div class="prose px-5 mt-5" v-html="renderedText"></div>
+
+        <NcButton v-if="truncate" size="small" class="w-29 mx-5" type="text" @click="truncate = false">
+          <div class="gap-2 flex items-center">
+            Show more
+            <GeneralIcon icon="arrowDown" />
+          </div>
+        </NcButton>
+      </div>
     </template>
     <template v-else-if="source === 'Youtube'">
-      <YoutubeVue3 :videoid="extractYoutubeVideoId(Url)" :controls="1" :height="330" :width="538" :autoplay="0" />
+      <YoutubeVue3
+        :videoid="extractYoutubeVideoId(Url)"
+        :controls="1"
+        :height="width < 1280 ? 330 : 392"
+        :width="width < 1280 ? 538 : 638"
+        :autoplay="0"
+      />
       <div class="p-5 flex flex-col text-nc-content-gray-emphasis gap-4">
         <div class="text-2xl font-semibold truncate">
           {{ Title }}
@@ -91,6 +111,10 @@ const renderedText = computedAsync(async () => {
     p {
       @apply text-nc-content-gray-emphasis leading-5;
       font-size: 14px !important;
+    }
+
+    h3 {
+      @apply text-nc-content-gray-emphasis text-lg leading-5 mb-0;
     }
   }
 }

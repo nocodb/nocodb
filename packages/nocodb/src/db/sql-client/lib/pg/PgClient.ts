@@ -493,8 +493,7 @@ class PGClient extends KnexClient {
         ]);
       }
 
-      const schemaName =
-        args.schema || this.connectionConfig.searchPath?.[0] || 'public';
+      const schemaName = this.getEffectiveSchema(args);
 
       // Check schemaExists because `CREATE SCHEMA IF NOT EXISTS` requires permissions of `CREATE ON DATABASE`
       const schemaExists = !!(
@@ -523,6 +522,10 @@ class PGClient extends KnexClient {
 
     log.api(`${_func}: result`, result);
     return result;
+  }
+
+  protected getEffectiveSchema(args: { schema?: string } = {}) {
+    return args?.schema || this.schema;
   }
 
   async dropDatabase(args) {
@@ -577,7 +580,7 @@ class PGClient extends KnexClient {
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and
          table_name = ? and table_catalog = ?`,
         [
-          args.schema || this.schema,
+          this.getEffectiveSchema(args),
           args.tn,
           this.connectionConfig.connection.database,
         ],
@@ -644,7 +647,7 @@ class PGClient extends KnexClient {
       const { rows } = await this.sqlClient.raw(
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and table_name = ? and table_catalog = ?'`,
         [
-          args.schema || this.schema,
+          this.getEffectiveSchema(args),
           args.tn,
           this.connectionConfig.connection.database,
         ],
@@ -725,7 +728,7 @@ class PGClient extends KnexClient {
               FROM information_schema.tables
               where table_schema = ?
               ORDER BY table_schema, table_name`,
-        [args.schema || this.schema],
+        [this.getEffectiveSchema(args)],
       );
 
       result.data.list = rows.filter(
@@ -861,7 +864,7 @@ class PGClient extends KnexClient {
               where c.table_catalog=:database and c.table_schema=:schema and c.table_name=:table
               order by c.table_name, c.ordinal_position`,
         {
-          schema: args.schema || this.schema,
+          schema: this.getEffectiveSchema(args),
           database: args.databaseName,
           table: args.tn,
         },
@@ -1003,7 +1006,7 @@ class PGClient extends KnexClient {
       and i.oid<>0
       AND f.attnum > 0
       ORDER BY i.relname, f.attnum;`,
-        [args.schema || this.schema, args.tn],
+        [this.getEffectiveSchema(args), args.tn],
       );
       result.data.list = rows;
     } catch (e) {
@@ -1198,7 +1201,7 @@ class PGClient extends KnexClient {
             on pc.conname = tc.constraint_name
         WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema=:schema and tc.table_name=:table
         order by tc.table_name;`,
-        { schema: args.schema || this.schema, table: args.tn },
+        { schema: this.getEffectiveSchema(args), table: args.tn },
       );
 
       const ruleMapping = {
@@ -1269,7 +1272,7 @@ class PGClient extends KnexClient {
          WHERE tc.constraint_type = 'FOREIGN KEY'
            AND tc.table_schema = ?
          order by tc.table_name;`,
-        [args.schema || this.schema],
+        [this.getEffectiveSchema(args)],
       );
 
       const ruleMapping = {
@@ -1322,7 +1325,7 @@ class PGClient extends KnexClient {
 
       const { rows } = await this.sqlClient.raw(
         `select * from information_schema.triggers where trigger_schema=? and event_object_table=?`,
-        [args.schema || this.schema, args.tn],
+        [this.getEffectiveSchema(args), args.tn],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1372,7 +1375,7 @@ class PGClient extends KnexClient {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [args.schema || this.schema],
+        [this.getEffectiveSchema(args)],
       );
       const functionRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -1427,7 +1430,7 @@ class PGClient extends KnexClient {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [args.schema || this.schema],
+        [this.getEffectiveSchema(args)],
       );
       const procedureRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -1469,7 +1472,7 @@ class PGClient extends KnexClient {
         `select *
            from INFORMATION_SCHEMA.views
            WHERE table_schema = ?;`,
-        [args.schema || this.schema],
+        [this.getEffectiveSchema(args)],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1507,7 +1510,7 @@ class PGClient extends KnexClient {
         `SELECT format('%I.%I(%s)', ns.nspname, p.proname, oidvectortypes(p.proargtypes)) as function_declaration, pg_get_functiondef(p.oid) as create_function
                 FROM pg_proc p INNER JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
             WHERE ns.nspname = ? and p.proname = ?;`,
-        [args.schema || this.schema, args.function_name],
+        [this.getEffectiveSchema(args), args.function_name],
       );
 
       // log.debug(response);
@@ -2969,12 +2972,7 @@ class PGClient extends KnexClient {
   }
 
   get schema() {
-    return (
-      (this.connectionConfig &&
-        this.connectionConfig.searchPath &&
-        this.connectionConfig.searchPath[0]) ||
-      'public'
-    );
+    return this.connectionConfig?.searchPath?.[0] || 'public';
   }
 
   /**
@@ -3041,7 +3039,7 @@ class PGClient extends KnexClient {
         this.sqlClient.schema
           .renameTable(
             this.sqlClient.raw('??.??', [
-              args.schema || this.schema,
+              this.getEffectiveSchema(args),
               args.tn_old,
             ]),
             args.tn,
@@ -3054,7 +3052,10 @@ class PGClient extends KnexClient {
         this.querySeparator() +
         this.sqlClient.schema
           .renameTable(
-            this.sqlClient.raw('??.??', [args.schema || this.schema, args.tn]),
+            this.sqlClient.raw('??.??', [
+              this.getEffectiveSchema(args),
+              args.tn,
+            ]),
             args.tn_old,
           )
           .toQuery();
@@ -3066,7 +3067,7 @@ class PGClient extends KnexClient {
         this.sqlClient.schema
           .renameTable(
             this.sqlClient.raw('??.??', [
-              args.schema || this.schema,
+              this.getEffectiveSchema(args),
               args.tn_old,
             ]),
             args.tn,

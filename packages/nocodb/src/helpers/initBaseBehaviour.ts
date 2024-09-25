@@ -33,14 +33,16 @@ export async function initBaseBehavior() {
     );
 
     // if schema creation is not allowed, return
-    if (!schemaCreateAllowed.rows[0].has_database_privilege) {
+    if (!schemaCreateAllowed.rows[0]?.has_database_privilege) {
       return;
     }
 
     // set NC_MINIMAL_DBS to true
     process.env.NC_MINIMAL_DBS = 'true';
-  } catch {
-    logger.warn('Error while checking schema creation permission');
+  } catch (error) {
+    logger.warn(
+      `Error while checking schema creation permission: ${error.message}`,
+    );
   } finally {
     // close the connection since it's only used to verify permission
     await tempConnection?.destroy();

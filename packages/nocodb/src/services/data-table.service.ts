@@ -52,6 +52,7 @@ export class DataTableService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const row = await baseModel.readByPk(param.rowId, false, param.query, {
@@ -82,6 +83,7 @@ export class DataTableService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     if (view.type !== ViewTypes.GRID) {

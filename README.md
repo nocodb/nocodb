@@ -51,18 +51,51 @@ NocoDB is the fastest and easiest way to build databases online.
 
 [![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
 
+# Table of Contents
+
+- [Join Our Community](#join-our-community)
+- [Installation](#installation)
+  - [Docker with SQLite](#docker-with-sqlite)
+  - [Docker with PostgreSQL](#docker-with-postgresql)
+  - [Troubleshooting](#troubleshooting)
+- [Features](#features)
+  - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
+  - [Workflow Automations](#workflow-automations)
+  - [Programmatic Access](#programmatic-access)
+- [Contributing](#contributing)
+- [Why are we building this?](#why-are-we-building-this)
+- [License](#license)
+- [Contributors](#contributors)
+
+
 
 # Installation
 
-
 ## Docker with SQLite
 
-```bash 
-docker run -d --name noco 
-           -v "$(pwd)"/nocodb:/usr/app/data/ 
-           -p 8080:8080 
+Ensure Docker is installed and running. If not installed, follow the [Docker installation guide](https://docs.docker.com/get-docker/).
+
+Once Docker is ready, you can start NocoDB with SQLite by running:
+
+```bash
+docker run -d --name noco \
+           -v "$(pwd)"/nocodb:/usr/app/data/ \
+           -p 8080:8080 \
            nocodb/nocodb:latest
 ```
+
+## Docker with PostgreSQL
+
+To run NocoDB with PostgreSQL, use the following command. Replace `<host>`, `<username>`, `<password>`, and `<dbname>` with your PostgreSQL connection details:
+
+```bash
+docker run -d --name noco \
+           -v "$(pwd)"/nocodb:/usr/app/data/ \
+           -p 8080:8080 \
+           -e NC_DB="pg://<host>:5432?u=<username>&p=<password>&d=<dbname>" \
+           -e NC_AUTH_JWT_SECRET="your_secret" \
+           nocodb/nocodb:latest
+
 
 ## Docker with PG
 ```bash

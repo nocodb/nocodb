@@ -242,7 +242,7 @@
         "tags": [
           "Workspace base", "Bases"
         ],
-        "description": "This API fetches list of bases associated with the specified workspace ID. The workspace ID must be provided in the path as a required parameter. The API returns a list in JSON format, containing metadata and configuration for each base.",
+        "description": "This API fetches list of bases associated with the specified workspace ID. The workspace ID must be provided in the path as a required parameter. The API returns a list in JSON format, containing metadata and configuration for each base. The API returns a paginated list of bases.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of bases available in the specified Workspace ID.\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of base items listed on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of base records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of base records in the dataset.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -1164,7 +1164,7 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "description": "List all users in the given base.",
+        "description": "This endpoint allows you to list all users (collaborators) within a specified base. The API returns a paginated list of users.\\n\\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\\n\\n- `totalRows`: Indicates the total number of users available in the specified Base ID.\\n- `page`: Specifies the current page number.\\n- `pageSize`: Defaults to 25 and defines the number of user items listed on each page.\\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of user records in the dataset.\\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of user records in the dataset.",
         "tags": [
           "Auth", "Users"
         ],
@@ -2253,7 +2253,7 @@
       "get": {
         "summary": "List Sources",
         "operationId": "source-list",
-        "description": "Get base source list",
+        "description": "This endpoint allows you to list all (data) sources within a specified base. The API returns a paginated list of data sources.\\n\\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\\n\\n- `totalRows`: Indicates the total number of sources available in the specified Base ID.\\n- `page`: Specifies the current page number.\\n- `pageSize`: Defaults to 25 and defines the number of source items listed on each page.\\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of source records in the dataset.\\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of source records in the dataset.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -4905,7 +4905,7 @@
         "tags": [
           "DB View", "Views"
         ],
-        "description": "List all views in a given Table.",
+        "description": "This endpoint allows you to list all views within a specified table. The API returns a paginated list of views.\n\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\n\n- `totalRows`: Indicates the total number of views available in the specified Table ID.\n- `page`: Specifies the current page number.\n- `pageSize`: Defaults to 25 and defines the number of view items listed on each page.\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of view records in the dataset.\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of view records in the dataset.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -5214,7 +5214,7 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "description": "List all shared views in a given Table",
+        "description": "This endpoint allows you to list all Shared Views within a specified table. The API returns a paginated list of shared views.\\n\\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\\n\\n- `totalRows`: Indicates the total number of shared views available in the specified Table ID.\\n- `page`: Specifies the current page number.\\n- `pageSize`: Defaults to 25 and defines the number of shared view items listed on each page.\\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of shared view records in the dataset.\\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of shared view records in the dataset.",
         "tags": [
           "DB View Share", "Shared Views"
         ],
@@ -5657,7 +5657,7 @@
         "tags": [
           "DB Table Sort", "Sorts"
         ],
-        "description": "List all the sort data in a given View",
+        "description": "This endpoint allows you to list all sorts within a specified view. The API returns a paginated list of sorts.\\n\\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\\n\\n- `totalRows`: Indicates the total number of sorts available in the specified View ID.\\n- `page`: Specifies the current page number.\\n- `pageSize`: Defaults to 25 and defines the number of sort items listed on each page.\\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of sort records in the dataset.\\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of sort records in the dataset.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -5926,7 +5926,7 @@
         "tags": [
           "DB Table Filter", "Filters"
         ],
-        "description": "Get the filter data in a given View",
+        "description": "This endpoint allows you to list all filters within a specified view. The API returns a paginated list of filters.\\n\\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\\n\\n- `totalRows`: Indicates the total number of filters available in the specified View ID.\\n- `page`: Specifies the current page number.\\n- `pageSize`: Defaults to 25 and defines the number of filter items listed on each page.\\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of filter records in the dataset.\\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of filter records in the dataset.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -10223,7 +10223,7 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "description": "List all hook records in the given Table",
+        "description": "This endpoint allows you to list all webhooks within a specified table. The API returns a paginated list of webhooks.\\n\\n**Pagination**: The response is paginated by default, with the first page being returned initially. The response includes the following additional information in the `pageInfo` JSON block:\\n\\n- `totalRows`: Indicates the total number of webhooks available in the specified Table ID.\\n- `page`: Specifies the current page number.\\n- `pageSize`: Defaults to 25 and defines the number of webhook items listed on each page.\\n- `isFirstPage`: A boolean value that indicates whether the current page is the first page of webhook records in the dataset.\\n- `isLastPage`: A boolean value that indicates whether the current page is the last page of webhook records in the dataset.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-token"
@@ -13640,6 +13640,16 @@
           "id": "tty21vb01bfr0"
         }
       },
+      "BaseMeta": {
+        "description": "Additional meta during base creation",
+        "properties": {
+          "iconColor": {
+            "description": "Icon color code in hexadecimal format",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
       "BaseReq": {
         "description": "Model for Source Request",
         "examples": [
@@ -16964,10 +16974,197 @@
         "description": "Currency settings for this column. Locale defaults to `en-US` and currency code defaults to `USD`",
         "properties": {
           "currency_locale": {
-            "type": "string"
+            "type": "string",
+            "description": "Currency locale code. Refer https://simplelocalize.io/data/locales/"
           },
           "currency_code": {
-            "type": "string"
+            "type": "string",
+            "description": "Currency code. Refer https://simplelocalize.io/data/locales/",
+            "enum": [
+              "AED",
+              "AFN",
+              "ALL",
+              "AMD",
+              "ANG",
+              "AOA",
+              "ARS",
+              "AUD",
+              "AWG",
+              "AZN",
+              "BAM",
+              "BBD",
+              "BDT",
+              "BGN",
+              "BHD",
+              "BIF",
+              "BMD",
+              "BND",
+              "BOB",
+              "BOV",
+              "BRL",
+              "BSD",
+              "BTN",
+              "BWP",
+              "BYR",
+              "BZD",
+              "CAD",
+              "CDF",
+              "CHE",
+              "CHF",
+              "CHW",
+              "CLF",
+              "CLP",
+              "CNY",
+              "COP",
+              "COU",
+              "CRC",
+              "CUP",
+              "CVE",
+              "CYP",
+              "CZK",
+              "DJF",
+              "DKK",
+              "DOP",
+              "DZD",
+              "EEK",
+              "EGP",
+              "ERN",
+              "ETB",
+              "EUR",
+              "FJD",
+              "FKP",
+              "GBP",
+              "GEL",
+              "GHC",
+              "GIP",
+              "GMD",
+              "GNF",
+              "GTQ",
+              "GYD",
+              "HKD",
+              "HNL",
+              "HRK",
+              "HTG",
+              "HUF",
+              "IDR",
+              "ILS",
+              "INR",
+              "IQD",
+              "IRR",
+              "ISK",
+              "JMD",
+              "JOD",
+              "JPY",
+              "KES",
+              "KGS",
+              "KHR",
+              "KMF",
+              "KPW",
+              "KRW",
+              "KWD",
+              "KYD",
+              "KZT",
+              "LAK",
+              "LBP",
+              "LKR",
+              "LRD",
+              "LSL",
+              "LTL",
+              "LVL",
+              "LYD",
+              "MAD",
+              "MDL",
+              "MGA",
+              "MKD",
+              "MMK",
+              "MNT",
+              "MOP",
+              "MRO",
+              "MTL",
+              "MUR",
+              "MVR",
+              "MWK",
+              "MXN",
+              "MXV",
+              "MYR",
+              "MZN",
+              "NAD",
+              "NGN",
+              "NIO",
+              "NOK",
+              "NPR",
+              "NZD",
+              "OMR",
+              "PAB",
+              "PEN",
+              "PGK",
+              "PHP",
+              "PKR",
+              "PLN",
+              "PYG",
+              "QAR",
+              "ROL",
+              "RON",
+              "RSD",
+              "RUB",
+              "RWF",
+              "SAR",
+              "SBD",
+              "SCR",
+              "SDD",
+              "SEK",
+              "SGD",
+              "SHP",
+              "SIT",
+              "SKK",
+              "SLL",
+              "SOS",
+              "SRD",
+              "STD",
+              "SYP",
+              "SZL",
+              "THB",
+              "TJS",
+              "TMM",
+              "TND",
+              "TOP",
+              "TRY",
+              "TTD",
+              "TWD",
+              "TZS",
+              "UAH",
+              "UGX",
+              "USD",
+              "USN",
+              "USS",
+              "UYU",
+              "UZS",
+              "VEB",
+              "VND",
+              "VUV",
+              "WST",
+              "XAF",
+              "XAG",
+              "XAU",
+              "XBA",
+              "XBB",
+              "XBC",
+              "XBD",
+              "XCD",
+              "XDR",
+              "XFO",
+              "XFU",
+              "XOF",
+              "XPD",
+              "XPF",
+              "XPT",
+              "XTS",
+              "XXX",
+              "YER",
+              "ZAR",
+              "ZMK",
+              "ZWD"
+            ]
           }
         }
       },
@@ -19129,7 +19326,6 @@
                 "type": "mysql"
               }
             ],
-            "color": "#24716E",
             "description": "This is my base description",
             "title": "My Base"
           }
@@ -19147,14 +19343,8 @@
             "example": "This is my base description",
             "type": "string"
           },
-          "color": {
-            "description": "Primary Theme Color",
-            "example": "#24716E",
-            "maxLength": 50,
-            "type": "string"
-          },
           "meta": {
-            "$ref": "#/components/schemas/Meta",
+            "$ref": "#/components/schemas/BaseMeta",
             "description": "Base Meta"
           }
         },
@@ -19174,7 +19364,6 @@
         },
         "examples": [
           {
-            "color": "#24716E",
             "meta": null,
             "title": "My Base",
             "order": 1
@@ -19190,12 +19379,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "color": {
-            "description": "Primary Theme Color",
-            "example": "#24716E",
-            "maxLength": 50,
-            "type": "string"
-          },
           "order": {
             "type": "number",
             "description": "The order of the list of projects.",
@@ -19203,7 +19386,7 @@
             "minimum": 0
           },
           "meta": {
-            "$ref": "#/components/schemas/Meta",
+            "$ref": "#/components/schemas/BaseMeta",
             "description": "Base Meta",
             "x-stoplight": {
               "id": "m05w9sbwqgul3"

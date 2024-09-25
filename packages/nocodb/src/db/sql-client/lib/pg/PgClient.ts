@@ -493,7 +493,8 @@ class PGClient extends KnexClient {
         ]);
       }
 
-      const schemaName = this.connectionConfig.searchPath?.[0] || 'public';
+      const schemaName =
+        args.schema || this.connectionConfig.searchPath?.[0] || 'public';
 
       // Check schemaExists because `CREATE SCHEMA IF NOT EXISTS` requires permissions of `CREATE ON DATABASE`
       const schemaExists = !!(
@@ -575,7 +576,11 @@ class PGClient extends KnexClient {
       const exists = await this.sqlClient.raw(
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and
          table_name = ? and table_catalog = ?`,
-        [this.schema, args.tn, this.connectionConfig.connection.database],
+        [
+          args.schema || this.schema,
+          args.tn,
+          this.connectionConfig.connection.database,
+        ],
       );
 
       if (exists.rows.length === 0) {
@@ -638,7 +643,11 @@ class PGClient extends KnexClient {
     try {
       const { rows } = await this.sqlClient.raw(
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and table_name = ? and table_catalog = ?'`,
-        [this.schema, args.tn, this.connectionConfig.connection.database],
+        [
+          args.schema || this.schema,
+          args.tn,
+          this.connectionConfig.connection.database,
+        ],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -716,7 +725,7 @@ class PGClient extends KnexClient {
               FROM information_schema.tables
               where table_schema = ?
               ORDER BY table_schema, table_name`,
-        [this.schema],
+        [args.schema || this.schema],
       );
 
       result.data.list = rows.filter(
@@ -852,7 +861,7 @@ class PGClient extends KnexClient {
               where c.table_catalog=:database and c.table_schema=:schema and c.table_name=:table
               order by c.table_name, c.ordinal_position`,
         {
-          schema: this.schema,
+          schema: args.schema || this.schema,
           database: args.databaseName,
           table: args.tn,
         },
@@ -994,7 +1003,7 @@ class PGClient extends KnexClient {
       and i.oid<>0
       AND f.attnum > 0
       ORDER BY i.relname, f.attnum;`,
-        [this.schema, args.tn],
+        [args.schema || this.schema, args.tn],
       );
       result.data.list = rows;
     } catch (e) {
@@ -1185,7 +1194,7 @@ class PGClient extends KnexClient {
             on pc.conname = tc.constraint_name
         WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema=:schema and tc.table_name=:table
         order by tc.table_name;`,
-        { schema: this.schema, table: args.tn },
+        { schema: args.schema || this.schema, table: args.tn },
       );
 
       const ruleMapping = {
@@ -1256,7 +1265,7 @@ class PGClient extends KnexClient {
          WHERE tc.constraint_type = 'FOREIGN KEY'
            AND tc.table_schema = ?
          order by tc.table_name;`,
-        [this.schema],
+        [args.schema || this.schema],
       );
 
       const ruleMapping = {
@@ -1309,7 +1318,7 @@ class PGClient extends KnexClient {
 
       const { rows } = await this.sqlClient.raw(
         `select * from information_schema.triggers where trigger_schema=? and event_object_table=?`,
-        [this.schema, args.tn],
+        [args.schema || this.schema, args.tn],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1359,7 +1368,7 @@ class PGClient extends KnexClient {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [this.schema],
+        [args.schema || this.schema],
       );
       const functionRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -1414,7 +1423,7 @@ class PGClient extends KnexClient {
                      JOIN pg_catalog.pg_proc p
                           ON pronamespace = n.oid
               WHERE nspname = ?;`,
-        [this.schema],
+        [args.schema || this.schema],
       );
       const procedureRows = [];
       for (let i = 0; i < rows.length; ++i) {
@@ -1456,7 +1465,7 @@ class PGClient extends KnexClient {
         `select *
            from INFORMATION_SCHEMA.views
            WHERE table_schema = ?;`,
-        [this.schema],
+        [args.schema || this.schema],
       );
 
       for (let i = 0; i < rows.length; ++i) {
@@ -1494,7 +1503,7 @@ class PGClient extends KnexClient {
         `SELECT format('%I.%I(%s)', ns.nspname, p.proname, oidvectortypes(p.proargtypes)) as function_declaration, pg_get_functiondef(p.oid) as create_function
                 FROM pg_proc p INNER JOIN pg_namespace ns ON (p.pronamespace = ns.oid)
             WHERE ns.nspname = ? and p.proname = ?;`,
-        [this.schema, args.function_name],
+        [args.schema || this.schema, args.function_name],
       );
 
       // log.debug(response);
@@ -3025,7 +3034,10 @@ class PGClient extends KnexClient {
       await this.sqlClient.raw(
         this.sqlClient.schema
           .renameTable(
-            this.sqlClient.raw('??.??', [this.schema, args.tn_old]),
+            this.sqlClient.raw('??.??', [
+              args.schema || this.schema,
+              args.tn_old,
+            ]),
             args.tn,
           )
           .toQuery(),
@@ -3036,7 +3048,7 @@ class PGClient extends KnexClient {
         this.querySeparator() +
         this.sqlClient.schema
           .renameTable(
-            this.sqlClient.raw('??.??', [this.schema, args.tn]),
+            this.sqlClient.raw('??.??', [args.schema || this.schema, args.tn]),
             args.tn_old,
           )
           .toQuery();
@@ -3047,7 +3059,10 @@ class PGClient extends KnexClient {
         this.querySeparator() +
         this.sqlClient.schema
           .renameTable(
-            this.sqlClient.raw('??.??', [this.schema, args.tn_old]),
+            this.sqlClient.raw('??.??', [
+              args.schema || this.schema,
+              args.tn_old,
+            ]),
             args.tn,
           )
           .toQuery();

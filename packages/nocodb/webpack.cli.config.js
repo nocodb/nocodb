@@ -42,7 +42,7 @@ module.exports = {
   mode: 'production',
   output: {
     filename: 'cli.js',
-    path: path.resolve(__dirname, '..', 'nc-secret-cli', 'src/nocodb'),
+    path: path.resolve(__dirname, '..', 'nc-secret-mgr', 'src/nocodb'),
     library: 'libs',
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this",

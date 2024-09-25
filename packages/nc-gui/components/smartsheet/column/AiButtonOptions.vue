@@ -67,6 +67,8 @@ const loadViewData = async () => {
 
     await loadData()
 
+    await ncDelay(250)
+
     isLoadingViewData.value = false
   }
 }
@@ -137,6 +139,7 @@ const removeFromOutputFieldOptions = (id: string) => {
 
 onMounted(() => {
   aiError.value = ''
+
   if (vModel.value.type === ButtonActionsType.Ai) {
     // set default value
     vModel.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
@@ -235,12 +238,7 @@ provide(IsFormInj, ref(true))
 
     <template v-else-if="!!aiError"> </template>
     <template v-else>
-      <NcButton
-        type="secondary"
-        size="small"
-        class="!text-nc-content-purple-dark !bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark"
-        @click.stop="isOpenConfigModal = true"
-      >
+      <NcButton type="secondary" size="small" class="nc-ai-button-configure-btn" @click.stop="isOpenConfigModal = true">
         <div class="flex items-center justify-center gap-2">
           <GeneralIcon icon="ncSettings" class="text-[14px] !text-current" />
           {{ $t('general.configure') }}
@@ -271,7 +269,7 @@ provide(IsFormInj, ref(true))
           </NcButton>
         </div>
 
-        <div class="h-[calc(100%_-_57px)]">
+        <div class="h-[calc(100%_-_95px)]">
           <div class="h-full flex">
             <!-- Left side -->
             <div class="h-full w-1/2 nc-scrollbar-thin">
@@ -360,7 +358,7 @@ provide(IsFormInj, ref(true))
               </a-form>
             </div>
             <!-- Right side -->
-            <div class="h-full w-1/2 bg-nc-bg-gray-extralight nc-scrollbar-thin">
+            <div class="h-full w-1/2 bg-nc-bg-gray-extralight nc-scrollbar-thin flex flex-col">
               <div class="nc-ai-button-config-right-section">
                 <div class="text-base text-nc-content-gray font-bold">
                   {{ $t('labels.preview') }}
@@ -378,7 +376,14 @@ provide(IsFormInj, ref(true))
                       placement="bottomLeft"
                       overlay-class-name="!min-w-64"
                     >
-                      <div class="flex-1 flex items-center gap-2 px-2 cursor-pointer" @click.stop="loadViewData">
+                      <div
+                        class="flex-1 flex items-center gap-2 px-2 cursor-pointer"
+                        :class="{
+                          'w-[calc(100%_-_133.5px)]': !(aiLoading && generatingPreview),
+                          'w-[calc(100%_-_146.5px)]': aiLoading && generatingPreview,
+                        }"
+                        @click.stop="loadViewData"
+                      >
                         <NcTooltip
                           v-if="selectedRecord?.label"
                           class="truncate flex-1 text-nc-content-purple-dark font-semibold"
@@ -556,7 +561,7 @@ provide(IsFormInj, ref(true))
                   </a-collapse-panel>
                 </a-collapse>
               </div>
-              <div class="nc-ai-button-config-right-section">
+              <div class="flex-1 nc-ai-button-config-right-section">
                 <div class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5">
                   Output fields
                   <a-tag
@@ -566,56 +571,63 @@ provide(IsFormInj, ref(true))
                     {{ outputColumnIds.length }}</a-tag
                   >
                 </div>
-                <template v-for="field in outputFieldOptions">
-                  <a-form-item
-                    v-if="field.title && outputColumnIds.includes(field.id)"
-                    :key="field.id"
-                    :name="field.title"
-                    class="!my-0 nc-input-required-error"
-                  >
-                    <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                      <component :is="cellIcon(field)" class="!mx-0" />
-                      <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                        <template #title>
-                          {{ field?.title }}
-                        </template>
-                        {{ field?.title }}
-                      </NcTooltip>
-                    </div>
-
-                    <LazySmartsheetDivDataCell
-                      class="relative min-h-8 flex items-center children:h-full"
-                      :class="{
-                        '!select-text nc-system-field': isReadOnlyVirtualCell(field),
-                        '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
-                      }"
+                <div v-if="!outputColumnIds.length" class="flex-1 flex items-center justify-center">
+                  <GeneralIcon icon="ncAutoAwesome" class="h-[177px] w-[177px] !text-purple-100" />
+                </div>
+                <template v-else>
+                  <template v-for="field in outputFieldOptions">
+                    <a-form-item
+                      v-if="field.title && outputColumnIds.includes(field.id)"
+                      :key="field.id"
+                      :name="field.title"
+                      class="!my-0 nc-input-required-error"
                     >
-                      <LazySmartsheetVirtualCell
-                        v-if="isVirtualCol(field)"
-                        :model-value="previewOutput[field.title]"
-                        class="mt-0 nc-input nc-cell"
-                        :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                        :column="field"
-                        :read-only="true"
-                      />
+                      <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
+                        <component :is="cellIcon(field)" class="!mx-0" />
+                        <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                          <template #title>
+                            {{ field?.title }}
+                          </template>
+                          {{ field?.title }}
+                        </NcTooltip>
+                      </div>
 
-                      <LazySmartsheetCell
-                        v-else
-                        v-model="previewOutput[field.title]"
-                        class="nc-input truncate"
-                        :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                        :column="field"
-                        :edit-enabled="true"
-                        :read-only="true"
-                      />
-                    </LazySmartsheetDivDataCell>
-                  </a-form-item>
+                      <LazySmartsheetDivDataCell
+                        class="relative min-h-8 flex items-center children:h-full"
+                        :class="{
+                          '!select-text nc-system-field': isReadOnlyVirtualCell(field),
+                          '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
+                        }"
+                      >
+                        <LazySmartsheetVirtualCell
+                          v-if="isVirtualCol(field)"
+                          :model-value="previewOutput[field.title]"
+                          class="mt-0 nc-input nc-cell"
+                          :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                          :column="field"
+                          :read-only="true"
+                        />
+
+                        <LazySmartsheetCell
+                          v-else
+                          v-model="previewOutput[field.title]"
+                          class="nc-input truncate"
+                          :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                          :column="field"
+                          :edit-enabled="true"
+                          :read-only="true"
+                        />
+                      </LazySmartsheetDivDataCell>
+                    </a-form-item>
+                  </template>
                 </template>
               </div>
             </div>
           </div>
           <!-- Footer  -->
-          <div></div>
+          <div>
+            <SmartsheetColumnAIFooterOptions v-model="formState" class="" />
+          </div>
         </div>
       </div>
     </NcModal>
@@ -639,6 +651,10 @@ provide(IsFormInj, ref(true))
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;
   }
+}
+
+.nc-ai-button-configure-btn {
+  @apply !text-nc-content-purple-dark !bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark;
 }
 
 .nc-prompt-input-wrapper {
@@ -693,20 +709,6 @@ provide(IsFormInj, ref(true))
   @apply !rounded-lg;
   transition: all 0.3s;
 
-  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell):not(.nc-virtual-cell-button):not(
-      :has(.nc-cell-ai-button)
-    ) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
-  }
-  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button):not(
-      :has(.nc-cell-ai-button)
-    ) {
-    @apply !border-1;
-    &:not(.nc-attachment-cell):not(.nc-virtual-cell-button):not(:has(.nc-cell-ai-button)) {
-      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
-    }
-  }
-
   &.nc-readonly-div-data-cell,
   &.nc-system-field {
     @apply !border-gray-200;
@@ -716,6 +718,7 @@ provide(IsFormInj, ref(true))
       @apply text-nc-content-purple-dark;
     }
   }
+
   &.nc-readonly-div-data-cell:focus-within,
   &.nc-system-field:focus-within {
     @apply !border-gray-200;
@@ -756,8 +759,13 @@ provide(IsFormInj, ref(true))
 .nc-data-cell:focus-within {
   @apply !border-1 !border-purple-500;
 }
-
 :deep(.nc-system-field input) {
+  @apply bg-transparent;
+}
+:deep(.nc-readonly-div-data-cell input) {
+  @apply bg-transparent;
+}
+:deep(.nc-readonly-div-data-cell textarea) {
   @apply bg-transparent;
 }
 :deep(.nc-data-cell .nc-cell .nc-cell-field) {

@@ -430,6 +430,9 @@ const isFullUpdateAllowed = computed(() => {
 })
 
 const onPredictFieldType = async () => {
+  // disable for now as this is only action triggered without user interaction -- need to be discussed
+  return
+
   if (readOnly.value || (lastPredictedAt.value > 0 && Date.now() - lastPredictedAt.value < 5000)) return
 
   if (formState.value.title.length > 4) {

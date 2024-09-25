@@ -2,7 +2,7 @@
 const socialIcons = [
   {
     name: '@nocodb',
-    icon: iconMap.twitter,
+    icon: iconMap.iconTwitter,
     link: 'https://twitter.com/nocodb',
   },
   {
@@ -12,12 +12,12 @@ const socialIcons = [
   },
   {
     name: 'NocoDB',
-    icon: iconMap.discord,
+    icon: iconMap.iconDiscord,
     link: 'https://discord.nocodb.com',
   },
   {
     name: 'r/NocoDB',
-    icon: iconMap.reddit,
+    icon: iconMap.iconReddit,
     link: 'https://www.reddit.com/r/NocoDB/',
   },
   {
@@ -33,7 +33,7 @@ const openUrl = (url: string) => {
 </script>
 
 <template>
-  <div style="width: 232px" class="flex flex-col bg-white border-gray-200 rounded-lg border-1">
+  <div style="width: 230px" class="flex flex-col bg-white border-gray-200 rounded-lg border-1">
     <div class="text-gray-800 font-semibold leading-6 border-b-1 border-gray-200 px-4 py-3">Stay tuned</div>
     <div class="flex flex-col">
       <div

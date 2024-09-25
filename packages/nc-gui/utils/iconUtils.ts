@@ -534,6 +534,9 @@ import NcAlignLeftIcon from '~icons/nc-icons-v2/align-left.svg'
 import NcHeartIcon from '~icons/nc-icons-v2/heart.svg'
 import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
 import NcYoutube2Icon from '~icons/nc-icons/youtube2.svg'
+import NcRedditIcon from '~icons/nc-icons/reddit.svg'
+import NcTwitterIcon from '~icons/nc-icons/twitter-x-line.svg'
+import NcDiscordIcon from '~icons/nc-icons/discord.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -1083,6 +1086,9 @@ export const iconMap = {
   ollama: NcOllama,
   groq: NcGroq,
   refreshCw: NcRefreshCW,
+  iconReddit: NcRedditIcon,
+  iconTwitter: NcTwitterIcon,
+  iconDiscord: NcDiscordIcon,
 
   // Nc-IconsV2 Buttons
   ncColumns: NcColumnsIcon,

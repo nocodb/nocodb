@@ -163,38 +163,56 @@ export class BasesService {
       baseBody.prefix = `nc_${ranId}__`;
       baseBody.is_meta = true;
       if (process.env.NC_MINIMAL_DBS === 'true') {
-        // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each base
-        // each file will be named as nc_<random_id>.db
-        const fs = require('fs');
-        const toolDir = getToolDir();
-        const nanoidv2 = customAlphabet(
-          '1234567890abcdefghijklmnopqrstuvwxyz',
-          14,
-        );
-        if (!(await promisify(fs.exists)(`${toolDir}/nc_minimal_dbs`))) {
-          await promisify(fs.mkdir)(`${toolDir}/nc_minimal_dbs`);
-        }
-        const dbId = nanoidv2();
-        const baseTitle = DOMPurify.sanitize(baseBody.title);
-        baseBody.prefix = '';
-        baseBody.sources = [
-          {
-            type: 'sqlite3',
-            is_meta: false,
-            config: {
-              client: 'sqlite3',
-              connection: {
+        const dataConfig = await Noco.getConfig()?.meta?.db;
+        if (dataConfig?.client === 'pg') {
+          baseBody.prefix = '';
+          baseBody.sources = [
+            {
+              type: 'pg',
+              is_local: true,
+              is_meta: false,
+              config: {
+                schema: baseId,
+              },
+              inflection_column: 'camelize',
+              inflection_table: 'camelize',
+            },
+          ];
+        } else {
+          // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each base
+          // each file will be named as nc_<random_id>.db
+          const fs = require('fs');
+          const toolDir = getToolDir();
+          const nanoidv2 = customAlphabet(
+            '1234567890abcdefghijklmnopqrstuvwxyz',
+            14,
+          );
+          if (!(await promisify(fs.exists)(`${toolDir}/nc_minimal_dbs`))) {
+            await promisify(fs.mkdir)(`${toolDir}/nc_minimal_dbs`);
+          }
+          const dbId = nanoidv2();
+          const baseTitle = DOMPurify.sanitize(baseBody.title);
+          baseBody.prefix = '';
+          baseBody.sources = [
+            {
+              type: 'sqlite3',
+              is_meta: false,
+              is_local: true,
+              config: {
                 client: 'sqlite3',
-                database: baseTitle,
                 connection: {
-                  filename: `${toolDir}/nc_minimal_dbs/${baseTitle}_${dbId}.db`,
+                  client: 'sqlite3',
+                  database: baseTitle,
+                  connection: {
+                    filename: `${toolDir}/nc_minimal_dbs/${baseTitle}_${dbId}.db`,
+                  },
                 },
               },
+              inflection_column: 'camelize',
+              inflection_table: 'camelize',
             },
-            inflection_column: 'camelize',
-            inflection_table: 'camelize',
-          },
-        ];
+          ];
+        }
       } else {
         const db = Noco.getConfig().meta?.db;
         baseBody.sources = [

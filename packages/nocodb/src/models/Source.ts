@@ -34,6 +34,7 @@ export default class Source implements SourceType {
   alias?: string;
   type?: DriverClient;
   is_meta?: BoolType;
+  is_local?: BoolType;
   is_schema_readonly?: BoolType;
   is_data_readonly?: BoolType;
   config?: string;
@@ -71,6 +72,7 @@ export default class Source implements SourceType {
       'config',
       'type',
       'is_meta',
+      'is_local',
       'inflection_column',
       'inflection_table',
       'order',
@@ -131,6 +133,7 @@ export default class Source implements SourceType {
       'config',
       'type',
       'is_meta',
+      'is_local',
       'inflection_column',
       'inflection_table',
       'order',
@@ -297,6 +300,15 @@ export default class Source implements SourceType {
   }
 
   public async getConnectionConfig(): Promise<any> {
+    if (this.is_meta || this.is_local) {
+      const metaConfig = await NcConnectionMgrv2.getDataConfig();
+      const config = { ...metaConfig };
+      if (config.client === 'sqlite3') {
+        config.connection = metaConfig;
+      }
+      return config;
+    }
+
     const config = this.getConfig();
 
     // todo: update sql-client args
@@ -307,7 +319,6 @@ export default class Source implements SourceType {
 
     return config;
   }
-
   public getConfig(skipIntegrationConfig = false): any {
     if (this.is_meta) {
       const metaConfig = Noco.getConfig()?.meta?.db;

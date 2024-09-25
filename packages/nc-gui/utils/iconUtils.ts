@@ -3710,6 +3710,10 @@ export const searchableMap = {
     icon: NcTrendingUpIcon,
     keywords: ['Growth', 'Increase', 'Success', 'Chart', 'Upward'],
   },
+  ncAutoAwesome: {
+    icon: h(NcAutoAwesome, { stroke: 'transparent' }),
+    keywords: ['Magic', 'ai', 'autoAwesome', 'awesome'],
+  },
 }
 
 export const searchIcons = (searchTerm: string) => {

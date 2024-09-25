@@ -11544,7 +11544,7 @@
         }
       ]
     },
-    "/api/v2/meta/bases/{baseId}/api-tokens/{token}": {
+    "/api/v2/meta/bases/{baseId}/api-tokens/{tokenId}": {
       "delete": {
         "summary": "Delete API Token",
         "operationId": "api-token-delete",
@@ -11594,12 +11594,12 @@
         {
           "schema": {
             "type": "string",
-            "example": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
+            "example": "DYh540o8hbWp"
           },
-          "name": "token",
+          "name": "tokenId",
           "in": "path",
           "required": true,
-          "description": "API Token"
+          "description": "API Token ID"
         }
       ]
     },

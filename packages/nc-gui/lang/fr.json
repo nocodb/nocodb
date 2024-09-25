@@ -285,9 +285,9 @@
     "integrations": "Intégrations",
     "connection": "Connexion",
     "connections": "Connexions",
-    "private": "Private",
-    "request": "Request",
-    "languages": "Languages",
+    "private": "Privé",
+    "request": "Requête ",
+    "languages": "Langues",
     "extension": "Extension",
     "extensions": "Extensions"
   },
@@ -357,7 +357,7 @@
     "syncData": {
       "appleNumbers": "Apple numbers",
       "asana": "Asana",
-      "box": "Box",
+      "box": "Boîte",
       "github": "Github",
       "gitlab": "Gitlab",
       "googleCalendar": "Google Calendar",
@@ -385,10 +385,10 @@
       "postgreSQL": "PostgreSQL",
       "sqlite": "SQLite",
       "dataBricks": "DataBricks",
-      "mssqlServer": "MSSQL Server",
+      "mssqlServer": "MS SQL Serveur",
       "oracle": "Oracle",
       "telegram": "Telegram",
-      "whatsapp": "Whatsapp",
+      "whatsapp": "WhatsApp",
       "gmail": "Gmail",
       "pipedrive": "Pipedrive",
       "microsoftDynamics365": "Microsoft Dynamics 365",
@@ -406,7 +406,7 @@
       "freshdesk": "FreshDesk"
     },
     "integrationCategories": {
-      "allIntegrations": "All Integrations",
+      "allIntegrations": "Toutes les intégrations",
       "allIntegrationsSubtitle": "",
       "databaseSubtitle": "Seamlessly connect and manage your databases with NocoDB.",
       "communication": "Communication",

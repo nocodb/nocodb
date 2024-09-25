@@ -1,6 +1,6 @@
 import { Logger } from '@nestjs/common';
 import { Knex } from 'knex';
-import NcConnectionMgrv2 from '~/ee/utils/common/NcConnectionMgrv2';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import CustomKnex from '~/db/CustomKnex';
 import PgConnectionConfig = Knex.PgConnectionConfig;
 const logger = new Logger('initBaseBehavior');

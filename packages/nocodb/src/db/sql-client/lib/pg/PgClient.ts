@@ -1016,7 +1016,6 @@ class PGClient extends KnexClient {
     return result;
   }
 
-
   /**
    *
    * @param {Object} - args

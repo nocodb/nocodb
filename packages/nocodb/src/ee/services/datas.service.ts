@@ -57,6 +57,7 @@ export class DatasService extends DatasServiceCE {
         id: model.id,
         viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(source),
+        source,
       });
 
       const column = await Column.get<LinkToAnotherRecordColumn>(context, {
@@ -167,6 +168,7 @@ export class DatasService extends DatasServiceCE {
         id: model.id,
         viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(source),
+        source,
       });
       row = await baseModel.readByPk(param.rowId, false, param.query, {
         getHiddenColumn: param.getHiddenColumn,

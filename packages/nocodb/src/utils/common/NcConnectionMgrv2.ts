@@ -111,4 +111,8 @@ export default class NcConnectionMgrv2 {
       ...(await source.getConnectionConfig()),
     });
   }
+
+  public static async getDataConfig?() {
+    return Noco.getConfig()?.meta?.db;
+  }
 }

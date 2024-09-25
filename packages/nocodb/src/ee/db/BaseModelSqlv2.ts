@@ -122,7 +122,6 @@ export function replaceDynamicFieldWithValue(
  */
 class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public context: NcContext;
-  public schema?: string;
 
   constructor({
     dbDriver,

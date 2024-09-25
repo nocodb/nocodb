@@ -176,7 +176,7 @@ export interface ApiTokenCreateEvent extends NcBaseEvent {
 
 export interface ApiTokenDeleteEvent extends NcBaseEvent {
   userId: string;
-  token: string;
+  tokenId: string;
 }
 
 export interface PluginTestEvent extends NcBaseEvent {

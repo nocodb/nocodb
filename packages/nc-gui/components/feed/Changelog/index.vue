@@ -12,7 +12,7 @@ const { isLoading } = useInfiniteScroll(
       loadMore: true,
     })
   },
-  { distance: 1, interval: 2000 },
+  { distance: 4 },
 )
 </script>
 

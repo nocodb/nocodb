@@ -51,7 +51,8 @@ const renderedText = computedAsync(async () => {
 
 <template>
   <div class="block relative">
-    <div class="relative bg-white">
+    <div class="vertical-line"></div>
+    <div class="relative border-1 border-nc-gray-medium rounded-xl pb-6 changelog-item bg-white">
       <div class="aside">
         <div class="aside-divider">
           <div class="aside-divider-dot mt-8"></div>
@@ -127,6 +128,17 @@ const renderedText = computedAsync(async () => {
   width: fit-content;
 }
 
+.vertical-line {
+  @apply ml-47.5;
+  height: 24px;
+  width: 2px;
+  background-color: #e7e7e9;
+}
+
+.changelog-item {
+  box-shadow: 0px 2px 4px -2px rgba(51, 102, 255, 0.08), 0px 4px 4px -2px rgba(51, 102, 255, 0.04);
+}
+
 .content {
   @apply !pl-52;
 
@@ -135,16 +147,22 @@ const renderedText = computedAsync(async () => {
   }
 
   :deep(.prose) {
-    img {
-      @apply !rounded-lg;
+    a {
+      @apply text-gray-900;
     }
 
     h1 {
-      @apply !text-3xl !font-bold;
+      @apply text-2xl text-nc-content-gray-emphasis leading-9 mb-0;
+      font-weight: 700;
+    }
+    p {
+      @apply text-nc-content-gray-emphasis leading-6;
+      font-size: 14px !important;
     }
 
-    p {
-      @apply leading-5;
+    li {
+      @apply text-nc-content-gray-emphasis leading-6;
+      font-size: 14px !important;
     }
   }
 }
@@ -153,7 +171,7 @@ const renderedText = computedAsync(async () => {
   @apply absolute left-0 top-0 bottom-0 w-52;
 
   .aside-inner {
-    @apply sticky top-0 pt-5;
+    @apply sticky top-0 pt-5 pb-4;
   }
 
   .aside-divider {

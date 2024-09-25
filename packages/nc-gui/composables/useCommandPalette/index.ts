@@ -28,9 +28,33 @@ export const useCommandPalette = createSharedComposable(() => {
 
   const cmdLoading = ref(false)
 
+  const needRefresh = ref(true)
+
   const cmdPlaceholder = ref('Search workspace, bases, tables, views & more...')
 
   const { token, user, signOut } = useGlobal()
+
+  const { workspacesList } = storeToRefs(useWorkspace())
+
+  const workspacesCmd = computed(() =>
+    (workspacesList.value || []).map((workspace: { id: string; title: string; meta?: { color: string } }) => ({
+      id: `ws-nav-${workspace.id}`,
+      title: workspace.title,
+      icon: 'workspace',
+      iconColor: workspace.meta?.color,
+      section: 'Workspaces',
+      scopePayload: {
+        scope: `ws-${workspace.id}`,
+        data: {
+          workspace_id: workspace.id,
+        },
+      },
+      handler: processHandler({
+        type: 'navigate',
+        payload: `/${workspace.id}/settings`,
+      }),
+    })),
+  )
 
   const commands = ref({
     homeCommands,
@@ -59,7 +83,7 @@ export const useCommandPalette = createSharedComposable(() => {
 
     staticCmd.push(...commands.value.baseCommands)
 
-    return staticCmd
+    return workspacesCmd.value.concat(staticCmd)
   })
 
   const dynamicData = ref<any>([])
@@ -72,7 +96,7 @@ export const useCommandPalette = createSharedComposable(() => {
     if (cmdLoading.value) {
       return [{ id: 'loading', title: 'Loading...' }, ...staticData.value]
     } else {
-      return [...dynamicData.value, ...staticData.value]
+      return [...dynamicData.value, ...tempData.value, ...staticData.value]
     }
   })
 
@@ -115,10 +139,17 @@ export const useCommandPalette = createSharedComposable(() => {
       activeScope.value = { scope: activeScope.value.scope, data: activeScope.value.data }
       return
     }
+
+    if (!needRefresh.value) {
+      return
+    }
+
+    needRefresh.value = false
     dynamicData.value = []
     tempData.value = []
     loadedTemporaryScopes.value = []
     cmdLoading.value = true
+
     $api.utils
       .commandPalette(activeScope.value)
       .then((res) => {
@@ -135,7 +166,10 @@ export const useCommandPalette = createSharedComposable(() => {
   }
 
   refreshCommandPalette.on(() => {
-    loadScope()
+    dynamicData.value = []
+    tempData.value = []
+    loadedTemporaryScopes.value = []
+    needRefresh.value = true
   })
 
   watch(
@@ -149,8 +183,6 @@ export const useCommandPalette = createSharedComposable(() => {
           if (activeScope.value.scope === 'disabled') return
 
           activeScope.value = { scope: 'disabled', data: {} }
-
-          loadScope()
         } else if (route.value.params.typeOrId.startsWith('w')) {
           if (activeScope.value.data?.workspace_id === route.value.params.typeOrId) return
 
@@ -159,7 +191,7 @@ export const useCommandPalette = createSharedComposable(() => {
             data: { workspace_id: route.value.params.typeOrId },
           }
 
-          loadScope()
+          refreshCommandPalette.trigger()
         } else if (route.value.params.typeOrId === 'nc') {
           if (activeScope.value.data.base_id === route.value.params.baseId) return
 
@@ -172,8 +204,6 @@ export const useCommandPalette = createSharedComposable(() => {
         if (activeScope.value.scope === 'root') return
 
         activeScope.value = { scope: 'root', data: {} }
-
-        loadScope()
       }
     },
     { immediate: true, deep: true },
@@ -187,5 +217,6 @@ export const useCommandPalette = createSharedComposable(() => {
     cmdPlaceholder,
     refreshCommandPalette: refreshCommandPalette.trigger,
     loadTemporaryScope,
+    cmdLoading,
   }
 })

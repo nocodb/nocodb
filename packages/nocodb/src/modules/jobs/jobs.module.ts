@@ -54,6 +54,7 @@ export const JobsModuleMetadata = {
             name: JOBS_QUEUE,
             defaultJobOptions: {
               removeOnComplete: true,
+              attempts: 1,
             },
           }),
         ]

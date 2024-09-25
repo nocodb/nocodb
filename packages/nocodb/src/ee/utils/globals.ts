@@ -201,6 +201,7 @@ export enum CacheScope {
   EXTENSION = 'uiExtension',
   INTEGRATION = 'integration',
   COL_BUTTON = 'colButton',
+  CMD_PALETTE = 'cmdPalette',
 }
 
 export const RootScopeTables = {

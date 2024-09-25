@@ -332,9 +332,11 @@ export class FormFilters {
 
             switch (filter.comparison_op) {
               case 'eq':
+                // eslint-disable-next-line eqeqeq
                 res = val == filter.value
                 break
               case 'neq':
+                // eslint-disable-next-line eqeqeq
                 res = val != filter.value
                 break
               case 'like':

@@ -1,5 +1,6 @@
 import BaseCE from 'src/models/Base';
 import { ProjectRoles, ProjectTypes, WorkspaceUserRoles } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
 import type { NcContext } from '~/interface/config';
@@ -18,6 +19,9 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('Base');
 
 export default class Base extends BaseCE {
   public type?: 'database' | 'documentation' | 'dashboard';
@@ -140,6 +144,10 @@ export default class Base extends BaseCE {
       );
     }
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     await NocoCache.del(CacheScope.INSTANCE_META);
     return this.getWithInfo(context, baseId, true, ncMeta).then(
       async (base) => {
@@ -211,6 +219,10 @@ export default class Base extends BaseCE {
     if (updateObj.meta) {
       updateObj.meta = stringifyMetaProp(updateObj);
     }
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     // set meta
     return await ncMeta.metaUpdate(
@@ -309,6 +321,10 @@ export default class Base extends BaseCE {
       base_id: baseId,
     });
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     return res;
   }
 
@@ -343,6 +359,10 @@ export default class Base extends BaseCE {
       `${CacheScope.PROJECT}:${baseId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     // set meta
     return await ncMeta.metaUpdate(

@@ -1,5 +1,6 @@
 import { ProjectRoles } from 'nocodb-sdk';
 import { User } from 'src/models';
+import { Logger } from '@nestjs/common';
 import type { WorkspaceUserRoles } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import {
@@ -12,6 +13,9 @@ import {
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import Base from '~/models/Base';
+import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('WorkspaceUser');
 
 export default class WorkspaceUser {
   fk_workspace_id: string;
@@ -404,6 +408,10 @@ export default class WorkspaceUser {
       }
     }
 
+    cleanCommandPaletteCacheForUser(userId).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
+
     return this.get(workspaceId, userId, ncMeta);
   }
 
@@ -420,6 +428,10 @@ export default class WorkspaceUser {
     );
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+
+    cleanCommandPaletteCacheForUser(userId).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
 
     return res;
   }
@@ -441,6 +453,10 @@ export default class WorkspaceUser {
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+
+    cleanCommandPaletteCacheForUser(userId).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
 
     return res;
   }

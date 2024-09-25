@@ -140,7 +140,8 @@ const isValidTokenName = ref(false)
 
 const deleteToken = async (token: string): Promise<void> => {
   try {
-    await api.orgTokens.delete(token)
+    const id = allTokens.value.find((t) => t.token === token)?.id
+    await api.orgTokens.delete(id)
     // message.success(t('msg.success.tokenDeleted'))
     await loadTokens()
 

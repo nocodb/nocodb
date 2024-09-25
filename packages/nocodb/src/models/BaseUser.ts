@@ -1,4 +1,5 @@
 import { ProjectRoles } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type User from '~/models/User';
 import type { NcContext } from '~/interface/config';
@@ -14,6 +15,9 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp } from '~/utils/modelUtils';
 import { NcError } from '~/helpers/catchError';
+import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('BaseUser');
 
 export default class BaseUser {
   fk_workspace_id?: string;
@@ -73,6 +77,10 @@ export default class BaseUser {
         [d.base_id],
         `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
       );
+
+      cleanCommandPaletteCacheForUser(d.fk_user_id).catch(() => {
+        logger.error('Error cleaning command palette cache');
+      });
     }
   }
 
@@ -103,6 +111,10 @@ export default class BaseUser {
       [base_id],
       `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
     );
+
+    cleanCommandPaletteCacheForUser(fk_user_id).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
 
     return res;
   }
@@ -293,6 +305,10 @@ export default class BaseUser {
       roles,
     });
 
+    cleanCommandPaletteCacheForUser(userId).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
+
     return res;
   }
 
@@ -347,6 +363,10 @@ export default class BaseUser {
       `${CacheScope.BASE_USER}:${baseId}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
+
+    cleanCommandPaletteCacheForUser(userId).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
 
     return response;
   }

@@ -469,7 +469,7 @@ export class AtImportProcessor {
             if (
               options.find(
                 (el) =>
-                  el.title.toLowerCase() === (value as any).name.toLowerCase(),
+                  el.title === (value as any).name,
               )
             ) {
               logWarning(

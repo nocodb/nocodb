@@ -639,7 +639,10 @@ const handleNavigateToIntegrations = () => {
         <SmartsheetColumnAiButtonOptions
           v-if="formState.uidt === UITypes.Button && formState?.type === ButtonActionsType.Ai"
           v-model:value="formState"
+          :submit-btn-label="submitBtnLabel"
+          :saving="saving"
           @navigate-to-integrations="handleNavigateToIntegrations"
+          @on-submit="onSubmit"
         />
         <SmartsheetColumnAIOptions
           v-if="formState.uidt === UITypes.AI"
@@ -797,7 +800,7 @@ const handleNavigateToIntegrations = () => {
                   :loading-label="submitBtnLabel.loadingLabel"
                   data-testid="nc-field-modal-submit-btn"
                   :class="{
-                    '!bg-nc-fill-purple-dark': isAiMode,
+                    '!bg-purple-500 !hover:bg-purple-600': isAiMode,
                   }"
                   @click.prevent="onSubmit"
                 >

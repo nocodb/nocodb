@@ -437,4 +437,10 @@ export const isAllowToRenderRowEmptyField = (col: ColumnType) => {
   if (isAI(col)) {
     return true
   }
+
+  if (isAiButton(col)) {
+    return true
+  }
+
+  return false
 }

@@ -1,5 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { ButtonActionsType, UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export const dataTypeLow = (column: ColumnType) => column.dt?.toLowerCase()
@@ -38,6 +38,7 @@ export const isSpecificDBType = (column: ColumnType) => column.uidt === UITypes.
 export const isGeometry = (column: ColumnType) => column.uidt === UITypes.Geometry
 export const isUser = (column: ColumnType) => column.uidt === UITypes.User
 export const isButton = (column: ColumnType) => column.uidt === UITypes.Button
+export const isAiButton = (column: ColumnType) => column.uidt === UITypes.Button && column?.colOptions?.type === ButtonActionsType.Ai
 export const isAI = (column: ColumnType) => column.uidt === UITypes.AI
 export const isAutoSaved = (column: ColumnType) =>
   [

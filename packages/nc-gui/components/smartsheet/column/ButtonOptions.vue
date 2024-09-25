@@ -14,7 +14,7 @@ const props = defineProps<{
   fromTableExplorer?: boolean
 }>()
 
-const emit = defineEmits(['update:value', 'navigateToIntegrations'])
+const emit = defineEmits(['update:value'])
 
 const buttonActionsType = {
   ...ButtonActionsType,
@@ -25,9 +25,6 @@ const { t } = useI18n()
 const { isUIAllowed } = useRoles()
 
 const { getMeta } = useMetas()
-
-const workspaceStore = useWorkspace()
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const vModel = useVModel(props, 'value', emit)
 
@@ -172,22 +169,6 @@ const validators = {
       },
     },
   ],
-  ...(vModel.value.type === ButtonActionsType.Ai
-    ? {
-        output_column_ids: [
-          {
-            required: true,
-            message: 'At least one output required for AI Button',
-          },
-        ],
-        formula_raw: [
-          {
-            required: true,
-            message: 'Prompt required for AI Button',
-          },
-        ],
-      }
-    : {}),
 }
 
 if (isEdit.value) {

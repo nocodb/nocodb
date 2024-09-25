@@ -1,28 +1,39 @@
 <script setup lang="ts">
 import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { ButtonActionsType, type ButtonType, type ColumnType, type HookType } from 'nocodb-sdk'
+import { ButtonActionsType, type ColumnType } from 'nocodb-sdk'
+import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 const props = defineProps<{
   value: any
+  submitBtnLabel: {
+    label: string
+    loadingLabel: string
+  }
+  saving: boolean
 }>()
 
-const emit = defineEmits(['update:value', 'navigateToIntegrations'])
-
-const { t } = useI18n()
-
-const workspaceStore = useWorkspace()
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
+const emit = defineEmits(['update:value', 'navigateToIntegrations', 'onSubmit'])
 
 const vModel = useVModel(props, 'value', emit)
 
+const { submitBtnLabel, saving } = toRefs(props)
+
 const meta = inject(MetaInj, ref())
 
-const { formState, isEdit, setAdditionalValidations, validateInfos, column, validate, loadData, formattedData } =
-  useColumnCreateStoreOrThrow()
+const {
+  formState,
+  isEdit,
+  setAdditionalValidations,
+  validateInfos,
+  column,
+
+  loadData,
+  formattedData,
+  disableSubmitBtn,
+  tableExplorerColumns,
+} = useColumnCreateStoreOrThrow()
 
 const { aiIntegrationAvailable, aiLoading, aiError, generateRows } = useNocoAi()
-
-const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const isOpenConfigModal = ref<boolean>(false)
 
@@ -31,26 +42,33 @@ const isOpenSelectOutputFieldDropdown = ref<boolean>(false)
 const isOpenSelectRecordDropdown = ref<boolean>(false)
 
 const validators = {
-  ...(vModel.value.type === ButtonActionsType.Ai
-    ? {
-        output_column_ids: [
-          {
-            required: true,
-            message: 'At least one output field is required for AI Button',
-          },
-        ],
-        formula_raw: [
-          {
-            required: true,
-            message: 'Prompt required for AI Button',
-          },
-        ],
-      }
-    : {}),
+  output_column_ids: [
+    {
+      required: true,
+      message: 'At least one output field is required for AI Button',
+    },
+  ],
+  formula_raw: [
+    {
+      required: true,
+      message: 'Prompt required for AI Button',
+    },
+  ],
 }
 
 setAdditionalValidations({
   ...validators,
+})
+
+const fieldTitle = computed(() => {
+  return (
+    vModel.value.title ||
+    generateUniqueColumnName({
+      formState: vModel.value,
+      tableExplorerColumns: tableExplorerColumns?.value,
+      metaColumns: meta.value?.columns || [],
+    })
+  )
 })
 
 const previewOutput = ref<Record<string, any>>({})
@@ -260,10 +278,24 @@ provide(IsFormInj, ref(true))
           <div class="flex-1 flex items-center gap-2">
             <GeneralIcon icon="cellAiButton" class="flex-none h-6 w-6" />
 
-            {{ vModel.title || 'AI Button' }}
+            {{ fieldTitle }}
           </div>
 
-          <NcButton size="small" type="primary" class="nc-extdb-btn-submit"> Add Field </NcButton>
+          <NcButton
+            size="small"
+            type="primary"
+            class="!bg-purple-500 !hover:bg-purple-600"
+            :disabled="disableSubmitBtn"
+            :label="submitBtnLabel.label"
+            :loading-label="submitBtnLabel.loadingLabel"
+            :loading="saving"
+            @click.stop="emit('onSubmit')"
+          >
+            {{ submitBtnLabel.label }}
+            <template #loading>
+              {{ submitBtnLabel.loadingLabel }}
+            </template>
+          </NcButton>
           <NcButton size="small" type="text" @click="isOpenConfigModal = false">
             <GeneralIcon icon="close" class="text-gray-600" />
           </NcButton>
@@ -442,10 +474,12 @@ provide(IsFormInj, ref(true))
                         </NcList>
                       </template>
                     </NcDropdown>
-                    <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length)">
+                    <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw)">
                       <template #title>
                         {{
-                          !outputColumnIds.length
+                          !vModel.formula_raw
+                            ? 'Prompt required for AI Button'
+                            : !outputColumnIds.length
                             ? 'At least one output field is required for preview'
                             : !selectedRecordPk
                             ? 'Select sample record first'
@@ -456,7 +490,7 @@ provide(IsFormInj, ref(true))
                         size="small"
                         type="secondary"
                         class="nc-ai-button-test-generate"
-                        :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length"
+                        :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length || !vModel.formula_raw"
                         :class="{
                           'nc-is-open-select-record-dropdown': isOpenSelectRecordDropdown,
                         }"

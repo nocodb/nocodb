@@ -1,12 +1,8 @@
-import { promisify } from 'util';
-import fs from 'fs';
 import { Logger } from '@nestjs/common';
 import type Source from '~/models/Source';
 import {
   defaultConnectionConfig,
   defaultConnectionOptions,
-  jdbcToXcConfig,
-  metaUrlToDbConfig,
 } from '~/utils/nc-config';
 import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '~/db/CustomKnex';

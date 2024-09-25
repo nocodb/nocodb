@@ -483,12 +483,31 @@ export default class Model implements TableType {
       args.viewId = view.id;
     }
 
+    if (source && source.isMeta(true, 1)) {
+      return new BaseModelSqlv2({
+        context,
+        dbDriver: args.dbDriver,
+        viewId: args.viewId,
+        model,
+        schema: source.getConfig()?.schema,
+      });
+    }
+
+    if (source && source.type === 'pg') {
+      return new BaseModelSqlv2({
+        context,
+        dbDriver: args.dbDriver,
+        viewId: args.viewId,
+        model,
+        schema: source.getConfig()?.searchPath?.[0],
+      });
+    }
+
     return new BaseModelSqlv2({
       context,
       dbDriver: args.dbDriver,
       viewId: args.viewId,
       model,
-      schema: source.getConfig()?.schema,
     });
   }
 

@@ -8,6 +8,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   readonlyMetaAllowedTypes,
+  ButtonActionsType,
 } from 'nocodb-sdk'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -633,6 +634,11 @@ const handleNavigateToIntegrations = () => {
           v-if="formState.uidt === UITypes.Button"
           v-model:value="formState"
           :from-table-explorer="props.fromTableExplorer || false"
+          @navigate-to-integrations="handleNavigateToIntegrations"
+        />
+        <SmartsheetColumnAiButtonOptions
+          v-if="formState.uidt === UITypes.Button && formState?.type === ButtonActionsType.Ai"
+          v-model:value="formState"
           @navigate-to-integrations="handleNavigateToIntegrations"
         />
         <SmartsheetColumnAIOptions

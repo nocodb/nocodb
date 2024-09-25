@@ -201,13 +201,18 @@ if (isEdit.value) {
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
 } else {
   vModel.value.type = vModel.value?.type || buttonTypes[0].value
-  vModel.value.theme = 'solid'
-  vModel.value.label = 'Button'
-  vModel.value.color = 'brand'
   vModel.value.formula_raw = ''
 
   if (vModel.value.type === ButtonActionsType.Ai) {
     vModel.value.output_column_ids = ''
+    vModel.value.theme = 'text'
+    vModel.value.label = 'Generate data'
+    vModel.value.color = 'purple'
+    vModel.value.icon = 'ncAutoAwesome'
+  } else {
+    vModel.value.theme = 'solid'
+    vModel.value.label = 'Button'
+    vModel.value.color = 'brand'
   }
 }
 
@@ -290,8 +295,6 @@ const eventList = ref<Record<string, any>[]>([
   { text: [t('general.manual'), t('general.trigger')], value: ['manual', 'trigger'] },
 ])
 
-const preview = ref('')
-
 const isWebhookModal = ref(false)
 
 const newWebhook = () => {
@@ -340,39 +343,6 @@ const selectIcon = (icon: string) => {
   vModel.value.icon = icon
   isButtonIconDropdownOpen.value = false
 }
-
-// AI options
-
-const availableFields = computed(() => {
-  if (!meta.value?.columns) return []
-  return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID)
-})
-
-const outputFieldOptions = computed(() => {
-  if (!meta.value?.columns) return []
-  return meta.value.columns
-    .filter((c) => !c.system && !c.pk && c.id !== column.value?.id)
-    .map((c) => ({ label: c.title, value: c.id }))
-})
-
-const outputColumnIds = computed({
-  get: () => {
-    if (!vModel.value?.output_column_ids?.length) return []
-    const colIds = vModel.value.output_column_ids?.split(',') || []
-    return colIds
-  },
-  set: (val) => {
-    vModel.value.output_column_ids = val.join(',')
-  },
-})
-
-onMounted(() => {
-  if (vModel.value.type === ButtonActionsType.Ai) {
-    // set default value
-    vModel.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
-    vModel.value.output_column_ids = (column?.value?.colOptions as Record<string, any>)?.output_column_ids || ''
-  }
-})
 </script>
 
 <template>
@@ -618,17 +588,6 @@ onMounted(() => {
         </NcButton>
       </div>
     </a-form-item>
-
-    <template v-if="vModel?.type === buttonActionsType.Ai">
-      <SmartsheetColumnAiButtonOptions
-        v-model:value="vModel"
-        @navigate-to-integrations="
-          () => {
-            emit('navigateToIntegrations')
-          }
-        "
-      />
-    </template>
 
     <Webhook
       v-if="isWebhookModal"

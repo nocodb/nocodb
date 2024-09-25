@@ -10,6 +10,8 @@ export interface UiTypesType {
   isNew?: number | boolean
 }
 
+export const AIButton = 'AIButton'
+
 const uiTypes: UiTypesType[] = [
   {
     name: UITypes.AI,
@@ -17,7 +19,7 @@ const uiTypes: UiTypesType[] = [
     isNew: 1,
   },
   {
-    name: 'AIButton',
+    name: AIButton,
     icon: iconMap.cellAiButton,
     virtual: 1,
     isNew: 1,

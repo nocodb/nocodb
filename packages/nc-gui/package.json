@@ -88,6 +88,7 @@
     "@vueuse/components": "^10.11.0",
     "@vueuse/core": "^10.7.2",
     "@vueuse/integrations": "^10.7.2",
+    "@vueuse/motion": "^2.2.5",
     "ant-design-vue": "^3.2.20",
     "aws-amplify": "^5.3.11",
     "chart.js": "^4.4.2",

@@ -37,7 +37,7 @@ const renderedText = computedAsync(async () => {
         ? Description.replace(/!\[.*?\]\(.*?\)/g, '')
             .substring(0, 250)
             .concat('...')
-        : Description,
+        : Description.replace(/^\[!\[.*?\]\(https?:\/\/.*?\)\]\(https?:\/\/.*?\)/m, ''),
     )
 })
 
@@ -103,18 +103,26 @@ const { width } = useWindowSize()
     a {
       @apply text-gray-900;
     }
-
     h1 {
-      @apply text-2xl text-nc-content-gray-emphasis truncate leading-9 mb-0;
+      @apply text-3xl text-nc-content-gray-emphasis truncate leading-9 mb-0;
       font-weight: 700;
     }
+
+    h2 {
+      @apply text-nc-content-gray-emphasis text-xl leading-6 !mb-0;
+    }
     p {
-      @apply text-nc-content-gray-emphasis leading-5;
+      @apply text-nc-content-gray-emphasis leading-6;
+      font-size: 14px !important;
+    }
+
+    li {
+      @apply text-nc-content-gray-emphasis leading-6;
       font-size: 14px !important;
     }
 
     h3 {
-      @apply text-nc-content-gray-emphasis text-lg leading-5 mb-0;
+      @apply text-nc-content-gray-emphasis text-lg leading-6 mb-0;
     }
   }
 }

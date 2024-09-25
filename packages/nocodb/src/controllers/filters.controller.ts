@@ -38,7 +38,7 @@ export class FiltersController {
     return new PagedResponseImpl(
       await this.filtersService.filterList(context, {
         viewId,
-        includeAllFilters: includeAllFilters === 'true'
+        includeAllFilters: includeAllFilters === 'true',
       }),
     );
   }

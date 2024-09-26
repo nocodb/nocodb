@@ -646,6 +646,7 @@ watch(
                 <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
                   <div v-if="aiModeStep === 'init'" class="p-4">
                     <div class="text-nc-content-purple-light text-sm h-7 flex items-center">
+                      <GeneralLoader size="regular" class="!text-nc-content-purple-dark !mr-2" />
                       Auto suggesting tables based on your base name and existing tables
                       <div class="nc-animate-dots"></div>
                     </div>

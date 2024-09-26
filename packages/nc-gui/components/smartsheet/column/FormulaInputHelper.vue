@@ -597,8 +597,12 @@ const aiPrompt = ref('')
 
 const aiSuggestions = ref<{ title: string; formula: string }[]>([])
 
+const calledFun = ref<null | string>(null)
+
 const promptAI = async () => {
   if (!aiPrompt.value) return
+
+  calledFun.value = 'promptAI'
 
   const formula = await predictFormula(aiPrompt.value, value.value)
 
@@ -609,6 +613,8 @@ const promptAI = async () => {
 }
 
 const repairFormulaAI = async () => {
+  calledFun.value = 'repairFormulaAI'
+
   const formula = await repairFormula(value.value, validateInfos?.formula_raw?.help.join(' | '))
 
   if (formula) {
@@ -690,47 +696,74 @@ const enableAI = async () => {
     ></div>
   </a-form-item>
   <div v-if="aiMode === AI_MODE.NONE" class="w-full flex justify-end mt-2">
-    <div class="flex gap-2 items-center text-sm cursor-pointer" @click="enableAI">
-      <GeneralLoader v-if="aiLoading" />
-      <GeneralIcon v-else icon="magic" class="text-purple-300" />
-      <span v-if="validateInfos?.formula_raw?.validateStatus === 'error'" class="text-[13px] font-semibold">Fix Formula</span>
-      <span v-else class="text-[13px] font-semibold">Formula Helper</span>
-    </div>
+    <NcButton size="small" type="text" :loading="aiLoading" @click="enableAI">
+      <template #icon>
+        <GeneralIcon icon="ncAutoAwesome" class="text-nc-content-purple-medium h-4 w-4" />
+      </template>
+      <template #loadingIcon>
+        <GeneralLoader class="!text-nc-content-purple-medium" size="regular" />
+      </template>
+      <div class="flex gap-2 items-center">
+        <span v-if="validateInfos?.formula_raw?.validateStatus === 'error'" class="text-[13px] font-semibold">Fix Formula</span>
+        <span v-else class="text-[13px] font-semibold">Formula Helper</span>
+      </div>
+    </NcButton>
   </div>
-  <div v-else-if="aiMode === AI_MODE.PROMPT" class="prompt-wrapper w-full flex">
-    <a-textarea
-      v-model:value="aiPrompt"
-      class="!rounded-lg"
-      :auto-size="{
-        minRows: 4,
-        maxRows: 4,
-      }"
-      :placeholder="`Enter prompt to ${value ? 'modify' : 'generate'} formula`"
-    ></a-textarea>
-    <div class="absolute bottom-2 right-2 flex items-center gap-2">
-      <NcButton
-        v-if="validateInfos?.formula_raw?.validateStatus === 'error'"
-        type="ghost"
-        size="xsmall"
-        class="!bg-purple-100 !px-2"
-        :disabled="aiLoading"
-        @click="repairFormulaAI"
-      >
-        <div class="flex items-center gap-1">
-          <GeneralLoader v-if="aiLoading" />
-          <GeneralIcon v-else icon="magic" class="text-purple-300" />
-          <span class="text-[13px] font-semibold text-purple-400">Repair</span>
-        </div>
-      </NcButton>
-      <NcButton type="ghost" size="xsmall" class="!bg-purple-100 !px-2" @click="promptAI">
-        <div class="flex items-center gap-1">
-          <GeneralLoader v-if="aiLoading" />
-          <GeneralIcon v-else icon="magic" class="text-purple-300" />
-          <span class="text-[13px] font-semibold text-purple-400">Generate</span>
-        </div>
-      </NcButton>
+  <template v-else-if="aiMode === AI_MODE.PROMPT">
+    <AiIntegrationNotFound v-if="!aiIntegrationAvailable" class="mt-4" />
+    <div v-else class="prompt-wrapper w-full flex">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="9" viewBox="0 0 18 9" fill="none" class="nc-polygon-2">
+        <path d="M1.51476 8.5L9 0.721111L16.4852 8.5H1.51476Z" fill="white" stroke="#e5d4f5" />
+      </svg>
+      <a-textarea
+        v-model:value="aiPrompt"
+        class="nc-ai-formula-helper-input !rounded-lg nc-input-shadow nc-ai-input !pb-8 nc-scrollbar-thin"
+        :auto-size="{
+          minRows: 3,
+          maxRows: 8,
+        }"
+        :placeholder="`Enter prompt to ${value ? 'modify' : 'generate'} formula`"
+      ></a-textarea>
+
+      <div class="absolute bottom-2 right-2 flex items-center gap-2">
+        <NcButton
+          v-if="validateInfos?.formula_raw?.validateStatus === 'error'"
+          type="secondary"
+          size="xsmall"
+          class="nc-formula-helper-ai-btn !px-2"
+          :loading="aiLoading && calledFun === 'repairFormulaAI'"
+          @click="repairFormulaAI"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncAutoAwesome" class="!text-current h-4 w-4" />
+          </template>
+          <template #loadingIcon>
+            <GeneralLoader class="!text-current" size="regular" />
+          </template>
+          <div class="flex items-center gap-1">
+            <span class="text-[13px] font-semibold text-purple-400">Repair</span>
+          </div>
+        </NcButton>
+        <NcButton
+          type="secondary"
+          size="xsmall"
+          class="nc-formula-helper-ai-btn !px-2"
+          :loading="aiLoading && calledFun === 'promptAI'"
+          :disabled="!aiPrompt"
+          @click="promptAI"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncAutoAwesome" class="!text-current h-4 w-4" />
+          </template>
+          <template #loadingIcon>
+            <GeneralLoader class="!text-current" size="regular" />
+          </template>
+          <div class="flex items-center gap-1">Generate</div>
+        </NcButton>
+      </div>
     </div>
-  </div>
+  </template>
+
   <div
     :class="{
       'h-[250px]': suggestionHeight === 'large',
@@ -877,23 +910,22 @@ const enableAI = async () => {
   display: inline-block;
   position: relative;
   margin-top: 10px;
+
+  .nc-polygon-2 {
+    @apply absolute -top-[8px] left-[50%] transform -translate-x-1/2 stroke-[val(--nc-ai-formula-helper-border-color)];
+  }
+
+  .nc-ai-formula-helper-input {
+    @apply !border-purple-100;
+  }
 }
 
-.prompt-wrapper::after {
-  content: '';
-  position: absolute;
-  top: -8px;
-  left: 48%;
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-bottom: 8px solid rgba(177, 125, 225, 1);
-  transition: all 0.3s;
-}
+.nc-formula-helper-ai-btn {
+  @apply !text-nc-content-purple-dark !bg-nc-bg-purple-light !border-purple-200 hover:!bg-nc-bg-purple-dark;
 
-.prompt-wrapper:hover::after {
-  border-bottom-color: var(--color-primary);
+  &:disabled {
+    @apply !text-nc-content-purple-light !bg-nc-bg-purple-light hover:!bg-nc-bg-purple-light;
+  }
 }
 </style>
 

@@ -231,17 +231,7 @@ watch(isOpenConfigModal, (newValue) => {
 
 <template>
   <div class="relative flex flex-col gap-4">
-    <template v-if="!aiIntegrationAvailable">
-      <div v-if="!aiIntegrationAvailable" class="py-2 pl-3 pr-2 flex items-center gap-2 bg-nc-bg-orange-light rounded-lg">
-        <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
-        <div class="text-sm text-nc-content-gray-subtle flex-1">No AI Integrations added.</div>
-
-        <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="emit('navigateToIntegrations')">
-          Add integration
-        </NcButton>
-      </div>
-    </template>
-
+    <AiIntegrationNotFound v-if="!aiIntegrationAvailable" />
     <template v-else-if="!!aiError"> </template>
     <template v-else>
       <NcButton type="secondary" size="small" class="nc-ai-button-configure-btn" @click.stop="isOpenConfigModal = true">
@@ -297,6 +287,7 @@ watch(isOpenConfigModal, (newValue) => {
                 no-style
                 layout="vertical"
                 class="nc-ai-button-config-left-section flex flex-col gap-6 h-full"
+                @submit.prevent
               >
                 <div class="text-base text-nc-content-gray font-bold">
                   {{ $t('labels.configuration') }}

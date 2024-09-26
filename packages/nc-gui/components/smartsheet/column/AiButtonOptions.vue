@@ -297,7 +297,11 @@ watch(isOpenConfigModal, (newValue) => {
                     <span> Input Prompt </span>
                   </template>
                   <div class="nc-prompt-input-wrapper bg-nc-bg-gray-light rounded-lg w-full">
-                    <AiPromptWithFields v-model="vModel.formula_raw" :options="availableFields" />
+                    <AiPromptWithFields
+                      v-model="vModel.formula_raw"
+                      :options="availableFields"
+                      prompt-field-tag-class-name="!bg-nc-bg-brand !text-nc-content-brand"
+                    />
                     <div class="rounded-b-lg flex items-center gap-2 p-1">
                       <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />
                       <span class="text-xs text-nc-content-gray-subtle2"

@@ -12,10 +12,12 @@ const props = withDefaults(
     modelValue: string
     options?: ColumnType[]
     autoFocus?: boolean
+    promptFieldTagClassName?: string
   }>(),
   {
     options: () => [],
     autoFocus: true,
+    promptFieldTagClassName: '',
   },
 )
 
@@ -56,7 +58,7 @@ const editor = useEditor({
           {
             class: `prompt-field-tag ${
               props.options?.find((option) => option.title === node.attrs.id)?.uidt === UITypes.Attachment ? '!bg-green-200' : ''
-            }`,
+            } ${props.promptFieldTagClassName}`,
           },
           `${node.attrs.id}`,
         ]
@@ -89,6 +91,25 @@ const editor = useEditor({
   editorProps: { scrollThreshold: 100 },
 })
 
+const newFieldSuggestionNode = () => {
+  if (!editor.value) return
+
+  const lastCharacter = editor.value.state.doc.textBetween(
+    editor.value.state.selection.$from.pos - 1,
+    editor.value.state.selection.$from.pos,
+  )
+
+  if (lastCharacter === '{') {
+    editor.value
+      .chain()
+      .deleteRange({ from: editor.value.state.selection.$from.pos - 1, to: editor.value.state.selection.$from.pos })
+      .run()
+  } else {
+    editor.value?.commands.insertContent('{')
+    editor.value?.chain().focus().run()
+  }
+}
+
 onMounted(async () => {
   await until(() => vModel.value !== null && vModel.value !== undefined).toBeTruthy()
 
@@ -111,11 +132,21 @@ onMounted(async () => {
 <template>
   <div class="nc-ai-prompt-with-fields w-full">
     <EditorContent ref="editorDom" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop />
+
+    <NcButton size="xs" type="text" class="nc-prompt-with-field-suggestion-btn !px-1" @click.stop="newFieldSuggestionNode">
+      <GeneralIcon icon="ncPlusSquareSolid" class="!text-nc-content-brand" />
+    </NcButton>
   </div>
 </template>
 
 <style lang="scss">
 .nc-ai-prompt-with-fields {
+  @apply relative;
+
+  .nc-prompt-with-field-suggestion-btn {
+    @apply absolute top-[1px] right-[1px];
+  }
+
   .prompt-field-tag {
     @apply bg-gray-100 rounded-md px-1;
   }

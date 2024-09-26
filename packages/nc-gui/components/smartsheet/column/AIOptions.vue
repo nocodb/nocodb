@@ -150,7 +150,11 @@ provide(EditColumnInj, ref(true))
     <template v-if="isEnabledGenerateText">
       <a-form-item class="flex">
         <div class="nc-prompt-input-wrapper bg-nc-bg-gray-light rounded-lg w-full">
-          <AiPromptWithFields v-model="vModel.prompt_raw" :options="availableFields" />
+          <AiPromptWithFields
+            v-model="vModel.prompt_raw"
+            :options="availableFields"
+            prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
+          />
           <div class="rounded-b-lg flex items-center gap-2 p-1">
             <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />
             <span class="text-xs text-nc-content-gray-subtle2"

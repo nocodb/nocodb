@@ -460,9 +460,9 @@ const handleNavigateToIntegrations = () => {
 <template>
   <div
     v-if="!warningVisible"
-    class="overflow-auto nc-scrollbar-md max-h-[max(80vh,500px)]"
+    class="overflow-auto nc-scrollbar-md"
     :class="{
-      'bg-white': !props.fromTableExplorer,
+      'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[384px]': !props.embedMode,
       'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,

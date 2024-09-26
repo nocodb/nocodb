@@ -182,10 +182,8 @@ if (isEdit.value) {
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
 } else {
   vModel.value.type = vModel.value?.type || buttonTypes[0].value
-  vModel.value.formula_raw = ''
 
   if (vModel.value.type === ButtonActionsType.Ai) {
-    vModel.value.output_column_ids = ''
     vModel.value.theme = 'text'
     vModel.value.label = 'Generate data'
     vModel.value.color = 'purple'
@@ -194,6 +192,7 @@ if (isEdit.value) {
     vModel.value.theme = 'solid'
     vModel.value.label = 'Button'
     vModel.value.color = 'brand'
+    vModel.value.formula_raw = ''
   }
 }
 
@@ -324,6 +323,14 @@ const selectIcon = (icon: string) => {
   vModel.value.icon = icon
   isButtonIconDropdownOpen.value = false
 }
+
+onMounted(() => {
+  if (vModel.value.type === ButtonActionsType.Ai) {
+    // set default value
+    vModel.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
+    vModel.value.output_column_ids = (column?.value?.colOptions as Record<string, any>)?.output_column_ids || ''
+  }
+})
 </script>
 
 <template>

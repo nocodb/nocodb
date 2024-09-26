@@ -803,7 +803,7 @@ const handleNavigateToIntegrations = () => {
                   :loading-label="submitBtnLabel.loadingLabel"
                   data-testid="nc-field-modal-submit-btn"
                   :class="{
-                    '!bg-purple-500 !hover:bg-purple-600': isAiMode,
+                    '!bg-purple-700 !hover:bg-purple-800': isAiMode,
                   }"
                   @click.prevent="onSubmit"
                 >

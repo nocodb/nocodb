@@ -26,7 +26,6 @@ const {
   setAdditionalValidations,
   validateInfos,
   column,
-
   loadData,
   formattedData,
   disableSubmitBtn,
@@ -83,7 +82,7 @@ const loadViewData = async () => {
   if (!formattedData.value.length && !isLoadingViewData.value) {
     isLoadingViewData.value = true
 
-    await loadData()
+    await loadData(undefined, false)
 
     await ncDelay(250)
 
@@ -157,12 +156,6 @@ const removeFromOutputFieldOptions = (id: string) => {
 
 onMounted(() => {
   aiError.value = ''
-
-  if (vModel.value.type === ButtonActionsType.Ai) {
-    // set default value
-    vModel.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
-    vModel.value.output_column_ids = (column?.value?.colOptions as Record<string, any>)?.output_column_ids || ''
-  }
 })
 
 const cellIcon = (column: ColumnType) =>
@@ -284,7 +277,7 @@ provide(IsFormInj, ref(true))
           <NcButton
             size="small"
             type="primary"
-            class="!bg-purple-500 !hover:bg-purple-600"
+            class="!bg-purple-700 !hover:bg-purple-800"
             :disabled="disableSubmitBtn"
             :label="submitBtnLabel.label"
             :loading-label="submitBtnLabel.loadingLabel"

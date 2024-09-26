@@ -22,19 +22,6 @@ const { setAdditionalValidations, validateInfos, column, formattedData, loadData
 
 const { aiIntegrationAvailable, generateRows } = useNocoAi()
 
-
-const localIsEnabledGenerateText = ref(false)
-
-const isEnabledGenerateText = computed({
-  get: () => {
-    return aiIntegrationAvailable.value && (!!vModel.value.prompt_raw || localIsEnabledGenerateText.value)
-  },
-  set: (value: boolean) => {
-    localIsEnabledGenerateText.value = value
-    vModel.value.prompt_raw = ''
-  },
-})
-
 const preview = ref<AIRecordType>({})
 
 const generatingPreview = ref(false)
@@ -49,9 +36,23 @@ const isPreviewEnabled = computed(() => {
   return isFieldAddedInPromt && !!vModel.value.title
 })
 
+const localIsEnabledGenerateText = ref(false)
+
+const isEnabledGenerateText = computed({
+  get: () => {
+    return aiIntegrationAvailable.value && (!!vModel.value.prompt_raw || localIsEnabledGenerateText.value)
+  },
+  set: (value: boolean) => {
+    localIsEnabledGenerateText.value = value
+    vModel.value.prompt_raw = ''
+    preview.value = {}
+    isAlreadyGenerated.value = false
+  },
+})
+
 const loadViewData = async () => {
   if (!formattedData.value.length) {
-    await loadData()
+    await loadData(undefined, false)
   }
 }
 
@@ -178,10 +179,9 @@ provide(EditColumnInj, ref(true))
                 {{ !vModel.title ? 'Field name is required' : 'Include at least 1 field in prompt to generate' }}
               </template>
               <NcButton
-                class="!text-nc-content-purple-dark disabled:!text-nc-content-purple-light"
+                class="nc-aioptions-preview-generate-btn !text-nc-content-purple-dark"
                 :class="{
-                  '!bg-transparent hover:(!bg-nc-bg-purple-light disabled:!bg-transparent)': isAlreadyGenerated,
-                  '!bg-nc-bg-purple-light hover:(!bg-nc-bg-purple-dark disabled:!bg-nc-bg-purple-light)': !isAlreadyGenerated,
+                  'nc-is-already-generated': isAlreadyGenerated,
                 }"
                 size="xs"
                 type="text"
@@ -246,5 +246,17 @@ provide(EditColumnInj, ref(true))
 .nc-ai-options-preview {
   @apply rounded-lg border-1 border-nc-border-gray-medium;
   box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+}
+
+.nc-aioptions-preview-generate-btn {
+  @apply !text-nc-content-purple-dark disabled:!text-nc-content-purple-light;
+
+  &.nc-is-already-generated {
+    @apply !bg-transparent hover:(!bg-nc-bg-purple-light disabled:!bg-transparent);
+  }
+
+  &:not(.nc-is-already-generated) {
+    @apply !bg-nc-bg-purple-light hover:(!bg-nc-bg-purple-dark disabled:!bg-nc-bg-purple-light);
+  }
 }
 </style>

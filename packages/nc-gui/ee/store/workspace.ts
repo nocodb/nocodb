@@ -72,6 +72,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
 
+  const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
+
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>
     Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at),
@@ -640,6 +642,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     isIntegrationsPageOpened,
     navigateToIntegrations,
     navigateToFeed,
+    isFeedPageOpened,
   }
 })
 

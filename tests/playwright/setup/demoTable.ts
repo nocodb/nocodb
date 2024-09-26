@@ -175,7 +175,7 @@ async function createDemoTable({
   api = new Api({
     baseURL: `http://localhost:8080/`,
     headers: {
-      'xc-auth': context.token,
+      'xc-token': context.apiToken,
     },
   });
 

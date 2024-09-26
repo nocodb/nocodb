@@ -22535,15 +22535,6 @@
       }
     },
     "parameters": {
-      "xc-auth": {
-        "name": "xc-auth",
-        "in": "header",
-        "required": true,
-        "schema": {
-          "type": "string"
-        },
-        "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
-      },
       "xc-token": {
         "name": "xc-token",
         "in": "header",
@@ -22552,6 +22543,15 @@
           "type": "string"
         },
         "description": "API Token. Refer [here](https://docs.nocodb.com/account-settings/api-tokens/) to know more"
+      },
+      "xc-auth": {
+        "name": "xc-auth",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Auth Token is a JWT Token generated based on the logged-in user. By default, the token is only valid for 10 hours. However, you can change the value by defining it using environment variable NC_JWT_EXPIRES_IN."
       }
     }
   }

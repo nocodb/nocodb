@@ -27626,10 +27626,19 @@
       }
     },
     "parameters": {
+      "xc-token": {
+        "name": "xc-token",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "API Token. Refer [here](https://docs.nocodb.com/account-settings/api-tokens/) to know more"
+      },
       "xc-auth": {
         "name": "xc-auth",
         "in": "header",
-        "required": false,
+        "required": true,
         "schema": {
           "type": "string"
         },

@@ -469,6 +469,7 @@ const handleNavigateToIntegrations = () => {
       'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-xl p-5': !embedMode,
       'nc-ai-mode !pb-0 min-w-[446px]': isAiMode,
+      '!pb-0': formState.uidt === UITypes.Formula,
       'h-full': props.fromTableExplorer,
     }"
     @keydown="handleEscape"
@@ -818,7 +819,7 @@ const handleNavigateToIntegrations = () => {
         </template>
       </template>
 
-      <template v-if="isAiMode">
+      <template v-if="isAiMode || formState.uidt === UITypes.Formula">
         <div v-if="props.fromTableExplorer" class="flex-1"></div>
         <SmartsheetColumnAIFooterOptions v-model="formState" class="-mx-5 sticky bottom-0 bg-white z-10" />
       </template>

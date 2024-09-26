@@ -420,7 +420,7 @@ check_existing_installation() {
           exit 0
       else
           echo "Reinstalling NocoDB..."
-          $CONFIG_DOCKER_COMMAND compose down
+          $CONFIG_DOCKER_COMMAND compose down -v
 
           unset COMPOSE_PROJECT_NAME
           cd /tmp || exit 1

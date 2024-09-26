@@ -452,7 +452,7 @@ const typeLabel = computed(() => {
   @apply flex gap-4;
 
   & > div {
-    @apply rounded-xl flex flex-col border-1 w-[288px] overflow-hidden cursor-pointer transition-all hover:shadow-lg;
+    @apply rounded-xl flex flex-col border-1 w-[288px] overflow-hidden cursor-pointer transition-all;
 
     .nc-placeholder-icon-wrapper {
       @apply border-b-1 h-[180px] flex items-center justify-center;
@@ -465,6 +465,10 @@ const typeLabel = computed(() => {
     &.nc-create-base {
       @apply border-brand-200;
 
+      &:hover {
+        box-shadow: 0px 12px 16px -4px rgba(51, 102, 255, 0.12), 0px 4px 6px -2px rgba(51, 102, 255, 0.08);
+      }
+
       .nc-placeholder-icon-wrapper {
         @apply border-brand-200 bg-nc-bg-brand;
       }
@@ -472,6 +476,10 @@ const typeLabel = computed(() => {
 
     &.nc-create-base-ai {
       @apply border-purple-200;
+
+      &:hover {
+        box-shadow: 0px 12px 16px -4px rgba(125, 38, 205, 0.12), 0px 4px 6px -2px rgba(125, 38, 205, 0.08);
+      }
 
       .nc-placeholder-icon-wrapper {
         @apply border-purple-200 bg-nc-bg-purple-light;

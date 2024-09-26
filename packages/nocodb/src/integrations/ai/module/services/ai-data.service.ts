@@ -59,7 +59,7 @@ const uidtHelper = (cols: Column[]) => {
     if (col.uidt === UITypes.SingleSelect) {
       userMessageAddition += `\n"${
         col.title
-      }" must be one and only one of the following: ${col.colOptions.options
+      }" must be one and only one of the following options or null. options:${col.colOptions.options
         .map((o) => `"${o.title}"`)
         .join(',')}`;
 
@@ -73,29 +73,49 @@ const uidtHelper = (cols: Column[]) => {
     } else if (col.uidt === UITypes.MultiSelect) {
       userMessageAddition += `\n"${
         col.title
-      }" must be a comma separated string (eg. a,b,c) with one or more of following ${col.colOptions.options
+      }" must be a comma separated string only using options (like:opt1,opt2,opt3) or null. options:${col.colOptions.options
         .map((o) => `"${o.title}"`)
         .join(',')}`;
 
       return [col.title, z.string().nullable().optional()];
     } else if (col.uidt === UITypes.Checkbox) {
-      userMessageAddition += `\n"${col.title}" must be a boolean`;
+      userMessageAddition += `\n"${col.title}" must be a boolean or null`;
 
       return [col.title, z.boolean().nullable().optional()];
     } else if (col.uidt === UITypes.Number) {
-      userMessageAddition += `\n"${col.title}" must be a number`;
+      userMessageAddition += `\n"${col.title}" must be a number or null`;
+
+      return [col.title, z.number().nullable().optional()];
+    } else if (col.uidt === UITypes.Currency) {
+      const currency_code = col.meta?.currency_code || 'USD';
+
+      userMessageAddition += `\n"${col.title}" must be a number or null representing value in ${currency_code}`;
 
       return [col.title, z.number().nullable().optional()];
     } else if (col.uidt === UITypes.URL) {
-      userMessageAddition += `\n"${col.title}" must be a valid URL`;
+      userMessageAddition += `\n"${col.title}" must be a valid URL or null`;
 
-      return [col.title, z.string().url().nullable().optional()];
+      return [col.title, z.string().nullable().optional()];
     } else if (col.uidt === UITypes.Date) {
-      userMessageAddition += `\n"${col.title}" must be a valid date in format YYYY-MM-DD`;
+      userMessageAddition += `\n"${col.title}" must be a valid date in format YYYY-MM-DD or null`;
 
       return [col.title, z.string().nullable().optional()];
     } else if (col.uidt === UITypes.DateTime) {
-      userMessageAddition += `\n"${col.title}" must be a valid date-time in format YYYY-MM-DD HH:mm:ss`;
+      userMessageAddition += `\n"${col.title}" must be a valid date-time in format YYYY-MM-DD HH:mm:ss or null`;
+
+      return [col.title, z.string().nullable().optional()];
+    } else if (col.uidt === UITypes.SingleLineText) {
+      return [col.title, z.string().nullable().optional()];
+    } else if (col.uidt === UITypes.Email) {
+      userMessageAddition += `\n"${col.title}" must be a valid email or null`;
+
+      return [col.title, z.string().nullable().optional()];
+    } else if (col.uidt === UITypes.PhoneNumber) {
+      userMessageAddition += `\n"${col.title}" must be a valid phone number or null`;
+
+      return [col.title, z.string().nullable().optional()];
+    } else if (col.uidt === UITypes.LongText) {
+      userMessageAddition += `\n"${col.title}" must be a string with rich text support or null`;
 
       return [col.title, z.string().nullable().optional()];
     }
@@ -548,7 +568,7 @@ export class AiDataService {
 
     const uidtHelp = uidtHelper(outputColumns);
 
-    userMessage += uidtHelp.userMessageAddition ? `\nColumn Rules:\n${uidtHelp.userMessageAddition}` : '';
+    userMessage += uidtHelp.userMessageAddition ? `\nColumn Rules:\nIf options are provided strictly use them & custom values are restricted\n${uidtHelp.userMessageAddition}` : '';
 
     const res = await wrapper.generateObject<{
       rows: { [key: string]: string }[];

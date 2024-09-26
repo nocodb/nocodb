@@ -21,6 +21,7 @@ const { submitBtnLabel, saving } = toRefs(props)
 const meta = inject(MetaInj, ref())
 
 const {
+  isAiButtonConfigModalOpen,
   formState,
   isEdit,
   setAdditionalValidations,
@@ -163,16 +164,6 @@ const cellIcon = (column: ColumnType) =>
     columnMeta: column,
   })
 
-const handleCloseDropdown = () => {
-  if (isOpenSelectOutputFieldDropdown.value) {
-    isOpenSelectOutputFieldDropdown.value = false
-  }
-
-  if (isOpenSelectRecordDropdown.value) {
-    isOpenSelectRecordDropdown.value = false
-  }
-}
-
 const generate = async () => {
   if (!selectedRecordPk.value || !outputColumnIds.value.length) return
 
@@ -210,12 +201,6 @@ const handleUpdateInputFieldExpansionPanel = (open: boolean) => {
   }
 }
 
-watch(isOpenConfigModal, (isOpen) => {
-  if (!isOpen) {
-    isOpenSelectOutputFieldDropdown.value = false
-  }
-})
-
 const isReadOnlyVirtualCell = (column: ColumnType) => {
   return (
     isRollup(column) ||
@@ -232,6 +217,16 @@ const isReadOnlyVirtualCell = (column: ColumnType) => {
 // provide the following to override the default behavior and enable input fields like in form
 provide(ActiveCellInj, ref(true))
 provide(IsFormInj, ref(true))
+
+watch(isOpenConfigModal, (newValue) => {
+  if (newValue) {
+    isAiButtonConfigModalOpen.value = true
+  } else {
+    setTimeout(() => {
+      isAiButtonConfigModalOpen.value = false
+    }, 500)
+  }
+})
 </script>
 
 <template>
@@ -264,9 +259,8 @@ provide(IsFormInj, ref(true))
       size="lg"
       wrap-class-name="nc-ai-button-config-modal-wrapper"
       nc-modal-class-name="!p-0"
-      stop-event-propogation
     >
-      <div class="h-full flex flex-col" @click="handleCloseDropdown">
+      <div class="h-full flex flex-col">
         <div class="w-full px-4 py-3 flex gap-2 border-b-1 border-nc-border-gray-medium">
           <div class="flex-1 flex items-center gap-2">
             <GeneralIcon icon="cellAiButton" class="flex-none h-6 w-6" />
@@ -289,7 +283,7 @@ provide(IsFormInj, ref(true))
               {{ submitBtnLabel.loadingLabel }}
             </template>
           </NcButton>
-          <NcButton size="small" type="text" @click="isOpenConfigModal = false">
+          <NcButton size="small" type="text" @click.stop="isOpenConfigModal = false">
             <GeneralIcon icon="close" class="text-gray-600" />
           </NcButton>
         </div>

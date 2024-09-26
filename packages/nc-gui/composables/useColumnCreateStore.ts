@@ -54,6 +54,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isWebhookCreateModalOpen = ref(false)
 
+    const isAiButtonConfigModalOpen = ref(false)
+
     const isEdit = computed(() => !!column?.value?.id)
 
     const isMysql = computed(() => isMysqlFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]))
@@ -433,6 +435,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isMssql,
       isPg,
       isWebhookCreateModalOpen,
+      isAiButtonConfigModalOpen,
       isMysql,
       isXcdbBase,
       disableSubmitBtn,

@@ -3,6 +3,9 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import { computed } from '@vue/reactivity'
 
+import NcCreateBasePlaceholder from '~icons/nc-icons/create-base-placeholder'
+import NcCreateBaseWithAiPlaceholder from '~icons/nc-icons/create-base-with-ai-placeholder'
+
 const props = defineProps<{
   modelValue: boolean
   type?: NcProjectType
@@ -79,7 +82,7 @@ const { aiIntegrationAvailable, predictSchema, createSchema } = useNocoAi()
 
 const aiMode = ref<Boolean | null>(null)
 
-const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'large'))
+const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'lg'))
 
 enum AI_STEP {
   LOADING = 0,
@@ -217,11 +220,11 @@ const typeLabel = computed(() => {
     :key="`${aiMode}`"
     v-model:visible="dialogShow"
     :size="modalSize"
-    :height="aiMode ? 864 : undefined"
     :show-separator="true"
+    :width="aiMode === null ? 'auto' : undefined"
     :wrap-class-name="aiMode ? 'nc-modal-ai-base-create' : 'nc-modal-wrapper'"
   >
-    <template #header>
+    <template #header v-if="aiMode === false">
       <!-- Create A New Table -->
       <div
         class="flex flex-row items-center text-base text-gray-800"
@@ -261,23 +264,31 @@ const typeLabel = computed(() => {
       </template>
     </template>
     <template v-if="aiMode === null">
-      <div class="flex gap-4">
-        <NcButton type="ghost" class="w-full !rounded-lg !bg-gray-100 !h-[80px]" @click="aiMode = false">
-          <div class="flex flex-col items-center gap-3 w-full">
-            <div class="w-full flex items-start">
-              <GeneralIcon icon="plusSquare" class="!h-4" />
-            </div>
-            <span>Create Empty Base</span>
+      <div class="nc-create-base-wrapper">
+        <div class="nc-create-base" @click="aiMode = false">
+          <div class="nc-placeholder-icon-wrapper">
+            <component :is="NcCreateBasePlaceholder" class="nc-placeholder-icon stroke-transparent" />
           </div>
-        </NcButton>
-        <NcButton type="ghost" class="w-full !rounded-lg !bg-purple-100 !h-[80px]" @click="aiMode = true">
-          <div class="flex flex-col items-center gap-3 w-full text-purple-500">
-            <div class="w-full flex items-start">
-              <GeneralIcon icon="magic" class="!h-4" />
+          <div class="nc-create-base-content">
+            <div class="nc-create-base-content-title">
+              <GeneralIcon icon="plus" class="h-4 w-4 !text-nc-content-gray-subtle" />
+              Create Blank Base
             </div>
-            <span>Create Base with AI</span>
+            <div class="nc-create-base-content-subtitle">Build your Base according to your specific requirements.</div>
           </div>
-        </NcButton>
+        </div>
+        <div class="nc-create-base-ai" @click="aiMode = true">
+          <div class="nc-placeholder-icon-wrapper">
+            <component :is="NcCreateBaseWithAiPlaceholder" class="nc-placeholder-icon stroke-transparent" />
+          </div>
+          <div class="nc-create-base-content">
+            <div class="nc-create-base-content-title">
+              <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 !text-nc-fill-purple-dark" />
+              Build Base with AI
+            </div>
+            <div class="nc-create-base-content-subtitle">Quickly build your ideal Base with all tables, views and fields.</div>
+          </div>
+        </div>
       </div>
     </template>
     <template v-if="aiMode === false">
@@ -432,6 +443,51 @@ const typeLabel = computed(() => {
 
     .ant-checkbox {
       @apply !shadow-none;
+    }
+  }
+}
+</style>
+<style lang="scss" scoped>
+.nc-create-base-wrapper {
+  @apply flex gap-4;
+
+  & > div {
+    @apply rounded-xl flex flex-col border-1 w-[288px] overflow-hidden cursor-pointer transition-all hover:shadow-lg;
+
+    .nc-placeholder-icon-wrapper {
+      @apply border-b-1 h-[180px] flex items-center justify-center;
+
+      .nc-placeholder-icon {
+        @apply flex-none;
+      }
+    }
+
+    &.nc-create-base {
+      @apply border-brand-200;
+
+      .nc-placeholder-icon-wrapper {
+        @apply border-brand-200 bg-nc-bg-brand;
+      }
+    }
+
+    &.nc-create-base-ai {
+      @apply border-purple-200;
+
+      .nc-placeholder-icon-wrapper {
+        @apply border-purple-200 bg-nc-bg-purple-light;
+      }
+    }
+
+    .nc-create-base-content {
+      @apply px-4 py-3 flex flex-col gap-2;
+
+      .nc-create-base-content-title {
+        @apply flex items-center gap-2 text-base text-nc-content-gray font-bold;
+      }
+
+      .nc-create-base-content-subtitle {
+        @apply text-small leading-[18px] text-nc-content-gray-muted;
+      }
     }
   }
 }

@@ -91,10 +91,7 @@ export default {
 </script>
 
 <template>
-  <div
-    class="w-64 bg-white scroll-smooth nc-mention-list nc-scrollbar-md border-1 border-gray-200 rounded-lg max-h-64 !py-2"
-    @mouseDown.stop
-  >
+  <div class="w-64 bg-white scroll-smooth nc-mention-list nc-scrollbar-md border-1 border-gray-200 rounded-lg max-h-64 !py-2">
     <template v-if="items.length">
       <div
         v-for="(item, index) in items"

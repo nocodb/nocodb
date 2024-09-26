@@ -18,7 +18,7 @@ const availableFields = computed(() => {
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations, validateInfos, column, formattedData, loadData } = useColumnCreateStoreOrThrow()
+const { isEdit, setAdditionalValidations, validateInfos, column, formattedData, loadData } = useColumnCreateStoreOrThrow()
 
 const { aiIntegrationAvailable, generateRows } = useNocoAi()
 
@@ -36,7 +36,7 @@ const isPreviewEnabled = computed(() => {
   return isFieldAddedInPromt && !!vModel.value.title
 })
 
-const localIsEnabledGenerateText = ref(false)
+const localIsEnabledGenerateText = ref(true)
 
 const isEnabledGenerateText = computed({
   get: () => {
@@ -95,7 +95,7 @@ onMounted(() => {
   vModel.value.prompt_raw = (column?.value?.colOptions as Record<string, any>)?.prompt_raw || ''
   vModel.value.output_column_ids = (column?.value?.colOptions as Record<string, any>)?.output_column_ids || ''
 
-  localIsEnabledGenerateText.value = !!vModel.value.prompt_raw
+  localIsEnabledGenerateText.value = isEdit.value ? !!vModel.value.prompt_raw : true
 })
 
 setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('general.required') }] })

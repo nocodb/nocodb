@@ -368,12 +368,12 @@ watch(isOpenConfigModal, (newValue) => {
               </a-form>
             </div>
             <!-- Right side -->
-            <div class="h-full w-1/2 bg-nc-bg-gray-extralight nc-scrollbar-thin flex flex-col">
-              <div class="nc-ai-button-config-right-section">
+            <div class="h-full w-1/2 bg-nc-bg-gray-extralight nc-scrollbar-thin flex flex-col relative">
+              <div class="nc-ai-button-config-right-section !pt-6 sticky top-0 bg-nc-bg-gray-extralight z-10">
                 <div class="text-base text-nc-content-gray font-bold">
                   {{ $t('labels.preview') }}
                 </div>
-                <a-form-item class="!my-0">
+                <a-form-item class="!mb-0 !mt-2">
                   <div class="mb-2 text-sm text-nc-content-gray-subtle2">Select sample record</div>
                   <div
                     class="flex items-center rounded-lg border-1 border-purple-200 transition-all"
@@ -549,10 +549,7 @@ watch(isOpenConfigModal, (newValue) => {
                               v-if="isVirtualCol(field)"
                               :model-value="selectedRecord?.row?.row?.[field.title]"
                               class="mt-0 nc-input nc-cell"
-                              :class="[
-                                `nc-form-input-${field.title?.replaceAll(' ', '')}`,
-                                { 'px-1': isReadOnlyVirtualCell(col), y },
-                              ]"
+                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
                               :column="field"
                               :read-only="true"
                             />

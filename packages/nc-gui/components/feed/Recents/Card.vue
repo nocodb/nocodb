@@ -26,6 +26,15 @@ const feedIcon = {
 
 const truncate = ref(true)
 
+const { $e } = useNuxtApp()
+
+const expand = () => {
+  truncate.value = false
+  $e('c:nocodb:feed:recents:expand', {
+    title: Title,
+  })
+}
+
 const renderedText = computedAsync(async () => {
   return await unified()
     .use(remarkParse)
@@ -67,7 +76,7 @@ const { width } = useWindowSize()
         />
         <div class="prose px-5 mt-5" v-html="renderedText"></div>
 
-        <NcButton v-if="truncate" size="small" class="w-29 mx-5" type="text" @click="truncate = false">
+        <NcButton v-if="truncate" size="small" class="w-29 mx-5" type="text" @click="expand">
           <div class="gap-2 flex items-center">
             Show more
             <GeneralIcon icon="arrowDown" />

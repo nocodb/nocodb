@@ -1,33 +1,41 @@
 <script setup lang="ts">
+const { $e } = useNuxtApp()
+
 const socialIcons = [
   {
     name: '@nocodb',
     icon: iconMap.iconTwitter,
     link: 'https://twitter.com/nocodb',
+    e: 'c:feed::twitter-open',
   },
   {
     name: 'NocoDB',
     icon: iconMap.youtube,
+    e: 'c:feed:youtube-open',
     link: 'https://www.youtube.com/@nocodb',
   },
   {
     name: 'NocoDB',
     icon: iconMap.iconDiscord,
+    e: 'c:feed:discord-open',
     link: 'https://discord.nocodb.com',
   },
   {
     name: 'r/NocoDB',
     icon: iconMap.iconReddit,
+    e: 'c:feed:reddit-open',
     link: 'https://www.reddit.com/r/NocoDB/',
   },
   {
     name: 'Forum',
     icon: iconMap.nocodb,
+    e: 'c:feed:forum-open',
     link: 'https://community.nocodb.com/',
   },
 ]
 
-const openUrl = (url: string) => {
+const openUrl = (url: string, e: string) => {
+  $e(e)
   window.open(url, '_blank')
 }
 </script>
@@ -40,7 +48,7 @@ const openUrl = (url: string) => {
         v-for="social in socialIcons"
         :key="social.name"
         class="flex items-center social-icon-wrapper cursor-pointer rounded-lg hover:bg-gray-100 py-3 px-4 gap-2 text-gray-800"
-        @click="openUrl(social.link)"
+        @click="openUrl(social.link, social.e)"
       >
         <component :is="social.icon" class="w-5 h-5 stroke-transparent social-icon" />
         <span class="font-semibold">{{ social.name }}</span>

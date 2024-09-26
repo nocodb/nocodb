@@ -57,11 +57,11 @@ const uidtHelper = (cols: Column[]) => {
   let userMessageAddition = '';
   const schema = cols.map((col) => {
     if (col.uidt === UITypes.SingleSelect) {
-      userMessageAddition += `\n\n${
+      userMessageAddition += `\n"${
         col.title
-      } can be one of following ${col.colOptions.options
+      }" must be one and only one of the following: ${col.colOptions.options
         .map((o) => `"${o.title}"`)
-        .join(', ')}`;
+        .join(',')}`;
 
       return [
         col.title,
@@ -71,25 +71,33 @@ const uidtHelper = (cols: Column[]) => {
           .optional(),
       ];
     } else if (col.uidt === UITypes.MultiSelect) {
-      userMessageAddition += `\n\n${
+      userMessageAddition += `\n"${
         col.title
-      } must be a comma separated string with one or more of following ${col.colOptions.options
+      }" must be a comma separated string (eg. a,b,c) with one or more of following ${col.colOptions.options
         .map((o) => `"${o.title}"`)
-        .join(', ')}`;
+        .join(',')}`;
 
       return [col.title, z.string().nullable().optional()];
     } else if (col.uidt === UITypes.Checkbox) {
-      userMessageAddition += `\n\n${col.title} must be a boolean`;
+      userMessageAddition += `\n"${col.title}" must be a boolean`;
 
       return [col.title, z.boolean().nullable().optional()];
     } else if (col.uidt === UITypes.Number) {
-      userMessageAddition += `\n\n${col.title} must be a number`;
+      userMessageAddition += `\n"${col.title}" must be a number`;
 
       return [col.title, z.number().nullable().optional()];
     } else if (col.uidt === UITypes.URL) {
-      userMessageAddition += `\n\n${col.title} must be a valid URL`;
+      userMessageAddition += `\n"${col.title}" must be a valid URL`;
 
       return [col.title, z.string().url().nullable().optional()];
+    } else if (col.uidt === UITypes.Date) {
+      userMessageAddition += `\n"${col.title}" must be a valid date in format YYYY-MM-DD`;
+
+      return [col.title, z.string().nullable().optional()];
+    } else if (col.uidt === UITypes.DateTime) {
+      userMessageAddition += `\n"${col.title}" must be a valid date-time in format YYYY-MM-DD HH:mm:ss`;
+
+      return [col.title, z.string().nullable().optional()];
     }
     return [col.title, z.any().optional()];
   });
@@ -540,7 +548,7 @@ export class AiDataService {
 
     const uidtHelp = uidtHelper(outputColumns);
 
-    userMessage += uidtHelp.userMessageAddition;
+    userMessage += uidtHelp.userMessageAddition ? `\nColumn Rules:\n${uidtHelp.userMessageAddition}` : '';
 
     const res = await wrapper.generateObject<{
       rows: { [key: string]: string }[];

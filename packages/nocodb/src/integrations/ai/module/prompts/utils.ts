@@ -124,7 +124,15 @@ export const repairFormulaPrompt = (oldFormula: string, error?: string) =>
 
 export const predictNextTablesSystemMessage =
   () => `You are a smart-spreadsheet designer.
-Duplicate tables are not allowed.`;
+
+- Spaces are allowed in table titles.
+- Duplicate tables are not allowed.
+- Tables must be meaningful & unique.
+
+Sample output:
+\`\`\`
+{"tables": ["Customers", "Contacts", "Leads", "Opportunities", "Accounts"]}
+\`\`\``;
 
 export const predictNextTablesPrompt = (
   baseTitle: string,
@@ -135,4 +143,6 @@ export const predictNextTablesPrompt = (
   `Your schema "${baseTitle}" already have following tables: "${existingTables
     .concat(history || [])
     .join(', ')}"
-Predict next 3 to 5 ${prompt ? 'most suitable tables for' + prompt : 'tables'}`;
+Predict next 3 to 5 table titles for schema${
+    prompt ? ` "\n\n${prompt}"` : ''
+}`;

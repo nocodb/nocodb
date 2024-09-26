@@ -73,17 +73,22 @@ const uidtHelper = (cols: Column[]) => {
     } else if (col.uidt === UITypes.MultiSelect) {
       userMessageAddition += `\n\n${
         col.title
-      } must be an comma separated string with one or more of following ${col.colOptions.options
+      } must be a comma separated string with one or more of following ${col.colOptions.options
         .map((o) => `"${o.title}"`)
         .join(', ')}`;
 
       return [col.title, z.string().nullable().optional()];
     } else if (col.uidt === UITypes.Checkbox) {
+      userMessageAddition += `\n\n${col.title} must be a boolean`;
+
       return [col.title, z.boolean().nullable().optional()];
     } else if (col.uidt === UITypes.Number) {
+      userMessageAddition += `\n\n${col.title} must be a number`;
+
       return [col.title, z.number().nullable().optional()];
     } else if (col.uidt === UITypes.URL) {
       userMessageAddition += `\n\n${col.title} must be a valid URL`;
+
       return [col.title, z.string().url().nullable().optional()];
     }
     return [col.title, z.any().optional()];

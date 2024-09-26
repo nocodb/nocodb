@@ -129,7 +129,7 @@ You can create relationships between tables (columns will be automatically creat
 
 Rules:
 - Each table must have one and only one ID column
-- Spaces are allowed in table & column names
+- Spaces are allowed in table & column titles
 - Try to make use of SingleSelect columns where possible
 - Try to make use of relationships between new to existing tables or new to new tables
 - If there is an emoji which can explain the table, use it as a suffix for table title
@@ -155,9 +155,12 @@ export const generateTablesPrompt = (
 \`\`\`json
 ${existingSchema}
 \`\`\`
-We need to add some new tables to the schema.
-Design best possible table for ${tableNames.map((i) => `"${i}"`).join(',')}${
-    instructions ? `\n${instructions}` : ''
+Your job is to extend schema with provided tables.
+Design following tables with following titles ${tableNames.map((i) => `"${i}"`).join(',')}
+Be comprehensive with columns and relationships.
+Make sure schema is production ready.
+You must preserve the provided titles${
+    instructions ? `\n\n${instructions}` : ''
   }`;
 
 export const generateViewsSystemMessage =

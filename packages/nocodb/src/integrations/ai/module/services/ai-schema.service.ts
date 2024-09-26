@@ -230,6 +230,14 @@ export class AiSchemaService {
 
     const input = Array.isArray(params.input) ? params.input : [params.input];
 
+    const existingSchema = await this.serializeSchema(context, {
+      baseId: base.id,
+      req,
+    });
+
+    // we don't need views for generating tables
+    delete existingSchema.views;
+
     const { data, usage } = await wrapper.generateObject<{
       tables?: {
         title?: string;
@@ -304,9 +312,7 @@ export class AiSchemaService {
             base.title,
             input,
             instructions,
-            JSON.stringify(
-              await this.serializeSchema(context, { baseId: base.id, req }),
-            ),
+            JSON.stringify(existingSchema),
           ),
         },
       ],

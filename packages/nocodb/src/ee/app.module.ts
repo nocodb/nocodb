@@ -4,7 +4,6 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AppModule as AppCEModule, ceModuleConfig } from 'src/app.module';
 import { LoggerModule } from 'nestjs-pino';
-import { v4 as uuidv4 } from 'uuid';
 import { DbMuxController } from 'src/ee/controllers/db-mux.controller';
 import { ThrottlerConfigService } from '~/services/throttler/throttler-config.service';
 import appConfig from '~/app.config';
@@ -12,6 +11,7 @@ import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.midd
 import { ExecutionTimeCalculatorInterceptor } from '~/interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 import { UpdateStatsService } from '~/services/update-stats.service';
 import { NcLogger } from '~/utils/logger/NcLogger';
+import { generateUUID } from '~/helpers/uuidHelpers';
 
 // todo: refactor to use config service
 const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
@@ -48,7 +48,7 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
         genReqId: function (req, res) {
           const existingID = req.id ?? req.headers['x-request-id'];
           if (existingID) return existingID;
-          const id = uuidv4();
+          const id = generateUUID();
           res.setHeader('x-request-id', id);
           return id;
         },

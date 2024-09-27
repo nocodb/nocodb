@@ -13,11 +13,13 @@ const props = withDefaults(
     options?: ColumnType[]
     autoFocus?: boolean
     promptFieldTagClassName?: string
+    suggestionIconClassName?: string
   }>(),
   {
     options: () => [],
     autoFocus: true,
     promptFieldTagClassName: '',
+    suggestionIconClassName: '',
   },
 )
 
@@ -134,7 +136,7 @@ onMounted(async () => {
     <EditorContent ref="editorDom" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop />
 
     <NcButton size="xs" type="text" class="nc-prompt-with-field-suggestion-btn !px-1" @click.stop="newFieldSuggestionNode">
-      <GeneralIcon icon="ncPlusSquareSolid" class="!text-nc-content-brand" />
+      <GeneralIcon icon="ncPlusSquareSolid" class="text-nc-content-brand" :class="`${suggestionIconClassName}`" />
     </NcButton>
   </div>
 </template>
@@ -152,7 +154,7 @@ onMounted(async () => {
   }
 
   .ProseMirror {
-    @apply px-3 pb-3 pt-2 h-[180px] min-h-[180px] overflow-y-auto nc-scrollbar-thin outline-none border-1 border-gray-200 bg-white text-nc-content-gray-muted rounded-lg !rounded-b-none transition-shadow ease-linear -mx-[1px] -mt-[1px];
+    @apply px-3 pb-3 pt-2 h-[120px] min-h-[120px] overflow-y-auto nc-scrollbar-thin outline-none border-1 border-gray-200 bg-white text-nc-content-gray rounded-lg !rounded-b-none transition-shadow ease-linear -mx-[1px] -mt-[1px];
     resize: vertical;
     min-width: 100%;
     max-height: min(800px, calc(100vh - 200px)) !important;

@@ -190,14 +190,18 @@ const generate = async () => {
   generatingPreview.value = false
 }
 
-const inputFieldsExpansionPanel = ref<string[]>([])
+enum ExpansionPanelKeys {
+  input = 'input',
+  output = 'output',
+}
 
-const handleUpdateInputFieldExpansionPanel = (open: boolean) => {
-  if (!inputColumns.value.length) return
-  if (open) {
-    inputFieldsExpansionPanel.value = ['1']
+const expansionPanel = ref<ExpansionPanelKeys[]>([ExpansionPanelKeys.output])
+
+const handleUpdateExpansionPanel = (key: ExpansionPanelKeys) => {
+  if (expansionPanel.value.includes(key)) {
+    expansionPanel.value = expansionPanel.value.filter((k) => k !== key)
   } else {
-    inputFieldsExpansionPanel.value = []
+    expansionPanel.value.push(key)
   }
 }
 
@@ -493,148 +497,176 @@ watch(isOpenConfigModal, (newValue) => {
                   </div>
                 </a-form-item>
               </div>
-              <div class="nc-ai-button-config-right-section">
-                <a-collapse v-model:active-key="inputFieldsExpansionPanel" ghost>
-                  <template #expandIcon> </template>
-                  <a-collapse-panel key="1" collapsible="disabled">
-                    <template #header>
-                      <div class="flex">
-                        <div
-                          class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5 min-h-7"
-                          @click="handleUpdateInputFieldExpansionPanel(!inputFieldsExpansionPanel.length)"
-                        >
-                          Input fields
 
-                          <template v-if="inputColumns.length">
-                            <a-tag class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0">
-                              {{ inputColumns.length }}</a-tag
-                            >
-
-                            <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-medium !px-1">
-                              <GeneralIcon
-                                icon="arrowRight"
-                                class="transform"
-                                :class="{
-                                  'rotate-270': inputFieldsExpansionPanel.length,
-                                }"
-                              />
-                            </NcButton>
-                          </template>
-                        </div>
-                      </div>
-                    </template>
-
-                    <div class="flex flex-col gap-4">
-                      <template v-for="field in inputColumns">
-                        <a-form-item
-                          v-if="field.title"
-                          :key="`${field.id}-${generatingPreview}`"
-                          :name="field.title"
-                          class="!my-0 nc-input-required-error"
-                        >
-                          <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                            <component :is="cellIcon(field)" class="!mx-0" />
-                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                              <template #title>
-                                {{ field?.title }}
-                              </template>
-                              {{ field?.title }}
-                            </NcTooltip>
-                          </div>
-
-                          <LazySmartsheetDivDataCell
-                            class="relative flex items-center min-h-8 children:h-full"
-                            :class="{
-                              '!select-text nc-system-field': isReadOnlyVirtualCell(field),
-                              '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
-                            }"
-                          >
-                            <LazySmartsheetVirtualCell
-                              v-if="isVirtualCol(field)"
-                              :model-value="selectedRecord?.row?.row?.[field.title]"
-                              class="mt-0 nc-input nc-cell"
-                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                              :column="field"
-                              :read-only="true"
-                            />
-
-                            <LazySmartsheetCell
-                              v-else
-                              :model-value="selectedRecord?.row?.row?.[field.title]"
-                              class="nc-input truncate"
-                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                              :column="field"
-                              :edit-enabled="true"
-                              :read-only="true"
-                            />
-                          </LazySmartsheetDivDataCell>
-                        </a-form-item>
-                      </template>
-                    </div>
-                  </a-collapse-panel>
-                </a-collapse>
-              </div>
-              <div class="flex-1 nc-ai-button-config-right-section">
-                <div class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5">
-                  Output fields
-                  <a-tag
-                    v-if="outputColumnIds.length"
-                    class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0"
-                  >
-                    {{ outputColumnIds.length }}</a-tag
-                  >
-                </div>
-                <div v-if="!outputColumnIds.length" class="flex-1 flex items-center justify-center">
-                  <GeneralIcon icon="ncAutoAwesome" class="h-[177px] w-[177px] !text-purple-100" />
-                </div>
-                <template v-else>
-                  <template v-for="field in outputFieldOptions">
-                    <a-form-item
-                      v-if="field.title && outputColumnIds.includes(field.id)"
-                      :key="field.id"
-                      :name="field.title"
-                      class="!my-0 nc-input-required-error"
-                    >
-                      <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                        <component :is="cellIcon(field)" class="!mx-0" />
-                        <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                          <template #title>
-                            {{ field?.title }}
-                          </template>
-                          {{ field?.title }}
-                        </NcTooltip>
-                      </div>
-
-                      <LazySmartsheetDivDataCell
-                        class="relative min-h-8 flex items-center children:h-full"
-                        :class="{
-                          '!select-text nc-system-field': isReadOnlyVirtualCell(field),
-                          '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
-                        }"
+              <a-collapse v-model:active-key="expansionPanel" ghost class="flex-1 flex flex-col">
+                <template #expandIcon> </template>
+                <a-collapse-panel
+                  :key="ExpansionPanelKeys.input"
+                  collapsible="disabled"
+                  class="nc-ai-button-config-right-section"
+                >
+                  <template #header>
+                    <div class="flex">
+                      <div
+                        class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5 min-h-7"
+                        @click="handleUpdateExpansionPanel(ExpansionPanelKeys.input)"
                       >
-                        <LazySmartsheetVirtualCell
-                          v-if="isVirtualCol(field)"
-                          :model-value="previewOutput[field.title]"
-                          class="mt-0 nc-input nc-cell"
-                          :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                          :column="field"
-                          :read-only="true"
-                        />
+                        Input fields
 
-                        <LazySmartsheetCell
-                          v-else
-                          v-model="previewOutput[field.title]"
-                          class="nc-input truncate"
-                          :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                          :column="field"
-                          :edit-enabled="true"
-                          :read-only="true"
-                        />
-                      </LazySmartsheetDivDataCell>
-                    </a-form-item>
+                        <a-tag
+                          v-if="inputColumns.length"
+                          class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0"
+                        >
+                          {{ inputColumns.length }}</a-tag
+                        >
+
+                        <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-medium !px-1">
+                          <GeneralIcon
+                            icon="arrowRight"
+                            class="transform"
+                            :class="{
+                              'rotate-270': expansionPanel.includes(ExpansionPanelKeys.input),
+                            }"
+                          />
+                        </NcButton>
+                      </div>
+                    </div>
                   </template>
-                </template>
-              </div>
+
+                  <div v-if="!inputColumns.length" class="flex items-center justify-center">
+                    <GeneralIcon icon="ncAutoAwesome" class="h-[177px] w-[177px] !text-purple-100" />
+                  </div>
+                  <div v-else class="flex flex-col gap-4">
+                    <template v-for="field in inputColumns">
+                      <a-form-item
+                        v-if="field.title"
+                        :key="`${field.id}-${generatingPreview}`"
+                        :name="field.title"
+                        class="!my-0 nc-input-required-error"
+                      >
+                        <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
+                          <component :is="cellIcon(field)" class="!mx-0" />
+                          <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                            <template #title>
+                              {{ field?.title }}
+                            </template>
+                            {{ field?.title }}
+                          </NcTooltip>
+                        </div>
+
+                        <LazySmartsheetDivDataCell
+                          class="relative flex items-center min-h-8 children:h-full"
+                          :class="{
+                            '!select-text nc-system-field': isReadOnlyVirtualCell(field),
+                            '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
+                          }"
+                        >
+                          <LazySmartsheetVirtualCell
+                            v-if="isVirtualCol(field)"
+                            :model-value="selectedRecord?.row?.row?.[field.title]"
+                            class="mt-0 nc-input nc-cell"
+                            :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                            :column="field"
+                            :read-only="true"
+                          />
+
+                          <LazySmartsheetCell
+                            v-else
+                            :model-value="selectedRecord?.row?.row?.[field.title]"
+                            class="nc-input truncate"
+                            :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                            :column="field"
+                            :edit-enabled="true"
+                            :read-only="true"
+                          />
+                        </LazySmartsheetDivDataCell>
+                      </a-form-item>
+                    </template>
+                  </div>
+                </a-collapse-panel>
+                <a-collapse-panel
+                  :key="ExpansionPanelKeys.output"
+                  collapsible="disabled"
+                  class="nc-ai-button-config-right-section nc-output-field-collapse-panel flex-1"
+                >
+                  <template #header>
+                    <div class="flex">
+                      <div
+                        class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5 min-h-7"
+                        @click="handleUpdateExpansionPanel(ExpansionPanelKeys.output)"
+                      >
+                        Output fields
+
+                        <a-tag
+                          v-if="outputColumnIds.length"
+                          class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0"
+                        >
+                          {{ outputColumnIds.length }}</a-tag
+                        >
+                        <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-medium !px-1">
+                          <GeneralIcon
+                            icon="arrowRight"
+                            class="transform"
+                            :class="{
+                              'rotate-270': expansionPanel.includes(ExpansionPanelKeys.output),
+                            }"
+                          />
+                        </NcButton>
+                      </div>
+                    </div>
+                  </template>
+                  <div v-if="!outputColumnIds.length" class="flex-1 flex items-center justify-center">
+                    <GeneralIcon icon="ncAutoAwesome" class="h-[177px] w-[177px] !text-purple-100" />
+                  </div>
+                  <div v-else class="flex flex-col gap-4">
+                    <template v-for="field in outputFieldOptions">
+                      <a-form-item
+                        v-if="field.title && outputColumnIds.includes(field.id)"
+                        :key="field.id"
+                        :name="field.title"
+                        class="!my-0 nc-input-required-error"
+                      >
+                        <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
+                          <component :is="cellIcon(field)" class="!mx-0" />
+                          <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                            <template #title>
+                              {{ field?.title }}
+                            </template>
+                            {{ field?.title }}
+                          </NcTooltip>
+                        </div>
+
+                        <LazySmartsheetDivDataCell
+                          class="relative min-h-8 flex items-center children:h-full"
+                          :class="{
+                            '!select-text nc-system-field': isReadOnlyVirtualCell(field),
+                            '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
+                          }"
+                        >
+                          <LazySmartsheetVirtualCell
+                            v-if="isVirtualCol(field)"
+                            :model-value="previewOutput[field.title]"
+                            class="mt-0 nc-input nc-cell"
+                            :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                            :column="field"
+                            :read-only="true"
+                          />
+
+                          <LazySmartsheetCell
+                            v-else
+                            v-model="previewOutput[field.title]"
+                            class="nc-input truncate"
+                            :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                            :column="field"
+                            :edit-enabled="true"
+                            :read-only="true"
+                          />
+                        </LazySmartsheetDivDataCell>
+                      </a-form-item>
+                    </template>
+                  </div>
+                </a-collapse-panel>
+              </a-collapse>
             </div>
           </div>
           <!-- Footer  -->
@@ -712,6 +744,17 @@ watch(isOpenConfigModal, (newValue) => {
 
 :deep(.ant-collapse-content-box) {
   @apply !px-0 !pb-0 !pt-3;
+}
+
+:deep(.ant-collapse-item) {
+  &.nc-output-field-collapse-panel {
+    .ant-collapse-content {
+      @apply flex-1 flex flex-col;
+      .ant-collapse-content-box {
+        @apply flex-1 flex flex-col gap-4;
+      }
+    }
+  }
 }
 
 :deep(.ant-select-selector) {

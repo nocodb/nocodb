@@ -154,6 +154,7 @@ provide(EditColumnInj, ref(true))
             v-model="vModel.prompt_raw"
             :options="availableFields"
             prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
+            suggestion-icon-class-name="!text-nc-content-purple-medium"
           />
           <div class="rounded-b-lg flex items-center gap-2 p-1">
             <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />

@@ -798,6 +798,7 @@ function init() {
     :show-separator="false"
     size="sm"
     height="auto"
+    width="592px"
     :centered="false"
     nc-modal-class-name="!p-0"
   >

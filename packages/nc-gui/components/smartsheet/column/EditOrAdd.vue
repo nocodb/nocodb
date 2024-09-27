@@ -197,13 +197,13 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
   return types
 })
 
-const onSelectType = (uidt: UITypes | 'AIButton') => {
+const onSelectType = (uidt: UITypes | typeof AIButton) => {
   let preload
 
-  if (uidt === 'AIButton') {
-    formState.value.uidt = 'Button'
+  if (uidt === AIButton) {
+    formState.value.uidt = UITypes.Button
     preload = {
-      type: 'ai',
+      type: ButtonActionsType.Ai,
     }
   } else {
     formState.value.uidt = uidt
@@ -566,6 +566,7 @@ const handleNavigateToIntegrations = () => {
               v-bind="validateInfos.uidt"
               :class="{
                 'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
+                '!text-nc-content-purple-dark': [UITypes.AI, AIButton].includes(opt.name),
               }"
               @mouseover="handleResetHoverEffect"
             >
@@ -573,15 +574,10 @@ const handleNavigateToIntegrations = () => {
                 <div class="flex-1 flex gap-2 items-center">
                   <component
                     :is="opt.icon"
-                    class="w-4 h-4"
+                    class="nc-field-type-icon w-4 h-4"
                     :class="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name) ? 'text-gray-300' : 'text-gray-700'"
                   />
-                  <div
-                    class="flex-1"
-                    :class="{
-                      '!text-nc-content-purple-dark': opt.name === UITypes.AI || opt.name === 'AIButton',
-                    }"
-                  >
+                  <div class="flex-1">
                     {{ UITypesName[opt.name] }}
                   </div>
                   <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
@@ -850,6 +846,12 @@ const handleNavigateToIntegrations = () => {
 .nc-fields-input {
   &::placeholder {
     @apply font-normal;
+  }
+}
+
+:deep(.ant-select-disabled.nc-column-type-input) {
+  .nc-field-type-icon {
+    @apply text-current;
   }
 }
 

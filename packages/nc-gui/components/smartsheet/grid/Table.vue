@@ -1127,14 +1127,16 @@ const normalizedWidth = (col: ColumnType, width: number) => {
 }
 // #Grid Resize
 const onresize = (colID: string | undefined, event: any) => {
-  if (!colID) return
+  if (!colID || !ncIsString(event?.detail)) return
+
   const size = event.detail.split('px')[0]
 
   updateGridViewColumn(colID, { width: `${normalizedWidth(metaColumnById.value[colID], size)}px` })
 }
 
 const onXcResizing = (cn: string | undefined, event: any) => {
-  if (!cn) return
+  if (!cn || !ncIsString(event?.detail)) return
+
   const size = event.detail.split('px')[0]
   gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
 }

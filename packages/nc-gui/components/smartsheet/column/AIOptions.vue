@@ -29,6 +29,8 @@ const previewRow = ref<Row>({
   rowMeta: { new: true },
 })
 
+const previewFieldTitle = ref(vModel.value.title || '')
+
 const generatingPreview = ref(false)
 
 const isAlreadyGenerated = ref(false)
@@ -83,6 +85,8 @@ const generate = async () => {
     return
   }
 
+  previewFieldTitle.value = vModel.value?.title
+
   const res = await generateRows(
     meta.value.id!,
     {
@@ -94,11 +98,11 @@ const generate = async () => {
     [pk],
   )
 
-  if (res?.length && res[0]?.[vModel.value?.title]) {
+  if (res?.length && res[0]?.[previewFieldTitle.value]) {
     previewRow.value.row = {
       ...res[0],
-      [vModel.value?.title]: {
-        value: res[0]?.[vModel.value?.title],
+      [previewFieldTitle.value]: {
+        value: res[0]?.[previewFieldTitle.value],
       },
     }
     isAlreadyGenerated.value = true
@@ -232,12 +236,12 @@ provide(EditColumnInj, ref(true))
               </NcButton>
             </NcTooltip>
           </div>
-          <div v-if="previewRow.row?.[vModel.title]?.value">
+          <div v-if="previewRow.row?.[previewFieldTitle]?.value">
             <div class="relative pr-3 pl-1 pt-2 pb-3">
               <LazySmartsheetRow :row="previewRow">
                 <LazySmartsheetCell
                   :edit-enabled="true"
-                  :model-value="previewRow.row[vModel.title]"
+                  :model-value="previewRow.row[previewFieldTitle]"
                   :column="vModel"
                   class="!border-none h-auto my-auto"
                 />

@@ -151,7 +151,9 @@ const inputColumns = computed(() => {
 
 const outputFieldOptions = computed(() => {
   if (!meta.value?.columns) return []
-  return meta.value.columns.filter((c) => !c.system && !c.pk && c.id !== column.value?.id)
+  return meta.value.columns.filter(
+    (c) => !c.system && !c.pk && c.id !== column.value?.id && !ncIsArrayIncludes(inputColumns.value, c?.id, 'id'),
+  )
 })
 
 const outputColumnIds = computed({
@@ -164,6 +166,15 @@ const outputColumnIds = computed({
     vModel.value.output_column_ids = val.join(',')
   },
 })
+
+watch(
+  () => inputColumns.value.length,
+  () => {
+    outputColumnIds.value = outputColumnIds.value.filter((columnId: string) => {
+      return !ncIsArrayIncludes(inputColumns.value, columnId, 'id')
+    })
+  },
+)
 
 const removeFromOutputFieldOptions = (id: string) => {
   outputColumnIds.value = outputColumnIds.value.filter((op) => op !== id)

@@ -253,7 +253,7 @@ const checkScrollTopMoreThanZero = () => {
     <AiIntegrationNotFound v-if="!aiIntegrationAvailable" />
     <template v-else-if="!!aiError"> </template>
     <template v-else>
-      <NcButton type="secondary" size="small" class="nc-ai-button-configure-btn" @click.stop="isOpenConfigModal = true">
+      <NcButton type="secondary" size="small" theme="ai" @click.stop="isOpenConfigModal = true">
         <div class="flex items-center justify-center gap-2">
           <GeneralIcon icon="ncSettings" class="text-[14px] !text-current" />
           {{ $t('general.configure') }}
@@ -717,10 +717,6 @@ const checkScrollTopMoreThanZero = () => {
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;
   }
-}
-
-.nc-ai-button-configure-btn {
-  @apply !text-nc-content-purple-dark !bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark;
 }
 
 .nc-prompt-input-wrapper {

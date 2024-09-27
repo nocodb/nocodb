@@ -246,6 +246,12 @@ watch(isOpenConfigModal, (newValue) => {
   }
 })
 
+watch(isOpenSelectRecordDropdown, (newValue) => {
+  if (newValue) {
+    loadViewData()
+  }
+})
+
 const previewPanelDom = ref<HTMLElement>()
 
 const isPreviewPanelOnScrollTop = ref(false)
@@ -438,7 +444,6 @@ const checkScrollTopMoreThanZero = () => {
                           'w-[calc(100%_-_133.5px)]': !(aiLoading && generatingPreview),
                           'w-[calc(100%_-_146.5px)]': aiLoading && generatingPreview,
                         }"
-                        @click.stop="loadViewData"
                       >
                         <NcTooltip
                           v-if="selectedRecord?.label"

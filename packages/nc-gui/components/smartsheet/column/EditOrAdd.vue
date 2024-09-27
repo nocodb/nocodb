@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, type LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type ColumnReqType, type ColumnType } from 'nocodb-sdk'
 import {
+  ButtonActionsType,
   UITypes,
   UITypesName,
   isLinksOrLTAR,
@@ -8,7 +9,6 @@ import {
   isSystemColumn,
   isVirtualCol,
   readonlyMetaAllowedTypes,
-  ButtonActionsType,
 } from 'nocodb-sdk'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -69,7 +69,7 @@ const workspaceStore = useWorkspace()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
-const { predictFieldType } = useNocoAi()
+// const { predictFieldType } = useNocoAi()
 
 const meta = inject(MetaInj, ref())
 
@@ -151,7 +151,7 @@ const extraIcons = ref<Record<string, string>>({})
 
 const predictedFieldType = ref<UITypes | null>(null)
 
-const lastPredictedAt = ref<number>(0)
+// const lastPredictedAt = ref<number>(0)
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   const types = [
@@ -430,8 +430,8 @@ const isFullUpdateAllowed = computed(() => {
 })
 
 const onPredictFieldType = async () => {
-  // disable for now as this is only action triggered without user interaction -- need to be discussed
-  return
+  /*
+  ### disable for now as this is only action triggered without user interaction -- need to be discussed
 
   if (readOnly.value || (lastPredictedAt.value > 0 && Date.now() - lastPredictedAt.value < 5000)) return
 
@@ -444,6 +444,7 @@ const onPredictFieldType = async () => {
       predictedFieldType.value = res
     }
   }
+  */
 }
 
 const debouncedOnPredictFieldType = useDebounceFn(onPredictFieldType, 500)

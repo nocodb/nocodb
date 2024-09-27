@@ -156,7 +156,9 @@ export const generateTablesPrompt = (
 ${existingSchema}
 \`\`\`
 Your job is to extend schema with provided tables.
-Design following tables with following titles ${tableNames.map((i) => `"${i}"`).join(',')}
+Design following tables with following titles ${tableNames
+    .map((i) => `"${i}"`)
+    .join(',')}
 Be comprehensive with columns and relationships.
 Make sure schema is production ready.
 You must preserve the provided titles${

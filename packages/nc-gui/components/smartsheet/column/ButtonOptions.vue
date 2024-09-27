@@ -30,7 +30,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen, validate, isAiMode } =
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen, isAiMode } =
   useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]

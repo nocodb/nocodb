@@ -568,7 +568,9 @@ export class AiDataService {
 
     const uidtHelp = uidtHelper(outputColumns);
 
-    userMessage += uidtHelp.userMessageAddition ? `\nColumn Rules:\nIf options are provided strictly use them & custom values are restricted\n${uidtHelp.userMessageAddition}` : '';
+    userMessage += uidtHelp.userMessageAddition
+      ? `\nColumn Rules:\nIf options are provided strictly use them & custom values are restricted\n${uidtHelp.userMessageAddition}`
+      : '';
 
     const res = await wrapper.generateObject<{
       rows: { [key: string]: string }[];

@@ -71,7 +71,7 @@ const generate = async () => {
   }
 
   const res = await generateRows(
-    meta.value?.id!,
+    meta.value.id!,
     {
       title: vModel.value?.title,
       prompt_raw: vModel.value.prompt_raw,

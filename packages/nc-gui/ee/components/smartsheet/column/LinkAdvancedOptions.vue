@@ -150,8 +150,7 @@ const onModelIdChange = async (modelId: string, isJunctionModel: boolean = false
   resetSelectedColumns(isJunctionModel)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const onBaseChange = async (baseId, isJunctionBase: boolean = false) => {
+const _onBaseChange = async (baseId: string, isJunctionBase: boolean = false) => {
   await tablesStore.loadProjectTables(baseId)
 
   if (isJunctionBase) {

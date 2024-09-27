@@ -3,7 +3,6 @@ import {
   extractRolesObj,
   IntegrationCategoryType,
   type RelationTypes,
-  SerializedAiViewType,
   stringToViewTypeMap,
   UITypes,
   ViewTypes,
@@ -11,6 +10,7 @@ import {
 } from 'nocodb-sdk';
 
 import { z } from 'zod';
+import type { SerializedAiViewType } from 'nocodb-sdk';
 import type GridViewColumn from '~/models/GridViewColumn';
 import type CalendarView from '~/models/CalendarView';
 import type Column from '~/models/Column';
@@ -37,10 +37,10 @@ import {
   generateDummyDataSystemMessage,
   generateTablesPrompt,
   generateTablesSystemMessage,
-  predictViewsPrompt,
   generateViewsSystemMessage,
   predictSchemaPrompt,
   predictSchemaSystemMessage,
+  predictViewsPrompt,
 } from '~/integrations/ai/module/prompts/index';
 
 @Injectable()

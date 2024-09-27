@@ -445,7 +445,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isAiMode,
       formattedData,
       loadData,
-      tableExplorerColumns
+      tableExplorerColumns,
     }
   },
 )

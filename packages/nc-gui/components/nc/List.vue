@@ -366,12 +366,7 @@ watch(
                 @mouseover="handleResetHoverEffect(true, idx)"
                 @click="handleSelectOption(option, idx)"
               >
-                <slot
-                  name="listItem"
-                  :option="option"
-                  :isSelected="() => compareVModel(option[optionValueKey])"
-                  :index="idx"
-                >
+                <slot name="listItem" :option="option" :is-selected="() => compareVModel(option[optionValueKey])" :index="idx">
                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                     <template #title>
                       {{ option[optionLabelKey] }}

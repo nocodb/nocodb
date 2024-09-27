@@ -14,7 +14,6 @@ import {
   type MapType,
   type SerializedAiViewType,
   type TableType,
-  type ViewType,
   stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'

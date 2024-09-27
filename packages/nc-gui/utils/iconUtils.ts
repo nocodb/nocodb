@@ -75,7 +75,6 @@ import Record from '~icons/nc-icons/record'
 import Project from '~icons/nc-icons/project'
 import LookupIcon from '~icons/nc-icons/lookup'
 import FileImageIcon from '~icons/nc-icons/file-image'
-import Calendar from '~icons/lucide/calendar'
 
 import PhUsers from '~icons/ph/users'
 import PhUser from '~icons/ph/user'

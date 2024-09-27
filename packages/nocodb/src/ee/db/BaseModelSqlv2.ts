@@ -259,7 +259,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     if (options.bulkAggregate) {
       data = data.map(async (d) => {
-        for (let [key, data] of Object.entries(d)) {
+        for (const key in d) {
+          let data = d[key];
+
           if (typeof data === 'string' && data.startsWith('{')) {
             try {
               data = JSON.parse(data);

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { type IntegrationType, IntegrationsType } from 'nocodb-sdk'
-
 const props = withDefaults(
   defineProps<{
     fkIntegrationId?: string

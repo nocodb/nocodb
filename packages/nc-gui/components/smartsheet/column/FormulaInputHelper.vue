@@ -595,8 +595,6 @@ const aiMode = ref<AI_MODE>(AI_MODE.NONE)
 
 const aiPrompt = ref('')
 
-const aiSuggestions = ref<{ title: string; formula: string }[]>([])
-
 const calledFun = ref<null | string>(null)
 
 const promptAI = async () => {

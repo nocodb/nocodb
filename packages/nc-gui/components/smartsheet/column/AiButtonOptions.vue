@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { ButtonActionsType, type ColumnType } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 const props = defineProps<{
@@ -109,7 +109,7 @@ const sampleRecords = computed<
       return {
         label: displayValue,
         value: pk,
-        row: row,
+        row,
       }
     })
     .filter((r) => !!(r.label && r.value))
@@ -170,7 +170,7 @@ const generate = async () => {
   generatingPreview.value = true
 
   const res = await generateRows(
-    meta.value?.id!,
+    meta.value.id!,
     {
       title: vModel.value?.title,
       prompt_raw: vModel.value.formula_raw,
@@ -321,7 +321,7 @@ watch(isOpenConfigModal, (newValue) => {
                     <span class="flex-1"> Select fields to generate data </span>
 
                     <NcDropdown v-model:visible="isOpenSelectOutputFieldDropdown" placement="bottomRight">
-                      <NcButton size="small" type="text" @click.stop class="!hover:text-nc-content-brand">
+                      <NcButton size="small" type="text" class="!hover:text-nc-content-brand" @click.stop>
                         <div class="flex items-center gap-2">
                           <GeneralIcon icon="plus" class="!text-current" />
                           Select fields

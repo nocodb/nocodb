@@ -224,7 +224,7 @@ const typeLabel = computed(() => {
     :width="aiMode === null ? 'auto' : undefined"
     :wrap-class-name="aiMode ? 'nc-modal-ai-base-create' : 'nc-modal-wrapper'"
   >
-    <template #header v-if="aiMode === false">
+    <template v-if="aiMode === false" #header>
       <!-- Create A New Table -->
       <div
         class="flex flex-row items-center text-base text-gray-800"
@@ -447,6 +447,7 @@ const typeLabel = computed(() => {
   }
 }
 </style>
+
 <style lang="scss" scoped>
 .nc-create-base-wrapper {
   @apply flex gap-4;

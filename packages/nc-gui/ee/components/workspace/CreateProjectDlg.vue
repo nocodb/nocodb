@@ -224,9 +224,10 @@ const typeLabel = computed(() => {
     :width="aiMode === null ? 'auto' : undefined"
     :wrap-class-name="aiMode ? 'nc-modal-ai-base-create' : 'nc-modal-wrapper'"
   >
-    <template v-if="aiMode === false" #header>
+    <template #header v-if="aiMode === true || aiMode === false">
       <!-- Create A New Table -->
       <div
+        v-if="aiMode !== true"
         class="flex flex-row items-center text-base text-gray-800"
         :class="{
           'pt-2 px-4': aiMode === true,
@@ -236,12 +237,11 @@ const typeLabel = computed(() => {
         Create {{ typeLabel }}
       </div>
       <template v-if="aiMode === true">
-        <div class="flex-1"></div>
-        <div
-          :class="{
-            'pt-2 px-4': aiMode === true,
-          }"
-        >
+        <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
+          <GeneralIcon icon="ncAutoAwesome" class="flex-none h-6 w-6 !text-current" />
+          <div class="text-xl font-bold">Noco AI Base Builder</div>
+        </div>
+        <div>
           <NcButton v-if="aiStep === AI_STEP.PROMPT" type="ghost" size="small" class="!bg-purple-600" @click="onPredictSchema">
             <div class="flex items-center gap-2">
               <GeneralIcon icon="magic" class="!h-4 text-yellow-500" />
@@ -335,7 +335,24 @@ const typeLabel = computed(() => {
       </div>
     </template>
     <template v-if="aiMode === true">
-      <div class="w-full min-h-[600px] p-4">
+      <div>
+        <!-- Create base error alert box  -->
+        <div></div>
+        <div class="flex">
+          <div class="w-[432px] h-full">
+            <!-- create base config panel-->
+          </div>
+          <div class="w-[calc(100%_-_432px)] h-full">
+            <!-- create base preview panel-->
+          </div>
+        </div>
+        <!-- Footer  -->
+        <div>
+          <div class="nc-ai-footer-branding text-xs">
+            Powered by
+            <span class="font-semibold !text-inherit"> Noco AI </span>
+          </div>
+        </div>
         <template v-if="aiStep === AI_STEP.PROMPT">
           <div class="flex flex-col items-center gap-4">
             <div class="text-lg font-bold">Tell us more about your usecase</div>
@@ -437,9 +454,12 @@ const typeLabel = computed(() => {
 
 <style lang="scss">
 .nc-modal-ai-base-create .ant-modal-content {
-  @apply bg-[#fefaff];
   .nc-modal {
     @apply !p-0;
+
+    .nc-modal-header {
+      @apply mb-0 px-4 py-2 items-center gap-3;
+    }
 
     .ant-checkbox {
       @apply !shadow-none;

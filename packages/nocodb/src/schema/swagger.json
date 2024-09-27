@@ -19495,6 +19495,9 @@
           "is_default": {
             "$ref": "#/components/schemas/Bool"
           },
+          "is_global": {
+            "$ref": "#/components/schemas/Bool"
+          },
           "type": {
             "$ref": "#/components/schemas/Integrations"
           },

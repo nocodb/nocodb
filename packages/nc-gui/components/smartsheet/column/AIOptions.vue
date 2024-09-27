@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type AIRecordType, UITypes } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: any
@@ -23,7 +23,11 @@ const { isEdit, setAdditionalValidations, validateInfos, column, formattedData, 
 
 const { aiIntegrationAvailable, generateRows } = useNocoAi()
 
-const preview = ref<AIRecordType>({})
+const previewRow = ref<Row>({
+  row: {},
+  oldRow: {},
+  rowMeta: { new: true },
+})
 
 const generatingPreview = ref(false)
 
@@ -54,7 +58,7 @@ const isEnabledGenerateText = computed({
   set: (value: boolean) => {
     localIsEnabledGenerateText.value = value
     vModel.value.prompt_raw = ''
-    preview.value = {}
+    previewRow.value.row = {}
     isAlreadyGenerated.value = false
   },
 })
@@ -91,8 +95,12 @@ const generate = async () => {
   )
 
   if (res?.length && res[0]?.[vModel.value?.title]) {
-    preview.value.value = res[0]?.[vModel.value?.title]
-
+    previewRow.value.row = {
+      ...res[0],
+      [vModel.value?.title]: {
+        value: res[0]?.[vModel.value?.title],
+      },
+    }
     isAlreadyGenerated.value = true
   }
 
@@ -201,6 +209,7 @@ provide(EditColumnInj, ref(true))
                 :type="isAlreadyGenerated ? 'text' : 'secondary'"
                 theme="ai"
                 :disabled="!isPreviewEnabled"
+                :loading="generatingPreview"
                 @click.stop="generate"
               >
                 <div
@@ -223,14 +232,16 @@ provide(EditColumnInj, ref(true))
               </NcButton>
             </NcTooltip>
           </div>
-          <div v-if="preview.value">
+          <div v-if="previewRow.row?.[vModel.title]?.value">
             <div class="relative pr-3 pl-1 pt-2 pb-3">
-              <LazySmartsheetCell
-                :edit-enabled="true"
-                :model-value="preview"
-                :column="vModel"
-                class="!border-none h-auto my-auto"
-              />
+              <LazySmartsheetRow :row="previewRow">
+                <LazySmartsheetCell
+                  :edit-enabled="true"
+                  :model-value="previewRow.row[vModel.title]"
+                  :column="vModel"
+                  class="!border-none h-auto my-auto"
+                />
+              </LazySmartsheetRow>
             </div>
           </div>
         </div>

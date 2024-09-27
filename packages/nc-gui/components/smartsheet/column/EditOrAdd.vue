@@ -799,7 +799,7 @@ const handleNavigateToIntegrations = () => {
                 <NcButton
                   html-type="submit"
                   type="primary"
-                  theme="ai"
+                  :theme="isAiMode ? 'ai' : 'default'"
                   :loading="saving"
                   :disabled="!formState.uidt || disableSubmitBtn"
                   size="small"

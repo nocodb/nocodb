@@ -71,7 +71,11 @@ const fieldTitle = computed(() => {
   )
 })
 
-const previewOutput = ref<Record<string, any>>({})
+const previewOutputRow = ref<Row>({
+  row: {},
+  oldRow: {},
+  rowMeta: {},
+})
 
 const generatingPreview = ref(false)
 
@@ -118,7 +122,17 @@ const sampleRecords = computed<
 const selectedRecordPk = ref('')
 
 const selectedRecord = computed(() => {
-  return sampleRecords.value.find((r) => r.value === selectedRecordPk.value)
+  return (
+    sampleRecords.value.find((r) => r.value === selectedRecordPk.value) || {
+      row: {
+        row: {},
+        oldRow: {},
+        rowMeta: { new: true },
+      },
+      label: '',
+      value: '',
+    }
+  )
 })
 
 // AI options
@@ -182,7 +196,7 @@ const generate = async () => {
   )
 
   if (res?.length) {
-    previewOutput.value = res[0]
+    previewOutputRow.value.row = res[0]
 
     isAlreadyGenerated.value = true
   }
@@ -370,7 +384,7 @@ const checkScrollTopMoreThanZero = () => {
                       </template>
                     </NcDropdown>
                   </div>
-                  <div class="flex flex-wrap gap-2">
+                  <div v-if="outputFieldOptions.length" class="flex flex-wrap gap-2 mt-2">
                     <template v-for="op in outputFieldOptions">
                       <a-tag v-if="outputColumnIds.includes(op.id)" :key="op.id" class="nc-ai-button-output-field">
                         <div class="flex flex-row items-center gap-1 py-[3px] text-sm">
@@ -557,55 +571,54 @@ const checkScrollTopMoreThanZero = () => {
                     </div>
                   </template>
 
-                  <div v-if="!inputColumns.length" class="flex items-center justify-center">
-                    <GeneralIcon icon="ncAutoAwesome" class="h-[177px] w-[177px] !text-purple-100" />
-                  </div>
-                  <div v-else class="flex flex-col gap-4">
-                    <template v-for="field in inputColumns">
-                      <a-form-item
-                        v-if="field.title"
-                        :key="`${field.id}-${generatingPreview}`"
-                        :name="field.title"
-                        class="!my-0 nc-input-required-error"
-                      >
-                        <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                          <component :is="cellIcon(field)" class="!mx-0" />
-                          <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                            <template #title>
-                              {{ field?.title }}
-                            </template>
-                            {{ field?.title }}
-                          </NcTooltip>
-                        </div>
-
-                        <LazySmartsheetDivDataCell
-                          class="relative flex items-center min-h-8 children:h-full"
-                          :class="{
-                            '!select-text nc-system-field': isReadOnlyVirtualCell(field),
-                            '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
-                          }"
+                  <div class="flex flex-col gap-4">
+                    <LazySmartsheetRow :row="selectedRecord.row">
+                      <template v-for="field in inputColumns">
+                        <a-form-item
+                          v-if="field.title"
+                          :key="`${field.id}-${generatingPreview}`"
+                          :name="field.title"
+                          class="!my-0 nc-input-required-error"
                         >
-                          <LazySmartsheetVirtualCell
-                            v-if="isVirtualCol(field)"
-                            :model-value="selectedRecord?.row?.row?.[field.title]"
-                            class="mt-0 nc-input nc-cell"
-                            :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                            :column="field"
-                            :read-only="true"
-                          />
+                          <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
+                            <component :is="cellIcon(field)" class="!mx-0" />
+                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                              <template #title>
+                                {{ field?.title }}
+                              </template>
+                              {{ field?.title }}
+                            </NcTooltip>
+                          </div>
 
-                          <LazySmartsheetCell
-                            v-else
-                            :model-value="selectedRecord?.row?.row?.[field.title]"
-                            class="nc-input truncate"
-                            :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                            :column="field"
-                            :edit-enabled="true"
-                            :read-only="true"
-                          />
-                        </LazySmartsheetDivDataCell>
-                      </a-form-item>
-                    </template>
+                          <LazySmartsheetDivDataCell
+                            class="relative flex items-center min-h-8 children:h-full"
+                            :class="{
+                              '!select-text nc-system-field': isReadOnlyVirtualCell(field),
+                              '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
+                            }"
+                          >
+                            <LazySmartsheetVirtualCell
+                              v-if="isVirtualCol(field)"
+                              :model-value="selectedRecord?.row?.row?.[field.title]"
+                              class="mt-0 nc-input nc-cell"
+                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                              :column="field"
+                              :read-only="true"
+                            />
+
+                            <LazySmartsheetCell
+                              v-else
+                              :model-value="selectedRecord?.row?.row?.[field.title]"
+                              class="nc-input truncate"
+                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                              :column="field"
+                              :edit-enabled="true"
+                              :read-only="true"
+                            />
+                          </LazySmartsheetDivDataCell>
+                        </a-form-item>
+                      </template>
+                    </LazySmartsheetRow>
                   </div>
                 </a-collapse-panel>
                 <a-collapse-panel
@@ -643,51 +656,53 @@ const checkScrollTopMoreThanZero = () => {
                     <GeneralIcon icon="ncAutoAwesome" class="h-[177px] w-[177px] !text-purple-100" />
                   </div>
                   <div v-else class="flex flex-col gap-4">
-                    <template v-for="field in outputFieldOptions">
-                      <a-form-item
-                        v-if="field.title && outputColumnIds.includes(field.id)"
-                        :key="field.id"
-                        :name="field.title"
-                        class="!my-0 nc-input-required-error"
-                      >
-                        <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                          <component :is="cellIcon(field)" class="!mx-0" />
-                          <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                            <template #title>
-                              {{ field?.title }}
-                            </template>
-                            {{ field?.title }}
-                          </NcTooltip>
-                        </div>
-
-                        <LazySmartsheetDivDataCell
-                          class="relative min-h-8 flex items-center children:h-full"
-                          :class="{
-                            '!select-text nc-system-field': isReadOnlyVirtualCell(field),
-                            '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
-                          }"
+                    <LazySmartsheetRow :row="previewOutputRow">
+                      <template v-for="field in outputFieldOptions">
+                        <a-form-item
+                          v-if="field.title && outputColumnIds.includes(field.id)"
+                          :key="field.id"
+                          :name="field.title"
+                          class="!my-0 nc-input-required-error"
                         >
-                          <LazySmartsheetVirtualCell
-                            v-if="isVirtualCol(field)"
-                            :model-value="previewOutput[field.title]"
-                            class="mt-0 nc-input nc-cell"
-                            :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                            :column="field"
-                            :read-only="true"
-                          />
+                          <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
+                            <component :is="cellIcon(field)" class="!mx-0" />
+                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                              <template #title>
+                                {{ field?.title }}
+                              </template>
+                              {{ field?.title }}
+                            </NcTooltip>
+                          </div>
 
-                          <LazySmartsheetCell
-                            v-else
-                            v-model="previewOutput[field.title]"
-                            class="nc-input truncate"
-                            :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                            :column="field"
-                            :edit-enabled="true"
-                            :read-only="true"
-                          />
-                        </LazySmartsheetDivDataCell>
-                      </a-form-item>
-                    </template>
+                          <LazySmartsheetDivDataCell
+                            class="relative min-h-8 flex items-center children:h-full"
+                            :class="{
+                              '!select-text nc-system-field': isReadOnlyVirtualCell(field),
+                              '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
+                            }"
+                          >
+                            <LazySmartsheetVirtualCell
+                              v-if="isVirtualCol(field)"
+                              :model-value="previewOutputRow.row[field.title]"
+                              class="mt-0 nc-input nc-cell"
+                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                              :column="field"
+                              :read-only="true"
+                            />
+
+                            <LazySmartsheetCell
+                              v-else
+                              v-model="previewOutputRow.row[field.title]"
+                              class="nc-input truncate"
+                              :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                              :column="field"
+                              :edit-enabled="true"
+                              :read-only="true"
+                            />
+                          </LazySmartsheetDivDataCell>
+                        </a-form-item>
+                      </template>
+                    </LazySmartsheetRow>
                   </div>
                 </a-collapse-panel>
               </a-collapse>

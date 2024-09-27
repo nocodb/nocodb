@@ -1361,16 +1361,10 @@ function init() {
                 </template>
                 <NcButton
                   size="xs"
-                  class="!h-6 !border-transparent"
-                  type="secondary"
+                  class="!h-6"
+                  type="primary"
                   theme="ai"
                   :disabled="!predictedViews.length || selectedViews.length >= maxSelectionCount"
-                  :class="{
-                    '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light':
-                      predictedViews.length && selectedViews.length < maxSelectionCount,
-                    '!border-purple-200 !bg-nc-bg-purple-light':
-                      !predictedViews.length || selectedViews.length >= maxSelectionCount,
-                  }"
                   @click="onSelectAll"
                 >
                   <div class="flex items-center gap-2">
@@ -1380,14 +1374,7 @@ function init() {
                   </div>
                 </NcButton>
               </NcTooltip>
-              <NcButton
-                v-else
-                size="xs"
-                class="!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !border-transparent !h-6"
-                type="secondary"
-                theme="ai"
-                @click="onDeselectAll"
-              >
+              <NcButton v-else size="xs" class="!h-6" type="primary" theme="ai" @click="onDeselectAll">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="ncMinusSquare" class="flex-none" />
 

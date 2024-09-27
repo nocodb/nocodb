@@ -1,4 +1,6 @@
-import type { Filter } from '~/models';
+import type { NcContext } from '~/interface/config';
+import type { Filter, Source } from '~/models';
+import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 
 export function shouldSkipCache(
   ctx: {

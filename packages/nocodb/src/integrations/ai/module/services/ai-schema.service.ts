@@ -149,7 +149,7 @@ export class AiSchemaService {
                 z.object({
                   comparison_op: z.string(),
                   logical_op: z.string(),
-                  value: z.string().optional(),
+                  value: z.string().nullable().optional(),
                   column: z.string(),
                 }),
               )
@@ -351,7 +351,7 @@ export class AiSchemaService {
           filters?: {
             comparison_op?: string;
             logical_op?: string;
-            value?: string;
+            value?: string | null;
             column?: string;
           }[];
           sorts?: {
@@ -520,7 +520,7 @@ export class AiSchemaService {
                 z.object({
                   comparison_op: z.string(),
                   logical_op: z.string(),
-                  value: z.string().optional(),
+                  value: z.string().nullable().optional(),
                   column: z.string(),
                 }),
               )
@@ -599,7 +599,7 @@ export class AiSchemaService {
         filters?: {
           comparison_op?: string;
           logical_op?: string;
-          value?: string;
+          value?: string | null;
           column?: string;
         }[];
         sorts?: {

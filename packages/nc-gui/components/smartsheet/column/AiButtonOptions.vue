@@ -231,6 +231,21 @@ watch(isOpenConfigModal, (newValue) => {
     }, 500)
   }
 })
+
+const previewPanelDom = ref<HTMLElement>()
+
+const isPreviewPanelOnScrollTop = ref(false)
+
+const checkScrollTopMoreThanZero = () => {
+  if (previewPanelDom.value) {
+    if (previewPanelDom.value.scrollTop > 0) {
+      isPreviewPanelOnScrollTop.value = true
+    } else {
+      isPreviewPanelOnScrollTop.value = false
+    }
+  }
+  return false
+}
 </script>
 
 <template>
@@ -376,8 +391,14 @@ watch(isOpenConfigModal, (newValue) => {
               </a-form>
             </div>
             <!-- Right side -->
-            <div class="h-full w-1/2 bg-nc-bg-gray-extralight nc-scrollbar-thin flex flex-col relative">
-              <div class="nc-ai-button-config-right-section !pt-6 sticky top-0 bg-nc-bg-gray-extralight z-10">
+            <div
+              ref="previewPanelDom"
+              class="h-full w-1/2 bg-nc-bg-gray-extralight nc-scrollbar-thin flex flex-col relative"
+              @scroll.passive="checkScrollTopMoreThanZero"
+            >
+              <div class="nc-ai-button-config-right-section !pt-6 sticky top-0 bg-nc-bg-gray-extralight z-10" :class="{
+                'border-b-1 border-nc-border-gray-medium': isPreviewPanelOnScrollTop
+              }">
                 <div class="text-base text-nc-content-gray font-bold">
                   {{ $t('labels.preview') }}
                 </div>

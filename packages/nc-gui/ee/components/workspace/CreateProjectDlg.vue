@@ -224,7 +224,7 @@ const typeLabel = computed(() => {
     :width="aiMode === null ? 'auto' : undefined"
     :wrap-class-name="aiMode ? 'nc-modal-ai-base-create' : 'nc-modal-wrapper'"
   >
-    <template #header v-if="aiMode === true || aiMode === false">
+    <template v-if="aiMode === true || aiMode === false" #header>
       <!-- Create A New Table -->
       <div
         v-if="aiMode !== true"
@@ -340,10 +340,10 @@ const typeLabel = computed(() => {
         <div></div>
         <div class="flex">
           <div class="w-[432px] h-full">
-            <!-- create base config panel-->
+            <!-- create base config panel -->
           </div>
           <div class="w-[calc(100%_-_432px)] h-full">
-            <!-- create base preview panel-->
+            <!-- create base preview panel -->
           </div>
         </div>
         <!-- Footer  -->

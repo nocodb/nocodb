@@ -151,9 +151,7 @@ const inputColumns = computed(() => {
 
 const outputFieldOptions = computed(() => {
   if (!meta.value?.columns) return []
-  return meta.value.columns.filter(
-    (c) => !c.system && !c.pk && c.id !== column.value?.id,
-  )
+  return meta.value.columns.filter((c) => !c.system && !c.pk && c.id !== column.value?.id)
 })
 
 const outputColumnIds = computed({

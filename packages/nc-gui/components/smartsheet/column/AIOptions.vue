@@ -18,7 +18,8 @@ const availableFields = computed(() => {
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { isEdit, setAdditionalValidations, validateInfos, column, formattedData, loadData } = useColumnCreateStoreOrThrow()
+const { isEdit, setAdditionalValidations, validateInfos, column, formattedData, loadData, disableSubmitBtn } =
+  useColumnCreateStoreOrThrow()
 
 const { aiIntegrationAvailable, generateRows } = useNocoAi()
 
@@ -34,6 +35,14 @@ const isPreviewEnabled = computed(() => {
   })
 
   return isFieldAddedInPromt && !!vModel.value.title
+})
+
+watch(isPreviewEnabled, (newValue) => {
+  if (newValue) {
+    disableSubmitBtn.value = false
+  } else {
+    disableSubmitBtn.value = true
+  }
 })
 
 const localIsEnabledGenerateText = ref(true)

@@ -33,7 +33,7 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
       :show-tooltip="false"
       placement="bottom"
     >
-      <NcButton size="xs" class="nc-nocoai-settings !px-1 !text-current" type="text">
+      <NcButton size="xs" theme="ai" class="!px-1" type="text">
         <GeneralIcon icon="settings" />
       </NcButton>
     </AiSettings>
@@ -43,11 +43,5 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
 <style lang="scss" scoped>
 .nc-nocoai-footer {
   @apply px-5 py-1 flex items-center gap-2 text-nc-content-purple-dark border-t-1 border-purple-100;
-
-  .nc-nocoai-settings {
-    &:not(:disabled) {
-      @apply hover:!bg-nc-bg-purple-light;
-    }
-  }
 }
 </style>

@@ -15,6 +15,7 @@ import type http from 'http';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
+import type Sharp from 'sharp';
 
 dotenv.config();
 
@@ -42,6 +43,8 @@ export default class Noco {
 
   protected config: any;
   protected requestContext: any;
+
+  public static sharp: typeof Sharp;
 
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
@@ -99,6 +102,12 @@ export default class Noco {
     });
     this.initCustomLogger(nestApp);
     nestApp.flushLogs();
+
+    try {
+      this.sharp = (await import('sharp')).default;
+    } catch {
+      console.error('Sharp is not available for your platform, thumbnail generation will be skipped');
+    }
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       if (!process.env.NC_REDIS_URL) {

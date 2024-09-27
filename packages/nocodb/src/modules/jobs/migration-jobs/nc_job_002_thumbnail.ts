@@ -2,7 +2,6 @@ import path from 'path';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
-import type Sharp from 'sharp';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
 import mimetypes from '~/utils/mimeTypes';
@@ -24,13 +23,7 @@ export class ThumbnailMigration {
 
   async job() {
     try {
-      let sharp: typeof Sharp;
-
-      try {
-        sharp = (await import('sharp')).default;
-      } catch {
-        // ignore
-      }
+      const sharp = Noco.sharp;
 
       if (!sharp) {
         this.log(

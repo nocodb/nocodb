@@ -902,11 +902,7 @@ function init() {
             v-if="aiMode"
             class="absolute top-0 max-w-[calc(100%_-_48px)] left-0 z-12 h-8 flex items-center gap-2 mx-2 nc-scrollbar-thin overflow-x-auto"
           >
-            <a-tag
-              v-for="(v, idx) of selectedViews"
-              :key="idx"
-              class="cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none font-semibold !mx-0"
-            >
+            <a-tag v-for="(v, idx) of selectedViews" :key="idx" class="nc-ai-selected-tag">
               <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
                 <GeneralViewIcon :meta="{ type: stringToViewTypeMap[v.type] }" />
                 <span>{{ v.title }}</span>
@@ -1178,8 +1174,9 @@ function init() {
               <NcTooltip title="Re-suggest" placement="top">
                 <NcButton
                   size="xs"
-                  class="!px-1 !text-current hover:!bg-nc-bg-purple-dark"
+                  class="!px-1"
                   type="text"
+                  theme="ai"
                   :loading="aiLoading && calledFunction === 'predictRefresh'"
                   @click="predictRefresh"
                 >
@@ -1207,17 +1204,16 @@ function init() {
               >
                 <NcButton
                   size="xs"
-                  class="!px-1 !text-current hover:!bg-nc-bg-purple-dark"
+                  class="!px-1"
                   type="text"
+                  theme="ai"
                   :loading="aiLoading && calledFunction === 'predictMore'"
+                  icon-only
                   @click="predictMore"
                 >
-                  <template #loadingIcon>
-                    <!-- eslint-disable vue/no-lone-template -->
-                    <template> </template>
+                  <template #icon>
+                    <GeneralIcon icon="ncPlusAi" class="!text-current" />
                   </template>
-                  <GeneralLoader v-if="aiLoading && calledFunction === 'predictMore'" class="!text-current" />
-                  <GeneralIcon v-else icon="ncPlusAi" class="!text-current" />
                 </NcButton>
               </NcTooltip>
             </template>
@@ -1225,11 +1221,8 @@ function init() {
           <template v-else>
             <NcButton
               size="xs"
-              class="hover:(!bg-nc-bg-purple-dark disabled:!bg-transparent) !text-nc-content-purple-dark disabled:!text-nc-content-purple-light"
-              :class="{
-                '!text-nc-content-purple-light': isPredictFromPromptLoading,
-              }"
               type="text"
+              theme="ai"
               :disabled="!prompt.trim()"
               :loading="isPredictFromPromptLoading"
               @click="predictFromPrompt"
@@ -1327,11 +1320,9 @@ function init() {
                   </template>
 
                   <a-tag
-                    class="!rounded-md !bg-nc-bg-purple-light !border-none !mx-0"
+                    class="nc-ai-suggested-tag"
                     :class="{
-                      'cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark':
-                        selectedViews.length < maxSelectionCount,
-                      'cursor-not-allowed !text-nc-content-purple-light': selectedViews.length >= maxSelectionCount,
+                      'nc-disabled': selectedViews.length >= maxSelectionCount,
                     }"
                     :disabled="selectedViews.length >= maxSelectionCount"
                     @click="onTagClick(v)"
@@ -1370,13 +1361,14 @@ function init() {
                 </template>
                 <NcButton
                   size="xs"
-                  class="!h-6 bg-nc-bg-purple-dark"
-                  :type="predictedViews.length && selectedViews.length < maxSelectionCount ? 'text' : 'secondary'"
+                  class="!h-6 !border-transparent"
+                  type="secondary"
+                  theme="ai"
                   :disabled="!predictedViews.length || selectedViews.length >= maxSelectionCount"
                   :class="{
-                    '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark':
+                    '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light':
                       predictedViews.length && selectedViews.length < maxSelectionCount,
-                    '!text-nc-content-purple-light !border-purple-200 !bg-nc-bg-purple-light':
+                    '!border-purple-200 !bg-nc-bg-purple-light':
                       !predictedViews.length || selectedViews.length >= maxSelectionCount,
                   }"
                   @click="onSelectAll"
@@ -1391,8 +1383,9 @@ function init() {
               <NcButton
                 v-else
                 size="xs"
-                class="!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark !border-transparent !h-6"
-                type="text"
+                class="!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !border-transparent !h-6"
+                type="secondary"
+                theme="ai"
                 @click="onDeselectAll"
               >
                 <div class="flex items-center gap-2">

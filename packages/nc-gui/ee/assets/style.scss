@@ -101,7 +101,7 @@ main {
   }
 }
 
-.ant-form-item-has-error .nc-input-shadow.ant-input{
+.ant-form-item-has-error .nc-input-shadow.ant-input {
   &.nc-ai-input:focus {
     @apply !shadow-error;
   }
@@ -942,17 +942,16 @@ svg.nc-virtual-cell-icon {
 // switch - on tab focus show outline
 .ant-switch:focus-visible,
 .ant-switch-checked:focus-visible {
-  &.nc-ai-input{
-   box-shadow: 0 0 0 2px #fff, 0 0 0 4px #7D26CD;
+  &.nc-ai-input {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #7d26cd;
   }
-  &:not(.nc-ai-input){
+  &:not(.nc-ai-input) {
     box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
   }
-  
 }
 
 .ant-switch-checked {
-  &.nc-ai-input{
+  &.nc-ai-input {
     @apply !bg-nc-fill-purple-medium;
   }
 }
@@ -1012,5 +1011,21 @@ svg.nc-virtual-cell-icon {
   80%,
   100% {
     content: '...';
+  }
+}
+
+.nc-ai-selected-tag {
+  @apply cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none font-semibold !mx-0;
+}
+
+.nc-ai-suggested-tag {
+  @apply !rounded-md !bg-nc-bg-purple-light !border-none !mx-0;
+
+  &:not(.nc-disabled) {
+    @apply cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark;
+  }
+
+  &.nc-disabled {
+    @apply cursor-not-allowed !text-nc-content-purple-light;
   }
 }

@@ -799,15 +799,13 @@ const handleNavigateToIntegrations = () => {
                 <NcButton
                   html-type="submit"
                   type="primary"
+                  theme="ai"
                   :loading="saving"
                   :disabled="!formState.uidt || disableSubmitBtn"
                   size="small"
                   :label="submitBtnLabel.label"
                   :loading-label="submitBtnLabel.loadingLabel"
                   data-testid="nc-field-modal-submit-btn"
-                  :class="{
-                    '!bg-purple-700 !hover:bg-purple-800': isAiMode,
-                  }"
                   @click.prevent="onSubmit"
                 >
                   {{ submitBtnLabel.label }}

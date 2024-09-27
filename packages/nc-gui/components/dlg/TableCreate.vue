@@ -487,11 +487,7 @@ watch(
               v-if="aiMode"
               class="absolute top-0 max-w-[calc(100%_-_48px)] left-0 z-12 h-8 flex items-center gap-2 mx-2 nc-scrollbar-thin overflow-x-auto"
             >
-              <a-tag
-                v-for="t in selectedTables"
-                :key="t"
-                class="cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none font-semibold !mx-0"
-              >
+              <a-tag v-for="t in selectedTables" :key="t" class="nc-ai-selected-tag">
                 <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
                   <span>{{ t }}</span>
                   <div class="flex items-center p-0.5 mt-0.5">
@@ -538,12 +534,14 @@ watch(
                   <NcTooltip title="Re-suggest" placement="top">
                     <NcButton
                       size="xs"
-                      class="!px-1 !text-current hover:!bg-nc-bg-purple-dark"
+                      class="!px-1"
                       type="text"
+                      theme="ai"
                       :loading="aiLoading && calledFunction === 'predictRefresh'"
                       @click="predictRefresh"
                     >
                       <template #loadingIcon>
+                        <!-- eslint-disable vue/no-lone-template -->
                         <template></template>
                       </template>
                       <GeneralIcon
@@ -566,17 +564,16 @@ watch(
                   >
                     <NcButton
                       size="xs"
-                      class="!px-1 !text-current hover:!bg-nc-bg-purple-dark"
+                      class="!px-1"
                       type="text"
+                      theme="ai"
                       :loading="aiLoading && calledFunction === 'predictMore'"
+                      icon-only
                       @click="predictMore"
                     >
-                      <template #loadingIcon>
-                        <!-- eslint-disable vue/no-lone-template -->
-                        <template> </template>
+                      <template #icon>
+                        <GeneralIcon icon="ncPlusAi" class="!text-current" />
                       </template>
-                      <GeneralLoader v-if="aiLoading && calledFunction === 'predictMore'" class="!text-current" />
-                      <GeneralIcon v-else icon="ncPlusAi" class="!text-current" />
                     </NcButton>
                   </NcTooltip>
                 </template>
@@ -584,11 +581,8 @@ watch(
               <template v-else>
                 <NcButton
                   size="xs"
-                  class="hover:(!bg-nc-bg-purple-dark disabled:!bg-transparent) !text-nc-content-purple-dark disabled:!text-nc-content-purple-light"
-                  :class="{
-                    '!text-nc-content-purple-light': isPredictFromPromptLoading,
-                  }"
                   type="text"
+                  theme="ai"
                   :disabled="!prompt.trim()"
                   :loading="isPredictFromPromptLoading"
                   @click="predictFromPrompt"
@@ -689,11 +683,9 @@ watch(
                       </template>
 
                       <a-tag
-                        class="!rounded-md !bg-nc-bg-purple-light !border-none !mx-0"
+                        class="nc-ai-suggested-tag"
                         :class="{
-                          'cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark':
-                            selectedTables.length < maxSelectionCount,
-                          'cursor-not-allowed !text-nc-content-purple-light': selectedTables.length >= maxSelectionCount,
+                          'nc-disabled': selectedTables.length >= maxSelectionCount,
                         }"
                         :disabled="selectedTables.length >= maxSelectionCount"
                         @click="onTagClick(t)"
@@ -725,13 +717,14 @@ watch(
                     </template>
                     <NcButton
                       size="xs"
-                      class="!h-6 bg-nc-bg-purple-dark"
-                      :type="predictedTables.length && selectedTables.length < maxSelectionCount ? 'text' : 'secondary'"
+                      class="!h-6 !border-transparent"
+                      type="secondary"
+                      theme="ai"
                       :disabled="!predictedTables.length || selectedTables.length >= maxSelectionCount"
                       :class="{
-                        '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark':
+                        '!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light':
                           predictedTables.length && selectedTables.length < maxSelectionCount,
-                        '!text-nc-content-purple-light !border-purple-200 !bg-nc-bg-purple-light':
+                        '!border-purple-200 !bg-nc-bg-purple-light':
                           !predictedTables.length || selectedTables.length >= maxSelectionCount,
                       }"
                       @click="onSelectAll"
@@ -746,8 +739,9 @@ watch(
                   <NcButton
                     v-else
                     size="xs"
-                    class="!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !text-nc-content-purple-dark !border-transparent !h-6"
-                    type="text"
+                    class="!bg-nc-bg-purple-dark hover:!bg-nc-bg-purple-light !border-transparent !h-6"
+                    type="secondary"
+                    theme="ai"
                     @click="onDeselectAll"
                   >
                     <div class="flex items-center gap-2">

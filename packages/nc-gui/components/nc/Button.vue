@@ -164,9 +164,9 @@ useEventListener(NcButton, 'mousedown', () => {
 }
 
 .nc-button {
-  @apply !xs:(outline-none)
+  @apply !xs:(outline-none);
 
-  box-shadow: 0px 5px 3px -2px rgba(0, 0, 0, 0.02), 0px 3px 1px -2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
   outline: none;
 }
 

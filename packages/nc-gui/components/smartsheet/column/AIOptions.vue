@@ -184,12 +184,13 @@ provide(EditColumnInj, ref(true))
                 {{ !vModel.title ? 'Field name is required' : 'Include at least 1 field in prompt to generate' }}
               </template>
               <NcButton
-                class="nc-aioptions-preview-generate-btn !text-nc-content-purple-dark"
+                class="nc-aioptions-preview-generate-btn"
                 :class="{
                   'nc-is-already-generated': isAlreadyGenerated,
                 }"
                 size="xs"
-                type="text"
+                :type="isAlreadyGenerated ? 'text' : 'secondary'"
+                theme="ai"
                 :disabled="!isPreviewEnabled"
                 @click.stop="generate"
               >
@@ -247,14 +248,8 @@ provide(EditColumnInj, ref(true))
 }
 
 .nc-aioptions-preview-generate-btn {
-  @apply !text-nc-content-purple-dark disabled:!text-nc-content-purple-light;
-
-  &.nc-is-already-generated {
-    @apply !bg-transparent hover:(!bg-nc-bg-purple-light disabled:!bg-transparent);
-  }
-
   &:not(.nc-is-already-generated) {
-    @apply !bg-nc-bg-purple-light hover:(!bg-nc-bg-purple-dark disabled:!bg-nc-bg-purple-light);
+    @apply !border-transparent;
   }
 }
 </style>

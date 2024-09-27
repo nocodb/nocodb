@@ -280,7 +280,7 @@ const checkScrollTopMoreThanZero = () => {
           <NcButton
             size="small"
             type="primary"
-            class="!bg-purple-700 !hover:bg-purple-800"
+            theme="ai"
             :disabled="disableSubmitBtn"
             :label="submitBtnLabel.label"
             :loading-label="submitBtnLabel.loadingLabel"
@@ -396,9 +396,12 @@ const checkScrollTopMoreThanZero = () => {
               class="h-full w-1/2 bg-nc-bg-gray-extralight nc-scrollbar-thin flex flex-col relative"
               @scroll.passive="checkScrollTopMoreThanZero"
             >
-              <div class="nc-ai-button-config-right-section !pt-6 sticky top-0 bg-nc-bg-gray-extralight z-10" :class="{
-                'border-b-1 border-nc-border-gray-medium': isPreviewPanelOnScrollTop
-              }">
+              <div
+                class="nc-ai-button-config-right-section !pt-6 sticky top-0 bg-nc-bg-gray-extralight z-10"
+                :class="{
+                  'border-b-1 border-nc-border-gray-medium': isPreviewPanelOnScrollTop,
+                }"
+              >
                 <div class="text-base text-nc-content-gray font-bold">
                   {{ $t('labels.preview') }}
                 </div>

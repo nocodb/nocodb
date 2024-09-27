@@ -990,3 +990,19 @@ svg.nc-virtual-cell-icon {
     content: '...';
   }
 }
+
+.nc-ai-selected-tag {
+  @apply cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none font-semibold !mx-0;
+}
+
+.nc-ai-suggested-tag {
+  @apply !rounded-md !bg-nc-bg-purple-light !border-none !mx-0;
+
+  &:not(.nc-disabled) {
+    @apply cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark;
+  }
+
+  &.nc-disabled {
+    @apply cursor-not-allowed !text-nc-content-purple-light;
+  }
+}

@@ -147,6 +147,8 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
         })
         .catch(async () => {
           if (isAmplifyConfigured.value) {
+            // reset token value to null
+            state.token.value = null
             await checkForCognitoToken()
           } else if (state.token.value && state.user.value) {
             await signOut({

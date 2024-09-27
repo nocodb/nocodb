@@ -311,6 +311,22 @@ const editWebhook = () => {
   }
 }
 
+const selectIcon = (icon: string) => {
+  vModel.value.icon = icon
+  isButtonIconDropdownOpen.value = false
+}
+
+const handleUpdateActionType = (type: ButtonActionsType) => {
+  // We are using `formula_raw` in both type url & ai, so it's imp to reset it
+  if (type !== ButtonActionsType.Ai) {
+    setAdditionalValidations({
+      formula_raw: validators.formula_raw,
+    })
+  }
+
+  vModel.value.formula_raw = ''
+}
+
 watch(isWebhookModal, (newVal) => {
   if (!newVal) {
     setTimeout(() => {
@@ -318,11 +334,6 @@ watch(isWebhookModal, (newVal) => {
     }, 500)
   }
 })
-
-const selectIcon = (icon: string) => {
-  vModel.value.icon = icon
-  isButtonIconDropdownOpen.value = false
-}
 
 onMounted(() => {
   if (vModel.value.type === ButtonActionsType.Ai) {
@@ -454,6 +465,7 @@ onMounted(() => {
               'nc-ai-input': isAiMode,
             }"
             dropdown-class-name="nc-dropdown-button-cell-type"
+            @change="handleUpdateActionType"
           >
             <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-500" /> </template>
 

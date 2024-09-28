@@ -428,22 +428,43 @@ watch(
   { immediate: true },
 )
 
+const handleAddInSelectedTable = (tables: string[]) => {
+  const tablesToAdd = tables.map((t) => t.trim()).filter((t) => t && !selectedTables.value.includes(t))
+
+  selectedTables.value.push(...tablesToAdd)
+  predictHistory.value.push(...tablesToAdd)
+  predictedTables.value = predictedTables.value.filter((t) => !tablesToAdd.includes(t))
+  table.title = ''
+}
+
+const onPaste = (e: ClipboardEvent) => {
+  const pastedText = e.clipboardData?.getData('text')
+
+  const inputArray = pastedText?.split(',')
+
+  handleAddInSelectedTable(inputArray)
+}
+
+const onBackspace = () => {
+  if (selectedTables.value.length) {
+    onTagClose(selectedTables.value[selectedTables.value.length - 1])
+  }
+}
+
 watch(
   () => table.title,
   (newVal) => {
     if (!ncIsString(newVal)) return
 
     // when user enters multiple table with comma separated or space separated
-    const isNewTable = newVal.charAt(newVal.length - 1) === ',' || newVal.charAt(newVal.length - 1) === ' '
+    const isNewTable = newVal.charAt(newVal.length - 1) === ','
 
     if (isNewTable && newVal.trim().length) {
-      const tableToAdd = newVal.split(',')[0].trim() || newVal.split(' ')[0].trim()
+      const tableToAdd = newVal.split(',')[0].trim()
 
-      if (!tableToAdd || selectedTables.value.includes(tableToAdd)) return
+      if (!tableToAdd) return
 
-      selectedTables.value.push(tableToAdd)
-      predictHistory.value.push(tableToAdd)
-      table.title = ''
+      handleAddInSelectedTable([tableToAdd])
     }
   },
 )
@@ -482,7 +503,13 @@ watch(
         @keydown.esc="dialogShow = false"
       >
         <div class="flex flex-col gap-5">
-          <a-form-item v-bind="aiMode ? {} : validateInfos.title" class="relative">
+          <a-form-item
+            v-bind="aiMode ? {} : validateInfos.title"
+            class="relative nc-table-input-wrapper relative"
+            :class="{
+              'nc-ai-mode': aiMode,
+            }"
+          >
             <a-input
               v-if="!aiMode"
               ref="inputEl"
@@ -492,7 +519,10 @@ watch(
               data-testid="create-table-title-input"
               :placeholder="$t('msg.info.enterTableName')"
             />
-            <div v-else class="flex items-center max-w-[calc(100%_-_32px)] nc-scrollbar-thin overflow-x-auto focus-within:shadow-selected rounded-lg border-1 border-brand-500 transition-all duration-300">
+            <div
+              v-else
+              class="absolute left-0 top-0 w-full flex items-center max-w-[calc(100%_-_32px)] nc-scrollbar-thin overflow-x-auto rounded-lg border-1 border-gray-200 transition-all duration-300 h-8 z-11 bg-white nc-ai-mode-table-input-wrapper"
+            >
               <div class="z-12 h-8 flex items-center gap-2 ml-2">
                 <a-tag v-for="t in selectedTables" :key="t" class="nc-ai-selected-tag">
                   <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
@@ -508,11 +538,13 @@ watch(
                 ref="inputEl"
                 v-model:value="table.title"
                 autocomplete="off"
-                class="nc-table-input nc-input-sm max-w-[calc(100%_-_32px)] z-11"
+                class="nc-table-input nc-input-sm !min-w-[300px] max-w-[calc(100%_-_32px)]"
                 hide-details
                 :bordered="false"
                 data-testid="create-table-title-input"
-                :placeholder="selectedTables.length ? '' : 'Enter table names or choose from suggestions'"
+                placeholder="Enter table names or choose from suggestions"
+                @paste.prevent="onPaste"
+                @keydown.backspace="onBackspace"
               />
               <!-- overlay selected tags with close icon on input -->
             </div>
@@ -938,13 +970,33 @@ watch(
   }
 }
 
-.nc-table-input {
-  &:not(:focus) {
-    @apply !rounded-r-none !border-r-0;
+:deep(.ant-form-item.nc-table-input-wrapper) {
+  &.nc-ai-mode {
+    .nc-ai-mode-table-input-wrapper {
+      @apply shadow-default hover:shadow-hover focus-within:(!shadow-selected border-brand-500);
 
-    & ~ .nc-table-ai-toggle-btn {
-      button {
-        @apply !pl-[7px] z-11 !border-l-1;
+      &:not(:focus-within) {
+        @apply !rounded-r-none borderr0 !important;
+
+        & ~ .nc-table-ai-toggle-btn {
+          button {
+            @apply !pl-[7px] z-11 !border-l-1;
+          }
+        }
+      }
+    }
+  }
+
+  &:not(.nc-ai-mode) {
+    .nc-table-input {
+      &:not(:focus) {
+        @apply !rounded-r-none !border-r-0;
+
+        & ~ .nc-table-ai-toggle-btn {
+          button {
+            @apply !pl-[7px] z-11 !border-l-1;
+          }
+        }
       }
     }
   }

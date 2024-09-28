@@ -468,22 +468,19 @@ onBeforeUnmount(() => {
                 </div>
                 <a-form-item class="!mb-0 !mt-2">
                   <div class="mb-2 text-sm text-nc-content-gray-subtle2">Select sample record</div>
-                  <div
-                    class="flex items-center rounded-lg border-1 border-purple-200 transition-all"
-                    :class="{
-                      'shadow-selected-ai border-nc-border-purple z-11': isOpenSelectRecordDropdown,
-                    }"
-                  >
+                  <div class="flex items-center relative rounded-lg border-1 border-purple-200 bg-purple-50 h-8">
                     <NcDropdown
                       v-model:visible="isOpenSelectRecordDropdown"
                       placement="bottomLeft"
                       overlay-class-name="!min-w-64"
                     >
                       <div
-                        class="flex-1 flex items-center gap-2 px-2 cursor-pointer"
+                        class="absolute left-0 top-0 flex-1 flex items-center gap-2 px-2 cursor-pointer h-8 rounded-lg rounded-r-none bg-white border-1 border-purple-200 transition-all -mt-[1px] -ml-[1px]"
                         :class="{
-                          'w-[calc(100%_-_133.5px)]': !(aiLoading && generatingPreview),
-                          'w-[calc(100%_-_146.5px)]': aiLoading && generatingPreview,
+                          'w-[calc(100%_-_132.5px)]': !(aiLoading && generatingPreview),
+                          'w-[calc(100%_-_145.5px)]': aiLoading && generatingPreview,
+                          '!rounded-r-lg shadow-selected-ai border-nc-border-purple z-11': isOpenSelectRecordDropdown,
+                          'shadow-default hover:shadow-hover': !isOpenSelectRecordDropdown,
                         }"
                       >
                         <NcTooltip
@@ -544,7 +541,10 @@ onBeforeUnmount(() => {
                         </NcList>
                       </template>
                     </NcDropdown>
-                    <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw)">
+                    <NcTooltip
+                      :disabled="!!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw)"
+                      class="absolute right-0 top-0"
+                    >
                       <template #title>
                         {{
                           !vModel.formula_raw
@@ -561,9 +561,6 @@ onBeforeUnmount(() => {
                         type="secondary"
                         class="nc-ai-button-test-generate"
                         :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length || !vModel.formula_raw"
-                        :class="{
-                          'nc-is-open-select-record-dropdown': isOpenSelectRecordDropdown,
-                        }"
                         :loading="aiLoading && generatingPreview"
                         @click.stop="generate"
                       >
@@ -817,14 +814,10 @@ onBeforeUnmount(() => {
 }
 
 .nc-ai-button-test-generate {
-  @apply !rounded-l-none -m-[1px] border-purple-200 !bg-nc-bg-purple-light !text-nc-content-purple-dark hover:(!bg-nc-bg-purple-dark);
+  @apply !rounded-l-none -m-[1px] border-l-0 border-purple-200 !bg-nc-bg-purple-light !text-nc-content-purple-dark hover:(!bg-nc-bg-purple-dark);
 
   &:disabled {
     @apply !text-nc-content-purple-light !hover:(text-nc-content-purple-light bg-nc-bg-purple-light);
-  }
-
-  &.nc-is-open-select-record-dropdown {
-    @apply !border-t-nc-border-purple !border-b-nc-border-purple !border-r-nc-border-purple;
   }
 }
 

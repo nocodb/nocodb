@@ -730,6 +730,10 @@ const saveChanges = async () => {
           view_id: view.value?.id as string,
         }
       }
+
+      if (op) {
+        op.column.view_id = view.value?.id as string
+      }
     }
 
     const deletedOrUpdatedColumnIds: Set<string> = new Set()

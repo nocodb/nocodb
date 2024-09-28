@@ -169,10 +169,6 @@ const removeFromOutputFieldOptions = (id: string) => {
   outputColumnIds.value = outputColumnIds.value.filter((op) => op !== id)
 }
 
-onMounted(() => {
-  aiError.value = ''
-})
-
 const cellIcon = (column: ColumnType) =>
   h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: column,
@@ -281,6 +277,33 @@ const checkScrollTopMoreThanZero = () => {
   }
   return false
 }
+
+watch(
+  [() => outputColumnIds.value.length, () => vModel.value.formula_raw?.length],
+  () => {
+    if (!vModel.value.formula_raw || !outputColumnIds.value.length) {
+      disableSubmitBtn.value = true
+    } else {
+      disableSubmitBtn.value = false
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
+onMounted(() => {
+  aiError.value = ''
+  if (!vModel.value.formula_raw || !outputColumnIds.value.length) {
+    disableSubmitBtn.value = true
+  } else {
+    disableSubmitBtn.value = false
+  }
+})
+
+onBeforeUnmount(() => {
+  disableSubmitBtn.value = false
+})
 </script>
 
 <template>

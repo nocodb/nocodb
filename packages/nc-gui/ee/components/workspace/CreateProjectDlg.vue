@@ -222,7 +222,9 @@ const typeLabel = computed(() => {
     :size="modalSize"
     :show-separator="true"
     :width="aiMode === null ? 'auto' : undefined"
-    :wrap-class-name="aiMode ? 'nc-modal-ai-base-create' : 'nc-modal-wrapper'"
+    :wrap-class-name="
+      aiMode ? 'nc-modal-ai-base-create' : `nc-modal-wrapper ${aiMode === null ? 'nc-ai-select-base-create-mode-modal' : ''}`
+    "
   >
     <template v-if="aiMode === true || aiMode === false" #header>
       <!-- Create A New Table -->
@@ -464,6 +466,12 @@ const typeLabel = computed(() => {
     .ant-checkbox {
       @apply !shadow-none;
     }
+  }
+}
+
+.nc-modal-wrapper.nc-ai-select-base-create-mode-modal {
+  .ant-modal-content {
+    @apply !rounded-[28px];
   }
 }
 </style>

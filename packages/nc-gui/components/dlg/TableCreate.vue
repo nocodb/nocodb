@@ -427,6 +427,26 @@ watch(
   },
   { immediate: true },
 )
+
+watch(
+  () => table.title,
+  (newVal) => {
+    if (!ncIsString(newVal)) return
+
+    // when user enters multiple table with comma separated or space separated
+    const isNewTable = newVal.charAt(newVal.length - 1) === ',' || newVal.charAt(newVal.length - 1) === ' '
+
+    if (isNewTable && newVal.trim().length) {
+      const tableToAdd = newVal.split(',')[0].trim() || newVal.split(' ')[0].trim()
+
+      if (!tableToAdd || selectedTables.value.includes(tableToAdd)) return
+
+      selectedTables.value.push(tableToAdd)
+      predictHistory.value.push(tableToAdd)
+      table.title = ''
+    }
+  },
+)
 </script>
 
 <template>
@@ -472,29 +492,29 @@ watch(
               data-testid="create-table-title-input"
               :placeholder="$t('msg.info.enterTableName')"
             />
-            <a-input
-              v-else
-              ref="inputEl"
-              v-model:value="table.title"
-              autocomplete="off"
-              class="nc-table-input nc-input-sm nc-input-shadow max-w-[calc(100%_-_32px)] z-11"
-              hide-details
-              data-testid="create-table-title-input"
-              :placeholder="selectedTables.length ? '' : 'Enter table names or choose from suggestions'"
-            />
-            <!-- overlay selected tags with close icon on input -->
-            <div
-              v-if="aiMode"
-              class="absolute top-0 max-w-[calc(100%_-_48px)] left-0 z-12 h-8 flex items-center gap-2 mx-2 nc-scrollbar-thin overflow-x-auto"
-            >
-              <a-tag v-for="t in selectedTables" :key="t" class="nc-ai-selected-tag">
-                <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
-                  <span>{{ t }}</span>
-                  <div class="flex items-center p-0.5">
-                    <GeneralIcon icon="close" class="h-3 w-3 cursor-pointer opacity-80" @click="onTagClose(t)" />
+            <div v-else class="flex items-center max-w-[calc(100%_-_32px)] nc-scrollbar-thin overflow-x-auto focus-within:shadow-selected rounded-lg border-1 border-brand-500 transition-all duration-300">
+              <div class="z-12 h-8 flex items-center gap-2 ml-2">
+                <a-tag v-for="t in selectedTables" :key="t" class="nc-ai-selected-tag">
+                  <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                    <span>{{ t }}</span>
+                    <div class="flex items-center p-0.5">
+                      <GeneralIcon icon="close" class="h-3 w-3 cursor-pointer opacity-80" @click="onTagClose(t)" />
+                    </div>
                   </div>
-                </div>
-              </a-tag>
+                </a-tag>
+              </div>
+
+              <a-input
+                ref="inputEl"
+                v-model:value="table.title"
+                autocomplete="off"
+                class="nc-table-input nc-input-sm max-w-[calc(100%_-_32px)] z-11"
+                hide-details
+                :bordered="false"
+                data-testid="create-table-title-input"
+                :placeholder="selectedTables.length ? '' : 'Enter table names or choose from suggestions'"
+              />
+              <!-- overlay selected tags with close icon on input -->
             </div>
 
             <!-- Black overlay button on end of input -->

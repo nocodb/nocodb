@@ -78,11 +78,30 @@ const createProject = async () => {
   }
 }
 
-const { aiIntegrationAvailable, predictSchema, createSchema } = useNocoAi()
+const { aiLoading, aiError, aiIntegrationAvailable, predictSchema, createSchema } = useNocoAi()
 
 const aiMode = ref<Boolean | null>(null)
 
+const callFunction = ref<string | null>(null)
+
 const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'lg'))
+
+const leftPaneContentRef = ref<HTMLElement | null>(null)
+const { y: leftPaneContentOffsetY } = useScroll(leftPaneContentRef)
+
+enum ExpansionPanelKeys {
+  additionalDetails = 'additionalDetails',
+}
+
+const expansionPanel = ref<ExpansionPanelKeys[]>([])
+
+const handleUpdateExpansionPanel = (key: ExpansionPanelKeys) => {
+  if (expansionPanel.value.includes(key)) {
+    expansionPanel.value = expansionPanel.value.filter((k) => k !== key)
+  } else {
+    expansionPanel.value.push(key)
+  }
+}
 
 enum AI_STEP {
   LOADING = 0,
@@ -93,6 +112,31 @@ enum AI_STEP {
 const aiStep = ref(AI_STEP.PROMPT)
 
 const aiPrompt = ref<string>()
+
+const aiFormState = ref({
+  selectedTag: '',
+  organization: '',
+  industry: '',
+  audience: '',
+})
+
+const additionalDetails = [
+  {
+    title: 'Organisation',
+    placeholder: '(optional)',
+    key: 'organization',
+  },
+  {
+    title: 'Industry',
+    placeholder: '(optional)',
+    key: 'industry',
+  },
+  {
+    title: 'Audience',
+    placeholder: '(optional)',
+    key: 'audience',
+  },
+]
 
 const predictedSchema = ref<any>()
 
@@ -110,6 +154,8 @@ const viewsGrouped = computed(() => {
 const aiTableExpanded = ref<Record<string, boolean>>({})
 
 const onPredictSchema = async () => {
+  callFunction.value = 'onPredictSchema'
+
   aiStep.value = AI_STEP.LOADING
   try {
     predictedSchema.value = await predictSchema(aiPrompt.value)
@@ -337,15 +383,197 @@ const typeLabel = computed(() => {
       </div>
     </template>
     <template v-if="aiMode === true">
-      <div>
+      <div class="h-[calc(100%_-_49px)] flex flex-col">
         <!-- Create base error alert box  -->
         <div></div>
-        <div class="flex">
-          <div class="w-[432px] h-full">
+        <div class="flex-1 flex h-[calc(100%_-_32px)]">
+          <div
+            ref="leftPaneContentRef"
+            class="w-[432px] h-full relative flex flex-col nc-scrollbar-thin border-r-1 border-purple-100"
+          >
             <!-- create base config panel -->
+            <div class="flex-1 p-6 flex flex-col gap-6">
+              <div class="text-base font-bold text-nc-content-purple-dark">Tell us more about your usecase</div>
+              <div>
+                <!-- Predefined tags -->
+              </div>
+              <div>
+                <a-textarea
+                  v-model:value="aiPrompt"
+                  placeholder="Type something..."
+                  class="!w-full !min-h-[120px] !rounded-lg mt-2 overflow-y-auto nc-scrollbar-thin nc-input-shadow nc-ai-input"
+                  size="middle"
+                />
+              </div>
+
+              <a-collapse v-model:active-key="expansionPanel" ghost class="flex-1 flex flex-col">
+                <template #expandIcon> </template>
+                <a-collapse-panel :key="ExpansionPanelKeys.additionalDetails" collapsible="disabled">
+                  <template #header>
+                    <div class="flex">
+                      <NcButton
+                        size="small"
+                        type="text"
+                        icon-position="right"
+                        class="-ml-[7px]"
+                        @click="handleUpdateExpansionPanel(ExpansionPanelKeys.additionalDetails)"
+                      >
+                        Additional Details
+                        <template #icon>
+                          <GeneralIcon
+                            icon="arrowDown"
+                            class="transform transition-all opacity-80"
+                            :class="{
+                              'rotate-180': expansionPanel.includes(ExpansionPanelKeys.additionalDetails),
+                            }"
+                          />
+                        </template>
+                      </NcButton>
+                    </div>
+                  </template>
+
+                  <div class="flex flex-col gap-6 pt-6">
+                    <div v-for="field of additionalDetails" :key="field.title" class="flex items-center gap-2">
+                      <div class="min-w-[120px]">{{ field.title }}</div>
+                      <a-input
+                        v-model:value="aiFormState[field.key]"
+                        class="nc-input-sm nc-input-shadow nc-ai-input"
+                        hide-details
+                        :placeholder="field.placeholder"
+                      />
+                    </div>
+                  </div>
+                </a-collapse-panel>
+              </a-collapse>
+            </div>
+            <div
+              class="sticky bottom-0 w-full bg-white px-6 py-3 border-t-1"
+              :class="{
+                'border-nc-border-gray-medium': leftPaneContentOffsetY > 0,
+                'border-transparent': leftPaneContentOffsetY <= 0,
+              }"
+            >
+              <NcButton
+                size="small"
+                type="primary"
+                theme="ai"
+                class="w-full"
+                :disabled="false"
+                :loading="aiLoading && callFunction === 'onPredictSchema'"
+                @click="onPredictSchema"
+              >
+                <template #icon>
+                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 text-nc-fill-yellow-medium" />
+                </template>
+                Generate Base
+              </NcButton>
+            </div>
           </div>
-          <div class="w-[calc(100%_-_432px)] h-full">
+          <div class="w-[calc(100%_-_432px)] h-full p-6 nc-scrollbar-thin flex flex-col gap-6">
             <!-- create base preview panel -->
+
+            <template v-if="aiStep === AI_STEP.LOADING">
+              <div class="text-base font-bold text-nc-content-purple-dark">Generating a Base tailored to your requirnment...</div>
+
+              <div class="rounded-xl border-1 border-purple-100">
+                <div
+                  v-for="(row, idx) of ncArrayFrom(7)"
+                  :key="idx"
+                  class="px-3 py-2 flex items-center gap-2 border-b-1 border-purple-100 last:!border-b-0"
+                >
+                  <div class="flex-1 flex items-center gap-2">
+                    <a-skeleton-input :active="true" class="!w-4 !h-4 !rounded overflow-hidden !bg-nc-bg-purple-light" />
+                    <a-skeleton-input
+                      :active="true"
+                      class="!h-4 !rounded overflow-hidden !bg-nc-bg-purple-light"
+                      :class="{
+                        '!w-[133px]': idx % 2 === 0,
+                        '!w-[90px]': idx % 2 !== 0,
+                      }"
+                    />
+                  </div>
+                  <div class="grid place-items-center h-6 w-6">
+                    <GeneralIcon icon="arrowDown" class="text-nc-content-purple-light" />
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template v-if="aiStep === AI_STEP.MODIFY">
+              <div class="text-base font-bold text-nc-content-purple-dark">Here’s your CRM Base</div>
+
+              <div class="flex flex-col gap-4 w-full">
+                <div v-if="predictedSchema?.tables" class="flex flex-col w-full items-center">
+                  <template v-for="(table, index) in predictedSchema.tables" :key="table.title">
+                    <div
+                      class="flex items-center gap-2 bg-purple-200 p-2 w-[40%] text-purple-500 cursor-pointer"
+                      :class="{
+                        'rounded-t-lg': index === 0,
+                        'rounded-b-lg': index === predictedSchema.tables.length - 1 && !aiTableExpanded?.[table.title],
+                        'border-b-1 border-purple-300': index !== predictedSchema.tables.length - 1,
+                      }"
+                      @click="aiTableExpanded[table.title] = !aiTableExpanded[table.title]"
+                    >
+                      <GeneralIcon :icon="aiTableExpanded?.[table.title] ? 'arrowDown' : 'arrowRight'" class="!h-4" />
+                      <NcDropdown :trigger="['hover']">
+                        <template #overlay>
+                          <div class="flex flex-col gap-2 p-2">
+                            <template v-for="column in table.columns" :key="`${table.title}${column.title}`">
+                              <div v-if="column.type !== 'ID'" class="flex items-center gap-2">
+                                <SmartsheetHeaderCellIcon :column-meta="{ uidt: column.type }" class="!h-4" />
+                                <div class="text-sm">{{ column.title }}</div>
+                              </div>
+                            </template>
+                            <template
+                              v-for="relationship in predictedSchema.relationships"
+                              :key="`${table.title}${relationship.from}${relationship.to}`"
+                            >
+                              <div
+                                v-if="relationship.from === table.title || relationship.to === table.title"
+                                class="flex items-center gap-2"
+                              >
+                                <SmartsheetHeaderVirtualCellIcon
+                                  :column-meta="{
+                                    uidt: 'Links',
+                                    colOptions: {
+                                      type:
+                                        relationship.to === table.title && relationship.type === 'hm' ? 'bt' : relationship.type,
+                                    },
+                                  }"
+                                />
+                                <div class="text-sm">
+                                  {{ relationship.from === table.title ? relationship.to : relationship.from }}
+                                </div>
+                              </div>
+                            </template>
+                          </div>
+                        </template>
+                        <GeneralIcon icon="table" class="!h-4" />
+                      </NcDropdown>
+                      <div class="text-md font-bold">{{ table.title }}</div>
+                      <div class="flex-1"></div>
+                      <NcCheckbox :checked="!table.excluded" @click.stop="onExcludeTable(table)" />
+                    </div>
+                    <!-- Views -->
+                    <div v-if="aiTableExpanded?.[table.title] === true" class="flex flex-col items-center w-full">
+                      <template v-for="(view, vIndex) in viewsGrouped[table.title]" :key="view.title">
+                        <div
+                          class="flex items-center gap-2 bg-purple-100 p-2 w-[40%] text-purple-500 cursor-pointer"
+                          :class="{
+                            'rounded-b-lg':
+                              index === predictedSchema.tables.length - 1 && vIndex === viewsGrouped[table.title].length - 1,
+                            'border-b-1 border-purple-200': vIndex !== viewsGrouped[table.title].length - 1,
+                          }"
+                        >
+                          <div class="text-md">{{ view.title }}</div>
+                          <div class="flex-1"></div>
+                          <NcCheckbox :checked="!view.excluded" @click.stop="onExcludeView(view)" />
+                        </div>
+                      </template>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
         <!-- Footer  -->
@@ -355,100 +583,6 @@ const typeLabel = computed(() => {
             <span class="font-semibold !text-inherit"> Noco AI </span>
           </div>
         </div>
-        <template v-if="aiStep === AI_STEP.PROMPT">
-          <div class="flex flex-col items-center gap-4">
-            <div class="text-lg font-bold">Tell us more about your usecase</div>
-            <a-textarea
-              v-model:value="aiPrompt"
-              placeholder="Type something..."
-              class="!w-full !rounded-lg mt-2 !max-w-[300px] overflow-y-auto"
-              size="middle"
-              :rows="3"
-              :autosize="{
-                minRows: 3,
-                maxRows: 3,
-              }"
-            />
-          </div>
-        </template>
-        <template v-if="aiStep === AI_STEP.LOADING">
-          <div class="flex flex-col h-[500px] items-center justify-center">
-            <GeneralLoader size="xlarge" />
-          </div>
-        </template>
-        <template v-if="aiStep === AI_STEP.MODIFY">
-          <div class="flex flex-col gap-4 w-full">
-            <div v-if="predictedSchema?.tables" class="flex flex-col w-full items-center">
-              <template v-for="(table, index) in predictedSchema.tables" :key="table.title">
-                <div
-                  class="flex items-center gap-2 bg-purple-200 p-2 w-[40%] text-purple-500 cursor-pointer"
-                  :class="{
-                    'rounded-t-lg': index === 0,
-                    'rounded-b-lg': index === predictedSchema.tables.length - 1 && !aiTableExpanded?.[table.title],
-                    'border-b-1 border-purple-300': index !== predictedSchema.tables.length - 1,
-                  }"
-                  @click="aiTableExpanded[table.title] = !aiTableExpanded[table.title]"
-                >
-                  <GeneralIcon :icon="aiTableExpanded?.[table.title] ? 'arrowDown' : 'arrowRight'" class="!h-4" />
-                  <NcDropdown :trigger="['hover']">
-                    <template #overlay>
-                      <div class="flex flex-col gap-2 p-2">
-                        <template v-for="column in table.columns" :key="`${table.title}${column.title}`">
-                          <div v-if="column.type !== 'ID'" class="flex items-center gap-2">
-                            <SmartsheetHeaderCellIcon :column-meta="{ uidt: column.type }" class="!h-4" />
-                            <div class="text-sm">{{ column.title }}</div>
-                          </div>
-                        </template>
-                        <template
-                          v-for="relationship in predictedSchema.relationships"
-                          :key="`${table.title}${relationship.from}${relationship.to}`"
-                        >
-                          <div
-                            v-if="relationship.from === table.title || relationship.to === table.title"
-                            class="flex items-center gap-2"
-                          >
-                            <SmartsheetHeaderVirtualCellIcon
-                              :column-meta="{
-                                uidt: 'Links',
-                                colOptions: {
-                                  type: relationship.to === table.title && relationship.type === 'hm' ? 'bt' : relationship.type,
-                                },
-                              }"
-                            />
-                            <div class="text-sm">
-                              {{ relationship.from === table.title ? relationship.to : relationship.from }}
-                            </div>
-                          </div>
-                        </template>
-                      </div>
-                    </template>
-                    <GeneralIcon icon="table" class="!h-4" />
-                  </NcDropdown>
-                  <div class="text-md font-bold">{{ table.title }}</div>
-                  <div class="flex-1"></div>
-                  <NcCheckbox :checked="!table.excluded" @click.stop="onExcludeTable(table)" />
-                </div>
-                <!-- Views -->
-                <div v-if="aiTableExpanded?.[table.title] === true" class="flex flex-col items-center w-full">
-                  <template v-for="(view, vIndex) in viewsGrouped[table.title]" :key="view.title">
-                    <div
-                      class="flex items-center gap-2 bg-purple-100 p-2 w-[40%] text-purple-500 cursor-pointer"
-                      :class="{
-                        'rounded-b-lg':
-                          index === predictedSchema.tables.length - 1 && vIndex === viewsGrouped[table.title].length - 1,
-                        'border-b-1 border-purple-200': vIndex !== viewsGrouped[table.title].length - 1,
-                      }"
-                    >
-                      <div class="text-md">{{ view.title }}</div>
-                      <div class="flex-1"></div>
-                      <NcCheckbox :checked="!view.excluded" @click.stop="onExcludeView(view)" />
-                    </div>
-                  </template>
-                </div>
-              </template>
-            </div>
-          </div>
-        </template>
       </div>
     </template>
   </NcModal>
@@ -527,5 +661,20 @@ const typeLabel = computed(() => {
       }
     }
   }
+}
+
+.nc-ai-footer-branding {
+  @apply px-6 py-1 flex items-center gap-2 text-nc-content-purple-dark border-t-1 border-purple-100 min-h-8;
+}
+
+:deep(.ant-collapse-header) {
+  @apply !p-0 flex items-center !cursor-default children:first:flex;
+}
+:deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
+  @apply !right-0;
+}
+
+:deep(.ant-collapse-content-box) {
+  @apply !p-0;
 }
 </style>

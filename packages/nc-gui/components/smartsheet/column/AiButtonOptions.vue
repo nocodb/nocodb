@@ -215,6 +215,9 @@ const handleUpdateExpansionPanel = (key: ExpansionPanelKeys) => {
   if (expansionPanel.value.includes(key)) {
     expansionPanel.value = expansionPanel.value.filter((k) => k !== key)
   } else {
+    if (key === ExpansionPanelKeys.input && !inputColumns.value.length) {
+      return
+    }
     expansionPanel.value.push(key)
   }
 }
@@ -251,6 +254,18 @@ watch(isOpenSelectRecordDropdown, (newValue) => {
     loadViewData()
   }
 })
+
+watch(
+  () => inputColumns.value.length,
+  (newValue) => {
+    if (newValue) return
+
+    handleUpdateExpansionPanel(ExpansionPanelKeys.input)
+  },
+  {
+    immediate: true,
+  },
+)
 
 const previewPanelDom = ref<HTMLElement>()
 
@@ -557,22 +572,21 @@ const checkScrollTopMoreThanZero = () => {
                       >
                         Input fields
 
-                        <a-tag
-                          v-if="inputColumns.length"
-                          class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0"
-                        >
-                          {{ inputColumns.length }}</a-tag
-                        >
+                        <template v-if="inputColumns.length">
+                          <a-tag class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0">
+                            {{ inputColumns.length }}</a-tag
+                          >
 
-                        <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-medium !px-1">
-                          <GeneralIcon
-                            icon="arrowRight"
-                            class="transform"
-                            :class="{
-                              'rotate-270': expansionPanel.includes(ExpansionPanelKeys.input),
-                            }"
-                          />
-                        </NcButton>
+                          <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-medium !px-1">
+                            <GeneralIcon
+                              icon="arrowRight"
+                              class="transform"
+                              :class="{
+                                'rotate-270': expansionPanel.includes(ExpansionPanelKeys.input),
+                              }"
+                            />
+                          </NcButton>
+                        </template>
                       </div>
                     </div>
                   </template>

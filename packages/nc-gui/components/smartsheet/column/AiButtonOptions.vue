@@ -339,6 +339,7 @@ const checkScrollTopMoreThanZero = () => {
                     <AiPromptWithFields
                       v-model="vModel.formula_raw"
                       :options="availableFields"
+                      placeholder="Enter prompt here..."
                       prompt-field-tag-class-name="!bg-nc-bg-brand !text-nc-content-brand"
                     />
                     <div class="rounded-b-lg flex items-center gap-2 p-1">

@@ -180,6 +180,7 @@ provide(EditColumnInj, ref(true))
           <AiPromptWithFields
             v-model="vModel.prompt_raw"
             :options="availableFields"
+            placeholder="Write a sales campaign addressed to {First Name} informing them about our latest product launch. Use the {Product Name} and {Description} field to elaborate the product and how it would be useful for the customer"
             prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
             suggestion-icon-class-name="!text-nc-content-purple-medium"
           />

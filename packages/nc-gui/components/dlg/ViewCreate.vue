@@ -1293,7 +1293,7 @@ function init() {
                 <a-textarea
                   v-model:value="prompt"
                   :bordered="false"
-                  placeholder="Enter your prompt to get table suggestions.."
+                  placeholder="Enter your prompt to get view suggestions.."
                   class="!px-4 !py-2 !text-sm !min-h-[120px]"
                   @keydown.enter.stop
                 >

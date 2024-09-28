@@ -14,12 +14,14 @@ const props = withDefaults(
     autoFocus?: boolean
     promptFieldTagClassName?: string
     suggestionIconClassName?: string
+    placeholder?: string
   }>(),
   {
     options: () => [],
     autoFocus: true,
     promptFieldTagClassName: '',
     suggestionIconClassName: '',
+    placeholder: 'Write your prompt here...',
   },
 )
 
@@ -42,7 +44,7 @@ const editor = useEditor({
     }) as any,
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',
-      placeholder: 'Write your prompt here...',
+      placeholder: props.placeholder,
     }),
     Mention.configure({
       suggestion: {
@@ -168,6 +170,14 @@ onMounted(async () => {
 
   .ProseMirror-focused {
     @apply !rounded-b-lg outline-none border-nc-fill-purple-medium shadow-selected-ai;
+  }
+
+  .tiptap p.is-editor-empty:first-child::before {
+    @apply text-gray-500;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
   }
 
   p {

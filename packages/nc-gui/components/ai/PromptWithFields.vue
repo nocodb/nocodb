@@ -96,16 +96,22 @@ const editor = useEditor({
 const newFieldSuggestionNode = () => {
   if (!editor.value) return
 
-  const lastCharacter = editor.value.state.doc.textBetween(
-    editor.value.state.selection.$from.pos - 1,
-    editor.value.state.selection.$from.pos,
-  )
+  const { $from } = editor.value.state.selection
+  const textBefore = editor.value.state.doc.textBetween($from.pos - 1, $from.pos, '\n', '\n')
+
+  const lastCharacter = editor.value.state.doc.textBetween($from.pos - 1, $from.pos)
+
+  // Check if the text before cursor contains a newline
+  const hasNewlineBefore = textBefore.includes('\n')
 
   if (lastCharacter === '{') {
     editor.value
       .chain()
-      .deleteRange({ from: editor.value.state.selection.$from.pos - 1, to: editor.value.state.selection.$from.pos })
+      .deleteRange({ from: $from.pos - 1, to: $from.pos })
       .run()
+  } else if (lastCharacter !== ' ' && $from.pos !== 1 && !hasNewlineBefore) {
+    editor.value?.commands.insertContent(' {')
+    editor.value?.chain().focus().run()
   } else {
     editor.value?.commands.insertContent('{')
     editor.value?.chain().focus().run()

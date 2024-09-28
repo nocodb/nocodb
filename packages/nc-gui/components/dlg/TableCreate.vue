@@ -490,7 +490,7 @@ watch(
               <a-tag v-for="t in selectedTables" :key="t" class="nc-ai-selected-tag">
                 <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
                   <span>{{ t }}</span>
-                  <div class="flex items-center p-0.5 mt-0.5">
+                  <div class="flex items-center p-0.5">
                     <GeneralIcon icon="close" class="h-3 w-3 cursor-pointer opacity-80" @click="onTagClose(t)" />
                   </div>
                 </div>
@@ -693,7 +693,7 @@ watch(
                         <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
                           <div>{{ t }}</div>
 
-                          <div class="flex items-center p-0.5 mt-0.5">
+                          <div class="flex items-center p-0.5">
                             <GeneralIcon
                               icon="close"
                               class="h-3 w-3 opacity-80"

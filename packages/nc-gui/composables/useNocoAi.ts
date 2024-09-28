@@ -229,16 +229,28 @@ export const useNocoAi = createSharedComposable(() => {
           output_column_ids?: string
         },
     rowIds: string[],
+    skipMsgToast = true,
   ) => {
     try {
       aiLoading.value = true
+      aiError.value = ''
 
       const res = await $api.ai.dataGenerate(modelId, { rowIds, column })
 
       return res
     } catch (e) {
       console.error(e)
-      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+      const error = await extractSdkResponseErrorMsg(e)
+
+      if (error === aiIntegrationNotFound) {
+        aiIntegrationAvailable.value = false
+      } else {
+        aiError.value = error
+      }
+
+      if (!skipMsgToast) {
+        message.warning(error || 'NocoAI: Underlying GPT API are busy. Please try after sometime.')
+      }
     } finally {
       aiLoading.value = false
     }

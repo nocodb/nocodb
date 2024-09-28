@@ -189,6 +189,7 @@ const generate = async () => {
       output_column_ids: outputColumnIds.value.join(','),
     },
     [selectedRecordPk.value],
+    false,
   )
 
   if (res?.length) {
@@ -303,6 +304,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   disableSubmitBtn.value = false
+  aiError.value = ''
 })
 </script>
 
@@ -578,6 +580,19 @@ onBeforeUnmount(() => {
                     </NcTooltip>
                   </div>
                 </a-form-item>
+
+                <div v-if="aiError || true" class="py-3 pl-3 pr-2 flex items-center gap-3 bg-nc-bg-red-light rounded-lg">
+                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+
+                  <div class="text-sm text-nc-content-gray-subtle flex-1 max-w-[calc(100%_-_24px)]">
+                    <NcTooltip class="truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ aiError }}
+                      </template>
+                      {{ aiError }}
+                    </NcTooltip>
+                  </div>
+                </div>
               </div>
 
               <a-collapse v-model:active-key="expansionPanel" ghost class="flex-1 flex flex-col">

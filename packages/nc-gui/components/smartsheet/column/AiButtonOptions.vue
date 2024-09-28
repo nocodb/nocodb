@@ -581,7 +581,7 @@ onBeforeUnmount(() => {
                   </div>
                 </a-form-item>
 
-                <div v-if="aiError || true" class="py-3 pl-3 pr-2 flex items-center gap-3 bg-nc-bg-red-light rounded-lg">
+                <div v-if="aiError" class="py-3 pl-3 pr-2 flex items-center gap-3 bg-nc-bg-red-light rounded-lg">
                   <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
 
                   <div class="text-sm text-nc-content-gray-subtle flex-1 max-w-[calc(100%_-_24px)]">

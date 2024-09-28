@@ -380,6 +380,25 @@ check_if_docker_is_running() {
 	fi
 }
 
+persistent_store_isdeleted() {
+	_persistent_store="$1"
+
+	if [ ! -d "$_persistent_store" ]; then
+		print_warning "Persistent store was deleted without stopping the containers"
+
+		for container in $($CONFIG_DOCKER_COMMAND ps | grep -Eo 'nocodb-[a-z]+-[0-9]+$'); do
+			if ! $CONFIG_DOCKER_COMMAND stop "$container" > /dev/null 2>&1; then
+				print_error "Failed to stop ${container}"
+				exit 1
+			fi
+		done
+
+		return 0
+	fi
+
+	return 1
+}
+
 # Main functions
 check_existing_installation() {
 	NOCO_FOUND=false
@@ -388,18 +407,17 @@ check_existing_installation() {
 	if [ -d "$NOCO_HOME" ]; then
 		NOCO_FOUND=true
 	elif $CONFIG_DOCKER_COMMAND ps --format '{{.Names}}' | grep -q "nocodb"; then
-		NOCO_ID=$($CONFIG_DOCKER_COMMAND ps | grep "nocodb/nocodb" | cut -d ' ' -f 1)
-		CUSTOM_HOME=$($CONFIG_DOCKER_COMMAND inspect --format='{{index .Mounts 0}}' "$NOCO_ID" | cut -d ' ' -f 3)
-		PARENT_DIR=$(dirname "$CUSTOM_HOME")
+		NOCO_ID="$($CONFIG_DOCKER_COMMAND ps | grep "nocodb/nocodb" | cut -d ' ' -f 1)"
+		CUSTOM_HOME="$($CONFIG_DOCKER_COMMAND inspect --format='{{index .Mounts 0}}' "$NOCO_ID" | cut -d ' ' -f 3)"
+		PARENT_DIR="$(dirname "$CUSTOM_HOME")"
 
-		ln -s "$PARENT_DIR" "$NOCO_HOME"
-		basename "$PARENT_DIR" >"$NOCO_HOME/.COMPOSE_PROJECT_NAME"
-
-		NOCO_FOUND=true
-	else
-		mkdir -p "$NOCO_HOME"
+		if ! persistent_store_isdeleted "$PARENT_DIR"; then
+			ln -s "$PARENT_DIR" "$NOCO_HOME"
+			basename "$PARENT_DIR" >"$NOCO_HOME/.COMPOSE_PROJECT_NAME"
+			NOCO_FOUND=true
+		fi
 	fi
-
+	mkdir -p "$NOCO_HOME"
 	cd "$NOCO_HOME" || exit 1
 
 	# Check if nocodb is already installed

@@ -43,13 +43,19 @@ const isPreviewEnabled = computed(() => {
   return isFieldAddedInPromt && !!vModel.value.title
 })
 
-watch(isPreviewEnabled, (newValue) => {
-  if (newValue) {
-    disableSubmitBtn.value = false
-  } else {
-    disableSubmitBtn.value = true
-  }
-})
+watch(
+  isPreviewEnabled,
+  (newValue) => {
+    if (newValue) {
+      disableSubmitBtn.value = false
+    } else {
+      disableSubmitBtn.value = true
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 const localIsEnabledGenerateText = ref(true)
 

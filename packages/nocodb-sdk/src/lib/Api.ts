@@ -393,7 +393,8 @@ export interface BaseReqType {
     | 'pg'
     | 'snowflake'
     | 'sqlite3'
-    | 'databricks';
+    | 'databricks'
+    | 'libsql';
   fk_integration_id?: string;
 }
 

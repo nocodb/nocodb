@@ -8065,6 +8065,7 @@ class BaseModelSqlv2 {
     }
 
     data.forEach((item) => {
+      const newItem = {};
       Object.entries(item).forEach(([key, value]) => {
         const alias = idToAliasMap[key];
         if (alias) {
@@ -8073,18 +8074,19 @@ class BaseModelSqlv2 {
               const tempObj = Array.isArray(value)
                 ? value.map((arrVal) => transformObject(arrVal, idToAliasMap))
                 : transformObject(value, idToAliasMap);
-              item[alias] = tempObj;
-              item[alias] = tempObj;
+              newItem[alias] = tempObj;
             } else {
-              item[alias] = value;
+              newItem[alias] = value;
             }
           } else {
-            item[alias] = value;
+            newItem[alias] = value;
           }
-          console.log('here 8083 deleting key', key, 'from item', item);
-          // delete item[key];
+          const descriptor = Object.getOwnPropertyDescriptor(item, key);
+        } else {
+          newItem[key] = value;
         }
       });
+      Object.assign(item, newItem);
     });
 
     return data;

@@ -166,7 +166,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
   const addIntegration = (type: IntegrationsSubType) => {
-    console.log()
     activeIntegration.value = defaultValues(type)
     pageMode.value = IntegrationsPageMode.ADD
     $e('c:integration:add')

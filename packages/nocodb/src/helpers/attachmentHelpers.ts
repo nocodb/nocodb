@@ -66,6 +66,9 @@ export function getPathFromUrl(url: string, removePrefix = false) {
   return decodeURI(`${pathName}${newUrl.search}${newUrl.hash}`);
 }
 
-export const fileExists = (path: string) => {
-  return fs.promises.access(path).then(() => true).catch(() => false);
-}
+export const localFileExists = (path: string) => {
+  return fs.promises
+    .access(path)
+    .then(() => true)
+    .catch(() => false);
+};

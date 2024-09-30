@@ -125,6 +125,96 @@ const uidtHelper = (cols: Column[]) => {
   return { schema, userMessageAddition };
 };
 
+const prepareAttachments = async (referencedColumns, records) => {
+  const atCols = referencedColumns.filter(
+    (col) => col.uidt === UITypes.Attachment,
+  );
+
+  // get all supported attachments
+  const allAttachments = atCols
+    .map((col) => [
+      ...(records?.[0]?.[col.title] || []).map((at) => {
+        let relativePath;
+
+        if (at.path) {
+          relativePath = path.join(
+            'nc',
+            'uploads',
+            at.path.replace(/^download[/\\]/i, ''),
+          );
+        } else if (at.url) {
+          relativePath = getPathFromUrl(at.url).replace(/^\/+/, '');
+        }
+
+        return {
+          ...at,
+          mimetype:
+            at.mimetype !== 'application/octet-stream'
+              ? at.mimetype
+              : mime.getType(at.path || at.url),
+          colId: col.id,
+          relativePath,
+        };
+      }),
+    ])
+    .flat()
+    .filter(
+      (at) =>
+        at &&
+        INLINE_SUPPORTED_MIMETYPES.some((m) =>
+          at.mimetype?.match(new RegExp(m.replace('*', '.*'))),
+        ),
+    );
+
+  const imageAttachments = [];
+
+  const otherAttachments = [];
+
+  for (const attachment of allAttachments) {
+    if (attachment.mimetype?.match(/image\/*/)) {
+      imageAttachments.push(attachment);
+    } else {
+      otherAttachments.push(attachment);
+    }
+  }
+
+  const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+  const encodedImages = [];
+
+  for (const attachment of imageAttachments) {
+    const file = await storageAdapter.fileRead(attachment.relativePath);
+
+    // convert file to base64
+    const base64 = file.toString('base64');
+
+    encodedImages.push({
+      type: 'image',
+      image: base64,
+    });
+  }
+
+  const inlineAttachments: Record<string, string[]> = {};
+
+  for (const attachment of otherAttachments) {
+    const fileStream = await storageAdapter.fileReadByStream(
+      attachment.relativePath,
+    );
+    const serialized = await serialize(attachment.mimetype, fileStream);
+
+    if (serialized) {
+      if (!inlineAttachments[attachment.colId]) {
+        inlineAttachments[attachment.colId] = [];
+      }
+
+      inlineAttachments[attachment.colId].push(serialized.text);
+      encodedImages.push(...serialized.images);
+    }
+  }
+
+  return { encodedImages, inlineAttachments };
+};
+
 @Injectable()
 export class AiDataService {
   constructor(protected readonly tablesService: TablesService) {}
@@ -250,6 +340,34 @@ export class AiDataService {
       },
     );
 
+    const integration = await Integration.get(context, ai.fk_integration_id);
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
+
+    const referencedColumns: Column[] = [];
+
+    // get all referenced columns from the prompt
+    ai.prompt.replace(/{(.*?)}/g, (match, p1) => {
+      const col = model.columnsById[p1];
+
+      if (!col) {
+        NcError.badRequest(`Field '${p1}' not found`);
+      }
+
+      referencedColumns.push(col);
+
+      return p1;
+    });
+
+    const { encodedImages, inlineAttachments } = await prepareAttachments(
+      referencedColumns,
+      records,
+    );
+
     const userMessage = JSON.stringify(
       records.map((row) => {
         const pkObj = baseModel.model.primaryKeys.reduce((acc, pk) => {
@@ -259,30 +377,28 @@ export class AiDataService {
 
         return {
           [returnTitle]: ai.prompt.replace(/{(.*?)}/g, (match, p1) => {
-            const column = model.columnsById[p1];
+            const col = model.columnsById[p1];
 
-            if (!column) {
+            if (!col) {
               NcError.badRequest(`Field '${p1}' not found`);
             }
 
-            if (column.uidt === UITypes.Attachment) {
-              return 'attached file';
+            if (col.uidt === UITypes.Attachment) {
+              if (inlineAttachments[col.id]) {
+                return inlineAttachments[col.id]
+                  .map((i) => `\n\nFile:\n\`\`\`${i}\n\`\`\`\n`)
+                  .join('');
+              }
+
+              return '@image';
             }
 
-            return row[column.title];
+            return row[col.title];
           }),
           ...pkObj,
         };
       }),
     );
-
-    const integration = await Integration.get(context, ai.fk_integration_id);
-
-    if (!integration) {
-      throw new Error('AI integration not found');
-    }
-
-    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
     const { data, usage } = await wrapper.generateObject<{
       rows: { [key: string]: string }[];
@@ -306,7 +422,13 @@ export class AiDataService {
         },
         {
           role: 'user',
-          content: userMessage,
+          content: [
+            {
+              type: 'text',
+              text: userMessage,
+            },
+            ...(encodedImages.length ? encodedImages : []),
+          ],
         },
       ],
       ...(ai.model ? { customModel: ai.model } : {}),
@@ -448,91 +570,10 @@ export class AiDataService {
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
-    const atCols = referencedColumns.filter(
-      (col) => col.uidt === UITypes.Attachment,
+    const { encodedImages, inlineAttachments } = await prepareAttachments(
+      referencedColumns,
+      records,
     );
-
-    // get all supported attachments
-    const allAttachments = atCols
-      .map((col) => [
-        ...(records?.[0]?.[col.title] || []).map((at) => {
-          let relativePath;
-
-          if (at.path) {
-            relativePath = path.join(
-              'nc',
-              'uploads',
-              at.path.replace(/^download[/\\]/i, ''),
-            );
-          } else if (at.url) {
-            relativePath = getPathFromUrl(at.url).replace(/^\/+/, '');
-          }
-
-          return {
-            ...at,
-            mimetype:
-              at.mimetype !== 'application/octet-stream'
-                ? at.mimetype
-                : mime.getType(at.path || at.url),
-            colId: col.id,
-            relativePath,
-          };
-        }),
-      ])
-      .flat()
-      .filter(
-        (at) =>
-          at &&
-          INLINE_SUPPORTED_MIMETYPES.some((m) =>
-            at.mimetype?.match(new RegExp(m.replace('*', '.*'))),
-          ),
-      );
-
-    const imageAttachments = [];
-
-    const otherAttachments = [];
-
-    for (const attachment of allAttachments) {
-      if (attachment.mimetype?.match(/image\/*/)) {
-        imageAttachments.push(attachment);
-      } else {
-        otherAttachments.push(attachment);
-      }
-    }
-
-    const storageAdapter = await NcPluginMgrv2.storageAdapter();
-
-    const encodedImages = [];
-
-    for (const attachment of imageAttachments) {
-      const file = await storageAdapter.fileRead(attachment.relativePath);
-
-      // convert file to base64
-      const base64 = file.toString('base64');
-
-      encodedImages.push({
-        type: 'image',
-        image: base64,
-      });
-    }
-
-    const inlineAttachments: Record<string, string[]> = {};
-
-    for (const attachment of otherAttachments) {
-      const fileStream = await storageAdapter.fileReadByStream(
-        attachment.relativePath,
-      );
-      const serialized = await serialize(attachment.mimetype, fileStream);
-
-      if (serialized) {
-        if (!inlineAttachments[attachment.colId]) {
-          inlineAttachments[attachment.colId] = [];
-        }
-
-        inlineAttachments[attachment.colId].push(serialized.text);
-        encodedImages.push(...serialized.images);
-      }
-    }
 
     let userMessage = JSON.stringify(
       records.map((row) => {

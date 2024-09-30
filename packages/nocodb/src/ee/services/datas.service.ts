@@ -2,6 +2,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { DatasService as DatasServiceCE } from 'src/services/datas.service';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { isLinksOrLTAR } from 'nocodb-sdk';
+import canUseOptimisedQuery from '../utils/canUseOptimisedQuery';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -12,7 +13,6 @@ import { Column, Filter, Model, Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
-import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 import { replaceDynamicFieldWithValue } from '~/db/BaseModelSqlv2';
 
 @Injectable()
@@ -105,10 +105,10 @@ export class DatasService extends DatasServiceCE {
     }
 
     if (
-      ((['mysql', 'mysql2'].includes(source.type) &&
-        (await isMysqlVersionSupported(context, source))) ||
-        ['pg'].includes(source.type)) &&
-      !param.disableOptimization
+      await canUseOptimisedQuery(context, {
+        source,
+        disableOptimization: param.disableOptimization,
+      })
     ) {
       responseData = await this.dataOptService.list(context, {
         model,
@@ -152,8 +152,10 @@ export class DatasService extends DatasServiceCE {
 
     let row;
     if (
-      ['pg', 'mysql', 'mysql2'].includes(source.type) &&
-      !param.disableOptimization
+      await await canUseOptimisedQuery(context, {
+        source,
+        disableOptimization: param.disableOptimization,
+      })
     ) {
       row = await this.dataOptService.read(context, {
         model,

@@ -313,6 +313,7 @@ watch(dialogShow, async (n, o) => {
   aiFormState.value.organization = ''
   aiFormState.value.industry = ''
   aiFormState.value.audience = ''
+  isExpandedPredefiendBasePromts.value = false
 
   if (!aiIntegrationAvailable.value) {
     aiMode.value = false
@@ -376,21 +377,23 @@ const typeLabel = computed(() => {
           <GeneralIcon icon="ncAutoAwesome" class="flex-none h-6 w-6 !text-current" />
           <div class="text-xl leading-8 font-bold">Noco AI Base Builder</div>
         </div>
-        <div>
-          <NcButton
-            v-if="aiStep === AI_STEP.MODIFY"
-            type="primary"
-            size="small"
-            theme="ai"
-            :loading="aiLoading && callFunction === 'onCreateSchema'"
-            @click="onCreateSchema"
-          >
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="magic" class="!h-4 text-yellow-500" />
-              <span class="text-white text-sm">Create Base</span>
-            </div>
-          </NcButton>
-        </div>
+
+        <NcButton
+          v-if="aiStep === AI_STEP.MODIFY"
+          type="primary"
+          size="small"
+          theme="ai"
+          :loading="aiLoading && callFunction === 'onCreateSchema'"
+          @click="onCreateSchema"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 text-nc-fill-yellow-medium" />
+          </template>
+          Create Base
+        </NcButton>
+        <NcButton size="small" type="text" @click.stop="dialogShow = false">
+          <GeneralIcon icon="close" class="text-gray-600" />
+        </NcButton>
       </template>
     </template>
     <template v-if="aiMode === null">
@@ -495,7 +498,12 @@ const typeLabel = computed(() => {
                   </a-tag>
                 </template>
 
-                <NcButton size="xs" type="text" icon-position="right" @click="isExpandedPredefiendBasePromts = !isExpandedPredefiendBasePromts">
+                <NcButton
+                  size="xs"
+                  type="text"
+                  icon-position="right"
+                  @click="isExpandedPredefiendBasePromts = !isExpandedPredefiendBasePromts"
+                >
                   {{ isExpandedPredefiendBasePromts ? $t('general.showLess') : $t('general.showMore') }}
 
                   <template #icon>
@@ -565,7 +573,7 @@ const typeLabel = computed(() => {
                 type="primary"
                 theme="ai"
                 class="w-full"
-                :disabled="false"
+                :disabled="!aiFormState.prompt?.trim()"
                 :loading="aiLoading && callFunction === 'onPredictSchema'"
                 @click="onPredictSchema"
               >

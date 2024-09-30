@@ -1,5 +1,4 @@
 import path from 'path';
-import fs from 'fs';
 import {
   Body,
   Controller,
@@ -29,7 +28,7 @@ import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcError } from '~/helpers/catchError';
-import { fileExists } from '~/helpers/attachmentHelpers'
+import { localFileExists } from '~/helpers/attachmentHelpers';
 
 @Controller()
 export class AttachmentsSecureController {
@@ -96,7 +95,7 @@ export class AttachmentsSecureController {
         path: path.join('nc', filePath, fpath),
       });
 
-      if (!(await fileExists(file.path))) {
+      if (!(await localFileExists(file.path))) {
         return res.status(404).send('File not found');
       }
 

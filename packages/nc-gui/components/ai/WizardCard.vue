@@ -5,15 +5,18 @@ interface Props {
     title: string
     key: string
   }[]
+  as?: 'default' | 'tabs'
 }
 
-const props = withDefaults(defineProps<Props>(), {})
+const props = withDefaults(defineProps<Props>(), {
+  as: 'default',
+})
 
 const emits = defineEmits(['update:activeTab', 'navigateToIntegrations'])
 
 const activeTab = useVModel(props, 'activeTab', emits)
 
-const { tabs } = toRefs(props)
+const { tabs, as } = toRefs(props)
 
 const { aiIntegrationAvailable, aiLoading } = useNocoAi()
 
@@ -24,7 +27,7 @@ const handleChangeTab = (tab: string) => {
 </script>
 
 <template>
-  <div class="nc-ai-wizard-card rounded-2xl overflow-hidden transition-colors">
+  <div class="nc-ai-wizard-card overflow-hidden transition-colors">
     <div class="nc-ai-wizard-card-tab-header">
       <div class="flex nc-ai-wizard-card-tab-wrapper">
         <div
@@ -45,7 +48,7 @@ const handleChangeTab = (tab: string) => {
       </div>
     </div>
     <div class="nc-ai-wizard-card-tab-content">
-      <div v-if="!aiIntegrationAvailable" class="py-2.5 pl-3 pr-2 flex items-center gap-3">
+      <div v-if="as === 'default' && !aiIntegrationAvailable" class="py-2.5 pl-3 pr-2 flex items-center gap-3">
         <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
         <div class="text-sm text-nc-content-gray-subtle flex-1">No AI Integrations available.</div>
 

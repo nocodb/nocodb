@@ -24,7 +24,7 @@ import { AttachmentsService } from '~/services/attachments.service';
 import { PresignedUrl } from '~/models';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcContext, NcRequest } from '~/interface/config';
-import { isPreviewAllowed } from '~/helpers/attachmentHelpers';
+import { isPreviewAllowed, fileExists } from '~/helpers/attachmentHelpers';
 import { DataTableService } from '~/services/data-table.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -85,7 +85,7 @@ export class AttachmentsController {
         path: path.join('nc', 'uploads', filename),
       });
 
-      if (!fs.existsSync(file.path)) {
+      if (!await fs.promises.stat(file.path)) {
         return res.status(404).send('File not found');
       }
 
@@ -126,7 +126,7 @@ export class AttachmentsController {
         ),
       });
 
-      if (!fs.existsSync(file.path)) {
+      if (!(await fileExists(file.path))) {
         return res.status(404).send('File not found');
       }
 
@@ -172,7 +172,7 @@ export class AttachmentsController {
         path: path.join('nc', filePath, fpath),
       });
 
-      if (!fs.existsSync(file.path)) {
+      if (!(await fileExists(file.path))) {
         return res.status(404).send('File not found');
       }
 

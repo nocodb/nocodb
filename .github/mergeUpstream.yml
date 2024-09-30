@@ -1,0 +1,35 @@
+name: Sync from Upstream
+
+# Run daily at 00:00 UTC
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout your repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false # No need for GitHub token to fetch upstream changes
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'Neil Adrian'
+          git config --global user.email 'neiladrian_b@yahoo.com'
+
+      - name: Add upstream repository
+        run: git remote add upstream https://github.com/nocodb/nocodb
+        # Replace UPSTREAM-OWNER and UPSTREAM-REPOSITORY with your actual upstream repo details.
+
+      - name: Fetch upstream changes
+        run: git fetch upstream
+
+      - name: Merge upstream changes
+        run: git merge upstream/main # Replace 'main' with your upstream branch if different
+
+      - name: Push changes to your repository
+        run: |
+          git push origin develop # Push the merged changes to your repository

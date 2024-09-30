@@ -106,6 +106,12 @@ const callFunction = ref<string | null>(null)
 
 const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'lg'))
 
+const isExpandedPredefiendBasePromts = ref<boolean>(false)
+
+const predefinedBasePrompts = computed(() => {
+  return isExpandedPredefiendBasePromts.value ? aiBaseSchemaPrompts : aiBaseSchemaPrompts.slice(0, 7)
+})
+
 const leftPaneContentRef = ref<HTMLElement | null>(null)
 const { y: leftPaneContentOffsetY } = useScroll(leftPaneContentRef)
 
@@ -148,7 +154,7 @@ const aiStep = ref(AI_STEP.PROMPT)
 const aiPrompt = ref<string>('')
 
 const aiFormState = ref({
-  selectedTag: '',
+  prompt: '',
   organization: '',
   industry: '',
   audience: '',
@@ -218,7 +224,20 @@ const onPredictSchema = async () => {
     // Set interval to display characters one by one
     timerId = setInterval(displayCharByChar, 40) // Adjust the speed as needed (100ms)
 
-    predictedSchema.value = await predictSchema(aiPrompt.value)
+    let prompt = `${aiFormState.value.prompt}`
+
+    // Append optional information if provided
+    if (aiFormState.value.organization?.trim()) {
+      prompt += ` | Organization: ${aiFormState.value.organization}`
+    }
+    if (aiFormState.value.industry?.trim()) {
+      prompt += ` | Industry: ${aiFormState.value.industry}`
+    }
+    if (aiFormState.value.audience?.trim()) {
+      prompt += ` | Audience: ${aiFormState.value.audience}`
+    }
+
+    predictedSchema.value = await predictSchema(prompt)
 
     previewExpansionPanel.value = ((predictedSchema.value || {}).tables || []).map((t) => t?.title).filter(Boolean)
     aiStep.value = AI_STEP.MODIFY
@@ -290,7 +309,10 @@ watch(dialogShow, async (n, o) => {
 
   aiMode.value = null
   aiStep.value = AI_STEP.PROMPT
-  aiPrompt.value = ''
+  aiFormState.value.prompt = ''
+  aiFormState.value.organization = ''
+  aiFormState.value.industry = ''
+  aiFormState.value.audience = ''
 
   if (!aiIntegrationAvailable.value) {
     aiMode.value = false
@@ -454,30 +476,40 @@ const typeLabel = computed(() => {
             <!-- create base config panel -->
             <div class="flex-1 p-6 flex flex-col gap-6">
               <div class="text-base font-bold text-nc-content-purple-dark">Tell us more about your usecase</div>
-              <div class="flex flex-wrap gap-3">
+              <div class="flex flex-wrap gap-3 max-h-[188px] nc-scrollbar-thin overflow-visible">
                 <!-- Predefined tags -->
-                <template v-for="(description, tag) in predefinedAiBasePrompts" :key="tag">
+
+                <template v-for="prompt of predefinedBasePrompts" :key="prompt.tag">
                   <a-tag
                     class="nc-ai-base-schema-tag nc-ai-suggested-tag"
                     :class="{
-                      'nc-selected': description === aiPrompt.trim(),
+                      'nc-selected': prompt.description === aiFormState.prompt.trim(),
                       'nc-disabled': !aiIntegrationAvailable,
                     }"
                     :disabled="!aiIntegrationAvailable"
-                    @click="aiPrompt = description"
+                    @click="aiFormState.prompt = prompt.description"
                   >
-                    <div class="flex flex-row items-center gap-1 py-[3px] text-sm font-weight-500">
-                      <div>{{ tag }}</div>
+                    <div class="flex flex-row items-center gap-1 py-1 text-sm font-weight-500">
+                      <div>{{ prompt.tag }}</div>
                     </div>
                   </a-tag>
                 </template>
+
+                <NcButton size="xs" type="text" icon-position="right" @click="isExpandedPredefiendBasePromts = !isExpandedPredefiendBasePromts">
+                  {{ isExpandedPredefiendBasePromts ? $t('general.showLess') : $t('general.showMore') }}
+
+                  <template #icon>
+                    <GeneralIcon :icon="isExpandedPredefiendBasePromts ? 'minusCircle' : 'plusCircle'" class="opacity-80" />
+                  </template>
+                </NcButton>
               </div>
               <div>
                 <a-textarea
-                  v-model:value="aiPrompt"
+                  v-model:value="aiFormState.prompt"
                   placeholder="Type something..."
                   class="!w-full !min-h-[120px] !rounded-lg mt-2 overflow-y-auto nc-scrollbar-thin nc-input-shadow nc-ai-input"
                   size="middle"
+                  :disabled="!aiIntegrationAvailable"
                 />
               </div>
 

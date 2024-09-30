@@ -186,11 +186,11 @@ const prepareAttachments = async (referencedColumns, records) => {
     const file = await storageAdapter.fileRead(attachment.relativePath);
 
     // convert file to base64
-    const base64 = file.toString('base64');
+    // const base64 = file.toString('base64');
 
     encodedImages.push({
       type: 'image',
-      image: base64,
+      image: file,
     });
   }
 
@@ -375,6 +375,8 @@ export class AiDataService {
           return acc;
         }, {});
 
+        let imageCounter = 1;
+
         return {
           [returnTitle]: ai.prompt.replace(/{(.*?)}/g, (match, p1) => {
             const col = model.columnsById[p1];
@@ -390,7 +392,11 @@ export class AiDataService {
                   .join('');
               }
 
-              return '@image';
+              if (encodedImages.length) {
+                return `"attached image #${imageCounter++}"`;
+              }
+
+              return 'no image attached';
             }
 
             return row[col.title];
@@ -408,7 +414,10 @@ export class AiDataService {
           z.object({
             [returnTitle]: z.string(),
             ...Object.fromEntries(
-              baseModel.model.primaryKeys.map((pk) => [pk.title, z.any()]),
+              baseModel.model.primaryKeys.map((pk) => [
+                pk.title,
+                z.string().or(z.number()),
+              ]),
             ),
           }),
         ),
@@ -582,6 +591,8 @@ export class AiDataService {
           return acc;
         }, {});
 
+        let imageCounter = 1;
+
         return {
           [buttonTitle]: aiButton.formula.replace(/{(.*?)}/g, (match, p1) => {
             const col = model.columnsById[p1];
@@ -597,7 +608,11 @@ export class AiDataService {
                   .join('');
               }
 
-              return '@image';
+              if (encodedImages.length) {
+                return `"attached image #${imageCounter++}"`;
+              }
+
+              return 'no image attached';
             }
 
             return row[col.title];

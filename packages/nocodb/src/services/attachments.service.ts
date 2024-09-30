@@ -10,7 +10,6 @@ import hash from 'object-hash';
 import moment from 'moment';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import type Sharp from 'sharp';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import mimetypes, { mimeIcons } from '~/utils/mimeTypes';

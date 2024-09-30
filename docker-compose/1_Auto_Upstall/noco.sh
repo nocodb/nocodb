@@ -196,8 +196,8 @@ prompt_oneof() {
 		fi
 
 		for one in "$@"; do
-			resp_upper="${response^^}"
-			one_upper="${one^^}"
+			resp_upper="$(echo "$response" | tr '[:lower:]' '[:upper:]')"
+			one_upper="$(echo "$one" |  tr '[:lower:]' '[:upper:]')"
 			if [ "$resp_upper" = "$one_upper" ]; then
 				echo "$one"
 				return

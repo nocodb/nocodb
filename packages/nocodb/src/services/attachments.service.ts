@@ -21,6 +21,7 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
+import Noco from '~/Noco';
 
 interface AttachmentObject {
   url?: string;
@@ -88,15 +89,7 @@ export class AttachmentsService {
           } = {};
 
           if (file.mimetype.includes('image')) {
-            let sharp: typeof Sharp;
-
-            try {
-              sharp = (await import('sharp')).default;
-            } catch (e) {
-              this.logger.warn(
-                `Thumbnail generation is not supported in this platform at the moment. Error: ${e.message}`,
-              );
-            }
+            const sharp = Noco.sharp;
 
             if (sharp) {
               try {
@@ -261,12 +254,7 @@ export class AttachmentsService {
           } = {};
 
           if (mimeType.includes('image')) {
-            let sharp: typeof Sharp;
-            try {
-              sharp = (await import('sharp')).default;
-            } catch {
-              // ignore
-            }
+            const sharp = Noco.sharp;
 
             if (sharp) {
               try {
@@ -281,10 +269,6 @@ export class AttachmentsService {
               } catch (e) {
                 this.logger.error(`${file.path} is not an image file`);
               }
-            } else {
-              this.logger.warn(
-                `Thumbnail generation is not supported in this platform at the moment.`,
-              );
             }
           }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { type UserType, ViewTypes } from 'nocodb-sdk';
 import { deserializeJSON } from '~/utils/serialize';
 import { getCommandPaletteForUserWorkspace } from '~/helpers/commandPaletteHelpers';
@@ -14,7 +14,7 @@ const viewTypeAlias: Record<number, string> = {
 
 @Injectable()
 export class CommandPaletteService {
-  constructor() {}
+  logger = new Logger('CommandPaletteService');
 
   async commandPalette(param: { body: any; user: UserType }) {
     const cmdData = [];
@@ -137,7 +137,7 @@ export class CommandPaletteService {
         });
       }
     } catch (e) {
-      console.log(e);
+      this.logger.warn(e);
       return [];
     }
     return cmdData;

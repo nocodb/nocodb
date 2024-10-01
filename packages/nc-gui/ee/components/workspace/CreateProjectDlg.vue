@@ -315,10 +315,6 @@ watch(dialogShow, async (n, o) => {
   aiFormState.value.audience = ''
   isExpandedPredefiendBasePromts.value = false
 
-  if (!aiIntegrationAvailable.value) {
-    aiMode.value = false
-  }
-
   // Clear errors
   setTimeout(async () => {
     form.value?.resetFields()
@@ -347,6 +343,12 @@ const typeLabel = computed(() => {
       return ''
   }
 })
+
+const handleUpdatePrompt = (description: string) => {
+  if (!aiIntegrationAvailable.value) return
+
+  aiFormState.value.prompt = description
+}
 </script>
 
 <template>
@@ -490,7 +492,7 @@ const typeLabel = computed(() => {
                       'nc-disabled': !aiIntegrationAvailable,
                     }"
                     :disabled="!aiIntegrationAvailable"
-                    @click="aiFormState.prompt = prompt.description"
+                    @click="handleUpdatePrompt(prompt.description)"
                   >
                     <div class="flex flex-row items-center gap-1 py-1 text-sm font-weight-500">
                       <div>{{ prompt.tag }}</div>
@@ -555,6 +557,7 @@ const typeLabel = computed(() => {
                         class="nc-input-sm nc-input-shadow nc-ai-input"
                         hide-details
                         :placeholder="field.placeholder"
+                        :disabled="!aiIntegrationAvailable"
                       />
                     </div>
                   </div>
@@ -569,6 +572,7 @@ const typeLabel = computed(() => {
               }"
             >
               <NcButton
+                v-if="aiIntegrationAvailable"
                 size="small"
                 type="primary"
                 theme="ai"
@@ -582,6 +586,7 @@ const typeLabel = computed(() => {
                 </template>
                 Generate Base
               </NcButton>
+              <AiIntegrationNotFound v-else />
             </div>
           </div>
           <div class="w-[calc(100%_-_432px)] h-full p-6 nc-scrollbar-thin flex flex-col gap-6">

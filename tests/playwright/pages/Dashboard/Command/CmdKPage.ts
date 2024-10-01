@@ -19,6 +19,7 @@ export class CmdK extends BasePage {
 
   async searchText(text: string) {
     await this.dashboardPage.rootPage.fill('.cmdk-input', text);
+    await this.dashboardPage.rootPage.waitForTimeout(1000);
     await this.rootPage.keyboard.press('Enter');
     await this.rootPage.keyboard.press('Enter');
   }

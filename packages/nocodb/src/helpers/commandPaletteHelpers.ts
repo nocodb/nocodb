@@ -1,3 +1,4 @@
+import { ProjectRoles } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -45,7 +46,7 @@ export async function getCommandPaletteForUserWorkspace(
           );
         })
         .where('bu.fk_user_id', userId)
-        .andWhereNot('bu.roles', 'no_access')
+        .andWhereNot('bu.roles', ProjectRoles.NO_ACCESS)
         .andWhere('t.mm', false)
         .andWhere(function () {
           this.where('dm.disabled', false).orWhereNull('dm.disabled');

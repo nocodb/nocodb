@@ -112,9 +112,6 @@
   },
   "security": [
     {
-      "xcAuth": []
-    },
-    {
       "xcToken": []
     }
   ]

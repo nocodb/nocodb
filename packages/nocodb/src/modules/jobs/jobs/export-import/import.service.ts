@@ -176,6 +176,7 @@ export class ImportService {
             : true),
       );
 
+      // create table with static columns
       const table =
         param.existingModel ||
         (await this.tablesService.tableCreate(context, {

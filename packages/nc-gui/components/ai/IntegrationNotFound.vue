@@ -1,10 +1,14 @@
 <script lang="ts" setup>
+const emits = defineEmits(['onNavigate'])
+
 const workspaceStore = useWorkspace()
 
 const navigateToAiIntegrations = () => {
   workspaceStore.navigateToIntegrations(undefined, undefined, {
     categories: 'ai',
   })
+
+  emits('onNavigate')
 }
 </script>
 

@@ -151,8 +151,6 @@ enum AI_STEP {
 
 const aiStep = ref(AI_STEP.PROMPT)
 
-const aiPrompt = ref<string>('')
-
 const aiFormState = ref({
   prompt: '',
   organization: '',
@@ -476,7 +474,7 @@ const handleUpdatePrompt = (description: string) => {
         <div class="flex-1 flex h-[calc(100%_-_32px)]">
           <div
             ref="leftPaneContentRef"
-            class="w-[432px] h-full relative flex flex-col nc-scrollbar-thin border-r-1 border-purple-100"
+            class="w-[480px] h-full relative flex flex-col nc-scrollbar-thin border-r-1 border-purple-100"
           >
             <!-- create base config panel -->
             <div class="flex-1 p-6 flex flex-col gap-6">
@@ -586,10 +584,20 @@ const handleUpdatePrompt = (description: string) => {
                 </template>
                 Generate Base
               </NcButton>
-              <AiIntegrationNotFound v-else />
+              <AiIntegrationNotFound v-else @on-navigate="dialogShow = false" class="justify-between">
+                <template #icon>
+                  <GeneralIcon icon="alertTriangleSolid" class="flex-none !text-nc-content-orange-medium w-6 h-6" />
+                </template>
+                <template #title>
+                  <div class="text-base font-bold text-nc-content-gray">AI Integration missing</div>
+                </template>
+                <template #description>
+                  <div class="text-sm text-nc-content-gray-subtle">No AI Integrations have been added.</div>
+                </template>
+              </AiIntegrationNotFound>
             </div>
           </div>
-          <div class="w-[calc(100%_-_432px)] h-full p-6 nc-scrollbar-thin flex flex-col gap-6">
+          <div class="w-[calc(100%_-_480px)] h-full p-6 nc-scrollbar-thin flex flex-col gap-6">
             <!-- create base preview panel -->
 
             <template v-if="aiStep === AI_STEP.LOADING || aiStep === AI_STEP.PROMPT">
@@ -611,9 +619,9 @@ const handleUpdatePrompt = (description: string) => {
 
               <div class="rounded-xl border-1 border-purple-100">
                 <div
-                  v-for="(row, idx) of ncArrayFrom(7)"
+                  v-for="(_row, idx) of ncArrayFrom(7)"
                   :key="idx"
-                  class="px-3 py-2 flex items-center gap-2 border-b-1 border-purple-100 last:!border-b-0"
+                  class="px-3 py-2 flex items-center gap-2 border-b-1 border-purple-100 last-of-type:!border-b-0"
                 >
                   <div class="flex-1 flex items-center gap-2">
                     <a-skeleton-input

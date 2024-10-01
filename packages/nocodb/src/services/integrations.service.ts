@@ -15,7 +15,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
-import { generateUniqueName } from 'src/helpers/exportImportHelpers';
+import { generateUniqueName } from '~/helpers/exportImportHelpers';
 
 @Injectable()
 export class IntegrationsService {
@@ -265,6 +265,10 @@ export class IntegrationsService {
         (
           await Integration.list({
             userId: param.req.user?.id,
+            limit: 1000,
+            offset: 0,
+            includeSourceCount: false,
+            query: '',
           })
         ).list || [];
 

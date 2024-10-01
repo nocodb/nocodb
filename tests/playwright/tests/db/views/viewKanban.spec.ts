@@ -255,12 +255,12 @@ test.describe('View', () => {
       });
 
     await dashboard.viewSidebar.changeViewIcon({
-      title: 'Kanban',
+      title: 'Film Kanban copy',
       icon: 'american-football',
       iconDisplay: '🏈',
     });
 
-    await dashboard.viewSidebar.deleteView({ title: 'Kanban' });
+    await dashboard.viewSidebar.deleteView({ title: 'Film Kanban copy' });
     ///////////////////////////////////////////////
 
     await dashboard.viewSidebar.openView({ title: 'Film Kanban' });

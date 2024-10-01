@@ -229,7 +229,7 @@ test.describe('View', () => {
 
     await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
     await dashboard.viewSidebar.verifyView({
-      title: 'Kanban',
+      title: 'Film Kanban copy',
       index: 1,
     });
     const kanban = dashboard.kanban;

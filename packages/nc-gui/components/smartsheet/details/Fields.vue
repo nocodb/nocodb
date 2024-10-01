@@ -421,10 +421,13 @@ const onFieldDelete = (state: TableExplorerColumn) => {
       field.column = state
     }
   } else {
-    ops.value.push({
-      op: 'delete',
-      column: state,
-    })
+    ops.value = [
+      ...ops.value,
+      {
+        op: 'delete',
+        column: state,
+      },
+    ]
   }
 }
 
@@ -440,7 +443,7 @@ const onFieldAdd = (state: TableExplorerColumn) => {
     op: 'add',
     column: state,
   })
-  newFields.value.push(state)
+  newFields.value = [...newFields.value, state]
 
   if (addFieldMoveHook.value) {
     moveOps.value.push({

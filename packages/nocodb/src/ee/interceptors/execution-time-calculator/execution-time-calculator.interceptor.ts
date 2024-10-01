@@ -12,6 +12,10 @@ import type Redis from 'ioredis';
 import type { AppConfig } from '~/interface/config';
 import { Producer } from '~/services/producer/producer';
 
+// This interceptor is no longer in use and keeping it for future reference
+// It calculates the execution time of the request and sends it to the producer
+// It also updates the execution time in Redis if the config is enabled and the request has a token
+// The producer is used to send messages to Kafka or Kinesis
 @Injectable()
 export class ExecutionTimeCalculatorInterceptor implements NestInterceptor {
   private client: Redis;

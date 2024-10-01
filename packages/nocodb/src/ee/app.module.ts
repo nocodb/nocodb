@@ -8,7 +8,6 @@ import { DbMuxController } from 'src/ee/controllers/db-mux.controller';
 import { ThrottlerConfigService } from '~/services/throttler/throttler-config.service';
 import appConfig from '~/app.config';
 import { ExtractIdsMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { ExecutionTimeCalculatorInterceptor } from '~/interceptors/execution-time-calculator/execution-time-calculator.interceptor';
 import { UpdateStatsService } from '~/services/update-stats.service';
 import { NcLogger } from '~/utils/logger/NcLogger';
 import { generateUUID } from '~/helpers/uuidHelpers';
@@ -71,10 +70,6 @@ const enableThrottler = !!process.env['NC_THROTTLER_REDIS'];
       }
       return x;
     }),
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: ExecutionTimeCalculatorInterceptor,
-    },
     UpdateStatsService,
     NcLogger,
   ],

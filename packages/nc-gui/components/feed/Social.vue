@@ -18,7 +18,7 @@ const socialIcons = [
     name: 'NocoDB',
     icon: iconMap.iconDiscord,
     e: 'c:feed:discord-open',
-    link: 'https://discord.nocodb.com',
+    link: 'http://discord.nocodb.com',
   },
   {
     name: 'r/NocoDB',

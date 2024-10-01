@@ -765,6 +765,8 @@ export interface FilterType {
         | 'tomorrow'
         | ('yesterday' & null)
       );
+  /** Foreign Key to parent column */
+  fk_parent_column_id?: StringOrNullType;
   /** Foreign Key to Column */
   fk_column_id?: StringOrNullType;
   /** Foreign Key to Hook */
@@ -789,6 +791,11 @@ export interface FilterType {
   base_id?: string;
   /** The filter value. Can be NULL for some operators. */
   value?: any;
+  /**
+   * The order of the filter
+   * @example 1
+   */
+  order?: number;
 }
 
 /**
@@ -4198,7 +4205,7 @@ export class Api<
  * @tags Org Tokens
  * @name Delete
  * @summary Delete Organisation API Tokens
- * @request DELETE:/api/v1/tokens/{token}
+ * @request DELETE:/api/v1/tokens/{tokenId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -4206,7 +4213,7 @@ export class Api<
 
 }`
  */
-    delete: (token: string, params: RequestParams = {}) =>
+    delete: (tokenId: string, params: RequestParams = {}) =>
       this.request<
         number,
         {
@@ -4214,7 +4221,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/tokens/${token}`,
+        path: `/api/v1/tokens/${tokenId}`,
         method: 'DELETE',
         format: 'json',
         ...params,
@@ -7757,7 +7764,13 @@ export class Api<
 
 }`
  */
-    read: (viewId: string, params: RequestParams = {}) =>
+    read: (
+      viewId: string,
+      query?: {
+        includeAllFilters?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
       this.request<
         FilterListType,
         {
@@ -7767,6 +7780,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),
@@ -11546,7 +11560,7 @@ export class Api<
  * @tags API Token
  * @name Delete
  * @summary Delete API Token
- * @request DELETE:/api/v1/db/meta/projects/{baseId}/api-tokens/{token}
+ * @request DELETE:/api/v1/db/meta/projects/{baseId}/api-tokens/{tokenId}
  * @response `200` `number` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -11554,7 +11568,7 @@ export class Api<
 
 }`
  */
-    delete: (baseId: IdType, token: string, params: RequestParams = {}) =>
+    delete: (baseId: IdType, tokenId: string, params: RequestParams = {}) =>
       this.request<
         number,
         {
@@ -11562,7 +11576,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/projects/${baseId}/api-tokens/${token}`,
+        path: `/api/v1/db/meta/projects/${baseId}/api-tokens/${tokenId}`,
         method: 'DELETE',
         format: 'json',
         ...params,

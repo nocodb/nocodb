@@ -97,6 +97,7 @@ export class DuplicateController {
       sourceId: source.id,
       dupProjectId: dupProject.id,
       options:
+        // @ts-ignore
         {
           ...body.options,
           excludeHooks: true,

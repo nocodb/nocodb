@@ -10,10 +10,11 @@ enum IntegrationsPageMode {
   EDIT,
 }
 
-const integrationType: Record<'PostgreSQL' | 'MySQL' | 'SQLITE', ClientType> = {
+const integrationType: Record<'PostgreSQL' | 'MySQL' | 'SQLITE' | 'LIBSQL', ClientType> = {
   PostgreSQL: ClientType.PG,
   MySQL: ClientType.MYSQL,
   SQLITE: ClientType.SQLITE,
+  LIBSQL: ClientType.LIBSQL,
 }
 
 type IntegrationsSubType = (typeof integrationType)[keyof typeof integrationType]
@@ -51,6 +52,16 @@ function defaultValues(type: IntegrationsSubType) {
         title: 'SQLite',
         logo: h(GeneralBaseLogo, {
           'source-type': 'sqlite3',
+          'class': 'logo',
+        }),
+      }
+    case integrationType.LIBSQL:
+      return {
+        ...genericValues,
+        type: integrationType.LIBSQL,
+        title: 'LibSQL',
+        logo: h(GeneralBaseLogo, {
+          'source-type': 'libsql',
           'class': 'logo',
         }),
       }

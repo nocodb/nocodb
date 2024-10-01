@@ -5,6 +5,7 @@ import type { FilterType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import Filter from '~/models/Filter';
 import { NcError } from '~/helpers/catchError';
+import Client_Libsql from '@libsql/knex-libsql';
 
 // refer : https://github.com/brianc/node-pg-types/blob/master/lib/builtins.js
 const pgTypes = {
@@ -1036,6 +1037,8 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
 
 type CustomKnex = Knex;
 
+import KnexFull from 'knex';
+
 function CustomKnex(
   arg: string | Knex.Config<any> | any,
   extDb?: any,
@@ -1044,8 +1047,24 @@ function CustomKnex(
   if (arg?.client === 'sqlite3') {
     arg.useNullAsDefault = true;
   }
+  console.log(arg);
 
-  const kn: any = knex(arg);
+  const kn: any =
+    arg?.client != 'libsql'
+      ? knex(arg)
+      : KnexFull({
+          client: Client_Libsql,
+          connection: async () => {
+            console.log('running new async connection for KNEX');
+            const connection = {
+              filename:
+                arg.connection.url + '?authToken=' + arg.connection.authToken,
+              expirationChecker: () => true,
+            };
+            return connection;
+            // connectionConfig.connection.authToken,
+          },
+        });
 
   const knexRaw = kn.raw;
 

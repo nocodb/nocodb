@@ -344,6 +344,7 @@ export enum ClientType {
   VITESS = 'vitess',
   SNOWFLAKE = 'snowflake',
   DATABRICKS = 'databricks',
+  LIBSQL = 'libsql',
 }
 
 export enum SSLUsage {

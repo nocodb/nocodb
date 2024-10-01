@@ -1,6 +1,7 @@
 import {
   AttachmentAggregations,
   BooleanAggregations,
+  ClientType,
   CommonAggregations,
   DateAggregations,
   getAvailableAggregations,
@@ -202,7 +203,11 @@ export default async function applyAggregation({
       aggType,
       alias: alias,
     });
-  } else if (knex.client.config.client === 'sqlite3') {
+  } else if (
+    knex.client.config.client === 'sqlite3' ||
+    knex.clientType() == ClientType.LIBSQL
+  ) {
+    console.log('here calling genSqlite3AggregateQuery');
     return genSqlite3AggregateQuery({
       column,
       baseModelSqlv2,

@@ -258,6 +258,7 @@ export class BasesService {
     baseBody.title = DOMPurify.sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
 
+    // @ts-ignore
     const base = await Base.createProject(baseBody);
 
     const context = {

@@ -28,6 +28,8 @@ const connectionType = computed(() => {
       return ClientType.MYSQL
     case integrationType.SQLITE:
       return ClientType.SQLITE
+    case integrationType.LIBSQL:
+      return ClientType.LIBSQL
     default: {
       return undefined
     }

@@ -110,6 +110,9 @@ const validators = computed(() => {
     case ClientType.SQLITE:
       clientValidations = {}
       break
+    case ClientType.LIBSQL:
+      clientValidations = {}
+      break
     case ClientType.SNOWFLAKE:
       clientValidations = {
         'dataSource.connection.database': [fieldRequiredValidator()],
@@ -263,7 +266,7 @@ const testConnection = async () => {
   try {
     testingConnection.value = true
 
-    if (formState.value.dataSource.client === ClientType.SQLITE) {
+    if (formState.value.dataSource.client === ClientType.SQLITE || formState.value.dataSource.client === ClientType.LIBSQL) {
       testSuccess.value = true
     } else {
       const connection = getConnectionConfig()
@@ -596,6 +599,7 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                   <div class="nc-form-section-body">
                     <!-- SQLite File -->
                     <template v-if="formState.dataSource.client === ClientType.SQLITE"> </template>
+                    <template v-if="formState.dataSource.client === ClientType.LIBSQL"> </template>
                     <template v-else-if="formState.dataSource.client === ClientType.SNOWFLAKE">
                       <a-row :gutter="24">
                         <a-col :span="12">
@@ -685,7 +689,11 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
                 </div>
 
                 <template
-                  v-if="![ClientType.SQLITE, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(formState.dataSource.client)"
+                  v-if="
+                    ![ClientType.SQLITE, ClientType.LIBSQL, ClientType.SNOWFLAKE, ClientType.DATABRICKS].includes(
+                      formState.dataSource.client,
+                    )
+                  "
                 >
                   <a-collapse v-model:active-key="advancedOptionsExpansionPanel" ghost class="nc-source-advanced-options !mt-4">
                     <template #expandIcon="{ isActive }">

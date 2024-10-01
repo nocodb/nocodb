@@ -17,6 +17,7 @@ export default class Local implements IStorageAdapterV2 {
     try {
       await mkdirp(path.dirname(destPath));
       const data = await promisify(fs.readFile)(file.path);
+      // @ts-ignore
       await promisify(fs.writeFile)(destPath, data);
       await promisify(fs.unlink)(file.path);
       // await fs.promises.rename(file.path, destPath);

@@ -163,6 +163,7 @@ export class SourcesService {
       );
     }
 
+    // @ts-ignore
     const source = await Source.createBase(context, {
       ...baseBody,
       baseId: base.id,

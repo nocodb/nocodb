@@ -11,10 +11,7 @@ import {
   prepareForDb,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
-import {
-  decryptPropIfRequired,
-  partialExtract,
-} from '~/utils';
+import { decryptPropIfRequired, partialExtract } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export default class Integration extends IntegrationCE {
@@ -322,11 +319,9 @@ export default class Integration extends IntegrationCE {
   }
 
   public getConfig(): any {
-    const config = JSON.parse(
-      decryptPropIfRequired({
-        data: this,
-      }),
-    );
+    const config = decryptPropIfRequired({
+      data: this,
+    });
 
     return config;
   }

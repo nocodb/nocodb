@@ -62,3 +62,33 @@ interface Response {
 }
 \`\`\`
 `;
+
+export const extractRowsSystemMessage = (
+  columns: string[],
+  uidtHelper?: string,
+) => `You are a smart-spreadsheet assistant.
+You are given an unstructured input.
+You need to extract following fields for each row: ${columns
+  .map((col) => `"${col}"`)
+  .join(', ')}
+Extract all the records that you can find in the input - don't skip any record.
+You can return null or undefined if the field is not present in the input.
+YOU MUST RETURN A VALID JSON!!!
+
+Sample Input:
+Expected fields: "City", "Country"
+\`\`\`json
+{
+  "text": "The capital of France is Paris. The capital of Germany is Berlin."
+}
+\`\`\`
+
+Sample Output:
+\`\`\`json
+[
+  { "City": "Paris", "Country": "France" },
+  { "City": "Berlin", "Country": "Germany" }
+]
+\`\`\`
+${uidtHelper || ''}
+`;

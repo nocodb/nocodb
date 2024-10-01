@@ -1,6 +1,7 @@
 import path from 'path';
 import { type CoreMessage, generateObject, type LanguageModel } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
+import { zodResponseFormat } from 'openai/helpers/zod';
 import OpenAI from 'openai';
 import { type Schema } from 'zod';
 import { Logger } from '@nestjs/common';
@@ -52,7 +53,7 @@ export default class OpenAiIntegration extends AiIntegration {
       this.model = customOpenAi(model);
     }
 
-    const { usage, object } = await generateObject<T>({
+    const response = await generateObject<T>({
       model: this.model,
       schema,
       messages,
@@ -61,12 +62,12 @@ export default class OpenAiIntegration extends AiIntegration {
 
     return {
       usage: {
-        input_tokens: usage.promptTokens,
-        output_tokens: usage.completionTokens,
-        total_tokens: usage.totalTokens,
+        input_tokens: response.usage.promptTokens,
+        output_tokens: response.usage.completionTokens,
+        total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: object,
+      data: response.object,
     };
   }
 
@@ -238,5 +239,98 @@ export default class OpenAiIntegration extends AiIntegration {
     }
 
     return response;
+  }
+
+  /*
+    Uses assistant & thread to keep track of messages and responses
+    Proof of concept - not production ready
+  */
+  public async dataExtractor(args: {
+    messages: ThreadCreateParams.Message[];
+    schema: Schema;
+    instructions: string;
+    customModel?: string;
+  }) {
+    const { messages, instructions } = args;
+
+    const config = this.getConfig();
+
+    const model = args.customModel || config?.models?.[0];
+
+    if (!model) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const apiKey = config.apiKey;
+
+    if (!apiKey) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const openai = new OpenAI({
+      apiKey,
+    });
+
+    const assistant = await openai.beta.assistants.create({
+      name: 'Data Extract Assistant',
+      instructions: `All data will be in same format, so make sure to use same format for all messages.\n${instructions}`,
+      model: 'gpt-4o-mini',
+      response_format: zodResponseFormat(args.schema, 'rows'),
+    });
+
+    const responses = [];
+    const usage = {
+      input_tokens: 0,
+      output_tokens: 0,
+      total_tokens: 0,
+      model: assistant.model,
+    };
+
+    try {
+      const thread = await openai.beta.threads.create();
+
+      for (const message of messages) {
+        await openai.beta.threads.messages.create(thread.id, message);
+
+        const run = await openai.beta.threads.runs.createAndPoll(thread.id, {
+          assistant_id: assistant.id,
+        });
+
+        usage.input_tokens += run.usage.prompt_tokens;
+        usage.output_tokens += run.usage.completion_tokens;
+        usage.total_tokens += run.usage.total_tokens
+          ? run.usage.total_tokens
+          : run.usage.prompt_tokens + run.usage.completion_tokens;
+      }
+
+      const rawResponse = await openai.beta.threads.messages.list(thread.id);
+
+      for (const message of rawResponse.data) {
+        if (message.role !== 'assistant') continue;
+
+        if ((message.content[0] as any).text?.value) {
+          try {
+            responses.push(JSON.parse((message.content[0] as any).text.value));
+          } catch (e) {
+            logger.error(e);
+          }
+        }
+      }
+    } catch (e) {
+      logger.log(e);
+    } finally {
+      const clearAssistant = async () => {
+        await openai.beta.assistants.del(assistant.id);
+      };
+
+      clearAssistant().catch((e) => {
+        logger.log('There was an error cleaning up the assistant', e);
+      });
+    }
+
+    return {
+      data: responses,
+      usage,
+    };
   }
 }

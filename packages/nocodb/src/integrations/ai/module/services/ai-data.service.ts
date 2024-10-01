@@ -1,9 +1,17 @@
+/* eslint-disable prettier/prettier */
 import path from 'path';
+import { Readable } from 'stream';
 import { Injectable } from '@nestjs/common';
-import { ButtonActionsType, UITypes } from 'nocodb-sdk';
+import {
+  ButtonActionsType,
+  IntegrationsType,
+  isVirtualCol,
+  UITypes,
+} from 'nocodb-sdk';
 import mime from 'mime/lite';
 
 import { z } from 'zod';
+import type { FileType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type AiIntegration from '~/integrations/ai/ai.interface';
 import type { AIColumn, ButtonColumn, Column } from '~/models';
@@ -15,6 +23,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import {
+  extractRowsSystemMessage,
   generateFromButtonSystemMessage,
   generateRowsSystemMessage,
 } from '~/integrations/ai/module/prompts/index';
@@ -208,6 +217,40 @@ const prepareAttachments = async (referencedColumns, records) => {
       }
 
       inlineAttachments[attachment.colId].push(serialized.text);
+      encodedImages.push(...serialized.images);
+    }
+  }
+
+  return { encodedImages, inlineAttachments };
+};
+
+const preparePromptAttachments = async (
+  files: { buffer: string; mimetype: string }[],
+) => {
+  const encodedImages = [];
+
+  const inlineAttachments = [];
+
+  for (const file of files) {
+    if (!INLINE_SUPPORTED_MIMETYPES.some((m) =>
+      file.mimetype?.match(new RegExp(m.replace('*', '.*'))),
+    )) continue;
+
+    if (file.mimetype.match(/image\/*/)) {
+      encodedImages.push({
+        type: 'image',
+        image: file.buffer,
+      });
+      continue;
+    }
+
+    const serialized = await serialize(
+      file.mimetype,
+      Readable.from(file.buffer),
+    );
+
+    if (serialized) {
+      inlineAttachments.push(serialized.text);
       encodedImages.push(...serialized.images);
     }
   }
@@ -690,6 +733,147 @@ export class AiDataService {
       console.error(e);
       throw e;
     }
+  }
+
+  async extractRowsFromInput(
+    context: NcContext,
+    params: {
+      modelId: string;
+      input: string;
+      files: Array<FileType>;
+      req: NcRequest;
+    },
+  ) {
+    const { modelId, input, files, req } = params;
+
+    const model = await Model.get(context, modelId);
+
+    if (!model) {
+      NcError.tableNotFound(modelId);
+    }
+
+    await model.getColumns(context);
+
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
+      model,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const integration = await Integration.getCategoryDefault(
+      context,
+      IntegrationsType.Ai,
+    );
+
+    if (!integration) {
+      throw new Error('AI integration not found');
+    }
+
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
+
+    const possibleColumns = model.columns.filter((col) => {
+      return (
+        !col.system &&
+        ![UITypes.ID, UITypes.Attachment].includes(col.uidt) &&
+        !isVirtualCol(col)
+      );
+    });
+
+    const uidtHelp = uidtHelper(possibleColumns);
+
+    const { encodedImages, inlineAttachments } = await preparePromptAttachments(
+      files as any,
+    );
+
+    const attachmentParts = [];
+
+    if (inlineAttachments) {
+      const maxChunkLength = 2048;
+      let chunkLength = 0;
+      let chunk = '';
+      for (const inlineAttachment of inlineAttachments) {
+        if (chunkLength + inlineAttachment.length < maxChunkLength) {
+          chunk += inlineAttachment;
+          chunkLength += inlineAttachment.length;
+        } else {
+          const splitInput = inlineAttachment.split('\n');
+          for (const line of splitInput) {
+            if (chunkLength + line.length < maxChunkLength) {
+              chunk += line;
+              chunkLength += line.length;
+            } else {
+              attachmentParts.push(chunk);
+              chunk = line;
+              chunkLength = line.length;
+            }
+          }
+        }
+      }
+      if (chunk) {
+        attachmentParts.push(chunk);
+      }
+    }
+
+    const userMessages = attachmentParts.length ? attachmentParts.map((pt) => `${input}${`\n\nFile:\n\`\`\`${pt}\n\`\`\`\n`}`) : [input];
+
+    const rows = [];
+    const totalUsage = {
+      input_tokens: 0,
+      output_tokens: 0,
+      total_tokens: 0,
+      model: '',
+    };
+
+    for (const userMessage of userMessages) {
+      const { data, usage } = await wrapper.generateObject<{
+        rows: { [key: string]: string }[];
+      }>({
+        schema: z.object({
+          rows: z.array(
+            z.object({
+              ...Object.fromEntries(uidtHelp.schema),
+            }),
+          ),
+        }),
+        messages: [
+          {
+            role: 'system',
+            content: extractRowsSystemMessage(
+              possibleColumns.map((c) => c.title),
+              uidtHelp.userMessageAddition,
+            ),
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: userMessage,
+              },
+              ...(encodedImages.length ? encodedImages : []),
+            ],
+          },
+        ],
+      });
+
+      rows.push(...data.rows);
+
+      totalUsage.input_tokens += usage.input_tokens;
+      totalUsage.output_tokens += usage.output_tokens;
+      totalUsage.total_tokens += usage.total_tokens;
+      totalUsage.model = usage.model;
+    }
+
+    await integration.storeInsert(context, req?.user?.id, totalUsage);
+
+    const insertedRows = await baseModel.bulkInsert(rows, {
+      cookie: {
+        ...req,
+        system: true,
+      },
+    });
+
+    return insertedRows;
   }
 
   async fileSearch(

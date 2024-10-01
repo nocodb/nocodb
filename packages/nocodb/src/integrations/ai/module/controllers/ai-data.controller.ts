@@ -5,10 +5,13 @@ import {
   Param,
   Post,
   Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Request } from 'express';
-import type { UITypes } from 'nocodb-sdk';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import type { FileType, UITypes } from 'nocodb-sdk';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -53,6 +56,36 @@ export class AiDataController {
         : { aiPayload: body.column }),
       rowIds: body.rowIds,
       preview: body.preview,
+      req,
+    });
+  }
+
+  @Post(['/api/v2/ai/:modelId/extract'])
+  @Acl('aiData', {
+    scope: 'base',
+  })
+  @HttpCode(200)
+  @UseInterceptors(
+    AnyFilesInterceptor({
+      limits: {
+        fileSize: 10 * 1024 * 1024, // 10 MB
+      },
+    }),
+  )
+  async extractRows(
+    @TenantContext() context: NcContext,
+    @Req() req: Request,
+    @Param('modelId') modelId: string,
+    @UploadedFiles() files: Array<FileType>,
+    @Body()
+    body: {
+      input: string;
+    },
+  ) {
+    return await this.aiDataService.extractRowsFromInput(context, {
+      modelId,
+      input: body.input,
+      files,
       req,
     });
   }

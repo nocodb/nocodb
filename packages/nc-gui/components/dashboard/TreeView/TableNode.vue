@@ -218,8 +218,18 @@ const deleteTable = () => {
   isOptionsOpen.value = false
   isTableDeleteDialogVisible.value = true
 }
+const isOnDuplicateLoading = ref<boolean>(false)
 
-function onDuplicate() {
+async function onDuplicate() {
+  // Load views if not loaded
+  if (!viewsByTable.value.get(table.value.id as string)) {
+    isOnDuplicateLoading.value = true
+
+    await _openTable(table.value, undefined, false)
+
+    isOnDuplicateLoading.value = false
+  }
+
   isOptionsOpen.value = false
 
   const views = viewsByTable.value.get(table.value.id as string)
@@ -469,7 +479,8 @@ const source = computed(() => {
                   <NcDivider />
 
                   <NcMenuItem class="!text-gray-700" @click="onDuplicate">
-                    <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
+                    <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
+                    <GeneralIcon v-else class="nc-view-copy-icon" icon="duplicate" />
                     {{
                       $t('general.duplicateEntity', {
                         entity: $t('title.defaultView').toLowerCase(),

@@ -294,6 +294,10 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
+  onMounted(() => {
+    loadAiIntegrations()
+  })
+
   return {
     aiIntegrationAvailable,
     aiLoading,

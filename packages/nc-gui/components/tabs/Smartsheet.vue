@@ -18,6 +18,8 @@ const { isMobileMode } = useGlobal()
 
 const activeTab = toRef(props, 'activeTab')
 
+const { isScriptsEnabled } = useScripts()
+
 const route = useRoute()
 
 const meta = computed<TableType | undefined>(() => {
@@ -236,6 +238,8 @@ const onReady = () => {
           </div>
         </Pane>
         <ExtensionsPane ref="extensionPaneRef" />
+
+        <Scripts :modal-visible="isScriptsEnabled" />
       </Splitpanes>
       <SmartsheetDetails v-else />
     </div>

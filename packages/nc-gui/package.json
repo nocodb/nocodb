@@ -125,7 +125,6 @@
     "pinia": "^2.1.7",
     "plyr": "^3.7.8",
     "posthog-js": "^1.82.2",
-    "pyodide": "^0.26.2",
     "qrcode": "^1.5.3",
     "rehype-sanitize": "^6.0.0",
     "rehype-stringify": "^10.0.0",

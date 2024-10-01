@@ -1260,7 +1260,7 @@
     "group": "分组",
     "goToDocs": "转到文档",
     "addCondition": "Add condition",
-    "addConditionGroup": "Add condition group"
+    "addConditionGroup": "添加条件组"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

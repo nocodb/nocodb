@@ -341,8 +341,12 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   const diffs = Object.fromEntries(
     Object.entries(pdiffs).filter(([_, value]) => value !== undefined),
   ) as Partial<TableExplorerColumn>
-
-  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs)) {
+  if (
+    Object.keys(diffs).length === 0 ||
+    // skip custom prop since it's only used for custom LTAR links
+    (Object.keys(diffs).length === 1 && 'custom' in diffs && Object.keys(diffs.custom).length === 0) ||
+    (Object.keys(diffs).length === 1 && 'altered' in diffs)
+  ) {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
   } else {
     const field = ops.value.find((op) => compareCols(op.column, state))
@@ -372,16 +376,22 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
         ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
         checkForFilterChange(diffs.filters || [])
       ) {
-        ops.value.push({
-          op: 'update',
-          column: state,
-        })
+        ops.value = [
+          ...ops.value,
+          {
+            op: 'update',
+            column: state,
+          },
+        ]
       }
     } else {
-      ops.value.push({
-        op: 'update',
-        column: state,
-      })
+      ops.value = [
+        ...ops.value,
+        {
+          op: 'update',
+          column: state,
+        },
+      ]
     }
 
     if (

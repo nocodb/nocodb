@@ -336,6 +336,16 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     }
   }
 
+  const listIntegrationByType = async (type: IntegrationsType) => {
+    if (!activeWorkspaceId.value) return
+
+    const { list } = await api.integration.list({
+      type,
+    })
+
+    return list
+  }
+
   return {
     IntegrationsPageMode,
     integrationType,
@@ -362,6 +372,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     duplicateIntegration,
     saveIntegrationRequest,
     getIntegration,
+    listIntegrationByType,
   }
 }, 'integrations-store')
 

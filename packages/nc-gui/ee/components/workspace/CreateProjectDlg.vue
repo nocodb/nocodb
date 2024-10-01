@@ -647,7 +647,7 @@ const handleUpdatePrompt = (description: string) => {
               <div class="text-base font-bold text-nc-content-purple-dark">Here’s your CRM Base</div>
 
               <template v-if="predictedSchema?.tables">
-                <AiWizardCard v-if="aiMode" v-model:active-tab="activePreviewTab" :tabs="previewTabs" class="!rounded-xl">
+                <AiWizardCard v-if="aiMode" v-model:active-tab="activePreviewTab" :tabs="previewTabs" class="!rounded-xl flex-1 flex flex-col" content-class-name="flex-1 flex flex-col">
                   <template #tabContent>
                     <a-collapse
                       v-if="activePreviewTab === SchemaPreviewTabs.TABLES_AND_VIEWS"
@@ -755,7 +755,9 @@ const handleUpdatePrompt = (description: string) => {
                         </div>
                       </a-collapse-panel>
                     </a-collapse>
-                    <div v-else class="px-4 py-2">No data</div>
+                    <div v-else class="flex-1 px-4 py-2 flex">
+                      <AiErdView :ai-base-schema="finalSchema" class="flex-1"/>
+                    </div>
                   </template>
                 </AiWizardCard>
               </template>

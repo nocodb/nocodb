@@ -253,7 +253,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
   if (!localMetaColumns.value) return
 
   // generate duplicate column name
-  const duplicateColumnName = getUniqueColumnName(`${field.title}_copy`, localMetaColumns.value)
+  const duplicateColumnName = getUniqueColumnName(`${field.title} copy`, [...localMetaColumns.value, ...newFields.value])
 
   let fieldPayload = {}
 

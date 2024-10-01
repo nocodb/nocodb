@@ -15,6 +15,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
+import { generateUniqueName } from 'src/helpers/exportImportHelpers';
 
 @Injectable()
 export class IntegrationsService {
@@ -257,11 +258,25 @@ export class IntegrationsService {
       }
     }
 
+    let uniqueTitle = '';
+
+    if (param.integration.copy_from_id) {
+      const integrations =
+        (
+          await Integration.list({
+            userId: param.req.user?.id,
+          })
+        ).list || [];
+
+      uniqueTitle = generateUniqueName(
+        `${integrationBody.title} copy`,
+        integrations.map((p) => p.title),
+      );
+    }
+
     const integration = await Integration.createIntegration({
       ...integrationBody,
-      ...(param.integration.copy_from_id
-        ? { title: `${integrationBody.title}_copy` }
-        : {}),
+      ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
       created_by: param.req.user.id,
     });
 

@@ -8,8 +8,6 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
-const { isScriptsEnabled } = useScripts()
-
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { appInfo } = useGlobal()
@@ -80,31 +78,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
           </div>
         </NcButton>
         <div v-else-if="!isSharedBase && !extensionsEgg" class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
-
-        <NcButton
-          v-if="!isSharedBase"
-          v-e="['c:scripts-toggle']"
-          type="secondary"
-          size="small"
-          class="nc-topbar-scripts-btn"
-          :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isScriptsEnabled }"
-          data-testid="nc-topbar-extension-btn"
-          @click="isScriptsEnabled = !isScriptsEnabled"
-        >
-          <div class="flex items-center justify-center min-w-[28.69px]">
-            <GeneralIcon
-              icon="ncScript"
-              class="w-4 h-4 !stroke-transparent"
-              :class="{ 'border-l-1 border-transparent': isScriptsEnabled }"
-            />
-            <span
-              class="overflow-hidden trasition-all duration-200"
-              :class="{ 'w-[0px] ': isScriptsEnabled, 'ml-1 w-[54px]': !isScriptsEnabled }"
-            >
-              {{ $t('general.scripts') }}
-            </span>
-          </div>
-        </NcButton>
 
         <div v-if="!isSharedBase">
           <LazySmartsheetTopbarCmdK />

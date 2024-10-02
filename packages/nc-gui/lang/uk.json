@@ -93,6 +93,7 @@
     "none": "Нічого"
   },
   "general": {
+    "scripts": "Scripts",
     "configure": "Налаштування",
     "switch": "Switch",
     "on": "On",

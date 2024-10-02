@@ -126,6 +126,10 @@ const renderedText = computedAsync(async () => {
   img {
     @apply !rounded-lg;
   }
+
+  h1 {
+    @apply !text-3xl !font-bold;
+  }
 }
 
 .aside {

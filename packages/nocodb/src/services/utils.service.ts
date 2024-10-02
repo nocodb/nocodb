@@ -5,7 +5,7 @@ import { compareVersions, validate } from 'compare-versions';
 import { ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
 import { useAgent } from 'request-filtering-agent';
-import type { AppConfig } from '~/interface/config';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -13,7 +13,7 @@ import { Base, Store, User } from '~/models';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
 import { packageVersion } from '~/utils/packageVersion';
 import {
@@ -21,6 +21,8 @@ import {
   defaultLimitConfig,
 } from '~/helpers/extractLimitAndOffset';
 import { DriverClient } from '~/utils/nc-config';
+import NocoCache from '~/cache/NocoCache';
+import { getCircularReplacer } from '~/utils';
 
 const versionCache = {
   releaseVersion: null,
@@ -385,7 +387,6 @@ export class UtilsService {
       if (result.status === 'fulfilled') {
         return result.value;
       }
-      console.log(result.reason);
       return null;
     });
   };
@@ -460,6 +461,7 @@ export class UtilsService {
       disableEmailAuth: this.configService.get('auth.disableEmailAuth', {
         infer: true,
       }),
+      feedEnabled: process.env.NC_DISABLE_PRODUCT_FEED !== 'true',
       mainSubDomain: this.configService.get('mainSubDomain', { infer: true }),
       dashboardPath: this.configService.get('dashboardPath', { infer: true }),
       inviteOnlySignup: settings.invite_only_signup,
@@ -470,5 +472,100 @@ export class UtilsService {
     };
 
     return result;
+  }
+
+  async feed(req: NcRequest) {
+    const {
+      type = 'all',
+      page = '1',
+      per_page = '10',
+    } = req.query as {
+      type: 'github' | 'youtube' | 'all' | 'twitter' | 'cloud';
+      page: string;
+      per_page: string;
+    };
+
+    const cacheKey = `${CacheScope.PRODUCT_FEED}:${type}:${page}:${per_page}`;
+
+    const cachedData = await NocoCache.get(cacheKey, 'json');
+
+    if (cachedData) {
+      try {
+        return JSON.parse(cachedData);
+      } catch (e) {
+        console.log(e);
+      }
+    }
+
+    let response;
+
+    try {
+      response = await axios.get('https://nocodb.com/api/v1/social/feed', {
+        params: {
+          per_page,
+          page,
+          type,
+        },
+      });
+    } catch (e) {
+      console.log(e);
+      return [];
+    }
+
+    // The feed includes the attachments, which has the presigned URL
+    // So the cache should match the presigned URL cache
+    await NocoCache.setExpiring(
+      cacheKey,
+      JSON.stringify(response.data, getCircularReplacer),
+      isNaN(parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS))
+        ? 2 * 60 * 60
+        : parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS),
+    );
+
+    return response.data;
+  }
+
+  async getLatestFeed(req: NcRequest) {
+    const { last_published_at } = req.query as {
+      last_published_at: string;
+    };
+
+    if (!last_published_at) {
+      return 0;
+    }
+
+    const utils = {
+      found: false,
+      page: 1,
+      missedItems: 0,
+    };
+    while (!utils.found) {
+      const feed = await this.feed({
+        query: {
+          type: 'all',
+          page: utils.page.toString(),
+          per_page: '100',
+        },
+      } as unknown as NcRequest);
+
+      if (!feed || !feed?.length) {
+        break;
+      }
+
+      for (const item of feed) {
+        if (item['Published Time'] === last_published_at) {
+          utils.found = true;
+          break;
+        }
+
+        utils.missedItems++;
+      }
+
+      if (!utils.found) {
+        utils.page++;
+      }
+    }
+
+    return utils.missedItems;
   }
 }

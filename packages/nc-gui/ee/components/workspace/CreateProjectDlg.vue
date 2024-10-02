@@ -3,17 +3,9 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import { computed } from '@vue/reactivity'
 
+import { stringToViewTypeMap } from 'nocodb-sdk'
 import NcCreateBasePlaceholder from '~icons/nc-icons/create-base-placeholder'
 import NcCreateBaseWithAiPlaceholder from '~icons/nc-icons/create-base-with-ai-placeholder'
-
-import { stringToViewTypeMap } from 'nocodb-sdk'
-
-enum SchemaPreviewTabs {
-  TABLES_AND_VIEWS = 'TABLES_AND_VIEWS',
-  RELATIONSHIP_DIAGRAM = 'RELATIONSHIP_DIAGRAM',
-}
-
-const loadingMessages = ['Generating Tables', 'Generating Fields', 'Generating Links', 'Generating Views']
 
 const props = defineProps<{
   modelValue: boolean
@@ -21,6 +13,13 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['update:modelValue'])
+
+enum SchemaPreviewTabs {
+  TABLES_AND_VIEWS = 'TABLES_AND_VIEWS',
+  RELATIONSHIP_DIAGRAM = 'RELATIONSHIP_DIAGRAM',
+}
+
+const loadingMessages = ['Generating Tables', 'Generating Fields', 'Generating Links', 'Generating Views']
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -140,12 +139,14 @@ enum AI_STEP {
 
 const aiStep = ref(AI_STEP.PROMPT)
 
-const aiFormState = ref({
+const defaultAiFormState = {
   prompt: '',
   organization: '',
   industry: '',
   audience: '',
-})
+}
+
+const aiFormState = ref(defaultAiFormState)
 
 const additionalDetails = [
   {
@@ -306,16 +307,18 @@ const onCreateSchema = async () => {
 
 const input = ref<typeof Input>()
 
+const resetToDefault = () => {
+  aiMode.value = null
+  aiStep.value = AI_STEP.PROMPT
+  aiFormState.value = defaultAiFormState
+  isExpandedPredefiendBasePromts.value = false
+  expansionPanel.value = []
+}
+
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
 
-  aiMode.value = null
-  aiStep.value = AI_STEP.PROMPT
-  aiFormState.value.prompt = ''
-  aiFormState.value.organization = ''
-  aiFormState.value.industry = ''
-  aiFormState.value.audience = ''
-  isExpandedPredefiendBasePromts.value = false
+  resetToDefault()
 
   // Clear errors
   setTimeout(async () => {
@@ -588,7 +591,7 @@ const handleUpdatePrompt = (description: string) => {
                 </template>
                 Generate Base
               </NcButton>
-              <AiIntegrationNotFound v-else @on-navigate="dialogShow = false" class="justify-between">
+              <AiIntegrationNotFound v-else class="justify-between" @on-navigate="dialogShow = false">
                 <template #icon>
                   <GeneralIcon icon="alertTriangleSolid" class="flex-none !text-nc-content-orange-medium w-6 h-6" />
                 </template>
@@ -625,7 +628,7 @@ const handleUpdatePrompt = (description: string) => {
                 <div
                   v-for="(_row, idx) of ncArrayFrom(7)"
                   :key="idx"
-                  class="px-3 py-2 flex items-center gap-2 border-b-1 border-purple-100 last-of-type:!border-b-0"
+                  class="px-3 py-2 flex items-center gap-2 border-b-1 border-purple-100 !last-of-type:border-b-0"
                 >
                   <div class="flex-1 flex items-center gap-2">
                     <a-skeleton-input

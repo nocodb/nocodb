@@ -23,6 +23,7 @@ interface Props {
   iconOnly?: boolean
   iconPosition?: 'left' | 'right'
   theme?: 'default' | 'ai'
+  bordered?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -33,6 +34,7 @@ const props = withDefaults(defineProps<Props>(), {
   centered: true,
   iconPosition: 'left',
   theme: 'default',
+  bordered: true,
 })
 
 const emits = defineEmits(['update:loading'])
@@ -41,7 +43,7 @@ const slots = useSlots()
 
 const NcButton = ref<HTMLElement | null>(null)
 
-const { size, type, theme } = toRefs(props)
+const { size, type, theme, bordered } = toRefs(props)
 
 const loading = useVModel(props, 'loading', emits)
 
@@ -85,6 +87,7 @@ useEventListener(NcButton, 'mousedown', () => {
       'focused': isFocused,
       'theme-default': theme === 'default',
       'theme-ai': theme === 'ai',
+      'bordered': bordered,
     }"
     :disabled="props.disabled"
     :loading="loading"
@@ -244,12 +247,24 @@ useEventListener(NcButton, 'mousedown', () => {
 .nc-button.ant-btn-secondary[disabled] {
   @apply border-1;
 
+  &:not(.bordered) {
+    @apply border-transparent;
+  }
+
   &.theme-default {
     @apply bg-white hover:bg-white border-gray-100 text-gray-300;
+
+    &.bordered {
+      @apply border-gray-100;
+    }
   }
 
   &.theme-ai {
-    @apply bg-purple-50 hover:bg-purple-50 border-purple-100 text-purple-300;
+    @apply bg-purple-50 hover:bg-purple-50  text-purple-300;
+
+    &.bordered {
+      @apply border-purple-100;
+    }
   }
 }
 
@@ -268,12 +283,24 @@ useEventListener(NcButton, 'mousedown', () => {
 .nc-button.ant-btn-secondary {
   @apply border-1;
 
+  &:not(.bordered) {
+    @apply border-transparent;
+  }
+
   &.theme-default {
-    @apply bg-white border-gray-200 text-gray-700 md:(hover:bg-gray-100);
+    @apply bg-white text-gray-700 md:(hover:bg-gray-100);
+
+    &.bordered {
+      @apply border-gray-200;
+    }
   }
 
   &.theme-ai {
-    @apply bg-purple-50 border-purple-200 text-purple-700 md:(hover:bg-purple-100);
+    @apply bg-purple-50  text-purple-700 md:(hover:bg-purple-100);
+
+    &.bordered {
+      @apply border-purple-200;
+    }
   }
 }
 

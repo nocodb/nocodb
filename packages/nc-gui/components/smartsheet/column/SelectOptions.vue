@@ -331,19 +331,36 @@ const loadListData = async ($state: any) => {
 const predictOptions = async () => {
   if (!vModel.value?.title || !meta.value?.id) return
 
-  const predictedOptions = await predictSelectOptions(vModel.value?.title, meta.value?.id, [], meta.value?.base_id)
+  const history = options.value.map((o) => o.title).filter((o) => !!o.trim())
+
+  const predictedOptions = await predictSelectOptions(vModel.value?.title, meta.value?.id, history, meta.value?.base_id)
 
   if (predictedOptions) {
     for (const option of predictedOptions) {
       // skip if option already exists
-      if (options.value.find((el) => el.title === option)) continue
+      if (!option?.trim() || options.value.find((el) => el.title === option)) continue
 
-      options.value.push({
-        title: option,
-        color: getNextColor(),
-        index: options.value.length,
-        ...(isKanbanStack.value ? { status: 'new' } : {}),
-      })
+      if (isKanbanStack.value) {
+        const oldOption = options.value.find((el) => el.status === 'new')
+        if (oldOption) {
+          oldOption.title = option
+        } else {
+          options.value.push({
+            title: option,
+            color: getNextColor(),
+            index: options.value.length,
+            ...(isKanbanStack.value ? { status: 'new' } : {}),
+          })
+        }
+        break
+      } else {
+        options.value.push({
+          title: option,
+          color: getNextColor(),
+          index: options.value.length,
+          ...(isKanbanStack.value ? { status: 'new' } : {}),
+        })
+      }
     }
 
     if (isKanbanStack.value) {
@@ -355,6 +372,7 @@ const predictOptions = async () => {
       loadedOptionAnchor.value = Math.max(loadedOptionAnchor.value, 0)
 
       renderedOptions.value = options.value.slice(loadedOptionAnchor.value, options.value.length)
+      syncOptions()
     }
 
     optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
@@ -420,7 +438,12 @@ onMounted(() => {
 
 if (isKanbanStack.value) {
   onClickOutside(optionsWrapperDomRef, (e) => {
-    if (!kanbanStackOption.value || (e.target as HTMLElement)?.closest(`.nc-select-option-color-picker`)) return
+    if (
+      !kanbanStackOption.value ||
+      (e.target as HTMLElement)?.closest(`.nc-select-option-color-picker, .nc-add-select-option-auto-suggest`)
+    ) {
+      return
+    }
 
     const option = (column.value?.colOptions as SelectOptionsType)?.options?.find(
       (o) => o?.id && o.id === kanbanStackOption.value?.id,
@@ -431,6 +454,15 @@ if (isKanbanStack.value) {
     } else {
       emit('saveChanges', true, false)
     }
+  })
+}
+
+if (!isKanbanStack.value) {
+  watch(aiLoading, (newValue) => {
+    if (!newValue) return
+    nextTick(() => {
+      optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
+    })
   })
 }
 </script>
@@ -455,10 +487,14 @@ if (isKanbanStack.value) {
               v-model:visible="colorMenus[kanbanStackOption.index!]"
               :auto-close="false"
               overlay-class-name="nc-select-option-color-picker"
+              :disabled="aiLoading"
             >
               <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                 <div
                   class="h-6 w-6 rounded flex items-center"
+                  :class="{
+                    'justify-center': aiLoading,
+                  }"
                   :style="{
                     backgroundColor: kanbanStackOption.color,
                     color: tinycolor.isReadable(kanbanStackOption.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
@@ -466,7 +502,8 @@ if (isKanbanStack.value) {
                       : tinycolor.mostReadable(kanbanStackOption.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
                   }"
                 >
-                  <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-current" />
+                  <GeneralLoader v-if="aiLoading" size="regular" class="!text-current" />
+                  <GeneralIcon v-else icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-current" />
                 </div>
               </div>
 
@@ -489,6 +526,7 @@ if (isKanbanStack.value) {
               placeholder="Enter option name..."
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               data-testid="nc-kanban-stack-title-input"
+              :disabled="aiLoading"
               @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
               @change="() => {
                   kanbanStackOption!.status = undefined
@@ -593,6 +631,23 @@ if (isKanbanStack.value) {
               </div>
             </div>
           </template>
+          <template v-if="aiLoading" #footer>
+            <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
+              <div class="flex items-center w-full">
+                <div class="p-2 flex !cursor-disabled">
+                  <component :is="iconMap.dragVertical" small class="handle opacity-75" />
+                </div>
+
+                <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
+                  <div class="h-6 w-6 rounded flex-none flex items-center justify-center bg-nc-bg-gray-medium">
+                    <GeneralLoader size="regular" />
+                  </div>
+                </div>
+
+                <div class="caption px-3">...</div>
+              </div>
+            </div>
+          </template>
         </Draggable>
         <InfiniteLoading v-if="!isReverseLazyLoad" v-bind="$attrs" @infinite="loadListData">
           <template #spinner>
@@ -616,24 +671,59 @@ if (isKanbanStack.value) {
     >
       {{ validateInfos.colOptions.help[0][0] }}
     </div>
-    <NcButton
+    <div
       v-if="!isKanbanStack"
-      type="secondary"
-      class="w-full caption"
+      class="nc-add-select-option-btn-wrapper flex"
       :class="{
         'mt-2': renderedOptions.length,
       }"
-      size="small"
-      data-testid="nc-add-select-option-btn"
-      @click="addNewOption()"
     >
-      <div class="flex items-center">
-        <component :is="iconMap.plus" />
-        <span class="flex-auto">Add option</span>
-      </div>
-    </NcButton>
-    <div v-if="aiIntegrationAvailable" class="w-full cursor-pointer" @click="predictOptions()">
-      <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': aiLoading }" class="w-full flex mt-2 text-orange-400" />
+      <NcButton
+        type="text"
+        class="nc-add-select-option-btn w-1/2 caption"
+        size="small"
+        data-testid="nc-add-select-option-btn"
+        @click.stop="addNewOption()"
+      >
+        <div class="flex items-center">
+          <component :is="iconMap.plus" />
+          <span class="flex-auto">Add option</span>
+        </div>
+      </NcButton>
+      <NcButton
+        v-if="aiIntegrationAvailable"
+        type="secondary"
+        theme="ai"
+        class="nc-add-select-option-auto-suggest flex-1 caption"
+        size="small"
+        :bordered="false"
+        :disabled="aiLoading"
+        :loading="aiLoading"
+        @click.stop="predictOptions()"
+      >
+        <template #icon>
+          <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+        </template>
+        <template #loading> {{ $t('labels.suggesting') }} </template>
+        {{ $t('labels.autoSuggest') }}
+      </NcButton>
+    </div>
+    <div v-else-if="aiIntegrationAvailable" class="mt-2 pl-1">
+      <NcButton
+        type="secondary"
+        theme="ai"
+        class="nc-add-select-option-auto-suggest caption w-full"
+        size="small"
+        :disabled="aiLoading"
+        :loading="aiLoading"
+        @click.stop="predictOptions()"
+      >
+        <template #icon>
+          <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+        </template>
+        <template #loading> {{ $t('labels.suggesting') }} </template>
+        {{ $t('labels.autoSuggest') }}
+      </NcButton>
     </div>
   </div>
 </template>
@@ -667,6 +757,17 @@ if (isKanbanStack.value) {
   &:focus,
   &:focus-visible {
     @apply !border-[var(--ant-primary-color-hover)];
+  }
+}
+
+.nc-add-select-option-btn-wrapper {
+  @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
+
+  .nc-add-select-option-btn {
+    @apply -my-[1px] h-[34px] rounded-none !border-transparent !border-r-1 !border-r-nc-border-gray-medium;
+  }
+  .nc-add-select-option-auto-suggest {
+    @apply rounded-none;
   }
 }
 </style>

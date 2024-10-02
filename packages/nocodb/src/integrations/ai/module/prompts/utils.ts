@@ -7,7 +7,8 @@ export const predictFieldTypePrompt = (input: string) =>
   `Predict most suitable column type for "${input}"`;
 
 export const predictSelectOptionsSystemMessage = () =>
-  `You are a smart-spreadsheet designer.`;
+  `You are a smart-spreadsheet designer.
+Duplicate options are not allowed.`;
 
 export const predictSelectOptionsPrompt = (
   table: string,
@@ -15,7 +16,7 @@ export const predictSelectOptionsPrompt = (
   fields: string[],
   history?: string[],
 ) =>
-  `Predict most suitable select options for following schema:
+  `Predict next most suitable select options for following schema:
 Table: ${table}
 Field: ${field.length > 3 ? field : 'SelectField'}${
     history ? `\nExisting options: ${history.join(', ')}` : ''

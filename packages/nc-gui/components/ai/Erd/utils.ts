@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes, type LinkToAnotherRecordType } from 'nocodb-sdk'
+import { type LinkToAnotherRecordType, RelationTypes, UITypes } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
 import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
@@ -104,8 +104,8 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
     }, [] as Relation[])
   })
 
-  function edgeLabel({ type, source, target, modelId, childColId, parentColId }: Relation) {
-    let typeLabel = {
+  function edgeLabel({ type, source, target, childColId, parentColId }: Relation) {
+    const typeLabel = {
       [RelationTypes.HAS_MANY]: 'has many',
       [RelationTypes.MANY_TO_MANY]: 'many to many',
       [RelationTypes.ONE_TO_ONE]: 'one to one',

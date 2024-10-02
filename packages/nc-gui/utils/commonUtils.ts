@@ -49,6 +49,9 @@ export const ncDelay = (ms: number) => new Promise((resolve) => setTimeout(resol
  * const customArray = ncArrayFrom(3, (i) => `Custom Content ${i}`);
  * console.log(customArray); // ['Custom Content 0', 'Custom Content 1', 'Custom Content 2']
  */
-export const ncArrayFrom = <T>(length: number, contentCallback: (i: number) => T = (i) => `Item ${i + 1}` as unknown as T): T[] => {
+export const ncArrayFrom = <T>(
+  length: number,
+  contentCallback: (i: number) => T = (i) => `Item ${i + 1}` as unknown as T,
+): T[] => {
   return Array.from({ length }, (_, i) => contentCallback(i))
 }

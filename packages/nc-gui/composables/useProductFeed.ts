@@ -5,8 +5,6 @@ export const useProductFeed = createSharedComposable(() => {
 
   const { $api } = useNuxtApp()
 
-  const { appInfo } = useGlobal()
-
   const youtubeFeed = ref<ProductFeedItem[]>([])
 
   const githubFeed = ref<ProductFeedItem[]>([])
@@ -18,8 +16,6 @@ export const useProductFeed = createSharedComposable(() => {
     github: false,
     social: false,
   })
-
-  const newFeedCount = ref(0)
 
   const loadFeed = async ({ loadMore, type }: { loadMore: boolean; type: 'youtube' | 'github' | 'all' }) => {
     try {
@@ -72,42 +68,6 @@ export const useProductFeed = createSharedComposable(() => {
       return []
     }
   }
-
-  const checkForNewFeed = async () => {
-    const lastPublishedAt = localStorage.getItem('last_published_at')
-
-    if (!lastPublishedAt) {
-      return
-    }
-
-    try {
-      const newFeeds = await $api.utils.feed({ last_published_at: lastPublishedAt })
-      if (typeof newFeeds === 'number') {
-        newFeedCount.value = newFeeds
-      } else if (typeof newFeeds === 'string') {
-        newFeedCount.value = 100
-      }
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
-  const intervalId = ref()
-
-  const checkFeedWithInterval = async () => {
-    await checkForNewFeed()
-    intervalId.value = setTimeout(checkFeedWithInterval, 3 * 60 * 60 * 1000)
-  }
-
-  onMounted(() => {
-    if (appInfo.value.feedEnabled) {
-      checkFeedWithInterval()
-    }
-  })
-
-  onUnmounted(() => {
-    if (intervalId.value) clearTimeout(intervalId.value)
-  })
 
   return {
     isErrorOccurred,

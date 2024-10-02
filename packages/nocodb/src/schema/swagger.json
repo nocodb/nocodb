@@ -16015,33 +16015,6 @@
         ]
       }
     },
-    "/api/v2/new-feed": {
-      "get": {
-        "summary": "Get Feed",
-        "operationId": "utils-feed",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "name": "last_published_at",
-            "in": "query",
-            "required": false
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "$ref": "#/components/responses/BadRequest"
-          }
-        },
-        "tags": [
-          "Utils"
-        ]
-      }
-    },
     "/api/v2/feed": {
       "get": {
         "summary": "Get Feed",

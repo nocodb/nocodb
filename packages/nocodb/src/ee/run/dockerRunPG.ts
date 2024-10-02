@@ -19,7 +19,7 @@ const dbSuffix = `${date.getFullYear()}_${(date.getMonth() + 1)
   .toString()
   .padStart(2, '0')}_${date.getDate().toString().padStart(2, '0')}`;
 process.env[
-  `NC_KEY_CREDENTIAL_ENCRYPT`
+  `NC_CONNECTION_ENCRYPT_KEY`
 ] = '4dc7b814-4759-4493-b320-955cd4b3ff62'
 process.env[
   `NC_DB`

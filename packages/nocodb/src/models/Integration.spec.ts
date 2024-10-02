@@ -153,11 +153,11 @@ describe('Integration Model', () => {
 
   describe('create with encryption', () => {
     beforeAll(() => {
-      process.env.NC_KEY_CREDENTIAL_ENCRYPT = 'test-secret';
+      process.env.NC_CONNECTION_ENCRYPT_KEY = 'test-secret';
     });
 
     afterAll(() => {
-      process.env.NC_KEY_CREDENTIAL_ENCRYPT = undefined;
+      process.env.NC_CONNECTION_ENCRYPT_KEY = undefined;
     });
 
     it('should create a new integration with encrypted config', async () => {

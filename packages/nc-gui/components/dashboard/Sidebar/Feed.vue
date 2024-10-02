@@ -1,55 +1,11 @@
 <script setup lang="ts">
-import dayjs from 'dayjs'
-
 const workspaceStore = useWorkspace()
 
 const { navigateToFeed } = workspaceStore
 
 const { isFeedPageOpened } = storeToRefs(workspaceStore)
 
-const { appInfo } = useGlobal()
-
-const { loadFeed, socialFeed } = useProductFeed()
-
-const isNewFeedAvailable = ref(false)
-
-const checkNewFeed = async () => {
-  try {
-    await loadFeed({ type: 'all', loadMore: false })
-    if (!socialFeed.value.length) return
-
-    const [latestFeed] = socialFeed.value
-    const lastFeedTime = localStorage.getItem('lastFeedPublishedTime')
-    const lastFeed = dayjs(lastFeedTime)
-
-    if (!lastFeed.isValid() || dayjs(latestFeed['Published Time']).isAfter(lastFeed)) {
-      isNewFeedAvailable.value = true
-      localStorage.setItem('lastFeedPublishedTime', latestFeed['Published Time'])
-    }
-  } catch (error) {
-    console.error('Error while checking new feed', error)
-  }
-}
-
-const intervalId = ref()
-
-const checkFeedWithInterval = async () => {
-  await checkNewFeed()
-  intervalId.value = setTimeout(checkFeedWithInterval, 3 * 60 * 60 * 1000)
-}
-
-onMounted(() => {
-  if (appInfo.value.feedEnabled) {
-    checkFeedWithInterval()
-  }
-})
-
-onUnmounted(() => {
-  if (intervalId.value) {
-    clearTimeout(intervalId.value)
-    intervalId.value = null
-  }
-})
+const { isNewFeedAvailable } = useProductFeed()
 
 const gotoFeed = () => navigateToFeed()
 </script>
@@ -60,7 +16,7 @@ const gotoFeed = () => navigateToFeed()
     type="text"
     full-width
     size="xsmall"
-    class="n!xs:hidden my-0.5 !h-7 w-full !rounded-md !font-normal !px-3"
+    class="n!xs:hidden my-0.5 w-full !h-7 !rounded-md !font-normal !pl-4.5 !pr-5"
     data-testid="nc-sidebar-product-feed"
     :centered="false"
     :class="{

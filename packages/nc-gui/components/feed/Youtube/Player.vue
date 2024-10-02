@@ -24,11 +24,11 @@ const {
       :controls="1"
     />
 
-    <div class="flex flex-col p-5 gap-4">
-      <div class="text-gray-900 font-bold text-2xl">
+    <div class="text-nc-content-gray-emphasis flex flex-col p-5 gap-4">
+      <div class="font-bold leading-9 text-2xl">
         {{ Title }}
       </div>
-      <div class="text-gray-900">
+      <div class="text-md leading-5">
         {{ Description.length > 200 ? `${Description.slice(0, 280)}...` : Description }}
       </div>
     </div>
@@ -36,12 +36,6 @@ const {
 </template>
 
 <style scoped lang="scss">
-.prose {
-  a {
-    @apply !text-gray-900;
-  }
-}
-
 .recent-card {
   box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
 }

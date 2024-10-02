@@ -22,7 +22,7 @@ const socialIcons = [
   },
   {
     name: 'Forum',
-    icon: iconMap.langNocodbSdk,
+    icon: iconMap.nocodb,
     link: 'https://forum.nocodb.com/',
   },
 ]

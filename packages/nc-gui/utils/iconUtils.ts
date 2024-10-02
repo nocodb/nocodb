@@ -219,6 +219,7 @@ import NcGitCommit from '~icons/nc-icons/git-commit'
 import NcCircle from '~icons/nc-icons/circle'
 import NcServer1 from '~icons/nc-icons/server1'
 import NcThumbsUpOutline from '~icons/nc-icons/thumbs-up-outline'
+import NcNocoDB from '~icons/nc-icons/nocodb'
 
 // Sync data
 import NcAppleSolid from '~icons/nc-icons/apple_solid'
@@ -763,6 +764,7 @@ export const iconMap = {
   cellButton: NcCellButton,
   camera: NcCamera,
   megaPhone: NcMegaPhone,
+  nocodb: NcNocoDB,
 
   office: NcOffice,
   sort: Sort,

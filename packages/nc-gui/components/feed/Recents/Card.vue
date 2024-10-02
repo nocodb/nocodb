@@ -76,20 +76,19 @@ const renderedText = computedAsync(async () => {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .recent-card {
   box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
-
-  .prose {
+  :deep(.prose) {
     a {
-      @apply !text-gray-900;
+      @apply text-gray-900;
     }
 
     h1 {
-      @apply !text-2xl !font-semibold truncate;
+      @apply text-2xl font-semibold truncate;
     }
     p {
-      @apply !text-md !leading-6;
+      @apply text-md leading-6;
     }
   }
 }

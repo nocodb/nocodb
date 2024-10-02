@@ -1,5 +1,5 @@
 import process from 'process';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
 import { ViewTypes } from 'nocodb-sdk';
@@ -75,6 +75,8 @@ interface AllMeta {
 
 @Injectable()
 export class UtilsService {
+  protected logger = new Logger(UtilsService.name);
+
   constructor(protected readonly configService: ConfigService<AppConfig>) {}
 
   lastSyncTime = dayjs();
@@ -497,7 +499,7 @@ export class UtilsService {
       try {
         return JSON.parse(cachedData);
       } catch (e) {
-        console.log(e);
+        this.logger.error(e?.message, e);
       }
     }
 
@@ -520,7 +522,7 @@ export class UtilsService {
         },
       );
     } catch (e) {
-      console.log(e);
+      this.logger.error(e?.message, e);
       return [];
     }
 
@@ -551,33 +553,30 @@ export class UtilsService {
       page: 1,
       missedItems: 0,
     };
-    while (!utils.found) {
-      const feed = await this.feed({
-        query: {
-          type: 'all',
-          page: utils.page.toString(),
-          per_page: '100',
-        },
-      } as unknown as NcRequest);
+    const feed = await this.feed({
+      query: {
+        type: 'all',
+        page: utils.page.toString(),
+        per_page: '100',
+      },
+    } as unknown as NcRequest);
 
-      if (!feed || !feed?.length) {
-        break;
-      }
-
-      for (const item of feed) {
-        if (item['Published Time'] === last_published_at) {
-          utils.found = true;
-          break;
-        }
-
-        utils.missedItems++;
-      }
-
-      if (!utils.found) {
-        utils.page++;
-      }
+    if (!feed || !feed?.length) {
+      return 0;
     }
 
-    return utils.missedItems;
+    for (const item of feed) {
+      if (item['Published Time'] === last_published_at) {
+        utils.found = true;
+        break;
+      }
+      utils.missedItems++;
+    }
+
+    if (utils.found) {
+      return utils.missedItems;
+    }
+
+    return `${utils.missedItems}+`;
   }
 }

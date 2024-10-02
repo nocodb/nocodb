@@ -76,5 +76,3 @@ const tabs: Array<{
     </NcTabs>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

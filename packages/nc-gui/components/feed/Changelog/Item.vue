@@ -64,7 +64,7 @@ const renderedText = computedAsync(async () => {
       <div class="content">
         <div class="flex flex-col py-6 gap-5">
           <div class="flex items-center">
-            <div
+            <a
               v-for="tag in tags"
               :key="tag.text"
               :class="{
@@ -94,7 +94,7 @@ const renderedText = computedAsync(async () => {
               >
                 {{ tag.text }}
               </span>
-            </div>
+            </a>
           </div>
           <div class="flex flex-col gap-2">
             <NcBadge
@@ -113,22 +113,26 @@ const renderedText = computedAsync(async () => {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .nc-title-badge {
   width: fit-content;
 }
 
 .content {
   @apply !pl-50;
-}
 
-.prose {
-  img {
-    @apply !rounded-lg;
+  a {
+    @apply !no-underline;
   }
 
-  h1 {
-    @apply !text-3xl !font-bold;
+  :deep(.prose) {
+    img {
+      @apply !rounded-lg;
+    }
+
+    h1 {
+      @apply !text-3xl !font-bold;
+    }
   }
 }
 

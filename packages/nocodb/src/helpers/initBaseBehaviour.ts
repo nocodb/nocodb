@@ -13,6 +13,12 @@ export async function initBaseBehavior() {
     return;
   }
 
+  // disable minimal databases feature if NC_DISABLE_BASE_AS_PG_SCHEMA is set to true
+  if(process.env.NC_DISABLE_BASE_AS_PG_SCHEMA === 'true') {
+    process.env.NC_MINIMAL_DBS = 'false';
+    return;
+  }
+
   // if NC_MINIMAL_DBS already exists, return
   if (process.env.NC_MINIMAL_DBS === 'false') {
     return;

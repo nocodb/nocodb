@@ -1,17 +1,33 @@
 <script setup lang="ts">
-const isLoaded = ref(false)
-
 const scriptTag = ref()
+
+const timelineStatus = reactive({
+  isLoaded: false,
+  isError: false,
+})
 
 const handleIframeLoad = () => {
   setTimeout(() => {
-    isLoaded.value = true
+    timelineStatus.isLoaded = true
   }, 2000)
+}
+
+const triggerReload = () => {
+  timelineStatus.isLoaded = false
+  timelineStatus.isError = false
+  nextTick(() => {
+    scriptTag.value.src = 'https://platform.twitter.com/widgets.js'
+  })
 }
 
 onMounted(() => {
   scriptTag.value.src = 'https://platform.twitter.com/widgets.js'
 })
+
+const handleError = () => {
+  timelineStatus.isLoaded = true
+  timelineStatus.isError = true
+}
 </script>
 
 <template>
@@ -22,13 +38,24 @@ onMounted(() => {
     }"
     class="overflow-y-auto nc-scrollbar-md w-full"
   >
-    <div v-if="!isLoaded" class="flex items-center justify-center h-full w-full">
+    <div v-if="!timelineStatus.isLoaded" class="flex items-center justify-center h-full w-full">
       <GeneralLoader size="xlarge" />
     </div>
+    <div v-else-if="timelineStatus.isError" class="h-full flex justify-center items-center">
+      <FeedError page="twitter" @reload="triggerReload" />
+    </div>
+
     <div class="mx-auto flex flex-col my-6 items-center">
       <div style="min-width: 650px">
-        <a class="twitter-timeline" href="https://twitter.com/nocodb?ref_src=twsrc%5Etfw"></a>
-        <Script ref="scriptTag" async charset="utf-8" @load="handleIframeLoad"></Script>
+        <a data-chrome="nofooter" class="twitter-timeline" href="https://twitter.com/nocodb?ref_src=twsrc%5Etfw"></a>
+        <Script
+          v-if="!timelineStatus.isError"
+          ref="scriptTag"
+          async
+          charset="utf-8"
+          @load="handleIframeLoad"
+          @error="handleError"
+        ></Script>
       </div>
     </div>
   </div>

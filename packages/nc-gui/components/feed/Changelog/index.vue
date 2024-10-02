@@ -26,7 +26,11 @@ const { isLoading } = useInfiniteScroll(
     }"
     class="overflow-y-auto nc-scrollbar-md mx-auto w-full"
   >
-    <div class="max-w-260 mx-auto">
+    <div v-if="isLoading && !githubFeed.length" class="flex items-center justify-center h-full w-full">
+      <GeneralLoader size="xlarge" />
+    </div>
+
+    <div v-else class="max-w-260 mx-auto">
       <FeedChangelogItem v-for="feed in githubFeed" :key="feed.Id" :item="feed" />
     </div>
   </div>

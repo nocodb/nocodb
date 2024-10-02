@@ -1,22 +1,17 @@
 <script setup lang="ts">
-import Tweet from 'vue-tweet'
+const isLoaded = ref(false)
 
-const { twitterFeed, loadFeed } = useProductFeed()
+const scriptTag = ref()
 
-const scrollContainer = ref<HTMLElement>()
+const handleIframeLoad = () => {
+  setTimeout(() => {
+    isLoaded.value = true
+  }, 2000)
+}
 
-const { isLoading } = useInfiniteScroll(
-  scrollContainer,
-  async () => {
-    if (isLoading.value) return
-    const data = await loadFeed({
-      type: 'twitter',
-      loadMore: true,
-    })
-    twitterFeed.value = [...twitterFeed.value, ...data]
-  },
-  { distance: 1, interval: 2000 },
-)
+onMounted(() => {
+  scriptTag.value.src = 'https://platform.twitter.com/widgets.js'
+})
 </script>
 
 <template>
@@ -27,9 +22,13 @@ const { isLoading } = useInfiniteScroll(
     }"
     class="overflow-y-auto nc-scrollbar-md w-full"
   >
-    <div class="mx-auto flex flex-col items-center">
+    <div v-if="!isLoaded" class="flex items-center justify-center h-full w-full">
+      <GeneralLoader size="xlarge" />
+    </div>
+    <div class="mx-auto flex flex-col my-6 items-center">
       <div style="min-width: 650px">
-        <Tweet v-for="feed in twitterFeed" :key="feed.Id" align="center" conversation="all" class="mt-6" :tweet-url="feed.Url" />
+        <a class="twitter-timeline" href="https://twitter.com/nocodb?ref_src=twsrc%5Etfw"></a>
+        <Script ref="scriptTag" async charset="utf-8" @load="handleIframeLoad"></Script>
       </div>
     </div>
   </div>

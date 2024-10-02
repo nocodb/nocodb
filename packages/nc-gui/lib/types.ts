@@ -284,7 +284,7 @@ interface ProductFeedItem {
   ['Feed Source']: 'Youtube' | 'Github' | 'Twitter'
   Url: string
   Tags?: string
-  CreatedAt: string
+  ['Published Time']: string
   Images?: Record<string, any>[] | null
 }
 

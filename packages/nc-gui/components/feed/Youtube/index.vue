@@ -29,7 +29,10 @@ const gotoChannel = () => {
     }"
     class="overflow-y-auto nc-scrollbar-md mt-9 mx-auto w-full"
   >
-    <div class="max-w-[764px] mx-auto">
+    <div v-if="isLoading && !youtubeFeed.length" class="flex items-center justify-center h-full w-full">
+      <GeneralLoader size="xlarge" />
+    </div>
+    <div v-else class="max-w-[764px] mx-auto">
       <div class="flex gap-3 items-center justify-between">
         <span class="text-gray-900 font-semibold"> Recent Videos </span>
         <NcButton type="secondary" size="small" @click="gotoChannel"> Go to Youtube </NcButton>

@@ -28,7 +28,10 @@ const { isLoading } = useInfiniteScroll(
     }"
     class="overflow-y-auto nc-scrollbar-md w-full"
   >
-    <div class="flex flex-col my-6 items-center gap-6">
+    <div v-if="isLoading && !socialFeed.length" class="flex items-center justify-center h-full w-full">
+      <GeneralLoader size="xlarge" />
+    </div>
+    <div v-else class="flex flex-col my-6 items-center gap-6">
       <FeedRecentsCard v-for="feed in socialFeed" :key="feed.Id" :item="feed" />
     </div>
   </div>

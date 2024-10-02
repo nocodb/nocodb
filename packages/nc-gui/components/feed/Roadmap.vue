@@ -13,11 +13,10 @@ const handleIframeLoad = () => {
     :style="{
       height: 'calc(100dvh - var(--toolbar-height) + 4rem)',
     }"
-    :class="{
-      'hidden': !isLoaded,
-      'block h-full': isLoaded,
-    }"
   >
+    <div v-if="!isLoaded" class="flex items-center justify-center h-full w-full">
+      <GeneralLoader size="xlarge" />
+    </div>
     <iframe
       ref="iFrame"
       src="https://w21dqb1x.nocodb.com/#/nc/kanban/d719962a-1666-464f-8789-054a13a747f7?disableTopbar=true&disableToolbar=true"

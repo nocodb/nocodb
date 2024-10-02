@@ -12,7 +12,7 @@ const props = defineProps<{
 }>()
 
 const {
-  item: { CreatedAt, Description, Url, Title, Tags },
+  item: { 'Published Time': CreatedAt, Description, Title, Tags },
 } = props
 
 const iconColorMap = {
@@ -24,7 +24,7 @@ const iconColorMap = {
     icon: iconMap.star,
     color: 'purple',
   },
-  'Bug fixes': {
+  'Bug Fixes': {
     icon: iconMap.ncTool,
     color: 'green',
   },

@@ -15,7 +15,7 @@ const props = defineProps<{
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const {
-  item: { CreatedAt, Description, Url, Title, Tags, 'Feed Source': source, Images },
+  item: { 'Published Time': CreatedAt, Description, Url, Title, 'Feed Source': source, Images },
 } = props
 
 const feedIcon = {

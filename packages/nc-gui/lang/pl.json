@@ -93,6 +93,7 @@
     "none": "Brak"
   },
   "general": {
+    "scripts": "Scripts",
     "configure": "Configure",
     "switch": "Switch",
     "on": "On",

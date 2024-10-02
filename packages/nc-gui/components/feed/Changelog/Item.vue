@@ -83,9 +83,10 @@ const expand = (e) => {
 </script>
 
 <template>
-  <div class="relative rounded-xl flex cursor-pointer flex-col mt-6.25 bg-white changelog-card" @click="openLink(item.Url)">
+  <div class="relative rounded-xl flex flex-col mt-6.25 bg-white changelog-card">
     <div
-      class="w-full relative border border-black h-[334px] xl:h-[394px] w-[540px] xl:w-[638px] border-opacity-10 rounded-t-xl overflow-hidden"
+      class="w-full relative border cursor-pointer border-black h-[334px] xl:h-[394px] w-[540px] xl:w-[638px] border-opacity-10 rounded-t-xl overflow-hidden"
+      @click="openLink(item.Url)"
     >
       <LazyCellAttachmentPreviewImage
         :srcs="getPossibleAttachmentSrc(Images[0] ?? [], 'card_cover')"

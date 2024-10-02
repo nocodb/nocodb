@@ -672,56 +672,7 @@ const handleUpdatePrompt = (description: string) => {
                             <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
                               <NcCheckbox :checked="!table.excluded" theme="ai" @click.stop="onExcludeTable(table)" />
 
-                              <NcDropdown :trigger="['hover']" class="focus:outline-none">
-                                <GeneralIcon icon="table" class="flex-none !h-4 cursor-pointer opacity-90" />
-
-                                <template #overlay>
-                                  <div class="flex flex-col gap-2 p-2 max-w-[250px]">
-                                    <template v-for="column in table.columns" :key="`${table.title}${column.title}`">
-                                      <div
-                                        v-if="column.type !== 'ID'"
-                                        class="flex items-center gap-2 hover:bg-gray-100 rounded-md px-1 py-1.5"
-                                      >
-                                        <SmartsheetHeaderCellIcon :column-meta="{ uidt: column.type }" class="!h-4" />
-                                        <NcTooltip show-on-truncate-only class="truncate text-sm">
-                                          <template #title>
-                                            {{ column.title }}
-                                          </template>
-                                          {{ column.title }}
-                                        </NcTooltip>
-                                      </div>
-                                    </template>
-                                    <template
-                                      v-for="relationship in predictedSchema.relationships"
-                                      :key="`${table.title}${relationship.from}${relationship.to}`"
-                                    >
-                                      <div
-                                        v-if="relationship.from === table.title || relationship.to === table.title"
-                                        class="flex items-center gap-2 hover:bg-gray-50 rounded-md px-1 py-1.5"
-                                      >
-                                        <SmartsheetHeaderVirtualCellIcon
-                                          :column-meta="{
-                                            uidt: 'Links',
-                                            colOptions: {
-                                              type:
-                                                relationship.to === table.title && relationship.type === 'hm'
-                                                  ? 'bt'
-                                                  : relationship.type,
-                                            },
-                                          }"
-                                        />
-
-                                        <NcTooltip show-on-truncate-only class="truncate text-sm">
-                                          <template #title>
-                                            {{ relationship.from === table.title ? relationship.to : relationship.from }}
-                                          </template>
-                                          {{ relationship.from === table.title ? relationship.to : relationship.from }}
-                                        </NcTooltip>
-                                      </div>
-                                    </template>
-                                  </div>
-                                </template>
-                              </NcDropdown>
+                              <GeneralIcon icon="table" class="flex-none !h-4 cursor-pointer opacity-85" />
 
                               <NcTooltip show-on-truncate-only class="truncate text-sm font-weight-500">
                                 <template #title>
@@ -765,7 +716,7 @@ const handleUpdatePrompt = (description: string) => {
                         </div>
                       </a-collapse-panel>
                     </a-collapse>
-                    <div v-else class="flex-1 px-4 py-2 flex">
+                    <div v-else class="flex-1 flex">
                       <AiErdView :ai-base-schema="finalSchema" class="flex-1" />
                     </div>
                   </template>

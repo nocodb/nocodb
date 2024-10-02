@@ -96,7 +96,7 @@ const tabs: Array<{
 }
 
 .changelog-left {
-  left: calc(50% + 400px);
+  @apply xl:left-[calc(50%+350px)] left-[calc(50%+300px)];
 }
 
 .changelog-twitter {

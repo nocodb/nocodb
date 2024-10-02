@@ -531,6 +531,7 @@ import NcMousePointerIcon from '~icons/nc-icons-v2/mouse-pointer.svg'
 import NcAlignLeftIcon from '~icons/nc-icons-v2/align-left.svg'
 import NcHeartIcon from '~icons/nc-icons-v2/heart.svg'
 import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
+import NcYoutube2Icon from '~icons/nc-icons/youtube2.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -1338,6 +1339,7 @@ export const iconMap = {
   ncPlaceholderIcon: NcPlaceholderIcon,
   ncSpanner: NcSpanner,
   ncScript: NcScript,
+  youtube: NcYoutube2Icon,
 }
 
 export const getMdiIcon = (type: string): any => {

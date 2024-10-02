@@ -264,10 +264,6 @@ class Tele {
       xc_version: process.env.NC_SERVER_UUID,
       env: process.env.NODE_ENV || 'production',
       oneClick: !!process.env.NC_ONE_CLICK,
-      count: global.NC_COUNT,
-      cache,
-      litestream,
-      executable,
     };
     try {
       payload.os_type = os.type();
@@ -275,8 +271,14 @@ class Tele {
       payload.os_release = os.release();
       payload.docker = isDocker();
       payload.machine_id = `${this.id},,`;
-      payload.upTime = Math.round(process.uptime() / 3600);
-      payload.payload = (await Tele.getInstanceMeta()) || {};
+      payload.payload = {
+        ...((await Tele.getInstanceMeta()) || {}),
+        count: global.NC_COUNT,
+        upTime: Math.round(process.uptime() / 3600),
+        cache,
+        litestream,
+        executable,
+      };
     } catch {
       // ignore
     }

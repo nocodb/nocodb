@@ -6,16 +6,21 @@ import FeedTwitter from './Twitter/index.vue'
 import FeedRoadmap from './Roadmap.vue'
 const { activeTab } = useProductFeed()
 
-const tabs = [
+const tabs: Array<{
+  key: string
+  icon: keyof typeof iconMap
+  title: string
+  container: any
+}> = [
   {
     key: 'recents',
-    icon: 'clock',
+    icon: 'ncClock',
     title: 'Recents',
     container: FeedRecents,
   },
   {
     key: 'changelog',
-    icon: 'list',
+    icon: 'ncList',
     title: 'Changelog',
     container: FeedChangelog,
   },

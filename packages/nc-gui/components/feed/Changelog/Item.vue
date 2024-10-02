@@ -88,7 +88,7 @@ const renderedText = computedAsync(async () => {
                 :class="{
                   'text-red-500': tag.color === 'red',
                   'text-purple-500': tag.color === 'purple',
-                  'text-green-500': tag.color === 'green',
+                  'text-green-700': tag.color === 'green',
                 }"
                 class="leading-5 text-[13px]"
               >
@@ -100,7 +100,7 @@ const renderedText = computedAsync(async () => {
             <NcBadge
               :border="false"
               color="brand"
-              class="font-semibold nc-title-badge cursor-pointer"
+              class="font-semibold text-[13px] nc-title-badge cursor-pointer"
               @click="openLink(item.Url)"
             >
               {{ Title }}
@@ -113,7 +113,7 @@ const renderedText = computedAsync(async () => {
   </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss">
 .nc-title-badge {
   width: fit-content;
 }
@@ -123,10 +123,8 @@ const renderedText = computedAsync(async () => {
 }
 
 .prose {
-  .prose ul > li {
-    &:before {
-      @apply !bg-brand-500;
-    }
+  img {
+    @apply !rounded-lg;
   }
 }
 

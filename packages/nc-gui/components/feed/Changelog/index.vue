@@ -7,12 +7,10 @@ const { isLoading } = useInfiniteScroll(
   scrollContainer,
   async () => {
     if (isLoading.value) return
-    const data = await loadFeed({
+    await loadFeed({
       type: 'github',
       loadMore: true,
     })
-
-    githubFeed.value = [...githubFeed.value, ...data]
   },
   { distance: 1, interval: 2000 },
 )

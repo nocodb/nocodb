@@ -12,6 +12,10 @@ const containerRef = ref<HTMLElement>()
 
 const { width } = useElementSize(containerRef)
 
+const router = useRouter()
+
+const disableToolbar = computed(() => router.currentRoute.value.query?.disableToolbar === 'true')
+
 const isTab = computed(() => {
   if (!isCalendar.value) return false
   return width.value > 1200
@@ -29,7 +33,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
 <template>
   <div
-    v-if="!isMobileMode"
+    v-if="!isMobileMode && !disableToolbar"
     ref="containerRef"
     :class="{
       'px-4': isMobileMode,

@@ -109,7 +109,14 @@
     "vue3-grid-layout-next": "^1.0.7",
     "vue3-text-clamp": "^0.1.2",
     "vuedraggable": "^4.1.0",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "rehype-sanitize": "^6.0.0",
+    "rehype-stringify": "^10.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-rehype": "^11.1.0",
+    "unified": "^11.0.5",
+    "youtube-vue3": "^0.1.15",
+    "@vueuse/motion": "^2.2.5"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.26.3",

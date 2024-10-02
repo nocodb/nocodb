@@ -5,6 +5,7 @@ import axios from 'axios';
 import isDocker from 'is-docker';
 import { packageVersion } from '~/utils/packageVersion';
 import TeleBatchProcessor from '~/utils/TeleBatchProcessor';
+import { isEE } from '~/utils';
 
 const isDisabled = !!process.env.NC_DISABLE_TELE;
 const cache = !!process.env.NC_REDIS_URL;
@@ -247,6 +248,41 @@ class Tele {
 
   static get id() {
     return this.machineId || machineIdSync();
+  }
+
+  static async payload() {
+    if (
+      process.env.NODE_ENV === 'test' ||
+      process.env.NODE_ENV === 'development' ||
+      isEE
+    )
+      return null;
+
+    const payload: Record<string, any> = {
+      package_id: packageVersion,
+      node_version: process.version,
+      xc_version: process.env.NC_SERVER_UUID,
+      env: process.env.NODE_ENV || 'production',
+      oneClick: !!process.env.NC_ONE_CLICK,
+    };
+    try {
+      payload.os_type = os.type();
+      payload.os_platform = os.platform();
+      payload.os_release = os.release();
+      payload.docker = isDocker();
+      payload.machine_id = `${this.id},,`;
+      payload.payload = {
+        ...((await Tele.getInstanceMeta()) || {}),
+        count: global.NC_COUNT,
+        upTime: Math.round(process.uptime() / 3600),
+        cache,
+        litestream,
+        executable,
+      };
+    } catch {
+      // ignore
+    }
+    return payload;
   }
 }
 

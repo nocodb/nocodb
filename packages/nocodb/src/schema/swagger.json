@@ -16015,6 +16015,87 @@
         ]
       }
     },
+    "/api/v2/feed": {
+      "get": {
+        "summary": "Get Feed",
+        "operationId": "utils-feed",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "github",
+                "youtube"
+              ]
+            },
+            "name": "type",
+            "in": "query",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "per_page",
+            "in": "query",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "page",
+            "in": "query",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Id": {
+                        "type": "string"
+                      },
+                      "Description": {
+                        "type": "string"
+                      },
+                      "Tags": {
+                        "type": "string"
+                      },
+                      "Images": {
+                        "type": "array",
+                        "items": {
+                          "type": "object"
+                        }
+                      },
+                      "Url": {
+                        "type": "string"
+                      },
+                      "Published Time": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Utils"
+        ]
+      }
+    },
     "/api/v1/aggregated-meta-info": {
       "parameters": [
         {

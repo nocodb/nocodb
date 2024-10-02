@@ -48,7 +48,6 @@ const tabs: Array<{
 <template>
   <FeedHeader />
 
-  <FeedSocial class="absolute right-4 top-28" />
   <div class="flex flex-col h-full">
     <NcTabs v-model:activeKey="activeTab" centered>
       <a-tab-pane v-for="tab in tabs" :key="tab.key" class="bg-gray-50 !h-full">
@@ -71,8 +70,36 @@ const tabs: Array<{
             </span>
           </div>
         </template>
-        <component :is="tab.container" />
+        <div class="relative">
+          <FeedSocial
+            :class="{
+              'normal-left': tab.key === 'recents' || tab.key === 'youtube',
+              'changelog-left': tab.key === 'changelog',
+              'changelog-twitter': tab.key === 'twitter',
+            }"
+            class="absolute social-card"
+          />
+          <component :is="tab.container" />
+        </div>
       </a-tab-pane>
     </NcTabs>
   </div>
 </template>
+
+<style scoped lang="scss">
+.social-card {
+  top: 24px;
+}
+
+.normal-left {
+  left: calc(50% + 300px);
+}
+
+.changelog-left {
+  left: calc(50% + 400px);
+}
+
+.changelog-twitter {
+  left: calc(50% + 350px);
+}
+</style>

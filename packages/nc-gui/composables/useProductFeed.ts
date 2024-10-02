@@ -35,7 +35,7 @@ export const useProductFeed = createSharedComposable(() => {
         }
       }
 
-      const response = await axiosInstance.get('/social/feed', {
+      const response = await axiosInstance.get<ProductFeedItem[]>('/social/feed', {
         params: {
           per_page: 10,
           page,

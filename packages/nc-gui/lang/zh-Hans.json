@@ -93,6 +93,7 @@
     "none": "空"
   },
   "general": {
+    "scripts": "Scripts",
     "configure": "配置",
     "switch": "切换",
     "on": "开",

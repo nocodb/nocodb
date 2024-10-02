@@ -544,45 +544,4 @@ export class UtilsService {
 
     return response.data;
   }
-
-  async getLatestFeed(req: NcRequest) {
-    const { last_published_at } = req.query as {
-      last_published_at: string;
-    };
-
-    if (!last_published_at) {
-      return 0;
-    }
-
-    const utils = {
-      found: false,
-      page: 1,
-      missedItems: 0,
-    };
-    const feed = await this.feed({
-      query: {
-        type: 'all',
-        page: utils.page.toString(),
-        per_page: '100',
-      },
-    } as unknown as NcRequest);
-
-    if (!feed || !feed?.length) {
-      return 0;
-    }
-
-    for (const item of feed) {
-      if (item['Published Time'] === last_published_at) {
-        utils.found = true;
-        break;
-      }
-      utils.missedItems++;
-    }
-
-    if (utils.found) {
-      return utils.missedItems;
-    }
-
-    return `${utils.missedItems}+`;
-  }
 }

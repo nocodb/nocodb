@@ -173,10 +173,4 @@ export class UtilsController {
   async feed(@Request() req: NcRequest) {
     return await this.utilsService.feed(req);
   }
-
-  @UseGuards(PublicApiLimiterGuard)
-  @Get('/api/v2/new-feed')
-  async newFeed(@Request() req: NcRequest) {
-    return await this.utilsService.getLatestFeed(req);
-  }
 }

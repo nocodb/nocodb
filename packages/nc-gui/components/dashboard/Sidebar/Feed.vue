@@ -7,25 +7,49 @@ const { navigateToFeed } = workspaceStore
 
 const { isFeedPageOpened } = storeToRefs(workspaceStore)
 
+const { appInfo } = useGlobal()
+
 const { loadFeed, socialFeed } = useProductFeed()
 
 const isNewFeedAvailable = ref(false)
 
 const checkNewFeed = async () => {
-  await loadFeed({ type: 'all', loadMore: false })
-  if (!socialFeed.value.length) return
+  try {
+    await loadFeed({ type: 'all', loadMore: false })
+    if (!socialFeed.value.length) return
 
-  const [latestFeed] = socialFeed.value
-  const lastFeedTime = localStorage.getItem('lastFeedPublishedTime')
-  const lastFeed = dayjs(lastFeedTime)
+    const [latestFeed] = socialFeed.value
+    const lastFeedTime = localStorage.getItem('lastFeedPublishedTime')
+    const lastFeed = dayjs(lastFeedTime)
 
-  if (!lastFeed.isValid() || dayjs(latestFeed['Published Time']).isAfter(lastFeed)) {
-    isNewFeedAvailable.value = true
-    localStorage.setItem('lastFeedPublishedTime', latestFeed['Published Time'])
+    if (!lastFeed.isValid() || dayjs(latestFeed['Published Time']).isAfter(lastFeed)) {
+      isNewFeedAvailable.value = true
+      localStorage.setItem('lastFeedPublishedTime', latestFeed['Published Time'])
+    }
+  } catch (error) {
+    console.error('Error while checking new feed', error)
   }
 }
 
-onMounted(checkNewFeed)
+const intervalId = ref()
+
+const checkFeedWithInterval = async () => {
+  await checkNewFeed()
+  intervalId.value = setTimeout(checkFeedWithInterval, 3 * 60 * 60 * 1000)
+}
+
+onMounted(() => {
+  if (appInfo.value.feedEnabled) {
+    checkFeedWithInterval()
+  }
+})
+
+onUnmounted(() => {
+  if (intervalId.value) {
+    clearTimeout(intervalId.value)
+    intervalId.value = null
+  }
+})
 
 const gotoFeed = () => navigateToFeed()
 </script>

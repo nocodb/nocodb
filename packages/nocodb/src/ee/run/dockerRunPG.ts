@@ -19,8 +19,11 @@ const dbSuffix = `${date.getFullYear()}_${(date.getMonth() + 1)
   .toString()
   .padStart(2, '0')}_${date.getDate().toString().padStart(2, '0')}`;
 process.env[
+  `NC_KEY_CREDENTIAL_ENCRYPT`
+] = '4dc7b814-4759-4493-b320-955cd4b3ff62'
+process.env[
   `NC_DB`
-] = `pg://localhost:5432?u=postgres&p=password&d=meta_${dbSuffix}`;
+] = `pg://localhost:5432?u=postgres&p=password&d=db_bk`;
 process.env[
   `NC_DATA_DB`
 ] = `pg://localhost:5432?u=postgres&p=password&d=data_${dbSuffix}1`;

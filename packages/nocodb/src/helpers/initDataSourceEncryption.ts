@@ -24,13 +24,6 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
       .where((qb) => {
         qb.where('is_encrypted', false).orWhereNull('is_encrypted');
       })
-      .where((qb) => {
-        qb.where('is_meta', false).orWhereNull('is_meta');
-      })
-
-      .where((qb) => {
-        qb.where('is_local', false).orWhereNull('is_local');
-      })
       .whereNotNull('config');
 
     for (const source of sources) {

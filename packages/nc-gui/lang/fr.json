@@ -93,6 +93,7 @@
     "none": "Aucun"
   },
   "general": {
+    "scripts": "Scripts",
     "configure": "Paramétrer",
     "switch": "Changer",
     "on": "Activé",

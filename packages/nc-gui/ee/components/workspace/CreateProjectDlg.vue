@@ -13,17 +13,6 @@ enum SchemaPreviewTabs {
   RELATIONSHIP_DIAGRAM = 'RELATIONSHIP_DIAGRAM',
 }
 
-const previewTabs = [
-  {
-    title: 'Tables & Views',
-    key: SchemaPreviewTabs.TABLES_AND_VIEWS,
-  },
-  {
-    title: 'Relationship Diagram',
-    key: SchemaPreviewTabs.RELATIONSHIP_DIAGRAM,
-  },
-]
-
 const loadingMessages = ['Generating Tables', 'Generating Fields', 'Generating Links', 'Generating Views']
 
 const props = defineProps<{
@@ -236,6 +225,7 @@ const onPredictSchema = async () => {
     }
 
     predictedSchema.value = await predictSchema(prompt)
+    activePreviewTab.value = SchemaPreviewTabs.TABLES_AND_VIEWS
 
     previewExpansionPanel.value = ((predictedSchema.value || {}).tables || []).map((t) => t?.title).filter(Boolean)
     aiStep.value = AI_STEP.MODIFY
@@ -281,6 +271,20 @@ const finalSchema = computed(() => {
     views: predictedSchema.value.views.filter((view: any) => !view.excluded),
   }
   return schema
+})
+
+const previewTabs = computed(() => {
+  return [
+    {
+      title: 'Tables & Views',
+      key: SchemaPreviewTabs.TABLES_AND_VIEWS,
+    },
+    {
+      title: 'Relationship Diagram',
+      key: SchemaPreviewTabs.RELATIONSHIP_DIAGRAM,
+      hidden: !finalSchema.value.relationships.length,
+    },
+  ]
 })
 
 const onCreateSchema = async () => {
@@ -572,7 +576,7 @@ const handleUpdatePrompt = (description: string) => {
               <NcButton
                 v-if="aiIntegrationAvailable"
                 size="small"
-                type="primary"
+                type="secondary"
                 theme="ai"
                 class="w-full"
                 :disabled="!aiFormState.prompt?.trim()"
@@ -647,7 +651,13 @@ const handleUpdatePrompt = (description: string) => {
               <div class="text-base font-bold text-nc-content-purple-dark">Here’s your CRM Base</div>
 
               <template v-if="predictedSchema?.tables">
-                <AiWizardCard v-if="aiMode" v-model:active-tab="activePreviewTab" :tabs="previewTabs" class="!rounded-xl flex-1 flex flex-col" content-class-name="flex-1 flex flex-col">
+                <AiWizardCard
+                  v-if="aiMode"
+                  v-model:active-tab="activePreviewTab"
+                  :tabs="previewTabs"
+                  class="!rounded-xl flex-1 flex flex-col"
+                  content-class-name="flex-1 flex flex-col"
+                >
                   <template #tabContent>
                     <a-collapse
                       v-if="activePreviewTab === SchemaPreviewTabs.TABLES_AND_VIEWS"
@@ -756,7 +766,7 @@ const handleUpdatePrompt = (description: string) => {
                       </a-collapse-panel>
                     </a-collapse>
                     <div v-else class="flex-1 px-4 py-2 flex">
-                      <AiErdView :ai-base-schema="finalSchema" class="flex-1"/>
+                      <AiErdView :ai-base-schema="finalSchema" class="flex-1" />
                     </div>
                   </template>
                 </AiWizardCard>

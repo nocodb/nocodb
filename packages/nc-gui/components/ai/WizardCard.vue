@@ -4,6 +4,7 @@ interface Props {
   tabs: {
     title: string
     key: string
+    hidden?: boolean
   }[]
   as?: 'default' | 'tabs'
   contentClassName?: string
@@ -32,18 +33,19 @@ const handleChangeTab = (tab: string) => {
   <div class="nc-ai-wizard-card overflow-hidden transition-colors">
     <div class="nc-ai-wizard-card-tab-header">
       <div class="flex nc-ai-wizard-card-tab-wrapper">
-        <div
-          v-for="tab of tabs"
-          :key="tab.key"
-          class="nc-ai-wizard-card-tab"
-          :class="{
-            'active-tab': activeTab === tab.key,
-            '!cursor-wait': aiLoading,
-          }"
-          @click="handleChangeTab(tab.key)"
-        >
-          {{ tab.title }}
-        </div>
+        <template v-for="tab of tabs" :key="tab.key">
+          <div
+            v-if="!tab.hidden"
+            class="nc-ai-wizard-card-tab"
+            :class="{
+              'active-tab': activeTab === tab.key,
+              '!cursor-wait': aiLoading,
+            }"
+            @click="handleChangeTab(tab.key)"
+          >
+            {{ tab.title }}
+          </div>
+        </template>
       </div>
       <div class="nc-ai-wizard-card-tab-extra-right">
         <slot name="tabExtraRight"></slot>

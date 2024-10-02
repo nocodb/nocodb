@@ -74,7 +74,7 @@ watch(
               :class="`nc-erd-table-node-${data.table}-column-${col.title?.toLowerCase().replace(' ', '_')}`"
             >
               <Handle
-                :id="`s-${col.title}-${data.table}`"
+                :id="`s-${relatedColumnId(col.colOptions)}-${data.table}`"
                 class="opacity-0 !right-[-1px]"
                 type="source"
                 :position="Position.Right"
@@ -82,7 +82,7 @@ watch(
               />
 
               <Handle
-                :id="`d-${col.title}-${data.table}`"
+                :id="`d-${relatedColumnId(col.colOptions)}-${data.table}`"
                 class="opacity-0 !left-[-1px]"
                 type="target"
                 :position="Position.Left"

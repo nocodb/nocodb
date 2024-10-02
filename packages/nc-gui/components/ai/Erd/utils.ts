@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { RelationTypes, UITypes, type LinkToAnotherRecordType } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
 import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
@@ -32,7 +32,12 @@ export interface AiERDConfig {
 
 export interface AiNodeData {
   table: string
-  columns: { title: string; type: UITypes; relationType?: RelationTypes }[]
+  columns: {
+    title: string
+    type: UITypes
+    relationType?: RelationTypes
+    colOptions?: LinkToAnotherRecordType | Record<string, string>
+  }[]
   showAllColumns: boolean
   color: string
   columnLength: number
@@ -123,6 +128,11 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
             title: relationship.from === table.title ? relationship.to : relationship.from,
             type: UITypes.Links,
             relationType: relationship.to === table.title && relationship.type === 'hm' ? 'bt' : relationship.type,
+            colOptions: {
+              type: relationship.to === table.title && relationship.type === 'hm' ? 'bt' : relationship.type,
+              fk_child_column_id: relationship.from === table.title ? relationship.to : relationship.from,
+              fk_parent_column_id: relationship.from === table.title ? relationship.from : relationship.to,
+            },
           }
         })
 
@@ -133,7 +143,7 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
         data: {
           table: table.title,
           showAllColumns: config.value.showAllColumns,
-          columns,
+          columns: relationshipColumns,
           columnLength: columns.length,
           color: '',
         },

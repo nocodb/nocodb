@@ -5,18 +5,45 @@ import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import { unified } from 'unified'
 import dayjs from 'dayjs'
+import type { ProductFeedItem } from '../../../lib/types'
 
 const props = defineProps<{
-  body: string
-  date: string
+  item: ProductFeedItem
 }>()
+
+const {
+  item: { CreatedAt, Description, Url, Title, Tags },
+} = props
+
+const iconColorMap = {
+  'Hotfix': {
+    icon: iconMap.ncTool,
+    color: 'red',
+  },
+  'Feature': {
+    icon: iconMap.star,
+    color: 'purple',
+  },
+  'Bug fixes': {
+    icon: iconMap.ncTool,
+    color: 'green',
+  },
+}
+
+const tags = computed(() => {
+  return Tags?.split(',').map((tag) => ({
+    text: tag,
+    href: `/tags/${tag}`,
+    ...(iconColorMap[tag as any] || {}),
+  }))
+})
 
 const renderMarkdown = async (markdown: string) => {
   return await unified().use(remarkParse).use(remarkRehype).use(rehypeSanitize).use(rehypeStringify).process(markdown)
 }
 
 const renderedText = computedAsync(async () => {
-  return await renderMarkdown(props.body)
+  return await renderMarkdown(Description)
 })
 </script>
 
@@ -29,14 +56,52 @@ const renderedText = computedAsync(async () => {
         </div>
         <div class="aside-inner">
           <div class="text-sm text-gray-700 leading-5">
-            {{ dayjs(date).format('MMMM D, YYYY') }}
+            {{ dayjs(CreatedAt).format('MMMM D, YYYY') }}
           </div>
         </div>
       </div>
 
       <div class="content">
         <div class="flex flex-col py-6 gap-8">
-          <div class="prose max-w-none" v-html="renderedText"></div>
+          <div class="flex items-center">
+            <div
+              v-for="tag in tags"
+              :key="tag.text"
+              :class="{
+                'bg-red-50': tag.color === 'red',
+                'bg-purple-50': tag.color === 'purple',
+                'bg-green-50': tag.color === 'green',
+              }"
+              :href="tag.href"
+              class="mr-4 flex gap-2 items-center px-1 rounded-md"
+            >
+              <component
+                :is="tag.icon"
+                :class="{
+                  'fill-red-700 text-transparent': tag.color === 'red',
+                  'fill-purple-700 text-transparent': tag.color === 'purple',
+                  'fill-green-700 text-transparent': tag.color === 'green',
+                }"
+                class="w-4 h-4"
+              />
+              <span
+                :class="{
+                  'text-red-500': tag.color === 'red',
+                  'text-purple-500': tag.color === 'purple',
+                  'text-green-500': tag.color === 'green',
+                }"
+                class="leading-5"
+              >
+                {{ tag.text }}
+              </span>
+            </div>
+          </div>
+          <div class="flex flex-col gap-2">
+            <NcBadge :border="false" color="brand" class="font-semibold nc-title-badge">
+              {{ Title }}
+            </NcBadge>
+            <div class="prose max-w-none" v-html="renderedText"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -44,6 +109,10 @@ const renderedText = computedAsync(async () => {
 </template>
 
 <style scoped lang="scss">
+.nc-title-badge {
+  width: fit-content;
+}
+
 .content {
   @apply !pl-50;
 }

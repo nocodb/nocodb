@@ -1,4 +1,5 @@
 import axios from 'axios'
+import type { ProductFeedItem } from '../lib/types'
 
 const axiosInstance = axios.create({
   // baseURL: 'https://nocodb.com/api',
@@ -11,74 +12,43 @@ const axiosInstance = axios.create({
 export const useProductFeed = createSharedComposable(() => {
   const activeTab = ref('recents')
 
-  const youtubeFeed = ref<
-    {
-      id: string
-      body: string
-      name: string
-      published_at: string
-      thumbnails: {
-        default: {
-          height: number
-          url: string
-          width: number
-        }
-        high: {
-          height: number
-          url: string
-          width: number
-        }
-        medium: {
-          height: number
-          url: string
-          width: number
-        }
+  const youtubeFeed = ref<ProductFeedItem[]>([])
+
+  const githubFeed = ref<ProductFeedItem[]>([])
+
+  const socialFeed = ref<ProductFeedItem[]>([])
+
+  const twitterFeed = ref<ProductFeedItem[]>([])
+
+  const loadFeed = async ({ loadMore, type }: { loadMore: boolean; type: 'youtube' | 'github' | 'all' | 'twitter' }) => {
+    let page = 1
+
+    if (loadMore) {
+      switch (type) {
+        case 'youtube':
+          page = Math.ceil(youtubeFeed.value.length / 10) + 1
+          break
+        case 'github':
+          page = Math.ceil(githubFeed.value.length / 10) + 1
+          break
+        case 'all':
+          page = Math.ceil(socialFeed.value.length / 10) + 1
+          break
+        case 'twitter':
+          page = Math.ceil(twitterFeed.value.length / 10) + 1
+          break
       }
-      embed_url: string
-      html_url: string
-    }[]
-  >([])
-  const githubFeed = ref<
-    {
-      body: string
-      html_url: string
-      id: string
-      name: string
-      published_at: string
-    }[]
-  >([])
+    }
 
-  const socialFeed = ref([])
-
-  const ytNextPageToken = ref('')
-
-  const loadYoutubeFeed = async (loadMore?: boolean) => {
-    const { data } = await axiosInstance.get('/social/youtube', {
-      params: loadMore
-        ? {
-            pageToken: ytNextPageToken.value,
-            per_page: 10,
-          }
-        : {
-            per_page: 10,
-          },
+    const response = await axiosInstance.get('/social/feed', {
+      params: {
+        per_page: 10,
+        page,
+        type,
+      },
     })
-    ytNextPageToken.value = data.nextPageToken
-    youtubeFeed.value = [...youtubeFeed.value, ...data.videos]
-  }
 
-  const loadGithubFeed = async (loadMore?: boolean) => {
-    const { data } = await axiosInstance.get('/social/github', {
-      params: loadMore
-        ? {
-            page: githubFeed.value.length / 10 + 1,
-            per_page: 10,
-          }
-        : {
-            per_page: 10,
-          },
-    })
-    githubFeed.value = [...githubFeed.value, ...data]
+    return response.data
   }
 
   return {
@@ -86,7 +56,7 @@ export const useProductFeed = createSharedComposable(() => {
     youtubeFeed,
     githubFeed,
     socialFeed,
-    loadYoutubeFeed,
-    loadGithubFeed,
+    twitterFeed,
+    loadFeed,
   }
 })

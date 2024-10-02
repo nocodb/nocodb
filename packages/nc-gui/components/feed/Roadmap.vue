@@ -18,13 +18,9 @@ const handleIframeLoad = () => {
       'block h-full': isLoaded,
     }"
   >
-    <!--
-    src="https://w21dqb1x.nocodb.com/#/nc/kanban/d719962a-1666-464f-8789-054a13a747f7"
--->
-
     <iframe
       ref="iFrame"
-      src="http://localhost:3000/#/nc/kanban/dc9d297d-2d89-4a33-9804-87924148913a?disableTopbar=true&disableToolbar=true"
+      src="https://w21dqb1x.nocodb.com/#/nc/kanban/d719962a-1666-464f-8789-054a13a747f7?disableTopbar=true&disableToolbar=true"
       width="100%"
       height="100%"
       style="border: none"

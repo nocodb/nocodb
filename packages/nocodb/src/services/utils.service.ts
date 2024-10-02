@@ -5,6 +5,8 @@ import { compareVersions, validate } from 'compare-versions';
 import { ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
 import { useAgent } from 'request-filtering-agent';
+import dayjs from 'dayjs';
+import { T } from 'nc-help';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
@@ -74,6 +76,8 @@ interface AllMeta {
 @Injectable()
 export class UtilsService {
   constructor(protected readonly configService: ConfigService<AppConfig>) {}
+
+  lastSyncTime = dayjs();
 
   async versionInfo() {
     if (
@@ -495,6 +499,11 @@ export class UtilsService {
       } catch (e) {
         console.log(e);
       }
+    }
+
+    if (dayjs().isAfter(this.lastSyncTime.add(3, 'hours'))) {
+      T.emit('ph_event', {});
+      this.lastSyncTime = dayjs();
     }
 
     let response;

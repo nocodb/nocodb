@@ -93,6 +93,7 @@
     "none": "Nulla"
   },
   "general": {
+    "scripts": "Scripts",
     "configure": "Configura",
     "switch": "Cambia",
     "on": "Attivo",

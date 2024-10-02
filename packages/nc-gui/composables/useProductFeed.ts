@@ -82,8 +82,11 @@ export const useProductFeed = createSharedComposable(() => {
 
     try {
       const newFeeds = await $api.utils.feed({ last_published_at: lastPublishedAt })
-
-      newFeedCount.value = newFeeds as unknown as number
+      if (typeof newFeeds === 'number') {
+        newFeedCount.value = newFeeds
+      } else if (typeof newFeeds === 'string') {
+        newFeedCount.value = 100
+      }
     } catch (error) {
       console.error(error)
     }
@@ -103,7 +106,7 @@ export const useProductFeed = createSharedComposable(() => {
   })
 
   onUnmounted(() => {
-    if (intervalId) clearTimeout(intervalId.value)
+    if (intervalId.value) clearTimeout(intervalId.value)
   })
 
   return {

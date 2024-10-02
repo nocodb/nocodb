@@ -53,7 +53,7 @@ const gotoFeed = () => navigateToFeed()
     >
       <div class="flex flex-1 w-full items-center gap-3">
         <GeneralIcon icon="megaPhone" class="!h-4" />
-        <span class="font-semibold">What’s New!</span>
+        <span class="">What’s New!</span>
       </div>
       <div v-if="isNewFeedAvailable" class="w-3 h-3 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full"></div>
     </div>

@@ -73,7 +73,8 @@ const renderedText = computedAsync(async () => {
 
 const { $e } = useNuxtApp()
 
-const expand = () => {
+const expand = (e) => {
+  e.stopPropagation()
   truncate.value = false
   $e('c:nocodb:feed:changelog:expand', {
     title: Title,
@@ -82,7 +83,7 @@ const expand = () => {
 </script>
 
 <template>
-  <div class="relative rounded-xl flex flex-col mt-6.25 bg-white changelog-card">
+  <div class="relative rounded-xl flex cursor-pointer flex-col mt-6.25 bg-white changelog-card" @click="openLink(item.Url)">
     <div
       class="w-full relative border border-black h-[334px] xl:h-[394px] w-[540px] xl:w-[638px] border-opacity-10 rounded-t-xl overflow-hidden"
     >
@@ -93,15 +94,10 @@ const expand = () => {
     </div>
     <div class="flex my-4 px-4 items-center justify-between">
       <div class="flex items-center">
-        <NcBadge
-          :border="false"
-          color="brand"
-          class="font-semibold text-[13px] mr-3 nc-title-badge cursor-pointer"
-          @click="openLink(item.Url)"
-        >
+        <NcBadge :border="false" color="brand" class="font-semibold text-[13px] mr-3 nc-title-badge cursor-pointer">
           {{ Title }}
         </NcBadge>
-        <a
+        <span
           v-for="tag in tags"
           :key="tag.text"
           :class="{
@@ -109,7 +105,6 @@ const expand = () => {
             'bg-purple-50': tag.color === 'purple',
             'bg-green-50': tag.color === 'green',
           }"
-          :href="tag.href"
           class="mr-3 flex gap-2 items-center px-1 rounded-md"
         >
           <component
@@ -131,7 +126,7 @@ const expand = () => {
           >
             {{ tag.text }}
           </span>
-        </a>
+        </span>
       </div>
       <span class="font-medium text-sm text-gray-500">
         {{ dayjs(CreatedAt).format('MMM DD, YYYY') }}
@@ -175,7 +170,7 @@ a {
   }
 
   h2 {
-    @apply text-nc-content-gray-emphasis text-xl leading-6 mb-0;
+    @apply text-nc-content-gray-emphasis text-xl leading-6 !my-4;
   }
   p {
     @apply text-nc-content-gray-emphasis leading-6;
@@ -189,6 +184,10 @@ a {
 
   h3 {
     @apply text-nc-content-gray-emphasis text-lg leading-6 mb-0;
+  }
+
+  img {
+    @apply !my-4;
   }
 }
 </style>

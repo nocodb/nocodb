@@ -13,7 +13,7 @@ const { isLoading } = useInfiniteScroll(
     })
     youtubeFeed.value = [...youtubeFeed.value, ...data]
   },
-  { distance: 1 },
+  { distance: 1, interval: 2000 },
 )
 
 const gotoChannel = () => {

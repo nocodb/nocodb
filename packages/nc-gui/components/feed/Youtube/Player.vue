@@ -18,13 +18,13 @@ const {
     <YoutubeVue3
       :videoid="extractYoutubeVideoId(Url)"
       class="!rounded-t-xl"
-      :height="470"
-      :width="764"
+      :height="330"
+      :width="538"
       :autoplay="0"
       :controls="1"
     />
 
-    <div class="flex flex-col px-3 py-5 gap-4">
+    <div class="flex flex-col p-5 gap-4">
       <div class="text-gray-900 font-bold text-2xl">
         {{ Title }}
       </div>

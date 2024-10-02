@@ -15,6 +15,8 @@ const {
   item: { 'Published Time': CreatedAt, Description, Title, Tags },
 } = props
 
+const truncate = ref(true)
+
 const iconColorMap = {
   'Hotfix': {
     icon: iconMap.ncTool,
@@ -43,16 +45,16 @@ const renderMarkdown = async (markdown: string) => {
 }
 
 const renderedText = computedAsync(async () => {
-  return await renderMarkdown(Description)
+  return await renderMarkdown(truncate.value ? Description.substring(0, 300).concat('...') : Description)
 })
 </script>
 
 <template>
-  <div class="block px-12 relative">
-    <div class="relative pb-12">
+  <div class="block relative">
+    <div class="relative bg-white">
       <div class="aside">
         <div class="aside-divider">
-          <div class="aside-divider-dot"></div>
+          <div class="aside-divider-dot mt-8"></div>
         </div>
         <div class="aside-inner">
           <div class="text-sm text-right pr-8 text-gray-700 leading-5">
@@ -62,7 +64,7 @@ const renderedText = computedAsync(async () => {
       </div>
 
       <div class="content">
-        <div class="flex flex-col py-6 gap-5">
+        <div class="pt-6 pr-6 space-y-5">
           <div class="flex items-center">
             <a
               v-for="tag in tags"
@@ -106,6 +108,13 @@ const renderedText = computedAsync(async () => {
               {{ Title }}
             </NcBadge>
             <div class="prose max-w-none" v-html="renderedText"></div>
+
+            <NcButton v-if="truncate" size="small" class="w-29" type="text" @click="truncate = false">
+              <div class="gap-2 flex items-center">
+                Show more
+                <GeneralIcon icon="arrowDown" />
+              </div>
+            </NcButton>
           </div>
         </div>
       </div>
@@ -119,7 +128,7 @@ const renderedText = computedAsync(async () => {
 }
 
 .content {
-  @apply !pl-50;
+  @apply !pl-52;
 
   a {
     @apply !no-underline;
@@ -133,29 +142,33 @@ const renderedText = computedAsync(async () => {
     h1 {
       @apply !text-3xl !font-bold;
     }
+
+    p {
+      @apply leading-5;
+    }
   }
 }
 
 .aside {
-  @apply absolute left-0 top-1 bottom-2 w-44;
+  @apply absolute left-0 top-0 bottom-0 w-52;
 
   .aside-inner {
-    @apply sticky top-6;
+    @apply sticky top-0 pt-5;
   }
 
   .aside-divider {
-    @apply absolute top-0 right-0 bottom-0 w-1.5;
+    @apply absolute top-0 right-0 bottom-0 w-1.5 mr-3;
     &:before {
       @apply absolute bg-[#E7E7E9] left-0 transform -translate-x-1/2;
       content: '';
-      top: 6px;
+      top: 0px;
       bottom: 0px;
       width: 2px;
       border-radius: 2px;
     }
 
     .aside-divider-dot {
-      @apply sticky h-5 top-7.5
+      @apply sticky h-5 mr-3 top-9;
       transform: translateY(calc(-50% + 3px)) translateX(50%);
       &:before {
         @apply bg-brand-500 absolute w-2 h-2 border-2 border-white left-0 rounded-full transform -translate-x-1/2;

@@ -40,7 +40,7 @@ const renderedText = computedAsync(async () => {
 </script>
 
 <template>
-  <div class="bg-white recent-card border-gray-200 border-1 rounded-2xl" style="width: 656px">
+  <div class="bg-white recent-card border-gray-200 border-1 rounded-2xl" style="width: 540px">
     <div class="flex items-center justify-between px-5 py-4">
       <div class="flex items-center gap-3">
         <component :is="feedIcon[source as any]" class="w-4 h-4 stroke-transparent" />
@@ -62,7 +62,7 @@ const renderedText = computedAsync(async () => {
       <div class="prose px-5 pb-5 mt-5" v-html="renderedText"></div>
     </template>
     <template v-else-if="source === 'Youtube'">
-      <YoutubeVue3 :videoid="extractYoutubeVideoId(Url)" :controls="1" :height="410" :width="656" :autoplay="0" />
+      <YoutubeVue3 :videoid="extractYoutubeVideoId(Url)" :controls="1" :height="330" :width="538" :autoplay="0" />
       <div class="p-5 flex flex-col text-gray-900 gap-4">
         <div class="text-2xl font-semibold">
           {{ Title }}
@@ -86,9 +86,10 @@ const renderedText = computedAsync(async () => {
 
     h1 {
       @apply text-2xl font-semibold truncate;
+      font-weight: 500;
     }
     p {
-      @apply text-md leading-6;
+      @apply text-md text-nc-content-gray-emphasis leading-6;
     }
   }
 }

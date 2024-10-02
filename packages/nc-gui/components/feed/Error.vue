@@ -6,12 +6,10 @@ const props = defineProps<{
 const { loadFeed, socialFeed, youtubeFeed, githubFeed } = useProductFeed()
 
 const triggerReload = async () => {
-  const data = (
-    await loadFeed({
-      type: props.page,
-      loadMore: false,
-    })
-  ).filter((item) => item['Feed Source'] !== 'Twitter')
+  const data = (await loadFeed({
+    type: props.page,
+    loadMore: false,
+  }))!.filter((item) => item['Feed Source'] !== 'Twitter')
 
   if (props.page === 'all') {
     socialFeed.value = data

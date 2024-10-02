@@ -18130,6 +18130,41 @@
         "description": "Get dynamic command palette suggestions based on scope"
       }
     },
+    "/api/v2/scripts/exec": {
+      "post": {
+        "summary": "Exec Scripts",
+        "operationId": "script-exec",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Scripts"
+        ],
+        "description": "Execute scripts",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v2/extensions/{baseId}": {
       "parameters": [
         {

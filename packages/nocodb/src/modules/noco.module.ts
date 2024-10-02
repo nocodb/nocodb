@@ -124,6 +124,7 @@ import { CalendarDatasController } from '~/controllers/calendars-datas.controlle
 import { CalendarDatasService } from '~/services/calendar-datas.service';
 import { IntegrationsController } from '~/controllers/integrations.controller';
 import { IntegrationsService } from '~/services/integrations.service';
+import { ScriptsController } from '~/controllers/scripts.controller';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -196,6 +197,7 @@ export const nocoModuleMetadata = {
           OldDatasController,
           PublicDatasController,
           PublicDatasExportController,
+          ScriptsController,
         ]
       : []),
   ],

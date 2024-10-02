@@ -277,6 +277,17 @@ interface NcTableColumnProps {
   [key: string]: any
 }
 
+interface ProductFeedItem {
+  Id: string
+  Title: string
+  Description: string
+  ['Feed Source']: 'Youtube' | 'Github' | 'All'
+  Url: string
+  Tags?: string
+  ['Published Time']: string
+  Images?: Record<string, any>[] | null
+}
+
 type SordDirectionType = 'asc' | 'desc' | undefined
 
 export type {
@@ -312,4 +323,5 @@ export type {
   AuditLogsQuery,
   NcTableColumnProps,
   SordDirectionType,
+  ProductFeedItem,
 }

@@ -138,7 +138,7 @@ import NcCheckCircle from '~icons/nc-icons/check-circle'
 import NcCheckFill from '~icons/nc-icons/checkFill'
 import NcExternalLink from '~icons/nc-icons/external-link'
 import NcCamera from '~icons/nc-icons/camera'
-
+import NcRefreshCW from '~icons/nc-icons/refresh-cw'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
@@ -152,6 +152,7 @@ import NcControlPanel from '~icons/nc-icons/control-panel'
 import NcHome from '~icons/nc-icons/home'
 import NcHome1 from '~icons/nc-icons/home1'
 import NcWorkspace from '~icons/nc-icons/workspace'
+import NcMegaPhone from '~icons/nc-icons/megaphone'
 
 import NcCellBarcode from '~icons/nc-icons/cell-barcode'
 import NcCellCheckbox from '~icons/nc-icons/cell-checkbox'
@@ -218,6 +219,7 @@ import NcGitCommit from '~icons/nc-icons/git-commit'
 import NcCircle from '~icons/nc-icons/circle'
 import NcServer1 from '~icons/nc-icons/server1'
 import NcThumbsUpOutline from '~icons/nc-icons/thumbs-up-outline'
+import NcNocoDB from '~icons/nc-icons/nocodb'
 
 // Sync data
 import NcAppleSolid from '~icons/nc-icons/apple_solid'
@@ -531,6 +533,10 @@ import NcMousePointerIcon from '~icons/nc-icons-v2/mouse-pointer.svg'
 import NcAlignLeftIcon from '~icons/nc-icons-v2/align-left.svg'
 import NcHeartIcon from '~icons/nc-icons-v2/heart.svg'
 import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
+import NcYoutube2Icon from '~icons/nc-icons/youtube2.svg'
+import NcRedditIcon from '~icons/nc-icons/reddit.svg'
+import NcTwitterIcon from '~icons/nc-icons/twitter-x-line.svg'
+import NcDiscordIcon from '~icons/nc-icons/discord.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -760,6 +766,8 @@ export const iconMap = {
   cellAttachment: NcCellAttachment,
   cellButton: NcCellButton,
   camera: NcCamera,
+  megaPhone: NcMegaPhone,
+  nocodb: NcNocoDB,
 
   office: NcOffice,
   sort: Sort,
@@ -1077,6 +1085,10 @@ export const iconMap = {
   claude: NcClaude,
   ollama: NcOllama,
   groq: NcGroq,
+  refreshCw: NcRefreshCW,
+  iconReddit: NcRedditIcon,
+  iconTwitter: NcTwitterIcon,
+  iconDiscord: NcDiscordIcon,
 
   // Nc-IconsV2 Buttons
   ncColumns: NcColumnsIcon,
@@ -1338,6 +1350,7 @@ export const iconMap = {
   ncPlaceholderIcon: NcPlaceholderIcon,
   ncSpanner: NcSpanner,
   ncScript: NcScript,
+  youtube: NcYoutube2Icon,
 }
 
 export const getMdiIcon = (type: string): any => {

@@ -202,6 +202,7 @@ export enum CacheScope {
   INTEGRATION = 'integration',
   COL_BUTTON = 'colButton',
   CMD_PALETTE = 'cmdPalette',
+  PRODUCT_FEED = 'productFeed',
 }
 
 export const RootScopeTables = {

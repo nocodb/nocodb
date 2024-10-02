@@ -78,6 +78,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           </div>
         </NcButton>
         <div v-else-if="!isSharedBase && !extensionsEgg" class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
+
         <div v-if="!isSharedBase">
           <LazySmartsheetTopbarCmdK />
         </div>

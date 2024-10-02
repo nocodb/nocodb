@@ -45,6 +45,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
 
+  const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
+
   const isWorkspaceLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
@@ -238,6 +240,16 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const navigateToFeed = async (_?: string, cmdOrCtrl?: boolean) => {
+    if (cmdOrCtrl) {
+      await navigateTo('/nc/feed', {
+        open: navigateToBlankTargetOpenOption,
+      })
+    } else {
+      await navigateTo('/nc/feed')
+    }
+  }
+
   const auditLogsQuery = ref<Partial<AuditLogsQuery>>(defaultAuditLogsQuery)
 
   const audits = ref<null | Array<AuditType>>(null)
@@ -326,9 +338,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     auditLogsQuery,
     audits,
     auditPaginationData,
+    navigateToFeed,
     loadAudits,
     isIntegrationsPageOpened,
     navigateToIntegrations,
+    isFeedPageOpened,
   }
 })
 

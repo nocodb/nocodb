@@ -72,6 +72,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
 
+  const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
+
   const workspaces = ref<Map<string, NcWorkspace>>(new Map())
   const workspacesList = computed<NcWorkspace[]>(() =>
     Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at),
@@ -495,6 +497,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const navigateToFeed = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
+    workspaceId = workspaceId || activeWorkspaceId.value!
+
+    if (cmdOrCtrl) {
+      await navigateTo(router.resolve({ name: 'index-typeOrId-feed', params: { typeOrId: workspaceId }, query }).href, {
+        open: navigateToBlankTargetOpenOption,
+      })
+    } else {
+      router.push({ name: 'index-typeOrId-feed', params: { typeOrId: workspaceId }, query })
+    }
+  }
+
   const navigateToIntegrations = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
     workspaceId = workspaceId || activeWorkspaceId.value!
 
@@ -627,6 +641,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     loadAudits,
     isIntegrationsPageOpened,
     navigateToIntegrations,
+    navigateToFeed,
+    isFeedPageOpened,
   }
 })
 

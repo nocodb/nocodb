@@ -29,7 +29,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-5">
+  <div class="flex flex-col mt-6 gap-5">
     <div class="aspect-video !rounded-lg mx-auto !h-[428px]">
       <div id="player" ref="videoPlayer" class="plyr__video-embed">
         <iframe
@@ -40,8 +40,11 @@ onBeforeUnmount(() => {
         ></iframe>
       </div>
     </div>
-    <div>
+    <div class="text-gray-900 font-bold text-2xl">
       {{ name }}
+    </div>
+    <div class="text-gray-900">
+      {{ body }}
     </div>
   </div>
 </template>

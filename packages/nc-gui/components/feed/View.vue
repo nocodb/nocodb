@@ -56,17 +56,7 @@ const tabs = [
             </span>
           </div>
         </template>
-        <div
-          :style="{
-            height:
-              activeTab === 'recents'
-                ? 'calc(100dvh - var(--toolbar-height) - var(--topbar-height))'
-                : 'calc(100dvh - var(--toolbar-height))',
-          }"
-          class="overflow-y-auto nc-scrollbar-md mx-auto w-full"
-        >
-          <component :is="tab.container" />
-        </div>
+        <component :is="tab.container" />
       </a-tab-pane>
     </NcTabs>
   </div>

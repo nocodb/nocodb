@@ -10859,6 +10859,57 @@ export class Api<
       }),
 
     /**
+ * No description
+ * 
+ * @tags Utils
+ * @name Feed
+ * @summary Get Feed
+ * @request GET:/api/v2/feed
+ * @response `200` `({
+  Id?: string,
+  Description?: string,
+  Tags?: string,
+  Images?: (object)[],
+  Url?: string,
+  "Published Time"?: string,
+
+})[]` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    feed: (
+      query?: {
+        type?: 'all' | 'github' | 'youtube';
+        per_page?: number;
+        page?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          Id?: string;
+          Description?: string;
+          Tags?: string;
+          Images?: object[];
+          Url?: string;
+          'Published Time'?: string;
+        }[],
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/feed`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Get Aggregated Meta Info such as tableCount, dbViewCount, viewCount and etc.
  * 
  * @tags Utils

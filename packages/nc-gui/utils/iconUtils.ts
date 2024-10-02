@@ -138,7 +138,7 @@ import NcCheckCircle from '~icons/nc-icons/check-circle'
 import NcCheckFill from '~icons/nc-icons/checkFill'
 import NcExternalLink from '~icons/nc-icons/external-link'
 import NcCamera from '~icons/nc-icons/camera'
-
+import NcRefreshCW from '~icons/nc-icons/refresh-cw'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
@@ -1078,6 +1078,7 @@ export const iconMap = {
   claude: NcClaude,
   ollama: NcOllama,
   groq: NcGroq,
+  refreshCw: NcRefreshCW,
 
   // Nc-IconsV2 Buttons
   ncColumns: NcColumnsIcon,

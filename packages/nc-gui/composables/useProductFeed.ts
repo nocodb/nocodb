@@ -17,6 +17,12 @@ export const useProductFeed = createSharedComposable(() => {
 
   const socialFeed = ref<ProductFeedItem[]>([])
 
+  const isErrorOccurred = reactive({
+    youtube: false,
+    github: false,
+    social: false,
+  })
+
   const loadFeed = async ({ loadMore, type }: { loadMore: boolean; type: 'youtube' | 'github' | 'all' | 'twitter' }) => {
     try {
       let page = 1
@@ -45,12 +51,24 @@ export const useProductFeed = createSharedComposable(() => {
 
       return response.data
     } catch (error) {
+      switch (type) {
+        case 'youtube':
+          isErrorOccurred.youtube = true
+          break
+        case 'github':
+          isErrorOccurred.github = true
+          break
+        case 'all':
+          isErrorOccurred.social = true
+          break
+      }
       console.error(error)
       return []
     }
   }
 
   return {
+    isErrorOccurred,
     activeTab,
     youtubeFeed,
     githubFeed,

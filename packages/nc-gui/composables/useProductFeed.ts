@@ -35,7 +35,7 @@ export const useProductFeed = createSharedComposable(() => {
         }
       }
 
-      const response = await $api.utils.feed2({ page, per_page: 10, type })
+      const response = await $api.utils.feed({ page, per_page: 10, type })
 
       if (type === 'all' && page === 1 && response.length) {
         localStorage.setItem('last_published_at', response[0]['Published Time'] as string)

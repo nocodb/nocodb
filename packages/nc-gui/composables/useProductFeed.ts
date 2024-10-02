@@ -1,9 +1,12 @@
+import dayjs from 'dayjs'
 import type { ProductFeedItem } from '../lib/types'
 
 export const useProductFeed = createSharedComposable(() => {
   const activeTab = ref('recents')
 
   const { $api } = useNuxtApp()
+
+  const { appInfo } = useGlobal()
 
   const youtubeFeed = ref<ProductFeedItem[]>([])
 
@@ -37,10 +40,6 @@ export const useProductFeed = createSharedComposable(() => {
 
       const response = await $api.utils.feed({ page, per_page: 10, type })
 
-      if (type === 'all' && page === 1 && response.length) {
-        localStorage.setItem('last_published_at', response[0]['Published Time'] as string)
-      }
-
       switch (type) {
         case 'youtube':
           youtubeFeed.value = [...youtubeFeed.value, ...response] as ProductFeedItem[]
@@ -69,6 +68,45 @@ export const useProductFeed = createSharedComposable(() => {
     }
   }
 
+  const isNewFeedAvailable = ref(false)
+
+  const checkNewFeed = async () => {
+    try {
+      await loadFeed({ type: 'all', loadMore: false })
+      if (!socialFeed.value.length) return
+
+      const [latestFeed] = socialFeed.value
+      const lastFeedTime = localStorage.getItem('lastFeedPublishedTime')
+      const lastFeed = dayjs(lastFeedTime)
+
+      if (!lastFeed.isValid() || dayjs(latestFeed['Published Time']).isAfter(lastFeed)) {
+        isNewFeedAvailable.value = true
+      }
+    } catch (error) {
+      console.error('Error while checking new feed', error)
+    }
+  }
+
+  const intervalId = ref()
+
+  const checkFeedWithInterval = async () => {
+    await checkNewFeed()
+    intervalId.value = setTimeout(checkFeedWithInterval, 3 * 60 * 60 * 1000)
+  }
+
+  onMounted(() => {
+    if (appInfo.value.feedEnabled) {
+      checkFeedWithInterval()
+    }
+  })
+
+  onUnmounted(() => {
+    if (intervalId.value) {
+      clearTimeout(intervalId.value)
+      intervalId.value = null
+    }
+  })
+
   return {
     isErrorOccurred,
     activeTab,
@@ -76,5 +114,6 @@ export const useProductFeed = createSharedComposable(() => {
     githubFeed,
     socialFeed,
     loadFeed,
+    isNewFeedAvailable,
   }
 })

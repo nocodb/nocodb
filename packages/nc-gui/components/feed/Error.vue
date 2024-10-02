@@ -1,11 +1,18 @@
 <script setup lang="ts">
 const props = defineProps<{
-  page: 'all' | 'youtube' | 'github'
+  page: 'all' | 'youtube' | 'github' | 'twitter'
 }>()
+
+const emits = defineEmits(['reload'])
 
 const { loadFeed, socialFeed, youtubeFeed, githubFeed } = useProductFeed()
 
 const triggerReload = async () => {
+  if (props.page === 'twitter') {
+    emits('reload')
+    return
+  }
+
   const data = (await loadFeed({
     type: props.page,
     loadMore: false,

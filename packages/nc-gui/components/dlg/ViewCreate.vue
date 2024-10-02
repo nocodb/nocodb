@@ -192,34 +192,6 @@ watch(
   },
 )
 
-function init() {
-  form.title = `${capitalize(typeAlias.value)}`
-
-  if (selectedViewId.value) {
-    form.copy_from_id = selectedViewId?.value
-    const selectedViewName = views.value.find((v) => v.id === selectedViewId.value)?.title || form.title
-
-    form.title = generateUniqueTitle(`${selectedViewName} copy`, views.value, 'title', '_', true)
-  } else {
-    const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
-
-    if (repeatCount) {
-      form.title = `${form.title}-${repeatCount}`
-    }
-  }
-
-  initTitle.value = form.title
-
-  nextTick(() => {
-    const el = inputEl.value?.$el as HTMLInputElement
-
-    if (el) {
-      el.focus()
-      el.select()
-    }
-  })
-}
-
 const isAIViewCreateMode = computed(() => props.type === 'AI')
 
 const activeAiTabLocal = ref<keyof typeof TableWizardTabs>(TableWizardTabs.AUTO_SUGGESTIONS)
@@ -768,12 +740,17 @@ function init() {
   } else {
     form.title = `${capitalize(typeAlias.value)}`
 
-    const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
-    if (repeatCount) {
-      form.title = `${form.title}-${repeatCount}`
-    }
     if (selectedViewId.value) {
       form.copy_from_id = selectedViewId?.value
+      const selectedViewName = views.value.find((v) => v.id === selectedViewId.value)?.title || form.title
+
+      form.title = generateUniqueTitle(`${selectedViewName} copy`, views.value, 'title', '_', true)
+    } else {
+      const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
+
+      if (repeatCount) {
+        form.title = `${form.title}-${repeatCount}`
+      }
     }
 
     initTitle.value = form.title

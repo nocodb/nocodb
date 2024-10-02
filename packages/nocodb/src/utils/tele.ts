@@ -248,6 +248,31 @@ class Tele {
   static get id() {
     return this.machineId || machineIdSync();
   }
+
+  static get payload() {
+    const payload: Record<string, any> = {
+      package_id: packageVersion,
+      node_version: process.version,
+      xc_version: process.env.NC_SERVER_UUID,
+      env: process.env.NODE_ENV || 'production',
+      oneClick: !!process.env.NC_ONE_CLICK,
+      count: global.NC_COUNT,
+      cache,
+      litestream,
+      executable,
+    };
+    try {
+      payload.os_type = os.type();
+      payload.os_platform = os.platform();
+      payload.os_release = os.release();
+      payload.docker = isDocker();
+      payload.machine_id = `${this.id},,`;
+      payload.upTime = Math.round(process.uptime() / 3600);
+    } catch {
+      // ignore
+    }
+    return payload;
+  }
 }
 
 async function waitForMachineId(teleData) {

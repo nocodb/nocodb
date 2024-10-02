@@ -6,8 +6,8 @@ import { ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
 import { useAgent } from 'request-filtering-agent';
 import dayjs from 'dayjs';
-import { T } from '~/utils';
 import type { AppConfig, NcRequest } from '~/interface/config';
+import { T } from '~/utils';
 import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -503,8 +503,10 @@ export class UtilsService {
       }
     }
 
+    let payload = null;
     if (dayjs().isAfter(this.lastSyncTime.add(3, 'hours'))) {
       this.lastSyncTime = dayjs();
+      payload = await T.payload();
     }
 
     let response;
@@ -512,7 +514,7 @@ export class UtilsService {
     try {
       response = await axios.post(
         'https://product-feed.nocodb.com/api/v1/social/feed',
-        T.payload,
+        payload,
         {
           params: {
             per_page,

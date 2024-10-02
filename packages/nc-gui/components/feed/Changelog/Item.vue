@@ -97,7 +97,12 @@ const renderedText = computedAsync(async () => {
             </div>
           </div>
           <div class="flex flex-col gap-2">
-            <NcBadge :border="false" color="brand" class="font-semibold nc-title-badge">
+            <NcBadge
+              :border="false"
+              color="brand"
+              class="font-semibold nc-title-badge cursor-pointer"
+              @click="openLink(item.Url)"
+            >
               {{ Title }}
             </NcBadge>
             <div class="prose max-w-none" v-html="renderedText"></div>

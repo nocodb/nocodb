@@ -491,7 +491,10 @@ export class UtilsService {
       per_page: string;
     };
 
-    const cacheKey = `${CacheScope.PRODUCT_FEED}:${type}:${page}:${per_page}`;
+    const perPage = Math.min(Math.max(parseInt(per_page, 10) || 10, 1), 100);
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+
+    const cacheKey = `${CacheScope.PRODUCT_FEED}:${type}:${pageNum}:${perPage}`;
 
     const cachedData = await NocoCache.get(cacheKey, 'json');
 
@@ -500,13 +503,14 @@ export class UtilsService {
         return JSON.parse(cachedData);
       } catch (e) {
         this.logger.error(e?.message, e);
+        await NocoCache.del(cacheKey);
       }
     }
 
     let payload = null;
     if (dayjs().isAfter(this.lastSyncTime.add(3, 'hours'))) {
-      this.lastSyncTime = dayjs();
       payload = await T.payload();
+      this.lastSyncTime = dayjs();
     }
 
     let response;
@@ -517,8 +521,8 @@ export class UtilsService {
         payload,
         {
           params: {
-            per_page,
-            page,
+            per_page: perPage,
+            page: pageNum,
             type,
           },
         },
@@ -533,7 +537,7 @@ export class UtilsService {
     await NocoCache.setExpiring(
       cacheKey,
       JSON.stringify(response.data, getCircularReplacer),
-      isNaN(parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS))
+      Number.isNaN(parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS))
         ? 2 * 60 * 60
         : parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS),
     );

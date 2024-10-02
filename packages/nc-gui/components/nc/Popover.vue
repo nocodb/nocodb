@@ -38,7 +38,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const triggerRef = ref(null)
 const popoverRef = ref(null)
-const isOpen = ref(props.modelValue)
+
+const isOpen = useVModel(props, 'modelValue', emit)
 
 const popoverStyle = computed(() => ({
   position: 'fixed',
@@ -117,7 +118,6 @@ const updatePopoverPosition = () => {
 
 const openPopover = () => {
   isOpen.value = true
-  emit('update:modelValue', true)
   nextTick(() => {
     updatePopoverPosition()
     variant.value = 'enter'
@@ -128,7 +128,6 @@ const closePopover = () => {
   variant.value = 'leave'
   setTimeout(() => {
     isOpen.value = false
-    emit('update:modelValue', false)
   }, 300)
 }
 

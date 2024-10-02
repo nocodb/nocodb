@@ -24,11 +24,11 @@ const { isLoading } = useInfiniteScroll(
   <div
     ref="scrollContainer"
     :style="{
-      height: 'calc(100dvh - var(--toolbar-height) - 3.25rem)',
+      height: 'calc(100dvh - var(--toolbar-height) - 3.1rem)',
     }"
     class="overflow-y-auto nc-scrollbar-md w-full"
   >
-    <div class="flex flex-col items-center gap-6">
+    <div class="flex flex-col my-6 items-center gap-6">
       <FeedRecentsCard v-for="feed in socialFeed" :key="feed.Id" :item="feed" />
     </div>
   </div>

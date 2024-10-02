@@ -14,16 +14,23 @@ const {
 </script>
 
 <template>
-  <div class="flex flex-col mt-6 gap-5">
-    <YoutubeVue3 :videoid="extractYoutubeVideoId(Url)" :height="470" :width="764" :autoplay="0" :controls="1" />
+  <div class="mt-6 border-b-1 border-gray-200">
+    <YoutubeVue3
+      :videoid="extractYoutubeVideoId(Url)"
+      class="!rounded-xl"
+      :height="470"
+      :width="764"
+      :autoplay="0"
+      :controls="1"
+    />
 
-    <div class="text-gray-900 font-bold text-2xl">
-      {{ Title }}
-    </div>
-    <div class="text-gray-900">
-      {{ Description.length > 200 ? `${Description.slice(0, 280)}...` : Description }}
+    <div class="flex flex-col py-5 gap-4">
+      <div class="text-gray-900 font-bold text-2xl">
+        {{ Title }}
+      </div>
+      <div class="text-gray-900">
+        {{ Description.length > 200 ? `${Description.slice(0, 280)}...` : Description }}
+      </div>
     </div>
   </div>
 </template>
-
-<style lang="scss"></style>

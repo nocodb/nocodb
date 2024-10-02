@@ -4,22 +4,6 @@ const iFrame = ref<HTMLIFrameElement | null>(null)
 const isLoaded = ref(false)
 
 const handleIframeLoad = () => {
-  if (!iFrame.value) {
-    return
-  }
-  const iframeDocument = iFrame.value?.contentDocument || iFrame.value?.contentWindow?.document
-
-  const classList = ['.nc-table-topbar', '.nc-table-toolbar']
-
-  for (const className of classList) {
-    nextTick(() => {
-      const element = iframeDocument?.querySelector(className)
-
-      if (element) {
-        element.remove()
-      }
-    })
-  }
   isLoaded.value = true
 }
 </script>
@@ -27,7 +11,7 @@ const handleIframeLoad = () => {
 <template>
   <div
     :style="{
-      height: 'calc(100dvh - var(--toolbar-height))',
+      height: 'calc(100dvh - var(--toolbar-height) + 4rem)',
     }"
     :class="{
       'hidden': !isLoaded,
@@ -40,7 +24,7 @@ const handleIframeLoad = () => {
 
     <iframe
       ref="iFrame"
-      src="http://localhost:3000/#/nc/kanban/dc9d297d-2d89-4a33-9804-87924148913a"
+      src="http://localhost:3000/#/nc/kanban/dc9d297d-2d89-4a33-9804-87924148913a?disableTopbar=true&disableToolbar=true"
       width="100%"
       height="100%"
       style="border: none"

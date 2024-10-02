@@ -19,9 +19,9 @@ const {
 } = props
 
 const feedIcon = {
-  'Twitter': iconMap.twitter,
-  'Youtube': iconMap.youtube,
-  'Github Release': iconMap.githubSolid,
+  Twitter: iconMap.twitter,
+  Youtube: iconMap.youtube,
+  Github: iconMap.githubSolid,
 }
 
 const renderedText = computedAsync(async () => {
@@ -40,9 +40,9 @@ const renderedText = computedAsync(async () => {
 
 <template>
   <div class="bg-white rounded-2xl" style="width: 656px">
-    <div class="flex items-center justify-between px-5 py-5">
+    <div class="flex items-center justify-between px-5 py-4">
       <div class="flex items-center gap-3">
-        <component :is="feedIcon[source]" class="w-4 h-4 stroke-transparent" />
+        <component :is="feedIcon[source as any]" class="w-4 h-4 stroke-transparent" />
         <span class="font-weight-medium leading-5">
           {{ source }}
         </span>
@@ -51,9 +51,9 @@ const renderedText = computedAsync(async () => {
         {{ timeAgo(CreatedAt) }}
       </div>
     </div>
-    <template v-if="source === 'Github Release'">
+    <template v-if="source === 'Github'">
       <LazyCellAttachmentPreviewImage v-if="Images?.length" :srcs="getPossibleAttachmentSrc(Images[0], 'card_cover')" />
-      <div class="prose pl-5 mt-5" v-html="renderedText"></div>
+      <div class="prose px-5 mt-5" v-html="renderedText"></div>
     </template>
     <template v-else-if="source === 'Youtube'">
       <YoutubeVue3 :videoid="extractYoutubeVideoId(Url)" :height="410" :width="656" :autoplay="0" />

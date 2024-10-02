@@ -23,7 +23,7 @@ const socialIcons = [
   {
     name: 'Forum',
     icon: iconMap.nocodb,
-    link: 'https://forum.nocodb.com/',
+    link: 'https://community.nocodb.com/',
   },
 ]
 
@@ -39,12 +39,36 @@ const openUrl = (url: string) => {
       <div
         v-for="social in socialIcons"
         :key="social.name"
-        class="flex items-center cursor-pointer rounded-lg hover:bg-gray-100 py-3 px-4 gap-2 text-gray-800"
+        class="flex items-center social-icon-wrapper cursor-pointer rounded-lg hover:bg-gray-100 py-3 px-4 gap-2 text-gray-800"
         @click="openUrl(social.link)"
       >
-        <component :is="social.icon" class="w-5 h-5 stroke-transparent" />
+        <component :is="social.icon" class="w-5 h-5 stroke-transparent social-icon" />
         <span class="font-semibold">{{ social.name }}</span>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.social-icon {
+  // Make icon black and white
+  filter: grayscale(100%);
+
+  // Make icon color on hover
+  &:hover {
+    filter: grayscale(100%) invert(100%);
+  }
+}
+
+.social-icon-wrapper {
+  .nc-icon {
+    @apply mr-0.15;
+  }
+
+  &:hover {
+    .social-icon {
+      filter: none !important;
+    }
+  }
+}
+</style>

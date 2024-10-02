@@ -73,12 +73,12 @@ const renderedText = computedAsync(async () => {
 </script>
 
 <template>
-  <div class="relative rounded-xl flex flex-col mt-8 bg-white changelog-card">
+  <div class="relative rounded-xl flex flex-col mt-6.25 bg-white changelog-card">
     <div
-      class="w-full relative border border-black h-[334px] xl:h-[394px] w-[540px] xl:w-[640px] border-opacity-10 rounded-t-xl overflow-hidden"
+      class="w-full relative border border-black h-[334px] xl:h-[394px] w-[540px] xl:w-[638px] border-opacity-10 rounded-t-xl overflow-hidden"
     >
       <LazyCellAttachmentPreviewImage
-        :srcs="getPossibleAttachmentSrc(Images[0] ?? [])"
+        :srcs="getPossibleAttachmentSrc(Images[0] ?? [], 'card_cover')"
         class="absolute w-full h-full inset-0 object-cover transition-all ease-in-out transform hover:scale-105"
       />
     </div>
@@ -147,9 +147,7 @@ const renderedText = computedAsync(async () => {
 
 .changelog-card {
   @apply transform transition-all ease-in-out;
-  &:hover {
-    box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
-  }
+  box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
 }
 
 a {

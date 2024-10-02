@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 
-const { navigateToFeed } = useWorkspace()
-const productFeed = useProductFeed()
+const workspaceStore = useWorkspace()
 
-const { loadFeed } = productFeed
+const { navigateToFeed } = workspaceStore
 
-const { socialFeed } = toRefs(productFeed)
+const { isFeedPageOpened } = storeToRefs(workspaceStore)
+
+const { loadFeed, socialFeed } = useProductFeed()
 
 const isNewFeedAvailable = ref(false)
 
@@ -30,19 +31,33 @@ const gotoFeed = () => navigateToFeed()
 </script>
 
 <template>
-  <div class="px-2 feed-btn py-2">
+  <NcButton
+    v-e="['c:product-feed']"
+    type="text"
+    full-width
+    size="xsmall"
+    class="n!xs:hidden my-0.5 !h-7 w-full !rounded-md !font-normal !px-3"
+    data-testid="nc-sidebar-product-feed"
+    :centered="false"
+    :class="{
+      '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': isFeedPageOpened,
+      '!hover:(bg-gray-200 text-gray-700)': !isFeedPageOpened,
+    }"
+    @click="gotoFeed"
+  >
     <div
-      class="flex items-center justify-between text-nc-content-brand py-1.5 cursor-pointer px-3 hover:bg-nc-bg-brand-hover bg-nc-bg-brand rounded-lg"
-      @click="gotoFeed"
+      class="flex !w-full items-center gap-2"
+      :class="{
+        'font-semibold': isFeedPageOpened,
+      }"
     >
-      <div class="flex items-center gap-3">
-        <GeneralIcon icon="megaPhone" />
+      <div class="flex flex-1 w-full items-center gap-3">
+        <GeneralIcon icon="megaPhone" class="!h-4" />
         <span class="font-semibold">What’s New!</span>
       </div>
-
       <div v-if="isNewFeedAvailable" class="w-3 h-3 pulsing-dot bg-nc-fill-red-medium border-2 border-white rounded-full"></div>
     </div>
-  </div>
+  </NcButton>
 </template>
 
 <style scoped lang="scss">
@@ -63,5 +78,9 @@ const gotoFeed = () => navigateToFeed()
 
 .pulsing-dot {
   animation: pulse 1.5s infinite ease-in-out;
+}
+
+:deep(.nc-btn-inner) {
+  @apply !w-full;
 }
 </style>

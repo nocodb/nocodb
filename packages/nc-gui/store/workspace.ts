@@ -45,6 +45,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
 
+  const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
+
   const isWorkspaceLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
   const isInvitingCollaborators = ref(false)
@@ -340,6 +342,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     loadAudits,
     isIntegrationsPageOpened,
     navigateToIntegrations,
+    isFeedPageOpened,
   }
 })
 

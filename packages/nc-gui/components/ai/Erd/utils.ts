@@ -92,8 +92,8 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
       const relation: Relation = {
         source,
         target,
-        childColId: source,
-        parentColId: target,
+        parentColId: source,
+        childColId: target,
         modelId: source,
         type: column.type,
       }
@@ -113,7 +113,7 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
 
     return [
       // detailed edge label
-      `[${source}] ${parentColId} - ${typeLabel[type]} - ${childColId} [${target}]`,
+      `[${source}] ${childColId} - ${typeLabel[type]} - ${parentColId} [${target}]`,
       // simple edge label (for skeleton)
       `${source} - ${typeLabel[type]} - ${target}`,
     ]
@@ -160,7 +160,7 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
 
       if (type === RelationTypes.HAS_MANY || type === 'oo') {
         sourceColumnId = childColId
-        targetColumnId = childColId
+        targetColumnId = parentColId
       }
 
       if (type === RelationTypes.MANY_TO_MANY) {

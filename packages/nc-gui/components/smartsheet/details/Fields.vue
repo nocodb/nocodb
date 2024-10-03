@@ -111,6 +111,7 @@ const {
   onTagRemoveFromPrediction,
   onSelectAll,
   onDeselectAll,
+  handleRefreshOnError,
 } = usePredictFields()
 
 const localMetaColumns = ref<ColumnType[] | undefined>([])
@@ -1427,7 +1428,7 @@ const onPredictNextFields = async (formula?: boolean) => {
 
                 <NcTooltip v-if="predicted.length || !selected.length" :disabled="selected.length < maxSelectionCount">
                   <template #title>
-                    <div class="w-[150px]">You can only select {{ maxSelectionCount }}  views to create at a time.</div>
+                    <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
                   </template>
                   <NcButton
                     size="xs"

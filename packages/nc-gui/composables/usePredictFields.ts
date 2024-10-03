@@ -22,7 +22,7 @@ interface PredictedFieldType {
 const maxSelectionCount = 6
 
 export const usePredictFields = createSharedComposable(() => {
-  const { predictNextFields } = useNocoAi()
+  const { aiIntegrationAvailable, aiLoading, aiError, predictNextFields } = useNocoAi()
 
   const { meta } = useSmartsheetStoreOrThrow()
 
@@ -218,6 +218,19 @@ export const usePredictFields = createSharedComposable(() => {
     selected.value = selected.value.filter((sv) => !ncIsArrayIncludes(predictHistory.value, sv.title, 'title'))
   }
 
+  const handleRefreshOnError = () => {
+    switch (calledFunction.value) {
+      case 'predictMore':
+        return predictMore()
+      case 'predictRefresh':
+        return predictRefresh()
+      case 'predictFromPrompt':
+        return predictFromPrompt()
+
+      default:
+    }
+  }
+
   function onInit() {
     aiMode.value = false
     aiModeStep.value = null
@@ -257,5 +270,6 @@ export const usePredictFields = createSharedComposable(() => {
     onTagRemoveFromPrediction,
     onSelectAll,
     onDeselectAll,
+    handleRefreshOnError,
   }
 })

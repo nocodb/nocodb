@@ -46,9 +46,19 @@ const tabs: Array<{
   },
 ]
 
-const updateTab = (key: string) => {
-  $e(`c:nocodb:feed, tab:${key}`)
-}
+const router = useRouter()
+
+watch(activeTab, (val) => {
+  $e('c:nocodb:feed', { tab: val })
+  router.push({ query: { tab: val } })
+})
+
+onMounted(() => {
+  const tab = router.currentRoute.value.query.tab as string
+  if (tab && tabs.some((t) => t.key === tab)) {
+    activeTab.value = tab
+  }
+})
 </script>
 
 <template>
@@ -58,7 +68,7 @@ const updateTab = (key: string) => {
     <NcTabs v-model:activeKey="activeTab" centered>
       <a-tab-pane v-for="tab in tabs" :key="tab.key" class="bg-gray-50 !h-full">
         <template #tab>
-          <div class="flex gap-2 items-center" @click="updateTab(tab.key)">
+          <div class="flex gap-2 items-center">
             <GeneralIcon
               :class="{
                 'text-brand-500': activeTab === tab.key,

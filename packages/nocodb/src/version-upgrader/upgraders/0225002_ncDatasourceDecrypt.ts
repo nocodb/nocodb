@@ -111,7 +111,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   // if all failed, log and exit
   if (passed.length > 0 && passed.every((v) => !v)) {
     throw new Error(
-      `Failed to decrypt all source or integration. Please configure correct encryption key.`,
+      `Failed to decrypt any source or integration. Please configure correct encryption key.`,
     );
   }
 

@@ -6,6 +6,10 @@ html {
   overflow: hidden;
 }
 
+* {
+  font-synthesis: none;
+}
+
 @layer utilities {
   @variants responsive {
     /* Chrome, Safari and Opera */

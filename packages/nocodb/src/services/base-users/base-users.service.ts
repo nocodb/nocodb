@@ -461,7 +461,7 @@ export class BaseUsersService {
 
     if (Object.keys(baseUserData).length) {
       // create new base user if it doesn't exist
-      if (!(await BaseUser.get(context, param.baseId, param.user?.id))) {
+      if (!(await BaseUser.exists(context, param.baseId, param.user?.id))) {
         await BaseUser.insert(context, {
           ...baseUserData,
           base_id: param.baseId,

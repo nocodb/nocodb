@@ -46,9 +46,19 @@ const tabs: Array<{
   },
 ]
 
+const router = useRouter()
+
 const updateTab = (key: string) => {
   $e(`c:nocodb:feed, tab:${key}`)
+  router.push({ query: { tab: key } })
 }
+
+onMounted(() => {
+  const tab = router.currentRoute.value.query.tab as string
+  if (tab) {
+    activeTab.value = tab
+  }
+})
 </script>
 
 <template>

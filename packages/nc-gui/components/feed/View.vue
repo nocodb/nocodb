@@ -49,7 +49,7 @@ const tabs: Array<{
 const router = useRouter()
 
 watch(activeTab, (val) => {
-  $e(`c:nocodb:feed, tab:${val}`)
+  $e('c:nocodb:feed', { tab: val })
   router.push({ query: { tab: val } })
 })
 

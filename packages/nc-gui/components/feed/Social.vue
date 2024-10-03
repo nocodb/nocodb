@@ -6,7 +6,7 @@ const socialIcons = [
     name: '@nocodb',
     icon: iconMap.iconTwitter,
     link: 'https://twitter.com/nocodb',
-    e: 'c:feed::twitter-open',
+    e: 'c:feed:twitter-open',
   },
   {
     name: 'NocoDB',

@@ -185,12 +185,12 @@ export default class BaseUser {
    * @param userId
    * @param ncMeta
    */
-  public static async exists(
+  public static async getBaseUserFromDb(
     context: NcContext,
     baseId: string,
     userId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<boolean> {
+  ): Promise<BaseUser> {
     const baseUser = await ncMeta.metaGet2(
       context.workspace_id,
       context.base_id,
@@ -200,7 +200,7 @@ export default class BaseUser {
         fk_user_id: userId,
       },
     )
-    return !!baseUser;
+    return baseUser && this.castType(baseUser);
   }
 
   public static async getUsersList(

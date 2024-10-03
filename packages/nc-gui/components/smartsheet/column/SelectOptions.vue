@@ -690,23 +690,27 @@ if (!isKanbanStack.value) {
           <span class="flex-auto">Add option</span>
         </div>
       </NcButton>
-      <NcButton
-        v-if="aiIntegrationAvailable"
-        type="secondary"
-        theme="ai"
-        class="nc-add-select-option-auto-suggest w-1/2 caption"
-        size="small"
-        :bordered="false"
-        :disabled="aiLoading"
-        :loading="aiLoading"
-        @click.stop="predictOptions()"
-      >
-        <template #icon>
-          <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
-        </template>
-        <template #loading> {{ $t('labels.suggesting') }} </template>
-        {{ $t('labels.autoSuggest') }}
-      </NcButton>
+      <NcTooltip class="w-1/2" :disabled="!!vModel.title?.trim()">
+        <template #title> {{ $t('tooltip.fieldNameIsRequriedToAutoSuggestOptions') }} </template>
+
+        <NcButton
+          v-if="aiIntegrationAvailable"
+          type="secondary"
+          theme="ai"
+          class="nc-add-select-option-auto-suggest w-full caption"
+          size="small"
+          :bordered="false"
+          :disabled="aiLoading || !vModel.title?.trim()"
+          :loading="aiLoading"
+          @click.stop="predictOptions()"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+          </template>
+          <template #loading> {{ $t('labels.suggesting') }} </template>
+          {{ $t('labels.autoSuggest') }}
+        </NcButton>
+      </NcTooltip>
     </div>
     <div v-else-if="aiIntegrationAvailable" class="mt-2 pl-1">
       <NcButton

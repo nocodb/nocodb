@@ -1325,7 +1325,8 @@
     "surveyFormInfo": "Form mode with one field per page",
     "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported",
     "roleInheritedFromWorkspace": "Role inherited from workspace",
-    "comingSoonIntegration": "Coming soon! Click to upvote for the integration you need in NocoDB."
+    "comingSoonIntegration": "Coming soon! Click to upvote for the integration you need in NocoDB.",
+    "fieldNameIsRequriedToAutoSuggestOptions": "Field name is required to auto suggest options"
   },
   "placeholder": {
     "searchIcons": "Search icons",

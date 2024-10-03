@@ -637,10 +637,17 @@ if (!isKanbanStack.value) {
                 <div class="p-2 flex !cursor-disabled">
                   <component :is="iconMap.dragVertical" small class="handle opacity-75" />
                 </div>
-
                 <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
-                  <div class="h-6 w-6 rounded flex-none flex items-center justify-center bg-nc-bg-gray-medium">
-                    <GeneralLoader size="regular" />
+                  <div
+                    class="h-6 w-6 rounded flex items-center justify-center"
+                    :style="{
+                      backgroundColor: getNextColor(),
+                      color: tinycolor.isReadable(getNextColor() || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                        ? '#fff'
+                        : tinycolor.mostReadable(getNextColor() || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                    }"
+                  >
+                    <GeneralLoader size="regular" class="!text-current" />
                   </div>
                 </div>
 

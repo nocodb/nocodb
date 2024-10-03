@@ -680,7 +680,7 @@ if (!isKanbanStack.value) {
     >
       <NcButton
         type="text"
-        class="nc-add-select-option-btn w-1/2 caption"
+        class="nc-add-select-option-btn flex-1 caption"
         size="small"
         data-testid="nc-add-select-option-btn"
         @click.stop="addNewOption()"
@@ -694,7 +694,7 @@ if (!isKanbanStack.value) {
         v-if="aiIntegrationAvailable"
         type="secondary"
         theme="ai"
-        class="nc-add-select-option-auto-suggest flex-1 caption"
+        class="nc-add-select-option-auto-suggest w-1/2 caption"
         size="small"
         :bordered="false"
         :disabled="aiLoading"
@@ -764,10 +764,10 @@ if (!isKanbanStack.value) {
   @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
 
   .nc-add-select-option-btn {
-    @apply -my-[1px] h-[34px] rounded-none !border-transparent !border-r-1 !border-r-nc-border-gray-medium;
+    @apply rounded-none;
   }
   .nc-add-select-option-auto-suggest {
-    @apply rounded-none;
+    @apply -my-[1px] h-[34px] rounded-none !border-l-1 !border-l-nc-border-gray-medium;
   }
 }
 </style>

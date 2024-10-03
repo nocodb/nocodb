@@ -102,7 +102,10 @@ export default class Source extends SourceCE implements SourceType {
 
   async sourceCleanup(ncMeta = Noco.ncMeta) {
     // remove schema if NC_MINIMAL_DBS enabled
-    if (process.env.NC_MINIMAL_DBS === 'true' && this.isMeta(true, 1)) {
+    if (
+      process.env.NC_DISABLE_BASE_AS_PG_SCHEMA !== 'true' &&
+      this.isMeta(true, 1)
+    ) {
       const schema = this.getConfig().schema;
       await ncMeta.knex.raw(`DROP SCHEMA IF EXISTS ?? CASCADE`, [schema]);
     }

@@ -129,9 +129,15 @@ export class BasesService extends BasesServiceCE {
       const ranId = nanoid();
       baseBody.prefix = `nc_${ranId}__`;
       baseBody.is_meta = true;
-      if (process.env.NC_MINIMAL_DBS === 'true') {
+      if (
+        process.env.NC_MINIMAL_DBS === 'true' ||
+        process.env.NC_DISABLE_BASE_AS_PG_SCHEMA !== 'true'
+      ) {
         const dataConfig = await NcConnectionMgrv2.getDataConfig();
-        if (dataConfig?.client === 'pg') {
+        if (
+          dataConfig?.client === 'pg' &&
+          process.env.NC_DISABLE_BASE_AS_PG_SCHEMA !== 'true'
+        ) {
           baseBody.prefix = '';
           baseBody.sources = [
             {

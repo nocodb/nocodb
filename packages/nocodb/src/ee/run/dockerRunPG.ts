@@ -23,8 +23,8 @@ process.env[
 ] = `pg://localhost:5432?u=postgres&p=password&d=meta_${dbSuffix}`;
 process.env[
   `NC_DATA_DB`
-] = `pg://localhost:5432?u=postgres&p=password&d=data_${dbSuffix}`;
-process.env[`NC_MINIMAL_DBS`] = `true`;
+] = `pg://localhost:5432?u=postgres&p=password&d=data_${dbSuffix}1`;
+process.env[`NC_DISABLE_BASE_AS_PG_SCHEMA`] = `false`;
 // process.env[`NC_DATA_DB`] = `pg://localhost:5432?u=postgres&p=password&d=${metaDb}_data`;
 // process.env[`NC_TRY`] = 'true';
 // process.env[`NC_DASHBOARD_URL`] = '/test';

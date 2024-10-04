@@ -23,7 +23,7 @@ const vModel = useVModel(props, 'model', emits)
 
 const { $api } = useNuxtApp()
 
-const { aiIntegrationAvailable, aiIntegrations, loadAiIntegrations } = useNocoAi()
+const { aiIntegrations } = useNocoAi()
 
 const lastIntegrationId = ref<string | null>(null)
 
@@ -53,14 +53,6 @@ const onIntegrationChange = async () => {
 }
 
 onMounted(async () => {
-  await loadAiIntegrations()
-
-  if (aiIntegrations.value.length) {
-    aiIntegrationAvailable.value = true
-  } else {
-    aiIntegrationAvailable.value = false
-  }
-
   if (!vFkIntegrationId.value) {
     if (aiIntegrations.value.length > 0 && aiIntegrations.value[0].id) {
       vFkIntegrationId.value = aiIntegrations.value[0].id

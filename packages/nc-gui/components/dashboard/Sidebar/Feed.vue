@@ -12,7 +12,7 @@ const gotoFeed = () => navigateToFeed()
 
 <template>
   <NcButton
-    v-e="['c:product-feed']"
+    v-e="['c:nocodb:feed']"
     type="text"
     full-width
     size="xsmall"

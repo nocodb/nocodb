@@ -5,7 +5,6 @@ import { extractYoutubeVideoId } from '../../../utils/urlUtils'
 
 const props = defineProps<{
   item: ProductFeedItem
-  isRecent?: boolean
 }>()
 
 const {
@@ -13,6 +12,16 @@ const {
 } = props
 
 const { width } = useWindowSize()
+
+const { $e } = useNuxtApp()
+
+const watchVideo = () => {
+  $e('c:nocodb:feed:youtube:watch', {
+    title: Title,
+    description: Description,
+    url: Url,
+  })
+}
 </script>
 
 <template>
@@ -24,6 +33,7 @@ const { width } = useWindowSize()
       :width="width < 1280 ? 538 : 638"
       :autoplay="0"
       :controls="1"
+      @played="watchVideo"
     />
 
     <div class="text-nc-content-gray-emphasis flex flex-col p-5 gap-4">

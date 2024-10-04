@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { IntegrationCategoryType, isVirtualCol, UITypes } from 'nocodb-sdk';
+import {
+  IntegrationCategoryType,
+  isVirtualCol,
+  UITypes,
+  type PredictNextFieldsType,
+} from 'nocodb-sdk';
 import { z } from 'zod';
 import type { NcContext } from '~/interface/config';
 import type AiIntegration from '~/integrations/ai/ai.interface';
@@ -215,6 +220,25 @@ export class AiUtilsService {
     });
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    // Filter out duplicate fields
+    {
+      const resFields =
+        (
+          data as {
+            fields: PredictNextFieldsType[];
+          }
+        ).fields || [];
+
+      const existingFields = [
+        ...columns.map((t) => t.title),
+        ...(params.input.history || []),
+      ];
+
+      (data as { fields: PredictNextFieldsType[] }).fields = resFields.filter(
+        (f) => !existingFields.includes(f.title),
+      );
+    }
 
     return data;
   }

@@ -18,3 +18,9 @@ export interface SerializedAiViewType {
   gridGroupBy?: string | string[];
   kanbanGroupBy?: string | string[];
 }
+
+export interface PredictNextFieldsType {
+  title: string;
+  type: string;
+  options?: string[];
+}

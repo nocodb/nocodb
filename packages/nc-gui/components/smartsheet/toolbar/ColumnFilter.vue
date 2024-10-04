@@ -667,7 +667,7 @@ const changeToDynamic = async (filter, i) => {
                       >
                         <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                           <div class="flex items-center w-full justify-between w-full gap-2">
-                            <div class="truncate flex-1 capitalize">{{ op.value }}</div>
+                            <div class="truncate flex-1 capitalize">{{ op.text }}</div>
                             <component
                               :is="iconMap.check"
                               v-if="filter.logical_op === op.value"
@@ -719,7 +719,7 @@ const changeToDynamic = async (filter, i) => {
             >
               <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
                 <div class="flex items-center w-full justify-between w-full gap-2">
-                  <div class="truncate flex-1 capitalize">{{ op.value }}</div>
+                  <div class="truncate flex-1 capitalize">{{ op.text }}</div>
                   <component
                     :is="iconMap.check"
                     v-if="filter.logical_op === op.value"

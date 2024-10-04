@@ -24,3 +24,8 @@ export interface PredictNextFieldsType {
   type: string;
   options?: string[];
 }
+
+export interface PredictNextFormulasType {
+  title: string;
+  formula: string;
+}

@@ -4,6 +4,7 @@ import {
   isVirtualCol,
   type PredictNextFieldsType,
   UITypes,
+  type PredictNextFormulasType,
 } from 'nocodb-sdk';
 import { z } from 'zod';
 import type { NcContext } from '~/interface/config';
@@ -192,7 +193,9 @@ export class AiUtilsService {
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
-    const { data, usage } = await wrapper.generateObject({
+    const { data, usage } = await wrapper.generateObject<{
+      fields: PredictNextFieldsType[];
+    }>({
       schema: z.object({
         fields: z.array(
           z.object({
@@ -223,21 +226,14 @@ export class AiUtilsService {
 
     // Filter out duplicate fields
     {
-      const resFields =
-        (
-          data as {
-            fields: PredictNextFieldsType[];
-          }
-        ).fields || [];
+      const resFields = data.fields || [];
 
       const existingFields = [
         ...columns.map((t) => t.title),
         ...(params.input.history || []),
       ];
 
-      (data as { fields: PredictNextFieldsType[] }).fields = resFields.filter(
-        (f) => !existingFields.includes(f.title),
-      );
+      data.fields = resFields.filter((f) => !existingFields.includes(f.title));
     }
 
     return data;
@@ -275,14 +271,18 @@ export class AiUtilsService {
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
-    const { data, usage } = await wrapper.generateObject({
+    const { data, usage } = await wrapper.generateObject<{
+      formulas: PredictNextFormulasType[];
+    }>({
       schema: z.object({
         formulas: z.array(z.object({ title: z.string(), formula: z.string() })),
       }),
       messages: [
         {
           role: 'system',
-          content: formulasSystemMessage(),
+          content: formulasSystemMessage(
+            columns.filter((c) => !isVirtualCol(c)).map((c) => c.title),
+          ),
         },
         {
           role: 'user',
@@ -299,6 +299,20 @@ export class AiUtilsService {
     });
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    // Filter out duplicate fields
+    {
+      const resFields = data.formulas || [];
+
+      const existingFields = [
+        ...columns.map((t) => t.title),
+        ...(params.input.history || []),
+      ];
+
+      data.formulas = resFields.filter(
+        (f) => !existingFields.includes(f.title),
+      );
+    }
 
     return data;
   }

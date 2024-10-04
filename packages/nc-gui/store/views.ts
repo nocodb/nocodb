@@ -484,11 +484,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
           return $api.dbView.mapCreate(view.fk_model_id, payload)
         case _ViewTypes.CALENDAR:
           return $api.dbView.calendarCreate(view.fk_model_id, payload)
+        default:
+          message.error(`Unsupported view type: ${payload.type}`)
+          return
       }
     }
 
     try {
-      const data = await createView()
+      const data = await createView?.()
       return data
     } catch (e: any) {
       message.error(e.message)

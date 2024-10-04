@@ -9,6 +9,7 @@ export interface ActionsEE {
 }
 
 export function useGlobalActions(state: State): Actions & ActionsEE {
+  const isTokenRefreshInProgress = useStorage(TOKEN_REFRESH_PROGRESS_KEY, false)
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
 
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -70,7 +71,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   /** Sign in by setting the token in localStorage
    * keepProps - is for keeping any existing role info if user id is same as previous user
    */
-  const signIn: Actions['signIn'] = async (newToken, keepProps = false) => {
+  const signIn: Actions['signIn'] = (newToken, keepProps = false) => {
     isTokenUpdatedTab.value = true
     state.token.value = newToken
 
@@ -89,7 +90,11 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   let tokenGenerationProgress: Promise<any> | null = null
   let resolveTokenGenerationProgress: (value: any) => void = null
 
-  const checkForCognitoToken = async () => {
+  const checkForCognitoToken = async ({axiosInstance = nuxtApp.$api.instance, skipSignOut = false}: {
+    axiosInstance?: any
+    skipSignOut?: boolean
+  } = {
+  }) => {
     if (tokenGenerationProgress) {
       await tokenGenerationProgress
     }
@@ -110,7 +115,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
 
       const nuxtApp = useNuxtApp()
 
-      const tokenRes = await nuxtApp.$api.instance.post(
+      const tokenRes = await axiosInstance.post(
         '/auth/cognito',
         {},
         {
@@ -119,7 +124,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
           },
         },
       )
-      if ((await tokenRes).data.token) {
+      if (tokenRes.data.token) {
         updateFirstTimeUser()
         await signIn((await tokenRes).data.token)
       }
@@ -131,34 +136,45 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   }
 
   /** manually try to refresh token */
-  const refreshToken = async () => {
+  const refreshToken = async ({axiosInstance = nuxtApp.$api.instance, skipSignOut = false}: {
+    axiosInstance?: any
+    skipSignOut?: boolean
+  } = {
+  }) => {
+
     const nuxtApp = useNuxtApp()
     const t = nuxtApp.vueApp.i18n.global.t
+    isTokenRefreshInProgress.value = true
 
-    return new Promise((resolve) => {
-      nuxtApp.$api.instance
+    try{
+      const response = await axiosInstance
         .post('/auth/token/refresh', null, {
           withCredentials: true,
         })
-        .then((response) => {
-          if (response.data?.token) {
-            signIn(response.data.token, true)
-          }
+
+      if (response.data?.token) {
+         signIn(response.data.token, true)
+        return response.data.token
+      }
+    }catch (e) {
+// if error occurs, check cognito and generate token or signout
+      if (isAmplifyConfigured.value) {
+        // reset token value to null since cognito token is not valid
+        state.token.value = null
+        await checkForCognitoToken({
+          skipSignOut,
+          axiosInstance
         })
-        .catch(async () => {
-          if (isAmplifyConfigured.value) {
-            // reset token value to null
-            state.token.value = null
-            await checkForCognitoToken()
-          } else if (state.token.value && state.user.value) {
-            await signOut({
-              skipApiCall: true,
-            })
-            message.error(t('msg.error.youHaveBeenSignedOut'))
-          }
+      } else if (state.token.value && state.user.value) {
+        await signOut({
+          skipApiCall: true,
         })
-        .finally(() => resolve(true))
-    })
+        message.error(t('msg.error.youHaveBeenSignedOut'))
+      }
+    }
+    finally {
+      isTokenRefreshInProgress.value = false
+    }
   }
 
   const loadAppInfo = async () => {

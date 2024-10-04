@@ -137,6 +137,11 @@ export function addAxiosInterceptors(api: Api<any>) {
           })
       }
 
+      try {
+        const token = await state.refreshToken()
+        refreshTokenPromiseRes(token)
+      } catch (e) {}
+
       // Try request again with new token
       return axiosInstance
         .post('/auth/token/refresh', null, {

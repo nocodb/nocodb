@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, type TableType, type ViewType, ViewTypes } from 'nocodb-sdk'
+import { type BaseType, type TableType, ViewTypes } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
@@ -232,7 +232,7 @@ async function onDuplicate() {
   const defaultView = views?.find((v) => v.is_default) || views?.[0]
 
   if (defaultView) {
-    const view = (await duplicateView(defaultView)) as ViewType
+    const view = await duplicateView(defaultView)
 
     refreshCommandPalette()
 

@@ -1,15 +1,4 @@
-import type {
-  CalendarType,
-  FilterType,
-  FormType,
-  GalleryType,
-  GridType,
-  KanbanType,
-  MapType,
-  SortType,
-  ViewType,
-  ViewTypes,
-} from 'nocodb-sdk'
+import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
 import { ViewTypes as _ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
@@ -499,7 +488,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     }
 
     try {
-      const data: GridType | KanbanType | GalleryType | FormType | CalendarType | MapType | null = await createView()
+      const data = await createView()
       return data
     } catch (e: any) {
       message.error(e.message)

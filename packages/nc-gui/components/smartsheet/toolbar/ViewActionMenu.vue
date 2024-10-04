@@ -94,7 +94,7 @@ const isOnDuplicateLoading = ref<boolean>(false)
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
 async function onDuplicate() {
   isOnDuplicateLoading.value = true
-  const duplicatedView = (await duplicateView(view.value)) as ViewType
+  const duplicatedView = await duplicateView(view.value)
 
   refreshCommandPalette()
 

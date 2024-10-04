@@ -289,7 +289,7 @@ const checkboxIconList = [
   },
 ]
 
-export const ratingIconList = [
+const ratingIconList = [
   {
     full: 'mdi-star',
     empty: 'mdi-star-outline',

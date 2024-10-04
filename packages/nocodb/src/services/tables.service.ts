@@ -558,18 +558,12 @@ export class TablesService {
       }
     }
 
-
-
-    if (
-      !tableCreatePayLoad.title
-    ) {
-      NcError.badRequest(
-        'Missing table `title` property in request body',
-      );
+    if (!tableCreatePayLoad.title) {
+      NcError.badRequest('Missing table `title` property in request body');
     }
 
-    if(!tableCreatePayLoad.table_name) {
-
+    if (!tableCreatePayLoad.table_name) {
+      tableCreatePayLoad.table_name = tableCreatePayLoad.title;
     }
 
     if (
@@ -622,8 +616,6 @@ export class TablesService {
         source,
       );
     }
-
-
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
 

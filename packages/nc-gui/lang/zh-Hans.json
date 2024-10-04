@@ -30,11 +30,11 @@
       "scatter_plot": "散点图",
       "bubble_chart": "气泡图",
       "radar_chart": "雷达图",
-      "polar_area_chart": "极地区域图",
+      "polar_area_chart": "极地面积图",
       "radial_bar_chart": "径向柱形图",
       "heatmap_chart": "热度图",
-      "treemap_chart": "树状地图",
-      "box_plot_chart": "方框图表",
+      "treemap_chart": "树状图",
+      "box_plot_chart": "箱形图",
       "candlestick_chart": "K 线图"
     }
   },
@@ -93,7 +93,7 @@
     "none": "空"
   },
   "general": {
-    "scripts": "Scripts",
+    "scripts": "脚本",
     "configure": "配置",
     "switch": "切换",
     "on": "开",
@@ -289,8 +289,8 @@
     "private": "私人",
     "request": "请求",
     "languages": "语言",
-    "extension": "Extension",
-    "extensions": "Extensions"
+    "extension": "扩展",
+    "extensions": "扩展"
   },
   "objects": {
     "files": "文件",
@@ -622,8 +622,8 @@
     "fromFileAndExternalSources": "来自文件和外部来源",
     "directlyInRealTime": "直接实时使用",
     "categories": "类别",
-    "fieldInaccessible": "Field inaccessible",
-    "noConditionsAdded": "No conditions added"
+    "fieldInaccessible": "无法访问字段",
+    "noConditionsAdded": "未添加条件"
   },
   "labels": {
     "modifiedOn": "修改于",
@@ -857,7 +857,7 @@
     "description": "描述",
     "authentication": "身份认证",
     "token": "令牌",
-    "where": "在哪里",
+    "where": "条件",
     "cache": "缓存",
     "chat": "聊天",
     "showOrHide": "显示或隐藏",
@@ -988,7 +988,7 @@
     "appearanceSettings": "外观设置",
     "backgroundColor": "背景颜色",
     "hideNocodbBranding": "隐藏 NocoDB 标识",
-    "showOnConditions": "Show on conditions",
+    "showOnConditions": "根据条件显示",
     "showFieldOnConditionsMet": "在满足条件时显示字段",
     "limitOptions": "限制选项",
     "limitOptionsSubtext": "限制用户可见",
@@ -1260,7 +1260,7 @@
     "getPreFilledLink": "获取预填链接",
     "group": "分组",
     "goToDocs": "转到文档",
-    "addCondition": "Add condition",
+    "addCondition": "添加条件",
     "addConditionGroup": "添加条件组"
   },
   "tooltip": {

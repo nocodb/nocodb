@@ -12,15 +12,7 @@ import { ProjectStatus, readonlyMetaAllowedTypes } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
-import {
-  Base,
-  CalendarView,
-  Column,
-  KanbanView,
-  Model,
-  Source,
-  View,
-} from '~/models';
+import { Base, Column, Model, Source } from '~/models';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';

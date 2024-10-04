@@ -28,7 +28,6 @@ const view = computed(() => props.view)
 
 const table = computed(() => props.table)
 
-const { viewsByTable } = storeToRefs(useViewsStore())
 const { loadViews, navigateToView, duplicateView } = useViewsStore()
 
 const { base } = storeToRefs(useBase())
@@ -36,8 +35,6 @@ const { base } = storeToRefs(useBase())
 const { refreshCommandPalette } = useCommandPalette()
 
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
-
-const views = computed(() => viewsByTable.value.get(table.value.id!))
 
 const isViewIdCopied = ref(false)
 

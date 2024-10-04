@@ -55,8 +55,8 @@ jobs:
       - name: build nocodb-sdk
         working-directory: ./packages/nocodb-sdk
         run: |
-          pnpm run generate:sdk:ee
-          pnpm run build:ee:main
+          pnpm run generate:sdk
+          pnpm run build:main
       - name: run unit tests
         working-directory: ./packages/nocodb
         run: pnpm run test

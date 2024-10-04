@@ -27,14 +27,14 @@
     "start": "pnpm run watch:run",
     "start:prod": "node docker/main",
     "lint": "eslint \"src/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "watch:run": "cross-env NC_DISABLE_TELE=true NODE_ENV=development EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
-    "watch:run:mysql": "cross-env  NC_DISABLE_TELE=true NODE_ENV=development EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunMysql --log-error --project tsconfig.json\"",
-    "watch:run:pg": "cross-env  NC_DISABLE_TELE=true NODE_ENV=development EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
+    "watch:run:mysql": "cross-env NC_DISABLE_TELE=true NODE_ENV=development EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunMysql --log-error --project tsconfig.json\"",
+    "watch:run:pg": "cross-env NC_DISABLE_TELE=true NODE_ENV=development EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
     "watch:run:playwright:mysql": "rm -f ./test_noco.db; cross-env DB_TYPE=mysql NC_DB=\"mysql2://localhost:3306?u=root&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NODE_ENV=test NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
     "watch:run:playwright:pg": "rm -f ./test_noco.db; cross-env DB_TYPE=pg NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=pw_ncdb\" PLAYWRIGHT_TEST=true NODE_ENV=test NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
     "watch:run:playwright": "rm -f ./test_*.db; cross-env DB_TYPE=sqlite DATABASE_URL=sqlite:./test_noco.db PLAYWRIGHT_TEST=true NODE_ENV=test NC_DISABLE_TELE=true EE=true NC_SNAPSHOT_WINDOW_SEC=3 nodemon -e ts,js -w ./src -x \"ts-node src/run/testDocker --log-error --project tsconfig.json\"",
@@ -196,22 +196,5 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3",
     "webpack-cli": "^5.1.4"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
   }
 }

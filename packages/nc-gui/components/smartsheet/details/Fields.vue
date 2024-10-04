@@ -96,34 +96,6 @@ const { openedViewsTab } = storeToRefs(viewsStore)
 
 const { aiIntegrationAvailable, aiLoading, aiError, predictNextFields, predictNextFormulas } = useNocoAi()
 
-const {
-  aiMode,
-  aiModeStep,
-  predicted,
-  removedFromPredicted,
-  predictHistory,
-  selected,
-  calledFunction,
-  prompt,
-  isPromtAlreadyGenerated,
-  maxSelectionCount,
-  activeAiTab,
-  aiTabs,
-  isPredictFromPromptLoading,
-  onInit,
-  toggleAiMode,
-  disableAiMode,
-  predictMore,
-  predictRefresh,
-  predictFromPrompt,
-  onTagClick: _onTagClick,
-  onTagClose,
-  onTagRemoveFromPrediction,
-  onSelectAll,
-  onDeselectAll,
-  handleRefreshOnError,
-} = usePredictFields()
-
 const localMetaColumns = ref<ColumnType[] | undefined>([])
 
 const localPredictions = ref<string[]>([])
@@ -209,6 +181,34 @@ const fields = computed<TableExplorerColumn[]>({
 const activeField = ref()
 
 const searchQuery = ref<string>('')
+
+const {
+  aiMode,
+  aiModeStep,
+  predicted,
+  removedFromPredicted,
+  predictHistory,
+  selected,
+  calledFunction,
+  prompt,
+  isPromtAlreadyGenerated,
+  maxSelectionCount,
+  activeAiTab,
+  aiTabs,
+  isPredictFromPromptLoading,
+  onInit,
+  toggleAiMode,
+  disableAiMode,
+  predictMore,
+  predictRefresh,
+  predictFromPrompt,
+  onTagClick: _onTagClick,
+  onTagClose,
+  onTagRemoveFromPrediction,
+  onSelectAll,
+  onDeselectAll,
+  handleRefreshOnError,
+} = usePredictFields(fields)
 
 const calculateOrderForIndex = (index: number, fromAbove = false) => {
   if (!viewFields.value) return -1

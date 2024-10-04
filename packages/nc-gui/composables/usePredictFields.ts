@@ -1,4 +1,5 @@
-import type { SerializedAiViewType, UITypes } from 'nocodb-sdk'
+import type { UITypes } from 'nocodb-sdk'
+import type { WritableComputedRef } from '@vue/reactivity'
 
 enum AiStep {
   init = 'init',
@@ -21,7 +22,7 @@ interface PredictedFieldType {
 
 const maxSelectionCount = 6
 
-export const usePredictFields = createSharedComposable(() => {
+export const usePredictFields = createSharedComposable((fields: WritableComputedRef<Record<string, any>[]>) => {
   const { aiIntegrationAvailable, aiLoading, aiError, predictNextFields } = useNocoAi()
 
   const { meta } = useSmartsheetStoreOrThrow()

@@ -2,18 +2,18 @@ import process from 'process';
 import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
-import { ErrorReportReqType, ViewTypes } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
 import { useAgent } from 'request-filtering-agent';
 import dayjs from 'dayjs';
+import type { ErrorReportReqType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
-import { T } from '~/utils';
 import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { Base, Store, User } from '~/models';
 import Noco from '~/Noco';
-import { T } from '~/utils'
+import { T } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
@@ -30,13 +30,13 @@ import { getCircularReplacer } from '~/utils';
 const versionCache = {
   releaseVersion: null,
   lastFetched: null,
-}
+};
 
 const defaultConnectionConfig: any = {
   // https://github.com/knex/knex/issues/97
   // timezone: process.env.NC_TIMEZONE || 'UTC',
   dateStrings: true,
-}
+};
 
 interface ViewCount {
   formCount: number | null;
@@ -482,18 +482,19 @@ export class UtilsService {
       prodReady: Noco.getConfig()?.meta?.db?.client !== DriverClient.SQLITE,
     };
 
-    return result
+    return result;
   }
 
   async reportErrors(param: { body: ErrorReportReqType; req: NcRequest }) {
     for (const error of param.body?.errors ?? []) {
       T.emit('evt', {
-        evt_type: 'gui:error', properties: {
+        evt_type: 'gui:error',
+        properties: {
           message: error.message,
           stack: error.stack?.split('\n').slice(0, 2).join('\n'),
           ...(param.body.extra || {}),
         },
-      })
+      });
     }
   }
 

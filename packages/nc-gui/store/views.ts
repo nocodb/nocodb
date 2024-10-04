@@ -448,51 +448,39 @@ export const useViewsStore = defineStore('viewsStore', () => {
       calendar_range: [],
     }
 
-    // Handle specific view type data
-    switch (payload.type) {
-      case _ViewTypes.GALLERY:
-        payload.fk_cover_image_col_id = (view.view as GalleryType)?.fk_cover_image_col_id || null
-        break
-      case _ViewTypes.KANBAN:
-        payload.fk_cover_image_col_id = (view.view as KanbanType)?.fk_cover_image_col_id || null
-        payload.fk_grp_col_id = (view.view as KanbanType)?.fk_grp_col_id || null
-        break
-      case _ViewTypes.MAP:
-        payload.fk_geo_data_col_id = (view.view as MapType)?.fk_geo_data_col_id || null
-        break
-      case _ViewTypes.CALENDAR:
-        payload.calendar_range =
-          (view.view as CalendarType)?.calendar_range?.map((range) => ({
-            fk_from_column_id: range.fk_from_column_id as string,
-            fk_to_column_id: range.fk_to_column_id as string,
-          })) || []
-        break
-    }
-
-    // Centralized API call
-    const createView = async () => {
+    try {
       switch (payload.type) {
         case _ViewTypes.GRID:
-          return $api.dbView.gridCreate(view.fk_model_id, payload)
-        case _ViewTypes.GALLERY:
-          return $api.dbView.galleryCreate(view.fk_model_id, payload)
-        case _ViewTypes.FORM:
-          return $api.dbView.formCreate(view.fk_model_id, payload)
-        case _ViewTypes.KANBAN:
-          return $api.dbView.kanbanCreate(view.fk_model_id, payload)
-        case _ViewTypes.MAP:
-          return $api.dbView.mapCreate(view.fk_model_id, payload)
-        case _ViewTypes.CALENDAR:
-          return $api.dbView.calendarCreate(view.fk_model_id, payload)
-        default:
-          message.error(`Unsupported view type: ${payload.type}`)
-          return
-      }
-    }
+          return await $api.dbView.gridCreate(view.fk_model_id, payload)
 
-    try {
-      const data = await createView?.()
-      return data
+        case _ViewTypes.GALLERY:
+          payload.fk_cover_image_col_id = (view.view as GalleryType)?.fk_cover_image_col_id || null
+
+          return await $api.dbView.galleryCreate(view.fk_model_id, payload)
+
+        case _ViewTypes.FORM:
+          return await $api.dbView.formCreate(view.fk_model_id, payload)
+
+        case _ViewTypes.KANBAN:
+          payload.fk_cover_image_col_id = (view.view as KanbanType)?.fk_cover_image_col_id || null
+          payload.fk_grp_col_id = (view.view as KanbanType)?.fk_grp_col_id || null
+
+          return await $api.dbView.kanbanCreate(view.fk_model_id, payload)
+
+        case _ViewTypes.MAP:
+          payload.fk_geo_data_col_id = (view.view as MapType)?.fk_geo_data_col_id || null
+
+          return await $api.dbView.mapCreate(view.fk_model_id, payload)
+
+        case _ViewTypes.CALENDAR:
+          payload.calendar_range =
+            (view.view as CalendarType)?.calendar_range?.map((range) => ({
+              fk_from_column_id: range.fk_from_column_id as string,
+              fk_to_column_id: range.fk_to_column_id as string,
+            })) || []
+
+          return await $api.dbView.calendarCreate(view.fk_model_id, payload)
+      }
     } catch (e: any) {
       message.error(e.message)
     }

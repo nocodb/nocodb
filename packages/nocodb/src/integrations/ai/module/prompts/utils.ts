@@ -34,11 +34,14 @@ export const predictNextFieldsPrompt = (
   table: string,
   existingColumns: string[],
   history?: string[],
+  description?: string,
 ) =>
   `Predict next 3 to 5 column for table "${table}" which already have following columns: ${existingColumns
     .concat(history || [])
     .map((c) => `"${c}"`)
-    .join(', ')}`;
+    .join(', ')}${
+    description ? ` \n\nwith the following requirement: "${description}"` : ''
+  }`;
 
 export const formulasSystemMessage = (existingColumns?: string[]) =>
   `You are a smart-spreadsheet designer.

@@ -161,6 +161,7 @@ export class AiUtilsService {
       input: {
         tableId: string;
         history?: string[];
+        description?: string;
       };
       req?: any;
     },
@@ -207,6 +208,7 @@ export class AiUtilsService {
             model.title,
             columns.map((c) => c.title),
             params.input.history,
+            params.input.description,
           ),
         },
       ],

@@ -29,7 +29,7 @@ const view = computed(() => props.view)
 const table = computed(() => props.table)
 
 const { viewsByTable } = storeToRefs(useViewsStore())
-const { loadViews, navigateToView } = useViewsStore()
+const { loadViews, navigateToView, duplicateView } = useViewsStore()
 
 const { base } = storeToRefs(useBase())
 
@@ -91,51 +91,34 @@ async function changeLockType(type: LockType) {
   emits('closeModal')
 }
 
+const isOnDuplicateLoading = ref<boolean>(false)
+
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
-function onDuplicate() {
-  emits('closeModal')
+async function onDuplicate() {
+  isOnDuplicateLoading.value = true
+  const duplicatedView = (await duplicateView(view.value)) as ViewType
 
-  const isOpen = ref(true)
+  refreshCommandPalette()
 
-  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
-    'modelValue': isOpen,
-    'title': view.value!.title,
-    'type': view.value!.type as ViewTypes,
-    'tableId': table.value!.id,
-    'selectedViewId': view.value!.id,
-    'groupingFieldColumnId': view.value!.view!.fk_grp_col_id,
-    'views': views,
-    'description': view.value!.description,
-    'calendarRange': view.value!.view!.calendar_range,
-    'coverImageColumnId': view.value!.view!.fk_cover_image_col_id,
-    'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view: ViewType) => {
-      closeDialog()
-
-      refreshCommandPalette()
-
-      await loadViews({
-        force: true,
-        tableId: table.value!.id!,
-      })
-
-      navigateToView({
-        view,
-        tableId: table.value!.id!,
-        baseId: base.value.id!,
-        hardReload: view.type === ViewTypes.FORM,
-      })
-
-      $e('a:view:create', { view: view.type, sidebar: props.inSidebar })
-    },
+  await loadViews({
+    force: true,
+    tableId: table.value!.id!,
   })
 
-  function closeDialog() {
-    isOpen.value = false
+  if (duplicatedView) {
+    navigateToView({
+      view: duplicatedView,
+      tableId: table.value!.id!,
+      baseId: base.value.id!,
+      hardReload: duplicatedView.type === ViewTypes.FORM,
+    })
 
-    close(1000)
+    $e('a:view:create', { view: duplicatedView.type, sidebar: true })
   }
+
+  isOnDuplicateLoading.value = false
+  emits('closeModal')
 }
 
 const { copy } = useCopy()
@@ -208,7 +191,8 @@ const onDelete = async () => {
         </NcMenuItem>
       </template>
       <NcMenuItem @click="onDuplicate">
-        <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
+        <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
+        <GeneralIcon v-else class="nc-view-copy-icon" icon="duplicate" />
         {{
           $t('general.duplicateEntity', {
             entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),

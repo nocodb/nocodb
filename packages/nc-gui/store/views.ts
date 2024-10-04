@@ -1,4 +1,15 @@
-import type { FilterType, SortType, ViewType, ViewTypes } from 'nocodb-sdk'
+import type {
+  CalendarType,
+  FilterType,
+  FormType,
+  GalleryType,
+  GridType,
+  KanbanType,
+  MapType,
+  SortType,
+  ViewType,
+  ViewTypes,
+} from 'nocodb-sdk'
 import { ViewTypes as _ViewTypes } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { useTitle } from '@vueuse/core'
@@ -415,6 +426,86 @@ export const useViewsStore = defineStore('viewsStore', () => {
     )
   }
 
+  const duplicateView = async (view: ViewType) => {
+    if (!view?.id) return
+
+    const views = viewsByTable.value.get(view.fk_model_id) || []
+
+    const uniqueTitle = generateUniqueTitle(`${view.title} copy`, views, 'title', '_', true)
+
+    const payload: {
+      title: string
+      type: ViewTypes
+      description?: string
+      copy_from_id: string | null
+      // for kanban view only
+      fk_grp_col_id: string | null
+      fk_geo_data_col_id: string | null
+
+      // for calendar view only
+      calendar_range: Array<{
+        fk_from_column_id: string
+        fk_to_column_id: string | null // for ee only
+      }>
+      fk_cover_image_col_id: string | null
+    } = {
+      title: uniqueTitle,
+      type: view.type,
+      description: view.description || '',
+      copy_from_id: view.id!,
+      fk_grp_col_id: null,
+      fk_geo_data_col_id: null,
+      fk_cover_image_col_id: null,
+      calendar_range: [],
+    }
+
+    // Handle specific view type data
+    switch (payload.type) {
+      case _ViewTypes.GALLERY:
+        payload.fk_cover_image_col_id = (view.view as GalleryType)?.fk_cover_image_col_id || null
+        break
+      case _ViewTypes.KANBAN:
+        payload.fk_cover_image_col_id = (view.view as KanbanType)?.fk_cover_image_col_id || null
+        payload.fk_grp_col_id = (view.view as KanbanType)?.fk_grp_col_id || null
+        break
+      case _ViewTypes.MAP:
+        payload.fk_geo_data_col_id = (view.view as MapType)?.fk_geo_data_col_id || null
+        break
+      case _ViewTypes.CALENDAR:
+        payload.calendar_range =
+          (view.view as CalendarType)?.calendar_range?.map((range) => ({
+            fk_from_column_id: range.fk_from_column_id as string,
+            fk_to_column_id: range.fk_to_column_id as string,
+          })) || []
+        break
+    }
+
+    // Centralized API call
+    const createView = async () => {
+      switch (payload.type) {
+        case _ViewTypes.GRID:
+          return $api.dbView.gridCreate(view.fk_model_id, payload)
+        case _ViewTypes.GALLERY:
+          return $api.dbView.galleryCreate(view.fk_model_id, payload)
+        case _ViewTypes.FORM:
+          return $api.dbView.formCreate(view.fk_model_id, payload)
+        case _ViewTypes.KANBAN:
+          return $api.dbView.kanbanCreate(view.fk_model_id, payload)
+        case _ViewTypes.MAP:
+          return $api.dbView.mapCreate(view.fk_model_id, payload)
+        case _ViewTypes.CALENDAR:
+          return $api.dbView.calendarCreate(view.fk_model_id, payload)
+      }
+    }
+
+    try {
+      const data: GridType | KanbanType | GalleryType | FormType | CalendarType | MapType | null = await createView()
+      return data
+    } catch (e: any) {
+      message.error(e.message)
+    }
+  }
+
   refreshViewTabTitle.on(() => {
     updateTabTitle()
   })
@@ -453,6 +544,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     preFillFormSearchParams,
     refreshViewTabTitle: refreshViewTabTitle.trigger,
     updateViewCoverImageColumnId,
+    duplicateView,
   }
 })
 

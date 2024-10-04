@@ -778,6 +778,7 @@ const clearChanges = () => {
   visibilityOps.value = []
   localPredictions.value = []
   changeField()
+  onInit()
 }
 
 const isColumnsValid = computed(() => fields.value.every((f) => isColumnValid(f)))
@@ -1238,7 +1239,7 @@ const onDeselectAll = () => {
                     <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current w-4 h-4" />
                   </template>
                 </NcButton>
-                <NcDropdown v-else placement="bottomRight">
+                <NcDropdown v-else placement="bottomRight" overlay-class-name="!border-purple-200">
                   <NcButton
                     size="small"
                     type="secondary"
@@ -1254,12 +1255,12 @@ const onDeselectAll = () => {
                     </template>
                   </NcButton>
                   <template #overlay>
-                    <NcMenu class="nc-cover-image-object-fit-dropdown-menu min-w-[168px]">
-                      <NcMenuItem class="!children:w-full" @click="toggleAiMode()">
+                    <NcMenu>
+                      <NcMenuItem class="!children:w-full !text-nc-content-purple-dark" @click="toggleAiMode()">
                         <component :is="getUIDTIcon(UITypes.SingleLineText)" class="flex-none w-3.5 h-3.5" />
                         Suggest any field
                       </NcMenuItem>
-                      <NcMenuItem class="!children:w-full" @click="toggleAiMode(true)">
+                      <NcMenuItem class="!children:w-full !text-nc-content-purple-dark" @click="toggleAiMode(true)">
                         <component :is="getUIDTIcon(UITypes.Formula)" class="flex-none w-3.5 h-3.5" />
                         Suggest formula field
                       </NcMenuItem>
@@ -1424,7 +1425,7 @@ const onDeselectAll = () => {
                   <a-textarea
                     v-model:value="prompt"
                     :bordered="false"
-                    placeholder="Enter your prompt to get view suggestions.."
+                    :placeholder="`Enter your prompt to get ${isFormulaPredictionMode ? 'formula' : ''} field suggestions..`"
                     class="!px-4 !py-2 !text-sm !min-h-[120px]"
                     @keydown.enter.stop
                   >

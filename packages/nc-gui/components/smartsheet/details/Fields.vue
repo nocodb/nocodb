@@ -205,8 +205,8 @@ const {
   onTagClick: _onTagClick,
   onTagClose,
   onTagRemoveFromPrediction,
-  onSelectAll,
-  onDeselectAll,
+  onSelectAll: _onSelectAll,
+  onDeselectAll: _onDeselectAll,
   handleRefreshOnError,
 } = usePredictFields(fields)
 
@@ -488,6 +488,7 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
 
 const onFieldDelete = (state: TableExplorerColumn) => {
   const field = ops.value.find((op) => compareCols(op.column, state))
+
   if (field) {
     if (field.op === 'delete') {
       ops.value = ops.value.filter((op) => op.column.id !== state.id)
@@ -497,6 +498,13 @@ const onFieldDelete = (state: TableExplorerColumn) => {
       }
       ops.value = ops.value.filter((op) => op.column.temp_id !== state.temp_id)
       newFields.value = newFields.value.filter((op) => op.temp_id !== state.temp_id)
+
+      if (state.is_ai_field) {
+        const selectedAiField = selected.value.find((sf) => sf.title === state.title)
+        if (!selectedAiField) return
+
+        onTagClose(selectedAiField)
+      }
     } else {
       field.op = 'delete'
       field.column = state
@@ -1165,6 +1173,37 @@ const onTagClick = (field: PredictedFieldType) => {
         is_ai_field: true,
       }),
     )
+  }
+}
+
+const onSelectAll = () => {
+  const fieldsToAdd = _onSelectAll() || []
+
+  for (const field of fieldsToAdd) {
+    onFieldAdd(
+      updateDefaultColumnValues({
+        title: field.title,
+        uidt: field.type,
+        column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
+        ...(field.formula ? { formula_raw: field.formula } : {}),
+        ...(field.colOptions ? { colOptions: field.colOptions } : {}),
+        meta: {
+          ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
+        },
+        is_ai_field: true,
+      }),
+    )
+  }
+}
+
+const onDeselectAll = () => {
+  const fieldsToRemove = _onDeselectAll()
+
+  for (const removedField of fieldsToRemove) {
+    const field = fields.value.find((f) => f.is_ai_field && f.title === removedField.title)
+    if (!field) continue
+
+    onFieldDelete(field)
   }
 }
 </script>

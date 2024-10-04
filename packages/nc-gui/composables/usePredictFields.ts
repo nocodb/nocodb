@@ -215,11 +215,16 @@ export const usePredictFields = createSharedComposable((fields: WritableComputed
 
     // Update predicted with the remaining ones
     predicted.value = remainingPredictedFields
+
+    return fieldsToAdd
   }
 
   const onDeselectAll = () => {
-    predicted.value.push(...selected.value.filter((sv) => ncIsArrayIncludes(predictHistory.value, sv.title, 'title')))
+    const fieldsToRemove = selected.value.filter((sv) => ncIsArrayIncludes(predictHistory.value, sv.title, 'title'))
+    predicted.value.push(...fieldsToRemove)
     selected.value = selected.value.filter((sv) => !ncIsArrayIncludes(predictHistory.value, sv.title, 'title'))
+
+    return fieldsToRemove
   }
 
   const handleRefreshOnError = () => {

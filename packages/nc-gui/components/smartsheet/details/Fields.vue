@@ -94,7 +94,7 @@ const viewsStore = useViewsStore()
 
 const { openedViewsTab } = storeToRefs(viewsStore)
 
-const { aiIntegrationAvailable, aiLoading, aiError, predictNextFields, predictNextFormulas } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
 
 const localMetaColumns = ref<ColumnType[] | undefined>([])
 
@@ -186,7 +186,6 @@ const {
   aiMode,
   aiModeStep,
   predicted,
-  removedFromPredicted,
   predictHistory,
   selected,
   calledFunction,

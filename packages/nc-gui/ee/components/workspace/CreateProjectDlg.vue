@@ -86,7 +86,7 @@ const createProject = async () => {
   }
 }
 
-const { aiLoading, aiError, aiIntegrationAvailable, predictSchema, createSchema } = useNocoAi()
+const { aiLoading, aiIntegrationAvailable, predictSchema, createSchema } = useNocoAi()
 
 const aiMode = ref<Boolean | null>(null)
 

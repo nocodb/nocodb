@@ -23,7 +23,7 @@ interface PredictedFieldType {
 const maxSelectionCount = 100
 
 export const usePredictFields = createSharedComposable((fields: WritableComputedRef<Record<string, any>[]>) => {
-  const { aiIntegrationAvailable, aiLoading, aiError, predictNextFields, predictNextFormulas } = useNocoAi()
+  const { aiLoading, aiError, predictNextFields, predictNextFormulas } = useNocoAi()
 
   const { meta } = useSmartsheetStoreOrThrow()
 

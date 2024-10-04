@@ -1293,7 +1293,7 @@ function init() {
               <template v-for="(v, idx) of predictedViews">
                 <NcTooltip v-if="v?.title" :key="idx" :disabled="selectedViews.length < maxSelectionCount">
                   <template #title>
-                    <div class="w-[150px]">You can only select {{ maxSelectionCount }}  views to create at a time.</div>
+                    <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
                   </template>
 
                   <a-tag
@@ -1334,7 +1334,7 @@ function init() {
                 :disabled="selectedViews.length < maxSelectionCount"
               >
                 <template #title>
-                  <div class="w-[150px]">You can only select {{ maxSelectionCount }}  views to create at a time.</div>
+                  <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
                 </template>
                 <NcButton
                   size="xs"

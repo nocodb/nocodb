@@ -3,8 +3,8 @@ import {
   IntegrationCategoryType,
   isVirtualCol,
   type PredictNextFieldsType,
-  UITypes,
   type PredictNextFormulasType,
+  UITypes,
 } from 'nocodb-sdk';
 import { z } from 'zod';
 import type { NcContext } from '~/interface/config';

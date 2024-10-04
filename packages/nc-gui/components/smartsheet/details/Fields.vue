@@ -15,6 +15,15 @@ import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
+interface PredictedFieldType {
+  title: string
+  type: UITypes
+  column_name?: string
+  options?: string[]
+  colOptions?: Record<string, any>
+  formula?: string
+}
+
 interface TableExplorerColumn extends ColumnType {
   id?: string
   temp_id?: string
@@ -50,6 +59,7 @@ interface TableExplorerColumn extends ColumnType {
     ref_column_id?: string
     ref_column_title?: string
   }
+  is_ai_field?: boolean
 }
 
 interface op {
@@ -106,7 +116,7 @@ const {
   predictMore,
   predictRefresh,
   predictFromPrompt,
-  onTagClick,
+  onTagClick: _onTagClick,
   onTagClose,
   onTagRemoveFromPrediction,
   onSelectAll,
@@ -135,6 +145,10 @@ const columnsHash = ref<string>()
 const newFields = ref<TableExplorerColumn[]>([])
 
 const isFieldIdCopied = ref(false)
+
+const aiTableWizardCardRef = ref<HTMLDivElement>()
+
+const { height: aiTableWizardHeight } = useElementSize(aiTableWizardCardRef)
 
 const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   if (a?.id && b?.id) {
@@ -1129,11 +1143,31 @@ const onPredictNextFields = async (formula?: boolean) => {
     }
   }
 }
+
+const onTagClick = (field: PredictedFieldType) => {
+  const onAdd = _onTagClick(field)
+
+  if (onAdd) {
+    onFieldAdd(
+      updateDefaultColumnValues({
+        title: field.title,
+        uidt: field.type,
+        column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
+        ...(field.formula ? { formula_raw: field.formula } : {}),
+        ...(field.colOptions ? { colOptions: field.colOptions } : {}),
+        meta: {
+          ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
+        },
+        is_ai_field: true,
+      }),
+    )
+  }
+}
 </script>
 
 <template>
   <div class="nc-fields-wrapper w-full p-4">
-    <div class="max-w-250 h-full w-full mx-auto">
+    <div class="max-w-250 h-full w-full mx-auto flex flex-col gap-6">
       <div v-if="isViewColumnsLoading" class="flex flex-row justify-between mt-2">
         <a-skeleton-input class="!h-8 !w-68 !rounded !overflow-hidden" active size="small" />
         <div class="flex flex-row gap-x-4">
@@ -1143,7 +1177,7 @@ const onPredictNextFields = async (formula?: boolean) => {
         </div>
       </div>
       <template v-else>
-        <div class="flex w-full justify-between py-2">
+        <div class="flex w-full justify-between pt-2">
           <a-input
             v-model:value="searchQuery"
             data-testid="nc-field-search-input"
@@ -1240,7 +1274,7 @@ const onPredictNextFields = async (formula?: boolean) => {
           </div>
         </div>
         <!-- Ai table wizard  -->
-        <AiWizardCard v-if="aiMode" v-model:active-tab="activeAiTab" :tabs="aiTabs" class="my-4">
+        <AiWizardCard v-if="aiMode" ref="aiTableWizardCardRef" v-model:active-tab="activeAiTab" :tabs="aiTabs">
           <template v-if="aiIntegrationAvailable" #tabExtraRight>
             <template v-if="activeAiTab === 'AUTO_SUGGESTIONS'">
               <template v-if="aiModeStep === 'pick'">
@@ -1456,8 +1490,13 @@ const onPredictNextFields = async (formula?: boolean) => {
             </template>
           </template>
         </AiWizardCard>
-        <div class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200">
-          <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto flex-1 flex-grow-1 nc-fields-height">
+        <div
+          class="flex flex-row rounded-lg border-1 overflow-clip border-gray-200"
+          :style="{
+            height: `calc(100vh - (var(--topbar-height) * 3.6) - ${aiTableWizardHeight}px - ${aiMode ? '48px' : '24px'})`,
+          }"
+        >
+          <div ref="fieldsListWrapperDomRef" class="nc-scrollbar-md !overflow-auto flex-1 flex-grow-1 h-full">
             <Draggable
               :model-value="fields"
               :disabled="isLocked"
@@ -1537,9 +1576,12 @@ const onPredictNextFields = async (formula?: boolean) => {
                       </NcBadge>
                       <NcBadge
                         v-else-if="isColumnValid(field) && fieldStatus(field) === 'add'"
-                        color="green"
+                        :color="field?.is_ai_field ? 'purple' : 'green'"
                         :border="false"
-                        class="bg-green-50 text-green-700"
+                        :class="{
+                          'bg-purple-50 text-purple-700': field?.is_ai_field,
+                          'bg-green-50 text-green-700': !field?.is_ai_field,
+                        }"
                         data-testid="nc-field-status-new-field"
                       >
                         {{ $t('labels.multiField.newField') }}
@@ -1841,7 +1883,7 @@ const onPredictNextFields = async (formula?: boolean) => {
           <Transition name="slide-fade">
             <div
               v-if="!changingField"
-              class="border-gray-200 border-l-1 nc-scrollbar-md nc-fields-height !overflow-y-auto"
+              class="border-gray-200 border-l-1 nc-scrollbar-md h-full !overflow-y-auto"
               @keydown.up.stop
               @keydown.down.stop
             >

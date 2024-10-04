@@ -169,6 +169,8 @@ export const usePredictFields = createSharedComposable(() => {
 
     selected.value.push(field)
     predicted.value = predicted.value.filter((v) => v.title !== field.title)
+
+    return true
   }
 
   const onTagClose = (field: PredictedFieldType) => {
@@ -176,6 +178,7 @@ export const usePredictFields = createSharedComposable(() => {
     if (ncIsArrayIncludes(predictHistory.value, field.title, 'title')) {
       predicted.value.push(field)
     }
+    return true
   }
 
   const onTagRemoveFromPrediction = (field: PredictedFieldType) => {

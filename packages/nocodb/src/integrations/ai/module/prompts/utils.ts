@@ -106,10 +106,13 @@ export const predictNextFormulasPrompt = (
   table: string,
   existingColumns: string[],
   history?: string[],
+  description?: string,
 ) =>
   `Predict next 3 to 5 formula for table "${table}" which already have following columns: ${existingColumns
     .concat(history || [])
-    .join(', ')}"`;
+    .join(', ')}"${
+    description ? ` \n\nwith the following requirement: "${description}"` : ''
+  }`;
 
 export const predictFormulaPrompt = (input: string, oldFormula?: string) => {
   if (oldFormula) {

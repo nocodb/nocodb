@@ -249,6 +249,7 @@ export class AiUtilsService {
       input: {
         tableId: string;
         history?: string[];
+        description?: string;
       };
       req?: any;
     },
@@ -291,6 +292,7 @@ export class AiUtilsService {
               .filter((c) => !isVirtualCol(c) || c.uidt === UITypes.Formula)
               .map((c) => c.title),
             params.input.history,
+            params.input.description,
           ),
         },
       ],

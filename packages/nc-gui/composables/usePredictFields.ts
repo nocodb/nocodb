@@ -20,14 +20,16 @@ interface PredictedFieldType {
   formula?: string
 }
 
-const maxSelectionCount = 6
+const maxSelectionCount = 100
 
 export const usePredictFields = createSharedComposable((fields: WritableComputedRef<Record<string, any>[]>) => {
-  const { aiIntegrationAvailable, aiLoading, aiError, predictNextFields } = useNocoAi()
+  const { aiIntegrationAvailable, aiLoading, aiError, predictNextFields, predictNextFormulas } = useNocoAi()
 
   const { meta } = useSmartsheetStoreOrThrow()
 
   const aiMode = ref(false)
+
+  const isFormulaPredictionMode = ref(false)
 
   const aiModeStep = ref<AiStep | null>(null)
 
@@ -80,16 +82,27 @@ export const usePredictFields = createSharedComposable((fields: WritableComputed
   })
 
   const _predictNextFields = async (prompt?: string): Promise<PredictedFieldType[]> => {
-    return await predictNextFields(
-      meta.value?.id as string,
-      predictHistory.value.map((f) => f.title),
-      meta.value?.base_id,
-      prompt,
+    const fieldHistory = Array.from(
+      new Set(
+        predictHistory.value
+          .map((f) => f.title)
+          .concat(fields.value?.filter((f) => !!f?.title && !!f?.temp_id)?.map((f) => f.title) || []),
+      ),
     )
+
+    return await (isFormulaPredictionMode.value
+      ? predictNextFormulas(meta.value?.id as string, fieldHistory, meta.value?.base_id, prompt)
+      : predictNextFields(meta.value?.id as string, fieldHistory, meta.value?.base_id, prompt))
   }
 
-  const toggleAiMode = async () => {
+  const toggleAiMode = async (isFormulaMode: boolean = false) => {
     if (aiMode.value) return
+
+    if (isFormulaMode) {
+      isFormulaPredictionMode.value = true
+    } else {
+      isFormulaPredictionMode.value = false
+    }
 
     aiError.value = ''
 
@@ -241,6 +254,7 @@ export const usePredictFields = createSharedComposable((fields: WritableComputed
   }
 
   function onInit() {
+    isFormulaPredictionMode.value = false
     aiMode.value = false
     aiModeStep.value = null
     predicted.value = []
@@ -268,6 +282,7 @@ export const usePredictFields = createSharedComposable((fields: WritableComputed
     activeAiTab,
     aiTabs,
     isPredictFromPromptLoading,
+    isFormulaPredictionMode,
     onInit,
     toggleAiMode,
     disableAiMode,

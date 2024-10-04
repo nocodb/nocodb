@@ -143,14 +143,22 @@ export const useNocoAi = createSharedComposable(() => {
     return []
   }
 
-  const predictNextFormulas = async (tableId: string, history?: string[], customBaseId?: string) => {
+  const predictNextFormulas = async (
+    tableId: string,
+    history?: string[],
+    customBaseId?: string,
+    description?: string,
+    skipMsgToast = true,
+  ) => {
     const baseId = customBaseId || activeProjectId.value
 
-    const res = await callAiUtilsApi('predictNextFormulas', { tableId, history }, baseId)
+    const res = await callAiUtilsApi('predictNextFormulas', { tableId, history, description }, baseId, skipMsgToast)
 
     if (res?.formulas) {
       return res.formulas
     }
+
+    return []
   }
 
   const generateTables = async (

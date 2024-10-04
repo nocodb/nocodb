@@ -196,6 +196,7 @@ const {
   activeAiTab,
   aiTabs,
   isPredictFromPromptLoading,
+  isFormulaPredictionMode,
   onInit,
   toggleAiMode,
   disableAiMode,
@@ -908,6 +909,7 @@ const saveChanges = async () => {
     await getMeta(meta.value.id, true)
 
     metaToLocal()
+    onInit()
 
     // Update views if column is used as cover image
     viewsStore.updateViewCoverImageColumnId({ metaId: meta.value.id as string, columnIds: deletedOrUpdatedColumnIds })
@@ -1097,82 +1099,50 @@ watch(
   },
 )
 
-const onPredictNextFields = async (formula?: boolean) => {
-  const res: {
-    title: string
-    type: UITypes
-    column_name?: string
-    options?: string[]
-    colOptions?: Record<string, any>
-    formula?: string
-  }[] = formula
-    ? await predictNextFormulas(meta.value?.id as string, localPredictions.value, meta.value?.base_id)
-    : await predictNextFields(meta.value?.id as string, localPredictions.value, meta.value?.base_id)
+const onAiFieldAdd = (field: PredictedFieldType) => {
+  if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(field.type)) {
+    if (field.options) {
+      const options: {
+        title: string
+        index: number
+        color?: string
+      }[] = []
+      for (const option of field.options) {
+        // skip if option already exists
+        if (options.find((el) => el.title === option)) continue
 
-  if (res.length) {
-    for (const field of res) {
-      // skip if field already exists
-      if (fields.value.find((f) => f.title === field.title)) continue
-
-      if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(field.type)) {
-        if (field.options) {
-          const options: {
-            title: string
-            index: number
-            color?: string
-          }[] = []
-          for (const option of field.options) {
-            // skip if option already exists
-            if (options.find((el) => el.title === option)) continue
-
-            options.push({
-              title: option,
-              index: options.length,
-              color: enumColor.light[options.length % enumColor.light.length],
-            })
-          }
-
-          field.colOptions = {
-            options,
-          }
-        }
+        options.push({
+          title: option,
+          index: options.length,
+          color: enumColor.light[options.length % enumColor.light.length],
+        })
       }
 
-      localPredictions.value.push(field.title)
-
-      onFieldAdd(
-        updateDefaultColumnValues({
-          title: field.title,
-          uidt: formula ? UITypes.Formula : field.type,
-          column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
-          ...(field.formula ? { formula_raw: field.formula } : {}),
-          ...(field.colOptions ? { colOptions: field.colOptions } : {}),
-          meta: {
-            ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
-          },
-        }),
-      )
+      field.colOptions = {
+        options,
+      }
     }
   }
+
+  onFieldAdd(
+    updateDefaultColumnValues({
+      title: field.title,
+      uidt: isFormulaPredictionMode.value ? UITypes.Formula : field.type,
+      column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
+      ...(field.formula ? { formula_raw: field.formula } : {}),
+      ...(field.colOptions ? { colOptions: field.colOptions } : {}),
+      meta: {
+        ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
+      },
+      is_ai_field: true,
+    }),
+  )
 }
 
 const onTagClick = (field: PredictedFieldType) => {
   const onAdd = _onTagClick(field)
-
   if (onAdd) {
-    onFieldAdd(
-      updateDefaultColumnValues({
-        title: field.title,
-        uidt: field.type,
-        column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
-        ...(field.formula ? { formula_raw: field.formula } : {}),
-        ...(field.colOptions ? { colOptions: field.colOptions } : {}),
-        meta: {
-          ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
-        },
-        is_ai_field: true,
-      }),
-    )
+    onAiFieldAdd(field)
   }
 }
 
@@ -1180,19 +1150,7 @@ const onSelectAll = () => {
   const fieldsToAdd = _onSelectAll() || []
 
   for (const field of fieldsToAdd) {
-    onFieldAdd(
-      updateDefaultColumnValues({
-        title: field.title,
-        uidt: field.type,
-        column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
-        ...(field.formula ? { formula_raw: field.formula } : {}),
-        ...(field.colOptions ? { colOptions: field.colOptions } : {}),
-        meta: {
-          ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
-        },
-        is_ai_field: true,
-      }),
-    )
+    onAiFieldAdd(field)
   }
 }
 
@@ -1241,12 +1199,6 @@ const onDeselectAll = () => {
             </template>
           </a-input>
           <div class="flex gap-2">
-            <div v-if="aiIntegrationAvailable" class="flex mb-2 cursor-pointer" @click="onPredictNextFields(true)">
-              <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': aiLoading }" class="w-full flex mt-2 text-orange-400" />
-            </div>
-            <div v-if="aiIntegrationAvailable" class="flex mb-2 cursor-pointer" @click="onPredictNextFields()">
-              <GeneralIcon icon="magic" :class="{ 'nc-animation-pulse': aiLoading }" class="w-full flex mt-2 text-orange-400" />
-            </div>
             <div
               class="nc-fields-add-new-field-btn-wrapper"
               :class="{
@@ -1271,21 +1223,49 @@ const onDeselectAll = () => {
               </NcTooltip>
               <NcTooltip v-if="aiIntegrationAvailable" :title="aiMode ? 'Disable AI suggestions' : 'Suggest fields using AI'">
                 <NcButton
+                  v-if="aiMode"
                   size="small"
-                  :type="aiMode ? 'primary' : 'secondary'"
+                  type="primary"
                   theme="ai"
-                  class="nc-field-ai-toggle-btn"
+                  class="nc-field-ai-toggle-btn nc-ai-mode"
                   :class="{
-                    'nc-ai-mode': aiMode,
                     '!pointer-events-none !cursor-not-allowed': aiLoading,
                   }"
                   icon-only
-                  @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
+                  @click.stop="disableAiMode"
                 >
                   <template #icon>
                     <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current w-4 h-4" />
                   </template>
                 </NcButton>
+                <NcDropdown v-else placement="bottomRight">
+                  <NcButton
+                    size="small"
+                    type="secondary"
+                    theme="ai"
+                    class="nc-field-ai-toggle-btn"
+                    :class="{
+                      '!pointer-events-none !cursor-not-allowed': aiLoading,
+                    }"
+                    icon-only
+                  >
+                    <template #icon>
+                      <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current w-4 h-4" />
+                    </template>
+                  </NcButton>
+                  <template #overlay>
+                    <NcMenu class="nc-cover-image-object-fit-dropdown-menu min-w-[168px]">
+                      <NcMenuItem class="!children:w-full" @click="toggleAiMode()">
+                        <component :is="getUIDTIcon(UITypes.SingleLineText)" class="flex-none w-3.5 h-3.5" />
+                        Suggest any field
+                      </NcMenuItem>
+                      <NcMenuItem class="!children:w-full" @click="toggleAiMode(true)">
+                        <component :is="getUIDTIcon(UITypes.Formula)" class="flex-none w-3.5 h-3.5" />
+                        Suggest formula field
+                      </NcMenuItem>
+                    </NcMenu>
+                  </template>
+                </NcDropdown>
               </NcTooltip>
             </div>
             <NcButton
@@ -1433,7 +1413,8 @@ const onDeselectAll = () => {
                   <div class="text-nc-content-purple-light text-sm h-7 flex items-center">
                     <GeneralLoader size="regular" class="!text-nc-content-purple-dark !mr-2" />
 
-                    Auto suggesting fields based on your table name and existing fields
+                    Auto suggesting {{ isFormulaPredictionMode ? 'formula' : '' }} fields based on your table name and existing
+                    fields
                     <div class="nc-animate-dots"></div>
                   </div>
                 </div>
@@ -1478,8 +1459,8 @@ const onDeselectAll = () => {
                     >
                       <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
                         <component
-                          :is="getUIDTIcon(v.type)"
-                          v-if="v?.type"
+                          :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : v.type)"
+                          v-if="isFormulaPredictionMode || v?.type"
                           class="flex-none w-3.5 h-3.5"
                           :class="{
                             'opacity-60': selected.length >= maxSelectionCount,

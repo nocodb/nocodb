@@ -210,6 +210,10 @@ const {
   handleRefreshOnError,
 } = usePredictFields(fields)
 
+onBeforeMount(() => {
+  onInit()
+})
+
 const calculateOrderForIndex = (index: number, fromAbove = false) => {
   if (!viewFields.value) return -1
 

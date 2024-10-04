@@ -4538,6 +4538,107 @@
         ]
       }
     },
+    "/api/v1/db/meta/duplicate/{baseId}/view/{viewId}": {
+      "post": {
+        "summary": "Duplicate View",
+        "operationId": "db-view-duplicate",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/View"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "vw_o50jiw9v2txktv",
+                      "source_id": "ds_a95vextjl510z7",
+                      "base_id": "p_slkm6i3v31q4bc",
+                      "fk_model_id": "md_8hr3xndx8umuce",
+                      "title": "Grid-1",
+                      "type": 3,
+                      "is_default": null,
+                      "show_system_fields": null,
+                      "lock_type": "collaborative",
+                      "uuid": null,
+                      "password": null,
+                      "show": true,
+                      "order": 2,
+                      "created_at": "2023-03-13T07:29:16.610Z",
+                      "updated_at": "2023-03-13T07:29:16.610Z",
+                      "meta": {}
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "excludeData": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "excludeData": true,
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB View"
+        ],
+        "description": "Duplicate a view",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "p_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Base ID"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "md_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "description": "Unique View ID"
+          }
+        ]
+      }
+    },
     "/api/v1/db/meta/duplicate/{baseId}/column/{columnId}": {
       "post": {
         "summary": "Duplicate Column",

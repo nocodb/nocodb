@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import path from 'path';
 import { Readable } from 'stream';
 import { Injectable } from '@nestjs/common';
@@ -232,9 +231,12 @@ const preparePromptAttachments = async (
   const inlineAttachments = [];
 
   for (const file of files) {
-    if (!INLINE_SUPPORTED_MIMETYPES.some((m) =>
-      file.mimetype?.match(new RegExp(m.replace('*', '.*'))),
-    )) continue;
+    if (
+      !INLINE_SUPPORTED_MIMETYPES.some((m) =>
+        file.mimetype?.match(new RegExp(m.replace('*', '.*'))),
+      )
+    )
+      continue;
 
     if (file.mimetype.match(/image\/*/)) {
       encodedImages.push({
@@ -814,7 +816,11 @@ export class AiDataService {
       }
     }
 
-    const userMessages = attachmentParts.length ? attachmentParts.map((pt) => `${input}${`\n\nFile:\n\`\`\`${pt}\n\`\`\`\n`}`) : [input];
+    const userMessages = attachmentParts.length
+      ? attachmentParts.map(
+          (pt) => `${input}${`\n\nFile:\n\`\`\`${pt}\n\`\`\`\n`}`,
+        )
+      : [input];
 
     const rows = [];
     const totalUsage = {

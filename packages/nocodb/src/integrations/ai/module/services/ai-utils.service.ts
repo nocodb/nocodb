@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import {
   IntegrationCategoryType,
   isVirtualCol,
-  UITypes,
   type PredictNextFieldsType,
+  UITypes,
 } from 'nocodb-sdk';
 import { z } from 'zod';
 import type { NcContext } from '~/interface/config';

@@ -1,10 +1,9 @@
 import { getActivePinia } from 'pinia'
 import { Auth } from 'aws-amplify'
 import type { AxiosInstance } from 'axios'
-import type { Actions, AppInfo, SignOutParams, State,Getters } from '../../../composables/useGlobal/types'
-import { NcProjectType } from '#imports'
-
 import { useStorage } from '@vueuse/core'
+import type { Actions, AppInfo, Getters, SignOutParams, State } from '../../../composables/useGlobal/types'
+import { NcProjectType } from '#imports'
 
 export interface ActionsEE {
   getMainUrl: () => string | undefined
@@ -90,26 +89,28 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     }
   }
 
-  let tokenGenerationProgress: Promise<any> | null = null
-  let resolveTokenGenerationProgress: (value: any) => void = null
-
   const checkForCognitoToken = async ({
     axiosInstance,
-    skipSignOut = false,
+    skipStateCheck = false,
   }: {
     axiosInstance?: any
     skipSignOut?: boolean
   } = {}) => {
-    if (tokenGenerationProgress) {
-      await tokenGenerationProgress
-    }
-    tokenGenerationProgress = new Promise((resolve) => {
-      resolveTokenGenerationProgress = resolve
-    })
+    if (!skipStateCheck) {
+      // if token refresh is already in progress, wait until it is completed or timeout
+      if (isTokenRefreshInProgress.value) {
+        await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 10000 })
 
-    if (state.token.value) {
-      resolveTokenGenerationProgress(true)
-      tokenGenerationProgress = null
+        // if token is already refreshed and va lid return the token
+        if (getters.signedIn.value && state.token.value) {
+          isTokenRefreshInProgress.value = false
+          return state.token.value
+        }
+      }
+      isTokenRefreshInProgress.value = true
+    }
+
+    if (state.token.value && getters.signedIn.value) {
       return
     }
 
@@ -139,8 +140,9 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       }
     } catch (err) {
     } finally {
-      tokenGenerationProgress = null
-      resolveTokenGenerationProgress(true)
+      if (!skipStateCheck) {
+        isTokenRefreshInProgress.value = false
+      }
     }
   }
 
@@ -187,8 +189,8 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
         // reset token value to null since cognito token is not valid
         state.token.value = null
         await checkForCognitoToken({
-          skipSignOut,
           axiosInstance,
+          skipStateCheck: true,
         })
       } else if (state.token.value && state.user.value) {
         await signOut({

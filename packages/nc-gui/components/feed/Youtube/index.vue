@@ -14,10 +14,6 @@ const { isLoading } = useInfiniteScroll(
   },
   { distance: 1, interval: 2000 },
 )
-
-const gotoChannel = () => {
-  window.open('https://www.youtube.com/@nocodb?ref=product_feed', '_blank')
-}
 </script>
 
 <template>

@@ -208,7 +208,7 @@ const {
   onSelectAll: _onSelectAll,
   onDeselectAll: _onDeselectAll,
   handleRefreshOnError,
-} = usePredictFields(fields)
+} = usePredictFields(ref(true), fields)
 
 onBeforeMount(() => {
   onInit()
@@ -1296,7 +1296,7 @@ const onDeselectAll = () => {
             </NcTooltip>
           </div>
         </div>
-        <!-- Ai table wizard  -->
+        <!-- Ai field wizard  -->
         <AiWizardCard v-if="aiMode" ref="aiTableWizardCardRef" v-model:active-tab="activeAiTab" :tabs="aiTabs">
           <template v-if="aiIntegrationAvailable" #tabExtraRight>
             <template v-if="activeAiTab === 'AUTO_SUGGESTIONS'">

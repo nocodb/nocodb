@@ -390,6 +390,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     function updateFieldName(updateFormState: boolean = true) {
       if (
+        formState.value?.is_ai_field ||
         isEdit.value ||
         !fromTableExplorer?.value ||
         formState.value?.userHasChangedTitle ||

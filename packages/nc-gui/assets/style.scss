@@ -993,6 +993,10 @@ svg.nc-virtual-cell-icon {
 
 .nc-ai-selected-tag {
   @apply cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none font-semibold !mx-0;
+
+  &.nc-selected {
+    @apply !bg-brand-100;
+  }
 }
 
 .nc-ai-suggested-tag {

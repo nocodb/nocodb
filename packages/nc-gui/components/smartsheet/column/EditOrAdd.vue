@@ -530,7 +530,7 @@ const onTagClose = (field) => {
     class="overflow-auto nc-scrollbar-md"
     :class="{
       'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
-      'w-[406px]': !props.embedMode,
+      'w-[416px]': !props.embedMode,
       'min-w-[500px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       '!w-[600px]': formState.uidt === UITypes.LinkToAnotherRecord || formState.uidt === UITypes.Links,
       'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),

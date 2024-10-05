@@ -27,7 +27,11 @@ export const usePredictFields = createSharedComposable(
   (isFromTableExplorer?: Ref<boolean>, fields?: WritableComputedRef<Record<string, any>[]>) => {
     const { aiLoading, aiError, predictNextFields, predictNextFormulas } = useNocoAi()
 
-    const { meta } = useSmartsheetStoreOrThrow()
+    const { meta, view } = useSmartsheetStoreOrThrow()
+
+    const columnsHash = ref<string>()
+
+    const { $api } = useNuxtApp()
 
     const aiMode = ref(false)
 
@@ -315,6 +319,31 @@ export const usePredictFields = createSharedComposable(
       }
     }
 
+    const saveFields = async (onSuccess: () => Promise<void>) => {
+      const payload = selected.value
+        .filter((f) => f.formState)
+        .map((field) => {
+          return {
+            op: 'add',
+            column: {
+              ...field.formState,
+              column_order: {
+                // order: order,
+                view_id: view.value?.id,
+              },
+              view_id: view.value?.id,
+            },
+          }
+        })
+
+      const res = await $api.dbTableColumn.bulk(meta.value?.id, {
+        hash: columnsHash.value,
+        ops: payload,
+      })
+
+      await onSuccess?.()
+    }
+
     function onInit() {
       activeSelectedField.value = null
       isFormulaPredictionMode.value = false
@@ -330,6 +359,16 @@ export const usePredictFields = createSharedComposable(
 
       activeAiTabLocal.value = TableWizardTabs.AUTO_SUGGESTIONS
     }
+
+    watch(
+      meta,
+      async (newMeta) => {
+        if (newMeta?.id) {
+          columnsHash.value = (await $api.dbTableColumn.hash(newMeta.id)).hash
+        }
+      },
+      { deep: true, immediate: true },
+    )
 
     return {
       aiMode,
@@ -360,6 +399,7 @@ export const usePredictFields = createSharedComposable(
       onSelectAll,
       onDeselectAll,
       handleRefreshOnError,
+      saveFields,
     }
   },
 )

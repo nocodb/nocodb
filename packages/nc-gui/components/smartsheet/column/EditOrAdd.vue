@@ -77,6 +77,7 @@ const {
   onSelectAll,
   onDeselectAll,
   handleRefreshOnError,
+  saveFields,
 } = usePredictFields(ref(false))
 
 const { clone } = useUndoRedo()
@@ -265,9 +266,13 @@ const warningVisible = ref(false)
 
 const saveSubmitted = async () => {
   if (readOnly.value) return
-
+  let saved
   saving.value = true
-  const saved = await addOrUpdate(reloadMetaAndData, props.columnPosition)
+  if (aiAutoSuggestMode.value) {
+    saved = await saveFields(reloadMetaAndData)
+  } else {
+    saved = await addOrUpdate(reloadMetaAndData, props.columnPosition)
+  }
   saving.value = false
 
   if (!saved) return
@@ -443,9 +448,16 @@ watch(
 )
 
 const submitBtnLabel = computed(() => {
+  const aiAutoSuggestModeLabel = `${t('general.add')} ${
+    selected.value.length > 1 ? selected.value.length + ' ' + t('objects.fields') : t('objects.field')
+  }`
   return {
-    label: `${isEdit.value && !props.columnLabel ? t('general.update') : t('general.save')} ${columnLabel.value}`,
-    loadingLabel: `${isEdit.value && !props.columnLabel ? t('general.updating') : t('general.saving')} ${columnLabel.value}`,
+    label: aiAutoSuggestMode.value
+      ? aiAutoSuggestModeLabel
+      : `${isEdit.value && !props.columnLabel ? t('general.update') : t('general.save')} ${columnLabel.value}`,
+    loadingLabel: aiAutoSuggestMode.value
+      ? aiAutoSuggestModeLabel
+      : `${isEdit.value && !props.columnLabel ? t('general.updating') : t('general.saving')} ${columnLabel.value}`,
   }
 })
 
@@ -625,7 +637,7 @@ const onTagClose = (field) => {
           >
             <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
               <component
-                :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : f.type)"
+                :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : f.formState?.uidt || f.type)"
                 v-if="isFormulaPredictionMode || f?.type"
                 class="flex-none w-3.5 h-3.5"
                 :class="{

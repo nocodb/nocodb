@@ -32,6 +32,16 @@ const expand = () => {
   truncate.value = false
   $e('c:nocodb:feed:recents:expand', {
     title: Title,
+    type: 'github',
+  })
+}
+
+const watchVideo = () => {
+  $e('c:nocodb:feed:recents:watch', {
+    title: Title,
+    description: Description,
+    url: Url,
+    type: 'youtube',
   })
 }
 
@@ -91,6 +101,7 @@ const { width } = useWindowSize()
         :height="width < 1280 ? 330 : 392"
         :width="width < 1280 ? 538 : 638"
         :autoplay="0"
+        @played="watchVideo"
       />
       <div class="p-5 flex flex-col text-nc-content-gray-emphasis gap-4">
         <div class="text-2xl font-semibold truncate">

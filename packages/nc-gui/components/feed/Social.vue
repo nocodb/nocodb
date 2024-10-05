@@ -6,36 +6,38 @@ const socialIcons = [
     name: '@nocodb',
     icon: iconMap.iconTwitter,
     link: 'https://twitter.com/nocodb',
-    e: 'c:feed:twitter-open',
+    e: 'c:nocodb:twitter-open',
   },
   {
     name: 'NocoDB',
     icon: iconMap.youtube,
-    e: 'c:feed:youtube-open',
+    e: 'c:nocodb:youtube-open',
     link: 'https://www.youtube.com/@nocodb',
   },
   {
     name: 'NocoDB',
     icon: iconMap.iconDiscord,
-    e: 'c:feed:discord-open',
+    e: 'c:nocodb:discord-open',
     link: 'http://discord.nocodb.com',
   },
   {
     name: 'r/NocoDB',
     icon: iconMap.iconReddit,
-    e: 'c:feed:reddit-open',
+    e: 'c:nocodb:reddit-open',
     link: 'https://www.reddit.com/r/NocoDB/',
   },
   {
     name: 'Forum',
     icon: iconMap.nocodb,
-    e: 'c:feed:forum-open',
+    e: 'c:nocodb:forum-open',
     link: 'https://community.nocodb.com/',
   },
 ]
 
 const openUrl = (url: string, e: string) => {
-  $e(e)
+  $e(e, {
+    trigger: 'feed',
+  })
   window.open(url, '_blank')
 }
 </script>

@@ -112,7 +112,9 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
-        ...(fromTableExplorer?.value ? { is_ai_field: formState.value?.is_ai_field, view_id: formState.value?.view_id } : {}),
+        ...(fromTableExplorer?.value || formState.value?.is_ai_field
+          ? { is_ai_field: formState.value?.is_ai_field, view_id: formState.value?.view_id }
+          : {}),
         custom: {},
         ...(!isEdit.value && {
           // only take title, column_name and uidt when creating a column

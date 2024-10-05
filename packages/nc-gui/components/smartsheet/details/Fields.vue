@@ -1503,7 +1503,7 @@ const onDeselectAll = () => {
                     </div>
                   </NcButton>
                 </NcTooltip>
-                <NcButton v-else size="xs" class="!h-6" type="primary" theme="ai" @click="onDeselectAll">
+                <NcButton v-else size="xs" class="!h-6" type="secondary" theme="ai" @click="onDeselectAll">
                   <div class="flex items-center gap-2">
                     <GeneralIcon icon="ncMinusSquare" class="flex-none" />
 

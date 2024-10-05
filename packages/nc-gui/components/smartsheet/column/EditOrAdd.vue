@@ -70,12 +70,12 @@ const {
   predictMore,
   predictRefresh,
   predictFromPrompt,
-  onTagClick,
+  onTagClick: _onTagClick,
   onTagClose: _onTagClose,
   onSelectedTagClick: _onSelectedTagClick,
   onTagRemoveFromPrediction,
-  onSelectAll,
-  onDeselectAll,
+  onSelectAll: _onSelectAll,
+  onDeselectAll: _onDeselectAll,
   handleRefreshOnError,
   saveFields,
 } = usePredictFields(ref(false))
@@ -515,7 +515,21 @@ const handleNavigateToIntegrations = () => {
   })
 }
 
-const onSelectedTagClick = (field) => {
+const onSelectedTagClick = (field: any = undefined) => {
+  if (!field && selected.value.length) {
+    field = selected.value[selected.value.length - 1]
+  }
+
+  if (!field) {
+    activeSelectedField.value = null
+    formState.value = {
+      title: '',
+      description: '',
+    }
+
+    return
+  }
+
   activeSelectedField.value = field.title
   formState.value.uidt = field.formState.uidt
 
@@ -533,6 +547,21 @@ const onTagClose = (field) => {
       description: '',
     }
   }
+}
+
+const onTagClick = (field) => {
+  _onTagClick(field)
+  onSelectedTagClick()
+}
+
+const onSelectAll = () => {
+  _onSelectAll()
+  onSelectedTagClick()
+}
+
+const onDeselectAll = () => {
+  _onDeselectAll()
+  onSelectedTagClick()
 }
 </script>
 
@@ -889,7 +918,7 @@ const onTagClose = (field) => {
                   </div>
                 </NcButton>
               </NcTooltip>
-              <NcButton v-else size="xs" class="!h-6" type="primary" theme="ai" @click="onDeselectAll">
+              <NcButton v-else size="xs" class="!h-6" type="secondary" theme="ai" @click="onDeselectAll">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="ncMinusSquare" class="flex-none" />
 
@@ -924,6 +953,7 @@ const onTagClose = (field) => {
               'nc-ai-input': isAiMode,
             }"
             :disabled="
+              aiAutoSuggestMode ||
               (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
               isKanban ||
               readOnly ||

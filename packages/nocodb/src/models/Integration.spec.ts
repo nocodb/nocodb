@@ -1,7 +1,7 @@
 import { IntegrationsType } from 'nocodb-sdk';
 import { Integration } from '~/models';
 import { MetaTable } from '~/utils/globals';
-import { decryptPropIfRequired } from '~/utils';
+import { decryptPropIfRequired, isEE } from '~/utils';
 
 jest.mock('~/Noco');
 
@@ -100,7 +100,7 @@ describe('Integration Model', () => {
         null,
         'workspace',
         MetaTable.INTEGRATIONS,
-        { fk_workspace_id: null, id: 'test-id' },
+        isEE ? { fk_workspace_id: null, id: 'test-id' } : 'test-id',
         null,
         { _or: [{ deleted: { neq: true } }, { deleted: { eq: null } }] },
       );

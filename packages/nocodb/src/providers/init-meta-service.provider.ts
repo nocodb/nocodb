@@ -84,9 +84,6 @@ export const InitMetaServiceProvider: FactoryProvider = {
     Noco.config = config;
     Noco.eventEmitter = eventEmitter;
 
-    // decide base behavior based on env and database permissions
-    await initBaseBehavior();
-
     if (!instanceConfig) {
       // bump to latest version for fresh install
       await updateMigrationJobsState({
@@ -115,6 +112,9 @@ export const InitMetaServiceProvider: FactoryProvider = {
       instance: getInstance,
     });
     T.emit('evt_app_started', await User.count());
+
+    // decide base behavior based on env and database permissions
+    await initBaseBehavior();
 
     return metaService;
   },

@@ -1,14 +1,17 @@
 import { getActivePinia } from 'pinia'
 import { Auth } from 'aws-amplify'
-import type { Actions, AppInfo, SignOutParams, State } from '../../../composables/useGlobal/types'
+import type { AxiosInstance } from 'axios'
+import type { Actions, AppInfo, SignOutParams, State,Getters } from '../../../composables/useGlobal/types'
 import { NcProjectType } from '#imports'
+
+import { useStorage } from '@vueuse/core'
 
 export interface ActionsEE {
   getMainUrl: () => string | undefined
   checkForCognitoToken: (params?: { skipRedirect?: boolean }) => Promise<void>
 }
 
-export function useGlobalActions(state: State): Actions & ActionsEE {
+export function useGlobalActions(state: State, getters: Getters): Actions & ActionsEE {
   const isTokenRefreshInProgress = useStorage(TOKEN_REFRESH_PROGRESS_KEY, false)
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
 
@@ -90,11 +93,13 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   let tokenGenerationProgress: Promise<any> | null = null
   let resolveTokenGenerationProgress: (value: any) => void = null
 
-  const checkForCognitoToken = async ({axiosInstance = nuxtApp.$api.instance, skipSignOut = false}: {
+  const checkForCognitoToken = async ({
+    axiosInstance,
+    skipSignOut = false,
+  }: {
     axiosInstance?: any
     skipSignOut?: boolean
-  } = {
-  }) => {
+  } = {}) => {
     if (tokenGenerationProgress) {
       await tokenGenerationProgress
     }
@@ -114,6 +119,10 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
       const jwt = idToken.getJwtToken()
 
       const nuxtApp = useNuxtApp()
+
+      if (!axiosInstance) {
+        axiosInstance = nuxtApp.$api?.instance
+      }
 
       const tokenRes = await axiosInstance.post(
         '/auth/cognito',
@@ -136,34 +145,50 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   }
 
   /** manually try to refresh token */
-  const refreshToken = async ({axiosInstance = nuxtApp.$api.instance, skipSignOut = false}: {
-    axiosInstance?: any
+  const refreshToken = async ({
+    axiosInstance,
+    skipSignOut = false,
+  }: {
+    axiosInstance?: AxiosInstance
     skipSignOut?: boolean
-  } = {
-  }) => {
-
+  } = {}) => {
     const nuxtApp = useNuxtApp()
     const t = nuxtApp.vueApp.i18n.global.t
+
+    // if token refresh is already in progress, wait until it is completed or timeout
+    if (isTokenRefreshInProgress.value) {
+      await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 10000 })
+
+      // if token is already refreshed and va lid return the token
+      if (getters.signedIn.value && state.token.value) {
+        isTokenRefreshInProgress.value = false
+        return state.token.value
+      }
+    }
     isTokenRefreshInProgress.value = true
 
-    try{
-      const response = await axiosInstance
-        .post('/auth/token/refresh', null, {
-          withCredentials: true,
-        })
+    if (!axiosInstance) {
+      const nuxtApp = useNuxtApp()
+      axiosInstance = nuxtApp.$api?.instance
+    }
+
+    try {
+      const response = await axiosInstance.post('/auth/token/refresh', null, {
+        withCredentials: true,
+      })
 
       if (response.data?.token) {
-         signIn(response.data.token, true)
+        signIn(response.data.token, true)
         return response.data.token
       }
-    }catch (e) {
-// if error occurs, check cognito and generate token or signout
+    } catch (e) {
+      // if error occurs, check cognito and generate token or signout
       if (isAmplifyConfigured.value) {
         // reset token value to null since cognito token is not valid
         state.token.value = null
         await checkForCognitoToken({
           skipSignOut,
-          axiosInstance
+          axiosInstance,
         })
       } else if (state.token.value && state.user.value) {
         await signOut({
@@ -171,8 +196,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
         })
         message.error(t('msg.error.youHaveBeenSignedOut'))
       }
-    }
-    finally {
+    } finally {
       isTokenRefreshInProgress.value = false
     }
   }

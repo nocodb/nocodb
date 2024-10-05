@@ -1,9 +1,9 @@
 import { getActivePinia } from 'pinia'
 import { useStorage } from '@vueuse/core'
-import type { Actions, AppInfo, State } from './types'
+import type { Actions, AppInfo, Getters, State } from './types'
 import type { NcProjectType } from '#imports'
 
-export function useGlobalActions(state: State): Actions {
+export function useGlobalActions(state: State, getters: Getters): Actions {
   const isTokenRefreshInProgress = useStorage(TOKEN_REFRESH_PROGRESS_KEY, false)
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
 
@@ -66,7 +66,7 @@ export function useGlobalActions(state: State): Actions {
 
   /** manually try to refresh token */
   const refreshToken = async ({
-    axiosInstance = nuxtApp.$api.instance,
+    axiosInstance,
     skipSignOut = false,
   }: {
     axiosInstance?: any
@@ -74,7 +74,23 @@ export function useGlobalActions(state: State): Actions {
   } = {}) => {
     const nuxtApp = useNuxtApp()
     const t = nuxtApp.vueApp.i18n.global.t
+
+    // if token refresh is already in progress, wait until it is completed or timeout
+    if (isTokenRefreshInProgress.value) {
+      await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 10000 })
+
+      // if token is already refreshed and valid return the token
+      if (getters.signedIn.value && state.token.value) {
+        isTokenRefreshInProgress.value = false
+        return state.token.value
+      }
+    }
     isTokenRefreshInProgress.value = true
+
+    if (!axiosInstance) {
+      axiosInstance = nuxtApp.$api?.instance
+    }
+
     try {
       const response = await axiosInstance.post('/auth/token/refresh', null, {
         withCredentials: true,

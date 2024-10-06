@@ -442,10 +442,10 @@ const onFieldAdd = (state: TableExplorerColumn) => {
 
   state.temp_id = `temp_${++temporaryAddCount.value}`
   state.view_id = view.value?.id as string
-  ops.value.push({
+  ops.value = [...ops.value, {
     op: 'add',
     column: state,
-  })
+  }]
   newFields.value = [...newFields.value, state]
 
   if (addFieldMoveHook.value) {

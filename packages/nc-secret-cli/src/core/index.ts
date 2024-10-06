@@ -1,4 +1,4 @@
 export * from './NcConfig';
 export * from './NcError';
-export * from './NcLogger';
-export * from './SecretManager';   
+export * as logger from './logger';
+export * from './SecretManager';

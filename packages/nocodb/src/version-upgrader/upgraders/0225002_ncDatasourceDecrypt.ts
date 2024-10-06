@@ -1,4 +1,3 @@
-import process from 'process';
 import CryptoJS from 'crypto-js';
 import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import { MetaTable, RootScopes } from '~/utils/globals';

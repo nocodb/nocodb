@@ -12,7 +12,8 @@ import {
 } from '~/utils/modelUtils';
 import {
   decryptPropIfRequired,
-  encryptPropIfRequired, isEncryptionRequired,
+  encryptPropIfRequired,
+  isEncryptionRequired,
   partialExtract,
 } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -134,7 +135,7 @@ export default class Integration implements IntegrationType {
       'deleted',
       'config',
       'is_private',
-      'is_encrypted'
+      'is_encrypted',
     ]);
 
     if (updateObj.config) {

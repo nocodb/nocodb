@@ -68,11 +68,7 @@ export default class Integration implements IntegrationType {
       'is_encrypted',
     ]);
 
-    insertObj.config = encryptPropIfRequired({
-      data: insertObj,
-    });
-
-    insertObj.is_encrypted = isEncryptionRequired();
+    this.encryptConfigIfRequired(insertObj);
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -143,6 +139,8 @@ export default class Integration implements IntegrationType {
         data: updateObj,
       });
       updateObj.is_encrypted = isEncryptionRequired();
+
+      this.encryptConfigIfRequired(updateObj);
     }
 
     // type property is undefined even if not provided

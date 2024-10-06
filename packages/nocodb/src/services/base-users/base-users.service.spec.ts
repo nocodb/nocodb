@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
 import { mock } from 'jest-mock-extended';
 import type { TestingModule } from '@nestjs/testing';
-import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 describe('BaseUsersService', () => {
   let service: BaseUsersService;

@@ -94,6 +94,9 @@ export default class BaseUser {
       'base_id',
       'roles',
       'invited_by',
+      'starred',
+      'order',
+      'hidden',
     ]);
 
     const { base_id, fk_user_id } = await ncMeta.metaInsert2(

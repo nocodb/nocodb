@@ -13,18 +13,19 @@ program
   .version('1.0.0')
   .description('NocoDB Secret CLI')
   .arguments('<oldSecret> <newSecret>')
-  .option('--nc-db <nc-db>', 'NocoDB  connection database url, equivalent to NC_DB env variable')
-  .option('--nc-db-json <nc-db-json>', 'NocoDB connection database json, equivalent to NC_DB_JSON env variable')
-  .option('--nc-db-json-file <nc-db-json-file>', 'NocoDB connection database json file path, equivalent to NC_DB_JSON_FILE env variable')
-  .option('--database-url <database-url>', 'JDBC database url, equivalent to DATABASE_URL env variable')
-  .option('--database-url-file <database-url-file>', 'JDBC database url file path, equivalent to DATABASE_URL_FILE env variable')
-  .option('-o, --old-secret <old-secret>', 'old secret string to decrypt sources and integrations')
-  .option('-n, --new-secret <new-secret>', 'new secret string to encrypt sources and integrations')
-  .action(async (key, value, ...rest) => {
+  .option('--nc-db <char>', 'NocoDB  connection database url, equivalent to NC_DB env variable')
+  .option('--nc-db-json <char>', 'NocoDB connection database json, equivalent to NC_DB_JSON env variable')
+  .option('--nc-db-json-file <char>', 'NocoDB connection database json file path, equivalent to NC_DB_JSON_FILE env variable')
+  .option('--database-url <char>', 'JDBC database url, equivalent to DATABASE_URL env variable')
+  .option('--database-url-file <char>', 'JDBC database url file path, equivalent to DATABASE_URL_FILE env variable')
+  .option('-o, --old-secret <char>', 'old secret string to decrypt sources and integrations')
+  .option('-n, --new-secret <char>', 'new secret string to encrypt sources and integrations')
+  .action(async (key, value) => {
 
     try {
-
-      const config = await getNocoConfig();
+      // extract options
+      const options = program.opts();
+      const config = await getNocoConfig(options);
 
       if (!key || !value) {
         console.error('Error: Both key and value are required.');

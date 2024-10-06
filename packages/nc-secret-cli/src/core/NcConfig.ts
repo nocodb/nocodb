@@ -79,14 +79,18 @@ export class NcConfig {
   }
 }
 
-export const getNocoConfig = () =>{
+export const getNocoConfig = (options: {
+  ncDb?: string;
+  ncDbJson?: string;
+  ncDbJsonFile?: string;
+  databaseUrl?: string;
+  databaseUrlFile?: string;
+} ={}) =>{
   return NcConfig.create({
     meta: {
-      metaUrl: process.env.NC_DB,
-      metaJson: process.env.NC_DB_JSON,
-      metaJsonFile: process.env.NC_DB_JSON_FILE,
-    },
-    secret: process.env.NC_AUTH_JWT_SECRET,
-    credentialSecret: process.env.NC_KEY_CREDENTIAL_ENCRYPT,
+      metaUrl: process.env.NC_DB || options.ncDb,
+      metaJson: process.env.NC_DB_JSON || options.ncDbJson,
+      metaJsonFile: process.env.NC_DB_JSON_FILE || options.ncDbJsonFile,
+    }
   });
 }

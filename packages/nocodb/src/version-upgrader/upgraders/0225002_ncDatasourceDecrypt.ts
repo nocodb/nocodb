@@ -1,7 +1,7 @@
+import CryptoJS from 'crypto-js';
 import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
-import CryptoJS from 'crypto-js';
 
 const logger = {
   log: (message: string) => {
@@ -17,11 +17,10 @@ const logger = {
 };
 
 const decyptConfig = async (encryptedConfig: string, secret: string) => {
-  return CryptoJS.AES.decrypt(
-    encryptedConfig,
-    secret,
-  ).toString(CryptoJS.enc.Utf8),
-}
+  return CryptoJS.AES.decrypt(encryptedConfig, secret).toString(
+    CryptoJS.enc.Utf8,
+  );
+};
 
 // decrypt datasource details in source table and integration table
 export default async function ({ ncMeta }: NcUpgraderCtx) {
@@ -67,6 +66,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     },
   });
 
+  const passed = [];
+
   // iterate, decrypt and update
   for (const source of sources) {
     if (source?.config) {
@@ -75,9 +76,10 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         await ncMeta.knexConnection(MetaTable.BASES).update({
           config: decrypted,
         });
+        passed.push(true);
       } catch (e) {
         logger.error(`Failed to decrypt source ${source.id}`);
-        throw e
+        passed.push(e);
       }
     }
   }
@@ -93,9 +95,10 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         await ncMeta.knexConnection(MetaTable.INTEGRATIONS).update({
           config: decrypted,
         });
+        passed.push(true);
       } catch (e) {
         logger.error(`Failed to decrypt integration ${integration.id}`);
-        throw e
+        passed.push(false);
       }
     }
   }

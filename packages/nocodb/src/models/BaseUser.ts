@@ -25,6 +25,9 @@ export default class BaseUser {
   fk_user_id: string;
   roles?: string;
   invited_by?: string;
+  starred?: boolean;
+  order?: number;
+  hidden?: boolean;
 
   constructor(data: BaseUser) {
     Object.assign(this, data);

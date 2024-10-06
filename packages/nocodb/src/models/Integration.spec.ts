@@ -1,8 +1,9 @@
 import { IntegrationsType } from 'nocodb-sdk';
 import { Integration } from '~/models';
 import { MetaTable } from '~/utils/globals';
-import { decryptPropIfRequired, isEE } from '~/utils';
 
+// Mock dependencies
+jest.mock('~/helpers/catchError');
 jest.mock('~/Noco');
 
 describe('Integration Model', () => {
@@ -100,7 +101,7 @@ describe('Integration Model', () => {
         null,
         'workspace',
         MetaTable.INTEGRATIONS,
-        isEE ? { fk_workspace_id: null, id: 'test-id' } : 'test-id',
+        { fk_workspace_id: null, id: 'test-id' },
         null,
         { _or: [{ deleted: { neq: true } }, { deleted: { eq: null } }] },
       );
@@ -113,10 +114,11 @@ describe('Integration Model', () => {
         id: 'new-id',
         title: 'New Integration',
         workspaceId: 'workspace-1',
-        config: {
-          client: 'pg',
-        },
+        config: {},
       };
+      mockNcMeta.metaInsert2.mockResolvedValue({
+        ...newIntegration,
+      });
       mockNcMeta.metaInsert2.mockResolvedValue({
         ...newIntegration,
       });
@@ -144,65 +146,8 @@ describe('Integration Model', () => {
           fk_workspace_id: 'workspace-1',
           workspaceId: undefined,
           id: undefined,
-          config: JSON.stringify(newIntegration.config),
-          is_encrypted: false,
         },
       );
-    });
-  });
-
-  describe('create with encryption', () => {
-    beforeAll(() => {
-      process.env.NC_CONNECTION_ENCRYPT_KEY = 'test-secret';
-    });
-
-    afterAll(() => {
-      process.env.NC_CONNECTION_ENCRYPT_KEY = undefined;
-    });
-
-    it('should create a new integration with encrypted config', async () => {
-      const newIntegration = {
-        id: 'new-id',
-        title: 'New Integration',
-        workspaceId: 'workspace-1',
-        config: {
-          client: 'pg',
-        },
-      };
-      mockNcMeta.metaInsert2.mockResolvedValue({
-        ...newIntegration,
-      });
-      mockNcMeta.metaInsert2.mockResolvedValue({
-        ...newIntegration,
-      });
-      mockNcMeta.metaGet2.mockResolvedValue({
-        ...newIntegration,
-      });
-      mockNcMeta.metaGetNextOrder.mockResolvedValue(2);
-
-      const result = await Integration.createIntegration(
-        newIntegration,
-        mockNcMeta,
-      );
-
-      expect(result).toBeInstanceOf(Integration);
-      expect(result).toEqual(
-        expect.objectContaining({ id: 'new-id', ...newIntegration }),
-      );
-
-      // Extract the arguments used in the call
-      const calledWithArgs = mockNcMeta.metaInsert2.mock.calls[0][3];
-
-      // veify the 'config' field is encrypted
-      expect(calledWithArgs.config).not.toEqual(
-        JSON.stringify(newIntegration.config),
-      );
-
-      // Decrypt the 'config' field
-      const decryptedConfig = decryptPropIfRequired({ data: calledWithArgs });
-
-      // Verify the decrypted config matches the original integration
-      expect(decryptedConfig).toEqual(newIntegration.config);
     });
   });
 

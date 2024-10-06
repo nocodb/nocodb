@@ -5,14 +5,10 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 
 const logger = {
   log: (message: string) => {
-    console.log(
-      `[ncXcdbCreatedAndUpdatedSystemFieldsUpgrader ${Date.now()}] ` + message,
-    );
+    console.log(`[0225002_ncDatasourceDecrypt ${Date.now()}] ` + message);
   },
   error: (message: string) => {
-    console.error(
-      `[ncXcdbCreatedAndUpdatedSystemFieldsUpgrader ${Date.now()}] ` + message,
-    );
+    console.error(`[0225002_ncDatasourceDecrypt ${Date.now()}] ` + message);
   },
 };
 
@@ -28,14 +24,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
   if (!encryptionKey) {
     encryptionKey = (
-      await this._ncMeta.metaGet(
-        RootScopes.ROOT,
-        RootScopes.ROOT,
-        MetaTable.STORE,
-        {
-          key: 'nc_auth_jwt_secret',
-        },
-      )
+      await ncMeta.metaGet(RootScopes.ROOT, RootScopes.ROOT, MetaTable.STORE, {
+        key: 'nc_auth_jwt_secret',
+      })
     )?.value;
   }
 

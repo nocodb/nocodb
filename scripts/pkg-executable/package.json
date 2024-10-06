@@ -33,7 +33,7 @@
     "nocodb": "0.204.9"
   },
   "overrides": {
-    "sqlite3": "5.1.7"
+    "sqlite3": "5.1.6"
   },
   "devDependencies": {
     "@mapbox/node-pre-gyp": "^1.0.11"

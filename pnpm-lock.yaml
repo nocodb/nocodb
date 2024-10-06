@@ -506,7 +506,7 @@ importers:
         version: 1.7.0
       knex:
         specifier: ^3.1.0
-        version: 3.1.0(mysql@2.18.1)(pg@8.13.0)(sqlite3@5.1.7)
+        version: 3.1.0(mysql@2.18.1)(pg@8.13.0)(sqlite3@5.1.6)
       mysql:
         specifier: ^2.18.1
         version: 2.18.1
@@ -517,9 +517,12 @@ importers:
         specifier: ^8.12.0
         version: 8.13.0
       sqlite3:
-        specifier: ^5.1.7
-        version: 5.1.7
+        specifier: 5.1.6
+        version: 5.1.6
     devDependencies:
+      '@mapbox/node-pre-gyp':
+        specifier: ^1.0.11
+        version: 1.0.11
       '@types/figlet':
         specifier: ^1.5.8
         version: 1.5.8
@@ -5610,7 +5613,7 @@ packages:
     resolution: {integrity: sha512-Yhlar6v9WQgUp/He7BdgzOz8lqMQ8sU+jkCq7Wx8Myc5YFJLbEe7lgui/V7G1qB1DJykHSGwreceSaD60Y0PUQ==}
     hasBin: true
     dependencies:
-      detect-libc: 2.0.2
+      detect-libc: 2.0.3
       https-proxy-agent: 5.0.1
       make-dir: 3.1.0
       node-fetch: 2.7.0
@@ -15231,6 +15234,9 @@ packages:
   /detect-libc@2.0.2:
     resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
+    requiresBuild: true
+    dev: false
+    optional: true
 
   /detect-libc@2.0.3:
     resolution: {integrity: sha512-bwy0MGW55bG41VqxxypOsdSdGqLwXPI/focwgTYCFMbdUiBAxLg9CFzG08sz2aqzknwiX7Hkl0bQENjg8iLByw==}
@@ -20620,7 +20626,7 @@ packages:
       - supports-color
     dev: false
 
-  /knex@3.1.0(mysql@2.18.1)(pg@8.13.0)(sqlite3@5.1.7):
+  /knex@3.1.0(mysql@2.18.1)(pg@8.13.0)(sqlite3@5.1.6):
     resolution: {integrity: sha512-GLoII6hR0c4ti243gMs5/1Rb3B+AjwMOfjYm97pu0FOQa7JH56hgBxYf5WK2525ceSbBY1cjeZ9yk99GPMB6Kw==}
     engines: {node: '>=16'}
     hasBin: true
@@ -20662,7 +20668,7 @@ packages:
       pg-connection-string: 2.6.2
       rechoir: 0.8.0
       resolve-from: 5.0.0
-      sqlite3: 5.1.7
+      sqlite3: 5.1.6
       tarn: 3.0.2
       tildify: 2.0.0
     transitivePeerDependencies:
@@ -20686,7 +20692,7 @@ packages:
   /launch-editor@2.6.1:
     resolution: {integrity: sha512-eB/uXmFVpY4zezmGp5XtU21kwo7GBbKB+EQ+UZeWtGb9yAM5xt/Evk+lYH3eRNAtId+ej4u7TYPFZ07w4s7rRw==}
     dependencies:
-      picocolors: 1.0.1
+      picocolors: 1.1.0
       shell-quote: 1.8.1
     dev: true
 
@@ -26764,7 +26770,7 @@ packages:
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.11
       node-addon-api: 4.3.0
-      tar: 6.1.15
+      tar: 6.2.0
     optionalDependencies:
       node-gyp: 8.4.1
     transitivePeerDependencies:
@@ -27391,17 +27397,6 @@ packages:
       mkdirp: 1.0.4
       yallist: 4.0.0
     dev: true
-
-  /tar@6.1.15:
-    resolution: {integrity: sha512-/zKt9UyngnxIT/EAGYuxaMYgOIJiP81ab9ZfkILq4oNLPFX50qyYmu7jRj9qeXoxmJHjGlbH0+cm2uy1WCs10A==}
-    engines: {node: '>=10'}
-    dependencies:
-      chownr: 2.0.0
-      fs-minipass: 2.1.0
-      minipass: 5.0.0
-      minizlib: 2.1.2
-      mkdirp: 1.0.4
-      yallist: 4.0.0
 
   /tar@6.2.0:
     resolution: {integrity: sha512-/Wo7DcT0u5HUV486xg675HtjNd3BXZ6xDbzsCUZPt5iw8bTQ63bP0Raut3mvro9u+CUyq7YQd8Cx55fsZXxqLQ==}
@@ -29080,7 +29075,7 @@ packages:
       fs-extra: 11.2.0
       open: 10.1.0
       perfect-debounce: 1.0.0
-      picocolors: 1.0.1
+      picocolors: 1.1.0
       sirv: 2.0.4
       vite: 4.5.3(sass@1.71.1)
     transitivePeerDependencies:

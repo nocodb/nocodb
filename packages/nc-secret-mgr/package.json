@@ -1,5 +1,5 @@
 {
-  "name": "nc-secret",
+  "name": "nc-secret-mgr",
   "version": "0.0.1",
   "description": "",
   "main": "dist/cli.js",

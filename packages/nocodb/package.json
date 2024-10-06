@@ -21,7 +21,8 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "pnpm run docker:build",
-    "build:obfuscate": "EE=true webpack  --config webpack.config.js",
+    "build:obfuscate": "EE=true webpack --config webpack.config.js",
+    "build:cli:module": "EE=true webpack --config webpack.cli.config.js",
     "obfuscate:build:publish": "pnpm run build:obfuscate && pnpm publish .",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "pnpm run watch:run",

@@ -117,7 +117,7 @@ describe('Integration Model', () => {
         title: 'New Integration',
         workspaceId: 'workspace-1',
         config: {
-          client: 'pg'
+          client: 'pg',
         },
       };
       mockNcMeta.metaInsert2.mockResolvedValue({
@@ -168,7 +168,7 @@ describe('Integration Model', () => {
         title: 'New Integration',
         workspaceId: 'workspace-1',
         config: {
-          client: 'pg'
+          client: 'pg',
         },
       };
       mockNcMeta.metaInsert2.mockResolvedValue({

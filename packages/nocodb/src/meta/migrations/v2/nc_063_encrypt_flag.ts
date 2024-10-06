@@ -2,7 +2,7 @@ import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
     table.boolean('is_encrypted').defaultTo(false).index();
   });
   await knex.schema.alterTable(MetaTable.INTEGRATIONS, (table) => {
@@ -11,7 +11,7 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
     table.dropColumn('is_encrypted');
   });
   await knex.schema.alterTable(MetaTable.INTEGRATIONS, (table) => {

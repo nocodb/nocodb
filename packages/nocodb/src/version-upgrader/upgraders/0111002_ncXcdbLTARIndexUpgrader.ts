@@ -151,7 +151,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   );
 
   // get all xcdb sources
-  const sources = await ncMeta.knexConnection(MetaTable.BASES).where({
+  const sources = await ncMeta.knexConnection(MetaTable.SOURCES).where({
     is_meta: 1,
   });
 

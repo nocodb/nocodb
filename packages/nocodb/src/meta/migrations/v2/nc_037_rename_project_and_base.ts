@@ -7,7 +7,7 @@ const logger = new Logger('nc_036_rename_project_and_base');
 const up = async (knex: Knex) => {
   logger.log('Renaming base table');
   if (await knex.schema.hasTable(MetaTableOldV2.BASES))
-    await knex.schema.renameTable(MetaTableOldV2.BASES, MetaTable.BASES);
+    await knex.schema.renameTable(MetaTableOldV2.BASES, MetaTable.SOURCES);
 
   logger.log('Renaming `base_id` column to `source_id`');
   if (await knex.schema.hasColumn(MetaTable.MODELS, 'base_id'))
@@ -349,10 +349,10 @@ const up = async (knex: Knex) => {
     });
 
   logger.log(
-    `Renaming 'project_id' column to 'base_id' in '${MetaTable.BASES}' table`,
+    `Renaming 'project_id' column to 'base_id' in '${MetaTable.SOURCES}' table`,
   );
-  if (await knex.schema.hasColumn(MetaTable.BASES, 'project_id'))
-    await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  if (await knex.schema.hasColumn(MetaTable.SOURCES, 'project_id'))
+    await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
       table.renameColumn('project_id', 'base_id');
     });
 

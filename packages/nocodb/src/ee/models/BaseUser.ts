@@ -132,7 +132,7 @@ export default class BaseUser extends BaseUserCE {
     baseId: string,
     userId: string,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<BaseUser & { is_mapped?: boolean }> {
     let baseUser =
       baseId &&
       userId &&
@@ -197,6 +197,11 @@ export default class BaseUser extends BaseUserCE {
         );
       }
     }
+
+    if (baseUser) {
+      baseUser.is_mapped = !!baseUser.base_id;
+    }
+
     return this.castType(baseUser);
   }
 

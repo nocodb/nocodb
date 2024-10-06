@@ -133,7 +133,7 @@ export default class BaseUser {
     baseId: string,
     userId: string,
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<BaseUser & { is_mapped?: boolean }> {
     let baseUser =
       baseId &&
       userId &&
@@ -178,32 +178,16 @@ export default class BaseUser {
         );
       }
     }
+
+    if (baseUser) {
+      baseUser.is_mapped = !!baseUser.base_id;
+    }
+
     return this.castType(baseUser);
   }
 
-  /**
-   * Check if user entry exists in BaseUser table
-   * @param context
-   * @param baseId
-   * @param userId
-   * @param ncMeta
-   */
-  public static async getBaseUserFromDb(
-    context: NcContext,
-    baseId: string,
-    userId: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<BaseUser> {
-    const baseUser = await ncMeta.metaGet2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.PROJECT_USERS,
-      {
-        base_id: baseId,
-        fk_user_id: userId,
-      },
-    )
-    return baseUser && this.castType(baseUser);
+  public isBaseMappedToUser() {
+    return !!this.base_id;
   }
 
   public static async getUsersList(

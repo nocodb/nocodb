@@ -11,7 +11,11 @@ import {
   prepareForDb,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
-import { partialExtract } from '~/utils';
+import {
+  decryptPropIfRequired,
+  encryptPropIfRequired,
+  partialExtract,
+} from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export default class Integration implements IntegrationType {
@@ -56,10 +60,9 @@ export default class Integration implements IntegrationType {
       'is_private',
     ]);
 
-    // insertObj.config = CryptoJS.AES.encrypt(
-    //   JSON.stringify(insertObj.config),
-    //   Noco.getConfig()?.auth?.jwt?.secret,
-    // ).toString();
+    insertObj.config = await encryptPropIfRequired({
+      data: insertObj,
+    });
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -123,12 +126,11 @@ export default class Integration implements IntegrationType {
       'is_private',
     ]);
 
-    // if (updateObj.config) {
-    //   updateObj.config = CryptoJS.AES.encrypt(
-    //     JSON.stringify(integration.config),
-    //     Noco.getConfig()?.auth?.jwt?.secret,
-    //   ).toString();
-    // }
+    if (updateObj.config) {
+      updateObj.config = await encryptPropIfRequired({
+        data: updateObj,
+      });
+    }
 
     // type property is undefined even if not provided
     if (!updateObj.type) {
@@ -335,12 +337,9 @@ export default class Integration implements IntegrationType {
   }
 
   public getConfig(): any {
-    const config = JSON.parse(
-      CryptoJS.AES.decrypt(
-        this.config,
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString(CryptoJS.enc.Utf8),
-    );
+    const config = decryptPropIfRequired({
+      data: this,
+    });
 
     return config;
   }

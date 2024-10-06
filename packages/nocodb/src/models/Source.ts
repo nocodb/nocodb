@@ -23,7 +23,6 @@ import {
 } from '~/utils/modelUtils';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
-import { deepMerge, partialExtract } from '~/utils';
 import View from '~/models/View';
 import {
   decryptPropIfRequired,

@@ -130,7 +130,7 @@ export class SecretManager {
       await transaction.commit();
 
     } catch (e) {
-      logger.error('Failed to decrypt integration configuration: ' + e.message);
+      console.log(e);
       await transaction.rollback();
       throw e;
     }

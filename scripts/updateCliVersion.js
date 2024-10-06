@@ -1,7 +1,7 @@
 const fs = require('fs')
 const path = require('path')
 
-const packageJsonPath = path.join(__dirname, '..', 'packages', 'nc-secret-cli', 'package.json')
+const packageJsonPath = path.join(__dirname, '..', 'packages', 'nc-secret-mgr', 'package.json')
 
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
 

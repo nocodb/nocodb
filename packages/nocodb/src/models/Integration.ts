@@ -68,7 +68,10 @@ export default class Integration implements IntegrationType {
       'is_encrypted',
     ]);
 
-    this.encryptConfigIfRequired(insertObj);
+    // insertObj.config = CryptoJS.AES.encrypt(
+    //   JSON.stringify(insertObj.config),
+    //   Noco.getConfig()?.auth?.jwt?.secret,
+    // ).toString();
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -134,14 +137,12 @@ export default class Integration implements IntegrationType {
       'is_encrypted',
     ]);
 
-    if (updateObj.config) {
-      updateObj.config = encryptPropIfRequired({
-        data: updateObj,
-      });
-      updateObj.is_encrypted = isEncryptionRequired();
-
-      this.encryptConfigIfRequired(updateObj);
-    }
+    // if (updateObj.config) {
+    //   updateObj.config = CryptoJS.AES.encrypt(
+    //     JSON.stringify(integration.config),
+    //     Noco.getConfig()?.auth?.jwt?.secret,
+    //   ).toString();
+    // }
 
     // type property is undefined even if not provided
     if (!updateObj.type) {

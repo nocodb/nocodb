@@ -2,7 +2,7 @@ import { IntegrationsType } from 'nocodb-sdk';
 import { Integration } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
-import { decryptPropIfRequired, encryptPropIfRequired } from '~/utils';
+import { decryptPropIfRequired } from '~/utils';
 
 // Mock dependencies
 jest.mock('~/helpers/catchError');
@@ -147,6 +147,8 @@ describe('Integration Model', () => {
           fk_workspace_id: 'workspace-1',
           workspaceId: undefined,
           id: undefined,
+          config: JSON.stringify(newIntegration.config),
+          is_encrypted: false,
         },
       );
     });

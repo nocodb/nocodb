@@ -347,11 +347,9 @@ export default class Source implements SourceType {
       return config;
     }
 
-    const config = JSON.parse(
-      decryptPropIfRequired({
-        data: this,
-      }),
-    );
+    const config = decryptPropIfRequired({
+      data: this,
+    });
 
     if (skipIntegrationConfig) {
       return config;
@@ -361,12 +359,10 @@ export default class Source implements SourceType {
       return config;
     }
 
-    const integrationConfig = JSON.parse(
-      decryptPropIfRequired({
-        data: this,
-        prop: 'integration_config',
-      }),
-    );
+    const integrationConfig = decryptPropIfRequired({
+      data: this,
+      prop: 'integration_config',
+    });
     // merge integration config with source config
     // override integration config with source config if exists
     // only override database and searchPath

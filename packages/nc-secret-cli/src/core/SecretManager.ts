@@ -1,5 +1,5 @@
 import {NcError} from "./NcError";
-import {NcLogger} from "./NcLogger";
+import * as logger from "./logger";
 
 const { SqlClientFactory, MetaTable, decryptPropIfRequired, encryptPropIfRequired } =  require('../nocodb/cli')
 
@@ -17,7 +17,7 @@ export class SecretManager {
     // use the sqlClientFactory to create a new sql client and then use testConnection to test the connection
     const isValid = await this.sqlClient.testConnection();
     if (!isValid) {
-      throw new NcError('Invalid database configuration');
+      throw new NcError('Invalid database configuration. Please verify your database settings and ensure the database is reachable.');
     }
   }
 
@@ -61,7 +61,7 @@ export class SecretManager {
         isValid = true;
         sourcesToUpdate.push({ ...source, config: decrypted });
       } catch (e) {
-        NcLogger.error('Failed to decrypt source configuration : ' +  e.message);
+        logger.error('Failed to decrypt source configuration : ' +  e.message);
       }
     }
 
@@ -79,7 +79,7 @@ export class SecretManager {
       }
     }
 
-    // if all of the decyptions are failed then throw an error
+    // If all decryptions have failed, then throw an error
     if (!isValid) {
       throw new NcError('Invalid old secret or no sources/integrations found');
     }

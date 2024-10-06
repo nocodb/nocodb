@@ -3,7 +3,7 @@ import { Command } from 'commander';
 import { getNocoConfig } from "./core";
 import { SecretManager } from "./core";
 import { NcError } from "./core";
-import { NcLogger } from "./core";
+import { logger } from "./core";
 
 console.log(figlet.textSync("NocoDB Secret CLI"));
 
@@ -18,8 +18,8 @@ program
   .option('--nc-db-json-file <char>', 'NocoDB connection database json file path, equivalent to NC_DB_JSON_FILE env variable')
   .option('--database-url <char>', 'JDBC database url, equivalent to DATABASE_URL env variable')
   .option('--database-url-file <char>', 'JDBC database url file path, equivalent to DATABASE_URL_FILE env variable')
-  .option('-o, --old-secret <char>', 'old secret string to decrypt sources and integrations')
-  .option('-n, --new-secret <char>', 'new secret string to encrypt sources and integrations')
+  .option('-p, --prev <char>', 'old secret string to decrypt sources and integrations')
+  .option('-n, --new <char>', 'new secret string to encrypt sources and integrations')
   .action(async (prevVal, newVal) => {
 
     try {
@@ -48,8 +48,7 @@ program
     } catch (e) {
       if (e instanceof NcError) {
         // print error message in a better way
-        NcLogger.error(e.message);
-
+        logger.error(e.message);
         process.exit(1);
       }
       console.error(e);

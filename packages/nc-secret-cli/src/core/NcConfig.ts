@@ -17,8 +17,6 @@ export class NcConfig {
 
   toolDir: string;
 
-  credentialSecret?: string;
-
   private constructor() {
     this.toolDir = getToolDir();
   }
@@ -32,16 +30,11 @@ export class NcConfig {
       databaseUrl?: string;
     };
     secret?: string;
-    credentialSecret?: string;
   }): Promise<NcConfig> {
     const { meta, secret } =
       param;
 
     const ncConfig = new NcConfig();
-
-
-    ncConfig.credentialSecret = param.credentialSecret;
-
 
     if (ncConfig.meta?.db?.connection?.filename) {
       ncConfig.meta.db.connection.filename = path.join(
@@ -76,7 +69,6 @@ export class NcConfig {
         metaJsonFile: process.env.NC_DB_JSON_FILE,
       },
       secret: process.env.NC_AUTH_JWT_SECRET,
-      credentialSecret: process.env.NC_KEY_CREDENTIAL_ENCRYPT,
     });
   }
 }
@@ -90,8 +82,8 @@ export const getNocoConfig = async (options: {
 } ={}) =>{
   // check for JDBC url specified in env or options
   await prepareEnv({
-    databaseUrl: options.ncDatabaseUrl || process.env.NC_DATABASE_URL || process.env.DATABASE_URL,
-    databaseUrlFile:  options.ncDatabaseUrlFile || process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
+    databaseUrl: options.databaseUrl || process.env.NC_DATABASE_URL || process.env.DATABASE_URL,
+    databaseUrlFile:  options.databaseUrlFile || process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
   })
 
   // create NocoConfig using utility method which works similar to Nocodb NcConfig with only meta db config

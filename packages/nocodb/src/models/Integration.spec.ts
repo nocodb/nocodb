@@ -3,8 +3,6 @@ import { Integration } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { decryptPropIfRequired } from '~/utils';
 
-// Mock dependencies
-jest.mock('~/helpers/catchError');
 jest.mock('~/Noco');
 
 describe('Integration Model', () => {
@@ -196,7 +194,9 @@ describe('Integration Model', () => {
       const calledWithArgs = mockNcMeta.metaInsert2.mock.calls[0][3];
 
       // veify the 'config' field is encrypted
-      expect(calledWithArgs.config).not.toEqual(JSON.stringify(newIntegration.config));
+      expect(calledWithArgs.config).not.toEqual(
+        JSON.stringify(newIntegration.config),
+      );
 
       // Decrypt the 'config' field
       const decryptedConfig = decryptPropIfRequired({ data: calledWithArgs });

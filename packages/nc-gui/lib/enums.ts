@@ -39,7 +39,7 @@ export enum Language {
 }
 
 export enum LanguageAlias {
-  zn_CN = 'zh-Hans',
+  zh_CN = 'zh-Hans',
   zh_TW = 'zh-Hant',
 }
 

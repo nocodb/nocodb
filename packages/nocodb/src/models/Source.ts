@@ -62,6 +62,11 @@ export default class Source implements SourceType {
     return source && new Source(source);
   }
 
+  protected static encryptConfigIfRequired(obj: Record<string, unknown>) {
+    obj.config = encryptPropIfRequired({ data: obj });
+    obj.is_encrypted = isEncryptionRequired();
+  }
+
   public static async createBase(
     context: NcContext,
     source: SourceType & {
@@ -91,11 +96,7 @@ export default class Source implements SourceType {
       'is_encrypted',
     ]);
 
-    insertObj.config = encryptPropIfRequired({
-      data: insertObj,
-    });
-
-    insertObj.is_encrypted = isEncryptionRequired();
+    this.encryptConfigIfRequired(insertObj);
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -158,10 +159,7 @@ export default class Source implements SourceType {
     ]);
 
     if (updateObj.config) {
-      updateObj.config = encryptPropIfRequired({
-        data: updateObj,
-      });
-      updateObj.is_encrypted = isEncryptionRequired();
+      this.encryptConfigIfRequired(updateObj);
     }
 
     // type property is undefined even if not provided

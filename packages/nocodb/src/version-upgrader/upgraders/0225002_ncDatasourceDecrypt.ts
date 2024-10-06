@@ -1,3 +1,4 @@
+import process from 'process';
 import CryptoJS from 'crypto-js';
 import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import Noco from '~/Noco';
@@ -28,6 +29,14 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         key: 'nc_auth_jwt_secret',
       })
     )?.value;
+  }
+
+  // if encryption key is same as previous, return
+  if (
+    process.env.NC_KEY_CREDENTIAL_ENCRYPT &&
+    process.env.NC_KEY_CREDENTIAL_ENCRYPT === encryptionKey
+  ) {
+    return;
   }
 
   // if encryption key is not present, return
@@ -86,7 +95,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
   // if all failed, log and exit
   if (passed.length > 0 && passed.every((v) => !v)) {
-    logger.error(`Failed to decrypt all source or integration. Please configure correct encryption key. `);
+    logger.error(
+      `Failed to decrypt all source or integration. Please configure correct encryption key. `,
+    );
     return;
   }
 

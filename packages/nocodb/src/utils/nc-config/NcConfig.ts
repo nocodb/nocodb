@@ -70,9 +70,10 @@ export class NcConfig {
     ncConfig.auth = {
       jwt: {
         secret: secret,
-      },
-      credentialSecret: param.credentialSecret
+      }
     };
+
+    ncConfig.credentialSecret =  param.credentialSecret;
 
     ncConfig.port = +(port ?? 8080);
     ncConfig.toolDir = getToolDir();

@@ -1,4 +1,4 @@
-import type { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import CryptoJS from 'crypto-js';

@@ -95,7 +95,7 @@ export default class Source implements SourceType {
       'is_encrypted',
     ]);
 
-    insertObj.config = await encryptPropIfRequired({
+    insertObj.config =  encryptPropIfRequired({
       data: insertObj,
     });
 
@@ -160,7 +160,7 @@ export default class Source implements SourceType {
     ]);
 
     if (updateObj.config) {
-      updateObj.config = await encryptPropIfRequired({
+      updateObj.config =  encryptPropIfRequired({
         data: updateObj,
       });
     }

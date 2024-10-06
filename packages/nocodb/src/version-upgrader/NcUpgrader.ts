@@ -11,6 +11,7 @@ import ncProjectConfigUpgrader from './upgraders/0107004_ncProjectConfigUpgrader
 import ncXcdbLTARUpgrader from './upgraders/0108002_ncXcdbLTARUpgrader';
 import ncXcdbLTARIndexUpgrader from './upgraders/0111002_ncXcdbLTARIndexUpgrader';
 import ncXcdbCreatedAndUpdatedSystemFieldsUpgrader from './upgraders/0111005_ncXcdbCreatedAndUpdatedSystemFieldsUpgrader';
+import ncDatasourceDecrypt from './upgraders/0225002_ncDatasourceDecrypt';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcConfig } from '~/interface/config';
 import { T } from '~/utils';

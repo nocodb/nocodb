@@ -1,7 +1,6 @@
 import { IntegrationsType } from 'nocodb-sdk';
 import { Integration } from '~/models';
 import { MetaTable } from '~/utils/globals';
-import Noco from '~/Noco';
 import { decryptPropIfRequired } from '~/utils';
 
 // Mock dependencies
@@ -152,16 +151,18 @@ describe('Integration Model', () => {
         },
       );
     });
+  });
+
+  describe('create with encryption', () => {
+    beforeAll(() => {
+      process.env.NC_KEY_CREDENTIAL_ENCRYPT = 'test-secret';
+    });
+
+    afterAll(() => {
+      process.env.NC_KEY_CREDENTIAL_ENCRYPT = undefined;
+    });
 
     it('should create a new integration with encrypted config', async () => {
-      // overwrite env variable
-      const config = Noco.getConfig();
-
-      Noco.getConfig = jest.fn().mockReturnValue({
-        ...config,
-        credentialSecret: 'test-secret',
-      });
-
       const newIntegration = {
         id: 'new-id',
         title: 'New Integration',
@@ -195,7 +196,7 @@ describe('Integration Model', () => {
       const calledWithArgs = mockNcMeta.metaInsert2.mock.calls[0][3];
 
       // veify the 'config' field is encrypted
-      expect(calledWithArgs.config).not.toEqual(newIntegration.config);
+      expect(calledWithArgs.config).not.toEqual(JSON.stringify(newIntegration.config));
 
       // Decrypt the 'config' field
       const decryptedConfig = decryptPropIfRequired({ data: calledWithArgs });

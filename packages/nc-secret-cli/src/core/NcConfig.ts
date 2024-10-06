@@ -1,7 +1,7 @@
 import * as path from 'path';
 import fs from 'fs';
 import { promisify } from 'util';
-const { DriverClient, getToolDir, metaUrlToDbConfig } = require( '../nocodb/cli');
+const { DriverClient, getToolDir, metaUrlToDbConfig, prepareEnv } = require( '../nocodb/cli');
 
 export class NcConfig {
   meta: {
@@ -28,6 +28,8 @@ export class NcConfig {
       metaUrl?: string;
       metaJson?: string;
       metaJsonFile?: string;
+      databaseUrlFile?: string;
+      databaseUrl?: string;
     };
     secret?: string;
     credentialSecret?: string;
@@ -86,6 +88,13 @@ export const getNocoConfig = (options: {
   databaseUrl?: string;
   databaseUrlFile?: string;
 } ={}) =>{
+  // check for JDBC url specified in env or options
+  await prepareEnv({
+    databaseUrl: options.ncDatabaseUrl || process.env.NC_DATABASE_URL || process.env.DATABASE_URL,
+    databaseUrlFile:  options.ncDatabaseUrlFile || process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
+  })
+
+  // create NocoConfig using utility method which works similar to Nocodb NcConfig with only meta db config
   return NcConfig.create({
     meta: {
       metaUrl: process.env.NC_DB || options.ncDb,

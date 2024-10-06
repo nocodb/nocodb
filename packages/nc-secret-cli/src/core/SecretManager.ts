@@ -6,7 +6,7 @@ export class SecretManager {
 
   private sqlClient;
 
-  constructor(private oldSecret: string, private newSecret: string, private config: any) {
+  constructor(private prevSecret: string, private newSecret: string, private config: any) {
     this.sqlClient = SqlClientFactory.create(this.config.meta.db);
   }
 
@@ -54,7 +54,7 @@ export class SecretManager {
       try {
         const decrypted = decryptPropIfRequired({
           data: source,
-          secret: this.oldSecret,
+          secret: this.prevSecret,
           prop: 'config'
         });
         isValid = true;
@@ -68,7 +68,7 @@ export class SecretManager {
       try {
         const decrypted = decryptPropIfRequired({
           data: integration,
-          secret: this.oldSecret,
+          secret: this.prevSecret,
           prop: 'config'
         });
         isValid = true;

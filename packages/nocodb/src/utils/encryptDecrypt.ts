@@ -39,11 +39,13 @@ export const decryptPropIfRequired = ({
   }
 
   if (!secret) {
-    return data[prop];
+    return typeof data[prop] === 'string' ? JSON.parse(data[prop]) : data[prop];
   }
 
   try {
-    CryptoJS.AES.decrypt(data[prop], secret).toString(CryptoJS.enc.Utf8);
+    return JSON.parse(
+      CryptoJS.AES.decrypt(data[prop], secret).toString(CryptoJS.enc.Utf8),
+    );
   } catch {
     return data[prop];
   }

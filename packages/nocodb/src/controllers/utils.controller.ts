@@ -176,7 +176,7 @@ export class UtilsController {
   }
 
   @UseGuards(PublicApiLimiterGuard)
-  @Get('/api/v1/error-reporting')
+  @Post('/api/v1/error-reporting')
   async reportErrors(@Req() req: NcRequest, @Body() body: ErrorReportReqType) {
     if (
       `${process.env.NC_DISABLE_ERR_REPORTS}` === 'true' ||

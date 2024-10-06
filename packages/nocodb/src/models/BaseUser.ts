@@ -178,6 +178,31 @@ export default class BaseUser {
     return this.castType(baseUser);
   }
 
+  /**
+   * Check if user entry exists in BaseUser table
+   * @param context
+   * @param baseId
+   * @param userId
+   * @param ncMeta
+   */
+  public static async exists(
+    context: NcContext,
+    baseId: string,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    const baseUser = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT_USERS,
+      {
+        base_id: baseId,
+        fk_user_id: userId,
+      },
+    )
+    return !!baseUser;
+  }
+
   public static async getUsersList(
     context: NcContext,
     {

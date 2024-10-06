@@ -123,9 +123,6 @@ describe('Integration Model', () => {
       mockNcMeta.metaInsert2.mockResolvedValue({
         ...newIntegration,
       });
-      mockNcMeta.metaInsert2.mockResolvedValue({
-        ...newIntegration,
-      });
       mockNcMeta.metaGet2.mockResolvedValue({
         ...newIntegration,
       });
@@ -191,10 +188,6 @@ describe('Integration Model', () => {
       expect(result).toEqual(
         expect.objectContaining({ id: 'new-id', ...newIntegration }),
       );
-
-      console.log(encryptPropIfRequired({ data: newIntegration }));
-      console.log(encryptPropIfRequired({ data: newIntegration }));
-      console.log(encryptPropIfRequired({ data: newIntegration }));
 
       // Extract the arguments used in the call
       const calledWithArgs = mockNcMeta.metaInsert2.mock.calls[0][3];

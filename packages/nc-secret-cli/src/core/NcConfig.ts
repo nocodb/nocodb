@@ -81,7 +81,7 @@ export class NcConfig {
   }
 }
 
-export const getNocoConfig = (options: {
+export const getNocoConfig = async (options: {
   ncDb?: string;
   ncDbJson?: string;
   ncDbJsonFile?: string;

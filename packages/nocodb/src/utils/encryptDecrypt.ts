@@ -1,14 +1,14 @@
 import CryptoJS from 'crypto-js';
 
-export const credentialEncyptSecret = process.env.NC_KEY_CREDENTIAL_ENCRYPT;
+export const credentialEncryptSecret = process.env.NC_KEY_CREDENTIAL_ENCRYPT;
 
-export const isEncryptionRequired = (secret = credentialEncyptSecret) => {
+export const isEncryptionRequired = (secret = credentialEncryptSecret) => {
   return !!secret;
 };
 export const encryptPropIfRequired = ({
   data,
   prop = 'config',
-  secret = credentialEncyptSecret,
+  secret = credentialEncryptSecret,
 }: {
   data: Record<string, any>;
   prop?: string;
@@ -28,7 +28,7 @@ export const encryptPropIfRequired = ({
 export const decryptPropIfRequired = ({
   data,
   prop = 'config',
-  secret = credentialEncyptSecret,
+  secret = credentialEncryptSecret,
 }: {
   data: Record<string, any>;
   prop?: string;

@@ -1,9 +1,9 @@
 import figlet from "figlet";
 import { Command } from 'commander';
-import { getNocoConfig } from "./core/NcConfig";
-import { SecretManager } from "./core/SecretManager";
-import { NcError } from "./core/NcError";
-import { NcLogger } from "./core/NcLogger";
+import { getNocoConfig } from "./core";
+import { SecretManager } from "./core";
+import { NcError } from "./core";
+import { NcLogger } from "./core";
 
 console.log(figlet.textSync("NocoDB Secret CLI"));
 
@@ -12,7 +12,7 @@ const program = new Command();
 program
   .version('1.0.0')
   .description('NocoDB Secret CLI')
-  .arguments('<oldSecret> <newSecret>')
+  .arguments('<prevSecret> <newSecret>')
   .option('--nc-db <char>', 'NocoDB  connection database url, equivalent to NC_DB env variable')
   .option('--nc-db-json <char>', 'NocoDB connection database json, equivalent to NC_DB_JSON env variable')
   .option('--nc-db-json-file <char>', 'NocoDB connection database json file path, equivalent to NC_DB_JSON_FILE env variable')

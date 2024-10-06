@@ -28,6 +28,8 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
         qb.where('is_local', false).orWhereNull('is_local');
       });
 
+    const isAtleastOneSourceEncrypted = false;
+
     for (const source of sources) {
       // encrypt the data source
       await ncMeta.metaUpdate(

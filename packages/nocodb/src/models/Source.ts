@@ -235,9 +235,7 @@ export default class Source implements SourceType {
     args: { baseId: string },
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
-    const cachedList = await NocoCache.getList(CacheScope.SOURCE, [
-      args.baseId,
-    ]);
+    const cachedList = await NocoCache.getList(CacheScope.SOURCE, [args.baseId]);
     let { list: sourceDataList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !sourceDataList.length) {

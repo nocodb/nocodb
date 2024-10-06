@@ -13,7 +13,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   const actions = [];
 
   // Get all the base sources
-  const sources = await ncMeta.knexConnection(MetaTable.BASES);
+  const sources = await ncMeta.knexConnection(MetaTable.SOURCES);
 
   // Update the base config with the new secret key if we could decrypt the base config with the fallback secret key
   for (const source of sources) {

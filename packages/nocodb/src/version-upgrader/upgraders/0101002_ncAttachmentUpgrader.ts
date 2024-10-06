@@ -46,7 +46,7 @@ function getTnPath(knex: XKnex, tb: Model) {
 }
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
-  const sources: SourceType[] = await ncMeta.knexConnection(MetaTable.BASES);
+  const sources: SourceType[] = await ncMeta.knexConnection(MetaTable.SOURCES);
 
   for (const _base of sources) {
     const source = new Source(_base);

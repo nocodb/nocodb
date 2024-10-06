@@ -7,11 +7,11 @@ const logger = new Logger('initDataSourceEncryption');
 
 export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
   // return if env is not set
-  if (!process.env.NC_KEY_CREDENTIAL_ENCRYPT) {
+  if (!process.env.NC_CONNECTION_ENCRYPT_KEY) {
     return;
   }
 
-  const secret = process.env.NC_KEY_CREDENTIAL_ENCRYPT;
+  const secret = process.env.NC_CONNECTION_ENCRYPT_KEY;
 
   const ncMeta = await _ncMeta.startTransaction();
 

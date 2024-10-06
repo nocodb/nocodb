@@ -1,7 +1,7 @@
 import CryptoJS from 'crypto-js';
 
 export const getCredentialEncryptSecret = () =>
-  process.env.NC_KEY_CREDENTIAL_ENCRYPT;
+  process.env.NC_CONNECTION_ENCRYPT_KEY;
 
 export const isEncryptionRequired = (secret = getCredentialEncryptSecret()) => {
   return !!secret;

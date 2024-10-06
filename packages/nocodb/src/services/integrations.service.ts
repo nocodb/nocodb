@@ -120,7 +120,7 @@ export class IntegrationsService {
 
       // get linked sources
       const sourceListQb = ncMeta
-        .knex(MetaTable.BASES)
+        .knex(MetaTable.SOURCES)
         .where({
           fk_integration_id: integration.id,
         })
@@ -309,7 +309,7 @@ export class IntegrationsService {
     const sources = await ncMeta.metaList2(
       integration.fk_workspace_id,
       RootScopes.WORKSPACE,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       {
         condition: {
           fk_integration_id: integration.id,
@@ -336,7 +336,7 @@ export class IntegrationsService {
       const source = new Source(sourceObj);
 
       // update the cache with the new config(encrypted)
-      await NocoCache.update(`${CacheScope.BASE}:${source.id}`, {
+      await NocoCache.update(`${CacheScope.SOURCE}:${source.id}`, {
         integration_config: integration.config,
       });
 

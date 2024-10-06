@@ -51,6 +51,7 @@ import * as nc_061_integration_is_default from '~/meta/migrations/v2/nc_061_inte
 import * as nc_062_integration_store from '~/meta/migrations/v2/nc_062_integration_store';
 import * as nc_063_form_field_filter from '~/meta/migrations/v2/nc_063_form_field_filter';
 import * as nc_064_pg_minimal_dbs from '~/meta/migrations/v2/nc_064_pg_minimal_dbs';
+import * as nc_065_encrypt_flag from '~/meta/migrations/v2/nc_065_encrypt_flag';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -113,6 +114,7 @@ export default class XcMigrationSourcev2 {
       'nc_062_integration_store',
       'nc_063_form_field_filter',
       'nc_064_pg_minimal_dbs',
+      'nc_065_encrypt_flag',
     ]);
   }
 
@@ -228,6 +230,8 @@ export default class XcMigrationSourcev2 {
         return nc_063_form_field_filter;
       case 'nc_064_pg_minimal_dbs':
         return nc_064_pg_minimal_dbs;
+      case 'nc_065_encrypt_flag':
+        return nc_065_encrypt_flag;
     }
   }
 }

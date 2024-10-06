@@ -1,5 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
-import type { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { Base } from '~/models';
 import Noco from '~/Noco';
@@ -370,7 +370,7 @@ async function upgradeModels({
 // database to virtual relation and create an index for it
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   // get all xcdb sources
-  const sources = await ncMeta.knexConnection(MetaTable.BASES).condition({
+  const sources = await ncMeta.knexConnection(MetaTable.SOURCES).condition({
     _or: [
       {
         is_meta: {

@@ -292,7 +292,7 @@ export class MetaService {
   public async genNanoid(target: string) {
     const prefixMap: { [key: string]: string } = {
       [MetaTable.PROJECT]: 'p',
-      [MetaTable.BASES]: 'b',
+      [MetaTable.SOURCES]: 'b',
       [MetaTable.MODELS]: 'm',
       [MetaTable.COLUMNS]: 'c',
       [MetaTable.COL_RELATIONS]: 'l',

@@ -1,10 +1,10 @@
 import { UITypes } from 'nocodb-sdk';
-import { throwTimeoutError } from './ncUpgradeErrors';
 import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
-import type { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 // import type { XKnex } from '~/db/sql-data-mapper';
 import type { SourceType } from 'nocodb-sdk';
+import { throwTimeoutError } from '~/version-upgrader/ncUpgradeErrors';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Model from '~/models/Model';
 import Source from '~/models/Source';
@@ -46,7 +46,7 @@ function getTnPath(knex: XKnex, tb: Model) {
 }
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {
-  const sources: SourceType[] = await ncMeta.knexConnection(MetaTable.BASES);
+  const sources: SourceType[] = await ncMeta.knexConnection(MetaTable.SOURCES);
 
   for (const _base of sources) {
     const source = new Source(_base);

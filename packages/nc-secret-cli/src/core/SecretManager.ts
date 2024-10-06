@@ -1,4 +1,5 @@
 import {NcError} from "./NcError";
+import {NcLogger} from "./NcLogger";
 
 const { SqlClientFactory, MetaTable, decryptPropIfRequired, encryptPropIfRequired } =  require('../nocodb/cli')
 
@@ -60,7 +61,7 @@ export class SecretManager {
         isValid = true;
         sourcesToUpdate.push({ ...source, config: decrypted });
       } catch (e) {
-        console.log(e);
+        NcLogger.error('Failed to decrypt source configuration : ' +  e.message);
       }
     }
 

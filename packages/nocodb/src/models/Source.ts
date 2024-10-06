@@ -1,5 +1,4 @@
 import { UITypes } from 'nocodb-sdk';
-import CryptoJS from 'crypto-js';
 import { v4 as uuidv4 } from 'uuid';
 import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, SourceType } from 'nocodb-sdk';
@@ -89,7 +88,7 @@ export default class Source implements SourceType {
       'fk_integration_id',
     ]);
 
-    insertObj.config =  encryptPropIfRequired({
+    insertObj.config = encryptPropIfRequired({
       data: insertObj,
     });
 
@@ -152,7 +151,7 @@ export default class Source implements SourceType {
     ]);
 
     if (updateObj.config) {
-      updateObj.config =  encryptPropIfRequired({
+      updateObj.config = encryptPropIfRequired({
         data: updateObj,
       });
     }

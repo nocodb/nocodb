@@ -73,8 +73,6 @@ export default defineNuxtPlugin((nuxtApp) => {
   )
 
   function report(error: Error) {
-    console.log(error)
-
     if (process.env.CI || process.env.PLAYWRIGHT) {
       return
     }

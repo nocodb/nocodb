@@ -39,11 +39,18 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     )?.value;
   }
 
-  // if encryption key is same as previous, return
+  // if encryption key is same as previous, just update is_encrypted flag and return
   if (
     process.env.NC_KEY_CREDENTIAL_ENCRYPT &&
     process.env.NC_KEY_CREDENTIAL_ENCRYPT === encryptionKey
   ) {
+    logger.log('Encryption key is same as previous. Skipping decryption');
+    await ncMeta.knexConnection(MetaTable.SOURCES).update({
+      is_encrypted: true,
+    });
+    await ncMeta.knexConnection(MetaTable.INTEGRATIONS).update({
+      is_encrypted: true,
+    });
     return;
   }
 

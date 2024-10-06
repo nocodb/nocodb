@@ -370,7 +370,7 @@ async function upgradeModels({
 // database to virtual relation and create an index for it
 export default async function ({ ncMeta }: NcUpgraderCtx) {
   // get all xcdb sources
-  const sources = await ncMeta.knexConnection(MetaTable.SOURCES).condition({
+  const sources = await ncMeta.knexConnection(MetaTable.BASES).condition({
     _or: [
       {
         is_meta: {

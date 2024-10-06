@@ -2,7 +2,7 @@ import { Logger } from '@nestjs/common';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { MetaService } from '~/meta/meta.service';
-import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
+import type { NcUpgraderCtx } from './NcUpgrader';
 import type { NcContext } from '~/interface/config';
 import { MetaTable } from '~/utils/globals';
 import { Source } from '~/models';
@@ -151,7 +151,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   );
 
   // get all xcdb sources
-  const sources = await ncMeta.knexConnection(MetaTable.SOURCES).where({
+  const sources = await ncMeta.knexConnection(MetaTable.BASES).where({
     is_meta: 1,
   });
 

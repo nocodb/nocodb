@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
+import type { NcUpgraderCtx } from './NcUpgrader';
 import { Source } from '~/models';
 import { MetaTable } from '~/utils/globals';
 
@@ -13,7 +13,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   const actions = [];
 
   // Get all the base sources
-  const sources = await ncMeta.knexConnection(MetaTable.SOURCES);
+  const sources = await ncMeta.knexConnection(MetaTable.BASES);
 
   // Update the base config with the new secret key if we could decrypt the base config with the fallback secret key
   for (const source of sources) {

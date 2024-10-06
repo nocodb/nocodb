@@ -1,5 +1,4 @@
-import CryptoJS from 'crypto-js';
-import { Source as SourceCE } from 'src/models';
+import { default as SourceCE } from 'src/models/Source';
 import type { BoolType, SourceType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import NocoCache from '~/cache/NocoCache';
@@ -28,6 +27,7 @@ export default class Source extends SourceCE implements SourceType {
       baseId: string;
       created_at?;
       updated_at?;
+      is_encrypted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -46,24 +46,23 @@ export default class Source extends SourceCE implements SourceType {
       'is_schema_readonly',
       'is_data_readonly',
       'fk_integration_id',
+      'is_encrypted',
     ]);
-    insertObj.config = CryptoJS.AES.encrypt(
-      JSON.stringify(source.config),
-      Noco.getConfig()?.auth?.jwt?.secret,
-    ).toString();
+
+    this.encryptConfigIfRequired(insertObj);
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
     }
 
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.BASES, {
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.SOURCES, {
       base_id: source.baseId,
     });
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       insertObj,
     );
 
@@ -71,9 +70,9 @@ export default class Source extends SourceCE implements SourceType {
     const returnBase = await this.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
-      CacheScope.BASE,
+      CacheScope.SOURCE,
       [source.baseId],
-      `${CacheScope.BASE}:${id}`,
+      `${CacheScope.SOURCE}:${id}`,
     );
 
     return returnBase;
@@ -136,7 +135,7 @@ export default class Source extends SourceCE implements SourceType {
     );
 
     await NocoCache.deepDel(
-      `${CacheScope.BASE}:${this.id}`,
+      `${CacheScope.SOURCE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
   }
@@ -167,7 +166,7 @@ export default class Source extends SourceCE implements SourceType {
   }
 
   protected static extendQb(qb: any, context: NcContext) {
-    qb.where(`${MetaTable.BASES}.fk_workspace_id`, context.workspace_id);
+    qb.where(`${MetaTable.SOURCES}.fk_workspace_id`, context.workspace_id);
     return super.extendQb(qb, context);
   }
 }

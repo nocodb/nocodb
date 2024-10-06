@@ -1,16 +1,2 @@
-import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
-
-const up = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.INTEGRATIONS, (table) => {
-    table.boolean('is_default').defaultTo(false);
-  });
-};
-
-const down = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.INTEGRATIONS, (table) => {
-    table.dropColumn('is_default');
-  });
-};
-
-export { up, down };
+// import and export from ce version of the migration
+export * from 'src/meta/migrations/v2/nc_061_integration_is_default';

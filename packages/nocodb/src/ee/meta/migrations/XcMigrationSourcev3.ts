@@ -26,6 +26,7 @@ import * as nc_025_integration from './v3/nc_025_integration';
 import * as nc_026_button_column from './v3/nc_026_button_column';
 import * as nc_027_invited_by from './v3/nc_027_invited_by';
 import * as nc_028_integration_is_default from './v3/nc_028_integration_is_default';
+import * as nc_029_encrypt_flag from './v3/nc_029_encrypt_flag';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
@@ -63,6 +64,7 @@ export default class XcMigrationSourcev3 {
       'nc_026_button_column',
       'nc_027_invited_by',
       'nc_028_integration_is_default',
+      'nc_029_encrypt_flag',
     ]);
   }
 
@@ -128,6 +130,8 @@ export default class XcMigrationSourcev3 {
         return nc_027_invited_by;
       case 'nc_028_integration_is_default':
         return nc_028_integration_is_default;
+      case 'nc_029_encrypt_flag':
+        return nc_029_encrypt_flag;
     }
   }
 }

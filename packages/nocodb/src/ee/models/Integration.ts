@@ -1,4 +1,3 @@
-import CryptoJS from 'crypto-js';
 import { Integration as IntegrationCE } from 'src/models';
 import type { IntegrationsType, SourceType } from 'nocodb-sdk';
 import type { BoolType, IntegrationType } from 'nocodb-sdk';
@@ -12,7 +11,7 @@ import {
   prepareForDb,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
-import { partialExtract } from '~/utils';
+import { decryptPropIfRequired, partialExtract } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export default class Integration extends IntegrationCE {
@@ -43,6 +42,7 @@ export default class Integration extends IntegrationCE {
       created_at?;
       updated_at?;
       meta?: any;
+      is_encrypted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -55,12 +55,10 @@ export default class Integration extends IntegrationCE {
       'meta',
       'created_by',
       'is_private',
+      'is_encrypted',
     ]);
 
-    insertObj.config = CryptoJS.AES.encrypt(
-      JSON.stringify(insertObj.config),
-      Noco.getConfig()?.auth?.jwt?.secret,
-    ).toString();
+    this.encryptConfigIfRequired(insertObj);
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -94,6 +92,7 @@ export default class Integration extends IntegrationCE {
     integration: IntegrationType & {
       meta?: any;
       deleted?: boolean;
+      is_encrypted?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -116,13 +115,11 @@ export default class Integration extends IntegrationCE {
       'deleted',
       'config',
       'is_private',
+      'is_encrypted',
     ]);
 
     if (updateObj.config) {
-      updateObj.config = CryptoJS.AES.encrypt(
-        JSON.stringify(integration.config),
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString();
+      this.encryptConfigIfRequired(updateObj);
     }
 
     // type property is undefined even if not provided
@@ -211,12 +208,12 @@ export default class Integration extends IntegrationCE {
       listQb
         .select(
           `${MetaTable.INTEGRATIONS}.*`,
-          ncMeta.knex.raw(`count(${MetaTable.BASES}.id) as source_count`),
+          ncMeta.knex.raw(`count(${MetaTable.SOURCES}.id) as source_count`),
         )
         .leftJoin(
-          MetaTable.BASES,
+          MetaTable.SOURCES,
           `${MetaTable.INTEGRATIONS}.id`,
-          `${MetaTable.BASES}.fk_integration_id`,
+          `${MetaTable.SOURCES}.fk_integration_id`,
         )
         .groupBy(`${MetaTable.INTEGRATIONS}.id`);
     }
@@ -322,12 +319,9 @@ export default class Integration extends IntegrationCE {
   }
 
   public getConfig(): any {
-    const config = JSON.parse(
-      CryptoJS.AES.decrypt(
-        this.config,
-        Noco.getConfig()?.auth?.jwt?.secret,
-      ).toString(CryptoJS.enc.Utf8),
-    );
+    const config = decryptPropIfRequired({
+      data: this,
+    });
 
     return config;
   }
@@ -356,30 +350,30 @@ export default class Integration extends IntegrationCE {
   }
 
   async getSources(ncMeta = Noco.ncMeta): Promise<any> {
-    const qb = ncMeta.knex(MetaTable.BASES);
+    const qb = ncMeta.knex(MetaTable.SOURCES);
 
     const sources = await qb
-      .select(`${MetaTable.BASES}.id`)
-      .select(`${MetaTable.BASES}.alias`)
+      .select(`${MetaTable.SOURCES}.id`)
+      .select(`${MetaTable.SOURCES}.alias`)
       .select(`${MetaTable.PROJECT}.title as project_title`)
-      .select(`${MetaTable.BASES}.base_id`)
+      .select(`${MetaTable.SOURCES}.base_id`)
       .innerJoin(
         MetaTable.PROJECT,
-        `${MetaTable.BASES}.base_id`,
+        `${MetaTable.SOURCES}.base_id`,
         `${MetaTable.PROJECT}.id`,
       )
-      .where(`${MetaTable.BASES}.fk_integration_id`, this.id)
+      .where(`${MetaTable.SOURCES}.fk_integration_id`, this.id)
       .where((whereQb) => {
         whereQb
-          .where(`${MetaTable.BASES}.deleted`, false)
-          .orWhereNull(`${MetaTable.BASES}.deleted`);
+          .where(`${MetaTable.SOURCES}.deleted`, false)
+          .orWhereNull(`${MetaTable.SOURCES}.deleted`);
       })
       .where((whereQb) => {
         whereQb
           .where(`${MetaTable.PROJECT}.deleted`, false)
           .orWhereNull(`${MetaTable.PROJECT}.deleted`);
       })
-      .where(`${MetaTable.BASES}.fk_workspace_id`, this.fk_workspace_id);
+      .where(`${MetaTable.SOURCES}.fk_workspace_id`, this.fk_workspace_id);
 
     return (this.sources = sources);
   }

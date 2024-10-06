@@ -22,13 +22,14 @@
   "scripts": {
     "build": "pnpm run docker:build",
     "build:obfuscate": "EE=true webpack  --config webpack.config.js",
+    "build:cli:module": "webpack  --config webpack.cli.config.js",
     "build:on-prem": "EE=true webpack  --config webpack.ee-on-prem.config.js",
     "obfuscate:build:publish": "pnpm run build:obfuscate && pnpm publish .",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "pnpm run watch:run",
     "start:prod": "node docker/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
@@ -207,6 +208,7 @@
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-prettier": "^4.2.1",
     "jest": "29.7.0",
+    "jest-mock-extended": "^3.0.0",
     "mocha": "^10.3.0",
     "nodemon": "^3.0.3",
     "pino-pretty": "^10.3.1",
@@ -220,34 +222,6 @@
     "typescript": "^5.3.3",
     "webpack-cli": "^5.1.4",
     "webpack-obfuscator": "^3.5.1"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "moduleNameMapper": {
-      "^src/(.*)$": "<rootDir>/$1",
-      "^~/(.*)$": [
-        "<rootDir>/ee/$1",
-        "<rootDir>/$1"
-      ],
-      "^@/(.*)$": [
-        "<rootDir>/ee/$1",
-        "<rootDir>/$1"
-      ]
-    }
   },
   "pnpm": {
     "supportedArchitectures": {

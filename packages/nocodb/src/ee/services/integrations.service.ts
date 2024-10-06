@@ -125,7 +125,7 @@ export class IntegrationsService {
       const sources = await ncMeta.metaList2(
         RootScopes.WORKSPACE,
         RootScopes.WORKSPACE,
-        MetaTable.BASES,
+        MetaTable.SOURCES,
         {
           condition: {
             fk_workspace_id: integration.fk_workspace_id,
@@ -290,7 +290,7 @@ export class IntegrationsService {
     const sources = await ncMeta.metaList2(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       {
         condition: {
           fk_workspace_id: integration.fk_workspace_id,
@@ -318,7 +318,7 @@ export class IntegrationsService {
       const source = new Source(sourceObj);
 
       // update the cache with the new config(encrypted)
-      await NocoCache.update(`${CacheScope.BASE}:${source.id}`, {
+      await NocoCache.update(`${CacheScope.SOURCE}:${source.id}`, {
         integration_config: integration.config,
       });
 

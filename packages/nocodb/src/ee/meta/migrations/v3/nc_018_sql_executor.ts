@@ -6,7 +6,7 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 const up = async (knex: Knex) => {
   if (await knex.schema.hasTable(MetaTable.DB_MUX)) {
-    await knex.schema.alterTable(MetaTable.BASES, (table) => {
+    await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
       table.dropColumn('fk_sql_executor_id');
     });
     await knex.schema.dropTable(MetaTable.DB_MUX);
@@ -36,13 +36,13 @@ const up = async (knex: Knex) => {
 
   await knex(MetaTable.DB_MUX).insert(predefinedDbMuxes);
 
-  await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
     table.string('fk_sql_executor_id', 20).index();
   });
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
     table.dropColumn('fk_sql_executor_id');
   });
   await knex.schema.dropTable(MetaTable.DB_MUX);

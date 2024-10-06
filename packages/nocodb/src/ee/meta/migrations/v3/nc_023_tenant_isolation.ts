@@ -39,7 +39,7 @@ import { MetaTable } from '~/utils/globals';
     nc_sync_logs_v2: MetaTable.SYNC_LOGS
     nc_sync_source_v2: MetaTable.SYNC_SOURCE
     nc_views_v2: MetaTable.VIEWS
-    nc_disabled_models_for_role_v2: MetaTable.MODEL_ROLE_VISIBILITY 
+    nc_disabled_models_for_role_v2: MetaTable.MODEL_ROLE_VISIBILITY
     nc_comments: MetaTable.COMMENTS
     nc_comment_reactions: MetaTable.COMMENTS_REACTIONS
     nc_user_comment_notifications_preference: MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE
@@ -271,7 +271,7 @@ const up = async (knex: Knex) => {
     MetaTable.MAP_VIEW,
     MetaTable.MODELS,
     MetaTable.SORT,
-    MetaTable.BASES,
+    MetaTable.SOURCES,
     MetaTable.SYNC_LOGS,
     MetaTable.SYNC_SOURCE,
     MetaTable.VIEWS,
@@ -398,7 +398,7 @@ const up = async (knex: Knex) => {
     MetaTable.MAP_VIEW,
     MetaTable.MODELS,
     MetaTable.SORT,
-    MetaTable.BASES,
+    MetaTable.SOURCES,
     MetaTable.SYNC_LOGS,
     MetaTable.SYNC_SOURCE,
     MetaTable.VIEWS,
@@ -435,7 +435,7 @@ const up = async (knex: Knex) => {
   // Drop existing base_id indexes
   const dropBaseIdIndexes = [
     MetaTable.AUDIT,
-    MetaTable.BASES,
+    MetaTable.SOURCES,
     MetaTable.MODELS,
     MetaTable.PROJECT_USERS,
     MetaTable.SYNC_SOURCE,
@@ -525,7 +525,7 @@ const up = async (knex: Knex) => {
     MetaTable.MAP_VIEW,
     MetaTable.MODELS,
     MetaTable.SORT,
-    MetaTable.BASES,
+    MetaTable.SOURCES,
     MetaTable.SYNC_LOGS,
     MetaTable.SYNC_SOURCE,
     MetaTable.VIEWS,
@@ -653,7 +653,7 @@ const down = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.SORT, (table) => {
     table.dropColumn('fk_workspace_id');
   });
-  await knex.schema.alterTable(MetaTable.BASES, (table) => {
+  await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
     table.dropColumn('fk_workspace_id');
   });
   await knex.schema.alterTable(MetaTable.SYNC_LOGS, (table) => {

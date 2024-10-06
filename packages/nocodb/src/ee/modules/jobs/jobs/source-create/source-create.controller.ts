@@ -60,7 +60,7 @@ export class SourceCreateController {
     const sourcesInBase = await Noco.ncMeta.metaCount(
       context.workspace_id,
       context.base_id,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       {
         condition: {
           base_id: base.id,

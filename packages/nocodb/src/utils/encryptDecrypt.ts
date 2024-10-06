@@ -19,7 +19,7 @@ export const encryptPropIfRequired = ({
   }
 
   if (!secret) {
-    return data[prop];
+    return JSON.stringify(data[prop]);
   }
 
   return CryptoJS.AES.encrypt(JSON.stringify(data[prop]), secret).toString();
@@ -43,10 +43,8 @@ export const decryptPropIfRequired = ({
   }
 
   try {
-    return JSON.parse(
-      CryptoJS.AES.decrypt(data[prop], secret).toString(CryptoJS.enc.Utf8),
-    );
-  } catch (e) {
+    CryptoJS.AES.decrypt(data[prop], secret).toString(CryptoJS.enc.Utf8);
+  } catch {
     return data[prop];
   }
 };

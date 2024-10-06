@@ -1,7 +1,6 @@
 import process from 'process';
 import CryptoJS from 'crypto-js';
 import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
-import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 
 const logger = {
@@ -41,7 +40,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
   // if encryption key is not present, return
   if (!encryptionKey) {
-    return;
+    throw Error('Encryption key not found');
   }
 
   // get all external sources
@@ -95,10 +94,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
   // if all failed, log and exit
   if (passed.length > 0 && passed.every((v) => !v)) {
-    logger.error(
-      `Failed to decrypt all source or integration. Please configure correct encryption key. `,
+    throw new Error(
+      `Failed to decrypt all source or integration. Please configure correct encryption key.`,
     );
-    return;
   }
 
   logger.log(`Decrypted ${passed.length} sources and integrations`);

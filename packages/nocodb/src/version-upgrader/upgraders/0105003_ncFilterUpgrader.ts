@@ -1,6 +1,6 @@
 import { UITypes } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
-import type { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import type { NcContext } from '~/interface/config';
 import { MetaTable } from '~/utils/globals';
 import Column from '~/models/Column';

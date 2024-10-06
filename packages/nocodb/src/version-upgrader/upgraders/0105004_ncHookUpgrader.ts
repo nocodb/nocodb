@@ -1,4 +1,4 @@
-import type { NcUpgraderCtx } from './NcUpgrader';
+import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import { MetaTable } from '~/utils/globals';
 
 export default async function ({ ncMeta }: NcUpgraderCtx) {

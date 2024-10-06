@@ -89,7 +89,7 @@ export default class Source implements SourceType {
       'fk_integration_id',
     ]);
 
-    insertObj.config = await encryptPropIfRequired({
+    insertObj.config =  encryptPropIfRequired({
       data: insertObj,
     });
 
@@ -152,7 +152,7 @@ export default class Source implements SourceType {
     ]);
 
     if (updateObj.config) {
-      updateObj.config = await encryptPropIfRequired({
+      updateObj.config =  encryptPropIfRequired({
         data: updateObj,
       });
     }

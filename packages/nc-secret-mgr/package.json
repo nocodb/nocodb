@@ -42,6 +42,7 @@
     "@types/figlet": "^1.5.8",
     "chai": "^4.4.1",
     "class-transformer": "0.3.1",
+    "class-validator": "^0.14.1",
     "cross-env": "^7.0.3",
     "mocha": "^10.3.0",
     "nodemon": "^3.0.3",

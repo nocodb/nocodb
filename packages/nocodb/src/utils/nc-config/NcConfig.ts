@@ -44,6 +44,7 @@ export class NcConfig {
   env: string;
   workingEnv: string;
   baseType: string;
+  credentialSecret?: string;
 
   private constructor() {}
 
@@ -59,6 +60,7 @@ export class NcConfig {
     worker?: boolean;
     dashboardPath?: string;
     publicUrl?: string;
+    credentialSecret?: string;
   }): Promise<NcConfig> {
     const { meta, secret, port, worker, tryMode, publicUrl, dashboardPath } =
       param;
@@ -69,6 +71,7 @@ export class NcConfig {
       jwt: {
         secret: secret,
       },
+      credentialSecret: param.credentialSecret
     };
 
     ncConfig.port = +(port ?? 8080);
@@ -148,6 +151,7 @@ export class NcConfig {
       worker: !!process.env.NC_WORKER,
       dashboardPath: process.env.NC_DASHBOARD_URL ?? '/dashboard',
       publicUrl: process.env.NC_PUBLIC_URL,
+      credentialSecret: process.env.NC_KEY_CREDENTIAL_ENCRYPT,
     });
   }
 

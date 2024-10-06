@@ -13,7 +13,6 @@ import {
 import {
   decryptPropIfRequired,
   encryptPropIfRequired,
-  isEncryptionRequired,
   partialExtract,
 } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -68,10 +67,9 @@ export default class Integration implements IntegrationType {
       'is_encrypted',
     ]);
 
-    // insertObj.config = CryptoJS.AES.encrypt(
-    //   JSON.stringify(insertObj.config),
-    //   Noco.getConfig()?.auth?.jwt?.secret,
-    // ).toString();
+    insertObj.config = await encryptPropIfRequired({
+      data: insertObj,
+    });
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -137,12 +135,11 @@ export default class Integration implements IntegrationType {
       'is_encrypted',
     ]);
 
-    // if (updateObj.config) {
-    //   updateObj.config = CryptoJS.AES.encrypt(
-    //     JSON.stringify(integration.config),
-    //     Noco.getConfig()?.auth?.jwt?.secret,
-    //   ).toString();
-    // }
+    if (updateObj.config) {
+      updateObj.config = await encryptPropIfRequired({
+        data: updateObj,
+      });
+    }
 
     // type property is undefined even if not provided
     if (!updateObj.type) {

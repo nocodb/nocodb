@@ -28,7 +28,6 @@ import {
   decryptPropIfRequired,
   deepMerge,
   encryptPropIfRequired,
-  isEncryptionRequired,
   partialExtract,
 } from '~/utils';
 
@@ -96,7 +95,9 @@ export default class Source implements SourceType {
       'is_encrypted',
     ]);
 
-    this.encryptConfigIfRequired(insertObj);
+    insertObj.config = await encryptPropIfRequired({
+      data: insertObj,
+    });
 
     if ('meta' in insertObj) {
       insertObj.meta = stringifyMetaProp(insertObj);
@@ -159,7 +160,9 @@ export default class Source implements SourceType {
     ]);
 
     if (updateObj.config) {
-      this.encryptConfigIfRequired(updateObj);
+      updateObj.config = await encryptPropIfRequired({
+        data: updateObj,
+      });
     }
 
     // type property is undefined even if not provided
@@ -340,9 +343,11 @@ export default class Source implements SourceType {
       return config;
     }
 
-    const config = decryptPropIfRequired({
-      data: this,
-    });
+    const config = JSON.parse(
+      decryptPropIfRequired({
+        data: this,
+      }),
+    );
 
     if (skipIntegrationConfig) {
       return config;
@@ -352,10 +357,12 @@ export default class Source implements SourceType {
       return config;
     }
 
-    const integrationConfig = decryptPropIfRequired({
-      data: this,
-      prop: 'integration_config',
-    });
+    const integrationConfig = JSON.parse(
+      decryptPropIfRequired({
+        data: this,
+        prop: 'integration_config',
+      }),
+    );
     // merge integration config with source config
     // override integration config with source config if exists
     // only override database and searchPath

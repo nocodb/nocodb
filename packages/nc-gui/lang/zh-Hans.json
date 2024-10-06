@@ -336,15 +336,15 @@
     "developer": "开发人员",
     "roleType": {
       "owner": "所有者",
-      "creator": "创造者",
+      "creator": "创建者",
       "editor": "编辑者",
       "commenter": "评论者",
       "viewer": "浏览者",
       "noaccess": "没有访问权限",
       "superAdmin": "超级管理员",
       "orgLevelOwner": "组织所有者",
-      "orgLevelCreator": "创始人",
-      "orgLevelViewer": "游客"
+      "orgLevelCreator": "创建者",
+      "orgLevelViewer": "浏览者"
     },
     "sqlVIew": "SQL 视图",
     "rowHeight": "行高",
@@ -509,7 +509,7 @@
     "tokenName": "Token 名称",
     "inDesktop": "电脑端",
     "rowData": "记录数据",
-    "creator": "创造者",
+    "creator": "创建者",
     "qrCode": "二维码",
     "termsOfService": "服务条款",
     "updateSelectedRows": "更新选定记录",
@@ -1518,8 +1518,8 @@
       "basesMigrated": "项目已迁移。请重试。",
       "pasteNotSupported": "处于活动状态的单元格不能粘贴内容",
       "roles": {
-        "orgCreator": "创始人可以创建新项目，访问受邀项目。",
-        "orgViewer": "游客不能创建新项目，仅允许访问受邀项目。"
+        "orgCreator": "创建者可以创建新项目，访问受邀项目。",
+        "orgViewer": "浏览者不能创建新项目，仅允许访问受邀项目。"
       },
       "codeScanner": {
         "loadingScanner": "正在加载扫描仪...",
@@ -1554,7 +1554,7 @@
       "dragDropHide": "在此处拖放字段以隐藏",
       "formInput": "输入表单输入标签",
       "formHelpText": "添加一些帮助文本",
-      "onlyCreator": "仅创始人可见",
+      "onlyCreator": "仅创建者可见",
       "formTitle": "添加数据表格标题",
       "formDesc": "添加表单描述",
       "beforeEnablePwd": "使用密码限制访问",
@@ -1574,11 +1574,11 @@
       "collabView": "具有编辑及更高权限的合作者可以更改视图配置。",
       "lockedView": "视图配置被锁定。",
       "personalView": "只有您可以编辑视图配置，其他合作者的个人视图默认不显示。",
-      "ownerDesc": "可以添加&删除创建者。和完整编辑数据库结构和字段。",
-      "creatorDesc": "可以自由编辑数据库结构和内容。",
+      "ownerDesc": "可以添加&删除创建者，且能够编辑数据库结构和字段。",
+      "creatorDesc": "可以完全编辑数据库结构和内容。",
       "editorDesc": "可以编辑记录但无法更改数据库/字段的结构。",
       "commenterDesc": "可以查看和评论，但无法编辑任何内容",
-      "viewerDesc": "可以查看记录但无法编辑任何内容",
+      "viewerDesc": "可以查看记录，但无法编辑内容",
       "addUser": "添加新用户",
       "staticRoleInfo": "不允许修改系统权限",
       "exportZip": "以 zip 格式下载项目元数据。",
@@ -1618,7 +1618,7 @@
         "map": "添加地图视图",
         "calendar": "添加日历视图"
       },
-      "tablesMetadataInSync": "表元数据同步",
+      "tablesMetadataInSync": "元数据已同步",
       "addMultipleUsers": "可以使用多个英文逗号 (,) 分隔邮箱地址",
       "enterTableName": "输入表名",
       "enterTableDescription": "输入表格描述...",
@@ -1844,7 +1844,7 @@
       "settingsSaved": "设置保存成功",
       "roleUpdated": "权限已更新",
       "connectionAdded": "集成连接成功",
-      "connectionAddedDesc": "基地所有者和创建者现在可以添加数据源，而无需重新输入凭据。"
+      "connectionAddedDesc": "库的所有者和创建者现在可以添加数据源，而无需重新输入凭据。"
     }
   }
 }

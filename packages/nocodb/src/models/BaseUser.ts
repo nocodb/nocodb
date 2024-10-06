@@ -25,6 +25,9 @@ export default class BaseUser {
   fk_user_id: string;
   roles?: string;
   invited_by?: string;
+  starred?: boolean;
+  order?: number;
+  hidden?: boolean;
 
   constructor(data: BaseUser) {
     Object.assign(this, data);
@@ -94,6 +97,9 @@ export default class BaseUser {
       'base_id',
       'roles',
       'invited_by',
+      'starred',
+      'order',
+      'hidden',
     ]);
 
     const { base_id, fk_user_id } = await ncMeta.metaInsert2(
@@ -173,6 +179,31 @@ export default class BaseUser {
       }
     }
     return this.castType(baseUser);
+  }
+
+  /**
+   * Check if user entry exists in BaseUser table
+   * @param context
+   * @param baseId
+   * @param userId
+   * @param ncMeta
+   */
+  public static async getBaseUserFromDb(
+    context: NcContext,
+    baseId: string,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<BaseUser> {
+    const baseUser = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT_USERS,
+      {
+        base_id: baseId,
+        fk_user_id: userId,
+      },
+    )
+    return baseUser && this.castType(baseUser);
   }
 
   public static async getUsersList(

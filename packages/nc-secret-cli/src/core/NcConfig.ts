@@ -1,14 +1,11 @@
 import * as path from 'path';
 import fs from 'fs';
 import { promisify } from 'util';
-import { getToolDir, metaUrlToDbConfig } from './helpers';
-import { DriverClient } from './interfaces';
-import type { DbConfig } from './interfaces';
-import { SqlClientFactory } from 'nocodb';
+const { DriverClient, getToolDir, metaUrlToDbConfig } = require( '../nocodb/cli');
 
 export class NcConfig {
   meta: {
-    db: DbConfig;
+    db: any;
   } = {
     db: {
       client: DriverClient.SQLITE,

@@ -337,7 +337,20 @@ export const usePredictFields = createSharedComposable(
         ops: payload,
       })
 
-      await onSuccess?.()
+      if (res && res.failedOps?.length) {
+        const failedColumnTitle = res.failedOps.filter((o) => o?.column?.title).map((o) => o.column.title)
+        selected.value = selected.value.filter((f) => {
+          if (failedColumnTitle.includes(f.formState?.title)) return true
+
+          return false
+        })
+
+        return false
+      } else {
+        await onSuccess?.()
+
+        return true
+      }
     }
 
     function onInit() {

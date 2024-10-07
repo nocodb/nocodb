@@ -188,10 +188,6 @@ export default class BaseUser {
     return this.castType(baseUser);
   }
 
-  public isBaseMappedToUser() {
-    return !!this.base_id;
-  }
-
   public static async getUsersList(
     context: NcContext,
     {

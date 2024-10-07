@@ -1,7 +1,12 @@
 import * as path from 'path';
 import fs from 'fs';
 import { promisify } from 'util';
-const { DriverClient, getToolDir, metaUrlToDbConfig, prepareEnv } = require( '../nocodb/cli');
+const {
+  DriverClient,
+  getToolDir,
+  metaUrlToDbConfig,
+  prepareEnv,
+} = require('../nocodb/cli');
 
 export class NcConfig {
   meta: {
@@ -31,8 +36,7 @@ export class NcConfig {
     };
     secret?: string;
   }): Promise<NcConfig> {
-    const { meta, secret } =
-      param;
+    const { meta } = param;
 
     const ncConfig = new NcConfig();
 
@@ -43,20 +47,19 @@ export class NcConfig {
       );
     }
 
-      if (meta?.metaUrl) {
-        ncConfig.meta.db = await metaUrlToDbConfig(meta.metaUrl);
-      } else if (meta?.metaJson) {
-        ncConfig.meta.db = JSON.parse(meta.metaJson);
-      } else if (meta?.metaJsonFile) {
-        if (!(await promisify(fs.exists)(meta.metaJsonFile))) {
-          throw new Error(`NC_DB_JSON_FILE not found: ${meta.metaJsonFile}`);
-        }
-        const fileContent = await promisify(fs.readFile)(meta.metaJsonFile, {
-          encoding: 'utf8',
-        });
-        ncConfig.meta.db = JSON.parse(fileContent);
+    if (meta?.metaUrl) {
+      ncConfig.meta.db = await metaUrlToDbConfig(meta.metaUrl);
+    } else if (meta?.metaJson) {
+      ncConfig.meta.db = JSON.parse(meta.metaJson);
+    } else if (meta?.metaJsonFile) {
+      if (!(await promisify(fs.exists)(meta.metaJsonFile))) {
+        throw new Error(`NC_DB_JSON_FILE not found: ${meta.metaJsonFile}`);
       }
-
+      const fileContent = await promisify(fs.readFile)(meta.metaJsonFile, {
+        encoding: 'utf8',
+      });
+      ncConfig.meta.db = JSON.parse(fileContent);
+    }
 
     return ncConfig;
   }
@@ -73,18 +76,26 @@ export class NcConfig {
   }
 }
 
-export const getNocoConfig = async (options: {
-  ncDb?: string;
-  ncDbJson?: string;
-  ncDbJsonFile?: string;
-  databaseUrl?: string;
-  databaseUrlFile?: string;
-} ={}) =>{
+export const getNocoConfig = async (
+  options: {
+    ncDb?: string;
+    ncDbJson?: string;
+    ncDbJsonFile?: string;
+    databaseUrl?: string;
+    databaseUrlFile?: string;
+  } = {},
+) => {
   // check for JDBC url specified in env or options
   await prepareEnv({
-    databaseUrl: options.databaseUrl || process.env.NC_DATABASE_URL || process.env.DATABASE_URL,
-    databaseUrlFile:  options.databaseUrlFile || process.env.NC_DATABASE_URL_FILE || process.env.DATABASE_URL_FILE,
-  })
+    databaseUrl:
+      options.databaseUrl ||
+      process.env.NC_DATABASE_URL ||
+      process.env.DATABASE_URL,
+    databaseUrlFile:
+      options.databaseUrlFile ||
+      process.env.NC_DATABASE_URL_FILE ||
+      process.env.DATABASE_URL_FILE,
+  });
 
   // create NocoConfig using utility method which works similar to Nocodb NcConfig with only meta db config
   return NcConfig.create({
@@ -92,6 +103,6 @@ export const getNocoConfig = async (options: {
       metaUrl: process.env.NC_DB || options.ncDb,
       metaJson: process.env.NC_DB_JSON || options.ncDbJson,
       metaJsonFile: process.env.NC_DB_JSON_FILE || options.ncDbJsonFile,
-    }
+    },
   });
-}
+};

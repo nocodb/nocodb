@@ -34,10 +34,15 @@ export default async function (force = false, ncMeta = Noco.ncMeta) {
         .where('key', 'nc_server_id')
         .first()
         .then((c) => c.created_at);
+      const files = await ncMeta
+        .knex(MetaTable.FILE_REFERENCES)
+        .count('id as count')
+        .first()
+        .then((c) => c.count);
 
       const nc_db_type = Noco.getConfig()?.meta?.db?.client;
 
-      res = { projectsMeta, projectsExt, impacted, nc_db_type, created };
+      res = { projectsMeta, projectsExt, impacted, nc_db_type, created, files };
       await NocoCache.set(CacheScope.INSTANCE_META, res);
     }
     return res;

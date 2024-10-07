@@ -236,8 +236,12 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
   return types
 })
 
-const onSelectType = (uidt: UITypes | typeof AIButton) => {
+const onSelectType = (uidt: UITypes | typeof AIButton, fromSearchList = false) => {
   let preload
+
+  if (fromSearchList && !isEdit.value && aiAutoSuggestMode.value) {
+    onInit()
+  }
 
   if (uidt === AIButton) {
     formState.value.uidt = UITypes.Button
@@ -684,8 +688,17 @@ const onDeselectAll = () => {
         <!-- Black overlay button on end of input -->
         <NcTooltip
           v-if="!isEdit"
-          :title="aiAutoSuggestMode ? 'Disable AI suggestions' : 'Suggest field using AI'"
+          :title="
+            aiAutoSuggestMode
+              ? 'Disable AI suggestions'
+              : formState.uidt && !aiAutoSuggestMode
+              ? 'You cannot use ai field suggestion if selected field is not ai suggested'
+              : 'Suggest field using AI'
+          "
           class="nc-field-modal-ai-toggle-btn-wrapper absolute right-0 top-0 h-full"
+          :class="{
+            'cursor-not-allowed': formState.uidt && !aiAutoSuggestMode,
+          }"
         >
           <NcButton
             size="small"
@@ -694,7 +707,7 @@ const onDeselectAll = () => {
             class="nc-field-modal-ai-toggle-btn z-10 !border-l-0 !rounded-l-none !pl-3.8"
             :class="{
               'nc-ai-mode': aiAutoSuggestMode,
-              '!pointer-events-none !cursor-not-allowed': aiLoading,
+              '!pointer-events-none !cursor-not-allowed': aiLoading || (formState.uidt && !aiAutoSuggestMode),
             }"
             icon-only
             @click.stop="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
@@ -935,7 +948,7 @@ const onDeselectAll = () => {
           <SmartsheetColumnUITypesOptionsWithSearch
             :options="uiTypesOptions"
             :extra-icons="extraIcons"
-            @selected="onSelectType"
+            @selected="onSelectType($event, true)"
           />
         </template>
 
@@ -963,7 +976,7 @@ const onDeselectAll = () => {
             dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
             :filter-option="filterOption"
             @dropdown-visible-change="onDropdownChange"
-            @change="onSelectType"
+            @change="onSelectType($event)"
             @dblclick="showDeprecated = !showDeprecated"
           >
             <template #suffixIcon>

@@ -20,7 +20,6 @@
   font-synthesis: none;
 }
 
-
 html {
   overflow: hidden;
 }
@@ -92,9 +91,18 @@ main {
     &:hover:not(:focus):not(:disabled) {
       @apply border-gray-200 shadow-hover;
     }
-    &:focus {
+    &:not(.nc-ai-input):focus {
       @apply shadow-selected ring-0;
     }
+    &.nc-ai-input:focus {
+      @apply shadow-selected-ai ring-0 !border-nc-border-purple;
+    }
+  }
+}
+
+.ant-form-item-has-error .nc-input-shadow.ant-input {
+  &.nc-ai-input:focus {
+    @apply !shadow-error;
   }
 }
 
@@ -345,6 +353,12 @@ a {
   .nc-select-shadow.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
   .ant-select-selector {
   @apply !shadow-selected;
+}
+
+.ant-form-item:not(.ant-form-item-has-error)
+  .nc-select-shadow.nc-ai-input.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
+  .ant-select-selector {
+  @apply !shadow-selected-ai border-nc-border-purple;
 }
 
 .ant-form-item.ant-form-item-has-error
@@ -930,7 +944,18 @@ svg.nc-virtual-cell-icon {
 // switch - on tab focus show outline
 .ant-switch:focus-visible,
 .ant-switch-checked:focus-visible {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+  &.nc-ai-input {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #7d26cd;
+  }
+  &:not(.nc-ai-input) {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+  }
+}
+
+.ant-switch-checked {
+  &.nc-ai-input {
+    @apply !bg-nc-fill-purple-medium;
+  }
 }
 
 .text-nowrap {

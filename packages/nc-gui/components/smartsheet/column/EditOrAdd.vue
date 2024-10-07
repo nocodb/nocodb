@@ -958,68 +958,71 @@ const onDeselectAll = () => {
           @keydown.up.stop="handleResetHoverEffect"
           @keydown.down.stop="handleResetHoverEffect"
         >
-          <a-select
-            v-model:value="formState.uidt"
-            show-search
-            class="nc-column-type-input nc-select-shadow !rounded-lg"
-            :class="{
-              'nc-ai-input': isAiMode,
-            }"
-            :disabled="
-              aiAutoSuggestMode ||
-              (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
-              isKanban ||
-              readOnly ||
-              (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt)) ||
-              (isEdit && !isFullUpdateAllowed)
-            "
-            dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
-            :filter-option="filterOption"
-            @dropdown-visible-change="onDropdownChange"
-            @change="onSelectType($event)"
-            @dblclick="showDeprecated = !showDeprecated"
-          >
-            <template #suffixIcon>
-              <GeneralIcon icon="arrowDown" class="text-gray-700" />
-            </template>
-            <a-select-option
-              v-for="opt of uiTypesOptions"
-              :key="opt.name"
-              :value="opt.name"
-              :disabled="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name)"
-              v-bind="validateInfos.uidt"
+          <NcTooltip :disabled="!(!isEdit && aiAutoSuggestMode && formState.uidt)">
+            <template #title> You cannot change field type of AI suggested field </template>
+            <a-select
+              v-model:value="formState.uidt"
+              show-search
+              class="nc-column-type-input nc-select-shadow !rounded-lg"
               :class="{
-                'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
-                '!text-nc-content-purple-dark': [UITypes.AI, AIButton].includes(opt.name),
+                'nc-ai-input': isAiMode,
+                '!pointer-events-none !cursor-not-allowed': !isEdit && aiAutoSuggestMode && formState.uidt,
               }"
-              @mouseover="handleResetHoverEffect"
+              :disabled="
+                (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||
+                isKanban ||
+                readOnly ||
+                (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt)) ||
+                (isEdit && !isFullUpdateAllowed)
+              "
+              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
+              :filter-option="filterOption"
+              @dropdown-visible-change="onDropdownChange"
+              @change="onSelectType($event)"
+              @dblclick="showDeprecated = !showDeprecated"
             >
-              <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
-                <div class="flex-1 flex gap-2 items-center">
-                  <component
-                    :is="opt.icon"
-                    class="nc-field-type-icon w-4 h-4"
-                    :class="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name) ? 'text-gray-300' : 'text-gray-700'"
-                  />
-                  <div class="flex-1">
-                    {{ UITypesName[opt.name] }}
+              <template #suffixIcon>
+                <GeneralIcon icon="arrowDown" class="text-gray-700" />
+              </template>
+              <a-select-option
+                v-for="opt of uiTypesOptions"
+                :key="opt.name"
+                :value="opt.name"
+                :disabled="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name)"
+                v-bind="validateInfos.uidt"
+                :class="{
+                  'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
+                  '!text-nc-content-purple-dark': [UITypes.AI, AIButton].includes(opt.name),
+                }"
+                @mouseover="handleResetHoverEffect"
+              >
+                <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
+                  <div class="flex-1 flex gap-2 items-center">
+                    <component
+                      :is="opt.icon"
+                      class="nc-field-type-icon w-4 h-4"
+                      :class="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name) ? 'text-gray-300' : 'text-gray-700'"
+                    />
+                    <div class="flex-1">
+                      {{ UITypesName[opt.name] }}
+                    </div>
+                    <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+                    <!-- <NcBadge v-if="opt.isNew" :border="false" class="!text-sm !text-nc-content-purple-dark !bg-nc-bg-purple-light !h-5">{{ $t('general.new') }}</NcBadge> -->
                   </div>
-                  <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
-                  <!-- <NcBadge v-if="opt.isNew" :border="false" class="!text-sm !text-nc-content-purple-dark !bg-nc-bg-purple-light !h-5">{{ $t('general.new') }}</NcBadge> -->
+                  <component
+                    :is="iconMap.check"
+                    v-if="formState.uidt === opt.name"
+                    id="nc-selected-item-icon"
+                    class="w-4 h-4"
+                    :class="{
+                      'text-primary': !isAiMode,
+                      'text-nc-content-purple-medium': isAiMode,
+                    }"
+                  />
                 </div>
-                <component
-                  :is="iconMap.check"
-                  v-if="formState.uidt === opt.name"
-                  id="nc-selected-item-icon"
-                  class="w-4 h-4"
-                  :class="{
-                    'text-primary': !isAiMode,
-                    'text-nc-content-purple-medium': isAiMode,
-                  }"
-                />
-              </div>
-            </a-select-option>
-          </a-select>
+              </a-select-option>
+            </a-select>
+          </NcTooltip>
         </a-form-item>
       </div>
 

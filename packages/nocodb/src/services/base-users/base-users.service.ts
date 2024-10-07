@@ -105,11 +105,7 @@ export class BaseUsersService {
 
       if (user) {
         // check if this user has been added to this base
-        const baseUser = await BaseUser.getBaseUserFromDb(
-          context,
-          param.baseId,
-          user.id,
-        );
+        const baseUser = await BaseUser.get(context, param.baseId, user.id);
 
         const base = await Base.get(context, param.baseId);
 
@@ -118,13 +114,13 @@ export class BaseUsersService {
         }
 
         // if already exists and has a role then throw error
-        if (baseUser?.roles) {
+        if (baseUser.is_mapped && baseUser?.roles) {
           NcError.badRequest(
             `${user.email} with role ${baseUser.roles} already exists in this base`,
           );
         }
         // if user exist and role is not assigned then assign role by updating base user
-        else if (baseUser) {
+        else if (baseUser.is_mapped) {
           await BaseUser.updateRoles(
             context,
             param.baseId,
@@ -476,11 +472,7 @@ export class BaseUsersService {
     if (Object.keys(baseUserData).length) {
       // create new base user if it doesn't exist
       if (
-        !(await BaseUser.getBaseUserFromDb(
-          context,
-          param.baseId,
-          param.user?.id,
-        ))
+        !(await BaseUser.get(context, param.baseId, param.user?.id)).is_mapped
       ) {
         await BaseUser.insert(context, {
           ...baseUserData,

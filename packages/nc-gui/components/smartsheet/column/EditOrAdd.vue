@@ -64,6 +64,7 @@ const {
   isPredictFromPromptLoading,
   isFormulaPredictionMode,
   activeSelectedField,
+  failedToSaveFields,
   onInit,
   toggleAiMode,
   disableAiMode,
@@ -274,6 +275,10 @@ const saveSubmitted = async () => {
   saving.value = true
   if (aiAutoSuggestMode.value) {
     saved = await saveFields(reloadMetaAndData)
+
+    if (!saved) {
+      onSelectedTagClick()
+    }
   } else {
     saved = await addOrUpdate(reloadMetaAndData, props.columnPosition)
   }
@@ -519,7 +524,7 @@ const handleNavigateToIntegrations = () => {
   })
 }
 
-const onSelectedTagClick = (field: any = undefined) => {
+function onSelectedTagClick(field: any = undefined) {
   if (!field && selected.value.length) {
     field = selected.value[selected.value.length - 1]
   }
@@ -1179,6 +1184,19 @@ const onDeselectAll = () => {
             :placeholder="$t('msg.info.enterFieldDescription')"
           />
         </a-form-item>
+
+        <div v-if="failedToSaveFields" class="w-full p-4 flex items-start gap-4 border-1 border-nc-border-gray-medium rounded-lg">
+          <GeneralIcon icon="ncInfoSolid" class="flex-none text-nc-content-red-dark" />
+          <div class="flex flex-col gap-1">
+            <div class="text-nc-content-gray text-base font-bold">Failed to add fields</div>
+            <div class="text-nc-content-gray-muted text-sm">
+              NocoDB was unable to add {{ selected.length }} fields to the table. Please retry adding the fields.
+            </div>
+          </div>
+          <NcButton size="xsmall" type="text" class="!px-1" @click.stop="failedToSaveFields = false">
+            <GeneralIcon icon="close" class="text-gray-600" />
+          </NcButton>
+        </div>
 
         <template v-if="props.fromTableExplorer">
           <a-form-item>

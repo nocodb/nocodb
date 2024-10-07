@@ -57,6 +57,8 @@ export const usePredictFields = createSharedComposable(
 
     const activeAiTabLocal = ref<keyof typeof TableWizardTabs>(TableWizardTabs.AUTO_SUGGESTIONS)
 
+    const failedToSaveFields = ref<boolean>(false)
+
     const activeAiTab = computed({
       get: () => {
         return activeAiTabLocal.value
@@ -316,6 +318,7 @@ export const usePredictFields = createSharedComposable(
     }
 
     const saveFields = async (onSuccess: () => Promise<void>) => {
+      failedToSaveFields.value = false
       const payload = selected.value
         .filter((f) => f.formState)
         .map((field) => {
@@ -345,6 +348,8 @@ export const usePredictFields = createSharedComposable(
           return false
         })
 
+        failedToSaveFields.value = true
+
         return false
       } else {
         await onSuccess?.()
@@ -367,6 +372,8 @@ export const usePredictFields = createSharedComposable(
       isPromtAlreadyGenerated.value = false
 
       activeAiTabLocal.value = TableWizardTabs.AUTO_SUGGESTIONS
+
+      failedToSaveFields.value = false
     }
 
     watch(
@@ -395,6 +402,7 @@ export const usePredictFields = createSharedComposable(
       aiTabs,
       isPredictFromPromptLoading,
       isFormulaPredictionMode,
+      failedToSaveFields,
       onInit,
       toggleAiMode,
       disableAiMode,

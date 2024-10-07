@@ -133,11 +133,9 @@ const toggleAiMode = async () => {
 
   const predictions = await predictNextTables(predictHistory.value, props.baseId)
 
-  if (predictions.length) {
-    predictedTables.value = predictions
-    predictHistory.value.push(...predictions)
-    aiModeStep.value = AiStep.pick
-  }
+  predictedTables.value = predictions
+  predictHistory.value.push(...predictions)
+  aiModeStep.value = AiStep.pick
 }
 
 const disableAiMode = () => {

@@ -108,8 +108,6 @@ export const usePredictFields = createSharedComposable(
     }
 
     const toggleAiMode = async (isFormulaMode: boolean = false) => {
-      if (aiMode.value) return
-
       if (isFormulaMode) {
         isFormulaPredictionMode.value = true
       } else {
@@ -127,11 +125,9 @@ export const usePredictFields = createSharedComposable(
 
       const predictions = await _predictNextFields()
 
-      if (predictions.length) {
-        predicted.value = predictions
-        predictHistory.value.push(...predictions)
-        aiModeStep.value = AiStep.pick
-      }
+      predicted.value = predictions
+      predictHistory.value.push(...predictions)
+      aiModeStep.value = AiStep.pick
     }
 
     const disableAiMode = () => {

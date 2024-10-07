@@ -1018,7 +1018,9 @@
     "generateFieldDataUsingAi": "Generate field data using AI",
     "preview": "Preview",
     "autoSuggest": "Auto suggest",
-    "suggesting": "Suggesting..."
+    "suggesting": "Suggesting...",
+    "autoSuggestFields": "Auto suggest fields",
+    "autoSuggestFormulas": "Auto suggest formulas"
   },
   "activity": {
     "assignView": "Assign view",

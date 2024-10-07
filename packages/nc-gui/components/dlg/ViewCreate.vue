@@ -542,11 +542,9 @@ const toggleAiMode = async () => {
   }
   const predictions = await _predictViews()
 
-  if (predictions.length) {
-    predictedViews.value = predictions
-    predictHistory.value.push(...predictions)
-    aiModeStep.value = AiStep.pick
-  }
+  predictedViews.value = predictions
+  predictHistory.value.push(...predictions)
+  aiModeStep.value = AiStep.pick
 }
 
 const disableAiMode = () => {

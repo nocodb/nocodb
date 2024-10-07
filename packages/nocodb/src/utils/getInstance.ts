@@ -36,7 +36,7 @@ export default async function (force = false, ncMeta = Noco.ncMeta) {
         .then((c) => c.created_at);
       const files = await ncMeta
         .knex(MetaTable.FILE_REFERENCES)
-        .count('id as count')
+        .count('storage as count')
         .first()
         .then((c) => c.count);
 

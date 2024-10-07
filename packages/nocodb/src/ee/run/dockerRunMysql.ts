@@ -24,7 +24,7 @@ process.env[
 process.env[
   `NC_DATA_DB`
 ] = `mysql2://localhost:3306?u=root&p=password&d=data_${dbSuffix}`;
-process.env[`NC_DISABLE_BASE_AS_PG_SCHEMA`] = `false`;
+process.env[`NC_DISABLE_PG_DATA_REFLECTION`] = `false`;
 // process.env[`NC_DB`] = `pg:/2/localhost:3306?u=root&p=password&d=mar_24`;
 // process.env[`NC_DB`] = `pg://localhost:5432?u=postgres&p=password&d=abcde`;
 // process.env[`NC_TRY`] = 'true';

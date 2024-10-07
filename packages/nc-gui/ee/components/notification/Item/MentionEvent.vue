@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { MentionEventType } from 'nocodb-sdk'
-import type { NcProjectType } from '~/utils/baseCreateUtils'
+import type { NcProjectType } from '#imports'
 
 const props = defineProps<{
   item: MentionEventType

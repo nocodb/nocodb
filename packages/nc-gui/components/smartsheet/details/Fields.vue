@@ -1222,32 +1222,23 @@ const onDeselectAll = () => {
                 </NcButton>
               </NcTooltip>
               <NcTooltip v-if="aiIntegrationAvailable" :title="aiMode ? 'Disable AI suggestions' : 'Suggest fields using AI'">
-                <NcButton
-                  v-if="aiMode"
-                  size="small"
-                  type="primary"
-                  theme="ai"
-                  class="nc-field-ai-toggle-btn nc-ai-mode"
-                  :class="{
-                    '!pointer-events-none !cursor-not-allowed': aiLoading,
-                  }"
-                  icon-only
-                  @click.stop="disableAiMode"
+                <NcDropdown
+                  :trigger="['hover']"
+                  placement="bottomRight"
+                  overlay-class-name="!border-purple-200"
+                  :disabled="aiLoading"
                 >
-                  <template #icon>
-                    <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current w-4 h-4" />
-                  </template>
-                </NcButton>
-                <NcDropdown v-else placement="bottomRight" overlay-class-name="!border-purple-200">
                   <NcButton
                     size="small"
-                    type="secondary"
+                    :type="aiMode ? 'primary' : 'secondary'"
                     theme="ai"
                     class="nc-field-ai-toggle-btn"
                     :class="{
                       '!pointer-events-none !cursor-not-allowed': aiLoading,
+                      'nc-ai-mode': aiMode,
                     }"
                     icon-only
+                    @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
                   >
                     <template #icon>
                       <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current w-4 h-4" />
@@ -1257,11 +1248,11 @@ const onDeselectAll = () => {
                     <NcMenu>
                       <NcMenuItem class="!children:w-full !text-nc-content-purple-dark" @click="toggleAiMode()">
                         <component :is="getUIDTIcon(UITypes.SingleLineText)" class="flex-none w-3.5 h-3.5" />
-                        Suggest any field
+                        {{ $t('labels.autoSuggestFields') }}
                       </NcMenuItem>
                       <NcMenuItem class="!children:w-full !text-nc-content-purple-dark" @click="toggleAiMode(true)">
                         <component :is="getUIDTIcon(UITypes.Formula)" class="flex-none w-3.5 h-3.5" />
-                        Suggest formula field
+                        {{ $t('labels.autoSuggestFormulas') }}
                       </NcMenuItem>
                     </NcMenu>
                   </template>

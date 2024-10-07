@@ -93,7 +93,7 @@
     "none": "None"
   },
   "general": {
-    "scripts": "Scripts",
+    "scripts": "Comandos",
     "configure": "Configure",
     "switch": "Switch",
     "on": "On",
@@ -342,7 +342,7 @@
       "viewer": "Visor",
       "noaccess": "Sin acceso",
       "superAdmin": "Super Admin",
-      "orgLevelOwner": "Organization Level Owner",
+      "orgLevelOwner": "Propietario de Nivel Organización",
       "orgLevelCreator": "Creador a nivel de organización",
       "orgLevelViewer": "Visor de nivel de organización"
     },
@@ -409,7 +409,7 @@
     "integrationCategories": {
       "allIntegrations": "All Integrations",
       "allIntegrationsSubtitle": "",
-      "databaseSubtitle": "Seamlessly connect and manage your databases with NocoDB.",
+      "databaseSubtitle": "Conecte y gestione sin problemas sus bases de datos con NocoDB.",
       "communication": "Communication",
       "communicationSubtitle": "Get notified on changes and streamline team communication with NocoDB.",
       "projectManagement": "Project Management",
@@ -636,7 +636,7 @@
     "addDescription": "Add description",
     "editDescription": "Edit description",
     "urlFormula": "URL Formula",
-    "selectIcon": "none",
+    "selectIcon": "ninguno",
     "selectAWebhook": "--select a webhook--",
     "openUrl": "Open URL",
     "runWebHook": "Run Webhook",
@@ -691,7 +691,7 @@
     "workspaceName": "Workspace Name",
     "workspaceWithoutOwner": "Workspace without Owners",
     "inviteUsersToWorkspace": "Invite Users to Workspace",
-    "selectWorkspace": "-select workspaces to invite to-",
+    "selectWorkspace": "-seleccionar espacios de trabajo a los que invitar-",
     "addMembersToOrganization": "Add Members to Organization",
     "memberIn": "Member in:",
     "assignAs": "Assign as",
@@ -999,7 +999,7 @@
     "signUpForFree": "Sign up for free",
     "coverImageField": "Cover image field",
     "fitImage": "Fit image",
-    "coverImageArea": "Cover image",
+    "coverImageArea": "Imagen de portada",
     "syncData": "Sync data",
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
     "redirectToUrl": "Redirect to URL"
@@ -1359,7 +1359,7 @@
     "createTableLabel": "Create your first table effortlessly, from scratch, or by importing/connecting to an external database.",
     "noTokenCreated": "No API Tokens created",
     "noTokenCreatedLabel": "Begin by creating API tokens to unlock advanced functionalities.",
-    "inviteYourTeam": "Invite your team",
+    "inviteYourTeam": "Invita a tu equipo",
     "inviteYourTeamLabel": "Streamline collaboration and productivity with your team – start by inviting them to join your workspace.",
     "searchOptions": "Search options"
   },

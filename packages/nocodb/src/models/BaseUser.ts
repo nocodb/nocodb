@@ -179,6 +179,8 @@ export default class BaseUser {
       }
     }
 
+    // decide if user is mapped to base by checking if base_id is present
+    // base_id will be null if base_user entry is not present
     if (baseUser) {
       baseUser.is_mapped = !!baseUser.base_id;
     }

@@ -438,18 +438,24 @@ onMounted(() => {
 
 if (isKanbanStack.value) {
   onClickOutside(optionsWrapperDomRef, (e) => {
-    if (
-      !kanbanStackOption.value ||
-      (e.target as HTMLElement)?.closest(`.nc-select-option-color-picker, .nc-add-select-option-auto-suggest`)
-    ) {
-      return
-    }
-
     const option = (column.value?.colOptions as SelectOptionsType)?.options?.find(
       (o) => o?.id && o.id === kanbanStackOption.value?.id,
     )
 
-    if (option?.title !== kanbanStackOption.value?.title || option?.color !== kanbanStackOption.value?.color) {
+    if (
+      (e.target as HTMLElement)?.closest(
+        `.nc-select-option-color-picker, .nc-add-select-option-auto-suggest, .nc-kanban-stack-header-${
+          option?.id || 'new-stack'
+        }`,
+      )
+    ) {
+      return
+    }
+
+    if (
+      kanbanStackOption.value?.title &&
+      (option?.title !== kanbanStackOption.value?.title || option?.color !== kanbanStackOption.value?.color)
+    ) {
       syncOptions(true, true, kanbanStackOption.value)
     } else {
       emit('saveChanges', true, false)
@@ -697,17 +703,24 @@ if (!isKanbanStack.value) {
           <span class="flex-auto">Add option</span>
         </div>
       </NcButton>
-      <NcTooltip class="w-1/2" :disabled="!!vModel.title?.trim()">
-        <template #title> {{ $t('tooltip.fieldNameIsRequriedToAutoSuggestOptions') }} </template>
+      <NcTooltip class="w-1/2">
+        <template #title>
+          {{
+            aiIntegrationAvailable
+              ? !vModel.title?.trim()
+                ? $t('tooltip.fieldNameIsRequriedToAutoSuggestOptions')
+                : $t('tooltip.autoSuggestSelectOptions')
+              : $t('title.noAiIntegrationAvailable')
+          }}
+        </template>
 
         <NcButton
-          v-if="aiIntegrationAvailable"
           type="secondary"
           theme="ai"
           class="nc-add-select-option-auto-suggest w-full caption"
           size="small"
           :bordered="false"
-          :disabled="aiLoading || !vModel.title?.trim()"
+          :disabled="aiLoading || !vModel.title?.trim() || !aiIntegrationAvailable"
           :loading="aiLoading"
           @click.stop="predictOptions()"
         >
@@ -719,22 +732,28 @@ if (!isKanbanStack.value) {
         </NcButton>
       </NcTooltip>
     </div>
-    <div v-else-if="aiIntegrationAvailable" class="mt-2 pl-1">
-      <NcButton
-        type="secondary"
-        theme="ai"
-        class="nc-add-select-option-auto-suggest caption w-full"
-        size="small"
-        :disabled="aiLoading"
-        :loading="aiLoading"
-        @click.stop="predictOptions()"
-      >
-        <template #icon>
-          <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+    <div v-else-if="!kanbanStackOption?.id" class="mt-2 pl-1">
+      <NcTooltip class="w-full" placement="bottom">
+        <template #title>
+          {{ aiIntegrationAvailable ? $t('tooltip.autoSuggestSelectOptions') : $t('title.noAiIntegrationAvailable') }}
         </template>
-        <template #loading> {{ $t('labels.suggesting') }} </template>
-        {{ $t('labels.autoSuggest') }}
-      </NcButton>
+
+        <NcButton
+          type="secondary"
+          theme="ai"
+          class="nc-add-select-option-auto-suggest caption w-full"
+          size="small"
+          :disabled="aiLoading || !aiIntegrationAvailable"
+          :loading="aiLoading"
+          @click.stop="predictOptions()"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+          </template>
+          <template #loading> {{ $t('labels.suggesting') }} </template>
+          {{ $t('labels.autoSuggest') }}
+        </NcButton>
+      </NcTooltip>
     </div>
   </div>
 </template>

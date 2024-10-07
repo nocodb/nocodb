@@ -524,7 +524,10 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
 
                   <!-- Stack -->
                   <a-layout v-else>
-                    <a-layout-header class="border-b-1 border-gray-100 min-h-[49px]">
+                    <a-layout-header
+                      class="border-b-1 border-gray-100 min-h-[49px]"
+                      :class="`nc-kanban-stack-header-${stack.id}`"
+                    >
                       <div
                         class="nc-kanban-stack-head w-full flex gap-1"
                         :class="{
@@ -1052,10 +1055,13 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
             <!-- Add New Stack -->
             <a-card
               class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
-              :class="{
-                '!cursor-default': isLocked || !hasEditPermission,
-                '!border-none': !compareStack(addNewStackObj, isRenameOrNewStack),
-              }"
+              :class="[
+                `nc-kanban-stack-header-new-stack`,
+                {
+                  '!cursor-default': isLocked || !hasEditPermission,
+                  '!border-none': !compareStack(addNewStackObj, isRenameOrNewStack),
+                },
+              ]"
               :head-style="{ paddingBottom: '0px' }"
               :body-style="{
                 padding: '0px !important',

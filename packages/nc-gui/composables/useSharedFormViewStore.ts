@@ -395,9 +395,23 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const pk = extractPkFromRow(newRecord, meta.value?.columns as ColumnType[])
 
       if (pk && isValidRedirectUrl.value) {
-        const url = sharedFormView.value!.redirect_url!.replace('{record_id}', pk)
-        window.location.href = url
-        window.location.reload()
+        const redirectUrl = sharedFormView.value!.redirect_url!.replace('{record_id}', pk)
+
+        // Create an anchor element to parse the URL
+        const anchor = document.createElement('a')
+        anchor.href = redirectUrl
+
+        // Check if the redirect URL has the same host as the current page
+        const isSameHost = anchor.host === window.location.host
+
+        // Perform the redirection
+        window.location.href = redirectUrl
+        if (isSameHost) {
+          // If it's the same host, reload the page after redirection
+          nextTick(() => {
+            window.location.reload()
+          })
+        }
       } else {
         submitted.value = true
         progress.value = false

@@ -166,7 +166,7 @@ export class BasesService {
 
       if (
         dataConfig?.client === 'pg' &&
-        process.env.NC_DISABLE_BASE_AS_PG_SCHEMA !== 'true'
+        process.env.NC_DISABLE_PG_DATA_REFLECTION !== 'true'
       ) {
         baseBody.prefix = '';
         baseBody.sources = [

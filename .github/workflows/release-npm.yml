@@ -40,7 +40,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -51,7 +51,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.19.1
-          registry-url: 'https://registry.npmjs.org'
+          registry-url: "https://registry.npmjs.org"
       - run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           NOCODB_SDK_PKG_NAME=nocodb-sdk
@@ -79,10 +79,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           signoff: true
-          branch: 'release/${{ github.event.inputs.tag || inputs.tag }}'
+          branch: "release/${{ github.event.inputs.tag || inputs.tag }}"
           delete-branch: true
-          title: 'Release ${{ github.event.inputs.tag || inputs.tag }}'
-          labels: 'Bot: Automerge'
+          title: "Release ${{ github.event.inputs.tag || inputs.tag }}"
+          labels: "Bot: Automerge"
       - name: Check outputs
         if: ${{ github.event.inputs.targetEnv == 'PROD' || inputs.targetEnv == 'PROD' }}
         run: |

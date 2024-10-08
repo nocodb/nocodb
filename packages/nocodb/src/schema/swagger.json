@@ -15843,6 +15843,26 @@
         ]
       }
     },
+    "/api/v1/error-reporting": {
+      "post": {
+        "summary": "Error Reporting",
+        "operationId": "utils-error-report",
+        "responses": {
+        },
+        "description": "Error Reporting",
+        "tags": [
+          "Utils",
+          "Internal"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "$ref": "#/components/schemas/ErrorReportReq"
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/axiosRequestMake": {
       "parameters": [
         {
@@ -27012,6 +27032,28 @@
         },
         "x-stoplight": {
           "id": "psbv6c6y9qvbu"
+        }
+      },
+      "ErrorReportReq": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "extra": {
+            "type": "object"
+          }
         }
       },
       "Comment": {

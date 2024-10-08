@@ -2,6 +2,7 @@
   "name": "nc-secret-mgr",
   "version": "0.0.1",
   "description": "",
+  "packageManager": "pnpm@9.6.0",
   "main": "dist/cli.js",
   "bin": "dist/cli.js",
   "scripts": {

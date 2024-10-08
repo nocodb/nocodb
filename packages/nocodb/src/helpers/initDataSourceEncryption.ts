@@ -67,7 +67,7 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
 
     for (const integration of integrations) {
       // skip if no config
-      if (!integrations.config) {
+      if (!integration.config) {
         continue;
       }
 

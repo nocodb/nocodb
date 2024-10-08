@@ -259,6 +259,7 @@ watch(inputWrapperRef, () => {
         }"
         :disabled="readOnly"
         @blur="editEnabled = false"
+        @keydown.alt.stop
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
         @keydown.down.stop
@@ -359,6 +360,7 @@ watch(inputWrapperRef, () => {
             :style="{ resize: 'both' }"
             :disabled="readOnly"
             @keydown.escape="isVisible = false"
+            @keydown.alt.stop
           />
         </div>
 

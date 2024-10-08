@@ -154,6 +154,7 @@ const onTabPress = (e: KeyboardEvent) => {
       @keydown.up.stop
       @keydown.delete.stop
       @keydown.tab="onTabPress"
+      @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
     />

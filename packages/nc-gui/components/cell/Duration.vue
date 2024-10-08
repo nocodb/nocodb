@@ -90,6 +90,7 @@ const focus: VNodeRef = (el) =>
       @keydown.right.stop
       @keydown.up.stop
       @keydown.delete.stop
+      @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
     />

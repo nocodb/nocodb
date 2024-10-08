@@ -159,6 +159,11 @@ const isCreateTableAllowed = computed(
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+
+  if (isActiveInputElementExist()) {
+    return
+  }
+
   if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
     switch (e.keyCode) {
       case 84: {
@@ -194,13 +199,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         baseCreateDlg.value = true
         break
       }
-      // ALT + B
-      case 66: {
-        e.stopPropagation()
-        baseType.value = NcProjectType.DOCS
-        baseCreateDlg.value = true
-        break
-      }
+      // // ALT + B
+      // case 66: {
+      //   e.stopPropagation()
+      //   baseType.value = NcProjectType.DOCS
+      //   baseCreateDlg.value = true
+      //   break
+      // }
     }
   }
 })

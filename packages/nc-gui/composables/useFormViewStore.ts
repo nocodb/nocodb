@@ -1,6 +1,6 @@
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import type { ColumnType, FilterType, FormType, TableType, Validation, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, FormType, TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
 

@@ -12,10 +12,10 @@ import type { MetaService } from '~/meta/meta.service';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
 import type http from 'http';
+import type Sharp from 'sharp';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
-import type Sharp from 'sharp';
 
 dotenv.config();
 
@@ -106,7 +106,9 @@ export default class Noco {
     try {
       this.sharp = (await import('sharp')).default;
     } catch {
-      console.error('Sharp is not available for your platform, thumbnail generation will be skipped');
+      console.error(
+        'Sharp is not available for your platform, thumbnail generation will be skipped',
+      );
     }
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {

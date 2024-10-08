@@ -1,7 +1,8 @@
 packages:
-  - 'packages/nocodb-sdk'
-  - 'packages/nc-gui'
-  - 'packages/nc-mail-templates'
-  - 'packages/nocodb'
-  - 'tests/playwright'
-  - 'packages/nc-secret-mgr'
+  - "packages/nocodb-sdk"
+  - "packages/nc-gui"
+  - "packages/nc-mail-templates"
+  - "packages/nocodb"
+  - "packages/noco-docs"
+  - "tests/playwright"
+  - "packages/nc-secret-mgr"

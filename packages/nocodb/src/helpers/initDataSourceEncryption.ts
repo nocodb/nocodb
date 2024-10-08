@@ -56,6 +56,8 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
         source.id,
       );
       successStatus.push(true);
+
+      logger.log(`Encrypted source ${source.alias}`);
     }
 
     const integrations = await ncMeta
@@ -95,6 +97,7 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
         integration.id,
       );
       successStatus.push(true);
+      logger.log(`Encrypted integration config ${integration.title}`);
     }
 
     // if all failed, throw error

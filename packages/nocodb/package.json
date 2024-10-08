@@ -1,6 +1,7 @@
 {
   "name": "nocodb",
   "version": "0.255.2",
+  "packageManager": "pnpm@9.6.0",
   "description": "NocoDB Backend",
   "main": "dist/bundle.js",
   "author": {

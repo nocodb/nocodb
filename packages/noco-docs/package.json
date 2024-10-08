@@ -2,6 +2,7 @@
   "name": "noco-docs",
   "version": "1.1.0",
   "private": true,
+  "packageManager": "pnpm@9.6.0",
   "author": {
     "name": "NocoDB Inc",
     "url": "https://nocodb.com/"

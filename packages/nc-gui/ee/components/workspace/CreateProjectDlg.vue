@@ -2,10 +2,7 @@
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import { computed } from '@vue/reactivity'
-
-import { stringToViewTypeMap } from 'nocodb-sdk'
-import NcCreateBasePlaceholder from '~icons/nc-icons/create-base-placeholder'
-import NcCreateBaseWithAiPlaceholder from '~icons/nc-icons/create-base-with-ai-placeholder'
+import { NcProjectType } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -13,13 +10,6 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['update:modelValue'])
-
-enum SchemaPreviewTabs {
-  TABLES_AND_VIEWS = 'TABLES_AND_VIEWS',
-  RELATIONSHIP_DIAGRAM = 'RELATIONSHIP_DIAGRAM',
-}
-
-const loadingMessages = ['Generating Tables', 'Generating Fields', 'Generating Links', 'Generating Views']
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
@@ -86,240 +76,16 @@ const createProject = async () => {
   }
 }
 
-const { aiLoading, aiIntegrationAvailable, predictSchema, createSchema } = useNocoAi()
-
-const aiMode = ref<Boolean | null>(null)
-
-const callFunction = ref<string | null>(null)
+const aiMode = ref<boolean | null>(null)
 
 const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'lg'))
 
-const isExpandedPredefiendBasePromts = ref<boolean>(false)
-
-const predefinedBasePrompts = computed(() => {
-  return isExpandedPredefiendBasePromts.value ? aiBaseSchemaPrompts : aiBaseSchemaPrompts.slice(0, 7)
-})
-
-const leftPaneContentRef = ref<HTMLElement | null>(null)
-const { y: leftPaneContentOffsetY } = useScroll(leftPaneContentRef)
-
-enum ExpansionPanelKeys {
-  additionalDetails = 'additionalDetails',
-}
-
-const expansionPanel = ref<ExpansionPanelKeys[]>([])
-
-const handleUpdateExpansionPanel = (key: ExpansionPanelKeys) => {
-  if (expansionPanel.value.includes(key)) {
-    expansionPanel.value = expansionPanel.value.filter((k) => k !== key)
-  } else {
-    expansionPanel.value.push(key)
-  }
-}
-
-const activeLoadingText = ref<string[]>([])
-
-const activePreviewTab = ref<keyof typeof SchemaPreviewTabs>(SchemaPreviewTabs.TABLES_AND_VIEWS)
-
-const previewExpansionPanel = ref<string[]>([])
-
-const handleUpdatePreviewExpansionPanel = (key: string) => {
-  if (previewExpansionPanel.value.includes(key)) {
-    previewExpansionPanel.value = previewExpansionPanel.value.filter((k) => k !== key)
-  } else {
-    previewExpansionPanel.value.push(key)
-  }
-}
-
-enum AI_STEP {
-  LOADING = 0,
-  PROMPT = 1,
-  MODIFY = 2,
-}
-
-const aiStep = ref(AI_STEP.PROMPT)
-
-const defaultAiFormState = {
-  prompt: '',
-  organization: '',
-  industry: '',
-  audience: '',
-}
-
-const aiFormState = ref(defaultAiFormState)
-
-const additionalDetails = [
-  {
-    title: 'Organisation',
-    placeholder: '(optional)',
-    key: 'organization',
-  },
-  {
-    title: 'Industry',
-    placeholder: '(optional)',
-    key: 'industry',
-  },
-  {
-    title: 'Audience',
-    placeholder: '(optional)',
-    key: 'audience',
-  },
-]
-
-const predictedSchema = ref<any>()
-
-const viewsGrouped = computed(() => {
-  const grouped: Record<string, any[]> = {}
-  predictedSchema.value.views.forEach((view: { table: string }) => {
-    if (!grouped[view.table]) {
-      grouped[view.table] = []
-    }
-    grouped[view.table].push(view)
-  })
-  return grouped
-})
-
-let timerId: NodeJS.Timeout
-
-const onPredictSchema = async () => {
-  callFunction.value = 'onPredictSchema'
-  aiStep.value = AI_STEP.LOADING
-  activeLoadingText.value = [''] // Initialize with an empty string for the first message
-  let currentMessageIndex = 0
-  let currentCharIndex = 0
-
-  try {
-    const displayCharByChar = () => {
-      const currentMessage = loadingMessages[currentMessageIndex]
-
-      // If we are still processing the current message
-      if (currentCharIndex < currentMessage.length) {
-        // Update the current message in the array with the next character
-        activeLoadingText.value[currentMessageIndex] += currentMessage[currentCharIndex]
-        currentCharIndex++
-      } else if (currentMessageIndex < loadingMessages.length - 1) {
-        // Once the current message is done, move to the next message
-        currentMessageIndex++
-        currentCharIndex = 0
-        // Add an empty string to the array to start the next message
-        activeLoadingText.value.push('')
-      } else {
-        // All messages are displayed, stop the interval
-        clearInterval(timerId)
-      }
-    }
-
-    // Set interval to display characters one by one
-    timerId = setInterval(displayCharByChar, 40) // Adjust the speed as needed (100ms)
-
-    let prompt = `${aiFormState.value.prompt}`
-
-    // Append optional information if provided
-    if (aiFormState.value.organization?.trim()) {
-      prompt += ` | Organization: ${aiFormState.value.organization}`
-    }
-    if (aiFormState.value.industry?.trim()) {
-      prompt += ` | Industry: ${aiFormState.value.industry}`
-    }
-    if (aiFormState.value.audience?.trim()) {
-      prompt += ` | Audience: ${aiFormState.value.audience}`
-    }
-
-    predictedSchema.value = await predictSchema(prompt)
-    activePreviewTab.value = SchemaPreviewTabs.TABLES_AND_VIEWS
-
-    previewExpansionPanel.value = ((predictedSchema.value || {}).tables || []).map((t) => t?.title).filter(Boolean)
-    aiStep.value = AI_STEP.MODIFY
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-    aiStep.value = AI_STEP.PROMPT
-  } finally {
-    activeLoadingText.value = []
-    clearInterval(timerId)
-  }
-}
-
-const onExcludeTable = (table: any) => {
-  table.excluded = !table.excluded
-  if (table.excluded) {
-    predictedSchema.value.views.forEach((view: any) => {
-      if (view.table === table.title) {
-        view.excluded = true
-      }
-    })
-  } else {
-    predictedSchema.value.views.forEach((view: any) => {
-      if (view.table === table.title) {
-        view.excluded = false
-      }
-    })
-  }
-}
-
-const onExcludeView = (view: any) => {
-  view.excluded = !view.excluded
-}
-
-const finalSchema = computed(() => {
-  const schema = {
-    title: predictedSchema.value.title,
-    tables: predictedSchema.value.tables.filter((table: any) => !table.excluded),
-    relationships: predictedSchema.value.relationships.filter((relationship: { from: string; to: string }) => {
-      const fromTable = predictedSchema.value.tables.find((table: { title: string }) => table.title === relationship.from)
-      const toTable = predictedSchema.value.tables.find((table: { title: string }) => table.title === relationship.to)
-      return !fromTable.excluded && !toTable.excluded
-    }),
-    views: predictedSchema.value.views.filter((view: any) => !view.excluded),
-  }
-  return schema
-})
-
-const previewTabs = computed(() => {
-  return [
-    {
-      title: 'Tables & Views',
-      key: SchemaPreviewTabs.TABLES_AND_VIEWS,
-    },
-    {
-      title: 'Relationship Diagram',
-      key: SchemaPreviewTabs.RELATIONSHIP_DIAGRAM,
-      hidden: !finalSchema.value.relationships.length,
-    },
-  ]
-})
-
-const onCreateSchema = async () => {
-  callFunction.value = 'onCreateSchema'
-  try {
-    const base = await createSchema(finalSchema.value)
-    navigateToProject({
-      baseId: base.id!,
-      workspaceId: activeWorkspace.value!.id!,
-      type: baseType.value,
-    })
-
-    dialogShow.value = false
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-    aiStep.value = AI_STEP.PROMPT
-  }
-}
-
 const input = ref<typeof Input>()
-
-const resetToDefault = () => {
-  aiMode.value = null
-  aiStep.value = AI_STEP.PROMPT
-  aiFormState.value = defaultAiFormState
-  isExpandedPredefiendBasePromts.value = false
-  expansionPanel.value = []
-}
 
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
 
-  resetToDefault()
-
+  aiMode.value = null
   // Clear errors
   setTimeout(async () => {
     form.value?.resetFields()
@@ -348,12 +114,6 @@ const typeLabel = computed(() => {
       return ''
   }
 })
-
-const handleUpdatePrompt = (description: string) => {
-  if (!aiIntegrationAvailable.value) return
-
-  aiFormState.value.prompt = description
-}
 </script>
 
 <template>
@@ -361,50 +121,21 @@ const handleUpdatePrompt = (description: string) => {
     :key="`${aiMode}`"
     v-model:visible="dialogShow"
     :size="modalSize"
-    :show-separator="true"
+    :show-separator="false"
     :width="aiMode === null ? 'auto' : undefined"
     :wrap-class-name="
       aiMode ? 'nc-modal-ai-base-create' : `nc-modal-wrapper ${aiMode === null ? 'nc-ai-select-base-create-mode-modal' : ''}`
     "
   >
-    <template v-if="aiMode === true || aiMode === false" #header>
+    <template v-if="aiMode === false" #header>
       <!-- Create A New Table -->
-      <div
-        v-if="aiMode !== true"
-        class="flex flex-row items-center text-base text-gray-800"
-        :class="{
-          'pt-2 px-4': aiMode === true,
-        }"
-      >
+      <div class="flex flex-row items-center text-base text-gray-800">
         <GeneralProjectIcon :color="formState.meta.iconColor" :type="baseType" class="mr-2.5 !text-lg !h-4" />
         Create {{ typeLabel }}
       </div>
-      <template v-if="aiMode === true">
-        <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
-          <GeneralIcon icon="ncAutoAwesome" class="flex-none h-6 w-6 !text-current" />
-          <div class="text-xl leading-8 font-bold">Noco AI Base Builder</div>
-        </div>
-
-        <NcButton
-          v-if="aiStep === AI_STEP.MODIFY"
-          type="primary"
-          size="small"
-          theme="ai"
-          :loading="aiLoading && callFunction === 'onCreateSchema'"
-          @click="onCreateSchema"
-        >
-          <template #icon>
-            <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 text-nc-fill-yellow-medium" />
-          </template>
-          Create Base
-        </NcButton>
-        <NcButton size="small" type="text" @click.stop="dialogShow = false">
-          <GeneralIcon icon="close" class="text-gray-600" />
-        </NcButton>
-      </template>
     </template>
     <template v-if="aiMode === null">
-      <WorkspaceProjectCreateMode :ai-mode="aiMode" />
+      <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" />
     </template>
     <template v-if="aiMode === false">
       <div class="mt-1">
@@ -450,267 +181,12 @@ const handleUpdatePrompt = (description: string) => {
       </div>
     </template>
     <template v-if="aiMode === true">
-      <div class="h-[calc(100%_-_49px)] flex flex-col">
-        <!-- Create base error alert box  -->
-        <div></div>
-        <div class="flex-1 flex h-[calc(100%_-_32px)]">
-          <div
-            ref="leftPaneContentRef"
-            class="w-[480px] h-full relative flex flex-col nc-scrollbar-thin border-r-1 border-purple-100"
-          >
-            <!-- create base config panel -->
-            <div class="flex-1 p-6 flex flex-col gap-6">
-              <div class="text-base font-bold text-nc-content-purple-dark">Tell us more about your usecase</div>
-              <div class="flex flex-wrap gap-3 max-h-[188px] nc-scrollbar-thin overflow-visible">
-                <!-- Predefined tags -->
-
-                <template v-for="prompt of predefinedBasePrompts" :key="prompt.tag">
-                  <a-tag
-                    class="nc-ai-base-schema-tag nc-ai-suggested-tag"
-                    :class="{
-                      'nc-selected': prompt.description === aiFormState.prompt.trim(),
-                      'nc-disabled': !aiIntegrationAvailable,
-                    }"
-                    :disabled="!aiIntegrationAvailable"
-                    @click="handleUpdatePrompt(prompt.description)"
-                  >
-                    <div class="flex flex-row items-center gap-1 py-1 text-sm font-weight-500">
-                      <div>{{ prompt.tag }}</div>
-                    </div>
-                  </a-tag>
-                </template>
-
-                <NcButton
-                  size="xs"
-                  type="text"
-                  icon-position="right"
-                  @click="isExpandedPredefiendBasePromts = !isExpandedPredefiendBasePromts"
-                >
-                  {{ isExpandedPredefiendBasePromts ? $t('general.showLess') : $t('general.showMore') }}
-
-                  <template #icon>
-                    <GeneralIcon :icon="isExpandedPredefiendBasePromts ? 'minusCircle' : 'plusCircle'" class="opacity-80" />
-                  </template>
-                </NcButton>
-              </div>
-              <div>
-                <a-textarea
-                  v-model:value="aiFormState.prompt"
-                  placeholder="Type something..."
-                  class="!w-full !min-h-[120px] !rounded-lg mt-2 overflow-y-auto nc-scrollbar-thin nc-input-shadow nc-ai-input"
-                  size="middle"
-                  :disabled="!aiIntegrationAvailable"
-                />
-              </div>
-
-              <a-collapse v-model:active-key="expansionPanel" ghost class="flex-1 flex flex-col">
-                <template #expandIcon> </template>
-                <a-collapse-panel :key="ExpansionPanelKeys.additionalDetails" collapsible="disabled">
-                  <template #header>
-                    <div class="flex">
-                      <NcButton
-                        size="small"
-                        type="text"
-                        icon-position="right"
-                        class="-ml-[7px]"
-                        @click="handleUpdateExpansionPanel(ExpansionPanelKeys.additionalDetails)"
-                      >
-                        Additional Details
-                        <template #icon>
-                          <GeneralIcon
-                            icon="arrowDown"
-                            class="transform transition-all opacity-80"
-                            :class="{
-                              'rotate-180': expansionPanel.includes(ExpansionPanelKeys.additionalDetails),
-                            }"
-                          />
-                        </template>
-                      </NcButton>
-                    </div>
-                  </template>
-
-                  <div class="flex flex-col gap-6 pt-6">
-                    <div v-for="field of additionalDetails" :key="field.title" class="flex items-center gap-2">
-                      <div class="min-w-[120px]">{{ field.title }}</div>
-                      <a-input
-                        v-model:value="aiFormState[field.key]"
-                        class="nc-input-sm nc-input-shadow nc-ai-input"
-                        hide-details
-                        :placeholder="field.placeholder"
-                        :disabled="!aiIntegrationAvailable"
-                      />
-                    </div>
-                  </div>
-                </a-collapse-panel>
-              </a-collapse>
-            </div>
-            <div
-              class="sticky bottom-0 w-full bg-white px-6 py-3 border-t-1"
-              :class="{
-                'border-nc-border-gray-medium': leftPaneContentOffsetY > 0,
-                'border-transparent': leftPaneContentOffsetY <= 0,
-              }"
-            >
-              <NcButton
-                v-if="aiIntegrationAvailable"
-                size="small"
-                type="secondary"
-                theme="ai"
-                class="w-full"
-                :disabled="!aiFormState.prompt?.trim()"
-                :loading="aiLoading && callFunction === 'onPredictSchema'"
-                @click="onPredictSchema"
-              >
-                <template #icon>
-                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 text-nc-fill-yellow-medium" />
-                </template>
-                Generate Base
-              </NcButton>
-              <AiIntegrationNotFound v-else class="justify-between" @on-navigate="dialogShow = false">
-                <template #icon>
-                  <GeneralIcon icon="alertTriangleSolid" class="flex-none !text-nc-content-orange-medium w-6 h-6" />
-                </template>
-                <template #title>
-                  <div class="text-base font-bold text-nc-content-gray">AI Integration missing</div>
-                </template>
-                <template #description>
-                  <div class="text-sm text-nc-content-gray-subtle">No AI Integrations have been added.</div>
-                </template>
-              </AiIntegrationNotFound>
-            </div>
-          </div>
-          <div class="w-[calc(100%_-_480px)] h-full p-6 nc-scrollbar-thin flex flex-col gap-6">
-            <!-- create base preview panel -->
-
-            <template v-if="aiStep === AI_STEP.LOADING || aiStep === AI_STEP.PROMPT">
-              <div v-if="aiStep === AI_STEP.LOADING" class="text-base font-bold text-nc-content-purple-dark">
-                Generating a Base tailored to your requirnment...
-              </div>
-              <div v-else class="text-base font-bold text-nc-content-purple-dark">Preview</div>
-
-              <template v-if="aiStep === AI_STEP.LOADING">
-                <div
-                  v-for="(loadingText, idx) of activeLoadingText"
-                  :key="idx"
-                  class="text-sm text-nc-content-purple-light flex items-center"
-                >
-                  {{ loadingText }}
-                  <div v-if="loadingText.length === loadingMessages[idx]?.length" class="nc-animate-dots"></div>
-                </div>
-              </template>
-
-              <div class="rounded-xl border-1 border-purple-100">
-                <div
-                  v-for="(_row, idx) of ncArrayFrom(7)"
-                  :key="idx"
-                  class="px-3 py-2 flex items-center gap-2 border-b-1 border-purple-100 !last-of-type:border-b-0"
-                >
-                  <div class="flex-1 flex items-center gap-2">
-                    <a-skeleton-input
-                      :active="aiStep === AI_STEP.LOADING"
-                      class="!w-4 !h-4 !rounded overflow-hidden !bg-nc-bg-purple-light"
-                    />
-                    <a-skeleton-input
-                      :active="aiStep === AI_STEP.LOADING"
-                      class="!h-4 !rounded overflow-hidden !bg-nc-bg-purple-light"
-                      :class="{
-                        '!w-[133px]': idx % 2 === 0,
-                        '!w-[90px]': idx % 2 !== 0,
-                      }"
-                    />
-                  </div>
-                  <div class="grid place-items-center h-6 w-6">
-                    <GeneralIcon icon="arrowDown" class="text-nc-content-purple-light" />
-                  </div>
-                </div>
-              </div>
-            </template>
-            <template v-if="aiStep === AI_STEP.MODIFY">
-              <div class="text-base font-bold text-nc-content-purple-dark">Here’s your CRM Base</div>
-
-              <template v-if="predictedSchema?.tables">
-                <AiWizardCard
-                  v-if="aiMode"
-                  v-model:active-tab="activePreviewTab"
-                  :tabs="previewTabs"
-                  class="!rounded-xl flex-1 flex flex-col"
-                  content-class-name="flex-1 flex flex-col"
-                >
-                  <template #tabContent>
-                    <a-collapse
-                      v-if="activePreviewTab === SchemaPreviewTabs.TABLES_AND_VIEWS"
-                      v-model:active-key="previewExpansionPanel"
-                      class="nc-schema-preview-table flex flex-col"
-                    >
-                      <template #expandIcon> </template>
-
-                      <a-collapse-panel v-for="table in predictedSchema.tables" :key="table.title" collapsible="disabled">
-                        <template #header>
-                          <div class="w-full flex items-center px-4 py-2" @click="handleUpdatePreviewExpansionPanel(table.title)">
-                            <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
-                              <NcCheckbox :checked="!table.excluded" theme="ai" @click.stop="onExcludeTable(table)" />
-
-                              <GeneralIcon icon="table" class="flex-none !h-4 cursor-pointer opacity-85" />
-
-                              <NcTooltip show-on-truncate-only class="truncate text-sm font-weight-500">
-                                <template #title>
-                                  {{ table.title }}
-                                </template>
-                                {{ table.title }}
-                              </NcTooltip>
-                            </div>
-                            <NcButton size="xs" type="text" theme="ai" icon-only class="!px-0 !h-6 !w-6 !min-w-6">
-                              <template #icon>
-                                <GeneralIcon
-                                  icon="arrowDown"
-                                  class="transform transition-all opacity-80"
-                                  :class="{
-                                    'rotate-180': previewExpansionPanel.includes(table.title),
-                                  }"
-                                />
-                              </template>
-                            </NcButton>
-                          </div>
-                        </template>
-
-                        <div class="w-full flex flex-col">
-                          <!-- Views -->
-                          <template v-for="view in viewsGrouped[table.title]" :key="view.title">
-                            <div class="w-full pl-11 pr-4 py-2 flex items-center gap-3">
-                              <NcCheckbox :checked="!view.excluded" theme="ai" @click.stop="onExcludeView(view)" />
-
-                              <GeneralViewIcon :meta="{ type: stringToViewTypeMap[view.type] }" />
-
-                              <NcTooltip show-on-truncate-only class="truncate text-sm font-weight-500">
-                                <template #title>
-                                  {{ view.title }}
-                                </template>
-                                {{ view.title }}
-                              </NcTooltip>
-
-                              <div class="flex-1"></div>
-                            </div>
-                          </template>
-                        </div>
-                      </a-collapse-panel>
-                    </a-collapse>
-                    <div v-else class="flex-1 flex">
-                      <AiErdView :ai-base-schema="finalSchema" class="flex-1" />
-                    </div>
-                  </template>
-                </AiWizardCard>
-              </template>
-            </template>
-          </div>
-        </div>
-        <!-- Footer  -->
-        <div>
-          <div class="nc-ai-footer-branding text-xs">
-            Powered by
-            <span class="font-semibold !text-inherit"> Noco AI </span>
-          </div>
-        </div>
-      </div>
+      <WorkspaceProjectAiCreateProject
+        v-model:ai-mode="aiMode"
+        v-model:dialog-show="dialogShow"
+        :base-type="baseType"
+        :workspace-id="activeWorkspace.id"
+      />
     </template>
   </NcModal>
 </template>
@@ -733,45 +209,6 @@ const handleUpdatePrompt = (description: string) => {
 .nc-modal-wrapper.nc-ai-select-base-create-mode-modal {
   .ant-modal-content {
     @apply !rounded-[28px];
-  }
-}
-</style>
-
-<style lang="scss" scoped>
-.nc-ai-footer-branding {
-  @apply px-6 py-1 flex items-center gap-2 text-nc-content-purple-dark border-t-1 border-purple-100 min-h-8;
-}
-
-:deep(.ant-collapse-header) {
-  @apply !p-0 flex items-center !cursor-default children:first:flex;
-}
-:deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
-  @apply !right-0;
-}
-
-:deep(.ant-collapse-content-box) {
-  @apply !p-0;
-}
-
-:deep(.ant-collapse.nc-schema-preview-table) {
-  @apply !border-0 bg-transparent overflow-hidden;
-
-  .ant-collapse-item {
-    @apply border-b-purple-100 last:(border-b-0 !rounded-b-lg overflow-hidden);
-
-    .ant-collapse-content {
-      @apply border-0;
-    }
-  }
-}
-
-:deep(.nc-schema-preview-table .nc-checkbox > .ant-checkbox) {
-  @apply !mr-0;
-}
-
-:deep(.ant-tag.nc-ai-base-schema-tag) {
-  &.nc-selected {
-    @apply !bg-nc-fill-purple-dark !text-white;
   }
 }
 </style>

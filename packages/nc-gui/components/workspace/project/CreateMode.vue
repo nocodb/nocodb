@@ -3,15 +3,12 @@ import NcCreateBasePlaceholder from '~icons/nc-icons/create-base-placeholder'
 import NcCreateBaseWithAiPlaceholder from '~icons/nc-icons/create-base-with-ai-placeholder'
 
 interface Props {
-  // Define your props here
   aiMode: boolean | null
 }
+const emit = defineEmits(['update:aiMode'])
 
-const props = withDefaults(defineProps<Props>(), {
-  // Set default prop values here
-})
-
-const { aiMode } = toRefs(props)
+const props = withDefaults(defineProps<Props>(), {})
+const aiMode = useVModel(props, 'aiMode', emit)
 </script>
 
 <template>

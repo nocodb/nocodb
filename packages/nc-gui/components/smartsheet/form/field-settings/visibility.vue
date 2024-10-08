@@ -16,11 +16,11 @@ const visibilityError = computed(() => {
 const hasvisibilityError = computed(() => Object.keys(visibilityError.value).length)
 
 const visibilityFilters = computed(() => {
-  if (!allViewFilters.value[activeField.value?.fk_column_id]) {
-    allViewFilters.value[activeField.value!.fk_column_id] = []
+  if (activeField.value?.fk_column_id && !allViewFilters.value[activeField.value.fk_column_id]) {
+    allViewFilters.value[activeField.value.fk_column_id] = []
   }
 
-  return allViewFilters.value[activeField.value!.fk_column_id]
+  return allViewFilters.value[`${activeField.value?.fk_column_id}`]
 })
 
 const isFirstField = computed(() => {
@@ -29,7 +29,7 @@ const isFirstField = computed(() => {
 
 const filterOption = (column: ColumnType) => {
   // hide active field from filter option
-  const isNotActiveField = column.id !== activeField.value!.fk_column_id
+  const isNotActiveField = column.id !== activeField.value?.fk_column_id
 
   // show only form view visible columns and order is less than active field
   const orderIsLessThanActiveField =

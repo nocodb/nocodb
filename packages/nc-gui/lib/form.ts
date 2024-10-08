@@ -84,7 +84,7 @@ export class FormFilters {
 
   // Method to group filters by fk_parent_column_id
   getNestedGroupedFilters() {
-    const groupedFiltes = this.allViewFilters.reduce((acc, filter) => {
+    const groupedFilters = this.allViewFilters.reduce((acc, filter) => {
       const groupingKey = filter.fk_parent_column_id || 'ungrouped'
 
       if (!acc[groupingKey]) {
@@ -96,7 +96,7 @@ export class FormFilters {
       return acc
     }, {} as typeof this.groupedFilters)
 
-    this.groupedFilters = groupedFiltes
+    this.groupedFilters = groupedFilters
 
     const nestedGroupedFilters = this.loadFilters()
 
@@ -313,7 +313,7 @@ export class FormFilters {
                 val = !!this.formState[field]
                 break
               case 'number':
-                val = isNaN(parseFloat(this.formState[field])) ? this.formState[field] : +this.formState[field]
+                val = Number.isNaN(parseFloat(this.formState[field])) ? this.formState[field] : +this.formState[field]
                 break
             }
 
@@ -340,10 +340,10 @@ export class FormFilters {
                 res = val != filter.value
                 break
               case 'like':
-                res = this.toString(val).toLowerCase()?.indexOf(filter.value?.toLowerCase()) > -1
+                res = this.toString(val).toLowerCase()?.includes(filter.value?.toLowerCase())
                 break
               case 'nlike':
-                res = this.toString(val).toLowerCase()?.indexOf(filter.value?.toLowerCase()) === -1
+                res = !this.toString(val).toLowerCase()?.includes(filter.value?.toLowerCase())
                 break
               case 'empty':
               case 'blank':
@@ -360,7 +360,7 @@ export class FormFilters {
                 res = !val
                 break
               case 'null':
-                res = res = val === null
+                res = val === null
                 break
               case 'notnull':
                 res = val !== null

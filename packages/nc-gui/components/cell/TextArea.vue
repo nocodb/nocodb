@@ -429,15 +429,16 @@ watch([isVisible, inputRef], (value) => {
     >
       <div
         ref="inputWrapperRef"
-        class="flex flex-col py-3 w-full expanded-cell-input relative"
+        class="flex flex-col pb-3 w-full expanded-cell-input relative"
         :class="{
           'cursor-move': isDragging,
+          'expanded-cell-input-ai': props.isAi,
         }"
         @keydown.enter.stop
       >
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 border-b-1 border-gray-100 overflow-hidden"
+          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-gray-100 overflow-hidden"
           :class="{
             'select-none': isDragging,
             'cursor-move': !isEditColumn,
@@ -472,12 +473,7 @@ watch([isVisible, inputRef], (value) => {
             </div>
             <div class="flex-1"></div>
             <div class="flex items-center gap-1 mr-4">
-              <NcButton
-                type="text"
-                class="!bg-nc-bg-purple-dark text-nc-content-purple-dark hover:(!bg-purple-700 !text-white)"
-                size="small"
-                @click.stop="generate"
-              >
+              <NcButton type="primary" theme="ai" size="small" @click.stop="generate">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="refresh" :class="{ 'animate-infinite animate-spin': aiLoading }" />
                   <span class="text-sm font-bold">Re-generate</span>
@@ -570,6 +566,12 @@ textarea:focus {
 
       .nc-longtext-scrollbar {
         @apply scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent;
+      }
+
+      .expanded-cell-input-ai {
+        .nc-text-area-expanded {
+          max-height: min(783px, 100vh - 170px);
+        }
       }
     }
   }

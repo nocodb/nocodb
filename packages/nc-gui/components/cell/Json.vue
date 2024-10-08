@@ -214,6 +214,7 @@ watch(inputWrapperRef, () => {
         :auto-focus="!isForm && !isEditColumn"
         @update:model-value="localValue = $event"
         @keydown.enter.stop
+        @keydown.alt.stop
       />
 
       <span v-if="error" class="nc-cell-field text-xs w-full py-1 text-red-500">

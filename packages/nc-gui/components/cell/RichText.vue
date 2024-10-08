@@ -335,6 +335,7 @@ onClickOutside(editorDom, (e) => {
           [`!overflow-hidden nc-truncate nc-line-clamp-${rowHeightTruncateLines(localRowHeight)}`]:
             !fullMode && readOnly && localRowHeight && !isExpandedFormOpen && !isForm,
         }"
+        @keydown.alt.stop
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
       />

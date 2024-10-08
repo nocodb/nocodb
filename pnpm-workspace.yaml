@@ -3,6 +3,5 @@ packages:
   - "packages/nc-gui"
   - "packages/nc-mail-templates"
   - "packages/nocodb"
-  - "packages/noco-docs"
   - "tests/playwright"
   - "packages/nc-secret-mgr"

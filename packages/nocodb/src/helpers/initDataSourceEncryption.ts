@@ -75,7 +75,7 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
 
       // check if valid json, if not warn and skip
       try {
-        JSON.parse(integrations.config);
+        JSON.parse(integration.config);
       } catch (e) {
         logger.warn('Invalid JSON in integration config', integration.title);
         successStatus.push(false);

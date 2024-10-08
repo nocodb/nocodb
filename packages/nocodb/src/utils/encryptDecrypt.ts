@@ -19,11 +19,14 @@ export const encryptPropIfRequired = ({
     return;
   }
 
+  const val =
+    typeof data[prop] === 'string' ? data[prop] : JSON.stringify(data[prop]);
+
   if (!secret) {
-    return JSON.stringify(data[prop]);
+    return val;
   }
 
-  return CryptoJS.AES.encrypt(JSON.stringify(data[prop]), secret).toString();
+  return CryptoJS.AES.encrypt(val, secret).toString();
 };
 
 export const decryptPropIfRequired = ({

@@ -76,6 +76,7 @@ const focus: VNodeRef = (el) =>
 
 <template>
   <div class="duration-cell-wrapper">
+    <!-- eslint-disable vue/use-v-on-exact -->
     <input
       v-if="!readOnly && editEnabled"
       :ref="focus"

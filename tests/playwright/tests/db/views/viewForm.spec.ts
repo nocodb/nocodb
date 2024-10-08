@@ -1436,7 +1436,7 @@ test.describe('Form view: field validation', () => {
 });
 
 test.describe('Form view: conditional fields', () => {
-  if (enableQuickRun() || !isEE()) test.skip();
+  if (enableQuickRun()) test.skip();
 
   let dashboard: DashboardPage;
   let form: FormPage;

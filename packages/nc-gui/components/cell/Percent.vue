@@ -139,6 +139,7 @@ const onTabPress = (e: KeyboardEvent) => {
     @mouseleave="onMouseleave"
     @focus="onWrapperFocus"
   >
+    <!-- eslint-disable vue/use-v-on-exact -->
     <input
       v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled || !percentMeta.is_progress : true)"
       :ref="focus"

@@ -93,6 +93,7 @@ function onKeyDown(e: any) {
 </script>
 
 <template>
+  <!-- eslint-disable vue/use-v-on-exact -->
   <input
     v-if="!readOnly && editEnabled"
     :ref="focus"

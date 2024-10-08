@@ -2,7 +2,7 @@ name: pre-build-for-playwright
 
 on:
   workflow_call:
-  
+
 jobs:
   playwright:
     runs-on: [self-hosted, v3]
@@ -17,13 +17,13 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
-      - name: remove use-node-version from .npmrc 
-        run:  sed -i '/^use-node-version/d' .npmrc                   
+          version: 9
+      - name: remove use-node-version from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
       - name: Get pnpm store directory
         shell: bash
         run: |
-          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV          
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
       - uses: actions/cache@v3
         name: Setup pnpm cache
         with:
@@ -47,4 +47,3 @@ jobs:
           zip -r ${FILE} .output || echo "UI build directory does not exists" >&2
           echo "uploading  ${FILE} to http://65.21.27.147/upload/${FILE}"
           time curl -T "${FILE}" http://65.21.27.147/upload/${FILE} -n
-          

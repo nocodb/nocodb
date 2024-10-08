@@ -39,10 +39,29 @@ export default async function (force = false, ncMeta = Noco.ncMeta) {
         .count('storage as count')
         .first()
         .then((c) => c.count);
+      const tables = await ncMeta
+        .knex(MetaTable.MODELS)
+        .count('id as count')
+        .first()
+        .then((c) => c.count);
+      const views = await ncMeta
+        .knex(MetaTable.VIEWS)
+        .count('id as count')
+        .first()
+        .then((c) => c.count);
 
       const nc_db_type = Noco.getConfig()?.meta?.db?.client;
 
-      res = { projectsMeta, projectsExt, impacted, nc_db_type, created, files };
+      res = {
+        projectsMeta,
+        projectsExt,
+        impacted,
+        nc_db_type,
+        created,
+        files,
+        tables,
+        views,
+      };
       await NocoCache.set(CacheScope.INSTANCE_META, res);
     }
     return res;

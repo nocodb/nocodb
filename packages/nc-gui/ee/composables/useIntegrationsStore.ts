@@ -1,3 +1,4 @@
+import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { FormDefinition, IntegrationType, PaginatedType } from 'nocodb-sdk'
 import { ClientType, IntegrationsType, SyncDataType } from 'nocodb-sdk'
 import GeneralBaseLogo from '~/components/general/BaseLogo.vue'
@@ -150,6 +151,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       isLoadingIntegrations.value = false
     }
   }
+
   const addIntegration = async (integration: IntegrationItemType) => {
     activeIntegration.value = integration.dynamic ? integration : getStaticInitializor(integration.subType)
     activeIntegrationItem.value = integration

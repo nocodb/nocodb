@@ -40,6 +40,7 @@ export interface AppInfo {
   samlProviderName: string | null
   giftUrl: string
   feedEnabled: boolean
+  sentryDSN: string
 }
 
 export interface StoredState {

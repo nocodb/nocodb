@@ -43,12 +43,12 @@ export default async function (force = false, ncMeta = Noco.ncMeta) {
         .knex(MetaTable.MODELS)
         .count('id as count')
         .first()
-        .then((c) => c.created_at);
+        .then((c) => c.count);
       const views = await ncMeta
         .knex(MetaTable.VIEWS)
         .count('id as count')
         .first()
-        .then((c) => c.created_at);
+        .then((c) => c.count);
 
       const nc_db_type = Noco.getConfig()?.meta?.db?.client;
 

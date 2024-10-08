@@ -404,13 +404,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         // Check if the redirect URL has the same host as the current page
         const isSameHost = anchor.host === window.location.host
 
-        // Perform the redirection
-        window.location.href = redirectUrl
         if (isSameHost) {
-          // If it's the same host, reload the page after redirection
-          nextTick(() => {
-            window.location.reload()
-          })
+          // Use pushState for internal links
+          window.history.pushState({}, 'Redirect', redirectUrl)
+          // Reload the page
+          window.location.reload()
+        } else {
+          // For external links, use window.location.href
+          window.location.href = redirectUrl
         }
       } else {
         submitted.value = true

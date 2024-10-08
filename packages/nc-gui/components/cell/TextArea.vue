@@ -242,6 +242,7 @@ watch(inputWrapperRef, () => {
       >
         <LazyCellRichText v-model:value="vModel" sync-value-change read-only />
       </div>
+      <!-- eslint-disable vue/use-v-on-exact -->
       <textarea
         v-else-if="(editEnabled && !isVisible) || isForm"
         :ref="focus"

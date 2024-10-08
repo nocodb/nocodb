@@ -605,15 +605,19 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     const loadAllviewFilters = async () => {
       if (!viewMeta.value?.id) return
 
-      const formViewFilters = (await $api.dbTableFilter.read(viewMeta.value.id, { includeAllFilters: true })).list || []
+      try {
+        const formViewFilters = (await $api.dbTableFilter.read(viewMeta.value.id, { includeAllFilters: true })).list || []
 
-      if (!formViewFilters.length) return
+        if (!formViewFilters.length) return
 
-      const formFilter = new FormFilters({ data: formViewFilters })
+        const formFilter = new FormFilters({ data: formViewFilters })
 
-      const allFilters = formFilter.getNestedGroupedFilters()
+        const allFilters = formFilter.getNestedGroupedFilters()
 
-      allViewFilters.value = { ...allFilters }
+        allViewFilters.value = { ...allFilters }
+      } catch (e: any) {
+        console.error('Error loading view filters:', e)
+      }
     }
 
     async function checkFieldVisibility() {

@@ -14,6 +14,8 @@ const vModel = useVModel(props, 'modelValue', emit)
 
 const { setAdditionalValidations } = useColumnCreateStoreOrThrow()
 
+const { aiIntegrationAvailable } = useNocoAi()
+
 setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('general.required') }] })
 </script>
 
@@ -33,7 +35,7 @@ setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('gen
       :show-tooltip="false"
       placement="bottom"
     >
-      <NcButton size="xs" theme="ai" class="!px-1" type="text">
+      <NcButton size="xs" theme="ai" class="!px-1" type="text" :disabled="!aiIntegrationAvailable">
         <GeneralIcon icon="settings" />
       </NcButton>
     </AiSettings>

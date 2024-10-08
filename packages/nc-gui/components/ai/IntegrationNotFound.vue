@@ -23,7 +23,7 @@ const navigateToAiIntegrations = () => {
     <slot name="icon">
       <GeneralIcon icon="alertTriangleSolid" class="flex-none !text-nc-content-orange-medium w-4 h-4" />
     </slot>
-    <div class="flex flex-col gap-1">
+    <div class="flex-1 flex flex-col gap-1">
       <slot name="title">
         <div class="text-sm text-nc-content-gray-subtle flex-1">No AI Integrations added.</div>
       </slot>

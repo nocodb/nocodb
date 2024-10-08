@@ -853,7 +853,7 @@ const isSelectedOnlyAI = computed(() => {
   return false
 })
 
-const { generateRows, generatingRows } = useNocoAi()
+const { generateRows, generatingRows, generatingColumnRows } = useNocoAi()
 
 const generateAIBulk = async () => {
   if (!isSelectedOnlyAI.value || !meta?.value?.id || !meta.value.columns) return
@@ -869,6 +869,7 @@ const generateAIBulk = async () => {
   const pks = rows.map((row) => extractPkFromRow(row.row, meta.value!.columns!)).filter((pk) => pk !== null)
 
   generatingRows.value.push(...pks)
+  generatingColumnRows.value.push(field.id)
 
   const res = await generateRows(meta.value.id, field.id, pks)
 
@@ -886,6 +887,7 @@ const generateAIBulk = async () => {
   }
 
   generatingRows.value = generatingRows.value.filter((pk) => !pks.includes(pk))
+  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== field.id)
 }
 
 const selectColumn = (columnId: string) => {
@@ -2363,7 +2365,7 @@ onKeyStroke('ArrowDown', onDown)
               @click="generateAIBulk"
             >
               <div class="flex gap-2 items-center">
-                <GeneralIcon icon="magic" />
+                <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
                 <!-- Generate All -->
                 Generate {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
               </div>

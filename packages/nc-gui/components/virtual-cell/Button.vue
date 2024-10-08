@@ -42,10 +42,14 @@ const generate = async () => {
 
   if (!pk.value) return
 
+  const outputColumnIds =
+    ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 0
+      ? column.value.colOptions.output_column_ids.split(',')
+      : []
+  const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById[id])
+
   generatingRows.value.push(pk.value)
   generatingColumnRows.value.push(column.value.id)
-
-  const outputColumnIds = (column.value.colOptions as ButtonType)?.output_column_ids?.split(',')
 
   generatingColumns.value.push(...(outputColumnIds ?? []))
 
@@ -54,16 +58,10 @@ const generate = async () => {
   if (res?.length) {
     const resRow = res[0]
 
-    if (
-      (column.value.colOptions as ButtonType)?.output_column_ids &&
-      ((column.value.colOptions as ButtonType)?.output_column_ids as string).split(',').length > 0
-    ) {
-      if (outputColumnIds) {
-        const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById?.[id] as ColumnType)
-        for (const col of outputColumns) {
-          if (col && currentRow.value.row) {
-            currentRow.value.row[col.title!] = resRow[col.title!]
-          }
+    if (outputColumnIds) {
+      for (const col of outputColumns) {
+        if (col && currentRow.value.row) {
+          currentRow.value.row[col.title!] = resRow[col.title!]
         }
       }
     }

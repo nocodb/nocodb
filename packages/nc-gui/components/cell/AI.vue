@@ -42,6 +42,11 @@ const generate = async () => {
   if (!meta?.value?.id || !meta.value.columns || !column?.value?.id) return
 
   if (!pk.value) return
+  const outputColumnIds =
+    ncIsString(column.value.colOptions?.output_column_ids) && column.value.colOptions.output_column_ids.split(',').length > 1
+      ? column.value.colOptions.output_column_ids.split(',')
+      : []
+  const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById[id])
 
   generatingRows.value.push(pk.value)
   generatingColumnRows.value.push(column.value.id)
@@ -51,9 +56,7 @@ const generate = async () => {
   if (res?.length) {
     const resRow = res[0]
 
-    if (column.value.colOptions?.output_column_ids && column.value.colOptions.output_column_ids.split(',').length > 1) {
-      const outputColumnIds = column.value.colOptions.output_column_ids.split(',')
-      const outputColumns = outputColumnIds.map((id) => meta.value?.columnsById[id])
+    if (outputColumnIds.length) {
       for (const col of outputColumns) {
         if (col) {
           unref(row).row[col.title!] = resRow[col.title!]

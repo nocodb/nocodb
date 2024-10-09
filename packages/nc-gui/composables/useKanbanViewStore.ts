@@ -396,7 +396,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           base?.value.id as string,
           meta.value?.id as string,
           viewMeta?.value?.id as string,
-          id,
+          encodeURIComponent(id),
           {
             [property]: toUpdate.row[property],
           },

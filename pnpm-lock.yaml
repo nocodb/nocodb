@@ -170,7 +170,7 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: 0.256.0
+        specifier: workspace:^
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.4.1
@@ -809,7 +809,7 @@ importers:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8)(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2)(ioredis@5.4.1)(reflect-metadata@0.2.1)
       nocodb-sdk:
-        specifier: 0.256.0
+        specifier: workspace:^
         version: link:../nocodb-sdk
       nodemailer:
         specifier: ^6.9.13
@@ -3142,15 +3142,8 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
     dependencies:
-      '@babel/types': 7.24.0
-    dev: true
-
-  /@babel/parser@7.24.7:
-    resolution: {integrity: sha512-9uUYRm6OqQrCqQdG1iCBwBPZgN8ciDBro2nIOFaiRz1/BCxaI7CNvQbDHvsArAC7Tw9Hda/B3U+6ui9u4HWXPw==}
-    engines: {node: '>=6.0.0'}
-    hasBin: true
-    dependencies:
       '@babel/types': 7.25.6
+    dev: true
 
   /@babel/parser@7.25.6:
     resolution: {integrity: sha512-trGdfBdbD0l1ZPmcJ83eNxB9rbEax4ALFTF7fN386TMYbeCQbyme5cOEXQhbGXKebwGaB/J52w1mrklMcbgy6Q==}
@@ -3403,15 +3396,6 @@ packages:
 
   /@babel/types@7.19.0:
     resolution: {integrity: sha512-YuGopBq3ke25BVSiS6fgF49Ul9gH1x70Bcr6bqRLjWCkcX8Hre1/5+z+IiWOIerRMSSEfGZVB9z9kyq7wVs9YA==}
-    engines: {node: '>=6.9.0'}
-    dependencies:
-      '@babel/helper-string-parser': 7.24.8
-      '@babel/helper-validator-identifier': 7.24.7
-      to-fast-properties: 2.0.0
-    dev: true
-
-  /@babel/types@7.24.0:
-    resolution: {integrity: sha512-+j7a5c253RfKh8iABBhywc8NSfP5LURe7Uh4qpsh6jc+aLJguvmIUBdjSdEMQv2bENrCR5MfRdjGo7vzS/ob7w==}
     engines: {node: '>=6.9.0'}
     dependencies:
       '@babel/helper-string-parser': 7.24.8
@@ -5117,9 +5101,9 @@ packages:
       escodegen: 2.1.0
       estree-walker: 2.0.2
       jsonc-eslint-parser: 2.3.0
-      magic-string: 0.30.10
+      magic-string: 0.30.11
       mlly: 1.6.1
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
       vue-i18n: 9.9.1(vue@3.5.11)
       yaml-eslint-parser: 1.2.2
     dev: true
@@ -11405,11 +11389,11 @@ packages:
   /@vue/compiler-core@3.4.27:
     resolution: {integrity: sha512-E+RyqY24KnyDXsCuQrI+mlcdW3ALND6U7Gqa/+bVwbcpcR3BRRIckFoz7Qyd4TTlnugtwuI7YgjbvsLmxb+yvg==}
     dependencies:
-      '@babel/parser': 7.24.7
+      '@babel/parser': 7.25.6
       '@vue/shared': 3.4.27
       entities: 4.5.0
       estree-walker: 2.0.2
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
 
   /@vue/compiler-core@3.5.11:
     resolution: {integrity: sha512-PwAdxs7/9Hc3ieBO12tXzmTD+Ln4qhT/56S+8DvrrZ4kLDn4Z/AMUr8tXJD0axiJBS0RKIoNaR0yMuQB9v9Udg==}
@@ -21159,7 +21143,7 @@ packages:
   /magic-string@0.30.10:
     resolution: {integrity: sha512-iIRwTIf0QKV3UAnYK4PU8uiEc4SRh5jX0mwpIwETPpHdhVM4f53RSwS/vXvN1JhGX+Cs7B8qIq3d6AH49O5fAQ==}
     dependencies:
-      '@jridgewell/sourcemap-codec': 1.4.15
+      '@jridgewell/sourcemap-codec': 1.5.0
     dev: true
 
   /magic-string@0.30.11:
@@ -24710,7 +24694,7 @@ packages:
     dependencies:
       nanoid: 3.3.7
       picocolors: 1.0.1
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
     dev: true
 
   /postcss@8.4.47:
@@ -26508,6 +26492,7 @@ packages:
   /source-map-js@1.2.0:
     resolution: {integrity: sha512-itJW8lvSA0TXEphiRoawsCksnlf8SyvmFzIhltqAHluXd88pkCd+cXJVHTDwdCr0IzwptSm035IHQktUu1QUMg==}
     engines: {node: '>=0.10.0'}
+    dev: true
 
   /source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}

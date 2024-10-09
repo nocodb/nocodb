@@ -93,6 +93,7 @@
     "none": "Nulla"
   },
   "general": {
+    "scripts": "Script",
     "configure": "Configura",
     "switch": "Cambia",
     "on": "Attivo",
@@ -620,7 +621,9 @@
     "fromScratch": "Partire da zero",
     "fromFileAndExternalSources": "Da file e fonti esterne",
     "directlyInRealTime": "Direttamente in tempo reale",
-    "categories": "Categorie"
+    "categories": "Categorie",
+    "fieldInaccessible": "Campo inaccessibile",
+    "noConditionsAdded": "Nessuna condizione aggiunta"
   },
   "labels": {
     "modifiedOn": "Modificato il",
@@ -985,7 +988,7 @@
     "appearanceSettings": "Appearance Settings",
     "backgroundColor": "Colore dello sfondo",
     "hideNocodbBranding": "Nascondere il marchio NocoDB",
-    "showOnConditions": "Show on conditions",
+    "showOnConditions": "Mostra su condizioni",
     "showFieldOnConditionsMet": "Mostra il campo solo quando le condizioni sono soddisfatte",
     "limitOptions": "Limitare le opzioni",
     "limitOptionsSubtext": "Limita le opzioni visibili agli utenti selezionando le opzioni disponibili",
@@ -1256,7 +1259,9 @@
     },
     "getPreFilledLink": "Ottenere il link precompilato",
     "group": "Gruppo",
-    "goToDocs": "Vai ai documenti"
+    "goToDocs": "Vai ai documenti",
+    "addCondition": "Aggiungi condizione",
+    "addConditionGroup": "Aggiungi gruppo di condizioni"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

@@ -19,7 +19,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     switch (e.keyCode) {
       case 70: {
         // ALT + F
-        if (!isDrawerOrModalExist()) {
+        if (!isDrawerOrModalExist() && !isActiveInputElementExist()) {
           $e('c:shortcut', { key: 'ALT + F' })
           isSidebarsOpen.value = !isSidebarsOpen.value
         }

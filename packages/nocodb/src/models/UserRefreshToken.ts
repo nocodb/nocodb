@@ -25,7 +25,6 @@ export default class UserRefreshToken {
     ncMeta = Noco.ncMeta,
   ) {
     // clear old invalid tokens before inserting new one
-    // todo: verify the populated sql query
     await ncMeta.metaDelete(
       RootScopes.ROOT,
       RootScopes.ROOT,

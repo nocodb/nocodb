@@ -2,8 +2,8 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ A alternativa de opção de fonte aberta✨ <br>
-
+      ✨ Alternativa do Airtable em código aberto ✨ 
+    <br>
 </h1>
 <p align="center">
 Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma planilha inteligente. 
@@ -32,18 +32,17 @@ Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma plani
   <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </p>
 
-# Experimente rápida
+# Comece rapidamente
 
 ### Usando o Docker.
 
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
+- NocoDB precisa de um banco de dados como entrada : Veja [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- Se a entrada não existir, nós voltamos para o SQLite. Para que SQLite também persista, você pode monta-lo em `/usr/app/data/`. 
 
-- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
-- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
-
-  Example:
+  Exemplo:
 
   ```
   docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
@@ -52,7 +51,7 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 
 ### GUI
 
-Acessar o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+Acesse o painel usando: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
 # Junte-se a nossa comunidade
 
@@ -62,7 +61,7 @@ Acessar o painel usando: [http://localhost:8080/dashboard](http://localhost:8080
 <br>
 <br>
 
-# Screenshots
+# Screenshots (Capturas de Tela)
 
 ![1](https://user-images.githubusercontent.com/86527202/136070349-cacc406d-9efe-406f-9aa2-1b81564332a7.png)
 <br>
@@ -99,34 +98,33 @@ Acessar o painel usando: [http://localhost:8080/dashboard](http://localhost:8080
 
 # Recursos
 
-### Interface de planilha rica
+### Rica Interface de Planilha
 
-- ⚡ Pesquisar, classificar, filtrar, esconder colunas com uber facilidade
-- ⚡ Criar visualizações: Grade, Galeria, Kanban, Formulário
-- ⚡ Compartilhar Visualizações: Public & Senha Protegido
-- ⚡ Vistas pessoais e bloqueadas
-- ⚡ Carregar imagens para as células (funciona com S3, Minio, GCP, Azure, Digitalocean, Linodo, OVH, Backblaze) !!
-- ⚡ Funções: proprietário, criador, editor, comentarista, visualizador, comentador, funções personalizadas.
-- ⚡ Controle de acesso: controle de acesso fino, mesmo no banco de dados, no nível da tabela e da coluna.
+- ⚡ Operações básicas: Criar, Ler, Atualizar e Deletar Tabelas, Colunas e Linhas<i>(Rows)</i>
+- ⚡ Operação de campos: Sort, Filtro, Esconder / Mostrar Colunas
+- ⚡ Multíplos tipos de visualização: Grade (Por padrão), Galeria, Visualização por Formulário e Visualização por Kanban
+- ⚡ Visualização por tipos de permissão: Colabarativo e Bloqueados
+- ⚡ Bases de compartilhamento / Visualizaç~eos: Tantao pública, quanto privada (com proteção por senha)
+- ⚡ Variantes por tipos de células: D, LinkToAnotherRecord, Lookup, Rollup, SingleLineText, Attachment, Currency, Formula, etc
+- ⚡ Controle de Acesso por Funções: controle de acesso detalhado em diferentes níveis
+- ⚡ E mais...
 
-### App Store for Workflow Automations:
+### App Store para fluxo de automoção:
+Nós fornecemos difernetes tipos de integração na árvore principal de categórias. Veja [AppStore](https://docs.nocodb.com/account-settings/oss-specific-details/#app-store) para mais detalhes.
 
-- ⚡ Bate-papo: Equipes Microsoft, folga, discórdia, material
-- ⚡ Email: SMTP, SES, MailChimp
-- ⚡ SMS: Twilio
-- ⚡ whatsapp.
-- ⚡ Qualquer APIs da 3ª parte
+- ⚡ Bate-papo: Discord, Mattermost e outros
+- ⚡ Email: AWS SES, SMTP, MailerSend e outros
+- ⚡ Armazenamento: AWS S3, Google Cloud Storage, Minio e outros
 
-### Acesso programático da API via:
+### Acesso Pragmático:
+Nós forncemos as seguintes formas de deixar pragmaticamente seus usuários executar ações. Você pode usar um <i>token</i> (tanto JWT ou Autenticação por Rede Social) para assinar suas requisições de autorização para o NocoDB.
 
-- ⚡ repouso APIs (Swagger)
-- ⚡ APIs GraphQl.
-- ⚡ Inclui autenticação JWT e autenticação social
-- ⚡ Tokens de API para integrar com Zapier, integromat.
+- ⚡ APIs Rest
+- ⚡ NocoDB SDK
 
-# Production Setup
+# Configuração de ambiente de Produção
 
-O NOCODB requer um banco de dados para armazenar metadados de exibições de planilhas e bancos de dados externos. E parâmetros de conexão para este banco de dados podem ser especificados na variável de ambiente NC_DB.
+Por padrão, o SQLite é usado para armazenar metadados(metadata). Todavia, você pode específicar seu banco de dados. Os parametros de conexão com o banco de dados podem serem feitas usando a variável de ambiente `NC_DB`. E também disponibilizamos variáveis de ambientes para configuração.
 
 ## Docker
 
@@ -150,22 +148,29 @@ cd pg
 docker-compose up -d
 ```
 
-## Environment variables
+## Variáveis de Ambiente
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
+Por favor, consultar em [Variáveis de Ambiente](https://docs.nocodb.com/getting-started/self-hosted/environment-variables)
 
-# Development setup
+# Configuração de Ambiente de Desenvolvimento
 
-Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
+Por favor, consultar em [Ambiente de Desenvolvimento](https://docs.nocodb.com/engineering/development-setup)
 
-# Contributing
+# Guia de Contribuição
 
-Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+Por favor, consultar em [Guia de Contribuição](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # Por que estamos construindo isso?
 
-A maioria das empresas da Internet equipar-se com a planilha ou um banco de dados para resolver suas necessidades de negócios. Planilhas são usadas por um bilhão de seres humanos colaborativamente todos os dias. No entanto, estamos longe de trabalhar em velocidades semelhantes em bancos de dados que são muito mais poderosas ferramentas quando se trata de computação. As tentativas de resolver isso com ofertas de SaaS significam controles de acesso horríveis, lockin do fornecedor, lockin de dados, alterações abruptas de preços e mais importante, um teto de vidro no futuro.
+A maioria das empresas da internet equipam-se tanto com panilhas ou banco de dados para solucionar as necessidades de seus negócios.
+Planilhas são usadas por mais de bilhões de humanos colaborativamente todos os dias.<br/> Contudo, nós estamos alguns passos atrás de atingir velocidades similares em bancos de dados - que são ferramentas poderosas - quando se trata de computação.
+As tentaivas de solucionar isto oferecendo um SaaS vem significando controles de acesso horríveis, <i>vendor lock-in</i>, <i>data lock-in</i>, preços abruptos que mudam e o mais importante, um teto de vidro sobre o que é o possível futuro.
 
 # Nossa missão
 
-Nossa missão é fornecer a mais poderosa interface de código para bancos de dados que é fonte aberta para cada negócio de Internet no mundo. Isso não apenas democratizaria o acesso a uma poderosa ferramenta de computação, mas também produzirá um bilhão de pessoas que terão habilidades radicais de corda e construção na Internet."
+Nossa missão é fornecer uma ferramenta com uma interface <i>no-code</i> poderosa e com banco de dados que é código aberto para todos os tipos de negócios no mundo.<br/>
+Isto não somente para democratizar o acesso para uma computação poderosa, mas também trazer mais de quatro bilhões de pessoas que têm habilidades mais radicais em <i>"consertar e construir"</i> na internet.
+
+# Licença
+
+Este projeto está sobre a licença de [AGPLv3](https://github.com/nocodb/nocodb/blob/develop/LICENSE).

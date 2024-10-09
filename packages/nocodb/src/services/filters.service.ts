@@ -134,10 +134,14 @@ export class FiltersService {
     return filter;
   }
 
-  async filterList(context: NcContext, param: { viewId: string }) {
-    const filter = await Filter.rootFilterList(context, {
-      viewId: param.viewId,
-    });
+  async filterList(
+    context: NcContext,
+    param: { viewId: string; includeAllFilters?: boolean },
+  ) {
+    const filter = await (param.includeAllFilters
+      ? Filter.allViewFilterList(context, { viewId: param.viewId })
+      : Filter.rootFilterList(context, { viewId: param.viewId }));
+
     return filter;
   }
 

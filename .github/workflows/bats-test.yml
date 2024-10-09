@@ -3,7 +3,7 @@ name: Run BATS Tests
 on:
   push:
     paths:
-      - 'docker-compose/setup-script/noco.sh'
+      - 'docker-compose/1_Auto_Upstall/noco.sh'
   workflow_dispatch:
 
 jobs:

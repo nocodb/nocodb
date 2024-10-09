@@ -3,19 +3,33 @@ import type { Actions, AppInfo, State } from './types'
 import type { NcProjectType } from '#imports'
 
 export function useGlobalActions(state: State): Actions {
+  const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
+
   const setIsMobileMode = (isMobileMode: boolean) => {
     state.isMobileMode.value = isMobileMode
   }
 
   /** Sign out by deleting the token from localStorage */
-  const signOut: Actions['signOut'] = async (_skipRedirect = false) => {
+  const signOut: Actions['signOut'] = async ({
+    redirectToSignin,
+    signinUrl = '/signin',
+    skipApiCall = false,
+  }: SignOutParams = {}) => {
     try {
-      const nuxtApp = useNuxtApp()
-      await nuxtApp.$api.auth.signout()
+      // call and invalidate refresh token only if user manually triggered logout
+      if (!skipApiCall) {
+        const nuxtApp = useNuxtApp()
+        await nuxtApp.$api.auth.signout()
+      }
     } catch {
+      // ignore error
     } finally {
       state.token.value = null
       state.user.value = null
+
+      if (redirectToSignin) {
+        await navigateTo(signinUrl)
+      }
 
       // clear all stores data on logout
       const pn = getActivePinia()
@@ -32,6 +46,7 @@ export function useGlobalActions(state: State): Actions {
    * keepProps - is for keeping any existing role info if user id is same as previous user
    * */
   const signIn: Actions['signIn'] = async (newToken, keepProps = false) => {
+    isTokenUpdatedTab.value = true
     state.token.value = newToken
 
     if (state.jwtPayload.value) {
@@ -64,7 +79,9 @@ export function useGlobalActions(state: State): Actions {
         })
         .catch(async () => {
           if (state.token.value && state.user.value) {
-            await signOut()
+            await signOut({
+              skipApiCall: true,
+            })
             message.error(t('msg.error.youHaveBeenSignedOut'))
           }
         })

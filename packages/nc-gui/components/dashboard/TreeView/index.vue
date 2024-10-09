@@ -151,6 +151,11 @@ const isCreateTableAllowed = computed(
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+
+  if (isActiveInputElementExist()) {
+    return
+  }
+
   if (e.altKey && !e.shiftKey && !cmdOrCtrl) {
     switch (e.keyCode) {
       case 84: {

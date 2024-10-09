@@ -39,6 +39,8 @@ export class ErdPage extends BasePage {
     columnName?: string;
     columnNameShouldNotExist?: string;
   }) {
+    await this.get().locator(`.nc-erd-table-node-${tableName}`).scrollIntoViewIfNeeded();
+
     await this.get().locator(`.nc-erd-table-node-${tableName}`).waitFor({ state: 'visible' });
     if (columnName) {
       await this.get().locator(`.nc-erd-table-node-${tableName}-column-${columnName}`).waitFor({ state: 'visible' });

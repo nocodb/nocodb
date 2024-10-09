@@ -1,8 +1,8 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
-import { nocoExecute } from 'nc-help';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
+import { nocoExecute } from '~/utils';
 import { Column, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
@@ -65,6 +65,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const { ast, dependencyFields } = await getAst(context, {
@@ -129,6 +130,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const listArgs: any = { ...param.query };
@@ -198,6 +200,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const { ast } = await getAst(context, { model, query: param.query, view });
@@ -293,6 +296,7 @@ export class PublicDatasService {
         id: model.id,
         viewId: view?.id,
         dbDriver: await NcConnectionMgrv2.get(source),
+        source,
       });
 
       const listArgs: any = { ...query };
@@ -350,6 +354,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     await view.getViewWithInfo(context);
@@ -470,6 +475,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: colOptions.fk_target_view_id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const { ast, dependencyFields } = await getAst(context, {
@@ -558,6 +564,7 @@ export class PublicDatasService {
       id: view.fk_model_id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const key = `List`;
@@ -637,6 +644,7 @@ export class PublicDatasService {
       id: view.fk_model_id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const key = `List`;
@@ -711,6 +719,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const row = await baseModel.readByPk(rowId, false, query);
@@ -813,6 +822,7 @@ export class PublicDatasService {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
+      source,
     });
 
     const listArgs: any = { ...param.query };

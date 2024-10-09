@@ -1,10 +1,13 @@
 import type { Api } from 'nocodb-sdk'
+import { useStorage } from '@vueuse/core'
 
 const DbNotFoundMsg = 'Database config not found'
 
 let refreshTokenPromise: Promise<string> | null = null
 
 export function addAxiosInterceptors(api: Api<any>) {
+  const isTokenRefreshInProgress = useStorage(TOKEN_REFRESH_PROGRESS_KEY, false)
+
   const state = useGlobal()
   const router = useRouter()
   const route = router.currentRoute
@@ -45,7 +48,13 @@ export function addAxiosInterceptors(api: Api<any>) {
       return response
     },
     // Handle Error
-    (error) => {
+    async (error) => {
+      const isSharedPage =
+        route.value?.params?.typeOrId === 'base' || route.value?.params?.typeOrId === 'ERD' || route.value.meta.public
+
+      // if cancel request then throw error
+      if (error.code === 'ERR_CANCELED') return Promise.reject(error)
+
       if (error.response && error.response.data && error.response.data.msg === DbNotFoundMsg) return router.replace('/base/0')
 
       // Return any error which is not due to authentication back to the calling service
@@ -55,8 +64,34 @@ export function addAxiosInterceptors(api: Api<any>) {
 
       // Logout user if token refresh didn't work or user is disabled
       if (error.config.url === '/auth/token/refresh') {
-        state.signOut()
+        await state.signOut({
+          redirectToSignin: !route.value.meta.public,
+          skipApiCall: true,
+        })
         return Promise.reject(error)
+      }
+
+      // if no active refresh token request in the current session then check the local storage
+      if (!refreshTokenPromise && isTokenRefreshInProgress.value) {
+        // if token refresh is already in progress, wait for it to finish and then retry the request if token is available
+        await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 5000 })
+        isTokenRefreshInProgress.value = false
+
+        // check if the user is signed in by checking the token presence and retry the request with the new token
+        if (state.token.value) {
+          return new Promise((resolve, reject) => {
+            const config = error.config
+            config.headers['xc-auth'] = state.token.value
+            axiosInstance
+              .request(config)
+              .then((response) => {
+                resolve(response)
+              })
+              .catch((error) => {
+                reject(error)
+              })
+          })
+        }
       }
 
       let refreshTokenPromiseRes: (token: string) => void
@@ -86,21 +121,27 @@ export function addAxiosInterceptors(api: Api<any>) {
             // ignore since it could have already been handled and redirected to sign in
           })
       } else {
+        isTokenRefreshInProgress.value = true
         refreshTokenPromise = new Promise<string>((resolve, reject) => {
           refreshTokenPromiseRes = resolve
           refreshTokenPromiseRej = reject
         })
 
         // set a catch on the promise to avoid unhandled promise rejection
-        refreshTokenPromise.catch(() => {
-          // ignore
-        })
+        refreshTokenPromise
+          .catch(() => {
+            // ignore
+          })
+          .finally(() => {
+            isTokenRefreshInProgress.value = false
+          })
       }
 
       // Try request again with new token
       return axiosInstance
         .post('/auth/token/refresh', null, {
           withCredentials: true,
+          cancelToken: undefined,
         })
         .then((token) => {
           // New request with new token
@@ -124,9 +165,18 @@ export function addAxiosInterceptors(api: Api<any>) {
           })
         })
         .catch(async (refreshTokenError) => {
-          await state.signOut()
+          // skip signout call if request cancelled
+          if (refreshTokenError.code === 'ERR_CANCELED') {
+            // reject the refresh token promise and reset
+            refreshTokenPromiseRej(refreshTokenError)
+            refreshTokenPromise = null
+            return Promise.reject(refreshTokenError)
+          }
 
-          if (!route.value.meta.public) navigateTo('/signIn')
+          await state.signOut({
+            redirectToSignin: !isSharedPage,
+            skipApiCall: true,
+          })
 
           // reject the refresh token promise and reset
           refreshTokenPromiseRej(refreshTokenError)

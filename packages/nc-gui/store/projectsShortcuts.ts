@@ -24,7 +24,7 @@ export const useProjectsShortcuts = defineStore('projectsShortcutsStore', () => 
         switch (e.keyCode) {
           case 70: {
             // ALT + F
-            if (!isDrawerOrModalExist()) {
+            if (!isDrawerOrModalExist() && !isActiveInputElementExist()) {
               $e('c:shortcut', { key: 'ALT + F' })
               const sidebarStore = useSidebarStore()
 
@@ -37,7 +37,7 @@ export const useProjectsShortcuts = defineStore('projectsShortcutsStore', () => 
           }
           // 'ALT + ,'
           case 188: {
-            if (isUIAllowed('settingsPage') && !isDrawerOrModalExist()) {
+            if (isUIAllowed('settingsPage') && !isDrawerOrModalExist() && !isActiveInputElementExist()) {
               $e('c:shortcut', { key: 'ALT + ,' })
               const basesStore = useBases()
 

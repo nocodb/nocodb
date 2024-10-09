@@ -227,88 +227,127 @@ export async function validateCondition(
             break;
         }
 
-        switch (filter.comparison_op) {
-          case 'eq':
-            res = val == filter.value;
-            break;
-          case 'neq':
-            res = val != filter.value;
-            break;
-          case 'like':
-            res =
-              data[field]
-                ?.toString?.()
-                ?.toLowerCase()
-                ?.indexOf(filter.value?.toLowerCase()) > -1;
-            break;
-          case 'nlike':
-            res =
-              data[field]
-                ?.toString?.()
-                ?.toLowerCase()
-                ?.indexOf(filter.value?.toLowerCase()) === -1;
-            break;
-          case 'empty':
-          case 'blank':
-            res =
-              data[field] === '' ||
-              data[field] === null ||
-              data[field] === undefined;
-            break;
-          case 'notempty':
-          case 'notblank':
-            res = !(
-              data[field] === '' ||
-              data[field] === null ||
-              data[field] === undefined
-            );
-            break;
-          case 'checked':
-            res = !!data[field];
-            break;
-          case 'notchecked':
-            res = !data[field];
-            break;
-          case 'null':
-            res = res = data[field] === null;
-            break;
-          case 'notnull':
-            res = data[field] !== null;
-            break;
-          case 'allof':
-            res = (
-              filter.value?.split(',').map((item) => item.trim()) ?? []
-            ).every((item) => (data[field]?.split(',') ?? []).includes(item));
-            break;
-          case 'anyof':
-            res = (
-              filter.value?.split(',').map((item) => item.trim()) ?? []
-            ).some((item) => (data[field]?.split(',') ?? []).includes(item));
-            break;
-          case 'nallof':
-            res = !(
-              filter.value?.split(',').map((item) => item.trim()) ?? []
-            ).every((item) => (data[field]?.split(',') ?? []).includes(item));
-            break;
-          case 'nanyof':
-            res = !(
-              filter.value?.split(',').map((item) => item.trim()) ?? []
-            ).some((item) => (data[field]?.split(',') ?? []).includes(item));
-            break;
-          case 'lt':
-            res = +data[field] < +filter.value;
-            break;
-          case 'lte':
-          case 'le':
-            res = +data[field] <= +filter.value;
-            break;
-          case 'gt':
-            res = +data[field] > +filter.value;
-            break;
-          case 'gte':
-          case 'ge':
-            res = +data[field] >= +filter.value;
-            break;
+        if (
+          [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+            column.uidt,
+          )
+        ) {
+          const userIds = Array.isArray(data[field])
+            ? data[field].map((user) => user.id)
+            : data[field]?.id
+            ? [data[field].id]
+            : [];
+
+          const filterValues = filter.value.split(',').map((v) => v.trim());
+
+          switch (filter.comparison_op) {
+            case 'anyof':
+              res = userIds.some((id) => filterValues.includes(id));
+              break;
+            case 'nanyof':
+              res = !userIds.some((id) => filterValues.includes(id));
+              break;
+            case 'allof':
+              res = filterValues.every((id) => userIds.includes(id));
+              break;
+            case 'nallof':
+              res = !filterValues.every((id) => userIds.includes(id));
+              break;
+            case 'empty':
+            case 'blank':
+              res = userIds.length === 0;
+              break;
+            case 'notempty':
+            case 'notblank':
+              res = userIds.length > 0;
+              break;
+            default:
+              res = false; // Unsupported operation for User fields
+          }
+        } else {
+          switch (filter.comparison_op) {
+            case 'eq':
+              res = val == filter.value;
+              break;
+            case 'neq':
+              res = val != filter.value;
+              break;
+            case 'like':
+              res =
+                data[field]
+                  ?.toString?.()
+                  ?.toLowerCase()
+                  ?.indexOf(filter.value?.toLowerCase()) > -1;
+              break;
+            case 'nlike':
+              res =
+                data[field]
+                  ?.toString?.()
+                  ?.toLowerCase()
+                  ?.indexOf(filter.value?.toLowerCase()) === -1;
+              break;
+            case 'empty':
+            case 'blank':
+              res =
+                data[field] === '' ||
+                data[field] === null ||
+                data[field] === undefined;
+              break;
+            case 'notempty':
+            case 'notblank':
+              res = !(
+                data[field] === '' ||
+                data[field] === null ||
+                data[field] === undefined
+              );
+              break;
+            case 'checked':
+              res = !!data[field];
+              break;
+            case 'notchecked':
+              res = !data[field];
+              break;
+            case 'null':
+              res = res = data[field] === null;
+              break;
+            case 'notnull':
+              res = data[field] !== null;
+              break;
+            case 'allof':
+              res = (
+                filter.value?.split(',').map((item) => item.trim()) ?? []
+              ).every((item) => (data[field]?.split(',') ?? []).includes(item));
+              break;
+            case 'anyof':
+              res = (
+                filter.value?.split(',').map((item) => item.trim()) ?? []
+              ).some((item) => (data[field]?.split(',') ?? []).includes(item));
+              break;
+            case 'nallof':
+              res = !(
+                filter.value?.split(',').map((item) => item.trim()) ?? []
+              ).every((item) => (data[field]?.split(',') ?? []).includes(item));
+              break;
+            case 'nanyof':
+              res = !(
+                filter.value?.split(',').map((item) => item.trim()) ?? []
+              ).some((item) => (data[field]?.split(',') ?? []).includes(item));
+              break;
+            case 'lt':
+              res = +data[field] < +filter.value;
+              break;
+            case 'lte':
+            case 'le':
+              res = +data[field] <= +filter.value;
+              break;
+            case 'gt':
+              res = +data[field] > +filter.value;
+              break;
+            case 'gte':
+            case 'ge':
+              res = +data[field] >= +filter.value;
+              break;
+          }
         }
       }
     }
@@ -713,16 +752,9 @@ export function _transformSubmittedFormDataForEmail(
       }
       transformedData[col.title] = (transformedData[col.title] || [])
         .map((attachment) => {
-          if (
-            ['jpeg', 'gif', 'png', 'apng', 'svg', 'bmp', 'ico', 'jpg'].includes(
-              attachment.title.split('.').pop(),
-            )
-          ) {
-            return `<a href="${attachment.url}" target="_blank"><img height="50px" src="${attachment.url}"/></a>`;
-          }
-          return `<a href="${attachment.url}" target="_blank">${attachment.title}</a>`;
+          return attachment.title;
         })
-        .join('&nbsp;');
+        .join('<br/>');
     } else if (
       transformedData[col.title] &&
       typeof transformedData[col.title] === 'object'

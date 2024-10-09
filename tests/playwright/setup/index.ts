@@ -149,6 +149,7 @@ const workerCount = [0, 0, 0, 0, 0, 0, 0, 0];
 export interface NcContext {
   base: BaseType;
   token: string;
+  apiToken: string;
   dbType?: string;
   workerId?: string;
   rootUser: UserType & { password: string };
@@ -207,6 +208,17 @@ async function localInit({
         'xc-auth': token,
       },
     });
+
+    let apiToken = null;
+
+    const apiTokens = await api.orgTokens.list();
+
+    if (apiTokens.list.length > 0) {
+      apiToken = apiTokens.list[0].token;
+    } else {
+      const { token: createdToken } = await api.orgTokens.create({ description: 'test' });
+      apiToken = createdToken;
+    }
 
     // const workspaceTitle_old = `ws_pgExtREST${+workerId - 1}`;
     const workspaceTitle = `ws_pgExtREST${workerId}`;
@@ -363,7 +375,7 @@ async function localInit({
 
     // get current user information
     const user = await api.auth.me();
-    return { data: { base, user, workspace, token, api }, status: 200 };
+    return { data: { base, user, workspace, token, api, apiToken }, status: 200 };
   } catch (e) {
     console.error(`Error resetting base: ${process.env.TEST_PARALLEL_INDEX}`, e);
     return { data: {}, status: 500 };
@@ -497,6 +509,7 @@ const setup = async ({
   return {
     base,
     token,
+    apiToken: response.data.apiToken,
     dbType,
     workerId,
     rootUser,

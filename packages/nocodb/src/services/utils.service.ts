@@ -1,19 +1,22 @@
 import process from 'process';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { compareVersions, validate } from 'compare-versions';
 import { ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
 import { useAgent } from 'request-filtering-agent';
-import type { AppConfig } from '~/interface/config';
+import dayjs from 'dayjs';
+import type { ErrorReportReqType } from 'nocodb-sdk';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { Base, Store, User } from '~/models';
 import Noco from '~/Noco';
+import { T } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { jdbcToXcConfig } from '~/utils/nc-config/helpers';
 import { packageVersion } from '~/utils/packageVersion';
 import {
@@ -21,6 +24,8 @@ import {
   defaultLimitConfig,
 } from '~/helpers/extractLimitAndOffset';
 import { DriverClient } from '~/utils/nc-config';
+import NocoCache from '~/cache/NocoCache';
+import { getCircularReplacer } from '~/utils';
 
 const versionCache = {
   releaseVersion: null,
@@ -71,7 +76,11 @@ interface AllMeta {
 
 @Injectable()
 export class UtilsService {
+  protected logger = new Logger(UtilsService.name);
+
   constructor(protected readonly configService: ConfigService<AppConfig>) {}
+
+  lastSyncTime = dayjs();
 
   async versionInfo() {
     if (
@@ -385,7 +394,6 @@ export class UtilsService {
       if (result.status === 'fulfilled') {
         return result.value;
       }
-      console.log(result.reason);
       return null;
     });
   };
@@ -449,6 +457,10 @@ export class UtilsService {
       ncMin: !!process.env.NC_MIN,
       teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
       errorReportingEnabled: process.env.NC_DISABLE_ERR_REPORTS !== 'true',
+      sentryDSN:
+        process.env.NC_DISABLE_ERR_REPORTS !== 'true'
+          ? process.env.NC_SENTRY_DSN
+          : null,
       auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
       ncSiteUrl: (param.req as any).ncSiteUrl,
       ee: Noco.isEE(),
@@ -460,6 +472,7 @@ export class UtilsService {
       disableEmailAuth: this.configService.get('auth.disableEmailAuth', {
         infer: true,
       }),
+      feedEnabled: process.env.NC_DISABLE_PRODUCT_FEED !== 'true',
       mainSubDomain: this.configService.get('mainSubDomain', { infer: true }),
       dashboardPath: this.configService.get('dashboardPath', { infer: true }),
       inviteOnlySignup: settings.invite_only_signup,
@@ -470,5 +483,83 @@ export class UtilsService {
     };
 
     return result;
+  }
+
+  async reportErrors(param: { body: ErrorReportReqType; req: NcRequest }) {
+    for (const error of param.body?.errors ?? []) {
+      T.emit('evt', {
+        evt_type: 'gui:error',
+        properties: {
+          message: error.message,
+          stack: error.stack?.split('\n').slice(0, 2).join('\n'),
+          ...(param.body.extra || {}),
+        },
+      });
+    }
+  }
+
+  async feed(req: NcRequest) {
+    const {
+      type = 'all',
+      page = '1',
+      per_page = '10',
+    } = req.query as {
+      type: 'github' | 'youtube' | 'all' | 'twitter' | 'cloud';
+      page: string;
+      per_page: string;
+    };
+
+    const perPage = Math.min(Math.max(parseInt(per_page, 10) || 10, 1), 100);
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+
+    const cacheKey = `${CacheScope.PRODUCT_FEED}:${type}:${pageNum}:${perPage}`;
+
+    const cachedData = await NocoCache.get(cacheKey, 'json');
+
+    if (cachedData) {
+      try {
+        return JSON.parse(cachedData);
+      } catch (e) {
+        this.logger.error(e?.message, e);
+        await NocoCache.del(cacheKey);
+      }
+    }
+
+    let payload = null;
+    if (dayjs().isAfter(this.lastSyncTime.add(3, 'hours'))) {
+      payload = await T.payload();
+      this.lastSyncTime = dayjs();
+    }
+
+    let response;
+
+    try {
+      response = await axios.post(
+        'https://product-feed.nocodb.com/api/v1/social/feed',
+        payload,
+        {
+          params: {
+            per_page: perPage,
+            page: pageNum,
+            type,
+          },
+        },
+      );
+    } catch (e) {
+      this.logger.error(e?.message, e);
+      return [];
+    }
+
+    // The feed includes the attachments, which has the presigned URL
+    // So the cache should match the presigned URL cache
+    await NocoCache.setExpiring(
+      cacheKey,
+      JSON.stringify(response.data, getCircularReplacer),
+      Number.isNaN(parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS))
+        ? 2 * 60 * 60
+        : parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS),
+    );
+
+    return response.data;
   }
 }

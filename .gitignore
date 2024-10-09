@@ -96,3 +96,5 @@ test_noco.db
 httpbin
 .run/test-debug.run.xml
 
+/packages/nc-secret-mgr/dist/index.js
+/packages/nc-secret-mgr/dist/index.js.map

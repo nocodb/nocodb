@@ -6,9 +6,9 @@ import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import type { Job } from 'bull';
 import type { AttachmentResType } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
-import type Sharp from 'sharp';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
+import Noco from '~/Noco';
 
 export class ThumbnailGeneratorProcessor {
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
@@ -39,19 +39,10 @@ export class ThumbnailGeneratorProcessor {
   private async generateThumbnail(
     attachment: AttachmentResType,
   ): Promise<{ [key: string]: string }> {
-    let sharp: typeof Sharp;
-
-    try {
-      sharp = (await import('sharp')).default;
-    } catch {
-      // ignore
-    }
+    const sharp = Noco.sharp;
 
     if (!sharp) {
-      this.logger.warn(
-        `Thumbnail generation is not supported in this platform at the moment.`,
-      );
-      return;
+      return null;
     }
 
     sharp.concurrency(1);

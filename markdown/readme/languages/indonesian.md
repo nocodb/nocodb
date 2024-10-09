@@ -122,7 +122,7 @@ Kami menyediakan berbagai file docker-compose.yml di [bawah direktori](https://g
 ```bash
 git clone https://github.com/nocodb/nocodb
 # for PostgreSQL
-cd nocodb/docker-compose/pg
+cd nocodb/docker-compose/2_pg
 docker-compose up -d
 ```
 

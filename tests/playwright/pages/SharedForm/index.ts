@@ -107,4 +107,14 @@ export class SharedFormPage extends BasePage {
       },
     };
   }
+
+  async verifyField({ title, isVisible }: { title: string; isVisible: boolean }) {
+    const field = this.fieldLabel({ title });
+
+    if (isVisible) {
+      await expect(field).toBeVisible();
+    } else {
+      await expect(field).not.toBeVisible();
+    }
+  }
 }

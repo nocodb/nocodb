@@ -1,4 +1,3 @@
-import { nocoExecute } from 'nc-help';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 import * as XLSX from 'xlsx';
 import papaparse from 'papaparse';
@@ -6,6 +5,7 @@ import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
 import type { NcContext } from '~/interface/config';
+import { nocoExecute } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { Model, View } from '~/models';
@@ -50,6 +50,7 @@ export async function getViewAndModelByAliasOrId(
       fk_model_id: model.id,
     }));
   if (param.viewName && !view) NcError.viewNotFound(param.viewName);
+
   return { model, view };
 }
 

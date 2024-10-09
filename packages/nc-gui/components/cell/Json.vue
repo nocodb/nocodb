@@ -86,6 +86,9 @@ const onSave = () => {
 
   editEnabled.value = false
 
+  // avoid saving if error exists or value is same as previous
+  if (error.value || localValue.value === vModel.value) return false
+
   vModel.value = formatValue(localValue.value) === null ? null : formatJson(localValue.value as string)
 }
 
@@ -211,6 +214,7 @@ watch(inputWrapperRef, () => {
         :auto-focus="!isForm && !isEditColumn"
         @update:model-value="localValue = $event"
         @keydown.enter.stop
+        @keydown.alt.stop
       />
 
       <span v-if="error" class="nc-cell-field text-xs w-full py-1 text-red-500">

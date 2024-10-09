@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, type TableType, type ViewType, ViewTypes } from 'nocodb-sdk'
+import { type BaseType, type TableType, ViewTypes } from 'nocodb-sdk'
 import { toRef } from '@vue/reactivity'
 import { message } from 'ant-design-vue'
 import { storeToRefs } from 'pinia'
@@ -52,7 +52,7 @@ const {
   duplicateTable: _duplicateTable,
 } = inject(TreeViewInj)!
 
-const { loadViews: _loadViews, navigateToView } = useViewsStore()
+const { loadViews: _loadViews, navigateToView, duplicateView } = useViewsStore()
 const { activeView, activeViewTitleOrId, viewsByTable } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
@@ -218,36 +218,30 @@ const deleteTable = () => {
   isOptionsOpen.value = false
   isTableDeleteDialogVisible.value = true
 }
+const isOnDuplicateLoading = ref<boolean>(false)
 
-function onDuplicate() {
-  isOptionsOpen.value = false
+async function onDuplicate() {
+  isOnDuplicateLoading.value = true
+
+  // Load views if not loaded
+  if (!viewsByTable.value.get(table.value.id as string)) {
+    await _openTable(table.value, undefined, false)
+  }
 
   const views = viewsByTable.value.get(table.value.id as string)
   const defaultView = views?.find((v) => v.is_default) || views?.[0]
 
-  const isOpen = ref(true)
+  if (defaultView) {
+    const view = await duplicateView(defaultView)
 
-  const { close } = useDialog(resolveComponent('DlgViewCreate'), {
-    'modelValue': isOpen,
-    'title': defaultView!.title,
-    'type': defaultView!.type as ViewTypes,
-    'tableId': table.value!.id,
-    'selectedViewId': defaultView!.id,
-    'groupingFieldColumnId': defaultView!.view!.fk_grp_col_id,
-    'views': views,
-    'calendarRange': defaultView!.view!.calendar_range,
-    'coverImageColumnId': defaultView!.view!.fk_cover_image_col_id,
-    'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view: ViewType) => {
-      closeDialog()
+    refreshCommandPalette()
 
-      refreshCommandPalette()
+    await _loadViews({
+      force: true,
+      tableId: table.value!.id!,
+    })
 
-      await _loadViews({
-        force: true,
-        tableId: table.value!.id!,
-      })
-
+    if (view) {
       navigateToView({
         view,
         tableId: table.value!.id!,
@@ -256,14 +250,11 @@ function onDuplicate() {
       })
 
       $e('a:view:create', { view: view.type, sidebar: true })
-    },
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
+    }
   }
+
+  isOnDuplicateLoading.value = false
+  isOptionsOpen.value = false
 }
 
 // TODO: Should find a way to render the components without using the `nextTick` function
@@ -469,7 +460,8 @@ const source = computed(() => {
                   <NcDivider />
 
                   <NcMenuItem class="!text-gray-700" @click="onDuplicate">
-                    <GeneralIcon class="nc-view-copy-icon" icon="duplicate" />
+                    <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
+                    <GeneralIcon v-else class="nc-view-copy-icon" icon="duplicate" />
                     {{
                       $t('general.duplicateEntity', {
                         entity: $t('title.defaultView').toLowerCase(),

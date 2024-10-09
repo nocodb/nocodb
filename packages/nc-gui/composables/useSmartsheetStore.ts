@@ -58,7 +58,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const sorts = ref<SortType[]>(unref(initialSorts) ?? [])
     const nestedFilters = ref<FilterType[]>(unref(initialFilters) ?? [])
 
-    const allFilters = ref<Filter[]>([])
+    const allFilters = ref<FilterType[]>([])
 
     watch(
       sorts,

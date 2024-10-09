@@ -1,4 +1,5 @@
 import {
+  AllAggregations,
   AttachmentAggregations,
   BooleanAggregations,
   CommonAggregations,
@@ -384,14 +385,22 @@ export function genPgAggregateQuery({
     switch (aggregation) {
       case AttachmentAggregations.AttachmentSize:
         aggregationSql = knex.raw(
-          `(SELECT SUM((json_object ->> 'size')::int) FROM ?? CROSS JOIN LATERAL jsonb_array_elements(??::jsonb) AS json_array(json_object)) `,
-          [baseModelSqlv2.tnPath, column_query],
+          `SUM((SELECT COALESCE(SUM((json_object ->> 'size')::int), 0)FROM jsonb_array_elements(??::jsonb) AS json_array(json_object)))`,
+          [column_query],
         );
         break;
     }
   }
 
   if (alias && aggregationSql) {
+    if (
+      ![AllAggregations.EarliestDate, AllAggregations.LatestDate].includes(
+        aggregation as any,
+      )
+    ) {
+      aggregationSql = knex.raw(`COALESCE(??, 0)`, [aggregationSql]);
+    }
+
     aggregationSql = knex.raw(`?? AS ??`, [aggregationSql, alias]);
   }
 

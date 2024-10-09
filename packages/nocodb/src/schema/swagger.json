@@ -819,16 +819,16 @@
         "description": "Creat an organisation API token. Access with API tokens will be blocked."
       }
     },
-    "/api/v1/tokens/{token}": {
+    "/api/v1/tokens/{tokenId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "token",
+          "name": "tokenId",
           "in": "path",
           "required": true,
-          "description": "API Token"
+          "description": "API Token ID"
         }
       ],
       "delete": {
@@ -6626,6 +6626,13 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeAllFilters",
+            "in": "query"
           }
         ]
       },
@@ -15836,6 +15843,26 @@
         ]
       }
     },
+    "/api/v1/error-reporting": {
+      "post": {
+        "summary": "Error Reporting",
+        "operationId": "utils-error-report",
+        "responses": {
+        },
+        "description": "Error Reporting",
+        "tags": [
+          "Utils",
+          "Internal"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "$ref": "#/components/schemas/ErrorReportReq"
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/meta/axiosRequestMake": {
       "parameters": [
         {
@@ -16005,6 +16032,87 @@
           {
             "$ref": "#/components/parameters/xc-auth"
           }
+        ]
+      }
+    },
+    "/api/v2/feed": {
+      "get": {
+        "summary": "Get Feed",
+        "operationId": "utils-feed",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "github",
+                "youtube"
+              ]
+            },
+            "name": "type",
+            "in": "query",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "per_page",
+            "in": "query",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "page",
+            "in": "query",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Id": {
+                        "type": "string"
+                      },
+                      "Description": {
+                        "type": "string"
+                      },
+                      "Tags": {
+                        "type": "string"
+                      },
+                      "Images": {
+                        "type": "array",
+                        "items": {
+                          "type": "object"
+                        }
+                      },
+                      "Url": {
+                        "type": "string"
+                      },
+                      "Published Time": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Utils"
         ]
       }
     },
@@ -16422,7 +16530,7 @@
         }
       ]
     },
-    "/api/v1/db/meta/projects/{baseId}/api-tokens/{token}": {
+    "/api/v1/db/meta/projects/{baseId}/api-tokens/{tokenId}": {
       "delete": {
         "summary": "Delete API Token",
         "operationId": "api-token-delete",
@@ -16472,12 +16580,12 @@
         {
           "schema": {
             "type": "string",
-            "example": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
+            "example": "DYh540o8hbWpU"
           },
-          "name": "token",
+          "name": "tokenId",
           "in": "path",
           "required": true,
-          "description": "API Token"
+          "description": "API Token ID"
         }
       ]
     },
@@ -20121,6 +20229,7 @@
             "comparison_op": "eq",
             "comparison_sub_op": null,
             "created_at": "2023-03-02 18:18:05",
+            "fk_parent_column_id": "cd_d7ah9n2qfupgys",
             "fk_column_id": "cl_d7ah9n2qfupgys",
             "fk_hook_id": null,
             "fk_parent_id": null,
@@ -20220,6 +20329,10 @@
             ],
             "description": "Comparison Sub-Operator"
           },
+          "fk_parent_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to parent column"
+          },
           "fk_column_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
@@ -20282,6 +20395,11 @@
           },
           "value": {
             "description": "The filter value. Can be NULL for some operators."
+          },
+          "order": {
+            "type": "number",
+            "description": "The order of the filter",
+            "example": 1
           }
         },
         "readOnly": true,
@@ -26916,6 +27034,28 @@
           "id": "psbv6c6y9qvbu"
         }
       },
+      "ErrorReportReq": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "extra": {
+            "type": "object"
+          }
+        }
+      },
       "Comment": {
         "description": "Model for Comment",
         "type": "object",
@@ -27609,10 +27749,19 @@
       }
     },
     "parameters": {
+      "xc-token": {
+        "name": "xc-token",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "API Token. Refer [here](https://docs.nocodb.com/account-settings/api-tokens/) to know more"
+      },
       "xc-auth": {
         "name": "xc-auth",
         "in": "header",
-        "required": false,
+        "required": true,
         "schema": {
           "type": "string"
         },

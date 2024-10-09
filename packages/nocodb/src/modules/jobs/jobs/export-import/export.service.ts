@@ -242,6 +242,9 @@ export class ExportService {
           for (const fl of view.filter.children) {
             const tempFl = {
               id: `${idMap.get(view.id)}::${fl.id}`,
+              fk_parent_column_id: fl.fk_parent_column_id
+                ? idMap.get(fl.fk_parent_column_id)
+                : null,
               fk_column_id: idMap.get(fl.fk_column_id),
               fk_parent_id: `${idMap.get(view.id)}::${fl.fk_parent_id}`,
               is_group: fl.is_group,

@@ -27,16 +27,16 @@ provide(IsKanbanInj, ref(false))
 provide(IsCalendarInj, ref(true))
 
 const {
-  activeCalendarView,
-  calendarRange,
-  calDataType,
-  loadCalendarMeta,
-  loadCalendarData,
-  loadSidebarData,
-  isCalendarDataLoading,
-  isCalendarMetaLoading,
-  fetchActiveDates,
-  showSideMenu,
+  activeCalendarView, // The active Calendar View - "week" | "day" | "month" | "year"
+  calendarRange, // calendar Ranges
+  calDataType, // Calendar Data Type
+  loadCalendarMeta, // Function to load Calendar Meta
+  loadCalendarData, // Function to load Calendar Data
+  loadSidebarData, // Function to load Sidebar Data
+  isCalendarDataLoading, // Boolean ref to check if Calendar Data is Loading
+  isCalendarMetaLoading, // Boolean ref to check if Calendar Meta is Loading
+  fetchActiveDates, // Function to fetch Active Dates
+  showSideMenu, // Boolean Ref to show Side Menu
 } = useCalendarViewStoreOrThrow()
 
 const router = useRouter()

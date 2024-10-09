@@ -28,6 +28,7 @@ interface TableExplorerColumn extends ColumnType {
 interface op {
   op: 'add' | 'update' | 'delete'
   column: TableExplorerColumn
+  error?: string
 }
 
 interface fieldsVisibilityOps {
@@ -252,7 +253,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
   if (!localMetaColumns.value) return
 
   // generate duplicate column name
-  const duplicateColumnName = getUniqueColumnName(`${field.title}_copy`, localMetaColumns.value)
+  const duplicateColumnName = getUniqueColumnName(`${field.title} copy`, [...localMetaColumns.value, ...newFields.value])
 
   let fieldPayload = {}
 
@@ -340,8 +341,12 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   const diffs = Object.fromEntries(
     Object.entries(pdiffs).filter(([_, value]) => value !== undefined),
   ) as Partial<TableExplorerColumn>
-
-  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs)) {
+  if (
+    Object.keys(diffs).length === 0 ||
+    // skip custom prop since it's only used for custom LTAR links
+    (Object.keys(diffs).length === 1 && 'custom' in diffs && Object.keys(diffs.custom).length === 0) ||
+    (Object.keys(diffs).length === 1 && 'altered' in diffs)
+  ) {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
   } else {
     const field = ops.value.find((op) => compareCols(op.column, state))
@@ -352,10 +357,13 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
       newFields.value = newFields.value.map((op) => {
         if (compareCols(op, state)) {
           ops.value = ops.value.filter((op) => op.op === 'add' && !compareCols(op.column, state))
-          ops.value.push({
-            op: 'add',
-            column: state,
-          })
+          ops.value = [
+            ...ops.value,
+            {
+              op: 'add',
+              column: state,
+            },
+          ]
           return state
         }
         return op
@@ -371,16 +379,22 @@ const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
         ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
         checkForFilterChange(diffs.filters || [])
       ) {
-        ops.value.push({
-          op: 'update',
-          column: state,
-        })
+        ops.value = [
+          ...ops.value,
+          {
+            op: 'update',
+            column: state,
+          },
+        ]
       }
     } else {
-      ops.value.push({
-        op: 'update',
-        column: state,
-      })
+      ops.value = [
+        ...ops.value,
+        {
+          op: 'update',
+          column: state,
+        },
+      ]
     }
 
     if (
@@ -410,10 +424,13 @@ const onFieldDelete = (state: TableExplorerColumn) => {
       field.column = state
     }
   } else {
-    ops.value.push({
-      op: 'delete',
-      column: state,
-    })
+    ops.value = [
+      ...ops.value,
+      {
+        op: 'delete',
+        column: state,
+      },
+    ]
   }
 }
 
@@ -425,11 +442,14 @@ const onFieldAdd = (state: TableExplorerColumn) => {
 
   state.temp_id = `temp_${++temporaryAddCount.value}`
   state.view_id = view.value?.id as string
-  ops.value.push({
-    op: 'add',
-    column: state,
-  })
-  newFields.value.push(state)
+  ops.value = [
+    ...ops.value,
+    {
+      op: 'add',
+      column: state,
+    },
+  ]
+  newFields.value = [...newFields.value, state]
 
   if (addFieldMoveHook.value) {
     moveOps.value.push({
@@ -647,6 +667,23 @@ const fieldStatus = (field?: TableExplorerColumn) => {
   return id ? fieldStatuses.value[id] : ''
 }
 
+const fieldErrors = computed<Record<string, string>>(() => {
+  const errors: Record<string, string> = {}
+  for (const op of ops.value) {
+    if (op?.error) {
+      const id = op.column.id || op.column.temp_id
+
+      if (id) errors[id] = op.error
+    }
+  }
+  return errors
+})
+
+const fieldError = (field?: TableExplorerColumn) => {
+  const id = field?.id || field?.temp_id
+  return id ? fieldErrors.value[id] : ''
+}
+
 const clearChanges = () => {
   ops.value = []
   moveOps.value = []
@@ -712,6 +749,10 @@ const saveChanges = async () => {
           view_id: view.value?.id as string,
         }
       }
+
+      if (op) {
+        op.column.view_id = view.value?.id as string
+      }
     }
 
     const deletedOrUpdatedColumnIds: Set<string> = new Set()
@@ -743,6 +784,10 @@ const saveChanges = async () => {
       })
     }
 
+    ops.value = ops.value.map(({ error: _err, ...rest }) => {
+      return rest
+    })
+
     const res = await $api.dbTableColumn.bulk(meta.value?.id, {
       hash: columnsHash.value,
       ops: ops.value,
@@ -751,10 +796,7 @@ const saveChanges = async () => {
     await loadViewColumns()
 
     if (res) {
-      ops.value =
-        res.failedOps && res.failedOps?.length
-          ? (res.failedOps as (op & { error: unknown })[]).map(({ error: _, ...rest }) => rest)
-          : []
+      ops.value = res.failedOps && res.failedOps?.length ? res.failedOps : []
       newFields.value = newFields.value.filter((col) => {
         if (res.failedOps) {
           const op = res.failedOps.find((fop) => {
@@ -853,12 +895,7 @@ onKeyDown('ArrowUp', () => {
 onKeyDown('Delete', () => {
   if (isLocked.value) return
 
-  if (
-    document.activeElement?.tagName === 'INPUT' ||
-    document.activeElement?.tagName === 'TEXTAREA' ||
-    // A rich text editor is a div with the contenteditable attribute set to true.
-    document.activeElement?.getAttribute('contenteditable')
-  ) {
+  if (isActiveInputElementExist()) {
     return
   }
 
@@ -871,12 +908,7 @@ onKeyDown('Delete', () => {
 onKeyDown('Backspace', () => {
   if (isLocked.value) return
 
-  if (
-    document.activeElement?.tagName === 'INPUT' ||
-    document.activeElement?.tagName === 'TEXTAREA' ||
-    // A rich text editor is a div with the contenteditable attribute set to true.
-    document.activeElement?.getAttribute('contenteditable')
-  ) {
+  if (isActiveInputElementExist()) {
     return
   }
 
@@ -1161,6 +1193,20 @@ watch(
                       >
                         {{ $t('labels.multiField.incompleteConfiguration') }}
                       </NcBadge>
+                      <NcTooltip v-if="!!fieldError(field)" class="cursor-pointer">
+                        <template #title>
+                          {{ fieldError(field) }}
+                        </template>
+
+                        <NcBadge
+                          color="red"
+                          :border="false"
+                          class="ml-1 bg-red-50 text-red-700"
+                          data-testid="nc-field-status-error-configuration"
+                        >
+                          <GeneralIcon icon="info" class="!text-current" />
+                        </NcBadge>
+                      </NcTooltip>
                     </div>
                     <NcButton
                       v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'"
@@ -1213,7 +1259,7 @@ watch(
                                 >
                                   {{
                                     $t('labels.idColon', {
-                                      fieldId: field.id,
+                                      id: field.id,
                                     })
                                   }}
                                 </div>
@@ -1398,7 +1444,7 @@ watch(
                               >
                                 {{
                                   $t('labels.idColon', {
-                                    fieldId: displayColumn.id,
+                                    id: displayColumn.id,
                                   })
                                 }}
                               </div>

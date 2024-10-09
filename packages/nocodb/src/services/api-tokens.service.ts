@@ -37,8 +37,8 @@ export class ApiTokensService {
     });
   }
 
-  async apiTokenDelete(param: { token; user: User; req: NcRequest }) {
-    const apiToken = await ApiToken.getByToken(context, param.token);
+  async apiTokenDelete(param: { tokenId: string; user: User; req: NcRequest }) {
+    const apiToken = await ApiToken.get(param.tokenId);
     if (
       !extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN] &&
       apiToken.fk_user_id !== param.user.id
@@ -48,11 +48,11 @@ export class ApiTokensService {
 
     this.appHooksService.emit(AppEvents.API_TOKEN_DELETE, {
       userId: param.user?.id,
-      token: param.token,
+      tokenId: param.tokenId,
       req: param.req,
     });
 
     // todo: verify token belongs to the user
-    return await ApiToken.delete(context, param.token);
+    return await ApiToken.delete(param.tokenId);
   }
 }

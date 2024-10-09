@@ -1127,14 +1127,16 @@ const normalizedWidth = (col: ColumnType, width: number) => {
 }
 // #Grid Resize
 const onresize = (colID: string | undefined, event: any) => {
-  if (!colID) return
+  if (!colID || !ncIsString(event?.detail)) return
+
   const size = event.detail.split('px')[0]
 
   updateGridViewColumn(colID, { width: `${normalizedWidth(metaColumnById.value[colID], size)}px` })
 }
 
 const onXcResizing = (cn: string | undefined, event: any) => {
-  if (!cn) return
+  if (!cn || !ncIsString(event?.detail)) return
+
   const size = event.detail.split('px')[0]
   gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
 }
@@ -2213,8 +2215,8 @@ onKeyStroke('ArrowDown', onDown)
                   @mouseup.stop
                   @click="addEmptyRow()"
                 >
-                  <div
-                    class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                  <td
+                    class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
                     :style="{
                       left: `-${leftOffset}px`,
                     }"
@@ -2224,7 +2226,7 @@ onKeyStroke('ArrowDown', onDown)
                       v-if="!isViewColumnsLoading"
                       class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
                     />
-                  </div>
+                  </td>
                   <td class="!border-gray-100" :colspan="visibleColLength"></td>
                 </tr>
               </tbody>
@@ -2595,7 +2597,7 @@ onKeyStroke('ArrowDown', onDown)
     @apply text-black !bg-gray-50;
   }
 
-  td,
+  td:not(.nc-grid-add-new-cell-item),
   th {
     @apply border-gray-100 border-solid border-r bg-gray-100 p-0;
     min-height: 32px !important;
@@ -2620,11 +2622,11 @@ onKeyStroke('ArrowDown', onDown)
     @apply !border-b-1;
   }
 
-  td {
+  td:not(.nc-grid-add-new-cell-item) {
     @apply bg-white border-b;
   }
 
-  td:not(:first-child) {
+  td:not(:first-child):not(.nc-grid-add-new-cell-item) {
     @apply px-3;
 
     &.align-top {
@@ -2742,7 +2744,7 @@ onKeyStroke('ArrowDown', onDown)
     border-spacing: 0;
   }
 
-  td {
+  td:not(.nc-grid-add-new-cell-item) {
     text-overflow: ellipsis;
   }
 
@@ -2798,7 +2800,7 @@ onKeyStroke('ArrowDown', onDown)
     z-index: 5;
   }
 
-  tbody td:nth-child(1) {
+  tbody td:not(.nc-grid-add-new-cell-item):nth-child(1) {
     position: sticky !important;
     left: 0;
     z-index: 4;
@@ -2827,7 +2829,7 @@ onKeyStroke('ArrowDown', onDown)
       @apply border-r-1 !border-r-gray-50;
     }
 
-    tbody td:nth-child(2) {
+    tbody td:not(.nc-grid-add-new-cell-item):nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }
   }
@@ -2887,7 +2889,7 @@ onKeyStroke('ArrowDown', onDown)
 
   &:not(.selected-row):has(+ .selected-row) {
     td.nc-grid-cell:not(.active),
-    td:nth-child(2):not(.active) {
+    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
       @apply border-b-gray-200;
     }
   }
@@ -2896,7 +2898,7 @@ onKeyStroke('ArrowDown', onDown)
   &:not(.mouse-down):has(+ :hover) {
     &:not(.selected-row) {
       td.nc-grid-cell:not(.active),
-      td:nth-child(2):not(.active) {
+      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
         @apply border-b-gray-200;
       }
     }

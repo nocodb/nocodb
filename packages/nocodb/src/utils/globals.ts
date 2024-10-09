@@ -1,6 +1,6 @@
 export enum MetaTable {
   PROJECT = 'nc_bases_v2',
-  BASES = 'nc_sources_v2',
+  SOURCES = 'nc_sources_v2',
   MODELS = 'nc_models_v2',
   COLUMNS = 'nc_columns_v2',
   COLUMN_VALIDATIONS = 'nc_columns_validations_v2',
@@ -53,6 +53,7 @@ export enum MetaTable {
   COMMENTS_REACTIONS = 'nc_comment_reactions',
   JOBS = 'nc_jobs',
   INTEGRATIONS = 'nc_integrations_v2',
+  INTEGRATIONS_STORE = 'nc_integrations_store_v2',
   FILE_REFERENCES = 'nc_file_references',
   COL_BUTTON = 'nc_col_button_v2',
 }
@@ -99,7 +100,7 @@ export const orderedMetaTables = [
   MetaTable.COLUMN_VALIDATIONS,
   MetaTable.COLUMNS,
   MetaTable.MODELS,
-  MetaTable.BASES,
+  MetaTable.SOURCES,
   MetaTable.PROJECT,
 ];
 
@@ -131,7 +132,7 @@ export const sakilaTableNames = [
 
 export enum CacheScope {
   PROJECT = 'base',
-  BASE = 'source',
+  SOURCE = 'source',
   MODEL = 'model',
   COLUMN = 'column',
   COL_PROP = 'colProp',
@@ -185,6 +186,8 @@ export enum CacheScope {
   EXTENSION = 'uiExtension',
   INTEGRATION = 'integration',
   COL_BUTTON = 'colButton',
+  CMD_PALETTE = 'cmdPalette',
+  PRODUCT_FEED = 'productFeed',
 }
 
 export enum CacheGetType {

@@ -93,6 +93,7 @@
     "none": "None"
   },
   "general": {
+    "scripts": "Scripts",
     "configure": "Configure",
     "switch": "Switch",
     "on": "On",
@@ -287,7 +288,9 @@
     "connections": "Connections",
     "private": "Private",
     "request": "Request",
-    "languages": "Languages"
+    "languages": "Languages",
+    "extension": "Extension",
+    "extensions": "Extensions"
   },
   "objects": {
     "files": "files",
@@ -618,7 +621,9 @@
     "fromScratch": "From scratch",
     "fromFileAndExternalSources": "From files & external sources",
     "directlyInRealTime": "Directly in real time",
-    "categories": "Categories"
+    "categories": "Categories",
+    "fieldInaccessible": "Field inaccessible",
+    "noConditionsAdded": "No conditions added"
   },
   "labels": {
     "modifiedOn": "Modified on",
@@ -759,7 +764,7 @@
     "icon": "Icon",
     "max": "Max",
     "enableRichText": "Enable rich text",
-    "idColon": "FIELD ID: {fieldId}",
+    "idColon": "Id: {id}",
     "copiedRecordURL": "Copied Record URL",
     "copyRecordURL": "Copy Record URL",
     "duplicateRecord": "Duplicate record",
@@ -900,7 +905,7 @@
       "joinCommunity": "Join NocoDB Community",
       "joinReddit": "/r/NocoDB",
       "followNocodb": "Follow NocoDB",
-      "communityTranslated": "(Community Translated)"
+      "communityTranslated": "(Community/AI Translated)"
     },
     "twitter": "Twitter",
     "docReference": "Document Reference",
@@ -983,7 +988,7 @@
     "appearanceSettings": "Appearance settings",
     "backgroundColor": "Background Color",
     "hideNocodbBranding": "Hide NocoDB Branding",
-    "showOnConditions": "Show on condtions",
+    "showOnConditions": "Show on conditions",
     "showFieldOnConditionsMet": "Shows field only when conditions are met",
     "limitOptions": "Limit options",
     "limitOptionsSubtext": "Limit options visible to users by selecting available options",
@@ -1254,7 +1259,9 @@
     },
     "getPreFilledLink": "Get Pre-filled Link",
     "group": "Group",
-    "goToDocs": "Go to Docs"
+    "goToDocs": "Go to Docs",
+    "addCondition": "Add condition",
+    "addConditionGroup": "Add condition group"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for the data source or the data type",

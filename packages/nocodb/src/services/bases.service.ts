@@ -162,7 +162,29 @@ export class BasesService {
       const ranId = nanoid();
       baseBody.prefix = `nc_${ranId}__`;
       baseBody.is_meta = true;
-      if (process.env.NC_MINIMAL_DBS === 'true') {
+      const dataConfig = await Noco.getConfig()?.meta?.db;
+
+      if (
+        dataConfig?.client === 'pg' &&
+        process.env.NC_DISABLE_PG_DATA_REFLECTION !== 'true'
+      ) {
+        baseBody.prefix = '';
+        baseBody.sources = [
+          {
+            type: 'pg',
+            is_local: true,
+            is_meta: false,
+            config: {
+              schema: baseId,
+            },
+            inflection_column: 'camelize',
+            inflection_table: 'camelize',
+          },
+        ];
+      } else if (
+        dataConfig?.client === 'sqlite3' &&
+        process.env.NC_MINIMAL_DBS === 'true'
+      ) {
         // if env variable NC_MINIMAL_DBS is set, then create a SQLite file/connection for each base
         // each file will be named as nc_<random_id>.db
         const fs = require('fs');
@@ -181,6 +203,7 @@ export class BasesService {
           {
             type: 'sqlite3',
             is_meta: false,
+            is_local: true,
             config: {
               client: 'sqlite3',
               connection: {

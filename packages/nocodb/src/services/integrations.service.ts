@@ -15,6 +15,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
 import { SourcesService } from '~/services/sources.service';
+import { generateUniqueName } from '~/helpers/exportImportHelpers';
 
 @Injectable()
 export class IntegrationsService {
@@ -119,7 +120,7 @@ export class IntegrationsService {
 
       // get linked sources
       const sourceListQb = ncMeta
-        .knex(MetaTable.BASES)
+        .knex(MetaTable.SOURCES)
         .where({
           fk_integration_id: integration.id,
         })
@@ -257,11 +258,29 @@ export class IntegrationsService {
       }
     }
 
+    let uniqueTitle = '';
+
+    if (param.integration.copy_from_id) {
+      const integrations =
+        (
+          await Integration.list({
+            userId: param.req.user?.id,
+            limit: 1000,
+            offset: 0,
+            includeSourceCount: false,
+            query: '',
+          })
+        ).list || [];
+
+      uniqueTitle = generateUniqueName(
+        `${integrationBody.title} copy`,
+        integrations.map((p) => p.title),
+      );
+    }
+
     const integration = await Integration.createIntegration({
       ...integrationBody,
-      ...(param.integration.copy_from_id
-        ? { title: `${integrationBody.title}_copy` }
-        : {}),
+      ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
       created_by: param.req.user.id,
     });
 
@@ -290,7 +309,7 @@ export class IntegrationsService {
     const sources = await ncMeta.metaList2(
       integration.fk_workspace_id,
       RootScopes.WORKSPACE,
-      MetaTable.BASES,
+      MetaTable.SOURCES,
       {
         condition: {
           fk_integration_id: integration.id,
@@ -317,7 +336,7 @@ export class IntegrationsService {
       const source = new Source(sourceObj);
 
       // update the cache with the new config(encrypted)
-      await NocoCache.update(`${CacheScope.BASE}:${source.id}`, {
+      await NocoCache.update(`${CacheScope.SOURCE}:${source.id}`, {
         integration_config: integration.config,
       });
 

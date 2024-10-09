@@ -10,7 +10,7 @@
 </h1>
 
 <p align="center">
-Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadsheet.
+NocoDB is the fastest and easiest way to build databases online.
 </p>
 
 <div align="center">
@@ -63,7 +63,6 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 
 # Quick try
 
-
 ## Docker
 
 ```bash
@@ -81,7 +80,7 @@ docker run -d --name nocodb-postgres \
 -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
 -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
 nocodb/nocodb:latest
-
+```
 
 > To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
 
@@ -134,7 +133,7 @@ We provide different docker-compose.yml files under [this directory](https://git
 ```bash
 git clone https://github.com/nocodb/nocodb
 # for PostgreSQL
-cd nocodb/docker-compose/pg
+cd nocodb/docker-compose/2_pg
 docker-compose up -d
 ```
 
@@ -164,22 +163,22 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 # Table of Contents
 
 - [Quick try](#quick-try)
-    - [NPX](#npx)
-    - [Node Application](#node-application)
-    - [Docker](#docker)
-    - [Docker Compose](#docker-compose)
+  - [NPX](#npx)
+  - [Node Application](#node-application)
+  - [Docker](#docker)
+  - [Docker Compose](#docker-compose)
 - [GUI](#gui)
 - [Join Our Community](#join-our-community)
 - [Screenshots](#screenshots)
 - [Table of Contents](#table-of-contents)
 - [Features](#features)
-    - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-    - [App Store for Workflow Automations](#app-store-for-workflow-automations)
-    - [Programmatic Access](#programmatic-access)
-    - [Sync Schema](#sync-schema)
-    - [Audit](#audit)
+  - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
+  - [App Store for Workflow Automations](#app-store-for-workflow-automations)
+  - [Programmatic Access](#programmatic-access)
+  - [Sync Schema](#sync-schema)
+  - [Audit](#audit)
 - [Production Setup](#production-setup)
-    - [Environment variables](#environment-variables)
+  - [Environment variables](#environment-variables)
 - [Development Setup](#development-setup)
 - [Contributing](#contributing)
 - [Why are we building this?](#why-are-we-building-this)

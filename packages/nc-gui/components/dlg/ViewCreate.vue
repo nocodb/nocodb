@@ -77,6 +77,8 @@ const meta = ref<TableType | undefined>()
 
 const inputEl = ref<ComponentPublicInstance>()
 
+const descriptionInputEl = ref<ComponentPublicInstance>()
+
 const formValidator = ref<typeof AntForm>()
 
 const vModel = useVModel(props, 'modelValue', emits)
@@ -151,12 +153,17 @@ watch(
 function init() {
   form.title = `${capitalize(typeAlias.value)}`
 
-  const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
-  if (repeatCount) {
-    form.title = `${form.title}-${repeatCount}`
-  }
   if (selectedViewId.value) {
     form.copy_from_id = selectedViewId?.value
+    const selectedViewName = views.value.find((v) => v.id === selectedViewId.value)?.title || form.title
+
+    form.title = generateUniqueTitle(`${selectedViewName} copy`, views.value, 'title', '_', true)
+  } else {
+    const repeatCount = views.value.filter((v) => v.title.startsWith(form.title)).length
+
+    if (repeatCount) {
+      form.title = `${form.title}-${repeatCount}`
+    }
   }
 
   nextTick(() => {
@@ -259,7 +266,7 @@ const toggleDescription = () => {
   } else {
     enableDescription.value = true
     setTimeout(() => {
-      inputEl.value?.focus()
+      descriptionInputEl.value?.focus()
     }, 100)
   }
 }
@@ -766,7 +773,7 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
         </div>
 
         <a-textarea
-          ref="inputEl"
+          ref="descriptionInputEl"
           v-model:value="form.description"
           class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800 max-h-[150px] min-h-[100px]"
           hide-details

@@ -4,19 +4,19 @@ import { isColumnRequiredAndNull } from './columnUtils'
 import type { Row } from '~/lib/types'
 
 export const isValidValue = (val: unknown) => {
-  if (val === null || val === undefined) {
+  if (ncIsNull(val) || ncIsUndefined(val)) {
     return false
   }
 
-  if (typeof val === 'string' && val === '') {
+  if (ncIsString(val) && val === '') {
     return false
   }
 
-  if (Array.isArray(val) && val.length === 0) {
+  if (ncIsEmptyArray(val)) {
     return false
   }
 
-  if (typeof val === 'object' && !Array.isArray(val) && Object.keys(val).length === 0) {
+  if (ncIsEmptyObject(val)) {
     return false
   }
 

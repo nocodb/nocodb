@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'docker-compose/1_Auto_Upstall/noco.sh'
+      - '.github/workflows/bats-test.yml'
   workflow_dispatch:
 
 jobs:

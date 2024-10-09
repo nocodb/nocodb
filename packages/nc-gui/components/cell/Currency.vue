@@ -101,6 +101,7 @@ onMounted(() => {
       {{ currencyMeta.currency_code }}
     </span>
   </div>
+  <!-- eslint-disable vue/use-v-on-exact -->
   <input
     v-if="(!readOnly && editEnabled) || (isForm && !isEditColumn && editEnabled)"
     :ref="focus"
@@ -117,6 +118,7 @@ onMounted(() => {
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
+    @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
     @contextmenu.stop

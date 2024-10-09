@@ -56,6 +56,8 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
         source.id,
       );
       successStatus.push(true);
+
+      logger.log(`Encrypted source ${source.alias}`);
     }
 
     const integrations = await ncMeta
@@ -67,13 +69,13 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
 
     for (const integration of integrations) {
       // skip if no config
-      if (!integrations.config) {
+      if (!integration.config) {
         continue;
       }
 
       // check if valid json, if not warn and skip
       try {
-        JSON.parse(integrations.config);
+        JSON.parse(integration.config);
       } catch (e) {
         logger.warn('Invalid JSON in integration config', integration.title);
         successStatus.push(false);
@@ -95,6 +97,7 @@ export default async function initDataSourceEncryption(_ncMeta = Noco.ncMeta) {
         integration.id,
       );
       successStatus.push(true);
+      logger.log(`Encrypted integration config ${integration.title}`);
     }
 
     // if all failed, throw error

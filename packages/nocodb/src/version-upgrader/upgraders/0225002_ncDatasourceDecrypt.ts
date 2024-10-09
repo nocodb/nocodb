@@ -29,6 +29,8 @@ const decryptConfig = async (encryptedConfig: string, secret: string) => {
 
 // decrypt datasource details in source table and integration table
 export default async function ({ ncMeta }: NcUpgraderCtx) {
+  logger.log('Starting decryption of sources and integrations');
+
   let encryptionKey = process.env.NC_AUTH_JWT_SECRET;
 
   if (!encryptionKey) {
@@ -75,6 +77,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             config: decrypted,
           })
           .where('id', source.id);
+        logger.log(`Decrypted source ${source.id}`);
         passed.push(true);
       } catch (e) {
         logger.error(`Failed to decrypt source ${source.id}`);
@@ -100,6 +103,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             config: decrypted,
           })
           .where('id', integration.id);
+        logger.log(`Decrypted integration ${integration.id}`);
         passed.push(true);
       } catch (e) {
         logger.error(`Failed to decrypt integration ${integration.id}`);

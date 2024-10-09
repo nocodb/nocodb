@@ -48,8 +48,8 @@ export async function initBaseBehavior() {
     return;
   }
 
-  // disable minimal databases feature if NC_DISABLE_BASE_AS_PG_SCHEMA is set to true
-  if (process.env.NC_DISABLE_BASE_AS_PG_SCHEMA === 'true') {
+  // disable minimal databases feature if NC_DISABLE_PG_DATA_REFLECTION is set to true
+  if (process.env.NC_DISABLE_PG_DATA_REFLECTION === 'true') {
     return;
   }
 
@@ -64,8 +64,8 @@ export async function initBaseBehavior() {
 
     // if schema creation is not allowed, return
     if (!schemaCreateAllowed?.rows?.[0]?.has_database_privilege) {
-      // set NC_MINIMAL_DBS to false if it's set to true and log warning
-      process.env.NC_DISABLE_BASE_AS_PG_SCHEMA = 'true';
+      // set NC_DISABLE_PG_DATA_REFLECTION to true and log warning
+      process.env.NC_DISABLE_PG_DATA_REFLECTION = 'true';
       logger.warn(
         `User ${
           (dataConfig.connection as PgConnectionConfig)?.user
@@ -74,13 +74,13 @@ export async function initBaseBehavior() {
       return;
     }
 
-    // set NC_MINIMAL_DBS to true
-    process.env.NC_DISABLE_BASE_AS_PG_SCHEMA = 'false';
+    // set NC_DISABLE_PG_DATA_REFLECTION to false
+    process.env.NC_DISABLE_PG_DATA_REFLECTION = 'false';
   } catch (error) {
     logger.warn(
       `Error while checking schema creation permission: ${error.message}`,
     );
-    process.env.NC_DISABLE_BASE_AS_PG_SCHEMA = 'true';
+    process.env.NC_DISABLE_PG_DATA_REFLECTION = 'true';
   } finally {
     // close the connection since it's only used to verify permission
     await tempConnection?.destroy();

@@ -18,6 +18,10 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
     const { t } = useI18n()
 
+    const { isMysql } = useBase()
+
+    const { getMeta } = useMetas()
+
     const formResetHook = createEventHook<void>()
 
     const allViewFilters = ref<Record<string, FilterType[]>>({})
@@ -34,6 +38,17 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
         return acc
       }, {} as Record<string, ColumnType & Record<string, any>>)
+    })
+
+    const fieldVisibilityValidator = computed(() => {
+      return new FormFilters({
+        nestedGroupedFilters: allViewFilters.value,
+        formViewColumns: localColumns.value,
+        formViewColumnsMapByFkColumnId: localColumnsMapByFkColumnId.value,
+        formState: formState.value,
+        isMysql,
+        getMeta,
+      })
     })
 
     const visibleColumns = computed(() =>
@@ -71,7 +86,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
           {
             validator: (_rule: RuleObject, value: any) => {
               return new Promise((resolve, reject) => {
-                if (isRequired(column, column.required)) {
+                if (isRequired(column, column.required) && column.visible) {
                   if (typeof value === 'string') {
                     value = value.trim()
                   }
@@ -84,6 +99,14 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
                   }
                 }
 
+                return resolve()
+              })
+            },
+          },
+          {
+            validator: (_rule: RuleObject) => {
+              return new Promise((resolve) => {
+                checkFieldVisibility()
                 return resolve()
               })
             },
@@ -179,9 +202,26 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
       return required || (columnObj && columnObj.rqd && !columnObj.cdf)
     }
 
-    const loadAllviewFilters = async () => {}
+    const loadAllviewFilters = async () => {
+      if (!viewMeta.value?.id) return
+      try {
+        const formViewFilters = (await $api.dbTableFilter.read(viewMeta.value.id, { includeAllFilters: true })).list || []
 
-    function checkFieldVisibility() {}
+        if (!formViewFilters.length) return
+
+        const formFilter = new FormFilters({ data: formViewFilters })
+
+        const allFilters = formFilter.getNestedGroupedFilters()
+
+        allViewFilters.value = { ...allFilters }
+      } catch (e: any) {
+        console.error('Error loading view filters:', e)
+      }
+    }
+
+    async function checkFieldVisibility() {
+      await fieldVisibilityValidator.value.validateVisibility()
+    }
 
     return {
       onReset: formResetHook.on,

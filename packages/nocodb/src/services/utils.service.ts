@@ -6,13 +6,14 @@ import { ViewTypes } from 'nocodb-sdk';
 import { ConfigService } from '@nestjs/config';
 import { useAgent } from 'request-filtering-agent';
 import dayjs from 'dayjs';
+import type { ErrorReportReqType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
-import { T } from '~/utils';
 import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { Base, Store, User } from '~/models';
 import Noco from '~/Noco';
+import { T } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
@@ -456,6 +457,10 @@ export class UtilsService {
       ncMin: !!process.env.NC_MIN,
       teleEnabled: process.env.NC_DISABLE_TELE !== 'true',
       errorReportingEnabled: process.env.NC_DISABLE_ERR_REPORTS !== 'true',
+      sentryDSN:
+        process.env.NC_DISABLE_ERR_REPORTS !== 'true'
+          ? process.env.NC_SENTRY_DSN
+          : null,
       auditEnabled: process.env.NC_DISABLE_AUDIT !== 'true',
       ncSiteUrl: (param.req as any).ncSiteUrl,
       ee: Noco.isEE(),
@@ -478,6 +483,19 @@ export class UtilsService {
     };
 
     return result;
+  }
+
+  async reportErrors(param: { body: ErrorReportReqType; req: NcRequest }) {
+    for (const error of param.body?.errors ?? []) {
+      T.emit('evt', {
+        evt_type: 'gui:error',
+        properties: {
+          message: error.message,
+          stack: error.stack?.split('\n').slice(0, 2).join('\n'),
+          ...(param.body.extra || {}),
+        },
+      });
+    }
   }
 
   async feed(req: NcRequest) {

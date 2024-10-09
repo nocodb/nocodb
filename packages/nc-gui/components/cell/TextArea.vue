@@ -242,6 +242,7 @@ watch(inputWrapperRef, () => {
       >
         <LazyCellRichText v-model:value="vModel" sync-value-change read-only />
       </div>
+      <!-- eslint-disable vue/use-v-on-exact -->
       <textarea
         v-else-if="(editEnabled && !isVisible) || isForm"
         :ref="focus"
@@ -259,6 +260,7 @@ watch(inputWrapperRef, () => {
         }"
         :disabled="readOnly"
         @blur="editEnabled = false"
+        @keydown.alt.stop
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
         @keydown.down.stop
@@ -359,6 +361,7 @@ watch(inputWrapperRef, () => {
             :style="{ resize: 'both' }"
             :disabled="readOnly"
             @keydown.escape="isVisible = false"
+            @keydown.alt.stop
           />
         </div>
 

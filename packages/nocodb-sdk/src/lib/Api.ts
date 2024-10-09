@@ -3100,6 +3100,14 @@ export interface CalendarColumnReqType {
   order?: number;
 }
 
+export interface ErrorReportReqType {
+  errors?: {
+    message?: string;
+    stack?: string;
+  }[];
+  extra?: object;
+}
+
 /**
  * Model for Comment
  */
@@ -10731,6 +10739,23 @@ export class Api<
         path: `/api/v1/db/meta/nocodb/info`,
         method: 'GET',
         format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Error Reporting
+     *
+     * @tags Utils, Internal
+     * @name ErrorReport
+     * @summary Error Reporting
+     * @request POST:/api/v1/error-reporting
+     */
+    errorReport: (data: any, params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/error-reporting`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
 

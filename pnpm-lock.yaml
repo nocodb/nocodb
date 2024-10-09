@@ -803,8 +803,8 @@ importers:
         specifier: ^3.3.7
         version: 3.3.7
       nc-lib-gui:
-        specifier: 0.256.0
-        version: 0.256.0
+        specifier: 0.257.0
+        version: 0.257.0
       nestjs-throttler-storage-redis:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8)(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2)(ioredis@5.4.1)(reflect-metadata@0.2.1)
@@ -22249,8 +22249,8 @@ packages:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
     dev: true
 
-  /nc-lib-gui@0.256.0:
-    resolution: {integrity: sha512-RRf+8qTs20fkMKbgdzFGaffb2OsfQoV7Mxp8bftvvjHi4j9odJlN5taOrRHF1QTxTPvDTK2E3fhhGNCANJzwTQ==}
+  /nc-lib-gui@0.257.0:
+    resolution: {integrity: sha512-GHG66Ak9qPTIUd0v4xNVmH81JqN56Nks+dnJXgB7NuiAeXwdWV0/3SdHlcng1Wj+SPP7YLugKuLaNesQDgMtkA==}
     dependencies:
       express: 4.19.2
     transitivePeerDependencies:
@@ -23869,10 +23869,6 @@ packages:
     resolution: {integrity: sha512-1fygroTLlHu66zi26VoTDv8yRgm0Fccecssto+MhsZ0D/DGW2sm8E8AjW7NU5VVTRt5GxbeZ5qBuJr+HyLYkjQ==}
     dev: true
 
-  /picocolors@1.0.1:
-    resolution: {integrity: sha512-anP1Z8qwhkbmu7MFP5iTt+wQKXgwzf7zTyGlcdzabySa9vd0Xt392U0rVmz9poOaBj0uHJKyyo9/upk0HrEQew==}
-    dev: true
-
   /picocolors@1.1.0:
     resolution: {integrity: sha512-TQ92mBOW0l3LeMeyLV6mzy/kWr8lkd/hp3mTg7wYK7zJhuBStmGMBG0BdeDZS/dZx1IukaX6Bk11zcln25o1Aw==}
 
@@ -24693,7 +24689,7 @@ packages:
     engines: {node: ^10 || ^12 || >=14}
     dependencies:
       nanoid: 3.3.7
-      picocolors: 1.0.1
+      picocolors: 1.1.0
       source-map-js: 1.2.1
     dev: true
 

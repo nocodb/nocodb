@@ -6,6 +6,7 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
+import { Logger } from '@nestjs/common';
 import type { BoolType, TableReqType, TableType } from 'nocodb-sdk';
 import type { XKnex } from '~/db/CustomKnex';
 import type { LinksColumn, LinkToAnotherRecordColumn } from '~/models/index';
@@ -27,11 +28,15 @@ import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import { FileReference } from '~/models';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import {
   parseMetaProp,
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
+import { Source } from '~/models';
+
+const logger = new Logger('Model');
 
 export default class Model implements TableType {
   copy_enabled: BoolType;
@@ -218,6 +223,10 @@ export default class Model implements TableType {
       [baseId],
       `${CacheScope.MODEL}:${id}`,
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return modelRes;
   }
@@ -463,14 +472,25 @@ export default class Model implements TableType {
       dbDriver: XKnex;
       model?: Model;
       extractDefaultView?: boolean;
+      source?: Source;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseModelSqlv2> {
     const model = args?.model || (await this.get(context, args.id, ncMeta));
+    const source =
+      args.source ||
+      (await Source.get(context, model.source_id, false, ncMeta));
 
     if (!args?.viewId && args.extractDefaultView) {
       const view = await View.getDefaultView(context, model.id, ncMeta);
       args.viewId = view.id;
+    }
+    let schema: string;
+
+    if (source?.isMeta(true, 1)) {
+      schema = source.getConfig()?.schema;
+    } else if (source?.type === 'pg') {
+      schema = source.getConfig()?.searchPath?.[0];
     }
 
     return new BaseModelSqlv2({
@@ -478,6 +498,7 @@ export default class Model implements TableType {
       dbDriver: args.dbDriver,
       viewId: args.viewId,
       model,
+      schema,
     });
   }
 
@@ -615,6 +636,11 @@ export default class Model implements TableType {
       `${CacheScope.MODEL_ALIAS}:${this.base_id}:${this.title}`,
       `${CacheScope.MODEL_ALIAS}:${this.base_id}:${this.source_id}:${this.title}`,
     ]);
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     return true;
   }
 
@@ -777,6 +803,10 @@ export default class Model implements TableType {
       `${CacheScope.MODEL_ALIAS}:${oldModel.base_id}:${oldModel.title}`,
       `${CacheScope.MODEL_ALIAS}:${oldModel.base_id}:${oldModel.source_id}:${oldModel.title}`,
     ]);
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     // clear all the cached query under this model
     await View.clearSingleQueryCache(context, tableId, null, ncMeta);

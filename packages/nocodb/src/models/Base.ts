@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
 import type { NcContext } from '~/interface/config';
@@ -14,6 +15,9 @@ import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('Base');
 
 export default class Base implements BaseType {
   public id: string;
@@ -94,6 +98,11 @@ export default class Base implements BaseType {
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     return this.getWithInfo(context, baseId, true, ncMeta).then(
       async (base) => {
         await NocoCache.appendToList(
@@ -297,6 +306,10 @@ export default class Base implements BaseType {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     // set meta
     return await ncMeta.metaUpdate(
       context.workspace_id,
@@ -366,6 +379,10 @@ export default class Base implements BaseType {
       updateObj.meta = stringifyMetaProp(updateObj);
     }
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     // set meta
     return await ncMeta.metaUpdate(
       context.workspace_id,
@@ -426,6 +443,10 @@ export default class Base implements BaseType {
         base_id: baseId,
       },
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return await ncMeta.metaDelete(
       context.workspace_id,

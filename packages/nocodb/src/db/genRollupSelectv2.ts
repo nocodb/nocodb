@@ -58,9 +58,23 @@ export default async function ({
       return;
     }
 
-    qb[columnOptions.rollup_function as string]?.(
-      knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
-    );
+    if (
+      ['sum', 'sumDistinct', 'avgDistinct', 'avg'].includes(
+        columnOptions.rollup_function,
+      )
+    ) {
+      qb.select(
+        knex.raw(`COALESCE((??), 0)`, [
+          knex[columnOptions.rollup_function as string]?.(
+            knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
+          ),
+        ]),
+      );
+    } else {
+      qb[columnOptions.rollup_function as string]?.(
+        knex.ref(`${refTableAlias}.${rollupColumn.column_name}`),
+      );
+    }
   };
 
   switch (relationColumnOption.type) {

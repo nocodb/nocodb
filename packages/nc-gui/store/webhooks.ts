@@ -68,7 +68,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     try {
       const newHook = await $api.dbTableWebhook.create(hook.fk_model_id!, {
         ...hook,
-        title: `${hook.title} - Copy`,
+        title: generateUniqueTitle(`${hook.title} copy`, hooks.value, 'title', '_', true),
         active: hook.event === 'manual',
       } as HookReqType)
 

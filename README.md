@@ -67,7 +67,7 @@ docker run -d --name noco
 ## Docker with PG
 ```bash
 docker run -d --name noco 
-           -v "${pwd}"/nocodb:/usr/app/data/ 
+           -v "$(pwd)"/nocodb:/usr/app/data/ 
            -p 8080:8080 
             # replace with your pg connection string
            -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" 

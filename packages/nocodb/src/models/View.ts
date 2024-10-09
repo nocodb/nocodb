@@ -4,6 +4,7 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
@@ -39,8 +40,11 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 import { LinkToAnotherRecordColumn } from '~/models';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 
 const { v4: uuidv4 } = require('uuid');
+
+const logger = new Logger('View');
 
 /*
 type ViewColumn =
@@ -417,6 +421,7 @@ export default class View implements ViewType {
           {
             ...extractProps(filter, [
               'id',
+              'fk_parent_column_id',
               'fk_column_id',
               'comparison_op',
               'comparison_sub_op',
@@ -551,6 +556,10 @@ export default class View implements ViewType {
       { modelId: view.fk_model_id },
       ncMeta,
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return View.get(context, view_id, ncMeta).then(async (v) => {
       await NocoCache.appendToList(
@@ -1305,6 +1314,10 @@ export default class View implements ViewType {
     // on update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, view.fk_model_id, [view], ncMeta);
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     return view;
   }
 
@@ -1389,6 +1402,10 @@ export default class View implements ViewType {
     }
     // on update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, view.fk_model_id, [view], ncMeta);
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     await Model.getNonDefaultViewsCountAndReset(
       context,
@@ -1761,7 +1778,10 @@ export default class View implements ViewType {
 
     if (viewColumns) {
       for (let i = 0; i < viewColumns.length; i++) {
-        const column = viewColumns[i];
+        const column =
+          view.type === ViewTypes.FORM
+            ? prepareForDb(viewColumns[i])
+            : viewColumns[i];
 
         insertObjs.push({
           ...extractProps(column, [
@@ -2136,6 +2156,7 @@ export default class View implements ViewType {
 
           filterInsertObjs.push({
             ...extractProps(filter, [
+              'fk_parent_column_id',
               'fk_column_id',
               'comparison_op',
               'comparison_sub_op',

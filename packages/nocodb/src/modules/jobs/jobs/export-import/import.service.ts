@@ -176,6 +176,7 @@ export class ImportService {
             : true),
       );
 
+      // create table with static columns
       const table =
         param.existingModel ||
         (await this.tablesService.tableCreate(context, {
@@ -1344,6 +1345,7 @@ export class ImportService {
             viewId: vw.id,
             filter: withoutId({
               ...fl,
+              fk_parent_column_id: getIdOrExternalId(fl.fk_parent_column_id),
               fk_column_id: getIdOrExternalId(fl.fk_column_id),
               fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
             }),

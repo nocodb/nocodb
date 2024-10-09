@@ -1434,3 +1434,258 @@ test.describe('Form view: field validation', () => {
     });
   });
 });
+
+test.describe('Form view: conditional fields', () => {
+  if (enableQuickRun()) test.skip();
+
+  let dashboard: DashboardPage;
+  let form: FormPage;
+  let context: any;
+  let api: Api<any>;
+
+  test.beforeEach(async ({ page }) => {
+    context = await setup({ page, isEmptyProject: true });
+    dashboard = new DashboardPage(page, context.base);
+    form = dashboard.form;
+  });
+
+  test.afterEach(async () => {
+    await unsetup(context);
+  });
+
+  async function createTable({ tableName }: { tableName: string; type?: 'limitToRange' | 'attachment' }) {
+    api = new Api({
+      baseURL: 'http://localhost:8080/',
+      headers: {
+        'xc-auth': context.token,
+      },
+    });
+
+    const columns = [
+      {
+        column_name: 'Id',
+        title: 'Id',
+        uidt: UITypes.ID,
+      },
+
+      {
+        column_name: 'Text',
+        title: 'Text',
+        uidt: UITypes.SingleLineText,
+      },
+      {
+        column_name: 'LongText',
+        title: 'LongText',
+        uidt: UITypes.LongText,
+      },
+      {
+        column_name: 'Email',
+        title: 'Email',
+        uidt: UITypes.Email,
+      },
+      {
+        column_name: 'PhoneNumber',
+        title: 'PhoneNumber',
+        uidt: UITypes.PhoneNumber,
+        meta: {
+          validate: true,
+        },
+      },
+      {
+        column_name: 'SingleSelect',
+        title: 'SingleSelect',
+        uidt: 'SingleSelect',
+        dtxp: "'jan','feb', 'mar','apr', 'may','jun','jul','aug','sep','oct','nov','dec'",
+      },
+      {
+        column_name: 'MultiSelect',
+        title: 'MultiSelect',
+        uidt: 'MultiSelect',
+        dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+      },
+      {
+        column_name: 'Number',
+        title: 'Number',
+        uidt: 'Number',
+      },
+      {
+        column_name: 'Decimal',
+        title: 'Decimal',
+        uidt: 'Decimal',
+      },
+      {
+        column_name: 'Currency',
+        title: 'Currency',
+        uidt: 'Currency',
+        meta: {
+          currency_locale: 'en-GB',
+          currency_code: 'UGX',
+        },
+      },
+      {
+        column_name: 'Percent',
+        title: 'Percent',
+        uidt: 'Percent',
+      },
+      {
+        column_name: 'Duration',
+        title: 'Duration',
+        uidt: 'Duration',
+        meta: {
+          duration: 0,
+        },
+      },
+    ];
+
+    const base = await api.base.read(context.base.id);
+    await api.source.tableCreate(context.base.id, base.sources?.[0].id, {
+      table_name: tableName,
+      title: tableName,
+      columns: columns,
+    });
+
+    await dashboard.rootPage.reload();
+    await dashboard.rootPage.waitForTimeout(100);
+
+    await dashboard.treeView.openTable({ title: tableName });
+
+    await dashboard.rootPage.waitForTimeout(500);
+
+    await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
+  }
+
+  test('Form builder conditional field', async () => {
+    await createTable({ tableName: 'FormConditionalFields' });
+
+    const url = dashboard.rootPage.url();
+
+    await form.configureHeader({
+      title: 'Form conditional fields',
+      subtitle: 'Test form conditional fields',
+    });
+    await form.verifyHeader({
+      title: 'Form conditional fields',
+      subtitle: 'Test form conditional fields',
+    });
+
+    // 1. Verify first field conditions btn is disabled: we can't add conditions on first form field
+    await form.selectVisibleField({ title: 'Text' });
+
+    await form.conditionalFields.verify({ isDisabled: true });
+
+    await form.selectVisibleField({ title: 'Decimal' });
+
+    const fieldConditionsList = [
+      { column: 'Text', op: 'is equal', value: 'Spain', dataType: UITypes.SingleLineText },
+      { column: 'Email', op: 'is not equal', value: 'user@nocodb.com', dataType: UITypes.Email },
+      { column: 'Number', op: '=', value: '22', dataType: UITypes.Number },
+    ];
+
+    await form.conditionalFields.click();
+
+    for (let i = 0; i < fieldConditionsList.length; i++) {
+      await form.toolbar.filter.add({
+        title: fieldConditionsList[i].column,
+        operation: fieldConditionsList[i].op,
+        // subOperation: param.opSubType,
+        value: fieldConditionsList[i].value,
+        locallySaved: false,
+        dataType: fieldConditionsList[i].dataType,
+        openModal: false,
+        skipWaitingResponse: true,
+      });
+    }
+
+    await form.conditionalFields.click();
+
+    await form.conditionalFields.verify({ isDisabled: false, count: '3' });
+
+    await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: false });
+
+    await form.fillForm([{ field: 'Text', value: 'Spain' }]);
+    await form.fillForm([{ field: 'Email', value: 'user1@nocodb.com' }]);
+
+    await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: false });
+
+    await form.fillForm([{ field: 'Number', value: '22' }]);
+
+    await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: true });
+
+    await form.formHeading.scrollIntoViewIfNeeded();
+    await form.formHeading.click();
+    // reorder & verify error
+    await form.reorderFields({
+      sourceField: 'Number',
+      destinationField: 'Currency',
+    });
+
+    await form.verifyFieldConfigError({ title: 'Decimal', hasError: true });
+
+    await form.reorderFields({
+      sourceField: 'Number',
+      destinationField: 'Decimal',
+    });
+
+    await form.verifyFieldConfigError({ title: 'Decimal', hasError: false });
+
+    // hide & verify error
+    await form.formHeading.scrollIntoViewIfNeeded();
+    await form.formHeading.click();
+
+    await form.removeField({ field: 'Text', mode: 'hideField' });
+
+    await form.verifyFieldConfigError({ title: 'Decimal', hasError: true });
+
+    await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: true });
+
+    await form.removeField({ field: 'Text', mode: 'hideField' });
+
+    await form.verifyFieldConfigError({ title: 'Decimal', hasError: false });
+
+    await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: true });
+
+    await form.fillForm([{ field: 'Email', value: 'user@nocodb.com' }]);
+
+    await form.conditionalFields.verifyVisibility({ title: 'Decimal', isVisible: false });
+
+    await dashboard.rootPage.waitForTimeout(5000);
+
+    // Shared form view
+    const formLink = await dashboard.form.topbar.getSharedViewUrl();
+
+    await dashboard.rootPage.goto(formLink);
+    // fix me! kludge@hub; page wasn't getting loaded from previous step
+    await dashboard.rootPage.reload();
+
+    const sharedForm = new SharedFormPage(dashboard.rootPage);
+
+    await sharedForm.verifyField({ title: 'Decimal', isVisible: false });
+
+    await sharedForm.cell.fillText({
+      columnHeader: 'Text',
+      text: 'Spain',
+      type: UITypes.SingleLineText,
+    });
+
+    await sharedForm.cell.fillText({
+      columnHeader: 'Email',
+      text: 'user1@nocodb.com',
+      type: UITypes.Email,
+    });
+
+    await sharedForm.cell.fillText({
+      columnHeader: 'Number',
+      text: '22',
+      type: UITypes.Number,
+    });
+
+    await sharedForm.verifyField({ title: 'Decimal', isVisible: true });
+
+    await sharedForm.submit();
+    await sharedForm.verifySuccessMessage();
+
+    await dashboard.rootPage.goto(url);
+    // kludge- reload
+    await dashboard.rootPage.reload();
+  });
+});

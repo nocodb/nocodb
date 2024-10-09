@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -32,10 +33,12 @@ export class FiltersController {
   async filterList(
     @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
+    @Query('includeAllFilters') includeAllFilters: string,
   ) {
     return new PagedResponseImpl(
       await this.filtersService.filterList(context, {
         viewId,
+        includeAllFilters: includeAllFilters === 'true',
       }),
     );
   }

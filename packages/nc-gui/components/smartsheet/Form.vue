@@ -93,15 +93,24 @@ const {
   clearValidate,
   fieldMappings,
   isValidRedirectUrl,
+  loadAllviewFilters,
+  allViewFilters,
+  checkFieldVisibility,
 } = useProvideFormViewStore(meta, view, formViewData, updateFormView, isEditable)
 
 const { preFillFormSearchParams } = storeToRefs(useViewsStore())
 
 const reloadEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
-reloadEventHook.on(async () => {
-  await Promise.all([loadFormView(), loadReleatedMetas()])
-  setFormData()
+reloadEventHook.on(async (params) => {
+  if (params?.isFormFieldFilters) {
+    setTimeout(() => {
+      checkFieldVisibility()
+    }, 100)
+  } else {
+    await Promise.all([loadFormView(), loadReleatedMetas()])
+    setFormData()
+  }
 })
 
 const { fields, showAll, hideAll } = useViewColumnsOrThrow()
@@ -303,9 +312,15 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
 async function submitForm() {
   if (isLocked.value || !isUIAllowed('dataInsert')) return
 
-  for (const col of visibleColumns.value) {
-    if (isRequired(col, col.required) && formState.value[col.title] === undefined) {
+  for (const col of localColumns.value) {
+    if (col.show && col.title && isRequired(col, col.required) && formState.value[col.title] === undefined) {
       formState.value[col.title] = null
+    }
+
+    // handle filter out conditionally hidden field data
+    if ((!col.visible || !col.show) && col.title) {
+      delete formState.value[col.title]
+      delete state.value[col.title]
     }
   }
 
@@ -417,6 +432,8 @@ async function onMove(event: any, isVisibleFormFields = false) {
     return 0
   })
 
+  checkFieldVisibility()
+
   $e('a:form-view:reorder')
 }
 
@@ -520,6 +537,8 @@ function setFormData() {
     .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
+
+  checkFieldVisibility()
 }
 
 async function updateEmail() {
@@ -687,6 +706,13 @@ async function loadReleatedMetas() {
   )
 }
 
+const updateActiveFieldDescription = (value) => {
+  if (!activeField.value || activeField.value?.description === value) return
+
+  activeField.value.description = value
+  updateColMeta(activeField.value)
+}
+
 onMounted(async () => {
   if (imageCropperData.value.src) {
     URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
@@ -696,9 +722,10 @@ onMounted(async () => {
 
   isLoadingFormView.value = true
 
-  await Promise.all([loadFormView(), loadReleatedMetas()])
+  await Promise.all([loadFormView(), loadReleatedMetas(), loadAllviewFilters()])
 
   setFormData()
+
   isLoadingFormView.value = false
 })
 
@@ -762,8 +789,8 @@ watch(activeField, (newValue, oldValue) => {
   }
 })
 
-watch([focusLabel, activeField], () => {
-  if (activeField && focusLabel.value) {
+watch(focusLabel, () => {
+  if (activeField.value && focusLabel.value) {
     nextTick(() => {
       focusLabel.value?.focus()
     })
@@ -1214,13 +1241,34 @@ useEventListener(
                                 />
                               </NcButton>
                             </div>
-                            <div class="text-sm font-semibold text-gray-800">
-                              <span data-testid="nc-form-input-label">
-                                {{ element.label || element.title }}
-                              </span>
-                              <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
-                                >&nbsp;*</span
+                            <div class="flex items-center gap-3">
+                              <NcTooltip
+                                v-if="allViewFilters[element.fk_column_id]?.length"
+                                class="relative h-3.5 w-3.5 flex cursor-pointer"
+                                placement="topLeft"
                               >
+                                <template #title> Conditionally visible field </template>
+                                <Transition name="icon-fade">
+                                  <GeneralIcon
+                                    v-if="element?.visible"
+                                    icon="eye"
+                                    class="nc-field-visibility-icon nc-field-visible w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
+                                  />
+                                  <GeneralIcon
+                                    v-else
+                                    icon="eyeSlash"
+                                    class="nc-field-visibility-icon w-3.5 h-3.5 flex-none text-nc-content-gray-muted"
+                                  />
+                                </Transition>
+                              </NcTooltip>
+                              <div class="text-sm font-semibold text-gray-800">
+                                <span data-testid="nc-form-input-label">
+                                  {{ element.label || element.title }}
+                                </span>
+                                <span v-if="isRequired(element, element.required)" class="text-red-500 text-base leading-[18px]"
+                                  >&nbsp;*</span
+                                >
+                              </div>
                             </div>
 
                             <LazyCellRichText
@@ -1269,7 +1317,9 @@ useEventListener(
                                   </LazySmartsheetDivDataCell>
                                 </a-form-item>
 
-                                <LazySmartsheetFormFieldConfigError :column="element" />
+                                <div>
+                                  <LazySmartsheetFormFieldConfigError :column="element" mode="preview" />
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -1423,13 +1473,13 @@ useEventListener(
                     />
 
                     <LazyCellRichText
-                      v-model:value="activeField.description"
+                      :value="activeField.description"
                       :placeholder="$t('msg.info.formHelpText')"
                       class="form-meta-input nc-form-input-help-text"
                       is-form-field
                       :hidden-bubble-menu-options="hiddenBubbleMenuOptions"
                       data-testid="nc-form-input-help-text"
-                      @update:value="updateColMeta(activeField)"
+                      @update:value="updateActiveFieldDescription"
                     />
                   </div>
                   <LazySmartsheetFormFieldSettings v-if="activeField"></LazySmartsheetFormFieldSettings>
@@ -1559,8 +1609,12 @@ useEventListener(
                                     class="flex-1 flex items-center cursor-pointer max-w-[calc(100%_-_40px)]"
                                     @click.prevent="onFormItemClick(field, true)"
                                   >
-                                    <SmartsheetHeaderVirtualCellIcon v-if="field && isVirtualCol(field)" :column-meta="field" />
-                                    <SmartsheetHeaderCellIcon v-else :column-meta="field" />
+                                    <SmartsheetHeaderVirtualCellIcon
+                                      v-if="field && isVirtualCol(field)"
+                                      :column-meta="field"
+                                      class="!text-gray-600"
+                                    />
+                                    <SmartsheetHeaderCellIcon v-else :column-meta="field" class="!text-gray-600" />
                                     <div class="flex-1 flex items-center justify-start max-w-[calc(100%_-_28px)]">
                                       <div class="w-full flex items-center">
                                         <div class="ml-1 inline-flex" :class="field.label?.trim() ? 'max-w-1/2' : 'max-w-[95%]'">
@@ -1588,9 +1642,13 @@ useEventListener(
                                           </NcTooltip>
                                           <span>)</span>
                                         </div>
-                                        <span v-if="isRequired(field, field.required)" class="text-red-500 text-sm align-top"
-                                          >&nbsp;*</span
-                                        >
+
+                                        <span v-if="isRequired(field, field.required)" class="text-red-500 text-sm align-top">
+                                          &nbsp;*
+                                        </span>
+                                        <div class="flex items-center">
+                                          <LazySmartsheetFormFieldConfigError :column="field" mode="list" />
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
@@ -2008,6 +2066,32 @@ useEventListener(
       }
     }
   }
+}
+
+.icon-fade-enter-active,
+.icon-fade-leave-active {
+  transition: opacity 0.5s ease, transform 0.5s ease; /* Added scaling transition */
+  position: absolute;
+}
+
+.icon-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.5); /* Start smaller and scale up */
+}
+
+.icon-fade-enter-to {
+  opacity: 1;
+  transform: scale(1); /* Scale to full size */
+}
+
+.icon-fade-leave-from {
+  opacity: 1;
+  transform: scale(1); /* Start at full size */
+}
+
+.icon-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.5); /* Scale down and fade out */
 }
 </style>
 

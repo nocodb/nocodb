@@ -55,15 +55,18 @@ export class OrgTokensController {
     });
   }
 
-  @Delete('/api/v1/tokens/:token')
+  @Delete('/api/v1/tokens/:tokenId')
   @Acl('apiTokenDelete', {
     scope: 'org',
     // allowedRoles: [OrgUserRoles.SUPER],
     blockApiTokenAccess: true,
   })
-  async apiTokenDelete(@Req() req: NcRequest, @Param('token') token: string) {
+  async apiTokenDelete(
+    @Req() req: NcRequest,
+    @Param('tokenId') tokenId: string,
+  ) {
     await this.orgTokensService.apiTokenDelete({
-      token,
+      tokenId,
       user: req['user'],
       req,
     });

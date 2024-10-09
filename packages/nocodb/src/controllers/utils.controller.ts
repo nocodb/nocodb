@@ -7,10 +7,12 @@ import {
   HttpCode,
   Post,
   Req,
+  Request,
   UseGuards,
 } from '@nestjs/common';
 import { ProjectRoles, validateAndExtractSSLProp } from 'nocodb-sdk';
 import {
+  ErrorReportReqType,
   getTestDatabaseName,
   IntegrationsType,
   OrgUserRoles,
@@ -25,7 +27,7 @@ import { NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
-import { deepMerge } from '~/utils';
+import { deepMerge, isEE } from '~/utils';
 import Noco from '~/Noco';
 
 @Controller()
@@ -165,5 +167,28 @@ export class UtilsController {
   async aggregatedMetaInfo() {
     // todo: refactor
     return (await this.utilsService.aggregatedMetaInfo()) as any;
+  }
+
+  @UseGuards(PublicApiLimiterGuard)
+  @Get('/api/v2/feed')
+  async feed(@Request() req: NcRequest) {
+    return await this.utilsService.feed(req);
+  }
+
+  @UseGuards(PublicApiLimiterGuard)
+  @Post('/api/v1/error-reporting')
+  async reportErrors(@Req() req: NcRequest, @Body() body: ErrorReportReqType) {
+    if (
+      `${process.env.NC_DISABLE_ERR_REPORTS}` === 'true' ||
+      isEE ||
+      process.env.NC_SENTRY_DSN
+    ) {
+      return {};
+    }
+
+    return (await this.utilsService.reportErrors({
+      req,
+      body,
+    })) as any;
   }
 }

@@ -97,7 +97,9 @@ export default class Column<T = any> implements ColumnType {
   public validate: any;
   public meta: any;
 
-  constructor(data: Partial<ColumnType | Column>) {
+  public asId?: string;
+
+  constructor(data: Partial<(ColumnType & { asId?: string }) | Column>) {
     Object.assign(this, data);
   }
 
@@ -814,6 +816,7 @@ export default class Column<T = any> implements ColumnType {
 
         if (button.type === 'url') {
           if (
+            button.formula &&
             addFormulaErrorIfMissingColumn({
               formula: button,
               columnId: id,
@@ -856,6 +859,7 @@ export default class Column<T = any> implements ColumnType {
           formulaCol,
         ).getColOptions<FormulaColumn>(context, ncMeta);
         if (
+          formula.formula &&
           addFormulaErrorIfMissingColumn({
             formula,
             columnId: id,
@@ -957,6 +961,10 @@ export default class Column<T = any> implements ColumnType {
         await Filter.delete(context, filter.id, ncMeta);
       }
     }
+    {
+      await Filter.deleteAllByParentColumn(context, id, ncMeta);
+    }
+
     // Set Gallery & Kanban view `fk_cover_image_col_id` value to null
     await Column.deleteCoverImageColumnId(context, id, ncMeta);
 

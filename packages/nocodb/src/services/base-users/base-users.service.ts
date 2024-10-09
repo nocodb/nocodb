@@ -113,18 +113,28 @@ export class BaseUsersService {
           return NcError.baseNotFound(param.baseId);
         }
 
-        if (baseUser && baseUser.roles) {
+        // if already exists and has a role then throw error
+        if (baseUser?.is_mapped && baseUser?.roles) {
           NcError.badRequest(
             `${user.email} with role ${baseUser.roles} already exists in this base`,
           );
         }
-
-        await BaseUser.insert(context, {
-          base_id: param.baseId,
-          fk_user_id: user.id,
-          roles: param.baseUser.roles || 'editor',
-          invited_by: param.req?.user?.id,
-        });
+        // if user exist and role is not assigned then assign role by updating base user
+        else if (baseUser?.is_mapped) {
+          await BaseUser.updateRoles(
+            context,
+            param.baseId,
+            user.id,
+            param.baseUser.roles,
+          );
+        } else {
+          await BaseUser.insert(context, {
+            base_id: param.baseId,
+            fk_user_id: user.id,
+            roles: param.baseUser.roles || 'editor',
+            invited_by: param.req?.user?.id,
+          });
+        }
 
         this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
           base,
@@ -461,7 +471,9 @@ export class BaseUsersService {
 
     if (Object.keys(baseUserData).length) {
       // create new base user if it doesn't exist
-      if (!(await BaseUser.get(context, param.baseId, param.user?.id))) {
+      if (
+        !(await BaseUser.get(context, param.baseId, param.user?.id))?.is_mapped
+      ) {
         await BaseUser.insert(context, {
           ...baseUserData,
           base_id: param.baseId,

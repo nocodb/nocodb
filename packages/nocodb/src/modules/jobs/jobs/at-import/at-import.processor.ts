@@ -466,12 +466,7 @@ export class AtImportProcessor {
               (value as any).name = 'nc_empty';
             }
             // skip duplicates (we don't allow them)
-            if (
-              options.find(
-                (el) =>
-                  el.title.toLowerCase() === (value as any).name.toLowerCase(),
-              )
-            ) {
+            if (options.find((el) => el.title === (value as any).name)) {
               logWarning(
                 `Duplicate select option found: ${col.name} :: ${
                   (value as any).name

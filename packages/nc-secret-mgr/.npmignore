@@ -1,0 +1,7 @@
+tsconfig.json
+webpack.config.js
+src
+node_modules
+scripts
+.eslintrc.js
+.prettierrc

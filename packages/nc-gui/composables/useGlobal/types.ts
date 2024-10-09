@@ -39,6 +39,8 @@ export interface AppInfo {
   samlAuthEnabled: boolean
   samlProviderName: string | null
   giftUrl: string
+  feedEnabled: boolean
+  sentryDSN: string
 }
 
 export interface StoredState {

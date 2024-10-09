@@ -1,5 +1,10 @@
+const isFullUrl = (url: string) => {
+  return /^(https?:)?\/\//.test(url)
+}
+
 // this plugin is used to redirect user to the page they were trying to access before they were redirected to the login page
 export default defineNuxtPlugin(function (nuxtApp) {
+  const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
   const router = useRouter()
 
   const route = router.currentRoute
@@ -24,18 +29,26 @@ export default defineNuxtPlugin(function (nuxtApp) {
       () => token.value ?? (nuxtApp.$state as ReturnType<typeof useGlobal>)?.token?.value,
       async (newToken, oldToken) => {
         try {
-          if (newToken && newToken !== oldToken) {
+          // if token updated redirect if one of the following condition matches,
+          // 1. `continueAfterSignIn` query param is present in the url
+          // 2. If signin happened in current tab which can be detected by `isTokenUpdatedTab` flag
+          if (newToken && newToken !== oldToken && (isTokenUpdatedTab.value || route.value.query?.continueAfterSignIn)) {
             try {
               if (route.value.query?.continueAfterSignIn) {
-                await navigateTo(route.value.query.continueAfterSignIn as string)
+                await navigateTo(route.value.query.continueAfterSignIn as string, {
+                  external: isFullUrl(route.value.query.continueAfterSignIn as string),
+                })
               } else {
                 const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
                 if (continueAfterSignIn) {
-                  await navigateTo(continueAfterSignIn)
+                  await navigateTo(continueAfterSignIn, {
+                    external: isFullUrl(continueAfterSignIn),
+                  })
                 }
               }
             } finally {
               localStorage.removeItem('continueAfterSignIn')
+              isTokenUpdatedTab.value = false
             }
           }
         } catch (e) {

@@ -304,9 +304,17 @@ export function useViewData(
           fk_column_id: c.id,
           fk_view_id: viewMeta.value?.id,
           ...(fieldById[c.id!] ? fieldById[c.id!] : {}),
-          meta: { validators: [], ...parseProp(fieldById[c.id!]?.meta), ...parseProp(c.meta) },
+          meta: {
+            validators: [],
+            visibility: {
+              errors: {},
+            },
+            ...parseProp(fieldById[c.id!]?.meta),
+            ...parseProp(c.meta),
+          },
           order: (fieldById[c.id!] && fieldById[c.id!].order) || order++,
           id: fieldById[c.id!] && fieldById[c.id!].id,
+          visible: true,
         }))
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]
     } catch (e: any) {

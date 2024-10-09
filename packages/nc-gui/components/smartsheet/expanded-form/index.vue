@@ -404,9 +404,13 @@ useActiveKeyupListener(
     if (!e.altKey) return
     if (e.key === 'ArrowLeft') {
       e.stopPropagation()
+      if (isFirstRow.value) return
+
       loadingEmit('prev')
     } else if (e.key === 'ArrowRight') {
       e.stopPropagation()
+      if (islastRow.value) return
+
       onNext()
     }
     // on alt + s save record

@@ -29,14 +29,14 @@ const { Container } = defaultComponents;
             padding-top: 24px;
           "
         >
-          <strong> <%- name %> </strong>
+          <strong> <%= name %> </strong>
           has mentioned you in a comment on the
-          <strong> <%- display_name %> </strong>
+          <strong> <%= display_name %> </strong>
           in the
-          <strong> <%- table %> / <%- base %> </strong>.
+          <strong> <%= table %> / <%= base %> </strong>.
         </p>
 
-        <a href="<%- url %>" style="text-decoration: none">
+        <a href="<%= url %>" style="text-decoration: none">
           <div
               style="
               cursor: pointer;

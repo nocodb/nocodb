@@ -101,7 +101,7 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
         const { start: startTimeout, stop: stopTimeout } = useTimeoutFn(
           () => {
             timedOut = true
-            releaseLock()
+            localStorage.removeItem(storageLockKey)
             reject(new Error(`Timeout waiting for result on key ${key}`))
           },
           currentLock?.timestamp ? timeout - (Date.now() - currentLock.timestamp) : timeout,

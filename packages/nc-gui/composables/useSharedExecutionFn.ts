@@ -96,8 +96,11 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
     if (!(await acquireLock())) {
       const currentLock = getLock()
       return new Promise((resolve, reject) => {
+        let timedOut = false
+
         const { start: startTimeout, stop: stopTimeout } = useTimeoutFn(
           () => {
+            timedOut = true
             releaseLock()
             reject(new Error(`Timeout waiting for result on key ${key}`))
           },
@@ -113,6 +116,8 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
         until(() => storageResultState.value)
           .toMatch((v) => v.status === 'success' || v.status === 'error')
           .then((res) => {
+            if (timedOut) return
+
             stopTimeout()
             const { result, error } = res
             result ? resolve(result) : reject(error)

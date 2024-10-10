@@ -196,6 +196,13 @@ const onExcludeTable = (table: any) => {
 
 const onExcludeView = (view: any) => {
   view.excluded = !view.excluded
+
+  if (!view.excluded) {
+    const table = predictedSchema.value.tables.find((table: { title: string }) => table.title === view.table)
+    if (table) {
+      table.excluded = false
+    }
+  }
 }
 
 const finalSchema = computed(() => {

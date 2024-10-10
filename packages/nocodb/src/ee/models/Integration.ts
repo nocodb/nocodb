@@ -208,57 +208,6 @@ export default class Integration extends IntegrationCE {
     return this.get(context, oldIntegration.id, false, ncMeta);
   }
 
-  public static async setDefault(
-    context: Omit<NcContext, 'base_id'>,
-    integrationId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const integration = await this.get(context, integrationId, false, ncMeta);
-
-    if (!integration) {
-      NcError.integrationNotFound(integrationId);
-    }
-
-    // return if integration is already default
-    if (integration.is_default) {
-      return integration;
-    }
-
-    // get if default integration exists for the type
-    const defaultIntegration = await this.getCategoryDefault(
-      {
-        workspace_id: context.workspace_id,
-      },
-      integration.type,
-      ncMeta,
-    );
-
-    // if default integration already exists then set is_default to false
-    if (defaultIntegration) {
-      await ncMeta.metaUpdate(
-        context.workspace_id,
-        RootScopes.WORKSPACE,
-        MetaTable.INTEGRATIONS,
-        {
-          is_default: false,
-        },
-        defaultIntegration.id,
-      );
-    }
-
-    await ncMeta.metaUpdate(
-      context.workspace_id,
-      RootScopes.WORKSPACE,
-      MetaTable.INTEGRATIONS,
-      {
-        is_default: true,
-      },
-      integrationId,
-    );
-
-    return await this.get(context, integrationId, false, ncMeta);
-  }
-
   static async list(
     args: {
       workspaceId: string;

@@ -4,6 +4,7 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
+import { isEE } from '~/utils';
 import {
   IntegrationSlotTypes,
   STORE_DEFINITIONS,
@@ -71,7 +72,7 @@ export default class IntegrationStore {
 
     const insertObj = extractProps(data, [...storeKeys]);
 
-    if (!context.workspace_id) {
+    if (isEE && !context.workspace_id) {
       NcError.badRequest('Missing required fields');
     }
 
@@ -145,7 +146,9 @@ export default class IntegrationStore {
     }
 
     const { id } = await ncMeta.metaInsert2(
-      insertObj.fk_workspace_id,
+      insertObj.fk_workspace_id
+        ? insertObj.fk_workspace_id
+        : RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS_STORE,
       insertObj,
@@ -166,7 +169,7 @@ export default class IntegrationStore {
     ncMeta = Noco.ncMeta,
   ): Promise<IntegrationStore> {
     const integrationStoreData = await ncMeta.metaGet2(
-      context.workspace_id,
+      context.workspace_id ? context.workspace_id : RootScopes.WORKSPACE,
       context.workspace_id === RootScopes.BYPASS
         ? RootScopes.BYPASS
         : RootScopes.WORKSPACE,
@@ -202,7 +205,7 @@ export default class IntegrationStore {
     pagination: { isLastPage: boolean; offset: number };
   }> {
     let integrationStoreData = await ncMeta.metaList2(
-      context.workspace_id,
+      context.workspace_id ? context.workspace_id : RootScopes.WORKSPACE,
       context.workspace_id === RootScopes.BYPASS
         ? RootScopes.BYPASS
         : RootScopes.WORKSPACE,

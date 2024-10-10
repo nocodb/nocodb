@@ -61,6 +61,9 @@ const permissionScopes = {
     'integrationDelete',
     'integrationUpdate',
     'integrationList',
+
+    // AI
+    'aiSchema',
   ],
   base: [
     'formViewGet',
@@ -166,7 +169,6 @@ const permissionScopes = {
 
     // AI
     'aiUtils',
-    'aiSchema',
     'aiData',
   ],
 };

@@ -238,5 +238,8 @@ export const RootScopeTables = {
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss
-  [RootScopes.WORKSPACE]: [MetaTable.INTEGRATIONS],
+  [RootScopes.WORKSPACE]: [
+    MetaTable.INTEGRATIONS,
+    MetaTable.INTEGRATIONS_STORE,
+  ],
 };

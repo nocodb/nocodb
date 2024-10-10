@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
+import { IntegrationsService as IntegrationsServiceCE } from 'src/services/integrations.service';
 import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Base, Integration } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -13,16 +13,10 @@ import NocoCache from '~/cache/NocoCache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
-import { SourcesService } from '~/services/sources.service';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 
 @Injectable()
-export class IntegrationsService {
-  constructor(
-    protected readonly appHooksService: AppHooksService,
-    protected readonly sourcesService: SourcesService,
-  ) {}
-
+export class IntegrationsService extends IntegrationsServiceCE {
   async integrationGetWithConfig(
     context: NcContext,
     param: { integrationId: any; includeSources?: boolean },
@@ -299,39 +293,9 @@ export class IntegrationsService {
     return integration;
   }
 
-  async integrationStore(
-    context: NcContext,
-    integration: Integration,
-    payload?:
-      | {
-          op: 'list';
-          limit: number;
-          offset: number;
-        }
-      | {
-          op: 'get';
-        }
-      | {
-          op: 'sum';
-          fields: string[];
-        },
-  ) {
-    if (payload.op === 'list') {
-      return await integration.storeList(
-        context,
-        payload.limit,
-        payload.offset,
-      );
-    } else if (payload.op === 'sum') {
-      return await integration.storeSum(context, payload.fields);
-    } else if (payload.op === 'get') {
-      return await integration.storeGetLatest(context);
-    }
-  }
-
   // function to update all the integration source config which are using this integration
   // we are overwriting the source config with the new integration config excluding database name and schema name
-  private async updateIntegrationSourceConfig(
+  protected async updateIntegrationSourceConfig(
     {
       integration,
     }: {
@@ -384,34 +348,5 @@ export class IntegrationsService {
         await JobsRedis.emitPrimaryCommand(InstanceCommands.RELEASE, source.id);
       }
     }
-  }
-
-  public async callIntegrationEndpoint(
-    context: NcContext,
-    params: {
-      integrationId: string;
-      endpoint: string;
-      payload?: any;
-    },
-  ) {
-    const integration = await Integration.get(context, params.integrationId);
-
-    const integrationMeta = integration.getIntegrationMeta();
-
-    const wrapper = integration.getIntegrationWrapper();
-
-    if (!integrationMeta || !wrapper) {
-      NcError.badRequest('Invalid integration');
-    }
-
-    if (
-      !integrationMeta.exposedEndpoints?.includes(params.endpoint) ||
-      !(params.endpoint in wrapper) ||
-      typeof wrapper[params.endpoint] !== 'function'
-    ) {
-      NcError.genericNotFound('Endpoint', params.endpoint);
-    }
-
-    return wrapper[params.endpoint](context, params.payload);
   }
 }

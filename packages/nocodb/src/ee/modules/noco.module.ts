@@ -1,8 +1,6 @@
 import { nocoModuleMetadata } from 'src/modules/noco.module';
 import { Module } from '@nestjs/common';
 
-import { NocoAiModule } from '~/integrations/ai/module/ai.module';
-
 /* Generic */
 import { Producer } from '~/services/producer/producer';
 import { ProducerProvider } from '~/services/producer';
@@ -48,7 +46,7 @@ import { WorkspaceUsersController } from '~/controllers/workspace-users.controll
 import { MailService } from '~/services/mail/mail.service';
 
 export const nocoModuleEeMetadata = {
-  imports: [...nocoModuleMetadata.imports, NocoAiModule],
+  imports: [...nocoModuleMetadata.imports],
   providers: [
     ...nocoModuleMetadata.providers,
 

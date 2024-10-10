@@ -14,6 +14,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
+import { isEE } from '~/utils';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -83,7 +84,9 @@ export class AiSchemaController {
         base: {
           title: input.title.trim().substring(0, 50),
           type: 'database',
-          ...({ fk_workspace_id: context.workspace_id } || {}),
+          ...(context.workspace_id
+            ? { fk_workspace_id: context.workspace_id }
+            : {}),
         },
         user: { id: req.user.id },
         req: req,
@@ -100,9 +103,7 @@ export class AiSchemaController {
   }
 
   @Post(['/api/v2/ai/schema/:workspaceId'])
-  @Acl('aiSchema', {
-    scope: 'base',
-  })
+  @Acl('aiSchema', isEE ? { scope: 'workspace' } : { scope: 'org' })
   @HttpCode(200)
   async aiSchemaCreate(
     @TenantContext() context: NcContext,
@@ -131,7 +132,9 @@ export class AiSchemaController {
         base: {
           title: input.title.trim().substring(0, 50),
           type: 'database',
-          ...({ fk_workspace_id: context.workspace_id } || {}),
+          ...(context.workspace_id
+            ? { fk_workspace_id: context.workspace_id }
+            : {}),
         },
         user: { id: req.user.id },
         req: req,

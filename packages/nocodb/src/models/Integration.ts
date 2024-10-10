@@ -284,7 +284,6 @@ export default class Integration implements IntegrationType {
 
   static async list(
     args: {
-      workspaceId?: string;
       userId: string;
       includeDatabaseInfo?: boolean;
       type?: IntegrationsType;

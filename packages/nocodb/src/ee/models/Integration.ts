@@ -210,10 +210,11 @@ export default class Integration extends IntegrationCE {
 
   static async list(
     args: {
-      workspaceId: string;
+      workspaceId?: string;
       userId: string;
       includeDatabaseInfo?: boolean;
       type?: IntegrationsType;
+      sub_type?: string | ClientTypes;
       limit?: number;
       offset?: number;
       includeSourceCount?: boolean;

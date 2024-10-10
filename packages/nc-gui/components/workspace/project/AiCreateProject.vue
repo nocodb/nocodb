@@ -425,7 +425,7 @@ watch(dialogShow, async (n, o) => {
 
           <template v-if="aiStep === AI_STEP.LOADING || aiStep === AI_STEP.PROMPT">
             <div v-if="aiStep === AI_STEP.LOADING" class="text-base font-bold text-nc-content-purple-dark">
-              Generating a Base tailored to your requirnment...
+              Generating a Base tailored to your requirement...
             </div>
             <div v-else class="text-base font-bold text-nc-content-purple-dark">Preview</div>
 

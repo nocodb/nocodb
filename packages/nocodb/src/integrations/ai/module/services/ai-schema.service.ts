@@ -393,10 +393,10 @@ export class AiSchemaService {
           baseId: base.id,
           table: {
             title: table.title,
-            table_name: table.title.replace(/\W/g, '_').toLowerCase(),
+            table_name: table.title,
             columns: table.columns.map((column, i) => ({
               title: column.title,
-              column_name: column.title.replace(/\W/g, '_').toLowerCase(),
+              column_name: column.title,
               uidt: column.type as UITypes,
               ...(column.options && column.options.length > 0
                 ? {

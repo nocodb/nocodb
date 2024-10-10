@@ -42,7 +42,7 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
   }
 
   const acquireLock = async (): Promise<boolean> => {
-    const currentLock = getLock()
+    let currentLock = getLock()
     const now = Date.now()
 
     if (!currentLock) {
@@ -51,24 +51,34 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
       // Allow storage updates to propagate - which will determine strictness of lock
       await new Promise((resolve) => setTimeout(resolve, storageDelay))
 
-      const acquiredLock = getLock()
-      if (acquiredLock?.tabId === tabId) {
+      currentLock = getLock()
+      if (currentLock?.tabId === tabId) {
         debugLog(`Lock acquired successfully`)
         return true
       }
 
-      debugLog(`Lock acquired by ${acquiredLock?.tabId}`)
+      debugLog(`Lock acquired by ${currentLock?.tabId}`)
       return false
     }
 
     const lockIsStale = now - currentLock.timestamp > timeout
     if (lockIsStale) {
       localStorage.setItem(storageLockKey, JSON.stringify({ timestamp: now, tabId }))
-      debugLog(`Acquired stale lock. Previous lock was stale.`)
-      return true
+
+      // Allow storage updates to propagate - which will determine strictness of lock
+      await new Promise((resolve) => setTimeout(resolve, storageDelay))
+
+      currentLock = getLock()
+      if (currentLock?.tabId === tabId) {
+        debugLog(`Stale lock acquired successfully`)
+        return true
+      }
+
+      debugLog(`Stale lock acquired by ${currentLock?.tabId}`)
+      return false
     }
 
-    debugLog(`Lock is held by ${currentLock.tabId}`)
+    debugLog(`Lock is held by ${currentLock?.tabId}`)
     return false
   }
 

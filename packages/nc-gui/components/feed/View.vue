@@ -21,7 +21,13 @@ const tabs: Array<{
     container: FeedRecents,
   },
   {
-    key: 'changelog',
+    key: 'cloud',
+    icon: 'ncCloud',
+    title: 'Cloud Changelog',
+    container: FeedChangelog,
+  },
+  {
+    key: 'github',
     icon: 'ncList',
     title: 'Changelog',
     container: FeedChangelog,
@@ -89,13 +95,13 @@ onMounted(() => {
         <div class="relative">
           <FeedSocial
             :class="{
-              'normal-left': tab.key === 'recents' || tab.key === 'youtube',
-              'changelog-left': tab.key === 'changelog',
+              'normal-left': ['recents', 'youtube', 'cloud'].includes(tab.key),
+              'changelog-left': tab.key === 'github',
               'changelog-twitter': tab.key === 'twitter',
             }"
             class="absolute social-card"
           />
-          <component :is="tab.container" />
+          <component :is="tab.container" :type="tab.key" />
         </div>
       </a-tab-pane>
     </NcTabs>

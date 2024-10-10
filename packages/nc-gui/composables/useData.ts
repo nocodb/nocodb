@@ -208,7 +208,7 @@ export function useData(args: {
         base?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
-        id,
+        encodeURIComponent(id),
         {
           // if value is undefined treat it as null
           [property]: toUpdate.row[property] ?? null,

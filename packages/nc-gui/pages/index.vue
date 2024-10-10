@@ -41,7 +41,7 @@ const isSharedView = computed(() => {
   // check route is not base page by route name
   return (
     !routeName.startsWith('index-typeOrId-baseId-') &&
-    !['index', 'index-typeOrId', 'index-typeOrId-integrations'].includes(routeName)
+    !['index', 'index-typeOrId', 'index-typeOrId-feed', 'index-typeOrId-integrations'].includes(routeName)
   )
 })
 

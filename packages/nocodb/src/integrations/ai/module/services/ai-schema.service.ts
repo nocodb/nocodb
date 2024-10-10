@@ -105,7 +105,6 @@ export class AiSchemaService {
               z.object({
                 title: z.string(),
                 type: z.enum([
-                  'ID',
                   'SingleLineText',
                   'LongText',
                   'Attachment',
@@ -193,6 +192,19 @@ export class AiSchemaService {
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
 
+    // Populate ID columns
+    for (const table of data.tables || []) {
+      // Skip if ID column already exists
+      if (table.columns.some((col) => col.type === 'ID')) {
+        continue;
+      }
+
+      table.columns.unshift({
+        title: 'Id',
+        type: 'ID',
+      });
+    }
+
     return {
       title: input.trim().substring(0, 50),
       ...data,
@@ -262,7 +274,6 @@ export class AiSchemaService {
                 z.object({
                   title: z.string(),
                   type: z.enum([
-                    'ID',
                     'SingleLineText',
                     'LongText',
                     'Attachment',
@@ -319,6 +330,19 @@ export class AiSchemaService {
     });
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    // Populate ID columns
+    for (const table of data.tables || []) {
+      // Skip if ID column already exists
+      if (table.columns.some((col) => col.type === 'ID')) {
+        continue;
+      }
+
+      table.columns.unshift({
+        title: 'Id',
+        type: 'ID',
+      });
+    }
 
     return this.createSchema(context, { base, schema: data, req }).then(
       (res) => res.tables,

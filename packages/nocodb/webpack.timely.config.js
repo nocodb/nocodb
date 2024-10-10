@@ -6,7 +6,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
 
 module.exports = {
-  entry: './src/run/cloud.ts',
+  entry: './src/run/timely.ts',
   module: {
     rules: [
       {
@@ -34,7 +34,7 @@ module.exports = {
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
-    alias: resolveTsAliases(path.resolve('./src/ee-cloud/tsconfig.json')),
+    alias: resolveTsAliases(path.resolve('./src/tsconfig.json')),
   },
   mode: 'production',
   output: {

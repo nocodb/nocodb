@@ -276,7 +276,7 @@ watch(dialogShow, async (n, o) => {
   <div class="h-full">
     <div class="flex items-center px-4 py-2 border-b-1 border-purple-100">
       <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
-        <GeneralIcon icon="ncAutoAwesome" class="flex-none h-6 w-6 !text-current" />
+        <GeneralIcon icon="ncAutoAwesome" class="flex-none h-5 w-5 !text-current" />
         <div class="text-base leading-8 font-bold">Noco AI Base Builder</div>
       </div>
 

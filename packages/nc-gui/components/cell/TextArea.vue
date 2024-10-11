@@ -477,7 +477,7 @@ watch([isVisible, inputRef], (value) => {
                 {{
                   user?.id === props.aiMeta?.lastModifiedBy
                     ? 'you'
-                    : idUserMap[props.aiMeta?.lastModifiedBy]?.displayName || idUserMap[props.aiMeta?.lastModifiedBy]?.email
+                    : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
                 }}
               </span>
             </div>

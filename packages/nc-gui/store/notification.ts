@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
 import axios, { type CancelTokenSource } from 'axios'
-import { CancelToken } from 'axios'
 import { useStorage } from '@vueuse/core'
+
+const CancelToken = axios.CancelToken
 
 export const useNotification = defineStore('notificationStore', () => {
   const isTokenRefreshInProgress = useStorage(TOKEN_REFRESH_PROGRESS_KEY, false)
@@ -27,16 +28,24 @@ export const useNotification = defineStore('notificationStore', () => {
 
   let cancelTokenSource: CancelTokenSource | null
 
+  const pollNotificationsApiCall = async () => {
+    // set up cancel token for polling to cancel when token changes/token is removed
+    cancelTokenSource = CancelToken.source()
+
+    return await api.notification.poll({
+      cancelToken: cancelTokenSource.token,
+    })
+  }
+
+  const sharedExecutionPollNotificationsApiCall = useSharedExecutionFn('notification', pollNotificationsApiCall, {
+    timeout: 30000,
+  })
+
   const pollNotifications = async () => {
     try {
       if (!token.value) return
 
-      // set up cancel token for polling to cancel when token changes/token is removed
-      cancelTokenSource = CancelToken.source()
-
-      const res = await api.notification.poll({
-        cancelToken: cancelTokenSource.token,
-      })
+      const res = await sharedExecutionPollNotificationsApiCall()
 
       if (res.status === 'success') {
         if (notificationTab.value === 'unread') {

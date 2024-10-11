@@ -5850,7 +5850,7 @@ class BaseModelSqlv2 {
 
       return newData;
     } catch (e) {
-      if (!trx) await transaction.rollback();
+      if (!trx) await transaction?.rollback();
       throw e;
     }
   }

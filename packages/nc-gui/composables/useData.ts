@@ -167,7 +167,6 @@ export function useData(args: {
 
     try {
       // Identify the rows that need to be fetched from the server
-
       const rowsToFetch = updateRows.filter((row) => row.rowMeta?.isExistingRow)
       const pagesToFetch = Array.from(new Set(rowsToFetch.map((row) => row.rowMeta.page))).filter(
         (page): page is number => page !== undefined && page !== paginationData.value.page,
@@ -187,8 +186,8 @@ export function useData(args: {
       const getPk = (row: Row) => extractPkFromRow(row.row, metaValue?.columns as ColumnType[])
 
       const ogUpdateRows = updateRows.map((row) => {
-        if (row.rowMeta?.page && row.rowMeta.page !== paginationData.value.page) {
-          const fetchedRow = fetchedData[row.rowMeta.page]?.[row.rowMeta.rowInPage!]
+        if (row.rowMeta?.isExistingRow) {
+          const fetchedRow = fetchedData[row.rowMeta.page!]?.[row.rowMeta.rowInPage!]
           return fetchedRow ? clone(fetchedRow) : row
         }
         const currentPageRow = formattedData.value.find((formattedRow) => getPk(formattedRow) === getPk(row))

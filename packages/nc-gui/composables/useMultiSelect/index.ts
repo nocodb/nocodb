@@ -857,6 +857,8 @@ export function useMultiSelect(
         const availableRowsToUpdate = Math.max(0, totalRows - totalRowsBeforeActiveCell)
         const rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
 
+        const unreffedData = unref(data).slice(activeCell.row, activeCell.row + selectionRowCount)
+
         const rowsInCurrentPage = unref(data).length
         const rowsAffectedInCurrentPage = Math.min(selectionRowCount, rowsInCurrentPage - activeCell.row)
         const rowsAffectedInOtherPages = Math.max(0, selectionRowCount - rowsAffectedInCurrentPage)
@@ -882,8 +884,8 @@ export function useMultiSelect(
           if (i < availableRowsToUpdate) {
             const absoluteRowIndex = totalRowsBeforeActiveCell + i
             targetRow =
-              i < unref(data).length
-                ? unref(data)[i]
+              i < unreffedData.length
+                ? unreffedData[i]
                 : {
                     row: {},
                     oldRow: {},

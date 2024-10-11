@@ -7,8 +7,8 @@ import GenericS3 from '~/plugins/GenericS3/GenericS3';
 interface S3Input {
   bucket: string;
   region: string;
-  access_key: string;
-  access_secret: string;
+  access_key?: string;
+  access_secret?: string;
   endpoint?: string;
   acl?: string;
   force_path_style?: boolean;
@@ -48,12 +48,15 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
   public async init(): Promise<any> {
     const s3Options: S3ClientConfig = {
       region: this.input.region,
-      credentials: {
-        accessKeyId: this.input.access_key,
-        secretAccessKey: this.input.access_secret,
-      },
       forcePathStyle: this.input.force_path_style ?? false,
     };
+
+    if (this.input.access_key && this.input.access_secret) {
+      s3Options.credentials = {
+        accessKeyId: this.input.access_key,
+        secretAccessKey: this.input.access_secret,
+      }
+    }
 
     if (this.input.endpoint) {
       s3Options.endpoint = this.input.endpoint;

@@ -884,14 +884,16 @@ export function useMultiSelect(
         let pastedRows = 0
         let isInfoShown = false
 
-        for (const pasteRow of rowsToPaste) {
+        for (let i = 0; i < pasteMatrixRows; i++) {
+          const pasteRow = rowsToPaste[i]
+
+          // TODO handle insert new row
           if (!pasteRow || pasteRow.rowMeta.new) break
 
           pastedRows++
 
-          let colIndex = 0
-
-          for (const pasteCol of colsToPaste) {
+          for (let j = 0; j < pasteMatrixCols; j++) {
+            const pasteCol = colsToPaste[j]
             if (!isPasteable(pasteRow, pasteCol)) {
               if ((isBt(pasteCol) || isOo(pasteCol) || isMm(pasteCol)) && !isInfoShown) {
                 message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
@@ -905,7 +907,7 @@ export function useMultiSelect(
             const pasteValue = convertCellData(
               {
                 // Repeat the clipboard data array if the matrix is smaller than the selection
-                value: clipboardMatrix[pastedRows % clipboardMatrix.length][colIndex],
+                value: clipboardMatrix[i % clipboardMatrix.length][j],
                 to: pasteCol.uidt as UITypes,
                 column: pasteCol,
                 appInfo: unref(appInfo),
@@ -918,7 +920,6 @@ export function useMultiSelect(
             if (pasteValue !== undefined) {
               pasteRow.row[pasteCol.title!] = pasteValue
             }
-            colIndex++
           }
         }
 

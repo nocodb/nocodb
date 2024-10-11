@@ -5710,8 +5710,6 @@ class BaseModelSqlv2 {
         }
       }
 
-      transaction = trx ?? (await this.dbDriver.transaction());
-
       const updateDatas = raw
         ? datas
         : await Promise.all(
@@ -5810,6 +5808,8 @@ class BaseModelSqlv2 {
           );
         }
       }
+
+      transaction = trx ?? (await this.dbDriver.transaction());
 
       for (const o of toBeUpdated) {
         await transaction(this.tnPath).update(o.d).where(o.wherePk);

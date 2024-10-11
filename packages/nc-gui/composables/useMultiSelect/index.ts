@@ -859,6 +859,8 @@ export function useMultiSelect(
           expand: true,
         }
 
+        const rowToPasteLen = rowsToPaste.length
+
         if (pasteMatrixRows > rowsToPaste.length) {
           rowsToPaste.push(
             ...Array(pasteMatrixRows - rowsToPaste.length)
@@ -871,8 +873,7 @@ export function useMultiSelect(
                 },
               })),
           )
-
-          options = await expandRows(pasteMatrixRows - rowsToPaste.length)
+          options = await expandRows(pasteMatrixRows - rowToPasteLen)
 
           if (!options.continue) {
             return

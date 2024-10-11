@@ -52,7 +52,7 @@ jobs:
       - name: Get Docker Repository
         id: get-docker-repository
         run: |
-          DOCKER_REPOSITORY=nocodb
+          DOCKER_REPOSITORY=nocodb-daily
           DOCKER_BUILD_TAG=${{ github.event.inputs.tag || inputs.tag }}
           DOCKER_BUILD_LATEST_TAG=latest
           if [[ "$DOCKER_BUILD_TAG" =~ "-beta." ]]; then
@@ -106,7 +106,16 @@ jobs:
           cd packages/nocodb &&
           EE=true pnpm exec webpack --config webpack.timely.config.js &&
           # remove bundled libraries (nocodb-sdk, knex-snowflake)
-          pnpm uninstall --save-prod nocodb-sdk
+          pnpm uninstall --save-prod nocodb-sdk  
+
+      - name: Update version in package.json
+        run: |
+          # update package.json
+          cd packages/nocodb &&
+          jq --arg VERSION "$VERSION" '.version = $VERSION' package.json > tmp.json &&
+          mv tmp.json package.json
+        env:
+          VERSION: ${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2.1.0
@@ -137,7 +146,7 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
-          push: false
+          push: true
           tags: |
             nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
             nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_LATEST_TAG }}

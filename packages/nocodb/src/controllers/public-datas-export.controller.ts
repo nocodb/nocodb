@@ -52,6 +52,11 @@ export class PublicDatasExportController {
       NcError.invalidSharedViewPassword();
     }
 
+    // check if download is allowed, in general it's called as CSV download
+    if (!view.meta?.allowCSVDownload) {
+      NcError.forbidden('Download is not allowed for this view');
+    }
+
     const model = await view.getModelWithInfo(context);
 
     await view.getColumns(context);
@@ -113,6 +118,11 @@ export class PublicDatasExportController {
 
     if (view.password && view.password !== req.headers?.['xc-password']) {
       NcError.invalidSharedViewPassword();
+    }
+
+    // check if download is allowed
+    if (!view.meta?.allowCSVDownload) {
+      NcError.forbidden('Download is not allowed for this view');
     }
 
     const model = await view.getModelWithInfo(context);

@@ -78,7 +78,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           ref: ${{ github.ref }}
 
       - name: Use Node.js ${{ matrix.node-version }}
@@ -144,7 +144,7 @@ jobs:
           context: ${{ env.working-directory }}
           file: ${{ env.working-directory }}/Dockerfile.timely
           build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
-          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          platforms: linux/amd64,linux/arm64
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true

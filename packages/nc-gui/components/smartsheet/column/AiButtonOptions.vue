@@ -397,7 +397,7 @@ onBeforeUnmount(() => {
                     <span class="flex-1"> Select fields to generate data </span>
 
                     <NcDropdown v-model:visible="isOpenSelectOutputFieldDropdown" placement="bottomRight">
-                      <NcButton size="small" type="text" class="!hover:text-nc-content-brand" @click.stop>
+                      <NcButton size="small" type="secondary" @click.stop>
                         <div class="flex items-center gap-2">
                           <GeneralIcon icon="plus" class="!text-current" />
                           Select fields

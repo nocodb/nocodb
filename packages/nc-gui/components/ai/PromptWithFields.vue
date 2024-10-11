@@ -144,7 +144,9 @@ onMounted(async () => {
     <EditorContent ref="editorDom" :editor="editor" @keydown.alt.enter.stop @keydown.shift.enter.stop />
 
     <NcButton size="xs" type="text" class="nc-prompt-with-field-suggestion-btn !px-1" @click.stop="newFieldSuggestionNode">
-      <GeneralIcon icon="ncPlusSquareSolid" class="text-nc-content-brand" :class="`${suggestionIconClassName}`" />
+      <slot name="triggerIcon">
+        <GeneralIcon icon="ncPlusSquareSolid" class="text-nc-content-brand" :class="`${suggestionIconClassName}`" />
+      </slot>
     </NcButton>
   </div>
 </template>

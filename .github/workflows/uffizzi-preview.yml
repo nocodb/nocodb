@@ -36,22 +36,22 @@ jobs:
             });
             let fs = require('fs');
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/preview-spec.zip`, Buffer.from(download.data));
-      
+
       - name: 'Unzip artifact'
         run: unzip preview-spec.zip
-      
+
       - name: Read Event into ENV
         run: |
           echo 'EVENT_JSON<<EOF' >> $GITHUB_ENV
           cat event.json >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
-      
+
       - name: Hash Rendered Compose File
         id: hash
         # If the previous workflow was triggered by a PR close event, we will not have a compose file artifact.
         if: ${{ fromJSON(env.EVENT_JSON).action != 'closed' }}
         run: echo "COMPOSE_FILE_HASH=$(md5sum docker-compose.rendered.yml | awk '{ print $1 }')" >> $GITHUB_ENV
-      
+
       - name: Cache Rendered Compose File
         if: ${{ fromJSON(env.EVENT_JSON).action != 'closed' }}
         uses: actions/cache@v3
@@ -62,7 +62,7 @@ jobs:
       - name: Read PR Number From Event Object
         id: pr
         run: echo "PR_NUMBER=${{ fromJSON(env.EVENT_JSON).number }}" >> $GITHUB_ENV
-      
+
       - name: DEBUG - Print Job Outputs
         if: ${{ runner.debug }}
         run: |

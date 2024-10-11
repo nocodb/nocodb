@@ -2,11 +2,11 @@ name: "Publish : noco-i18n"
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
     paths:
       - "packages/noco-i18n/**"
   release:
-    types: [ published ]
+    types: [published]
 
 jobs:
   copy-file:

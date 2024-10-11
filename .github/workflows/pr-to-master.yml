@@ -12,8 +12,8 @@ on:
         required: true
         type: choice
         options:
-        - DEV
-        - PROD
+          - DEV
+          - PROD
   # Triggered by release-nocodb.yml
   workflow_call:
     inputs:
@@ -25,7 +25,7 @@ on:
         description: "Target Environment"
         required: true
         type: string
-        
+
 jobs:
   pr-to-master:
     runs-on: [self-hosted, aws]
@@ -45,7 +45,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           source_branch: "develop"
-          destination_branch: "master"  
+          destination_branch: "master"
           pr_title: '${{ github.event.inputs.tag || inputs.tag }} Pre-release'
           pr_label: 'Bot: Automerge'
       - name: Check outputs
@@ -57,6 +57,6 @@ jobs:
         if: ${{ github.event.inputs.targetEnv == 'PROD' || inputs.targetEnv == 'PROD' }}
         uses: "pascalgn/automerge-action@v0.15.5"
         env:
-           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-           PULL_REQUEST: "${{ steps.cpr.outputs.pr_number }}"
-           MERGE_LABELS: "Bot: Automerge"
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          PULL_REQUEST: "${{ steps.cpr.outputs.pr_number }}"
+          MERGE_LABELS: "Bot: Automerge"

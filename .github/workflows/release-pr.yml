@@ -101,7 +101,7 @@ jobs:
     runs-on: [self-hosted, aws]
     needs: [release-docker, set-tag]
     outputs:
-      compose-file-cache-key:  ${{ env.COMPOSE_FILE_HASH }}
+      compose-file-cache-key: ${{ env.COMPOSE_FILE_HASH }}
     steps:
       - name: Checkout git repo
         uses: actions/checkout@v3
@@ -119,7 +119,7 @@ jobs:
           path: docker-compose.rendered.yml
           retention-days: 2
       - name: Serialize PR Event to File
-        run:  |
+        run: |
           cat << EOF > event.json
           ${{ toJSON(github.event) }}
           EOF
@@ -174,7 +174,7 @@ jobs:
     steps:
       # If this PR is closing, we will not render a compose file nor pass it to the next workflow.
       - name: Serialize PR Event to File
-        run:  |
+        run: |
           cat << EOF > event.json
           ${{ toJSON(github.event) }}
 

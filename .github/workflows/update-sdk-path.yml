@@ -12,12 +12,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-            node-version: 16.15.0
+          node-version: 16.15.0
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-        
+
       - run: |
           cd packages/nocodb
           npm install --save --save-exact nocodb-sdk@file:../nocodb-sdk

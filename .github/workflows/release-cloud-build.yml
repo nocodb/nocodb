@@ -10,8 +10,8 @@ on:
         required: false
         default: 'true'
         options:
-        - 'true'
-        - 'false'
+          - 'true'
+          - 'false'
       tag:
         description: "Any additional Tag"
         required: false
@@ -20,12 +20,12 @@ on:
         description: services to deploy
         default: 'all'
         options:
-        - all
-        - main_only
-        - mux_service_only
+          - all
+          - main_only
+          - mux_service_only
   schedule:
     # trigger at 6:00AM IST(0:30 GMT) and 20:00 IST(14:30 GMT)
-    - cron:  '30 0,14 * * *'
+    - cron: '30 0,14 * * *'
 
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - name: Get pnpm store directory
         shell: bash
         timeout-minutes: 1
@@ -184,7 +184,7 @@ jobs:
         env:
           API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
         run: |
-           ./scripts/release/staging.sh
+          ./scripts/release/staging.sh
       ### mux build and deploy starts here ###
       - name: Build, tag, and push mux service image (nc-sql-executor) to Amazon ECR
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all') }}
@@ -215,4 +215,4 @@ jobs:
       - name: Publish to staging
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && ( github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all')) }}
         run: |
-           ./scripts/release/staging_executors.sh
+          ./scripts/release/staging_executors.sh

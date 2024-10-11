@@ -3,11 +3,11 @@ name: "Publish : Api Docs"
 on:
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [master]
     paths:
       - "packages/nocodb/src/schema/swagger.json"
   release:
-    types: [ published ]
+    types: [published]
 
 jobs:
   copy-file:

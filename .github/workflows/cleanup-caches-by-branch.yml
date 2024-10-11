@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
-        
+
       - name: Cleanup
         run: |
           gh extension install actions/gh-actions-cache

@@ -45,7 +45,7 @@ jobs:
           ref: ${{ github.ref }}
       - name: Get SHA
         id: get-sha
-        # If it's triggered by release-nocodb.yml, 
+        # If it's triggered by release-nocodb.yml,
         # the SHA from the third commit (i.e. Auto PR from master to develop) will be taken
         # else HEAD will be taken
         run: |

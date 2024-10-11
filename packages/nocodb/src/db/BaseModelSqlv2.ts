@@ -5482,7 +5482,7 @@ class BaseModelSqlv2 {
       }
 
       if ('beforeBulkInsert' in this) {
-        await this.beforeBulkInsert(insertDatas, trx, cookie);
+        await this.beforeBulkInsert(insertDatas, transaction, cookie);
       }
 
       // await this.beforeInsertb(insertDatas, null);
@@ -5574,7 +5574,7 @@ class BaseModelSqlv2 {
 
         await this.runOps(
           postInsertOps.map((f) => f(rowId)),
-          trx,
+          transaction,
         );
       }
 
@@ -5593,7 +5593,8 @@ class BaseModelSqlv2 {
 
       return responses;
     } catch (e) {
-      await transaction?.rollback();
+      if (!trx) await transaction?.rollback();
+
       // await this.errorInsertb(e, data, null);
       throw e;
     }
@@ -5849,7 +5850,7 @@ class BaseModelSqlv2 {
 
       return newData;
     } catch (e) {
-      if (transaction) await transaction.rollback();
+      if (!trx) await transaction.rollback();
       throw e;
     }
   }

@@ -62,6 +62,12 @@ const renderedText = computedAsync(async () => {
 })
 
 const { width } = useWindowSize()
+
+const handleOpenUrl = (url: string) => {
+  if (source === 'Cloud') return
+
+  openLink(url)
+}
 </script>
 
 <template>
@@ -69,7 +75,7 @@ const { width } = useWindowSize()
     <div class="flex items-center justify-between px-5 py-4">
       <div class="flex items-center gap-3">
         <component :is="feedIcon[source]" class="w-4 h-4 stroke-transparent" />
-        <span class="font-weight-medium text-nc-content-gray leading-5 cursor-pointer" @click="openLink(Url)">
+        <span class="font-weight-medium text-nc-content-gray leading-5 cursor-pointer" @click="handleOpenUrl">
           {{ source }}
         </span>
       </div>

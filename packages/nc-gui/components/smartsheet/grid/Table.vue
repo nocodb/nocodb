@@ -793,7 +793,7 @@ function scrollToRow(row?: number) {
 
 const isOpen = ref(false)
 
-async function expandRows(rowCount: number) {
+async function expandRows(rowCount: number, rowsAffected: number) {
   isOpen.value = true
 
   const options = {
@@ -808,6 +808,7 @@ async function expandRows(rowCount: number) {
   const { close } = useDialog(resolveComponent('DlgExpandTable'), {
     'modelValue': isOpen,
     'rows': rowCount,
+    'affectedRows': rowsAffected,
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })

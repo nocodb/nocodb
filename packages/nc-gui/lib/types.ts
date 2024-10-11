@@ -84,6 +84,9 @@ interface Row {
 
     //
     isExpandedData?: boolean
+    isExistingRow?: boolean
+    page?: number
+    rowInPage?: number
 
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>

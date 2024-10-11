@@ -5,6 +5,7 @@ const props = defineProps<{
   fields?: number
   rows?: number
   modelValue: boolean
+  affectedRows?: number
 }>()
 
 const emit = defineEmits(['update:expand', 'cancel', 'update:modelValue'])
@@ -40,13 +41,16 @@ onKeyDown('esc', () => {
       </div>
     </template>
     <div class="flex flex-col mt-1">
-      <div class="mb-4">
-        To fit your pasted data into the table, we need to add
+      <div v-if="(affectedRows ?? 0) > 0" class="mb-2">
+        The data you pasted will update {{ affectedRows }} records in subsequent pages.
+      </div>
 
+      <div v-if="(rows ?? 0) > 0" class="mb-4">
+        To fit your pasted data into the table, we need to add
         <span class="font-semibold text-gray-800"> {{ rows }} more records. </span>
       </div>
 
-      <a-radio-group v-model:value="expand">
+      <a-radio-group v-if="(rows ?? 0) > 0" v-model:value="expand">
         <a-radio
           :style="{
             display: 'flex',
@@ -86,22 +90,4 @@ onKeyDown('esc', () => {
   </NcModal>
 </template>
 
-<style scoped lang="scss">
-.ant-form-item {
-  @apply mb-0;
-}
-
-.nc-input-text-area {
-  padding-block: 8px !important;
-}
-
-.nc-table-advanced-options {
-  max-height: 0;
-  transition: 0.3s max-height;
-  overflow: hidden;
-
-  &.active {
-    max-height: 100px;
-  }
-}
-</style>
+<style scoped lang="scss"></style>

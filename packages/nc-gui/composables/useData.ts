@@ -1,4 +1,5 @@
 import {
+  type Api,
   type ColumnType,
   type LinkToAnotherRecordType,
   type PaginatedType,
@@ -9,7 +10,7 @@ import {
 } from 'nocodb-sdk'
 import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import type { CellRange } from '#imports'
+import type { CellRange, Row } from '#imports'
 
 export function useData(args: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
@@ -18,7 +19,11 @@ export function useData(args: {
   paginationData: Ref<PaginatedType>
   callbacks?: {
     changePage?: (page: number) => Promise<void>
-    loadData?: () => Promise<void>
+    loadData?: (
+      param?: Parameters<Api<any>['dbViewRow']['list']>[4],
+      shouldShowLoading?: boolean,
+      updateLocalState?: boolean,
+    ) => Promise<void> | Promise<Row[]>
     globalCallback?: (...args: any[]) => Promise<void>
     syncCount?: () => Promise<void>
     syncPagination?: () => Promise<void>
@@ -161,15 +166,34 @@ export function useData(args: {
     isPaginationLoading.value = true
 
     try {
-      const ogUpdateRows = formattedData.value
-        .filter((row) =>
-          updateRows.some(
-            (r) =>
-              extractPkFromRow(r.oldRow, metaValue?.columns as ColumnType[]) ===
-              extractPkFromRow(row.row, metaValue?.columns as ColumnType[]),
-          ),
-        )
-        .map(clone)
+      // Identify the rows that need to be fetched from the server
+
+      const rowsToFetch = updateRows.filter((row) => row.rowMeta?.isExistingRow)
+      const pagesToFetch = Array.from(new Set(rowsToFetch.map((row) => row.rowMeta.page))).filter(
+        (page): page is number => page !== undefined && page !== paginationData.value.page,
+      )
+      const fetchedData: Record<number, Row[]> = {}
+
+      for (const pageToFetch of pagesToFetch) {
+        fetchedData[pageToFetch] = (await callbacks?.loadData?.(
+          {
+            offset: (pageToFetch - 1) * paginationData.value.pageSize!,
+          },
+          false,
+          false,
+        )) as Row[]
+      }
+
+      const getPk = (row: Row) => extractPkFromRow(row.row, metaValue?.columns as ColumnType[])
+
+      const ogUpdateRows = updateRows.map((row) => {
+        if (row.rowMeta?.page && row.rowMeta.page !== paginationData.value.page) {
+          const fetchedRow = fetchedData[row.rowMeta.page]?.[row.rowMeta.rowInPage!]
+          return fetchedRow ? clone(fetchedRow) : row
+        }
+        const currentPageRow = formattedData.value.find((formattedRow) => getPk(formattedRow) === getPk(row))
+        return currentPageRow ? clone(currentPageRow) : row
+      })
 
       const cleanRow = (row: any) => {
         const cleanedRow = { ...row }
@@ -178,6 +202,20 @@ export function useData(args: {
         })
         return cleanedRow
       }
+
+      updateRows = updateRows.map((row) => {
+        if (row.rowMeta?.page && row.rowMeta.page !== paginationData.value.page) {
+          const fetchedRow = fetchedData[row.rowMeta.page]?.[row.rowMeta.rowInPage!]
+          if (fetchedRow) {
+            return {
+              ...fetchedRow,
+              row: { ...fetchedRow.row, ...row.row },
+              oldRow: fetchedRow.row,
+            }
+          }
+        }
+        return row
+      })
 
       const rowsToUpsert = {
         insert: insertRows.map((row) => cleanRow(row.row)),

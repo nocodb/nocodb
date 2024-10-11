@@ -161,7 +161,11 @@ export function useViewData(
 
   const controller = ref()
 
-  async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}, shouldShowLoading = true) {
+  async function loadData(
+    params: Parameters<Api<any>['dbViewRow']['list']>[4] = {},
+    shouldShowLoading = true,
+    updateLocalState = true,
+  ) {
     if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
 
     if (controller.value) {
@@ -213,27 +217,34 @@ export function useViewData(
       console.error(error)
       return message.error(await extractSdkResponseErrorMsg(error))
     }
-    formattedData.value = formatData(response.list)
-    paginationData.value = response.pageInfo || paginationData.value || {}
 
-    // if public then update sharedPaginationData
-    if (isPublic.value) {
-      sharedPaginationData.value = paginationData.value
-    }
+    if (updateLocalState) {
+      formattedData.value = formatData(response.list)
+      paginationData.value = response.pageInfo || paginationData.value || {}
 
-    excludePageInfo.value = !response.pageInfo
-    isPaginationLoading.value = false
+      // if public then update sharedPaginationData
+      if (isPublic.value) {
+        sharedPaginationData.value = paginationData.value
+      }
 
-    // to cater the case like when querying with a non-zero offset
-    // the result page may point to the target page where the actual returned data don't display on
-    if (paginationData.value.totalRows !== undefined && paginationData.value.totalRows !== null) {
-      const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
-      if (expectedPage < paginationData.value.page!) {
-        await changePage(expectedPage)
+      excludePageInfo.value = !response.pageInfo
+      isPaginationLoading.value = false
+
+      // to cater the case like when querying with a non-zero offset
+      // the result page may point to the target page where the actual returned data don't display on
+      if (paginationData.value.totalRows !== undefined && paginationData.value.totalRows !== null) {
+        const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
+        if (expectedPage < paginationData.value.page!) {
+          await changePage(expectedPage)
+        }
+      }
+      if (viewMeta.value?.type === ViewTypes.GRID) {
+        loadAggCommentsCount()
       }
     }
-    if (viewMeta.value?.type === ViewTypes.GRID) {
-      loadAggCommentsCount()
+
+    if (!updateLocalState) {
+      return formatData(response.list)
     }
   }
 

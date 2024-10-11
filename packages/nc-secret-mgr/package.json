@@ -1,6 +1,7 @@
 {
   "name": "nc-secret",
   "version": "0.0.1",
+  "packageManager": "pnpm@9.6.0",
   "description": "",
   "main": "dist/cli.js",
   "bin": "dist/cli.js",

@@ -277,7 +277,7 @@ watch(dialogShow, async (n, o) => {
     <div class="flex items-center px-4 py-2 border-b-1 border-purple-100">
       <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
         <GeneralIcon icon="ncAutoAwesome" class="flex-none h-6 w-6 !text-current" />
-        <div class="text-xl leading-8 font-bold">Noco AI Base Builder</div>
+        <div class="text-base leading-8 font-bold">Noco AI Base Builder</div>
       </div>
 
       <NcButton
@@ -308,7 +308,7 @@ watch(dialogShow, async (n, o) => {
         >
           <!-- create base config panel -->
           <div class="flex-1 p-6 flex flex-col gap-6">
-            <div class="text-base font-bold text-nc-content-purple-dark">Tell us more about your usecase</div>
+            <div class="text-sm font-bold text-nc-content-purple-dark">Tell us more about your usecase</div>
             <div class="flex flex-wrap gap-3 max-h-[188px] nc-scrollbar-thin overflow-visible">
               <!-- Predefined tags -->
 
@@ -431,10 +431,10 @@ watch(dialogShow, async (n, o) => {
           <!-- create base preview panel -->
 
           <template v-if="aiStep === AI_STEP.LOADING || aiStep === AI_STEP.PROMPT">
-            <div v-if="aiStep === AI_STEP.LOADING" class="text-base font-bold text-nc-content-purple-dark">
+            <div v-if="aiStep === AI_STEP.LOADING" class="text-sm font-bold text-nc-content-purple-dark">
               Generating a Base tailored to your requirement...
             </div>
-            <div v-else class="text-base font-bold text-nc-content-purple-dark">Preview</div>
+            <div v-else class="text-sm font-bold text-nc-content-purple-dark">Preview</div>
 
             <template v-if="aiStep === AI_STEP.LOADING">
               <div
@@ -474,7 +474,7 @@ watch(dialogShow, async (n, o) => {
             </div>
           </template>
           <template v-if="aiStep === AI_STEP.MODIFY">
-            <div class="text-base font-bold text-nc-content-purple-dark">Here’s your CRM Base</div>
+            <div class="text-sm font-bold text-nc-content-purple-dark">Here’s your CRM Base</div>
 
             <template v-if="predictedSchema?.tables">
               <AiWizardCard
@@ -498,7 +498,7 @@ watch(dialogShow, async (n, o) => {
                           <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
                             <NcCheckbox :checked="!table.excluded" theme="ai" @click.stop="onExcludeTable(table)" />
 
-                            <GeneralIcon icon="table" class="flex-none !h-4 cursor-pointer opacity-85" />
+                            <GeneralIcon icon="table" class="flex-none !h-4 opacity-85" />
 
                             <NcTooltip show-on-truncate-only class="truncate text-sm font-weight-500">
                               <template #title>
@@ -570,6 +570,11 @@ watch(dialogShow, async (n, o) => {
 :deep(.ant-collapse-header) {
   @apply !p-0 flex items-center !cursor-default children:first:flex;
 }
+
+:deep(.nc-schema-preview-table .ant-collapse-header) {
+  @apply !cursor-pointer;
+}
+
 :deep(.ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow) {
   @apply !right-0;
 }

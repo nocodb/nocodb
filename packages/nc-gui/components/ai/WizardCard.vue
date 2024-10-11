@@ -67,10 +67,10 @@ const handleChangeTab = (tab: string) => {
 
 <style lang="scss" scoped>
 .nc-ai-wizard-card {
-  @apply border-1 border-purple-200 rounded-lg overflow-y-auto transition-colors relative;
+  @apply border-1 border-purple-200 rounded-lg overflow-y-auto nc-scrollbar-thin transition-colors relative;
 
   .nc-ai-wizard-card-tab-header {
-    @apply bg-nc-bg-purple-light flex justify-between h-10 -mt-[1px] -ml-[1px] border-b-1 border-purple-200 sticky top-0 z-1;
+    @apply bg-nc-bg-purple-light flex justify-between h-10 -mt-[1px] -ml-[1px] border-b-1 border-purple-200 sticky -top-[1px] z-1;
 
     .nc-ai-wizard-card-tab {
       @apply relative px-4 py-2 text-sm cursor-pointer rounded-t-lg border-t-1 border-x-1;

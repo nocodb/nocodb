@@ -79,7 +79,7 @@ jobs:
           git tag $TAG
           git push --tags
 
-      - name : Install dependencies and build executables
+      - name: Install dependencies and build executables
         run: |
           # install npm dependendencies
           npm i

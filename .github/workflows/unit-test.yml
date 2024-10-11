@@ -5,11 +5,11 @@ name: Backend Unit Tests
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: ["develop"]
     paths:
       - "packages/nocodb/**"
   pull_request:
-    branches: [ "develop" ]
+    branches: ["develop"]
     paths:
       - "packages/nocodb/**"
 
@@ -24,21 +24,21 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v3
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - name: install dependencies nocodb-sdk
-      working-directory: ./packages/nocodb-sdk
-      run: npm ci
-    - name: build nocodb-sdk
-      working-directory: ./packages/nocodb-sdk
-      run: npm run build:main
-    - name: install dependencies nocodb
-      working-directory: ./packages/nocodb
-      run: npm ci
-    - name: run unit tests
-      working-directory: ./packages/nocodb
-      run: npm run unit-test
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - name: install dependencies nocodb-sdk
+        working-directory: ./packages/nocodb-sdk
+        run: npm ci
+      - name: build nocodb-sdk
+        working-directory: ./packages/nocodb-sdk
+        run: npm run build:main
+      - name: install dependencies nocodb
+        working-directory: ./packages/nocodb
+        run: npm ci
+      - name: run unit tests
+        working-directory: ./packages/nocodb
+        run: npm run unit-test

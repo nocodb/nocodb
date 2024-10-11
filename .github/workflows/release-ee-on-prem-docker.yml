@@ -9,7 +9,7 @@ on:
         required: true
 jobs:
   buildx:
-    runs-on: [ self-hosted, docker-build ]
+    runs-on: [self-hosted, docker-build]
     env:
       working-directory: ./packages/nocodb
     steps:
@@ -68,8 +68,8 @@ jobs:
       - name: build nc-gui and copy to nocodb
         env:
           NC_ON_PREM: true
-#          NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
-#          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        #          NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
+        #          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           # generate static build of nc-gui
@@ -94,19 +94,19 @@ jobs:
           EE=true pnpm exec webpack --config webpack.ee-on-prem.config.js &&
           # remove bundled libraries (nocodb-sdk, knex-snowflake)
           pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
-#
-#      - name: Move files to release version folder
-#        run: |
-#          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
-#          mv packages/nc-gui/ee/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+      #
+      #      - name: Move files to release version folder
+      #        run: |
+      #          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+      #          mv packages/nc-gui/ee/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
 
-#      - name: Deploy UI assets to CDN
-#        uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
-#        with:
-#          folder: packages/nc-gui/build/
-#          bucket: ${{ secrets.CDN_BUCKET }}
-#          dist-id: ${{ secrets.CDN_DIST_ID }}
-#          invalidation: /${{ steps.vars.outputs.release_version }}/*
+      #      - name: Deploy UI assets to CDN
+      #        uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
+      #        with:
+      #          folder: packages/nc-gui/build/
+      #          bucket: ${{ secrets.CDN_BUCKET }}
+      #          dist-id: ${{ secrets.CDN_DIST_ID }}
+      #          invalidation: /${{ steps.vars.outputs.release_version }}/*
 
 
 

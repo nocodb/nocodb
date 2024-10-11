@@ -66,7 +66,7 @@ jobs:
         with:
           node-version: 16
 
-      - name : Install nocodb, other dependencies and build executables
+      - name: Install nocodb, other dependencies and build executables
         run: |
           cd ./scripts/pkg-executable
 
@@ -108,10 +108,10 @@ jobs:
           draft: true
           tag_name: ${{ github.event.inputs.tag || inputs.tag }}
           files: |
-             ./scripts/pkg-executable/dist/Noco-win-arm64.exe
-             ./scripts/pkg-executable/dist/Noco-win-x64.exe
-             ./scripts/pkg-executable/dist/Noco-linux-arm64
-             ./scripts/pkg-executable/dist/Noco-linux-x64
+            ./scripts/pkg-executable/dist/Noco-win-arm64.exe
+            ./scripts/pkg-executable/dist/Noco-win-x64.exe
+            ./scripts/pkg-executable/dist/Noco-linux-arm64
+            ./scripts/pkg-executable/dist/Noco-linux-x64
 
       - uses: actions/upload-artifact@master
         with:

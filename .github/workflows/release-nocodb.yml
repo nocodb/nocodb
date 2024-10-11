@@ -48,7 +48,7 @@ jobs:
           echo "TARGET_TAG=${TARGET_TAG}" >> $GITHUB_OUTPUT
           echo "PREV_TAG=${PREV_TAG}" >> $GITHUB_OUTPUT
       - name: Verify
-        run : |
+        run: |
           echo TARGET_TAG: ${{ steps.process-input.outputs.target_tag }}
           echo PREV_TAG: ${{ steps.process-input.outputs.prev_tag }}
 

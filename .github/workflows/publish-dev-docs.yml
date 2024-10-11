@@ -2,11 +2,11 @@ name: "Publish : Docs (Develop)"
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
     paths:
       - "packages/noco-docs/**"
   release:
-    types: [ published ]
+    types: [published]
   # Triggered manually
   workflow_dispatch:
 

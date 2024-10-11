@@ -22,6 +22,7 @@ const feedIcon = {
   Twitter: iconMap.twitter,
   Youtube: iconMap.youtube,
   Github: iconMap.githubSolid,
+  Cloud: iconMap.ncCloud,
 }
 
 const truncate = ref(true)
@@ -32,7 +33,7 @@ const expand = () => {
   truncate.value = false
   $e('c:nocodb:feed:recents:expand', {
     title: Title,
-    type: 'github',
+    type: source,
   })
 }
 
@@ -67,7 +68,7 @@ const { width } = useWindowSize()
   <div class="bg-white recent-card border-gray-200 border-1 rounded-2xl max-w-[540px] xl:max-w-[640px]">
     <div class="flex items-center justify-between px-5 py-4">
       <div class="flex items-center gap-3">
-        <component :is="feedIcon[source as any]" class="w-4 h-4 stroke-transparent" />
+        <component :is="feedIcon[source]" class="w-4 h-4 stroke-transparent" />
         <span class="font-weight-medium text-nc-content-gray leading-5 cursor-pointer" @click="openLink(Url)">
           {{ source }}
         </span>
@@ -76,7 +77,7 @@ const { width } = useWindowSize()
         {{ timeAgo(CreatedAt) }}
       </div>
     </div>
-    <template v-if="source === 'Github'">
+    <template v-if="['Github', 'Cloud'].includes(source)">
       <div class="pb-5">
         <LazyCellAttachmentPreviewImage
           v-if="Images?.length"

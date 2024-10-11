@@ -931,7 +931,9 @@ export function useMultiSelect(
         } else {
           await bulkUpdateRows?.(updatedRows, propsToPaste)
         }
-
+        if (scrollToCell) {
+          scrollToCell(activeCell.row, activeCell.col)
+        }
         if (pastedRows > 0) {
           // highlight the pasted range
           selectedRange.startRange({ row: activeCell.row, col: activeCell.col })

@@ -9,23 +9,23 @@ export class ExpandTablePageObject extends BasePage {
     this.grid = grid;
   }
 
-  async getExpandTable() {
-    return this.rootPage.getByTestId('nc-expand-table-modal');
-  }
-
   async upsert() {
-    const expandTableModal = await this.getExpandTable();
+    const expandTableModal = this.rootPage.getByTestId('nc-expand-table-modal');
+
+    await expandTableModal.isVisible();
 
     await expandTableModal.getByTestId('nc-table-expand-yes').click();
 
-    await expandTableModal.getByTestId('nc-table-expand').click();
+    await this.rootPage.getByTestId('nc-table-expand').click();
   }
 
   async updateOnly() {
-    const expandTableModal = await this.getExpandTable();
+    const expandTableModal = this.rootPage.getByTestId('nc-expand-table-modal');
+
+    await expandTableModal.isVisible();
 
     await expandTableModal.getByTestId('nc-table-expand-no').click();
 
-    await expandTableModal.getByTestId('nc-table-expand').click();
+    await this.rootPage.getByTestId('nc-table-expand').click();
   }
 }

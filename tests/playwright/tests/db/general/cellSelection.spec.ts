@@ -21,6 +21,7 @@ test.describe('Verify cell selection', () => {
   test('Suite-1', async () => {
     // #1 when range is selected, it has correct number of selected cells
     await dashboard.treeView.openTable({ title: 'Customer' });
+
     await grid.selectRange({
       start: { index: 0, columnHeader: 'FirstName' },
       end: { index: 2, columnHeader: 'Email' },

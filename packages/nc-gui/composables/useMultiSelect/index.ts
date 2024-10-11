@@ -856,13 +856,21 @@ export function useMultiSelect(
 
         const totalRowsBeforeActiveCell = (page - 1) * pageSize + activeCell.row
         const availableRowsToUpdate = Math.max(0, totalRows - totalRowsBeforeActiveCell)
-        const rowsToAdd = Math.max(0, selectionRowCount - (totalRows - totalRowsBeforeActiveCell))
-
-        const unreffedData = unref(data).slice(activeCell.row, activeCell.row + selectionRowCount)
+        const totalRowsToPaste = clipboardMatrix.length
+        const rowsToAdd = Math.max(0, totalRowsToPaste - availableRowsToUpdate)
 
         const rowsInCurrentPage = unref(data).length
-        const recordsUpdatedInCurrentPage = Math.min(selectionRowCount, rowsInCurrentPage - activeCell.row)
-        const recordsUpdatedInSubsequentPages = Math.max(0, availableRowsToUpdate - recordsUpdatedInCurrentPage)
+
+        const unreffedData = unref(data).slice(
+          activeCell.row,
+          activeCell.row + Math.min(totalRowsToPaste, rowsInCurrentPage - activeCell.row),
+        )
+
+        const recordsUpdatedInCurrentPage = Math.min(rowsInCurrentPage - activeCell.row, availableRowsToUpdate, totalRowsToPaste)
+        const recordsUpdatedInSubsequentPages = Math.min(
+          availableRowsToUpdate - recordsUpdatedInCurrentPage,
+          totalRowsToPaste - recordsUpdatedInCurrentPage,
+        )
 
         let options = {
           continue: false,

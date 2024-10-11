@@ -142,6 +142,7 @@ jobs:
         uses: docker/build-push-action@v3.2.0
         with:
           context: ${{ env.working-directory }}
+          file: ${{ env.working-directory }}/Dockerfile.timely
           build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           cache-from: type=local,src=/tmp/.buildx-cache

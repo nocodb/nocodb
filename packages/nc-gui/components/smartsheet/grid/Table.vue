@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import axios from 'axios'
-import { nextTick } from '@vue/runtime-core'
+import { nextTick, resolveComponent } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
   UITypes,
@@ -599,6 +599,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
+  expandRows,
   async (e: KeyboardEvent) => {
     // ignore navigating if single/multi select options is open
     const activeDropdownEl = document.querySelector(
@@ -788,6 +789,45 @@ function scrollToRow(row?: number) {
   makeActive(row ?? dataRef.value.length - 1, 0)
   selectedRange.startRange({ row: activeCell.row!, col: activeCell.col! })
   scrollToCell?.()
+}
+
+const isOpen = ref(false)
+
+async function expandRows({
+  expandedRows,
+  updatedRows,
+  propsToPaste,
+}: {
+  expandedRows?: Row[]
+  updatedRows: Row[]
+  propsToPaste: any
+}) {
+  async function closeDialog(expand: boolean) {
+    close()
+    if (expand) {
+      await bulkUpsertRows?.(expandedRows!, updatedRows, propsToPaste)
+    } else {
+      await bulkUpdateRows?.(updatedRows, propsToPaste)
+    }
+  }
+  if (expandedRows?.length) {
+    isOpen.value = true
+  } else {
+    await bulkUpsertRows?.(expandedRows!, updatedRows, propsToPaste)
+  }
+
+  const closeDlg = () => {
+    isOpen.value = false
+  }
+
+  const { close } = useDialog(resolveComponent('DlgExpandTable'), {
+    'modelValue': isOpen,
+    'rows': expandedRows!.length,
+    'onUpdate:expand': closeDialog,
+    'onUpdate:modelValue': closeDlg,
+  })
+
+  await until(() => isOpen.value).toBeTruthy()
 }
 
 async function saveEmptyRow(rowObj: Row) {

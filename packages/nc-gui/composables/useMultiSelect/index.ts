@@ -41,6 +41,7 @@ export function useMultiSelect(
   clearSelectedRangeOfCells: Function,
   makeEditable: Function,
   scrollToCell?: (row?: number | null, col?: number | null) => void,
+  expandRows: Function,
   keyEventHandler?: Function,
   syncCellData?: Function,
   bulkUpdateRows?: Function,
@@ -859,7 +860,7 @@ export function useMultiSelect(
               row: {},
               oldRow: {},
               rowMeta: {
-                isNew: true,
+                isExpandedData: true,
               },
             }),
           )
@@ -909,11 +910,15 @@ export function useMultiSelect(
           }
         }
 
-        await bulkUpsertRows?.(
-          rowsToPaste.filter((row) => row.rowMeta.isNew),
-          rowsToPaste.filter((row) => !row.rowMeta.isNew),
+        const expandedRows = rowsToPaste.filter((row) => row.rowMeta.isExpandedData)
+
+        const updatedRows = rowsToPaste.filter((row) => !row.rowMeta.isExpandedData)
+
+        await expandRows({
+          expandedRows,
+          updatedRows,
           propsToPaste,
-        )
+        })
 
         if (pastedRows > 0) {
           // highlight the pasted range

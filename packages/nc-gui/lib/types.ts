@@ -81,6 +81,10 @@ interface Row {
     saving?: boolean
     ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
     fromExpandedForm?: boolean
+
+    //
+    isExpandedData?: boolean
+
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
     // Used in Calendar view

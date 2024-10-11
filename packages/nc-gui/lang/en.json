@@ -626,6 +626,7 @@
     "noConditionsAdded": "No conditions added"
   },
   "labels": {
+    "continue": "Continue",
     "modifiedOn": "Modified on",
     "configuration": "Configuration",
     "setup": "Setup",

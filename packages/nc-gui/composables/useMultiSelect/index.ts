@@ -854,33 +854,43 @@ export function useMultiSelect(
         const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
         const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + selectionRowCount)
 
+        let options = {
+          continue: false,
+          expand: true,
+        }
+
         if (pasteMatrixRows > rowsToPaste.length) {
           rowsToPaste.push(
-            ...Array(pasteMatrixRows - rowsToPaste.length).fill({
-              row: {},
-              oldRow: {},
-              rowMeta: {
-                isExpandedData: true,
-              },
-            }),
+            ...Array(pasteMatrixRows - rowsToPaste.length)
+              .fill({})
+              .map(() => ({
+                row: {},
+                oldRow: {},
+                rowMeta: {
+                  isExpandedData: true,
+                },
+              })),
           )
+
+          options = await expandRows(pasteMatrixRows - rowsToPaste.length)
+
+          if (!options.continue) {
+            return
+          }
         }
         const propsToPaste: string[] = []
 
         let pastedRows = 0
         let isInfoShown = false
 
-        for (let i = 0; i < pasteMatrixRows; i++) {
-          const pasteRow = rowsToPaste[i]
-
-          // TODO handle insert new row
+        for (const pasteRow of rowsToPaste) {
           if (!pasteRow || pasteRow.rowMeta.new) break
 
           pastedRows++
 
-          for (let j = 0; j < pasteMatrixCols; j++) {
-            const pasteCol = colsToPaste[j]
+          let colIndex = 0
 
+          for (const pasteCol of colsToPaste) {
             if (!isPasteable(pasteRow, pasteCol)) {
               if ((isBt(pasteCol) || isOo(pasteCol) || isMm(pasteCol)) && !isInfoShown) {
                 message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
@@ -894,7 +904,7 @@ export function useMultiSelect(
             const pasteValue = convertCellData(
               {
                 // Repeat the clipboard data array if the matrix is smaller than the selection
-                value: clipboardMatrix[i % clipboardMatrix.length][j],
+                value: clipboardMatrix[pastedRows % clipboardMatrix.length][colIndex],
                 to: pasteCol.uidt as UITypes,
                 column: pasteCol,
                 appInfo: unref(appInfo),
@@ -907,6 +917,7 @@ export function useMultiSelect(
             if (pasteValue !== undefined) {
               pasteRow.row[pasteCol.title!] = pasteValue
             }
+            colIndex++
           }
         }
 
@@ -914,11 +925,11 @@ export function useMultiSelect(
 
         const updatedRows = rowsToPaste.filter((row) => !row.rowMeta.isExpandedData)
 
-        await expandRows({
-          expandedRows,
-          updatedRows,
-          propsToPaste,
-        })
+        if (options.expand) {
+          await bulkUpsertRows?.(expandedRows!, updatedRows, propsToPaste)
+        } else {
+          await bulkUpdateRows?.(updatedRows, propsToPaste)
+        }
 
         if (pastedRows > 0) {
           // highlight the pasted range

@@ -793,27 +793,12 @@ function scrollToRow(row?: number) {
 
 const isOpen = ref(false)
 
-async function expandRows({
-  expandedRows,
-  updatedRows,
-  propsToPaste,
-}: {
-  expandedRows?: Row[]
-  updatedRows: Row[]
-  propsToPaste: any
-}) {
-  async function closeDialog(expand: boolean) {
-    close()
-    if (expand) {
-      await bulkUpsertRows?.(expandedRows!, updatedRows, propsToPaste)
-    } else {
-      await bulkUpdateRows?.(updatedRows, propsToPaste)
-    }
-  }
-  if (expandedRows?.length) {
-    isOpen.value = true
-  } else {
-    await bulkUpsertRows?.(expandedRows!, updatedRows, propsToPaste)
+async function expandRows(rowCount: number) {
+  isOpen.value = true
+
+  const options = {
+    continue: false,
+    expand: true,
   }
 
   const closeDlg = () => {
@@ -822,12 +807,20 @@ async function expandRows({
 
   const { close } = useDialog(resolveComponent('DlgExpandTable'), {
     'modelValue': isOpen,
-    'rows': expandedRows!.length,
+    'rows': rowCount,
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })
 
-  await until(() => isOpen.value).toBeTruthy()
+  async function closeDialog(expand: boolean) {
+    options.continue = true
+    options.expand = expand
+    close(1000)
+  }
+
+  await until(isOpen).toBe(false)
+
+  return options
 }
 
 async function saveEmptyRow(rowObj: Row) {

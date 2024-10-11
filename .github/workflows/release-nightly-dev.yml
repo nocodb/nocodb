@@ -43,29 +43,20 @@ jobs:
       nightly_build_tag: ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
       is_daily: ${{ steps.tag-step.outputs.IS_DAILY }}
       current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }}
-  # Build frontend and backend and publish to npm
-  release-npm:
-    needs: set-tag
-    uses: ./.github/workflows/release-npm.yml
-    with:
-      tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
-      targetEnv: 'DEV'
-    secrets:
-      NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
   # Build executables and publish to GitHub
-  release-executables:
-    needs: [set-tag, release-npm]
-    uses: ./.github/workflows/release-timely-executables.yml
-    with:
-      tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.nightly_build_tag }}
-    secrets:
-      NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
+#  release-executables:
+#    needs: [set-tag, release-npm]
+#    uses: ./.github/workflows/release-timely-executables.yml
+#    with:
+#      tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.nightly_build_tag }}
+#    secrets:
+#      NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
   # Build docker image and push to docker hub
   release-docker:
-    needs: [set-tag, release-npm]
-    uses: ./.github/workflows/release-docker.yml
+    needs: [set-tag]
+    uses: ./.github/workflows/release-timely-docker.yml
     with:
       currentVersion: ${{ needs.set-tag.outputs.current_version }}
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}

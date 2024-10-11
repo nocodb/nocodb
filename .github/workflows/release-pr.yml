@@ -50,22 +50,11 @@ jobs:
       target_tag: ${{ steps.tag-step.outputs.TARGET_TAG }}
       current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }}
 
-  # Build, install, publish frontend and backend to npm
-  release-npm:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
-    needs: [set-tag]
-    uses: ./.github/workflows/release-npm.yml
-    with:
-      tag: ${{ needs.set-tag.outputs.target_tag }}
-      targetEnv: 'DEV'
-    secrets:
-      NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
-
   # Build docker image and push to docker hub
   release-docker:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
-    needs: [release-npm, set-tag]
-    uses: ./.github/workflows/release-docker.yml
+    needs: [set-tag]
+    uses: ./.github/workflows/release-timely-docker.yml
     with:
       currentVersion: ${{ needs.set-tag.outputs.current_version }}
       tag: ${{ needs.set-tag.outputs.target_tag }}

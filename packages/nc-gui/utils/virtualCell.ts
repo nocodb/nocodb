@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 export const isLTAR = (uidt: string | undefined, colOptions: unknown): colOptions is LinkToAnotherRecordType => {
   if (!uidt) return false
@@ -25,3 +25,16 @@ export const isQrCode = (column: ColumnType) => column.uidt === UITypes.QrCode
 export const isBarcode = (column: ColumnType) => column.uidt === UITypes.Barcode
 export const isCount = (column: ColumnType) => column.uidt === UITypes.Count
 export const isLink = (column: ColumnType) => column.uidt === UITypes.Links
+
+export function isReadOnlyVirtualCell(col: ColumnType) {
+  return (
+    isRollup(col) ||
+    isFormula(col) ||
+    isBarcode(col) ||
+    isLookup(col) ||
+    isQrCode(col) ||
+    isSystemColumn(col) ||
+    isCreatedOrLastModifiedTimeCol(col) ||
+    isCreatedOrLastModifiedByCol(col)
+  )
+}

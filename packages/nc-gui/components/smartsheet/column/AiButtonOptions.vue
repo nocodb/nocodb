@@ -151,7 +151,9 @@ const inputColumns = computed(() => {
 
 const outputFieldOptions = computed(() => {
   if (!meta.value?.columns) return []
-  return meta.value.columns.filter((c) => !c.system && !c.pk && c.id !== column.value?.id)
+  return meta.value.columns.filter(
+    (c) => !c.system && !c.pk && c.id !== column.value?.id && c.uidt !== UITypes.Attachment && !isReadOnlyVirtualCell(c),
+  )
 })
 
 const outputColumnIds = computed({
@@ -217,19 +219,6 @@ const handleUpdateExpansionPanel = (key: ExpansionPanelKeys) => {
     }
     expansionPanel.value.push(key)
   }
-}
-
-const isReadOnlyVirtualCell = (column: ColumnType) => {
-  return (
-    isRollup(column) ||
-    isFormula(column) ||
-    isBarcode(column) ||
-    isLookup(column) ||
-    isQrCode(column) ||
-    isSystemColumn(column) ||
-    isCreatedOrLastModifiedTimeCol(column) ||
-    isCreatedOrLastModifiedByCol(column)
-  )
 }
 
 // provide the following to override the default behavior and enable input fields like in form

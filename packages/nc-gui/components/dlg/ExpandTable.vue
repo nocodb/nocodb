@@ -23,6 +23,11 @@ onKeyDown('esc', () => {
   dialogShow.value = false
   emit('update:modelValue', false)
 })
+
+const close = () => {
+  dialogShow.value = false
+  emit('cancel')
+}
 </script>
 
 <template>
@@ -40,11 +45,7 @@ onKeyDown('esc', () => {
         </div>
       </div>
     </template>
-    <div class="flex flex-col mt-1">
-      <div v-if="(affectedRows ?? 0) > 0" class="mb-2">
-        The data you pasted will update {{ affectedRows }} records in subsequent pages.
-      </div>
-
+    <div data-testid="nc-expand-table-modal" class="flex flex-col mt-1">
       <div v-if="(rows ?? 0) > 0" class="mb-4">
         To fit your pasted data into the table, we need to add
         <span class="font-semibold text-gray-800"> {{ rows }} more records. </span>
@@ -52,6 +53,7 @@ onKeyDown('esc', () => {
 
       <a-radio-group v-if="(rows ?? 0) > 0" v-model:value="expand">
         <a-radio
+          data-testid="nc-table-expand-yes"
           :style="{
             display: 'flex',
             height: '30px',
@@ -66,6 +68,7 @@ onKeyDown('esc', () => {
           </div>
         </a-radio>
         <a-radio
+          data-testid="nc-table-expand-no"
           :style="{
             display: 'flex',
             height: '30px',
@@ -81,7 +84,12 @@ onKeyDown('esc', () => {
 
       <div class="flex flex-row justify-end gap-x-2">
         <div class="flex gap-2 items-center">
-          <NcButton type="primary" size="small" @click="updateExpand">
+          <NcButton data-testid="nc-table-expand-cancel" type="secondary" size="small" @click="close">
+            {{ $t('labels.cancel') }}
+          </NcButton>
+        </div>
+        <div class="flex gap-2 items-center">
+          <NcButton data-testid="nc-table-expand" type="primary" size="small" @click="updateExpand">
             {{ $t('labels.continue') }}
           </NcButton>
         </div>

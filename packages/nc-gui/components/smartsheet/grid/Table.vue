@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
-import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { ButtonType, ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
+  ButtonActionsType,
   UITypes,
   ViewTypes,
   isCreatedOrLastModifiedByCol,
@@ -848,12 +849,15 @@ const isSelectedOnlyAI = computed(() => {
   // selectedRange
   if (selectedRange.start.col === selectedRange.end.col) {
     const field = fields.value[selectedRange.start.col]
-    return field.uidt === UITypes.AI
+    return (
+      field.uidt === UITypes.AI ||
+      (field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai)
+    )
   }
   return false
 })
 
-const { generateRows, generatingRows, generatingColumnRows } = useNocoAi()
+const { generateRows, generatingRows, generatingColumnRows, generatingColumns } = useNocoAi()
 
 const generateAIBulk = async () => {
   if (!isSelectedOnlyAI.value || !meta?.value?.id || !meta.value.columns) return
@@ -866,10 +870,23 @@ const generateAIBulk = async () => {
 
   if (!rows || rows.length === 0) return
 
+  let outputColumnIds = [field.id]
+
+  const isAiButton = field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai
+
+  if (isAiButton) {
+    outputColumnIds =
+      ncIsString(field.colOptions?.output_column_ids) && field.colOptions.output_column_ids.split(',').length > 0
+        ? field.colOptions.output_column_ids.split(',')
+        : []
+  }
+
   const pks = rows.map((row) => extractPkFromRow(row.row, meta.value!.columns!)).filter((pk) => pk !== null)
 
   generatingRows.value.push(...pks)
   generatingColumnRows.value.push(field.id)
+
+  generatingColumns.value.push(...outputColumnIds)
 
   const res = await generateRows(meta.value.id, field.id, pks)
 
@@ -888,6 +905,7 @@ const generateAIBulk = async () => {
 
   generatingRows.value = generatingRows.value.filter((pk) => !pks.includes(pk))
   generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== field.id)
+  generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
 }
 
 const selectColumn = (columnId: string) => {

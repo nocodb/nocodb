@@ -97,7 +97,7 @@ jobs:
           pnpm run generate
           
           # copy build to nocodb
-          rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
+          rsync -rvzh ./dist/ ../nocodb/docker/nc-gui/
 
 
       - name: build nocodb

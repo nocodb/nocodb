@@ -203,9 +203,6 @@ const activeAiTab = computed({
   set: (value: keyof typeof TableWizardTabs) => {
     activeAiTabLocal.value = value
 
-    predictedViews.value = []
-    predictHistory.value = [...selectedViews.value]
-
     prompt.value = ''
     isPromtAlreadyGenerated.value = false
 

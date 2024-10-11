@@ -66,9 +66,6 @@ export const usePredictFields = createSharedComposable(
       set: (value: keyof typeof TableWizardTabs) => {
         activeAiTabLocal.value = value
 
-        predicted.value = []
-        predictHistory.value = [...selected.value]
-
         prompt.value = ''
         isPromtAlreadyGenerated.value = false
 

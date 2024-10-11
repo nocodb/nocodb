@@ -1,13 +1,24 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 
-const { visibleColumns, activeField, allViewFilters, localColumnsMapByFkColumnId } = useFormViewStoreOrThrow()
+const { visibleColumns, activeField, allViewFilters, localColumns, localColumnsMapByFkColumnId } = useFormViewStoreOrThrow()
 
 const isOpen = ref<boolean>(false)
 
 const allFilters = ref({})
 
 provide(AllFiltersInj, allFilters)
+
+const fieldAlias = computed(() => {
+  return localColumns.value.reduce((acc, field) => {
+    if (field?.fk_column_id && field?.label?.trim()) {
+      acc[field.fk_column_id] = field.label
+    }
+    return acc
+  }, {} as Record<string, string>)
+})
+
+provide(FieldNameAlias, fieldAlias)
 
 const visibilityError = computed(() => {
   return parseProp(activeField.value?.meta)?.visibility?.errors || {}

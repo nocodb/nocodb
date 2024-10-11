@@ -17,6 +17,8 @@ const customColumns = toRef(restProps, 'columns')
 
 const meta = toRef(restProps, 'meta')
 
+const fieldNameAlias = inject(FieldNameAlias, ref({} as Record<string, string>))
+
 const { metas } = useMetas()
 
 const localValue = computed({
@@ -110,7 +112,7 @@ const options = computed<SelectProps['options']>(() =>
     })
     ?.map((c: ColumnType) => ({
       value: c.id,
-      label: c.title,
+      label: fieldNameAlias.value[c.id!] || c.title,
       icon: h(
         isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'),
         {

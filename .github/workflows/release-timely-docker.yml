@@ -101,13 +101,12 @@ jobs:
 
 
       - name: build nocodb
-        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
         run: |
           # build nocodb ( pack nocodb-sdk and nc-gui )
           cd packages/nocodb &&
           EE=true pnpm exec webpack --config webpack.timely.config.js &&
           # remove bundled libraries (nocodb-sdk, knex-snowflake)
-          pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
+          pnpm uninstall --save-prod nocodb-sdk
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2.1.0

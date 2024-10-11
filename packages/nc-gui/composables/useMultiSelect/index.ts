@@ -853,6 +853,7 @@ export function useMultiSelect(
         const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
 
         const { totalRows = 0, page = 1, pageSize = 100 } = unref(paginationDataRef)!
+
         const totalRowsBeforeActiveCell = (page - 1) * pageSize + activeCell.row
         const availableRowsToUpdate = Math.max(0, totalRows - totalRowsBeforeActiveCell)
         const rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
@@ -864,7 +865,7 @@ export function useMultiSelect(
           Math.min(selectionRowCount, rowsInCurrentPage - activeCell.row),
           availableRowsToUpdate,
         )
-        const recordsUpdatedInSubsequentPages = Math.max(0, availableRowsToUpdate - recordsUpdatedInCurrentPage)
+        const recordsUpdatedInSubsequentPages = Math.max(0, selectionRowCount - recordsUpdatedInCurrentPage)
 
         let options = {
           continue: false,
@@ -947,7 +948,10 @@ export function useMultiSelect(
         }
 
         selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
-        selectedRange.endRange({ row: activeCell.row + selectionRowCount - 1, col: activeCell.col + pasteMatrixCols - 1 })
+        selectedRange.endRange({
+          row: activeCell.row + recordsUpdatedInCurrentPage - 1,
+          col: activeCell.col + pasteMatrixCols - 1,
+        })
       } else {
         if (selectedRange.isSingleCell()) {
           const rowObj = unref(data)[activeCell.row]

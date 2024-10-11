@@ -481,7 +481,7 @@ watch(dialogShow, async (n, o) => {
                 v-if="aiMode"
                 v-model:active-tab="activePreviewTab"
                 :tabs="previewTabs"
-                class="!rounded-xl flex-1 flex flex-col"
+                class="!rounded-xl flex-1 flex flex-col min-w-[320px]"
                 content-class-name="flex-1 flex flex-col"
               >
                 <template #tabContent>

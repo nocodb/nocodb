@@ -1258,8 +1258,7 @@ function init() {
                 <div class="text-nc-content-purple-light text-sm h-7 flex items-center">
                   <GeneralLoader size="regular" class="!text-nc-content-purple-dark !mr-2" />
 
-                  Auto suggesting view based on your base name and existing views
-                  <div class="nc-animate-dots"></div>
+                  <span class="nc-animate-dots"> Auto suggesting view based on your base name and existing views fields </span>
                 </div>
               </div>
             </template>

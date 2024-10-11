@@ -1404,9 +1404,10 @@ const onDeselectAll = () => {
                   <div class="text-nc-content-purple-light text-sm h-7 flex items-center">
                     <GeneralLoader size="regular" class="!text-nc-content-purple-dark !mr-2" />
 
-                    Auto suggesting {{ isFormulaPredictionMode ? 'formula' : '' }} fields based on your table name and existing
-                    fields
-                    <div class="nc-animate-dots"></div>
+                    <span class="nc-animate-dots">
+                      Auto suggesting {{ isFormulaPredictionMode ? 'formula' : '' }} fields based on your table name and existing
+                      fields
+                    </span>
                   </div>
                 </div>
               </template>

@@ -45,6 +45,7 @@ const {
   disableSubmitBtn,
   column,
   isAiMode,
+  defaultFormState,
 } = useColumnCreateStoreOrThrow()
 
 const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
@@ -66,8 +67,8 @@ const {
   activeSelectedField,
   failedToSaveFields,
   onInit,
-  toggleAiMode,
-  disableAiMode,
+  toggleAiMode: _toggleAiMode,
+  disableAiMode: _disableAiMode,
   predictMore,
   predictRefresh,
   predictFromPrompt,
@@ -524,6 +525,20 @@ const handleNavigateToIntegrations = () => {
   })
 }
 
+const toggleAiMode = () => {
+  formState.value = {
+    ...defaultFormState,
+  }
+  _toggleAiMode()
+}
+
+const disableAiMode = () => {
+  formState.value = {
+    ...defaultFormState,
+  }
+  _disableAiMode()
+}
+
 function onSelectedTagClick(field: any = undefined) {
   if (!field && selected.value.length) {
     field = selected.value[selected.value.length - 1]
@@ -661,7 +676,7 @@ const onDeselectAll = () => {
 
         <!-- overlay selected tags with close icon on input -->
         <div
-          v-if="aiAutoSuggestModeStep && !isEdit"
+          v-if="aiAutoSuggestMode && !isEdit"
           class="absolute top-0 max-w-[calc(100%_-_48px)] left-0 z-12 h-8 flex items-center gap-2 mx-2 nc-scrollbar-thin overflow-x-auto"
         >
           <a-tag
@@ -693,13 +708,7 @@ const onDeselectAll = () => {
         <!-- Black overlay button on end of input -->
         <NcTooltip
           v-if="!isEdit"
-          :title="
-            aiAutoSuggestMode
-              ? 'Disable AI suggestions'
-              : formState.uidt && !aiAutoSuggestMode
-              ? 'You cannot use ai field suggestion if selected field is not ai suggested'
-              : 'Suggest field using AI'
-          "
+          :title="aiAutoSuggestMode ? 'Disable AI suggestions' : 'Suggest field using AI'"
           class="nc-field-modal-ai-toggle-btn-wrapper absolute right-0 top-0 h-full"
           :class="{
             'cursor-not-allowed': formState.uidt && !aiAutoSuggestMode,
@@ -712,7 +721,7 @@ const onDeselectAll = () => {
             class="nc-field-modal-ai-toggle-btn z-10 !border-l-0 !rounded-l-none !pl-3.8"
             :class="{
               'nc-ai-mode': aiAutoSuggestMode,
-              '!pointer-events-none !cursor-not-allowed': aiLoading || (formState.uidt && !aiAutoSuggestMode),
+              '!pointer-events-none !cursor-not-allowed': aiLoading,
             }"
             icon-only
             @click.stop="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
@@ -846,9 +855,10 @@ const onDeselectAll = () => {
                 <div class="text-nc-content-purple-light text-sm h-7 flex items-center">
                   <GeneralLoader size="regular" class="!text-nc-content-purple-dark !mr-2" />
 
-                  Auto suggesting {{ isFormulaPredictionMode ? 'formula' : '' }} fields based on your table name and existing
-                  fields
-                  <div class="nc-animate-dots"></div>
+                  <span class="nc-animate-dots">
+                    Auto suggesting {{ isFormulaPredictionMode ? 'formula' : '' }} fields based on your table name and existing
+                    fields
+                  </span>
                 </div>
               </div>
             </template>
@@ -948,9 +958,10 @@ const onDeselectAll = () => {
         </template>
       </AiWizardCard>
 
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-1 empty:hidden">
         <template v-if="!props.hideType && !formState.uidt">
           <SmartsheetColumnUITypesOptionsWithSearch
+            v-if="!(aiAutoSuggestMode && !props.fromTableExplorer)"
             :options="uiTypesOptions"
             :extra-icons="extraIcons"
             @selected="onSelectType($event, true)"

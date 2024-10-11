@@ -1,4 +1,12 @@
-import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  type PaginatedType,
+  type RelationTypes,
+  type TableType,
+  type ViewType,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { CellRange } from '#imports'
@@ -144,6 +152,104 @@ export function useData(args: {
     }
   }
 
+  async function bulkUpsertRows(
+    insertRows: Row[],
+    updateRows: Row[],
+    { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
+  ) {
+    isPaginationLoading.value = true
+
+    try {
+      const ogUpdateRows = formattedData.value
+        .filter((row) =>
+          updateRows.some(
+            (r) =>
+              extractPkFromRow(r.oldRow, metaValue?.columns as ColumnType[]) ===
+              extractPkFromRow(row.row, metaValue?.columns as ColumnType[]),
+          ),
+        )
+        .map(clone)
+
+      const cleanRow = (row: any) => {
+        const cleanedRow = { ...row }
+        metaValue?.columns?.forEach((col) => {
+          if (col.system || isVirtualCol(col)) delete cleanedRow[col.title!]
+        })
+        return cleanedRow
+      }
+
+      const rowsToUpsert = {
+        insert: insertRows.map((row) => cleanRow(row.row)),
+        update: updateRows.map((row) => cleanRow(row.row)),
+      }
+
+      const bulkUpsertedRows = await $api.dbTableRow.bulkUpsert(
+        NOCO,
+        base.value?.id as string,
+        metaValue?.id as string,
+        rowsToUpsert,
+        {},
+      )
+
+      const originalPks = new Set(formattedData.value.map((row) => extractPkFromRow(row.row, metaValue?.columns as ColumnType[])))
+      const [insertedRows, updatedRows] = bulkUpsertedRows.reduce(
+        ([inserted, updated], row) => {
+          const isPkInOriginal = originalPks.has(extractPkFromRow(row, metaValue?.columns as ColumnType[]))
+          return isPkInOriginal
+            ? [inserted, [...updated, { row, rowMeta: {}, oldRow: row }]]
+            : [[...inserted, { row, rowMeta: {}, oldRow: {} }], updated]
+        },
+        [[], []] as [Row[], Row[]],
+      )
+
+      if (!undo) {
+        addUndo({
+          redo: {
+            fn: async (insertRows: Row[], updateRows: Row[], pg: { page: number; pageSize: number }) => {
+              await bulkUpsertRows(insertRows, updateRows, { metaValue, viewMetaValue }, true)
+              await (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize
+                ? callbacks?.loadData?.()
+                : callbacks?.changePage?.(pg.page))
+            },
+            args: [
+              clone(insertedRows),
+              clone(updatedRows),
+              { page: paginationData.value.page, pageSize: paginationData.value.pageSize },
+            ],
+          },
+          undo: {
+            fn: async (insertedRows: Row[], ogUpdateRows: Row[], pg: { page: number; pageSize: number }) => {
+              await bulkDeleteRows(
+                insertedRows.map((row) => rowPkData(row.row, metaValue?.columns as ColumnType[]) as Record<string, any>),
+              )
+              await $api.dbTableRow.bulkUpdate(
+                NOCO,
+                metaValue?.base_id as string,
+                metaValue?.id as string,
+                ogUpdateRows.map((row) => cleanRow(row.oldRow)),
+              )
+              await (pg.page === paginationData.value.page && pg.pageSize === paginationData.value.pageSize
+                ? callbacks?.loadData?.()
+                : callbacks?.changePage?.(pg.page))
+            },
+            args: [
+              clone(insertedRows),
+              clone(ogUpdateRows),
+              { page: paginationData.value.page, pageSize: paginationData.value.pageSize },
+            ],
+          },
+        })
+      }
+
+      await callbacks?.loadData?.()
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+    } finally {
+      await callbacks?.globalCallback?.()
+      isPaginationLoading.value = false
+    }
+  }
   async function bulkInsertRows(
     rows: Row[],
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
@@ -437,6 +543,7 @@ export function useData(args: {
           UITypes.Rollup,
           UITypes.LinkToAnotherRecord,
           UITypes.LastModifiedBy,
+          UITypes.Button,
         ].includes(col.uidt),
       )
     ) {
@@ -923,5 +1030,6 @@ export function useData(args: {
     removeRowIfNew,
     bulkDeleteRows,
     bulkInsertRows,
+    bulkUpsertRows,
   }
 }

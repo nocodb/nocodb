@@ -11556,6 +11556,96 @@
           }
         ]
       },
+      "put": {
+        "summary": "Bulk Upsert Table Rows",
+        "operationId": "db-table-row-bulk-upsert",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "List of returned values. 1 means successful. 0 means failed."
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "update": [
+                        {
+                          "Id": 1,
+                          "Title": "abc"
+                        }
+                      ],
+                      "insert": [
+                        {
+                          "Id": 2,
+                          "Title": "def"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "List of data objects",
+                "properties": {
+                  "update": {
+                    "type": "array",
+                    "items": {
+                      "x-stoplight": {
+                        "id": "7u0mpbnzlvysz"
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "insert": {
+                    "type": "array",
+                    "items": {
+                      "x-stoplight": {
+                        "id": "7u0mp8nzovysz"
+                      },
+                      "type": "object"
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Title": "abc"
+                    },
+                    {
+                      "Title": "def"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "description": ""
+        },
+        "description": "Bulk upsert table rows in one go.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
       "patch": {
         "summary": "Bulk Update Table Rows by IDs",
         "operationId": "db-table-row-bulk-update",

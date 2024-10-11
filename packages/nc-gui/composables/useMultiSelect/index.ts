@@ -44,6 +44,7 @@ export function useMultiSelect(
   keyEventHandler?: Function,
   syncCellData?: Function,
   bulkUpdateRows?: Function,
+  bulkUpsertRows?: Function,
   fillHandle?: MaybeRef<HTMLElement | undefined>,
   view?: MaybeRef<ViewType | undefined>,
   paginationData?: MaybeRef<PaginatedType | undefined>,
@@ -851,6 +852,18 @@ export function useMultiSelect(
 
         const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
         const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + selectionRowCount)
+
+        if (pasteMatrixRows > rowsToPaste.length) {
+          rowsToPaste.push(
+            ...Array(pasteMatrixRows - rowsToPaste.length).fill({
+              row: {},
+              oldRow: {},
+              rowMeta: {
+                isNew: true,
+              },
+            }),
+          )
+        }
         const propsToPaste: string[] = []
 
         let pastedRows = 0
@@ -895,7 +908,12 @@ export function useMultiSelect(
             }
           }
         }
-        await bulkUpdateRows?.(rowsToPaste, propsToPaste)
+
+        await bulkUpsertRows?.(
+          rowsToPaste.filter((row) => row.rowMeta.isNew),
+          rowsToPaste.filter((row) => !row.rowMeta.isNew),
+          propsToPaste,
+        )
 
         if (pastedRows > 0) {
           // highlight the pasted range

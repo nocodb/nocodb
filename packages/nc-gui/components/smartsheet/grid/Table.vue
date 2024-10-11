@@ -40,6 +40,12 @@ const props = defineProps<{
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
   ) => Promise<void>
+  bulkUpsertRows?: (
+    insertRows: Row[],
+    upsertRows: Row[],
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    undo?: boolean,
+  ) => Promise<void>
   headerOnly?: boolean
   hideHeader?: boolean
   hideCheckbox?: boolean
@@ -87,6 +93,7 @@ const {
   deleteRangeOfRows,
   removeRowIfNew,
   bulkUpdateRows,
+  bulkUpsertRows,
 } = props
 
 // #Injections
@@ -769,6 +776,7 @@ const {
     await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
   bulkUpdateRows,
+  bulkUpsertRows,
   fillHandle,
   view,
   paginationDataRef,

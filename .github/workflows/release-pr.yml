@@ -54,7 +54,7 @@ jobs:
   release-docker:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false && github.base_ref == 'develop' && github.event.action != 'closed' }}
     needs: [set-tag]
-    uses: ./.github/workflows/release-docker.yml
+    uses: ./.github/workflows/release-timely-docker.yml
     with:
       currentVersion: ${{ needs.set-tag.outputs.current_version }}
       tag: ${{ needs.set-tag.outputs.target_tag }}

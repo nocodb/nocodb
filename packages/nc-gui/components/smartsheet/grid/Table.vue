@@ -793,7 +793,7 @@ function scrollToRow(row?: number) {
 
 const isOpen = ref(false)
 
-async function expandRows(rowCount: number, rowsAffected: number) {
+async function expandRows(rowCount: number, rowsUpdatedinCurrentPage: number, rowsUpdatedInNextPages: number) {
   isOpen.value = true
 
   const options = {
@@ -801,17 +801,19 @@ async function expandRows(rowCount: number, rowsAffected: number) {
     expand: true,
   }
 
-  const closeDlg = () => {
-    isOpen.value = false
-  }
-
   const { close } = useDialog(resolveComponent('DlgExpandTable'), {
     'modelValue': isOpen,
-    'rows': rowCount,
-    'affectedRows': rowsAffected,
+    'newRows': rowCount,
+    'currentPage': rowsUpdatedinCurrentPage,
+    'nextPages': rowsUpdatedInNextPages,
     'onUpdate:expand': closeDialog,
     'onUpdate:modelValue': closeDlg,
   })
+
+  function closeDlg() {
+    isOpen.value = false
+    close(1000)
+  }
 
   async function closeDialog(expand: boolean) {
     options.continue = true

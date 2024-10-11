@@ -860,15 +860,18 @@ export function useMultiSelect(
         const unreffedData = unref(data).slice(activeCell.row, activeCell.row + selectionRowCount)
 
         const rowsInCurrentPage = unref(data).length
-        const rowsAffectedInCurrentPage = Math.min(selectionRowCount, rowsInCurrentPage - activeCell.row)
-        const rowsAffectedInOtherPages = Math.max(0, selectionRowCount - rowsAffectedInCurrentPage)
+        const recordsUpdatedInCurrentPage = Math.min(
+          Math.min(selectionRowCount, rowsInCurrentPage - activeCell.row),
+          availableRowsToUpdate,
+        )
+        const recordsUpdatedInSubsequentPages = Math.max(0, availableRowsToUpdate - recordsUpdatedInCurrentPage)
 
         let options = {
           continue: false,
-          expand: rowsToAdd > 0 || rowsAffectedInOtherPages > 0 || (rowsAffectedInOtherPages > 0 && rowsToAdd > 0),
+          expand: rowsToAdd > 0 || recordsUpdatedInSubsequentPages > 0,
         }
         if (options.expand) {
-          options = await expandRows(rowsToAdd, rowsAffectedInOtherPages)
+          options = await expandRows(rowsToAdd, recordsUpdatedInCurrentPage, recordsUpdatedInSubsequentPages)
           if (!options.continue) return
         }
 

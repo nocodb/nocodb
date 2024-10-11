@@ -3,7 +3,9 @@ import { onKeyDown } from '@vueuse/core'
 
 const props = defineProps<{
   fields?: number
-  rows?: number
+  newRows?: number
+  currentPage?: number
+  nextPages?: number
   modelValue: boolean
   affectedRows?: number
 }>()
@@ -32,6 +34,7 @@ const close = () => {
 
 <template>
   <NcModal
+    v-if="dialogShow"
     v-model:visible="dialogShow"
     :show-separator="false"
     :header="$t('activity.createTable')"
@@ -39,18 +42,22 @@ const close = () => {
     @keydown.esc="dialogShow = false"
   >
     <div class="flex justify-between w-full text-base font-semibold mb-2 text-nc-content-gray-emphasis items-center">
-      Do you want to expand this table?
+      {{ (nextPages ?? 0) > 0 ? 'Confirm Record Overwrite ?' : 'Do you want to expand this table ?' }}
     </div>
     <div data-testid="nc-expand-table-modal" class="flex flex-col">
-      <div v-if="(rows ?? 0) > 0" class="mb-4 nc-content-gray">
-        To accommodate your pasted data, we need to insert {{ rows }} additional records
+      <div v-if="(nextPages ?? 0) > 0" class="mb-2 nc-content-gray">
+        This action will overwrite {{ currentPage }} records on the current page and {{ nextPages }} records on the subsequent
+        pages.
+
+        <br />
+        Are you sure you want to proceed with this action?
       </div>
 
-      <div v-if="(affectedRows ?? 0) < 0" class="mb-2 nc-content-gray">
-        The data you pasted will update {{ affectedRows }} records in subsequent pages.
+      <div v-else-if="(newRows ?? 0) > 0" class="mb-2 nc-content-gray">
+        To accommodate your pasted data, we need to insert {{ newRows }} additional records
       </div>
 
-      <a-radio-group v-if="(rows ?? 0) > 0" v-model:value="expand">
+      <a-radio-group v-if="(newRows ?? 0) > 0" v-model:value="expand">
         <a-radio
           data-testid="nc-table-expand-yes"
           :style="{

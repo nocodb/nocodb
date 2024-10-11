@@ -4,217 +4,217 @@
 
 name: "CI/CD"
 on:
-    push:
-        branches: [develop]
-        paths:
-            - "packages/nc-gui/**"
-            - "packages/nocodb/**"
-            - ".github/workflows/ci-cd.yml"
-            - "tests/playwright/**"
-    pull_request:
-        types: [opened, reopened, synchronize, ready_for_review, labeled]
-        branches: [develop]
-        paths:
-            - "packages/nc-gui/**"
-            - "packages/nocodb/**"
-            - ".github/workflows/ci-cd.yml"
-            - ".github/workflows/playwright-test-workflow.yml"
-            - "tests/playwright/**"
+  push:
+    branches: [develop]
+    paths:
+      - "packages/nc-gui/**"
+      - "packages/nocodb/**"
+      - ".github/workflows/ci-cd.yml"
+      - "tests/playwright/**"
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    branches: [develop]
+    paths:
+      - "packages/nc-gui/**"
+      - "packages/nocodb/**"
+      - ".github/workflows/ci-cd.yml"
+      - ".github/workflows/playwright-test-workflow.yml"
+      - "tests/playwright/**"
   # Triggered manually
-    workflow_dispatch:
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
-    validate-swagger-json:
-      runs-on: ubuntu-20.04
-      timeout-minutes: 10
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 1
+  validate-swagger-json:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 10
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
 
-# enable after fixing all validation errors
-#        - name: Validate OpenAPI definition
-#          uses: char0n/swagger-editor-validate@v1
-#          with:
-#            swagger-editor-url: http://localhost/
-#            definition-file: packages/nocodb/src/schema/swagger.json
+      # enable after fixing all validation errors
+      #        - name: Validate OpenAPI definition
+      #          uses: char0n/swagger-editor-validate@v1
+      #          with:
+      #            swagger-editor-url: http://localhost/
+      #            definition-file: packages/nocodb/src/schema/swagger.json
 
-        - name: Validate Swagger JSON
-          run: |
-            if ! jq empty packages/nocodb/src/schema/swagger.json; then
-              echo "swagger.json file is not valid JSON"
-              exit 1
-            fi
-            if ! jq empty packages/nocodb/src/schema/swagger-v2.json; then
-              echo "swaggerv2.json file is not valid JSON"
-              exit 1
-            fi
-    unit-tests:
-      runs-on: ubuntu-20.04
-      timeout-minutes: 40
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      steps:
-        - name: Setup pnpm
-          uses: pnpm/action-setup@v4
-          with:
-            version: 8
-        - name: Setup Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 18.19.1
-        - name: Checkout
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - name: remove use-node-version from .npmrc
-          run:  sed -i '/^use-node-version/d' .npmrc
-        - name: Get pnpm store directory
-          shell: bash
-          run: |
-            echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-        - uses: actions/cache@v3
-          name: Setup pnpm cache
-          with:
-            path: ${{ env.STORE_PATH }}
-            key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-            restore-keys: |
-              ${{ runner.os }}-pnpm-store-
-        - name: Install dependencies for packages
-          run: pnpm bootstrap
-        - name: run unit tests
-          working-directory: ./packages/nocodb
-          run: pnpm run test:unit
-    unit-tests-pg:
-      runs-on: ubuntu-20.04
-      timeout-minutes: 40
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      steps:
-        - name: Setup pnpm
-          uses: pnpm/action-setup@v4
-          with:
-            version: 8
-        - name: Setup Node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 18.19.1
-        - name: Checkout
-          uses: actions/checkout@v3
-          with:
-            fetch-depth: 0
-        - name: remove use-node-version from .npmrc
-          run:  sed -i '/^use-node-version/d' .npmrc
-        - name: Get pnpm store directory
-          shell: bash
-          run: |
-            echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-        - uses: actions/cache@v3
-          name: Setup pnpm cache
-          with:
-            path: ${{ env.STORE_PATH }}
-            key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-            restore-keys: |
-              ${{ runner.os }}-pnpm-store-
-        - name: Set CI env
-          run: export CI=true
-        - name: setup pg
-          working-directory: ./
-          run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
-        - name: install dependencies
-          run: pnpm bootstrap
-        - name: run unit tests
-          working-directory: ./packages/nocodb
-          run: pnpm run test:unit:pg
+      - name: Validate Swagger JSON
+        run: |
+          if ! jq empty packages/nocodb/src/schema/swagger.json; then
+            echo "swagger.json file is not valid JSON"
+            exit 1
+          fi
+          if ! jq empty packages/nocodb/src/schema/swagger-v2.json; then
+            echo "swaggerv2.json file is not valid JSON"
+            exit 1
+          fi
+  unit-tests:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 40
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.19.1
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: remove use-node-version from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: Install dependencies for packages
+        run: pnpm bootstrap
+      - name: run unit tests
+        working-directory: ./packages/nocodb
+        run: pnpm run test:unit
+  unit-tests-pg:
+    runs-on: ubuntu-20.04
+    timeout-minutes: 40
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    steps:
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.19.1
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: remove use-node-version from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: Set CI env
+        run: export CI=true
+      - name: setup pg
+        working-directory: ./
+        run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
+      - name: install dependencies
+        run: pnpm bootstrap
+      - name: run unit tests
+        working-directory: ./packages/nocodb
+        run: pnpm run test:unit:pg
 
-    pre-build-for-playwright:
-      uses: ./.github/workflows/pre-build-for-playwright.yml
+  pre-build-for-playwright:
+    uses: ./.github/workflows/pre-build-for-playwright.yml
 
-    playwright-mysql-1:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: mysql
-        shard: 1
-    playwright-mysql-2:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: mysql
-        shard: 2
-    playwright-mysql-3:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: mysql
-        shard: 3
-    playwright-mysql-4:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: mysql
-        shard: 4
-    playwright-sqlite-1:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: sqlite
-        shard: 1
-    playwright-sqlite-2:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: sqlite
-        shard: 2
-    playwright-sqlite-3:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: sqlite
-        shard: 3
-    playwright-sqlite-4:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: sqlite
-        shard: 4
-    playwright-pg-shard-1:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: pg
-        shard: 1
-    playwright-pg-shard-2:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: pg
-        shard: 2
-    playwright-pg-shard-3:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: pg
-        shard: 3
-    playwright-pg-shard-4:
-      needs: pre-build-for-playwright
-      if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
-      uses: ./.github/workflows/playwright-test-workflow.yml
-      with:
-        db: pg
-        shard: 4
+  playwright-mysql-1:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: mysql
+      shard: 1
+  playwright-mysql-2:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: mysql
+      shard: 2
+  playwright-mysql-3:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: mysql
+      shard: 3
+  playwright-mysql-4:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: mysql
+      shard: 4
+  playwright-sqlite-1:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: sqlite
+      shard: 1
+  playwright-sqlite-2:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: sqlite
+      shard: 2
+  playwright-sqlite-3:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: sqlite
+      shard: 3
+  playwright-sqlite-4:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: sqlite
+      shard: 4
+  playwright-pg-shard-1:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: pg
+      shard: 1
+  playwright-pg-shard-2:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: pg
+      shard: 2
+  playwright-pg-shard-3:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: pg
+      shard: 3
+  playwright-pg-shard-4:
+    needs: pre-build-for-playwright
+    if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
+    uses: ./.github/workflows/playwright-test-workflow.yml
+    with:
+      db: pg
+      shard: 4

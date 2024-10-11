@@ -5,17 +5,16 @@ name: Backend Unit Tests
 
 on:
   push:
-    branches: [ "develop" ]
+    branches: ["develop"]
     paths:
       - "packages/nocodb/**"
   pull_request:
-    branches: [ "develop" ]
+    branches: ["develop"]
     paths:
       - "packages/nocodb/**"
 
 jobs:
   unit-tests:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -27,15 +26,15 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-      - name: remove use-node-version from .npmrc 
-        run:  sed -i '/^use-node-version/d' .npmrc                
+          cache: "pnpm"
+      - name: remove use-node-version from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
       - name: install dependencies
         run: pnpm bootstrap
       - name: run unit tests

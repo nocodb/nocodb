@@ -1,4 +1,4 @@
-name: 'Sync changes back to develop branch from master'
+name: "Sync changes back to develop branch from master"
 
 on:
   # Triggered manually
@@ -16,7 +16,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - name: Checkout
         uses: actions/checkout@v3
         with:

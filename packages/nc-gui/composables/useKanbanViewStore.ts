@@ -220,6 +220,10 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { collapsed, ...rest } = stackMetaObj.value[fk_grp_col_id][idx]
             if (!deepCompare(rest, option)) {
+              // Don't update stack meta if it is shared view and
+              // shared view meta grouping field options not matched with actual column options
+              if (isPublic.value) continue
+
               // update the option in stackMetaObj
               stackMetaObj.value[fk_grp_col_id][idx] = {
                 ...stackMetaObj.value[fk_grp_col_id][idx],

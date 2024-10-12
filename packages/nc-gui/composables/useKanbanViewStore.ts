@@ -628,6 +628,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     }
 
     function removeRowFromUncategorizedStack() {
+      if (isPublic.value) return
       // remove the last record
       formattedData.value.get(null)!.pop()
       // decrease total count by 1

@@ -65,6 +65,7 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
+import { parseMetaProp } from 'src/utils/modelUtils';
 
 // todo: move
 export enum Altered {
@@ -1243,6 +1244,27 @@ export class ColumnsService {
       await Column.update(context, param.columnId, {
         ...colBody,
       });
+
+      if (colBody.uidt === UITypes.SingleSelect) {
+        const kanbanViewsByColId = await KanbanView.getViewsByGroupingColId(
+          context,
+          column.id,
+        );
+
+        for (const kanbanView of kanbanViewsByColId) {
+          const view = await View.get(context, kanbanView.fk_view_id);
+          if (!view?.uuid) continue;
+          // Update groupingFieldColumn from view meta which will be used in shared kanban view
+          view.meta = parseMetaProp(view);
+          await View.update(context, view.id, {
+            ...view,
+            meta: {
+              ...view.meta,
+              groupingFieldColumn: colBody,
+            },
+          });
+        }
+      }
     } else if (colBody.uidt === UITypes.User) {
       // handle default value for user column
       if (typeof colBody.cdf !== 'string') {
@@ -1517,6 +1539,15 @@ export class ColumnsService {
           baseModel.getTnPath(table.table_name),
           column.column_name,
         ]);
+      } else if (
+        column.uidt === UITypes.SingleSelect &&
+        column.uidt !== colBody.uidt &&
+        (await KanbanView.getViewsByGroupingColId(context, column.id)).length >
+          0
+      ) {
+        NcError.badRequest(
+          `The column '${column.column_name}' is being used in Kanban View. Please update stack by field or delete Kanban View first.`,
+        );
       }
 
       colBody = await getColumnPropsFromUIDT(colBody, source);
@@ -2585,7 +2616,8 @@ export class ColumnsService {
       }
       case UITypes.SingleSelect: {
         if (
-          await KanbanView.IsColumnBeingUsedAsGroupingField(context, column.id)
+          (await KanbanView.getViewsByGroupingColId(context, column.id))
+            .length > 0
         ) {
           NcError.badRequest(
             `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,

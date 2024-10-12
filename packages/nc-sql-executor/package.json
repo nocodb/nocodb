@@ -25,6 +25,6 @@
     "snowflake-sdk": "^1.6.11"
   },
   "devDependencies": {
-    "@types/node": "^20.8.8"
+    "@types/node": "18.19.55"
   }
 }

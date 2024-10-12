@@ -75,7 +75,8 @@ export class DuplicateController extends DuplicateControllerCE {
       base: {
         title: base.title,
         status: ProjectStatus.JOB,
-        ...({ ...body.base, fk_workspace_id: workspaceId } || {}),
+        ...body.base,
+        ...(workspaceId ? { fk_workspace_id: workspaceId } : {}),
       },
       user: { id: req.user.id },
       req: {} as any,
@@ -90,11 +91,10 @@ export class DuplicateController extends DuplicateControllerCE {
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
-      options:
-        {
-          ...body.options,
-          excludeHooks: true,
-        } || {},
+      options: {
+        ...body.options,
+        excludeHooks: true,
+      },
       req: {
         user: req.user,
         clientIp: req.clientIp,

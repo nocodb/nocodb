@@ -96,11 +96,10 @@ export class DuplicateController {
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
-      options:
-        {
-          ...body.options,
-          excludeHooks: true,
-        } || {},
+      options: {
+        ...body.options,
+        excludeHooks: true,
+      },
       req: {
         user: req.user,
         clientIp: req.clientIp,

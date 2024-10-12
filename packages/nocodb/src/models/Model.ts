@@ -1,4 +1,5 @@
 import {
+  convertDurationToSeconds,
   isLinksOrLTAR,
   isVirtualCol,
   ModelTypes,
@@ -718,6 +719,12 @@ export default class Model implements TableType {
             val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
           }
         }
+        if (col.uidt === UITypes.Duration && typeof val === 'string')
+          val =
+            val.indexOf(':') > -1
+              ? convertDurationToSeconds(val)
+              : parseFloat(val);
+
         insertObj[sanitize(col.column_name)] = val;
 
         if (clientMeta.isPg && col.dt === 'bytea') {

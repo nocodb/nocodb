@@ -5,6 +5,7 @@ import {
   type ColumnType,
   type LookupType,
   type RollupType,
+  convertMS2Duration,
   dateFormats,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,

@@ -486,7 +486,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           // update to groupingField value to target value
           formattedData.value.set(
             stackTitle,
-            formattedData.value.get(stackTitle)!.map((o) => ({
+            (formattedData.value.get(stackTitle) || []).map((o) => ({
               ...o,
               row: {
                 ...o.row,

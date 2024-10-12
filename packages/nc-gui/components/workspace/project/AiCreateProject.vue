@@ -83,6 +83,7 @@ const aiStep = ref(AI_STEP.PROMPT)
 
 const defaultAiFormState = {
   prompt: '',
+  onHoverTagPrompt: '',
   organization: '',
   industry: '',
   audience: '',
@@ -284,10 +285,10 @@ watch(dialogShow, async (n, o) => {
 
 <template>
   <div class="h-full">
-    <div class="flex items-center px-4 py-2 border-b-1 border-purple-100">
+    <div class="flex items-center gap-2.5 px-4 py-2 border-b-1 border-purple-100">
       <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
         <GeneralIcon icon="ncAutoAwesome" class="flex-none h-5 w-5 !text-current" />
-        <div class="text-base leading-8 font-bold">Noco AI Base Builder</div>
+        <div class="text-base leading-8 font-bold">{{ $t('title.nocoAiBaseBuilder') }}</div>
       </div>
 
       <NcButton
@@ -301,7 +302,7 @@ watch(dialogShow, async (n, o) => {
         <template #icon>
           <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 text-nc-fill-yellow-medium" />
         </template>
-        Create Base
+        {{ $t('activity.createProject') }}
       </NcButton>
       <NcButton size="small" type="text" @click.stop="dialogShow = false">
         <GeneralIcon icon="close" class="text-gray-600" />
@@ -340,6 +341,8 @@ watch(dialogShow, async (n, o) => {
                     'nc-disabled': !aiIntegrationAvailable,
                   }"
                   :disabled="!aiIntegrationAvailable"
+                  @mouseover="aiFormState.onHoverTagPrompt = prompt.description"
+                  @mouseleave="aiFormState.onHoverTagPrompt = ''"
                   @click="handleUpdatePrompt(prompt.description)"
                 >
                   <div class="flex flex-row items-center gap-1 py-1 text-sm font-weight-500">
@@ -358,11 +361,12 @@ watch(dialogShow, async (n, o) => {
             </div>
             <div>
               <a-textarea
-                v-model:value="aiFormState.prompt"
+                :value="aiFormState.onHoverTagPrompt || aiFormState.prompt"
                 placeholder="Type something..."
                 class="!w-full !min-h-[120px] !rounded-lg mt-2 overflow-y-auto nc-scrollbar-thin nc-input-shadow nc-ai-input"
                 size="middle"
                 :disabled="!aiIntegrationAvailable"
+                @update:value="aiFormState.prompt = $event"
               />
             </div>
 
@@ -378,7 +382,7 @@ watch(dialogShow, async (n, o) => {
                       class="-ml-[7px]"
                       @click="handleUpdateExpansionPanel(ExpansionPanelKeys.additionalDetails)"
                     >
-                      Additional Details
+                      {{ $t('title.additionalDetails') }}
                       <template #icon>
                         <GeneralIcon
                           icon="arrowDown"
@@ -427,17 +431,17 @@ watch(dialogShow, async (n, o) => {
               <template #icon>
                 <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 text-nc-fill-yellow-medium" />
               </template>
-              Generate Base
+              {{ $t('labels.generateBase') }}
             </NcButton>
             <AiIntegrationNotFound v-else class="justify-between" @on-navigate="dialogShow = false">
               <template #icon>
                 <GeneralIcon icon="alertTriangleSolid" class="flex-none !text-nc-content-orange-medium w-6 h-6" />
               </template>
               <template #title>
-                <div class="text-base font-bold text-nc-content-gray">AI Integration missing</div>
+                <div class="text-base font-bold text-nc-content-gray">{{ $t('title.aiIntegrationMissing') }}</div>
               </template>
               <template #description>
-                <div class="text-sm text-nc-content-gray-subtle">No AI Integrations have been added.</div>
+                <div class="text-sm text-nc-content-gray-subtle">{{ $t('title.noAiIntegrationsHaveBeenAdded') }}</div>
               </template>
             </AiIntegrationNotFound>
           </div>
@@ -447,9 +451,9 @@ watch(dialogShow, async (n, o) => {
 
           <template v-if="aiStep === AI_STEP.LOADING || aiStep === AI_STEP.PROMPT">
             <div v-if="aiStep === AI_STEP.LOADING" class="text-sm font-bold text-nc-content-purple-dark">
-              Generating a Base tailored to your requirement...
+              {{ $t('title.generatingBaseTailoredToYourRequirement') }}
             </div>
-            <div v-else class="text-sm font-bold text-nc-content-purple-dark">Preview</div>
+            <div v-else class="text-sm font-bold text-nc-content-purple-dark">{{ $t('labels.preview') }}</div>
 
             <template v-if="aiStep === AI_STEP.LOADING">
               <div
@@ -489,7 +493,7 @@ watch(dialogShow, async (n, o) => {
             </div>
           </template>
           <template v-if="aiStep === AI_STEP.MODIFY">
-            <div class="text-sm font-bold text-nc-content-purple-dark">Here’s your CRM Base</div>
+            <div class="text-sm font-bold text-nc-content-purple-dark">{{ $t('title.hereYourCrmBase') }}</div>
 
             <template v-if="predictedSchema?.tables">
               <AiWizardCard
@@ -569,8 +573,9 @@ watch(dialogShow, async (n, o) => {
       <!-- Footer  -->
       <div>
         <div class="nc-ai-footer-branding text-xs">
-          Powered by
-          <span class="font-semibold !text-inherit"> Noco AI </span>
+          {{ $t('general.poweredBy') }}
+
+          <span class="font-semibold !text-inherit"> {{ $t('general.nocoAI') }} </span>
         </div>
       </div>
     </div>

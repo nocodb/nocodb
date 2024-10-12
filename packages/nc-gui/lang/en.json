@@ -629,7 +629,13 @@
     "categories": "Categories",
     "fieldInaccessible": "Field inaccessible",
     "noConditionsAdded": "No conditions added",
-    "noAiIntegrationAvailable": "No AI Integrations available."
+    "noAiIntegrationAvailable": "No AI Integrations available.",
+    "nocoAiBaseBuilder": "Noco AI Base Builder",
+    "additionalDetails": "Additional Details",
+    "aiIntegrationMissing": "AI Integration missing",
+    "noAiIntegrationsHaveBeenAdded": "No AI Integrations have been added.",
+    "generatingBaseTailoredToYourRequirement": "Generating a Base tailored to your requirement...",
+    "hereYourCrmBase": "Here’s your CRM Base"
   },
   "labels": {
     "continue": "Continue",
@@ -1022,7 +1028,8 @@
     "suggesting": "Suggesting...",
     "autoSuggestFields": "Auto suggest fields",
     "autoSuggestFormulas": "Auto suggest formulas",
-    "createAiIntegration": "Create AI integration"
+    "createAiIntegration": "Create AI integration",
+    "generateBase": "Generate Base"
   },
   "activity": {
     "assignView": "Assign view",

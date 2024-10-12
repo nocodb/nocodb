@@ -63,9 +63,9 @@ jobs:
               DOCKER_BUILD_TAG=${{ github.event.inputs.currentVersion || inputs.currentVersion }}-${{ github.event.inputs.tag || inputs.tag }}
             fi
             if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then
-              DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
+              DOCKER_REPOSITORY=nocodb-daily
             else
-              DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
+              DOCKER_REPOSITORY=nocodb-timely
             fi
           fi
           echo "DOCKER_REPOSITORY=${DOCKER_REPOSITORY}" >> $GITHUB_OUTPUT

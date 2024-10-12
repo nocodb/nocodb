@@ -30,12 +30,16 @@ const { navigateToProject } = useGlobal()
 
 const { aiIntegrationAvailable, aiError, aiLoading, createSchema, predictSchema } = useNocoAi()
 
+const tagSearchQuery = ref<string>('')
+
 const callFunction = ref<string | null>(null)
 
 const isExpandedPredefiendBasePromts = ref<boolean>(false)
 
 const predefinedBasePrompts = computed(() => {
-  return isExpandedPredefiendBasePromts.value ? aiBaseSchemaPrompts : aiBaseSchemaPrompts.slice(0, 7)
+  return isExpandedPredefiendBasePromts.value
+    ? aiBaseSchemaPrompts.filter((prompt) => prompt.tag.toLowerCase().includes(tagSearchQuery.value.toLowerCase()))
+    : aiBaseSchemaPrompts.slice(0, 7)
 })
 
 const leftPaneContentRef = ref<HTMLElement | null>(null)
@@ -257,11 +261,17 @@ const handleUpdatePrompt = (description: string) => {
   aiFormState.value.prompt = description
 }
 
+const onToggleShowMore = () => {
+  isExpandedPredefiendBasePromts.value = !isExpandedPredefiendBasePromts.value
+  tagSearchQuery.value = ''
+}
+
 const resetToDefault = () => {
   aiMode.value = null
   aiStep.value = AI_STEP.PROMPT
   aiFormState.value = defaultAiFormState
   isExpandedPredefiendBasePromts.value = false
+  tagSearchQuery.value = ''
   expansionPanel.value = []
 }
 
@@ -311,6 +321,16 @@ watch(dialogShow, async (n, o) => {
             <div class="text-sm font-bold text-nc-content-purple-dark">Tell us more about your usecase</div>
             <div class="flex flex-wrap gap-3 max-h-[188px] nc-scrollbar-thin overflow-visible">
               <!-- Predefined tags -->
+              <a-input
+                v-if="isExpandedPredefiendBasePromts"
+                v-model:value="tagSearchQuery"
+                :placeholder="$t('general.search')"
+                class="nc-input-border-on-value nc-input-shadow nc-ai-input !max-w-[140px] !h-7 !px-2 !py-0 !rounded-lg group"
+              >
+                <!-- <template #prefix>
+                  <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-purple-500 group-hover:text-purple-600" />
+                </template> -->
+              </a-input>
 
               <template v-for="prompt of predefinedBasePrompts" :key="prompt.tag">
                 <a-tag
@@ -328,12 +348,7 @@ watch(dialogShow, async (n, o) => {
                 </a-tag>
               </template>
 
-              <NcButton
-                size="xs"
-                type="text"
-                icon-position="right"
-                @click="isExpandedPredefiendBasePromts = !isExpandedPredefiendBasePromts"
-              >
+              <NcButton size="xs" type="text" icon-position="right" @click="onToggleShowMore">
                 {{ isExpandedPredefiendBasePromts ? $t('general.showLess') : $t('general.showMore') }}
 
                 <template #icon>

@@ -161,7 +161,7 @@ const predictRefresh = async () => {
   const predictions = await predictNextTables()
 
   if (predictions.length) {
-    predictedTables.value = predictions
+    predictedTables.value = [...predictedTables.value.filter(({ selected }) => selected), ...predictions]
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
   }
@@ -173,14 +173,12 @@ const predictFromPrompt = async () => {
   const predictions = await predictNextTables()
 
   if (predictions.length) {
-    predictedTables.value = predictions
+    predictedTables.value = [...predictedTables.value.filter(({ selected }) => selected), ...predictions]
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
   }
 
   isPromtAlreadyGenerated.value = prompt.value
-
-  console.log('predict', isPromtAlreadyGenerated.value, prompt.value)
 }
 
 const onToggleTag = (table: AiSuggestedTableType) => {
@@ -209,13 +207,6 @@ const onSelectAll = () => {
       table.selected = true
       count++
     }
-    return table
-  })
-}
-
-const onDeselectAll = () => {
-  predictedTables.value = predictedTables.value.map((table) => {
-    table.selected = false
     return table
   })
 }
@@ -351,17 +342,6 @@ const fullAuto = async (e) => {
     await onAiEnter()
   }
 }
-
-const aiTabs = [
-  {
-    title: 'Auto Suggestions',
-    key: AiWizardTabsType.AUTO_SUGGESTIONS,
-  },
-  {
-    title: 'Prompt',
-    key: AiWizardTabsType.PROMPT,
-  },
-]
 
 const isPredictFromPromptLoading = computed(() => {
   return aiLoading.value && calledFunction.value === 'predictFromPrompt'

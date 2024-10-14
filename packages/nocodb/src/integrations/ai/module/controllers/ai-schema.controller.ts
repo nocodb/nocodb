@@ -25,7 +25,7 @@ export class AiSchemaController {
   ) {}
 
   @Post(['/api/v2/ai/:baseId/schema'])
-  @Acl('aiSchema', {
+  @Acl('aiBaseSchema', {
     scope: 'base',
   })
   @HttpCode(200)

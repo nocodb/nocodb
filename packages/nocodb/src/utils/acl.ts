@@ -170,6 +170,7 @@ const permissionScopes = {
     // AI
     'aiUtils',
     'aiData',
+    'aiBaseSchema',
   ],
 };
 

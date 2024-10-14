@@ -38,14 +38,14 @@ const config: XcPluginConfig = {
         label: 'Access Key',
         placeholder: 'Access Key',
         type: XcType.SingleLineText,
-        required: true,
+        required: false,
       },
       {
         key: 'access_secret',
         label: 'Access Secret',
         placeholder: 'Access Secret',
         type: XcType.Password,
-        required: true,
+        required: false,
       },
       {
         key: 'acl',

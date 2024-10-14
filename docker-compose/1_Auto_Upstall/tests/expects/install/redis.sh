@@ -18,6 +18,9 @@ send "Y\r"
 expect "Choose Community or Enterprise Edition*"
 send "\r"
 
+expect "Select PostgreSQL or SQLite as your database*"
+send "P\r"
+
 expect "Do you want to enabled Redis for caching*"
 send "Y\r"
 

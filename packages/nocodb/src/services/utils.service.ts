@@ -80,7 +80,7 @@ export class UtilsService {
 
   constructor(protected readonly configService: ConfigService<AppConfig>) {}
 
-  lastSyncTime = dayjs();
+  lastSyncTime = null;
 
   async versionInfo() {
     if (
@@ -526,7 +526,10 @@ export class UtilsService {
     }
 
     let payload = null;
-    if (dayjs().isAfter(this.lastSyncTime.add(3, 'hours'))) {
+    if (
+      !this.lastSyncTime ||
+      dayjs().isAfter(this.lastSyncTime.add(3, 'hours'))
+    ) {
       payload = await T.payload();
       this.lastSyncTime = dayjs();
     }

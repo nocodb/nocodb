@@ -12,15 +12,15 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-            node-version: 18.19.1
+          node-version: 18.19.1
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0        
+          fetch-depth: 0
       - run: |
           sed -i '/^use-node-version/d' .npmrc      
           pnpm bootstrap
@@ -32,10 +32,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           signoff: true
-          branch: 'bot/update-nocodb-sdk-path'
+          branch: "bot/update-nocodb-sdk-path"
           delete-branch: true
-          title: 'Update nocodb-sdk to local path'
-          labels: 'Bot: Automerge'
+          title: "Update nocodb-sdk to local path"
+          labels: "Bot: Automerge"
       - name: Check outputs
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

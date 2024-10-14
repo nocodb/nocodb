@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       shard:
-        description: 'Shard number'
+        description: "Shard number"
         required: true
         type: string
       db:
@@ -18,8 +18,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: remove use-node-version from .npmrc 
-        run:  sed -i '/^use-node-version/d' .npmrc
+      - name: remove use-node-version from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
@@ -27,11 +27,11 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 8
+          version: 9
       - name: Get pnpm store directory
         shell: bash
         run: |
-          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV          
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
       - uses: actions/cache@v3
         name: Setup pnpm cache
         with:
@@ -42,7 +42,7 @@ jobs:
       - name: setup pg
         if: ${{ inputs.db == 'pg' || ( inputs.db == 'sqlite' && inputs.shard == '1' ) }}
         working-directory: ./
-        run:  |
+        run: |
           service postgresql start
           cd /var/lib/postgresql/ && sudo -u postgres psql -c "SELECT 'dropdb '||datname||'' FROM pg_database WHERE datistemplate = false AND datallowconn = true And datname NOT IN ('postgres')" |grep ' dropdb ' |  sudo -u postgres /bin/bash ; cd
           sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'password';" 
@@ -113,7 +113,7 @@ jobs:
           #   exit 1
           # fi
       - name: start frontend
-        working-directory: ./packages/nc-gui/ 
+        working-directory: ./packages/nc-gui/
         run: |
           pnpm run ci:start
       - name: Install Playwright Browsers
@@ -144,32 +144,32 @@ jobs:
         working-directory: ./tests/playwright
         run: E2E_DB_TYPE=${{ inputs.db }} node ./scripts/stressTestNewlyAddedTest.js
 
-#      # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
-#      - name: Run quick server and tests (pg)
-#        if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
-#        working-directory: ./packages/nocodb
-#        run: |
-#          kill -9 $(lsof -t -i:8080)
-#          npm run watch:run:playwright:pg:cyquick > quick_${{ inputs.shard }}_test_backend.log &
-#      - name: Run quick server and tests (sqlite)
-#        if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
-#        working-directory: ./packages/nocodb
-#        run: |
-#          kill -9 $(lsof -t -i:8080)
-#          npm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
-#      - name: Wait for backend for sqlite-tests
-#        if: ${{ inputs.db == 'sqlite' }}
-#        working-directory: ./tests/playwright
-#        run: |
-#          while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
-#            printf '.'
-#            sleep 2
-#          done
-#        timeout-minutes: 1
-#      - name: Run quick tests
-#        if: ${{ inputs.db == 'sqlite' }}
-#        working-directory: ./tests/playwright
-#        run: PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick        
+      #      # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
+      #      - name: Run quick server and tests (pg)
+      #        if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
+      #        working-directory: ./packages/nocodb
+      #        run: |
+      #          kill -9 $(lsof -t -i:8080)
+      #          npm run watch:run:playwright:pg:cyquick > quick_${{ inputs.shard }}_test_backend.log &
+      #      - name: Run quick server and tests (sqlite)
+      #        if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
+      #        working-directory: ./packages/nocodb
+      #        run: |
+      #          kill -9 $(lsof -t -i:8080)
+      #          npm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
+      #      - name: Wait for backend for sqlite-tests
+      #        if: ${{ inputs.db == 'sqlite' }}
+      #        working-directory: ./tests/playwright
+      #        run: |
+      #          while ! curl --output /dev/null --silent --head --fail http://localhost:8080; do
+      #            printf '.'
+      #            sleep 2
+      #          done
+      #        timeout-minutes: 1
+      #      - name: Run quick tests
+      #        if: ${{ inputs.db == 'sqlite' }}
+      #        working-directory: ./tests/playwright
+      #        run: PLAYWRIGHT_HTML_REPORT=playwright-report-quick npm run test:quick
 
       - uses: actions/upload-artifact@v3
         if: ${{ inputs.db == 'sqlite' }}
@@ -223,4 +223,4 @@ jobs:
           # end: artifacts copy
           SUMMARY='[Artifacts]('${REPORTS_HOST:-http://135.181.48.96}/${path}')
           [playwright-report]('${REPORTS_HOST:-http://135.181.48.96}/${path}'/playwright-report)'
-          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY            
+          echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY

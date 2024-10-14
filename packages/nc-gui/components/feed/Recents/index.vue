@@ -37,7 +37,9 @@ onMounted(() => {
       <GeneralLoader size="xlarge" />
     </div>
     <div v-else class="flex flex-col my-6 items-center gap-6">
-      <FeedRecentsCard v-for="feed in socialFeed" :key="feed.Id" :item="feed" />
+      <template v-for="feed in socialFeed" :key="feed.Id">
+        <FeedRecentsCard v-if="['Github', 'Cloud', 'Youtube'].includes(feed['Feed Source'])" :item="feed" />
+      </template>
     </div>
   </div>
 </template>

@@ -5,6 +5,8 @@ const { isMobileMode } = useGlobal()
 
 const { isSharedBase, base } = storeToRefs(useBase())
 
+const { sharedView } = useSharedView()
+
 const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
@@ -188,7 +190,7 @@ function openDeleteDialog() {
     </NcTooltip>
   </div>
   <NcDropdown
-    v-else
+    v-else-if="!sharedView"
     v-model:visible="isDropdownOpen"
     class="!xs:pointer-events-none nc-actions-menu-btn nc-view-context-btn"
     overlay-class-name="nc-dropdown-actions-menu"

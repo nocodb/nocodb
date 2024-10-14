@@ -52,7 +52,7 @@ jobs:
       - name: Get Docker Repository
         id: get-docker-repository
         run: |
-          DOCKER_REPOSITORY=nocodb
+          DOCKER_REPOSITORY=nocodb-daily
           DOCKER_BUILD_TAG=${{ github.event.inputs.tag || inputs.tag }}
           DOCKER_BUILD_LATEST_TAG=latest
           if [[ "$DOCKER_BUILD_TAG" =~ "-beta." ]]; then
@@ -86,24 +86,36 @@ jobs:
         with:
           node-version: 18.19.1
 
-      - name: upgrade packages for nightly build or pr build
-        if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
-        run: |
-          export NODE_OPTIONS="--max_old_space_size=16384"
-          NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
-          pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile --ignore-workspace && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
-          pnpm --filter=nc-gui install --ignore-scripts --no-frozen-lockfile &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm --filter=nc-gui run build:copy &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
+      - name: install dependencies
+        run: pnpm bootstrap
 
-      - name: Build nocodb and docker files
+      - name: Build gui and sdk
         run: |
-          pnpm install --ignore-scripts --no-frozen-lockfile
-          pnpm run docker:build
-        working-directory: ${{ env.working-directory }}
+
+          pnpm bootstrap &&
+          cd packages/nc-gui &&
+          pnpm run generate
+          
+          # copy build to nocodb
+          rsync -rvzh ./dist/ ../nocodb/docker/nc-gui/
+
+
+      - name: build nocodb
+        run: |
+          # build nocodb ( pack nocodb-sdk and nc-gui )
+          cd packages/nocodb &&
+          EE=true pnpm exec webpack --config webpack.timely.config.js &&
+          # remove bundled libraries (nocodb-sdk, knex-snowflake)
+          pnpm uninstall --save-prod nocodb-sdk  
+
+      - name: Update version in package.json
+        run: |
+          # update package.json
+          cd packages/nocodb &&
+          jq --arg VERSION "$VERSION" '.version = $VERSION' package.json > tmp.json &&
+          mv tmp.json package.json
+        env:
+          VERSION: ${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2.1.0
@@ -130,13 +142,12 @@ jobs:
         uses: docker/build-push-action@v3.2.0
         with:
           context: ${{ env.working-directory }}
+          file: ${{ env.working-directory }}/Dockerfile.timely
           build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true
-          labels: |
-            "service=nocodb"
           tags: |
             nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
             nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_LATEST_TAG }}

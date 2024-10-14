@@ -19,7 +19,7 @@ const { isLoading } = useInfiniteScroll(
   { distance: 4 },
 )
 
-const feeds = computed(() => {
+const feed = computed(() => {
   return props.type === 'github' ? githubFeed.value : cloudFeed.value
 })
 </script>
@@ -33,17 +33,17 @@ const feeds = computed(() => {
     class="overflow-y-auto nc-scrollbar-md mx-auto w-full"
   >
     <div
-      v-if="(props.type === 'github' ? isErrorOccurred.github : isErrorOccurred.cloud) && !feeds.length"
+      v-if="(props.type === 'github' ? isErrorOccurred.github : isErrorOccurred.cloud) && !feed.length"
       class="h-full flex justify-center items-center"
     >
       <FeedError :page="type" />
     </div>
-    <div v-else-if="isLoading && !feeds.length" class="flex items-center justify-center h-full w-full">
+    <div v-else-if="isLoading && !feed.length" class="flex items-center justify-center h-full w-full">
       <GeneralLoader size="xlarge" />
     </div>
 
     <div v-else class="mx-auto max-w-[540px] xl:max-w-[638px] justify-around justify-items-center">
-      <FeedChangelogItem v-for="(item, index) in feeds" :key="item.Id" :item="item" :index="index" />
+      <FeedChangelogItem v-for="(item, index) in feed" :key="item.Id" :item="item" :index="index" />
     </div>
   </div>
 </template>

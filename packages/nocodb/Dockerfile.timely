@@ -53,8 +53,15 @@ RUN pnpm install --prod --shamefully-hoist \
 FROM --platform=$TARGETPLATFORM node:18.19.1-alpine as bin-builder
 WORKDIR /usr/src/app
 
+RUN apk add --no-cache jq
+
+# copy package.json to extract dependency versions
+COPY --link ./package.json ./package-copy.json
+
 # Install sqlite3 for the target platform to copy to the final image
-RUN npm init -y && npm install sqlite3 sharp
+RUN SQLITE3_VERSION=$(jq -r '.dependencies["sqlite3"]' /usr/src/app/package-copy.json) \
+    && SHARP_VERSION=$(jq -r '.dependencies["sharp"]' /usr/src/app/package-copy.json) \
+    && npm init -y && npm install sqlite3@$SQLITE3_VERSION sharp@$SHARP_VERSION
 
 ###########
 # Runner

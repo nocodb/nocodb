@@ -113,6 +113,12 @@ Auto-upstall does the following : 🕊
 
 > When running locally access nocodb by visiting: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
+## Self-Hosting NocoDB
+
+### Elestio
+
+[![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.png)](https://elest.io/open-source/nocodb)
+
 # Screenshots
 ![2](https://github.com/nocodb/nocodb/assets/86527202/a127c05e-2121-4af2-a342-128e0e2d0291)
 ![3](https://github.com/nocodb/nocodb/assets/86527202/674da952-8a06-4848-a0e8-a7b02d5f5c88)

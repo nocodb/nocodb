@@ -91,6 +91,10 @@ Auto-upstall does the following : 🕊
 - 🔒 Automatically setups SSL and also renews it. Needs a domain or subdomain as input while installation.
 > install.nocodb.com/noco.sh script can be found [here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/1_Auto_Upstall/noco.sh)
 
+## One-Click Deployment
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploy.png)](https://repocloud.io/details/?app_id=100)
+
 
 
 ## Other Methods

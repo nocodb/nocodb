@@ -15,6 +15,8 @@ interface AiSuggestedTableType {
 
 const emit = defineEmits(['update:modelValue', 'create'])
 
+const loadingMessages = ['Creating Tables', 'Creating Fields', 'Creating Links']
+
 const maxSelectionCount = 5
 
 const dialogShow = useVModel(props, 'modelValue', emit)
@@ -23,11 +25,11 @@ const isAdvanceOptVisible = ref(false)
 
 const inputEl = ref<HTMLInputElement>()
 
+const aiPromptInputRef = ref<HTMLElement>()
+
 const { addTab } = useTabs()
 
 const workspaceStore = useWorkspace()
-
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const { isMysql, isMssql, isPg, isSnowflake } = useBase()
 
@@ -102,6 +104,12 @@ const activeAiTab = computed({
     isPromtAlreadyGenerated.value = ''
 
     aiError.value = ''
+
+    if (value === AiWizardTabsType.PROMPT) {
+      nextTick(() => {
+        aiPromptInputRef.value?.focus()
+      })
+    }
   },
 })
 
@@ -142,6 +150,11 @@ const disableAiMode = () => {
   prompt.value = ''
   isPromtAlreadyGenerated.value = ''
   activeAiTab.value = AiWizardTabsType.AUTO_SUGGESTIONS
+
+  nextTick(() => {
+    inputEl.value?.focus()
+    inputEl.value?.select()
+  })
 }
 
 const predictMore = async () => {
@@ -211,16 +224,64 @@ const onSelectAll = () => {
   })
 }
 
+const activeLoadingText = ref<string>('')
+
+const currentMessageIndex = ref(0)
+
+let timerId: NodeJS.Timeout
+
+const showLoadingText = async () => {
+  currentMessageIndex.value = 0
+  activeLoadingText.value = ''
+
+  for (const currentMessage of loadingMessages) {
+    clearInterval(timerId) // Clear previous interval if any
+    let currentCharIndex = 0
+    activeLoadingText.value = ''
+
+    await new Promise((resolve) => {
+      // Start showing characters one by one at 100ms intervals
+      timerId = setInterval(() => {
+        if (currentCharIndex < currentMessage.length) {
+          // Append the next character to the active loading text
+          activeLoadingText.value += currentMessage[currentCharIndex]
+          currentCharIndex++
+        } else {
+          // When the message is fully displayed, stop the interval
+          clearInterval(timerId)
+          resolve(true)
+        }
+      }, 60)
+    })
+
+    // Wait for 1500ms after the full message is displayed
+    await ncDelay(1500)
+
+    // Move to the next message
+    if (currentMessageIndex.value < loadingMessages.length - 1) {
+      currentMessageIndex.value++
+    }
+  }
+}
+
 const onAiEnter = async () => {
   calledFunction.value = 'generateTables'
 
   if (selectedTables.value.length) {
-    await generateTables(
-      selectedTables.value.map(({ title }) => title),
-      undefined,
-      onAiTableCreate,
-      props.baseId,
-    )
+    try {
+      showLoadingText()
+
+      await generateTables(
+        selectedTables.value.map(({ title }) => title),
+        undefined,
+        onAiTableCreate,
+        props.baseId,
+      )
+    } catch {
+    } finally {
+      activeLoadingText.value = ''
+      clearInterval(timerId)
+    }
   }
 }
 
@@ -329,7 +390,7 @@ const fullAuto = async (e) => {
     !aiIntegrationAvailable.value ||
     aiLoading.value ||
     aiError.value ||
-    target.closest('button, input, .nc-button, textarea')
+    target.closest('button, input, .nc-button, textarea, .ant-tag')
   ) {
     return
   }
@@ -390,6 +451,7 @@ watch(
     :centered="false"
     nc-modal-class-name="!p-0"
     @keydown.esc="dialogShow = false"
+    :mask-closable="!(aiLoading && calledFunction === 'generateTables')"
   >
     <div class="py-5 flex flex-col gap-5" @dblclick.stop="fullAuto">
       <div class="px-5 flex justify-between w-full items-center" @dblclick.stop="fullAuto">
@@ -557,7 +619,7 @@ watch(
                   <div class="px-5 pt-5 pb-2 flex flex-col gap-5">
                     <div class="relative">
                       <a-textarea
-                        autofocus
+                        ref="aiPromptInputRef"
                         v-model:value="prompt"
                         placeholder="Enter your prompt to get table suggestions.."
                         class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[120px] !rounded-lg"
@@ -690,9 +752,25 @@ watch(
               </span>
             </div>
           </NcButton>
+          <div v-else-if="aiLoading && calledFunction === 'generateTables'">
+            <div
+              class="text-sm text-nc-content-purple-light"
+              :class="{
+                'nc-animate-dots': activeLoadingText === loadingMessages[currentMessageIndex],
+              }"
+            >
+              {{ activeLoadingText }}
+            </div>
+          </div>
           <div v-else></div>
           <div class="flex gap-2 items-center">
-            <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+            <NcButton
+              type="secondary"
+              size="small"
+              :disabled="creating || (aiLoading && calledFunction === 'generateTables')"
+              @click="dialogShow = false"
+              >{{ $t('general.cancel') }}</NcButton
+            >
 
             <NcButton
               v-if="!aiMode"

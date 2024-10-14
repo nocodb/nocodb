@@ -16046,7 +16046,8 @@
               "enum": [
                 "all",
                 "github",
-                "youtube"
+                "youtube",
+                "cloud"
               ]
             },
             "name": "type",

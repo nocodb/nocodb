@@ -1,11 +1,11 @@
 <script setup lang="ts">
 const props = defineProps<{
-  page: 'all' | 'youtube' | 'github' | 'twitter'
+  page: 'all' | 'youtube' | 'github' | 'twitter' | 'cloud'
 }>()
 
 const emits = defineEmits(['reload'])
 
-const { loadFeed, socialFeed, youtubeFeed, githubFeed } = useProductFeed()
+const { loadFeed, socialFeed, youtubeFeed, githubFeed, cloudFeed } = useProductFeed()
 
 const triggerReload = async () => {
   if (props.page === 'twitter') {
@@ -24,6 +24,8 @@ const triggerReload = async () => {
     youtubeFeed.value = data
   } else if (props.page === 'github') {
     githubFeed.value = data
+  } else if (props.page === 'cloud') {
+    cloudFeed.value = data
   }
 }
 </script>

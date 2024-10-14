@@ -14,23 +14,39 @@ const emits = defineEmits(['update:activeTab'])
 const activeTab = useModel(props, 'activeTab', emits)
 
 const {} = toRefs(props)
+
+const { aiLoading } = useNocoAi()
 </script>
 
 <template>
-  <NcTabs v-model:activeKey="activeTab" theme="ai" class="nc-ai-wizard-tabs">
+  <NcTabs
+    v-model:activeKey="activeTab"
+    theme="ai"
+    class="nc-ai-wizard-tabs"
+    :class="{
+      'nc-ai-loading': aiLoading,
+    }"
+  >
     <template #leftExtra>
       <div class="w-0"></div>
     </template>
-    <a-tab-pane :key="AiWizardTabsType.AUTO_SUGGESTIONS" class="w-full">
+    <a-tab-pane :key="AiWizardTabsType.AUTO_SUGGESTIONS" class="w-full" :disabled="aiLoading">
       <template #tab>
-        <div class="tab-title">Auto Suggested</div>
+        <div
+          class="tab-title"
+          :class="{
+            '!cursor-wait': aiLoading,
+          }"
+        >
+          Auto Suggested
+        </div>
       </template>
       <div>
         <slot name="AutoSuggestedContent"></slot>
       </div>
     </a-tab-pane>
 
-    <a-tab-pane :key="AiWizardTabsType.PROMPT" class="w-full">
+    <a-tab-pane :key="AiWizardTabsType.PROMPT" class="w-full" :disabled="aiLoading">
       <template #tab>
         <div class="tab-title">Prompt AI</div>
       </template>
@@ -51,6 +67,12 @@ const {} = toRefs(props)
 
     &.ant-tabs-tab-active {
       @apply font-medium;
+    }
+  }
+  
+  &.nc-ai-loading {
+    :deep(.ant-tabs-tab) {
+      @apply !cursor-wait;
     }
   }
 

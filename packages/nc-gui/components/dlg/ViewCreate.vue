@@ -158,7 +158,7 @@ const typeAlias = computed(
 
 const initTitle = ref<string>()
 
-const { aiIntegrationAvailable, aiLoading, aiError, predictViews, createViews, loadAiIntegrations } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading, aiError, predictViews, createViews } = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -332,8 +332,6 @@ const isMetaLoading = ref(false)
 onMounted(async () => {
   if (form.copy_from_id) {
     enableDescription.value = true
-  } else {
-    loadAiIntegrations()
   }
 
   if ([ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(props.type)) {

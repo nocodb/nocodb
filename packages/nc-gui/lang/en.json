@@ -1158,6 +1158,7 @@
     "previousRecord": "Previous record",
     "copyApiURL": "Copy API URL",
     "createTable": "Create Table",
+    "createTable(s)": "Create Table(s)",
     "createTables": "Create {count} table",
     "createTables_plural": "Create {count} tables",
     "createDashboard": "Create Dashboard",

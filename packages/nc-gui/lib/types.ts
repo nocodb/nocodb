@@ -281,7 +281,7 @@ interface ProductFeedItem {
   Id: string
   Title: string
   Description: string
-  ['Feed Source']: 'Youtube' | 'Github' | 'All'
+  ['Feed Source']: 'Youtube' | 'Github' | 'Cloud' | 'Twitter'
   Url: string
   Tags?: string
   ['Published Time']: string

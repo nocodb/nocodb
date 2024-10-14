@@ -424,7 +424,8 @@ const handleRefreshOnError = () => {
       return predictRefresh()
     case 'predictFromPrompt':
       return predictFromPrompt()
-
+    case 'generateTables':
+      return onAiEnter()
     default:
   }
 }
@@ -650,7 +651,22 @@ watch(
                       </NcButton>
                     </div>
 
-                    <div class="flex flex-col gap-3">
+                    <div v-if="aiError" class="w-full flex items-center gap-3">
+                      <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+
+                      <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
+                        <template #title>
+                          {{ aiError }}
+                        </template>
+                        {{ aiError }}
+                      </NcTooltip>
+
+                      <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="handleRefreshOnError">
+                        {{ $t('general.refresh') }}
+                      </NcButton>
+                    </div>
+
+                    <div v-else class="flex flex-col gap-3">
                       <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Table(s)</div>
                       <div class="flex gap-2 flex-wrap">
                         <template v-for="t of predictedTables" :key="t.title">

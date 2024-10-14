@@ -1029,6 +1029,10 @@ svg.nc-virtual-cell-icon {
 
   &:not(.nc-disabled) {
     @apply cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark;
+
+    &.nc-selected {
+      @apply !bg-nc-bg-purple-dark font-semibold;
+    }
   }
 
   &.nc-disabled {

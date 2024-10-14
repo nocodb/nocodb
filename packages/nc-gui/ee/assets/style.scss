@@ -1018,7 +1018,7 @@ svg.nc-virtual-cell-icon {
 .nc-ai-selected-tag {
   @apply cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none font-semibold !mx-0;
 
-  &.nc-selected{
+  &.nc-selected {
     @apply !bg-brand-100;
   }
 }
@@ -1028,6 +1028,10 @@ svg.nc-virtual-cell-icon {
 
   &:not(.nc-disabled) {
     @apply cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark;
+
+    &.nc-selected {
+      @apply !bg-nc-bg-purple-dark font-semibold;
+    }
   }
 
   &.nc-disabled {

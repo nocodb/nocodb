@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
+import { AiWizardTabsType } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -7,12 +8,12 @@ const props = defineProps<{
   baseId: string
 }>()
 
-const emit = defineEmits(['update:modelValue', 'create'])
-
-enum TableWizardTabs {
-  AUTO_SUGGESTIONS = 'AUTO_SUGGESTIONS',
-  PROMPT = 'PROMPT',
+interface AiSuggestedTableType {
+  title: string
+  selected: boolean
 }
+
+const emit = defineEmits(['update:modelValue', 'create'])
 
 const maxSelectionCount = 5
 
@@ -65,7 +66,14 @@ const onAiTableCreate = async (table: TableType) => {
   await openTable(table)
 }
 
-const { aiIntegrationAvailable, aiLoading, aiError, generateTables, predictNextTables, loadAiIntegrations } = useNocoAi()
+const {
+  aiIntegrationAvailable,
+  aiLoading,
+  aiError,
+  generateTables,
+  predictNextTables: _predictNextTables,
+  loadAiIntegrations,
+} = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -76,19 +84,22 @@ enum AiStep {
 
 const aiModeStep = ref<AiStep | null>(null)
 
-const predictedTables = ref<string[]>([])
+const predictedTables1 = ref<string[]>([])
+const predictedTables = ref<AiSuggestedTableType[]>([])
 
 const removedFromPredictedTables = ref<Set<string>>(new Set())
 
-const predictHistory = ref<string[]>([])
+const predictHistory = ref<AiSuggestedTableType[]>([])
 
-const selectedTables = ref<string[]>([])
+const selectedTables = computed(() => {
+  return predictedTables.value.filter(({ selected }) => !!selected)
+})
 
 const calledFunction = ref<string>()
 
 const prompt = ref<string>('')
 
-const isPromtAlreadyGenerated = ref<boolean>(false)
+const isPromtAlreadyGenerated = ref<string>('')
 
 const availableIntegration = ref<{
   fkIntegrationId?: string
@@ -96,21 +107,43 @@ const availableIntegration = ref<{
   randomness?: string
 }>({})
 
-const activeAiTabLocal = ref<keyof typeof TableWizardTabs>(TableWizardTabs.AUTO_SUGGESTIONS)
+const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
 
 const activeAiTab = computed({
   get: () => {
     return activeAiTabLocal.value
   },
-  set: (value: keyof typeof TableWizardTabs) => {
+  set: (value: AiWizardTabsType) => {
     activeAiTabLocal.value = value
 
     prompt.value = ''
-    isPromtAlreadyGenerated.value = false
+    isPromtAlreadyGenerated.value = ''
 
     aiError.value = ''
   },
 })
+
+const predictNextTables = async (prompt?: string): Promise<AiSuggestedTableType[]> => {
+  return (
+    await _predictNextTables(
+      predictHistory.value.map(({ title }) => title),
+      props.baseId,
+      prompt,
+    )
+  ).filter((t) => !ncIsArrayIncludes(predictedTables.value, t.title, 'title'))
+}
+
+const serializeAiTables = (tables: string[]) => {
+  return tables.map((title: string): AiSuggestedTableType => {
+    return {
+      title,
+      selected: false,
+    }
+  })
+}
+const deSerializeAiTables = (tables: AiSuggestedTableType[]) => {
+  return tables.map(({ title }): string => title)
+}
 
 const toggleAiMode = async () => {
   if (aiMode.value) return
@@ -122,13 +155,13 @@ const toggleAiMode = async () => {
   predictedTables.value = []
   predictHistory.value = []
   prompt.value = ''
-  isPromtAlreadyGenerated.value = false
+  isPromtAlreadyGenerated.value = ''
 
   if (table.title === initTitle.value) {
     table.title = ''
   }
 
-  const predictions = await predictNextTables(predictHistory.value, props.baseId)
+  const predictions = await predictNextTables()
 
   predictedTables.value = predictions
   predictHistory.value.push(...predictions)
@@ -141,8 +174,8 @@ const disableAiMode = () => {
   predictedTables.value = []
   predictHistory.value = []
   prompt.value = ''
-  isPromtAlreadyGenerated.value = false
-  activeAiTab.value = TableWizardTabs.AUTO_SUGGESTIONS
+  isPromtAlreadyGenerated.value = ''
+  activeAiTab.value = AiWizardTabsType.AUTO_SUGGESTIONS
 
   table.title = initTitle.value || ''
 }
@@ -150,25 +183,18 @@ const disableAiMode = () => {
 const predictMore = async () => {
   calledFunction.value = 'predictMore'
 
-  const predictions: string[] = await predictNextTables(predictHistory.value, props.baseId)
+  const predictions = await predictNextTables()
 
   if (predictions.length) {
-    predictedTables.value.push(
-      ...predictions.filter(
-        (t) =>
-          !predictedTables.value.includes(t) && !selectedTables.value.includes(t) && !removedFromPredictedTables.value.has(t),
-      ),
-    )
-    predictHistory.value.push(...predictions.filter((t) => !selectedTables.value.includes(t)))
+    predictedTables.value.push(...predictions)
+    predictHistory.value.push(...predictions)
   }
 }
 
 const predictRefresh = async () => {
   calledFunction.value = 'predictRefresh'
 
-  const predictions: string[] = (await predictNextTables(predictHistory.value, props.baseId)).filter(
-    (t) => !selectedTables.value.includes(t) && !removedFromPredictedTables.value.has(t),
-  )
+  const predictions = await predictNextTables()
 
   if (predictions.length) {
     predictedTables.value = predictions
@@ -180,9 +206,7 @@ const predictRefresh = async () => {
 const predictFromPrompt = async () => {
   calledFunction.value = 'predictFromPrompt'
 
-  const predictions: string[] = (await predictNextTables(predictHistory.value, props.baseId, prompt.value)).filter(
-    (t) => !selectedTables.value.includes(t) && !removedFromPredictedTables.value.has(t),
-  )
+  const predictions = await predictNextTables()
 
   if (predictions.length) {
     predictedTables.value = predictions
@@ -190,21 +214,42 @@ const predictFromPrompt = async () => {
     aiModeStep.value = AiStep.pick
   }
 
-  isPromtAlreadyGenerated.value = true
+  isPromtAlreadyGenerated.value = prompt.value
 }
 
-const onTagClick = (tag: string) => {
-  if (selectedTables.value.length >= maxSelectionCount || selectedTables.value.includes(tag)) return
+const onToggleTag = (table: AiSuggestedTableType) => {
+  if (
+    !table.selected &&
+    (selectedTables.value.length >= maxSelectionCount || ncIsArrayIncludes(selectedTables.value, table.title, 'title'))
+  )
+    return
 
-  selectedTables.value.push(tag)
-  predictedTables.value = predictedTables.value.filter((t) => t !== tag)
+  predictedTables.value = predictedTables.value.map((t) => {
+    if (t.title === table.title) {
+      t.selected = !table.selected
+    }
+    return t
+  })
 }
 
-const onTagClose = (tag: string) => {
-  selectedTables.value = selectedTables.value.filter((t) => t !== tag)
-  if (predictHistory.value.includes(tag)) {
-    predictedTables.value.push(tag)
-  }
+const onTagClick = (table: AiSuggestedTableType) => {
+  if (selectedTables.value.length >= maxSelectionCount || ncIsArrayIncludes(selectedTables.value, table.title, 'title')) return
+
+  predictedTables.value = predictedTables.value.map((t) => {
+    if (t.title === table.title) {
+      t.selected = true
+    }
+    return t
+  })
+}
+
+const onTagClose = (table: AiSuggestedTableType) => {
+  predictedTables.value = predictedTables.value.map((t) => {
+    if (t.title === table.title) {
+      t.selected = false
+    }
+    return t
+  })
 }
 
 const onTagRemoveFromPrediction = (tag: string) => {
@@ -216,42 +261,36 @@ const onTagRemoveFromPrediction = (tag: string) => {
 
 const onSelectAll = () => {
   if (selectedTables.value.length >= maxSelectionCount) return
+
   let count = selectedTables.value.length
 
-  const remainingPredictedTables: string[] = []
-  const tablesToAdd: string[] = []
-
-  predictedTables.value.forEach((t) => {
+  predictedTables.value = predictedTables.value.map((table) => {
     // Check if the item can be selected
-    if (count < maxSelectionCount && !removedFromPredictedTables.value.has(t) && !selectedTables.value.includes(t)) {
-      tablesToAdd.push(t) // Add to selected tables if it meets the criteria
+    if (!table.selected && count < maxSelectionCount) {
+      table.selected = true
       count++
-    } else {
-      remainingPredictedTables.push(t) // Keep in predicted tables if it doesn't meet the criteria
     }
+    return table
   })
-
-  // Add selected items to the selected tables array
-  selectedTables.value.push(...tablesToAdd)
-
-  // Update predictedTables with the remaining ones
-  predictedTables.value = remainingPredictedTables
 }
 
 const onDeselectAll = () => {
-  predictedTables.value.push(...selectedTables.value.filter((t) => predictHistory.value.includes(t)))
-  selectedTables.value = selectedTables.value.filter((t) => !predictHistory.value.includes(t))
+  predictedTables.value = predictedTables.value.map((table) => {
+    table.selected = false
+    return table
+  })
 }
 
 const onAiEnter = async () => {
-  if (table.title.length) {
-    selectedTables.value.push(table.title)
-    table.title = ''
-  }
   calledFunction.value = 'generateTables'
 
   if (selectedTables.value.length) {
-    await generateTables(selectedTables.value, undefined, onAiTableCreate, props.baseId)
+    await generateTables(
+      selectedTables.value.map(({ title }) => title),
+      undefined,
+      onAiTableCreate,
+      props.baseId,
+    )
   }
 }
 
@@ -378,11 +417,11 @@ const fullAuto = async (e) => {
 const aiTabs = [
   {
     title: 'Auto Suggestions',
-    key: TableWizardTabs.AUTO_SUGGESTIONS,
+    key: AiWizardTabsType.AUTO_SUGGESTIONS,
   },
   {
     title: 'Prompt',
-    key: TableWizardTabs.PROMPT,
+    key: AiWizardTabsType.PROMPT,
   },
 ]
 
@@ -422,372 +461,233 @@ watch(
   },
   { immediate: true },
 )
-
-const handleAddInSelectedTable = (tables: string[]) => {
-  const tablesToAdd = tables.map((t) => t.trim()).filter((t) => t && !selectedTables.value.includes(t))
-
-  selectedTables.value.push(...tablesToAdd)
-  predictHistory.value.push(...tablesToAdd)
-  predictedTables.value = predictedTables.value.filter((t) => !tablesToAdd.includes(t))
-  table.title = ''
-}
-
-const onPaste = (e: ClipboardEvent) => {
-  const pastedText = e.clipboardData?.getData('text')
-
-  const inputArray = pastedText?.split(',')
-
-  handleAddInSelectedTable(inputArray)
-}
-
-const onBackspace = () => {
-  if (selectedTables.value.length) {
-    onTagClose(selectedTables.value[selectedTables.value.length - 1])
-  }
-}
-
-watch(
-  () => table.title,
-  (newVal) => {
-    if (!ncIsString(newVal)) return
-
-    // when user enters multiple table with comma separated or space separated
-    const isNewTable = newVal.charAt(newVal.length - 1) === ','
-
-    if (isNewTable && newVal.trim().length) {
-      const tableToAdd = newVal.split(',')[0].trim()
-
-      if (!tableToAdd) return
-
-      handleAddInSelectedTable([tableToAdd])
-    }
-  },
-)
 </script>
 
 <template>
   <NcModal
     v-model:visible="dialogShow"
-    :show-separator="false"
     :header="$t('activity.createTable')"
-    size="sm"
+    size="xs"
     height="auto"
-    width="592px"
     :centered="false"
     nc-modal-class-name="!p-0"
     @keydown.esc="dialogShow = false"
   >
-    <template #header>
-      <div class="px-6 pt-6 flex justify-between w-full items-center" @dblclick.stop="fullAuto">
+    <div class="py-5 flex flex-col gap-5" @dblclick.stop="fullAuto">
+      <div class="px-5 flex justify-between w-full items-center" @dblclick.stop="fullAuto">
         <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-gray-800">
           <GeneralIcon icon="table" class="!text-gray-600 w-5 h-5" />
           {{ $t('activity.createTable') }}
         </div>
-        <a href="https://docs.nocodb.com/tables/create-table" target="_blank" class="text-[13px]">
+        <!-- <a href="https://docs.nocodb.com/tables/create-table" target="_blank" class="text-[13px]">
           {{ $t('title.docs') }}
-        </a>
+        </a> -->
+        <NcButton
+          type="text"
+          size="small"
+          theme="ai"
+          :class="{
+            '!pointer-events-none !cursor-not-allowed': aiLoading,
+            '!bg-nc-bg-purple-dark hover:(!bg-purple-500 !text-white)': aiMode,
+          }"
+          @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
+        >
+          <div class="flex items-center justify-center">
+            <GeneralIcon icon="ncAutoAwesome" />
+            <span
+              class="overflow-hidden trasition-all duration-200"
+              :class="{ 'w-[0px] invisible': aiMode, 'ml-1 w-[78px]': !aiMode }"
+            >
+              Use NocoAI
+            </span>
+          </div>
+        </NcButton>
       </div>
-    </template>
-    <div class="px-6 pb-6 flex flex-col mt-1" @dblclick.stop="fullAuto">
+
       <a-form
         layout="vertical"
         :model="table"
         name="create-new-table-form"
         class="flex flex-col gap-5"
+        :class="{
+          '!px-5': !aiMode,
+        }"
         @keydown.enter="_createTable"
         @keydown.esc="dialogShow = false"
       >
         <div class="flex flex-col gap-5">
-          <a-form-item
-            v-bind="aiMode ? {} : validateInfos.title"
-            class="relative nc-table-input-wrapper relative"
-            :class="{
-              'nc-ai-mode': aiMode,
-            }"
-          >
+          <a-form-item v-if="!aiMode" v-bind="aiMode ? {} : validateInfos.title" class="relative nc-table-input-wrapper relative">
             <a-input
-              v-if="!aiMode"
               ref="inputEl"
               v-model:value="table.title"
-              class="nc-table-input nc-input-sm nc-input-shadow !max-w-[calc(100%_-_32px)] z-11"
+              class="nc-table-input nc-input-sm nc-input-shadow"
               hide-details
               data-testid="create-table-title-input"
               :placeholder="$t('msg.info.enterTableName')"
             />
-            <div
-              v-else
-              class="absolute left-0 top-0 w-full flex items-center max-w-[calc(100%_-_32px)] nc-scrollbar-thin overflow-x-auto rounded-lg border-1 border-gray-200 transition-all duration-300 h-8 z-11 bg-white nc-ai-mode-table-input-wrapper"
-            >
-              <div class="z-12 h-8 flex items-center gap-2 ml-2">
-                <a-tag v-for="t in selectedTables" :key="t" class="nc-ai-selected-tag">
-                  <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
-                    <span>{{ t }}</span>
-                    <div class="flex items-center p-0.5">
-                      <GeneralIcon icon="close" class="h-3 w-3 cursor-pointer opacity-80" @click="onTagClose(t)" />
-                    </div>
-                  </div>
-                </a-tag>
-              </div>
-
-              <a-input
-                ref="inputEl"
-                v-model:value="table.title"
-                autocomplete="off"
-                class="nc-table-input nc-input-sm !min-w-[300px] max-w-[calc(100%_-_32px)]"
-                hide-details
-                :bordered="false"
-                data-testid="create-table-title-input"
-                placeholder="Enter table names or choose from suggestions"
-                @paste.prevent="onPaste"
-                @keydown.backspace="onBackspace"
-              />
-              <!-- overlay selected tags with close icon on input -->
-            </div>
-
-            <!-- Black overlay button on end of input -->
-            <NcTooltip
-              :title="aiMode ? 'Disable AI suggestions' : 'Suggest tables using AI'"
-              class="nc-table-ai-toggle-btn absolute right-0 top-0 h-full"
-            >
-              <NcButton
-                size="small"
-                type="secondary"
-                class="z-10 !border-l-0 !rounded-l-none !pl-3.8"
-                :class="{
-                  '!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark !border-purple-100 !text-nc-fill-purple-dark': !aiMode,
-                  '!bg-purple-700 !border-purple-700 hover:(!bg-nc-fill-purple-medium !border-nc-fill-purple-medium) !text-white':
-                    aiMode,
-                }"
-                :disabled="aiLoading"
-                @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
-              >
-                <div class="w-full flex items-center justify-end">
-                  <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current w-4 h-4" />
-                </div>
-              </NcButton>
-            </NcTooltip>
           </a-form-item>
 
           <!-- Ai table wizard  -->
-          <AiWizardCard
-            v-if="aiMode"
-            v-model:active-tab="activeAiTab"
-            :tabs="aiTabs"
-            @navigate-to-integrations="handleNavigateToIntegrations"
-          >
-            <template v-if="aiIntegrationAvailable" #tabExtraRight>
-              <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
-                <template v-if="aiModeStep === AiStep.pick">
-                  <NcTooltip title="Re-suggest" placement="top">
-                    <NcButton
-                      size="xs"
-                      class="!px-1"
-                      type="text"
-                      theme="ai"
-                      :loading="aiLoading && calledFunction === 'predictRefresh'"
-                      @click="predictRefresh"
-                    >
-                      <template #loadingIcon>
-                        <!-- eslint-disable vue/no-lone-template -->
-                        <template></template>
-                      </template>
-                      <GeneralIcon
-                        icon="refresh"
-                        class="!text-current"
-                        :class="{
-                          'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
-                        }"
-                      />
-                    </NcButton>
-                  </NcTooltip>
-                  <NcTooltip
-                    v-if="
-                      predictHistory.length < selectedTables.length
-                        ? predictHistory.length + selectedTables.length < 8
-                        : predictHistory.length < 8
-                    "
-                    title="Suggest more"
-                    placement="top"
-                  >
-                    <NcButton
-                      size="xs"
-                      class="!px-1"
-                      type="text"
-                      theme="ai"
-                      :loading="aiLoading && calledFunction === 'predictMore'"
-                      icon-only
-                      @click="predictMore"
-                    >
-                      <template #icon>
-                        <GeneralIcon icon="ncPlusAi" class="!text-current" />
-                      </template>
-                    </NcButton>
-                  </NcTooltip>
-                </template>
-              </template>
-              <template v-else>
-                <NcButton
-                  size="xs"
-                  type="text"
-                  theme="ai"
-                  :disabled="!prompt.trim()"
-                  :loading="isPredictFromPromptLoading"
-                  @click="predictFromPrompt"
-                >
-                  <template #loadingIcon>
-                    <!-- eslint-disable vue/no-lone-template -->
-                    <template></template>
-                  </template>
-                  <div
-                    class="flex items-center gap-2"
-                    :class="{
-                      'min-w-[104px]': isPredictFromPromptLoading && !isPromtAlreadyGenerated,
-                      'min-w-[124px]': isPredictFromPromptLoading && isPromtAlreadyGenerated,
-                    }"
-                  >
-                    <GeneralIcon icon="ncZap" class="flex-none" />
-                    <div
-                      :class="{
-                        'nc-animate-dots': isPredictFromPromptLoading,
-                      }"
-                    >
-                      {{
-                        isPredictFromPromptLoading
-                          ? isPromtAlreadyGenerated
-                            ? 'Re-generating'
-                            : 'Generating'
-                          : isPromtAlreadyGenerated
-                          ? 'Re-generate'
-                          : 'Generate'
-                      }}
-                    </div>
-                  </div>
-                </NcButton>
-              </template>
-            </template>
-            <template #tabContent>
-              <template v-if="aiError">
-                <div class="py-3 pl-3 pr-2 flex items-center gap-3">
+          <AiWizardTabs v-if="aiMode" v-model:active-tab="activeAiTab">
+            <template #AutoSuggestedContent>
+              <div class="px-5 pt-5 pb-2">
+                <div v-if="aiError" class="w-full flex items-center gap-3">
                   <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
 
-                  <div class="text-sm text-nc-content-gray-subtle flex-1 max-w-[calc(100%_-_24px)]">
-                    <NcTooltip class="truncate" show-on-truncate-only>
-                      <template #title>
-                        {{ aiError }}
-                      </template>
+                  <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
+                    <template #title>
                       {{ aiError }}
-                    </NcTooltip>
-                  </div>
+                    </template>
+                    {{ aiError }}
+                  </NcTooltip>
 
                   <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="handleRefreshOnError">
                     {{ $t('general.refresh') }}
                   </NcButton>
                 </div>
-              </template>
-              <template v-else>
-                <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
-                  <div v-if="aiModeStep === 'init'" class="p-4">
-                    <div class="text-nc-content-purple-light text-sm h-7 flex items-center">
-                      <GeneralLoader size="regular" class="!text-nc-content-purple-dark !mr-2" />
-                      Auto suggesting tables based on your base name and existing tables
-                      <div class="nc-animate-dots"></div>
-                    </div>
+
+                <div v-else-if="aiModeStep === 'init'">
+                  <div class="text-nc-content-purple-light text-sm h-7 flex items-center gap-2">
+                    <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
+
+                    <div class="nc-animate-dots">Auto suggesting tables based on your base name and existing tables</div>
                   </div>
-                </template>
-                <template v-else>
-                  <div>
-                    <a-textarea
-                      v-model:value="prompt"
-                      :bordered="false"
-                      placeholder="Enter your prompt to get table suggestions.."
-                      class="!px-4 !py-2 !text-sm !min-h-[120px]"
-                      @keydown.enter.stop
-                    >
-                    </a-textarea>
-                  </div>
-                </template>
+                </div>
+                <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">
+                  <div class="flex gap-2 flex-wrap">
+                    <template v-for="t of predictedTables" :key="t.title">
+                      <NcTooltip :disabled="selectedTables.length < maxSelectionCount || t.selected">
+                        <template #title>
+                          <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
+                        </template>
 
-                <div
-                  v-if="
-                    (activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS && aiModeStep === 'pick') ||
-                    (activeAiTab === TableWizardTabs.PROMPT &&
-                      (predictedTables.length || selectedTables.length || isPromtAlreadyGenerated))
-                  "
-                  class="flex gap-2 flex-wrap p-4"
-                  :class="{
-                    'p-4': activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS,
-                    'border-t-1 border-purple-200': activeAiTab === TableWizardTabs.PROMPT,
-                  }"
-                >
-                  <template v-for="t of predictedTables">
-                    <NcTooltip
-                      v-if="!removedFromPredictedTables.has(t)"
-                      :key="t"
-                      :disabled="selectedTables.length < maxSelectionCount"
-                    >
-                      <template #title>
-                        <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
-                      </template>
-
-                      <a-tag
-                        class="nc-ai-suggested-tag"
-                        :class="{
-                          'nc-disabled': selectedTables.length >= maxSelectionCount,
-                        }"
-                        :disabled="selectedTables.length >= maxSelectionCount"
-                        @click="onTagClick(t)"
-                      >
-                        <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
-                          <div>{{ t }}</div>
-
-                          <div class="flex items-center p-0.5">
-                            <GeneralIcon
-                              icon="close"
-                              class="h-3 w-3 opacity-80"
-                              :class="{
-                                'cursor-pointer ': selectedTables.length < maxSelectionCount,
-                              }"
-                              @click.stop="onTagRemoveFromPrediction(t)"
-                            />
+                        <a-tag
+                          class="nc-ai-suggested-tag"
+                          :class="{
+                            'nc-disabled': !t.selected && selectedTables.length >= maxSelectionCount,
+                            'nc-selected': t.selected,
+                          }"
+                          :disabled="selectedTables.length >= maxSelectionCount"
+                          @click="onToggleTag(t)"
+                        >
+                          <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                            <div>{{ t.title }}</div>
                           </div>
-                        </div>
-                      </a-tag>
-                    </NcTooltip>
-                  </template>
-
-                  <NcTooltip
-                    v-if="predictedTables.length || !selectedTables.length"
-                    :disabled="selectedTables.length < maxSelectionCount"
-                  >
-                    <template #title>
-                      <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
+                        </a-tag>
+                      </NcTooltip>
                     </template>
-                    <NcButton
-                      size="xs"
-                      class="!h-6"
-                      type="primary"
-                      theme="ai"
-                      :disabled="!predictedTables.length || selectedTables.length >= maxSelectionCount"
-                      @click="onSelectAll"
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <NcTooltip title="Re-suggest" placement="top">
+                      <NcButton
+                        size="xs"
+                        class="!px-1"
+                        type="text"
+                        theme="ai"
+                        :loading="aiLoading && calledFunction === 'predictRefresh'"
+                        @click="predictRefresh"
+                      >
+                        <template #loadingIcon>
+                          <!-- eslint-disable vue/no-lone-template -->
+                          <template></template>
+                        </template>
+                        <GeneralIcon
+                          icon="refresh"
+                          class="!text-current"
+                          :class="{
+                            'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
+                          }"
+                        />
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip
+                      v-if="
+                        predictHistory.length < selectedTables.length
+                          ? predictHistory.length + selectedTables.length < 8
+                          : predictHistory.length < 8
+                      "
+                      title="Suggest more"
+                      placement="top"
                     >
-                      <div class="flex items-center gap-2">
-                        <GeneralIcon icon="ncPlusMultiple" class="flex-none" />
+                      <NcButton
+                        size="xs"
+                        class="!px-1"
+                        type="text"
+                        theme="ai"
+                        :loading="aiLoading && calledFunction === 'predictMore'"
+                        icon-only
+                        @click="predictMore"
+                      >
+                        <template #icon>
+                          <GeneralIcon icon="ncPlusAi" class="!text-current" />
+                        </template>
+                      </NcButton>
+                    </NcTooltip>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template #PromptContent>
+              <div class="px-5 pt-5 pb-2 flex flex-col gap-5">
+                <div class="relative">
+                  <a-textarea
+                    v-model:value="prompt"
+                    placeholder="Enter your prompt to get table suggestions.."
+                    class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[120px] !rounded-lg"
+                    @keydown.enter.stop
+                  >
+                  </a-textarea>
 
-                        Accept all
-                      </div>
-                    </NcButton>
-                  </NcTooltip>
-                  <NcButton v-else size="xs" class="!h-6" type="primary" theme="ai" @click="onDeselectAll">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="ncMinusSquare" class="flex-none" />
-
-                      Remove all
-                    </div>
+                  <NcButton
+                    size="xs"
+                    type="primary"
+                    theme="ai"
+                    class="!px-1 !absolute bottom-2 right-2"
+                    :disabled="
+                      !prompt.trim() || isPredictFromPromptLoading || (!prompt.trim() && isPromtAlreadyGenerated === prompt)
+                    "
+                    :loading="isPredictFromPromptLoading"
+                    @click="predictFromPrompt"
+                    icon-only
+                  >
+                    <template #loadingIcon>
+                      <GeneralLoader class="!text-purple-700" size="medium" />
+                    </template>
+                    <template #icon>
+                      <GeneralIcon icon="send" class="flex-none h-4 w-4" />
+                    </template>
                   </NcButton>
                 </div>
-              </template>
+
+                <div class="flex flex-col gap-3">
+                  <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Table(s)</div>
+                  <div class="flex gap-2 flex-wrap">
+                    <template v-for="t of predictedTables" :key="t.title">
+                      <NcTooltip :disabled="selectedTables.length < maxSelectionCount || t.selected">
+                        <template #title>
+                          <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
+                        </template>
+
+                        <a-tag
+                          class="nc-ai-suggested-tag"
+                          :class="{
+                            'nc-disabled': !t.selected && selectedTables.length >= maxSelectionCount,
+                            'nc-selected': t.selected,
+                          }"
+                          :disabled="selectedTables.length >= maxSelectionCount"
+                          @click="onToggleTag(t)"
+                        >
+                          <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                            <div>{{ t.title }}</div>
+                          </div>
+                        </a-tag>
+                      </NcTooltip>
+                    </template>
+                  </div>
+                </div>
+              </div>
             </template>
-          </AiWizardCard>
+          </AiWizardTabs>
 
           <a-form-item
             v-if="enableDescription && !aiMode"
@@ -845,7 +745,12 @@ watch(
             </a-row>
           </div>
         </div>
-        <div class="flex flex-row justify-between gap-x-2">
+        <div
+          class="flex flex-row justify-between gap-x-2"
+          :class="{
+            'px-5 -mt-2': aiMode,
+          }"
+        >
           <NcButton v-if="!enableDescription && !aiMode" size="small" type="text" @click.stop="toggleDescription">
             <div class="flex !text-gray-700 items-center gap-2">
               <GeneralIcon icon="plus" class="h-4 w-4" />
@@ -875,6 +780,7 @@ watch(
               v-else
               v-e="['a:table:create']"
               type="primary"
+              :theme="aiMode ? 'ai' : 'default'"
               size="small"
               :disabled="selectedTables.length === 0 && validateInfos.title.validateStatus === 'error'"
               :loading="aiLoading && calledFunction === 'generateTables'"
@@ -898,37 +804,6 @@ watch(
           </div>
         </div>
       </a-form>
-    </div>
-    <div class="nc-nocoai-footer min-h-9">
-      <!-- Footer -->
-
-      <div class="nc-ai-wizard-card-footer-branding text-xs">
-        {{ $t('general.poweredBy') }}
-        <span class="font-semibold !text-inherit"> {{ $t('general.nocoAI') }} </span>
-      </div>
-
-      <!-- eslint-disable vue/no-constant-condition -->
-      <AiSettings
-        v-if="false"
-        v-model:fk-integration-id="availableIntegration.fkIntegrationId"
-        v-model:model="availableIntegration.model"
-        v-model:randomness="availableIntegration.randomness"
-        :workspace-id="activeWorkspaceId"
-        :show-tooltip="false"
-        placement="bottom"
-      >
-        <NcButton
-          size="xs"
-          class="nc-nocoai-settings !px-1 !text-current"
-          :class="{
-            'nc-ai-loading': aiLoading,
-          }"
-          type="text"
-          :disabled="aiLoading || !aiIntegrationAvailable || !aiMode"
-        >
-          <GeneralIcon icon="settings" />
-        </NcButton>
-      </AiSettings>
     </div>
   </NcModal>
 </template>
@@ -969,30 +844,6 @@ watch(
   &.nc-ai-mode {
     .nc-ai-mode-table-input-wrapper {
       @apply shadow-default hover:shadow-hover focus-within:(!shadow-selected border-brand-500);
-
-      &:not(:focus-within) {
-        @apply !rounded-r-none borderr0 !important;
-
-        & ~ .nc-table-ai-toggle-btn {
-          button {
-            @apply !pl-[7px] z-11 !border-l-1;
-          }
-        }
-      }
-    }
-  }
-
-  &:not(.nc-ai-mode) {
-    .nc-table-input {
-      &:not(:focus) {
-        @apply !rounded-r-none !border-r-0;
-
-        & ~ .nc-table-ai-toggle-btn {
-          button {
-            @apply !pl-[7px] z-11 !border-l-1;
-          }
-        }
-      }
     }
   }
 }

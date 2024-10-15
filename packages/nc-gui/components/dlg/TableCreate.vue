@@ -452,6 +452,7 @@ watch(
     height="auto"
     :centered="false"
     nc-modal-class-name="!p-0"
+    class="!top-[25vh]"
     @keydown.esc="dialogShow = false"
     :mask-closable="!(aiLoading && calledFunction === 'generateTables')"
     wrap-class-name="nc-modal-table-create-wrapper"

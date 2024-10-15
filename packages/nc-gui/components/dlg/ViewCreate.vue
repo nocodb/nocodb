@@ -725,7 +725,7 @@ const getPluralName = (name: string) => {
 <template>
   <NcModal
     v-model:visible="vModel"
-    class="nc-view-create-modal"
+    class="nc-view-create-modal !top-[25vh]"
     :show-separator="false"
     size="xs"
     height="auto"

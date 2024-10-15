@@ -336,10 +336,14 @@ onMounted(async () => {
     enableDescription.value = true
   }
 
-  if ([ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(props.type)) {
+  if (
+    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(props.type) ||
+    aiIntegrationAvailable.value
+  ) {
     isMetaLoading.value = true
     try {
       meta.value = (await getMeta(tableId.value))!
+
       if (props.type === ViewTypes.MAP) {
         viewSelectFieldOptions.value = meta
           .value!.columns!.filter((el) => el.uidt === UITypes.GeoData)
@@ -1086,7 +1090,7 @@ const getPluralName = (name: string) => {
                   <div class="text-nc-content-purple-light text-sm h-7 flex items-center gap-2">
                     <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
 
-                    <div class="nc-animate-dots">Auto suggesting view based on your base name and existing views fields</div>
+                    <div class="nc-animate-dots">Auto suggesting views for {{ meta?.title }}</div>
                   </div>
                 </div>
                 <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">

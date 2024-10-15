@@ -323,9 +323,9 @@ function extractCheckboxIcon(meta: string | Record<string, any> = null) {
   if (parsedMeta.icon) {
     icon.checked = parsedMeta.icon.checked || icon.checked
     icon.unchecked = parsedMeta.icon.unchecked || icon.unchecked
-  } else if (typeof parsedMeta.iconIndex === 'number' && checkboxIconList[parsedMeta.iconIndex]) {
-    icon.checked = checkboxIconList[parsedMeta.iconIndex].checked
-    icon.unchecked = checkboxIconList[parsedMeta.iconIndex].unchecked
+  } else if (typeof parsedMeta.iconIdx === 'number' && checkboxIconList[parsedMeta.iconIdx]) {
+    icon.checked = checkboxIconList[parsedMeta.iconIdx].checked
+    icon.unchecked = checkboxIconList[parsedMeta.iconIdx].unchecked
   }
   return icon
 }
@@ -341,9 +341,9 @@ function extractRatingIcon(meta: string | Record<string, any> = null) {
   if (parsedMeta.icon) {
     icon.full = parsedMeta.icon.full || icon.full
     icon.empty = parsedMeta.icon.empty || icon.empty
-  } else if (typeof parsedMeta.iconIndex === 'number' && ratingIconList[parsedMeta.iconIndex]) {
-    icon.full = ratingIconList[parsedMeta.iconIndex].full
-    icon.empty = ratingIconList[parsedMeta.iconIndex].empty
+  } else if (typeof parsedMeta.iconIdx === 'number' && ratingIconList[parsedMeta.iconIdx]) {
+    icon.full = ratingIconList[parsedMeta.iconIdx].full
+    icon.empty = ratingIconList[parsedMeta.iconIdx].empty
   }
   return icon
 }
@@ -361,4 +361,5 @@ export {
   checkboxIconList,
   ratingIconList,
   extractCheckboxIcon,
+  extractRatingIcon,
 }

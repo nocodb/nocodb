@@ -63,7 +63,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   logger.log('Starting decryption of sources and integrations');
 
   let encryptionKey = process.env.NC_AUTH_JWT_SECRET;
-  let fallbackEncryptionKey: string = null;
+  let fallbackEncryptionKey: string | null = null;
 
   const encryptionKeyFromMeta = (
     await ncMeta.metaGet(RootScopes.ROOT, RootScopes.ROOT, MetaTable.STORE, {

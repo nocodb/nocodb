@@ -593,9 +593,8 @@ const predictFromPrompt = async () => {
     predictedViews.value = [...predictedViews.value.filter(({ selected }) => selected), ...predictions]
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
+    isPromtAlreadyGenerated.value = prompt.value
   }
-
-  isPromtAlreadyGenerated.value = prompt.value
 }
 
 const onToggleTag = (view: SerializedAiViewType) => {

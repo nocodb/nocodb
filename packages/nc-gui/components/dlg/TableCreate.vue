@@ -189,9 +189,8 @@ const predictFromPrompt = async () => {
     predictedTables.value = [...predictedTables.value.filter(({ selected }) => selected), ...predictions]
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
+    isPromtAlreadyGenerated.value = prompt.value
   }
-
-  isPromtAlreadyGenerated.value = prompt.value
 }
 
 const onToggleTag = (table: AiSuggestedTableType) => {
@@ -547,7 +546,7 @@ watch(
                     <div class="text-nc-content-purple-light text-sm h-7 flex items-center gap-2">
                       <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
 
-                      <div class="nc-animate-dots">Auto suggesting tables based on your base name and existing tables</div>
+                      <div class="nc-animate-dots">Auto suggesting tables for {{ base?.title }}</div>
                     </div>
                   </div>
                   <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">

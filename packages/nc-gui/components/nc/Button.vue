@@ -276,7 +276,7 @@ useEventListener(NcButton, 'mousedown', () => {
   }
 
   &.theme-ai {
-    @apply bg-purple-500 md:(hover:bg-purple-600);
+    @apply bg-purple-700 md:(hover:bg-purple-800);
   }
 }
 

@@ -85,22 +85,29 @@ if ((column.value?.colOptions as any)?.formula_raw) {
 
 const source = computed(() => activeBase.value?.sources?.find((s) => s.id === meta.value?.source_id))
 
-const parsedTree = computedAsync(async () => {
-  try {
-    const parsed = await validateFormulaAndExtractTreeWithType({
-      formula: vModel.value.formula || vModel.value.formula_raw,
-      columns: meta.value?.columns || [],
-      column: column.value ?? undefined,
-      clientOrSqlUi: source.value?.type as any,
-      getMeta: async (modelId) => await getMeta(modelId),
-    })
-    return parsed
-  } catch (e) {
-    return {
-      dataType: FormulaDataTypes.UNKNOWN,
-    }
-  }
+const parsedTree = ref({
+  dataType: FormulaDataTypes.UNKNOWN,
 })
+
+watch(
+  () => vModel.value.formula || vModel.value.formula_raw,
+  async () => {
+    try {
+      const parsed = await validateFormulaAndExtractTreeWithType({
+        formula: vModel.value.formula || vModel.value.formula_raw,
+        columns: (meta.value?.columns || []).slice(),
+        column: column.value ? { ...column.value } : undefined,
+        clientOrSqlUi: source.value?.type as any,
+        getMeta: async (modelId) => await getMeta(modelId),
+      })
+      parsedTree.value = parsed
+    } catch (e) {
+      parsedTree.value = {
+        dataType: FormulaDataTypes.UNKNOWN,
+      }
+    }
+  },
+)
 
 // set additional validations
 setAdditionalValidations({

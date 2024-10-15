@@ -587,6 +587,10 @@ const onDeselectAll = () => {
   _onDeselectAll()
   onSelectedTagClick()
 }
+
+const isAiButtonSelectOption = (uidt: string) => {
+  return uidt === UITypes.Button && formState.value.uidt === UITypes.Button && formState.value.type === ButtonActionsType.Ai
+}
 </script>
 
 <template>
@@ -1012,10 +1016,10 @@ const onDeselectAll = () => {
                 }"
                 @mouseover="handleResetHoverEffect"
               >
-                <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name">
+                <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name" :data-title="formState?.type">
                   <div class="flex-1 flex gap-2 items-center">
                     <component
-                      :is="opt.icon"
+                      :is="isAiButtonSelectOption(opt.name) ? iconMap.cellAiButton : opt.icon"
                       class="nc-field-type-icon w-4 h-4"
                       :class="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name) ? 'text-gray-300' : 'text-gray-700'"
                     />

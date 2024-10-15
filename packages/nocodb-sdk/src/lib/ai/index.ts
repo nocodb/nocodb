@@ -17,6 +17,7 @@ export interface SerializedAiViewType {
   }[];
   gridGroupBy?: string | string[];
   kanbanGroupBy?: string | string[];
+  selected?: boolean;
 }
 
 export interface PredictNextFieldsType {

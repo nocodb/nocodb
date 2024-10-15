@@ -173,6 +173,7 @@ Rules:
 - Forms are favorable if you think users will be entering data frequently
 - Filters can't have dynamic values
 - Duplicate views are not allowed
+- View title is required
 - If there is an emoji which can explain the view, use it as a suffix for view title
 
 This is a sample schema:
@@ -182,7 +183,7 @@ This is a sample schema:
 
 Here is a sample JSON for generating views for sample schema:
 \`\`\`json
-{"views":[[{"type":"grid","table":"Opportunities","title":"Grouped by owner","gridGroupBy":["Owner"]},{"type":"grid","table":"Opportunities","title":"Closed—won","filters":[{"comparison_op":"eq","logical_op":"and","value":"Closed—won","column":"Status"}]},{"type":"kanban","table":"Opportunities","title":"Sales Pipeline","kanbanGroupBy":"Status"},{"type":"calendar","table":"Opportunities","title":"Proposal Dates","calendar_range":[{"from_column":"Proposal deadline"}]},{"type":"form","table":"Interactions","title":"Entry form"},{"type":"grid","table":"Accounts","title":"Grouped by size","gridGroupBy":["Size"]},{"type":"grid","table":"Contacts","title":"VIP contact info","filters":[{"comparison_op":"eq","logical_op":"and","value":"true","column":"VIP"}]}]]}
+{"views":[{"type":"grid","table":"Opportunities","title":"Grouped by owner","gridGroupBy":["Owner"]},{"type":"grid","table":"Opportunities","title":"Closed—won","filters":[{"comparison_op":"eq","logical_op":"and","value":"Closed—won","column":"Status"}]},{"type":"kanban","table":"Opportunities","title":"Sales Pipeline","kanbanGroupBy":"Status"},{"type":"calendar","table":"Opportunities","title":"Proposal Dates","calendar_range":[{"from_column":"Proposal deadline"}]},{"type":"form","table":"Interactions","title":"Entry form"},{"type":"grid","table":"Accounts","title":"Grouped by size","gridGroupBy":["Size"]},{"type":"grid","table":"Contacts","title":"VIP contact info","filters":[{"comparison_op":"eq","logical_op":"and","value":"true","column":"VIP"}]}]}
 \`\`\`
 `;
 

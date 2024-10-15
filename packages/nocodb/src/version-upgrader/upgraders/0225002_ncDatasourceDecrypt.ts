@@ -11,20 +11,51 @@ const logger = {
   },
 };
 
-const decryptConfig = async (encryptedConfig: string, secret: string) => {
+const decryptConfigWithFallbackKey = async ({
+  encryptedConfig,
+  secret,
+  fallbackSecret,
+  fallbackToNullIfFailed = false,
+}: {
+  encryptedConfig: string;
+  secret: string;
+  fallbackSecret?: string;
+  fallbackToNullIfFailed?: boolean;
+}) => {
   if (!encryptedConfig) return encryptedConfig;
 
-  const decryptedVal = CryptoJS.AES.decrypt(encryptedConfig, secret).toString(
-    CryptoJS.enc.Utf8,
-  );
-
-  // validate by parsing JSON
   try {
-    JSON.parse(decryptedVal);
-  } catch {
-    throw new Error('Config decryption failed');
+    const decryptedVal = CryptoJS.AES.decrypt(encryptedConfig, secret).toString(
+      CryptoJS.enc.Utf8,
+    );
+
+    let parsedVal;
+
+    // validate by parsing JSON
+    try {
+      parsedVal = JSON.parse(decryptedVal);
+    } catch {
+      throw new Error('JSON parse failed');
+    }
+    // if parsed value is null, return null
+    return parsedVal === null ? null : decryptedVal;
+  } catch (e) {
+    if (fallbackSecret) {
+      logger.log(
+        'Falling back to fallback secret since decryption failed with primary secret',
+      );
+      return decryptConfigWithFallbackKey({
+        encryptedConfig,
+        secret: fallbackSecret,
+      });
+    }
+
+    if (fallbackToNullIfFailed) {
+      return null;
+    }
+
+    throw e;
   }
-  return decryptedVal;
 };
 
 // decrypt datasource details in source table and integration table
@@ -32,13 +63,18 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   logger.log('Starting decryption of sources and integrations');
 
   let encryptionKey = process.env.NC_AUTH_JWT_SECRET;
+  let fallbackEncryptionKey: string = null;
+
+  const encryptionKeyFromMeta = (
+    await ncMeta.metaGet(RootScopes.ROOT, RootScopes.ROOT, MetaTable.STORE, {
+      key: 'nc_auth_jwt_secret',
+    })
+  )?.value;
 
   if (!encryptionKey) {
-    encryptionKey = (
-      await ncMeta.metaGet(RootScopes.ROOT, RootScopes.ROOT, MetaTable.STORE, {
-        key: 'nc_auth_jwt_secret',
-      })
-    )?.value;
+    encryptionKey = encryptionKeyFromMeta;
+  } else {
+    fallbackEncryptionKey = encryptionKeyFromMeta;
   }
 
   // if encryption key is same as previous, just update is_encrypted flag and return
@@ -61,7 +97,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     throw Error('Encryption key not found');
   }
 
-  // get all external sources
+  // get all sources
   const sources = await ncMeta.knexConnection(MetaTable.SOURCES);
 
   const passed = [];
@@ -70,7 +106,13 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   for (const source of sources) {
     if (source?.config) {
       try {
-        const decrypted = await decryptConfig(source.config, encryptionKey);
+        const decrypted = await decryptConfigWithFallbackKey({
+          encryptedConfig: source.config,
+          secret: encryptionKey,
+          fallbackSecret: fallbackEncryptionKey,
+          // if source is meta, fallback to null if decryption failed as it is not required and the actual value is JSON `null` string
+          fallbackToNullIfFailed: source.is_meta,
+        });
         await ncMeta
           .knexConnection(MetaTable.SOURCES)
           .update({
@@ -78,7 +120,11 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           })
           .where('id', source.id);
         logger.log(`Decrypted source ${source.id}`);
-        passed.push(true);
+
+        // skip pushing to passed if it is meta source
+        if (!source.is_meta) {
+          passed.push(true);
+        }
       } catch (e) {
         logger.error(`Failed to decrypt source ${source.id}`);
         passed.push(false);
@@ -93,10 +139,11 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
   for (const integration of integrations) {
     if (integration?.config) {
       try {
-        const decrypted = await decryptConfig(
-          integration.config,
-          encryptionKey,
-        );
+        const decrypted = await decryptConfigWithFallbackKey({
+          encryptedConfig: integration.config,
+          secret: encryptionKey,
+          fallbackSecret: fallbackEncryptionKey,
+        });
         await ncMeta
           .knexConnection(MetaTable.INTEGRATIONS)
           .update({

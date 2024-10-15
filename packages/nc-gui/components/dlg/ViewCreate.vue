@@ -18,6 +18,7 @@ import {
   viewTypeToStringMap,
 } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
+import { AiWizardTabsType } from '#imports'
 
 const props = withDefaults(defineProps<Props>(), {
   selectedViewId: undefined,
@@ -28,11 +29,6 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emits = defineEmits<Emits>()
-
-enum TableWizardTabs {
-  AUTO_SUGGESTIONS = 'AUTO_SUGGESTIONS',
-  PROMPT = 'PROMPT',
-}
 
 const maxSelectionCount = 5
 
@@ -89,6 +85,8 @@ const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId, co
 const meta = ref<TableType | undefined>()
 
 const inputEl = ref<ComponentPublicInstance>()
+
+const aiPromptInputRef = ref<HTMLElement>()
 
 const descriptionInputEl = ref<ComponentPublicInstance>()
 
@@ -156,9 +154,7 @@ const typeAlias = computed(
     }[props.type]),
 )
 
-const initTitle = ref<string>()
-
-const { aiIntegrationAvailable, aiLoading, aiError, predictViews, createViews } = useNocoAi()
+const { aiIntegrationAvailable, aiLoading, aiError, predictViews: _predictViews, createViews } = useNocoAi()
 
 const aiMode = ref(false)
 
@@ -171,17 +167,17 @@ const aiModeStep = ref<AiStep | null>(null)
 
 const predictedViews = ref<SerializedAiViewType[]>([])
 
-const removedFromPredictedViews = ref<SerializedAiViewType[]>([])
-
 const predictHistory = ref<SerializedAiViewType[]>([])
 
-const selectedViews = ref<SerializedAiViewType[]>([])
+const selectedViews = computed(() => {
+  return predictedViews.value.filter(({ selected }) => !!selected)
+})
 
 const calledFunction = ref<string>()
 
 const prompt = ref<string>('')
 
-const isPromtAlreadyGenerated = ref<boolean>(false)
+const isPromtAlreadyGenerated = ref<string>('')
 
 onBeforeMount(init)
 
@@ -194,19 +190,25 @@ watch(
 
 const isAIViewCreateMode = computed(() => props.type === 'AI')
 
-const activeAiTabLocal = ref<keyof typeof TableWizardTabs>(TableWizardTabs.AUTO_SUGGESTIONS)
+const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
 
 const activeAiTab = computed({
   get: () => {
     return activeAiTabLocal.value
   },
-  set: (value: keyof typeof TableWizardTabs) => {
+  set: (value: AiWizardTabsType) => {
     activeAiTabLocal.value = value
 
     prompt.value = ''
-    isPromtAlreadyGenerated.value = false
+    isPromtAlreadyGenerated.value = ''
 
     aiError.value = ''
+
+    if (value === AiWizardTabsType.PROMPT) {
+      nextTick(() => {
+        aiPromptInputRef.value?.focus()
+      })
+    }
   },
 })
 
@@ -513,10 +515,13 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
   })
 }
 
-const _predictViews = async (prompt?: string): Promise<SerializedAiViewType[]> => {
+const predictViews = async (prompt?: string): Promise<SerializedAiViewType[]> => {
   const viewType =
     !isAIViewCreateMode.value && form.type && viewTypeToStringMap[form.type] ? viewTypeToStringMap[form.type] : undefined
-  return await predictViews(tableId.value, predictHistory.value, baseId.value, prompt, viewType)
+
+  return (await _predictViews(tableId.value, predictHistory.value, baseId.value, prompt, viewType)).filter(
+    (v: SerializedAiViewType) => !ncIsArrayIncludes(predictedViews.value, v.title, 'title'),
+  )
 }
 
 const toggleAiMode = async () => {
@@ -530,12 +535,9 @@ const toggleAiMode = async () => {
   predictedViews.value = []
   predictHistory.value = []
   prompt.value = ''
-  isPromtAlreadyGenerated.value = false
+  isPromtAlreadyGenerated.value = ''
 
-  if (form.title === initTitle.value) {
-    form.title = ''
-  }
-  const predictions = await _predictViews()
+  const predictions = await predictViews()
 
   predictedViews.value = predictions
   predictHistory.value.push(...predictions)
@@ -550,41 +552,33 @@ const disableAiMode = () => {
   predictedViews.value = []
   predictHistory.value = []
   prompt.value = ''
-  isPromtAlreadyGenerated.value = false
-  activeAiTab.value = TableWizardTabs.AUTO_SUGGESTIONS
+  isPromtAlreadyGenerated.value = ''
+  activeAiTab.value = AiWizardTabsType.AUTO_SUGGESTIONS
 
-  form.title = initTitle.value || ''
+  nextTick(() => {
+    inputEl.value?.focus()
+    inputEl.value?.select()
+  })
 }
 
 const predictMore = async () => {
   calledFunction.value = 'predictMore'
 
-  const predictions = await _predictViews()
+  const predictions = await predictViews()
 
   if (predictions.length) {
-    predictedViews.value.push(
-      ...predictions.filter(
-        (v) =>
-          !ncIsArrayIncludes(predictedViews.value, v.title, 'title') &&
-          !ncIsArrayIncludes(selectedViews.value, v.title, 'title') &&
-          !ncIsArrayIncludes(removedFromPredictedViews.value, v.title, 'title'),
-      ),
-    )
-    predictHistory.value.push(...predictions.filter((v) => !ncIsArrayIncludes(selectedViews.value, v.title, 'title')))
+    predictedViews.value.push(...predictions)
+    predictHistory.value.push(...predictions)
   }
 }
 
 const predictRefresh = async () => {
   calledFunction.value = 'predictRefresh'
 
-  const predictions = (await _predictViews()).filter(
-    (pv) =>
-      !ncIsArrayIncludes(selectedViews.value, pv.title, 'title') &&
-      !ncIsArrayIncludes(removedFromPredictedViews.value, pv.title, 'title'),
-  )
+  const predictions = await predictViews()
 
   if (predictions.length) {
-    predictedViews.value = predictions
+    predictedViews.value = [...predictedViews.value.filter(({ selected }) => selected), ...predictions]
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
   }
@@ -593,79 +587,53 @@ const predictRefresh = async () => {
 const predictFromPrompt = async () => {
   calledFunction.value = 'predictFromPrompt'
 
-  const predictions = (await _predictViews(prompt.value)).filter(
-    (pv) =>
-      !ncIsArrayIncludes(selectedViews.value, pv.title, 'title') &&
-      !ncIsArrayIncludes(removedFromPredictedViews.value, pv.title, 'title'),
-  )
+  const predictions = await predictViews(prompt.value)
 
   if (predictions.length) {
-    predictedViews.value = predictions
+    predictedViews.value = [...predictedViews.value.filter(({ selected }) => selected), ...predictions]
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
   }
 
-  isPromtAlreadyGenerated.value = true
+  isPromtAlreadyGenerated.value = prompt.value
 }
 
-const onTagClick = (view: SerializedAiViewType) => {
-  if (selectedViews.value.length >= maxSelectionCount || ncIsArrayIncludes(selectedViews.value, view.title, 'title')) return
-
-  selectedViews.value.push(view)
-  predictedViews.value = predictedViews.value.filter((v) => v.title !== view.title)
-}
-
-const onTagClose = (view: SerializedAiViewType) => {
-  selectedViews.value = selectedViews.value.filter((v) => v.title !== view.title)
-  if (ncIsArrayIncludes(predictHistory.value, view.title, 'title')) {
-    predictedViews.value.push(view)
+const onToggleTag = (view: SerializedAiViewType) => {
+  if (
+    !view.selected &&
+    (selectedViews.value.length >= maxSelectionCount || ncIsArrayIncludes(selectedViews.value, view.title, 'title'))
+  ) {
+    return
   }
-}
 
-const onTagRemoveFromPrediction = (view: SerializedAiViewType) => {
-  if (selectedViews.value.length >= maxSelectionCount) return
-
-  removedFromPredictedViews.value.push(view)
-  predictedViews.value = predictedViews.value.filter((pv) => pv.title !== view.title)
+  predictedViews.value = predictedViews.value.map((v) => {
+    if (v.title === view.title) {
+      v.selected = !view.selected
+    }
+    return v
+  })
 }
 
 const onSelectAll = () => {
   if (selectedViews.value.length >= maxSelectionCount) return
+
   let count = selectedViews.value.length
 
-  const remainingPredictedTables: SerializedAiViewType[] = []
-  const viewsToAdd: SerializedAiViewType[] = []
-
-  predictedViews.value.forEach((pv) => {
+  predictedViews.value = predictedViews.value.map((view) => {
     // Check if the item can be selected
-    if (
-      count < maxSelectionCount &&
-      !ncIsArrayIncludes(removedFromPredictedViews.value, pv.title, 'title') &&
-      !ncIsArrayIncludes(selectedViews.value, pv.title, 'title')
-    ) {
-      viewsToAdd.push(pv) // Add to selected view if it meets the criteria
+    if (!view.selected && count < maxSelectionCount) {
+      view.selected = true
       count++
-    } else {
-      remainingPredictedTables.push(pv) // Keep in predicted view if it doesn't meet the criteria
     }
+    return view
   })
-
-  // Add selected items to the selected view array
-  selectedViews.value.push(...viewsToAdd)
-
-  // Update predictedViews with the remaining ones
-  predictedViews.value = remainingPredictedTables
-}
-
-const onDeselectAll = () => {
-  predictedViews.value.push(...selectedViews.value.filter((sv) => ncIsArrayIncludes(predictHistory.value, sv.title, 'title')))
-  selectedViews.value = selectedViews.value.filter((sv) => !ncIsArrayIncludes(predictHistory.value, sv.title, 'title'))
 }
 
 const fullAuto = async (e) => {
   const target = e.target as HTMLElement
   if (
     !aiIntegrationAvailable.value ||
+    !isNecessaryColumnsPresent.value ||
     aiLoading.value ||
     aiError.value ||
     target.closest('button, input, .nc-button, textarea')
@@ -681,17 +649,6 @@ const fullAuto = async (e) => {
     await onAiEnter()
   }
 }
-
-const aiTabs = [
-  {
-    title: 'Auto Suggestions',
-    key: TableWizardTabs.AUTO_SUGGESTIONS,
-  },
-  {
-    title: 'Prompt',
-    key: TableWizardTabs.PROMPT,
-  },
-]
 
 const isPredictFromPromptLoading = computed(() => {
   return aiLoading.value && calledFunction.value === 'predictFromPrompt'
@@ -746,8 +703,6 @@ function init() {
       }
     }
 
-    initTitle.value = form.title
-
     nextTick(() => {
       const el = inputEl.value?.$el as HTMLInputElement
 
@@ -758,6 +713,13 @@ function init() {
     })
   }
 }
+
+const getPluralName = (name: string) => {
+  if (aiMode.value) {
+    return `${name}Plural`
+  }
+  return name
+}
 </script>
 
 <template>
@@ -765,22 +727,23 @@ function init() {
     v-model:visible="vModel"
     class="nc-view-create-modal"
     :show-separator="false"
-    size="sm"
+    size="xs"
     height="auto"
-    width="592px"
     :centered="false"
     nc-modal-class-name="!p-0"
+    wrap-class-name="nc-modal-view-create-wrapper"
   >
-    <template #header>
-      <div class="px-6 pt-6 flex w-full flex-row justify-between items-center" @dblclick.stop="fullAuto">
+    <div class="py-5 flex flex-col gap-5" @dblclick.stop="fullAuto">
+      <div class="px-5 flex w-full flex-row justify-between items-center">
         <div class="flex font-bold text-base gap-x-3 items-center">
-          <GeneralViewIcon :meta="{ type: form.type }" class="nc-view-icon !text-[24px] !leading-6 max-h-6 max-w-6" />
+          <GeneralIcon v-if="isAIViewCreateMode" icon="ncAutoAwesome" class="text-nc-content-purple-dark h-6 w-6" />
+          <GeneralViewIcon v-else :meta="{ type: form.type }" class="nc-view-icon !text-[24px] !leading-6 max-h-6 max-w-6" />
           <template v-if="form.type === ViewTypes.GRID">
             <template v-if="form.copy_from_id">
               {{ $t('labels.duplicateGridView') }}
             </template>
             <template v-else>
-              {{ $t('labels.createGridView') }}
+              {{ $t(`labels.${getPluralName('createGridView')}`) }}
             </template>
           </template>
           <template v-else-if="form.type === ViewTypes.GALLERY">
@@ -788,7 +751,7 @@ function init() {
               {{ $t('labels.duplicateGalleryView') }}
             </template>
             <template v-else>
-              {{ $t('labels.createGalleryView') }}
+              {{ $t(`labels.${getPluralName('createGalleryView')}`) }}
             </template>
           </template>
           <template v-else-if="form.type === ViewTypes.FORM">
@@ -796,7 +759,7 @@ function init() {
               {{ $t('labels.duplicateFormView') }}
             </template>
             <template v-else>
-              {{ $t('labels.createFormView') }}
+              {{ $t(`labels.${getPluralName('createFormView')}`) }}
             </template>
           </template>
           <template v-else-if="form.type === ViewTypes.KANBAN">
@@ -804,7 +767,7 @@ function init() {
               {{ $t('labels.duplicateKanbanView') }}
             </template>
             <template v-else>
-              {{ $t('labels.createKanbanView') }}
+              {{ $t(`labels.${getPluralName('createKanbanView')}`) }}
             </template>
           </template>
           <template v-else-if="form.type === ViewTypes.CALENDAR">
@@ -812,7 +775,7 @@ function init() {
               {{ $t('labels.duplicateCalendarView') }}
             </template>
             <template v-else>
-              {{ $t('labels.createCalendarView') }}
+              {{ $t(`labels.${getPluralName('createCalendarView')}`) }}
             </template>
           </template>
           <template v-else-if="form.type === 'AI'">
@@ -827,88 +790,65 @@ function init() {
             </template>
           </template>
         </div>
-        <a
+        <!-- <a
           v-if="!form.copy_from_id"
           class="text-sm !text-gray-600 !font-default !hover:text-gray-600"
           :href="`https://docs.nocodb.com/views/view-types/${typeAlias}`"
           target="_blank"
         >
           Docs
-        </a>
-      </div>
-    </template>
-    <div class="px-6 pb-6 flex flex-col mt-1" @dblclick.stop="fullAuto">
-      <a-form v-if="isNecessaryColumnsPresent" ref="formValidator" :model="form" layout="vertical" class="flex flex-col gap-y-5">
-        <a-form-item
-          :rules="aiMode ? [] : viewNameRules"
-          name="title"
-          class="relative"
+        </a> -->
+        <div
+          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent"
           :class="{
-            'nc-view-ai-mode': !form.copy_from_id,
+            'cursor-wait': aiLoading,
           }"
         >
-          <a-input
-            v-if="!aiMode"
-            ref="inputEl"
-            v-model:value="form.title"
-            :placeholder="$t('labels.viewName')"
-            autofocus
-            class="nc-view-input nc-input-sm nc-input-shadow z-11"
+          <NcButton
+            type="text"
+            size="small"
+            theme="ai"
+            class="-my-1"
             :class="{
-              '!max-w-[calc(100%_-_32px)]': !form.copy_from_id,
+              '!pointer-events-none !cursor-not-allowed': aiLoading,
+              '!bg-nc-bg-purple-dark hover:(!bg-purple-500 !text-white)': aiMode,
             }"
-            @keydown.enter="onSubmit"
-          />
-          <a-input
-            v-else
-            ref="inputEl"
-            autocomplete="off"
-            class="nc-view-input nc-input-sm nc-input-shadow !max-w-[calc(100%_-_32px)] z-11"
-            hide-details
-            :placeholder="selectedViews.length ? '' : 'Select from suggested views...'"
-          />
-          <!-- overlay selected tags with close icon on input -->
-          <div
-            v-if="aiMode"
-            class="absolute top-0 max-w-[calc(100%_-_48px)] left-0 z-12 h-8 flex items-center gap-2 mx-2 nc-scrollbar-thin overflow-x-auto"
+            @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
           >
-            <a-tag v-for="(v, idx) of selectedViews" :key="idx" class="nc-ai-selected-tag">
-              <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
-                <GeneralViewIcon :meta="{ type: stringToViewTypeMap[v.type] }" />
-                <span>{{ v.title }}</span>
-                <div class="flex items-center p-0.5">
-                  <GeneralIcon icon="close" class="h-3 w-3 cursor-pointer opacity-80" @click="onTagClose(v)" />
-                </div>
-              </div>
-            </a-tag>
-          </div>
-
-          <!-- Black overlay button on end of input -->
-          <NcTooltip
-            v-if="!form.copy_from_id"
-            :title="aiMode ? 'Disable AI suggestions' : 'Suggest views using AI'"
-            class="nc-view-ai-toggle-btn absolute right-0 top-0 h-full"
-          >
-            <NcButton
-              size="small"
-              type="secondary"
-              class="z-10 !border-l-0 !rounded-l-none !pl-3.8"
-              :class="{
-                '!bg-nc-bg-purple-light hover:!bg-nc-bg-purple-dark disabled:!bg-nc-bg-purple-light !border-purple-100 !text-nc-fill-purple-dark':
-                  !aiMode,
-                '!bg-purple-700 !border-purple-700 hover:(!bg-nc-fill-purple-medium disabled:!bg-purple-700 !border-nc-fill-purple-medium) !text-white':
-                  aiMode,
-              }"
-              :disabled="aiLoading || isAIViewCreateMode"
-              @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
-            >
-              <div class="w-full flex items-center justify-end">
-                <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current w-4 h-4" />
-              </div>
-            </NcButton>
-          </NcTooltip>
-        </a-form-item>
+            <div class="flex items-center justify-center">
+              <GeneralIcon icon="ncAutoAwesome" />
+              <span
+                class="overflow-hidden trasition-all duration-200"
+                :class="{ 'w-[0px] invisible': aiMode, 'ml-1 w-[78px]': !aiMode }"
+              >
+                Use NocoAI
+              </span>
+            </div>
+          </NcButton>
+        </div>
+      </div>
+      <a-form
+        v-if="isNecessaryColumnsPresent"
+        ref="formValidator"
+        :model="form"
+        layout="vertical"
+        class="flex flex-col gap-y-5"
+        :class="{
+          '!px-5': !aiMode,
+        }"
+      >
         <template v-if="!aiMode">
+          <a-form-item :rules="viewNameRules" name="title" class="relative">
+            <a-input
+              ref="inputEl"
+              v-model:value="form.title"
+              :placeholder="$t('labels.viewName')"
+              autofocus
+              class="nc-view-input nc-input-sm nc-input-shadow"
+              @keydown.enter="onSubmit"
+            />
+          </a-form-item>
+
           <a-form-item
             v-if="form.type === ViewTypes.GALLERY && !form.copy_from_id"
             :label="`${$t('labels.coverImageField')}`"
@@ -1119,243 +1059,225 @@ function init() {
             </div>
           </template>
         </template>
+        <template v-else>
+          <!-- Ai view wizard  -->
+          <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 px-5 pt-2.5 pb-4.5">
+            <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
+            <div class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('title.noAiIntegrationAvailable') }}</div>
+          </div>
+          <AiWizardTabs v-else v-model:active-tab="activeAiTab">
+            <template #AutoSuggestedContent>
+              <div class="px-5 pt-5 pb-2">
+                <div v-if="aiError" class="w-full flex items-center gap-3">
+                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+
+                  <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
+                    <template #title>
+                      {{ aiError }}
+                    </template>
+                    {{ aiError }}
+                  </NcTooltip>
+
+                  <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="handleRefreshOnError">
+                    {{ $t('general.refresh') }}
+                  </NcButton>
+                </div>
+
+                <div v-else-if="aiModeStep === 'init'">
+                  <div class="text-nc-content-purple-light text-sm h-7 flex items-center gap-2">
+                    <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
+
+                    <div class="nc-animate-dots">Auto suggesting view based on your base name and existing views fields</div>
+                  </div>
+                </div>
+                <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">
+                  <div class="flex-1 flex gap-2 flex-wrap">
+                    <template v-if="predictedViews.length">
+                      <template v-for="v of predictedViews" :key="v.title">
+                        <NcTooltip :disabled="selectedViews.length < maxSelectionCount || v.selected">
+                          <template #title>
+                            <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
+                          </template>
+
+                          <a-tag
+                            class="nc-ai-suggested-tag"
+                            :class="{
+                              'nc-disabled': !v.selected && selectedViews.length >= maxSelectionCount,
+                              'nc-selected': v.selected,
+                            }"
+                            :disabled="selectedViews.length >= maxSelectionCount"
+                            @click="onToggleTag(v)"
+                          >
+                            <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                              <GeneralViewIcon
+                                :meta="{ type: stringToViewTypeMap[v.type] }"
+                                :class="{
+                                  'opacity-60': selectedViews.length >= maxSelectionCount,
+                                }"
+                              />
+
+                              <div>{{ v.title }}</div>
+                            </div>
+                          </a-tag>
+                        </NcTooltip>
+                      </template>
+                    </template>
+                    <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <NcTooltip title="Re-suggest" placement="top">
+                      <NcButton
+                        size="xs"
+                        class="!px-1"
+                        type="text"
+                        theme="ai"
+                        :loading="aiLoading && calledFunction === 'predictRefresh'"
+                        @click="predictRefresh"
+                      >
+                        <template #loadingIcon>
+                          <!-- eslint-disable vue/no-lone-template -->
+                          <template></template>
+                        </template>
+                        <GeneralIcon
+                          icon="refresh"
+                          class="!text-current"
+                          :class="{
+                            'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
+                          }"
+                        />
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip
+                      v-if="
+                        predictHistory.length < selectedViews.length
+                          ? predictHistory.length + selectedViews.length < 8
+                          : predictHistory.length < 8
+                      "
+                      title="Suggest more"
+                      placement="top"
+                    >
+                      <NcButton
+                        size="xs"
+                        class="!px-1"
+                        type="text"
+                        theme="ai"
+                        :loading="aiLoading && calledFunction === 'predictMore'"
+                        icon-only
+                        @click="predictMore"
+                      >
+                        <template #icon>
+                          <GeneralIcon icon="ncPlusAi" class="!text-current" />
+                        </template>
+                      </NcButton>
+                    </NcTooltip>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template #PromptContent>
+              <div class="px-5 pt-5 pb-2 flex flex-col gap-5">
+                <div class="relative">
+                  <a-textarea
+                    ref="aiPromptInputRef"
+                    v-model:value="prompt"
+                    placeholder="Enter your prompt to get view suggestions.."
+                    class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[120px] !rounded-lg"
+                    @keydown.enter.stop
+                  >
+                  </a-textarea>
+
+                  <NcButton
+                    size="xs"
+                    type="primary"
+                    theme="ai"
+                    class="!px-1 !absolute bottom-2 right-2"
+                    :disabled="
+                      !prompt.trim() ||
+                      isPredictFromPromptLoading ||
+                      (!!prompt.trim() && prompt.trim() === isPromtAlreadyGenerated.trim())
+                    "
+                    :loading="isPredictFromPromptLoading"
+                    @click="predictFromPrompt"
+                    icon-only
+                  >
+                    <template #loadingIcon>
+                      <GeneralLoader class="!text-purple-700" size="medium" />
+                    </template>
+                    <template #icon>
+                      <GeneralIcon icon="send" class="flex-none h-4 w-4" />
+                    </template>
+                  </NcButton>
+                </div>
+
+                <div v-if="aiError" class="w-full flex items-center gap-3">
+                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+
+                  <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
+                    <template #title>
+                      {{ aiError }}
+                    </template>
+                    {{ aiError }}
+                  </NcTooltip>
+
+                  <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="handleRefreshOnError">
+                    {{ $t('general.refresh') }}
+                  </NcButton>
+                </div>
+
+                <div v-else class="flex flex-col gap-3">
+                  <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Views(s)</div>
+                  <div class="flex gap-2 flex-wrap">
+                    <template v-if="predictedViews.length">
+                      <template v-for="v of predictedViews" :key="v.title">
+                        <NcTooltip :disabled="selectedViews.length < maxSelectionCount || v.selected">
+                          <template #title>
+                            <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
+                          </template>
+
+                          <a-tag
+                            class="nc-ai-suggested-tag"
+                            :class="{
+                              'nc-disabled': !v.selected && selectedViews.length >= maxSelectionCount,
+                              'nc-selected': v.selected,
+                            }"
+                            :disabled="selectedViews.length >= maxSelectionCount"
+                            @click="onToggleTag(v)"
+                          >
+                            <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                              <GeneralViewIcon
+                                :meta="{ type: stringToViewTypeMap[v.type] }"
+                                :class="{
+                                  'opacity-60': selectedViews.length >= maxSelectionCount,
+                                }"
+                              />
+
+                              <div>{{ v.title }}</div>
+                            </div>
+                          </a-tag>
+                        </NcTooltip>
+                      </template>
+                    </template>
+                    <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </AiWizardTabs>
+        </template>
       </a-form>
-      <div v-else-if="!isNecessaryColumnsPresent" class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
-        <div class="text-gray-500 flex gap-4">
-          <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="alertTriangle" />
-          <div class="flex flex-col gap-1">
-            <h2 class="font-semibold text-sm mb-0 text-gray-800">Suitable fields not present</h2>
-            <span class="text-gray-500 font-default text-sm"> {{ errorMessages[form.type] }}</span>
+      <div v-else-if="!isNecessaryColumnsPresent" class="px-5">
+        <div class="flex flex-row p-4 border-gray-200 border-1 gap-x-4 rounded-lg w-full">
+          <div class="text-gray-500 flex gap-4">
+            <GeneralIcon class="min-w-6 h-6 text-orange-500" icon="alertTriangle" />
+            <div class="flex flex-col gap-1">
+              <h2 class="font-semibold text-sm mb-0 text-gray-800">Suitable fields not present</h2>
+              <span class="text-gray-500 font-default text-sm"> {{ errorMessages[form.type] }}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Ai view wizard  -->
-      <AiWizardCard
-        v-if="aiMode"
-        v-model:active-tab="activeAiTab"
-        :tabs="aiTabs"
-        class="mt-4"
-        @navigate-to-integrations="handleNavigateToIntegrations"
-      >
-        <template v-if="aiIntegrationAvailable" #tabExtraRight>
-          <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
-            <template v-if="aiModeStep === AiStep.pick">
-              <NcTooltip title="Re-suggest" placement="top">
-                <NcButton
-                  size="xs"
-                  class="!px-1"
-                  type="text"
-                  theme="ai"
-                  :loading="aiLoading && calledFunction === 'predictRefresh'"
-                  @click="predictRefresh"
-                >
-                  <template #loadingIcon>
-                    <!-- eslint-disable vue/no-lone-template -->
-                    <template></template>
-                  </template>
-                  <GeneralIcon
-                    icon="refresh"
-                    class="!text-current"
-                    :class="{
-                      'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
-                    }"
-                  />
-                </NcButton>
-              </NcTooltip>
-              <NcTooltip
-                v-if="
-                  predictHistory.length < selectedViews.length
-                    ? predictHistory.length + selectedViews.length < 8
-                    : predictHistory.length < 8
-                "
-                title="Suggest more"
-                placement="top"
-              >
-                <NcButton
-                  size="xs"
-                  class="!px-1"
-                  type="text"
-                  theme="ai"
-                  :loading="aiLoading && calledFunction === 'predictMore'"
-                  icon-only
-                  @click="predictMore"
-                >
-                  <template #icon>
-                    <GeneralIcon icon="ncPlusAi" class="!text-current" />
-                  </template>
-                </NcButton>
-              </NcTooltip>
-            </template>
-          </template>
-          <template v-else>
-            <NcButton
-              size="xs"
-              type="text"
-              theme="ai"
-              :disabled="!prompt.trim()"
-              :loading="isPredictFromPromptLoading"
-              @click="predictFromPrompt"
-            >
-              <template #loadingIcon>
-                <!-- eslint-disable vue/no-lone-template -->
-                <template></template>
-              </template>
-              <div
-                class="flex items-center gap-2"
-                :class="{
-                  'min-w-[104px]': isPredictFromPromptLoading && !isPromtAlreadyGenerated,
-                  'min-w-[124px]': isPredictFromPromptLoading && isPromtAlreadyGenerated,
-                }"
-              >
-                <GeneralIcon icon="ncZap" class="flex-none" />
-                <div
-                  :class="{
-                    'nc-animate-dots': isPredictFromPromptLoading,
-                  }"
-                >
-                  {{
-                    isPredictFromPromptLoading
-                      ? isPromtAlreadyGenerated
-                        ? 'Re-generating'
-                        : 'Generating'
-                      : isPromtAlreadyGenerated
-                      ? 'Re-generate'
-                      : 'Generate'
-                  }}
-                </div>
-              </div>
-            </NcButton>
-          </template>
-        </template>
-        <template #tabContent>
-          <template v-if="aiError">
-            <div class="py-3 pl-3 pr-2 flex items-center gap-3">
-              <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
-
-              <div class="text-sm text-nc-content-gray-subtle flex-1 max-w-[calc(100%_-_24px)]">
-                <NcTooltip class="truncate" show-on-truncate-only>
-                  <template #title>
-                    {{ aiError }}
-                  </template>
-                  {{ aiError }}
-                </NcTooltip>
-              </div>
-
-              <NcButton size="small" type="text" class="!text-nc-content-brand" @click.stop="handleRefreshOnError">
-                {{ $t('general.refresh') }}
-              </NcButton>
-            </div>
-          </template>
-          <template v-else>
-            <template v-if="activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS">
-              <div v-if="aiModeStep === 'init'" class="p-4">
-                <div class="text-nc-content-purple-light text-sm h-7 flex items-center">
-                  <GeneralLoader size="regular" class="!text-nc-content-purple-dark !mr-2" />
-
-                  <span class="nc-animate-dots"> Auto suggesting view based on your base name and existing views fields </span>
-                </div>
-              </div>
-            </template>
-            <template v-else>
-              <div>
-                <a-textarea
-                  v-model:value="prompt"
-                  :bordered="false"
-                  placeholder="Enter your prompt to get view suggestions.."
-                  class="!px-4 !py-2 !text-sm !min-h-[120px]"
-                  @keydown.enter.stop
-                >
-                </a-textarea>
-              </div>
-            </template>
-
-            <div
-              v-if="
-                (activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS && aiModeStep === 'pick') ||
-                (activeAiTab === TableWizardTabs.PROMPT &&
-                  (predictedViews.length || selectedViews.length || isPromtAlreadyGenerated))
-              "
-              class="flex gap-2 flex-wrap p-4"
-              :class="{
-                'p-4': activeAiTab === TableWizardTabs.AUTO_SUGGESTIONS,
-                'border-t-1 border-purple-200': activeAiTab === TableWizardTabs.PROMPT,
-              }"
-            >
-              <template v-for="(v, idx) of predictedViews">
-                <NcTooltip v-if="v?.title" :key="idx" :disabled="selectedViews.length < maxSelectionCount">
-                  <template #title>
-                    <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
-                  </template>
-
-                  <a-tag
-                    class="nc-ai-suggested-tag"
-                    :class="{
-                      'nc-disabled': selectedViews.length >= maxSelectionCount,
-                    }"
-                    :disabled="selectedViews.length >= maxSelectionCount"
-                    @click="onTagClick(v)"
-                  >
-                    <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
-                      <GeneralViewIcon
-                        :meta="{ type: stringToViewTypeMap[v.type] }"
-                        :class="{
-                          'opacity-60': selectedViews.length >= maxSelectionCount,
-                        }"
-                      />
-
-                      <div>{{ v.title }}</div>
-
-                      <div class="flex items-center p-0.5">
-                        <GeneralIcon
-                          icon="close"
-                          class="h-3 w-3 opacity-80"
-                          :class="{
-                            'cursor-pointer ': selectedViews.length < maxSelectionCount,
-                          }"
-                          @click.stop="onTagRemoveFromPrediction(v)"
-                        />
-                      </div>
-                    </div>
-                  </a-tag>
-                </NcTooltip>
-              </template>
-
-              <NcTooltip
-                v-if="predictedViews.length || !selectedViews.length"
-                :disabled="selectedViews.length < maxSelectionCount"
-              >
-                <template #title>
-                  <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
-                </template>
-                <NcButton
-                  size="xs"
-                  class="!h-6"
-                  type="primary"
-                  theme="ai"
-                  :disabled="!predictedViews.length || selectedViews.length >= maxSelectionCount"
-                  @click="onSelectAll"
-                >
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="ncPlusMultiple" class="flex-none" />
-
-                    Accept all
-                  </div>
-                </NcButton>
-              </NcTooltip>
-              <NcButton v-else size="xs" class="!h-6" type="primary" theme="ai" @click="onDeselectAll">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncMinusSquare" class="flex-none" />
-
-                  Remove all
-                </div>
-              </NcButton>
-            </div>
-          </template>
-        </template>
-      </AiWizardCard>
-
-      <a-form-item v-if="enableDescription && !aiMode">
+      <a-form-item v-if="enableDescription && !aiMode" class="!px-5">
         <div class="flex gap-3 text-gray-800 h-7 mt-4 mb-1 items-center justify-between">
           <span class="text-[13px]">
             {{ $t('labels.description') }}
@@ -1376,7 +1298,12 @@ function init() {
         />
       </a-form-item>
 
-      <div class="flex flex-row w-full justify-between gap-x-2 mt-5">
+      <div
+        class="flex flex-row w-full justify-between gap-x-2 px-5"
+        :class="{
+          '-mt-2': aiMode,
+        }"
+      >
         <NcButton v-if="!enableDescription && !aiMode" size="small" type="text" @click.stop="toggleDescription">
           <div class="flex !text-gray-700 items-center gap-2">
             <GeneralIcon icon="plus" class="h-4 w-4" />
@@ -1405,10 +1332,11 @@ function init() {
             <template #loading> {{ $t('labels.creatingView') }}</template>
           </NcButton>
           <NcButton
-            v-else
+            v-else-if="aiIntegrationAvailable"
             v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
             type="primary"
             size="small"
+            theme="ai"
             :disabled="selectedViews.length === 0"
             :loading="aiLoading && calledFunction === 'createViews'"
             @click="onSubmit"
@@ -1428,14 +1356,8 @@ function init() {
             </div>
             <template #loading> {{ $t('title.creatingView') }} </template>
           </NcButton>
+          <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations"> Add AI integration </NcButton>
         </div>
-      </div>
-    </div>
-    <div v-if="!form.copy_from_id" class="nc-nocoai-footer min-h-9">
-      <!-- Footer -->
-      <div class="nc-ai-wizard-card-footer-branding text-xs">
-        {{ $t('general.poweredBy') }}
-        <span class="font-semibold !text-inherit"> {{ $t('general.nocoAI') }} </span>
       </div>
     </div>
   </NcModal>
@@ -1510,6 +1432,14 @@ function init() {
         }
       }
     }
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-modal-wrapper.nc-modal-view-create-wrapper {
+  .ant-modal-content {
+    @apply !rounded-[24px];
   }
 }
 </style>

@@ -228,7 +228,10 @@ export const useNocoAi = createSharedComposable(() => {
     const res = await callAiSchemaApi('predictViews', { tableId, history, description, type }, baseId, skipMsgToast)
 
     if (res?.views) {
-      return res.views
+      return res.views.map((view) => ({
+        ...view,
+        selected: false,
+      }))
     }
 
     return []

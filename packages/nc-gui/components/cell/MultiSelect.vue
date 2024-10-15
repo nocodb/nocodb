@@ -381,6 +381,7 @@ const onFocus = () => {
           v-for="op of options"
           :key="op.title"
           :value="op.title"
+          class="gap-2"
           :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
           :class="`nc-select-option-${column.title}-${op.title}`"
         >
@@ -487,6 +488,7 @@ const onFocus = () => {
           v-for="op of options"
           :key="op.id || op.title"
           :value="op.title"
+          class="gap-2"
           :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
           :class="`nc-select-option-${column.title}-${op.title}`"
           @click.stop

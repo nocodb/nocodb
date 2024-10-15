@@ -41,9 +41,7 @@ const decryptConfigWithFallbackKey = async ({
     return parsedVal === null ? null : decryptedVal;
   } catch (e) {
     if (fallbackSecret) {
-      logger.log(
-        'Falling back to fallback secret since decryption failed with primary secret',
-      );
+      logger.log('Retrying decryption with a fallback mechanism');
       return decryptConfigWithFallbackKey({
         encryptedConfig,
         secret: fallbackSecret,

@@ -13,7 +13,7 @@ const aiMode = useVModel(props, 'aiMode', emit)
 
 <template>
   <div class="nc-create-base-wrapper">
-    <div class="nc-create-base" @click="aiMode = false">
+    <div v-e="['c:base:create-blank']" class="nc-create-base" @click="aiMode = false">
       <div class="nc-placeholder-icon-wrapper">
         <component :is="NcCreateBasePlaceholder" class="nc-placeholder-icon stroke-transparent" />
       </div>
@@ -25,7 +25,7 @@ const aiMode = useVModel(props, 'aiMode', emit)
         <div class="nc-create-base-content-subtitle">Build your Base according to your specific requirements.</div>
       </div>
     </div>
-    <div class="nc-create-base-ai" @click="aiMode = true">
+    <div v-e="['c:base:build-with-ai']" class="nc-create-base-ai" @click="aiMode = true">
       <div class="nc-placeholder-icon-wrapper">
         <component :is="NcCreateBaseWithAiPlaceholder" class="nc-placeholder-icon stroke-transparent" />
       </div>

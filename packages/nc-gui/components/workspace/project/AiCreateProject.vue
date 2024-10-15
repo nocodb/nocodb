@@ -293,6 +293,7 @@ watch(dialogShow, async (n, o) => {
 
       <NcButton
         v-if="aiStep === AI_STEP.MODIFY"
+        v-e="['a:base:ai:create']"
         type="primary"
         size="small"
         theme="ai"
@@ -420,6 +421,7 @@ watch(dialogShow, async (n, o) => {
           >
             <NcButton
               v-if="aiIntegrationAvailable"
+              v-e="['a:base:ai:generate']"
               size="small"
               type="secondary"
               theme="ai"

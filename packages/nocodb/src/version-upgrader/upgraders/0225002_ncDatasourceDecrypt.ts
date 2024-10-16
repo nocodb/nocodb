@@ -34,8 +34,8 @@ const decryptConfigWithFallbackKey = async ({
     // validate by parsing JSON
     try {
       parsedVal = JSON.parse(decryptedVal);
-    } catch {
-      throw new Error('JSON parse failed');
+    } catch (parseError) {
+      throw new Error(`JSON parse failed: ${parseError.message}`);
     }
     // if parsed value is null, return null
     return parsedVal === null ? null : decryptedVal;

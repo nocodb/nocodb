@@ -2,29 +2,6 @@ import { UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
 
 export const precisionFormats = [1, 2, 3, 4, 5, 6, 7, 8]
 
-export const iconList = [
-  {
-    full: 'mdi-star',
-    empty: 'mdi-star-outline',
-  },
-  {
-    full: 'mdi-heart',
-    empty: 'mdi-heart-outline',
-  },
-  {
-    full: 'mdi-moon-full',
-    empty: 'mdi-moon-new',
-  },
-  {
-    full: 'mdi-thumb-up',
-    empty: 'mdi-thumb-up-outline',
-  },
-  {
-    full: 'mdi-flag',
-    empty: 'mdi-flag-outline',
-  },
-]
-
 export const supportedBarcodeFormats = [
   { value: 'CODE128', label: 'CODE128' },
   { value: 'upc', label: 'UPC' },

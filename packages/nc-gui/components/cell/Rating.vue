@@ -18,10 +18,10 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 const ratingMeta = computed(() => {
   const icon = extractRatingIcon(column?.value?.meta)
   return {
-    icon,
     color: '#fcb401',
     max: 5,
     ...parseProp(column.value?.meta),
+    icon,
   }
 })
 

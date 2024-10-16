@@ -38,11 +38,12 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 
 const checkboxMeta = computed(() => {
-  const icon = extractCheckboxIcon(column?.value?.meta);
+  const icon = extractCheckboxIcon(column?.value?.meta)
 
   return {
-    icon,
     color: 'primary',
+    ...parseProp(column?.value?.meta),
+    icon,
   }
 })
 

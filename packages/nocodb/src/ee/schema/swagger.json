@@ -3789,6 +3789,33 @@
           "required": true
         }
       ]
+    },
+    "/api/v2/meta/user/delete": {
+      "delete": {
+        "summary": "Delete user",
+        "operationId": "user-delete",
+        "responses": {
+          "200": {
+            "schema": {
+              "type": "object"
+            }
+          }
+        },
+        "tags": [
+          "User"
+        ],
+        "description": "Delete User"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "boolean"
+          },
+          "name": "dry",
+          "in": "query",
+          "required": false
+        }
+      ]
     }
   },
   "components": {

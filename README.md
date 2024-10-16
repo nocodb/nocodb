@@ -177,8 +177,6 @@ Our mission is to provide the most powerful no-code interface for databases that
 This project is licensed under <a href="./LICENSE">AGPLv3</a>.
 </p>
 
-
-
 # Contributors
 
 Thank you for your contributions! We appreciate all the contributions from the community.

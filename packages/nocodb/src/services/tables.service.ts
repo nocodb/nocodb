@@ -558,13 +558,28 @@ export class TablesService {
       }
     }
 
+
+
     if (
-      !tableCreatePayLoad.table_name ||
-      (base.prefix && base.prefix === tableCreatePayLoad.table_name)
+      !tableCreatePayLoad.title
     ) {
       NcError.badRequest(
-        'Missing table name `table_name` property in request body',
+        'Missing table `title` property in request body',
       );
+    }
+
+    if(!tableCreatePayLoad.table_name) {
+
+    }
+
+    if (
+      !(await Model.checkAliasAvailable(context, {
+        title: tableCreatePayLoad.title,
+        base_id: base.id,
+        source_id: source.id,
+      }))
+    ) {
+      NcError.badRequest('Duplicate table alias');
     }
 
     if (source.type === 'databricks') {
@@ -608,15 +623,7 @@ export class TablesService {
       );
     }
 
-    if (
-      !(await Model.checkAliasAvailable(context, {
-        title: tableCreatePayLoad.title,
-        base_id: base.id,
-        source_id: source.id,
-      }))
-    ) {
-      NcError.badRequest('Duplicate table alias');
-    }
+
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
 

@@ -1031,7 +1031,7 @@ svg.nc-virtual-cell-icon {
     @apply cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark;
 
     &.nc-selected {
-      @apply !bg-nc-bg-purple-dark font-semibold;
+      @apply font-semibold;
     }
   }
 

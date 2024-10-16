@@ -611,10 +611,10 @@ const predictRefresh = async () => {
       ...predictions,
     ]
     predictHistory.value.push(...predictions)
-    aiModeStep.value = AiStep.pick
   } else {
     message.info(`No auto suggestions were found for ${meta.value?.title || 'the current table'}`)
   }
+  aiModeStep.value = AiStep.pick
 }
 
 const predictFromPrompt = async () => {
@@ -628,11 +628,12 @@ const predictFromPrompt = async () => {
       ...predictions,
     ]
     predictHistory.value.push(...predictions)
-    aiModeStep.value = AiStep.pick
     oldPrompt.value = prompt.value
   } else {
     message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
   }
+
+  aiModeStep.value = AiStep.pick
   isPromtAlreadyGenerated.value = true
 }
 
@@ -1147,7 +1148,9 @@ const getPluralName = (name: string) => {
                             :disabled="activeTabSelectedViews.length >= maxSelectionCount"
                             @click="onToggleTag(v)"
                           >
-                            <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                            <div class="flex flex-row items-center gap-2 py-[3px] text-small leading-[18px]">
+                              <NcCheckbox :checked="v.selected" theme="ai" class="!-mr-0.5" />
+
                               <GeneralViewIcon
                                 :meta="{ type: stringToViewTypeMap[v.type] }"
                                 :class="{
@@ -1231,9 +1234,7 @@ const getPluralName = (name: string) => {
                     theme="ai"
                     class="!px-1 !absolute bottom-2 right-2"
                     :disabled="
-                      !prompt.trim() ||
-                      isPredictFromPromptLoading ||
-                      (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
+                      !prompt.trim() || isPredictFromPromptLoading || (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
                     "
                     :loading="isPredictFromPromptLoading"
                     @click="predictFromPrompt"
@@ -1263,7 +1264,7 @@ const getPluralName = (name: string) => {
                   </NcButton>
                 </div>
 
-                <div v-else class="flex flex-col gap-3">
+                <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
                   <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Views(s)</div>
                   <div class="flex gap-2 flex-wrap">
                     <template v-if="activeTabPredictedViews.length">
@@ -1282,7 +1283,9 @@ const getPluralName = (name: string) => {
                             :disabled="activeTabSelectedViews.length >= maxSelectionCount"
                             @click="onToggleTag(v)"
                           >
-                            <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                            <div class="flex flex-row items-center gap-2 py-[3px] text-small leading-[18px]">
+                              <NcCheckbox :checked="v.selected" theme="ai" class="!-mr-0.5" />
+
                               <GeneralViewIcon
                                 :meta="{ type: stringToViewTypeMap[v.type] }"
                                 :class="{

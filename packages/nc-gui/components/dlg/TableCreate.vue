@@ -193,10 +193,10 @@ const predictRefresh = async () => {
       ...predictions,
     ]
     predictHistory.value.push(...predictions)
-    aiModeStep.value = AiStep.pick
   } else {
     message.info(`No auto suggestions were found for ${base.value?.title || 'the current base'}`)
   }
+  aiModeStep.value = AiStep.pick
 }
 
 const predictFromPrompt = async () => {
@@ -210,11 +210,12 @@ const predictFromPrompt = async () => {
       ...predictions,
     ]
     predictHistory.value.push(...predictions)
-    aiModeStep.value = AiStep.pick
+
     oldPrompt.value = prompt.value
   } else {
     message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
   }
+  aiModeStep.value = AiStep.pick
   isPromtAlreadyGenerated.value = true
 }
 
@@ -593,7 +594,9 @@ watch(
                               :disabled="activeTabSelectedTables.length >= maxSelectionCount"
                               @click="onToggleTag(t)"
                             >
-                              <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                              <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
+                                <NcCheckbox :checked="t.selected" theme="ai" />
+
                                 <div>{{ t.title }}</div>
                               </div>
                             </a-tag>
@@ -719,7 +722,9 @@ watch(
                               :disabled="activeTabSelectedTables.length >= maxSelectionCount"
                               @click="onToggleTag(t)"
                             >
-                              <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                              <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
+                                <NcCheckbox :checked="t.selected" theme="ai" />
+
                                 <div>{{ t.title }}</div>
                               </div>
                             </a-tag>

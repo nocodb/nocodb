@@ -4489,6 +4489,11 @@
                       "excludeHooks": {
                         "type": "boolean",
                         "required": false
+                      },
+                      "title": {
+                        "type": "string",
+                        "required": false,
+                        "description": "New table title"
                       }
                     }
                   }
@@ -25625,7 +25630,7 @@
           }
         },
         "required": [
-          "table_name",
+          "title",
           "title"
         ],
         "x-stoplight": {
@@ -25905,7 +25910,7 @@
         },
         "required": [
           "columns",
-          "table_name"
+          "title"
         ],
         "title": "Table Request Model",
         "type": "object",

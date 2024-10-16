@@ -264,6 +264,7 @@ class Tele {
       xc_version: process.env.NC_SERVER_UUID,
       env: process.env.NODE_ENV || 'production',
       oneClick: !!process.env.NC_ONE_CLICK,
+      disabled: isDisabled,
     };
     try {
       payload.os_type = os.type();

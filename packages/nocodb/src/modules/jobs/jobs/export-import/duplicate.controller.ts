@@ -194,6 +194,7 @@ export class DuplicateController {
     @Param('modelId') modelId?: string,
     @Body()
     body?: {
+      title?: string;
       options?: {
         excludeData?: boolean;
         excludeViews?: boolean;
@@ -226,7 +227,7 @@ export class DuplicateController {
     const models = await source.getModels(context);
 
     const uniqueTitle = generateUniqueName(
-      `${model.title} copy`,
+      body.title || `${model.title} copy`,
       models.map((p) => p.title),
     );
 

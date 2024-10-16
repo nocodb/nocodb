@@ -40,7 +40,7 @@
   },
   "aggregation": {
     "sum": "Toplam",
-    "count": "Say",
+    "count": "Miktar",
     "min": "Min",
     "max": "Max",
     "avg": "Ort",
@@ -918,7 +918,7 @@
     "links": "Bağlantılar",
     "onUpdate": "Güncellenince",
     "onDelete": "Silinince",
-    "account": "Account",
+    "account": "Hesap",
     "language": "Language",
     "primaryColor": "Primary Color",
     "accentColor": "Accent Color",

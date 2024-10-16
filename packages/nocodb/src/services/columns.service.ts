@@ -16,6 +16,7 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
+import { parseMetaProp } from 'src/utils/modelUtils';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -1243,6 +1244,27 @@ export class ColumnsService {
       await Column.update(context, param.columnId, {
         ...colBody,
       });
+
+      if (colBody.uidt === UITypes.SingleSelect) {
+        const kanbanViewsByColId = await KanbanView.getViewsByGroupingColId(
+          context,
+          column.id,
+        );
+
+        for (const kanbanView of kanbanViewsByColId) {
+          const view = await View.get(context, kanbanView.fk_view_id);
+          if (!view?.uuid) continue;
+          // Update groupingFieldColumn from view meta which will be used in shared kanban view
+          view.meta = parseMetaProp(view);
+          await View.update(context, view.id, {
+            ...view,
+            meta: {
+              ...view.meta,
+              groupingFieldColumn: colBody,
+            },
+          });
+        }
+      }
     } else if (colBody.uidt === UITypes.User) {
       // handle default value for user column
       if (typeof colBody.cdf !== 'string') {
@@ -1517,6 +1539,15 @@ export class ColumnsService {
           baseModel.getTnPath(table.table_name),
           column.column_name,
         ]);
+      } else if (
+        column.uidt === UITypes.SingleSelect &&
+        column.uidt !== colBody.uidt &&
+        (await KanbanView.getViewsByGroupingColId(context, column.id)).length >
+          0
+      ) {
+        NcError.badRequest(
+          `The column '${column.column_name}' is being used in Kanban View. Please update stack by field or delete Kanban View first.`,
+        );
       }
 
       colBody = await getColumnPropsFromUIDT(colBody, source);
@@ -1596,6 +1627,11 @@ export class ColumnsService {
       reuse?: ReusableParams;
     },
   ) {
+    // if column_name is defined and title is not defined, set title to column_name
+    if (param.column.column_name && !param.column.title) {
+      param.column.title = param.column.column_name;
+    }
+
     validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
     const reuse = param.reuse || {};
@@ -1641,6 +1677,11 @@ export class ColumnsService {
       // trim leading and trailing spaces from column title as knex trim them by default
       if (param.column.title) {
         param.column.title = param.column.title.trim();
+      }
+
+      // if column_name missing then generate it from title
+      if (!param.column.column_name) {
+        param.column.column_name = param.column.title;
       }
 
       if (param.column.column_name) {
@@ -2585,7 +2626,8 @@ export class ColumnsService {
       }
       case UITypes.SingleSelect: {
         if (
-          await KanbanView.IsColumnBeingUsedAsGroupingField(context, column.id)
+          (await KanbanView.getViewsByGroupingColId(context, column.id))
+            .length > 0
         ) {
           NcError.badRequest(
             `The column '${column.column_name}' is being used in Kanban View. Please delete Kanban View first.`,

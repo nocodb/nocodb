@@ -2,6 +2,7 @@
   "name": "nc-mail-templates",
   "version": "1.0.0",
   "description": "",
+  "packageManager": "pnpm@9.6.0",
   "main": "index.js",
   "type": "module",
   "scripts": {

@@ -48,13 +48,12 @@ function tableStaticTests() {
     expect(response.body.list).to.be.an('array').not.empty;
   });
 
-  it('Create table with no table name', async function () {
+  it('Create table with no table title', async function () {
     const response = await request(context.app)
       .post(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({
-        table_name: undefined,
-        title: 'new_title',
+        title: undefined,
         columns: defaultColumns(context),
       })
       .expect(400);

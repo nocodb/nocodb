@@ -85,7 +85,19 @@ if ((column.value?.colOptions as any)?.formula_raw) {
 
 const source = computed(() => activeBase.value?.sources?.find((s) => s.id === meta.value?.source_id))
 
-const parsedTree = computedAsync(async () => {
+const parsedTree = ref<any>({
+  dataType: FormulaDataTypes.UNKNOWN,
+})
+
+// Initialize a counter to track watcher invocations
+let watcherCounter = 0
+
+// Define the debounced async validation function
+const debouncedValidate = useDebounceFn(async () => {
+  // Increment the counter for each invocation
+  watcherCounter += 1
+  const currentCounter = watcherCounter
+
   try {
     const parsed = await validateFormulaAndExtractTreeWithType({
       formula: vModel.value.formula || vModel.value.formula_raw,
@@ -94,13 +106,28 @@ const parsedTree = computedAsync(async () => {
       clientOrSqlUi: source.value?.type as any,
       getMeta: async (modelId) => await getMeta(modelId),
     })
-    return parsed
+
+    // Update parsedTree only if this is the latest invocation
+    if (currentCounter === watcherCounter) {
+      parsedTree.value = parsed
+    }
   } catch (e) {
-    return {
-      dataType: FormulaDataTypes.UNKNOWN,
+    // Update parsedTree only if this is the latest invocation
+    if (currentCounter === watcherCounter) {
+      parsedTree.value = {
+        dataType: FormulaDataTypes.UNKNOWN,
+      }
     }
   }
-})
+}, 300)
+
+// Watch the formula inputs and call the debounced function
+watch(
+  () => vModel.value.formula || vModel.value.formula_raw,
+  () => {
+    debouncedValidate()
+  },
+)
 
 // set additional validations
 setAdditionalValidations({

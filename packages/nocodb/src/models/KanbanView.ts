@@ -65,24 +65,20 @@ export default class KanbanView implements KanbanType {
     return view && new KanbanView(view);
   }
 
-  public static async IsColumnBeingUsedAsGroupingField(
+  public static async getViewsByGroupingColId(
     context: NcContext,
     columnId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    return (
-      (
-        await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.KANBAN_VIEW,
-          {
-            condition: {
-              fk_grp_col_id: columnId,
-            },
-          },
-        )
-      ).length > 0
+    return await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.KANBAN_VIEW,
+      {
+        condition: {
+          fk_grp_col_id: columnId,
+        },
+      },
     );
   }
 

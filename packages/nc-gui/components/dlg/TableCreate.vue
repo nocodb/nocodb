@@ -11,6 +11,7 @@ const props = defineProps<{
 interface AiSuggestedTableType {
   title: string
   selected: boolean
+  tab?: AiWizardTabsType
 }
 
 const emit = defineEmits(['update:modelValue', 'create'])
@@ -77,19 +78,13 @@ enum AiStep {
 
 const aiModeStep = ref<AiStep | null>(null)
 
-const predictedTables = ref<AiSuggestedTableType[]>([])
-
-const predictHistory = ref<AiSuggestedTableType[]>([])
-
-const selectedTables = computed(() => {
-  return predictedTables.value.filter(({ selected }) => !!selected)
-})
-
 const calledFunction = ref<string>()
 
 const prompt = ref<string>('')
 
-const isPromtAlreadyGenerated = ref<string>('')
+const oldPrompt = ref<string>('')
+
+const isPromtAlreadyGenerated = ref<boolean>(false)
 
 const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
 
@@ -101,7 +96,7 @@ const activeAiTab = computed({
     activeAiTabLocal.value = value
 
     prompt.value = ''
-    isPromtAlreadyGenerated.value = ''
+    oldPrompt.value = ''
 
     aiError.value = ''
 
@@ -113,14 +108,33 @@ const activeAiTab = computed({
   },
 })
 
-const predictNextTables = async (prompt?: string): Promise<AiSuggestedTableType[]> => {
+const predictedTables = ref<AiSuggestedTableType[]>([])
+
+const activeTabPredictedTables = computed(() => predictedTables.value.filter((t) => t.tab === activeAiTab.value))
+
+const predictHistory = ref<AiSuggestedTableType[]>([])
+
+const activeTabPredictHistory = computed(() => predictHistory.value.filter((t) => t.tab === activeAiTab.value))
+
+const activeTabSelectedTables = computed(() => {
+  return predictedTables.value.filter((table) => !!table.selected && table.tab === activeAiTab.value)
+})
+
+const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
   return (
     await _predictNextTables(
-      predictHistory.value.map(({ title }) => title),
+      activeTabPredictHistory.value.map(({ title }) => title),
       props.baseId,
-      prompt,
+      activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
     )
-  ).filter((t) => !ncIsArrayIncludes(predictedTables.value, t.title, 'title'))
+  )
+    .filter((t) => !ncIsArrayIncludes(activeTabPredictedTables.value, t.title, 'title'))
+    .map((t) => {
+      return {
+        ...t,
+        tab: activeAiTab.value,
+      }
+    })
 }
 
 const toggleAiMode = async () => {
@@ -133,13 +147,10 @@ const toggleAiMode = async () => {
   predictedTables.value = []
   predictHistory.value = []
   prompt.value = ''
-  isPromtAlreadyGenerated.value = ''
+  oldPrompt.value = ''
+  isPromtAlreadyGenerated.value = false
 
-  const predictions = await predictNextTables()
-
-  predictedTables.value = predictions
-  predictHistory.value.push(...predictions)
-  aiModeStep.value = AiStep.pick
+  await predictRefresh()
 }
 
 const disableAiMode = () => {
@@ -148,7 +159,8 @@ const disableAiMode = () => {
   predictedTables.value = []
   predictHistory.value = []
   prompt.value = ''
-  isPromtAlreadyGenerated.value = ''
+  oldPrompt.value = ''
+  isPromtAlreadyGenerated.value = false
   activeAiTab.value = AiWizardTabsType.AUTO_SUGGESTIONS
 
   nextTick(() => {
@@ -165,6 +177,8 @@ const predictMore = async () => {
   if (predictions.length) {
     predictedTables.value.push(...predictions)
     predictHistory.value.push(...predictions)
+  } else {
+    message.info(`No more auto suggestions were found for ${base.value?.title || 'the current base'}`)
   }
 }
 
@@ -174,9 +188,14 @@ const predictRefresh = async () => {
   const predictions = await predictNextTables()
 
   if (predictions.length) {
-    predictedTables.value = [...predictedTables.value.filter(({ selected }) => selected), ...predictions]
+    predictedTables.value = [
+      ...predictedTables.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
+      ...predictions,
+    ]
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
+  } else {
+    message.info(`No auto suggestions were found for ${base.value?.title || 'the current base'}`)
   }
 }
 
@@ -186,23 +205,30 @@ const predictFromPrompt = async () => {
   const predictions = await predictNextTables()
 
   if (predictions.length) {
-    predictedTables.value = [...predictedTables.value.filter(({ selected }) => selected), ...predictions]
+    predictedTables.value = [
+      ...predictedTables.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
+      ...predictions,
+    ]
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
-    isPromtAlreadyGenerated.value = prompt.value
+    oldPrompt.value = prompt.value
+  } else {
+    message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
   }
+  isPromtAlreadyGenerated.value = true
 }
 
 const onToggleTag = (table: AiSuggestedTableType) => {
   if (
     !table.selected &&
-    (selectedTables.value.length >= maxSelectionCount || ncIsArrayIncludes(selectedTables.value, table.title, 'title'))
+    (activeTabSelectedTables.value.length >= maxSelectionCount ||
+      ncIsArrayIncludes(activeTabSelectedTables.value, table.title, 'title'))
   ) {
     return
   }
 
   predictedTables.value = predictedTables.value.map((t) => {
-    if (t.title === table.title) {
+    if (t.title === table.title && t.tab === activeAiTab.value) {
       t.selected = !table.selected
     }
     return t
@@ -210,13 +236,13 @@ const onToggleTag = (table: AiSuggestedTableType) => {
 }
 
 const onSelectAll = () => {
-  if (selectedTables.value.length >= maxSelectionCount) return
+  if (activeTabSelectedTables.value.length >= maxSelectionCount) return
 
-  let count = selectedTables.value.length
+  let count = activeTabSelectedTables.value.length
 
   predictedTables.value = predictedTables.value.map((table) => {
     // Check if the item can be selected
-    if (!table.selected && count < maxSelectionCount) {
+    if (table.tab === activeAiTab.value && !table.selected && count < maxSelectionCount) {
       table.selected = true
       count++
     }
@@ -267,12 +293,12 @@ const showLoadingText = async () => {
 const onAiEnter = async () => {
   calledFunction.value = 'generateTables'
 
-  if (selectedTables.value.length) {
+  if (activeTabSelectedTables.value.length) {
     try {
       showLoadingText()
 
       await generateTables(
-        selectedTables.value.map(({ title }) => title),
+        activeTabSelectedTables.value.map(({ title }) => title),
         undefined,
         onAiTableCreate,
         props.baseId,
@@ -397,9 +423,9 @@ const fullAuto = async (e) => {
 
   if (!aiModeStep.value) {
     await toggleAiMode()
-  } else if (aiModeStep.value === AiStep.pick && selectedTables.value.length === 0) {
+  } else if (aiModeStep.value === AiStep.pick && activeTabSelectedTables.value.length === 0) {
     await onSelectAll()
-  } else if (aiModeStep.value === AiStep.pick && selectedTables.value.length > 0) {
+  } else if (aiModeStep.value === AiStep.pick && activeTabSelectedTables.value.length > 0) {
     await onAiEnter()
   }
 }
@@ -551,27 +577,30 @@ watch(
                   </div>
                   <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">
                     <div class="flex-1 flex gap-2 flex-wrap">
-                      <template v-for="t of predictedTables" :key="t.title">
-                        <NcTooltip :disabled="selectedTables.length < maxSelectionCount || t.selected">
-                          <template #title>
-                            <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
-                          </template>
+                      <template v-if="activeTabPredictedTables.length">
+                        <template v-for="t of activeTabPredictedTables" :key="t.title">
+                          <NcTooltip :disabled="activeTabSelectedTables.length < maxSelectionCount || t.selected">
+                            <template #title>
+                              <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
+                            </template>
 
-                          <a-tag
-                            class="nc-ai-suggested-tag"
-                            :class="{
-                              'nc-disabled': !t.selected && selectedTables.length >= maxSelectionCount,
-                              'nc-selected': t.selected,
-                            }"
-                            :disabled="selectedTables.length >= maxSelectionCount"
-                            @click="onToggleTag(t)"
-                          >
-                            <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
-                              <div>{{ t.title }}</div>
-                            </div>
-                          </a-tag>
-                        </NcTooltip>
+                            <a-tag
+                              class="nc-ai-suggested-tag"
+                              :class="{
+                                'nc-disabled': !t.selected && activeTabSelectedTables.length >= maxSelectionCount,
+                                'nc-selected': t.selected,
+                              }"
+                              :disabled="activeTabSelectedTables.length >= maxSelectionCount"
+                              @click="onToggleTag(t)"
+                            >
+                              <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                                <div>{{ t.title }}</div>
+                              </div>
+                            </a-tag>
+                          </NcTooltip>
+                        </template>
                       </template>
+                      <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
                     </div>
                     <div class="flex items-center gap-1">
                       <NcTooltip title="Re-suggest" placement="top">
@@ -598,9 +627,9 @@ watch(
                       </NcTooltip>
                       <NcTooltip
                         v-if="
-                          predictHistory.length < selectedTables.length
-                            ? predictHistory.length + selectedTables.length < 8
-                            : predictHistory.length < 8
+                          activeTabPredictHistory.length < activeTabSelectedTables.length
+                            ? activeTabPredictHistory.length + activeTabSelectedTables.length < 8
+                            : activeTabPredictHistory.length < 8
                         "
                         title="Suggest more"
                         placement="top"
@@ -641,9 +670,7 @@ watch(
                       theme="ai"
                       class="!px-1 !absolute bottom-2 right-2"
                       :disabled="
-                        !prompt.trim() ||
-                        isPredictFromPromptLoading ||
-                        (!!prompt.trim() && prompt.trim() === isPromtAlreadyGenerated.trim())
+                        !prompt.trim() || isPredictFromPromptLoading || (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
                       "
                       :loading="isPredictFromPromptLoading"
                       @click="predictFromPrompt"
@@ -673,30 +700,33 @@ watch(
                     </NcButton>
                   </div>
 
-                  <div v-else class="flex flex-col gap-3">
+                  <div v-else-if="isPromtAlreadyGenerated" class="flex flex-col gap-3">
                     <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Table(s)</div>
                     <div class="flex gap-2 flex-wrap">
-                      <template v-for="t of predictedTables" :key="t.title">
-                        <NcTooltip :disabled="selectedTables.length < maxSelectionCount || t.selected">
-                          <template #title>
-                            <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
-                          </template>
+                      <template v-if="activeTabPredictedTables.length">
+                        <template v-for="t of activeTabPredictedTables" :key="t.title">
+                          <NcTooltip :disabled="activeTabSelectedTables.length < maxSelectionCount || t.selected">
+                            <template #title>
+                              <div class="w-[150px]">You can only select {{ maxSelectionCount }} tables to create at a time.</div>
+                            </template>
 
-                          <a-tag
-                            class="nc-ai-suggested-tag"
-                            :class="{
-                              'nc-disabled': !t.selected && selectedTables.length >= maxSelectionCount,
-                              'nc-selected': t.selected,
-                            }"
-                            :disabled="selectedTables.length >= maxSelectionCount"
-                            @click="onToggleTag(t)"
-                          >
-                            <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
-                              <div>{{ t.title }}</div>
-                            </div>
-                          </a-tag>
-                        </NcTooltip>
+                            <a-tag
+                              class="nc-ai-suggested-tag"
+                              :class="{
+                                'nc-disabled': !t.selected && activeTabSelectedTables.length >= maxSelectionCount,
+                                'nc-selected': t.selected,
+                              }"
+                              :disabled="activeTabSelectedTables.length >= maxSelectionCount"
+                              @click="onToggleTag(t)"
+                            >
+                              <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
+                                <div>{{ t.title }}</div>
+                              </div>
+                            </a-tag>
+                          </NcTooltip>
+                        </template>
                       </template>
+                      <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
                     </div>
                   </div>
                 </div>
@@ -812,19 +842,19 @@ watch(
               type="primary"
               theme="ai"
               size="small"
-              :disabled="selectedTables.length === 0 && validateInfos.title.validateStatus === 'error'"
+              :disabled="activeTabSelectedTables.length === 0"
               :loading="aiLoading && calledFunction === 'generateTables'"
               @click="_createTable"
             >
               <div class="flex items-center gap-2 h-5">
                 {{
-                  selectedTables.length
-                    ? selectedTables.length > 1
+                  activeTabSelectedTables.length
+                    ? activeTabSelectedTables.length > 1
                       ? $t('activity.createTables_plural', {
-                          count: selectedTables.length,
+                          count: activeTabSelectedTables.length,
                         })
                       : $t('activity.createTables', {
-                          count: selectedTables.length,
+                          count: activeTabSelectedTables.length,
                         })
                     : $t('activity.createTable')
                 }}

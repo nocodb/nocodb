@@ -72,6 +72,11 @@ interface Form {
   fk_cover_image_col_id: string | null
 }
 
+type AiSuggestedViewType = SerializedAiViewType & {
+  selected?: boolean
+  tab?: AiWizardTabsType
+}
+
 const { metas, getMeta } = useMetas()
 
 const workspaceStore = useWorkspace()
@@ -165,30 +170,15 @@ enum AiStep {
 
 const aiModeStep = ref<AiStep | null>(null)
 
-const predictedViews = ref<SerializedAiViewType[]>([])
-
-const predictHistory = ref<SerializedAiViewType[]>([])
-
-const selectedViews = computed(() => {
-  return predictedViews.value.filter(({ selected }) => !!selected)
-})
+const isAIViewCreateMode = computed(() => props.type === 'AI')
 
 const calledFunction = ref<string>()
 
 const prompt = ref<string>('')
 
-const isPromtAlreadyGenerated = ref<string>('')
+const oldPrompt = ref<string>('')
 
-onBeforeMount(init)
-
-watch(
-  () => props.type,
-  (newType) => {
-    form.type = newType
-  },
-)
-
-const isAIViewCreateMode = computed(() => props.type === 'AI')
+const isPromtAlreadyGenerated = ref<boolean>(false)
 
 const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
 
@@ -200,7 +190,7 @@ const activeAiTab = computed({
     activeAiTabLocal.value = value
 
     prompt.value = ''
-    isPromtAlreadyGenerated.value = ''
+    oldPrompt.value = ''
 
     aiError.value = ''
 
@@ -212,12 +202,33 @@ const activeAiTab = computed({
   },
 })
 
+const predictedViews = ref<AiSuggestedViewType[]>([])
+
+const activeTabPredictedViews = computed(() => predictedViews.value.filter((t) => t.tab === activeAiTab.value))
+
+const predictHistory = ref<AiSuggestedViewType[]>([])
+
+const activeTabPredictHistory = computed(() => predictHistory.value.filter((t) => t.tab === activeAiTab.value))
+
+const activeTabSelectedViews = computed(() => {
+  return predictedViews.value.filter((v) => !!v.selected && v.tab === activeAiTab.value)
+})
+
+onBeforeMount(init)
+
+watch(
+  () => props.type,
+  (newType) => {
+    form.type = newType
+  },
+)
+
 const onAiEnter = async () => {
   calledFunction.value = 'createViews'
 
-  if (selectedViews.value.length) {
+  if (activeTabSelectedViews.value.length) {
     try {
-      const data = await createViews(selectedViews.value, baseId.value)
+      const data = await createViews(activeTabSelectedViews.value, baseId.value)
 
       emits('created', data)
     } catch (e) {
@@ -519,13 +530,26 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
   })
 }
 
-const predictViews = async (prompt?: string): Promise<SerializedAiViewType[]> => {
+const predictViews = async (): Promise<AiSuggestedViewType[]> => {
   const viewType =
     !isAIViewCreateMode.value && form.type && viewTypeToStringMap[form.type] ? viewTypeToStringMap[form.type] : undefined
 
-  return (await _predictViews(tableId.value, predictHistory.value, baseId.value, prompt, viewType)).filter(
-    (v: SerializedAiViewType) => !ncIsArrayIncludes(predictedViews.value, v.title, 'title'),
+  return (
+    await _predictViews(
+      tableId.value,
+      activeTabPredictHistory.value,
+      baseId.value,
+      activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
+      viewType,
+    )
   )
+    .filter((v: AiSuggestedViewType) => !ncIsArrayIncludes(activeTabPredictedViews.value, v.title, 'title'))
+    .map((v: AiSuggestedViewType) => {
+      return {
+        ...v,
+        tab: activeAiTab.value,
+      }
+    })
 }
 
 const toggleAiMode = async () => {
@@ -539,13 +563,10 @@ const toggleAiMode = async () => {
   predictedViews.value = []
   predictHistory.value = []
   prompt.value = ''
-  isPromtAlreadyGenerated.value = ''
+  oldPrompt.value = ''
+  isPromtAlreadyGenerated.value = false
 
-  const predictions = await predictViews()
-
-  predictedViews.value = predictions
-  predictHistory.value.push(...predictions)
-  aiModeStep.value = AiStep.pick
+  await predictRefresh()
 }
 
 const disableAiMode = () => {
@@ -556,7 +577,8 @@ const disableAiMode = () => {
   predictedViews.value = []
   predictHistory.value = []
   prompt.value = ''
-  isPromtAlreadyGenerated.value = ''
+  oldPrompt.value = ''
+  isPromtAlreadyGenerated.value = false
   activeAiTab.value = AiWizardTabsType.AUTO_SUGGESTIONS
 
   nextTick(() => {
@@ -573,6 +595,8 @@ const predictMore = async () => {
   if (predictions.length) {
     predictedViews.value.push(...predictions)
     predictHistory.value.push(...predictions)
+  } else {
+    message.info(`No more auto suggestions were found for ${meta.value?.title || 'the current table'}`)
   }
 }
 
@@ -582,35 +606,47 @@ const predictRefresh = async () => {
   const predictions = await predictViews()
 
   if (predictions.length) {
-    predictedViews.value = [...predictedViews.value.filter(({ selected }) => selected), ...predictions]
+    predictedViews.value = [
+      ...predictedViews.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
+      ...predictions,
+    ]
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
+  } else {
+    message.info(`No auto suggestions were found for ${meta.value?.title || 'the current table'}`)
   }
 }
 
 const predictFromPrompt = async () => {
   calledFunction.value = 'predictFromPrompt'
 
-  const predictions = await predictViews(prompt.value)
+  const predictions = await predictViews()
 
   if (predictions.length) {
-    predictedViews.value = [...predictedViews.value.filter(({ selected }) => selected), ...predictions]
+    predictedViews.value = [
+      ...predictedViews.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
+      ...predictions,
+    ]
     predictHistory.value.push(...predictions)
     aiModeStep.value = AiStep.pick
-    isPromtAlreadyGenerated.value = prompt.value
+    oldPrompt.value = prompt.value
+  } else {
+    message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
   }
+  isPromtAlreadyGenerated.value = true
 }
 
-const onToggleTag = (view: SerializedAiViewType) => {
+const onToggleTag = (view: AiSuggestedViewType) => {
   if (
     !view.selected &&
-    (selectedViews.value.length >= maxSelectionCount || ncIsArrayIncludes(selectedViews.value, view.title, 'title'))
+    (activeTabSelectedViews.value.length >= maxSelectionCount ||
+      ncIsArrayIncludes(activeTabSelectedViews.value, view.title, 'title'))
   ) {
     return
   }
 
   predictedViews.value = predictedViews.value.map((v) => {
-    if (v.title === view.title) {
+    if (v.title === view.title && v.tab === activeAiTab.value) {
       v.selected = !view.selected
     }
     return v
@@ -618,13 +654,13 @@ const onToggleTag = (view: SerializedAiViewType) => {
 }
 
 const onSelectAll = () => {
-  if (selectedViews.value.length >= maxSelectionCount) return
+  if (activeTabSelectedViews.value.length >= maxSelectionCount) return
 
-  let count = selectedViews.value.length
+  let count = activeTabSelectedViews.value.length
 
   predictedViews.value = predictedViews.value.map((view) => {
     // Check if the item can be selected
-    if (!view.selected && count < maxSelectionCount) {
+    if (view.tab === activeAiTab.value && !view.selected && count < maxSelectionCount) {
       view.selected = true
       count++
     }
@@ -646,9 +682,9 @@ const fullAuto = async (e) => {
 
   if (!aiModeStep.value) {
     await toggleAiMode()
-  } else if (aiModeStep.value === AiStep.pick && selectedViews.value.length === 0) {
+  } else if (aiModeStep.value === AiStep.pick && activeTabSelectedViews.value.length === 0) {
     await onSelectAll()
-  } else if (aiModeStep.value === AiStep.pick && selectedViews.value.length > 0) {
+  } else if (aiModeStep.value === AiStep.pick && activeTabSelectedViews.value.length > 0) {
     await onAiEnter()
   }
 }
@@ -1095,9 +1131,9 @@ const getPluralName = (name: string) => {
                 </div>
                 <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">
                   <div class="flex-1 flex gap-2 flex-wrap">
-                    <template v-if="predictedViews.length">
-                      <template v-for="v of predictedViews" :key="v.title">
-                        <NcTooltip :disabled="selectedViews.length < maxSelectionCount || v.selected">
+                    <template v-if="activeTabPredictedViews.length">
+                      <template v-for="v of activeTabPredictedViews" :key="v.title">
+                        <NcTooltip :disabled="activeTabSelectedViews.length < maxSelectionCount || v.selected">
                           <template #title>
                             <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
                           </template>
@@ -1105,17 +1141,17 @@ const getPluralName = (name: string) => {
                           <a-tag
                             class="nc-ai-suggested-tag"
                             :class="{
-                              'nc-disabled': !v.selected && selectedViews.length >= maxSelectionCount,
+                              'nc-disabled': !v.selected && activeTabSelectedViews.length >= maxSelectionCount,
                               'nc-selected': v.selected,
                             }"
-                            :disabled="selectedViews.length >= maxSelectionCount"
+                            :disabled="activeTabSelectedViews.length >= maxSelectionCount"
                             @click="onToggleTag(v)"
                           >
                             <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
                               <GeneralViewIcon
                                 :meta="{ type: stringToViewTypeMap[v.type] }"
                                 :class="{
-                                  'opacity-60': selectedViews.length >= maxSelectionCount,
+                                  'opacity-60': activeTabSelectedViews.length >= maxSelectionCount,
                                 }"
                               />
 
@@ -1152,9 +1188,9 @@ const getPluralName = (name: string) => {
                     </NcTooltip>
                     <NcTooltip
                       v-if="
-                        predictHistory.length < selectedViews.length
-                          ? predictHistory.length + selectedViews.length < 8
-                          : predictHistory.length < 8
+                        activeTabPredictHistory.length < activeTabSelectedViews.length
+                          ? activeTabPredictHistory.length + activeTabSelectedViews.length < 8
+                          : activeTabPredictHistory.length < 8
                       "
                       title="Suggest more"
                       placement="top"
@@ -1197,7 +1233,7 @@ const getPluralName = (name: string) => {
                     :disabled="
                       !prompt.trim() ||
                       isPredictFromPromptLoading ||
-                      (!!prompt.trim() && prompt.trim() === isPromtAlreadyGenerated.trim())
+                      (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
                     "
                     :loading="isPredictFromPromptLoading"
                     @click="predictFromPrompt"
@@ -1230,9 +1266,9 @@ const getPluralName = (name: string) => {
                 <div v-else class="flex flex-col gap-3">
                   <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Views(s)</div>
                   <div class="flex gap-2 flex-wrap">
-                    <template v-if="predictedViews.length">
-                      <template v-for="v of predictedViews" :key="v.title">
-                        <NcTooltip :disabled="selectedViews.length < maxSelectionCount || v.selected">
+                    <template v-if="activeTabPredictedViews.length">
+                      <template v-for="v of activeTabPredictedViews" :key="v.title">
+                        <NcTooltip :disabled="activeTabSelectedViews.length < maxSelectionCount || v.selected">
                           <template #title>
                             <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
                           </template>
@@ -1240,17 +1276,17 @@ const getPluralName = (name: string) => {
                           <a-tag
                             class="nc-ai-suggested-tag"
                             :class="{
-                              'nc-disabled': !v.selected && selectedViews.length >= maxSelectionCount,
+                              'nc-disabled': !v.selected && activeTabSelectedViews.length >= maxSelectionCount,
                               'nc-selected': v.selected,
                             }"
-                            :disabled="selectedViews.length >= maxSelectionCount"
+                            :disabled="activeTabSelectedViews.length >= maxSelectionCount"
                             @click="onToggleTag(v)"
                           >
                             <div class="flex flex-row items-center gap-1 py-[3px] text-small leading-[18px]">
                               <GeneralViewIcon
                                 :meta="{ type: stringToViewTypeMap[v.type] }"
                                 :class="{
-                                  'opacity-60': selectedViews.length >= maxSelectionCount,
+                                  'opacity-60': activeTabSelectedViews.length >= maxSelectionCount,
                                 }"
                               />
 
@@ -1340,19 +1376,19 @@ const getPluralName = (name: string) => {
             type="primary"
             size="small"
             theme="ai"
-            :disabled="selectedViews.length === 0"
+            :disabled="activeTabSelectedViews.length === 0"
             :loading="aiLoading && calledFunction === 'createViews'"
             @click="onSubmit"
           >
             <div class="flex items-center gap-2 h-5">
               {{
-                selectedViews.length
-                  ? selectedViews.length > 1
+                activeTabSelectedViews.length
+                  ? activeTabSelectedViews.length > 1
                     ? $t('labels.createViews_plural', {
-                        count: selectedViews.length,
+                        count: activeTabSelectedViews.length,
                       })
                     : $t('labels.createViews', {
-                        count: selectedViews.length,
+                        count: activeTabSelectedViews.length,
                       })
                   : $t('labels.createView')
               }}

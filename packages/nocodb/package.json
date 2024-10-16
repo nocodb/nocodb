@@ -126,7 +126,7 @@
     "nanoid": "^3.3.7",
     "nc-lib-gui": "0.257.2",
     "nestjs-throttler-storage-redis": "^0.4.4",
-    "nocodb-sdk": "0.257.2",
+    "nocodb-sdk": "workspace:^",
     "nodemailer": "^6.9.13",
     "object-hash": "^3.0.0",
     "object-sizeof": "^2.6.4",

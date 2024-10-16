@@ -51,9 +51,7 @@ NocoDB is the fastest and easiest way to build databases online.
 
 [![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
 
-
 # Installation
-
 
 ## Docker with SQLite
 

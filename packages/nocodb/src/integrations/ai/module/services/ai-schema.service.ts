@@ -10,7 +10,7 @@ import {
 } from 'nocodb-sdk';
 
 import { z } from 'zod';
-import type { SerializedAiViewType } from 'nocodb-sdk';
+import type { SerializedAiTableType, SerializedAiViewType } from 'nocodb-sdk';
 import type GridViewColumn from '~/models/GridViewColumn';
 import type CalendarView from '~/models/CalendarView';
 import type Column from '~/models/Column';
@@ -81,21 +81,11 @@ export class AiSchemaService {
 
     const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
 
-    const { data, usage } = await wrapper.generateObject<{
-      tables?: {
-        title?: string;
-        columns?: {
-          title?: string;
-          type?: string;
-          options?: string[];
-        }[];
-      }[];
-      relationships?: {
-        from?: string;
-        to?: string;
-        type?: string;
-      }[];
-    }>({
+    const { data, usage } = await wrapper.generateObject<
+      SerializedAiTableType & {
+        views?: SerializedAiViewType[];
+      }
+    >({
       schema: z.object({
         title: z.string(),
         tables: z.array(
@@ -250,84 +240,73 @@ export class AiSchemaService {
     // we don't need views for generating tables
     delete existingSchema.views;
 
-    const { data, usage } = await wrapper.generateObject<{
-      tables?: {
-        title?: string;
-        columns?: {
-          title?: string;
-          type?: string;
-          options?: string[];
-        }[];
-      }[];
-      relationships?: {
-        from?: string;
-        to?: string;
-        type?: string;
-      }[];
-    }>({
-      schema: z.object({
-        tables: z
-          .array(
-            z.object({
-              title: z.string(),
-              columns: z.array(
-                z.object({
-                  title: z.string(),
-                  type: z.enum([
-                    'SingleLineText',
-                    'LongText',
-                    'Attachment',
-                    'Checkbox',
-                    'MultiSelect',
-                    'SingleSelect',
-                    'Date',
-                    'Year',
-                    'Time',
-                    'PhoneNumber',
-                    'Email',
-                    'URL',
-                    'Number',
-                    'Decimal',
-                    'Currency',
-                    'Percent',
-                    'Duration',
-                    'Rating',
-                    'DateTime',
-                    'JSON',
-                  ]),
-                  options: z.array(z.string()).optional(),
-                }),
-              ),
-            }),
-          )
-          .optional(),
-        relationships: z
-          .array(
-            z.object({
-              from: z.string(),
-              to: z.string(),
-              type: z.enum(['oo', 'hm', 'mm']),
-            }),
-          )
-          .optional()
-          .default([]), // Ensure default empty array if relationships are not provided
-      }),
-      messages: [
-        {
-          role: 'system',
-          content: generateTablesSystemMessage(),
-        },
-        {
-          role: 'user',
-          content: generateTablesPrompt(
-            base.title,
-            input,
-            instructions,
-            JSON.stringify(existingSchema),
-          ),
-        },
-      ],
-    });
+    const { data, usage } = await wrapper.generateObject<SerializedAiTableType>(
+      {
+        schema: z.object({
+          tables: z
+            .array(
+              z.object({
+                title: z.string(),
+                desciption: z.string().nullable().optional(),
+                columns: z.array(
+                  z.object({
+                    title: z.string(),
+                    type: z.enum([
+                      'SingleLineText',
+                      'LongText',
+                      'Attachment',
+                      'Checkbox',
+                      'MultiSelect',
+                      'SingleSelect',
+                      'Date',
+                      'Year',
+                      'Time',
+                      'PhoneNumber',
+                      'Email',
+                      'URL',
+                      'Number',
+                      'Decimal',
+                      'Currency',
+                      'Percent',
+                      'Duration',
+                      'Rating',
+                      'DateTime',
+                      'JSON',
+                    ]),
+                    options: z.array(z.string()).optional(),
+                  }),
+                ),
+              }),
+            )
+            .optional(),
+          relationships: z
+            .array(
+              z.object({
+                from: z.string(),
+                to: z.string(),
+                type: z.enum(['oo', 'hm', 'mm']),
+              }),
+            )
+            .optional()
+            .default([]), // Ensure default empty array if relationships are not provided
+        }),
+        messages: [
+          {
+            role: 'system',
+            content: generateTablesSystemMessage(),
+          },
+          {
+            role: 'user',
+            content: generateTablesPrompt(
+              base.title,
+              input,
+              instructions,
+              JSON.stringify(existingSchema),
+            ),
+          },
+        ],
+      },
+    );
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
 
@@ -354,44 +333,8 @@ export class AiSchemaService {
     params: {
       base?: Base;
       baseId?: string;
-      schema: {
-        tables?: {
-          title?: string;
-          columns?: {
-            title?: string;
-            type?: string;
-            options?: string[];
-          }[];
-        }[];
-        relationships?: {
-          from?: string;
-          to?: string;
-          type?: string;
-        }[];
-        views?: {
-          type?: string;
-          table?: string;
-          title?: string;
-          filters?: {
-            comparison_op?: string;
-            logical_op?: string;
-            value?: string | null;
-            column?: string;
-          }[];
-          sorts?: {
-            column?: string;
-            order?: 'asc' | 'desc';
-          }[];
-          calendar_range?:
-            | {
-                from_column?: string;
-              }
-            | {
-                from_column?: string;
-              }[];
-          gridGroupBy?: string | string[];
-          kanbanGroupBy?: string;
-        }[];
+      schema: SerializedAiTableType & {
+        views?: SerializedAiViewType[];
       };
       req: any;
     },
@@ -532,13 +475,16 @@ export class AiSchemaService {
       req,
     });
 
-    const { data, usage } = await wrapper.generateObject({
+    const { data, usage } = await wrapper.generateObject<{
+      views: SerializedAiViewType[];
+    }>({
       schema: z.object({
         views: z.array(
           z.object({
             type: z.string(),
             table: z.string(),
             title: z.string(),
+            desciption: z.string().optional(),
             filters: z
               .array(
                 z.object({
@@ -594,19 +540,17 @@ export class AiSchemaService {
 
     // Filter out duplicate views
     {
-      const resViews = (data as { views: SerializedAiViewType[] }).views || [];
+      const resViews = data.views || [];
 
-      (data as { views: SerializedAiViewType[] }).views = resViews.filter(
-        (pv) => {
-          const filterByViewType = viewType ? viewType === pv.type : true;
+      data.views = resViews.filter((pv) => {
+        const filterByViewType = viewType ? viewType === pv.type : true;
 
-          const filterByExistingView = (
-            serializedSchema.views as SerializedAiViewType[]
-          ).some((sv) => sv.title === pv.title && sv.type === pv.title);
+        const filterByExistingView = (
+          serializedSchema.views as SerializedAiViewType[]
+        ).some((sv) => sv.title === pv.title && sv.type === pv.title);
 
-          return filterByViewType && !filterByExistingView;
-        },
-      );
+        return filterByViewType && !filterByExistingView;
+      });
     }
 
     return data;
@@ -616,30 +560,7 @@ export class AiSchemaService {
     context: NcContext,
     params: {
       base: Base;
-      views?: {
-        type?: string;
-        table?: string;
-        title?: string;
-        filters?: {
-          comparison_op?: string;
-          logical_op?: string;
-          value?: string | null;
-          column?: string;
-        }[];
-        sorts?: {
-          column?: string;
-          order?: 'asc' | 'desc';
-        }[];
-        calendar_range?:
-          | {
-              from_column?: string;
-            }
-          | {
-              from_column?: string;
-            }[];
-        gridGroupBy?: string | string[];
-        kanbanGroupBy?: string;
-      }[];
+      views?: SerializedAiViewType[];
       req: any;
     },
   ) {
@@ -1099,7 +1020,9 @@ export class AiSchemaService {
       tables = tables.filter((table) => params.tableIds.includes(table.id));
     }
 
-    const serializedObject = {
+    const serializedObject: SerializedAiTableType & {
+      views: SerializedAiViewType[];
+    } = {
       tables: [],
       relationships: [],
       views: [],
@@ -1112,6 +1035,7 @@ export class AiSchemaService {
 
       serializedObject.tables.push({
         title: table.title,
+        description: table.description,
         columns: columns
           .filter(
             (column) =>
@@ -1120,6 +1044,7 @@ export class AiSchemaService {
           .map((column) => ({
             title: column.title,
             type: column.uidt,
+            description: column.description,
             ...(column.colOptions?.options &&
             column.colOptions?.options.length > 0
               ? {
@@ -1174,6 +1099,7 @@ export class AiSchemaService {
           type: viewTypeToStringMap[view.type],
           table: table.title,
           title: view.title,
+          description: view.description || null,
         };
 
         await view.getFilters(context);

@@ -202,6 +202,7 @@ export class AiUtilsService {
             title: z.string(),
             type: z.string(),
             options: z.array(z.string()).optional(),
+            desciption: z.string().nullable().optional(),
           }),
         ),
       }),
@@ -275,7 +276,13 @@ export class AiUtilsService {
       formulas: PredictNextFormulasType[];
     }>({
       schema: z.object({
-        formulas: z.array(z.object({ title: z.string(), formula: z.string() })),
+        formulas: z.array(
+          z.object({
+            title: z.string(),
+            formula: z.string(),
+            desciption: z.string().nullable().optional(),
+          }),
+        ),
       }),
       messages: [
         {

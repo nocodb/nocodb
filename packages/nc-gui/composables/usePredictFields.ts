@@ -1,14 +1,10 @@
 import { UITypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
+import { AiWizardTabsType } from '#imports'
 
 enum AiStep {
   init = 'init',
   pick = 'pick',
-}
-
-enum TableWizardTabs {
-  AUTO_SUGGESTIONS = 'AUTO_SUGGESTIONS',
-  PROMPT = 'PROMPT',
 }
 
 interface PredictedFieldType {
@@ -55,7 +51,7 @@ export const usePredictFields = createSharedComposable(
 
     const isPromtAlreadyGenerated = ref<boolean>(false)
 
-    const activeAiTabLocal = ref<keyof typeof TableWizardTabs>(TableWizardTabs.AUTO_SUGGESTIONS)
+    const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
 
     const failedToSaveFields = ref<boolean>(false)
 
@@ -63,7 +59,7 @@ export const usePredictFields = createSharedComposable(
       get: () => {
         return activeAiTabLocal.value
       },
-      set: (value: keyof typeof TableWizardTabs) => {
+      set: (value: AiWizardTabsType) => {
         activeAiTabLocal.value = value
 
         prompt.value = ''
@@ -76,11 +72,11 @@ export const usePredictFields = createSharedComposable(
     const aiTabs = [
       {
         title: 'Auto Suggestions',
-        key: TableWizardTabs.AUTO_SUGGESTIONS,
+        key: AiWizardTabsType.AUTO_SUGGESTIONS,
       },
       {
         title: 'Prompt',
-        key: TableWizardTabs.PROMPT,
+        key: AiWizardTabsType.PROMPT,
       },
     ]
 
@@ -368,7 +364,7 @@ export const usePredictFields = createSharedComposable(
       prompt.value = ''
       isPromtAlreadyGenerated.value = false
 
-      activeAiTabLocal.value = TableWizardTabs.AUTO_SUGGESTIONS
+      activeAiTabLocal.value = AiWizardTabsType.AUTO_SUGGESTIONS
 
       failedToSaveFields.value = false
     }

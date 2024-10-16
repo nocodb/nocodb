@@ -176,6 +176,7 @@ Rules:
 - View title is required
 - View table value must be derived from existing schema table title
 - If there is an emoji which can explain the view, use it as a suffix for view title
+- View description is a brief summary of the view.
 
 This is a sample schema:
 \`\`\`json

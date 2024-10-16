@@ -28,7 +28,8 @@ export const predictNextFieldsSystemMessage = () =>
 Following column types are available to use:
 SingleLineText, LongText, Lookup, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, Formula, Rollup, DateTime, JSON, Barcode, QrCode, Button, Links, User, CreatedBy, LastModifiedBy.
 Duplicate columns are not allowed.
-SingleSelect and MultiSelect columns require options.`;
+SingleSelect and MultiSelect columns require options.
+Description is a brief summary of the field.`;
 
 export const predictNextFieldsPrompt = (
   table: string,

@@ -101,8 +101,8 @@ const debouncedValidate = useDebounceFn(async () => {
   try {
     const parsed = await validateFormulaAndExtractTreeWithType({
       formula: vModel.value.formula || vModel.value.formula_raw,
-      columns: (meta.value?.columns || []).slice(),
-      column: column.value ? { ...column.value } : undefined,
+      columns: meta.value?.columns || [],
+      column: column.value ?? undefined,
       clientOrSqlUi: source.value?.type as any,
       getMeta: async (modelId) => await getMeta(modelId),
     })

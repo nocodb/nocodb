@@ -23698,7 +23698,7 @@
         "title": "Normal Column Request Model",
         "type": "object",
         "required": [
-          "column_name"
+          "title"
         ],
         "x-stoplight": {
           "id": "fn3gqmojvswv2"

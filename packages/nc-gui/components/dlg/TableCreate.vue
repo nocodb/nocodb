@@ -137,38 +137,6 @@ const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
     })
 }
 
-const toggleAiMode = async () => {
-  if (aiMode.value || !aiIntegrationAvailable.value) return
-
-  aiError.value = ''
-
-  aiMode.value = true
-  aiModeStep.value = AiStep.init
-  predictedTables.value = []
-  predictHistory.value = []
-  prompt.value = ''
-  oldPrompt.value = ''
-  isPromtAlreadyGenerated.value = false
-
-  await predictRefresh()
-}
-
-const disableAiMode = () => {
-  aiMode.value = false
-  aiModeStep.value = null
-  predictedTables.value = []
-  predictHistory.value = []
-  prompt.value = ''
-  oldPrompt.value = ''
-  isPromtAlreadyGenerated.value = false
-  activeAiTab.value = AiWizardTabsType.AUTO_SUGGESTIONS
-
-  nextTick(() => {
-    inputEl.value?.focus()
-    inputEl.value?.select()
-  })
-}
-
 const predictMore = async () => {
   calledFunction.value = 'predictMore'
 
@@ -248,6 +216,38 @@ const onSelectAll = () => {
       count++
     }
     return table
+  })
+}
+
+const toggleAiMode = async () => {
+  if (aiMode.value || !aiIntegrationAvailable.value) return
+
+  aiError.value = ''
+
+  aiMode.value = true
+  aiModeStep.value = AiStep.init
+  predictedTables.value = []
+  predictHistory.value = []
+  prompt.value = ''
+  oldPrompt.value = ''
+  isPromtAlreadyGenerated.value = false
+
+  await predictRefresh()
+}
+
+const disableAiMode = () => {
+  aiMode.value = false
+  aiModeStep.value = null
+  predictedTables.value = []
+  predictHistory.value = []
+  prompt.value = ''
+  oldPrompt.value = ''
+  isPromtAlreadyGenerated.value = false
+  activeAiTab.value = AiWizardTabsType.AUTO_SUGGESTIONS
+
+  nextTick(() => {
+    inputEl.value?.focus()
+    inputEl.value?.select()
   })
 }
 

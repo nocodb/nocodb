@@ -15,13 +15,16 @@ interface PredictedFieldType {
   colOptions?: Record<string, any>
   formula?: string
   formState?: Record<string, any>
+  selected?: boolean
+  tab?: AiWizardTabsType
+  ai_temp_id: string
 }
 
 const maxSelectionCount = 100
 
 export const usePredictFields = createSharedComposable(
   (isFromTableExplorer?: Ref<boolean>, fields?: WritableComputedRef<Record<string, any>[]>) => {
-    const { aiLoading, aiError, predictNextFields, predictNextFormulas } = useNocoAi()
+    const { aiLoading, aiError, predictNextFields: _predictNextFields, predictNextFormulas } = useNocoAi()
 
     const { meta, view } = useSmartsheetStoreOrThrow()
 
@@ -35,25 +38,19 @@ export const usePredictFields = createSharedComposable(
 
     const aiModeStep = ref<AiStep | null>(null)
 
-    const predicted = ref<PredictedFieldType[]>([])
-
-    const removedFromPredicted = ref<PredictedFieldType[]>([])
-
-    const predictHistory = ref<PredictedFieldType[]>([])
-
-    const activeSelectedField = ref<string | null>(null)
-
-    const selected = ref<PredictedFieldType[]>([])
-
     const calledFunction = ref<string>('')
 
     const prompt = ref<string>('')
+
+    const oldPrompt = ref<string>('')
 
     const isPromtAlreadyGenerated = ref<boolean>(false)
 
     const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
 
     const failedToSaveFields = ref<boolean>(false)
+
+    const temporaryAddCount = ref<number>(0)
 
     const activeAiTab = computed({
       get: () => {
@@ -63,10 +60,28 @@ export const usePredictFields = createSharedComposable(
         activeAiTabLocal.value = value
 
         prompt.value = ''
-        isPromtAlreadyGenerated.value = false
+        oldPrompt.value = ''
 
         aiError.value = ''
       },
+    })
+
+    const predicted = ref<PredictedFieldType[]>([])
+
+    const activeTabPredictedFields = computed(() => predicted.value.filter((f) => f.tab === activeAiTab.value))
+
+    const removedFromPredicted = ref<PredictedFieldType[]>([])
+
+    const predictHistory = ref<PredictedFieldType[]>([])
+
+    const activeTabPredictHistory = computed(() => predictHistory.value.filter((f) => f.tab === activeAiTab.value))
+
+    const activeSelectedField = ref<string | null>(null)
+
+    const selected = ref<PredictedFieldType[]>([])
+
+    const activeTabSelectedFields = computed(() => {
+      return predicted.value.filter((field) => !!field.selected && field.tab === activeAiTab.value)
     })
 
     const aiTabs = [
@@ -84,10 +99,10 @@ export const usePredictFields = createSharedComposable(
       return aiLoading.value && calledFunction.value === 'predictFromPrompt'
     })
 
-    const _predictNextFields = async (prompt?: string): Promise<PredictedFieldType[]> => {
+    const predictNextFields = async (): Promise<PredictedFieldType[]> => {
       const fieldHistory = Array.from(
         new Set(
-          predictHistory.value
+          activeTabPredictHistory.value
             .map((f) => f.title)
             .concat(
               isFromTableExplorer?.value
@@ -97,32 +112,42 @@ export const usePredictFields = createSharedComposable(
         ),
       )
 
-      return await (isFormulaPredictionMode.value
-        ? predictNextFormulas(meta.value?.id as string, fieldHistory, meta.value?.base_id, prompt)
-        : predictNextFields(meta.value?.id as string, fieldHistory, meta.value?.base_id, prompt))
-    }
+      return (
+        await (isFormulaPredictionMode.value
+          ? predictNextFormulas(
+              meta.value?.id as string,
+              fieldHistory,
+              meta.value?.base_id,
+              activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
+            )
+          : _predictNextFields(
+              meta.value?.id as string,
+              fieldHistory,
+              meta.value?.base_id,
+              activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
+            ))
+      )
+        .filter(
+          (f) =>
+            !ncIsArrayIncludes(
+              [
+                ...activeTabPredictedFields.value,
+                ...(isFromTableExplorer?.value
+                  ? fields?.value?.filter((f) => !!f?.title && !!f?.temp_id).map((f) => ({ title: f.title })) || []
+                  : []),
+              ],
 
-    const toggleAiMode = async (isFormulaMode: boolean = false) => {
-      if (isFormulaMode) {
-        isFormulaPredictionMode.value = true
-      } else {
-        isFormulaPredictionMode.value = false
-      }
-
-      aiError.value = ''
-
-      aiMode.value = true
-      aiModeStep.value = AiStep.init
-      predicted.value = []
-      predictHistory.value = []
-      prompt.value = ''
-      isPromtAlreadyGenerated.value = false
-
-      const predictions = await _predictNextFields()
-
-      predicted.value = predictions
-      predictHistory.value.push(...predictions)
-      aiModeStep.value = AiStep.pick
+              f.title,
+              'title',
+            ),
+        )
+        .map((f) => {
+          return {
+            ...f,
+            tab: activeAiTab.value,
+            ai_temp_id: `temp_${++temporaryAddCount.value}`,
+          }
+        })
     }
 
     const disableAiMode = () => {
@@ -132,52 +157,50 @@ export const usePredictFields = createSharedComposable(
     const predictMore = async () => {
       calledFunction.value = 'predictMore'
 
-      const predictions = await _predictNextFields()
+      const predictions = await predictNextFields()
 
       if (predictions.length) {
-        predicted.value.push(
-          ...predictions.filter(
-            (v) =>
-              !ncIsArrayIncludes(predicted.value, v.title, 'title') &&
-              !ncIsArrayIncludes(selected.value, v.title, 'title') &&
-              !ncIsArrayIncludes(removedFromPredicted.value, v.title, 'title'),
-          ),
-        )
-        predictHistory.value.push(...predictions.filter((v) => !ncIsArrayIncludes(selected.value, v.title, 'title')))
+        predicted.value.push(...predictions)
+        predictHistory.value.push(...predictions)
+      } else {
+        message.info(`No more auto suggestions were found for ${meta.value?.title || 'the current table'}`)
       }
     }
 
     const predictRefresh = async () => {
       calledFunction.value = 'predictRefresh'
 
-      const predictions = (await _predictNextFields()).filter(
-        (pv) =>
-          !ncIsArrayIncludes(selected.value, pv.title, 'title') &&
-          !ncIsArrayIncludes(removedFromPredicted.value, pv.title, 'title'),
-      )
+      const predictions = await predictNextFields()
 
       if (predictions.length) {
-        predicted.value = predictions
+        predicted.value = [
+          ...predicted.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
+          ...predictions,
+        ]
         predictHistory.value.push(...predictions)
-        aiModeStep.value = AiStep.pick
+      } else {
+        message.info(`No auto suggestions were found for ${meta.value?.title || 'the current table'}`)
       }
+      aiModeStep.value = AiStep.pick
     }
 
     const predictFromPrompt = async () => {
       calledFunction.value = 'predictFromPrompt'
 
-      const predictions = (await _predictNextFields(prompt.value)).filter(
-        (pv) =>
-          !ncIsArrayIncludes(selected.value, pv.title, 'title') &&
-          !ncIsArrayIncludes(removedFromPredicted.value, pv.title, 'title'),
-      )
+      const predictions = await predictNextFields()
 
       if (predictions.length) {
-        predicted.value = predictions
+        predicted.value = [
+          ...predicted.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
+          ...predictions,
+        ]
         predictHistory.value.push(...predictions)
-        aiModeStep.value = AiStep.pick
-      }
 
+        oldPrompt.value = prompt.value
+      } else {
+        message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
+      }
+      aiModeStep.value = AiStep.pick
       isPromtAlreadyGenerated.value = true
     }
 
@@ -219,6 +242,41 @@ export const usePredictFields = createSharedComposable(
       }
     }
 
+    // Todo: update logic
+    const onToggleTag = (field: PredictedFieldType) => {
+      if (
+        !field.selected &&
+        (activeTabSelectedFields.value.length >= maxSelectionCount ||
+          ncIsArrayIncludes(
+            predicted.value.filter((f) => !!f.selected),
+            field.title,
+            'title',
+          ))
+      ) {
+        return
+      }
+
+      if (isFromTableExplorer?.value && field.selected) {
+        const fieldIndex = predicted.value.findIndex((f) => f.ai_temp_id === field.ai_temp_id)
+        if (fieldIndex === -1) return
+
+        const fieldToDeselect = predicted.value.splice(fieldIndex, 1)[0]
+
+        fieldToDeselect.selected = false
+
+        predicted.value.push(fieldToDeselect)
+      } else {
+        predicted.value = predicted.value.map((t) => {
+          if (t.ai_temp_id === field.ai_temp_id) {
+            t.selected = !field.selected
+          }
+          return t
+        })
+      }
+
+      return true
+    }
+
     const onTagClick = (field: PredictedFieldType) => {
       if (selected.value.length >= maxSelectionCount || ncIsArrayIncludes(selected.value, field.title, 'title')) return
 
@@ -248,7 +306,7 @@ export const usePredictFields = createSharedComposable(
       if (selected.value.length >= maxSelectionCount) return
 
       removedFromPredicted.value.push(field)
-      predicted.value = predicted.value.filter((pv) => pv.title !== field.title)
+      predicted.value = predicted.value.filter((pv) => pv.ai_temp_id !== field.ai_temp_id)
     }
 
     const onSelectAll = () => {
@@ -350,6 +408,29 @@ export const usePredictFields = createSharedComposable(
         return true
       }
     }
+    const toggleAiMode = async (isFormulaMode: boolean = false) => {
+      if (isFormulaMode) {
+        isFormulaPredictionMode.value = true
+      } else {
+        isFormulaPredictionMode.value = false
+      }
+
+      aiError.value = ''
+
+      aiMode.value = true
+      aiModeStep.value = AiStep.init
+      predicted.value = []
+      predictHistory.value = []
+      prompt.value = ''
+      oldPrompt.value = ''
+      isPromtAlreadyGenerated.value = false
+
+      const predictions = await predictNextFields()
+
+      predicted.value = predictions
+      predictHistory.value.push(...predictions)
+      aiModeStep.value = AiStep.pick
+    }
 
     function onInit() {
       activeSelectedField.value = null
@@ -362,6 +443,7 @@ export const usePredictFields = createSharedComposable(
       selected.value = []
       calledFunction.value = ''
       prompt.value = ''
+      oldPrompt.value = ''
       isPromtAlreadyGenerated.value = false
 
       activeAiTabLocal.value = AiWizardTabsType.AUTO_SUGGESTIONS
@@ -383,12 +465,16 @@ export const usePredictFields = createSharedComposable(
       aiMode,
       aiModeStep,
       predicted,
+      activeTabPredictedFields,
       removedFromPredicted,
       predictHistory,
+      activeTabPredictHistory,
       activeSelectedField,
       selected,
+      activeTabSelectedFields,
       calledFunction,
       prompt,
+      oldPrompt,
       isPromtAlreadyGenerated,
       maxSelectionCount,
       activeAiTab,
@@ -403,6 +489,7 @@ export const usePredictFields = createSharedComposable(
       predictRefresh,
       predictFromPrompt,
       onTagClick,
+      onToggleTag,
       onTagClose,
       onSelectedTagClick,
       onTagRemoveFromPrediction,

@@ -552,41 +552,6 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
     })
 }
 
-const toggleAiMode = async () => {
-  if (aiMode.value) return
-
-  formValidator.value?.clearValidate()
-  aiError.value = ''
-
-  aiMode.value = true
-  aiModeStep.value = AiStep.init
-  predictedViews.value = []
-  predictHistory.value = []
-  prompt.value = ''
-  oldPrompt.value = ''
-  isPromtAlreadyGenerated.value = false
-
-  await predictRefresh()
-}
-
-const disableAiMode = () => {
-  if (isAIViewCreateMode.value) return
-
-  aiMode.value = false
-  aiModeStep.value = null
-  predictedViews.value = []
-  predictHistory.value = []
-  prompt.value = ''
-  oldPrompt.value = ''
-  isPromtAlreadyGenerated.value = false
-  activeAiTab.value = AiWizardTabsType.AUTO_SUGGESTIONS
-
-  nextTick(() => {
-    inputEl.value?.focus()
-    inputEl.value?.select()
-  })
-}
-
 const predictMore = async () => {
   calledFunction.value = 'predictMore'
 
@@ -666,6 +631,41 @@ const onSelectAll = () => {
       count++
     }
     return view
+  })
+}
+
+const toggleAiMode = async () => {
+  if (aiMode.value) return
+
+  formValidator.value?.clearValidate()
+  aiError.value = ''
+
+  aiMode.value = true
+  aiModeStep.value = AiStep.init
+  predictedViews.value = []
+  predictHistory.value = []
+  prompt.value = ''
+  oldPrompt.value = ''
+  isPromtAlreadyGenerated.value = false
+
+  await predictRefresh()
+}
+
+const disableAiMode = () => {
+  if (isAIViewCreateMode.value) return
+
+  aiMode.value = false
+  aiModeStep.value = null
+  predictedViews.value = []
+  predictHistory.value = []
+  prompt.value = ''
+  oldPrompt.value = ''
+  isPromtAlreadyGenerated.value = false
+  activeAiTab.value = AiWizardTabsType.AUTO_SUGGESTIONS
+
+  nextTick(() => {
+    inputEl.value?.focus()
+    inputEl.value?.select()
   })
 }
 

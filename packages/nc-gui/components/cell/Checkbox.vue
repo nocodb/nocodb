@@ -38,13 +38,12 @@ const isSurveyForm = inject(IsSurveyFormInj, ref(false))
 const isGrid = inject(IsGridInj, ref(false))
 
 const checkboxMeta = computed(() => {
+  const icon = extractCheckboxIcon(column?.value?.meta)
+
   return {
-    icon: {
-      checked: 'mdi-check-circle-outline',
-      unchecked: 'mdi-checkbox-blank-circle-outline',
-    },
     color: 'primary',
     ...parseProp(column?.value?.meta),
+    icon,
   }
 })
 

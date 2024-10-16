@@ -16,6 +16,7 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import hash from 'object-hash';
+import { parseMetaProp } from 'src/utils/modelUtils';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -65,7 +66,6 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
-import { parseMetaProp } from 'src/utils/modelUtils';
 
 // todo: move
 export enum Altered {
@@ -1627,6 +1627,11 @@ export class ColumnsService {
       reuse?: ReusableParams;
     },
   ) {
+    // if column_name is defined and title is not defined, set title to column_name
+    if (param.column.column_name && !param.column.title) {
+      param.column.title = param.column.column_name;
+    }
+
     validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
     const reuse = param.reuse || {};
@@ -1672,6 +1677,11 @@ export class ColumnsService {
       // trim leading and trailing spaces from column title as knex trim them by default
       if (param.column.title) {
         param.column.title = param.column.title.trim();
+      }
+
+      // if column_name missing then generate it from title
+      if (!param.column.column_name) {
+        param.column.column_name = param.column.title;
       }
 
       if (param.column.column_name) {

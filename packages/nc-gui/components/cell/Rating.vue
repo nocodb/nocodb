@@ -16,14 +16,12 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const ratingMeta = computed(() => {
+  const icon = extractRatingIcon(column?.value?.meta)
   return {
-    icon: {
-      full: 'mdi-star',
-      empty: 'mdi-star-outline',
-    },
     color: '#fcb401',
     max: 5,
     ...parseProp(column.value?.meta),
+    icon,
   }
 })
 

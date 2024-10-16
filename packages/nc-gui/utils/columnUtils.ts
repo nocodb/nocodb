@@ -257,6 +257,97 @@ const isColumnInvalid = (col: ColumnType) => {
   }
 }
 
+// cater existing v1 cases
+const checkboxIconList = [
+  {
+    checked: 'mdi-check-bold',
+    unchecked: 'mdi-crop-square',
+  },
+  {
+    checked: 'mdi-check-circle-outline',
+    unchecked: 'mdi-checkbox-blank-circle-outline',
+  },
+  {
+    checked: 'mdi-star',
+    unchecked: 'mdi-star-outline',
+  },
+  {
+    checked: 'mdi-heart',
+    unchecked: 'mdi-heart-outline',
+  },
+  {
+    checked: 'mdi-moon-full',
+    unchecked: 'mdi-moon-new',
+  },
+  {
+    checked: 'mdi-thumb-up',
+    unchecked: 'mdi-thumb-up-outline',
+  },
+  {
+    checked: 'mdi-flag',
+    unchecked: 'mdi-flag-outline',
+  },
+]
+
+const ratingIconList = [
+  {
+    full: 'mdi-star',
+    empty: 'mdi-star-outline',
+  },
+  {
+    full: 'mdi-heart',
+    empty: 'mdi-heart-outline',
+  },
+  {
+    full: 'mdi-moon-full',
+    empty: 'mdi-moon-new',
+  },
+  {
+    full: 'mdi-thumb-up',
+    empty: 'mdi-thumb-up-outline',
+  },
+  {
+    full: 'mdi-flag',
+    empty: 'mdi-flag-outline',
+  },
+]
+
+function extractCheckboxIcon(meta: string | Record<string, any> = null) {
+  const parsedMeta = parseProp(meta)
+
+  const icon = {
+    checked: 'mdi-check-circle-outline',
+    unchecked: 'mdi-checkbox-blank-circle-outline',
+  }
+
+  if (parsedMeta.icon) {
+    icon.checked = parsedMeta.icon.checked || icon.checked
+    icon.unchecked = parsedMeta.icon.unchecked || icon.unchecked
+  } else if (typeof parsedMeta.iconIdx === 'number' && checkboxIconList[parsedMeta.iconIdx]) {
+    icon.checked = checkboxIconList[parsedMeta.iconIdx].checked
+    icon.unchecked = checkboxIconList[parsedMeta.iconIdx].unchecked
+  }
+  return icon
+}
+
+function extractRatingIcon(meta: string | Record<string, any> = null) {
+  const parsedMeta = parseProp(meta)
+
+  const icon = {
+    full: 'mdi-star',
+    empty: 'mdi-star-outline',
+  }
+
+  if (parsedMeta.icon) {
+    icon.full = parsedMeta.icon.full || icon.full
+    icon.empty = parsedMeta.icon.empty || icon.empty
+  } else if (typeof parsedMeta.iconIdx === 'number' && ratingIconList[parsedMeta.iconIdx]) {
+    icon.full = ratingIconList[parsedMeta.iconIdx].full
+    icon.empty = ratingIconList[parsedMeta.iconIdx].empty
+  }
+  return icon
+}
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -267,4 +358,8 @@ export {
   isColumnRequiredAndNull,
   isColumnRequired,
   isVirtualColRequired,
+  checkboxIconList,
+  ratingIconList,
+  extractCheckboxIcon,
+  extractRatingIcon,
 }

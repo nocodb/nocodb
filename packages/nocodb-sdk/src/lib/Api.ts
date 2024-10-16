@@ -2030,7 +2030,7 @@ export interface NormalColumnRequestType {
   /** Column Default Value */
   cdf?: StringOrNullOrBooleanOrNumberType;
   /** Column Name */
-  column_name: string;
+  column_name?: string;
   /** Model for StringOrNull */
   csn?: StringOrNullType;
   /** Data Type */
@@ -2052,7 +2052,7 @@ export interface NormalColumnRequestType {
   /** Is this column required? */
   rqd?: BoolType;
   /** Column Title */
-  title?: string;
+  title: string;
   /** UI Data Type */
   uidt?:
     | 'Attachment'
@@ -2691,7 +2691,7 @@ export interface TableType {
   /** Table Description */
   description?: TextOrNullType;
   /** Table Name. Prefix will be added for XCDB bases. */
-  table_name: string;
+  table_name?: string;
   /** Currently not in use */
   tags?: StringOrNullType;
   /** Table Title */
@@ -2729,12 +2729,12 @@ export interface TableReqType {
    * Table name
    * @example my_table
    */
-  table_name: string;
+  table_name?: string;
   /**
    * Table title
    * @example My Table
    */
-  title?: string;
+  title: string;
 }
 
 /**
@@ -6255,6 +6255,8 @@ export class Api<
           excludeData?: boolean;
           excludeViews?: boolean;
           excludeHooks?: boolean;
+          /** New table title */
+          title?: string;
         };
       },
       params: RequestParams = {}
@@ -10907,7 +10909,7 @@ export class Api<
  */
     feed: (
       query?: {
-        type?: 'all' | 'github' | 'youtube';
+        type?: 'all' | 'github' | 'youtube' | 'cloud';
         per_page?: number;
         page?: number;
       },

@@ -53,7 +53,6 @@ function tableStaticTests() {
       .post(`/api/v1/db/meta/projects/${base.id}/tables`)
       .set('xc-auth', context.token)
       .send({
-        table_name: 'new_table_name',
         title: undefined,
         columns: defaultColumns(context),
       })

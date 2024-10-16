@@ -466,6 +466,20 @@ export class TablesService {
       req?: any;
     },
   ) {
+    // before validating add title for columns if only column name is present
+    if (param.table.columns) {
+      param.table.columns.forEach((c) => {
+        if (!c.title && c.column_name) {
+          c.title = c.column_name;
+        }
+      });
+    }
+
+    // before validating add title for table if only table name is present
+    if (!param.table.title && param.table.table_name) {
+      param.table.title = param.table.table_name
+    }
+
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
@@ -650,6 +664,11 @@ export class TablesService {
         (isCreatedOrLastModifiedByCol(column) && (column as any).system)
       ) {
         const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
+
+        // set column name using title if not present
+        if (!column.column_name && column.title) {
+          column.column_name = column.title;
+        }
 
         // - 5 is a buffer for suffix
         column.column_name = sanitizeColumnName(

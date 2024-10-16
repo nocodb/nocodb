@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { extractRatingIcon } from '../../utils/columnUtils'
-
 interface Props {
   modelValue?: number | null | undefined
 }

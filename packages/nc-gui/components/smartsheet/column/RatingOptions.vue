@@ -22,11 +22,12 @@ const isOpenColorPicker = ref(false)
 vModel.value.meta = {
   ...columnDefaultMeta[UITypes.Rating],
   ...(vModel.value.meta || {}),
+  icon: extractRatingIcon(vModel.value.meta || {}),
 }
 
 // antdv doesn't support object as value
 // use iconIdx as value and update back in watch
-const iconIdx = iconList.findIndex(
+const iconIdx = ratingIconList.findIndex(
   (ele) => ele.full === vModel.value.meta.icon.full && ele.empty === vModel.value.meta.icon.empty,
 )
 
@@ -35,7 +36,7 @@ vModel.value.meta.iconIdx = iconIdx === -1 ? 0 : iconIdx
 watch(
   () => vModel.value.meta.iconIdx,
   (v) => {
-    vModel.value.meta.icon = iconList[v]
+    vModel.value.meta.icon = ratingIconList[v]
   },
 )
 </script>
@@ -49,7 +50,7 @@ watch(
             <GeneralIcon icon="arrowDown" class="text-gray-700" />
           </template>
 
-          <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
+          <a-select-option v-for="(icon, i) of ratingIconList" :key="i" :value="i">
             <div class="flex gap-2 w-full truncate items-center">
               <div class="flex-1 flex items-center text-gray-700 gap-2 children:(h-4 w-4)">
                 <component :is="getMdiIcon(icon.full)" />
@@ -84,13 +85,13 @@ watch(
           >
             <div class="flex-1 flex items-center gap-2 children:(h-4 w-4)">
               <component
-                :is="getMdiIcon(iconList[vModel.meta.iconIdx].full)"
+                :is="getMdiIcon(ratingIconList[vModel.meta.iconIdx].full)"
                 :style="{
                   color: vModel.meta.color,
                 }"
               />
               <component
-                :is="getMdiIcon(iconList[vModel.meta.iconIdx].empty)"
+                :is="getMdiIcon(ratingIconList[vModel.meta.iconIdx].empty)"
                 :style="{
                   color: vModel.meta.color,
                 }"

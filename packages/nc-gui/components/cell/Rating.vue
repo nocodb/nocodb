@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { extractRatingIcon } from '../../utils/columnUtils'
+
 interface Props {
   modelValue?: number | null | undefined
 }
@@ -16,11 +18,9 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const ratingMeta = computed(() => {
+  const icon = extractRatingIcon(column?.value?.meta)
   return {
-    icon: {
-      full: 'mdi-star',
-      empty: 'mdi-star-outline',
-    },
+    icon,
     color: '#fcb401',
     max: 5,
     ...parseProp(column.value?.meta),

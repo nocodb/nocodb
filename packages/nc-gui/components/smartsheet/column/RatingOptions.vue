@@ -22,6 +22,7 @@ const isOpenColorPicker = ref(false)
 vModel.value.meta = {
   ...columnDefaultMeta[UITypes.Rating],
   ...(vModel.value.meta || {}),
+  icon: extractRatingIcon(vModel.value.meta || {}),
 }
 
 // antdv doesn't support object as value

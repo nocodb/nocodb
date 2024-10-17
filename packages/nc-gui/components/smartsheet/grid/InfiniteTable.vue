@@ -2005,7 +2005,7 @@ defineExpose({
                     class="nc-grid-row transition transition-opacity opacity-100 !xs:h-14"
                     :style="{
                       transform: `translateY(${rowSlice.start + index}px)`,
-                      height: `${rowHeight ?? rowHeightInPx['1']}px`,
+                      height: `${rowHeightEnum ?? rowHeightInPx['1']}px`,
                     }"
                     :data-testid="`grid-row-${index}`"
                     :class="{
@@ -2087,8 +2087,8 @@ defineExpose({
                           (activeCell.row === rowSlice.start + index && activeCell.col === 0) ||
                           (selectedRange._start?.row === rowSlice.start + index && selectedRange._start?.col === 0),
                         'nc-required-cell': cellMeta[index][0].isColumnRequiredAndNull && !isPublicView,
-                        'align-middle': !rowHeight || rowHeight === 1,
-                        'align-top': rowHeight && rowHeight !== 1,
+                        'align-middle': !rowHeightEnum || rowHeightEnum === 1,
+                        'align-top': rowHeightEnum && rowHeightEnum !== 1,
                         'filling': fillRangeMap[`${rowSlice.start + index}-0`],
                         'readonly': colMeta[0].isReadonly && hasEditPermission && selectRangeMap[`${rowSlice.start + index}-0`],
                         '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
@@ -2152,8 +2152,8 @@ defineExpose({
                           (activeCell.row === rowSlice.start + index && activeCell.col === colIndex) ||
                           (selectedRange._start?.row === rowSlice.start + index && selectedRange._start?.col === colIndex),
                         'nc-required-cell': cellMeta[index][colIndex].isColumnRequiredAndNull && !isPublicView,
-                        'align-middle': !rowHeight || rowHeight === 1,
-                        'align-top': rowHeight && rowHeight !== 1,
+                        'align-middle': !rowHeightEnum || rowHeightEnum === 1,
+                        'align-top': rowHeightEnum && rowHeightEnum !== 1,
                         'filling': fillRangeMap[`${rowSlice.start + index}-${colIndex}`],
                         'readonly':
                           colMeta[colIndex].isReadonly &&

@@ -1,5 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import {
+  type Api,
   type ColumnType,
   type LinkToAnotherRecordType,
   type RelationTypes,
@@ -16,7 +17,11 @@ export function useInfiniteData(args: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>
   callbacks: {
-    loadData?: () => Promise<Row[] | undefined>
+    loadData?: (
+      params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
+        limit?: number
+      },
+    ) => Promise<Row[] | undefined>
     syncCount?: () => Promise<void>
     syncVisibleData?: () => void
   }
@@ -213,8 +218,6 @@ export function useInfiniteData(args: {
 
         row.row = fullRecord
 
-        console.log(row)
-
         if (!undo) {
           addUndo({
             undo: {
@@ -222,6 +225,7 @@ export function useInfiniteData(args: {
                 const pkData = rowPkData(row.row, meta?.value?.columns as ColumnType[])
 
                 row.row = { ...pkData, ...row.row }
+
                 await insertRow(row, ltarState, {}, true)
 
                 await recoverLTARRefs(row.row)
@@ -229,10 +233,10 @@ export function useInfiniteData(args: {
               args: [clone(row), {}],
             },
             redo: {
-              fn: async (id: string) => {
-                await deleteRowById(id)
+              fn: async (rowIndex: number) => {
+                await deleteRow(rowIndex)
               },
-              args: [id],
+              args: [rowIndex],
             },
             scope: defineViewScope({ view: viewMeta.value }),
           })
@@ -240,21 +244,33 @@ export function useInfiniteData(args: {
       }
 
       cachedRows.value.delete(rowIndex)
+
+      const rows = Array.from(cachedRows.value.entries())
+      const rowsToShift = rows.filter(([index]) => index > rowIndex)
+      rowsToShift.sort((a, b) => a[0] - b[0])
+
+      for (const [index, row] of rowsToShift) {
+        const newIndex = index - 1
+        row.rowMeta.rowIndex = newIndex
+        cachedRows.value.delete(index)
+        cachedRows.value.set(newIndex, row)
+      }
+
       syncLocalChunks(rowIndex, 'delete')
       totalRows.value = (totalRows.value || 0) - 1
 
       await callbacks?.syncCount?.()
+      callbacks?.syncVisibleData?.()
     } catch (e: any) {
       message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
-    callbacks?.syncVisibleData?.()
   }
 
   async function deleteSelectedRows(): Promise<void> {
     const removedRowsData: Record<string, any>[] = []
     let compositePrimaryKey: string = ''
 
-    for (const [index, row] of cachedRows.value) {
+    for (const [_index, row] of cachedRows.value) {
       const { row: rowData, rowMeta } = row
 
       if (!rowMeta.selected || rowMeta.new) {
@@ -270,7 +286,7 @@ export function useInfiniteData(args: {
           [extractedPk]: compositePrimaryKey,
           pkData,
           row: { ...rowData },
-          rowIndex: index,
+          rowMeta,
         })
       }
     }
@@ -278,24 +294,94 @@ export function useInfiniteData(args: {
     if (!removedRowsData.length) return
 
     try {
-      await bulkDeleteRows(removedRowsData.map((row) => row.pkData))
+      const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
+        pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
+      })
 
-      // Remove deleted rows and update indexes
-      const deletedIndexes = removedRowsData.map((row) => row.rowIndex).sort((a, b) => b - a)
-      for (const index of deletedIndexes) {
-        cachedRows.value.delete(index)
-        syncLocalChunks(index, 'delete')
+      for (const deleteRow of removedRowsData) {
+        const rowObj = deleteRow.row
+        const rowPk = rowPkData(rowObj.row, meta.value?.columns as ColumnType[])
+
+        const fullRecord = list.find((r: Record<string, any>) => {
+          return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+        })
+
+        if (!fullRecord) continue
+        rowObj.row = clone(fullRecord)
       }
 
-      totalRows.value = Math.max(0, (totalRows.value || 0) - removedRowsData.length)
-
-      callbacks?.syncVisibleData?.()
-      await callbacks?.syncCount?.()
+      await bulkDeleteRows(removedRowsData.map((row) => row.pkData))
     } catch (e: any) {
       const errorMessage = await extractSdkResponseErrorMsg(e)
-      message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
-      throw e
+      return message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
     }
+
+    const deletedIndexes = removedRowsData.map((row) => row.rowMeta.rowIndex).sort((a, b) => b - a)
+    const deletedIndexSet = new Set(deletedIndexes)
+    const newCachedRows = new Map<number, Row>()
+    let newIndex = 0
+    for (const [oldIndex, row] of cachedRows.value) {
+      if (!deletedIndexSet.has(oldIndex)) {
+        row.rowMeta.rowIndex = newIndex
+        newCachedRows.set(newIndex, row)
+        newIndex++
+      }
+    }
+    cachedRows.value = newCachedRows
+    totalRows.value = Math.max(0, (totalRows.value || 0) - removedRowsData.length)
+
+    for (const index of deletedIndexes) {
+      syncLocalChunks(index, 'delete')
+    }
+
+    addUndo({
+      undo: {
+        fn: async (removedRowsData: Record<string, any>[]) => {
+          const rowsToInsert = removedRowsData
+            .map((row) => {
+              const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+              row.row = { ...pkData, ...row.row }
+              return row
+            })
+            .reverse()
+
+          const insertedRowIds = await bulkInsertRows(rowsToInsert as Row[], undefined, true)
+
+          if (Array.isArray(insertedRowIds)) {
+            for (const { row } of rowsToInsert) recoverLTARRefs(row.row)
+          }
+        },
+        args: [removedRowsData],
+      },
+      redo: {
+        fn: async (toBeRemovedData: Record<string, any>) => {
+          await bulkDeleteRows(toBeRemovedData.map((row) => row.pkData))
+          // Need to update the cached rows
+          const deletedIndexes = toBeRemovedData.map((row) => row.rowMeta.rowIndex).sort((a, b) => b - a)
+          const deletedIndexSet = new Set(deletedIndexes)
+          const newCachedRows = new Map<number, Row>()
+          let newIndex = 0
+          for (const [oldIndex, row] of cachedRows.value) {
+            if (!deletedIndexSet.has(oldIndex)) {
+              row.rowMeta.rowIndex = newIndex
+              newCachedRows.set(newIndex, row)
+              newIndex++
+            }
+          }
+          cachedRows.value = newCachedRows
+          totalRows.value = Math.max(0, (totalRows.value || 0) - removedRowsData.length)
+
+          for (const index of deletedIndexes) {
+            syncLocalChunks(index, 'delete')
+          }
+        },
+        args: [removedRowsData],
+      },
+      scope: defineViewScope({ view: viewMeta.value }),
+    })
+
+    callbacks?.syncVisibleData?.()
+    await callbacks?.syncCount?.()
   }
 
   async function insertRow(
@@ -308,8 +394,6 @@ export function useInfiniteData(args: {
       throw new Error('Row metadata is missing')
     }
 
-    console.log(currentRow, 'atInsertRow Method')
-
     currentRow.rowMeta.saving = true
 
     try {
@@ -318,6 +402,7 @@ export function useInfiniteData(args: {
         ltarState,
         getMeta,
         row: currentRow.row,
+        undo,
       })
 
       if (missingRequiredColumns.size) {
@@ -390,6 +475,7 @@ export function useInfiniteData(args: {
   async function bulkInsertRows(
     rows: Row[],
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
   ): Promise<string[]> {
     if (!metaValue || !viewMetaValue) {
       throw new Error('Meta value or view meta value is undefined')
@@ -409,39 +495,65 @@ export function useInfiniteData(args: {
             ltarState: {},
             getMeta,
             row: currentRow.row,
+            undo,
           })
 
           if (missingRequiredColumns.size === 0) {
             for (const key of autoGeneratedKeys) {
               delete insertObj[key!]
             }
-            return insertObj
+            return { insertObj, rowIndex: currentRow.rowMeta.rowIndex }
           }
           return null
         }),
       )
 
-      const validRowsToInsert = rowsToInsert.filter((row): row is Record<string, any> => row !== null)
+      const validRowsToInsert = rowsToInsert.filter(Boolean)
 
-      const bulkInsertedIds = await $api.dbDataTableRow.create(metaValue.id!, validRowsToInsert, {
-        viewId: viewMetaValue.id,
-      })
+      const bulkInsertedIds = await $api.dbDataTableRow.create(
+        metaValue.id!,
+        validRowsToInsert.map((row) => row!.insertObj),
+        {
+          viewId: viewMetaValue.id,
+        },
+      )
 
-      // Update cachedRows with the new rows
-      const startIndex = totalRows.value
-      validRowsToInsert.forEach((insertedRow, index) => {
-        const newRowIndex = startIndex + index
-        cachedRows.value.set(newRowIndex, {
-          row: insertedRow,
+      validRowsToInsert.sort((a, b) => (a!.rowIndex ?? 0) - (b!.rowIndex ?? 0))
+
+      const newCachedRows = new Map<number, Row>()
+
+      for (const [index, row] of cachedRows.value) {
+        newCachedRows.set(index, { ...row, rowMeta: { ...row.rowMeta, rowIndex: index } })
+      }
+
+      for (const { insertObj, rowIndex } of validRowsToInsert) {
+        // If there's already a row at this index, shift it and all subsequent rows
+        if (newCachedRows.has(rowIndex!)) {
+          const rowsToShift = Array.from(newCachedRows.entries())
+            .filter(([index]) => index >= rowIndex!)
+            .sort((a, b) => b[0] - a[0]) // Sort in descending order
+
+          for (const [index, row] of rowsToShift) {
+            const newIndex = index + 1
+            newCachedRows.set(newIndex, { ...row, rowMeta: { ...row.rowMeta, rowIndex: newIndex } })
+          }
+        }
+
+        const newRow = {
+          row: { ...insertObj, id: bulkInsertedIds[validRowsToInsert.indexOf({ insertObj, rowIndex })] },
           oldRow: {},
-          rowMeta: { rowIndex: newRowIndex, new: false },
-        })
-      })
+          rowMeta: { rowIndex: rowIndex!, new: false },
+        }
+        newCachedRows.set(rowIndex!, newRow)
+      }
+
+      cachedRows.value = newCachedRows
 
       totalRows.value += validRowsToInsert.length
 
-      // Update row indices
-      syncLocalChunks(startIndex, 'create')
+      for (const { rowIndex } of validRowsToInsert) {
+        syncLocalChunks(rowIndex!, 'create')
+      }
 
       await callbacks?.syncCount?.()
       callbacks?.syncVisibleData?.()
@@ -685,6 +797,41 @@ export function useInfiniteData(args: {
     }
   }
 
+  const fetchChunk = async (chunkId: number) => {
+    if (chunkStates.value[chunkId]) return
+
+    if (!callbacks?.loadData) return
+
+    chunkStates.value[chunkId] = 'loading'
+    const offset = chunkId * CHUNK_SIZE
+
+    try {
+      const newItems = await callbacks.loadData({ offset, limit: CHUNK_SIZE })
+      if (!newItems) {
+        chunkStates.value[chunkId] = undefined
+        return
+      }
+      newItems.forEach((item) => {
+        cachedRows.value.set(item.rowMeta.rowIndex!, item)
+      })
+      chunkStates.value[chunkId] = 'loaded'
+    } catch (error) {
+      console.error('Error fetching chunk:', error)
+      chunkStates.value[chunkId] = undefined
+    }
+  }
+
+  const fetchMissingChunks = async (startIndex: number, endIndex: number) => {
+    const firstChunkId = Math.floor(startIndex / CHUNK_SIZE)
+    const lastChunkId = Math.floor(endIndex / CHUNK_SIZE)
+
+    const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
+      (chunkId) => !chunkStates.value[chunkId],
+    )
+
+    await Promise.all(chunksToFetch.map(fetchChunk))
+  }
+
   async function deleteRangeOfRows(cellRange: CellRange): Promise<void> {
     if (!cellRange._start || !cellRange._end) return
 
@@ -693,6 +840,18 @@ export function useInfiniteData(args: {
 
     const rowsToDelete: Record<string, any>[] = []
     let compositePrimaryKey = ''
+
+    // Fetch uncached rows
+    const uncachedRows = []
+    for (let i = start; i <= end; i++) {
+      if (!cachedRows.value.has(i)) {
+        uncachedRows.push(i)
+      }
+    }
+
+    if (uncachedRows.length > 0) {
+      await fetchMissingChunks(uncachedRows[0], uncachedRows[uncachedRows.length - 1])
+    }
 
     for (let i = start; i <= end; i++) {
       const cachedRow = cachedRows.value.get(i)
@@ -720,25 +879,107 @@ export function useInfiniteData(args: {
 
     if (!rowsToDelete.length) return
 
-    try {
-      await bulkDeleteRows(rowsToDelete.map((row) => row.pkData))
+    const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
+      pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
+    })
 
-      // Remove rows in reverse order to avoid index shifting issues
-      for (let i = rowsToDelete.length - 1; i >= 0; i--) {
-        const { rowIndex } = rowsToDelete[i]
-        cachedRows.value.delete(rowIndex)
-        syncLocalChunks(rowIndex, 'delete')
+    try {
+      for (const deleteRow of rowsToDelete) {
+        const rowObj = deleteRow.row
+        const rowPk = rowPkData(rowObj.row, meta.value?.columns as ColumnType[])
+
+        const fullRecord = list.find((r: Record<string, any>) => {
+          return Object.keys(rowPk).every((key) => r[key] === rowPk[key])
+        })
+
+        if (!fullRecord) continue
+        rowObj.row = fullRecord
       }
 
-      totalRows.value = Math.max(0, totalRows.value - rowsToDelete.length)
-
-      await callbacks?.syncCount?.()
-      callbacks?.syncVisibleData?.()
+      await bulkDeleteRows(rowsToDelete.map((row) => row.pkData))
     } catch (e: any) {
       const errorMessage = await extractSdkResponseErrorMsg(e)
       message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
       throw e
     }
+
+    addUndo({
+      undo: {
+        fn: async (deletedRows: Record<string, any>[]) => {
+          const rowsToInsert = deletedRows
+            .map((row) => {
+              const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
+              row.row = { ...pkData, ...row.row }
+              return row
+            })
+            .reverse()
+
+          const insertedRowIds = await bulkInsertRows(
+            rowsToInsert.map((row) => row.row),
+            undefined,
+            true,
+          )
+
+          if (Array.isArray(insertedRowIds)) {
+            for (let i = 0; i < insertedRowIds.length; i++) {
+              recoverLTARRefs(rowsToInsert[i].row)
+            }
+          }
+        },
+        args: [rowsToDelete],
+      },
+      redo: {
+        fn: async (rowsToDelete: Record<string, any>[]) => {
+          await bulkDeleteRows(rowsToDelete.map((row) => row.pkData))
+
+          // Remove rows and shift remaining rows
+          const newCachedRows = new Map<number, Row>()
+          let newIndex = 0
+
+          for (let i = 0; i < Math.max(...cachedRows.value.keys()) + 1; i++) {
+            if (!rowsToDelete.some((row) => row.rowIndex === i) && cachedRows.value.has(i)) {
+              const row = cachedRows.value.get(i)!
+              row.rowMeta.rowIndex = newIndex
+              newCachedRows.set(newIndex, row)
+              newIndex++
+            }
+          }
+
+          cachedRows.value = newCachedRows
+          totalRows.value = Math.max(0, totalRows.value - rowsToDelete.length)
+
+          // Update chunks
+          syncLocalChunks(Math.min(...rowsToDelete.map((row) => row.rowIndex)), 'delete')
+
+          await callbacks?.syncCount?.()
+          await callbacks?.syncVisibleData?.()
+        },
+        args: [rowsToDelete],
+      },
+      scope: defineViewScope({ view: viewMeta.value }),
+    })
+
+    // Remove rows and shift remaining rows
+    const newCachedRows = new Map<number, Row>()
+    let newIndex = 0
+
+    for (let i = 0; i < Math.max(...cachedRows.value.keys()) + 1; i++) {
+      if (!rowsToDelete.some((row) => row.rowIndex === i) && cachedRows.value.has(i)) {
+        const row = cachedRows.value.get(i)!
+        row.rowMeta.rowIndex = newIndex
+        newCachedRows.set(newIndex, row)
+        newIndex++
+      }
+    }
+
+    cachedRows.value = newCachedRows
+    totalRows.value = Math.max(0, totalRows.value - rowsToDelete.length)
+
+    // Update chunks
+    syncLocalChunks(start, 'delete')
+
+    await callbacks?.syncCount?.()
+    callbacks?.syncVisibleData?.()
   }
 
   async function bulkDeleteRows(

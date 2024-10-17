@@ -348,26 +348,31 @@ export const usePredictFields = createSharedComposable(
           }
         })
 
-      const res = await $api.dbTableColumn.bulk(meta.value?.id, {
-        hash: columnsHash.value,
-        ops: payload,
-      })
-
-      if (res && res.failedOps?.length) {
-        const failedColumnTitle = res.failedOps.filter((o) => o?.column?.title).map((o) => o.column.title)
-        selected.value = selected.value.filter((f) => {
-          if (failedColumnTitle.includes(f.formState?.title)) return true
-
-          return false
+      try {
+        const res = await $api.dbTableColumn.bulk(meta.value?.id, {
+          hash: columnsHash.value,
+          ops: payload,
         })
 
-        failedToSaveFields.value = true
+        if (res && res.failedOps?.length) {
+          const failedColumnTitle = res.failedOps.filter((o) => o?.column?.ai_temp_id).map((o) => o.column.ai_temp_id)
+          predicted.value = predicted.value.filter((f) => {
+            if (failedColumnTitle.includes(f.formState?.ai_temp_id)) return true
 
+            return false
+          })
+
+          failedToSaveFields.value = true
+
+          return false
+        } else {
+          await onSuccess?.()
+
+          return true
+        }
+      } catch (e: any) {
+        console.error(e)
         return false
-      } else {
-        await onSuccess?.()
-
-        return true
       }
     }
     const toggleAiMode = async (isFormulaMode: boolean = false, fromFieldModal = false) => {

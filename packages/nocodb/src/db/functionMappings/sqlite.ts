@@ -244,6 +244,19 @@ const sqlite3 = {
       ),
     };
   },
+  async JSON_EXTRACT(args: MapFnArgs) {
+    return {
+      builder: args.knex.raw(
+        `CASE WHEN json_valid(${
+          (await args.fn(args.pt.arguments[0])).builder
+        }) = 1 THEN json_extract(${
+          (await args.fn(args.pt.arguments[0])).builder
+        }, CONCAT('$', ${
+          (await args.fn(args.pt.arguments[1])).builder
+        })) ELSE NULL END${args.colAlias}`,
+      ),
+    };
+  },
 };
 
 export default sqlite3;

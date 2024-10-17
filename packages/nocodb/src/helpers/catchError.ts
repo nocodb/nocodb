@@ -636,7 +636,14 @@ const errorHelpers: {
     code: 400,
   },
   [NcErrorType.FORMULA_ERROR]: {
-    message: (message: string) => `Formula error: ${message}`,
+    message: (message: string) => {
+      // try to extract db error - Experimental
+      if (message.includes(' - ')) {
+        const [_, dbError] = message.split(' - ');
+        return `Formula error: ${dbError}`;
+      }
+      return `Formula error: ${message}`;
+    },
     code: 400,
   },
   [NcErrorType.PERMISSION_DENIED]: {

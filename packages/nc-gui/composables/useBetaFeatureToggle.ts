@@ -1,22 +1,36 @@
 import { reactive } from 'vue'
+import { createSharedComposable } from '@vueuse/core'
 
-const storedValue = localStorage.getItem('betaFeatureToggleState')
+export const BetaFeatures = {
+  FALLBACK_GRID_PAGINATED_SCROLL: 'fallback_grid_paginated_scroll',
+  ENABLE_GEO_COLUMN: 'geo_column',
+  FORM_SUPPORT_COLUMN_SCANNING: 'form_support_column_scanning',
+} as const
 
-const initialToggleState = storedValue ? JSON.parse(storedValue) : false
+type BetaFeature = (typeof BetaFeatures)[keyof typeof BetaFeatures]
 
-const betaFeatureToggleState = reactive({ show: initialToggleState })
-
-const toggleBetaFeature = () => {
-  betaFeatureToggleState.show = !betaFeatureToggleState.show
-  localStorage.setItem('betaFeatureToggleState', JSON.stringify(betaFeatureToggleState.show))
+type FeatureToggleStates = {
+  [K in BetaFeature]: boolean
 }
 
-const _useBetaFeatureToggle = () => {
+const STORAGE_KEY = 'betaFeatureToggleStates'
+
+export const useBetaFeatureToggle = createSharedComposable(() => {
+  const storedValue = localStorage.getItem(STORAGE_KEY)
+
+  const initialToggleStates: FeatureToggleStates = storedValue
+    ? JSON.parse(storedValue)
+    : (Object.fromEntries(Object.values(BetaFeatures).map((feature) => [feature, false])) as FeatureToggleStates)
+
+  const betaFeatureToggleStates = reactive<FeatureToggleStates>(initialToggleStates)
+
+  const toggleBetaFeature = (featureName: BetaFeature): void => {
+    betaFeatureToggleStates[featureName] = !betaFeatureToggleStates[featureName]
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(betaFeatureToggleStates))
+  }
+
   return {
-    betaFeatureToggleState,
+    betaFeatureToggleStates,
     toggleBetaFeature,
   }
-}
-
-const useBetaFeatureToggle = createSharedComposable(_useBetaFeatureToggle)
-export { useBetaFeatureToggle }
+})

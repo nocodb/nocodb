@@ -43,6 +43,20 @@ export class PublicDatasController {
     return pagedResponse;
   }
 
+  @Get(['/api/v2/public/shared-view/:sharedViewUuid/count'])
+  async dataCount(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+  ) {
+    const pagedResponse = await this.publicDatasService.dataCount(context, {
+      query: req.query,
+      password: req.headers?.['xc-password'] as string,
+      sharedViewUuid,
+    });
+    return pagedResponse;
+  }
+
   @Get([
     '/api/v1/db/public/shared-view/:sharedViewUuid/aggregate',
     '/api/v2/public/shared-view/:sharedViewUuid/aggregate',

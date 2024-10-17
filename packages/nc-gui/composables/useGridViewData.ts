@@ -173,7 +173,7 @@ export function useGridViewData(
     if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
 
     if (controller.value) {
-      controller.value.cancel()
+      //  controller.value.cancel()
     }
 
     const CancelToken = axios.CancelToken

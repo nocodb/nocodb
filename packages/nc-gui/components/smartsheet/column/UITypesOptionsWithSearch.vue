@@ -137,6 +137,7 @@ watch(
             />
             <div class="flex-1 text-sm">{{ UITypesName[option.name] }}</div>
             <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+            <span v-if="option.isNew" class="text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md">{{ $t('general.new') }}</span>
           </div>
           <GeneralIcon v-if="extraIcons && extraIcons[option.name]" class="!text-gray-500" :icon="extraIcons[option.name]" />
         </div>

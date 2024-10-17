@@ -301,33 +301,55 @@ const rowSlice = reactive({
 // Set to keep track of chunks that are currently loading
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 10
+const PREFETCH_THRESHOLD = 0.8
 
 const fetchChunk = async (chunkId: number) => {
   if (chunkStates.value[chunkId]) return
 
   chunkStates.value[chunkId] = 'loading'
   const offset = chunkId * CHUNK_SIZE
+  const limit = Math.min(CHUNK_SIZE, totalRows.value - offset)
+
+  if (limit <= 0) {
+    chunkStates.value[chunkId] = 'loaded'
+    return
+  }
 
   try {
     const newItems = await loadData({ offset, limit: CHUNK_SIZE })
-    newItems.forEach((item) => {
-      cachedRows.value.set(item.rowMeta.rowIndex!, item)
-    })
+    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
     chunkStates.value[chunkId] = 'loaded'
   } catch (error) {
-    console.error('Error fetching chunk:', error)
     chunkStates.value[chunkId] = undefined
   }
+}
+
+const isChunkFullyCached = (chunkId: number) => {
+  const startIndex = chunkId * CHUNK_SIZE
+  return Array.from({ length: CHUNK_SIZE }, (_, i) => startIndex + i).every((index) => cachedRows.value.has(index))
 }
 
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
   const firstChunkId = Math.floor(start / CHUNK_SIZE)
   const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
+  const currentChunk = lastChunkId
+  const shouldPrefetch = (end % CHUNK_SIZE) / CHUNK_SIZE > PREFETCH_THRESHOLD
 
-  const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
-    (chunkId) => !chunkStates.value[chunkId],
-  )
+  const chunksToFetch = []
+
+  for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
+    if (chunkStates.value[chunkId] !== 'loaded' && !isChunkFullyCached(chunkId)) {
+      chunksToFetch.push(chunkId)
+    }
+  }
+
+  if (shouldPrefetch) {
+    const nextChunk = currentChunk + 1
+    if (chunkStates.value[nextChunk] !== 'loaded' && !isChunkFullyCached(nextChunk)) {
+      chunksToFetch.push(nextChunk)
+    }
+  }
 
   await Promise.all(chunksToFetch.map(fetchChunk))
 
@@ -709,6 +731,11 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
   // Get the row and column object
   const rowObj = cachedRows.value.get(ctx.row)
+
+  if (!rowObj) {
+    return
+  }
+
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
@@ -1412,7 +1439,7 @@ watch(
 // smartTable - reactive ref to get the smart table element
 const smartTable = ref(null)
 
-const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 200)
+const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 100)
 
 // On scroll event listener
 // Update the scrollLeft and scrollTop values

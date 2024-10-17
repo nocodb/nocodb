@@ -202,7 +202,7 @@ export class AiUtilsService {
             title: z.string(),
             type: z.string(),
             options: z.array(z.string()).optional(),
-            desciption: z.string().nullable().optional(),
+            description: z.string().nullable().optional(),
           }),
         ),
       }),
@@ -280,7 +280,7 @@ export class AiUtilsService {
           z.object({
             title: z.string(),
             formula: z.string(),
-            desciption: z.string().nullable().optional(),
+            description: z.string().nullable().optional(),
           }),
         ),
       }),

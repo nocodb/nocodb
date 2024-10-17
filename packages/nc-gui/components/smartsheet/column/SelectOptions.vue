@@ -34,6 +34,8 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 
 const { aiIntegrationAvailable, aiLoading, predictSelectOptions } = useNocoAi()
 
+const { isAiModeFieldModal } = usePredictFields()
+
 const meta = inject(MetaInj, ref())
 
 const optionsWrapperDomRef = ref<HTMLElement>()
@@ -481,6 +483,7 @@ if (!isKanbanStack.value) {
       :class="{
         'overflow-x-auto scrollbar-thin-dull rounded-lg': !isKanbanStack,
         'border-1 border-gray-200': renderedOptions.length && !isKanbanStack,
+        'bg-white': isAiModeFieldModal,
       }"
       :style="{
         maxHeight: props.fromTableExplorer ? 'calc(100vh - (var(--topbar-height) * 3.6) - 320px)' : 'calc(min(30vh, 250px))',
@@ -686,9 +689,10 @@ if (!isKanbanStack.value) {
     </div>
     <div
       v-if="!isKanbanStack"
-      class="nc-add-select-option-btn-wrapper flex"
+      class="nc-add-select-option-btn-wrapper flex shadow-sm"
       :class="{
         'mt-2': renderedOptions.length,
+        'bg-white': isAiModeFieldModal,
       }"
     >
       <NcButton

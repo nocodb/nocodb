@@ -123,6 +123,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
               is_ai_field: formState.value?.is_ai_field,
               ai_temp_id: formState.value?.ai_temp_id,
               view_id: formState.value?.view_id,
+              description: formState.value?.description,
             }
           : {}),
         custom: {},

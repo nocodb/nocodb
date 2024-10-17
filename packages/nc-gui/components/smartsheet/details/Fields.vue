@@ -14,19 +14,7 @@ import type { ButtonType, ColumnType, FilterType, SelectOptionsType, TableType }
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
-import { AiWizardTabsType } from '#imports'
-
-interface PredictedFieldType {
-  title: string
-  type: UITypes
-  column_name?: string
-  options?: string[]
-  colOptions?: Record<string, any>
-  formula?: string
-  selected?: boolean
-  tab?: AiWizardTabsType
-  ai_temp_id: string
-}
+import { AiWizardTabsType, type PredictedFieldType } from '#imports'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -194,7 +182,6 @@ const {
   aiModeStep,
   predicted,
   activeTabPredictedFields,
-
   selected,
   activeTabSelectedFields,
   calledFunction,
@@ -211,8 +198,6 @@ const {
   predictMore,
   predictRefresh,
   predictFromPrompt,
-  onSelectAll: _onSelectAll,
-  onDeselectAll: _onDeselectAll,
   handleRefreshOnError,
   onToggleTag: _onToggleTag,
 } = usePredictFields(ref(true), fields)
@@ -1163,20 +1148,6 @@ const onToggleTag = (field: PredictedFieldType) => {
   }
 }
 
-const onSelectAll = () => {
-  const fieldsToAdd = _onSelectAll() || []
-
-  for (const field of fieldsToAdd) {
-    onAiFieldAdd(field)
-  }
-
-  setTimeout(() => {
-    if (fieldsListWrapperDomRef.value) {
-      fieldsListWrapperDomRef.value.scrollTop = fieldsListWrapperDomRef.value.scrollHeight
-    }
-  }, 100)
-}
-
 const handleNavigateToIntegrations = () => {
   workspaceStore.navigateToIntegrations(undefined, undefined, {
     categories: 'ai',
@@ -1249,13 +1220,8 @@ watch(activeAiTab, (newValue) => {
                   </div>
                 </NcButton>
               </NcTooltip>
-              <NcTooltip v-if="aiIntegrationAvailable" :title="aiMode ? 'Disable AI suggestions' : 'Suggest fields using AI'">
-                <NcDropdown
-                  :trigger="['hover']"
-                  placement="bottomRight"
-                  overlay-class-name="!border-purple-200"
-                  :disabled="aiLoading"
-                >
+              <NcTooltip :title="aiMode ? 'Disable AI suggestions' : 'Suggest fields using AI'">
+                <NcDropdown :trigger="['hover']" placement="bottomRight" overlay-class-name="!border-purple-200">
                   <NcButton
                     size="small"
                     :type="aiMode ? 'primary' : 'secondary'"

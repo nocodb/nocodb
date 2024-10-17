@@ -1032,6 +1032,10 @@ svg.nc-virtual-cell-icon {
     &.nc-selected {
       @apply font-semibold;
     }
+
+    &.nc-bg-selected {
+      @apply !bg-nc-bg-purple-dark;
+    }
   }
 
   &.nc-disabled {

@@ -247,7 +247,7 @@ export class AiSchemaService {
             .array(
               z.object({
                 title: z.string(),
-                desciption: z.string().nullable().optional(),
+                description: z.string().nullable().optional(),
                 columns: z.array(
                   z.object({
                     title: z.string(),
@@ -484,7 +484,7 @@ export class AiSchemaService {
             type: z.string(),
             table: z.string(),
             title: z.string(),
-            desciption: z.string().optional(),
+            description: z.string().optional(),
             filters: z
               .array(
                 z.object({
@@ -598,6 +598,7 @@ export class AiSchemaService {
       const viewData = {
         title: view.title,
         type: stringToViewTypeMap[view.type],
+        description: view.description,
       };
 
       switch (view.type?.toLowerCase()) {

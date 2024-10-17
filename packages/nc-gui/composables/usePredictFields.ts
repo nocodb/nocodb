@@ -1,23 +1,10 @@
 import { UITypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AiWizardTabsType } from '#imports'
+import { AiWizardTabsType, type PredictedFieldType } from '#imports'
 
 enum AiStep {
   init = 'init',
   pick = 'pick',
-}
-
-interface PredictedFieldType {
-  title: string
-  type: UITypes
-  column_name?: string
-  options?: string[]
-  colOptions?: Record<string, any>
-  formula?: string
-  formState?: Record<string, any>
-  selected?: boolean
-  tab?: AiWizardTabsType
-  ai_temp_id: string
 }
 
 const maxSelectionCount = 100
@@ -33,6 +20,12 @@ export const usePredictFields = createSharedComposable(
     const { $api } = useNuxtApp()
 
     const aiMode = ref(false)
+
+    const localIsFromFieldModal = ref<boolean>(false)
+
+    const isAiModeFieldModal = computed(() => {
+      return aiMode.value && localIsFromFieldModal.value
+    })
 
     const isFormulaPredictionMode = ref(false)
 
@@ -84,17 +77,6 @@ export const usePredictFields = createSharedComposable(
       return predicted.value.filter((field) => !!field.selected && field.tab === activeAiTab.value)
     })
 
-    const aiTabs = [
-      {
-        title: 'Auto Suggestions',
-        key: AiWizardTabsType.AUTO_SUGGESTIONS,
-      },
-      {
-        title: 'Prompt',
-        key: AiWizardTabsType.PROMPT,
-      },
-    ]
-
     const isPredictFromPromptLoading = computed(() => {
       return aiLoading.value && calledFunction.value === 'predictFromPrompt'
     })
@@ -142,10 +124,20 @@ export const usePredictFields = createSharedComposable(
             ),
         )
         .map((f) => {
-          return {
+          const state = {
             ...f,
             tab: activeAiTab.value,
             ai_temp_id: `temp_${++temporaryAddCount.value}`,
+            selected: false,
+          }
+
+          if (isFromTableExplorer?.value) {
+            return state
+          }
+
+          return {
+            ...state,
+            formState: getFieldWithDefautlValue(state),
           }
         })
     }
@@ -238,14 +230,16 @@ export const usePredictFields = createSharedComposable(
         meta: {
           ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
         },
+        description: field?.description || null,
         is_ai_field: true,
+        ai_temp_id: field.ai_temp_id,
       }
     }
 
     // Todo: update logic
     const onToggleTag = (field: PredictedFieldType) => {
       if (
-        !field.selected &&
+        field.selected !== true &&
         (activeTabSelectedFields.value.length >= maxSelectionCount ||
           ncIsArrayIncludes(
             predicted.value.filter((f) => !!f.selected),
@@ -268,6 +262,10 @@ export const usePredictFields = createSharedComposable(
       } else {
         predicted.value = predicted.value.map((t) => {
           if (t.ai_temp_id === field.ai_temp_id) {
+            if (!isFromTableExplorer?.value && !field.selected) {
+              activeSelectedField.value = field.ai_temp_id
+            }
+
             t.selected = !field.selected
           }
           return t
@@ -277,36 +275,8 @@ export const usePredictFields = createSharedComposable(
       return true
     }
 
-    const onTagClick = (field: PredictedFieldType) => {
-      if (selected.value.length >= maxSelectionCount || ncIsArrayIncludes(selected.value, field.title, 'title')) return
-
-      if (!isFromTableExplorer?.value) {
-        field.formState = getFieldWithDefautlValue(field)
-      }
-
-      selected.value.push(field)
-      predicted.value = predicted.value.filter((v) => v.title !== field.title)
-
-      return true
-    }
-
-    const onTagClose = (field: PredictedFieldType) => {
-      selected.value = selected.value.filter((v) => v.title !== field.title)
-      if (ncIsArrayIncludes(predictHistory.value, field.title, 'title')) {
-        predicted.value.push(field)
-      }
-      return true
-    }
-
     const onSelectedTagClick = (field: PredictedFieldType) => {
-      activeSelectedField.value = field.title
-    }
-
-    const onTagRemoveFromPrediction = (field: PredictedFieldType) => {
-      if (selected.value.length >= maxSelectionCount) return
-
-      removedFromPredicted.value.push(field)
-      predicted.value = predicted.value.filter((pv) => pv.ai_temp_id !== field.ai_temp_id)
+      activeSelectedField.value = field.ai_temp_id
     }
 
     const onSelectAll = () => {
@@ -347,14 +317,6 @@ export const usePredictFields = createSharedComposable(
       return fieldsToAdd
     }
 
-    const onDeselectAll = () => {
-      const fieldsToRemove = selected.value.filter((sv) => ncIsArrayIncludes(predictHistory.value, sv.title, 'title'))
-      predicted.value.push(...fieldsToRemove)
-      selected.value = selected.value.filter((sv) => !ncIsArrayIncludes(predictHistory.value, sv.title, 'title'))
-
-      return fieldsToRemove
-    }
-
     const handleRefreshOnError = () => {
       switch (calledFunction.value) {
         case 'predictMore':
@@ -370,7 +332,7 @@ export const usePredictFields = createSharedComposable(
 
     const saveFields = async (onSuccess: () => Promise<void>) => {
       failedToSaveFields.value = false
-      const payload = selected.value
+      const payload = activeTabSelectedFields.value
         .filter((f) => f.formState)
         .map((field) => {
           return {
@@ -408,12 +370,14 @@ export const usePredictFields = createSharedComposable(
         return true
       }
     }
-    const toggleAiMode = async (isFormulaMode: boolean = false) => {
+    const toggleAiMode = async (isFormulaMode: boolean = false, fromFieldModal = false) => {
       if (isFormulaMode) {
         isFormulaPredictionMode.value = true
       } else {
         isFormulaPredictionMode.value = false
       }
+
+      localIsFromFieldModal.value = !!fromFieldModal
 
       aiError.value = ''
 
@@ -436,6 +400,7 @@ export const usePredictFields = createSharedComposable(
       activeSelectedField.value = null
       isFormulaPredictionMode.value = false
       aiMode.value = false
+      localIsFromFieldModal.value = false
       aiModeStep.value = null
       predicted.value = []
       removedFromPredicted.value = []
@@ -463,6 +428,7 @@ export const usePredictFields = createSharedComposable(
 
     return {
       aiMode,
+      isAiModeFieldModal,
       aiModeStep,
       predicted,
       activeTabPredictedFields,
@@ -478,7 +444,6 @@ export const usePredictFields = createSharedComposable(
       isPromtAlreadyGenerated,
       maxSelectionCount,
       activeAiTab,
-      aiTabs,
       isPredictFromPromptLoading,
       isFormulaPredictionMode,
       failedToSaveFields,
@@ -488,13 +453,9 @@ export const usePredictFields = createSharedComposable(
       predictMore,
       predictRefresh,
       predictFromPrompt,
-      onTagClick,
       onToggleTag,
-      onTagClose,
       onSelectedTagClick,
-      onTagRemoveFromPrediction,
       onSelectAll,
-      onDeselectAll,
       handleRefreshOnError,
       saveFields,
     }

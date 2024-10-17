@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import axios from 'axios'
-import { nextTick } from '@vue/runtime-core'
+import { nextTick, resolveComponent } from '@vue/runtime-core'
 import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
   UITypes,
@@ -37,6 +37,12 @@ const props = defineProps<{
   bulkUpdateRows?: (
     rows: Row[],
     props: string[],
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    undo?: boolean,
+  ) => Promise<void>
+  bulkUpsertRows?: (
+    insertRows: Row[],
+    upsertRows: Row[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
   ) => Promise<void>
@@ -87,6 +93,7 @@ const {
   deleteRangeOfRows,
   removeRowIfNew,
   bulkUpdateRows,
+  bulkUpsertRows,
 } = props
 
 // #Injections
@@ -592,6 +599,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
+  expandRows,
   async (e: KeyboardEvent) => {
     // ignore navigating if single/multi select options is open
     const activeDropdownEl = document.querySelector(
@@ -769,6 +777,7 @@ const {
     await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
   bulkUpdateRows,
+  bulkUpsertRows,
   fillHandle,
   view,
   paginationDataRef,
@@ -780,6 +789,41 @@ function scrollToRow(row?: number) {
   makeActive(row ?? dataRef.value.length - 1, 0)
   selectedRange.startRange({ row: activeCell.row!, col: activeCell.col! })
   scrollToCell?.()
+}
+
+const isOpen = ref(false)
+
+async function expandRows(rowCount: number, rowsUpdatedinCurrentPage: number, rowsUpdatedInNextPages: number) {
+  isOpen.value = true
+
+  const options = {
+    continue: false,
+    expand: true,
+  }
+
+  const { close } = useDialog(resolveComponent('DlgExpandTable'), {
+    'modelValue': isOpen,
+    'newRows': rowCount,
+    'currentPage': rowsUpdatedinCurrentPage,
+    'nextPages': rowsUpdatedInNextPages,
+    'onUpdate:expand': closeDialog,
+    'onUpdate:modelValue': closeDlg,
+  })
+
+  function closeDlg() {
+    isOpen.value = false
+    close(1000)
+  }
+
+  async function closeDialog(expand: boolean) {
+    options.continue = true
+    options.expand = expand
+    close(1000)
+  }
+
+  await until(isOpen).toBe(false)
+
+  return options
 }
 
 async function saveEmptyRow(rowObj: Row) {

@@ -53,6 +53,7 @@ const {
   islastRow,
   isFirstRow,
   aggCommentCount,
+  bulkUpsertRows,
 } = useViewData(meta, view, xWhere)
 
 const rowHeight = computed(() => {
@@ -262,6 +263,7 @@ onMounted(() => {
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
       :bulk-update-rows="bulkUpdateRows"
+      :bulk-upsert-rows="bulkUpsertRows"
       :expand-form="expandForm"
       :remove-row-if-new="removeRowIfNew"
       :row-height="rowHeight"

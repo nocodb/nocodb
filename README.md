@@ -90,7 +90,6 @@ Auto-upstall does the following : 🕊
 > install.nocodb.com/noco.sh script can be found [here in our github](https://raw.githubusercontent.com/nocodb/nocodb/develop/docker-compose/1_Auto_Upstall/noco.sh)
 
 
-
 ## Other Methods
 
 > Binaries are only for quick testing locally.
@@ -107,11 +106,7 @@ Auto-upstall does the following : 🕊
 
 > When running locally access nocodb by visiting: [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
-## Self-Hosting NocoDB
-
-### Elestio
-
-[![Deploy on Elestio](https://elest.io/images/logos/deploy-to-elestio-btn.png)](https://elest.io/open-source/nocodb)
+For more installation methods, please refer to [our docs](https://docs.nocodb.com/category/installation)
 
 # Screenshots
 ![2](https://github.com/nocodb/nocodb/assets/86527202/a127c05e-2121-4af2-a342-128e0e2d0291)

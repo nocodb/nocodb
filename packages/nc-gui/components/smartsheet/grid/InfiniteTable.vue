@@ -1535,6 +1535,8 @@ const reloadViewDataHookHandler = async () => {
 
   await syncCount()
 
+  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+
   temporaryNewRowStore.value.forEach((row, index) => {
     row.rowMeta.rowIndex = totalRows.value + index
     cachedRows.value.set(totalRows.value + index, row)

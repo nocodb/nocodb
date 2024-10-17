@@ -10,7 +10,7 @@ const formatData = (list: Record<string, any>[], pageInfo: PaginatedType) =>
     oldRow: { ...row },
     rowMeta: {
       // Calculate the rowIndex based on the offset and the index of the row
-      rowIndex: (pageInfo.offset ?? 0) + index,
+      rowIndex: (pageInfo.page - 1) * pageInfo.pageSize + index,
     },
   }))
 

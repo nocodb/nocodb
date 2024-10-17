@@ -1286,7 +1286,7 @@ function scrollToRow(row?: number) {
   clearSelectedRange()
   makeActive(row ?? totalRows.value - 1, 0)
   selectedRange.startRange({ row: activeCell.row!, col: activeCell.col! })
-  scrollToCell?.()
+  scrollToCell?.(row)
 }
 
 // openNewRecordHandler - function to create a new Record in expanded form
@@ -1315,9 +1315,9 @@ async function addEmptyRow(row?: number, skipUpdate: boolean = false) {
     await saveEmptyRow(rowObj)
   }
 
-  await nextTick(() => {
-    scrollToRow(row ?? totalRows.value - 1)
-  })
+  await nextTick(() => {})
+
+  scrollToRow(row ?? totalRows.value - 1)
 }
 
 // onNewRecordToGridClick - function to add a new record from the grid
@@ -2216,6 +2216,30 @@ defineExpose({
                     left: `${(cumulativeWidths[index - 1] || 0) + 64}px`,
                   }"
                 ></td>
+              </tr>
+              <tr
+                v-if="isAddingEmptyRowAllowed"
+                v-e="['c:row:add:grid-bottom']"
+                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
+                :class="{
+                  '!border-r-2 !border-r-gray-100': visibleColLength === 1,
+                }"
+                @mouseup.stop
+                @click="addEmptyRow()"
+              >
+                <td
+                  class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                  :style="{
+                    left: `-${leftOffset}px`,
+                  }"
+                >
+                  <component
+                    :is="iconMap.plus"
+                    v-if="!isViewColumnsLoading"
+                    class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
+                  />
+                </td>
+                <td class="!border-gray-100" :colspan="visibleColLength"></td>
               </tr>
             </tbody>
           </table>

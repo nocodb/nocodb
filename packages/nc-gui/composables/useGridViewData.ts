@@ -84,6 +84,7 @@ export function useGridViewData(
     bulkUpdateView,
     removeRowIfNew,
     syncCount,
+    selectedRows,
   } = useInfiniteData({
     meta,
     viewMeta,
@@ -327,5 +328,6 @@ export function useGridViewData(
     isFirstRow,
     clearCache,
     totalRows,
+    selectedRows,
   }
 }

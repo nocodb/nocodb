@@ -126,8 +126,6 @@ export function useInfiniteData(args: {
       oldRow: {},
       rowMeta: { new: true, rowIndex: newIndex },
     }
-    cachedRows.value.set(newIndex, newRow)
-
     callbacks?.syncVisibleData?.()
 
     return newRow
@@ -418,6 +416,7 @@ export function useInfiniteData(args: {
       )
 
       currentRow.rowMeta.new = false
+      Object.assign(currentRow.row, insertedData)
 
       const insertIndex = currentRow.rowMeta.rowIndex!
 
@@ -431,12 +430,12 @@ export function useInfiniteData(args: {
           cachedRows.value.set(index + 1, row)
         }
       }
+
       cachedRows.value.set(insertIndex, currentRow)
       syncLocalChunks(insertIndex, 'create')
       totalRows.value++
 
       if (!undo) {
-        Object.assign(currentRow.row, insertedData)
         const id = extractPkFromRow(insertedData, metaValue!.columns as ColumnType[])
         const pkData = rowPkData(insertedData, metaValue?.columns as ColumnType[])
 

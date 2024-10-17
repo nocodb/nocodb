@@ -48,7 +48,7 @@ export function useInfiniteData(args: {
 
   const BUFFER_SIZE = 100
 
-  const MAX_CACHE_SIZE = 200
+  const MAX_CACHE_SIZE = 500
 
   const CHUNK_SIZE = 50
 

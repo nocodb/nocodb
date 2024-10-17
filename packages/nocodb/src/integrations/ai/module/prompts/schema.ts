@@ -126,6 +126,7 @@ Rules:
 - Try to make use of SingleSelect columns where possible
 - Try to make use of relationships between new to existing tables or new to new tables
 - If there is an emoji which can explain the table, use it as a suffix for table title
+- Table description is a brief summary of the table.
 
 Here is a sample input JSON schema
 \`\`\`json

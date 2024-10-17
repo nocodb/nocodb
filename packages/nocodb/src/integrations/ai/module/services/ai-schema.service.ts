@@ -361,6 +361,7 @@ export class AiSchemaService {
           table: {
             title: table.title,
             table_name: table.title,
+            description: table.description || null,
             columns: table.columns.map((column, i) => ({
               title: column.title,
               column_name: column.title,

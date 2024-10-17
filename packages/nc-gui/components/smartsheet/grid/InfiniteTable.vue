@@ -1113,6 +1113,7 @@ const onVisibilityChange = () => {
   addColumnDropdown.value = true
   if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
     addColumnDropdown.value = false
+    // persistMenu.value = altModifier
   }
 }
 

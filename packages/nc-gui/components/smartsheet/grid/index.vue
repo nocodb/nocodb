@@ -57,6 +57,7 @@ const {
   optimisedQuery,
   isLastRow,
   isFirstRow,
+  chunkStates,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
@@ -250,6 +251,7 @@ onMounted(() => {
       :data="cachedLocalRows"
       :total-rows="totalRows"
       :sync-count="syncCount"
+      :chunk-states="chunkStates"
       :expand-form="expandForm"
       :sync-visible-data="syncVisibleData"
       :remove-row-if-new="removeRowIfNew"

@@ -284,7 +284,6 @@ const {
       :sync-count="syncCount"
       :chunk-states="chunkStates"
       :expand-form="expandForm"
-      :sync-visible-data="syncVisibleData"
       :remove-row-if-new="removeRowIfNew"
       :row-height-enum="rowHeight"
       :selected-rows="selectedRows"

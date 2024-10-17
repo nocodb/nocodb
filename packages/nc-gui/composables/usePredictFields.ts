@@ -1,6 +1,7 @@
 import { UITypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AiWizardTabsType, type PredictedFieldType } from '#imports'
+import type { RuleObject } from 'ant-design-vue/es/form'
 
 enum AiStep {
   init = 'init',
@@ -9,8 +10,12 @@ enum AiStep {
 
 const maxSelectionCount = 100
 
+const useForm = Form.useForm
+
 export const usePredictFields = createSharedComposable(
   (isFromTableExplorer?: Ref<boolean>, fields?: WritableComputedRef<Record<string, any>[]>) => {
+    const { t } = useI18n()
+
     const { aiLoading, aiError, predictNextFields: _predictNextFields, predictNextFormulas } = useNocoAi()
 
     const { meta, view } = useSmartsheetStoreOrThrow()
@@ -80,6 +85,50 @@ export const usePredictFields = createSharedComposable(
     const isPredictFromPromptLoading = computed(() => {
       return aiLoading.value && calledFunction.value === 'predictFromPrompt'
     })
+
+    const validators = computed(() => {
+      const rulesObj: Record<string, RuleObject[]> = {}
+
+      if (!activeTabSelectedFields.value.length) return rulesObj
+
+      for (const column of activeTabSelectedFields.value) {
+        let rules: RuleObject[] = []
+
+        switch (column.type) {
+          case UITypes.Formula: {
+            rules.push({
+              validator: (_rule: RuleObject, value: any) => {
+                return new Promise((resolve, reject) => {
+                  if (!value?.formula_raw?.trim()) {
+                    return reject('Formula is required')
+                  }
+
+                  return resolve()
+                })
+              },
+            })
+          }
+        }
+
+        if (rules.length) {
+          rulesObj[column.ai_temp_id] = rules
+        }
+      }
+
+      return rulesObj
+    })
+
+    const fieldMappingFormState = computed(() => {
+      if (!activeTabSelectedFields.value.length) return {}
+
+      return activeTabSelectedFields.value.reduce((acc, col) => {
+        acc[col.ai_temp_id] = col.formState
+        return acc
+      }, {} as Record<string, any>)
+    })
+
+    // Form field validation
+    const { validate, validateInfos, clearValidate } = useForm(fieldMappingFormState, validators)
 
     const predictNextFields = async (): Promise<PredictedFieldType[]> => {
       const fieldHistory = Array.from(
@@ -330,7 +379,24 @@ export const usePredictFields = createSharedComposable(
       }
     }
 
+    const validateAllFields = async () => {
+      try {
+        await validate()
+        return true
+      } catch (e: any) {
+        console.error(e)
+
+        if (e?.errorFields?.length) {
+          message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
+          return
+        }
+      }
+    }
+
     const saveFields = async (onSuccess: () => Promise<void>) => {
+      const isValid = await validateAllFields()
+      if (!isValid) return false
+
       failedToSaveFields.value = false
       const payload = activeTabSelectedFields.value
         .filter((f) => f.formState)

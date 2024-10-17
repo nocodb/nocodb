@@ -179,7 +179,13 @@ export function useGridViewData(
             where: where?.value,
             ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
           } as any)
-        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value })
+        : await fetchSharedViewData({
+            sortsArr: sorts.value,
+            filtersArr: nestedFilters.value,
+            where: where?.value,
+            offset: params.offset,
+            limit: params.limit,
+          })
 
       const data = formatData(response.list, response.pageInfo)
 

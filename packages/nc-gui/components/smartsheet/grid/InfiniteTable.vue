@@ -194,25 +194,18 @@ const rowSlice = reactive({
 
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 10
-const PREFETCH_THRESHOLD = 0.8
 
-const fetchChunk = async (chunkId: number) => {
-  if (chunkStates.value[chunkId]) return
+const fetchChunk = async (chunkId) => {
+  if (chunkStates.value[chunkId] === 'loaded' || chunkStates.value[chunkId] === 'loading') return
 
   chunkStates.value[chunkId] = 'loading'
   const offset = chunkId * CHUNK_SIZE
-  const limit = Math.min(CHUNK_SIZE, totalRows.value - offset)
-
-  if (limit <= 0) {
-    chunkStates.value[chunkId] = 'loaded'
-    return
-  }
-
   try {
     const newItems = await loadData({ offset, limit: CHUNK_SIZE })
-    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex!, item))
+    newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
     chunkStates.value[chunkId] = 'loaded'
   } catch (error) {
+    console.error(`Error fetching chunk ${chunkId}:`, error)
     chunkStates.value[chunkId] = undefined
   }
 }
@@ -222,25 +215,15 @@ const updateVisibleRows = async () => {
 
   const firstChunkId = Math.floor(start / CHUNK_SIZE)
   const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
-  const shouldPrefetch = (end % CHUNK_SIZE) / CHUNK_SIZE > PREFETCH_THRESHOLD
 
   const chunksToFetch = new Set()
 
   for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
-    if (chunkStates.value[chunkId] !== 'loaded') {
+    if (!chunkStates.value[chunkId] || chunkStates.value[chunkId] !== 'loaded') {
       chunksToFetch.add(chunkId)
     }
   }
-
-  if (shouldPrefetch) {
-    const nextChunk = lastChunkId + 1
-    if (chunkStates.value[nextChunk] !== 'loaded' && nextChunk * CHUNK_SIZE < totalRows.value) {
-      chunksToFetch.add(nextChunk)
-    }
-  }
-
   await Promise.all([...chunksToFetch].map(fetchChunk))
-
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
 }
 
@@ -1449,6 +1432,7 @@ watch(
           await syncCount()
           // Calculate the slices and load the view aggregate and data
           calculateSlices()
+
           if (rowSlice.end === 0) {
             rowSlice.end = Math.min(100, totalRows.value)
           }
@@ -1508,10 +1492,6 @@ function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
     left: gridWrapper.value.scrollWidth,
     behavior,
   })
-}
-
-const parsePixelValue = (value: string): number => {
-  return +value.replace('px', '') || 0
 }
 
 const maxGridWidth = computed(() => {
@@ -1949,11 +1929,12 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
                           'active-cell':
                             (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0) ||
                             (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0),
-                          'nc-required-cell': cellMeta[index][0].isColumnRequiredAndNull && !isPublicView,
+                          'nc-required-cell': cellMeta[index]?.[0]?.isColumnRequiredAndNull && !isPublicView,
                           'align-middle': !rowHeightEnum || rowHeightEnum === 1,
                           'align-top': rowHeightEnum && rowHeightEnum !== 1,
                           'filling': fillRangeMap[`${row.rowMeta.rowIndex}-0`],
-                          'readonly': colMeta[0].isReadonly && hasEditPermission && selectRangeMap[`${row.rowMeta.rowIndex}-0`],
+                          'readonly':
+                            colMeta[0]?.isReadonly && hasEditPermission && selectRangeMap?.[`${row.rowMeta.rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                         }"
                         :style="{

@@ -36,24 +36,24 @@ useProvideViewAggregate(view, meta, xWhere)
 const {
   loadData,
   paginationData,
-  formattedData: data,
   updateOrSaveRow,
   changePage,
   addEmptyRow: _addEmptyRow,
   deleteRow,
   deleteSelectedRows,
-  selectedAllRecords,
+  cachedLocalRows,
+  clearCache,
   removeRowIfNew,
   navigateToSiblingRow,
-  getExpandedRowIndex,
   deleteRangeOfRows,
   bulkUpdateRows,
   bulkUpdateView,
+  syncCount,
+  totalRows,
   optimisedQuery,
-  islastRow,
+  isLastRow,
   isFirstRow,
-  aggCommentCount,
-} = useViewData(meta, view, xWhere)
+} = useGridViewData(meta, view, xWhere)
 
 const rowHeight = computed(() => {
   if ((view.value?.view as GridType)?.row_height !== undefined) {
@@ -173,26 +173,10 @@ eventBus.on((event) => {
 })
 
 const goToNextRow = () => {
-  const currentIndex = getExpandedRowIndex()
-  /* when last index of current page is reached we should move to next page */
-  if (!paginationData.value.isLastPage && currentIndex === paginationData.value.pageSize) {
-    const nextPage = paginationData.value?.page ? paginationData.value?.page + 1 : 1
-    changePage(nextPage)
-  }
-
   navigateToSiblingRow(NavigateDir.NEXT)
 }
 
 const goToPreviousRow = () => {
-  const currentIndex = getExpandedRowIndex()
-  /* when first index of current page is reached and then clicked back 
-    previos page should be loaded
-  */
-  if (!paginationData.value.isFirstPage && currentIndex === 1) {
-    const nextPage = paginationData.value?.page ? paginationData.value?.page - 1 : 1
-    changePage(nextPage)
-  }
-
   navigateToSiblingRow(NavigateDir.PREV)
 }
 
@@ -217,7 +201,7 @@ const baseColor = computed(() => {
   }
 })
 
-const updateRowCommentCount = (count: number) => {
+/* const updateRowCommentCount = (count: number) => {
   if (!routeQuery.value.rowId) return
 
   const aggCommentCountIndex = aggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
@@ -233,7 +217,7 @@ const updateRowCommentCount = (count: number) => {
   aggCommentCount.value[aggCommentCountIndex].count = count
 
   data.value[currentRowIndex].rowMeta.commentCount = count
-}
+} */
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
@@ -251,8 +235,6 @@ onMounted(() => {
     <InfiniteTable
       v-if="!isGroupBy"
       ref="tableRef"
-      v-model:selected-all-records="selectedAllRecords"
-      :data="data"
       :pagination-data="paginationData"
       :load-data="loadData"
       :change-page="changePage"
@@ -262,6 +244,10 @@ onMounted(() => {
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
       :bulk-update-rows="bulkUpdateRows"
+      :clear-cache="clearCache"
+      :data="cachedLocalRows"
+      :total-rows="totalRows"
+      :sync-count="syncCount"
       :expand-form="expandForm"
       :remove-row-if-new="removeRowIfNew"
       :row-height="rowHeight"
@@ -305,14 +291,14 @@ onMounted(() => {
       :view="view"
       show-next-prev-icons
       :first-row="isFirstRow"
-      :last-row="islastRow"
+      :last-row="isLastRow"
       :expand-form="expandForm"
       @next="goToNextRow()"
       @prev="goToPreviousRow()"
-      @update-row-comment-count="updateRowCommentCount"
+      @update-row-comment-count="() => {}"
     />
 
-    <Suspense>
+    <!-- Suspense>
       <LazyDlgBulkUpdate
         v-if="bulkUpdateDlg"
         v-model="bulkUpdateDlg"
@@ -324,7 +310,7 @@ onMounted(() => {
         :selected-all-records="selectedAllRecords"
         :rows="data.filter((r) => r.rowMeta.selected)"
       />
-    </Suspense>
+    </Suspense> -->
   </div>
 </template>
 

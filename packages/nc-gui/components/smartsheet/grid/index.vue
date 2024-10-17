@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, GridType } from 'nocodb-sdk'
-import Table from './Table.vue'
+import InfiniteTable from './InfiniteTable.vue'
 import GroupBy from './GroupBy.vue'
 
 const meta = inject(MetaInj, ref())
@@ -248,7 +248,7 @@ onMounted(() => {
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
-    <Table
+    <InfiniteTable
       v-if="!isGroupBy"
       ref="tableRef"
       v-model:selected-all-records="selectedAllRecords"

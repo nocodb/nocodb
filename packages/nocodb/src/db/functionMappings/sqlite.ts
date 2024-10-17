@@ -251,9 +251,9 @@ const sqlite3 = {
           (await args.fn(args.pt.arguments[0])).builder
         }) = 1 THEN json_extract(${
           (await args.fn(args.pt.arguments[0])).builder
-        }, ${(await args.fn(args.pt.arguments[1])).builder}) ELSE NULL END${
-          args.colAlias
-        }`,
+        }, CONCAT('$', ${
+          (await args.fn(args.pt.arguments[1])).builder
+        })) ELSE NULL END${args.colAlias}`,
       ),
     };
   },

@@ -364,11 +364,11 @@ END ${colAlias}`,
       builder: knex.raw(
         `CASE WHEN (${
           (await fn(pt.arguments[0])).builder
-        })::jsonb IS NOT NULL THEN (${
+        })::jsonb IS NOT NULL THEN jsonb_path_query_first((${
           (await fn(pt.arguments[0])).builder
-        })::jsonb #> ${
+        })::jsonb, CONCAT('$', ${
           (await fn(pt.arguments[1])).builder
-        } ELSE NULL END${colAlias}`,
+        })::jsonpath) ELSE NULL END${colAlias}`,
       ),
     };
   },

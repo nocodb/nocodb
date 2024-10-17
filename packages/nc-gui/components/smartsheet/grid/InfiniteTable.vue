@@ -520,7 +520,7 @@ function openColumnCreate(data: any) {
   }, 500)
 }
 
-const closeAddColumnDropdown = (scrollToLastCol = false) => {
+function closeAddColumnDropdownMenu(scrollToLastCol = false) {
   columnOrder.value = null
   addColumnDropdown.value = false
   preloadColumn.value = {}
@@ -1793,8 +1793,8 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
                             :preload="preloadColumn"
                             :column-position="columnOrder"
                             :class="{ hidden: isJsonExpand }"
-                            @submit="closeAddColumnDropdown(true)"
-                            @cancel="closeAddColumnDropdown()"
+                            @submit="closeAddColumnDropdownMenu(true)"
+                            @cancel="closeAddColumnDropdownMenu()"
                             @click.stop
                             @keydown.stop
                             @mounted="preloadColumn = undefined"

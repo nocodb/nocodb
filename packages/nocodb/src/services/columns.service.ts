@@ -388,7 +388,7 @@ export class ColumnsService {
             );
           } catch (e) {
             console.error(e);
-            NcError.badRequest('Invalid Formula');
+            throw e;
           }
 
           await Column.update(context, column.id, {
@@ -1802,7 +1802,7 @@ export class ColumnsService {
           );
         } catch (e) {
           console.error(e);
-          NcError.badRequest('Invalid Formula');
+          throw e;
         }
 
         await Column.insert(context, {

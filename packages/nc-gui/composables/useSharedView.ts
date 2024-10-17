@@ -15,7 +15,7 @@ import { UITypes, ViewTypes } from 'nocodb-sdk'
 export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
-  const { appInfo, gridViewPageSize } = useGlobal()
+  const { appInfo } = useGlobal()
 
   const baseStore = useBase()
 
@@ -25,7 +25,7 @@ export function useSharedView() {
 
   const { base } = storeToRefs(baseStore)
 
-  const appInfoDefaultLimit = gridViewPageSize.value || appInfo.value.defaultLimit || 25
+  const appInfoDefaultLimit = appInfo.value.defaultLimit || 50
 
   const paginationData = useState<PaginatedType>('paginationData', () => ({
     page: 1,
@@ -337,6 +337,22 @@ export function useSharedView() {
     )
   }
 
+  const fetchCount = async (param: { filtersArr: FilterType[] }) => {
+    const data = await $api.public.dbViewRowCount(
+      sharedView.value.uuid!,
+      {
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+      },
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+
+    return data
+  }
+
   const fetchSharedViewGroupedData = async (
     columnId: string,
     { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] },
@@ -420,5 +436,6 @@ export function useSharedView() {
     exportFile,
     formColumns,
     allowCSVDownload,
+    fetchCount,
   }
 }

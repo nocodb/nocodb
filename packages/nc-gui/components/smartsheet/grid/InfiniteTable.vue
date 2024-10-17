@@ -2268,7 +2268,7 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
           <NcButton
             v-else
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
+            class="!rounded-r-none !border-r-0 nc-grid-add-new-cell nc-grid-add-new-row"
             size="small"
             type="secondary"
             @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"

@@ -1123,7 +1123,11 @@ const onVisibilityChange = () => {
 }
 
 const COL_VIRTUAL_MARGIN = 5
-const ROW_VIRTUAL_MARGIN = 20
+const ROW_VIRTUAL_MARGIN = 10
+
+const activeVerticalMargin = computed(() => {
+  return chunkStates.value.includes('loading') ? 5 : ROW_VIRTUAL_MARGIN
+})
 
 const colSlice = ref({
   start: 0,
@@ -1146,10 +1150,10 @@ const calculateSlices = () => {
     return
   }
 
-  // skip calculation if scrolling only vertical & scroll is smaller than (ROW_VIRTUAL_MARGIN / 2) x smallest row height
+  // skip calculation if scrolling only vertical & scroll is smaller than (ROW_VIRTUAL_MARGIN - 2) x smallest row height
   if (
     lastScrollLeft.value === scrollLeft.value &&
-    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (ROW_VIRTUAL_MARGIN / 2)
+    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (activeVerticalMargin.value - 2)
   ) {
     return
   }
@@ -1198,12 +1202,12 @@ const calculateSlices = () => {
   const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
   const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
 
-  const newStart = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
-  const newEnd = Math.min(totalRows.value, endIndex + ROW_VIRTUAL_MARGIN)
+  const newStart = Math.max(0, startIndex - activeVerticalMargin.value)
+  const newEnd = Math.min(totalRows.value, endIndex + activeVerticalMargin.value)
 
   if (
-    Math.abs(newStart - rowSlice.start) >= ROW_VIRTUAL_MARGIN / 2 ||
-    Math.abs(newEnd - rowSlice.end) >= ROW_VIRTUAL_MARGIN / 2
+    Math.abs(newStart - rowSlice.start) >= activeVerticalMargin.value / 2 ||
+    Math.abs(newEnd - rowSlice.end) >= activeVerticalMargin.value / 2
   ) {
     rowSlice.start = newStart
     rowSlice.end = newEnd

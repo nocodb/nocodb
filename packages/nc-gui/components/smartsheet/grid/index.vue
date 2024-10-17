@@ -207,7 +207,7 @@ const updateRowCommentCount = (count: number) => {
     (row) => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
   )?.rowMeta.rowIndex
 
-  if (!currentRowIndex) return
+  if (currentRowIndex === undefined) return
 
   const currentRow = cachedRows.value.get(currentRowIndex)
   if (!currentRow) return

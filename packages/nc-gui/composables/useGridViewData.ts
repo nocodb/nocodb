@@ -201,7 +201,6 @@ export function useGridViewData(
         return []
       }
       if (error?.response?.data?.error === 'FORMULA_ERROR') {
-        message.error(await extractSdkResponseErrorMsg(error))
         await tablesStore.reloadTableMeta(metaId.value as string)
         return loadData(params)
       }

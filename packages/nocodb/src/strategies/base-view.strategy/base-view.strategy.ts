@@ -23,8 +23,8 @@ export class BaseViewStrategy extends PassportStrategy(Strategy, 'base-view') {
         }
 
         user = {
-          roles: extractRolesObj(sharedProject?.roles),
-          base_roles: extractRolesObj(sharedProject?.roles),
+          roles: extractRolesObj('viewer'),
+          base_roles: extractRolesObj('viewer'),
         };
       }
 

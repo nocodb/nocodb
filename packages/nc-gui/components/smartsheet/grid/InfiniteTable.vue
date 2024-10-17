@@ -537,13 +537,11 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
 // scrollToAddNewColumnHeader - function to scroll to the last column
 // behavior - scroll behavior
 function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
-  if (scrollWrapper.value) {
-    scrollWrapper.value?.scrollTo({
-      top: scrollWrapper.value.scrollTop,
-      left: scrollWrapper.value.scrollWidth,
-      behavior,
-    })
-  }
+  scrollWrapper.value?.scrollTo({
+    top: scrollWrapper.value.scrollTop,
+    left: scrollWrapper.value.scrollWidth,
+    behavior,
+  })
 }
 
 // onVisibilityChange - function to check if the add column dropdown should be closed
@@ -566,7 +564,7 @@ const cumulativeWidths = computed(() => {
 
   return fields.value.map(({ id }) => {
     const width = parsePixelValue(gridViewCols[id]?.width || '200px')
-    sum += width + 16 + 1
+    sum += width + 16 + 1 // 1 px for border 16px for padding
     return sum
   })
 })
@@ -1446,7 +1444,7 @@ watch(
 // smartTable - reactive ref to get the smart table element
 const smartTable = ref(null)
 
-const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 16)
+const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 500)
 
 // On scroll event listener
 // Update the scrollLeft and scrollTop values

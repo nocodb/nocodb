@@ -166,7 +166,7 @@ export function useGridViewData(
     params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
       limit?: number
     } = {},
-  ) {
+  ): Promise<Row[] | undefined> {
     if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
 
     try {

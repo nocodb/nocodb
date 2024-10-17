@@ -119,11 +119,11 @@ const onRoleToggle = async () => {
 
   isRoleToggleLoading.value = true
   try {
-    if (sharedBase.value.role === ShareBaseRole.Viewer) {
-      await createShareBase(ShareBaseRole.Editor)
-    } else {
-      await createShareBase(ShareBaseRole.Viewer)
-    }
+    // if (sharedBase.value.role === ShareBaseRole.Viewer) {
+    //   await createShareBase(ShareBaseRole.Editor)
+    // } else {
+    await createShareBase(ShareBaseRole.Viewer)
+    // }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -149,13 +149,13 @@ const onRoleToggle = async () => {
         <GeneralCopyUrl v-model:url="url" />
         <div v-if="!appInfo.ee" class="flex flex-row justify-between mt-3 bg-gray-50 px-3 py-2 rounded-md">
           <div class="text-black">{{ $t('activity.editingAccess') }}</div>
-          <a-switch
+          <!--          <a-switch
             v-e="['c:share:base:role:toggle']"
             :loading="isRoleToggleLoading"
             :checked="sharedBase?.role === ShareBaseRole.Editor"
             class="ml-2"
             @click="onRoleToggle"
-          />
+          /> -->
         </div>
       </div>
     </div>

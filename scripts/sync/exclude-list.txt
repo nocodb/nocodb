@@ -34,8 +34,10 @@ packages/nocodb/webpack.ee-cloud.config.js
 */test_sakila_*.db
 */package.json
 */package-lock.json
+*/pnpm-lock.yaml
 package.json
 package-lock.json
+pnpm-lock.yaml
 .run
 packages/nocodb/tsconfig.ee.json
 packages/nocodb/tsconfig.ee-on-prem.json

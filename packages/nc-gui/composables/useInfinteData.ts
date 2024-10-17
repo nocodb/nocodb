@@ -120,12 +120,12 @@ export function useInfiniteData(args: {
   })
 
   function addEmptyRow(addAfter = totalRows.value, metaValue = meta.value) {
-    const newIndex = addAfter + 1
     const newRow = {
       row: { ...rowDefaultData(metaValue?.columns) },
       oldRow: {},
-      rowMeta: { new: true, rowIndex: newIndex },
+      rowMeta: { new: true, rowIndex: addAfter },
     }
+
     callbacks?.syncVisibleData?.()
 
     return newRow

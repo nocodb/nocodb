@@ -2,7 +2,6 @@
 import {
   type ColumnReqType,
   type ColumnType,
-  type PaginatedType,
   type TableType,
   UITypes,
   type ViewType,
@@ -11,48 +10,38 @@ import {
   isSystemColumn,
   isVirtualCol,
 } from 'nocodb-sdk'
-import type { Row } from '../../../lib/types'
-import type { CellRange } from '../../../composables/useMultiSelect/cellRange'
-import { NavigateDir } from '../../../lib/enums'
+
 import { useColumnDrag } from './useColumnDrag'
+import { type CellRange, NavigateDir, type Row } from '#imports'
 
 const props = defineProps<{
-  paginationData?: PaginatedType
+  totalRows: number
+  data: Record<number, Row>
+  rowHeight?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
-  changePage?: (page: number) => void
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
   deleteRow?: (rowIndex: number, undo?: boolean) => Promise<void>
-  clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
-  data: Record<number, Row>
-  syncCount: () => Promise<void>
-  totalRows: number
   updateOrSaveRow?: (
     row: Row,
     property?: string,
     ltarState?: Record<string, any>,
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
   ) => Promise<any>
-  selectedAllRecords?: boolean
-  deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
-  rowHeight?: number
-  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   deleteSelectedRows?: () => Promise<void>
-  removeRowIfNew?: (row: Row) => void
+  deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
   bulkUpdateRows?: (
     rows: Row[],
     props: string[],
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
   ) => Promise<void>
-  hideCheckbox?: boolean
-  pagination?: {
-    fixedSize?: number
-    hideSidebars?: boolean
-    extraStyle?: string
-  }
+  expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
+  removeRowIfNew?: (row: Row) => void
+  clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
+  syncCount: () => Promise<void>
 }>()
 
-const emits = defineEmits(['update:selectedAllRecords', 'bulkUpdateDlg', 'toggleOptimisedQuery'])
+const emits = defineEmits(['bulkUpdateDlg'])
 
 const {
   loadData,
@@ -104,10 +93,6 @@ const isPublicView = inject(IsPublicInj, ref(false))
 
 // Readonly Mode. If true, user can't edit the data
 const readOnly = inject(ReadonlyInj, ref(false))
-
-const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
-
-const paginationDataRef = toRef(props, 'paginationData')
 
 const { loadViewAggregate } = useViewAggregateOrThrow()
 
@@ -712,76 +697,62 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 
     addUndo({
       undo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType, mmClearResult: any[]) => {
-          if (paginationDataRef.value?.pageSize === pg.pageSize) {
-            if (paginationDataRef.value?.page !== pg.page) {
-              await changePage?.(pg.page!)
-            }
-            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-            const rowObj = cachedLocalRows.value[ctx.row]
-            const columnObj = fields.value[ctx.col]
-            if (
-              columnObj.title &&
-              rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-              columnObj.id === col.id
-            ) {
-              if (isBt(columnObj) || isOo(columnObj)) {
-                rowObj.row[columnObj.title] = row.row[columnObj.title]
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, mmClearResult: any[]) => {
+          const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+          const rowObj = cachedLocalRows.value[ctx.row]
+          const columnObj = fields.value[ctx.col]
+          if (
+            columnObj.title &&
+            rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+            columnObj.id === col.id
+          ) {
+            if (isBt(columnObj) || isOo(columnObj)) {
+              rowObj.row[columnObj.title] = row.row[columnObj.title]
 
-                await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
-                await syncLTARRefs(rowObj, rowObj.row)
-              } else if (isMm(columnObj)) {
-                await api.dbDataTableRow.nestedLink(
-                  meta.value?.id as string,
-                  columnObj.id as string,
-                  encodeURIComponent(rowId as string),
-                  mmClearResult,
-                )
-                rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
-              }
-
-              // eslint-disable-next-line @typescript-eslint/no-use-before-define
-              activeCell.col = ctx.col
-              // eslint-disable-next-line @typescript-eslint/no-use-before-define
-              activeCell.row = ctx.row
-              scrollToCell?.()
-            } else {
-              throw new Error(t('msg.recordCouldNotBeFound'))
+              await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
+              await syncLTARRefs(rowObj, rowObj.row)
+            } else if (isMm(columnObj)) {
+              await api.dbDataTableRow.nestedLink(
+                meta.value?.id as string,
+                columnObj.id as string,
+                encodeURIComponent(rowId as string),
+                mmClearResult,
+              )
+              rowObj.row[columnObj.title] = mmClearResult?.length ? mmClearResult?.length : null
             }
+
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            activeCell.col = ctx.col
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            activeCell.row = ctx.row
+            scrollToCell?.()
           } else {
-            throw new Error(t('msg.pageSizeChanged'))
+            throw new Error(t('msg.recordCouldNotBeFound'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value), mmClearResult],
+        args: [clone(ctx), clone(columnObj), clone(rowObj), mmClearResult],
       },
       redo: {
-        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, pg: PaginatedType) => {
-          if (paginationDataRef.value?.pageSize === pg.pageSize) {
-            if (paginationDataRef.value?.page !== pg.page) {
-              await changePage?.(pg.page!)
+        fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row) => {
+          const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+          const rowObj = cachedLocalRows.value[ctx.row]
+          const columnObj = fields.value[ctx.col]
+          if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
+            if (isBt(columnObj) || isOo(columnObj)) {
+              await clearLTARCell(rowObj, columnObj)
+            } else if (isMm(columnObj)) {
+              await cleaMMCell(rowObj, columnObj)
             }
-            const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-            const rowObj = cachedLocalRows.value[ctx.row]
-            const columnObj = fields.value[ctx.col]
-            if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
-              if (isBt(columnObj) || isOo(columnObj)) {
-                await clearLTARCell(rowObj, columnObj)
-              } else if (isMm(columnObj)) {
-                await cleaMMCell(rowObj, columnObj)
-              }
-              // eslint-disable-next-line @typescript-eslint/no-use-before-define
-              activeCell.col = ctx.col
-              // eslint-disable-next-line @typescript-eslint/no-use-before-define
-              activeCell.row = ctx.row
-              scrollToCell?.()
-            } else {
-              throw new Error(t('msg.recordCouldNotBeFound'))
-            }
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            activeCell.col = ctx.col
+            // eslint-disable-next-line @typescript-eslint/no-use-before-define
+            activeCell.row = ctx.row
+            scrollToCell?.()
           } else {
-            throw new Error(t('msg.pageSizeChanged'))
+            throw new Error(t('msg.recordCouldNotBeFound'))
           }
         },
-        args: [clone(ctx), clone(columnObj), clone(rowObj), clone(paginationDataRef.value)],
+        args: [clone(ctx), clone(columnObj), clone(rowObj)],
       },
       scope: defineViewScope({ view: view.value }),
     })
@@ -1360,17 +1331,8 @@ defineExpose({
             <tr v-else class="nc-grid-header">
               <th class="w-[64px] min-w-[64px]" data-testid="grid-id-column">
                 <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
-                  <template v-if="!readOnly && !hideCheckbox">
+                  <template v-if="!readOnly">
                     <div class="nc-no-label text-gray-500">#</div>
-                    <div
-                      :class="{
-                        hidden: !vSelectedAllRecords,
-                        flex: vSelectedAllRecords,
-                      }"
-                      class="nc-check-all w-full items-center"
-                    >
-                      <span class="flex-1" />
-                    </div>
                   </template>
                   <template v-else>
                     <div class="text-gray-500">#</div>
@@ -1986,7 +1948,7 @@ defineExpose({
       </template>
     </NcDropdown>
 
-    <div v-if="paginationDataRef" class="absolute bottom-12 left-2">
+    <div class="absolute bottom-12 left-2">
       <NcDropdown v-if="isAddingEmptyRowAllowed">
         <div class="flex">
           <NcButton

@@ -235,9 +235,7 @@ onMounted(() => {
     <InfiniteTable
       v-if="!isGroupBy"
       ref="tableRef"
-      :pagination-data="paginationData"
       :load-data="loadData"
-      :change-page="changePage"
       :call-add-empty-row="_addEmptyRow"
       :delete-row="deleteRow"
       :update-or-save-row="updateOrSaveRow"

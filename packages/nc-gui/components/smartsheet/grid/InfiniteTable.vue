@@ -197,9 +197,12 @@ const BUFFER_SIZE = 10
 const INITIAL_LOAD_SIZE = 100
 
 const fetchChunk = async (chunkId, isInitialLoad = false) => {
-  if (chunkStates.value[chunkId] === 'loaded' || chunkStates.value[chunkId] === 'loading') return
+  if (chunkStates.value[chunkId]) return
 
   chunkStates.value[chunkId] = 'loading'
+  if (isInitialLoad) {
+    chunkStates.value[chunkId + 1] = 'loading'
+  }
   const offset = chunkId * CHUNK_SIZE
   const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
 
@@ -207,11 +210,9 @@ const fetchChunk = async (chunkId, isInitialLoad = false) => {
     const newItems = await loadData({ offset, limit })
     newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
 
+    chunkStates.value[chunkId] = 'loaded'
     if (isInitialLoad) {
-      chunkStates.value[chunkId] = 'loaded'
       chunkStates.value[chunkId + 1] = 'loaded'
-    } else {
-      chunkStates.value[chunkId] = 'loaded'
     }
   } catch (error) {
     console.error(`Error fetching chunk ${chunkId}:`, error)
@@ -235,8 +236,7 @@ const updateVisibleRows = async () => {
   }
 
   if (chunksToFetch.size > 0) {
-    const [firstChunkToFetch] = chunksToFetch
-    const isInitialLoad = firstChunkToFetch === 0 && chunksToFetch.size >= 2
+    const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
 
     if (isInitialLoad) {
       await fetchChunk(0, true)
@@ -708,7 +708,7 @@ const {
           clearSelectedRange()
           activeCell.row = 0
           activeCell.col = activeCell.col ?? 0
-          scrollToCell?.()
+          scrollToCell?.(undefined, undefined, 'instant')
           editEnabled.value = false
           return true
         case 'ArrowDown':
@@ -716,7 +716,7 @@ const {
           clearSelectedRange()
           activeCell.row = totalRows.value - 1
           activeCell.col = activeCell.col ?? 0
-          scrollToCell?.()
+          scrollToCell?.(undefined, undefined, 'instant')
           editEnabled.value = false
           return true
         case 'ArrowRight':
@@ -1008,9 +1008,15 @@ const scrollLeft = ref(0)
 
 const scrollTop = ref(0)
 
-function scrollToCell(row?: number | null, col?: number | null) {
+const lastScrollTime = ref(Date.now())
+
+function scrollToCell(row?: number | null, col?: number | null, behaviour: ScrollBehavior = 'smooth') {
   row = activeCell.row
   col = activeCell.col
+
+  const isRapidMovement = Date.now() - lastScrollTime.value < 100
+  behaviour = isRapidMovement ? 'auto' : behaviour
+  lastScrollTime.value = Date.now()
 
   if (row !== null && col !== null && gridWrapper.value) {
     // calculate cell position
@@ -1034,33 +1040,23 @@ function scrollToCell(row?: number | null, col?: number | null) {
       tdScroll.left = 0
     }
 
-    if (row === totalRows.value - 1) {
-      gridWrapper.value.scrollTo({
-        top: gridWrapper.value.scrollHeight,
-        left:
-          col === fields.value.length - 1 // if corner cell
-            ? gridWrapper.value.scrollWidth
-            : tdScroll.left,
-        behavior: 'smooth',
-      })
-      return
-    }
-
-    if (col === fields.value.length - 1) {
-      // if last column make 'Add New Column' visible
-      gridWrapper.value.scrollTo({
-        top: tdScroll.top,
-        left: gridWrapper.value.scrollWidth,
-        behavior: 'smooth',
-      })
-      return
-    }
-
-    // scroll into the active cell
-    gridWrapper.value.scrollTo({
+    const scrollOptions = {
       top: tdScroll.top,
       left: tdScroll.left,
-      behavior: 'smooth',
+      behavior: behaviour,
+    }
+
+    if (row === totalRows.value - 1) {
+      scrollOptions.top = gridWrapper.value.scrollHeight
+      if (col === fields.value.length - 1) {
+        scrollOptions.left = gridWrapper.value.scrollWidth
+      }
+    } else if (col === fields.value.length - 1) {
+      scrollOptions.left = gridWrapper.value.scrollWidth
+    }
+
+    requestAnimationFrame(() => {
+      gridWrapper.value.scrollTo(scrollOptions)
     })
   }
 }
@@ -1140,7 +1136,7 @@ const calculateSlices = () => {
     }
 
     // try again until the grid is rendered
-    setTimeout(calculateSlices, 100)
+    setTimeout(calculateSlices, 50)
     return
   }
 
@@ -1836,7 +1832,7 @@ watch(
           <div
             class="table-overlay"
             :style="{
-              height: `${maxGridHeight}px`,
+              height: `${maxGridHeight + 256}px`,
               width: `${maxGridWidth}px`,
             }"
           >
@@ -2126,22 +2122,20 @@ watch(
                 <tr
                   v-if="isAddingEmptyRowAllowed"
                   v-e="['c:row:add:grid-bottom']"
-                  class="text-left nc-grid-add-new-cell transition-all transform cursor-pointer group relative z-3 xs:hidden"
+                  class="text-left nc-grid-add-new-cell mb-64 transition-all transform cursor-pointer group relative z-3 xs:hidden"
                   :class="{
                     '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                   }"
                   :style="{
                     transform: `translateY(${rowSlice.start * rowHeight}px)`,
                     height: '32px',
+                    left: `-${leftOffset}px`,
                   }"
                   @mouseup.stop
                   @click="addEmptyRow()"
                 >
                   <td
                     class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
-                    :style="{
-                      left: `-${leftOffset}px`,
-                    }"
                   >
                     <component
                       :is="iconMap.plus"
@@ -2149,7 +2143,7 @@ watch(
                       class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
                     />
                   </td>
-                  <td class="!border-gray-100" :colspan="visibleColLength"></td>
+                  <td :colspan="visibleColLength" class="!border-gray-100"></td>
                 </tr>
               </tbody>
             </table>

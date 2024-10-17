@@ -42,7 +42,7 @@ export function useMultiSelect(
   clearCell: Function,
   clearSelectedRangeOfCells: Function,
   makeEditable: Function,
-  scrollToCell?: (row?: number | null, col?: number | null) => void,
+  scrollToCell?: (row?: number | null, col?: number | null, scrollBehaviour?: ScrollBehavior) => void,
   keyEventHandler?: Function,
   syncCellData?: Function,
   bulkUpdateRows?: Function,
@@ -767,7 +767,7 @@ export function useMultiSelect(
           const limitedEnd = limitSelection(anchor, newEnd)
           editEnabled.value = false
           selectedRange.endRange(limitedEnd)
-          scrollToCell?.(limitedEnd.row, limitedEnd.col)
+          scrollToCell?.(limitedEnd.row, limitedEnd.col, 'instant')
         } else {
           selectedRange.clear()
 
@@ -801,7 +801,7 @@ export function useMultiSelect(
           const limitedEnd = limitSelection(anchor, newEnd)
           editEnabled.value = false
           selectedRange.endRange(limitedEnd)
-          scrollToCell?.(limitedEnd.row, limitedEnd.col)
+          scrollToCell?.(limitedEnd.row, limitedEnd.col, 'instant')
         } else {
           selectedRange.clear()
 

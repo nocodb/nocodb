@@ -354,10 +354,18 @@ export default {
   },
   ISBLANK: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
+    const { builder: stringValueBuilder } = await fn({
+      type: 'CallExpression',
+      arguments: [pt.arguments[0]],
+      callee: {
+        type: 'Identifier',
+        name: 'STRING',
+      },
+    });
 
     return {
       builder: knex.raw(
-        `(${valueBuilder} IS NULL OR ${valueBuilder} = '')${colAlias}`,
+        `(${valueBuilder} IS NULL OR ${stringValueBuilder} = '')${colAlias}`,
       ),
     };
   },
@@ -370,10 +378,17 @@ export default {
   },
   ISNOTBLANK: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     const { builder: valueBuilder } = await fn(pt.arguments[0]);
-
+    const { builder: stringValueBuilder } = await fn({
+      type: 'CallExpression',
+      arguments: [pt.arguments[0]],
+      callee: {
+        type: 'Identifier',
+        name: 'STRING',
+      },
+    });
     return {
       builder: knex.raw(
-        `(${valueBuilder} IS NOT NULL AND ${valueBuilder} != '')${colAlias}`,
+        `(${valueBuilder} IS NOT NULL AND ${stringValueBuilder} != '')${colAlias}`,
       ),
     };
   },

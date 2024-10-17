@@ -585,6 +585,7 @@ watch(activeAiTab, (newValue) => {
     nextTick(() => {
       aiPromptInputRef.value?.focus()
     })
+    onSelectedTagClick()
   }
 })
 </script>
@@ -774,8 +775,8 @@ watch(activeAiTab, (newValue) => {
                   <a-textarea
                     ref="aiPromptInputRef"
                     v-model:value="prompt"
-                    placeholder="Enter your prompt to get table suggestions.."
-                    class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[120px] !rounded-lg"
+                    placeholder="Enter your prompt to get field suggestions.."
+                    class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[68px] !rounded-lg"
                     @keydown.enter.stop
                   >
                   </a-textarea>
@@ -1021,6 +1022,31 @@ watch(activeAiTab, (newValue) => {
           </NcTooltip>
         </a-form-item>
       </div>
+      <a-form-item v-if="enableDescription && aiAutoSuggestMode">
+        <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
+          <span class="text-[13px]">
+            {{ $t('labels.description') }}
+          </span>
+
+          <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
+            <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
+          </NcButton>
+        </div>
+
+        <a-textarea
+          ref="descInputEl"
+          v-model:value="formState.description"
+          :class="{
+            '!min-h-[200px]': fromTableExplorer,
+            'h-[150px] !min-h-[100px]': !fromTableExplorer,
+            'nc-ai-input': isAiMode,
+          }"
+          class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 !max-h-[300px]"
+          hide-details
+          data-testid="create-field-description-input"
+          :placeholder="$t('msg.info.enterFieldDescription')"
+        />
+      </a-form-item>
 
       <template v-if="!readOnly && formState.uidt">
         <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
@@ -1150,7 +1176,7 @@ watch(activeAiTab, (newValue) => {
           </Transition>
         </template>
 
-        <a-form-item v-if="enableDescription">
+        <a-form-item v-if="enableDescription && !aiAutoSuggestMode">
           <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
             <span class="text-[13px]">
               {{ $t('labels.description') }}
@@ -1253,7 +1279,14 @@ watch(activeAiTab, (newValue) => {
 
       <template v-if="isAiMode || formState.uidt === UITypes.Formula">
         <div v-if="props.fromTableExplorer" class="flex-1"></div>
-        <SmartsheetColumnAIFooterOptions v-model="formState" class="-mx-5 sticky bottom-0 bg-white z-10" />
+        <SmartsheetColumnAIFooterOptions
+          v-model="formState"
+          class="-mx-5 sticky bottom-0 z-10"
+          :class="{
+            'bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt,
+            'bg-white': !(aiAutoSuggestMode && formState.uidt),
+          }"
+        />
       </template>
     </a-form>
   </div>

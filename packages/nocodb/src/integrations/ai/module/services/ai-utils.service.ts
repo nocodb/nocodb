@@ -201,7 +201,7 @@ export class AiUtilsService {
           z.object({
             title: z.string(),
             type: z.string(),
-            options: z.array(z.string()).optional(),
+            options: z.array(z.string()).optional().default([]),
             description: z.string().nullable().optional(),
           }),
         ),

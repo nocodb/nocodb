@@ -145,7 +145,7 @@ const predictMore = async () => {
   if (predictions.length) {
     predictedTables.value.push(...predictions)
     predictHistory.value.push(...predictions)
-  } else {
+  } else if (!aiError.value) {
     message.info(`No more auto suggestions were found for ${base.value?.title || 'the current base'}`)
   }
 }
@@ -161,7 +161,7 @@ const predictRefresh = async () => {
       ...predictions,
     ]
     predictHistory.value.push(...predictions)
-  } else {
+  } else if (!aiError.value) {
     message.info(`No auto suggestions were found for ${base.value?.title || 'the current base'}`)
   }
   aiModeStep.value = AiStep.pick
@@ -180,7 +180,7 @@ const predictFromPrompt = async () => {
     predictHistory.value.push(...predictions)
 
     oldPrompt.value = prompt.value
-  } else {
+  } else if (!aiError.value) {
     message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
   }
   aiModeStep.value = AiStep.pick

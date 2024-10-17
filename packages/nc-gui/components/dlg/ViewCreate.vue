@@ -560,7 +560,7 @@ const predictMore = async () => {
   if (predictions.length) {
     predictedViews.value.push(...predictions)
     predictHistory.value.push(...predictions)
-  } else {
+  } else if (!aiError.value) {
     message.info(`No more auto suggestions were found for ${meta.value?.title || 'the current table'}`)
   }
 }
@@ -576,7 +576,7 @@ const predictRefresh = async () => {
       ...predictions,
     ]
     predictHistory.value.push(...predictions)
-  } else {
+  } else if (!aiError.value) {
     message.info(`No auto suggestions were found for ${meta.value?.title || 'the current table'}`)
   }
   aiModeStep.value = AiStep.pick
@@ -594,7 +594,7 @@ const predictFromPrompt = async () => {
     ]
     predictHistory.value.push(...predictions)
     oldPrompt.value = prompt.value
-  } else {
+  } else if (!aiError.value) {
     message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
   }
 

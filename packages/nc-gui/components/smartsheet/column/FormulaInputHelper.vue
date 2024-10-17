@@ -31,6 +31,8 @@ const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.
 
 const { sqlUi, column, fromTableExplorer, validateInfos } = useColumnCreateStoreOrThrow()
 
+const { isAiModeFieldModal } = usePredictFields()
+
 const meta = inject(MetaInj, ref())
 
 const supportedColumns = computed(
@@ -687,7 +689,8 @@ const enableAI = async () => {
       }"
       :class="{
         '!border-red-500 formula-error': error,
-        '!focus-within:border-brand-500 formula-success': !error,
+        '!focus-within:border-brand-500 shadow-default hover:shadow-hover formula-success': !error,
+        'bg-white': isAiModeFieldModal,
       }"
       class="formula-monaco"
       @keydown.stop="handleKeydown"
@@ -767,6 +770,7 @@ const enableAI = async () => {
       'h-[250px]': suggestionHeight === 'large',
       'h-[150px]': suggestionHeight === 'medium',
       'h-[125px]': suggestionHeight === 'small',
+      'bg-white': isAiModeFieldModal,
     }"
     class="overflow-auto flex flex-col nc-suggestion-list nc-scrollbar-thin border-1 border-gray-200 rounded-lg mt-4"
   >

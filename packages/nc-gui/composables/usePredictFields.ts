@@ -154,7 +154,7 @@ export const usePredictFields = createSharedComposable(
       if (predictions.length) {
         predicted.value.push(...predictions)
         predictHistory.value.push(...predictions)
-      } else {
+      } else if (!aiError.value) {
         message.info(`No more auto suggestions were found for ${meta.value?.title || 'the current table'}`)
       }
     }
@@ -170,7 +170,7 @@ export const usePredictFields = createSharedComposable(
           ...predictions,
         ]
         predictHistory.value.push(...predictions)
-      } else {
+      } else if (!aiError.value) {
         message.info(`No auto suggestions were found for ${meta.value?.title || 'the current table'}`)
       }
       aiModeStep.value = AiStep.pick
@@ -189,7 +189,7 @@ export const usePredictFields = createSharedComposable(
         predictHistory.value.push(...predictions)
 
         oldPrompt.value = prompt.value
-      } else {
+      } else if (!aiError.value) {
         message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
       }
       aiModeStep.value = AiStep.pick

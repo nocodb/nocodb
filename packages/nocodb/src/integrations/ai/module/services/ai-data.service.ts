@@ -138,10 +138,11 @@ const prepareAttachments = async (referencedColumns, records) => {
     (col) => col.uidt === UITypes.Attachment,
   );
 
-  // get all supported attachments
-  const allAttachments = atCols
-    .map((col) => [
-      ...(records?.[0]?.[col.title] || []).map((at) => {
+  const allAttachments = [];
+
+  for (const record of records) {
+    for (const col of atCols) {
+      for (const at of record[col.title] || []) {
         let relativePath;
 
         if (at.path) {
@@ -154,7 +155,7 @@ const prepareAttachments = async (referencedColumns, records) => {
           relativePath = getPathFromUrl(at.url).replace(/^\/+/, '');
         }
 
-        return {
+        const attachment = {
           ...at,
           mimetype:
             at.mimetype !== 'application/octet-stream'
@@ -163,16 +164,17 @@ const prepareAttachments = async (referencedColumns, records) => {
           colId: col.id,
           relativePath,
         };
-      }),
-    ])
-    .flat()
-    .filter(
-      (at) =>
-        at &&
-        INLINE_SUPPORTED_MIMETYPES.some((m) =>
-          at.mimetype?.match(new RegExp(m.replace('*', '.*'))),
-        ),
-    );
+
+        if (
+          INLINE_SUPPORTED_MIMETYPES.some((m) =>
+            attachment.mimetype?.match(new RegExp(m.replace('*', '.*'))),
+          )
+        ) {
+          allAttachments.push(attachment);
+        }
+      }
+    }
+  }
 
   const imageAttachments = [];
 

@@ -1167,28 +1167,6 @@ const getPluralName = (name: string) => {
                     <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
                   </div>
                   <div class="flex items-center gap-1">
-                    <NcTooltip title="Re-suggest" placement="top">
-                      <NcButton
-                        size="xs"
-                        class="!px-1"
-                        type="text"
-                        theme="ai"
-                        :loading="aiLoading && calledFunction === 'predictRefresh'"
-                        @click="predictRefresh"
-                      >
-                        <template #loadingIcon>
-                          <!-- eslint-disable vue/no-lone-template -->
-                          <template></template>
-                        </template>
-                        <GeneralIcon
-                          icon="refresh"
-                          class="!text-current"
-                          :class="{
-                            'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
-                          }"
-                        />
-                      </NcButton>
-                    </NcTooltip>
                     <NcTooltip
                       v-if="
                         activeTabPredictHistory.length < activeTabSelectedViews.length
@@ -1210,6 +1188,28 @@ const getPluralName = (name: string) => {
                         <template #icon>
                           <GeneralIcon icon="ncPlusAi" class="!text-current" />
                         </template>
+                      </NcButton>
+                    </NcTooltip>
+                    <NcTooltip title="Re-suggest" placement="top">
+                      <NcButton
+                        size="xs"
+                        class="!px-1"
+                        type="text"
+                        theme="ai"
+                        :loading="aiLoading && calledFunction === 'predictRefresh'"
+                        @click="predictRefresh"
+                      >
+                        <template #loadingIcon>
+                          <!-- eslint-disable vue/no-lone-template -->
+                          <template></template>
+                        </template>
+                        <GeneralIcon
+                          icon="refresh"
+                          class="!text-current"
+                          :class="{
+                            'animate-infinite animate-spin': aiLoading && calledFunction === 'predictRefresh',
+                          }"
+                        />
                       </NcButton>
                     </NcTooltip>
                   </div>

@@ -812,7 +812,7 @@ export function useMultiSelect(
       case 'ArrowUp':
       case 'ArrowDown':
         e.preventDefault()
-        await handleThrottledKeyDownAction(e)
+        handleThrottledKeyDownAction(e)
         break
       default:
         {

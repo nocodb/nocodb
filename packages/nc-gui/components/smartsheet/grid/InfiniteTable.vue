@@ -1117,7 +1117,7 @@ const onVisibilityChange = () => {
 }
 
 const COL_VIRTUAL_MARGIN = 5
-const ROW_VIRTUAL_MARGIN = 50
+const ROW_VIRTUAL_MARGIN = 20
 
 const colSlice = ref({
   start: 0,

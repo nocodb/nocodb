@@ -339,6 +339,8 @@ export const usePredictFields = createSharedComposable(
             op: 'add',
             column: {
               ...field.formState,
+              title: field.formState?.title || field.title,
+              column_name: (field.formState?.title || field.title).toLowerCase().replace(/\\W/g, '_'),
               column_order: {
                 // order: order,
                 view_id: view.value?.id,

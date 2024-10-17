@@ -240,7 +240,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                       return (
                         c.ai_temp_id !== formState.value?.ai_temp_id &&
                         ((value || '').toLowerCase().trim() === (c.formState?.column_name || '').toLowerCase().trim() ||
-                          (value || '').toLowerCase().trim() === (c.formState?.title || '').toLowerCase().trim())
+                          (value || '').toLowerCase().trim() === (c.formState?.title || '').toLowerCase().trim() ||
+                          (value || '').toLowerCase().trim() === (c?.title || '').toLowerCase().trim())
                       )
                     })
                   : false

@@ -65,7 +65,7 @@ const VIRTUAL_MARGIN = 5
 
 const bufferSize = 100
 
-const maxCacheSize = 1000
+const maxCacheSize = 300
 
 const { isMobileMode } = useGlobal()
 
@@ -273,14 +273,22 @@ const isUpdating = ref(false)
 
 const updateVisibleItems = async (newScrollTop: number) => {
   // If we are already updating the visibleItems, skip
-  if (isUpdating.value) return
+  if (isUpdating.value) {
+    return
+  }
+
   isUpdating.value = true
 
   // Calculate the start and end index of the visible items
   // Add a buffer to top and bottom to make the elements load before they are visible
-  const startIndex = Math.max(0, Math.floor(newScrollTop / rowHeightInPx[`${props.rowHeight}`]) - Math.floor(bufferSize / 2))
+  const startIndex = Math.max(0, Math.floor(newScrollTop / rowHeightInPx[`${props.rowHeight}`]))
   const visibleCount = Math.ceil(scrollWrapper.value.clientHeight / rowHeightInPx[`${props.rowHeight}`])
   const endIndex = Math.min(startIndex + visibleCount + bufferSize, totalRows.value)
+
+  if (startIndex === rowSlice.start && endIndex === rowSlice.end) {
+    isUpdating.value = false
+    return
+  }
 
   rowSlice.start = startIndex
   rowSlice.end = endIndex
@@ -288,48 +296,47 @@ const updateVisibleItems = async (newScrollTop: number) => {
   // Determine which items we need to fetch
   // If the item is not in the cache, we need to fetch it
   const itemsToFetch = []
+
+  const newVisibleRows = []
+
   for (let i = startIndex; i < endIndex; i++) {
-    if (!cachedLocalRows.value[i]) {
+    if (cachedLocalRows.value[i]) {
+      newVisibleRows.push(cachedLocalRows.value[i])
+    } else {
       itemsToFetch.push(i)
+      newVisibleRows.push({ row: {}, oldRow: {}, rowMeta: { rowIndex: i, loading: true, selected: false } })
     }
   }
 
-  // Update visible items from cache first
-  visibleRows.value = Array.from({ length: endIndex - startIndex }, (_, i) => {
-    const index = startIndex + i
-    return cachedLocalRows.value[index] || { row: {}, oldRow: {}, rowMeta: { rowIndex: index, loading: true, selected: false } }
-  })
+  visibleRows.value = newVisibleRows
 
-  // Fetch missing items
-  // We set the offset to the first unavailable item and the limit to the last unavailable item
   if (itemsToFetch.length > 0) {
     try {
       const newItems = await loadData({
         offset: itemsToFetch[0],
         limit: itemsToFetch[itemsToFetch.length - 1] + 1 - itemsToFetch[0],
       })
+
       newItems.forEach((item) => {
         cachedLocalRows.value[item.rowMeta.rowIndex!] = item
+        const index = item.rowMeta.rowIndex! - startIndex
+        if (index >= 0 && index < newVisibleRows.length) {
+          newVisibleRows[index] = item
+        }
       })
 
-      // Update visible items again after fetching
-      visibleRows.value = Array.from({ length: endIndex - startIndex }, (_, i) => {
-        const index = startIndex + i
-        return cachedLocalRows.value[index] || { row: {}, oldRow: {}, rowMeta: { rowIndex: index, selected: false } }
-      })
-      clearCache(startIndex, endIndex)
+      visibleRows.value = newVisibleRows
     } catch (error) {
       console.error('Error fetching items:', error)
     }
   }
 
-  await nextTick()
-  isUpdating.value = false
+  await nextTick(() => {
+    isUpdating.value = false
+  })
 }
 
-const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleItems, 100)
-
-watch(scrollTop, debouncedUpdateVisibleItems)
+const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleItems, 16)
 
 const startRowHeight = computed(() => `${rowSlice.start * rowHeightInPx[`${props.rowHeight}`]}px`)
 const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.end) * rowHeightInPx[`${props.rowHeight}`])}px`)
@@ -424,17 +431,18 @@ const visibleFields = computed(() => {
 // Scroll Left is used to apply scroll to the aggregation bar when the grid is scrolled
 const scrollLeft = ref(0)
 
-let animationFrames: number | null = null
+const animationFrames = ref()
 
 useScroll(scrollWrapper, {
   onScroll: (e) => {
     scrollLeft.value = e.target?.scrollLeft
     scrollTop.value = e.target?.scrollTop
-    if (animationFrames) {
-      cancelAnimationFrame(animationFrames)
+    if (animationFrames.value) {
+      cancelAnimationFrame(animationFrames.value)
     }
-    animationFrames = requestAnimationFrame(() => {
+    animationFrames.value = requestAnimationFrame(() => {
       calculateSlices()
+      debouncedUpdateVisibleItems(scrollTop.value)
       // refreshFillHandle()
     })
   },
@@ -450,8 +458,7 @@ onMounted(() => {
     .toBeTruthy()
     .then(async () => {
       calculateSlices()
-
-      await Promise.allSettled([loadViewAggregate(), updateVisibleItems(0)])
+      await Promise.allSettled([loadViewAggregate(), updateVisibleItems(scrollTop.value)])
     })
 })
 
@@ -541,6 +548,22 @@ eventBus.on(async (event, payload) => {
 
     removeRowIfNew?.(payload) */
   }
+})
+
+// Helper functions for placeholder rendering
+const parsePixelValue = (value: string): number => {
+  return +value.replace('px', '') || 0
+}
+
+// Compute cumulative widths for each column
+const cumulativeWidths = computed(() => {
+  let sum = 0
+
+  return fields.value.map(({ id }) => {
+    const width = parsePixelValue(gridViewCols[id]?.width || '200px')
+    sum += width + 16 + 1
+    return sum
+  })
 })
 
 defineExpose({
@@ -836,7 +859,22 @@ defineExpose({
       >
         <tbody ref="tableBodyEl">
           <div class="placeholder top-placeholder" :style="`height: ${startRowHeight};`">
-            <div v-for="(_, index) in 6" :key="index" class="placeholder-column" :style="{ left: `${index * 150}px` }"></div>
+            <div
+              class="placeholder-column"
+              :style="{
+                width: '63px',
+                left: '0px',
+              }"
+            ></div>
+            <div
+              v-for="({ id }, index) in fields"
+              :key="id"
+              class="placeholder-column px-2"
+              :style="{
+                width: gridViewCols[id]?.width || '200px',
+                left: `${(cumulativeWidths[index - 1] || 0) + 64}px`,
+              }"
+            ></div>
           </div>
           <LazySmartsheetRow
             v-for="(row, index) in visibleRows"
@@ -947,7 +985,7 @@ defineExpose({
                       v-else-if="fields[0] && fields[0].title"
                       v-model="row.row[fields[0].title]"
                       :column="fields[0]"
-                      :edit-enabled="!!hasEditPermission"
+                      :edit-enabled="false"
                       :row-index="rowSlice.start + index"
                       :read-only="!hasEditPermission"
                       @save="updateOrSaveRow?.(row, fields[0].title, state)"
@@ -1002,10 +1040,25 @@ defineExpose({
             </template>
           </LazySmartsheetRow>
           <div
-            class="placeholder bottom-placeholder"
+            class="placeholder relative bottom-placeholder"
             :style="`height: ${endRowHeight}; top: ${rowSlice.end * rowHeightInPx[`${props.rowHeight}`]}px;`"
           >
-            <div v-for="(_, index) in 6" :key="index" class="placeholder-column" :style="{ left: `${index * 170}px` }"></div>
+            <div
+              class="placeholder-column"
+              :style="{
+                width: '63px',
+                left: '0px',
+              }"
+            ></div>
+            <div
+              v-for="({ id }, index) in fields"
+              :key="id"
+              class="placeholder-column px-2"
+              :style="{
+                width: gridViewCols[id]?.width || '200px',
+                left: `${(cumulativeWidths[index - 1] || 0) + 64}px`,
+              }"
+            ></div>
           </div>
         </tbody>
       </table>
@@ -1373,13 +1426,20 @@ defineExpose({
 }
 
 .placeholder {
-  background-color: #ccc;
-  background-image: linear-gradient(0deg, #d7d8d9 1.52%, #fff 0, #fff 50%, #d7d8d9 0, #d7d8d9 51.52%, #fff 0, #fff);
+  background-color: #ffffff;
+  background-image: linear-gradient(0deg, #f4f4f5 1.52%, #fff 0, #fff 50%, #f4f4f5 0, #f4f4f5 51.52%, #fff 0, #fff);
   background-size: 66px 66px;
   position: absolute;
   left: 0;
   right: 0;
   pointer-events: none;
+}
+
+.placeholder-column {
+  border-right: 1px solid #f4f4f5;
+  bottom: 0;
+  position: absolute;
+  top: 0;
 }
 
 .top-placeholder {

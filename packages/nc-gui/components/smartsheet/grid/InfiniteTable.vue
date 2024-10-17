@@ -235,7 +235,7 @@ const updateVisibleRows = async () => {
   const chunksToFetch = new Set()
 
   for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
-    chunksToFetch.add(chunkId)
+    if (!chunkStates.value[chunkId]) chunksToFetch.add(chunkId)
   }
 
   const nextChunkId = lastChunkId + 1
@@ -1146,10 +1146,7 @@ const calculateSlices = () => {
   while (endRange !== startRange) {
     const middle = Math.floor((endRange - startRange) / 2 + startRange)
 
-    if (
-      colPositions.value[middle] <= gridWrapper.value.scrollLeft &&
-      colPositions.value[middle + 1] > gridWrapper.value.scrollLeft
-    ) {
+    if (colPositions.value[middle] <= scrollLeft.value && colPositions.value[middle + 1] > scrollLeft.value) {
       renderStart = middle
       break
     }
@@ -1158,7 +1155,7 @@ const calculateSlices = () => {
       renderStart = endRange
       break
     } else {
-      if (colPositions.value[middle] <= gridWrapper.value.scrollLeft) {
+      if (colPositions.value[middle] <= scrollLeft.value) {
         startRange = middle
       } else {
         endRange = middle
@@ -1170,7 +1167,7 @@ const calculateSlices = () => {
   let renderEndFound = false
 
   for (let i = renderStart; i < colPositions.value.length; i++) {
-    if (colPositions.value[i] > gridWrapper.value.clientWidth + gridWrapper.value.scrollLeft) {
+    if (colPositions.value[i] > gridWrapper.value.clientWidth + scrollLeft.value) {
       renderEnd = i
       renderEndFound = true
       break
@@ -1254,22 +1251,6 @@ watch(
     }
   },
 )
-
-onMounted(async () => {
-  const resizeObserver = new ResizeObserver(() => {
-    refreshFillHandle()
-    if (activeCell.row !== null && !cachedRows.value.get(activeCell.row)) {
-      clearSelectedRange()
-      // activeCell.row = null
-      // activeCell.col = null
-    }
-  })
-  if (smartTable.value) resizeObserver.observe(smartTable.value)
-
-  until(gridWrapper)
-    .toBeTruthy()
-    .then(() => calculateSlices())
-})
 
 eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
@@ -1840,17 +1821,10 @@ watch(
                 'desktop': !isMobileMode,
                 'w-full': visibleRows?.length === 0,
               }"
-              :style="{
-                transform: `translateX(${leftOffset}px)`,
-              }"
               @contextmenu="showContextMenu"
             >
-              <tbody ref="tableBodyEl">
-                <tr
-                  v-if="+startRowHeight.split('px')[0] > 32"
-                  class="placeholder top-placeholder"
-                  :style="`height: ${startRowHeight};`"
-                >
+              <thead v-if="+startRowHeight.split('px')[0] > 32">
+                <tr class="placeholder top-placeholder" :style="`height: ${startRowHeight};`">
                   <td
                     class="placeholder-column"
                     :style="{
@@ -1870,6 +1844,13 @@ watch(
                     }"
                   ></td>
                 </tr>
+              </thead>
+              <tbody
+                ref="tableBodyEl"
+                :style="{
+                  transform: `translateX(${leftOffset}px) translateY(${rowSlice.start * rowHeight}px)`,
+                }"
+              >
                 <LazySmartsheetRow
                   v-for="(row, index) in visibleRows"
                   :key="`${row.rowMeta.rowIndex}-${row.rowMeta?.new}`"
@@ -1880,9 +1861,8 @@ watch(
                       class="nc-grid-row transition transition-opacity duration-500 opacity-100 !xs:h-14"
                       :style="{
                         height: `${rowHeight}px`,
-                        transform: `translateY(${rowSlice.start * rowHeight}px)`,
                       }"
-                      :data-testid="`grid-row-${index}`"
+                      :data-testid="`grid-row-${row.rowMeta.rowIndex}`"
                       :class="{
                         '!opacity-0': row.rowMeta.isLoading,
                         'active-row':
@@ -2124,12 +2104,11 @@ watch(
                 <tr
                   v-if="isAddingEmptyRowAllowed"
                   v-e="['c:row:add:grid-bottom']"
-                  class="text-left nc-grid-add-new-cell mb-64 transition-all transform cursor-pointer group relative z-3 xs:hidden"
+                  class="text-left nc-grid-add-new-cell mb-64 transition-all cursor-pointer group relative z-3 xs:hidden"
                   :class="{
                     '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                   }"
                   :style="{
-                    transform: `translateY(${rowSlice.start * rowHeight}px)`,
                     height: '32px',
                     left: `-${leftOffset}px`,
                   }"

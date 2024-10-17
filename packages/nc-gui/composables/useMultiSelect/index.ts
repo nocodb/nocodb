@@ -612,26 +612,12 @@ export function useMultiSelect(
     }
   }
 
-  const handleKeyDown = async (e: KeyboardEvent) => {
-    // invoke the keyEventHandler if provided and return if it returns true
-    if (await keyEventHandler?.(e)) {
-      return true
-    }
-
-    if (isExpandedCellInputExist()) {
-      return
-    }
-
-    if (!isCellActive.value || activeCell.row === null || activeCell.col === null) {
-      return
-    }
-
+  const handleKeyDownAction = async (e: KeyboardEvent) => {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
-    /** on tab key press navigate through cells */
+    if (activeCell.row === null || activeCell.col === null) return
     switch (e.key) {
       case 'Tab':
-        e.preventDefault()
         selectedRange.clear()
 
         if (e.shiftKey) {
@@ -655,42 +641,7 @@ export function useMultiSelect(
         }
         scrollToCell?.()
         break
-      /** on enter key press make cell editable */
-      case 'Enter': {
-        e.preventDefault()
-        selectedRange.clear()
-
-        let row
-
-        if (isGroupBy) {
-          row = (unref(data) as Row[])[activeCell.row]
-        } else {
-          row = (unref(data) as Map<number, Row>).get(activeCell.row)
-        }
-
-        makeEditable(row, unref(fields)[activeCell.col])
-        break
-      }
-
-      /** on delete key press clear cell */
-      case 'Delete':
-      case 'Backspace':
-        e.preventDefault()
-        if (isDataReadOnly.value) {
-          return
-        }
-        if (selectedRange.isSingleCell()) {
-          selectedRange.clear()
-
-          await clearCell(activeCell as { row: number; col: number })
-        } else {
-          await clearSelectedRangeOfCells()
-        }
-        break
-      /** on arrow key press navigate through cells */
       case 'ArrowRight':
-        e.preventDefault()
-
         if (e.shiftKey) {
           if (cmdOrCtrl) {
             editEnabled.value = false
@@ -719,8 +670,6 @@ export function useMultiSelect(
         }
         break
       case 'ArrowLeft':
-        e.preventDefault()
-
         if (e.shiftKey) {
           if (cmdOrCtrl) {
             editEnabled.value = false
@@ -749,8 +698,6 @@ export function useMultiSelect(
         }
         break
       case 'ArrowUp':
-        e.preventDefault()
-
         if (e.shiftKey) {
           const anchor = selectedRange._start ?? activeCell
           let newEnd: Cell
@@ -780,8 +727,6 @@ export function useMultiSelect(
         }
         break
       case 'ArrowDown':
-        e.preventDefault()
-
         if (e.shiftKey) {
           const anchor = selectedRange._start ?? activeCell
           let newEnd: Cell
@@ -812,6 +757,63 @@ export function useMultiSelect(
             editEnabled.value = false
           }
         }
+        break
+      case 'Enter':
+        selectedRange.clear()
+
+        let row
+
+        if (isGroupBy) {
+          row = (unref(data) as Row[])[activeCell.row]
+        } else {
+          row = (unref(data) as Map<number, Row>).get(activeCell.row)
+        }
+
+        makeEditable(row, unref(fields)[activeCell.col])
+        break
+      case 'Delete':
+      case 'Backspace':
+        if (isDataReadOnly.value) {
+          return
+        }
+        if (selectedRange.isSingleCell()) {
+          selectedRange.clear()
+
+          await clearCell(activeCell as { row: number; col: number })
+        } else {
+          await clearSelectedRangeOfCells()
+        }
+        break
+    }
+  }
+
+  const handleThrottledKeyDownAction = useThrottleFn(handleKeyDownAction, 80)
+
+  const handleKeyDown = async (e: KeyboardEvent) => {
+    // invoke the keyEventHandler if provided and return if it returns true
+    if (await keyEventHandler?.(e)) {
+      return true
+    }
+
+    if (isExpandedCellInputExist()) {
+      return
+    }
+
+    if (!isCellActive.value || activeCell.row === null || activeCell.col === null) {
+      return
+    }
+    /** on tab key press navigate through cells */
+    switch (e.key) {
+      case 'Tab':
+      case 'Enter':
+      case 'Delete':
+      case 'Backspace':
+      case 'ArrowRight':
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'ArrowDown':
+        e.preventDefault()
+        await handleThrottledKeyDownAction(e)
         break
       default:
         {

@@ -60,7 +60,7 @@ const pg = {
       builder: knex.raw(
         `(${(await fn(pt.arguments[0])).builder})${
           pt.arguments[0].dataType !== FormulaDataTypes.DATE ? '::DATE' : ''
-        } + (${(await fn(pt.arguments[1])).builder} || 
+        } + (${(await fn(pt.arguments[1])).builder} ||
       '${String((await fn(pt.arguments[2])).builder).replace(
         /["']/g,
         '',
@@ -94,17 +94,17 @@ const pg = {
         break;
       case 'month':
         sql = `(
-                DATE_PART('year', ${datetime_expr1}::TIMESTAMP) - 
+                DATE_PART('year', ${datetime_expr1}::TIMESTAMP) -
                 DATE_PART('year', ${datetime_expr2}::TIMESTAMP)
                ) * 12 + (
-                DATE_PART('month', ${datetime_expr1}::TIMESTAMP) - 
+                DATE_PART('month', ${datetime_expr1}::TIMESTAMP) -
                 DATE_PART('month', ${datetime_expr2}::TIMESTAMP)
                )`;
         break;
       case 'quarter':
-        sql = `((EXTRACT(QUARTER FROM ${datetime_expr1}::TIMESTAMP) + 
-                    DATE_PART('year', AGE(${datetime_expr1}, '1900/01/01')) * 4) - 1) - 
-                ((EXTRACT(QUARTER FROM ${datetime_expr2}::TIMESTAMP) + 
+        sql = `((EXTRACT(QUARTER FROM ${datetime_expr1}::TIMESTAMP) +
+                    DATE_PART('year', AGE(${datetime_expr1}, '1900/01/01')) * 4) - 1) -
+                ((EXTRACT(QUARTER FROM ${datetime_expr2}::TIMESTAMP) +
                     DATE_PART('year', AGE(${datetime_expr2}, '1900/01/01')) * 4) - 1)`;
         break;
       case 'year':
@@ -305,7 +305,7 @@ const pg = {
 
     return {
       builder: knex.raw(
-        `CASE 
+        `CASE
   WHEN ${value} IS NULL OR REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g') IN ('.', '') OR LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^.]+', '', 'g')) > 1 THEN NULL
   WHEN LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^%]', '','g')) > 0 THEN POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]','', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC / 100
   ELSE POW(-1, LENGTH(REGEXP_REPLACE(${value}::TEXT, '[^-]', '', 'g'))) * (REGEXP_REPLACE(${value}::TEXT, '[^\\d.]+', '', 'g'))::NUMERIC
@@ -356,6 +356,19 @@ END ${colAlias}`,
         `(${(await args.fn(args.pt.arguments[0])).builder})::boolean${
           args.colAlias
         }`,
+      ),
+    };
+  },
+  JSON_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `CASE WHEN (${
+          (await fn(pt.arguments[0])).builder
+        })::jsonb IS NOT NULL THEN jsonb_path_query_first((${
+          (await fn(pt.arguments[0])).builder
+        })::jsonb, CONCAT('$', ${
+          (await fn(pt.arguments[1])).builder
+        })::jsonpath) ELSE NULL END${colAlias}`,
       ),
     };
   },

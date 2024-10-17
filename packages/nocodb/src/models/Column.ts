@@ -1147,7 +1147,21 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
 
+      case UITypes.Links:
       case UITypes.LinkToAnotherRecord: {
+        // delete only if all required fields are present
+        if (
+          [
+            'type',
+            'fk_child_column_id',
+            'fk_parent_column_id',
+            'fk_related_model_id',
+          ].some((k) => !column[k])
+        ) {
+          break;
+          s;
+        }
+
         await ncMeta.metaDelete(
           context.workspace_id,
           context.base_id,

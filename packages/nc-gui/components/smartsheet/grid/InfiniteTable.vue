@@ -1010,8 +1010,8 @@ const scrollTop = ref(0)
 const lastScrollTime = ref(Date.now())
 
 function scrollToCell(row?: number | null, col?: number | null, behaviour: ScrollBehavior = 'smooth') {
-  row = activeCell.row
-  col = activeCell.col
+  row = row ?? activeCell.row
+  col = col ?? activeCell.col
 
   const isRapidMovement = Date.now() - lastScrollTime.value < 100
   behaviour = isRapidMovement ? 'auto' : behaviour

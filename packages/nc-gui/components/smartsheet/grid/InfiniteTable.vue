@@ -403,10 +403,6 @@ const startRowHeight = computed(() => `${rowSlice.start * rowHeight.value}px`)
 // The height of placeholder rows after the visible rows
 const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.end) * rowHeight.value)}px`)
 
-const topOffset = computed(() => {
-  return rowHeightInPx[`${props.rowHeightEnum}`] * rowSlice.start
-})
-
 const calculateSlices = () => {
   // if the grid is not rendered yet
   if (!scrollWrapper.value || !gridWrapper.value) {
@@ -1980,7 +1976,7 @@ defineExpose({
               'w-full': visibleRows?.length === 0,
             }"
             :style="{
-              transform: `translateY(${topOffset}px) translateX(${leftOffset}px)`,
+              transform: `translateX(${leftOffset}px)`,
             }"
             @contextmenu="showContextMenu"
           >
@@ -2012,8 +2008,8 @@ defineExpose({
                   <tr
                     class="nc-grid-row transition transition-opacity opacity-100 !xs:h-14"
                     :style="{
-                      transform: `translateY(${row.rowMeta.rowIndex}px)`,
-                      height: `${rowHeightEnum ?? rowHeightInPx['1']}px`,
+                      transform: `translateY(${rowSlice.start * rowHeight}px)`,
+                      height: `${rowHeight}px`,
                     }"
                     :data-testid="`grid-row-${index}`"
                     :class="{

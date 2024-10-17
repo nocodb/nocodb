@@ -252,10 +252,6 @@ const tableBodyEl = ref<HTMLElement>()
 // Ref of the grid wrapper element
 const gridWrapper = ref<HTMLElement>()
 
-// Scroll wrapper can be either the gridWrapper or the injected scrollWrapper
-// Right now, only gridWrapper is used
-const scrollWrapper = computed(() => gridWrapper.value)
-
 // Helper functions for column drag
 // onDrag - called when the user is dragging a column
 // onDragStart - called when the user starts dragging a column
@@ -369,7 +365,7 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
 
 const calculateSlices = () => {
   // if the grid is not rendered yet
-  if (!scrollWrapper.value || !gridWrapper.value) {
+  if (!gridWrapper.value || !gridWrapper.value) {
     colSlice.value = {
       start: 0,
       end: 0,
@@ -390,8 +386,8 @@ const calculateSlices = () => {
     const middle = Math.floor((endRange - startRange) / 2 + startRange)
 
     if (
-      colPositions.value[middle] <= scrollWrapper.value.scrollLeft &&
-      colPositions.value[middle + 1] > scrollWrapper.value.scrollLeft
+      colPositions.value[middle] <= gridWrapper.value.scrollLeft &&
+      colPositions.value[middle + 1] > gridWrapper.value.scrollLeft
     ) {
       renderStart = middle
       break
@@ -401,7 +397,7 @@ const calculateSlices = () => {
       renderStart = endRange
       break
     } else {
-      if (colPositions.value[middle] <= scrollWrapper.value.scrollLeft) {
+      if (colPositions.value[middle] <= gridWrapper.value.scrollLeft) {
         startRange = middle
       } else {
         endRange = middle
@@ -413,7 +409,7 @@ const calculateSlices = () => {
   let renderEndFound = false
 
   for (let i = renderStart; i < colPositions.value.length; i++) {
-    if (colPositions.value[i] > gridWrapper.value.clientWidth + scrollWrapper.value.scrollLeft) {
+    if (colPositions.value[i] > gridWrapper.value.clientWidth + gridWrapper.value.scrollLeft) {
       renderEnd = i
       renderEndFound = true
       break
@@ -426,7 +422,7 @@ const calculateSlices = () => {
   }
 
   const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
-  const visibleCount = Math.ceil(scrollWrapper.value.clientHeight / rowHeight.value)
+  const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
   const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
 
   rowSlice.start = startIndex
@@ -517,9 +513,9 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
 // scrollToAddNewColumnHeader - function to scroll to the last column
 // behavior - scroll behavior
 function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
-  scrollWrapper.value?.scrollTo({
-    top: scrollWrapper.value.scrollTop,
-    left: scrollWrapper.value.scrollWidth,
+  gridWrapper.value?.scrollTo({
+    top: gridWrapper.value.scrollTop,
+    left: gridWrapper.value.scrollWidth,
     behavior,
   })
 }
@@ -1194,7 +1190,7 @@ function scrollToCell(row?: number | null, col?: number | null) {
   row = activeCell.row
   col = activeCell.col
 
-  if (row !== null && col !== null && scrollWrapper.value) {
+  if (row !== null && col !== null && gridWrapper.value) {
     // calculate cell position
     const td = {
       top: row * rowHeight.value,
@@ -1204,7 +1200,7 @@ function scrollToCell(row?: number | null, col?: number | null) {
       bottom: (row + 1) * rowHeight.value,
     }
 
-    const tdScroll = getContainerScrollForElement(td, scrollWrapper.value, {
+    const tdScroll = getContainerScrollForElement(td, gridWrapper.value, {
       top: 9,
       bottom: (tableHeadHeight.value || 40) + 9,
       right: 9,
@@ -1217,11 +1213,11 @@ function scrollToCell(row?: number | null, col?: number | null) {
     }
 
     if (row === totalRows.value - 1) {
-      scrollWrapper.value.scrollTo({
-        top: scrollWrapper.value.scrollHeight,
+      gridWrapper.value.scrollTo({
+        top: gridWrapper.value.scrollHeight,
         left:
           col === fields.value.length - 1 // if corner cell
-            ? scrollWrapper.value.scrollWidth
+            ? gridWrapper.value.scrollWidth
             : tdScroll.left,
         behavior: 'smooth',
       })
@@ -1230,16 +1226,16 @@ function scrollToCell(row?: number | null, col?: number | null) {
 
     if (col === fields.value.length - 1) {
       // if last column make 'Add New Column' visible
-      scrollWrapper.value.scrollTo({
+      gridWrapper.value.scrollTo({
         top: tdScroll.top,
-        left: scrollWrapper.value.scrollWidth,
+        left: gridWrapper.value.scrollWidth,
         behavior: 'smooth',
       })
       return
     }
 
     // scroll into the active cell
-    scrollWrapper.value.scrollTo({
+    gridWrapper.value.scrollTo({
       top: tdScroll.top,
       left: tdScroll.left,
       behavior: 'smooth',
@@ -1288,17 +1284,17 @@ async function saveEmptyRow(rowObj: Row) {
 }
 
 // addEmptyRow - function to add an empty row at the end
-function addEmptyRow(row?: number, skipUpdate: boolean = false) {
+async function addEmptyRow(row?: number, skipUpdate: boolean = false) {
   const rowObj = callAddEmptyRow?.(row)
 
   if (!skipUpdate && rowObj) {
-    saveEmptyRow(rowObj)
+    await saveEmptyRow(rowObj)
   }
 
-  nextTick().then(() => {
+  await nextTick(() => {
+    forceTriggerUpdate.value = forceTriggerUpdate.value + 1
     scrollToRow(row ?? totalRows.value - 1)
   })
-  return rowObj
 }
 
 // onNewRecordToGridClick - function to add a new record from the grid
@@ -1379,7 +1375,7 @@ const refreshFillHandle = () => {
     const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
     const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
     if (rowIndex !== null && colIndex !== null) {
-      if (!scrollWrapper.value || !gridWrapper.value) return
+      if (!gridWrapper.value || !gridWrapper.value) return
 
       // 32 for the header
       fillHandleTop.value = (rowIndex + 1) * rowHeight.value + 32
@@ -1387,7 +1383,7 @@ const refreshFillHandle = () => {
       fillHandleLeft.value =
         64 +
         colPositions.value[colIndex + 1] +
-        (colIndex === 0 ? Math.max(0, scrollWrapper.value.scrollLeft - gridWrapper.value.offsetLeft) : 0)
+        (colIndex === 0 ? Math.max(0, gridWrapper.value.scrollLeft - gridWrapper.value.offsetLeft) : 0)
     }
   })
 }
@@ -1424,7 +1420,7 @@ const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 200)
 
 // On scroll event listener
 // Update the scrollLeft and scrollTop values
-useScroll(scrollWrapper, {
+useScroll(gridWrapper, {
   onScroll: (e) => {
     scrollLeft.value = e.target?.scrollLeft
     scrollTop.value = e.target?.scrollTop
@@ -1535,12 +1531,13 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 })
 
 const reloadViewDataHookHandler = async () => {
+  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+
   await saveOrUpdateRecords({
     keepNewRecords: true,
   })
 
   await syncCount()
-  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
 
   temporaryNewRowStore.value.forEach((row, index) => {
     row.rowMeta.rowIndex = totalRows.value + index
@@ -1548,6 +1545,7 @@ const reloadViewDataHookHandler = async () => {
   })
 
   totalRows.value = totalRows.value + temporaryNewRowStore.value.length
+  forceTriggerUpdate.value = forceTriggerUpdate.value + 1
 }
 
 onMounted(async () => {
@@ -1927,7 +1925,7 @@ defineExpose({
           </table>
           <table
             ref="smartTable"
-            class="xc-row-table nc-grid backgroundColorDefault pb-12 !h-auto bg-white relative"
+            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
             :class="{
               'mobile': isMobileMode,
               'desktop': !isMobileMode,
@@ -2174,6 +2172,7 @@ defineExpose({
                 </template>
               </LazySmartsheetRow>
               <tr
+                v-if="+endRowHeight.split('px')[0] > 32"
                 class="placeholder relative bottom-placeholder"
                 :style="`height: ${endRowHeight}; top: ${rowSlice.end * rowHeight}px;`"
               >
@@ -2620,7 +2619,7 @@ defineExpose({
     z-index: 5;
   }
 
-  tbody td:nth-child(1) {
+  tbody td:not(.placeholder-column):nth-child(1) {
     position: sticky !important;
     left: 0;
     z-index: 4;
@@ -2649,7 +2648,7 @@ defineExpose({
       @apply border-r-1 !border-r-gray-50;
     }
 
-    tbody td:nth-child(2) {
+    tbody td:not(.placeholder-column):nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }
   }

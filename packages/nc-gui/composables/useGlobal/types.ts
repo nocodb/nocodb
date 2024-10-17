@@ -92,7 +92,7 @@ export interface SignOutParams {
 export interface Actions {
   signOut: (signOutParams?: SignOutParams) => Promise<void>
   signIn: (token: string, keepProps?: boolean) => void
-  refreshToken: (params: { axiosInstance?: AxiosInstance; skipLogout?: boolean }) => Promise<void>
+  refreshToken: (params: { axiosInstance?: AxiosInstance; skipLogout?: boolean; cognitoOnly?: boolean }) => Promise<void>
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
   navigateToProject: (params: { workspaceId?: string; baseId?: string; type?: NcProjectType; query?: any }) => void

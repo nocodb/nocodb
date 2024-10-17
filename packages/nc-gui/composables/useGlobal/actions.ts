@@ -1,10 +1,8 @@
 import { getActivePinia } from 'pinia'
-import { useStorage } from '@vueuse/core'
 import type { Actions, AppInfo, Getters, State } from './types'
 import type { NcProjectType } from '#imports'
 
 export function useGlobalActions(state: State, getters: Getters): Actions {
-  const isTokenRefreshInProgress = useStorage(TOKEN_REFRESH_PROGRESS_KEY, false)
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
 
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -65,7 +63,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions {
   }
 
   /** manually try to refresh token */
-  const refreshToken = async ({
+  const _refreshToken = async ({
     axiosInstance,
     skipSignOut = false,
   }: {
@@ -75,16 +73,6 @@ export function useGlobalActions(state: State, getters: Getters): Actions {
     const nuxtApp = useNuxtApp()
     const t = nuxtApp.vueApp.i18n.global.t
 
-    // if token refresh is already in progress, wait until it is completed or timeout
-    if (isTokenRefreshInProgress.value) {
-      await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 10000 })
-
-      // if token is already refreshed and valid return the token
-      if (getters.signedIn.value && state.token.value) {
-        isTokenRefreshInProgress.value = false
-        return state.token.value
-      }
-    }
     isTokenRefreshInProgress.value = true
 
     if (!axiosInstance) {
@@ -108,10 +96,12 @@ export function useGlobalActions(state: State, getters: Getters): Actions {
         message.error(t('msg.error.youHaveBeenSignedOut'))
       }
       return null
-    } finally {
-      isTokenRefreshInProgress.value = false
     }
   }
+
+  const refreshToken = useSharedExecutionFn('refreshToken', _refreshToken, {
+    timeout: 10000,
+  })
 
   const loadAppInfo = async () => {
     try {

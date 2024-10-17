@@ -1,7 +1,6 @@
 import { getActivePinia } from 'pinia'
 import { Auth } from 'aws-amplify'
 import type { AxiosInstance } from 'axios'
-import { useStorage } from '@vueuse/core'
 import type { Actions, AppInfo, Getters, SignOutParams, State } from '../../../composables/useGlobal/types'
 import { NcProjectType } from '#imports'
 
@@ -11,7 +10,6 @@ export interface ActionsEE {
 }
 
 export function useGlobalActions(state: State, getters: Getters): Actions & ActionsEE {
-  const isTokenRefreshInProgress = useStorage(TOKEN_REFRESH_PROGRESS_KEY, false)
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
 
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -91,25 +89,10 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
 
   const checkForCognitoToken = async ({
     axiosInstance,
-    skipStateCheck = false,
   }: {
     axiosInstance?: any
     skipSignOut?: boolean
   } = {}) => {
-    if (!skipStateCheck) {
-      // if token refresh is already in progress, wait until it is completed or timeout
-      if (isTokenRefreshInProgress.value) {
-        await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 10000 })
-
-        // if token is already refreshed and va lid return the token
-        if (getters.signedIn.value && state.token.value) {
-          isTokenRefreshInProgress.value = false
-          return state.token.value
-        }
-      }
-      isTokenRefreshInProgress.value = true
-    }
-
     if (state.token.value && getters.signedIn.value) {
       return
     }
@@ -138,36 +121,20 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
         updateFirstTimeUser()
         await signIn((await tokenRes).data.token)
       }
-    } catch (err) {
-    } finally {
-      if (!skipStateCheck) {
-        isTokenRefreshInProgress.value = false
-      }
-    }
+    } catch (err) {}
   }
 
   /** manually try to refresh token */
-  const refreshToken = async ({
+  const _refreshToken = async ({
     axiosInstance,
-    skipSignOut = false,
+    cognitoOnly = false,
   }: {
     axiosInstance?: AxiosInstance
     skipSignOut?: boolean
+    cognitoOnly?: boolean
   } = {}) => {
     const nuxtApp = useNuxtApp()
     const t = nuxtApp.vueApp.i18n.global.t
-
-    // if token refresh is already in progress, wait until it is completed or timeout
-    if (isTokenRefreshInProgress.value) {
-      await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 10000 })
-
-      // if token is already refreshed and va lid return the token
-      if (getters.signedIn.value && state.token.value) {
-        isTokenRefreshInProgress.value = false
-        return state.token.value
-      }
-    }
-    isTokenRefreshInProgress.value = true
 
     if (!axiosInstance) {
       const nuxtApp = useNuxtApp()
@@ -175,6 +142,12 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     }
 
     try {
+      if (cognitoOnly) {
+        return await checkForCognitoToken({
+          axiosInstance,
+        })
+      }
+
       const response = await axiosInstance.post('/auth/token/refresh', null, {
         withCredentials: true,
       })
@@ -190,7 +163,6 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
         state.token.value = null
         await checkForCognitoToken({
           axiosInstance,
-          skipStateCheck: true,
         })
       } else if (state.token.value && state.user.value) {
         await signOut({
@@ -198,10 +170,12 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
         })
         message.error(t('msg.error.youHaveBeenSignedOut'))
       }
-    } finally {
-      isTokenRefreshInProgress.value = false
     }
   }
+
+  const refreshToken = useSharedExecutionFn('refreshToken', _refreshToken, {
+    timeout: 10000,
+  })
 
   const loadAppInfo = async () => {
     try {
@@ -335,7 +309,6 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     getBaseUrl,
     ncNavigateTo,
     getMainUrl,
-    checkForCognitoToken,
     setGridViewPageSize,
     setLeftSidebarSize,
     setAddNewRecordGridMode,

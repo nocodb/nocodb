@@ -46,14 +46,16 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
 
         isAmplifyConfigured.value = true
 
-        const { checkForCognitoToken, signedIn } = useGlobal()
+        const { refreshToken, signedIn } = useGlobal()
         const { authStatus } = toRefs(useAuthenticator())
 
         watch(
           [authStatus],
           async ([status]) => {
             if (status === 'authenticated' && !signedIn.value) {
-              await checkForCognitoToken()
+              await refreshToken({
+                cognitoOnly: true
+              })
               const route = useRoute()
               if (/signin|signup/i.test(route.name)) {
                 navigateTo('/')

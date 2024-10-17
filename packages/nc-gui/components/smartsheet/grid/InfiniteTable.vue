@@ -331,6 +331,7 @@ const isChunkFullyCached = (chunkId: number) => {
 
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
+
   const firstChunkId = Math.floor(start / CHUNK_SIZE)
   const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
   const currentChunk = lastChunkId
@@ -358,9 +359,6 @@ const updateVisibleRows = async () => {
 
 const visibleRows = computedAsync(async () => {
   const { start, end } = rowSlice
-
-  // Fetch necessary chunks
-  await updateVisibleRows()
 
   return Array.from({ length: end - start }, (_, i) => {
     const rowIndex = start + i
@@ -1631,6 +1629,9 @@ watch(
           await syncCount()
           // Calculate the slices and load the view aggregate and data
           calculateSlices()
+          if (rowSlice.end === 0) {
+            rowSlice.end = Math.min(100, totalRows.value)
+          }
           await Promise.allSettled([loadViewAggregate(), updateVisibleRows()])
         } catch (e) {
           if (!axios.isCancel(e)) {

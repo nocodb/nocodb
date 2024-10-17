@@ -79,10 +79,7 @@ const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'lg'))
 
 const input: VNodeRef = ref<typeof Input>()
 
-watch(dialogShow, async (n, o) => {
-  if (n === o && !n) return
-
-  aiMode.value = null
+const onInit = () => {
   // Clear errors
   setTimeout(async () => {
     form.value?.resetFields()
@@ -99,6 +96,18 @@ watch(dialogShow, async (n, o) => {
     input.value?.$el?.focus()
     input.value?.$el?.select()
   }, 5)
+}
+
+watch(dialogShow, async (n, o) => {
+  if (n === o && !n) return
+
+  aiMode.value = null
+})
+
+watch(aiMode, () => {
+  if (aiMode.value !== false) return
+
+  onInit()
 })
 
 const typeLabel = computed(() => {

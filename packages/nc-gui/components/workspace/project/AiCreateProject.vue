@@ -36,6 +36,8 @@ const callFunction = ref<string | null>(null)
 
 const isExpandedPredefiendBasePromts = ref<boolean>(false)
 
+const aiPromptInputRef = ref<HTMLElement>()
+
 const predefinedBasePrompts = computed(() => {
   return isExpandedPredefiendBasePromts.value
     ? aiBaseSchemaPrompts.filter((prompt) => prompt.tag.toLowerCase().includes(tagSearchQuery.value.toLowerCase()))
@@ -281,6 +283,14 @@ watch(dialogShow, async (n, o) => {
 
   resetToDefault()
 })
+
+onMounted(() => {
+  setTimeout(async () => {
+    await nextTick()
+
+    aiPromptInputRef.value?.focus()
+  }, 5)
+})
 </script>
 
 <template>
@@ -362,6 +372,7 @@ watch(dialogShow, async (n, o) => {
             </div>
             <div>
               <a-textarea
+                ref="aiPromptInputRef"
                 :value="aiFormState.onHoverTagPrompt || aiFormState.prompt"
                 placeholder="Type something..."
                 class="!w-full !min-h-[120px] !rounded-lg mt-2 overflow-y-auto nc-scrollbar-thin nc-input-shadow nc-ai-input"

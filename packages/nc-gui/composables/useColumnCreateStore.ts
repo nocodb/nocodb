@@ -50,6 +50,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const { formattedData, loadData } = useViewData(meta, view, xWhere)
 
+    const { isAiModeFieldModal, activeTabSelectedFields } = usePredictFields(ref(false))
+
     const disableSubmitBtn = ref(false)
 
     const isWebhookCreateModalOpen = ref(false)
@@ -232,15 +234,27 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                 ) {
                   return reject(new Error(t('msg.error.duplicateSystemColumnName')))
                 }
+
+                const isAiFieldExist = isAiModeFieldModal.value
+                  ? activeTabSelectedFields.value.some((c) => {
+                      return (
+                        c.ai_temp_id !== formState.value?.ai_temp_id &&
+                        ((value || '').toLowerCase().trim() === (c.formState?.column_name || '').toLowerCase().trim() ||
+                          (value || '').toLowerCase().trim() === (c.formState?.title || '').toLowerCase().trim())
+                      )
+                    })
+                  : false
+
                 if (
                   value !== '' &&
-                  (tableExplorerColumns?.value || meta.value?.columns)?.some(
+                  ((tableExplorerColumns?.value || meta.value?.columns)?.some(
                     (c) =>
                       c.id !== formState.value.id && // ignore current column
                       // compare against column_name and title
                       ((value || '').toLowerCase() === (c.column_name || '').toLowerCase() ||
                         (value || '').toLowerCase() === (c.title || '').toLowerCase()),
-                  )
+                  ) ||
+                    isAiFieldExist)
                 ) {
                   return reject(new Error(t('msg.error.duplicateColumnName')))
                 }

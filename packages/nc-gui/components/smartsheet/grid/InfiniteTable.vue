@@ -258,14 +258,14 @@ const updateVisibleRows = async () => {
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
 }
 
-const visibleRows = computedAsync(async () => {
+const visibleRows = computed(() => {
   const { start, end } = rowSlice
 
   return Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
     const rowIndex = start + i
     return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
   })
-}, [])
+})
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
@@ -521,7 +521,7 @@ const cellMeta = computed(() => {
 })
 
 function openColumnCreate(data: any) {
-  scrollToAddNewColumnHeader('smooth')
+  scrollToAddNewColumnHeader('instant')
 
   setTimeout(() => {
     addColumnDropdown.value = true
@@ -535,7 +535,7 @@ function closeAddColumnDropdownMenu(scrollToLastCol = false) {
   preloadColumn.value = {}
   if (scrollToLastCol) {
     setTimeout(() => {
-      scrollToAddNewColumnHeader('smooth')
+      scrollToAddNewColumnHeader('instant')
     }, 200)
   }
 }
@@ -766,7 +766,7 @@ const {
           // ALT + C
           if (isAddingColumnAllowed.value) {
             $e('c:shortcut', { key: 'ALT + C' })
-            scrollToAddNewColumnHeader(undefined)
+            scrollToAddNewColumnHeader('instant')
 
             setTimeout(() => {
               addColumnDropdown.value = true
@@ -1117,7 +1117,7 @@ const onVisibilityChange = () => {
 }
 
 const COL_VIRTUAL_MARGIN = 5
-const ROW_VIRTUAL_MARGIN = 20
+const ROW_VIRTUAL_MARGIN = 50
 
 const colSlice = ref({
   start: 0,
@@ -1507,7 +1507,6 @@ const maxGridHeight = computed(() => {
 })
 
 const startRowHeight = computed(() => `${rowSlice.start * rowHeight.value}px`)
-const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.end) * rowHeight.value)}px`)
 
 const { width, height } = useWindowSize()
 
@@ -1543,7 +1542,7 @@ watch(
       ></div>
     </div>
 
-    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative nc-scrollbar-x-lg !overflow-none">
+    <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative !overflow-auto">
       <NcDropdown
         v-model:visible="contextMenu"
         :disabled="contextMenuTarget === null && !selectedRows.length"
@@ -1864,7 +1863,6 @@ watch(
                       }"
                       :data-testid="`grid-row-${row.rowMeta.rowIndex}`"
                       :class="{
-                        '!opacity-0': row.rowMeta.isLoading,
                         'active-row':
                           activeCell.row === row.rowMeta.rowIndex || selectedRange._start?.row === row.rowMeta.rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,
@@ -1908,7 +1906,7 @@ watch(
                             :class="{ 'nc-comment': row.rowMeta?.commentCount }"
                           >
                             <a-spin
-                              v-if="row.rowMeta?.saving"
+                              v-if="row.rowMeta?.saving || row.rowMeta?.isLoading"
                               class="!flex items-center"
                               :data-testid="`row-save-spinner-${row.rowMeta.rowIndex}`"
                             />
@@ -1922,7 +1920,7 @@ watch(
                               {{ row.rowMeta.commentCount }}
                             </span>
                             <div
-                              v-else-if="!row.rowMeta?.saving"
+                              v-else-if="!row.rowMeta?.saving && !row.rowMeta?.isLoading"
                               class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded p-1 hover:(bg-gray-50)"
                             >
                               <component
@@ -2077,30 +2075,6 @@ watch(
                     </tr>
                   </template>
                 </LazySmartsheetRow>
-                <tr
-                  v-if="+endRowHeight.split('px')[0] > 32"
-                  class="placeholder relative bottom-placeholder"
-                  :style="`height: ${endRowHeight}; top: ${rowSlice.end * rowHeight}px;`"
-                >
-                  <td
-                    class="placeholder-column"
-                    :style="{
-                      width: '63px',
-                      left: '0px',
-                    }"
-                  ></td>
-                  <td
-                    v-for="(columnObj, index) in visibleFields"
-                    :key="`placeholder-bottom-${index}`"
-                    class="placeholder-column"
-                    :style="{
-                      width: gridViewCols[columnObj.field.id]?.width || '180px',
-                      left: `${
-                        64 + (gridViewCols[fields[0].id]?.width || 180) + index * (gridViewCols[columnObj.field.id]?.width || 180)
-                      }px`,
-                    }"
-                  ></td>
-                </tr>
                 <tr
                   v-if="isAddingEmptyRowAllowed"
                   v-e="['c:row:add:grid-bottom']"

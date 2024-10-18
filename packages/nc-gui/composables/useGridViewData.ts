@@ -187,6 +187,9 @@ export function useGridViewData(
 
       return data
     } catch (error: any) {
+      if (error?.response?.data.error === 'INVALID_OFFSET_VALUE') {
+        return []
+      }
       if (error?.response?.data?.error === 'FORMULA_ERROR') {
         message.error(await extractSdkResponseErrorMsg(error))
         await tablesStore.reloadTableMeta(metaId.value as string)

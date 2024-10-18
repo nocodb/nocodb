@@ -2096,9 +2096,13 @@ watch(
                 <tr
                   v-if="isAddingEmptyRowAllowed"
                   v-e="['c:row:add:grid-bottom']"
-                  class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
+                  class="text-left nc-grid-add-new-cell transition-all transform cursor-pointer group relative z-3 xs:hidden"
                   :class="{
                     '!border-r-2 !border-r-gray-100': visibleColLength === 1,
+                  }"
+                  :style="{
+                    transform: `translateY(${rowSlice.start * rowHeight}px)`,
+                    height: '32px',
                   }"
                   @mouseup.stop
                   @click="addEmptyRow()"

@@ -55,7 +55,7 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
       s3Options.credentials = {
         accessKeyId: this.input.access_key,
         secretAccessKey: this.input.access_secret,
-      }
+      };
     }
 
     if (this.input.endpoint) {

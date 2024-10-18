@@ -1194,12 +1194,7 @@ watch(activeAiTab, (newValue) => {
             </template>
           </a-input>
           <div class="flex gap-2">
-            <div
-              class="nc-fields-add-new-field-btn-wrapper"
-              :class="{
-                'ai-integration-available': aiIntegrationAvailable,
-              }"
-            >
+            <div class="nc-fields-add-new-field-btn-wrapper shadow-sm">
               <NcTooltip :disabled="isLocked">
                 <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
                 <NcButton
@@ -1208,6 +1203,7 @@ watch(activeAiTab, (newValue) => {
                   size="small"
                   class="nc-field-add-new"
                   :disabled="loading || isLocked"
+                  :shadow="false"
                   @click="addField()"
                 >
                   <div class="flex items-center gap-2">
@@ -1228,6 +1224,7 @@ watch(activeAiTab, (newValue) => {
                       'nc-ai-mode': aiMode,
                     }"
                     icon-only
+                    :shadow="false"
                     @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
                   >
                     <template #icon>
@@ -2011,20 +2008,22 @@ watch(activeAiTab, (newValue) => {
 .nc-fields-add-new-field-btn-wrapper {
   @apply flex items-center mr-1;
 
-  &.ai-integration-available {
-    .nc-field-add-new {
-      @apply rounded-r-none !border-r-transparent;
+  .nc-field-add-new {
+    @apply rounded-r-none !border-r-transparent;
+
+    &.focused {
+      @apply z-10;
     }
+  }
 
-    .nc-field-ai-toggle-btn {
-      @apply rounded-l-none -ml-[1px];
+  .nc-field-ai-toggle-btn {
+    @apply rounded-l-none -ml-[1px];
 
-      &.nc-ai-mode {
-        @apply bg-purple-600 hover:bg-purple-500;
-      }
-      &:not(.nc-ai-mode) {
-        @apply !border-purple-100;
-      }
+    &.nc-ai-mode {
+      @apply bg-purple-600 hover:bg-purple-500;
+    }
+    &:not(.nc-ai-mode) {
+      @apply !border-purple-100;
     }
   }
 }

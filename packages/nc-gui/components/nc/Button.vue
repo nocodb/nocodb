@@ -24,6 +24,7 @@ interface Props {
   iconPosition?: 'left' | 'right'
   theme?: 'default' | 'ai'
   bordered?: boolean
+  shadow?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -35,6 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
   iconPosition: 'left',
   theme: 'default',
   bordered: true,
+  shadow: true
 })
 
 const emits = defineEmits(['update:loading'])
@@ -88,6 +90,7 @@ useEventListener(NcButton, 'mousedown', () => {
       'theme-default': theme === 'default',
       'theme-ai': theme === 'ai',
       'bordered': bordered,
+      'nc-btn-shadow': shadow,
     }"
     :disabled="props.disabled"
     :loading="loading"
@@ -152,7 +155,9 @@ useEventListener(NcButton, 'mousedown', () => {
 .nc-button {
   @apply !xs:(outline-none);
 
-  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  &.nc-btn-shadow{
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  }
   outline: none;
 }
 

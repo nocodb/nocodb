@@ -352,7 +352,7 @@ onMounted(() => {
                     'nc-disabled': !aiIntegrationAvailable,
                   }"
                   :disabled="!aiIntegrationAvailable"
-                  @mouseover="aiFormState.onHoverTagPrompt = prompt.description"
+                  @mouseover="aiFormState.onHoverTagPrompt = aiIntegrationAvailable ? prompt.description : ''"
                   @mouseleave="aiFormState.onHoverTagPrompt = ''"
                   @click="handleUpdatePrompt(prompt.description)"
                 >

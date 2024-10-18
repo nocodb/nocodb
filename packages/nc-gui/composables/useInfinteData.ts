@@ -25,8 +25,9 @@ export function useInfiniteData(args: {
     ) => Promise<Row[] | undefined>
     syncVisibleData?: () => void
   }
+  where?: ComputedRef<string | undefined>,
 }) {
-  const { meta, viewMeta, callbacks } = args
+  const { meta, viewMeta, callbacks, where } = args
 
   const { t } = useI18n()
 
@@ -1037,8 +1038,11 @@ export function useInfiniteData(args: {
       const { count } = isPublic.value
         ? await fetchCount({
             filtersArr: nestedFilters.value,
+          where: where?.value,
           })
-        : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string)
+        : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
+            where: where?.value,
+        })
 
       totalRows.value = count as number
       callbacks?.syncVisibleData?.()

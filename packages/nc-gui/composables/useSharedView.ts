@@ -340,11 +340,12 @@ export function useSharedView() {
     )
   }
 
-  const fetchCount = async (param: { filtersArr: FilterType[] }) => {
+  const fetchCount = async (param: { filtersArr: FilterType[], where?: string }) => {
     const data = await $api.public.dbViewRowCount(
       sharedView.value.uuid!,
       {
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        where: param.where,
       },
       {
         headers: {

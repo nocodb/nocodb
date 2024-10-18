@@ -44,6 +44,7 @@ const props = defineProps<{
   syncCount: () => Promise<void>
   selectedRows: Array<Row>
   syncVisibleData: () => void
+  chunkStates: Map<number, 'loading' | 'loaded'>
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg'])
@@ -158,6 +159,8 @@ const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
 // selectedRows - reactive ref to get the selected rows
 const selectedRows = toRef(props, 'selectedRows')
+
+const chunkStates = toRef(props, 'chunkStates')
 
 // isViewColumnsLoading - reactive ref to check if the view columns are loading
 // updateGridViewColumn - function to update the grid view column
@@ -310,8 +313,6 @@ const BUFFER_SIZE = 10
 
 const forceTriggerUpdate = ref(0)
 
-const chunkStates = new Map<number, 'loading' | 'loaded'>()
-
 // Computed property for visible rows
 const visibleRows = computed(() => {
   const { start, end } = rowSlice
@@ -329,9 +330,9 @@ const visibleRows = computed(() => {
 
 // Function to fetch a single chunk
 const fetchChunk = async (chunkId: number) => {
-  if (chunkStates.get(chunkId)) return
+  if (chunkStates.value.get(chunkId)) return
 
-  chunkStates.set(chunkId, 'loading')
+  chunkStates.value.set(chunkId, 'loading')
   const offset = chunkId * CHUNK_SIZE
 
   try {
@@ -339,10 +340,10 @@ const fetchChunk = async (chunkId: number) => {
     newItems.forEach((item) => {
       cachedLocalRows.value[item.rowMeta.rowIndex] = item
     })
-    chunkStates.set(chunkId, 'loaded')
+    chunkStates.value.set(chunkId, 'loaded')
   } catch (error) {
     console.error('Error fetching chunk:', error)
-    chunkStates.delete(chunkId)
+    chunkStates.value.delete(chunkId)
   }
 }
 
@@ -356,19 +357,12 @@ const updateVisibleRows = async () => {
   const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
 
   const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
-    (chunkId) => !chunkStates.has(chunkId),
+    (chunkId) => !chunkStates.value.has(chunkId),
   )
 
   await Promise.all(chunksToFetch.map(fetchChunk))
 
-  // Clear cache outside buffer zone
-  Object.keys(cachedLocalRows.value).forEach((key) => {
-    const rowIndex = parseInt(key)
-    if (rowIndex < start - BUFFER_SIZE * CHUNK_SIZE || rowIndex >= end + BUFFER_SIZE * CHUNK_SIZE) {
-      delete cachedLocalRows.value[rowIndex]
-      chunkStates.delete(Math.floor(rowIndex / CHUNK_SIZE))
-    }
-  })
+  clearCache(start - BUFFER_SIZE, end + BUFFER_SIZE)
 
   isLoading.value = false
 }
@@ -1652,6 +1646,10 @@ watch(
     immediate: true,
   },
 )
+
+reloadVisibleDataHook?.on(async () => {
+  forceTriggerUpdate.value = forceTriggerUpdate.value + 1
+})
 
 defineExpose({
   scrollToRow,

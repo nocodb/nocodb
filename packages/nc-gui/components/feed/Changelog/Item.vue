@@ -13,7 +13,7 @@ const props = defineProps<{
 }>()
 
 const {
-  item: { 'Published Time': CreatedAt, Description, Title, Tags, Images },
+  item: { 'Published Time': CreatedAt, Description, Title, Tags, Image },
 } = props
 
 const iconColorMap = {
@@ -45,8 +45,6 @@ const tags = computed(() => [
     ...(iconColorMap[tag] || {}),
   })) || []),
 ])
-
-const { getPossibleAttachmentSrc } = useAttachment()
 
 const renderMarkdown = async (markdown: string) => {
   return await unified().use(remarkParse).use(remarkRehype).use(rehypeSanitize).use(rehypeStringify).process(markdown)
@@ -88,8 +86,9 @@ const expand = (e) => {
       class="w-full relative border cursor-pointer border-black h-[334px] xl:h-[394px] w-[540px] xl:w-[638px] border-opacity-10 rounded-t-xl overflow-hidden"
       @click="openLink(item.Url)"
     >
-      <LazyCellAttachmentPreviewImage
-        :srcs="getPossibleAttachmentSrc(Images[0] ?? [], 'card_cover')"
+      <img
+        v-if="Image"
+        :src="Image"
         class="absolute w-full h-full inset-0 object-cover transition-all ease-in-out transform hover:scale-105"
       />
     </div>

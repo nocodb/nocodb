@@ -117,18 +117,19 @@ export function useInfiniteData(args: {
     return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.selected)
   })
 
-  function addEmptyRow(addAfter = totalRows.value, metaValue = meta.value) {
+  function addEmptyRow(newRowIndex = totalRows.value, metaValue = meta.value) {
     const newRow = {
       row: { ...rowDefaultData(metaValue?.columns) },
       oldRow: {},
-      rowMeta: { new: true, rowIndex: addAfter },
+      rowMeta: { new: true, rowIndex: newRowIndex },
     }
+    cachedRows.value.set(newRowIndex, newRow)
 
+    totalRows.value++
     callbacks?.syncVisibleData?.()
 
     return newRow
   }
-
   const linkRecord = async (
     rowId: string,
     relatedRowId: string,
@@ -385,6 +386,7 @@ export function useInfiniteData(args: {
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     undo = false,
+    ignoreShifting = false,
   ): Promise<Record<string, any> | undefined> {
     if (!currentRow.rowMeta) {
       throw new Error('Row metadata is missing')
@@ -402,7 +404,7 @@ export function useInfiniteData(args: {
       })
 
       if (missingRequiredColumns.size) {
-        throw new Error(`Missing required columns: ${Array.from(missingRequiredColumns).join(', ')}`)
+        return
       }
 
       const insertedData = await $api.dbViewRow.create(
@@ -418,7 +420,7 @@ export function useInfiniteData(args: {
 
       const insertIndex = currentRow.rowMeta.rowIndex!
 
-      if (cachedRows.value.has(insertIndex)) {
+      if (cachedRows.value.has(insertIndex) && !ignoreShifting) {
         const rows = Array.from(cachedRows.value.entries())
         const rowsToShift = rows.filter(([index]) => index >= insertIndex)
         rowsToShift.sort((a, b) => b[0] - a[0]) // Sort in descending order
@@ -431,7 +433,10 @@ export function useInfiniteData(args: {
 
       cachedRows.value.set(insertIndex, currentRow)
       syncLocalChunks(insertIndex, 'create')
-      totalRows.value++
+
+      if (!ignoreShifting) {
+        totalRows.value++
+      }
 
       if (!undo) {
         const id = extractPkFromRow(insertedData, metaValue!.columns as ColumnType[])
@@ -676,7 +681,7 @@ export function useInfiniteData(args: {
     await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
 
     if (row.rowMeta.new) {
-      await insertRow(row, ltarState, args)
+      await insertRow(row, ltarState, args, false, true)
     } else if (property) {
       await updateRowProperty(row, property, args)
     }

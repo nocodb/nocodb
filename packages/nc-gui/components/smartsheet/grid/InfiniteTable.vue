@@ -1610,7 +1610,7 @@ watch(
                   }"
                   data-testid="grid-id-column"
                 >
-                  <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center">#</div>
+                  <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center" data-testid="nc-check-all">#</div>
                 </th>
                 <th
                   v-if="fields[0] && fields[0].id"

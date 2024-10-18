@@ -1672,7 +1672,7 @@ defineExpose({
               desktop: !isMobileMode,
             }"
             :style="{
-              transform: `translateX(${leftOffset}px)`,
+              transform: `translateX(${leftOffset}px) translateY(${startRowHeight}})`,
             }"
             class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
           >

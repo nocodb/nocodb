@@ -245,7 +245,11 @@ const updateVisibleRows = async () => {
 }
 
 const visibleRows = computedAsync(async () => {
-  const { start, end } = rowSlice
+  const { start: startRow, end: endRow } = rowSlice
+
+  const start = Math.max(0, startRow - BUFFER_SIZE)
+
+  const end = Math.min(totalRows.value, endRow + BUFFER_SIZE)
 
   return Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
     const rowIndex = start + i
@@ -529,7 +533,7 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
 
 async function openNewRecordHandler() {
   // Add an empty row
-  const newRow = await addEmptyRow(totalRows.value - 1, true)
+  const newRow = await addEmptyRow(totalRows.value + 1, true)
   // Expand the form
   if (newRow) expandForm?.(newRow, undefined, true)
 }
@@ -1061,10 +1065,10 @@ const saveOrUpdateRecords = async (
   args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any; keepNewRecords?: boolean } = {},
 ) => {
   for (const currentRow of args.data || cachedRows.value.entries()) {
-    if (currentRow.rowMeta.fromExpandedForm) continue
+    if (currentRow.rowMeta?.fromExpandedForm) continue
 
     /** if new record save row and save the LTAR cells */
-    if (currentRow.rowMeta.new) {
+    if (currentRow.rowMeta?.new) {
       const beforeSave = clone(currentRow)
       const savedRow = await updateOrSaveRow?.(currentRow, '', currentRow.rowMeta.ltarState || {}, args)
       if (savedRow) {
@@ -1080,7 +1084,7 @@ const saveOrUpdateRecords = async (
     }
 
     /** if existing row check updated cell and invoke update method */
-    if (currentRow.rowMeta.changed) {
+    if (currentRow.rowMeta?.changed) {
       currentRow.rowMeta.changed = false
       for (const field of (args.metaValue || meta.value)?.columns ?? []) {
         // `url` would be enriched in attachment during listing
@@ -1285,18 +1289,18 @@ const reloadViewDataHookHandler = async () => {
     keepNewRecords: true,
   })
 
-  await syncCount()
-
   clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
 
+  await syncCount()
+
   calculateSlices()
+
+  await updateVisibleRows()
 
   temporaryNewRowStore.value.forEach((row, index) => {
     row.rowMeta.rowIndex = totalRows.value + index
     cachedRows.value.set(totalRows.value + index, row)
   })
-
-  totalRows.value = totalRows.value + temporaryNewRowStore.value.length
 }
 
 const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 100)

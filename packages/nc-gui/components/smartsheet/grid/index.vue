@@ -296,20 +296,16 @@ onMounted(() => {
       @prev="goToPreviousRow()"
       @update-row-comment-count="updateRowCommentCount"
     />
-
-    <!-- Suspense>
+    <Suspense>
       <LazyDlgBulkUpdate
         v-if="bulkUpdateDlg"
         v-model="bulkUpdateDlg"
-        :pagination-data="paginationData"
         :meta="meta"
         :view="view"
         :bulk-update-rows="bulkUpdateRows"
-        :bulk-update-view="bulkUpdateView"
-        :selected-all-records="selectedAllRecords"
-        :rows="data.filter((r) => r.rowMeta.selected)"
+        :rows="selectedRows"
       />
-    </Suspense> -->
+    </Suspense>
   </div>
 </template>
 

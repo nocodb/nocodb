@@ -1120,8 +1120,8 @@ const onVisibilityChange = () => {
   }
 }
 
-const COL_VIRTUAL_MARGIN = 5
-const ROW_VIRTUAL_MARGIN = 15
+const COL_VIRTUAL_MARGIN = 10
+const ROW_VIRTUAL_MARGIN = 20
 
 const colSlice = ref({
   start: 0,
@@ -1565,6 +1565,7 @@ watch(
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative nc-scrollbar-x-lg !overflow-none">
       <NcDropdown
         v-model:visible="contextMenu"
+        :disabled="contextMenuTarget === null && !selectedRows.length"
         :trigger="isSqlView ? [] : ['contextmenu']"
         overlay-class-name="nc-dropdown-grid-context-menu"
       >
@@ -2396,7 +2397,7 @@ watch(
   }
 
   td {
-    @apply bg-white border-b transition-all duration-50;
+    @apply bg-white border-b;
   }
 
   td:not(:first-child) {

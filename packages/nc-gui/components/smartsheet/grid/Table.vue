@@ -849,18 +849,24 @@ const isSelectedOnlyAI = computed(() => {
   // selectedRange
   if (selectedRange.start.col === selectedRange.end.col) {
     const field = fields.value[selectedRange.start.col]
-    return (
-      field.uidt === UITypes.AI ||
-      (field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai)
-    )
+    return {
+      enabled:
+        field.uidt === UITypes.AI ||
+        (field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai),
+      disabled: !ncIsArrayIncludes(aiIntegrations.value, (field?.colOptions as ButtonType)?.fk_integration_id, 'id'),
+    }
   }
-  return false
+
+  return {
+    enabled: false,
+    disabled: false,
+  }
 })
 
-const { generateRows, generatingRows, generatingColumnRows, generatingColumns } = useNocoAi()
+const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
 const generateAIBulk = async () => {
-  if (!isSelectedOnlyAI.value || !meta?.value?.id || !meta.value.columns) return
+  if (!isSelectedOnlyAI.value.enabled || !meta?.value?.id || !meta.value.columns) return
 
   const field = fields.value[selectedRange.start.col]
 
@@ -2376,18 +2382,28 @@ onKeyStroke('ArrowDown', onDown)
             <!--              </div> -->
             <!--            </NcMenuItem> -->
 
-            <NcMenuItem
-              v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && isSelectedOnlyAI"
-              class="nc-base-menu-item"
-              data-testid="context-menu-item-bulk"
-              @click="generateAIBulk"
+            <NcTooltip
+              v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && isSelectedOnlyAI.enabled"
+              :disabled="!isSelectedOnlyAI.disabled"
             >
-              <div class="flex gap-2 items-center">
-                <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
-                <!-- Generate All -->
-                Generate {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
-              </div>
-            </NcMenuItem>
+              <template #title>
+                {{
+                  aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                }}
+              </template>
+              <NcMenuItem
+                class="nc-base-menu-item"
+                data-testid="context-menu-item-bulk"
+                :disabled="isSelectedOnlyAI.disabled"
+                @click="generateAIBulk"
+              >
+                <div class="flex gap-2 items-center">
+                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+                  <!-- Generate All -->
+                  Generate {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
 
             <NcMenuItem
               v-if="contextMenuTarget"

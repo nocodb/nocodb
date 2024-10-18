@@ -9,7 +9,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'save'])
 
-const { aiIntegrationAvailable, aiLoading, generateRows, generatingRows, generatingColumnRows, aiIntegrations } = useNocoAi()
+const { generateRows, generatingRows, generatingColumnRows, aiIntegrations } = useNocoAi()
 
 const { row } = useSmartsheetRowStoreOrThrow()
 
@@ -124,7 +124,7 @@ const debouncedSave = useDebounceFn(handleSave, 1000)
         @click.stop="generate"
       >
         <div class="flex items-center gap-1">
-          <GeneralLoader v-if="isLoading" size="regular" />
+          <GeneralLoader v-if="isLoading" size="regular" class="!text-nc-content-purple-dark" />
           <GeneralIcon v-else icon="ncAutoAwesome" class="text-nc-content-purple-dark h-4 w-4" />
           <span class="text-sm font-semibold">Generate</span>
         </div>

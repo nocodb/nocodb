@@ -76,6 +76,7 @@ interface Row {
   rowMeta: {
     // Used in InfiniteScroll Grid View
     rowIndex?: number
+    isLoading?: boolean
 
     new?: boolean
     selected?: boolean

@@ -225,16 +225,13 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   }
 }
 
-const visibleRows = ref<Row[]>([])
-
-const calculateVisibleRows = () => {
+const visibleRows = computed(() => {
   const { start, end } = rowSlice
-
-  visibleRows.value = Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
+  return Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
     const rowIndex = start + i
     return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
   })
-}
+})
 
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
@@ -263,7 +260,6 @@ const updateVisibleRows = async () => {
     }
 
     await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
-    calculateVisibleRows()
   }
 
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
@@ -1136,6 +1132,7 @@ const colSlice = ref({
 
 const lastScrollTop = ref()
 const lastScrollLeft = ref()
+const lastTotalRows = ref()
 
 const calculateSlices = () => {
   // if the grid is not rendered yet
@@ -1152,14 +1149,16 @@ const calculateSlices = () => {
 
   // skip calculation if scrolling only vertical & scroll is smaller than (ROW_VIRTUAL_MARGIN - 2) x smallest row height
   if (
+    lastScrollLeft.value &&
     lastScrollLeft.value === scrollLeft.value &&
-    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (activeVerticalMargin.value - 2)
+    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (activeVerticalMargin.value - 2) &&
+    lastTotalRows.value === totalRows.value
   ) {
     return
   }
 
-  lastScrollTop.value = scrollTop.value
   lastScrollLeft.value = scrollLeft.value
+  lastScrollTop.value = scrollTop.value
 
   let renderStart = 0
 
@@ -1203,17 +1202,18 @@ const calculateSlices = () => {
   const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
 
   const newStart = Math.max(0, startIndex - activeVerticalMargin.value)
-  const newEnd = Math.min(totalRows.value, endIndex + activeVerticalMargin.value)
+  const newEnd = Math.min(totalRows.value, Math.max(endIndex + activeVerticalMargin.value, newStart + 50))
 
   if (
     Math.abs(newStart - rowSlice.start) >= activeVerticalMargin.value / 2 ||
-    Math.abs(newEnd - rowSlice.end) >= activeVerticalMargin.value / 2
+    Math.abs(newEnd - rowSlice.end) >= activeVerticalMargin.value / 2 ||
+    lastTotalRows.value !== totalRows.value
   ) {
     rowSlice.start = newStart
     rowSlice.end = newEnd
 
     updateVisibleRows()
-    calculateVisibleRows()
+    lastTotalRows.value = totalRows.value
   }
 }
 
@@ -1407,6 +1407,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
+const triggerReload = () => {
+  calculateSlices()
+  updateVisibleRows()
+}
+
 onBeforeUnmount(async () => {
   /** save/update records before unmounting the component */
   const viewMetaValue = view.value
@@ -1426,13 +1431,13 @@ onBeforeUnmount(async () => {
   // reset hooks
   reloadViewDataHook?.off(reloadViewDataHookHandler)
   openNewRecordFormHook?.off(openNewRecordHandler)
-  reloadVisibleDataHook?.off(calculateVisibleRows)
+  reloadVisibleDataHook?.off(triggerReload)
 })
 
 openNewRecordFormHook?.on(openNewRecordHandler)
 reloadViewDataHook?.on(reloadViewDataHookHandler)
 
-reloadVisibleDataHook?.on(calculateVisibleRows)
+reloadVisibleDataHook?.on(triggerReload)
 
 watch(contextMenu, () => {
   if (!contextMenu.value) {
@@ -1490,6 +1495,8 @@ watch(
 
 watch([() => fields.value.length, () => cachedRows.value.size], () => {
   calculateSlices()
+  refreshFillHandle()
+  updateVisibleRows()
 })
 
 provide(CellUrlDisableOverlayInj, disableUrlOverlay)

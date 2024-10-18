@@ -961,6 +961,36 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['MID("NocoDB", 3, 2) => "co"', 'MID({column1}, 3, 2)'],
     returnType: FormulaDataTypes.STRING,
   },
+  ISBLANK: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#isblank',
+
+    validation: {
+      args: {
+        rqd: 1,
+        type: [FormulaDataTypes.UNKNOWN],
+      },
+    },
+    description: 'Check if the input parameter is blank.',
+    syntax: 'ISBLANK(value)',
+    examples: ['ISBLANK({column1}) => false', 'ISBLANK("") => true'],
+    returnType: FormulaDataTypes.BOOLEAN,
+  },
+  ISNOTBLANK: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#isnotblank',
+
+    validation: {
+      args: {
+        rqd: 1,
+        type: [FormulaDataTypes.UNKNOWN],
+      },
+    },
+    description: 'Check if the input parameter is not blank.',
+    syntax: 'ISNOTBLANK(value)',
+    examples: ['ISNOTBLANK({column1}) => true', 'ISNOTBLANK("") => false'],
+    returnType: FormulaDataTypes.BOOLEAN,
+  },
   IF: {
     docsUrl:
       'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#if',

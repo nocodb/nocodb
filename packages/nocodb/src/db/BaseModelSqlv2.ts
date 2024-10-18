@@ -10170,7 +10170,16 @@ export function _wherePk(
     return where;
   }
 
-  const ids = Array.isArray(id) ? id : (id + '').split('___');
+  let ids = id;
+
+  if (Array.isArray(id)) {
+    ids = id;
+  } else if (primaryKeys.length === 1) {
+    ids = [id];
+  } else {
+    ids = (id + '').split('___').map((val) => val.replaceAll('\\_', '_'));
+  }
+
   for (let i = 0; i < primaryKeys.length; ++i) {
     if (primaryKeys[i].dt === 'bytea') {
       // if column is bytea, then we need to encode the id to hex based on format

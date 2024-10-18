@@ -120,7 +120,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
       const colProp = sqlUi.value.getDataTypeForUiType(formState.value as { uidt: UITypes }, idType ?? undefined)
       formState.value = {
-        ...(fromTableExplorer?.value || formState.value?.is_ai_field
+        ...(fromTableExplorer?.value || formState.value?.is_ai_field || formState.value?.ai_temp_id
           ? {
               is_ai_field: formState.value?.is_ai_field,
               ai_temp_id: formState.value?.ai_temp_id,

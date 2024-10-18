@@ -113,10 +113,6 @@ const newFields = ref<TableExplorerColumn[]>([])
 
 const isFieldIdCopied = ref(false)
 
-const aiTableWizardCardRef = ref<HTMLDivElement>()
-
-const { height: aiTableWizardHeight } = useElementSize(aiTableWizardCardRef)
-
 const compareCols = (a?: TableExplorerColumn, b?: TableExplorerColumn) => {
   if (a?.id && b?.id) {
     return a.id === b.id

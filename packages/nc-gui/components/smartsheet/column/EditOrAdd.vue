@@ -605,7 +605,7 @@ watch(activeAiTab, (newValue) => {
       'min-w-[446px]': formState.uidt === UITypes.AI,
       '!pb-0': formState.uidt === UITypes.Formula,
       'h-full': props.fromTableExplorer,
-      '!bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt,
+      '!bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt && !props.fromTableExplorer,
     }"
     @keydown="handleEscape"
     @click.stop
@@ -967,7 +967,7 @@ watch(activeAiTab, (newValue) => {
           @keydown.up.stop="handleResetHoverEffect"
           @keydown.down.stop="handleResetHoverEffect"
         >
-          <NcTooltip :disabled="!(!isEdit && aiAutoSuggestMode && formState.uidt)">
+          <NcTooltip :disabled="!(!isEdit && formState.uidt && !!formState?.ai_temp_id)">
             <template #title>
               You cannot edit field types of AI-generated fields. Edits can be made after the field is created.</template
             >
@@ -977,7 +977,7 @@ watch(activeAiTab, (newValue) => {
               class="nc-column-type-input nc-select-shadow !rounded-lg"
               :class="{
                 'nc-ai-input': isAiMode,
-                '!pointer-events-none !cursor-not-allowed': !isEdit && aiAutoSuggestMode && formState.uidt,
+                '!pointer-events-none !cursor-not-allowed': !isEdit && formState.uidt && !!formState?.ai_temp_id,
               }"
               :disabled="
                 (isEdit && isMetaReadOnly && !readonlyMetaAllowedTypes.includes(formState.uidt)) ||

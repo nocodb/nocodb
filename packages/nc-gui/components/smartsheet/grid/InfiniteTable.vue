@@ -535,7 +535,7 @@ const closeAddColumnDropdown = (scrollToLastCol = false) => {
 
 async function openNewRecordHandler() {
   // Add an empty row
-  const newRow = addEmptyRow(totalRows.value + 1, true)
+  const newRow = await addEmptyRow(totalRows.value - 1, true)
   // Expand the form
   if (newRow) expandForm?.(newRow, undefined, true)
 }
@@ -827,6 +827,7 @@ async function addEmptyRow(row?: number, skipUpdate: boolean = false) {
   await nextTick(() => {})
 
   scrollToRow(row ?? totalRows.value - 1)
+  return rowObj
 }
 
 const confirmDeleteRow = (row: number) => {
@@ -2088,30 +2089,6 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
                   }"
                 ></td>
               </tr>
-              <tr
-                v-if="isAddingEmptyRowAllowed"
-                v-e="['c:row:add:grid-bottom']"
-                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
-                :class="{
-                  '!border-r-2 !border-r-gray-100': visibleColLength === 1,
-                }"
-                :style="{
-                  left: `-${leftOffset}px `,
-                }"
-                @mouseup.stop
-                @click="addEmptyRow()"
-              >
-                <td
-                  class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
-                >
-                  <component
-                    :is="iconMap.plus"
-                    v-if="!isViewColumnsLoading"
-                    class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
-                  />
-                </td>
-                <td class="!border-gray-100" :colspan="visibleColLength"></td>
-              </tr>
             </tbody>
           </table>
           <div
@@ -2265,7 +2242,7 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
           <NcButton
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row"
+            class="nc-grid-add-new-row nc-grid-add-new-cell"
             size="small"
             type="secondary"
             @click.stop="onNewRecordToFormClick()"

@@ -272,7 +272,7 @@ export function useInfiniteData(args: {
     const removedRowsData: Record<string, any>[] = []
     let compositePrimaryKey: string = ''
 
-    for (const [_index, row] of cachedRows.value) {
+    for (const row of selectedRows.value) {
       const { row: rowData, rowMeta } = row
 
       if (!rowMeta.selected || rowMeta.new) {
@@ -280,14 +280,15 @@ export function useInfiniteData(args: {
       }
 
       const extractedPk = extractPk(meta?.value?.columns as ColumnType[])
-      compositePrimaryKey = extractPkFromRow(rowData, meta?.value?.columns as ColumnType[]) as string
+      const compositePkValue = extractPkFromRow(rowData, meta?.value?.columns as ColumnType[]) as string
       const pkData = rowPkData(rowData, meta?.value?.columns as ColumnType[])
 
-      if (extractedPk && compositePrimaryKey) {
+      if (extractedPk && compositePkValue) {
+        if (!compositePrimaryKey) compositePrimaryKey = extractedPk
         removedRowsData.push({
-          [extractedPk]: compositePrimaryKey,
+          [compositePrimaryKey]: compositePkValue as string,
           pkData,
-          row: { ...rowData },
+          row: clone(row.row),
           rowMeta,
         })
       }

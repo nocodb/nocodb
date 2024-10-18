@@ -77,7 +77,7 @@ export function useGridViewData(
     deleteSelectedRows,
     deleteRangeOfRows,
     updateOrSaveRow,
-    cachedLocalRows,
+    cachedRows,
     clearCache,
     totalRows,
     bulkUpdateRows,
@@ -103,26 +103,25 @@ export function useGridViewData(
     const rowId = routeQuery.value.rowId
     if (!rowId) return -1
 
-    for (const [index, row] of Object.entries(cachedLocalRows.value)) {
-      console.log(extractPkFromRow(row.row, meta.value?.columns as ColumnType[]))
+    for (const [_index, row] of cachedRows.value.entries()) {
       if (extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === rowId) {
-        return parseInt(index)
+        return row.rowMeta.rowIndex!
       }
     }
-
-    console.log('notFouns')
     return -1
   }
 
   const isLastRow = computed(() => {
     const expandedRowIndex = getExpandedRowIndex()
     if (expandedRowIndex === -1) return false
+
     return expandedRowIndex === totalRows.value - 1
   })
 
   const isFirstRow = computed(() => {
     const expandedRowIndex = getExpandedRowIndex()
     if (expandedRowIndex === -1) return false
+
     return expandedRowIndex === 0
   })
 
@@ -132,39 +131,36 @@ export function useGridViewData(
     where: where?.value ?? '',
   }))
 
-  /** load row comments count */
   async function loadAggCommentsCount(formattedData: Array<Row>) {
-    if (!isUIAllowed('commentCount')) return
-
-    if (isPublic.value) return
+    if (!isUIAllowed('commentCount') || isPublic.value) return
 
     const ids = formattedData
-      ?.filter(({ rowMeta: { new: isNew } }) => !isNew)
-      ?.map(({ row }) => {
-        return extractPkFromRow(row, meta?.value?.columns as ColumnType[])
-      })
+      .filter(({ rowMeta: { new: isNew } }) => !isNew)
+      .map(({ row }) => extractPkFromRow(row, meta?.value?.columns as ColumnType[]))
+      .filter(Boolean)
 
-    if (!ids?.length || ids?.some((id) => !id)) return
+    if (!ids.length) return
 
     try {
       const aggCommentCount = await $api.utils.commentCount({
         ids,
         fk_model_id: metaId.value as string,
       })
-      for (const row of formattedData) {
-        const rowIndex = row.rowMeta.rowIndex!
-        if (!cachedLocalRows.value[rowIndex]) continue
-        const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-        cachedLocalRows.value[rowIndex].rowMeta.commentCount = +(
-          aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
+
+      formattedData.forEach((row) => {
+        const cachedRow = Array.from(cachedRows.value.values()).find(
+          (cachedRow) => cachedRow.rowMeta.rowIndex === row.rowMeta.rowIndex,
         )
-      }
+        if (!cachedRow) return
+
+        const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+        const count = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
+        cachedRow.rowMeta.commentCount = +count
+      })
     } catch (e) {
-      console.error(e)
+      console.error('Failed to load aggregate comment count:', e)
     }
   }
-
-  const controller = ref()
 
   async function loadData(
     params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
@@ -173,100 +169,86 @@ export function useGridViewData(
   ) {
     if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
 
-    if (controller.value) {
-      //  controller.value.cancel()
-    }
-
-    const CancelToken = axios.CancelToken
-
-    controller.value = CancelToken.source()
-
-    let response
-
     try {
-      response = !isPublic.value
-        ? await $api.dbViewRow.list(
-            'noco',
-            base.value.id!,
-            metaId.value!,
-            viewMeta.value!.id!,
-            {
-              ...queryParams.value,
-              ...params,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
-              where: where?.value,
-              ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
-            } as any,
-            {
-              cancelToken: controller.value.token,
-            },
-          )
+      const response = !isPublic.value
+        ? await $api.dbViewRow.list('noco', base.value.id!, metaId.value!, viewMeta.value!.id!, {
+            ...queryParams.value,
+            ...params,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            where: where?.value,
+            ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
+          } as any)
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value })
+
+      const data = formatData(response.list, response.pageInfo)
+
+      await loadAggCommentsCount(data)
+
+      return data
     } catch (error: any) {
-      // if the request is canceled, then do nothing
-      if (error.code === 'ERR_CANCELED') {
-        return
-      }
-      // retry the request if the error is FORMULA_ERROR
       if (error?.response?.data?.error === 'FORMULA_ERROR') {
         message.error(await extractSdkResponseErrorMsg(error))
-
         await tablesStore.reloadTableMeta(metaId.value as string)
-
         return loadData(params)
       }
 
       console.error(error)
-      return message.error(await extractSdkResponseErrorMsg(error))
+      message.error(await extractSdkResponseErrorMsg(error))
     }
-
-    const data = formatData(response.list, response.pageInfo)
-
-    loadAggCommentsCount(data)
-
-    return data
   }
 
   const navigateToSiblingRow = async (dir: NavigateDir) => {
     const expandedRowIndex = getExpandedRowIndex()
-    console.log(expandedRowIndex)
     if (expandedRowIndex === -1) return
 
-    // calculate next row index based on direction
-    let siblingVirtualIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+    const sortedIndices = Array.from(cachedRows.value.keys()).sort((a, b) => a - b)
+    let siblingIndex = sortedIndices.findIndex((index) => index === expandedRowIndex) + (dir === NavigateDir.NEXT ? 1 : -1)
 
-    // if unsaved row skip it
-    while (cachedLocalRows.value[expandedRowIndex]?.rowMeta?.new) {
-      siblingVirtualIndex = siblingVirtualIndex + (dir === NavigateDir.NEXT ? 1 : -1)
+    // Skip unsaved rows
+    while (
+      siblingIndex >= 0 &&
+      siblingIndex < sortedIndices.length &&
+      cachedRows.value.get(sortedIndices[siblingIndex])?.rowMeta?.new
+    ) {
+      siblingIndex += dir === NavigateDir.NEXT ? 1 : -1
     }
 
-    // if next row index is less than 0, there's no previous row
-    if (siblingVirtualIndex < 0) {
+    // Check if we've gone out of bounds
+    if (siblingIndex < 0 || siblingIndex >= totalRows.value) {
       return message.info(t('msg.info.noMoreRecords'))
     }
 
-    if (!cachedLocalRows.value[expandedRowIndex]) {
+    // If the sibling row is not in cachedRows, load more data
+    if (siblingIndex >= sortedIndices.length) {
       await loadData({
-        offset: siblingVirtualIndex,
+        offset: sortedIndices[sortedIndices.length - 1] + 1,
         limit: 10,
       })
+      sortedIndices.push(
+        ...Array.from(cachedRows.value.keys())
+          .filter((key) => !sortedIndices.includes(key))
+          .sort((a, b) => a - b),
+      )
     }
 
-    // extract the row id of the sibling row
-    const rowId = extractPkFromRow(cachedLocalRows.value[expandedRowIndex].row, meta.value?.columns as ColumnType[])
-    if (rowId) {
-      await router.push({
-        query: {
-          ...routeQuery.value,
-          rowId,
-        },
-      })
+    // Extract the row id of the sibling row
+    const siblingRow = cachedRows.value.get(sortedIndices[siblingIndex])
+    if (siblingRow) {
+      const rowId = extractPkFromRow(siblingRow.row, meta.value?.columns as ColumnType[])
+      if (rowId) {
+        await router.push({
+          query: {
+            ...routeQuery.value,
+            rowId,
+          },
+        })
+      }
     }
   }
 
   return {
-    cachedLocalRows,
+    cachedRows,
     loadData,
     paginationData,
     queryParams,

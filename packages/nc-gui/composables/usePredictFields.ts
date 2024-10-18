@@ -92,7 +92,30 @@ export const usePredictFields = createSharedComposable(
       if (!activeTabSelectedFields.value.length) return rulesObj
 
       for (const column of activeTabSelectedFields.value) {
-        let rules: RuleObject[] = []
+        let rules: RuleObject[] = [
+          {
+            validator: (_rule: RuleObject, value: any) => {
+              return new Promise((resolve, reject) => {
+                const isAiFieldExist = isAiModeFieldModal.value
+                  ? activeTabSelectedFields.value.some((c) => {
+                      return (
+                        c.ai_temp_id !== value?.ai_temp_id &&
+                        value?.title &&
+                        (value.title.toLowerCase().trim() === (c.formState?.column_name || '').toLowerCase().trim() ||
+                          value.title.toLowerCase().trim() === (c.formState?.title || '').toLowerCase().trim() ||
+                          value.title.toLowerCase().trim() === (c?.title || '').toLowerCase().trim())
+                      )
+                    })
+                  : false
+                if (isAiFieldExist) {
+                  return reject(new Error(`${t('msg.error.duplicateColumnName')} "${value?.title}"`))
+                }
+
+                return resolve()
+              })
+            },
+          },
+        ]
 
         switch (column.type) {
           case UITypes.Formula: {
@@ -387,7 +410,12 @@ export const usePredictFields = createSharedComposable(
         console.error(e)
 
         if (e?.errorFields?.length) {
-          message.error(t('msg.error.someOfTheRequiredFieldsAreEmpty'))
+          const erros = e?.errorFields
+            .map((field, idx) => (field?.errors?.length ? `${idx + 1}. ${field?.errors?.join(',')}` : ''))
+            .join(', ')
+
+          message.error(erros || t('msg.error.someOfTheRequiredFieldsAreEmpty'))
+
           return
         }
       }

@@ -138,6 +138,7 @@ export function useSharedView() {
     },
     opts?: {
       isGroupBy?: boolean
+      isInfiniteScroll?: boolean
     },
   ) => {
     if (!sharedView.value)
@@ -148,7 +149,9 @@ export function useSharedView() {
 
     if (!param.offset) {
       const page = paginationData.value.page || 1
-      const pageSize = opts?.isGroupBy
+      const pageSize = opts?.isInfiniteScroll
+        ? param.limit
+        : opts?.isGroupBy
         ? appInfo.value.defaultGroupByLimit?.limitRecord || 10
         : paginationData.value.pageSize || appInfoDefaultLimit
       param.offset = (page - 1) * pageSize

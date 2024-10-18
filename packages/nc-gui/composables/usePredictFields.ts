@@ -177,7 +177,7 @@ export const usePredictFields = createSharedComposable(
             ...f,
             tab: activeAiTab.value,
             ai_temp_id: `temp_${++temporaryAddCount.value}`,
-            selected: false,
+            selected: isFromTableExplorer?.value ? false : true,
           }
 
           if (isFromTableExplorer?.value) {

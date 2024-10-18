@@ -548,6 +548,7 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
       return {
         ...v,
         tab: activeAiTab.value,
+        selected: true,
       }
     })
 }
@@ -847,18 +848,17 @@ const getPluralName = (name: string) => {
           <NcButton
             type="text"
             size="small"
-            theme="ai"
-            class="-my-1"
+            class="-my-1 !text-nc-content-purple-dark hover:text-nc-content-purple-dark"
             :class="{
               '!pointer-events-none !cursor-not-allowed': aiLoading,
-              '!bg-nc-bg-purple-dark hover:(!bg-purple-500 !text-white)': aiMode,
+              '!bg-nc-bg-purple-dark hover:!bg-gray-100': aiMode,
             }"
             @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
           >
             <div class="flex items-center justify-center">
               <GeneralIcon icon="ncAutoAwesome" />
               <span
-                class="overflow-hidden trasition-all duration-200"
+                class="overflow-hidden trasition-all ease duration-200"
                 :class="{ 'w-[0px] invisible': aiMode, 'ml-1 w-[78px]': !aiMode }"
               >
                 Use NocoAI

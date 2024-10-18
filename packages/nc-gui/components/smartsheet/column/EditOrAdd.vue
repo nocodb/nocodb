@@ -585,8 +585,8 @@ watch(activeAiTab, (newValue) => {
     nextTick(() => {
       aiPromptInputRef.value?.focus()
     })
-    onSelectedTagClick()
   }
+  onSelectedTagClick()
 })
 </script>
 
@@ -636,18 +636,17 @@ watch(activeAiTab, (newValue) => {
             <NcButton
               type="text"
               size="small"
-              theme="ai"
-              class="-my-1"
+              class="-my-1 !text-nc-content-purple-dark hover:text-nc-content-purple-dark"
               :class="{
                 '!pointer-events-none !cursor-not-allowed': aiLoading,
-                '!bg-nc-bg-purple-dark hover:(!bg-purple-500 !text-white)': aiAutoSuggestMode,
+                '!bg-nc-bg-purple-dark hover:!bg-gray-100': aiAutoSuggestMode,
               }"
               @click.stop="aiAutoSuggestMode ? disableAiMode() : toggleAiMode()"
             >
               <div class="flex items-center justify-center">
                 <GeneralIcon icon="ncAutoAwesome" />
                 <span
-                  class="overflow-hidden trasition-all duration-200"
+                  class="overflow-hidden trasition-all ease duration-200"
                   :class="{ 'w-[0px] invisible': aiAutoSuggestMode, 'ml-1 w-[78px]': !aiAutoSuggestMode }"
                 >
                   Use NocoAI

@@ -139,8 +139,6 @@ const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta
 
 const resizingColumn = ref(false)
 
-const scrollToCell = useThrottleFn(_scrollToCell, 500)
-
 const columnWidthLimit = {
   [UITypes.Attachment]: {
     minWidth: 80,
@@ -1017,17 +1015,9 @@ const scrollLeft = ref(0)
 
 const scrollTop = ref(0)
 
-const lastScrollTime = ref(Date.now())
-
-function _scrollToCell(row?: number | null, col?: number | null, behaviour: ScrollBehavior = 'smooth') {
+function scrollToCell(row?: number | null, col?: number | null, behaviour: ScrollBehavior = 'instant') {
   row = row ?? activeCell.row
   col = col ?? activeCell.col
-
-  /*  const timeSub = Date.now() - lastScrollTime.value
-  console.log(timeSub)
-  const isRapidMovement = timeSub < 100
-  behaviour = isRapidMovement ? 'auto' : behaviour
-  lastScrollTime.value = Date.now() */
 
   if (row !== null && col !== null && gridWrapper.value) {
     // calculate cell position
@@ -1130,8 +1120,8 @@ const onVisibilityChange = () => {
   }
 }
 
-const COL_VIRTUAL_MARGIN = 10
-const ROW_VIRTUAL_MARGIN = 20
+const COL_VIRTUAL_MARGIN = 5
+const ROW_VIRTUAL_MARGIN = 15
 
 const colSlice = ref({
   start: 0,
@@ -1321,15 +1311,13 @@ const reloadViewDataHookHandler = async () => {
   })
 }
 
-const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 100)
-
 useScroll(gridWrapper, {
   onScroll: (e) => {
     scrollLeft.value = e.target?.scrollLeft
     scrollTop.value = e.target?.scrollTop
     calculateSlices()
 
-    debouncedUpdateVisibleItems()
+    updateVisibleRows()
 
     refreshFillHandle()
   },
@@ -1888,13 +1876,14 @@ watch(
                 >
                   <template #default="{ state }">
                     <tr
-                      class="nc-grid-row transition transition-opacity opacity-100 !xs:h-14"
+                      class="nc-grid-row transition transition-opacity duration-500 opacity-100 !xs:h-14"
                       :style="{
                         height: `${rowHeight}px`,
                         transform: `translateY(${rowSlice.start * rowHeight}px)`,
                       }"
                       :data-testid="`grid-row-${index}`"
                       :class="{
+                        '!opacity-0': row.rowMeta.isLoading,
                         'active-row':
                           activeCell.row === row.rowMeta.rowIndex || selectedRange._start?.row === row.rowMeta.rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,
@@ -2407,7 +2396,7 @@ watch(
   }
 
   td {
-    @apply bg-white border-b;
+    @apply bg-white border-b transition-all duration-50;
   }
 
   td:not(:first-child) {

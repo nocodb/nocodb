@@ -615,7 +615,7 @@ test.describe('Toolbar operations (GRID)', () => {
     await dashboard.closeTab({ title: 'Country' });
   });
 
-  test('row height', async () => {
+  test.only('row height', async () => {
     // define an array of row heights
     const rowHeight = [
       { title: 'Short', height: '32px' },

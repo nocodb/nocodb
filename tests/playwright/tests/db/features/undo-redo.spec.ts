@@ -299,7 +299,10 @@ test.describe('Undo Redo', () => {
 
   test('Row height', async ({ page }) => {
     async function verifyRowHeight({ height }: { height: string }) {
-      await expect(dashboard.grid.rowPage.getRecord(0)).toHaveAttribute('style', `height: ${height};`);
+      await expect(dashboard.grid.rowPage.getRecord(0)).toHaveAttribute(
+        'style',
+        expect.stringMatching(new RegExp(`height:\\s*${height}px;`))
+      );
     }
 
     // close 'Team & Auth' tab

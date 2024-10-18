@@ -29,6 +29,10 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 
+const reloadVisibleDataHook = createEventHook()
+
+provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
+
 const tableRef = ref<typeof Table>()
 
 useProvideViewAggregate(view, meta, xWhere)
@@ -49,10 +53,11 @@ const {
   bulkUpdateView,
   syncCount,
   totalRows,
+  syncVisibleData,
   optimisedQuery,
   isLastRow,
   isFirstRow,
-} = useGridViewData(meta, view, xWhere)
+} = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
   if ((view.value?.view as GridType)?.row_height !== undefined) {
@@ -246,6 +251,7 @@ onMounted(() => {
       :total-rows="totalRows"
       :sync-count="syncCount"
       :expand-form="expandForm"
+      :sync-visible-data="syncVisibleData"
       :remove-row-if-new="removeRowIfNew"
       :row-height-enum="rowHeight"
       :selected-rows="selectedRows"

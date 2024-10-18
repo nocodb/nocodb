@@ -88,6 +88,10 @@ const inputWrapperRef = ref<HTMLElement | null>(null)
 
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 
+const aiWarningRef = ref<HTMLDivElement>()
+
+const { height: aiWarningRefHeight } = useElementSize(aiWarningRef)
+
 watch(isVisible, () => {
   if (isVisible.value) {
     setTimeout(() => {
@@ -492,7 +496,7 @@ watch([isVisible, inputRef], (value) => {
             </div>
           </template>
         </div>
-        <div v-if="props.isAi && props.aiMeta?.isStale">
+        <div v-if="props.isAi && props.aiMeta?.isStale" ref="aiWarningRef">
           <div class="flex items-center p-4 bg-nc-bg-purple-light gap-4">
             <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-6 w-6" />
             <div class="flex flex-col">
@@ -510,7 +514,12 @@ watch([isVisible, inputRef], (value) => {
             v-model:value="vModel"
             class="nc-text-area-expanded !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
             :placeholder="$t('activity.enterText')"
-            :style="{ resize: 'both' }"
+            :style="{
+              resize: 'both',
+              maxHeight: props.isAi
+                ? `min(795px - ${aiWarningRefHeight + 8}px, 100vh - 170px - ${aiWarningRefHeight + 8}px)`
+                : 'min(795px, 100vh - 170px)',
+            }"
             :disabled="readOnly || (props.isAi && aiLoading) || (props.isAi && isEditColumn)"
             @keydown.escape="isVisible = false"
             @keydown.alt.stop
@@ -580,7 +589,7 @@ textarea:focus {
 
       .expanded-cell-input-ai {
         .nc-text-area-expanded {
-          max-height: min(783px, 100vh - 180px);
+          max-height: min(783px - 76px, 100vh - 180px);
         }
       }
     }

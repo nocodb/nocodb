@@ -257,12 +257,13 @@ export const useNocoAi = createSharedComposable(() => {
         },
     rowIds: string[],
     skipMsgToast = true,
+    preview = false,
   ) => {
     try {
       aiLoading.value = true
       aiError.value = ''
 
-      const res = await $api.ai.dataGenerate(modelId, { rowIds, column })
+      const res = await $api.ai.dataGenerate(modelId, { rowIds, column, preview })
 
       return res
     } catch (e) {

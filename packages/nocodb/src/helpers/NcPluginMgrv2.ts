@@ -120,10 +120,7 @@ class NcPluginMgrv2 {
      * NC_S3_REGION
      * */
 
-    if (
-      process.env.NC_S3_BUCKET_NAME &&
-      process.env.NC_S3_REGION
-    ) {
+    if (process.env.NC_S3_BUCKET_NAME && process.env.NC_S3_REGION) {
       const s3Plugin = await Plugin.getPluginByTitle(S3PluginConfig.title);
       const s3CfgData: Record<string, any> = {
         bucket: process.env.NC_S3_BUCKET_NAME,
@@ -131,10 +128,10 @@ class NcPluginMgrv2 {
         endpoint: process.env.NC_S3_ENDPOINT,
         force_path_style: process.env.NC_S3_FORCE_PATH_STYLE === 'true',
         acl: process.env.NC_S3_ACL,
-      }
+      };
       if (process.env.NC_S3_ACCESS_KEY && process.env.NC_S3_ACCESS_SECRET) {
-        s3CfgData.access_key = process.env.NC_S3_ACCESS_KEY
-        s3CfgData.access_secret = process.env.NC_S3_ACCESS_SECRET
+        s3CfgData.access_key = process.env.NC_S3_ACCESS_KEY;
+        s3CfgData.access_secret = process.env.NC_S3_ACCESS_SECRET;
       }
       await Plugin.update(s3Plugin.id, {
         active: true,

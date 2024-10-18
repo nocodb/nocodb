@@ -90,8 +90,8 @@ export function useInfiniteData(args: {
 
     if (cachedRows.value.size <= MAX_CACHE_SIZE) return
 
-    const safeStartIndex = Math.max(0, visibleStartIndex - BUFFER_SIZE)
-    const safeEndIndex = Math.min(totalRows.value - 1, visibleEndIndex + BUFFER_SIZE)
+    const safeStartIndex = Math.max(0, visibleStartIndex)
+    const safeEndIndex = Math.min(totalRows.value - 1, visibleEndIndex)
     const safeStartChunk = Math.floor(safeStartIndex / CHUNK_SIZE)
     const safeEndChunk = Math.floor(safeEndIndex / CHUNK_SIZE)
 

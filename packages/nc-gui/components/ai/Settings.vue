@@ -31,17 +31,25 @@ const isDropdownOpen = ref(false)
 
 const availableModels = ref<string[]>([])
 
-const onIntegrationChange = async () => {
-  if (!vFkIntegrationId.value) return
+const isLoadingAvailableModels = ref<boolean>(false)
+
+const onIntegrationChange = async (newFkINtegrationId?: string) => {
+  if (!vFkIntegrationId.value && !newFkINtegrationId) return
+
+  if (!newFkINtegrationId) {
+    newFkINtegrationId = vFkIntegrationId.value
+  }
 
   availableModels.value = []
 
-  if (lastIntegrationId.value !== vFkIntegrationId.value) {
+  if (lastIntegrationId.value !== newFkINtegrationId) {
     vModel.value = undefined
   }
 
+  isLoadingAvailableModels.value = true
+
   try {
-    const response = await $api.integrations.endpoint(vFkIntegrationId.value, 'availableModels', {})
+    const response = await $api.integrations.endpoint(newFkINtegrationId, 'availableModels', {})
     availableModels.value = response as string[]
 
     if (!vModel.value && availableModels.value.length > 0) {
@@ -49,6 +57,8 @@ const onIntegrationChange = async () => {
     }
   } catch (error) {
     console.error(error)
+  } finally {
+    isLoadingAvailableModels.value = false
   }
 }
 
@@ -140,11 +150,24 @@ onMounted(async () => {
                 v-model:value="vModel"
                 class="w-full nc-select-shadow nc-ai-input"
                 size="middle"
-                :disabled="!vFkIntegrationId"
-                :loading="vFkIntegrationId?.length > 0 && availableModels.length === 0"
+                :disabled="!vFkIntegrationId || availableModels.length === 0"
+                :loading="isLoadingAvailableModels"
               >
                 <a-select-option v-for="md in availableModels" :key="md" :value="md">
-                  {{ md }}
+                  <div class="w-full flex gap-2 items-center">
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ md }}
+                      </template>
+                      {{ md }}
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="vModel === md"
+                      id="nc-selected-item-icon"
+                      class="text-nc-content-purple-medium w-4 h-4"
+                    />
+                  </div>
                 </a-select-option>
               </NcSelect>
             </a-form-item>

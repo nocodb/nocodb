@@ -12,9 +12,13 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { setAdditionalValidations } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, isEdit } = useColumnCreateStoreOrThrow()
 
 const { aiIntegrationAvailable } = useNocoAi()
+
+if (isEdit.value) {
+  vModel.value.fk_integration_id = vModel.value?.colOptions?.fk_integration_id
+}
 
 setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('general.required') }] })
 </script>

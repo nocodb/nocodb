@@ -256,7 +256,7 @@ export const useNocoAi = createSharedComposable(() => {
           output_column_ids?: string
         },
     rowIds: string[],
-    skipMsgToast = true,
+    skipMsgToast = false,
     preview = false,
   ) => {
     try {
@@ -271,7 +271,9 @@ export const useNocoAi = createSharedComposable(() => {
       const error = await extractSdkResponseErrorMsg(e)
 
       if (error === aiIntegrationNotFound) {
-        aiIntegrationAvailable.value = false
+        message.warning(error)
+
+        return
       } else {
         aiError.value = error
       }

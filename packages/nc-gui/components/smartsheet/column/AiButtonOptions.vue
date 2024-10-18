@@ -754,7 +754,7 @@ onBeforeUnmount(() => {
           </div>
           <!-- Footer  -->
           <div>
-            <SmartsheetColumnAIFooterOptions v-model="formState" class="" />
+            <SmartsheetColumnAIFooterOptions v-model="formState" />
           </div>
         </div>
       </div>

@@ -51,8 +51,13 @@ export function useMultiSelect(
   paginationData?: MaybeRef<PaginatedType | undefined>,
   changePage?: (page: number) => void,
   _isGroupBy?: MaybeRef<boolean>,
+  fetchChunk?: Function,
 ) {
   const meta = ref(_meta)
+
+  const MAX_ROW_SELECTION = 100
+
+  const CHUNK_SIZE = 50
 
   const { t } = useI18n()
 
@@ -95,6 +100,16 @@ export function useMultiSelect(
   const isCellActive = computed(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
   )
+
+  function limitSelection(anchor: Cell, end: Cell): Cell {
+    const limitedEnd = { ...end }
+    const totalRows = Math.abs(end.row - anchor.row) + 1
+    if (totalRows > MAX_ROW_SELECTION) {
+      const direction = end.row > anchor.row ? 1 : -1
+      limitedEnd.row = anchor.row + (MAX_ROW_SELECTION - 1) * direction
+    }
+    return limitedEnd
+  }
 
   function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {
@@ -295,6 +310,18 @@ export function useMultiSelect(
         if (isGroupBy) {
           cprows = unref(data as Row[]).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
         } else {
+          const startChunkId = Math.floor(selectedRange.start.row / CHUNK_SIZE)
+          const endChunkId = Math.floor(selectedRange.end.row / CHUNK_SIZE)
+
+          const chunksToFetch = new Set()
+          for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
+            chunksToFetch.add(chunkId)
+          }
+
+          // Fetch all required chunks
+          await Promise.all([...chunksToFetch].map(fetchChunk))
+
+          // Make sure all data is loaded before copying
           cprows = Array.from(unref(data as Map<number, Row>).values()).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
         }
         const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
@@ -420,9 +447,9 @@ export function useMultiSelect(
       return
     }
 
-    // extend the selection and scroll to the cell
-    selectedRange.endRange({ row, col })
-    scrollToCell?.(row, col)
+    const limitedEnd = limitSelection(selectedRange.start, { row, col })
+    selectedRange.endRange(limitedEnd)
+    scrollToCell?.(limitedEnd.row, limitedEnd.col)
 
     // avoid selecting text
     event.preventDefault()
@@ -725,21 +752,22 @@ export function useMultiSelect(
         e.preventDefault()
 
         if (e.shiftKey) {
+          const anchor = selectedRange._start ?? activeCell
+          let newEnd: Cell
+
           if (cmdOrCtrl) {
-            editEnabled.value = false
-            selectedRange.endRange({
-              row: 0,
-              col: selectedRange._end?.col ?? activeCell.col,
-            })
-            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
-          } else if ((selectedRange._end?.row ?? activeCell.row) > 0) {
-            editEnabled.value = false
-            selectedRange.endRange({
+            newEnd = { row: 0, col: selectedRange._end?.col ?? activeCell.col }
+          } else {
+            newEnd = {
               row: (selectedRange._end?.row ?? activeCell.row) - 1,
               col: selectedRange._end?.col ?? activeCell.col,
-            })
-            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+            }
           }
+
+          const limitedEnd = limitSelection(anchor, newEnd)
+          editEnabled.value = false
+          selectedRange.endRange(limitedEnd)
+          scrollToCell?.(limitedEnd.row, limitedEnd.col)
         } else {
           selectedRange.clear()
 
@@ -755,24 +783,25 @@ export function useMultiSelect(
         e.preventDefault()
 
         if (e.shiftKey) {
+          const anchor = selectedRange._start ?? activeCell
+          let newEnd: Cell
+
           if (cmdOrCtrl) {
-            editEnabled.value = false
-            selectedRange.endRange({
+            newEnd = {
               row: (isGroupBy ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1,
               col: selectedRange._end?.col ?? activeCell.col,
-            })
-            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
-          } else if (
-            (selectedRange._end?.row ?? activeCell.row) <
-            (isGroupBy ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1
-          ) {
-            editEnabled.value = false
-            selectedRange.endRange({
+            }
+          } else {
+            newEnd = {
               row: (selectedRange._end?.row ?? activeCell.row) + 1,
               col: selectedRange._end?.col ?? activeCell.col,
-            })
-            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+            }
           }
+
+          const limitedEnd = limitSelection(anchor, newEnd)
+          editEnabled.value = false
+          selectedRange.endRange(limitedEnd)
+          scrollToCell?.(limitedEnd.row, limitedEnd.col)
         } else {
           selectedRange.clear()
 

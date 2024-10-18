@@ -1224,6 +1224,16 @@ const refreshFillHandle = () => {
   })
 }
 
+const selectedReadonly = computed(
+  () =>
+    // if all the selected columns are not readonly
+    (selectedRange.isEmpty() && activeCell.col && colMeta.value[activeCell.col].isReadonly) ||
+    (!selectedRange.isEmpty() &&
+      Array.from({ length: selectedRange.end.col - selectedRange.start.col + 1 }).every(
+        (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
+      )),
+)
+
 const showFillHandle = computed(
   () =>
     !isDataReadOnly.value &&
@@ -1235,16 +1245,6 @@ const showFillHandle = computed(
     fields.value[activeCell.col] &&
     totalRows.value &&
     !selectedReadonly.value,
-)
-
-const selectedReadonly = computed(
-  () =>
-    // if all the selected columns are not readonly
-    (selectedRange.isEmpty() && activeCell.col && colMeta.value[activeCell.col].isReadonly) ||
-    (!selectedRange.isEmpty() &&
-      Array.from({ length: selectedRange.end.col - selectedRange.start.col + 1 }).every(
-        (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
-      )),
 )
 
 watch(
@@ -1574,13 +1574,10 @@ watch(
               mobile: isMobileMode,
               desktop: !isMobileMode,
             }"
-            :style="{
-              transform: `translateX(${leftOffset}px)`,
-            }"
-            class="xc-row-table nc-grid transform backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
+            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
           >
             <thead ref="tableHeadEl">
-              <tr v-show="isViewColumnsLoading">
+              <tr v-if="isViewColumnsLoading">
                 <td
                   v-for="(_col, colIndex) of dummyColumnDataForLoading"
                   :key="colIndex"
@@ -1599,12 +1596,18 @@ watch(
                   />
                 </td>
               </tr>
-              <tr v-show="!isViewColumnsLoading" class="nc-grid-header">
+              <tr
+                v-show="!isViewColumnsLoading"
+                :style="{
+                  transform: `translateX(${leftOffset}px)`,
+                }"
+                class="nc-grid-header transform"
+              >
                 <th
+                  class="w-[64px] min-w-[64px]"
                   :style="{
                     left: `-${leftOffset}px`,
                   }"
-                  class="w-[64px] min-w-[64px]"
                   data-testid="grid-id-column"
                 >
                   <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center">#</div>
@@ -1657,7 +1660,6 @@ watch(
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
                     'width': gridViewCols[col.id]?.width || '180px',
-                    'transform': `translateX(${leftOffset}px)`,
                   }"
                   class="nc-grid-column-header"
                   :class="{

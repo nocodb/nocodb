@@ -12,7 +12,17 @@ const cellValue = inject(CellValueInj, ref())
 
 const { currentRow } = useSmartsheetRowStoreOrThrow()
 
-const { aiIntegrationAvailable, generateRows, generatingRows, generatingColumnRows, generatingColumns } = useNocoAi()
+const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
+
+const isFieldAiIntegrationAvailable = computed(() => {
+  if (column.value?.colOptions?.type !== ButtonActionsType.Ai) return true
+
+  const fkIntegrationId = column.value?.colOptions?.fk_integration_id
+
+  if (!fkIntegrationId) return false
+
+  return ncIsArrayIncludes(aiIntegrations.value, fkIntegrationId, 'id')
+})
 
 const meta = inject(MetaInj, ref())
 
@@ -120,7 +130,7 @@ const componentProps = computed(() => {
   } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {
       disabled:
-        !aiIntegrationAvailable.value ||
+        !isFieldAiIntegrationAvailable.value ||
         isLoading.value ||
         (pk.value &&
           generatingRows.value.includes(pk.value) &&
@@ -138,37 +148,42 @@ const componentProps = computed(() => {
     }"
     class="w-full flex items-center"
   >
-    <component
-      :is="column.colOptions.type === ButtonActionsType.Url ? 'a' : 'button'"
-      v-bind="componentProps"
-      data-testid="nc-button-cell"
-      :class="[
-        `${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`,
-        { '!w-6': !column.colOptions.label },
-      ]"
-      class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center h-6"
-      @click="triggerAction"
-    >
-      <GeneralLoader
-        v-if="isLoading || (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))"
-        :class="{
-          solid: column.colOptions.theme === 'solid',
-          text: column.colOptions.theme === 'text',
-          light: column.colOptions.theme === 'light',
-        }"
-        class="flex btn-cell-colors !bg-transparent w-4 h-4"
-        size="medium"
-      />
-      <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
-      <NcTooltip v-if="column.colOptions.label" class="!truncate" show-on-truncate-only>
-        <span class="text-[13px] truncate font-medium">
-          {{ column.colOptions.label }}
-        </span>
-        <template #title>
-          {{ column.colOptions.label }}
-        </template>
-      </NcTooltip>
-    </component>
+    <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
+      <template #title>
+        {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
+      </template>
+      <component
+        :is="column.colOptions.type === ButtonActionsType.Url ? 'a' : 'button'"
+        v-bind="componentProps"
+        data-testid="nc-button-cell"
+        :class="[
+          `${column.colOptions.color ?? 'brand'} ${column.colOptions.theme ?? 'solid'}`,
+          { '!w-6': !column.colOptions.label },
+        ]"
+        class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center h-6"
+        @click="triggerAction"
+      >
+        <GeneralLoader
+          v-if="isLoading || (pk && generatingRows.includes(pk) && column?.id && generatingColumnRows.includes(column.id))"
+          :class="{
+            solid: column.colOptions.theme === 'solid',
+            text: column.colOptions.theme === 'text',
+            light: column.colOptions.theme === 'light',
+          }"
+          class="flex btn-cell-colors !bg-transparent w-4 h-4"
+          size="medium"
+        />
+        <GeneralIcon v-else-if="column.colOptions.icon" :icon="column.colOptions.icon" class="!w-4 min-w-4 min-h-4 !h-4" />
+        <NcTooltip v-if="column.colOptions.label" class="!truncate" show-on-truncate-only>
+          <span class="text-[13px] truncate font-medium">
+            {{ column.colOptions.label }}
+          </span>
+          <template #title>
+            {{ column.colOptions.label }}
+          </template>
+        </NcTooltip>
+      </component>
+    </NcTooltip>
   </div>
 </template>
 

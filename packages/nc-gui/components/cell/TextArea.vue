@@ -9,6 +9,7 @@ const props = defineProps<{
   isAi?: boolean
   aiMeta?: AIRecordType
   isAiEdited?: boolean
+  isFieldAiIntegrationAvailable?: boolean
 }>()
 
 const emits = defineEmits(['update:modelValue', 'update:isAiEdited', 'generate', 'close'])
@@ -33,7 +34,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const { showNull, user } = useGlobal()
 
-const { aiLoading } = useNocoAi()
+const { aiLoading, aiIntegrations } = useNocoAi()
 
 const baseStore = useBase()
 
@@ -428,12 +429,26 @@ watch([isVisible, inputRef], (value) => {
             </NcTooltip>
             <div v-else class="flex-1"></div>
 
-            <NcButton type="text" theme="ai" size="xs" :loading="aiLoading" @click.stop="generate">
-              <template #icon>
-                <GeneralIcon icon="ncAutoAwesome" />
+            <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
+              <template #title>
+                {{
+                  aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                }}
               </template>
-              Re-generate
-            </NcButton>
+              <NcButton
+                type="text"
+                theme="ai"
+                size="xs"
+                :disabled="!isFieldAiIntegrationAvailable"
+                :loading="aiLoading"
+                @click.stop="generate"
+              >
+                <template #icon>
+                  <GeneralIcon icon="ncAutoAwesome" />
+                </template>
+                Re-generate
+              </NcButton>
+            </NcTooltip>
           </div>
         </div>
       </div>
@@ -550,12 +565,25 @@ watch([isVisible, inputRef], (value) => {
             </div>
             <div class="flex-1"></div>
             <div class="flex items-center gap-1 mr-4">
-              <NcButton type="primary" theme="ai" size="small" @click.stop="generate">
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="refresh" :class="{ 'animate-infinite animate-spin': aiLoading }" />
-                  <span class="text-sm font-bold">Re-generate</span>
-                </div>
-              </NcButton>
+              <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
+                <template #title>
+                  {{
+                    aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                  }}
+                </template>
+                <NcButton
+                  type="primary"
+                  theme="ai"
+                  size="small"
+                  :disabled="!isFieldAiIntegrationAvailable"
+                  @click.stop="generate"
+                >
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="refresh" :class="{ 'animate-infinite animate-spin': aiLoading }" />
+                    <span class="text-sm font-bold">Re-generate</span>
+                  </div>
+                </NcButton>
+              </NcTooltip>
             </div>
           </template>
         </div>

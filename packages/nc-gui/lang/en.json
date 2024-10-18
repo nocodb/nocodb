@@ -1344,7 +1344,9 @@
     "roleInheritedFromWorkspace": "Role inherited from workspace",
     "comingSoonIntegration": "Coming soon! Click to upvote for the integration you need in NocoDB.",
     "fieldNameIsRequriedToAutoSuggestOptions": "Field name is required to auto suggest options",
-    "autoSuggestSelectOptions": "Auto suggest options based on field name and existing fields"
+    "autoSuggestSelectOptions": "Auto suggest options based on field name and existing fields",
+    "aiIntegrationReConfigure": "AI integration has been removed, re-configure from field edit modal to use NocoAI features",
+    "aiIntegrationAddAndReConfigure": "AI integration has been removed, re-add and re-configure from field edit modal to use NocoAI features"
   },
   "placeholder": {
     "searchIcons": "Search icons",

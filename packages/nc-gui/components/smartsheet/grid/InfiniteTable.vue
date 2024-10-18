@@ -813,7 +813,6 @@ const {
   view,
   undefined,
   undefined,
-  undefined,
   fetchChunk,
 )
 
@@ -1055,10 +1054,7 @@ function scrollToCell(row?: number | null, col?: number | null, behaviour: Scrol
     } else if (col === fields.value.length - 1) {
       scrollOptions.left = gridWrapper.value.scrollWidth
     }
-
-    requestAnimationFrame(() => {
-      gridWrapper.value.scrollTo(scrollOptions)
-    })
+    gridWrapper.value.scrollTo(scrollOptions)
   }
 }
 
@@ -1311,17 +1307,21 @@ const reloadViewDataHookHandler = async () => {
   })
 }
 
+watch(scrollTop, async () => {
+  await updateVisibleRows()
+  refreshFillHandle()
+})
+
 useScroll(gridWrapper, {
   onScroll: (e) => {
-    scrollLeft.value = e.target?.scrollLeft
-    scrollTop.value = e.target?.scrollTop
-    calculateSlices()
-
-    updateVisibleRows()
-
-    refreshFillHandle()
+    setTimeout(async () => {
+      scrollLeft.value = e.target?.scrollLeft
+      scrollTop.value = e.target?.scrollTop
+      calculateSlices()
+    }, 10)
   },
-  behavior: 'auto',
+  throttle: 100,
+  behavior: 'smooth',
 })
 
 useEventListener(document, 'mousedown', (e) => {

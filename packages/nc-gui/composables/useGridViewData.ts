@@ -193,7 +193,7 @@ export function useGridViewData(
         totalRows.value = response.pageInfo.totalRows
       }
 
-      await loadAggCommentsCount(data)
+      loadAggCommentsCount(data)
 
       return data
     } catch (error: any) {

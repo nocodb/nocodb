@@ -410,19 +410,20 @@ export const usePredictFields = createSharedComposable(
         console.error(e)
 
         if (e?.errorFields?.length) {
-          const erros = e?.errorFields
+          const errorMsg = e?.errorFields
             .map((field, idx) => (field?.errors?.length ? `${idx + 1}. ${field?.errors?.join(',')}` : ''))
             .join(', ')
 
-          message.error(erros || t('msg.error.someOfTheRequiredFieldsAreEmpty'))
+          message.error(errorMsg || t('msg.error.someOfTheRequiredFieldsAreEmpty'))
 
-          return
+          return false
         }
       }
     }
 
     const saveFields = async (onSuccess: () => Promise<void>) => {
       const isValid = await validateAllFields()
+
       if (!isValid) return false
 
       failedToSaveFields.value = false

@@ -275,7 +275,7 @@ const saveSubmitted = async () => {
   if (aiAutoSuggestMode.value) {
     saved = await saveFields(reloadMetaAndData)
 
-    if (!saved) {
+    if (!saved && !ncIsArrayIncludes(activeTabSelectedFields.value, activeSelectedField.value, 'ai_temp_id')) {
       onSelectedTagClick()
     }
   } else {
@@ -456,7 +456,7 @@ watch(
 )
 
 const submitBtnLabel = computed(() => {
-  const aiAutoSuggestModeLabel = `${t('general.add')} ${
+  const aiAutoSuggestModeLabel = `${t('general.create')} ${
     activeTabSelectedFields.value.length > 1
       ? activeTabSelectedFields.value.length + ' ' + t('objects.fields')
       : t('objects.field')

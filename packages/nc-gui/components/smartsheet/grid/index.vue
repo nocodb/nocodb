@@ -9,10 +9,6 @@ const view = inject(ActiveViewInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-// keep a root fields variable and will get modified from
-// fields menu and get used in grid and gallery
-const _fields = inject(FieldsInj, ref([]))
-
 const router = useRouter()
 
 const route = router.currentRoute
@@ -50,7 +46,6 @@ const {
   navigateToSiblingRow,
   deleteRangeOfRows,
   bulkUpdateRows,
-  bulkUpdateView,
   syncCount,
   totalRows,
   syncVisibleData,
@@ -89,7 +84,6 @@ provide(RowHeightInj, rowHeight)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-// reload table data reload hook as fallback to rowdatareload
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)

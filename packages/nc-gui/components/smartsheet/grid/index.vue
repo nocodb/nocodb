@@ -18,7 +18,7 @@ const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
 
-const { betaFeatureToggleState } = useBetaFeatureToggle()
+const { betaFeatureToggleStates } = useBetaFeatureToggle()
 
 const bulkUpdateDlg = ref(false)
 
@@ -249,7 +249,7 @@ const {
     :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
-      v-if="!isGroupBy && betaFeatureToggleState?.show"
+      v-if="!isGroupBy && !betaFeatureToggleStates[BetaFeatures.GRID_INFINITE_SCROLL]"
       ref="tableRef"
       v-model:selected-all-records="pSelectedAllRecords"
       :data="pData"

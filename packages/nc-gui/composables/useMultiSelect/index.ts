@@ -786,7 +786,7 @@ export function useMultiSelect(
     }
   }
 
-  const handleThrottledKeyDownAction = useThrottleFn(handleKeyDownAction, 50)
+  const handleThrottledKeyDownAction = useThrottleFn(handleKeyDownAction, 70)
 
   const handleKeyDown = async (e: KeyboardEvent) => {
     // invoke the keyEventHandler if provided and return if it returns true

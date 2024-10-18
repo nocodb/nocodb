@@ -834,7 +834,7 @@ watch(
               v-e="['a:table:create']"
               type="primary"
               size="small"
-              :disabled="validateInfos.title.validateStatus === 'error'"
+              :disabled="validateInfos.title.validateStatus === 'error' || creating"
               :loading="creating"
               @click="_createTable"
             >
@@ -847,7 +847,7 @@ watch(
               type="primary"
               theme="ai"
               size="small"
-              :disabled="activeTabSelectedTables.length === 0"
+              :disabled="activeTabSelectedTables.length === 0 || (aiLoading && calledFunction === 'generateTables')"
               :loading="aiLoading && calledFunction === 'generateTables'"
               @click="_createTable"
             >

@@ -879,7 +879,7 @@ watch(activeAiTab, (newValue) => {
           <a-form-item>
             <div class="flex gap-x-2 justify-end">
               <!-- Cancel -->
-              <NcButton size="small" html-type="button" type="secondary" @click="emit('cancel')">
+              <NcButton size="small" html-type="button" type="secondary" :disabled="saving" @click="emit('cancel')">
                 {{ $t('general.cancel') }}
               </NcButton>
 
@@ -890,7 +890,7 @@ watch(activeAiTab, (newValue) => {
                 type="primary"
                 theme="ai"
                 :loading="saving"
-                :disabled="disableSubmitBtn || !activeTabSelectedFields.length"
+                :disabled="disableSubmitBtn || !activeTabSelectedFields.length || saving"
                 size="small"
                 :label="submitBtnLabel.label"
                 :loading-label="submitBtnLabel.loadingLabel"
@@ -1250,7 +1250,7 @@ watch(activeAiTab, (newValue) => {
                 }"
               >
                 <!-- Cancel -->
-                <NcButton size="small" html-type="button" type="secondary" @click="emit('cancel')">
+                <NcButton size="small" html-type="button" type="secondary" :disabled="saving" @click="emit('cancel')">
                   {{ $t('general.cancel') }}
                 </NcButton>
 
@@ -1260,7 +1260,7 @@ watch(activeAiTab, (newValue) => {
                   type="primary"
                   :theme="isAiMode ? 'ai' : 'default'"
                   :loading="saving"
-                  :disabled="!formState.uidt || disableSubmitBtn"
+                  :disabled="!formState.uidt || disableSubmitBtn || saving"
                   size="small"
                   :label="submitBtnLabel.label"
                   :loading-label="submitBtnLabel.loadingLabel"

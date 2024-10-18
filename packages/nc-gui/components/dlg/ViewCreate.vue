@@ -1364,7 +1364,7 @@ const getPluralName = (name: string) => {
           <NcButton
             v-if="!aiMode"
             v-e="[form.copy_from_id ? 'a:view:duplicate' : 'a:view:create']"
-            :disabled="!isNecessaryColumnsPresent"
+            :disabled="!isNecessaryColumnsPresent || isViewCreating"
             :loading="isViewCreating"
             type="primary"
             size="small"
@@ -1379,7 +1379,7 @@ const getPluralName = (name: string) => {
             type="primary"
             size="small"
             theme="ai"
-            :disabled="activeTabSelectedViews.length === 0"
+            :disabled="activeTabSelectedViews.length === 0 || (aiLoading && calledFunction === 'createViews')"
             :loading="aiLoading && calledFunction === 'createViews'"
             @click="onSubmit"
           >
@@ -1396,7 +1396,7 @@ const getPluralName = (name: string) => {
                   : $t('labels.createView')
               }}
             </div>
-            <template #loading> {{ $t('title.creatingView') }} </template>
+            <template #loading> {{ $t('labels.creatingView') }} </template>
           </NcButton>
           <NcButton v-else type="primary" size="small" @click="handleNavigateToIntegrations"> Add AI integration </NcButton>
         </div>

@@ -106,15 +106,7 @@ useEventListener(NcButton, 'mousedown', () => {
     >
       <template v-if="iconPosition === 'left'">
         <slot v-if="loading" name="loadingIcon">
-          <GeneralLoader
-            :class="{
-              '!text-white': type === 'primary' || type === 'danger',
-              '!text-gray-800': type !== 'primary' && type !== 'danger' && theme === 'default',
-              '!text-purple-700': type !== 'primary' && type !== 'danger' && theme === 'ai',
-            }"
-            class="flex !bg-inherit"
-            size="medium"
-          />
+          <GeneralLoader class="flex !bg-inherit !text-inherit" size="medium" />
         </slot>
 
         <slot v-else name="icon" />
@@ -133,16 +125,7 @@ useEventListener(NcButton, 'mousedown', () => {
       </div>
       <template v-if="iconPosition === 'right'">
         <slot v-if="loading" name="loadingIcon">
-          <GeneralLoader
-            v-if="loading"
-            :class="{
-              '!text-white': type === 'primary' || type === 'danger',
-              '!text-gray-800': type !== 'primary' && type !== 'danger' && theme === 'default',
-              '!text-purple-700': type !== 'primary' && type !== 'danger' && theme === 'ai',
-            }"
-            class="flex !bg-inherit"
-            size="medium"
-          />
+          <GeneralLoader v-if="loading" class="flex !bg-inherit !text-inherit" size="medium" />
         </slot>
 
         <slot v-else name="icon" />

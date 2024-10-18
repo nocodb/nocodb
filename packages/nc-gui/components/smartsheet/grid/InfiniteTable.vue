@@ -194,19 +194,31 @@ const rowSlice = reactive({
 
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 10
+const INITIAL_LOAD_SIZE = 100
 
-const fetchChunk = async (chunkId) => {
+const fetchChunk = async (chunkId, isInitialLoad = false) => {
   if (chunkStates.value[chunkId] === 'loaded' || chunkStates.value[chunkId] === 'loading') return
 
   chunkStates.value[chunkId] = 'loading'
   const offset = chunkId * CHUNK_SIZE
+  const limit = isInitialLoad ? INITIAL_LOAD_SIZE : CHUNK_SIZE
+
   try {
-    const newItems = await loadData({ offset, limit: CHUNK_SIZE })
+    const newItems = await loadData({ offset, limit })
     newItems.forEach((item) => cachedRows.value.set(item.rowMeta.rowIndex, item))
-    chunkStates.value[chunkId] = 'loaded'
+
+    if (isInitialLoad) {
+      chunkStates.value[chunkId] = 'loaded'
+      chunkStates.value[chunkId + 1] = 'loaded'
+    } else {
+      chunkStates.value[chunkId] = 'loaded'
+    }
   } catch (error) {
     console.error(`Error fetching chunk ${chunkId}:`, error)
     chunkStates.value[chunkId] = undefined
+    if (isInitialLoad) {
+      chunkStates.value[chunkId + 1] = undefined
+    }
   }
 }
 
@@ -219,11 +231,22 @@ const updateVisibleRows = async () => {
   const chunksToFetch = new Set()
 
   for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
-    if (!chunkStates.value[chunkId] || chunkStates.value[chunkId] !== 'loaded') {
-      chunksToFetch.add(chunkId)
-    }
+    chunksToFetch.add(chunkId)
   }
-  await Promise.all([...chunksToFetch].map(fetchChunk))
+
+  if (chunksToFetch.size > 0) {
+    const [firstChunkToFetch] = chunksToFetch
+    const isInitialLoad = firstChunkToFetch === 0 && chunksToFetch.size >= 2
+
+    if (isInitialLoad) {
+      await fetchChunk(0, true)
+      chunksToFetch.delete(0)
+      chunksToFetch.delete(1)
+    }
+
+    await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+  }
+
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
 }
 

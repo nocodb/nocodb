@@ -1895,7 +1895,10 @@ watch(
                             }"
                             class="nc-row-expand-and-checkbox"
                           >
-                            <a-checkbox v-model:checked="row.rowMeta.selected" />
+                            <a-checkbox
+                              v-model:checked="row.rowMeta.selected"
+                              :disabled="!row.rowMeta.selected && selectedRows.length > 100"
+                            />
                           </div>
                           <span class="flex-1" />
 

@@ -593,7 +593,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
-  async (e: KeyboardEvent) => {
+  (e: KeyboardEvent) => {
     // ignore navigating if single/multi select options is open
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
@@ -638,7 +638,7 @@ const {
     } else if (e.key === 'Tab') {
       if (e.shiftKey && activeCell.row === 0 && activeCell.col === 0 && !paginationDataRef.value?.isFirstPage) {
         e.preventDefault()
-        await resetAndChangePage((paginationDataRef.value?.pageSize ?? 25) - 1, fields.value?.length - 1, -1)
+        resetAndChangePage((paginationDataRef.value?.pageSize ?? 25) - 1, fields.value?.length - 1, -1)
         return true
       } else if (!e.shiftKey && activeCell.row === dataRef.value.length - 1 && activeCell.col === fields.value?.length - 1) {
         e.preventDefault()
@@ -648,14 +648,14 @@ const {
 
           return true
         } else if (!paginationDataRef.value?.isLastPage) {
-          await resetAndChangePage(0, 0, 1)
+          resetAndChangePage(0, 0, 1)
           return true
         }
       }
     } else if (!cmdOrCtrl && !e.shiftKey && e.key === 'ArrowUp') {
       if (activeCell.row === 0 && !paginationDataRef.value?.isFirstPage) {
         e.preventDefault()
-        await resetAndChangePage((paginationDataRef.value?.pageSize ?? 25) - 1, activeCell.col!, -1)
+        resetAndChangePage((paginationDataRef.value?.pageSize ?? 25) - 1, activeCell.col!, -1)
         return true
       }
     } else if (!cmdOrCtrl && !e.shiftKey && e.key === 'ArrowDown') {
@@ -667,7 +667,7 @@ const {
 
           return true
         } else if (!paginationDataRef.value?.isLastPage) {
-          await resetAndChangePage(0, activeCell.col!, 1)
+          resetAndChangePage(0, activeCell.col!, 1)
           return true
         }
       }
@@ -990,7 +990,7 @@ const scrollWrapper = computed(() => scrollParent.value || gridWrapper.value)
 
 const scrollLeft = ref()
 
-function scrollToCell(row?: number | null, col?: number | null) {
+function scrollToCell(row?: number | null, col?: number | null, scrollBehaviour: ScrollBehavior = 'instant') {
   row = row ?? activeCell.row
   col = col ?? activeCell.col
 

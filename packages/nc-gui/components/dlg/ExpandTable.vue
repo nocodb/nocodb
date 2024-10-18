@@ -1,0 +1,105 @@
+<script setup lang="ts">
+import { onKeyDown } from '@vueuse/core'
+
+const props = defineProps<{
+  fields?: number
+  newRows?: number
+  currentPage?: number
+  nextPages?: number
+  modelValue: boolean
+  affectedRows?: number
+}>()
+
+const emit = defineEmits(['update:expand', 'cancel', 'update:modelValue'])
+
+const dialogShow = useVModel(props, 'modelValue', emit)
+
+const expand = ref(true)
+
+const updateExpand = () => {
+  emit('update:expand', expand.value)
+  dialogShow.value = false
+}
+
+onKeyDown('esc', () => {
+  dialogShow.value = false
+  emit('update:modelValue', false)
+})
+
+const close = () => {
+  dialogShow.value = false
+  emit('cancel')
+}
+</script>
+
+<template>
+  <NcModal
+    v-if="dialogShow"
+    v-model:visible="dialogShow"
+    :show-separator="false"
+    :header="$t('activity.createTable')"
+    size="small"
+    @keydown.esc="dialogShow = false"
+  >
+    <div class="flex justify-between w-full text-base font-semibold mb-2 text-nc-content-gray-emphasis items-center">
+      {{ (nextPages ?? 0) > 0 ? 'Confirm Record Overwrite ?' : 'Do you want to expand this table ?' }}
+    </div>
+    <div data-testid="nc-expand-table-modal" class="flex flex-col">
+      <div v-if="(nextPages ?? 0) > 0" class="mb-2 nc-content-gray">
+        This action will overwrite {{ currentPage }} records on the current page and {{ nextPages }} records on the subsequent
+        pages.
+
+        <br />
+        Are you sure you want to proceed with this action?
+      </div>
+
+      <div v-else-if="(newRows ?? 0) > 0" class="mb-2 nc-content-gray">
+        To accommodate your pasted data, we need to insert {{ newRows }} additional records
+      </div>
+
+      <a-radio-group v-if="(newRows ?? 0) > 0" v-model:value="expand">
+        <a-radio
+          data-testid="nc-table-expand-yes"
+          :style="{
+            display: 'flex',
+            height: '30px',
+            lineHeight: '30px',
+          }"
+          :value="true"
+        >
+          <div class="nc-content-gray">
+            <span class="font-semibold"> Expand </span>
+            table to accommodate all pasted cells
+          </div>
+        </a-radio>
+        <a-radio
+          data-testid="nc-table-expand-no"
+          :style="{
+            display: 'flex',
+            lineHeight: '30px',
+          }"
+          :value="false"
+        >
+          <div class="nc-content-gray leading-5">
+            <span class="font-semibold"> Don't expand </span>
+            the table. Values beyond the table's current size will be skipped.
+          </div>
+        </a-radio>
+      </a-radio-group>
+    </div>
+    <div class="flex flex-row mt-5 justify-end gap-x-2">
+      <div class="flex gap-2 items-center">
+        <NcButton data-testid="nc-table-expand-cancel" type="secondary" size="small" @click="close">
+          {{ $t('labels.cancel') }}
+        </NcButton>
+      </div>
+      <div class="flex gap-2 items-center">
+        <NcButton data-testid="nc-table-expand" type="primary" size="small" @click="updateExpand">
+          {{ $t('labels.continue') }}
+        </NcButton>
+      </div>
+    </div>
+  </NcModal>
+</template>
+
+<style scoped lang="scss"></style>

@@ -146,6 +146,7 @@ const {
   deleteRangeOfRows,
   updateOrSaveRow,
   bulkUpdateRows,
+  bulkUpsertRows,
   selectedAllRecords,
   removeRowIfNew,
 } = useData({
@@ -292,6 +293,7 @@ async function deleteSelectedRowsWrapper() {
     :delete-selected-rows="deleteSelectedRowsWrapper"
     :delete-range-of-rows="deleteRangeOfRows"
     :update-or-save-row="updateOrSaveRow"
+    :bulk-upsert-rows="bulkUpsertRows"
     :remove-row-if-new="removeRowIfNew"
     :bulk-update-rows="bulkUpdateRows"
     :hide-header="true"

@@ -14,6 +14,7 @@ import { WorkspaceMenuObject } from '../common/WorkspaceMenu';
 import { GroupPageObject } from './Group';
 import { ColumnHeaderPageObject } from './columnHeader';
 import { AggregaionBarPage } from './AggregationBar';
+import { ExpandTablePageObject } from './ExpandTable';
 
 export class GridPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -32,6 +33,7 @@ export class GridPage extends BasePage {
   readonly rowPage: RowPageObject;
   readonly groupPage: GroupPageObject;
   readonly aggregationBar: AggregaionBarPage;
+  readonly expandTableOverlay: ExpandTablePageObject;
 
   readonly btn_addNewRow: Locator;
 
@@ -52,6 +54,7 @@ export class GridPage extends BasePage {
     this.rowPage = new RowPageObject(this);
     this.groupPage = new GroupPageObject(this);
     this.aggregationBar = new AggregaionBarPage(this);
+    this.expandTableOverlay = new ExpandTablePageObject(this);
 
     this.btn_addNewRow = this.get().locator('.nc-grid-add-new-cell');
   }

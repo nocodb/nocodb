@@ -585,6 +585,7 @@ const {
   meta,
   fields,
   dataRef,
+  undefined,
   editEnabled,
   isPkAvail,
   contextMenu,
@@ -773,6 +774,7 @@ const {
   view,
   paginationDataRef,
   changePage,
+  true,
 )
 
 function scrollToRow(row?: number) {

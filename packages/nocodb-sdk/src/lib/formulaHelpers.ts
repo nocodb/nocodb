@@ -968,7 +968,6 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 1,
-        type: [FormulaDataTypes.UNKNOWN],
       },
     },
     description: 'Check if the input parameter is blank.',
@@ -983,7 +982,6 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 1,
-        type: [FormulaDataTypes.UNKNOWN],
       },
     },
     description: 'Check if the input parameter is not blank.',

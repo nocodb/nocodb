@@ -212,6 +212,62 @@ export class ColumnsService {
     }
   }
 
+  private async updateMetaAndDatabase(
+    context: NcContext,
+    args: {
+      table: Model;
+      column: Partial<Column>;
+      source: Source;
+      reuse: ReusableParams;
+      processColumn?: () => Promise<void>;
+    },
+  ) {
+    const { table, column, source, reuse } = args;
+
+    const tableUpdateBody = {
+      ...table,
+      tn: table.table_name,
+      originalColumns: table.columns.map((c) => ({
+        ...c,
+        cn: c.column_name,
+        cno: c.column_name,
+      })),
+      columns: await Promise.all(
+        table.columns.map(async (c) => {
+          if (c.id === column.id) {
+            const res = {
+              ...c,
+              ...column,
+              cn: column.column_name,
+              cno: c.column_name,
+              altered: Altered.UPDATE_COLUMN,
+            };
+
+            if (args.processColumn) {
+              await args.processColumn();
+            }
+
+            return Promise.resolve(res);
+          } else {
+            (c as any).cn = c.column_name;
+          }
+          return Promise.resolve(c);
+        }),
+      ),
+    };
+
+    const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+      ProjectMgrv2.getSqlMgr(context, {
+        id: source.base_id,
+      }),
+    );
+    await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+    await Column.update(context, column.id, {
+      ...column,
+    });
+  }
+
   async columnUpdate(
     context: NcContext,
     param: {
@@ -384,7 +440,6 @@ export class ColumnsService {
         UITypes.ForeignKey,
         UITypes.Links,
         UITypes.Button,
-        UITypes.AI,
       ].includes(column.uidt)
     ) {
       if (column.uidt === colBody.uidt) {
@@ -520,37 +575,6 @@ export class ColumnsService {
               );
             }
           }
-
-          await Column.update(context, column.id, {
-            // title: colBody.title,
-            ...column,
-            ...colBody,
-          });
-        } else if (column.uidt === UITypes.AI) {
-          if (!colBody.fk_integration_id) {
-            NcError.badRequest('AI Integration not found');
-          }
-
-          let prompt = '';
-
-          /*
-            Substitute column alias with id in prompt
-          */
-          if (colBody.prompt_raw) {
-            await table.getColumns(context);
-
-            prompt = colBody.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
-              const column = table.columns.find((c) => c.title === p1);
-
-              if (!column) {
-                NcError.badRequest(`Field '${p1}' not found`);
-              }
-
-              return `{${column.id}}`;
-            });
-          }
-
-          colBody.prompt = prompt;
 
           await Column.update(context, column.id, {
             // title: colBody.title,
@@ -1083,43 +1107,13 @@ export class ColumnsService {
                   : '';
               }
 
-              const tableUpdateBody = {
-                ...table,
-                tn: table.table_name,
-                originalColumns: table.columns.map((c) => ({
-                  ...c,
-                  cn: c.column_name,
-                  cno: c.column_name,
-                })),
-                columns: await Promise.all(
-                  table.columns.map(async (c) => {
-                    if (c.id === param.columnId) {
-                      const res = {
-                        ...c,
-                        ...column,
-                        cn: column.column_name,
-                        cno: c.column_name,
-                        dtxp: temp_dtxp,
-                        altered: Altered.UPDATE_COLUMN,
-                      };
-                      return Promise.resolve(res);
-                    } else {
-                      (c as any).cn = c.column_name;
-                    }
-                    return Promise.resolve(c);
-                  }),
-                ),
-              };
+              column.dtxp = temp_dtxp;
 
-              const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-                ProjectMgrv2.getSqlMgr(context, {
-                  id: source.base_id,
-                }),
-              );
-              await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-              await Column.update(context, param.columnId, {
-                ...column,
+              await this.updateMetaAndDatabase(context, {
+                table,
+                column,
+                source,
+                reuse,
               });
             }
 
@@ -1301,46 +1295,17 @@ export class ColumnsService {
         }
       }
 
-      const tableUpdateBody = {
-        ...table,
-        tn: table.table_name,
-        originalColumns: table.columns.map((c) => ({
-          ...c,
-          cn: c.column_name,
-          cno: c.column_name,
-        })),
-        columns: await Promise.all(
-          table.columns.map(async (c) => {
-            if (c.id === param.columnId) {
-              const res = {
-                ...c,
-                ...colBody,
-                cn: colBody.column_name,
-                cno: c.column_name,
-                altered: Altered.UPDATE_COLUMN,
-              };
-
-              // update formula with new column name
-              await this.updateFormulas(context, {
-                oldColumn: column,
-                colBody,
-              });
-              return Promise.resolve(res);
-            } else {
-              (c as any).cn = c.column_name;
-            }
-            return Promise.resolve(c);
-          }),
-        ),
-      };
-
-      const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-        ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
-      );
-      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-      await Column.update(context, param.columnId, {
-        ...colBody,
+      await this.updateMetaAndDatabase(context, {
+        table,
+        column: colBody,
+        source,
+        reuse,
+        processColumn: async () => {
+          await this.updateFormulas(context, {
+            oldColumn: column,
+            colBody,
+          });
+        },
       });
 
       if (colBody.uidt === UITypes.SingleSelect) {
@@ -1459,46 +1424,18 @@ export class ColumnsService {
         }
 
         colBody = await getColumnPropsFromUIDT(colBody, source);
-        const tableUpdateBody = {
-          ...table,
-          tn: table.table_name,
-          originalColumns: table.columns.map((c) => ({
-            ...c,
-            cn: c.column_name,
-            cno: c.column_name,
-          })),
-          columns: await Promise.all(
-            table.columns.map(async (c) => {
-              if (c.id === param.columnId) {
-                const res = {
-                  ...c,
-                  ...colBody,
-                  cn: colBody.column_name,
-                  cno: c.column_name,
-                  altered: Altered.UPDATE_COLUMN,
-                };
 
-                // update formula with new column name
-                await this.updateFormulas(context, {
-                  oldColumn: column,
-                  colBody,
-                });
-                return Promise.resolve(res);
-              } else {
-                (c as any).cn = c.column_name;
-              }
-              return Promise.resolve(c);
-            }),
-          ),
-        };
-
-        const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
-        );
-        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-        await Column.update(context, param.columnId, {
-          ...colBody,
+        await this.updateMetaAndDatabase(context, {
+          table,
+          column: colBody,
+          source,
+          reuse,
+          processColumn: async () => {
+            await this.updateFormulas(context, {
+              oldColumn: column,
+              colBody,
+            });
+          },
         });
       } else {
         // email/text to user
@@ -1567,47 +1504,61 @@ export class ColumnsService {
         ]);
 
         colBody = await getColumnPropsFromUIDT(colBody, source);
-        const tableUpdateBody = {
-          ...table,
-          tn: table.table_name,
-          originalColumns: table.columns.map((c) => ({
-            ...c,
-            cn: c.column_name,
-            cno: c.column_name,
-          })),
-          columns: await Promise.all(
-            table.columns.map(async (c) => {
-              if (c.id === param.columnId) {
-                const res = {
-                  ...c,
-                  ...colBody,
-                  cn: colBody.column_name,
-                  cno: c.column_name,
-                  altered: Altered.UPDATE_COLUMN,
-                };
 
-                // update formula with new column name
-                await this.updateFormulas(context, {
-                  oldColumn: column,
-                  colBody,
-                });
-                return Promise.resolve(res);
-              } else {
-                (c as any).cn = c.column_name;
-              }
-              return Promise.resolve(c);
-            }),
-          ),
-        };
-
-        const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
-        );
-        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-        await Column.update(context, param.columnId, {
-          ...colBody,
+        await this.updateMetaAndDatabase(context, {
+          table,
+          column: colBody,
+          source,
+          reuse,
+          processColumn: async () => {
+            await this.updateFormulas(context, {
+              oldColumn: column,
+              colBody,
+            });
+          },
         });
+      }
+    } else if (colBody.uidt === UITypes.AI) {
+      if (column.uidt === UITypes.AI) {
+        if (!colBody.fk_integration_id) {
+          NcError.badRequest('AI Integration not found');
+        }
+
+        let prompt = '';
+
+        /*
+          Substitute column alias with id in prompt
+        */
+        if (colBody.prompt_raw) {
+          await table.getColumns(context);
+
+          prompt = colBody.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
+            const column = table.columns.find((c) => c.title === p1);
+
+            if (!column) {
+              NcError.badRequest(`Field '${p1}' not found`);
+            }
+
+            return `{${column.id}}`;
+          });
+        }
+
+        colBody.prompt = prompt;
+
+        await this.updateMetaAndDatabase(context, {
+          table,
+          column: colBody,
+          source,
+          reuse,
+          processColumn: async () => {
+            await this.updateFormulas(context, {
+              oldColumn: column,
+              colBody,
+            });
+          },
+        });
+      } else {
+        NcError.badRequest('A non-AI column cannot be converted to AI');
       }
     } else {
       if (column.uidt === UITypes.User) {
@@ -1649,46 +1600,18 @@ export class ColumnsService {
       }
 
       colBody = await getColumnPropsFromUIDT(colBody, source);
-      const tableUpdateBody = {
-        ...table,
-        tn: table.table_name,
-        originalColumns: table.columns.map((c) => ({
-          ...c,
-          cn: c.column_name,
-          cno: c.column_name,
-        })),
-        columns: await Promise.all(
-          table.columns.map(async (c) => {
-            if (c.id === param.columnId) {
-              const res = {
-                ...c,
-                ...colBody,
-                cn: colBody.column_name,
-                cno: c.column_name,
-                altered: Altered.UPDATE_COLUMN,
-              };
 
-              // update formula with new column name
-              await this.updateFormulas(context, {
-                oldColumn: column,
-                colBody,
-              });
-              return Promise.resolve(res);
-            } else {
-              (c as any).cn = c.column_name;
-            }
-            return Promise.resolve(c);
-          }),
-        ),
-      };
-
-      const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
-        ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
-      );
-      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-
-      await Column.update(context, param.columnId, {
-        ...colBody,
+      await this.updateMetaAndDatabase(context, {
+        table,
+        column: colBody,
+        source,
+        reuse,
+        processColumn: async () => {
+          await this.updateFormulas(context, {
+            oldColumn: column,
+            colBody,
+          });
+        },
       });
     }
 

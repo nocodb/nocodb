@@ -1834,7 +1834,11 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
               @contextmenu="showContextMenu"
             >
               <tbody ref="tableBodyEl">
-                <tr class="placeholder top-placeholder" :style="`height: ${startRowHeight};`">
+                <tr
+                  v-if="+startRowHeight.split('px')[0] > 32"
+                  class="placeholder top-placeholder"
+                  :style="`height: ${startRowHeight};`"
+                >
                   <td
                     class="placeholder-column"
                     :style="{

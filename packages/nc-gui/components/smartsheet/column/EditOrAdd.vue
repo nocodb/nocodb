@@ -619,7 +619,7 @@ watch(activeAiTab, (newValue) => {
       class="flex flex-col gap-4 h-full"
     >
       <div
-        v-if="!isEdit && !props.fromTableExplorer"
+        v-if="!isEdit && !props.fromTableExplorer && (aiAutoSuggestMode || !formState.uidt)"
         class="flex flex-col gap-4"
         :class="{
           'bg-white -mx-5 -mt-5 px-5 pt-5': aiAutoSuggestMode,

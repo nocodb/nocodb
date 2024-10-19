@@ -10,6 +10,8 @@ enum AiStep {
 
 const maxSelectionCount = 100
 
+const maxAutoSelectionCount = 6
+
 const useForm = Form.useForm
 
 export const usePredictFields = createSharedComposable(
@@ -202,7 +204,7 @@ export const usePredictFields = createSharedComposable(
             ...f,
             tab: activeAiTab.value,
             ai_temp_id: `temp_${++temporaryAddCount.value}`,
-            selected: isFromTableExplorer?.value ? false : selectedCount++ < maxSelectionCount ? true : false,
+            selected: isFromTableExplorer?.value ? false : selectedCount++ < maxAutoSelectionCount ? true : false,
           }
 
           if (isFromTableExplorer?.value) {

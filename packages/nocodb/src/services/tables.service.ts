@@ -477,7 +477,7 @@ export class TablesService {
 
     // before validating add title for table if only table name is present
     if (!param.table.title && param.table.table_name) {
-      param.table.title = param.table.table_name
+      param.table.title = param.table.table_name;
     }
 
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);

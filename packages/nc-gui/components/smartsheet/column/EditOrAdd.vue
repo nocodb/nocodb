@@ -1018,7 +1018,7 @@ watch(activeAiTab, (newValue) => {
                       {{ UITypesName[opt.name] }}
                     </div>
                     <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
-                    <!-- <NcBadge v-if="opt.isNew" :border="false" class="!text-sm !text-nc-content-purple-dark !bg-nc-bg-purple-light !h-5">{{ $t('general.new') }}</NcBadge> -->
+                    <!-- <span v-if="opt.isNew || isAiButtonSelectOption(opt.name)" class="text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md">{{ $t('general.new') }}</span> -->
                   </div>
                   <component
                     :is="iconMap.check"
@@ -1278,7 +1278,7 @@ watch(activeAiTab, (newValue) => {
         </template>
       </template>
 
-      <template v-if="isAiMode || formState.uidt === UITypes.Formula">
+      <template v-if="isAiMode">
         <div v-if="props.fromTableExplorer" class="flex-1"></div>
         <SmartsheetColumnAIFooterOptions
           v-model="formState"

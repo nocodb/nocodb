@@ -301,20 +301,6 @@ onMounted(() => {
         <div class="text-base leading-8 font-bold">{{ $t('title.nocoAiBaseBuilder') }}</div>
       </div>
 
-      <NcButton
-        v-if="aiStep === AI_STEP.MODIFY"
-        v-e="['a:base:ai:create']"
-        type="primary"
-        size="small"
-        theme="ai"
-        :loading="aiLoading && callFunction === 'onCreateSchema'"
-        @click="onCreateSchema"
-      >
-        <template #icon>
-          <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 text-nc-fill-yellow-medium" />
-        </template>
-        {{ $t('activity.createProject') }}
-      </NcButton>
       <NcButton size="small" type="text" @click.stop="dialogShow = false">
         <GeneralIcon icon="close" class="text-gray-600" />
       </NcButton>
@@ -430,22 +416,34 @@ onMounted(() => {
               'border-transparent': leftPaneContentOffsetY <= 0,
             }"
           >
-            <NcButton
-              v-if="aiIntegrationAvailable"
-              v-e="['a:base:ai:generate']"
-              size="small"
-              type="secondary"
-              theme="ai"
-              class="w-full"
-              :disabled="!aiFormState.prompt?.trim()"
-              :loading="aiLoading && callFunction === 'onPredictSchema'"
-              @click="onPredictSchema"
-            >
-              <template #icon>
-                <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 text-nc-fill-yellow-medium" />
-              </template>
-              {{ $t('labels.generateBase') }}
-            </NcButton>
+            <div v-if="aiIntegrationAvailable" class="flex items-center gap-3">
+              <NcButton
+                v-e="['a:base:ai:generate']"
+                size="small"
+                type="secondary"
+                theme="ai"
+                class="w-1/2"
+                :disabled="!aiFormState.prompt?.trim() || (aiLoading && callFunction === 'onPredictSchema')"
+                :loading="aiLoading && callFunction === 'onPredictSchema'"
+                @click="onPredictSchema"
+              >
+                <template #icon>
+                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 text-nc-fill-yellow-medium" />
+                </template>
+                {{ $t('labels.generateBase') }}
+              </NcButton>
+              <NcButton
+                v-e="['a:base:ai:create']"
+                type="primary"
+                size="small"
+                class="w-1/2"
+                :disabled="aiStep !== AI_STEP.MODIFY || finalSchema?.tables?.length === 0"
+                :loading="aiLoading && callFunction === 'onCreateSchema'"
+                @click="onCreateSchema"
+              >
+                {{ $t('activity.createProject') }}
+              </NcButton>
+            </div>
             <AiIntegrationNotFound v-else class="justify-between" @on-navigate="dialogShow = false">
               <template #icon>
                 <GeneralIcon icon="alertTriangleSolid" class="flex-none !text-nc-content-orange-medium w-6 h-6" />

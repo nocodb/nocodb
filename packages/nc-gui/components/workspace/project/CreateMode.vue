@@ -20,7 +20,7 @@ const aiMode = useVModel(props, 'aiMode', emit)
       <div class="nc-create-base-content">
         <div class="nc-create-base-content-title">
           <GeneralIcon icon="plus" class="h-4 w-4 !text-nc-content-gray-subtle" />
-          Create Blank Base
+          Start from scratch
         </div>
         <div class="nc-create-base-content-subtitle">Build your Base according to your specific requirements.</div>
       </div>

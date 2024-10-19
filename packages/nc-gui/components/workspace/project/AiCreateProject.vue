@@ -450,7 +450,7 @@ onMounted(() => {
                 @click="onPredictSchema"
               >
                 <template #icon>
-                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 text-nc-fill-yellow-medium" />
+                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
                 </template>
                 {{ $t('labels.generateBase') }}
               </NcButton>

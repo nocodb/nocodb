@@ -170,11 +170,17 @@ const onPredictSchema = async () => {
       prompt += ` | Audience: ${aiFormState.value.audience}`
     }
 
-    predictedSchema.value = await predictSchema(prompt)
-    activePreviewTab.value = SchemaPreviewTabs.TABLES_AND_VIEWS
+    const res = await predictSchema(prompt)
 
-    previewExpansionPanel.value = ((predictedSchema.value || {}).tables || []).map((t) => t?.title).filter(Boolean)
-    aiStep.value = AI_STEP.MODIFY
+    if (!res?.tables) {
+      aiStep.value = AI_STEP.PROMPT
+    } else {
+      predictedSchema.value = res
+      activePreviewTab.value = SchemaPreviewTabs.TABLES_AND_VIEWS
+
+      previewExpansionPanel.value = ((predictedSchema.value || {}).tables || []).map((t) => t?.title).filter(Boolean)
+      aiStep.value = AI_STEP.MODIFY
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     aiStep.value = AI_STEP.PROMPT
@@ -242,16 +248,19 @@ const previewTabs = computed(() => {
 
 const onCreateSchema = async () => {
   callFunction.value = 'onCreateSchema'
+
   try {
     const base = await createSchema(finalSchema.value)
 
-    navigateToProject({
-      baseId: base.id!,
-      workspaceId: isEeUI ? workspaceId.value : 'nc',
-      type: baseType.value,
-    })
+    if (base?.id) {
+      navigateToProject({
+        baseId: base.id!,
+        workspaceId: isEeUI ? workspaceId.value : 'nc',
+        type: baseType.value,
+      })
 
-    dialogShow.value = false
+      dialogShow.value = false
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
     aiStep.value = AI_STEP.PROMPT
@@ -410,12 +419,25 @@ onMounted(() => {
             </a-collapse>
           </div>
           <div
-            class="sticky bottom-0 w-full bg-white px-6 py-3 border-t-1"
+            class="sticky bottom-0 w-full bg-white px-6 py-3 border-t-1 flex flex-col gap-3"
             :class="{
               'border-nc-border-gray-medium': leftPaneContentOffsetY > 0,
               'border-transparent': leftPaneContentOffsetY <= 0,
             }"
           >
+            <div v-if="aiError" class="w-full flex items-start gap-3 bg-nc-bg-red-light rounded-lg p-4">
+              <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-6 h-6" />
+
+              <div class="w-[calc(100%_-_36px)] flex flex-col gap-1">
+                <div class="font-bold text-base text-nc-content-gray">Something went wrong</div>
+                <NcTooltip class="truncate text-sm text-nc-content-gray-subtle" show-on-truncate-only>
+                  <template #title>
+                    {{ aiError }}
+                  </template>
+                  {{ aiError }}
+                </NcTooltip>
+              </div>
+            </div>
             <div v-if="aiIntegrationAvailable" class="flex items-center gap-3">
               <NcButton
                 v-e="['a:base:ai:generate']"

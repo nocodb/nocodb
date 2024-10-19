@@ -42,7 +42,9 @@ export const useNocoAi = createSharedComposable(() => {
       const error = await extractSdkResponseErrorMsg(e)
 
       if (error === aiIntegrationNotFound) {
-        aiIntegrationAvailable.value = false
+        message.warning(error)
+
+        return
       } else {
         aiError.value = error
       }
@@ -64,6 +66,7 @@ export const useNocoAi = createSharedComposable(() => {
       }
 
       aiLoading.value = true
+      aiError.value = ''
 
       const res = await $api.ai.schema(baseId, { operation, input })
 
@@ -73,7 +76,9 @@ export const useNocoAi = createSharedComposable(() => {
       const error = await extractSdkResponseErrorMsg(e)
 
       if (error === aiIntegrationNotFound) {
-        aiIntegrationAvailable.value = false
+        message.warning(error)
+
+        return
       } else {
         aiError.value = error
       }
@@ -86,20 +91,33 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  const callAiSchemaCreateApi = async (operation: string, input: any) => {
+  const callAiSchemaCreateApi = async (operation: string, input: any, skipMsgToast = false) => {
     try {
       if (!aiIntegrationAvailable.value || !activeWorkspaceId.value) {
         return
       }
 
       aiLoading.value = true
+      aiError.value = ''
 
       const res = await $api.ai.schemaCreate(activeWorkspaceId.value, { operation, input })
 
       return res
     } catch (e) {
       console.error(e)
-      message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
+      const error = await extractSdkResponseErrorMsg(e)
+
+      if (error === aiIntegrationNotFound) {
+        message.warning(error)
+
+        return
+      } else {
+        aiError.value = error
+      }
+
+      if (!skipMsgToast) {
+        message.warning(error || 'NocoAI: Underlying GPT API are busy. Please try after sometime.')
+      }
     } finally {
       aiLoading.value = false
     }
@@ -286,14 +304,14 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  const predictSchema = async (input: any) => {
-    const res = await callAiSchemaCreateApi('predictSchema', input)
+  const predictSchema = async (input: any, skipMsgToast = true) => {
+    const res = await callAiSchemaCreateApi('predictSchema', input, skipMsgToast)
 
     return res
   }
 
-  const createSchema = async (schema: any) => {
-    const res = await callAiSchemaCreateApi('createSchema', schema)
+  const createSchema = async (schema: any, skipMsgToast = true) => {
+    const res = await callAiSchemaCreateApi('createSchema', schema, skipMsgToast)
 
     return res
   }

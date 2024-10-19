@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits<Emits>()
 
-const maxSelectionCount = 5
+const maxSelectionCount = 100
 
 interface Props {
   modelValue: boolean

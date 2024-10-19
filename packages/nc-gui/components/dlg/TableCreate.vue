@@ -18,7 +18,7 @@ const emit = defineEmits(['update:modelValue', 'create'])
 
 const loadingMessages = ['Creating Tables', 'Creating Fields', 'Creating Links']
 
-const maxSelectionCount = 5
+const maxSelectionCount = 100
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 

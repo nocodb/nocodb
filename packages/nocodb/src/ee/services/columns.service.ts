@@ -45,6 +45,11 @@ export class ColumnsService extends ColumnsServiceCE {
       reuse?: any;
     },
   ) {
+    // if column_name is defined and title is not defined, set title to column_name
+    if (param.column.column_name && !param.column.title) {
+      param.column.title = param.column.column_name;
+    }
+
     validatePayload('swagger.json#/components/schemas/ColumnReq', param.column);
 
     const model = await Model.get(context, param.tableId);

@@ -1669,7 +1669,7 @@ export class ColumnsService {
 
       if (!isVirtualCol(param.column)) {
         param.column.column_name = sanitizeColumnName(
-          param.column.column_name,
+          param.column.column_name || param.column.title,
           source.type,
         );
       }

@@ -659,10 +659,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         }
 
         if (!row.rowMeta.new) {
-          const id = (meta?.value?.columns as ColumnType[])
-            ?.filter((c) => c.pk)
-            .map((c) => row.row[c.title!])
-            .join('___')
+          const id = extractPkFromRow(row.row, meta?.value?.columns)
 
           const deleted = await deleteRowById(id as string)
           if (!deleted) {

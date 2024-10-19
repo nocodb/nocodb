@@ -26,11 +26,13 @@ export const isValidValue = (val: unknown) => {
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   if (!row || !columns) return null
 
-  const pkColumns = columns.filter((c) => c.pk)
-
-  if (pkColumns.every((c) => row?.[c.title as string] === null || row?.[c.title as string] === undefined)) return null
-
-  return pkColumns.map((c) => row?.[c.title as string]).join('___')
+  const pkCols = columns.filter((c: Required<ColumnType>) => c.pk)
+  // if multiple pk columns, join them with ___ and escape _ in id values with \_ to avoid conflicts
+  if (pkCols.length > 1) {
+    pkCols.map((c: Required<ColumnType>) => row?.[c.title]?.toString?.().replaceAll('_', '\\_') ?? null).join('___')
+  } else if (pkCols.length) {
+    return row?.[pkCols[0].title] ?? null
+  }
 }
 
 export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {

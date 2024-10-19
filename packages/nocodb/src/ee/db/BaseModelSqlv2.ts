@@ -491,11 +491,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             // todo: update read method to accept both string and object
             typeof param.idOrRecord === 'object'
               ? this.model.primaryKeys
-                  .map(
-                    (c) =>
+                  .map((c) => {
+                    const idVal =
                       param.idOrRecord?.[c.title] ??
-                      param.idOrRecord?.[c.column_name],
-                  )
+                      param.idOrRecord?.[c.column_name];
+
+                    if (this.model.primaryKeys.length > 1) {
+                      return idVal?.toString?.().replaceAll('_', '\\_') ?? null;
+                    }
+                    return idVal;
+                  })
                   .join('___')
               : param.idOrRecord,
           view: param.view,

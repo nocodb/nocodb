@@ -6517,7 +6517,11 @@ class BaseModelSqlv2 {
       for (const pk of this.model.primaryKeys) {
         pkValues[pk.title] = data[pk.title] ?? data[pk.column_name];
       }
-      return asString ? Object.values(pkValues).join('___') : pkValues;
+      return asString
+        ? Object.values(pkValues)
+            .map((val) => val?.toString?.().replaceAll('_', '\\_'))
+            .join('___')
+        : pkValues;
     } else if (this.model.primaryKey) {
       return (
         data[this.model.primaryKey.title] ??
@@ -10225,7 +10229,16 @@ export function getCompositePkValue(primaryKeys: Column[], row) {
 
   if (typeof row !== 'object') return row;
 
-  return primaryKeys.map((c) => row[c.title] ?? row[c.column_name]).join('___');
+  if (primaryKeys.length > 1) {
+    primaryKeys.map((c) =>
+      (row[c.title] ?? row[c.column_name])?.toString?.().replaceAll('_', '\\_'),
+    );
+  }
+
+  return (
+    primaryKeys[0] &&
+    (row[primaryKeys[0].title] ?? row[primaryKeys[0].column_name])
+  );
 }
 
 export function haveFormulaColumn(columns: Column[]) {

@@ -651,7 +651,9 @@ const toggleAiMode = async () => {
   oldPrompt.value = ''
   isPromtAlreadyGenerated.value = false
 
-  await predictRefresh()
+  if (aiIntegrationAvailable.value) {
+    await predictRefresh()
+  }
 }
 
 const disableAiMode = () => {

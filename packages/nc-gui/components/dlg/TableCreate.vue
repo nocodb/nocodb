@@ -223,7 +223,7 @@ const onSelectAll = () => {
 }
 
 const toggleAiMode = async () => {
-  if (aiMode.value || !aiIntegrationAvailable.value) return
+  if (aiMode.value) return
 
   aiError.value = ''
 
@@ -235,7 +235,9 @@ const toggleAiMode = async () => {
   oldPrompt.value = ''
   isPromtAlreadyGenerated.value = false
 
-  await predictRefresh()
+  if (aiIntegrationAvailable.value) {
+    await predictRefresh()
+  }
 }
 
 const disableAiMode = () => {
@@ -459,18 +461,6 @@ const handleRefreshOnError = () => {
     default:
   }
 }
-
-watch(
-  dialogShow,
-  (value) => {
-    if (value) {
-      if (!aiIntegrationAvailable.value) {
-        aiIntegrationAvailable.value = true
-      }
-    }
-  },
-  { immediate: true },
-)
 </script>
 
 <template>

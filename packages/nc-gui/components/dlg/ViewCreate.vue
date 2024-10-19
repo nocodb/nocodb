@@ -531,6 +531,8 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
 }
 
 const predictViews = async (): Promise<AiSuggestedViewType[]> => {
+  let selectedCount = activeTabSelectedViews.value.length
+
   const viewType =
     !isAIViewCreateMode.value && form.type && viewTypeToStringMap[form.type] ? viewTypeToStringMap[form.type] : undefined
 
@@ -548,7 +550,7 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
       return {
         ...v,
         tab: activeAiTab.value,
-        selected: true,
+        selected: selectedCount++ < maxSelectionCount ? true : false,
       }
     })
 }

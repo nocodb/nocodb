@@ -121,6 +121,8 @@ const activeTabSelectedTables = computed(() => {
 })
 
 const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
+  let selectedCount = activeTabSelectedTables.value.length
+
   return (
     await _predictNextTables(
       activeTabPredictHistory.value.map(({ title }) => title),
@@ -133,7 +135,7 @@ const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
       return {
         ...t,
         tab: activeAiTab.value,
-        selected: true,
+        selected: selectedCount++ < maxSelectionCount ? true : false,
       }
     })
 }

@@ -154,6 +154,8 @@ export const usePredictFields = createSharedComposable(
     const { validate, validateInfos, clearValidate } = useForm(fieldMappingFormState, validators)
 
     const predictNextFields = async (): Promise<PredictedFieldType[]> => {
+      let selectedCount = activeTabSelectedFields.value.length
+
       const fieldHistory = Array.from(
         new Set(
           activeTabPredictHistory.value
@@ -200,7 +202,7 @@ export const usePredictFields = createSharedComposable(
             ...f,
             tab: activeAiTab.value,
             ai_temp_id: `temp_${++temporaryAddCount.value}`,
-            selected: isFromTableExplorer?.value ? false : true,
+            selected: isFromTableExplorer?.value ? false : selectedCount++ < maxSelectionCount ? true : false,
           }
 
           if (isFromTableExplorer?.value) {

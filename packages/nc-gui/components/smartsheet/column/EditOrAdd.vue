@@ -656,7 +656,7 @@ watch(activeAiTab, (newValue) => {
           </div>
         </div>
         <template v-if="aiAutoSuggestMode">
-          <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 px-5 pt-2.5 pb-4.5">
+          <div v-if="!aiIntegrationAvailable" class="flex items-center gap-3 py-2">
             <GeneralIcon icon="alertTriangleSolid" class="!text-nc-content-orange-medium w-4 h-4" />
             <div class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('title.noAiIntegrationAvailable') }}</div>
           </div>

@@ -3,7 +3,6 @@ import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { Column } from '~/models';
-import { parseMetaProp } from '~/utils/modelUtils';
 import { isEE } from '~/utils';
 
 /**
@@ -35,7 +34,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
   // Recover broken link
   for (const column of columns) {
-    logger.log(`Recovering column '${column.title}' with id '${column.id}'`);
+    logger.log(`Recovering column '${column.title}' (ID: '${column.id}')`);
 
     let relatedTableId;
 
@@ -279,7 +278,7 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
     if (!foundAndMapped) {
       logger.error(
-        `Couldn't find any column which is related to the link column '${column.title}' with id '${column.id}'`,
+        `No related column found for link column '${column.title}' (ID: '${column.id}'). Deleting it.`,
       );
 
       // delete the link column since it's not useful anymore and not recoverable
@@ -291,6 +290,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         column.id,
         ncMeta,
       );
+    } else {
+      logger.log(`Recovered column '${column.title}' (ID: '${column.id}')`);
     }
   }
 }

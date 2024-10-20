@@ -89,9 +89,8 @@ const isGrid = inject(IsGridInj, ref(false))
         {{ $t('msg.info.computedFieldDeleteWarning') }}
       </div>
     </div>
-    <SmartsheetDialogModelVirtualTextCellExpand v-on:close="closeModel" :model-value="cellValue"
-      :is-visible="isVisible">
-    </SmartsheetDialogModelVirtualTextCellExpand>
+    <DlgVirtualTextCellExpand v-on:close="closeModel" :model-value="cellValue" :is-visible="isVisible">
+    </DlgVirtualTextCellExpand>
   </div>
   <!-- <LazyCellTextArea  v-model="vModel" :virtual="true" /> -->
 

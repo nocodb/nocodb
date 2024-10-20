@@ -6,7 +6,6 @@ import type { Ref } from 'vue'
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
 
-const isHovered = ref(false);
 
 const cellValue = inject(CellValueInj)
 
@@ -47,17 +46,12 @@ const isGrid = inject(IsGridInj, ref(false))
 </script>
 
 <template>
-  <LazySmartsheetFormulaWrapperCell
-    v-if="column.meta?.display_type"
-    v-model="cellValue"
-    :column="{
+  <LazySmartsheetFormulaWrapperCell v-if="column.meta?.display_type" v-model="cellValue" :column="{
       uidt: column.meta?.display_type,
       ...column.meta?.display_column_meta,
-    }"
-  />
+    }" />
 
-  <div v-else class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }"
-    @mouseover="isHovered = true" @mouseleave="isHovered = false">
+  <div v-else class="w-full formula-wrapper" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
     <a-tooltip v-if="column && column.colOptions && column.colOptions.error" placement="bottom" class="text-orange-700">
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>
@@ -73,8 +67,7 @@ const isGrid = inject(IsGridInj, ref(false))
 
 
       <NcTooltip v-if="!isVisible" placement="bottom"
-        class="nc-action-icon !absolute  nc-text-area-expand-btn group-hover:block z-3" :class="{
-  'hidden': !isHovered, 'block': isHovered, 
+        class="nc-action-icon !absolute !hidden nc-formula-area-expand-btn group-hover:block z-3" :class="{
   'right-1': isExpandedFormOpen,
           'right-3': !isExpandedFormOpen,
           'top-0': isGrid && !isExpandedFormOpen&& !(!rowHeight || rowHeight === 1),
@@ -104,8 +97,8 @@ const isGrid = inject(IsGridInj, ref(false))
 
 </template>
 <style lang="scss">
-.cell:hover .nc-text-area-expand-btn,
-.long-text-wrapper:hover .nc-text-area-expand-btn {
+.cell:hover .nc-formula-area-expand-btn,
+.formula-wrapper:hover .nc-formula-area-expand-btn {
   @apply !block cursor-pointer;
 }
 </style>

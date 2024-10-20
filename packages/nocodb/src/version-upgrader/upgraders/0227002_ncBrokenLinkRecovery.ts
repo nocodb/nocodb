@@ -3,6 +3,8 @@ import type { NcUpgraderCtx } from '~/version-upgrader/NcUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import { MetaTable } from '~/utils/globals';
 import { Column } from '~/models';
+import { parseMetaProp } from '~/utils/modelUtils';
+import { isEE } from '~/utils';
 
 /**
  * This upgrader look for any broken link and try to recover it
@@ -33,9 +35,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
 
   // Recover broken link
   for (const column of columns) {
-    logger.log(`Recovering column '${column.name}' with id '${column.id}'`);
+    logger.log(`Recovering column '${column.title}' with id '${column.id}'`);
 
-    const currentTableId = column.fk_model_id;
     let relatedTableId;
 
     // check any lookup or rollup column is using this column
@@ -79,24 +80,26 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
     const linksQb = ncMeta
       .knex(MetaTable.COL_RELATIONS)
       .select(`${MetaTable.COL_RELATIONS}.*`)
+      .select(`${MetaTable.COLUMNS}.fk_model_id`)
       .where(
         `${MetaTable.COL_RELATIONS}.fk_related_model_id`,
         column.fk_model_id,
+      )
+      .join(
+        MetaTable.COLUMNS,
+        `${MetaTable.COL_RELATIONS}.fk_column_id`,
+        `${MetaTable.COLUMNS}.id`,
       );
     if (relatedTableId) {
-      linksQb
-        .join(
-          MetaTable.COLUMNS,
-          `${MetaTable.COL_RELATIONS}.fk_column_id`,
-          `${MetaTable.COLUMNS}.id`,
-        )
-        .where(`${MetaTable.COLUMNS}.fk_model_id`, relatedTableId);
+      linksQb.where(`${MetaTable.COLUMNS}.fk_model_id`, relatedTableId);
     }
 
     const links = await linksQb;
+    let foundAndMapped = false;
 
     // iterate over all links which is related to current table and if found relation which doesn't have link in the related table then use it to populate colOptions
     for (const link of links) {
+      const relatedTableId = link.fk_model_id;
       let columnInCurrTable = null;
       if (link.type === RelationTypes.HAS_MANY) {
         // check for bt column in current table
@@ -107,7 +110,6 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             `${MetaTable.COL_RELATIONS}.fk_column_id`,
             `${MetaTable.COLUMNS}.id`,
           )
-          .where(`${MetaTable.COL_RELATIONS}.fk_model_id`, currentTableId)
           .where(
             `${MetaTable.COL_RELATIONS}.fk_related_model_id`,
             relatedTableId,
@@ -120,7 +122,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           .where(
             `${MetaTable.COL_RELATIONS}.fk_parent_column_id`,
             link.fk_parent_column_id,
-          );
+          )
+          .first();
       } else if (link.type === RelationTypes.ONE_TO_ONE) {
         // check for one to one column in current table and confirm type in meta
         columnInCurrTable = await ncMeta
@@ -130,7 +133,6 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             `${MetaTable.COL_RELATIONS}.fk_column_id`,
             `${MetaTable.COLUMNS}.id`,
           )
-          .where(`${MetaTable.COL_RELATIONS}.fk_model_id`, currentTableId)
           .where(
             `${MetaTable.COL_RELATIONS}.fk_related_model_id`,
             relatedTableId,
@@ -143,7 +145,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           .where(
             `${MetaTable.COL_RELATIONS}.fk_parent_column_id`,
             link.fk_parent_column_id,
-          );
+          )
+          .first();
       } else if (link.type === RelationTypes.BELONGS_TO) {
         // check for hm column in current table
         columnInCurrTable = await ncMeta
@@ -153,7 +156,6 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             `${MetaTable.COL_RELATIONS}.fk_column_id`,
             `${MetaTable.COLUMNS}.id`,
           )
-          .where(`${MetaTable.COL_RELATIONS}.fk_model_id`, currentTableId)
           .where(
             `${MetaTable.COL_RELATIONS}.fk_related_model_id`,
             relatedTableId,
@@ -166,7 +168,8 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           .where(
             `${MetaTable.COL_RELATIONS}.fk_parent_column_id`,
             link.fk_parent_column_id,
-          );
+          )
+          .first();
       } else if (link.type === RelationTypes.MANY_TO_MANY) {
         // check for mtm column in current table
         columnInCurrTable = await ncMeta
@@ -176,7 +179,6 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             `${MetaTable.COL_RELATIONS}.fk_column_id`,
             `${MetaTable.COLUMNS}.id`,
           )
-          .where(`${MetaTable.COL_RELATIONS}.fk_model_id`, currentTableId)
           .where(
             `${MetaTable.COL_RELATIONS}.fk_related_model_id`,
             relatedTableId,
@@ -201,26 +203,32 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           .where(
             `${MetaTable.COL_RELATIONS}.fk_mm_parent_column_id`,
             link.fk_mm_child_column_id,
-          );
+          )
+          .first();
       }
 
       if (!columnInCurrTable) {
         // generate meta and insert into colOptions
 
-        const commonProps = {
-          id: (ncMeta as MetaService).genNanoid(MetaTable.COL_RELATIONS),
+        const commonProps: Record<string, unknown> = {
+          id: await (ncMeta as MetaService).genNanoid(MetaTable.COL_RELATIONS),
           fk_column_id: column.id,
           fk_related_model_id: relatedTableId,
           created_at: link.created_at,
           updated_at: link.updated_at,
           virtual: link.virtual,
+          base_id: link.base_id,
         };
+
+        if (isEE) {
+          commonProps.fk_workspace_id = link.fk_workspace_id;
+        }
 
         // based on type insert data into colOptions
         switch (link.type) {
           case RelationTypes.HAS_MANY:
             // insert data into colOptions
-            ncMeta.knex(MetaTable.COL_RELATIONS).insert({
+            await ncMeta.knex(MetaTable.COL_RELATIONS).insert({
               ...commonProps,
               type: RelationTypes.BELONGS_TO,
               fk_child_column_id: link.fk_child_column_id,
@@ -228,23 +236,20 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             });
             break;
           case RelationTypes.ONE_TO_ONE:
-            // todo:
-            const meta = {
-              bt: false,
-            };
-            // insert data into colOptions
-            ncMeta.knex(MetaTable.COL_RELATIONS).insert({
-              ...commonProps,
-              type: RelationTypes.ONE_TO_ONE,
-              fk_child_column_id: link.fk_child_column_id,
-              fk_parent_column_id: link.fk_parent_column_id,
-              meta,
-            });
+            {
+              // insert data into colOptions
+              await ncMeta.knex(MetaTable.COL_RELATIONS).insert({
+                ...commonProps,
+                type: RelationTypes.ONE_TO_ONE,
+                fk_child_column_id: link.fk_child_column_id,
+                fk_parent_column_id: link.fk_parent_column_id,
+              });
+            }
             break;
           case RelationTypes.BELONGS_TO:
             // insert data into colOptions
 
-            ncMeta.knex(MetaTable.COL_RELATIONS).insert({
+            await ncMeta.knex(MetaTable.COL_RELATIONS).insert({
               ...commonProps,
               type: RelationTypes.HAS_MANY,
               fk_child_column_id: link.fk_child_column_id,
@@ -254,9 +259,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           case RelationTypes.MANY_TO_MANY:
             // insert data into colOptions
 
-            ncMeta.knex(MetaTable.COL_RELATIONS).insert({
+            await ncMeta.knex(MetaTable.COL_RELATIONS).insert({
               ...commonProps,
-              type: RelationTypes.ONE_TO_ONE,
+              type: RelationTypes.MANY_TO_MANY,
               fk_child_column_id: link.fk_parent_column_id,
               fk_parent_column_id: link.fk_child_column_id,
 
@@ -267,22 +272,25 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
             break;
         }
 
+        foundAndMapped = true;
         break;
-      } else {
-        logger.error(
-          `Couldn't find any column in current table which is related to the link '${link.id}'.`,
-        );
-
-        // delete the link column since it's not useful anymore and not recoverable
-        await Column.delete(
-          {
-            workspace_id: column.workspace_id,
-            base_id: column.base_id,
-          },
-          column.id,
-          ncMeta,
-        );
       }
+    }
+
+    if (!foundAndMapped) {
+      logger.error(
+        `Couldn't find any column which is related to the link column '${column.title}' with id '${column.id}'`,
+      );
+
+      // delete the link column since it's not useful anymore and not recoverable
+      await Column.delete(
+        {
+          workspace_id: column.workspace_id,
+          base_id: column.base_id,
+        },
+        column.id,
+        ncMeta,
+      );
     }
   }
 }

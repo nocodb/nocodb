@@ -133,6 +133,7 @@ export const nocoModuleMetadata = {
       storage: multer.diskStorage({}),
       limits: {
         fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+        fileSize: NC_ATTACHMENT_FIELD_SIZE,
       },
     }),
   ],

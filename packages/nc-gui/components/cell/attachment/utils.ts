@@ -135,7 +135,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           }
 
           // verify file size
-          if (file?.size && file.size > attachmentMeta.maxAttachmentSize * 1024 * 1024) {
+          if (file?.size && file.size > attachmentMeta.maxAttachmentSize) {
             message.error(
               `The size of ${(file as File)?.name || (file as AttachmentReqType)?.fileName} exceeds the maximum file size ${
                 attachmentMeta.maxAttachmentSize

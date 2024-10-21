@@ -8,7 +8,11 @@ import { useAgent } from 'request-filtering-agent';
 import dayjs from 'dayjs';
 import type { ErrorReportReqType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
-import { NC_APP_SETTINGS, NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
+import {
+  NC_APP_SETTINGS,
+  NC_ATTACHMENT_FIELD_SIZE,
+  NC_MAX_ATTACHMENTS_ALLOWED,
+} from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { Base, Store, User } from '~/models';
@@ -465,7 +469,7 @@ export class UtilsService {
       ncSiteUrl: (param.req as any).ncSiteUrl,
       ee: Noco.isEE(),
       ncAttachmentFieldSize: NC_ATTACHMENT_FIELD_SIZE,
-      ncMaxAttachmentsAllowed: +(process.env.NC_MAX_ATTACHMENTS_ALLOWED || 10),
+      ncMaxAttachmentsAllowed: NC_MAX_ATTACHMENTS_ALLOWED,
       isCloud: process.env.NC_CLOUD === 'true',
       automationLogLevel: process.env.NC_AUTOMATION_LOG_LEVEL || 'OFF',
       baseHostName: process.env.NC_BASE_HOST_NAME,

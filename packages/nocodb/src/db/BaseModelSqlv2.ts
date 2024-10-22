@@ -8,6 +8,7 @@ import equal from 'fast-deep-equal';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  convertDurationToSeconds,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -5408,6 +5409,12 @@ class BaseModelSqlv2 {
                     val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
                   }
                 }
+                if (col.uidt === UITypes.Duration && typeof val === 'string')
+                  val =
+                    val.indexOf(':') > -1
+                      ? convertDurationToSeconds(val)
+                      : parseFloat(val);
+
                 insertObj[sanitize(col.column_name)] = val;
               }
             }

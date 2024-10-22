@@ -178,11 +178,12 @@ provide(EditColumnInj, ref(true))
             >Generate text using AI</span
           >
         </NcSwitch>
-        <div class="flex-1"></div>
         <NcTooltip class="ml-3 mr-[40px] flex cursor-pointer">
           <template #title> Use AI to generate content based on record data. </template>
           <GeneralIcon icon="ncInfo" class="text-nc-content-gray-subtle" />
         </NcTooltip>
+        <div class="flex-1"></div>
+
         <div class="absolute right-0">
           <AiSettings
             v-model:fk-integration-id="vModel.fk_integration_id"
@@ -220,7 +221,7 @@ provide(EditColumnInj, ref(true))
       <div class="nc-ai-options-preview">
         <div class="">
           <div
-            class="flex items-center transition-all duration-300"
+            class="flex items-center gap-2 transition-all duration-300"
             :class="{
               'pl-3 py-2 pr-2': !isAlreadyGenerated,
               'pl-3 py-1 pr-1 border-b-1 border-nc-border-gray-medium': isAlreadyGenerated,
@@ -229,16 +230,15 @@ provide(EditColumnInj, ref(true))
             <div class="flex flex-col flex-1 gap-1">
               <div class="flex items-center gap-3">
                 <span class="text-small font-medium text-nc-content-gray">Preview</span>
-
-                <NcTooltip class="flex cursor-pointer">
-                  <template #title> Preview is generated using the first record in ths table</template>
-                  <GeneralIcon icon="ncInfo" class="text-nc-content-gray-subtle" />
-                </NcTooltip>
               </div>
               <span v-if="!isAlreadyGenerated" class="text-[11px] leading-[18px] text-nc-content-gray-muted">
-                Include at least 1 field in prompt to generate
+                Include at least 1 field in prompt.
               </span>
             </div>
+            <NcTooltip class="flex cursor-pointer">
+              <template #title> Preview is generated using the first record in ths table</template>
+              <GeneralIcon icon="ncInfo" class="text-nc-content-gray-subtle" />
+            </NcTooltip>
             <NcTooltip :disabled="isPreviewEnabled">
               <template #title>
                 {{ !vModel.title ? 'Field name is required' : 'Include at least 1 field in prompt to generate' }}

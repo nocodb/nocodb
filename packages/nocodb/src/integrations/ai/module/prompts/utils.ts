@@ -88,7 +88,7 @@ Rules:
 - You can only use provided functions.
 - Pay extra attention to argument types and order.
 - Formulas must be meaningful & unique.
-- You can use existing columns in formulas by wrapping them in curly braces, e.g., {column_name}.
+- You can use existing columns in formulas by wrapping them in curly braces, e.g., {column_name} & column_name is case-sensitive.
 
 Examples:
 - Full Name: CONCAT({first_name}, ' ', {last_name})

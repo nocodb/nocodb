@@ -158,20 +158,19 @@ provide(EditColumnInj, ref(true))
   <div class="flex flex-col gap-3">
     <a-form-item class="flex items-center" v-bind="validateInfos.richText">
       <NcSwitch v-model:checked="vModel.rich_text" disabled class="nc-ai-field-rich-text nc-ai-input">
-        <span class="text-sm font-semibold text-nc-content-gray-muted">Enable rich text formatting</span>
+        <span class="pl-1 text-sm font-semibold text-nc-content-gray-muted">Enable rich text formatting</span>
       </NcSwitch>
       <div class="flex-1"></div>
     </a-form-item>
-    <div>
+    <div class="relative">
       <a-form-item class="flex items-center">
         <NcSwitch
           v-model:checked="isEnabledGenerateText"
           :disabled="!aiIntegrationAvailable"
           class="nc-ai-field-generate-text nc-ai-input"
-          content-wrapper-class="flex-1"
         >
           <span
-            class="text-sm font-semibold"
+            class="text-sm font-semibold pl-1"
             :class="{
               'text-nc-content-purple-dark': isEnabledGenerateText,
               'text-nc-content-gray': !isEnabledGenerateText,
@@ -179,7 +178,12 @@ provide(EditColumnInj, ref(true))
             >Generate text using AI</span
           >
         </NcSwitch>
-        <div class="-my-1.5">
+        <div class="flex-1"></div>
+        <NcTooltip class="ml-3 mr-[40px] flex cursor-pointer">
+          <template #title> Use AI to generate content based on record data. </template>
+          <GeneralIcon icon="ncInfo" class="text-nc-content-gray-subtle" />
+        </NcTooltip>
+        <div class="absolute right-0">
           <AiSettings
             v-model:fk-integration-id="vModel.fk_integration_id"
             v-model:model="vModel.model"
@@ -194,9 +198,6 @@ provide(EditColumnInj, ref(true))
           </AiSettings>
         </div>
       </a-form-item>
-      <div class="pl-[36px] text-small leading-[18px] text-nc-content-gray-subtle">
-        Use AI to generate content based on record data.
-      </div>
     </div>
     <template v-if="isEnabledGenerateText">
       <a-form-item class="flex">
@@ -226,7 +227,14 @@ provide(EditColumnInj, ref(true))
             }"
           >
             <div class="flex flex-col flex-1 gap-1">
-              <span class="text-small font-medium text-nc-content-gray">Preview</span>
+              <div class="flex items-center gap-3">
+                <span class="text-small font-medium text-nc-content-gray">Preview</span>
+
+                <NcTooltip class="flex cursor-pointer">
+                  <template #title> Preview is generated using the first record in ths table</template>
+                  <GeneralIcon icon="ncInfo" class="text-nc-content-gray-subtle" />
+                </NcTooltip>
+              </div>
               <span v-if="!isAlreadyGenerated" class="text-[11px] leading-[18px] text-nc-content-gray-muted">
                 Include at least 1 field in prompt to generate
               </span>
@@ -239,10 +247,11 @@ provide(EditColumnInj, ref(true))
                 class="nc-aioptions-preview-generate-btn"
                 :class="{
                   'nc-is-already-generated': isAlreadyGenerated,
+                  'nc-preview-enabled': isPreviewEnabled,
                 }"
                 size="xs"
                 :type="isAlreadyGenerated ? 'text' : 'secondary'"
-                theme="ai"
+                :theme="isPreviewEnabled ? 'ai' : 'default'"
                 :disabled="!isPreviewEnabled"
                 :loading="generatingPreview"
                 @click.stop="generate"
@@ -261,7 +270,7 @@ provide(EditColumnInj, ref(true))
                         : 'Re-generate'
                       : generatingPreview
                       ? 'Generating'
-                      : 'Generate'
+                      : 'Generate preview'
                   }}
                 </div>
               </NcButton>
@@ -304,7 +313,9 @@ provide(EditColumnInj, ref(true))
 
 .nc-aioptions-preview-generate-btn {
   &:not(.nc-is-already-generated) {
-    @apply !border-transparent;
+    &.nc-preview-enabled {
+      @apply !border-transparent;
+    }
   }
 }
 </style>

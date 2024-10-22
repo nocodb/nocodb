@@ -90,7 +90,7 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
-  [UITypes.AI]: 'AI Prompt',
+  [UITypes.AI]: 'AI Long Text',
   AIButton: 'AI Button',
 };
 
@@ -136,7 +136,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
-  [UITypes.AI]: 'AI Prompt',
+  [UITypes.AI]: 'AI Long Text',
 };
 
 export const numericUITypes = [

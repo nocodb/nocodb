@@ -597,10 +597,12 @@ const aiMode = ref<AI_MODE>(AI_MODE.NONE)
 
 const aiPrompt = ref('')
 
+const oldAiPrompt = ref('')
+
 const calledFun = ref<null | string>(null)
 
 const promptAI = async () => {
-  if (!aiPrompt.value) return
+  if (!aiPrompt.value?.trim()) return
 
   calledFun.value = 'promptAI'
 
@@ -608,7 +610,7 @@ const promptAI = async () => {
 
   if (formula) {
     editor.setValue(formula)
-    aiPrompt.value = ''
+    oldAiPrompt.value = aiPrompt.value
   }
 }
 
@@ -750,7 +752,7 @@ const enableAI = async () => {
           size="xsmall"
           class="nc-formula-helper-ai-btn !px-2"
           :loading="aiLoading && calledFun === 'promptAI'"
-          :disabled="!aiPrompt"
+          :disabled="!aiPrompt?.trim() || (!!aiPrompt.trim() && aiPrompt.trim() === oldAiPrompt.trim())"
           @click="promptAI"
         >
           <template #icon>

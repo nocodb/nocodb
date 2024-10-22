@@ -230,32 +230,48 @@ export const usePredictFields = createSharedComposable(
       }
     }
 
-    const predictRefresh = async (callback: (field?: PredictedFieldType | undefined) => void = () => undefined) => {
+    const predictRefresh = async (callback?: (field?: PredictedFieldType | undefined) => void) => {
       calledFunction.value = 'predictRefresh'
 
       const predictions = await predictNextFields()
 
       if (predictions.length) {
-        predicted.value = [...predicted.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
+        predicted.value = [
+          ...predicted.value.filter(
+            (t) => t.tab !== activeAiTab.value || (isFromTableExplorer?.value && t.tab === activeAiTab.value && !!t.selected),
+          ),
+          ...predictions,
+        ]
         predictHistory.value.push(...predictions)
-        callback()
+
+        if (ncIsFunction(callback)) {
+          callback()
+        }
       } else if (!aiError.value) {
         message.info(`No auto suggestions were found for ${meta.value?.title || 'the current table'}`)
       }
       aiModeStep.value = AiStep.pick
     }
 
-    const predictFromPrompt = async (callback: (field?: PredictedFieldType | undefined) => void = () => undefined) => {
+    const predictFromPrompt = async (callback?: (field?: PredictedFieldType | undefined) => void) => {
       calledFunction.value = 'predictFromPrompt'
 
       const predictions = await predictNextFields()
 
       if (predictions.length) {
-        predicted.value = [...predicted.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
+        predicted.value = [
+          ...predicted.value.filter(
+            (t) => t.tab !== activeAiTab.value || (isFromTableExplorer?.value && t.tab === activeAiTab.value && !!t.selected),
+          ),
+          ...predictions,
+        ]
         predictHistory.value.push(...predictions)
 
         oldPrompt.value = prompt.value
-        callback()
+
+        if (ncIsFunction(callback)) {
+          callback()
+        }
       } else if (!aiError.value) {
         message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
       }

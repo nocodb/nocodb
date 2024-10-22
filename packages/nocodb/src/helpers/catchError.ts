@@ -795,22 +795,43 @@ export class NcError {
     id: string | string[] | Record<string, string> | Record<string, string>[],
     args?: NcErrorArgs,
   ) {
+    let formatedId: string | string[] = '';
     if (!id) {
-      id = 'unknown';
+      formatedId = 'unknown';
     } else if (typeof id === 'string') {
-      id = [id];
+      formatedId = [id];
     } else if (Array.isArray(id)) {
       if (id.every((i) => typeof i === 'string')) {
-        id = id as string[];
+        formatedId = id as string[];
       } else {
-        id = id.map((i) => Object.values(i).join('___'));
+        formatedId = id.map((val) => {
+          const idsArr = Object.values(val);
+          if (idsArr.length > 1) {
+            return idsArr
+              .map((idVal) => idVal?.toString?.().replaceAll('_', '\\_'))
+              .join('___');
+          } else if (idsArr.length) {
+            return idsArr[0];
+          } else {
+            return 'unknown';
+          }
+        });
       }
     } else {
-      id = Object.values(id).join('___');
+      const idsArr = Object.values(id);
+      if (idsArr.length > 1) {
+        idsArr
+          .map((idVal) => idVal?.toString?.().replaceAll('_', '\\_'))
+          .join('___');
+      } else if (idsArr.length) {
+        formatedId = idsArr[0];
+      } else {
+        formatedId = 'unknown';
+      }
     }
 
     throw new NcBaseErrorv2(NcErrorType.RECORD_NOT_FOUND, {
-      params: id,
+      params: formatedId,
       ...args,
     });
   }

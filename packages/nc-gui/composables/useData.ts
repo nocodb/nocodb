@@ -1,6 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import { extractPkFromRow } from '../utils/dataUtils'
 import type { CellRange } from '#imports'
 
 export function useData(args: {
@@ -550,10 +551,7 @@ export function useData(args: {
     try {
       const row = formattedData.value[rowIndex]
       if (!row.rowMeta.new) {
-        const id = meta?.value?.columns
-          ?.filter((c) => c.pk)
-          .map((c) => row.row[c.title!])
-          .join('___')
+        const id = extractPkFromRow(row.row, meta?.value?.columns)
 
         const fullRecord = await $api.dbTableRow.read(
           NOCO,

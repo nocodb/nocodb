@@ -7,6 +7,7 @@ import type {
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import { extractPkFromRow } from '../utils/dataUtils'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -88,18 +89,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
 
-    const rowId = computed(() =>
-      meta.value.columns
-        .filter((c: Required<ColumnType>) => c.pk)
-        .map((c: Required<ColumnType>) => row?.value?.row?.[c.title])
-        .join('___'),
-    )
+    const rowId = computed(() => {
+      extractPkFromRow(row.value.row, meta.value)
+    })
 
     const getRelatedTableRowId = (row: Record<string, any>) => {
-      return relatedTableMeta.value?.columns
-        ?.filter((c) => c.pk)
-        .map((c) => row?.[c.title as string] ?? row?.[c.id as string])
-        .join('___')
+      return extractPkFromRow(row, relatedTableMeta.value?.columns)
     }
 
     // actions

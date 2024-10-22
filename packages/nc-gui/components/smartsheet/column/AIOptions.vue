@@ -128,8 +128,6 @@ onMounted(() => {
   localIsEnabledGenerateText.value = isEdit.value ? !!vModel.value.prompt_raw : true
 })
 
-setAdditionalValidations({ fk_integration_id: [{ required: true, message: t('general.required') }] })
-
 setAdditionalValidations({
   fk_integration_id: [{ required: true, message: t('general.required') }],
   prompt_raw: [
@@ -148,6 +146,10 @@ setAdditionalValidations({
     },
   ],
 })
+
+if (isEdit.value) {
+  vModel.value.fk_integration_id = vModel.value?.colOptions?.fk_integration_id
+}
 
 provide(EditColumnInj, ref(true))
 </script>

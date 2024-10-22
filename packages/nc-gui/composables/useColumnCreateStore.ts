@@ -1,6 +1,6 @@
 import rfdc from 'rfdc'
 import type { ColumnReqType, ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { ButtonActionsType, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { RuleObject } from 'ant-design-vue/es/form'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
@@ -106,7 +106,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     })
 
     const isAiMode = computed(() => {
-      if (formState.value.uidt === UITypes.AI || (formState.value.uidt === UITypes.Button && formState.value.type === 'ai')) {
+      if (
+        formState.value.uidt === UITypes.AI ||
+        (formState.value.uidt === UITypes.Button && formState.value.type === ButtonActionsType.Ai)
+      ) {
         return true
       }
 

@@ -702,10 +702,11 @@ if (!isKanbanStack.value) {
         data-testid="nc-add-select-option-btn"
         @click.stop="addNewOption()"
       >
-        <div class="flex items-center">
+        <template #icon>
           <component :is="iconMap.plus" />
-          <span class="flex-auto">Add option</span>
-        </div>
+        </template>
+
+        Add option
       </NcButton>
       <NcTooltip class="w-1/2">
         <template #title>

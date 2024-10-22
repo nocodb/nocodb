@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { type ColumnType } from 'nocodb-sdk'
 import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
@@ -20,9 +20,13 @@ const { submitBtnLabel, saving } = toRefs(props)
 
 const meta = inject(MetaInj, ref())
 
+const { t } = useI18n()
+
+const workspaceStore = useWorkspace()
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
 const {
   isAiButtonConfigModalOpen,
-  formState,
   isEdit,
   setAdditionalValidations,
   validateInfos,
@@ -54,11 +58,16 @@ const validators = {
       message: 'Prompt required for AI Button',
     },
   ],
+  fk_integration_id: [{ required: true, message: t('general.required') }],
 }
 
 setAdditionalValidations({
   ...validators,
 })
+
+if (isEdit.value) {
+  vModel.value.fk_integration_id = vModel.value?.colOptions?.fk_integration_id
+}
 
 const fieldTitle = computed(() => {
   return (
@@ -351,15 +360,32 @@ onBeforeUnmount(() => {
             <!-- Left side -->
             <div class="h-full w-1/2 nc-scrollbar-thin">
               <a-form
-                v-model="formState"
+                v-model="vModel"
                 no-style
                 layout="vertical"
                 class="nc-ai-button-config-left-section flex flex-col gap-6 h-full"
                 @submit.prevent
               >
-                <div class="text-base text-nc-content-gray font-bold">
-                  {{ $t('labels.configuration') }}
+                <div class="flex items-center">
+                  <div class="text-base text-nc-content-gray font-bold flex-1">
+                    {{ $t('labels.configuration') }}
+                  </div>
+                  <div class="-my-1.5">
+                    <AiSettings
+                      v-model:fk-integration-id="vModel.fk_integration_id"
+                      v-model:model="vModel.model"
+                      v-model:randomness="vModel.randomness"
+                      :workspace-id="activeWorkspaceId"
+                      :show-tooltip="false"
+                      placement="bottom"
+                    >
+                      <NcButton size="xs" theme="ai" class="!px-1" type="text">
+                        <GeneralIcon icon="settings" />
+                      </NcButton>
+                    </AiSettings>
+                  </div>
                 </div>
+
                 <a-form-item class="!my-0" v-bind="validateInfos.formula_raw">
                   <template #label>
                     <span> Input Prompt </span>

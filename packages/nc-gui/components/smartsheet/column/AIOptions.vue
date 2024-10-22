@@ -180,7 +180,7 @@ provide(EditColumnInj, ref(true))
         </NcSwitch>
         <NcTooltip class="ml-3 mr-[40px] flex cursor-pointer">
           <template #title> Use AI to generate content based on record data. </template>
-          <GeneralIcon icon="ncInfo" class="text-nc-content-gray-subtle" />
+          <GeneralIcon icon="ncInfo" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle" />
         </NcTooltip>
         <div class="flex-1"></div>
 
@@ -230,15 +230,16 @@ provide(EditColumnInj, ref(true))
             <div class="flex flex-col flex-1 gap-1">
               <div class="flex items-center gap-3">
                 <span class="text-small font-medium text-nc-content-gray">Preview</span>
+                <NcTooltip class="flex cursor-pointer">
+                  <template #title> Preview is generated using the first record in ths table</template>
+                  <GeneralIcon icon="ncInfo" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle" />
+                </NcTooltip>
               </div>
               <span v-if="!isAlreadyGenerated" class="text-[11px] leading-[18px] text-nc-content-gray-muted">
                 Include at least 1 field in prompt.
               </span>
             </div>
-            <NcTooltip class="flex cursor-pointer">
-              <template #title> Preview is generated using the first record in ths table</template>
-              <GeneralIcon icon="ncInfo" class="text-nc-content-gray-subtle" />
-            </NcTooltip>
+
             <NcTooltip :disabled="isPreviewEnabled">
               <template #title>
                 {{ !vModel.title ? 'Field name is required' : 'Include at least 1 field in prompt to generate' }}

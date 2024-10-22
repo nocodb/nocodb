@@ -12,10 +12,8 @@ const props = defineProps<{
   item: ProductFeedItem
 }>()
 
-const { getPossibleAttachmentSrc } = useAttachment()
-
 const {
-  item: { 'Published Time': CreatedAt, Description, Url, Title, 'Feed Source': source, Images },
+  item: { 'Published Time': CreatedAt, Description, Url, Title, 'Feed Source': source, Image },
 } = props
 
 const feedIcon = {
@@ -85,10 +83,10 @@ const handleOpenUrl = (url: string) => {
     </div>
     <template v-if="['Github', 'Cloud'].includes(source)">
       <div class="pb-5">
-        <LazyCellAttachmentPreviewImage
-          v-if="Images?.length"
+        <img
+          v-if="Image"
+          :src="Image"
           class="cursor-pointer"
-          :srcs="getPossibleAttachmentSrc(Images[0], 'card_cover')"
           @click="openLink(Url)"
         />
         <div class="prose px-5 mt-5" v-html="renderedText"></div>

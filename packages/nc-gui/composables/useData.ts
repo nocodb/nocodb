@@ -1,7 +1,6 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { extractPkFromRow } from '../utils/dataUtils'
 import type { CellRange } from '#imports'
 
 export function useData(args: {

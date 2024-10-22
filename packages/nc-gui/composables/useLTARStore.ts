@@ -7,7 +7,6 @@ import type {
 } from 'nocodb-sdk'
 import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { extractPkFromRow } from '../utils/dataUtils'
 
 interface DataApiResponse {
   list: Record<string, any>

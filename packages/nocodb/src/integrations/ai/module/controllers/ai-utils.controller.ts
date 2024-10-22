@@ -19,7 +19,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class AiUtilsController {
   constructor(private readonly aiUtilsService: AiUtilsService) {}
 
-  @Post(['/api/v2/ai/:baseId/utils'])
+  @Post(['/api/v2/ai/bases/:baseId/utils'])
   @Acl('aiUtils', {
     scope: 'base',
   })

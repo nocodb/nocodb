@@ -24,7 +24,7 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 export class AiDataController {
   constructor(private readonly aiDataService: AiDataService) {}
 
-  @Post(['/api/v2/ai/:modelId/generate'])
+  @Post(['/api/v2/ai/tables/:modelId/rows/generate'])
   @Acl('aiData', {
     scope: 'base',
   })
@@ -60,7 +60,7 @@ export class AiDataController {
     });
   }
 
-  @Post(['/api/v2/ai/:modelId/extract'])
+  @Post(['/api/v2/ai/tables/:modelId/extract'])
   @Acl('aiData', {
     scope: 'base',
   })

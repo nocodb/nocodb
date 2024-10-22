@@ -24,7 +24,7 @@ export class AiSchemaController {
     private readonly basesService: BasesService,
   ) {}
 
-  @Post(['/api/v2/ai/:baseId/schema'])
+  @Post(['/api/v2/ai/bases/:baseId/schema'])
   @Acl('aiBaseSchema', {
     scope: 'base',
   })
@@ -102,7 +102,7 @@ export class AiSchemaController {
     }
   }
 
-  @Post(['/api/v2/ai/schema/:workspaceId'])
+  @Post(['/api/v2/ai/workspaces/:workspaceId/bases'])
   @Acl('aiSchema', isEE ? { scope: 'workspace' } : { scope: 'org' })
   @HttpCode(200)
   async aiSchemaCreate(

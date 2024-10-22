@@ -18262,7 +18262,7 @@
         ]
       }
     },
-    "/api/v2/ai/{baseId}/utils": {
+    "/api/v2/ai/bases/{baseId}/utils": {
       "parameters": [
         {
           "schema": {
@@ -18314,7 +18314,7 @@
         ]
       }
     },
-    "/api/v2/ai/{baseId}/schema": {
+    "/api/v2/ai/bases/{baseId}/schema": {
       "parameters": [
         {
           "schema": {
@@ -18366,7 +18366,7 @@
         ]
       }
     },
-    "/api/v2/ai/schema/{workspaceId}": {
+    "/api/v2/ai/workspaces/{workspaceId}/bases": {
       "parameters": [
         {
           "schema": {
@@ -18418,7 +18418,7 @@
         ]
       }
     },
-    "/api/v2/ai/:modelId/generate": {
+    "/api/v2/ai/tables/{modelId}/rows/generate": {
       "post": {
         "summary": "Generate AI Data",
         "operationId": "ai-data-generate",
@@ -18505,7 +18505,7 @@
         ]
       }
     },
-    "/api/v2/ai/:modelId/extract": {
+    "/api/v2/ai/tables/{modelId}/extract": {
       "post": {
         "summary": "Extract Data using AI",
         "operationId": "ai-data-extract",

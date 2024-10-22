@@ -59,9 +59,6 @@ export const usePredictFields = createSharedComposable(
       set: (value: AiWizardTabsType) => {
         activeAiTabLocal.value = value
 
-        prompt.value = ''
-        oldPrompt.value = ''
-
         aiError.value = ''
       },
     })
@@ -153,11 +150,9 @@ export const usePredictFields = createSharedComposable(
     })
 
     // Form field validation
-    const { validate, validateInfos, clearValidate } = useForm(fieldMappingFormState, validators)
+    const { validate } = useForm(fieldMappingFormState, validators)
 
     const predictNextFields = async (): Promise<PredictedFieldType[]> => {
-      let selectedCount = activeTabSelectedFields.value.length
-
       const fieldHistory = Array.from(
         new Set(
           activeTabPredictHistory.value
@@ -204,7 +199,7 @@ export const usePredictFields = createSharedComposable(
             ...f,
             tab: activeAiTab.value,
             ai_temp_id: `temp_${++temporaryAddCount.value}`,
-            selected: isFromTableExplorer?.value ? false : selectedCount++ < maxAutoSelectionCount ? true : false,
+            selected: false,
           }
 
           if (isFromTableExplorer?.value) {
@@ -235,36 +230,32 @@ export const usePredictFields = createSharedComposable(
       }
     }
 
-    const predictRefresh = async () => {
+    const predictRefresh = async (callback: (field?: PredictedFieldType | undefined) => void = () => undefined) => {
       calledFunction.value = 'predictRefresh'
 
       const predictions = await predictNextFields()
 
       if (predictions.length) {
-        predicted.value = [
-          ...predicted.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
-          ...predictions,
-        ]
+        predicted.value = [...predicted.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
         predictHistory.value.push(...predictions)
+        callback()
       } else if (!aiError.value) {
         message.info(`No auto suggestions were found for ${meta.value?.title || 'the current table'}`)
       }
       aiModeStep.value = AiStep.pick
     }
 
-    const predictFromPrompt = async () => {
+    const predictFromPrompt = async (callback: (field?: PredictedFieldType | undefined) => void = () => undefined) => {
       calledFunction.value = 'predictFromPrompt'
 
       const predictions = await predictNextFields()
 
       if (predictions.length) {
-        predicted.value = [
-          ...predicted.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
-          ...predictions,
-        ]
+        predicted.value = [...predicted.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
         predictHistory.value.push(...predictions)
 
         oldPrompt.value = prompt.value
+        callback()
       } else if (!aiError.value) {
         message.info('No suggestions were found with the given prompt. Try again after modifying the prompt.')
       }

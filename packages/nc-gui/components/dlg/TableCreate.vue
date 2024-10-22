@@ -95,9 +95,6 @@ const activeAiTab = computed({
   set: (value: AiWizardTabsType) => {
     activeAiTabLocal.value = value
 
-    prompt.value = ''
-    oldPrompt.value = ''
-
     aiError.value = ''
 
     if (value === AiWizardTabsType.PROMPT) {
@@ -121,8 +118,6 @@ const activeTabSelectedTables = computed(() => {
 })
 
 const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
-  let selectedCount = activeTabSelectedTables.value.length
-
   return (
     await _predictNextTables(
       activeTabPredictHistory.value.map(({ title }) => title),
@@ -135,7 +130,7 @@ const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
       return {
         ...t,
         tab: activeAiTab.value,
-        selected: selectedCount++ < maxSelectionCount ? true : false,
+        selected: false,
       }
     })
 }
@@ -159,10 +154,7 @@ const predictRefresh = async () => {
   const predictions = await predictNextTables()
 
   if (predictions.length) {
-    predictedTables.value = [
-      ...predictedTables.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
-      ...predictions,
-    ]
+    predictedTables.value = [...predictedTables.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
     predictHistory.value.push(...predictions)
   } else if (!aiError.value) {
     message.info(`No auto suggestions were found for ${base.value?.title || 'the current base'}`)
@@ -176,10 +168,7 @@ const predictFromPrompt = async () => {
   const predictions = await predictNextTables()
 
   if (predictions.length) {
-    predictedTables.value = [
-      ...predictedTables.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
-      ...predictions,
-    ]
+    predictedTables.value = [...predictedTables.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
     predictHistory.value.push(...predictions)
 
     oldPrompt.value = prompt.value

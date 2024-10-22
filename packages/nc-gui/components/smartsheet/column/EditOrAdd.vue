@@ -749,7 +749,7 @@ watch(activeAiTab, (newValue) => {
                         type="text"
                         theme="ai"
                         :loading="aiLoading && calledFunction === 'predictRefresh'"
-                        @click="predictRefresh"
+                        @click="predictRefresh(onSelectedTagClick)"
                       >
                         <template #loadingIcon>
                           <!-- eslint-disable vue/no-lone-template -->
@@ -789,7 +789,7 @@ watch(activeAiTab, (newValue) => {
                       !prompt.trim() || isPredictFromPromptLoading || (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
                     "
                     :loading="isPredictFromPromptLoading"
-                    @click="predictFromPrompt"
+                    @click="predictFromPrompt(onSelectedTagClick)"
                     icon-only
                   >
                     <template #loadingIcon>
@@ -1276,18 +1276,6 @@ watch(activeAiTab, (newValue) => {
             </a-form-item>
           </div>
         </template>
-      </template>
-
-      <template v-if="isAiMode">
-        <div v-if="props.fromTableExplorer" class="flex-1"></div>
-        <SmartsheetColumnAIFooterOptions
-          v-model="formState"
-          class="-mx-5 sticky bottom-0 z-10"
-          :class="{
-            'bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt,
-            'bg-white': !(aiAutoSuggestMode && formState.uidt),
-          }"
-        />
       </template>
     </a-form>
   </div>

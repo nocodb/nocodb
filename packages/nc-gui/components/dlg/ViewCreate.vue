@@ -189,9 +189,6 @@ const activeAiTab = computed({
   set: (value: AiWizardTabsType) => {
     activeAiTabLocal.value = value
 
-    prompt.value = ''
-    oldPrompt.value = ''
-
     aiError.value = ''
 
     if (value === AiWizardTabsType.PROMPT) {
@@ -531,8 +528,6 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
 }
 
 const predictViews = async (): Promise<AiSuggestedViewType[]> => {
-  let selectedCount = activeTabSelectedViews.value.length
-
   const viewType =
     !isAIViewCreateMode.value && form.type && viewTypeToStringMap[form.type] ? viewTypeToStringMap[form.type] : undefined
 
@@ -550,7 +545,7 @@ const predictViews = async (): Promise<AiSuggestedViewType[]> => {
       return {
         ...v,
         tab: activeAiTab.value,
-        selected: selectedCount++ < maxSelectionCount ? true : false,
+        selected: false,
       }
     })
 }
@@ -574,10 +569,7 @@ const predictRefresh = async () => {
   const predictions = await predictViews()
 
   if (predictions.length) {
-    predictedViews.value = [
-      ...predictedViews.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
-      ...predictions,
-    ]
+    predictedViews.value = [...predictedViews.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
     predictHistory.value.push(...predictions)
   } else if (!aiError.value) {
     message.info(`No auto suggestions were found for ${meta.value?.title || 'the current table'}`)
@@ -591,10 +583,7 @@ const predictFromPrompt = async () => {
   const predictions = await predictViews()
 
   if (predictions.length) {
-    predictedViews.value = [
-      ...predictedViews.value.filter((t) => t.tab !== activeAiTab.value || (t.tab === activeAiTab.value && !!t.selected)),
-      ...predictions,
-    ]
+    predictedViews.value = [...predictedViews.value.filter((t) => t.tab !== activeAiTab.value), ...predictions]
     predictHistory.value.push(...predictions)
     oldPrompt.value = prompt.value
   } else if (!aiError.value) {

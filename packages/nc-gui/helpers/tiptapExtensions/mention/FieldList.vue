@@ -92,7 +92,7 @@ export default {
 
 <template>
   <div
-    class="w-64 bg-white scroll-smooth nc-mention-list nc-scrollbar-md border-1 border-gray-200 rounded-lg max-h-64 !py-2"
+    class="w-64 bg-white scroll-smooth nc-mention-list nc-scrollbar-md border-1 border-gray-200 rounded-lg max-h-64 !py-2 shadow-lg"
     @mousedown.stop
   >
     <template v-if="items.length">

@@ -11,6 +11,9 @@ const { t } = useI18n()
 
 const meta = inject(MetaInj)!
 
+const workspaceStore = useWorkspace()
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
   return meta.value.columns.filter((c) => c.title && !c.system && c.uidt !== UITypes.ID)
@@ -153,34 +156,53 @@ provide(EditColumnInj, ref(true))
   <div class="flex flex-col gap-3">
     <a-form-item class="flex items-center" v-bind="validateInfos.richText">
       <NcSwitch v-model:checked="vModel.rich_text" disabled class="nc-ai-field-rich-text nc-ai-input">
-        <span class="text-sm font-semibold text-nc-content-gray-muted">Enable rich text</span>
+        <span class="text-sm font-semibold text-nc-content-gray-muted">Enable rich text formatting</span>
       </NcSwitch>
       <div class="flex-1"></div>
     </a-form-item>
-    <a-form-item class="flex items-center">
-      <NcSwitch
-        v-model:checked="isEnabledGenerateText"
-        :disabled="!aiIntegrationAvailable"
-        class="nc-ai-field-generate-text nc-ai-input"
-      >
-        <span
-          class="text-sm font-semibold"
-          :class="{
-            'text-nc-content-purple-dark': isEnabledGenerateText,
-            'text-nc-content-gray': !isEnabledGenerateText,
-          }"
-          >Generate text</span
+    <div>
+      <a-form-item class="flex items-center">
+        <NcSwitch
+          v-model:checked="isEnabledGenerateText"
+          :disabled="!aiIntegrationAvailable"
+          class="nc-ai-field-generate-text nc-ai-input"
+          content-wrapper-class="flex-1"
         >
-      </NcSwitch>
-      <div class="flex-1"></div>
-    </a-form-item>
+          <span
+            class="text-sm font-semibold"
+            :class="{
+              'text-nc-content-purple-dark': isEnabledGenerateText,
+              'text-nc-content-gray': !isEnabledGenerateText,
+            }"
+            >Generate text using AI</span
+          >
+        </NcSwitch>
+        <div class="-my-1.5">
+          <AiSettings
+            v-model:fk-integration-id="vModel.fk_integration_id"
+            v-model:model="vModel.model"
+            v-model:randomness="vModel.randomness"
+            :workspace-id="activeWorkspaceId"
+            :show-tooltip="false"
+            placement="bottom"
+          >
+            <NcButton size="xs" theme="ai" class="!px-1" type="text">
+              <GeneralIcon icon="settings" />
+            </NcButton>
+          </AiSettings>
+        </div>
+      </a-form-item>
+      <div class="pl-[36px] text-small leading-[18px] text-nc-content-gray-subtle">
+        Use AI to generate content based on record data.
+      </div>
+    </div>
     <template v-if="isEnabledGenerateText">
       <a-form-item class="flex">
         <div class="nc-prompt-input-wrapper bg-nc-bg-gray-light rounded-lg w-full">
           <AiPromptWithFields
             v-model="vModel.prompt_raw"
             :options="availableFields"
-            placeholder="Write a sales campaign addressed to {First Name} informing them about our latest product launch. Use the {Product Name} and {Description} field to elaborate the product and how it would be useful for the customer"
+            placeholder="Write custom AI Prompt instruction here"
             prompt-field-tag-class-name="!text-nc-content-purple-dark font-weight-500"
             suggestion-icon-class-name="!text-nc-content-purple-medium"
           />

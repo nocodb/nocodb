@@ -346,7 +346,7 @@ onBeforeUnmount(() => {
           </NcButton>
         </div>
 
-        <div class="h-[calc(100%_-_95px)]">
+        <div class="h-[calc(100%_-_58px)]">
           <div class="h-full flex">
             <!-- Left side -->
             <div class="h-full w-1/2 nc-scrollbar-thin">
@@ -751,10 +751,6 @@ onBeforeUnmount(() => {
                 </a-collapse-panel>
               </a-collapse>
             </div>
-          </div>
-          <!-- Footer  -->
-          <div>
-            <SmartsheetColumnAIFooterOptions v-model="formState" />
           </div>
         </div>
       </div>

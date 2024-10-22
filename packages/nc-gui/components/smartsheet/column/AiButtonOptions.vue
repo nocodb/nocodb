@@ -148,7 +148,11 @@ const selectedRecord = computed(() => {
 const availableFields = computed(() => {
   if (!meta.value?.columns) return []
   return meta.value.columns.filter(
-    (c) => c.title && !c.system && c.uidt !== UITypes.ID && (isEdit.value ? column.value?.id !== c.id : true),
+    (c) =>
+      c.title &&
+      !c.system &&
+      ![UITypes.ID, UITypes.Button, UITypes.Links].includes(c.uidt) &&
+      (isEdit.value ? column.value?.id !== c.id : true),
   )
 })
 
@@ -161,7 +165,12 @@ const inputColumns = computed(() => {
 const outputFieldOptions = computed(() => {
   if (!meta.value?.columns) return []
   return meta.value.columns.filter(
-    (c) => !c.system && !c.pk && c.id !== column.value?.id && c.uidt !== UITypes.Attachment && !isReadOnlyVirtualCell(c),
+    (c) =>
+      !c.system &&
+      !c.pk &&
+      c.id !== column.value?.id &&
+      ![UITypes.Attachment, UITypes.Button, UITypes.Links].includes(c.uidt) &&
+      !isReadOnlyVirtualCell(c),
   )
 })
 
@@ -314,7 +323,7 @@ onBeforeUnmount(() => {
       <NcButton type="secondary" size="small" theme="ai" @click.stop="isOpenConfigModal = true">
         <div class="flex items-center justify-center gap-2">
           <GeneralIcon icon="ncSettings" class="text-[14px] !text-current" />
-          {{ $t('general.configure') }}
+          {{ $t('labels.configureAiButton') }}
         </div>
       </NcButton>
     </template>
@@ -329,7 +338,7 @@ onBeforeUnmount(() => {
     >
       <div class="h-full flex flex-col">
         <div class="w-full px-4 py-3 flex gap-2 border-b-1 border-nc-border-gray-medium">
-          <div class="flex-1 flex items-center gap-2">
+          <div class="flex-1 flex items-center gap-3 text-xl font-semibold">
             <GeneralIcon icon="cellAiButton" class="flex-none h-6 w-6" />
 
             {{ fieldTitle }}

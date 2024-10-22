@@ -219,7 +219,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         return updateModelValue(attachments.value)
       }
 
-      if (selectedFiles.length) {
+      if (files.length) {
         try {
           const data = await api.storage.upload(
             {
@@ -248,7 +248,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (!data) return
         newAttachments.push(...data)
       }
-      updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
+      if (newAttachments?.length) updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
     }
 
     async function uploadViaUrl(url: AttachmentReqType | AttachmentReqType[], returnError = false) {

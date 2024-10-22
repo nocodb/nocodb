@@ -10232,7 +10232,7 @@ export function getCompositePkValue(primaryKeys: Column[], row) {
   if (primaryKeys.length > 1) {
     return primaryKeys.map((c) =>
       (row[c.title] ?? row[c.column_name])?.toString?.().replaceAll('_', '\\_'),
-    );
+    ).join('___');
   }
 
   return (

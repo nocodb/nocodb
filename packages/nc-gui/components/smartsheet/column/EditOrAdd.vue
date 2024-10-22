@@ -427,7 +427,7 @@ const onDropdownChange = (value: boolean) => {
     showHoverEffectOnSelectedType.value = true
     setTimeout(() => {
       isColumnTypeOpen.value = value
-    }, 300)
+    }, 100)
   }
 }
 
@@ -989,6 +989,7 @@ watch(activeAiTab, (newValue) => {
               You cannot edit field types of AI-generated fields. Edits can be made after the field is created.</template
             >
             <a-select
+              v-model:open="isColumnTypeOpen"
               v-model:value="formState.uidt"
               show-search
               class="nc-column-type-input nc-select-shadow !rounded-lg"
@@ -1027,7 +1028,7 @@ watch(activeAiTab, (newValue) => {
                 <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name" :data-title="formState?.type">
                   <div class="flex-1 flex gap-2 items-center">
                     <component
-                      :is="isAiButtonSelectOption(opt.name) ? iconMap.cellAiButton : opt.icon"
+                      :is="isAiButtonSelectOption(opt.name) && !isColumnTypeOpen ? iconMap.cellAiButton : opt.icon"
                       class="nc-field-type-icon w-4 h-4"
                       :class="isMetaReadOnly && !readonlyMetaAllowedTypes.includes(opt.name) ? 'text-gray-300' : 'text-gray-700'"
                     />
@@ -1035,7 +1036,11 @@ watch(activeAiTab, (newValue) => {
                       {{ UITypesName[opt.name] }}
                     </div>
                     <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
-                    <!-- <span v-if="opt.isNew || isAiButtonSelectOption(opt.name)" class="text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md">{{ $t('general.new') }}</span> -->
+                    <span
+                      v-if="opt.isNew || (isAiButtonSelectOption(opt.name) && !isColumnTypeOpen)"
+                      class="text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md"
+                      >{{ $t('general.new') }}</span
+                    >
                   </div>
                   <component
                     :is="iconMap.check"

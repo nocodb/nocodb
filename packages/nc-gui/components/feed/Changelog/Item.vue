@@ -13,7 +13,7 @@ const props = defineProps<{
 }>()
 
 const {
-  item: { 'Published Time': CreatedAt, Description, Title, Tags, Image },
+  item: { 'Published Time': CreatedAt, Description, Title, Tags, Image, 'Feed Source': source },
 } = props
 
 const iconColorMap = {
@@ -78,13 +78,18 @@ const expand = (e) => {
     title: Title,
   })
 }
+
+const handleOpenUrl = (url: string) => {
+  if (source === 'Cloud') return
+  openLink(url)
+}
 </script>
 
 <template>
   <div class="relative rounded-xl flex flex-col mt-6.25 bg-white changelog-card">
     <div
       class="w-full relative border cursor-pointer border-black h-[334px] xl:h-[394px] w-[540px] xl:w-[638px] border-opacity-10 rounded-t-xl overflow-hidden"
-      @click="openLink(item.Url)"
+      @click="handleOpenUrl(item.Url)"
     >
       <img
         v-if="Image"

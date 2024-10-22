@@ -776,7 +776,7 @@ const handleRefreshOnError = () => {
           </div>
         </div>
         <div
-          class="flex flex-row justify-between gap-x-2"
+          class="flex flex-row items-center justify-between gap-x-2"
           :class="{
             'px-5 -mt-2': aiMode,
           }"
@@ -790,7 +790,7 @@ const handleRefreshOnError = () => {
               </span>
             </div>
           </NcButton>
-          <div v-else-if="aiLoading && calledFunction === 'generateTables'">
+          <div v-else-if="aiLoading && calledFunction === 'generateTables'" class="flex items-center">
             <div
               class="text-sm text-nc-content-purple-light"
               :class="{

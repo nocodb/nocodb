@@ -745,7 +745,7 @@ watch(activeAiTab, (newValue) => {
                           </template>
                         </NcButton>
                       </NcTooltip>
-                      <NcTooltip title="Re-suggest" placement="top">
+                      <NcTooltip title="Clear all and Re-suggest" placement="top">
                         <NcButton
                           size="xs"
                           class="!px-1"

@@ -10230,7 +10230,7 @@ export function getCompositePkValue(primaryKeys: Column[], row) {
   if (typeof row !== 'object') return row;
 
   if (primaryKeys.length > 1) {
-    primaryKeys.map((c) =>
+    return primaryKeys.map((c) =>
       (row[c.title] ?? row[c.column_name])?.toString?.().replaceAll('_', '\\_'),
     );
   }

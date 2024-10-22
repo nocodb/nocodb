@@ -73,7 +73,7 @@ const handleOpenUrl = (url: string) => {
     <div class="flex items-center justify-between px-5 py-4">
       <div class="flex items-center gap-3">
         <component :is="feedIcon[source]" class="w-4 h-4 stroke-transparent" />
-        <span class="font-weight-medium text-nc-content-gray leading-5 cursor-pointer" @click="handleOpenUrl">
+        <span class="font-weight-medium text-nc-content-gray leading-5 cursor-pointer" @click="handleOpenUrl(Url)">
           {{ source }}
         </span>
       </div>
@@ -83,12 +83,7 @@ const handleOpenUrl = (url: string) => {
     </div>
     <template v-if="['Github', 'Cloud'].includes(source)">
       <div class="pb-5">
-        <img
-          v-if="Image"
-          :src="Image"
-          class="cursor-pointer"
-          @click="openLink(Url)"
-        />
+        <img v-if="Image" :src="Image" class="cursor-pointer" @click="handleOpenUrl(Url)" />
         <div class="prose px-5 mt-5" v-html="renderedText"></div>
 
         <NcButton v-if="truncate" size="small" class="w-29 mx-5" type="text" @click="expand">

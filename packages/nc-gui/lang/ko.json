@@ -172,7 +172,7 @@
     "install": "설치",
     "show": "보기",
     "access": "접근",
-    "visibility": "가시성",
+    "visibility": "보임 여부",
     "hide": "숨기기",
     "deprecated": "더 이상 사용되지 않음",
     "showAll": "모두 표시",

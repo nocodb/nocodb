@@ -811,7 +811,7 @@ export class NcError {
               .map((idVal) => idVal?.toString?.().replaceAll('_', '\\_'))
               .join('___');
           } else if (idsArr.length) {
-            return idsArr[0];
+            return idsArr[0] as any;
           } else {
             return 'unknown';
           }
@@ -820,11 +820,11 @@ export class NcError {
     } else {
       const idsArr = Object.values(id);
       if (idsArr.length > 1) {
-        idsArr
+        formatedId = idsArr
           .map((idVal) => idVal?.toString?.().replaceAll('_', '\\_'))
           .join('___');
       } else if (idsArr.length) {
-        formatedId = idsArr[0];
+        formatedId = idsArr[0] as any;
       } else {
         formatedId = 'unknown';
       }

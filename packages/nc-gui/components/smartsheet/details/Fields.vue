@@ -1601,7 +1601,7 @@ watch(activeAiTab, (newValue) => {
                           v-if="fieldStatus(field) === 'delete'"
                           color="red"
                           :border="false"
-                          class="bg-red-50 text-red-700"
+                          class="bg-red-50 text-red-700 text-small leading-[18px]"
                           data-testid="nc-field-status-deleted-field"
                         >
                           {{ $t('labels.multiField.deletedField') }}
@@ -1610,13 +1610,14 @@ watch(activeAiTab, (newValue) => {
                           v-else-if="isColumnValid(field) && fieldStatus(field) === 'add'"
                           :color="field?.is_ai_field ? 'purple' : 'green'"
                           :border="!!field?.is_ai_field"
+                          class="text-small leading-[18px]"
                           :class="{
                             '!bg-purple-50 text-purple-700 !border-purple-100': field?.is_ai_field,
                             'bg-green-50 text-green-700': !field?.is_ai_field,
                           }"
                           data-testid="nc-field-status-new-field"
                         >
-                          <GeneralIcon v-if="field?.is_ai_field" icon="ncAutoAwesome" class="mr-1" />
+                          <GeneralIcon v-if="field?.is_ai_field" icon="ncAutoAwesome" class="mr-1 h-4 w-4" />
                           {{ $t('labels.multiField.newField') }}
                         </NcBadge>
 
@@ -1624,7 +1625,7 @@ watch(activeAiTab, (newValue) => {
                           v-else-if="fieldStatus(field) === 'update'"
                           color="orange"
                           :border="false"
-                          class="bg-orange-50 text-orange-700"
+                          class="bg-orange-50 text-orange-700 text-small leading-[18px]"
                           data-testid="nc-field-status-updated-field"
                         >
                           {{ $t('labels.multiField.updatedField') }}
@@ -1633,7 +1634,7 @@ watch(activeAiTab, (newValue) => {
                           v-if="!isColumnValid(field)"
                           color="yellow"
                           :border="false"
-                          class="ml-1 bg-yellow-50 text-yellow-700"
+                          class="ml-1 bg-yellow-50 text-yellow-700 text-small leading-[18px]"
                           data-testid="nc-field-status-incomplete-configuration"
                         >
                           {{ $t('labels.multiField.incompleteConfiguration') }}
@@ -1646,7 +1647,7 @@ watch(activeAiTab, (newValue) => {
                           <NcBadge
                             color="red"
                             :border="false"
-                            class="ml-1 bg-red-50 text-red-700"
+                            class="ml-1 bg-red-50 text-red-700 text-small leading-[18px]"
                             data-testid="nc-field-status-error-configuration"
                           >
                             <GeneralIcon icon="info" class="!text-current" />
@@ -1817,7 +1818,7 @@ watch(activeAiTab, (newValue) => {
                           v-if="fieldStatus(displayColumn) === 'delete'"
                           color="red"
                           :border="false"
-                          class="bg-red-50 text-red-700"
+                          class="bg-red-50 text-red-700 text-small leading-[18px]"
                           data-testid="nc-field-status-deleted-field"
                         >
                           {{ $t('labels.multiField.deletedField') }}
@@ -1827,7 +1828,7 @@ watch(activeAiTab, (newValue) => {
                           v-else-if="fieldStatus(displayColumn) === 'update'"
                           color="orange"
                           :border="false"
-                          class="bg-orange-50 text-orange-700"
+                          class="bg-orange-50 text-orange-700 text-small leading-[18px]"
                           data-testid="nc-field-status-updated-field"
                         >
                           {{ $t('labels.multiField.updatedField') }}

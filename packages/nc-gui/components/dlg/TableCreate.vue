@@ -245,64 +245,16 @@ const disableAiMode = () => {
   })
 }
 
-const activeLoadingText = ref<string>('')
-
-const currentMessageIndex = ref(0)
-
-let timerId: NodeJS.Timeout
-
-const showLoadingText = async () => {
-  currentMessageIndex.value = 0
-  activeLoadingText.value = ''
-
-  for (const currentMessage of loadingMessages) {
-    clearInterval(timerId) // Clear previous interval if any
-    let currentCharIndex = 0
-    activeLoadingText.value = ''
-
-    await new Promise((resolve) => {
-      // Start showing characters one by one at 100ms intervals
-      timerId = setInterval(() => {
-        if (currentCharIndex < currentMessage.length) {
-          // Append the next character to the active loading text
-          activeLoadingText.value += currentMessage[currentCharIndex]
-          currentCharIndex++
-        } else {
-          // When the message is fully displayed, stop the interval
-          clearInterval(timerId)
-          resolve(true)
-        }
-      }, 60)
-    })
-
-    // Wait for 1500ms after the full message is displayed
-    await ncDelay(1500)
-
-    // Move to the next message
-    if (currentMessageIndex.value < loadingMessages.length - 1) {
-      currentMessageIndex.value++
-    }
-  }
-}
-
 const onAiEnter = async () => {
   calledFunction.value = 'generateTables'
 
   if (activeTabSelectedTables.value.length) {
-    try {
-      showLoadingText()
-
-      await generateTables(
-        activeTabSelectedTables.value.map(({ title }) => title),
-        undefined,
-        onAiTableCreate,
-        props.baseId,
-      )
-    } catch {
-    } finally {
-      activeLoadingText.value = ''
-      clearInterval(timerId)
-    }
+    await generateTables(
+      activeTabSelectedTables.value.map(({ title }) => title),
+      undefined,
+      onAiTableCreate,
+      props.baseId,
+    )
   }
 }
 
@@ -790,16 +742,6 @@ const handleRefreshOnError = () => {
               </span>
             </div>
           </NcButton>
-          <div v-else-if="aiLoading && calledFunction === 'generateTables'" class="flex items-center">
-            <div
-              class="text-sm text-nc-content-purple-light"
-              :class="{
-                'nc-animate-dots': activeLoadingText === loadingMessages[currentMessageIndex],
-              }"
-            >
-              {{ activeLoadingText }}
-            </div>
-          </div>
           <div v-else></div>
           <div class="flex gap-2 items-center">
             <NcButton

@@ -180,6 +180,7 @@ const {
   activeTabPredictedFields,
   selected,
   activeTabSelectedFields,
+  activeTabPredictHistory,
   calledFunction,
   prompt,
   oldPrompt,
@@ -1360,13 +1361,21 @@ watch(activeAiTab, (newValue) => {
                           </template>
                         </template>
                         <div v-else-if="activeTabSelectedFields.length" class="text-nc-content-purple-light">
-                          To generate more {{ isFormulaPredictionMode ? 'formula' : '' }} field suggestions, click the + icon on
-                          the right
+                          To generate more {{ isFormulaPredictionMode ? 'formula' : '' }} field suggestions, click the + or ⟳ icon
+                          on the right
                         </div>
                         <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
                       </div>
                       <div class="flex items-center gap-1">
-                        <NcTooltip title="Suggest more" placement="top">
+                        <NcTooltip
+                          v-if="
+                            activeTabPredictHistory.length < activeTabSelectedFields.length
+                              ? activeTabPredictHistory.length + activeTabSelectedFields.length < 8
+                              : activeTabPredictHistory.length < 8
+                          "
+                          title="Suggest more"
+                          placement="top"
+                        >
                           <NcButton
                             size="xs"
                             class="!px-1"

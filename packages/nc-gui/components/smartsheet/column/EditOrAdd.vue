@@ -1026,7 +1026,7 @@ watch(activeAiTab, (newValue) => {
                 @mouseover="handleResetHoverEffect"
               >
                 <div class="w-full flex gap-2 items-center justify-between" :data-testid="opt.name" :data-title="formState?.type">
-                  <div class="flex-1 flex gap-2 items-center">
+                  <div class="flex-1 flex gap-2 items-center max-w-[calc(100%_-_24px)]">
                     <component
                       :is="isAiButtonSelectOption(opt.name) && !isColumnTypeOpen ? iconMap.cellAiButton : opt.icon"
                       class="nc-field-type-icon w-4 h-4"
@@ -1038,7 +1038,7 @@ watch(activeAiTab, (newValue) => {
                     <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
                     <span
                       v-if="opt.isNew || (isAiButtonSelectOption(opt.name) && !isColumnTypeOpen)"
-                      class="text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md"
+                      class="nc-new-field-badge text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md font-normal"
                       >{{ $t('general.new') }}</span
                     >
                   </div>
@@ -1332,6 +1332,11 @@ watch(activeAiTab, (newValue) => {
 :deep(.ant-select-disabled.nc-column-type-input) {
   .nc-field-type-icon {
     @apply text-current;
+  }
+}
+:deep(.ant-select.nc-column-type-input) {
+  .nc-new-field-badge {
+    @apply hidden;
   }
 }
 

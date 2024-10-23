@@ -1356,7 +1356,12 @@ const getPluralName = (name: string) => {
         </NcButton>
         <div v-else></div>
         <div class="flex gap-2 items-center">
-          <NcButton type="secondary" size="small" @click="vModel = false">
+          <NcButton
+            type="secondary"
+            size="small"
+            :disabled="aiLoading && calledFunction === 'createViews'"
+            @click="vModel = false"
+          >
             {{ $t('general.cancel') }}
           </NcButton>
 

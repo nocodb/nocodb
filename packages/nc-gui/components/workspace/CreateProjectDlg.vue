@@ -168,13 +168,16 @@ const typeLabel = computed(() => {
         </a-form>
 
         <div class="flex flex-row justify-end mt-5 gap-x-2">
-          <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+          <NcButton type="secondary" size="small" :disabled="creating" @click="dialogShow = false">{{
+            $t('general.cancel')
+          }}</NcButton>
           <NcButton
             v-e="['a:base:create']"
             data-testid="docs-create-proj-dlg-create-btn"
             :loading="creating"
             type="primary"
             size="small"
+            :disabled="creating"
             :label="`${$t('general.create')} ${typeLabel}`"
             :loading-label="`${$t('general.creating')} ${typeLabel}`"
             @click="createProject"

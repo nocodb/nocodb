@@ -227,7 +227,7 @@ const onAiEnter = async () => {
     try {
       const data = await createViews(activeTabSelectedViews.value, baseId.value)
 
-      emits('created', data)
+      emits('created', ncIsArray(data) && data.length ? data[0] : undefined)
     } catch (e) {
       message.error(e)
     } finally {

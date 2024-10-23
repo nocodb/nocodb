@@ -31,7 +31,7 @@ import { CalendarsService } from '~/services/calendars.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { DataTableService } from '~/services/data-table.service';
-import { Integration } from '~/models';
+import { Integration, View } from '~/models';
 import {
   generateDummyDataPrompt,
   generateDummyDataSystemMessage,
@@ -575,6 +575,8 @@ export class AiSchemaService {
 
     const source = sources[0];
 
+    const createdViews: View[] = [];
+
     for (const view of views) {
       const tables = await this.tablesService.getAccessibleTables(context, {
         baseId: base.id,
@@ -610,6 +612,8 @@ export class AiSchemaService {
               grid: viewData,
               req,
             });
+
+            createdViews.push(grid);
 
             await grid.getColumns(context);
 
@@ -683,7 +687,7 @@ export class AiSchemaService {
           }
           break;
         case viewTypeToStringMap[ViewTypes.KANBAN]:
-          await this.kanbansService.kanbanViewCreate(context, {
+          const kanban = await this.kanbansService.kanbanViewCreate(context, {
             tableId: table.id,
             kanban: {
               ...viewData,
@@ -692,6 +696,9 @@ export class AiSchemaService {
             user: req.user,
             req,
           });
+
+          createdViews.push(kanban);
+
           break;
         case viewTypeToStringMap[ViewTypes.CALENDAR]: {
           const calendarRange = view.calendar_range
@@ -699,41 +706,58 @@ export class AiSchemaService {
               ? view.calendar_range
               : [view.calendar_range]
             : null;
-          await this.calendarsService.calendarViewCreate(context, {
-            tableId: table.id,
-            calendar: {
-              ...viewData,
-              calendar_range: calendarRange
-                ? calendarRange.map((range) => ({
-                    fk_from_column_id: getColumnId(range.from_column),
-                  }))
-                : null,
+          const calendar = await this.calendarsService.calendarViewCreate(
+            context,
+            {
+              tableId: table.id,
+              calendar: {
+                ...viewData,
+                calendar_range: calendarRange
+                  ? calendarRange.map((range) => ({
+                      fk_from_column_id: getColumnId(range.from_column),
+                    }))
+                  : null,
+              },
+              user: req.user,
+              req,
             },
-            user: req.user,
-            req,
-          });
+          );
+
+          createdViews.push(calendar);
+
           break;
         }
         case viewTypeToStringMap[ViewTypes.FORM]:
-          await this.formsService.formViewCreate(context, {
+          const form = await this.formsService.formViewCreate(context, {
             tableId: table.id,
             body: viewData,
             user: req.user,
             req,
           });
+
+          createdViews.push(form);
+
           break;
         case viewTypeToStringMap[ViewTypes.GALLERY]:
-          await this.galleriesService.galleryViewCreate(context, {
-            tableId: table.id,
-            gallery: viewData,
-            user: req.user,
-            req,
-          });
+          const gallery = await this.galleriesService.galleryViewCreate(
+            context,
+            {
+              tableId: table.id,
+              gallery: viewData,
+              user: req.user,
+              req,
+            },
+          );
+
+          createdViews.push(gallery);
+
           break;
         default:
           break;
       }
     }
+
+    return createdViews;
   }
 
   async generateData(

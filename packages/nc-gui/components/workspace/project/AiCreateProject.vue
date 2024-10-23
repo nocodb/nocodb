@@ -242,7 +242,6 @@ const previewTabs = computed(() => {
     {
       title: 'Relationship Diagram',
       key: SchemaPreviewTabs.RELATIONSHIP_DIAGRAM,
-      hidden: !finalSchema.value.relationships.length,
     },
   ]
 })

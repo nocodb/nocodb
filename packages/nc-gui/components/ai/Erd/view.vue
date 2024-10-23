@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { PanelPosition } from '@vue-flow/additional-components'
 import type { AiBaseSchema, AiERDConfig } from './utils'
 
 interface Props {
@@ -36,7 +37,7 @@ const toggleFullScreen = () => {
   >
     <div class="relative h-full">
       <LazyAiErdFlow :ai-base-schema="aiBaseSchema" :config="config">
-        <ErdFullScreenToggle :config="config" @toggle-full-screen="toggleFullScreen" />
+        <ErdFullScreenToggle :config="config" @toggle-full-screen="toggleFullScreen" :position="PanelPosition.TopRight" />
       </LazyAiErdFlow>
     </div>
   </div>

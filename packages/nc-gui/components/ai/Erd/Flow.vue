@@ -72,18 +72,18 @@ onScopeDispose($destroy)
 <template>
   <VueFlow v-model="elements">
     <Controls
-      class="bg-transparent rounded-lg shadow-md border-1 border-gray-200"
-      :position="PanelPosition.BottomLeft"
+      class="bg-transparent rounded-lg shadow-md border-1 border-gray-200 !right-13 flex items-center"
+      :position="PanelPosition.TopRight"
       :show-fit-view="false"
       :show-interactive="false"
     >
       <template #control-zoom-in>
-        <div class="nc-erd-zoom-btn rounded-t-md" @click="internalZoomIn">
+        <div class="nc-erd-zoom-btn rounded-l-lg h-7.5 flex items-center" @click="internalZoomIn">
           <GeneralIcon icon="plus" />
         </div>
       </template>
       <template #control-zoom-out>
-        <div class="nc-erd-zoom-btn border-t-1 border-gray-200 rounded-b-lg" @click="internalZoomOut">
+        <div class="nc-erd-zoom-btn border-l-1 border-gray-200 rounded-r-lg h-7.5 flex items-center" @click="internalZoomOut">
           <GeneralIcon icon="minus" />
         </div>
       </template>

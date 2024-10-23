@@ -57,7 +57,10 @@ const { aiLoading } = useNocoAi()
 
     <a-tab-pane :key="AiWizardTabsType.PROMPT" class="w-full" disabled>
       <template #tab>
-        <div class="tab-title">Prompt AI</div>
+        <NcTooltip class="flex">
+          <template #title> {{ $t('msg.toast.futureRelease') }}</template>
+          <div class="tab-title">Prompt AI</div>
+        </NcTooltip>
       </template>
       <div>
         <slot name="PromptContent"></slot>

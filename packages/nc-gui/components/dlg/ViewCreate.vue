@@ -1127,9 +1127,12 @@ const getPluralName = (name: string) => {
                   <div class="flex-1 flex gap-2 flex-wrap">
                     <template v-if="activeTabPredictedViews.length">
                       <template v-for="v of activeTabPredictedViews" :key="v.title">
-                        <NcTooltip :disabled="activeTabSelectedViews.length < maxSelectionCount || v.selected">
+                        <NcTooltip :disabled="!(activeTabSelectedViews.length >= maxSelectionCount || !!v?.description)">
                           <template #title>
-                            <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
+                            <div v-if="activeTabSelectedViews.length >= maxSelectionCount" class="w-[150px]">
+                              You can only select {{ maxSelectionCount }} views to create at a time.
+                            </div>
+                            <div v-else>{{ v?.description }}</div>
                           </template>
 
                           <a-tag
@@ -1262,9 +1265,12 @@ const getPluralName = (name: string) => {
                   <div class="flex gap-2 flex-wrap">
                     <template v-if="activeTabPredictedViews.length">
                       <template v-for="v of activeTabPredictedViews" :key="v.title">
-                        <NcTooltip :disabled="activeTabSelectedViews.length < maxSelectionCount || v.selected">
+                        <NcTooltip :disabled="!(activeTabSelectedViews.length >= maxSelectionCount || !!v?.description)">
                           <template #title>
-                            <div class="w-[150px]">You can only select {{ maxSelectionCount }} views to create at a time.</div>
+                            <div v-if="activeTabSelectedViews.length >= maxSelectionCount" class="w-[150px]">
+                              You can only select {{ maxSelectionCount }} views to create at a time.
+                            </div>
+                            <div v-else>{{ v?.description }}</div>
                           </template>
 
                           <a-tag

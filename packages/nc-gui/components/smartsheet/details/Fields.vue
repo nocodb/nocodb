@@ -688,14 +688,37 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
   }
 
   if (column.uidt === UITypes.Button) {
-    const colOptions = column.colOptions as ButtonType
-    column.type = colOptions?.type
-    column.theme = colOptions?.theme
-    column.label = colOptions?.label
-    column.color = colOptions?.color
-    column.fk_webhook_id = colOptions?.fk_webhook_id
-    column.icon = colOptions?.icon
-    column.formula_raw = column.colOptions?.formula_raw
+    if (column?.id) {
+      const colOptions = column.colOptions as ButtonType
+      column.type = colOptions?.type
+      column.theme = colOptions?.theme
+      column.label = colOptions?.label
+      column.color = colOptions?.color
+      column.fk_webhook_id = colOptions?.fk_webhook_id
+      column.icon = colOptions?.icon
+      column.formula_raw = column.colOptions?.formula_raw
+    } else {
+      column.type = column?.type || ButtonActionsType.Url
+      column.theme = column?.theme
+      column.label = column?.label
+      column.color = column?.color
+      column.fk_webhook_id = column?.fk_webhook_id
+      column.icon = column?.icon
+      column.formula_raw = column?.formula_raw
+
+      if (column.type === ButtonActionsType.Ai) {
+        column.theme = column.theme || 'text'
+        column.label = column.label || 'Generate data'
+        column.color = column.color || 'purple'
+        column.icon = column.icon || 'ncAutoAwesome'
+      } else {
+        column.theme = column.theme || 'solid'
+        column.label = column.label || 'Button'
+        column.color = column.color || 'brand'
+      }
+
+      column.formula_raw = column.formula_raw || ''
+    }
   }
 
   return column

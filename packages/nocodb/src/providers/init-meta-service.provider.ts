@@ -31,7 +31,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
     const config = await NcConfig.createByEnv();
 
     // set version
-    process.env.NC_VERSION = '0225002';
+    process.env.NC_VERSION = '0257002';
 
     // set migration jobs version
     process.env.NC_MIGRATION_JOBS_VERSION = '2';

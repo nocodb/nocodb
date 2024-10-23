@@ -268,7 +268,7 @@ const onCreateSchema = async () => {
 }
 
 const handleUpdatePrompt = (description: string) => {
-  if (!aiIntegrationAvailable.value) return
+  if (!aiIntegrationAvailable.value || (aiLoading.value && callFunction.value === 'onPredictSchema')) return
 
   aiFormState.value.prompt = description
 }
@@ -342,9 +342,9 @@ onMounted(() => {
                   class="nc-ai-base-schema-tag nc-ai-suggested-tag"
                   :class="{
                     'nc-selected': prompt.description === aiFormState.prompt.trim(),
-                    'nc-disabled': !aiIntegrationAvailable,
+                    'nc-disabled': !aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema'),
                   }"
-                  :disabled="!aiIntegrationAvailable"
+                  :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"
                   @mouseover="aiFormState.onHoverTagPrompt = aiIntegrationAvailable ? prompt.description : ''"
                   @mouseleave="aiFormState.onHoverTagPrompt = ''"
                   @click="handleUpdatePrompt(prompt.description)"
@@ -370,7 +370,7 @@ onMounted(() => {
                 placeholder="Type something..."
                 class="!w-full !min-h-[120px] !rounded-lg mt-2 overflow-y-auto nc-scrollbar-thin nc-input-shadow nc-ai-input"
                 size="middle"
-                :disabled="!aiIntegrationAvailable"
+                :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"
                 @update:value="aiFormState.prompt = $event"
               />
             </div>
@@ -409,7 +409,7 @@ onMounted(() => {
                       class="nc-input-sm nc-input-shadow nc-ai-input"
                       hide-details
                       :placeholder="field.placeholder"
-                      :disabled="!aiIntegrationAvailable"
+                      :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"
                     />
                   </div>
                 </div>
@@ -440,7 +440,7 @@ onMounted(() => {
               <NcButton
                 v-e="['a:base:ai:generate']"
                 size="small"
-                type="secondary"
+                :type="aiStep !== AI_STEP.MODIFY ? 'primary' : 'secondary'"
                 theme="ai"
                 class="w-1/2"
                 :disabled="!aiFormState.prompt?.trim() || (aiLoading && callFunction === 'onPredictSchema')"

@@ -842,7 +842,7 @@ const handleRefreshOnError = () => {
 <style lang="scss">
 .nc-modal-wrapper.nc-modal-table-create-wrapper {
   .ant-modal-content {
-    @apply !rounded-[24px];
+    @apply !rounded-5;
   }
 }
 </style>

@@ -457,7 +457,11 @@ onMounted(() => {
                 type="primary"
                 size="small"
                 class="w-1/2"
-                :disabled="aiStep !== AI_STEP.MODIFY || finalSchema?.tables?.length === 0"
+                :disabled="
+                  aiStep !== AI_STEP.MODIFY ||
+                  finalSchema?.tables?.length === 0 ||
+                  (aiLoading && callFunction === 'onCreateSchema')
+                "
                 :loading="aiLoading && callFunction === 'onCreateSchema'"
                 @click="onCreateSchema"
               >

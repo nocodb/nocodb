@@ -217,7 +217,7 @@ const typeLabel = computed(() => {
 
 .nc-modal-wrapper.nc-ai-select-base-create-mode-modal {
   .ant-modal-content {
-    @apply !rounded-[28px];
+    @apply !rounded-[24px];
   }
 }
 </style>

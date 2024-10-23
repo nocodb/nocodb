@@ -1480,7 +1480,7 @@ const getPluralName = (name: string) => {
 <style lang="scss">
 .nc-modal-wrapper.nc-modal-view-create-wrapper {
   .ant-modal-content {
-    @apply !rounded-[24px];
+    @apply !rounded-5;
   }
 }
 </style>

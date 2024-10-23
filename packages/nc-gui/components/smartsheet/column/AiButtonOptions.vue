@@ -386,7 +386,7 @@ onBeforeUnmount(() => {
                       v-model:randomness="vModel.randomness"
                       :workspace-id="activeWorkspaceId"
                       :show-tooltip="false"
-                      placement="bottom"
+                      placement="bottomRight"
                     >
                       <NcButton size="xs" theme="ai" class="!px-1" type="text">
                         <GeneralIcon icon="settings" />

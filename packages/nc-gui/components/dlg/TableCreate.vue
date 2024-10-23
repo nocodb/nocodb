@@ -542,8 +542,8 @@ const handleRefreshOnError = () => {
                       <NcTooltip
                         v-if="
                           activeTabPredictHistory.length < activeTabSelectedTables.length
-                            ? activeTabPredictHistory.length + activeTabSelectedTables.length < 8
-                            : activeTabPredictHistory.length < 8
+                            ? activeTabPredictHistory.length + activeTabSelectedTables.length < 10
+                            : activeTabPredictHistory.length < 10
                         "
                         title="Suggest more"
                         placement="top"

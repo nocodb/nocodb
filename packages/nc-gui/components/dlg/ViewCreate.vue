@@ -1166,8 +1166,8 @@ const getPluralName = (name: string) => {
                     <NcTooltip
                       v-if="
                         activeTabPredictHistory.length < activeTabSelectedViews.length
-                          ? activeTabPredictHistory.length + activeTabSelectedViews.length < 8
-                          : activeTabPredictHistory.length < 8
+                          ? activeTabPredictHistory.length + activeTabSelectedViews.length < 10
+                          : activeTabPredictHistory.length < 10
                       "
                       title="Suggest more"
                       placement="top"

@@ -1370,8 +1370,8 @@ watch(activeAiTab, (newValue) => {
                         <NcTooltip
                           v-if="
                             activeTabPredictHistory.length < activeTabSelectedFields.length
-                              ? activeTabPredictHistory.length + activeTabSelectedFields.length < 8
-                              : activeTabPredictHistory.length < 8
+                              ? activeTabPredictHistory.length + activeTabSelectedFields.length < 10
+                              : activeTabPredictHistory.length < 10
                           "
                           title="Suggest more"
                           placement="top"

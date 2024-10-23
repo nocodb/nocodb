@@ -59,6 +59,7 @@ const {
   activeTabPredictedFields,
   selected,
   activeTabSelectedFields,
+  activeTabPredictHistory,
   calledFunction,
   prompt,
   oldPrompt,
@@ -730,7 +731,15 @@ watch(activeAiTab, (newValue) => {
                       <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
                     </div>
                     <div class="flex items-center gap-1">
-                      <NcTooltip title="Suggest more" placement="top">
+                      <NcTooltip
+                        v-if="
+                          activeTabPredictHistory.length < activeTabSelectedFields.length
+                            ? activeTabPredictHistory.length + activeTabSelectedFields.length < 10
+                            : activeTabPredictHistory.length < 10
+                        "
+                        title="Suggest more"
+                        placement="top"
+                      >
                         <NcButton
                           size="xs"
                           class="!px-1"

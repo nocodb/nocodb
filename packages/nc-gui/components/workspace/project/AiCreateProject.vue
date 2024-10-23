@@ -316,8 +316,6 @@ onMounted(() => {
     </div>
 
     <div class="h-[calc(100%_-_49px)] flex flex-col">
-      <!-- Create base error alert box  -->
-      <div></div>
       <div class="flex-1 flex h-[calc(100%_-_32px)]">
         <div
           ref="leftPaneContentRef"
@@ -603,23 +601,11 @@ onMounted(() => {
           </template>
         </div>
       </div>
-      <!-- Footer  -->
-      <div>
-        <div class="nc-ai-footer-branding text-xs">
-          {{ $t('general.poweredBy') }}
-
-          <span class="font-semibold !text-inherit"> {{ $t('general.nocoAI') }} </span>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.nc-ai-footer-branding {
-  @apply px-6 py-1 flex items-center gap-2 text-nc-content-purple-dark border-t-1 border-purple-100 min-h-8;
-}
-
 :deep(.ant-collapse-header) {
   @apply !p-0 flex items-center !cursor-default children:first:flex;
 }

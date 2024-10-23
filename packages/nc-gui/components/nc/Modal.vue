@@ -165,7 +165,7 @@ if (stopEventPropogation.value) {
 <style lang="scss">
 .nc-modal-wrapper {
   .ant-modal-content {
-    @apply !p-0;
+    @apply !p-0 overflow-hidden;
   }
 }
 </style>

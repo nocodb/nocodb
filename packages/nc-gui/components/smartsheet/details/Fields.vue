@@ -1284,7 +1284,7 @@ watch(activeAiTab, (newValue) => {
           <div class="flex-1 h-full flex flex-col">
             <div v-if="aiMode" class="pt-3 bg-nc-bg-gray-extralight border-b-1 border-b-nc-border-gray-medium">
               <!-- Ai field wizard  -->
-              <AiWizardTabs v-model:active-tab="activeAiTab">
+              <AiWizardTabs v-model:active-tab="activeAiTab" show-close-btn @close="disableAiMode()">
                 <template #AutoSuggestedContent>
                   <div class="px-5 pt-4 pb-5">
                     <div v-if="!aiIntegrationAvailable" class="flex items-center">

@@ -3,13 +3,15 @@ import { AiWizardTabsType } from '#imports'
 
 interface Props {
   activeTab: AiWizardTabsType
+  showCloseBtn?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   activeTab: AiWizardTabsType.AUTO_SUGGESTIONS,
+  showCloseBtn: false,
 })
 
-const emits = defineEmits(['update:activeTab'])
+const emits = defineEmits(['update:activeTab', 'close'])
 
 const activeTab = useModel(props, 'activeTab', emits)
 
@@ -30,6 +32,13 @@ const { aiLoading } = useNocoAi()
     <template #leftExtra>
       <div class="w-0"></div>
     </template>
+    <template #rightExtra>
+      <div>
+        <NcButton v-if="showCloseBtn" size="small" type="text" @click.stop="emits('close')">
+          <GeneralIcon icon="close" class="text-gray-600" />
+        </NcButton>
+      </div>
+    </template>
     <a-tab-pane :key="AiWizardTabsType.AUTO_SUGGESTIONS" class="w-full" :disabled="aiLoading">
       <template #tab>
         <div
@@ -46,7 +55,7 @@ const { aiLoading } = useNocoAi()
       </div>
     </a-tab-pane>
 
-    <a-tab-pane :key="AiWizardTabsType.PROMPT" class="w-full" :disabled="aiLoading">
+    <a-tab-pane :key="AiWizardTabsType.PROMPT" class="w-full" disabled>
       <template #tab>
         <div class="tab-title">Prompt AI</div>
       </template>
@@ -69,7 +78,7 @@ const { aiLoading } = useNocoAi()
       @apply font-medium;
     }
   }
-  
+
   &.nc-ai-loading {
     :deep(.ant-tabs-tab) {
       @apply !cursor-wait;
@@ -82,6 +91,12 @@ const { aiLoading } = useNocoAi()
 
   .tab-title {
     @apply text-xs leading-[24px] px-2 rounded hover:bg-gray-100 transition-colors;
+  }
+
+  :deep(.ant-tabs-tab-disabled) {
+    .tab-title {
+      @apply text-nc-content-gray-muted hover:bg-transparent;
+    }
   }
 }
 </style>

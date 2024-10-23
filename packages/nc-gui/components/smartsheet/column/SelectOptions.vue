@@ -32,7 +32,7 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 
 // const { base } = storeToRefs(useBase())
 
-const { aiIntegrationAvailable, aiLoading, predictSelectOptions } = useNocoAi()
+const { aiIntegrationAvailable, predictSelectOptions } = useNocoAi()
 
 const { isAiModeFieldModal } = usePredictFields()
 
@@ -61,6 +61,8 @@ const defaultOption = ref<Option[]>([])
 const isKanban = inject(IsKanbanInj, ref(false))
 
 const { t } = useI18n()
+
+const isLoadingPredictOptions = ref<boolean>(false)
 
 const validators = {
   colOptions: [
@@ -333,9 +335,13 @@ const loadListData = async ($state: any) => {
 const predictOptions = async () => {
   if (!vModel.value?.title || !meta.value?.id) return
 
+  isLoadingPredictOptions.value = true
+
   const history = options.value.map((o) => o.title).filter((o) => !!o.trim())
 
   const predictedOptions = await predictSelectOptions(vModel.value?.title, meta.value?.id, history, meta.value?.base_id)
+
+  isLoadingPredictOptions.value = false
 
   if (predictedOptions) {
     for (const option of predictedOptions) {
@@ -466,7 +472,7 @@ if (isKanbanStack.value) {
 }
 
 if (!isKanbanStack.value) {
-  watch(aiLoading, (newValue) => {
+  watch(isLoadingPredictOptions, (newValue) => {
     if (!newValue) return
     nextTick(() => {
       optionsWrapperDomRef.value!.scrollTop = optionsWrapperDomRef.value!.scrollHeight
@@ -496,13 +502,13 @@ if (!isKanbanStack.value) {
               v-model:visible="colorMenus[kanbanStackOption.index!]"
               :auto-close="false"
               overlay-class-name="nc-select-option-color-picker"
-              :disabled="aiLoading"
+              :disabled="isLoadingPredictOptions"
             >
               <div class="flex-none h-6 w-6 flex cursor-pointer mx-1">
                 <div
                   class="h-6 w-6 rounded flex items-center"
                   :class="{
-                    'justify-center': aiLoading,
+                    'justify-center': isLoadingPredictOptions,
                   }"
                   :style="{
                     backgroundColor: kanbanStackOption.color,
@@ -511,7 +517,7 @@ if (!isKanbanStack.value) {
                       : tinycolor.mostReadable(kanbanStackOption.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
                   }"
                 >
-                  <GeneralLoader v-if="aiLoading" size="regular" class="!text-current" />
+                  <GeneralLoader v-if="isLoadingPredictOptions" size="regular" class="!text-current" />
                   <GeneralIcon v-else icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-current" />
                 </div>
               </div>
@@ -535,7 +541,7 @@ if (!isKanbanStack.value) {
               placeholder="Enter option name..."
               class="caption !rounded-lg nc-select-col-option-select-option nc-kanban-stack-input !bg-transparent"
               data-testid="nc-kanban-stack-title-input"
-              :disabled="aiLoading"
+              :disabled="isLoadingPredictOptions"
               @keydown.enter.prevent.stop="syncOptions(true, true, kanbanStackOption!)"
               @change="() => {
                   kanbanStackOption!.status = undefined
@@ -640,7 +646,7 @@ if (!isKanbanStack.value) {
               </div>
             </div>
           </template>
-          <template v-if="aiLoading" #footer>
+          <template v-if="isLoadingPredictOptions" #footer>
             <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
               <div class="flex items-center w-full">
                 <div class="p-2 flex !cursor-disabled">
@@ -725,8 +731,8 @@ if (!isKanbanStack.value) {
           class="nc-add-select-option-auto-suggest w-full caption"
           size="small"
           :bordered="false"
-          :disabled="aiLoading || !vModel.title?.trim() || !aiIntegrationAvailable"
-          :loading="aiLoading"
+          :disabled="isLoadingPredictOptions || !vModel.title?.trim() || !aiIntegrationAvailable"
+          :loading="isLoadingPredictOptions"
           @click.stop="predictOptions()"
         >
           <template #icon>
@@ -748,8 +754,8 @@ if (!isKanbanStack.value) {
           theme="ai"
           class="nc-add-select-option-auto-suggest caption w-full"
           size="small"
-          :disabled="aiLoading || !aiIntegrationAvailable"
-          :loading="aiLoading"
+          :disabled="isLoadingPredictOptions || !aiIntegrationAvailable"
+          :loading="isLoadingPredictOptions"
           @click.stop="predictOptions()"
         >
           <template #icon>

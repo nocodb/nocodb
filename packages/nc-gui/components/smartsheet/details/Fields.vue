@@ -1318,7 +1318,9 @@ watch(activeAiTab, (newValue) => {
                       <div class="text-nc-content-purple-light text-sm h-7 flex items-center gap-2">
                         <GeneralLoader size="regular" class="!text-nc-content-purple-dark" />
 
-                        <div class="nc-animate-dots">Auto suggesting fields for {{ meta?.title }}</div>
+                        <div class="nc-animate-dots">
+                          Auto suggesting {{ isFormulaPredictionMode ? 'formula' : '' }} fields for {{ meta?.title }}
+                        </div>
                       </div>
                     </div>
                     <div v-else-if="aiModeStep === 'pick'" class="flex gap-3 items-start">
@@ -1358,7 +1360,8 @@ watch(activeAiTab, (newValue) => {
                           </template>
                         </template>
                         <div v-else-if="activeTabSelectedFields.length" class="text-nc-content-purple-light">
-                          No suggestions remaining. To generate more fields, click the + icon on the right.
+                          To generate more {{ isFormulaPredictionMode ? 'formula' : '' }} field suggestions, click the + icon on
+                          the right
                         </div>
                         <div v-else class="text-nc-content-gray-subtle2">{{ $t('labels.noData') }}</div>
                       </div>

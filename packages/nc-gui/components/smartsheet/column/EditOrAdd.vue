@@ -27,6 +27,7 @@ const props = defineProps<{
   fromTableExplorer?: boolean
   editDescription?: boolean
   readonly?: boolean
+  disableTitleFocus?: boolean
 }>()
 
 const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
@@ -232,9 +233,10 @@ watchEffect(() => {
     setTimeout(() => {
       // focus and select input only if active element is not an input or textarea
       if (
-        document.activeElement === document.body ||
-        document.activeElement === null ||
-        document.activeElement?.tagName === 'DIV'
+        (document.activeElement === document.body ||
+          document.activeElement === null ||
+          ['BUTTON', 'DIV'].includes(document.activeElement?.tagName)) &&
+        !props.disableTitleFocus
       ) {
         antInput.value?.focus()
         antInput.value?.select()

@@ -64,7 +64,9 @@ const activePreviewTab = ref<keyof typeof SchemaPreviewTabs>(SchemaPreviewTabs.T
 
 const previewExpansionPanel = ref<string[]>([])
 
-const handleUpdatePreviewExpansionPanel = (key: string) => {
+const handleUpdatePreviewExpansionPanel = (key: string, disabled = false) => {
+  if (disabled) return
+
   if (previewExpansionPanel.value.includes(key)) {
     previewExpansionPanel.value = previewExpansionPanel.value.filter((k) => k !== key)
   } else {
@@ -560,7 +562,10 @@ onMounted(() => {
 
                   <a-collapse-panel v-for="table in predictedSchema.tables" :key="table.title" collapsible="disabled">
                     <template #header>
-                      <div class="w-full flex items-center px-4 py-2" @click="handleUpdatePreviewExpansionPanel(table.title)">
+                      <div
+                        class="w-full flex items-center px-4 py-2"
+                        @click="handleUpdatePreviewExpansionPanel(table.title, !viewsGrouped[table.title].length)"
+                      >
                         <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
                           <NcCheckbox :checked="!table.excluded" theme="ai" @click.stop="onExcludeTable(table)" />
 
@@ -573,7 +578,16 @@ onMounted(() => {
                             {{ table.title }}
                           </NcTooltip>
                         </div>
-                        <NcButton size="xs" type="text" theme="ai" icon-only class="!px-0 !h-6 !w-6 !min-w-6">
+                        <NcButton
+                          size="xs"
+                          type="text"
+                          theme="ai"
+                          icon-only
+                          class="!px-0 !h-6 !w-6 !min-w-6"
+                          :class="{
+                            hidden: !viewsGrouped[table.title].length,
+                          }"
+                        >
                           <template #icon>
                             <GeneralIcon
                               icon="arrowDown"

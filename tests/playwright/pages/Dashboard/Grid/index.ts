@@ -375,37 +375,13 @@ export class GridPage extends BasePage {
     await expect(this.get().locator(`.nc-pagination .total`)).toHaveText(count);
   }
 
-  async clickPagination({
-    type,
-    skipWait = false,
-  }: {
-    type: 'first-page' | 'last-page' | 'next-page' | 'prev-page';
-    skipWait?: boolean;
-  }) {
-    if (await this.get().locator('.nc-pagination').isHidden()) return;
-
-    if (!skipWait) {
-      await this.get().locator(`.nc-pagination .${type}`).click();
-      await this.waitLoading();
-    } else {
-      await this.waitForResponse({
-        uiAction: async () => (await this.get().locator(`.nc-pagination .${type}`)).click(),
-        httpMethodsToMatch: ['GET'],
-        requestUrlPathToMatch: '/views/',
-        responseJsonMatcher: resJson => resJson?.pageInfo,
-      });
-
-      await this.waitLoading();
-    }
+  async clickPagination(_params: { type: 'first-page' | 'last-page' | 'next-page' | 'prev-page'; skipWait?: boolean }) {
+    // No longer required due to implementation of InfiniteScroll
+    return;
   }
 
-  async verifyActivePage({ pageNumber }: { pageNumber: string }) {
-    if (await this.get().locator('.nc-pagination').isHidden()) {
-      expect(1).toBe(+pageNumber);
-      return;
-    }
-
-    await expect(this.get().locator(`.nc-pagination .nc-current-page`).first()).toHaveText(pageNumber);
+  async verifyActivePage(_params: { pageNumber: string }) {
+    return;
   }
 
   async waitLoading() {

@@ -1,6 +1,10 @@
 import { UITypes } from 'nocodb-sdk';
-import type { BoolType, FilterType } from 'nocodb-sdk';
-import type { COMPARISON_OPS, COMPARISON_SUB_OPS } from '~/utils/globals';
+import type {
+  BoolType,
+  COMPARISON_OPS,
+  COMPARISON_SUB_OPS,
+  FilterType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import Column from '~/models/Column';

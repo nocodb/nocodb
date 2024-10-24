@@ -139,6 +139,7 @@ import NcCheckFill from '~icons/nc-icons/checkFill'
 import NcExternalLink from '~icons/nc-icons/external-link'
 import NcCamera from '~icons/nc-icons/camera'
 import NcRefreshCW from '~icons/nc-icons/refresh-cw'
+import NcBulb from '~icons/nc-icons/bulb'
 // import NcProjectGray from '~icons/nc-icons/project-gray'
 import NcPhoneCall from '~icons/nc-icons/phone-call'
 import NcItalic from '~icons/nc-icons/italic'
@@ -768,6 +769,7 @@ export const iconMap = {
   camera: NcCamera,
   megaPhone: NcMegaPhone,
   nocodb: NcNocoDB,
+  bulb: NcBulb,
 
   office: NcOffice,
   sort: Sort,

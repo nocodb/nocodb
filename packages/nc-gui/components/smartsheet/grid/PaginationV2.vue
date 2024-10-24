@@ -4,11 +4,13 @@ import { type PaginatedType, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   scrollLeft?: number
-  paginationData: PaginatedType
-  changePage: (page: number) => void
+  paginationData?: PaginatedType
+  changePage?: (page: number) => void
   showSizeChanger?: boolean
   customLabel?: string
+  totalRows?: number
   depth?: number
+  disablePagination?: boolean
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -22,6 +24,8 @@ const { changePage, customLabel } = props
 const showSizeChanger = toRef(props, 'showSizeChanger')
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
+
+const disablePagination = toRef(props, 'disablePagination')
 
 const { updateAggregate, getAggregations, visibleFieldsComputed, displayFieldComputed } = useViewAggregateOrThrow()
 
@@ -46,6 +50,9 @@ const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
 const page = computed({
   get: () => vPaginationData?.value?.page ?? 1,
   set: async (p) => {
+    if (disablePagination.value) {
+      return
+    }
     isPaginationLoading.value = true
     try {
       await changePage?.(p)
@@ -118,21 +125,36 @@ const renderAltOrOptlKey = () => {
           }"
         >
           <div class="flex relative justify-between gap-2 w-full">
-            <div v-if="isViewDataLoading" class="nc-pagination-skeleton flex justify-center item-center min-h-10 min-w-16 w-16">
-              <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
-            </div>
-            <NcTooltip v-else class="flex sticky items-center h-full">
-              <template #title>
-                {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
-              </template>
-              <span
-                data-testid="grid-pagination"
-                class="text-gray-500 text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
-              >
-                {{ Intl.NumberFormat('en', { notation: 'compact' }).format(count) }}
-                {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
-              </span>
-            </NcTooltip>
+            <template v-if="!disablePagination">
+              <div v-if="isViewDataLoading" class="nc-pagination-skeleton flex justify-center item-center min-h-10 min-w-16 w-16">
+                <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
+              </div>
+              <NcTooltip v-else class="flex sticky items-center h-full">
+                <template #title>
+                  {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
+                </template>
+                <span
+                  data-testid="grid-pagination"
+                  class="text-gray-500 text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
+                >
+                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(count) }}
+                  {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
+                </span>
+              </NcTooltip>
+            </template>
+
+            <template v-else-if="+totalRows >= 0">
+              <NcTooltip class="flex sticky items-center h-full">
+                <template #title> {{ totalRows }} {{ totalRows !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
+                <span
+                  data-testid="grid-pagination"
+                  class="text-gray-500 text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
+                >
+                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(totalRows) }}
+                  {{ totalRows !== 1 ? $t('objects.records') : $t('objects.record') }}
+                </span>
+              </NcTooltip>
+            </template>
 
             <template
               v-if="![UITypes.SpecificDBType, UITypes.ForeignKey, UITypes.Button].includes(displayFieldComputed.column?.uidt!)"
@@ -222,7 +244,7 @@ const renderAltOrOptlKey = () => {
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
-          class="flex items-center overflow-x-hidden justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
+          class="flex items-center overflow-hidden justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
           :style="{
             'min-width': width,
             'max-width': width,
@@ -288,7 +310,7 @@ const renderAltOrOptlKey = () => {
 
     <div class="!pl-8 pr-60 !w-8 h-1">‎</div>
 
-    <div class="absolute h-9 bg-white border-l-1 border-gray-200 px-1 flex items-center right-0">
+    <div v-if="!disablePagination" class="absolute h-9 bg-white border-l-1 border-gray-200 px-1 flex items-center right-0">
       <NcPaginationV2
         v-if="count !== Infinity"
         v-model:current="page"

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, GridType } from 'nocodb-sdk'
+import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 
@@ -9,10 +10,6 @@ const view = inject(ActiveViewInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-// keep a root fields variable and will get modified from
-// fields menu and get used in grid and gallery
-const _fields = inject(FieldsInj, ref([]))
-
 const router = useRouter()
 
 const route = router.currentRoute
@@ -20,6 +17,8 @@ const route = router.currentRoute
 const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const bulkUpdateDlg = ref(false)
 
@@ -29,31 +28,38 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const tableRef = ref<typeof Table>()
+const reloadVisibleDataHook = createEventHook()
+
+provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
+
+const tableRef = ref<typeof InfiniteTable>()
 
 useProvideViewAggregate(view, meta, xWhere)
 
 const {
   loadData,
-  paginationData,
-  formattedData: data,
+  selectedRows,
   updateOrSaveRow,
-  changePage,
   addEmptyRow: _addEmptyRow,
   deleteRow,
   deleteSelectedRows,
-  selectedAllRecords,
+  cachedRows,
+  clearCache,
   removeRowIfNew,
   navigateToSiblingRow,
-  getExpandedRowIndex,
   deleteRangeOfRows,
   bulkUpdateRows,
-  bulkUpdateView,
+  syncCount,
+  totalRows,
+  syncVisibleData,
   optimisedQuery,
-  islastRow,
+  isLastRow,
   isFirstRow,
-  aggCommentCount,
-} = useViewData(meta, view, xWhere)
+  chunkStates,
+  clearInvalidRows,
+  isRowSortRequiredRows,
+  applySorting,
+} = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
   if ((view.value?.view as GridType)?.row_height !== undefined) {
@@ -84,7 +90,6 @@ provide(RowHeightInj, rowHeight)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-// reload table data reload hook as fallback to rowdatareload
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)
@@ -173,26 +178,10 @@ eventBus.on((event) => {
 })
 
 const goToNextRow = () => {
-  const currentIndex = getExpandedRowIndex()
-  /* when last index of current page is reached we should move to next page */
-  if (!paginationData.value.isLastPage && currentIndex === paginationData.value.pageSize) {
-    const nextPage = paginationData.value?.page ? paginationData.value?.page + 1 : 1
-    changePage(nextPage)
-  }
-
   navigateToSiblingRow(NavigateDir.NEXT)
 }
 
 const goToPreviousRow = () => {
-  const currentIndex = getExpandedRowIndex()
-  /* when first index of current page is reached and then clicked back 
-    previos page should be loaded
-  */
-  if (!paginationData.value.isFirstPage && currentIndex === 1) {
-    const nextPage = paginationData.value?.page ? paginationData.value?.page - 1 : 1
-    changePage(nextPage)
-  }
-
   navigateToSiblingRow(NavigateDir.PREV)
 }
 
@@ -220,19 +209,18 @@ const baseColor = computed(() => {
 const updateRowCommentCount = (count: number) => {
   if (!routeQuery.value.rowId) return
 
-  const aggCommentCountIndex = aggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
+  const currentRowIndex = Array.from(cachedRows.value.values()).find(
+    (row) => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
+  )?.rowMeta.rowIndex
 
-  const currentRowIndex = data.value.findIndex(
-    (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
-  )
+  if (currentRowIndex === undefined) return
 
-  if (aggCommentCountIndex === -1 || currentRowIndex === -1) return
+  const currentRow = cachedRows.value.get(currentRowIndex)
+  if (!currentRow) return
 
-  if (Number(aggCommentCount.value[aggCommentCountIndex].count) === count) return
+  currentRow.rowMeta.commentCount = count
 
-  aggCommentCount.value[aggCommentCountIndex].count = count
-
-  data.value[currentRowIndex].rowMeta.commentCount = count
+  syncVisibleData?.()
 }
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
@@ -240,6 +228,21 @@ watch([windowSize, leftSidebarWidth], updateViewWidth)
 onMounted(() => {
   updateViewWidth()
 })
+
+const {
+  selectedAllRecords: pSelectedAllRecords,
+  formattedData: pData,
+  paginationData: pPaginationData,
+  loadData: pLoadData,
+  changePage: pChangePage,
+  addEmptyRow: pAddEmptyRow,
+  deleteRow: pDeleteRow,
+  updateOrSaveRow: pUpdateOrSaveRow,
+  deleteSelectedRows: pDeleteSelectedRows,
+  deleteRangeOfRows: pDeleteRangeOfRows,
+  bulkUpdateRows: pBulkUpdateRows,
+  removeRowIfNew: pRemoveRowIfNew,
+} = useViewData(meta, view, xWhere)
 </script>
 
 <template>
@@ -249,22 +252,47 @@ onMounted(() => {
     :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
-      v-if="!isGroupBy"
+      v-if="!isGroupBy && !isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING)"
       ref="tableRef"
-      v-model:selected-all-records="selectedAllRecords"
-      :data="data"
-      :pagination-data="paginationData"
+      v-model:selected-all-records="pSelectedAllRecords"
+      :data="pData"
+      :pagination-data="pPaginationData"
+      :load-data="pLoadData"
+      :change-page="pChangePage"
+      :call-add-empty-row="pAddEmptyRow"
+      :delete-row="pDeleteRow"
+      :update-or-save-row="pUpdateOrSaveRow"
+      :delete-selected-rows="pDeleteSelectedRows"
+      :delete-range-of-rows="pDeleteRangeOfRows"
+      :bulk-update-rows="pBulkUpdateRows"
+      :expand-form="expandForm"
+      :remove-row-if-new="pRemoveRowIfNew"
+      :row-height="rowHeight"
+      @toggle-optimised-query="toggleOptimisedQuery"
+      @bulk-update-dlg="bulkUpdateDlg = true"
+    />
+    <InfiniteTable
+      v-else-if="!isGroupBy"
+      ref="tableRef"
       :load-data="loadData"
-      :change-page="changePage"
       :call-add-empty-row="_addEmptyRow"
       :delete-row="deleteRow"
       :update-or-save-row="updateOrSaveRow"
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
+      :apply-sorting="applySorting"
       :bulk-update-rows="bulkUpdateRows"
+      :clear-cache="clearCache"
+      :clear-invalid-rows="clearInvalidRows"
+      :data="cachedRows"
+      :total-rows="totalRows"
+      :sync-count="syncCount"
+      :chunk-states="chunkStates"
       :expand-form="expandForm"
       :remove-row-if-new="removeRowIfNew"
-      :row-height="rowHeight"
+      :row-height-enum="rowHeight"
+      :selected-rows="selectedRows"
+      :row-sort-required-rows="isRowSortRequiredRows"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
     />
@@ -305,24 +333,20 @@ onMounted(() => {
       :view="view"
       show-next-prev-icons
       :first-row="isFirstRow"
-      :last-row="islastRow"
+      :last-row="isLastRow"
       :expand-form="expandForm"
       @next="goToNextRow()"
       @prev="goToPreviousRow()"
       @update-row-comment-count="updateRowCommentCount"
     />
-
     <Suspense>
       <LazyDlgBulkUpdate
         v-if="bulkUpdateDlg"
         v-model="bulkUpdateDlg"
-        :pagination-data="paginationData"
         :meta="meta"
         :view="view"
         :bulk-update-rows="bulkUpdateRows"
-        :bulk-update-view="bulkUpdateView"
-        :selected-all-records="selectedAllRecords"
-        :rows="data.filter((r) => r.rowMeta.selected)"
+        :rows="selectedRows"
       />
     </Suspense>
   </div>

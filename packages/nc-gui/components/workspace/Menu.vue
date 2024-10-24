@@ -1,4 +1,6 @@
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+const { appInfo } = useGlobal()
+</script>
 
 <template>
   <div class="flex flex-row flex-grow pl-0.5 pr-1 py-0.5 rounded-md w-full" style="max-width: calc(100% - 2.5rem)">
@@ -13,7 +15,10 @@
           target="_blank"
           rel="noopener noreferrer"
         >
-          <img alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
+          <NcTooltip :disabled="!appInfo?.version || isEeUI">
+            <template #title>{{ appInfo?.version }}</template>
+            <img alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
+          </NcTooltip>
         </a>
         <div class="flex flex-grow"></div>
       </div>

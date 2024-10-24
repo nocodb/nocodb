@@ -572,11 +572,25 @@ const onTableIdCopy = async () => {
 const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
 }
+
+const labelEl = ref()
+watch(
+  () => labelEl.value && activeProjectId.value === base.value?.id,
+  async (isActive) => {
+    if (!isActive) return
+    await nextTick()
+    labelEl.value?.scrollIntoView({ behavior: 'smooth' })
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <a-dropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
+      ref="labelEl"
       class="ml-1 mr-0.5 nc-base-sub-menu rounded-md"
       :class="{ active: isExpanded }"
       :data-testid="`nc-sidebar-base-${base.title}`"
@@ -588,6 +602,7 @@ const getSource = (sourceId: string) => {
             'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode,
             'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen),
           }"
+          :data-id="base.id"
           :data-testid="`nc-sidebar-base-title-${base.title}`"
           class="nc-sidebar-node base-title-node h-7 flex-grow rounded-md group flex items-center w-full pr-1 pl-1.5 xs:(pl-0)"
         >
@@ -1010,7 +1025,7 @@ const getSource = (sourceId: string) => {
 
         <template v-else-if="contextMenuTarget.type === 'table'">
           <NcTooltip>
-            <template #title> {{ $t('labels.clickToCopyTableID') }} </template>
+            <template #title> {{ $t('labels.clickToCopyTableID') }}</template>
             <div
               class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
               @click.stop="onTableIdCopy"
@@ -1087,9 +1102,11 @@ const getSource = (sourceId: string) => {
 .nc-base-option-item {
   @apply flex flex-row gap-x-2 items-center;
 }
+
 .nc-sidebar-icon {
   @apply ml-0.5 mr-1;
 }
+
 :deep(.ant-collapse-header) {
   @apply !mx-0 !pl-7.5 h-7 !xs:(pl-6 h-[3rem]) !pr-0.5 !py-0 hover:bg-gray-200 xs:(hover:bg-gray-50) !rounded-md;
 

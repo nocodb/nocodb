@@ -65,8 +65,7 @@ export async function createHmAndBtColumn(
       fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
       fk_related_model_id: parent.id,
       virtual,
-      // if self referencing treat it as system field to hide from ui
-      system: isSystemCol || parent.id === child.id,
+      system: isSystemCol,
       fk_col_name: fkColName,
       fk_index_name: fkColName,
       ...(type === 'bt' ? colExtra : {}),

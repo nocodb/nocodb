@@ -231,7 +231,11 @@ watchEffect(() => {
     // todo: replace setTimeout
     setTimeout(() => {
       // focus and select input only if active element is not an input or textarea
-      if (document.activeElement === document.body || document.activeElement === null) {
+      if (
+        document.activeElement === document.body ||
+        document.activeElement === null ||
+        document.activeElement?.tagName === 'DIV'
+      ) {
         antInput.value?.focus()
         antInput.value?.select()
       }

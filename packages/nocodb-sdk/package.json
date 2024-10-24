@@ -18,7 +18,7 @@
     "url": "https://github.com/nocodb/nocodb/issues"
   },
   "engines": {
-    "node": ">=18.19.1"
+    "node": ">=18.20.4"
   },
   "license": "AGPL-3.0-or-later",
   "keywords": [],

@@ -30,7 +30,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chalk": "^4.1.0",
+    "chalk": "^5.3.0",
     "commander": "^12.1.0",
     "enquirer": "^2.4.1",
     "figlet": "^1.7.0",
@@ -42,19 +42,19 @@
   },
   "devDependencies": {
     "@types/figlet": "^1.5.8",
-    "chai": "^4.4.1",
+    "chai": "^5.1.2",
     "class-transformer": "0.3.1",
     "class-validator": "^0.14.1",
     "cross-env": "^7.0.3",
     "mocha": "^10.3.0",
     "nodemon": "^3.0.3",
     "pkg": "^5.8.0",
-    "eslint-config-prettier": "^8.10.0",
+    "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-eslint-comments": "^3.2.0",
-    "eslint-plugin-functional": "^5.0.8",
+    "eslint-plugin-functional": "^7.1.0",
     "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-prettier": "^4.2.1",
-    "prettier": "^2.8.8",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3",
     "@mapbox/node-pre-gyp": "^1.0.11"
   }
 }

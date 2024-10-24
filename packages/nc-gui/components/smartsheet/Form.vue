@@ -310,7 +310,7 @@ const updatePreFillFormSearchParams = useDebounceFn(() => {
 }, 250)
 
 async function submitForm() {
-  if (isLocked.value || !isUIAllowed('dataInsert')) return
+  if (!isUIAllowed('dataInsert')) return
 
   for (const col of localColumns.value) {
     if (col.show && col.title && isRequired(col, col.required) && formState.value[col.title] === undefined) {
@@ -349,7 +349,7 @@ async function submitForm() {
 }
 
 async function clearForm() {
-  if (isLocked.value || !isUIAllowed('dataInsert')) return
+  if (!isUIAllowed('dataInsert')) return
 
   formState.value = {}
   state.value = {}
@@ -797,6 +797,14 @@ watch(focusLabel, () => {
   }
 })
 
+watch(isLocked, (newValue) => {
+  if (newValue) {
+    activeRow.value = ''
+  }
+
+  clearForm()
+})
+
 useEventListener(
   document,
   'keydown',
@@ -965,7 +973,7 @@ useEventListener(
                     />
                     <div class="absolute bottom-0 right-0 hidden group-hover:block">
                       <div class="flex items-center space-x-1 m-2">
-                        <NcTooltip :disabled="isEeUI">
+                        <NcTooltip :disabled="isEeUI || isLocked">
                           <template #title>
                             <div class="text-center">
                               {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -977,7 +985,7 @@ useEventListener(
                             size="small"
                             class="nc-form-upload-banner-btn"
                             data-testid="nc-form-upload-banner-btn"
-                            :disabled="!isEeUI"
+                            :disabled="!isEeUI || isLocked"
                             @click="openUploadImage(true)"
                           >
                             <div class="flex gap-2 items-center">
@@ -989,13 +997,14 @@ useEventListener(
                             </div>
                           </NcButton>
                         </NcTooltip>
-                        <NcTooltip v-if="isEeUI && formViewData.banner_image_url">
+                        <NcTooltip v-if="isEeUI && formViewData.banner_image_url" :disabled="isLocked">
                           <template #title> {{ $t('general.delete') }} {{ $t('general.banner') }} </template>
                           <NcButton
                             type="secondary"
                             size="small"
                             class="nc-form-delete-banner-btn"
                             data-testid="nc-form-delete-banner-btn"
+                            :disabled="isLocked"
                             @click="
                               () => {
                                 if (isEditable) {
@@ -1044,7 +1053,7 @@ useEventListener(
                               class="items-center space-x-1 flex-nowrap m-3"
                               :class="formViewData.logo_url ? 'hidden absolute top-0 left-0 group-hover:flex' : 'flex'"
                             >
-                              <NcTooltip :disabled="isEeUI">
+                              <NcTooltip :disabled="isEeUI || isLocked">
                                 <template #title>
                                   <div class="text-center">
                                     {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -1056,7 +1065,7 @@ useEventListener(
                                   size="small"
                                   class="nc-form-upload-logo-btn"
                                   data-testid="nc-form-upload-log-btn"
-                                  :disabled="!isEeUI"
+                                  :disabled="!isEeUI || isLocked"
                                   @click="openUploadImage(false)"
                                 >
                                   <div class="flex gap-2 items-center">
@@ -1065,13 +1074,14 @@ useEventListener(
                                   </div>
                                 </NcButton>
                               </NcTooltip>
-                              <NcTooltip v-if="isEeUI && formViewData.logo_url">
+                              <NcTooltip v-if="isEeUI && formViewData.logo_url" :disabled="isLocked">
                                 <template #title> {{ $t('general.delete') }} {{ $t('general.logo') }} </template>
                                 <NcButton
                                   type="secondary"
                                   size="small"
                                   class="nc-form-delete-logo-btn"
                                   data-testid="nc-form-delete-logo-btn"
+                                  :disabled="isLocked"
                                   @click="
                               () => {
                                 if (isEditable) {
@@ -1144,7 +1154,7 @@ useEventListener(
 
                         <!-- form description  -->
                         <div
-                          class="border-transparent px-4 lg:px-6"
+                          class="border-transparent px-4 lg:px-6 empty:hidden"
                           :class="[
                             {
                               'rounded-2xl border-2 cursor-pointer mb-1 py-4 lg:py-6 focus-within:bg-gray-50': isEditable,
@@ -1203,6 +1213,7 @@ useEventListener(
                       >
                         <template #item="{ element }">
                           <div
+                            v-if="!isLocked || (isLocked && element?.visible)"
                             :key="element.id"
                             class="nc-editable nc-form-focus-element item relative bg-white p-4 lg:p-6"
                             :class="[
@@ -1243,7 +1254,7 @@ useEventListener(
                             </div>
                             <div class="flex items-center gap-3">
                               <NcTooltip
-                                v-if="allViewFilters[element.fk_column_id]?.length"
+                                v-if="allViewFilters[element.fk_column_id]?.length && !isLocked"
                                 class="relative h-3.5 w-3.5 flex cursor-pointer"
                                 placement="topLeft"
                               >
@@ -1363,7 +1374,7 @@ useEventListener(
                     </a-form>
 
                     <div v-if="!parseProp(formViewData?.meta).hide_branding" class="px-8 lg:px-12">
-                      <a-divider v-if="!isLocked" class="!my-8" />
+                      <a-divider class="!my-8" />
                       <!-- Nocodb Branding  -->
                       <div class="inline-block">
                         <GeneralFormBranding />
@@ -1417,7 +1428,7 @@ useEventListener(
                         v-model:visible="dropdownStates.showEditColumn"
                         :trigger="['click']"
                         overlay-class-name="nc-dropdown-form-edit-column"
-                        :disabled="!isUIAllowed('fieldEdit')"
+                        :disabled="!isUIAllowed('fieldEdit') || isLocked"
                         @visible-change="onVisibilityChange('showEditColumn')"
                       >
                         <NcButton type="secondary" size="small" class="nc-form-add-field" data-testid="nc-form-add-field">
@@ -1503,6 +1514,7 @@ useEventListener(
                           v-if="isUIAllowed('fieldAdd')"
                           v-model:visible="dropdownStates.showAddColumn"
                           :trigger="['click']"
+                          :disabled="isLocked"
                           overlay-class-name="nc-dropdown-form-add-column"
                           @visible-change="onVisibilityChange('showAddColumn')"
                         >
@@ -1573,6 +1585,7 @@ useEventListener(
                                   :checked="visibleColumns.length === localColumns.length"
                                   size="small"
                                   class="nc-switch"
+                                  :disabled="isLocked"
                                   @change="handleAddOrRemoveAllColumns"
                                 />
                               </div>
@@ -2119,12 +2132,16 @@ useEventListener(
   }
 }
 .nc-form-after-submit-msg {
+  .editable {
+    .nc-textarea-rich-editor {
+      &:hover {
+        @apply border-brand-400;
+      }
+    }
+  }
   .nc-textarea-rich-editor {
     @apply pl-1 pr-2 pt-2 pb-1 !rounded-lg !text-sm border-1 border-gray-200 focus-within:border-brand-500;
 
-    &:hover {
-      @apply border-brand-400;
-    }
     &:focus-within {
       @apply shadow-selected;
     }

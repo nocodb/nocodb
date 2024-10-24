@@ -1167,7 +1167,7 @@ watch(
                       </NcBadge>
                       <NcBadge
                         v-else-if="isColumnValid(field) && fieldStatus(field) === 'add'"
-                        color="orange"
+                        color="green"
                         :border="false"
                         class="bg-green-50 text-green-700"
                         data-testid="nc-field-status-new-field"

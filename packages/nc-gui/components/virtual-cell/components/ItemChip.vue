@@ -32,7 +32,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 const { open } = useExpandedFormDetached()
 
 function openExpandedForm() {
-  if (!active.value) return
+  if (!active.value && !isExpandedForm.value) return
 
   const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
   if (!readOnly.value && !readonlyProp && rowId) {

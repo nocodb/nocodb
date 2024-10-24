@@ -493,11 +493,25 @@ async function openAudit(source: SourceType) {
     close(1000)
   }
 }
+
+const labelEl = ref()
+watch(
+  () => labelEl.value && activeProjectId.value === base.value?.id,
+  async (isActive) => {
+    if (!isActive) return
+    await nextTick()
+    labelEl.value?.scrollIntoView({ behavior: 'smooth' })
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
   <NcDropdown :trigger="['contextmenu']" overlay-class-name="nc-dropdown-tree-view-context-menu">
     <div
+      ref="labelEl"
       class="mx-1 nc-base-sub-menu rounded-md"
       :class="{ active: base.isExpanded }"
       :data-testid="`nc-sidebar-base-${base.title}`"
@@ -510,6 +524,7 @@ async function openAudit(source: SourceType) {
             'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode,
             'hover:bg-gray-200': !(activeProjectId === base.id && baseViewOpen),
           }"
+          :data-id="base.id"
           :data-testid="`nc-sidebar-base-title-${base.title}`"
           class="nc-sidebar-node base-title-node h-7 flex-grow rounded-md group flex items-center w-full pr-1 pl-1.5"
         >

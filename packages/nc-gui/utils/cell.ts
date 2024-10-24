@@ -105,11 +105,11 @@ export const rowHeightInPx: Record<string, number> = {
 export const rowHeightTruncateLines = (rowHeight?: number) => {
   switch (rowHeight) {
     case 2:
-      return 2
-    case 4:
       return 3
-    case 6:
+    case 4:
       return 4
+    case 6:
+      return 6
     default:
       return 1
   }

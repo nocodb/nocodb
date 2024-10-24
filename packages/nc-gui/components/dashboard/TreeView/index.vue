@@ -265,22 +265,6 @@ watch(
     immediate: true,
   },
 )
-
-watch(
-  activeProjectId,
-  () => {
-    const activeProjectDom = document.querySelector(`.nc-treeview [data-base-id="${activeProjectId.value}"]`)
-    if (!activeProjectDom) return
-
-    if (isElementInvisible(activeProjectDom)) {
-      // Scroll to the table node
-      activeProjectDom?.scrollIntoView({ behavior: 'smooth' })
-    }
-  },
-  {
-    immediate: true,
-  },
-)
 </script>
 
 <template>

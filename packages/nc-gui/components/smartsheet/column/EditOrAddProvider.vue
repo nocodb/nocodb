@@ -10,6 +10,7 @@ interface Props {
   editDescription?: boolean
   fromTableExplorer?: boolean
   isColumnValid?: (value: Partial<ColumnType>) => boolean
+  disableTitleFocus?: boolean
 }
 
 const props = defineProps<Props>()
@@ -39,6 +40,7 @@ defineExpose({
     :column-position="props.columnPosition"
     :edit-description="editDescription"
     :from-table-explorer="props.fromTableExplorer || false"
+    :disable-title-focus="disableTitleFocus"
     @submit="emit('submit')"
     @cancel="emit('cancel')"
     @mounted="emit('mounted')"

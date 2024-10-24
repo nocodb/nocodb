@@ -200,7 +200,7 @@ watch(inputWrapperRef, () => {
 <template>
   <div>
     <div
-      class="flex flex-row w-full long-text-wrapper"
+      class="flex flex-row w-full long-text-wrapper items-center"
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
         'min-h-5.5': rowHeight === 1 && !isExpandedFormOpen,

@@ -23,6 +23,12 @@ const { t } = useI18n()
 
 const column = toRef(props, 'column')
 
+const { base: activeBase, tables } = storeToRefs(useBase())
+
+const isExternalSource = computed(() =>
+  activeBase.value?.sources?.some((s) => s.id === column.value?.source_id && !s.is_meta && !s.is_local),
+)
+
 const hideMenu = toRef(props, 'hideMenu')
 
 const { isMobileMode } = useGlobal()
@@ -76,14 +82,32 @@ const tooltipMsg = computed(() => {
     return ''
   }
 
+  let suffix = ''
+  if (isLinksOrLTAR(column.value) && relatedTableTitle.value && isExternalSource.value) {
+    if (isMm(column.value)) {
+      const mmTableMeta =
+        tables.value?.find((t) => t.id === column.value?.colOptions?.fk_mm_model_id) ||
+        metas.value?.[column.value?.colOptions?.fk_mm_model_id as string]
+      suffix = mmTableMeta ? `\nJunction Table: ${mmTableMeta.title}` : ''
+    } else if (isHm(column.value)) {
+      const fkColumn = metas.value?.[column.value?.colOptions?.fk_related_model_id as string]?.columns?.find(
+        (c) => c.id === column.value?.colOptions?.fk_child_column_id,
+      )
+      suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
+    } else if (isBt(column.value)) {
+      const fkColumn = meta.value?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
+      suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
+    }
+  }
+
   if (isHm(column.value)) {
-    return `'${tableTile.value}' ${t('labels.hasMany')} '${relatedTableTitle.value}'`
+    return `'${tableTile.value}' ${t('labels.hasMany')} '${relatedTableTitle.value}'${suffix}`
   } else if (isMm(column.value)) {
-    return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.manyToMany')}`
+    return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.manyToMany')}${suffix}`
   } else if (isBt(column.value)) {
-    return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle.value}'`
+    return `'${column?.value?.title}' ${t('labels.belongsTo')} '${relatedTableTitle.value}'${suffix}`
   } else if (isOo(column.value)) {
-    return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.oneToOne')}`
+    return `'${tableTile.value}' & '${relatedTableTitle.value}' ${t('labels.oneToOne')}${suffix}`
   } else if (isFormula(column.value)) {
     const formula = substituteColumnIdWithAliasInFormula(
       (column.value?.colOptions as FormulaType)?.formula,
@@ -211,7 +235,9 @@ const onClick = (e: Event) => {
       </template>
       <NcTooltip placement="bottom" class="truncate name pl-1" :show-on-truncate-only="!showTooltipAlways">
         <template #title>
-          {{ tooltipMsg }}
+          <template v-for="msg in tooltipMsg.split('\n')">
+            <div>{{ msg }}</div>
+          </template>
         </template>
         <span
           :data-test-id="column.title"

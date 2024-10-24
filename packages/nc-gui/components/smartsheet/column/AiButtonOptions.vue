@@ -45,30 +45,6 @@ const isOpenSelectOutputFieldDropdown = ref<boolean>(false)
 
 const isOpenSelectRecordDropdown = ref<boolean>(false)
 
-const validators = {
-  output_column_ids: [
-    {
-      required: true,
-      message: 'At least one output field is required for AI Button',
-    },
-  ],
-  formula_raw: [
-    {
-      required: true,
-      message: 'Prompt required for AI Button',
-    },
-  ],
-  fk_integration_id: [{ required: true, message: t('general.required') }],
-}
-
-setAdditionalValidations({
-  ...validators,
-})
-
-if (isEdit.value) {
-  vModel.value.fk_integration_id = vModel.value?.colOptions?.fk_integration_id
-}
-
 const fieldTitle = computed(() => {
   return (
     vModel.value.title ||

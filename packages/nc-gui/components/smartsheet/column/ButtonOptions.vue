@@ -169,6 +169,24 @@ const validators = {
       },
     },
   ],
+
+  ...((isEdit.value ? vModel.value.colOptions : vModel.value.type) === ButtonActionsType.Ai
+    ? {
+        output_column_ids: [
+          {
+            required: true,
+            message: 'At least one output field is required for AI Button',
+          },
+        ],
+        formula_raw: [
+          {
+            required: true,
+            message: 'Prompt required for AI Button',
+          },
+        ],
+        fk_integration_id: [{ required: true, message: t('general.required') }],
+      }
+    : {}),
 }
 
 if (isEdit.value) {
@@ -180,6 +198,12 @@ if (isEdit.value) {
   vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
   vModel.value.icon = colOptions?.icon
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
+
+  if (vModel.value.type === ButtonActionsType.Ai) {
+    vModel.value.formula_raw = colOptions?.formula_raw || ''
+    vModel.value.output_column_ids = colOptions?.output_column_ids || ''
+    vModel.value.fk_integration_id = colOptions?.fk_integration_id
+  }
 } else {
   vModel.value.type = vModel.value?.type || buttonTypes[0].value
 
@@ -188,12 +212,14 @@ if (isEdit.value) {
     vModel.value.label = 'Generate data'
     vModel.value.color = 'purple'
     vModel.value.icon = 'ncAutoAwesome'
+    vModel.value.output_column_ids = ''
   } else {
     vModel.value.theme = 'solid'
     vModel.value.label = 'Button'
     vModel.value.color = 'brand'
-    vModel.value.formula_raw = ''
   }
+
+  vModel.value.formula_raw = ''
 }
 
 setAdditionalValidations({
@@ -332,14 +358,6 @@ watch(isWebhookModal, (newVal) => {
     setTimeout(() => {
       isWebhookCreateModalOpen.value = false
     }, 500)
-  }
-})
-
-onMounted(() => {
-  if (vModel.value.type === ButtonActionsType.Ai) {
-    // set default value
-    vModel.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
-    vModel.value.output_column_ids = (column?.value?.colOptions as Record<string, any>)?.output_column_ids || ''
   }
 })
 </script>

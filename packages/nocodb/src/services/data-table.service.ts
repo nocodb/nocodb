@@ -315,7 +315,11 @@ export class DataTableService {
       // if composite primary key then join the values with ___
       else
         pk = model.primaryKeys
-          .map((pk) => row[pk.title] ?? row[pk.column_name])
+          .map((pk) =>
+            (row[pk.title] ?? row[pk.column_name])
+              ?.toString?.()
+              ?.replaceAll('_', '\\_'),
+          )
           .join('___');
       // if duplicate then throw error
       if (keys.has(pk)) {

@@ -6517,7 +6517,11 @@ class BaseModelSqlv2 {
       for (const pk of this.model.primaryKeys) {
         pkValues[pk.title] = data[pk.title] ?? data[pk.column_name];
       }
-      return asString ? Object.values(pkValues).join('___') : pkValues;
+      return asString
+        ? Object.values(pkValues)
+            .map((val) => val?.toString?.().replaceAll('_', '\\_'))
+            .join('___')
+        : pkValues;
     } else if (this.model.primaryKey) {
       return (
         data[this.model.primaryKey.title] ??
@@ -10170,7 +10174,16 @@ export function _wherePk(
     return where;
   }
 
-  const ids = Array.isArray(id) ? id : (id + '').split('___');
+  let ids = id;
+
+  if (Array.isArray(id)) {
+    ids = id;
+  } else if (primaryKeys.length === 1) {
+    ids = [id];
+  } else {
+    ids = (id + '').split('___').map((val) => val.replaceAll('\\_', '_'));
+  }
+
   for (let i = 0; i < primaryKeys.length; ++i) {
     if (primaryKeys[i].dt === 'bytea') {
       // if column is bytea, then we need to encode the id to hex based on format
@@ -10216,7 +10229,16 @@ export function getCompositePkValue(primaryKeys: Column[], row) {
 
   if (typeof row !== 'object') return row;
 
-  return primaryKeys.map((c) => row[c.title] ?? row[c.column_name]).join('___');
+  if (primaryKeys.length > 1) {
+    return primaryKeys.map((c) =>
+      (row[c.title] ?? row[c.column_name])?.toString?.().replaceAll('_', '\\_'),
+    ).join('___');
+  }
+
+  return (
+    primaryKeys[0] &&
+    (row[primaryKeys[0].title] ?? row[primaryKeys[0].column_name])
+  );
 }
 
 export function haveFormulaColumn(columns: Column[]) {

@@ -694,7 +694,7 @@ const enableAI = async () => {
         '!focus-within:border-brand-500 shadow-default hover:shadow-hover formula-success': !error,
         'bg-white': isAiModeFieldModal,
       }"
-      class="formula-monaco"
+      class="formula-monaco transition-colors duration-300"
       @keydown.stop="handleKeydown"
     ></div>
   </a-form-item>
@@ -714,55 +714,71 @@ const enableAI = async () => {
   </div>
   <template v-else-if="aiMode === AI_MODE.PROMPT">
     <AiIntegrationNotFound v-if="!aiIntegrationAvailable" class="mt-4" />
-    <div v-else class="prompt-wrapper w-full flex">
+    <div v-else class="prompt-wrapper">
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="9" viewBox="0 0 18 9" fill="none" class="nc-polygon-2">
         <path d="M1.51476 8.5L9 0.721111L16.4852 8.5H1.51476Z" fill="white" stroke="#e5d4f5" />
       </svg>
-      <a-textarea
-        v-model:value="aiPrompt"
-        class="nc-ai-formula-helper-input !rounded-lg nc-input-shadow nc-ai-input !pb-8 nc-scrollbar-thin"
-        :auto-size="{
-          minRows: 3,
-          maxRows: 8,
-        }"
-        :placeholder="`Enter prompt to ${value ? 'modify' : 'generate'} formula`"
-      ></a-textarea>
+      <div class="prompt-input-wrapper w-full flex">
+        <div class="nc-triangle"></div>
 
-      <div class="absolute bottom-2 right-2 flex items-center gap-2">
-        <NcButton
-          v-if="validateInfos?.formula_raw?.validateStatus === 'error'"
-          type="secondary"
-          size="xsmall"
-          class="nc-formula-helper-ai-btn !px-2"
-          :loading="aiLoading && calledFun === 'repairFormulaAI'"
-          @click="repairFormulaAI"
-        >
-          <template #icon>
-            <GeneralIcon icon="ncAutoAwesome" class="!text-current h-4 w-4" />
-          </template>
-          <template #loadingIcon>
-            <GeneralLoader class="!text-current" size="regular" />
-          </template>
-          <div class="flex items-center gap-1">
-            <span class="text-[13px] font-semibold text-purple-400">Repair</span>
+        <div class="flex items-center gap-2 pl-3 pr-1 py-1 border-b-1 border-purple-100">
+          <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">Prompt</div>
+          <div class="flex items-center gap-2">
+            <NcButton
+              v-if="validateInfos?.formula_raw?.validateStatus === 'error'"
+              type="secondary"
+              size="xs"
+              theme="ai"
+              :bordered="false"
+              class="nc-formula-helper-ai-btn !px-2"
+              :disabled="aiLoading && calledFun === 'repairFormulaAI'"
+              :loading="aiLoading && calledFun === 'repairFormulaAI'"
+              @click="repairFormulaAI"
+            >
+              <template #icon>
+                <GeneralIcon icon="ncAutoAwesome" class="!text-current h-4 w-4" />
+              </template>
+              <template #loadingIcon>
+                <GeneralLoader class="!text-current" size="regular" />
+              </template>
+              <div class="flex items-center gap-1">
+                <span class="text-[13px] font-semibold text-purple-400">Repair</span>
+              </div>
+            </NcButton>
+            <NcButton
+              type="secondary"
+              size="xs"
+              theme="ai"
+              :bordered="false"
+              class="nc-formula-helper-ai-btn !px-2"
+              :loading="aiLoading && calledFun === 'promptAI'"
+              :disabled="
+                !aiPrompt?.trim() ||
+                (!!aiPrompt.trim() && aiPrompt.trim() === oldAiPrompt.trim()) ||
+                (aiLoading && calledFun === 'promptAI')
+              "
+              @click="promptAI"
+            >
+              <template #icon>
+                <GeneralIcon icon="ncAutoAwesome" class="!text-current h-4 w-4" />
+              </template>
+              <template #loadingIcon>
+                <GeneralLoader class="!text-current" size="regular" />
+              </template>
+              <div class="flex items-center gap-1">Generate</div>
+            </NcButton>
           </div>
-        </NcButton>
-        <NcButton
-          type="secondary"
-          size="xsmall"
-          class="nc-formula-helper-ai-btn !px-2"
-          :loading="aiLoading && calledFun === 'promptAI'"
-          :disabled="!aiPrompt?.trim() || (!!aiPrompt.trim() && aiPrompt.trim() === oldAiPrompt.trim())"
-          @click="promptAI"
-        >
-          <template #icon>
-            <GeneralIcon icon="ncAutoAwesome" class="!text-current h-4 w-4" />
-          </template>
-          <template #loadingIcon>
-            <GeneralLoader class="!text-current" size="regular" />
-          </template>
-          <div class="flex items-center gap-1">Generate</div>
-        </NcButton>
+        </div>
+        <a-textarea
+          v-model:value="aiPrompt"
+          class="nc-ai-formula-helper-input nc-scrollbar-thin"
+          :auto-size="{
+            minRows: 3,
+            maxRows: 8,
+          }"
+          :bordered="false"
+          :placeholder="`Enter prompt to ${value ? 'modify' : 'generate'} formula`"
+        ></a-textarea>
       </div>
     </div>
   </template>
@@ -909,26 +925,15 @@ const enableAI = async () => {
     width: auto !important;
   }
 }
-
 .prompt-wrapper {
-  display: inline-block;
-  position: relative;
-  margin-top: 10px;
+  @apply relative mt-2.5;
 
   .nc-polygon-2 {
-    @apply absolute -top-[8px] left-[50%] transform -translate-x-1/2 stroke-[val(--nc-ai-formula-helper-border-color)];
+    @apply absolute -top-[8px] left-[50%] transform -translate-x-1/2 z-0;
   }
 
-  .nc-ai-formula-helper-input {
-    @apply !border-purple-100;
-  }
-}
-
-.nc-formula-helper-ai-btn {
-  @apply !text-nc-content-purple-dark !bg-nc-bg-purple-light !border-purple-200 hover:!bg-nc-bg-purple-dark;
-
-  &:disabled {
-    @apply !text-nc-content-purple-light !bg-nc-bg-purple-light hover:!bg-nc-bg-purple-light;
+  .prompt-input-wrapper {
+    @apply relative inline-block transition-all duration-300 shadow-default border-1 rounded-lg border-purple-100 focus-within:(shadow-selected-ai !border-nc-border-purple) z-10;
   }
 }
 </style>

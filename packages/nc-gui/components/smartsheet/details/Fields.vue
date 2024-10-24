@@ -893,7 +893,7 @@ onKeyDown('ArrowUp', () => {
 })
 
 onKeyDown('Delete', () => {
-  if (isLocked.value) return
+  if (isLocked.value || activeField.value?.pv) return
 
   if (isActiveInputElementExist()) {
     return
@@ -906,7 +906,7 @@ onKeyDown('Delete', () => {
 })
 
 onKeyDown('Backspace', () => {
-  if (isLocked.value) return
+  if (isLocked.value || activeField.value?.pv) return
 
   if (isActiveInputElementExist()) {
     return

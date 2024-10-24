@@ -32,7 +32,7 @@ const previewRow = ref<Row>({
   rowMeta: { new: true },
 })
 
-const previewFieldTitle = ref(vModel.value.title || '')
+const previewFieldTitle = ref(vModel.value.title || 'temp_title')
 
 const generatingPreview = ref(false)
 
@@ -43,7 +43,7 @@ const isPreviewEnabled = computed(() => {
     return vModel.value.prompt_raw?.includes(`{${f.title}}`)
   })
 
-  return isFieldAddedInPromt && !!vModel.value.title
+  return isFieldAddedInPromt
 })
 
 watch(
@@ -94,12 +94,12 @@ const generate = async () => {
     return
   }
 
-  previewFieldTitle.value = vModel.value?.title
+  previewFieldTitle.value = vModel.value?.title || 'temp_title'
 
   const res = await generateRows(
     meta.value.id!,
     {
-      title: vModel.value?.title,
+      title: previewFieldTitle.value,
       prompt_raw: vModel.value.prompt_raw,
       fk_integration_id: vModel.value.fk_integration_id,
       uidt: UITypes.AI,
@@ -218,8 +218,8 @@ provide(EditColumnInj, ref(true))
           </div>
         </div>
       </a-form-item>
-      <div class="nc-ai-options-preview">
-        <div class="">
+      <div class="nc-ai-options-preview overflow-hidden">
+        <div>
           <div
             class="flex items-center gap-2 transition-all duration-300"
             :class="{
@@ -229,7 +229,7 @@ provide(EditColumnInj, ref(true))
           >
             <div class="flex flex-col flex-1 gap-1">
               <div class="flex items-center gap-3">
-                <span class="text-small font-medium text-nc-content-gray">Preview</span>
+                <span class="text-sm font-bold text-nc-content-gray-subtle">Preview</span>
                 <NcTooltip class="flex cursor-pointer">
                   <template #title> Preview is generated using the first record in ths table</template>
                   <GeneralIcon icon="ncInfo" class="text-nc-content-gray-muted hover:text-nc-content-gray-subtle opacity-70" />
@@ -241,9 +241,7 @@ provide(EditColumnInj, ref(true))
             </div>
 
             <NcTooltip :disabled="isPreviewEnabled">
-              <template #title>
-                {{ !vModel.title ? 'Field name is required' : 'Include at least 1 field in prompt to generate' }}
-              </template>
+              <template #title> Include at least 1 field in prompt to generate </template>
               <NcButton
                 class="nc-aioptions-preview-generate-btn"
                 :class="{
@@ -278,13 +276,13 @@ provide(EditColumnInj, ref(true))
             </NcTooltip>
           </div>
           <div v-if="previewRow.row?.[previewFieldTitle]?.value">
-            <div class="relative pr-3 pl-1 pt-2 pb-3">
+            <div class="relative">
               <LazySmartsheetRow :row="previewRow">
                 <LazySmartsheetCell
                   :edit-enabled="true"
                   :model-value="previewRow.row[previewFieldTitle]"
                   :column="vModel"
-                  class="!border-none h-auto my-auto"
+                  class="!border-none h-auto my-auto pl-1"
                 />
               </LazySmartsheetRow>
             </div>
@@ -310,6 +308,10 @@ provide(EditColumnInj, ref(true))
 .nc-ai-options-preview {
   @apply rounded-lg border-1 border-nc-border-gray-medium;
   box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+
+  :deep(.nc-text-area-expand-btn) {
+    @apply right-1;
+  }
 }
 
 .nc-aioptions-preview-generate-btn {

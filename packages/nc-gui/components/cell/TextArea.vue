@@ -574,7 +574,8 @@ watch([isVisible, inputRef], (value) => {
                   }}
                 </template>
                 <NcButton
-                  type="primary"
+                  type="secondary"
+                  :bordered="false"
                   theme="ai"
                   size="small"
                   :disabled="!isFieldAiIntegrationAvailable"

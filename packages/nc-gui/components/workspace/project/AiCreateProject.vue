@@ -466,6 +466,7 @@ onMounted(() => {
               v-e="['a:base:ai:create']"
               type="primary"
               size="small"
+              theme="ai"
               class="w-1/2"
               :disabled="
                 aiStep !== AI_STEP.MODIFY || finalSchema?.tables?.length === 0 || (aiLoading && callFunction === 'onCreateSchema')

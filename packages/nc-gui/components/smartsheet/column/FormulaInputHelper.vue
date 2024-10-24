@@ -719,9 +719,9 @@ const enableAI = async () => {
         <path d="M1.51476 8.5L9 0.721111L16.4852 8.5H1.51476Z" fill="white" stroke="#e5d4f5" />
       </svg>
       <div class="prompt-input-wrapper w-full flex">
-        <div class="nc-triangle"></div>
+        <div class="nc-triangle-bottom-bar"></div>
 
-        <div class="flex items-center gap-2 pl-3 pr-1 py-1 border-b-1 border-purple-100">
+        <div class="flex items-center gap-2 pl-3 pr-1 py-1">
           <div class="flex-1 text-small leading-[18px] font-bold text-nc-content-gray-subtle2">Prompt</div>
           <div class="flex items-center gap-2">
             <NcButton
@@ -771,12 +771,7 @@ const enableAI = async () => {
         </div>
         <a-textarea
           v-model:value="aiPrompt"
-          class="nc-ai-formula-helper-input nc-scrollbar-thin"
-          :auto-size="{
-            minRows: 3,
-            maxRows: 8,
-          }"
-          :bordered="false"
+          class="nc-ai-formula-helper-input nc-input-shadow nc-ai-input nc-scrollbar-thin !min-h-[80px]"
           :placeholder="`Enter prompt to ${value ? 'modify' : 'generate'} formula`"
         ></a-textarea>
       </div>
@@ -932,8 +927,20 @@ const enableAI = async () => {
     @apply absolute -top-[8px] left-[50%] transform -translate-x-1/2 z-0;
   }
 
+  .nc-triangle-bottom-bar{
+    @apply absolute -top-[8px] left-[50%] transform -translate-x-1/2 w-3.5 h-2 bg-transparent border-2 border-transparent !border-b-nc-bg-gray-extralight;
+  }
+
   .prompt-input-wrapper {
-    @apply relative inline-block transition-all duration-300 shadow-default border-1 rounded-lg border-purple-100 focus-within:(shadow-selected-ai !border-nc-border-purple) z-10;
+    @apply relative inline-block transition-all duration-300 shadow-default border-1 rounded-lg bg-nc-bg-gray-extralight border-purple-100 z-10;
+
+    .nc-ai-formula-helper-input {
+      @apply rounded-b-lg !border-purple-100 !-m-[1px] !max-w-[calc(100%_+_2px)] !w-[calc(100%_+_2px)] !shadow-none;
+
+      &:focus {
+        @apply rounded-lg !border-nc-border-purple !shadow-selected-ai;
+      }
+    }
   }
 }
 </style>

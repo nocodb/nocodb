@@ -37,7 +37,7 @@
     "@docusaurus/preset-classic": "3.1.1",
     "@mdx-js/react": "^3.0.1",
     "clsx": "^1.2.1",
-    "dayjs": "^1.11.11",
+    "dayjs": "^1.11.13",
     "docusaurus-plugin-sass": "^0.2.5",
     "docusaurus-theme-search-typesense": "^0.16.0",
     "nc-analytics": "^0.0.9",

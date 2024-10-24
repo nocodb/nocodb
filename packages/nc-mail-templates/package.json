@@ -2,7 +2,7 @@
   "name": "nc-mail-templates",
   "version": "1.0.0",
   "description": "",
-  "packageManager": "pnpm@9.6.0",
+  "packageManager": "pnpm@9.12.2",
   "main": "index.js",
   "type": "module",
   "scripts": {
@@ -14,11 +14,11 @@
   "license": "ISC",
   "dependencies": {
     "html-entities-decoder": "^1.0.5",
-    "typescript": "^5.3.3",
+    "typescript": "^5.6.3",
     "vue-extensible-mail": "^0.0.3 "
   },
   "devDependencies": {
-    "tsx": "^4.10.4",
+    "tsx": "^4.19.1",
     "@types/html-entities-decoder": "^1.0.2"
   }
 }

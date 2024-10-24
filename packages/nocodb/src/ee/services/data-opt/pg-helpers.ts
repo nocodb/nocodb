@@ -1119,7 +1119,9 @@ export async function singleQueryRead(
         knex
           .raw(
             cachedQuery,
-            ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
+            ctx.model.primaryKeys.length === 1
+              ? [ctx.id]
+              : ctx.id.split('___').map((id) => id.replaceAll('\\_', '_')),
           )
           .toQuery(),
         null,
@@ -1248,7 +1250,9 @@ export async function singleQueryRead(
     knex
       .raw(
         query,
-        ctx.model.primaryKeys.length === 1 ? [ctx.id] : ctx.id.split('___'),
+        ctx.model.primaryKeys.length === 1
+          ? [ctx.id]
+          : ctx.id.split('___').map((id) => id.replaceAll('\\_', '_')),
       )
       .toQuery(),
     null,

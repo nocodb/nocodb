@@ -78,12 +78,12 @@ onScopeDispose($destroy)
       :show-interactive="false"
     >
       <template #control-zoom-in>
-        <div class="nc-erd-zoom-btn rounded-l-lg h-7.5 flex items-center" @click="internalZoomIn">
+        <div class="nc-erd-zoom-btn rounded-l-lg h-9 !px-2 flex items-center" @click="internalZoomIn">
           <GeneralIcon icon="plus" />
         </div>
       </template>
       <template #control-zoom-out>
-        <div class="nc-erd-zoom-btn border-l-1 border-gray-200 rounded-r-lg h-7.5 flex items-center" @click="internalZoomOut">
+        <div class="nc-erd-zoom-btn border-l-1 border-gray-200 rounded-r-lg h-9 !px-2 flex items-center" @click="internalZoomOut">
           <GeneralIcon icon="minus" />
         </div>
       </template>

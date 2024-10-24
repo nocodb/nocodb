@@ -30,8 +30,6 @@ const { navigateToProject } = useGlobal()
 
 const { aiIntegrationAvailable, aiError, aiLoading, createSchema, predictSchema } = useNocoAi()
 
-const tagSearchQuery = ref<string>('')
-
 const callFunction = ref<string | null>(null)
 
 const isExpandedPredefiendBasePromts = ref<boolean>(false)
@@ -39,9 +37,7 @@ const isExpandedPredefiendBasePromts = ref<boolean>(false)
 const aiPromptInputRef = ref<HTMLElement>()
 
 const predefinedBasePrompts = computed(() => {
-  return isExpandedPredefiendBasePromts.value
-    ? aiBaseSchemaPrompts.filter((prompt) => prompt.tag.toLowerCase().includes(tagSearchQuery.value.toLowerCase()))
-    : aiBaseSchemaPrompts.slice(0, 7)
+  return isExpandedPredefiendBasePromts.value ? aiBaseSchemaPrompts : aiBaseSchemaPrompts.slice(0, 7)
 })
 
 const leftPaneContentRef = ref<HTMLElement | null>(null)
@@ -275,7 +271,6 @@ const handleUpdatePrompt = (description: string) => {
 
 const onToggleShowMore = () => {
   isExpandedPredefiendBasePromts.value = !isExpandedPredefiendBasePromts.value
-  tagSearchQuery.value = ''
 }
 
 const resetToDefault = () => {
@@ -283,7 +278,6 @@ const resetToDefault = () => {
   aiStep.value = AI_STEP.PROMPT
   aiFormState.value = defaultAiFormState
   isExpandedPredefiendBasePromts.value = false
-  tagSearchQuery.value = ''
   expansionPanel.value = []
 }
 
@@ -293,15 +287,12 @@ watch(dialogShow, async (n, o) => {
   resetToDefault()
 })
 
-watch(
-  () => expansionPanel.value.length,
-  () => {
-    // Wait for collapse transition
-    setTimeout(() => {
-      showBtnTopBorder.value = leftPaneContentRef.value?.scrollHeight > leftPaneContentRef.value?.parentElement?.clientHeight
-    }, 500)
-  },
-)
+watch([() => expansionPanel.value.length, () => isExpandedPredefiendBasePromts.value], () => {
+  // Wait for collapse transition
+  setTimeout(() => {
+    showBtnTopBorder.value = leftPaneContentRef.value?.scrollHeight > leftPaneContentRef.value?.parentElement?.clientHeight
+  }, 500)
+})
 
 onMounted(() => {
   setTimeout(async () => {
@@ -341,20 +332,10 @@ onMounted(() => {
           <div class="text-sm font-bold text-nc-content-purple-dark">Tell us more about your usecase</div>
           <div class="flex flex-wrap gap-3 max-h-[188px] nc-scrollbar-thin overflow-visible">
             <!-- Predefined tags -->
-            <a-input
-              v-if="isExpandedPredefiendBasePromts"
-              v-model:value="tagSearchQuery"
-              :placeholder="$t('general.search')"
-              class="nc-input-border-on-value nc-input-shadow nc-ai-input !max-w-[140px] !h-7 !px-2 !py-0 !rounded-lg group"
-            >
-              <!-- <template #prefix>
-                  <GeneralIcon icon="search" class="mr-1 h-4 w-4 text-purple-500 group-hover:text-purple-600" />
-                </template> -->
-            </a-input>
 
             <template v-for="prompt of predefinedBasePrompts" :key="prompt.tag">
               <a-tag
-                class="nc-ai-base-schema-tag nc-ai-suggested-tag"
+                class="nc-ai-base-schema-tag nc-ai-suggested-tag relative"
                 :class="{
                   'nc-selected': prompt.description === aiFormState.prompt.trim(),
                   'nc-disabled': !aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema'),
@@ -364,13 +345,27 @@ onMounted(() => {
                 @mouseleave="aiFormState.onHoverTagPrompt = ''"
                 @click="handleUpdatePrompt(prompt.description)"
               >
-                <div class="flex flex-row items-center gap-1 py-1 text-sm font-weight-500">
+                <div class="flex flex-row items-center gap-1 py-1 text-sm">
                   <div>{{ prompt.tag }}</div>
+                </div>
+                <div
+                  v-if="prompt.description === aiFormState.prompt.trim()"
+                  class="bg-nc-fill-purple-dark text-white rounded-full absolute -right-[3px] -top-[4px] h-3 w-3 grid place-items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8" fill="none">
+                    <path
+                      d="M6.66659 2L2.99992 5.66667L1.33325 4"
+                      stroke="white"
+                      stroke-width="1.33333"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
                 </div>
               </a-tag>
             </template>
 
-            <NcButton size="xs" type="text" icon-position="right" @click="onToggleShowMore">
+            <NcButton size="xs" type="text" icon-position="right" @click="onToggleShowMore" class="nc-show-more-tags-btn">
               {{ isExpandedPredefiendBasePromts ? $t('general.showLess') : $t('general.showMore') }}
 
               <template #icon>
@@ -659,7 +654,11 @@ onMounted(() => {
 
 :deep(.ant-tag.nc-ai-base-schema-tag) {
   &.nc-selected {
-    @apply !bg-nc-fill-purple-dark !text-white;
+    @apply !bg-nc-bg-purple-dark;
   }
+}
+
+.nc-show-more-tags-btn {
+  @apply !bg-gray-100 !hover:bg-gray-200;
 }
 </style>

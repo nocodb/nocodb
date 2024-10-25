@@ -441,13 +441,25 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   async function handlePreFillForm() {
     if (Object.keys(route.query || {}).length) {
+      // Decode both query parameter keys and values if values are present
+      const decodedQuery = Object.fromEntries(
+        Object.entries(route.query).map(([key, value]) => [
+          decodeURIComponent(key),
+          value
+            ? Array.isArray(value)
+              ? value.map((qp) => decodeURIComponent(qp as string)?.trim())
+              : decodeURIComponent(value as string)?.trim()
+            : value,
+        ]),
+      )
+
       columns.value = await Promise.all(
         (columns.value || []).map(async (c) => {
-          const queryParam = route.query[c.title as string] || route.query[encodeURIComponent(c.title as string)]
+          const decodedQueryParam = decodedQuery[c.title as string]
 
           if (
             !c.title ||
-            !queryParam ||
+            !decodedQueryParam ||
             isSystemColumn(c) ||
             (isVirtualCol(c) && !isLinksOrLTAR(c)) ||
             (!sharedViewMeta.value.preFillEnabled && !isVirtualCol(c) && !isLinksOrLTAR(c)) ||
@@ -456,9 +468,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
           ) {
             return c
           }
-          const decodedQueryParam = Array.isArray(queryParam)
-            ? queryParam.map((qp) => decodeURIComponent(qp as string).trim())
-            : decodeURIComponent(queryParam as string).trim()
 
           const preFillValue = await getPreFillValue(c, decodedQueryParam)
           if (preFillValue !== undefined) {

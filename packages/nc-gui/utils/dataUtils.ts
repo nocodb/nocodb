@@ -31,7 +31,8 @@ export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]
   if (pkCols.length > 1) {
     return pkCols.map((c: Required<ColumnType>) => row?.[c.title]?.toString?.().replaceAll('_', '\\_') ?? null).join('___')
   } else if (pkCols.length) {
-    return row?.[pkCols[0].title] ?? null
+    const id = row?.[pkCols[0].title] ?? null
+    return id === null ? null : `${id}`
   }
 }
 

@@ -223,47 +223,47 @@ enum CertTypes {
   key = 'key',
 }
 
-function generateConfigFix(e: any) {
-  const errorHandlers = [
-    {
-      messages: ['unable to get local issuer certificate', 'self signed certificate in certificate chain'],
-      codes: ['UNABLE_TO_GET_ISSUER_CERT_LOCALLY', 'SELF_SIGNED_CERT_IN_CHAIN'],
-      action: {
-        connection: {
-          ssl: {
-            rejectUnauthorized: false,
-          },
+const errorHandlers = [
+  {
+    messages: ['unable to get local issuer certificate', 'self signed certificate in certificate chain'],
+    codes: ['UNABLE_TO_GET_ISSUER_CERT_LOCALLY', 'SELF_SIGNED_CERT_IN_CHAIN'],
+    action: {
+      connection: {
+        ssl: {
+          rejectUnauthorized: false,
         },
       },
     },
-    {
-      messages: ['SSL is required'],
-      codes: ['28000'], // PostgreSQL error code for invalid authorization specification
-      action: {
-        connection: {
-          ssl: true,
-        },
+  },
+  {
+    messages: ['SSL is required'],
+    codes: ['28000'], // PostgreSQL error code for invalid authorization specification
+    action: {
+      connection: {
+        ssl: true,
       },
     },
-    {
-      messages: ['the server does not support SSL connections'],
-      codes: ['08P01'], // PostgreSQL error code for protocol violation
-      action: {
-        connection: {
-          ssl: false,
-        },
+  },
+  {
+    messages: ['the server does not support SSL connections'],
+    codes: ['08P01'], // PostgreSQL error code for protocol violation
+    action: {
+      connection: {
+        ssl: false,
       },
     },
-  ]
+  },
+]
 
+function generateConfigFix(e: any) {
   for (const handler of errorHandlers) {
     const errorMessage = e?.response?.data?.msg
     const errorCode = e?.response?.data?.sql_code
 
-    if (!errorMessage || !errorCode) return
+    if (!errorMessage && !errorCode) return
 
-    const messageMatches = handler.messages.some((msg) => errorMessage?.includes?.(msg))
-    const codeMatches = handler.codes.includes(errorCode)
+    const messageMatches = errorMessage && handler.messages.some((msg) => errorMessage?.includes?.(msg))
+    const codeMatches = errorCode && handler.codes.includes(errorCode)
 
     if (messageMatches || codeMatches) {
       return handler.action

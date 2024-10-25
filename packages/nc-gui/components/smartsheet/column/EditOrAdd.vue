@@ -47,7 +47,6 @@ const {
   column,
   isAiMode,
   defaultFormState,
-  fromTableExplorer,
 } = useColumnCreateStoreOrThrow()
 
 const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
@@ -691,8 +690,8 @@ watch(activeAiTab, (newValue) => {
                   <div v-else-if="aiAutoSuggestModeStep === 'pick'" class="flex gap-3 items-start">
                     <div class="flex-1 flex gap-2 flex-wrap">
                       <template v-if="activeTabPredictedFields.length">
-                        <template v-for="t of activeTabPredictedFields" :key="t.title">
-                          <NcTooltip :disabled="selected.length < maxSelectionCount || t.selected">
+                        <template v-for="f of activeTabPredictedFields" :key="f.title">
+                          <NcTooltip :disabled="selected.length < maxSelectionCount || f.selected">
                             <template #title>
                               <div class="w-[150px]">You can only select {{ maxSelectionCount }} fields to create at a time.</div>
                             </template>
@@ -700,32 +699,32 @@ watch(activeAiTab, (newValue) => {
                             <a-tag
                               class="nc-ai-suggested-tag"
                               :class="{
-                                'nc-disabled': saving || (!t.selected && selected.length >= maxSelectionCount),
-                                'nc-selected': t.selected,
-                                'nc-bg-selected': activeSelectedField === t.ai_temp_id,
+                                'nc-disabled': saving || (!f.selected && selected.length >= maxSelectionCount),
+                                'nc-selected': f.selected,
+                                'nc-bg-selected': activeSelectedField === f.ai_temp_id,
                               }"
                               :disabled="selected.length >= maxSelectionCount"
-                              @click="onToggleTag(t)"
+                              @click="onToggleTag(f)"
                             >
                               <div class="flex flex-row items-center gap-2 py-[3px] text-small leading-[18px]">
                                 <NcCheckbox
-                                  :checked="t.selected"
+                                  :checked="f.selected"
                                   theme="ai"
                                   class="!-mr-0.5"
-                                  :disabled="saving || (!t.selected && selected.length >= maxSelectionCount)"
-                                  @click.stop="onToggleTag(t, true)"
+                                  :disabled="saving || (!f.selected && selected.length >= maxSelectionCount)"
+                                  @click.stop="onToggleTag(f, true)"
                                 />
 
                                 <component
-                                  :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : t.type)"
-                                  v-if="isFormulaPredictionMode || t?.type"
+                                  :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : f.type)"
+                                  v-if="isFormulaPredictionMode || f?.type"
                                   class="flex-none w-3.5 h-3.5"
                                   :class="{
-                                    'opacity-60': saving || (!t.selected && selected.length >= maxSelectionCount),
+                                    'opacity-60': saving || (!f.selected && selected.length >= maxSelectionCount),
                                   }"
                                 />
 
-                                <div>{{ t.formState?.title || t.title }}</div>
+                                <div>{{ f.formState?.title || f.title }}</div>
                               </div>
                             </a-tag>
                           </NcTooltip>
@@ -841,8 +840,8 @@ watch(activeAiTab, (newValue) => {
                     <div class="text-nc-content-purple-dark font-semibold text-xs">Generated Field(s)</div>
                     <div class="flex gap-2 flex-wrap">
                       <template v-if="activeTabPredictedFields.length">
-                        <template v-for="t of activeTabPredictedFields" :key="t.title">
-                          <NcTooltip :disabled="selected.length < maxSelectionCount || t.selected">
+                        <template v-for="f of activeTabPredictedFields" :key="f.title">
+                          <NcTooltip :disabled="selected.length < maxSelectionCount || f.selected">
                             <template #title>
                               <div class="w-[150px]">You can only select {{ maxSelectionCount }} fields to create at a time.</div>
                             </template>
@@ -850,32 +849,32 @@ watch(activeAiTab, (newValue) => {
                             <a-tag
                               class="nc-ai-suggested-tag"
                               :class="{
-                                'nc-disabled': saving || (!t.selected && selected.length >= maxSelectionCount),
-                                'nc-selected': t.selected,
-                                'nc-bg-selected': activeSelectedField === t.ai_temp_id,
+                                'nc-disabled': saving || (!f.selected && selected.length >= maxSelectionCount),
+                                'nc-selected': f.selected,
+                                'nc-bg-selected': activeSelectedField === f.ai_temp_id,
                               }"
                               :disabled="selected.length >= maxSelectionCount"
-                              @click="onToggleTag(t)"
+                              @click="onToggleTag(f)"
                             >
                               <div class="flex flex-row items-center gap-2 py-[3px] text-small leading-[18px]">
                                 <NcCheckbox
-                                  :checked="t.selected"
+                                  :checked="f.selected"
                                   theme="ai"
                                   class="!-mr-0.5"
-                                  :disabled="saving || (!t.selected && selected.length >= maxSelectionCount)"
-                                  @click.stop="onToggleTag(t, true)"
+                                  :disabled="saving || (!f.selected && selected.length >= maxSelectionCount)"
+                                  @click.stop="onToggleTag(f, true)"
                                 />
 
                                 <component
-                                  :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : t.type)"
-                                  v-if="isFormulaPredictionMode || t?.type"
+                                  :is="getUIDTIcon(isFormulaPredictionMode ? UITypes.Formula : f.type)"
+                                  v-if="isFormulaPredictionMode || f?.type"
                                   class="flex-none w-3.5 h-3.5"
                                   :class="{
-                                    'opacity-60': saving || (!t.selected && selected.length >= maxSelectionCount),
+                                    'opacity-60': saving || (!f.selected && selected.length >= maxSelectionCount),
                                   }"
                                 />
 
-                                <div>{{ t.formState?.title || t.title }}</div>
+                                <div>{{ f.formState?.title || f.title }}</div>
                               </div>
                             </a-tag>
                           </NcTooltip>
@@ -1092,8 +1091,8 @@ watch(activeAiTab, (newValue) => {
           ref="descInputEl"
           v-model:value="formState.description"
           :class="{
-            '!min-h-[200px]': fromTableExplorer,
-            'h-[150px] !min-h-[100px]': !fromTableExplorer,
+            '!min-h-[200px]': props.fromTableExplorer,
+            'h-[150px] !min-h-[100px]': !props.fromTableExplorer,
             'nc-ai-input': isAiMode,
           }"
           class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 !max-h-[300px]"
@@ -1246,8 +1245,8 @@ watch(activeAiTab, (newValue) => {
             ref="descInputEl"
             v-model:value="formState.description"
             :class="{
-              '!min-h-[200px]': fromTableExplorer,
-              'h-[150px] !min-h-[100px]': !fromTableExplorer,
+              '!min-h-[200px]': props.fromTableExplorer,
+              'h-[150px] !min-h-[100px]': !props.fromTableExplorer,
               'nc-ai-input': isAiMode,
             }"
             class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 !max-h-[300px]"

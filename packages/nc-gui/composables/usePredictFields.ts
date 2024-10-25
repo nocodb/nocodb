@@ -10,8 +10,6 @@ enum AiStep {
 
 const maxSelectionCount = 100
 
-const maxAutoSelectionCount = 6
-
 const useForm = Form.useForm
 
 export const usePredictFields = createSharedComposable(
@@ -122,7 +120,7 @@ export const usePredictFields = createSharedComposable(
               validator: (_rule: RuleObject, value: any) => {
                 return new Promise((resolve, reject) => {
                   if (!value?.formula_raw?.trim()) {
-                    return reject('Formula is required')
+                    return reject(new Error('Formula is required'))
                   }
 
                   return resolve()
@@ -151,6 +149,46 @@ export const usePredictFields = createSharedComposable(
 
     // Form field validation
     const { validate } = useForm(fieldMappingFormState, validators)
+
+    const getFieldWithDefautlValue = (field: PredictedFieldType) => {
+      if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(field.type)) {
+        if (field.options) {
+          const options: {
+            title: string
+            index: number
+            color?: string
+          }[] = []
+          for (const option of field.options) {
+            // skip if option already exists
+            if (options.find((el) => el.title === option)) continue
+
+            options.push({
+              title: option,
+              index: options.length,
+              color: enumColor.light[options.length % enumColor.light.length],
+            })
+          }
+
+          field.colOptions = {
+            options,
+          }
+        }
+      }
+
+      return {
+        title: field.title,
+        uidt: isFormulaPredictionMode.value ? UITypes.Formula : field.type,
+        column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
+        ...(field.formula ? { formula_raw: field.formula } : {}),
+        ...(field.colOptions ? { colOptions: field.colOptions } : {}),
+        meta: {
+          ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
+        },
+        description: field?.description || null,
+        is_ai_field: true,
+        ai_temp_id: field.ai_temp_id,
+      }
+    }
 
     const predictNextFields = async (): Promise<PredictedFieldType[]> => {
       const fieldHistory = Array.from(
@@ -277,46 +315,6 @@ export const usePredictFields = createSharedComposable(
       }
       aiModeStep.value = AiStep.pick
       isPromtAlreadyGenerated.value = true
-    }
-
-    const getFieldWithDefautlValue = (field: PredictedFieldType) => {
-      if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(field.type)) {
-        if (field.options) {
-          const options: {
-            title: string
-            index: number
-            color?: string
-          }[] = []
-          for (const option of field.options) {
-            // skip if option already exists
-            if (options.find((el) => el.title === option)) continue
-
-            options.push({
-              title: option,
-              index: options.length,
-              color: enumColor.light[options.length % enumColor.light.length],
-            })
-          }
-
-          field.colOptions = {
-            options,
-          }
-        }
-      }
-
-      return {
-        title: field.title,
-        uidt: isFormulaPredictionMode.value ? UITypes.Formula : field.type,
-        column_name: field.title.toLowerCase().replace(/\\W/g, '_'),
-        ...(field.formula ? { formula_raw: field.formula } : {}),
-        ...(field.colOptions ? { colOptions: field.colOptions } : {}),
-        meta: {
-          ...(field.type in columnDefaultMeta ? columnDefaultMeta[field.type as keyof typeof columnDefaultMeta] : {}),
-        },
-        description: field?.description || null,
-        is_ai_field: true,
-        ai_temp_id: field.ai_temp_id,
-      }
     }
 
     // Todo: update logic

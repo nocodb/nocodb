@@ -20,15 +20,12 @@ const { submitBtnLabel, saving } = toRefs(props)
 
 const meta = inject(MetaInj, ref())
 
-const { t } = useI18n()
-
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const {
   isAiButtonConfigModalOpen,
   isEdit,
-  setAdditionalValidations,
   validateInfos,
   column,
   loadData,

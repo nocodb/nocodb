@@ -187,6 +187,8 @@ const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
   isViewDataLoading,
 })
 
+const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
+
 // #Variables
 const addColumnDropdown = ref(false)
 
@@ -862,8 +864,6 @@ const isSelectedOnlyAI = computed(() => {
     disabled: false,
   }
 })
-
-const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
 const generateAIBulk = async () => {
   if (!isSelectedOnlyAI.value.enabled || !meta?.value?.id || !meta.value.columns) return

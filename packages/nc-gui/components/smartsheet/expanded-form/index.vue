@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import {
-  ViewTypes,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isLinksOrLTAR,
-  isSystemColumn,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { ViewTypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'

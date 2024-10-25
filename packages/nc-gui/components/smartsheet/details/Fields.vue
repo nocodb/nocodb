@@ -178,7 +178,6 @@ const {
   aiModeStep,
   predicted,
   activeTabPredictedFields,
-  selected,
   activeTabSelectedFields,
   activeTabPredictHistory,
   calledFunction,
@@ -699,12 +698,6 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
       column.formula_raw = column.colOptions?.formula_raw
     } else {
       column.type = column?.type || ButtonActionsType.Url
-      column.theme = column?.theme
-      column.label = column?.label
-      column.color = column?.color
-      column.fk_webhook_id = column?.fk_webhook_id
-      column.icon = column?.icon
-      column.formula_raw = column?.formula_raw
 
       if (column.type === ButtonActionsType.Ai) {
         column.theme = column.theme || 'text'
@@ -715,6 +708,7 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
         column.theme = column.theme || 'solid'
         column.label = column.label || 'Button'
         column.color = column.color || 'brand'
+        column.fk_webhook_id = column?.fk_webhook_id || ''
       }
 
       column.formula_raw = column.formula_raw || ''

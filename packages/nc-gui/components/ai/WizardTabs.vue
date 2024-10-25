@@ -13,9 +13,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emits = defineEmits(['update:activeTab', 'close'])
 
-const activeTab = useModel(props, 'activeTab', emits)
-
-const {} = toRefs(props)
+const activeTab = useModel(props, 'activeTab', emits('update:activeTab'))
 
 const { aiLoading } = useNocoAi()
 </script>

@@ -17,6 +17,7 @@ import {
   NcBaseErrorv2,
   NotFound,
   SsoError,
+  TestConnectionError,
   Unauthorized,
   UnprocessableEntity,
 } from '~/helpers/catchError';
@@ -58,6 +59,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof Forbidden ||
         exception instanceof NotFound ||
         exception instanceof UnprocessableEntity ||
+        exception instanceof TestConnectionError ||
         exception instanceof SsoError ||
         exception instanceof NotFoundException ||
         exception instanceof ThrottlerException ||
@@ -185,6 +187,10 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         .json({ msg: exception.message, errors: exception.errors });
     } else if (exception instanceof UnprocessableEntity) {
       return response.status(422).json({ msg: exception.message });
+    } else if (exception instanceof TestConnectionError) {
+      return response
+        .status(422)
+        .json({ msg: exception.message, sql_code: exception.sql_code });
     } else if (exception instanceof NcBaseErrorv2) {
       return response.status(exception.code).json({
         error: exception.error,

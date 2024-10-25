@@ -475,6 +475,7 @@ class PGClient extends PGClientCE {
           result.code = -1;
           // send back original error message
           result.message = e1.message;
+          result.sql_code = e1.code;
         }
       }
     } finally {

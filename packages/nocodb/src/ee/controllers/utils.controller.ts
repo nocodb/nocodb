@@ -177,7 +177,7 @@ export class UtilsController extends UtilsControllerCE {
         },
         req,
       });
-      NcError.unprocessableEntity(result.message);
+      NcError.testConnectionError(result.message, result.sql_code);
     }
   }
 

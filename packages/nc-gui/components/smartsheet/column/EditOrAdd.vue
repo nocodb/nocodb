@@ -567,6 +567,8 @@ function onSelectedTagClick(field: PredictedFieldType | undefined = undefined) {
 }
 
 const onToggleTag = (field: PredictedFieldType, select = false) => {
+  if (saving.value) return
+
   if (select) {
     _onToggleTag(field)
     onSelectedTagClick(field.selected ? field : undefined)
@@ -698,7 +700,7 @@ watch(activeAiTab, (newValue) => {
                             <a-tag
                               class="nc-ai-suggested-tag"
                               :class="{
-                                'nc-disabled': !t.selected && selected.length >= maxSelectionCount,
+                                'nc-disabled': saving || (!t.selected && selected.length >= maxSelectionCount),
                                 'nc-selected': t.selected,
                                 'nc-bg-selected': activeSelectedField === t.ai_temp_id,
                               }"
@@ -710,6 +712,7 @@ watch(activeAiTab, (newValue) => {
                                   :checked="t.selected"
                                   theme="ai"
                                   class="!-mr-0.5"
+                                  :disabled="saving || (!t.selected && selected.length >= maxSelectionCount)"
                                   @click.stop="onToggleTag(t, true)"
                                 />
 
@@ -718,7 +721,7 @@ watch(activeAiTab, (newValue) => {
                                   v-if="isFormulaPredictionMode || t?.type"
                                   class="flex-none w-3.5 h-3.5"
                                   :class="{
-                                    'opacity-60': selected.length >= maxSelectionCount,
+                                    'opacity-60': saving || (!t.selected && selected.length >= maxSelectionCount),
                                   }"
                                 />
 
@@ -747,6 +750,7 @@ watch(activeAiTab, (newValue) => {
                           theme="ai"
                           :loading="aiLoading && calledFunction === 'predictMore'"
                           icon-only
+                          :disabled="saving"
                           @click="predictMore"
                         >
                           <template #icon>
@@ -760,6 +764,7 @@ watch(activeAiTab, (newValue) => {
                           class="!px-1"
                           type="text"
                           theme="ai"
+                          :disabled="saving"
                           :loading="aiLoading && calledFunction === 'predictRefresh'"
                           @click="predictRefresh(onSelectedTagClick)"
                         >
@@ -786,6 +791,7 @@ watch(activeAiTab, (newValue) => {
                     <a-textarea
                       ref="aiPromptInputRef"
                       v-model:value="prompt"
+                      :disabled="saving"
                       placeholder="Enter your prompt to get field suggestions.."
                       class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[68px] !rounded-lg"
                       @keydown.enter.stop
@@ -798,7 +804,10 @@ watch(activeAiTab, (newValue) => {
                       theme="ai"
                       class="!px-1 !absolute bottom-2 right-2"
                       :disabled="
-                        !prompt.trim() || isPredictFromPromptLoading || (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
+                        !prompt.trim() ||
+                        isPredictFromPromptLoading ||
+                        (!!prompt.trim() && prompt.trim() === oldPrompt.trim()) ||
+                        saving
                       "
                       :loading="isPredictFromPromptLoading"
                       @click="predictFromPrompt(onSelectedTagClick)"
@@ -841,7 +850,7 @@ watch(activeAiTab, (newValue) => {
                             <a-tag
                               class="nc-ai-suggested-tag"
                               :class="{
-                                'nc-disabled': !t.selected && selected.length >= maxSelectionCount,
+                                'nc-disabled': saving || (!t.selected && selected.length >= maxSelectionCount),
                                 'nc-selected': t.selected,
                                 'nc-bg-selected': activeSelectedField === t.ai_temp_id,
                               }"
@@ -853,6 +862,7 @@ watch(activeAiTab, (newValue) => {
                                   :checked="t.selected"
                                   theme="ai"
                                   class="!-mr-0.5"
+                                  :disabled="saving || (!t.selected && selected.length >= maxSelectionCount)"
                                   @click.stop="onToggleTag(t, true)"
                                 />
 
@@ -861,7 +871,7 @@ watch(activeAiTab, (newValue) => {
                                   v-if="isFormulaPredictionMode || t?.type"
                                   class="flex-none w-3.5 h-3.5"
                                   :class="{
-                                    'opacity-60': selected.length >= maxSelectionCount,
+                                    'opacity-60': saving || (!t.selected && selected.length >= maxSelectionCount),
                                   }"
                                 />
 

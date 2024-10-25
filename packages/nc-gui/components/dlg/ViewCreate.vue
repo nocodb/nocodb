@@ -182,6 +182,8 @@ const isPromtAlreadyGenerated = ref<boolean>(false)
 
 const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
 
+const isAiSaving = computed(() => aiLoading.value && calledFunction.value === 'createViews')
+
 const activeAiTab = computed({
   get: () => {
     return activeAiTabLocal.value
@@ -596,9 +598,10 @@ const predictFromPrompt = async () => {
 
 const onToggleTag = (view: AiSuggestedViewType) => {
   if (
-    !view.selected &&
-    (activeTabSelectedViews.value.length >= maxSelectionCount ||
-      ncIsArrayIncludes(activeTabSelectedViews.value, view.title, 'title'))
+    isAiSaving.value ||
+    (!view.selected &&
+      (activeTabSelectedViews.value.length >= maxSelectionCount ||
+        ncIsArrayIncludes(activeTabSelectedViews.value, view.title, 'title')))
   ) {
     return
   }
@@ -1138,19 +1141,24 @@ const getPluralName = (name: string) => {
                           <a-tag
                             class="nc-ai-suggested-tag"
                             :class="{
-                              'nc-disabled': !v.selected && activeTabSelectedViews.length >= maxSelectionCount,
+                              'nc-disabled': isAiSaving || (!v.selected && activeTabSelectedViews.length >= maxSelectionCount),
                               'nc-selected': v.selected,
                             }"
                             :disabled="activeTabSelectedViews.length >= maxSelectionCount"
                             @click="onToggleTag(v)"
                           >
                             <div class="flex flex-row items-center gap-2 py-[3px] text-small leading-[18px]">
-                              <NcCheckbox :checked="v.selected" theme="ai" class="!-mr-0.5" />
+                              <NcCheckbox
+                                :checked="v.selected"
+                                theme="ai"
+                                class="!-mr-0.5"
+                                :disabled="isAiSaving || (!v.selected && activeTabSelectedViews.length >= maxSelectionCount)"
+                              />
 
                               <GeneralViewIcon
                                 :meta="{ type: stringToViewTypeMap[v.type] }"
                                 :class="{
-                                  'opacity-60': activeTabSelectedViews.length >= maxSelectionCount,
+                                  'opacity-60': isAiSaving || (!v.selected && activeTabSelectedViews.length >= maxSelectionCount),
                                 }"
                               />
 
@@ -1177,6 +1185,7 @@ const getPluralName = (name: string) => {
                         class="!px-1"
                         type="text"
                         theme="ai"
+                        :disabled="isAiSaving"
                         :loading="aiLoading && calledFunction === 'predictMore'"
                         icon-only
                         @click="predictMore"
@@ -1192,6 +1201,7 @@ const getPluralName = (name: string) => {
                         class="!px-1"
                         type="text"
                         theme="ai"
+                        :disabled="isAiSaving"
                         :loading="aiLoading && calledFunction === 'predictRefresh'"
                         @click="predictRefresh"
                       >
@@ -1218,6 +1228,7 @@ const getPluralName = (name: string) => {
                   <a-textarea
                     ref="aiPromptInputRef"
                     v-model:value="prompt"
+                    :disabled="isAiSaving"
                     placeholder="Enter your prompt to get view suggestions.."
                     class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[120px] !rounded-lg"
                     @keydown.enter.stop
@@ -1230,7 +1241,10 @@ const getPluralName = (name: string) => {
                     theme="ai"
                     class="!px-1 !absolute bottom-2 right-2"
                     :disabled="
-                      !prompt.trim() || isPredictFromPromptLoading || (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
+                      !prompt.trim() ||
+                      isPredictFromPromptLoading ||
+                      (!!prompt.trim() && prompt.trim() === oldPrompt.trim()) ||
+                      isAiSaving
                     "
                     :loading="isPredictFromPromptLoading"
                     @click="predictFromPrompt"
@@ -1276,19 +1290,24 @@ const getPluralName = (name: string) => {
                           <a-tag
                             class="nc-ai-suggested-tag"
                             :class="{
-                              'nc-disabled': !v.selected && activeTabSelectedViews.length >= maxSelectionCount,
+                              'nc-disabled': isAiSaving || (!v.selected && activeTabSelectedViews.length >= maxSelectionCount),
                               'nc-selected': v.selected,
                             }"
                             :disabled="activeTabSelectedViews.length >= maxSelectionCount"
                             @click="onToggleTag(v)"
                           >
                             <div class="flex flex-row items-center gap-2 py-[3px] text-small leading-[18px]">
-                              <NcCheckbox :checked="v.selected" theme="ai" class="!-mr-0.5" />
+                              <NcCheckbox
+                                :checked="v.selected"
+                                theme="ai"
+                                class="!-mr-0.5"
+                                :disabled="isAiSaving || (!v.selected && activeTabSelectedViews.length >= maxSelectionCount)"
+                              />
 
                               <GeneralViewIcon
                                 :meta="{ type: stringToViewTypeMap[v.type] }"
                                 :class="{
-                                  'opacity-60': activeTabSelectedViews.length >= maxSelectionCount,
+                                  'opacity-60': isAiSaving || (!v.selected && activeTabSelectedViews.length >= maxSelectionCount),
                                 }"
                               />
 
@@ -1356,12 +1375,7 @@ const getPluralName = (name: string) => {
         </NcButton>
         <div v-else></div>
         <div class="flex gap-2 items-center">
-          <NcButton
-            type="secondary"
-            size="small"
-            :disabled="aiLoading && calledFunction === 'createViews'"
-            @click="vModel = false"
-          >
+          <NcButton type="secondary" size="small" :disabled="isAiSaving" @click="vModel = false">
             {{ $t('general.cancel') }}
           </NcButton>
 
@@ -1383,8 +1397,8 @@ const getPluralName = (name: string) => {
             type="primary"
             size="small"
             theme="ai"
-            :disabled="activeTabSelectedViews.length === 0 || (aiLoading && calledFunction === 'createViews')"
-            :loading="aiLoading && calledFunction === 'createViews'"
+            :disabled="activeTabSelectedViews.length === 0 || isAiSaving"
+            :loading="isAiSaving"
             @click="onSubmit"
           >
             <div class="flex items-center gap-2 h-5">

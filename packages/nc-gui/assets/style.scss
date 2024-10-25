@@ -1027,12 +1027,12 @@ svg.nc-virtual-cell-icon {
 .nc-ai-suggested-tag {
   @apply !rounded-md !bg-nc-bg-purple-light !border-none !mx-0;
 
+  &.nc-selected {
+    @apply font-semibold;
+  }
+
   &:not(.nc-disabled) {
     @apply cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark;
-
-    &.nc-selected {
-      @apply font-semibold;
-    }
 
     &.nc-bg-selected {
       @apply !bg-nc-bg-purple-dark;

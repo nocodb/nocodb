@@ -16,8 +16,6 @@ interface AiSuggestedTableType {
 
 const emit = defineEmits(['update:modelValue', 'create'])
 
-const loadingMessages = ['Creating Tables', 'Creating Fields', 'Creating Links']
-
 const maxSelectionCount = 100
 
 const dialogShow = useVModel(props, 'modelValue', emit)
@@ -87,6 +85,8 @@ const oldPrompt = ref<string>('')
 const isPromtAlreadyGenerated = ref<boolean>(false)
 
 const activeAiTabLocal = ref<AiWizardTabsType>(AiWizardTabsType.AUTO_SUGGESTIONS)
+
+const isAiSaving = computed(() => aiLoading.value && calledFunction.value === 'generateTables')
 
 const activeAiTab = computed({
   get: () => {
@@ -181,9 +181,10 @@ const predictFromPrompt = async () => {
 
 const onToggleTag = (table: AiSuggestedTableType) => {
   if (
-    !table.selected &&
-    (activeTabSelectedTables.value.length >= maxSelectionCount ||
-      ncIsArrayIncludes(activeTabSelectedTables.value, table.title, 'title'))
+    isAiSaving.value ||
+    (!table.selected &&
+      (activeTabSelectedTables.value.length >= maxSelectionCount ||
+        ncIsArrayIncludes(activeTabSelectedTables.value, table.title, 'title')))
   ) {
     return
   }
@@ -414,7 +415,7 @@ const handleRefreshOnError = () => {
     nc-modal-class-name="!p-0"
     class="!top-[25vh]"
     @keydown.esc="dialogShow = false"
-    :mask-closable="!(aiLoading && calledFunction === 'generateTables')"
+    :mask-closable="!isAiSaving"
     wrap-class-name="nc-modal-table-create-wrapper"
   >
     <div class="py-5 flex flex-col gap-5" @dblclick.stop="fullAuto">
@@ -521,14 +522,18 @@ const handleRefreshOnError = () => {
                             <a-tag
                               class="nc-ai-suggested-tag"
                               :class="{
-                                'nc-disabled': !t.selected && activeTabSelectedTables.length >= maxSelectionCount,
+                                'nc-disabled': isAiSaving || (!t.selected && activeTabSelectedTables.length >= maxSelectionCount),
                                 'nc-selected': t.selected,
                               }"
                               :disabled="activeTabSelectedTables.length >= maxSelectionCount"
                               @click="onToggleTag(t)"
                             >
                               <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
-                                <NcCheckbox :checked="t.selected" theme="ai" />
+                                <NcCheckbox
+                                  :checked="t.selected"
+                                  theme="ai"
+                                  :disabled="isAiSaving || (t.selected && activeTabSelectedTables.length >= maxSelectionCount)"
+                                />
 
                                 <div>{{ t.title }}</div>
                               </div>
@@ -553,6 +558,7 @@ const handleRefreshOnError = () => {
                           class="!px-1"
                           type="text"
                           theme="ai"
+                          :disabled="isAiSaving"
                           :loading="aiLoading && calledFunction === 'predictMore'"
                           icon-only
                           @click="predictMore"
@@ -568,6 +574,7 @@ const handleRefreshOnError = () => {
                           class="!px-1"
                           type="text"
                           theme="ai"
+                          :disabled="isAiSaving"
                           :loading="aiLoading && calledFunction === 'predictRefresh'"
                           @click="predictRefresh"
                         >
@@ -594,6 +601,7 @@ const handleRefreshOnError = () => {
                     <a-textarea
                       ref="aiPromptInputRef"
                       v-model:value="prompt"
+                      :disabled="isAiSaving"
                       placeholder="Enter your prompt to get table suggestions.."
                       class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[120px] !rounded-lg"
                       @keydown.enter.stop
@@ -606,7 +614,10 @@ const handleRefreshOnError = () => {
                       theme="ai"
                       class="!px-1 !absolute bottom-2 right-2"
                       :disabled="
-                        !prompt.trim() || isPredictFromPromptLoading || (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
+                        !prompt.trim() ||
+                        isPredictFromPromptLoading ||
+                        (!!prompt.trim() && prompt.trim() === oldPrompt.trim()) ||
+                        isAiSaving
                       "
                       :loading="isPredictFromPromptLoading"
                       @click="predictFromPrompt"
@@ -649,14 +660,18 @@ const handleRefreshOnError = () => {
                             <a-tag
                               class="nc-ai-suggested-tag"
                               :class="{
-                                'nc-disabled': !t.selected && activeTabSelectedTables.length >= maxSelectionCount,
+                                'nc-disabled': isAiSaving || (!t.selected && activeTabSelectedTables.length >= maxSelectionCount),
                                 'nc-selected': t.selected,
                               }"
                               :disabled="activeTabSelectedTables.length >= maxSelectionCount"
                               @click="onToggleTag(t)"
                             >
                               <div class="flex flex-row items-center gap-1.5 py-[3px] text-small leading-[18px]">
-                                <NcCheckbox :checked="t.selected" theme="ai" />
+                                <NcCheckbox
+                                  :checked="t.selected"
+                                  theme="ai"
+                                  :disabled="isAiSaving || (!t.selected && activeTabSelectedTables.length >= maxSelectionCount)"
+                                />
 
                                 <div>{{ t.title }}</div>
                               </div>
@@ -744,13 +759,9 @@ const handleRefreshOnError = () => {
           </NcButton>
           <div v-else></div>
           <div class="flex gap-2 items-center">
-            <NcButton
-              type="secondary"
-              size="small"
-              :disabled="creating || (aiLoading && calledFunction === 'generateTables')"
-              @click="dialogShow = false"
-              >{{ $t('general.cancel') }}</NcButton
-            >
+            <NcButton type="secondary" size="small" :disabled="creating || isAiSaving" @click="dialogShow = false">{{
+              $t('general.cancel')
+            }}</NcButton>
 
             <NcButton
               v-if="!aiMode"
@@ -770,8 +781,8 @@ const handleRefreshOnError = () => {
               type="primary"
               theme="ai"
               size="small"
-              :disabled="activeTabSelectedTables.length === 0 || (aiLoading && calledFunction === 'generateTables')"
-              :loading="aiLoading && calledFunction === 'generateTables'"
+              :disabled="activeTabSelectedTables.length === 0 || isAiSaving"
+              :loading="isAiSaving"
               @click="_createTable"
             >
               <div class="flex items-center gap-2 h-5">

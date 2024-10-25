@@ -1156,6 +1156,8 @@ const onAiFieldAdd = (field: PredictedFieldType) => {
 }
 
 const onToggleTag = (field: PredictedFieldType) => {
+  if (loading.value) return
+
   const onAdd = _onToggleTag(field)
   if (onAdd) {
     onAiFieldAdd(field)
@@ -1361,7 +1363,7 @@ watch(activeAiTab, (newValue) => {
                               <a-tag
                                 class="nc-ai-suggested-tag"
                                 :class="{
-                                  'nc-disabled': !f.selected && activeTabSelectedFields.length >= maxSelectionCount,
+                                  'nc-disabled': loading || (!f.selected && activeTabSelectedFields.length >= maxSelectionCount),
                                   'nc-selected': f.selected,
                                 }"
                                 :disabled="activeTabSelectedFields.length >= maxSelectionCount"
@@ -1373,7 +1375,8 @@ watch(activeAiTab, (newValue) => {
                                     v-if="isFormulaPredictionMode || f?.type"
                                     class="flex-none w-3.5 h-3.5"
                                     :class="{
-                                      'opacity-60': selected.length >= maxSelectionCount,
+                                      'opacity-60':
+                                        loading || (!f.selected && activeTabSelectedFields.length >= maxSelectionCount),
                                     }"
                                   />
 
@@ -1405,6 +1408,7 @@ watch(activeAiTab, (newValue) => {
                             type="text"
                             theme="ai"
                             :loading="aiLoading && calledFunction === 'predictMore'"
+                            :disabled="loading"
                             icon-only
                             @click="predictMore"
                           >
@@ -1419,6 +1423,7 @@ watch(activeAiTab, (newValue) => {
                             class="!px-1"
                             type="text"
                             theme="ai"
+                            :disabled="loading"
                             :loading="aiLoading && calledFunction === 'predictRefresh'"
                             @click="predictRefresh"
                           >
@@ -1458,6 +1463,7 @@ watch(activeAiTab, (newValue) => {
                         <a-textarea
                           ref="aiPromptInputRef"
                           v-model:value="prompt"
+                          :disabled="loading"
                           placeholder="Enter your prompt to get field suggestions.."
                           class="nc-ai-input nc-input-shadow !px-3 !pt-2 !pb-3 !text-sm !min-h-[68px] !rounded-lg"
                           @keydown.enter.stop
@@ -1472,7 +1478,8 @@ watch(activeAiTab, (newValue) => {
                           :disabled="
                             !prompt.trim() ||
                             isPredictFromPromptLoading ||
-                            (!!prompt.trim() && prompt.trim() === oldPrompt.trim())
+                            (!!prompt.trim() && prompt.trim() === oldPrompt.trim()) ||
+                            loading
                           "
                           :loading="isPredictFromPromptLoading"
                           @click="predictFromPrompt"
@@ -1517,7 +1524,8 @@ watch(activeAiTab, (newValue) => {
                                 <a-tag
                                   class="nc-ai-suggested-tag"
                                   :class="{
-                                    'nc-disabled': !f.selected && activeTabSelectedFields.length >= maxSelectionCount,
+                                    'nc-disabled':
+                                      loading || (!f.selected && activeTabSelectedFields.length >= maxSelectionCount),
                                     'nc-selected': f.selected,
                                   }"
                                   :disabled="activeTabSelectedFields.length >= maxSelectionCount"
@@ -1529,7 +1537,8 @@ watch(activeAiTab, (newValue) => {
                                       v-if="isFormulaPredictionMode || f?.type"
                                       class="flex-none w-3.5 h-3.5"
                                       :class="{
-                                        'opacity-60': selected.length >= maxSelectionCount,
+                                        'opacity-60':
+                                          loading || (!f.selected && activeTabSelectedFields.length >= maxSelectionCount),
                                       }"
                                     />
 

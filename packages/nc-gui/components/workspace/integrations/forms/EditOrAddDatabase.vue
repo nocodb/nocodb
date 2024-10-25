@@ -303,14 +303,33 @@ const createOrUpdateIntegration = async () => {
   }
 }
 
+// apply fix to config
+function applyConfigFix(fix: any) {
+  if (!fix) return
+
+  formState.value = {
+    ...formState.value,
+    dataSource: {
+      ...formState.value.dataSource,
+      ...fix,
+      connection: {
+        ...formState.value.dataSource.connection,
+        ...fix.connection,
+      },
+    },
+  }
+}
+
 const testConnectionError = ref()
 
-const testConnection = async () => {
+const testConnection = async (retry = 0) => {
   try {
     await validate()
   } catch (e) {
-    focusInvalidInput()
-    return
+    if (e.errorFields?.length) {
+      focusInvalidInput()
+      return
+    }
   }
 
   $e('a:source:create:extdb:test-connection', [])
@@ -343,11 +362,32 @@ const testConnection = async () => {
       }
     }
   } catch (e: any) {
+    await handleConnectionError(e, retry)
+  } finally {
+    testingConnection.value = false
+  }
+}
+
+async function handleConnectionError(e: any, retry: number): Promise<void> {
+  const MAX_RETRIES = 3
+
+  if (retry >= MAX_RETRIES) {
     testSuccess.value = false
     testConnectionError.value = await extractSdkResponseErrorMsg(e)
+    return
   }
 
-  testingConnection.value = false
+  const fix = generateConfigFix(e)
+
+  if (fix) {
+    applyConfigFix(fix)
+    // Retry the connection after applying the fix
+    return testConnection(retry + 1)
+  }
+
+  // If no fix is available, or fix did not resolve the issue
+  testSuccess.value = false
+  testConnectionError.value = await extractSdkResponseErrorMsg(e)
 }
 
 const handleImportURL = async () => {
@@ -545,7 +585,7 @@ watch(
             :loading="testingConnection"
             :disabled="isLoading"
             icon-position="right"
-            @click="testConnection"
+            @click="testConnection()"
           >
             <template #icon>
               <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4" />

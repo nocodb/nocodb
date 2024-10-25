@@ -1034,7 +1034,7 @@
     "autoSuggestFields": "Auto suggest fields",
     "autoSuggestFormulas": "Auto suggest formulas",
     "createAiIntegration": "Create AI integration",
-    "generateBase": "Generate Base",
+    "suggestTablesViews": "Suggest Tables & Views",
     "configureAiButton": "Configure AI Button"
   },
   "activity": {

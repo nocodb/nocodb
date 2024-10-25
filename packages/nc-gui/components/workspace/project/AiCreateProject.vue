@@ -18,7 +18,7 @@ enum SchemaPreviewTabs {
   RELATIONSHIP_DIAGRAM = 'RELATIONSHIP_DIAGRAM',
 }
 
-const loadingMessages = ['Generating Tables', 'Generating Fields', 'Generating Links', 'Generating Views']
+const loadingMessages = ['Suggesting tables', 'Suggesting fields', 'Suggesting links', 'Suggesting views']
 
 const dialogShow = useVModel(props, 'dialogShow', emit)
 
@@ -477,7 +477,7 @@ onMounted(() => {
               <template #icon>
                 <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
               </template>
-              {{ $t('labels.generateBase') }}
+              {{ $t('labels.suggestTablesViews') }}
             </NcButton>
             <NcButton
               v-e="['a:base:ai:create']"

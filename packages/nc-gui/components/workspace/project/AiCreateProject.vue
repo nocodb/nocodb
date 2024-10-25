@@ -28,6 +28,8 @@ const { workspaceId, baseType } = toRefs(props)
 
 const { navigateToProject } = useGlobal()
 
+const { clone } = useUndoRedo()
+
 const { aiIntegrationAvailable, aiError, aiLoading, createSchema, predictSchema } = useNocoAi()
 
 const callFunction = ref<string | null>(null)
@@ -90,7 +92,18 @@ const defaultAiFormState = {
   audience: '',
 }
 
+const oldAiFormState = ref<typeof defaultAiFormState | null>(null)
+
 const aiFormState = ref(defaultAiFormState)
+
+const isOldPromptChanged = computed(() => {
+  return (
+    aiFormState.value.prompt !== oldAiFormState.value?.prompt ||
+    aiFormState.value.organization !== oldAiFormState.value?.organization ||
+    aiFormState.value.industry !== oldAiFormState.value?.industry ||
+    aiFormState.value.audience !== oldAiFormState.value?.audience
+  )
+})
 
 const additionalDetails = [
   {
@@ -179,6 +192,7 @@ const onPredictSchema = async () => {
 
       previewExpansionPanel.value = ((predictedSchema.value || {}).tables || []).map((t) => t?.title).filter(Boolean)
       aiStep.value = AI_STEP.MODIFY
+      oldAiFormState.value = clone(aiFormState.value)
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -278,6 +292,7 @@ const onToggleShowMore = () => {
 const resetToDefault = () => {
   aiMode.value = null
   aiStep.value = AI_STEP.PROMPT
+  oldAiFormState.value = null
   aiFormState.value = defaultAiFormState
   isExpandedPredefiendBasePromts.value = false
   expansionPanel.value = []
@@ -452,7 +467,7 @@ onMounted(() => {
             <NcButton
               v-e="['a:base:ai:generate']"
               size="small"
-              :type="aiStep !== AI_STEP.MODIFY ? 'primary' : 'secondary'"
+              :type="aiStep !== AI_STEP.MODIFY || isOldPromptChanged ? 'primary' : 'secondary'"
               theme="ai"
               class="w-1/2"
               :disabled="!aiFormState.prompt?.trim() || (aiLoading && callFunction === 'onPredictSchema')"
@@ -471,7 +486,10 @@ onMounted(() => {
               theme="ai"
               class="w-1/2"
               :disabled="
-                aiStep !== AI_STEP.MODIFY || finalSchema?.tables?.length === 0 || (aiLoading && callFunction === 'onCreateSchema')
+                aiStep !== AI_STEP.MODIFY ||
+                finalSchema?.tables?.length === 0 ||
+                (aiLoading && callFunction === 'onCreateSchema') ||
+                isOldPromptChanged
               "
               :loading="aiLoading && callFunction === 'onCreateSchema'"
               @click="onCreateSchema"

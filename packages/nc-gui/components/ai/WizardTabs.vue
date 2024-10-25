@@ -57,7 +57,7 @@ const { aiLoading } = useNocoAi()
       <template #tab>
         <NcTooltip class="flex">
           <template #title> {{ $t('msg.toast.futureRelease') }}</template>
-          <div class="tab-title">Prompt AI</div>
+          <div class="tab-title">Use Prompt</div>
         </NcTooltip>
       </template>
       <div>

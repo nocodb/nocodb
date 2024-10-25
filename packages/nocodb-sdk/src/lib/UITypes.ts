@@ -90,7 +90,7 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
-  [UITypes.AI]: 'AI long text',
+  [UITypes.AI]: 'AI text',
   AIButton: 'AI Button',
 };
 

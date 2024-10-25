@@ -23,6 +23,7 @@ export function extractDBError(error): {
   message: string;
   error: string;
   details?: any;
+  code?: string;
 } | void {
   if (!error.code) return;
 
@@ -448,6 +449,7 @@ export function extractDBError(error): {
     return {
       error: NcErrorType.DATABASE_ERROR,
       message,
+      code: error.code,
     };
   }
 }
@@ -487,6 +489,15 @@ export class ExternalError extends NcBaseError {
 export class ExternalTimeout extends ExternalError {}
 
 export class UnprocessableEntity extends NcBaseError {}
+
+export class TestConnectionError extends NcBaseError {
+  public sql_code?: string;
+
+  constructor(message: string, sql_code?: string) {
+    super(message);
+    this.sql_code = sql_code;
+  }
+}
 
 export class AjvError extends NcBaseError {
   constructor(param: { message: string; errors: ErrorObject[] }) {
@@ -726,6 +737,7 @@ export class NcError {
       },
     });
   }
+
   static authenticationRequired(args?: NcErrorArgs) {
     throw new NcBaseErrorv2(NcErrorType.AUTHENTICATION_REQUIRED, args);
   }
@@ -947,6 +959,10 @@ export class NcError {
 
   static unprocessableEntity(message = 'Unprocessable entity') {
     throw new UnprocessableEntity(message);
+  }
+
+  static testConnectionError(message = 'Unprocessable entity', code?: string) {
+    throw new TestConnectionError(message, code);
   }
 
   static notAllowed(message = 'Not allowed') {

@@ -1,7 +1,40 @@
-export const predictFieldTypeSystemMessage =
-  () => `You are a smart-spreadsheet designer.
+export const predictFieldTypeSystemMessage = (
+  unsupportedColumns = [],
+  columns = [
+    'SingleLineText',
+    'LongText',
+    'Lookup',
+    'Attachment',
+    'Checkbox',
+    'MultiSelect',
+    'SingleSelect',
+    'Date',
+    'Year',
+    'Time',
+    'PhoneNumber',
+    'Email',
+    'URL',
+    'Number',
+    'Decimal',
+    'Currency',
+    'Percent',
+    'Duration',
+    'Rating',
+    'Formula',
+    'Rollup',
+    'DateTime',
+    'JSON',
+    'Barcode',
+    'QrCode',
+    'Button',
+    'Links',
+    'User',
+    'CreatedBy',
+    'LastModifiedBy',
+  ],
+) => `You are a smart-spreadsheet designer.
 Following column types are available to use:
-SingleLineText, LongText, Lookup, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, Formula, Rollup, DateTime, JSON, Barcode, QrCode, Button, Links, User, CreatedBy, LastModifiedBy.`;
+${columns.filter((c) => !unsupportedColumns.includes(c)).join(', ')}.`;
 
 export const predictFieldTypePrompt = (input: string) =>
   `Predict most suitable column type for "${input}"`;
@@ -23,10 +56,44 @@ Field: ${field.length > 3 ? field : 'SelectField'}${
   }
 Other fields: ${fields.join(', ')}`;
 
-export const predictNextFieldsSystemMessage = () =>
+export const predictNextFieldsSystemMessage = (
+  unsupportedColumns = [],
+  columns = [
+    'SingleLineText',
+    'LongText',
+    'Lookup',
+    'Attachment',
+    'Checkbox',
+    'MultiSelect',
+    'SingleSelect',
+    'Date',
+    'Year',
+    'Time',
+    'PhoneNumber',
+    'Email',
+    'URL',
+    'Number',
+    'Decimal',
+    'Currency',
+    'Percent',
+    'Duration',
+    'Rating',
+    'Formula',
+    'Rollup',
+    'DateTime',
+    'JSON',
+    'Barcode',
+    'QrCode',
+    'Button',
+    'Links',
+    'User',
+    'CreatedBy',
+    'LastModifiedBy',
+  ],
+) =>
   `You are a smart-spreadsheet designer.
 Following column types are available to use:
-SingleLineText, LongText, Lookup, Attachment, Checkbox, MultiSelect, SingleSelect, Date, Year, Time, PhoneNumber, Email, URL, Number, Decimal, Currency, Percent, Duration, Rating, Formula, Rollup, DateTime, JSON, Barcode, QrCode, Button, Links, User, CreatedBy, LastModifiedBy.
+${columns.filter((c) => !unsupportedColumns.includes(c)).join(', ')}.
 Duplicate columns are not allowed.
 SingleSelect and MultiSelect columns require options.
 Description is a brief summary of the field.`;

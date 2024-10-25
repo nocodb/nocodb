@@ -168,6 +168,7 @@ export class AiUtilsService {
         tableId: string;
         history?: string[];
         description?: string;
+        unsupportedColumn?: string[];
       };
       req?: any;
     },
@@ -179,6 +180,8 @@ export class AiUtilsService {
     if (!model) {
       throw new Error('Model not found');
     }
+
+    const unsupportedColumn = params.input.unsupportedColumn || [];
 
     const columns = await model.getColumns(context);
 
@@ -209,7 +212,7 @@ export class AiUtilsService {
       messages: [
         {
           role: 'system',
-          content: predictNextFieldsSystemMessage(),
+          content: predictNextFieldsSystemMessage(unsupportedColumn),
         },
         {
           role: 'user',
@@ -234,7 +237,12 @@ export class AiUtilsService {
         ...(params.input.history || []),
       ];
 
-      data.fields = resFields.filter((f) => !existingFields.includes(f.title));
+      data.fields = resFields.filter((f) => {
+        return (
+          !existingFields.includes(f.title) &&
+          !unsupportedColumn.includes(f.type)
+        );
+      });
     }
 
     return data;

@@ -20,6 +20,8 @@ export const usePredictFields = createSharedComposable(
 
     const { meta, view } = useSmartsheetStoreOrThrow()
 
+    const isForm = inject(IsFormInj, ref(false))
+
     const columnsHash = ref<string>()
 
     const { $api } = useNuxtApp()
@@ -216,6 +218,7 @@ export const usePredictFields = createSharedComposable(
               fieldHistory,
               meta.value?.base_id,
               activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
+              isForm.value ? formViewHiddenColTypes : [],
             ))
       )
         .filter(

@@ -83,6 +83,8 @@ const { meta, view } = useSmartsheetStoreOrThrow()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const workspaceStore = useWorkspace()
 
 const viewsStore = useViewsStore()
@@ -1257,7 +1259,11 @@ watch(activeAiTab, (newValue) => {
                         <component :is="getUIDTIcon(UITypes.SingleLineText)" class="flex-none w-3.5 h-3.5" />
                         {{ $t('labels.autoSuggestFields') }}
                       </NcMenuItem>
-                      <NcMenuItem class="!children:w-full !text-nc-content-purple-dark" @click="toggleAiMode(true)">
+                      <NcMenuItem
+                        v-show="!isForm"
+                        class="!children:w-full !text-nc-content-purple-dark"
+                        @click="toggleAiMode(true)"
+                      >
                         <component :is="getUIDTIcon(UITypes.Formula)" class="flex-none w-3.5 h-3.5" />
                         {{ $t('labels.autoSuggestFormulas') }}
                       </NcMenuItem>

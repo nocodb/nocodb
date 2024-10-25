@@ -148,11 +148,17 @@ export const useNocoAi = createSharedComposable(() => {
     history?: string[],
     customBaseId?: string,
     description?: string,
+    unsupportedColumn: string[] = [],
     skipMsgToast = true,
   ) => {
     const baseId = customBaseId || activeProjectId.value
 
-    const res = await callAiUtilsApi('predictNextFields', { tableId, history, description }, baseId, skipMsgToast)
+    const res = await callAiUtilsApi(
+      'predictNextFields',
+      { tableId, history, description, unsupportedColumn },
+      baseId,
+      skipMsgToast,
+    )
 
     if (res?.fields) {
       return res.fields

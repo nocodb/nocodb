@@ -367,10 +367,10 @@ const testConnection = async (retry = 0, initialConfig = null) => {
   }
 }
 
-async function handleConnectionError(e: any, retry: number, initialConfig: any): Promise<void> {
-  const MAX_RETRIES = 3
+const MAX_CONNECTION_RETRIES = 3
 
-  if (retry >= MAX_RETRIES) {
+async function handleConnectionError(e: any, retry: number, initialConfig: any): Promise<void> {
+  if (retry >= MAX_CONNECTION_RETRIES) {
     testSuccess.value = false
     testConnectionError.value = await extractSdkResponseErrorMsg(e)
     // reset the connection config to initial state

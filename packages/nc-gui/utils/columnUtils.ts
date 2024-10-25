@@ -371,6 +371,22 @@ function extractRatingIcon(meta: string | Record<string, any> = null) {
   return icon
 }
 
+const formViewHiddenColTypes = [
+  UITypes.Rollup,
+  UITypes.Lookup,
+  UITypes.Formula,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.Button,
+  UITypes.AI,
+  UITypes.SpecificDBType,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+  AIButton,
+]
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -385,4 +401,5 @@ export {
   ratingIconList,
   extractCheckboxIcon,
   extractRatingIcon,
+  formViewHiddenColTypes,
 }

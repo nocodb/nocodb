@@ -149,7 +149,7 @@ const getFieldOrder = (field?: TableExplorerColumn) => {
 const fields = computed<TableExplorerColumn[]>({
   get: () => {
     const x = ((localMetaColumns.value as ColumnType[]) ?? [])
-      .filter((field) => !field.fk_column_id && !isSystemColumn(field))
+      .filter((field) => !field.fk_column_id && !isSystemColumn(field) && !formViewHiddenColTypes.includes(field.uidt))
       .concat(newFields.value)
       .map((field) => updateDefaultColumnValues(field))
       .sort((a, b) => {

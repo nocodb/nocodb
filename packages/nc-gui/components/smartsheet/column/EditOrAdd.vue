@@ -183,7 +183,9 @@ const uiFilters = (t: UiTypesType) => {
   const specificDBType = t.name === UITypes.SpecificDBType && isXcdbBase(meta.value?.source_id)
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
-  return systemFiledNotEdited && geoDataToggle && !specificDBType && showDeprecatedField
+  const isAllowToAddInFormView = isForm.value ? !formViewHiddenColTypes.includes(t.name) : true
+
+  return systemFiledNotEdited && geoDataToggle && !specificDBType && showDeprecatedField && isAllowToAddInFormView
 }
 
 const extraIcons = ref<Record<string, string>>({})

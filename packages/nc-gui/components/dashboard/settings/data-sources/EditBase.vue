@@ -626,7 +626,7 @@ function handleAutoScroll(scroll: boolean, className: string) {
             :loading="testingConnection"
             :disabled="isLoading"
             icon-position="right"
-            @click="testConnection"
+            @click="testConnection()"
           >
             <template #icon>
               <GeneralIcon v-if="testSuccess" icon="circleCheckSolid" class="!text-green-700 w-4 h-4" />

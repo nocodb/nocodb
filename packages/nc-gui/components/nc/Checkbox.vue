@@ -44,8 +44,10 @@ const onChange = (e: Event) => {
       @apply border-purple-500;
     }
 
-    & > .ant-checkbox-checked > .ant-checkbox-inner {
-      @apply bg-purple-500 border-purple-500;
+    & > .ant-checkbox-checked {
+      &:not(.ant-checkbox-disabled) > .ant-checkbox-inner {
+        @apply bg-purple-500 border-purple-500;
+      }
     }
   }
 }

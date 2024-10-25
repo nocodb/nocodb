@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { AiWizardTabsType, type PredictedFieldType } from '#imports'
 import { type ColumnReqType, type ColumnType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
@@ -11,6 +10,7 @@ import {
   isVirtualCol,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
+import { AiWizardTabsType, type PredictedFieldType } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
@@ -459,7 +459,7 @@ watch(
 const submitBtnLabel = computed(() => {
   const aiAutoSuggestModeLabel = `${t('general.create')} ${
     activeTabSelectedFields.value.length > 1
-      ? activeTabSelectedFields.value.length + ' ' + t('objects.fields')
+      ? `${activeTabSelectedFields.value.length} ${t('objects.fields')}`
       : t('objects.field')
   }`
   return {
@@ -810,8 +810,8 @@ watch(activeAiTab, (newValue) => {
                         saving
                       "
                       :loading="isPredictFromPromptLoading"
-                      @click="predictFromPrompt(onSelectedTagClick)"
                       icon-only
+                      @click="predictFromPrompt(onSelectedTagClick)"
                     >
                       <template #loadingIcon>
                         <GeneralLoader class="!text-purple-700" size="medium" />

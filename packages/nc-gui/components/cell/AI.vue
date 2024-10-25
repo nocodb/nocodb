@@ -63,7 +63,7 @@ const generate = async () => {
   generatingRows.value.push(pk.value)
   generatingColumnRows.value.push(column.value.id)
 
-  const res = await generateRows(meta.value.id, column.value.id, [pk.value], false, isExpandedForm.value ? true : false)
+  const res = await generateRows(meta.value.id, column.value.id, [pk.value], false, !!isExpandedForm.value)
 
   if (res?.length) {
     const resRow = res[0]

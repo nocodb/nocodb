@@ -367,7 +367,7 @@ onMounted(() => {
               </a-tag>
             </template>
 
-            <NcButton size="xs" type="text" icon-position="right" @click="onToggleShowMore" class="nc-show-more-tags-btn">
+            <NcButton size="xs" type="text" icon-position="right" class="nc-show-more-tags-btn" @click="onToggleShowMore">
               {{ isExpandedPredefiendBasePromts ? $t('general.showLess') : $t('general.showMore') }}
 
               <template #icon>

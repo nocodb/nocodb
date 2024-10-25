@@ -1247,8 +1247,8 @@ const getPluralName = (name: string) => {
                       isAiSaving
                     "
                     :loading="isPredictFromPromptLoading"
-                    @click="predictFromPrompt"
                     icon-only
+                    @click="predictFromPrompt"
                   >
                     <template #loadingIcon>
                       <GeneralLoader class="!text-purple-700" size="medium" />

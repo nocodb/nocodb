@@ -1054,9 +1054,8 @@ const handleSubmitRenameOrNewStack = async (loadMeta: boolean, stack?: any, stac
           <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">
             <!-- Add New Stack -->
             <a-card
-              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200"
+              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200 nc-kanban-stack-header-new-stack"
               :class="[
-                `nc-kanban-stack-header-new-stack`,
                 {
                   '!cursor-default': isLocked || !hasEditPermission,
                   '!border-none': !compareStack(addNewStackObj, isRenameOrNewStack),

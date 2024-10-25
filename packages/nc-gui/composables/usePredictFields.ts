@@ -1,7 +1,7 @@
 import { UITypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { AiWizardTabsType, type PredictedFieldType } from '#imports'
 import type { RuleObject } from 'ant-design-vue/es/form'
+import { AiWizardTabsType, type PredictedFieldType } from '#imports'
 
 enum AiStep {
   init = 'init',
@@ -91,7 +91,7 @@ export const usePredictFields = createSharedComposable(
       if (!activeTabSelectedFields.value.length) return rulesObj
 
       for (const column of activeTabSelectedFields.value) {
-        let rules: RuleObject[] = [
+        const rules: RuleObject[] = [
           {
             validator: (_rule: RuleObject, value: any) => {
               return new Promise((resolve, reject) => {

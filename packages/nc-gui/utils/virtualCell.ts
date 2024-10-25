@@ -1,5 +1,12 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import {
+  RelationTypes,
+  UITypes,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
+  isSystemColumn,
+} from 'nocodb-sdk'
 
 export const isLTAR = (uidt: string | undefined, colOptions: unknown): colOptions is LinkToAnotherRecordType => {
   if (!uidt) return false

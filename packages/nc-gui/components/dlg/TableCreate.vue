@@ -8,13 +8,13 @@ const props = defineProps<{
   baseId: string
 }>()
 
+const emit = defineEmits(['update:modelValue', 'create'])
+
 interface AiSuggestedTableType {
   title: string
   selected: boolean
   tab?: AiWizardTabsType
 }
-
-const emit = defineEmits(['update:modelValue', 'create'])
 
 const maxSelectionCount = 100
 
@@ -414,9 +414,9 @@ const handleRefreshOnError = () => {
     :centered="false"
     nc-modal-class-name="!p-0"
     class="!top-[25vh]"
-    @keydown.esc="dialogShow = false"
     :mask-closable="!isAiSaving"
     wrap-class-name="nc-modal-table-create-wrapper"
+    @keydown.esc="dialogShow = false"
   >
     <div class="py-5 flex flex-col gap-5" @dblclick.stop="fullAuto">
       <div class="px-5 flex justify-between w-full items-center">
@@ -620,8 +620,8 @@ const handleRefreshOnError = () => {
                         isAiSaving
                       "
                       :loading="isPredictFromPromptLoading"
-                      @click="predictFromPrompt"
                       icon-only
+                      @click="predictFromPrompt"
                     >
                       <template #loadingIcon>
                         <GeneralLoader class="!text-purple-700" size="medium" />

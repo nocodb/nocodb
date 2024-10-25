@@ -5,9 +5,10 @@ import NcCreateBaseWithAiPlaceholder from '~icons/nc-icons/create-base-with-ai-p
 interface Props {
   aiMode: boolean | null
 }
+const props = withDefaults(defineProps<Props>(), {})
+
 const emit = defineEmits(['update:aiMode'])
 
-const props = withDefaults(defineProps<Props>(), {})
 const aiMode = useVModel(props, 'aiMode', emit)
 </script>
 

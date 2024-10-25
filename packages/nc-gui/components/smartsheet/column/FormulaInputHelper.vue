@@ -927,7 +927,7 @@ const enableAI = async () => {
     @apply absolute -top-[8px] left-[50%] transform -translate-x-1/2 z-0;
   }
 
-  .nc-triangle-bottom-bar{
+  .nc-triangle-bottom-bar {
     @apply absolute -top-[8px] left-[50%] transform -translate-x-1/2 w-3.5 h-2 bg-transparent border-2 border-transparent !border-b-nc-bg-gray-extralight;
   }
 

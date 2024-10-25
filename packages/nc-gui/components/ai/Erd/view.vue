@@ -37,7 +37,7 @@ const toggleFullScreen = () => {
   >
     <div class="relative h-full">
       <LazyAiErdFlow :ai-base-schema="aiBaseSchema" :config="config">
-        <ErdFullScreenToggle :config="config" @toggle-full-screen="toggleFullScreen" :position="PanelPosition.TopRight" />
+        <ErdFullScreenToggle :config="config" :position="PanelPosition.TopRight" @toggle-full-screen="toggleFullScreen" />
       </LazyAiErdFlow>
     </div>
   </div>

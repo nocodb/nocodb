@@ -307,22 +307,19 @@ const createOrUpdateIntegration = async () => {
 function applyConfigFix(fix: any) {
   if (!fix) return
 
-  formState.value = {
-    ...formState.value,
-    dataSource: {
-      ...formState.value.dataSource,
-      ...fix,
-      connection: {
-        ...formState.value.dataSource.connection,
-        ...fix.connection,
-      },
+  formState.value.dataSource = {
+    ...formState.value.dataSource,
+    ...fix,
+    connection: {
+      ...formState.value.dataSource.connection,
+      ...fix.connection,
     },
   }
 }
 
 const testConnectionError = ref()
 
-const testConnection = async (retry = 0) => {
+const testConnection = async (retry = 0, initialConfig = null) => {
   try {
     await validate()
   } catch (e) {
@@ -362,18 +359,22 @@ const testConnection = async (retry = 0) => {
       }
     }
   } catch (e: any) {
-    await handleConnectionError(e, retry)
+    // take a copy of the current config
+    const config = initialConfig || JSON.parse(JSON.stringify(formState.value.dataSource))
+    await handleConnectionError(e, retry, config)
   } finally {
     testingConnection.value = false
   }
 }
 
-async function handleConnectionError(e: any, retry: number): Promise<void> {
+async function handleConnectionError(e: any, retry: number, initialConfig: any): Promise<void> {
   const MAX_RETRIES = 3
 
   if (retry >= MAX_RETRIES) {
     testSuccess.value = false
     testConnectionError.value = await extractSdkResponseErrorMsg(e)
+    // reset the connection config to initial state
+    formState.value.dataSource = initialConfig
     return
   }
 
@@ -382,7 +383,7 @@ async function handleConnectionError(e: any, retry: number): Promise<void> {
   if (fix) {
     applyConfigFix(fix)
     // Retry the connection after applying the fix
-    return testConnection(retry + 1)
+    return testConnection(retry + 1, initialConfig)
   }
 
   // If no fix is available, or fix did not resolve the issue

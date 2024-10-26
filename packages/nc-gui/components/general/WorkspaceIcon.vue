@@ -5,7 +5,7 @@ import { isColorDark, stringToColor } from '~/utils/colorsUtils'
 const props = defineProps<{
   workspace: WorkspaceType | undefined
   hideLabel?: boolean
-  size?: 'small' | 'medium' | 'large'
+  size?: 'small' | 'medium' | 'large' | 'xlarge'
   isRounded?: boolean
 }>()
 
@@ -25,6 +25,7 @@ const size = computed(() => props.size || 'medium')
       'min-w-4 w-4 h-4 rounded': size === 'small',
       'min-w-6 w-6 h-6 rounded-md': size === 'medium',
       'min-w-10 w-10 h-10 rounded-lg !text-base': size === 'large',
+      'min-w-16 w-16 h-16 rounded-lg !text-2xl': size === 'xlarge',
       '!rounded-[50%]': props.isRounded,
     }"
     :style="{ backgroundColor: workspaceColor }"

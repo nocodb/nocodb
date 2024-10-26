@@ -17,8 +17,7 @@ const router = useRouter()
 const formValidator = ref()
 const isDeleting = ref(false)
 const isErrored = ref(false)
-const isTitleUpdating = ref(false)
-const isCancelButtonVisible = ref(false)
+const isWorkspaceUpdating = ref(false)
 const isDeleteModalVisible = ref(false)
 // if activeworkspace.title is used it will show new workspace name in loading state
 const toBeDeletedWorkspaceTitle = ref('')
@@ -27,6 +26,8 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 const form = reactive({
   title: '',
   modalInput: '',
+  icon: '',
+  iconType: '',
 })
 
 const formRules = {
@@ -47,6 +48,14 @@ const currentWorkspace = computedAsync(async () => {
     return ws
   }
   return activeWorkspace.value
+})
+
+const isSaveChangesBtnEnabled = computed(() => {
+  return !!(
+    (form.title && form.title !== currentWorkspace.value?.title) ||
+    form.icon !== (currentWorkspace.value?.meta?.icon ?? '') ||
+    form.iconType !== (currentWorkspace.value?.meta?.iconType ?? '')
+  )
 })
 
 const onDelete = async () => {
@@ -83,25 +92,29 @@ const rules = {
   modalInput: [{ required: true, message: 'input is required.' }],
 }
 
-const titleChange = async () => {
-  if (!currentWorkspace.value || !currentWorkspace.value.id || isTitleUpdating.value) return
+const saveChanges = async () => {
+  if (!currentWorkspace.value || !currentWorkspace.value.id || isWorkspaceUpdating.value) return
 
   const valid = await formValidator.value.validate()
 
   if (!valid) return
 
-  isTitleUpdating.value = true
+  isWorkspaceUpdating.value = true
   isErrored.value = false
 
   try {
     await updateWorkspace(currentWorkspace.value?.id, {
       title: form.title,
+      meta: {
+        ...(currentWorkspace.value?.meta ? currentWorkspace.value.meta : {}),
+        icon: form.icon,
+        iconType: form.iconType,
+      },
     })
   } catch (e: any) {
     console.error(e)
   } finally {
-    isTitleUpdating.value = false
-    isCancelButtonVisible.value = false
+    isWorkspaceUpdating.value = false
   }
 }
 
@@ -115,6 +128,8 @@ watch(
   currentWorkspace,
   () => {
     form.title = currentWorkspace.value?.title ?? ''
+    form.icon = currentWorkspace.value?.meta?.icon ?? ''
+    form.iconType = currentWorkspace.value?.meta?.iconType ?? ''
   },
   {
     immediate: true,
@@ -126,7 +141,7 @@ watch(
   async () => {
     try {
       if (!currentWorkspace.value) return
-      isCancelButtonVisible.value = form.title !== currentWorkspace.value.title
+
       isErrored.value = !(await formValidator.value.validate())
     } catch (e: any) {
       isErrored.value = true
@@ -136,6 +151,11 @@ watch(
 
 const onCancel = () => {
   if (currentWorkspace.value?.title) form.title = currentWorkspace.value.title
+
+  if (currentWorkspace.value?.meta) {
+    if (currentWorkspace.value.meta?.icon) form.icon = currentWorkspace.value.meta.icon
+    if (currentWorkspace.value.meta?.iconType) form.iconType = currentWorkspace.value.meta.iconType
+  }
 }
 </script>
 
@@ -148,20 +168,34 @@ const onCancel = () => {
     }"
   >
     <div class="item-card flex flex-col w-full">
-      <div class="font-medium text-base">Change Workspace Name</div>
-      <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="titleChange">
-        <div class="text-gray-500 mt-6 mb-1.5">Workspace name</div>
-        <a-form-item name="title" :rules="formRules.title">
-          <a-input
-            v-model:value="form.title"
-            class="w-full !rounded-md !py-1.5"
-            placeholder="Workspace name"
-            data-testid="nc-workspace-settings-settings-rename-input"
-          />
-        </a-form-item>
+      <div class="font-bold text-base text-nc-content-gray-emphasis">Workspace Apearance</div>
+      <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
+        <div class="flex gap-4 mt-6">
+          <div>
+            <div class="text-sm text-nc-content-gray-subtle2">Icon</div>
+            <GeneralWorkspaceIconSelector
+              v-model:icon="form.icon"
+              v-model:icon-type="form.iconType"
+              :current-workspace="currentWorkspace"
+            />
+          </div>
+          <div class="flex-1">
+            <div class="text-sm text-nc-content-gray-subtle2">Name</div>
+            <a-form-item name="title" :rules="formRules.title" class="!mt-2">
+              <a-input
+                v-model:value="form.title"
+                class="w-full !rounded-lg !px-4 h-10"
+                placeholder="Workspace name"
+                size="large"
+                data-testid="nc-workspace-settings-settings-rename-input"
+              />
+            </a-form-item>
+          </div>
+        </div>
+
         <div class="flex flex-row w-full justify-end mt-8 gap-4">
           <NcButton
-            v-if="isCancelButtonVisible"
+            v-if="isSaveChangesBtnEnabled"
             type="secondary"
             data-testid="nc-workspace-settings-settings-rename-cancel"
             @click="onCancel"
@@ -172,12 +206,12 @@ const onCancel = () => {
             v-e="['c:workspace:settings:rename']"
             type="primary"
             html-type="submit"
-            :disabled="isErrored || !!(form.title && form.title === currentWorkspace?.title)"
-            :loading="isDeleting"
+            :disabled="isErrored || !isSaveChangesBtnEnabled || isWorkspaceUpdating"
+            :loading="isWorkspaceUpdating"
             data-testid="nc-workspace-settings-settings-rename-submit"
           >
-            <template #loading> Renaming Workspace </template>
-            Rename Workspace
+            <template #loading> Saving Changes </template>
+            Save Changes
           </NcButton>
         </div>
       </a-form>

@@ -53,6 +53,11 @@ enum WidgetTypeText {
   Divider = 'Divider',
 }
 
+enum WorkspaceIconType {
+  UPLOAD = 'UPLOAD',
+  ICON = 'ICON',
+}
+
 export {
   PageSidebarNode,
   LayoutSidebarNode,
@@ -62,4 +67,5 @@ export {
   WidgetTemplate,
   SelectedLayoutDimension,
   WidgetTypeText,
+  WorkspaceIconType,
 }

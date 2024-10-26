@@ -443,7 +443,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     if (Object.keys(route.query || {}).length) {
       columns.value = await Promise.all(
         (columns.value || []).map(async (c) => {
-          const queryParam = route.query[c.title as string] || route.query[encodeURIComponent(c.title as string)]
+          const queryParam = route.query[c.title as string]
 
           if (
             !c.title ||

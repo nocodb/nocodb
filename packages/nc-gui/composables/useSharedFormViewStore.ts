@@ -442,14 +442,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   async function handlePreFillForm() {
     if (Object.keys(route.query || {}).length) {
       // Decode query parameter keys
-      const decodedQuery = Object.fromEntries(Object.entries(route.query).map(([key, value]) => [decodeURIComponent(key), value]))
 
       columns.value = await Promise.all(
         (columns.value || []).map(async (c) => {
-          const queryParam =
-            route.query[c.title as string] ||
-            route.query[encodeURIComponent(c.title as string)] ||
-            decodedQuery[c.title as string]
+          const queryParam = route.query[c.title as string] || route.query[encodeURIComponent(c.title as string)]
 
           if (
             !c.title ||

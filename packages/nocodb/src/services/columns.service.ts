@@ -135,6 +135,18 @@ async function reuseOrSave(
   return res;
 }
 
+function getJunctionTableName(
+  param: {
+    base: Base;
+  },
+  parent: Model,
+  child: Model,
+) {
+  return `${param.base?.prefix ?? ''}_nc_m2m_${parent.table_name}_${
+    child.table_name
+  }`;
+}
+
 @Injectable()
 export class ColumnsService {
   constructor(
@@ -3266,7 +3278,7 @@ export class ColumnsService {
         param.colExtra,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
-      const aTn = `${param.base?.prefix ?? ''}_nc_m2m_${randomID()}`;
+      const aTn = getJunctionTableName(param, parent, child);
       const aTnAlias = aTn;
 
       const parentPK = parent.primaryKey;
@@ -3274,8 +3286,8 @@ export class ColumnsService {
 
       const associateTableCols = [];
 
-      const parentCn = 'table1_id';
-      const childCn = 'table2_id';
+      const parentCn = `${parent.table_name}_id`;
+      const childCn = `${child.table_name}_id`;
 
       associateTableCols.push(
         {

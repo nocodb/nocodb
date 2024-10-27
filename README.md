@@ -56,9 +56,9 @@ NocoDB is the fastest and easiest way to build databases online.
 ## Docker with SQLite
 
 ```bash 
-docker run -d --name noco 
-           -v "$(pwd)"/nocodb:/usr/app/data/ 
-           -p 8080:8080 
+docker run -d --name noco \
+           -v "$(pwd)"/nocodb:/usr/app/data/ \
+           -p 8080:8080 \
            nocodb/nocodb:latest
 ```
 

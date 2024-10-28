@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { WorkspaceIconType } from '#imports'
+
 const props = defineProps<{
   workspaceId?: string
 }>()
@@ -23,7 +25,12 @@ const isDeleteModalVisible = ref(false)
 const toBeDeletedWorkspaceTitle = ref('')
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
-const form = reactive({
+const form = reactive<{
+  title: string
+  modalInput: string
+  icon: string | Record<string, any>
+  iconType: WorkspaceIconType | string
+}>({
   title: '',
   modalInput: '',
   icon: '',
@@ -107,7 +114,7 @@ const saveChanges = async () => {
       title: form.title,
       meta: {
         ...(currentWorkspace.value?.meta ? currentWorkspace.value.meta : {}),
-        icon: form.icon,
+        icon: form.iconType === WorkspaceIconType.IMAGE && ncIsObject(form.icon) ? { ...form.icon, data: '' } : form.icon,
         iconType: form.iconType,
       },
     })

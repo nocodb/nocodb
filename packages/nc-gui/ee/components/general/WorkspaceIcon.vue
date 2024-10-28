@@ -6,7 +6,7 @@ import { WorkspaceIconType } from '#imports'
 const props = defineProps<{
   workspace: WorkspaceType | undefined
   workspaceIcon?: {
-    icon: string
+    icon: string | Record<string, any>
     iconType: WorkspaceIconType | string
   }
   hideLabel?: boolean
@@ -15,6 +15,8 @@ const props = defineProps<{
 }>()
 
 const { workspace } = toRefs(props)
+
+const { getPossibleAttachmentSrc } = useAttachment()
 
 const workspaceColor = computed(() => {
   const color = workspace.value ? workspace.value.meta?.color || stringToColor(workspace.value.id!) : undefined
@@ -32,22 +34,29 @@ const workspaceIcon = computed(() => {
     }
   }
 
-  if (props.workspaceIcon?.icon) return props.workspaceIcon
+  if (props.workspaceIcon) {
+    return {
+      icon:
+        props.workspaceIcon?.iconType === WorkspaceIconType.IMAGE && ncIsObject(props.workspaceIcon?.icon)
+          ? getPossibleAttachmentSrc(props.workspaceIcon?.icon) || ''
+          : props.workspaceIcon?.icon || '',
+      iconType: props.workspaceIcon?.iconType || '',
+    }
+  }
 
   return {
-    icon: workspace.value.meta?.icon || '',
+    icon:
+      workspace.value.meta?.iconType === WorkspaceIconType.IMAGE && ncIsObject(workspace.value.meta?.icon)
+        ? getPossibleAttachmentSrc(workspace.value.meta?.icon) || ''
+        : workspace.value.meta?.icon || '',
     iconType: workspace.value.meta?.iconType || '',
   }
-})
-
-watchEffect(() => {
-  console.log('ocon', workspaceIcon.value)
 })
 </script>
 
 <template>
   <div
-    class="flex nc-workspace-avatar"
+    class="flex nc-workspace-avatar overflow-hidden"
     :class="{
       'min-w-4 w-4 h-4 rounded': size === 'small',
       'min-w-6 w-6 h-6 rounded-md': size === 'medium',
@@ -55,11 +64,18 @@ watchEffect(() => {
       'min-w-16 w-16 h-16 rounded-lg !text-2xl': size === 'xlarge',
       '!rounded-[50%]': props.isRounded,
     }"
-    :style="{ backgroundColor: workspaceColor }"
+    :style="{
+      backgroundColor: !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.IMAGE ? undefined : workspaceColor,
+    }"
   >
     <template v-if="!props.hideLabel">
+      <CellAttachmentPreviewImage
+        v-if="workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.IMAGE"
+        :srcs="workspaceIcon.icon"
+        class="flex-none !object-contain max-h-full max-w-full !m-0"
+      />
       <GeneralIcon
-        v-if="workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.ICON"
+        v-else-if="workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.ICON"
         :icon="workspaceIcon.icon"
         class="flex-none"
         :class="{

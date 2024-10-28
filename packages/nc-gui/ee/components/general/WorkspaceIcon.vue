@@ -65,7 +65,8 @@ const workspaceIcon = computed(() => {
       '!rounded-[50%]': props.isRounded,
     }"
     :style="{
-      backgroundColor: !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.IMAGE ? undefined : workspaceColor,
+      backgroundColor:
+        !props.hideLabel && workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.IMAGE ? undefined : workspaceColor,
     }"
   >
     <template v-if="!props.hideLabel">

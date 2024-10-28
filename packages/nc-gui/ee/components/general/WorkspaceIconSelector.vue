@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { WorkspaceIconType } from '#imports'
 import type { UploadFile } from 'ant-design-vue'
+import { WorkspaceIconType } from '#imports'
 
 interface Props {
   icon: string | Record<string, any>
@@ -10,9 +10,9 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const { currentWorkspace } = toRefs(props)
-
 const emits = defineEmits(['update:icon', 'update:iconType'])
+
+const { currentWorkspace } = toRefs(props)
 
 const vIcon = useVModel(props, 'icon', emits)
 
@@ -278,10 +278,10 @@ watch(showImageCropper, (newValue) => {
 
                   <div v-if="icons.length" class="grid px-3 auto-rows-max pb-2 gap-3 grid-cols-10">
                     <component
-                      :is="icon"
-                      v-for="({ icon, name }, i) in icons"
-                      :key="i"
-                      :icon="icon"
+                      :is="i"
+                      v-for="({ icon: i, name }, idx) in icons"
+                      :key="idx"
+                      :icon="i"
                       class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
                       @click="selectIcon(name)"
                     />

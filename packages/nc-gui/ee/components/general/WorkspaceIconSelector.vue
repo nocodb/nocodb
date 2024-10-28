@@ -79,6 +79,10 @@ watch(isOpen, (newValue) => {
       >
         <GeneralWorkspaceIcon
           :workspace="currentWorkspace"
+          :workspace-icon="{
+            icon: vIcon,
+            iconType: vIconType,
+          }"
           size="xlarge"
           class="!w-full !h-full !min-w-full rounded-none select-none"
         />

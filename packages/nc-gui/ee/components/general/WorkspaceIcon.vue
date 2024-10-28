@@ -49,7 +49,7 @@ const workspaceColor = computed(() => {
   if (!props.hideLabel && workspaceIcon.value.icon) {
     switch (workspaceIcon.value.iconType) {
       case WorkspaceIconType.IMAGE: {
-        return undefined
+        return ''
       }
       case WorkspaceIconType.EMOJI: {
         return '#F4F4F5'
@@ -92,7 +92,7 @@ const size = computed(() => props.size || 'medium')
         class="flex-none !object-contain max-h-full max-w-full !m-0"
       />
       <div
-        v-if="workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.EMOJI"
+        v-else-if="workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.EMOJI"
         class="flex items-center justify-center"
         :class="{
           'text-white': isColorDark(workspaceColor),

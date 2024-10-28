@@ -19,7 +19,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
 import validateParams from '~/helpers/validateParams';
 import { NcError } from '~/helpers/catchError';
-import { Base, BaseUser, ModelStat, User } from '~/models';
+import { Base, BaseUser, ModelStat, PresignedUrl, User } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
 import { BasesService } from '~/services/bases.service';
@@ -145,6 +145,23 @@ export class WorkspacesService implements OnApplicationBootstrap {
         fk_org_id: param.user.extra?.org_id,
       });
     }
+
+    workspaces = await Promise.all(
+      workspaces.map(async (workspace) => {
+        if (
+          (workspace.meta as Record<string, any>)?.icon &&
+          (workspace.meta as Record<string, any>)?.iconType === 'IMAGE'
+        ) {
+          await PresignedUrl.signAttachment(
+            {
+              attachment: (workspace.meta as Record<string, any>)?.icon,
+            },
+            Noco.ncMeta,
+          );
+        }
+        return workspace;
+      }),
+    );
 
     return new PagedResponseImpl<WorkspaceType>(workspaces, {
       count: workspaces.length,
@@ -435,6 +452,18 @@ export class WorkspacesService implements OnApplicationBootstrap {
     const stats = await ModelStat.getWorkspaceSum(workspace.id);
 
     const workspaceRoles = await WorkspaceUser.get(workspace.id, param.user.id);
+
+    if (
+      (workspace.meta as Record<string, any>)?.icon &&
+      (workspace.meta as Record<string, any>)?.iconType === 'IMAGE'
+    ) {
+      await PresignedUrl.signAttachment(
+        {
+          attachment: (workspace.meta as Record<string, any>)?.icon,
+        },
+        Noco.ncMeta,
+      );
+    }
 
     return {
       ...workspace,

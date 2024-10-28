@@ -2,6 +2,8 @@
 import type { WorkspaceType } from 'nocodb-sdk'
 import { isColorDark, stringToColor } from '~/utils/colorsUtils'
 import { WorkspaceIconType } from '#imports'
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
+import { Icon } from '@iconify/vue'
 
 const props = defineProps<{
   workspace: WorkspaceType | undefined
@@ -26,22 +28,18 @@ const workspaceIcon = computed(() => {
     }
   }
 
+  let icon = workspace.value.meta?.icon || ''
+  let iconType = workspace.value.meta?.iconType || ''
+
   if (props.workspaceIcon) {
-    return {
-      icon:
-        props.workspaceIcon?.iconType === WorkspaceIconType.IMAGE && ncIsObject(props.workspaceIcon?.icon)
-          ? getPossibleAttachmentSrc(props.workspaceIcon?.icon) || ''
-          : props.workspaceIcon?.icon || '',
-      iconType: props.workspaceIcon?.iconType || '',
-    }
+    icon = props.workspaceIcon?.icon || ''
+    iconType = props.workspaceIcon?.iconType || ''
   }
 
   return {
-    icon:
-      workspace.value.meta?.iconType === WorkspaceIconType.IMAGE && ncIsObject(workspace.value.meta?.icon)
-        ? getPossibleAttachmentSrc(workspace.value.meta?.icon) || ''
-        : workspace.value.meta?.icon || '',
-    iconType: workspace.value.meta?.iconType || '',
+    icon: iconType === WorkspaceIconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : icon,
+    iconType: iconType,
+    isUnicodeEmoji: iconType === WorkspaceIconType.EMOJI && icon ? icon?.match(/\p{Extended_Pictographic}/gu) : false,
   }
 })
 
@@ -53,7 +51,9 @@ const workspaceColor = computed(() => {
       case WorkspaceIconType.IMAGE: {
         return undefined
       }
-
+      case WorkspaceIconType.EMOJI: {
+        return '#F4F4F5'
+      }
       case WorkspaceIconType.ICON: {
         return '#F4F4F5'
       }
@@ -91,13 +91,32 @@ const size = computed(() => props.size || 'medium')
         :srcs="workspaceIcon.icon"
         class="flex-none !object-contain max-h-full max-w-full !m-0"
       />
+      <div
+        v-if="workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.EMOJI"
+        class="flex items-center justify-center"
+        :class="{
+          'text-white': isColorDark(workspaceColor),
+          'text-black opacity-80': !isColorDark(workspaceColor),
+          'text-sm': size === 'small',
+          'text-base': size === 'medium',
+          'text-2xl': size === 'large',
+          'text-4xl': size === 'xlarge',
+        }"
+      >
+        <template v-if="workspaceIcon.isUnicodeEmoji">
+          {{ workspaceIcon.icon }}
+        </template>
+        <template v-else>
+          <Icon :data-testid="`nc-icon-${workspaceIcon.icon}`" class="!text-inherit flex-none" :icon="workspaceIcon.icon"></Icon>
+        </template>
+      </div>
       <GeneralIcon
         v-else-if="workspaceIcon.icon && workspaceIcon.iconType === WorkspaceIconType.ICON"
         :icon="workspaceIcon.icon"
         class="flex-none"
         :class="{
           'text-white': isColorDark(workspaceColor),
-          'text-black': !isColorDark(workspaceColor),
+          'text-black opacity-80': !isColorDark(workspaceColor),
           'w-3 h-3': size === 'small',
           'w-4 h-4': size === 'medium',
           'w-6 h-6': size === 'large',

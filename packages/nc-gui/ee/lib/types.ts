@@ -55,6 +55,7 @@ enum WidgetTypeText {
 
 enum WorkspaceIconType {
   IMAGE = 'IMAGE',
+  EMOJI = 'EMOJI',
   ICON = 'ICON',
 }
 

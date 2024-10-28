@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 import type { UploadFile } from 'ant-design-vue'
 import { WorkspaceIconType } from '#imports'
+import data from 'emoji-mart-vue-fast/data/apple.json'
+import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
+import 'emoji-mart-vue-fast/css/emoji-mart.css'
 
 interface Props {
   icon: string | Record<string, any>
@@ -63,6 +66,23 @@ const handleRemoveIcon = (closeDropdown = true) => {
   if (closeDropdown) {
     isOpen.value = false
   }
+}
+
+const emojiIndex = new EmojiIndex(data, {
+  emojisToShowFilter: (emoji: any) => {
+    if (Number(emoji.added_in) >= 14) {
+      return false
+    }
+
+    return true
+  },
+})
+
+function selectEmoji(_emoji: any) {
+  vIcon.value = _emoji.native
+  vIconType.value = WorkspaceIconType.EMOJI
+
+  isOpen.value = false
 }
 
 const fileList = ref<UploadFile[]>([])
@@ -144,12 +164,6 @@ const onVisibilityChange = (value: boolean) => {
   }
 }
 
-watch(isOpen, (newValue) => {
-  if (newValue) {
-    activeTab.value = WorkspaceIconType.IMAGE
-  }
-})
-
 watch(showImageCropper, (newValue) => {
   if (newValue) {
     showImageCropperLocal.value = true
@@ -163,12 +177,12 @@ watch(showImageCropper, (newValue) => {
 
 <template>
   <div>
-    <NcDropdown v-model:visible="isOpen" overlay-class-name="w-[448px]" @visible-change="onVisibilityChange">
+    <NcDropdown v-model:visible="isOpen" overlay-class-name="w-[432px]" @visible-change="onVisibilityChange">
       <div
         class="mt-2 rounded-lg border-1 flex-none w-16 h-16 overflow-hidden transition-all duration-300 cursor-pointer"
         :class="{
-          'border-transparent': !isOpen && vIconType !== WorkspaceIconType.ICON,
-          'border-nc-gray-medium': !isOpen && vIconType === WorkspaceIconType.ICON,
+          'border-transparent': !isOpen && vIconType === WorkspaceIconType.IMAGE,
+          'border-nc-gray-medium': !isOpen && vIconType !== WorkspaceIconType.IMAGE,
           'border-primary shadow-selected': isOpen,
         }"
       >
@@ -258,6 +272,27 @@ watch(showImageCropper, (newValue) => {
               </div>
             </a-tab-pane>
 
+            <a-tab-pane :key="WorkspaceIconType.EMOJI" class="w-full" :disabled="isLoading">
+              <template #tab>
+                <div class="tab-title">
+                  <GeneralIcon icon="ncSmile" class="flex-none" />
+                  Emoji
+                </div>
+              </template>
+              <div class="">
+                <Picker
+                  :data="emojiIndex"
+                  :native="true"
+                  :show-preview="false"
+                  color="#40444D"
+                  :auto-focus="true"
+                  :show-categories="false"
+                  class="nc-workspace-emoji-picker"
+                  @select="selectEmoji"
+                  @click.stop="() => {}"
+                ></Picker>
+              </div>
+            </a-tab-pane>
             <a-tab-pane :key="WorkspaceIconType.ICON" class="w-full" :disabled="isLoading">
               <template #tab>
                 <div class="tab-title">
@@ -356,6 +391,52 @@ watch(showImageCropper, (newValue) => {
   }
   .ant-upload-btn {
     @apply !flex flex-col items-center justify-center !min-h-[176px];
+  }
+}
+
+.nc-workspace-emoji-picker.emoji-mart {
+  @apply !w-108 !border-none;
+
+  span.emoji-type-native {
+    @apply cursor-pointer;
+  }
+
+  .emoji-mart-anchor {
+    @apply h-8 py-1.5;
+    svg {
+      @apply h-3.5 !important;
+    }
+  }
+
+  .emoji-mart-search {
+    @apply px-2 mt-2;
+    input {
+      @apply text-sm pl-3.5 rounded-lg !h-8 transition-all duration-300 !outline-none ring-0;
+
+      &:focus {
+        @apply !outline-none ring-0 !h-8 shadow-selected border-primary;
+      }
+    }
+  }
+
+  .emoji-mart-scroll {
+    @apply mt-1 px-1 overflow-x-hidden;
+
+    h3.emoji-mart-category-label {
+      @apply text-xs text-gray-500 mb-0;
+    }
+  }
+
+  .emoji-mart-scroll {
+    @apply nc-scrollbar-thin;
+    overflow-y: overlay;
+  }
+
+  .emoji-mart-emoji {
+    @apply !px-1 !py-0.75 !m-0.5;
+  }
+  .emoji-mart-emoji:hover:before {
+    @apply !rounded-md;
   }
 }
 </style>

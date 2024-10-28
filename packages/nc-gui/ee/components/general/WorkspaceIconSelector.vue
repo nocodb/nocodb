@@ -167,7 +167,8 @@ watch(showImageCropper, (newValue) => {
       <div
         class="mt-2 rounded-lg border-1 flex-none w-16 h-16 overflow-hidden transition-all duration-300 cursor-pointer"
         :class="{
-          'border-transparent': !isOpen,
+          'border-transparent': !isOpen && vIconType !== WorkspaceIconType.ICON,
+          'border-nc-gray-medium': !isOpen && vIconType === WorkspaceIconType.ICON,
           'border-primary shadow-selected': isOpen,
         }"
       >
@@ -201,7 +202,7 @@ watch(showImageCropper, (newValue) => {
                   }"
                 >
                   <GeneralIcon icon="ncUpload" class="flex-none" />
-                  Upload Icon
+                  Upload
                 </div>
               </template>
               <div class="p-2 flex flex-col gap-2.5">
@@ -250,6 +251,7 @@ watch(showImageCropper, (newValue) => {
 
                     <div class="ant-upload-text !text-nc-content-gray-muted !text-sm">
                       Drop your icon here or <span class="text-nc-content-brand hover:underline">browse file</span>
+                      <div class="mt-1">Supported: image/*</div>
                     </div>
                   </a-upload-dragger>
                 </div>

@@ -18,14 +18,6 @@ const { workspace } = toRefs(props)
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-const workspaceColor = computed(() => {
-  const color = workspace.value ? workspace.value.meta?.color || stringToColor(workspace.value.id!) : undefined
-
-  return color || '#0A1433'
-})
-
-const size = computed(() => props.size || 'medium')
-
 const workspaceIcon = computed(() => {
   if (!workspace.value) {
     return {
@@ -52,6 +44,30 @@ const workspaceIcon = computed(() => {
     iconType: workspace.value.meta?.iconType || '',
   }
 })
+
+const workspaceColor = computed(() => {
+  const color = workspace.value ? workspace.value.meta?.color || stringToColor(workspace.value.id!) : undefined
+
+  if (!props.hideLabel && workspaceIcon.value.icon) {
+    switch (workspaceIcon.value.iconType) {
+      case WorkspaceIconType.IMAGE: {
+        return undefined
+      }
+
+      case WorkspaceIconType.ICON: {
+        return '#F4F4F5'
+      }
+
+      default: {
+        return color || '#0A1433'
+      }
+    }
+  }
+
+  return color || '#0A1433'
+})
+
+const size = computed(() => props.size || 'medium')
 </script>
 
 <template>

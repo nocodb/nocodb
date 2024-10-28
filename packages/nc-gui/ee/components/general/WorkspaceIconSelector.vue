@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { WorkspaceIconType } from '#imports'
+import type { UploadFile } from 'ant-design-vue'
 
 interface Props {
   icon: string | Record<string, any>
@@ -18,12 +19,6 @@ const vIcon = useVModel(props, 'icon', emits)
 const vIconType = useVModel(props, 'iconType', emits)
 
 const { getPossibleAttachmentSrc } = useAttachment()
-
-const { open, onChange: onChangeFile } = useFileDialog({
-  accept: 'image/*',
-  multiple: false,
-  reset: true,
-})
 
 const isOpen = ref<boolean>(false)
 
@@ -70,6 +65,8 @@ const handleRemoveIcon = (closeDropdown = true) => {
   }
 }
 
+const fileList = ref<UploadFile[]>([])
+
 const imageCropperData = ref({
   cropperConfig: {
     stencilProps: {
@@ -93,23 +90,6 @@ const handleOnUploadImage = async (data: any) => {
   vIconType.value = WorkspaceIconType.IMAGE
 
   isOpen.value = false
-  console.log('data', data)
-}
-
-const openUploadImage = () => {
-  imageCropperData.value.uploadConfig = {
-    path: [NOCO, 'workspace', currentWorkspace.value.id, 'icon'].join('/'),
-  }
-
-  imageCropperData.value.cropperConfig = {
-    ...imageCropperData.value.cropperConfig,
-    stencilProps: {
-      aspectRatio: 1,
-    },
-    minHeight: 150,
-    minWidth: 150,
-  }
-  open()
 }
 
 const showImageCropperLocal = ref(false)
@@ -124,25 +104,39 @@ const getWorkspaceLogoSrc = computed(() => {
   return []
 })
 
-onChangeFile((files) => {
-  if (files && files[0]) {
+const isUploadingImage = ref(false)
+
+const handleChange = (info: { file: UploadFile; fileList: File[] }) => {
+  if (info.file.status === 'uploading') {
+    isUploadingImage.value = true
+    return
+  }
+
+  if (info?.file?.status === 'done' && info.file.originFileObj instanceof File) {
     // 1. Revoke the object URL, to allow the garbage collector to destroy the uploaded before file
     if (imageCropperData.value.imageConfig.src) {
       URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
     }
     // 2. Create the blob link to the file to optimize performance:
-    const blob = URL.createObjectURL(files[0])
+    const blob = URL.createObjectURL(info.file.originFileObj)
 
     // 3. Update the image. The type will be derived from the extension
     imageCropperData.value.imageConfig = {
       src: blob,
-      type: files[0].type,
-      name: files[0].name,
+      type: info.file.originFileObj.type,
+      name: info.file.originFileObj.name,
     }
 
+    isUploadingImage.value = false
     showImageCropper.value = true
+    return
   }
-})
+
+  if (info.file.status === 'error') {
+    isUploadingImage.value = false
+    message.error('Failed to upload workspace logo.')
+  }
+}
 
 const onVisibilityChange = (value: boolean) => {
   if (!value && showImageCropperLocal.value) {
@@ -218,14 +212,16 @@ watch(showImageCropper, (newValue) => {
                       class="flex-none !object-contain max-h-full max-w-full !m-0 rounded-lg"
                     />
                   </div>
-                  <div class="flex-1">
-                    <div class="text-sm text-nc-content-gray">
+                  <div class="flex-1 w-[calc(100%_-_108px)]">
+                    <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                      <template #title> {{ vIcon?.title || 'Workspace logo' }}</template>
                       {{ vIcon?.title || 'Workspace logo' }}
-                    </div>
-                    <div v-if="vIcon?.size" class="text-sm text-nc-content-gray-muted">
-                      {{ vIcon?.size }}
+                    </NcTooltip>
+                    <div class="text-nc-content-gray-muted text-sm">
+                      {{ vIcon?.size ? `${(vIcon?.size / 1048576).toFixed(2)} MB` : '0 MB' }}
                     </div>
                   </div>
+
                   <div>
                     <NcButton icon-only type="text" size="xs" class="!px-1" @click="handleRemoveIcon(false)">
                       <template #icon>
@@ -234,16 +230,29 @@ watch(showImageCropper, (newValue) => {
                     </NcButton>
                   </div>
                 </div>
-                <NcButton size="small" type="secondary" @click="openUploadImage">
-                  <template #icon>
-                    <GeneralIcon icon="upload" class="w-4 h-4 flex-none" />
-                  </template>
-                  <div class="flex gap-2 items-center">
-                    <span>
-                      {{ vIconType === WorkspaceIconType.IMAGE && vIcon ? $t('general.replace') : $t('general.upload') }}
-                    </span>
-                  </div>
-                </NcButton>
+                <div>
+                  <a-upload-dragger
+                    v-model:fileList="fileList"
+                    name="file"
+                    accept="image/*"
+                    :disabled="isUploadingImage"
+                    :multiple="false"
+                    :show-upload-list="false"
+                    class="nc-workspace-image-uploader"
+                    @change="handleChange"
+                  >
+                    <div class="ant-upload-drag-icon !text-nc-content-gray-muted !mb-2 text-center">
+                      <div v-if="isUploadingImage" class="h-6 grid place-items-center">
+                        <GeneralLoader size="regular" />
+                      </div>
+                      <GeneralIcon v-else icon="upload" class="h-6 w-6" />
+                    </div>
+
+                    <div class="ant-upload-text !text-nc-content-gray-muted !text-sm">
+                      Drop your icon here or <span class="text-nc-content-brand hover:underline">browse file</span>
+                    </div>
+                  </a-upload-dragger>
+                </div>
               </div>
             </a-tab-pane>
 
@@ -334,6 +343,17 @@ watch(showImageCropper, (newValue) => {
     .tab-title {
       @apply text-nc-content-gray-muted hover:bg-transparent;
     }
+  }
+}
+</style>
+
+<style>
+.nc-workspace-image-uploader {
+  &.ant-upload.ant-upload-drag {
+    @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
+  }
+  .ant-upload-btn {
+    @apply !flex flex-col items-center justify-center !min-h-[176px];
   }
 }
 </style>

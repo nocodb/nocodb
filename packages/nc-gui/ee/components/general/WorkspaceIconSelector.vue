@@ -70,7 +70,7 @@ const fileList = ref<UploadFile[]>([])
 const imageCropperData = ref({
   cropperConfig: {
     stencilProps: {
-      aspectRatio: undefined,
+      aspectRatio: 1,
     },
     minHeight: 150,
     minWidth: 150,

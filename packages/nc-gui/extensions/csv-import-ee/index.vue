@@ -1093,7 +1093,13 @@ watch(
 }
 </style>
 
-<style>
+<style lang="scss">
+.nc-nc-csv-import .extension-content {
+  &:not(.fullscreen){
+    @apply p-3;
+  }
+}
+
 .nc-csv-file-uploader {
   &.ant-upload.ant-upload-drag {
     @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;

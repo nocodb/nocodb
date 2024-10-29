@@ -101,4 +101,10 @@ onMounted(() => {
   </ExtensionsExtensionWrapper>
 </template>
 
-<style lang="scss"></style>
+<style lang="scss">
+.nc-nc-json-exporter .extension-content {
+  &:not(.fullscreen){
+    @apply p-3;
+  }
+}
+</style>

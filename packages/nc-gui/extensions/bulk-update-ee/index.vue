@@ -195,6 +195,7 @@ const filterOption = (input: string, option: { key: string }) => {
 }
 
 onMounted(() => {
+  console.log('extension mounted', extension.value)
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
   deletedExports.value = extension.value.kvStore.get('deletedExports') || []
   reloadViews()
@@ -206,7 +207,7 @@ onMounted(() => {
   <ExtensionsExtensionWrapper>
     <div
       ref="dataExporterRef"
-      class="data-exporter"
+      class="bulk-update-ee"
       :class="{
         'p-4': fullscreen,
         'p-3': !fullscreen,
@@ -425,7 +426,7 @@ onMounted(() => {
 </style>
 
 <style>
-.nc-nc-data-exporter .extension-content {
+.nc-nc-bulk-update-ee .extension-content {
   @apply !p-0;
 }
 </style>

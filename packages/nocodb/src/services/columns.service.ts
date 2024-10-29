@@ -135,6 +135,41 @@ async function reuseOrSave(
   return res;
 }
 
+async function getJunctionTableName(
+  param: {
+    base: Base;
+  },
+  parent: Model,
+  child: Model,
+) {
+  const parentTable = param.base?.prefix
+    ? parent.table_name.replace(`${param.base?.prefix}_`, '')
+    : parent.table_name;
+  const childTable = param.base?.prefix
+    ? child.table_name.replace(`${param.base?.prefix}_`, '')
+    : child.table_name;
+
+  const tableName = `${
+    param.base?.prefix ?? ''
+  }_nc_m2m_${parentTable.slice(0, 15)}_${childTable.slice(0, 15)}`;
+  let suffix: number = null;
+  // check table name avail or not, if not then add incremental suffix
+  while (
+    await Noco.ncMeta.metaGet2(
+      (parent as any).fk_workspace_id,
+      parent.base_id,
+      MetaTable.MODELS,
+      {
+        table_name: `${tableName}${suffix ?? ''}`,
+        source_id: parent.source_id,
+      },
+    )
+  ) {
+    suffix = suffix ? suffix + 1 : 1;
+  }
+  return `${tableName}${suffix ?? ''}`;
+}
+
 @Injectable()
 export class ColumnsService {
   constructor(
@@ -3266,7 +3301,7 @@ export class ColumnsService {
         param.colExtra,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
-      const aTn = `${param.base?.prefix ?? ''}_nc_m2m_${randomID()}`;
+      const aTn = await getJunctionTableName(param, parent, child);
       const aTnAlias = aTn;
 
       const parentPK = parent.primaryKey;
@@ -3274,8 +3309,8 @@ export class ColumnsService {
 
       const associateTableCols = [];
 
-      const parentCn = 'table1_id';
-      const childCn = 'table2_id';
+      const parentCn = `${parent.table_name.slice(0, 30)}_id`;
+      const childCn = `${child.table_name.slice(0, 30)}_id`;
 
       associateTableCols.push(
         {

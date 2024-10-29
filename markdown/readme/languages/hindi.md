@@ -1,7 +1,7 @@
 <h1 align="center" style="border-bottom: none">
     <div>
         <a style="color:#36f" href="https://www.nocodb.com">
-            <img src="/packages/nc-gui/assets/img/icons/512x512.png" width="80" />
+            <img src="/packages/nc-gui/assets/img/icons/512x512.png" width="80" alt="NocoDB लोगो" />
             <br>
             NocoDB
         </a>
@@ -158,5 +158,5 @@ bash <(curl -sSL http://install.nocodb.com/noco.sh) <(mktemp)
 आपके योगदान के लिए धन्यवाद! हम समुदाय से सभी योगदानों की सराहना करते हैं।
 
 <a href="https://github.com/nocodb/nocodb/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=nocodb/nocodb" />
+  <img src="https://contrib.rocks/image?repo=nocodb/nocodb" alt="NocoDB योगदानकर्ता"/>
 </a>

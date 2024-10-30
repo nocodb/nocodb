@@ -2,6 +2,7 @@
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
 import type { CommandPaletteType } from '~/lib/types'
+import LinkedItems from '../virtual-cell/components/LinkedItems.vue'
 
 interface CmdAction {
   id: string
@@ -10,7 +11,8 @@ interface CmdAction {
   parent?: string
   handler?: Function
   scopePayload?: any
-  icon?: VNode | string
+  icon?: VNode | string | Record<string, any>
+  iconType?: string
   keywords?: string[]
   section?: string
   is_default?: number | null
@@ -85,6 +87,7 @@ const nestedScope = computed(() => {
       id: parent,
       label: parentEl?.title,
       icon: parentEl?.icon,
+      iconType: parentEl?.iconType,
       iconColor: parent.startsWith('ws-') ? parentEl?.iconColor : null,
     })
     parent = parentEl?.parent || 'root'
@@ -414,13 +417,15 @@ defineExpose({
                 <GeneralWorkspaceIcon
                   v-if="el.icon && el.id.startsWith('ws')"
                   :workspace="{
+                    title: el.label,
                     id: el.id.split('-')[1],
                     meta: {
                       color: el.iconColor,
+                      icon: el.icon,
+                      iconType: el.iconType,
                     },
                   }"
-                  hide-label
-                  size="small"
+                  size="medium"
                 />
 
                 <component
@@ -501,13 +506,16 @@ defineExpose({
                           <GeneralWorkspaceIcon
                             v-if="item.data.icon && item.data.id.startsWith('ws')"
                             :workspace="{
+                              title: item.data.title,
                               id: item.data.id.split('-')[2],
                               meta: {
                                 color: item.data?.iconColor,
+                                icon: item.data?.icon,
+                                iconType: item.data?.iconType,
                               },
                             }"
                             class="mr-2"
-                            size="small"
+                            size="medium"
                           />
                           <template v-else-if="item.data.section === 'Bases' || item.data.icon === 'project'">
                             <GeneralBaseIconColorPicker

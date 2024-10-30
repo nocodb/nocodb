@@ -7,10 +7,6 @@ const { loadOrg } = orgStore
 
 const { members, fetchOrganizationMembers, workspaces, listWorkspaces, bases, fetchOrganizationBases } = useOrganization()
 
-const { getPossibleAttachmentSrc } = useAttachment()
-
-const getOrgLogoSrc = computed(() => getPossibleAttachmentSrc(parseProp(org.value.image)))
-
 onMounted(async () => {
   await Promise.all([loadOrg(), fetchOrganizationMembers(), listWorkspaces(), fetchOrganizationBases()])
 })
@@ -47,22 +43,17 @@ onMounted(async () => {
         </span>
         <div class="flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-5">
           <div class="flex items-center gap-5">
-            <img
-              v-if="org.image"
-              :src="getOrgLogoSrc"
-              :srcset="getOrgLogoSrc"
-              alt="Organization Logo"
-              class="w-16 h-16 rounded-xl"
-            />
             <GeneralWorkspaceIcon
-              v-else
               :workspace="{
                 id: org.id,
                 title: org?.title,
+                ...(org.image ? { meta: { icon: parseProp(org.image), iconType: WorkspaceIconType.IMAGE } } : {}),
               }"
-              class="w-24 h-24"
-              is-rounded
-              size="large"
+              :class="{
+                'w-24 h-24': !org.image,
+              }"
+              :is-rounded="!org.image"
+              size="xlarge"
             />
             <span class="text-gray-900 text-2xl font-semibold"> {{ org.title }} </span>
           </div>

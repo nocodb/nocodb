@@ -39,7 +39,6 @@ const workspaceIcon = computed(() => {
   return {
     icon: iconType === WorkspaceIconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : icon,
     iconType: iconType,
-    isUnicodeEmoji: iconType === WorkspaceIconType.EMOJI && icon ? icon?.match(/\p{Extended_Pictographic}/gu) : false,
   }
 })
 
@@ -103,11 +102,21 @@ const size = computed(() => props.size || 'medium')
           'text-4xl': size === 'xlarge',
         }"
       >
-        <template v-if="workspaceIcon.isUnicodeEmoji">
+        <template v-if="isUnicodeEmoji(workspaceIcon.icon)">
           {{ workspaceIcon.icon }}
         </template>
         <template v-else>
-          <Icon :data-testid="`nc-icon-${workspaceIcon.icon}`" class="!text-inherit flex-none" :icon="workspaceIcon.icon"></Icon>
+          <Icon
+            :data-testid="`nc-icon-${workspaceIcon.icon}`"
+            class="!text-inherit flex-none"
+            :class="{
+              'w-3 h-3': size === 'small',
+              'w-4 h-4': size === 'medium',
+              'w-6 h-6': size === 'large',
+              'w-10 h-10': size === 'xlarge',
+            }"
+            :icon="workspaceIcon.icon"
+          ></Icon>
         </template>
       </div>
       <GeneralIcon

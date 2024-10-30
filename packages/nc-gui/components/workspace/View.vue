@@ -109,7 +109,7 @@ onMounted(() => {
       <NcPageHeader>
         <template #icon>
           <div class="flex justify-center items-center h-6 w-6">
-            <GeneralWorkspaceIcon :workspace="currentWorkspace" hide-label size="small" />
+            <GeneralWorkspaceIcon :workspace="currentWorkspace" size="medium" />
           </div>
         </template>
         <template #title>
@@ -166,11 +166,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.nc-workspace-avatar {
-  @apply min-w-5 h-5 w-5 rounded-[6px] flex items-center justify-center text-white font-weight-bold uppercase;
-  font-size: 0.7rem;
-}
-
 .tab {
   @apply flex flex-row items-center gap-x-2;
 }

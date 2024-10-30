@@ -78,6 +78,8 @@ export const useOrganization = () => {
     try {
       let ws = await api.orgWorkspace.list(orgId.value)
       ws = ws.map((w) => {
+        w.meta = parseProp(w.meta)
+
         w.members = w.members.map((user: any) => JSON.parse(user))
         w.memberCount = w.members.length
 

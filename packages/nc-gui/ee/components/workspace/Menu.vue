@@ -188,12 +188,12 @@ const onWorkspaceCreateClick = () => {
                 @click="switchWorkspace(workspace.id!)"
               >
                 <div
-                  class="nc-workspace-menu-item group capitalize max-w-[calc(100%-3.5rem)] flex"
+                  class="nc-workspace-menu-item group capitalize max-w-[calc(100%-3.5rem)] flex items-center"
                   data-testid="nc-workspace-list"
                   :style="`width: ${leftSidebarWidth + 26}px`"
                 >
                   <div class="flex flex-row w-[calc(100%-2rem)] truncate items-center gap-2">
-                    <GeneralWorkspaceIcon :workspace="workspace" hide-label size="small" />
+                    <GeneralWorkspaceIcon :workspace="workspace" size="medium" />
                     <span class="capitalize mb-0 nc-workspace-title truncate min-w-10">
                       {{ workspace?.title }}
                     </span>

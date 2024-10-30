@@ -18912,8 +18912,82 @@
           "required": true
         }
       ]
+    },
+    "/api/v2/tables/:tableId/button/:fieldId": {
+      "post": {
+        "summary": "Trigger a button action",
+        "operationId": "action-trigger-button",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customRows": {
+                    "type": "array",
+                    "items": {
+                      "schema": {
+                        "type": "object"
+                      }
+                    }
+                  },
+                  "rowIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "customField": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Action"],
+        "description": "Trigger a button action"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "fieldId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "boolean"
+          },
+          "name": "passThrough",
+          "in": "query",
+          "description": "Trigger AI action with custom record data provided in request body as rows",
+          "required": false
+        }
+      ]
     }
-    
   },
   "components": {
     "schemas": {

@@ -270,7 +270,8 @@ export class AiDataService {
     context: NcContext,
     params: {
       modelId: string;
-      rowIds: string[];
+      rowIds?: string[];
+      rows?: { [key: string]: any }[];
       req: NcRequest;
       columnId?: string;
       aiPayload?: {
@@ -288,16 +289,21 @@ export class AiDataService {
       modelId,
       columnId,
       aiPayload,
-      rowIds,
+      rowIds = [],
+      rows = [],
       req,
       preview = false,
     } = params;
 
-    if (!rowIds.length) {
+    if (!rowIds.length && !rows.length) {
       return [];
     }
 
-    if (rowIds.length > 25) {
+    if (rowIds.length && rows.length) {
+      NcError.badRequest('Either rowIds or rows should be provided');
+    }
+
+    if (rowIds.length > 25 || rows.length > 25) {
       NcError.badRequest('Only 25 rows can be processed at a time!');
     }
 
@@ -330,6 +336,7 @@ export class AiDataService {
           model,
           column,
           rowIds,
+          rows,
           preview,
           req,
         });
@@ -378,14 +385,17 @@ export class AiDataService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const records = await baseModel.list(
-      {
-        pks: rowIds.join(','),
-      },
-      {
-        ignoreViewFilterAndSort: true,
-      },
-    );
+    const records = rowIds.length
+      ? await baseModel.list(
+          {
+            pks: rowIds.join(','),
+          },
+          {
+            ignoreViewFilterAndSort: true,
+            ignorePagination: true,
+          },
+        )
+      : rows;
 
     const integration = await Integration.get(context, ai.fk_integration_id);
 
@@ -418,7 +428,9 @@ export class AiDataService {
     const userMessage = JSON.stringify(
       records.map((row) => {
         const pkObj = baseModel.model.primaryKeys.reduce((acc, pk) => {
-          acc[pk.title] = row[pk.title];
+          if (row[pk.title]) {
+            acc[pk.title] = row[pk.title];
+          }
           return acc;
         }, {});
 
@@ -453,6 +465,17 @@ export class AiDataService {
       }),
     );
 
+    const pkSchema = records.every((r) => {
+      return baseModel.model.primaryKeys.every((pk) => r[pk.title]);
+    })
+      ? Object.fromEntries(
+          baseModel.model.primaryKeys.map((pk) => [
+            pk.title,
+            z.string().or(z.number()),
+          ]),
+        )
+      : {};
+
     const { data, usage } = await wrapper.generateObject<{
       rows: { [key: string]: string }[];
     }>({
@@ -460,12 +483,7 @@ export class AiDataService {
         rows: z.array(
           z.object({
             [returnTitle]: z.string(),
-            ...Object.fromEntries(
-              baseModel.model.primaryKeys.map((pk) => [
-                pk.title,
-                z.string().or(z.number()),
-              ]),
-            ),
+            ...pkSchema,
           }),
         ),
       }),
@@ -492,13 +510,13 @@ export class AiDataService {
 
     await integration.storeInsert(context, req?.user?.id, usage);
 
-    const { rows } = data;
+    const { rows: returnRows } = data;
 
-    if (preview || aiPayload) {
-      return rows;
+    if (preview || aiPayload || rows.length) {
+      return returnRows;
     }
 
-    const updatedRows = await baseModel.bulkUpdate(rows, {
+    const updatedRows = await baseModel.bulkUpdate(returnRows, {
       cookie: {
         ...req,
         system: true,
@@ -512,7 +530,8 @@ export class AiDataService {
     context: NcContext,
     params: {
       model: Model;
-      rowIds: string[];
+      rowIds?: string[];
+      rows?: { [key: string]: any }[];
       req: NcRequest;
       column?: Column;
       aiPayload?: {
@@ -526,14 +545,26 @@ export class AiDataService {
       preview?: boolean;
     },
   ) {
-    const { model, column, aiPayload, rowIds, req, preview = false } = params;
+    const {
+      model,
+      column,
+      aiPayload,
+      rowIds = [],
+      rows = [],
+      req,
+      preview = false,
+    } = params;
 
-    if (!rowIds.length) {
+    if (!rowIds.length && !rows.length) {
       return [];
     }
 
-    if (rowIds.length > 25) {
+    if (rowIds.length > 25 || rows.length > 25) {
       NcError.badRequest('Only 25 rows can be processed at a time!');
+    }
+
+    if (rowIds.length && rows.length) {
+      NcError.badRequest('Either rowIds or rows should be provided');
     }
 
     let aiButton: Partial<ButtonColumn>;
@@ -602,14 +633,17 @@ export class AiDataService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const records = await baseModel.list(
-      {
-        pks: rowIds.join(','),
-      },
-      {
-        ignoreViewFilterAndSort: true,
-      },
-    );
+    const records = rowIds.length
+      ? await baseModel.list(
+          {
+            pks: rowIds.join(','),
+          },
+          {
+            ignoreViewFilterAndSort: true,
+            ignorePagination: true,
+          },
+        )
+      : rows;
 
     const outputColumnIds = aiButton.output_column_ids?.split(',') || [];
 
@@ -634,7 +668,9 @@ export class AiDataService {
     let userMessage = JSON.stringify(
       records.map((row) => {
         const pkObj = baseModel.model.primaryKeys.reduce((acc, pk) => {
-          acc[pk.title] = row[pk.title];
+          if (row[pk.title]) {
+            acc[pk.title] = row[pk.title];
+          }
           return acc;
         }, {});
 
@@ -675,6 +711,17 @@ export class AiDataService {
       ? `\nColumn Rules:\nIf options are provided strictly use them & custom values are restricted\n${uidtHelp.userMessageAddition}`
       : '';
 
+    const pkSchema = records.every((r) => {
+      return baseModel.model.primaryKeys.every((pk) => r[pk.title]);
+    })
+      ? Object.fromEntries(
+          baseModel.model.primaryKeys.map((pk) => [
+            pk.title,
+            z.string().or(z.number()),
+          ]),
+        )
+      : {};
+
     const res = await wrapper.generateObject<{
       rows: { [key: string]: string }[];
     }>({
@@ -682,12 +729,7 @@ export class AiDataService {
         rows: z.array(
           z.object({
             ...Object.fromEntries(uidtHelp.schema),
-            ...Object.fromEntries(
-              baseModel.model.primaryKeys.map((pk) => [
-                pk.title,
-                z.string().or(z.number()),
-              ]),
-            ),
+            ...pkSchema,
           }),
         ),
       }),
@@ -718,14 +760,14 @@ export class AiDataService {
 
     await integration.storeInsert(context, req?.user?.id, usage);
 
-    const { rows } = data;
+    const { rows: returnRows } = data;
 
-    if (preview || aiPayload) {
-      return rows;
+    if (preview || aiPayload || rows.length) {
+      return returnRows;
     }
 
     try {
-      const updatedRows = await baseModel.bulkUpdate(rows, {
+      const updatedRows = await baseModel.bulkUpdate(returnRows, {
         cookie: {
           ...req,
           system: true,

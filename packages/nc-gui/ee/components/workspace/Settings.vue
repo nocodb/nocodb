@@ -234,8 +234,8 @@ const onCancel = () => {
       <div class="text-base font-bold text-nc-content-red-dark">Danger Zone</div>
       <div class="text-sm text-nc-content-gray-muted mt-2">Delete this workspace and all it’s contents.</div>
       <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
-        <component :is="iconMap.error" class="text-red-500 text-xl" />
-        <div class="font-sm text-normal font-medium ml-3">This action is irreversible</div>
+        <component :is="iconMap.alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
+        <div class="text-base font-bold ml-3">This action is irreversible</div>
       </div>
       <div class="flex flex-row w-full justify-end mt-8">
         <NcButton v-e="['c:workspace:settings:delete']" type="danger" size="small" @click="handleDelete">

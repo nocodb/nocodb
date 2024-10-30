@@ -255,8 +255,8 @@ const onCancel = () => {
         <a-form-item class="w-full !mb-0" name="title" :rules="rules.modalInput">
           <a-input
             ref="deleteWsInputRef"
-            autocomplete="off"
             v-model:value="form.modalInput"
+            autocomplete="off"
             class="w-full nc-input-sm nc-input-shadow"
             placeholder="Workspace Name"
           />

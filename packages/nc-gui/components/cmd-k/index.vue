@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { useMagicKeys, whenever } from '@vueuse/core'
 import { commandScore } from './command-score'
-import type { CommandPaletteType } from '~/lib/types'
-import LinkedItems from '../virtual-cell/components/LinkedItems.vue'
+import type { CommandPaletteType } from '#imports'
 
 interface CmdAction {
   id: string

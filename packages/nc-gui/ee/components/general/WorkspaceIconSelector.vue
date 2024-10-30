@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import type { UploadFile } from 'ant-design-vue'
+import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
+import { Upload } from 'ant-design-vue'
 import { WorkspaceIconType } from '#imports'
 import data from 'emoji-mart-vue-fast/data/apple.json'
 import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
@@ -20,6 +21,8 @@ const { currentWorkspace } = toRefs(props)
 const vIcon = useVModel(props, 'icon', emits)
 
 const vIconType = useVModel(props, 'iconType', emits)
+
+const { t } = useI18n()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -126,13 +129,21 @@ const getWorkspaceLogoSrc = computed(() => {
 
 const isUploadingImage = ref(false)
 
-const handleChange = (info: { file: UploadFile; fileList: File[] }) => {
-  if (info.file.status === 'uploading') {
+function rejectDrop(fileList: UploadFile[]) {
+  fileList.map((file) => {
+    return message.error(`${t('msg.error.fileUploadFailed')} ${file.name}`)
+  })
+}
+
+const handleChange = (info: UploadChangeParam) => {
+  const status = info.file.status
+
+  if (status === 'uploading') {
     isUploadingImage.value = true
     return
   }
 
-  if (info?.file?.status === 'done' && info.file.originFileObj instanceof File) {
+  if (status && status !== 'removed' && status === 'done' && info.file.originFileObj instanceof File) {
     // 1. Revoke the object URL, to allow the garbage collector to destroy the uploaded before file
     if (imageCropperData.value.imageConfig.src) {
       URL.revokeObjectURL(imageCropperData.value.imageConfig.src)
@@ -152,10 +163,31 @@ const handleChange = (info: { file: UploadFile; fileList: File[] }) => {
     return
   }
 
-  if (info.file.status === 'error') {
+  if (status === 'error') {
     isUploadingImage.value = false
-    message.error('Failed to upload workspace logo.')
+    message.error(`${t('msg.error.fileUploadFailed')} ${info.file.name}`)
   }
+}
+
+/** a workaround to override default antd upload api call */
+const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
+  fileList.value.forEach((f) => {
+    if (f.uid === customReqArgs.file.uid) {
+      f.status = 'done'
+      handleChange({ file: f, fileList: fileList.value })
+    }
+  })
+
+  customReqArgs.onSuccess()
+}
+
+/** check if the file size exceeds the limit */
+const beforeUpload = (file: UploadFile) => {
+  const exceedLimit = file.size! / 1024 / 1024 > 2
+  if (exceedLimit) {
+    message.error(`File ${file.name} is too big. The accepted file size is less than 2MB.`)
+  }
+  return !exceedLimit || Upload.LIST_IGNORE
 }
 
 const onVisibilityChange = (value: boolean) => {
@@ -254,7 +286,10 @@ watch(showImageCropper, (newValue) => {
                     :multiple="false"
                     :show-upload-list="false"
                     class="nc-workspace-image-uploader"
+                    :custom-request="customReqCbk"
+                    :before-upload="beforeUpload"
                     @change="handleChange"
+                    @reject="rejectDrop"
                   >
                     <div class="ant-upload-drag-icon !text-nc-content-gray-muted !mb-2 text-center">
                       <div v-if="isUploadingImage" class="h-6 grid place-items-center">

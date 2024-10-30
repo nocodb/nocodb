@@ -245,6 +245,11 @@ interface FormFieldsLimitOptionsType {
 interface ImageCropperConfig {
   stencilProps?: {
     aspectRatio?: number
+    /**
+     * It can be used to force the cropper fills all visible area by default:
+     * @default true
+     */
+    fillDefault?: boolean
   }
   minHeight?: number
   minWidth?: number

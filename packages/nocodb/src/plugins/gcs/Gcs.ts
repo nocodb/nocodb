@@ -13,6 +13,7 @@ interface GoogleCloudStorageInput {
   private_key: string;
   bucket: string;
   project_id?: string;
+  uniform_bucket_level_access?: boolean;
 }
 
 export default class Gcs implements IStorageAdapterV2 {
@@ -32,6 +33,12 @@ export default class Gcs implements IStorageAdapterV2 {
       patchedKey = patchedKey.replace(`${this.bucketName}/`, '');
     }
     return patchedKey;
+  }
+
+  private aclConfig(): { predefinedAcl: 'publicRead' } | {} {
+    return this.input.uniform_bucket_level_access
+      ? {}
+      : { predefinedAcl: 'publicRead' };
   }
 
   public async init(): Promise<void> {
@@ -89,10 +96,10 @@ export default class Gcs implements IStorageAdapterV2 {
         destination: this.patchKey(key),
         contentType: file?.mimetype || 'application/octet-stream',
         gzip: true,
-        predefinedAcl: 'publicRead',
         metadata: {
           cacheControl: 'public, max-age=31536000',
         },
+        ...this.aclConfig(),
       });
 
     return uploadResponse.publicUrl();
@@ -114,11 +121,11 @@ export default class Gcs implements IStorageAdapterV2 {
         .pipe(
           file.createWriteStream({
             gzip: true,
-            predefinedAcl: 'publicRead',
             metadata: {
               contentType: options.mimetype || 'application/octet-stream',
               cacheControl: 'public, max-age=31536000',
             },
+            ...this.aclConfig(),
           }),
         )
         .on('finish', () => resolve())

@@ -149,9 +149,10 @@ async function getJunctionTableName(
     ? child.table_name.replace(`${param.base?.prefix}_`, '')
     : child.table_name;
 
-  const tableName = `${
-    param.base?.prefix ?? ''
-  }_nc_m2m_${parentTable.slice(0, 15)}_${childTable.slice(0, 15)}`;
+  const tableName = `${param.base?.prefix ?? ''}_nc_m2m_${parentTable.slice(
+    0,
+    15,
+  )}_${childTable.slice(0, 15)}`;
   let suffix: number = null;
   // check table name avail or not, if not then add incremental suffix
   while (
@@ -3310,7 +3311,12 @@ export class ColumnsService {
       const associateTableCols = [];
 
       const parentCn = `${parent.table_name.slice(0, 30)}_id`;
-      const childCn = `${child.table_name.slice(0, 30)}_id`;
+      let childCn = `${child.table_name.slice(0, 30)}_id`;
+
+      // handle duplicate column names in self referencing tables or if first 30 characters are same
+      if (parentCn === childCn) {
+        childCn = `${child.table_name.slice(0, 29)}1_id`;
+      }
 
       associateTableCols.push(
         {

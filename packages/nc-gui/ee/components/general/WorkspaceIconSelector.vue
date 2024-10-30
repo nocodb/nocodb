@@ -229,14 +229,14 @@ watch(showImageCropper, (newValue) => {
         />
       </div>
       <template #overlay>
-        <div class="pt-2">
-          <NcTabs v-model:activeKey="activeTab" theme="ai" class="nc-workspace-icon-dropdown-tabs">
+        <div class="pt-2 h-[320px]">
+          <NcTabs v-model:activeKey="activeTab" theme="ai" class="nc-workspace-icon-dropdown-tabs h-full">
             <template #leftExtra>
               <div class="w-0"></div>
             </template>
             <template #rightExtra>
               <div>
-                <NcButton size="xs" type="text" @click.stop="handleRemoveIcon"> Remove </NcButton>
+                <NcButton size="xs" type="text" :disabled="!vIcon" @click.stop="handleRemoveIcon"> Remove </NcButton>
               </div>
             </template>
             <a-tab-pane :key="WorkspaceIconType.IMAGE" class="w-full" :disabled="isLoading">
@@ -251,7 +251,7 @@ watch(showImageCropper, (newValue) => {
                   Upload
                 </div>
               </template>
-              <div class="p-2 flex flex-col gap-2.5">
+              <div class="p-2 flex flex-col gap-2.5 h-full">
                 <div v-if="getWorkspaceLogoSrc.length" class="flex items-center gap-4">
                   <div class="h-12 w-12 p-2">
                     <CellAttachmentPreviewImage
@@ -277,7 +277,7 @@ watch(showImageCropper, (newValue) => {
                     </NcButton>
                   </div>
                 </div>
-                <div>
+                <div class="flex-1">
                   <a-upload-dragger
                     v-model:fileList="fileList"
                     name="file"
@@ -314,7 +314,7 @@ watch(showImageCropper, (newValue) => {
                   Emoji
                 </div>
               </template>
-              <div class="">
+              <div class="h-full">
                 <Picker
                   :data="emojiIndex"
                   :native="true"
@@ -335,32 +335,31 @@ watch(showImageCropper, (newValue) => {
                   Icon
                 </div>
               </template>
-              <div class="">
-                <div class="h-[244px] overflow-auto nc-scrollbar-thin flex flex-col">
-                  <div class="!sticky top-0 flex gap-2 bg-white px-2 py-2">
-                    <a-input
-                      ref="inputRef"
-                      v-model:value="searchQuery"
-                      :placeholder="$t('placeholder.searchIcons')"
-                      class="nc-dropdown-search-unified-input z-10"
-                    >
-                      <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
-                    ></a-input>
-                  </div>
 
-                  <div v-if="icons.length" class="grid px-3 auto-rows-max pb-2 gap-3 grid-cols-10">
-                    <component
-                      :is="i"
-                      v-for="({ icon: i, name }, idx) in icons"
-                      :key="idx"
-                      :icon="i"
-                      class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
-                      @click="selectIcon(name)"
-                    />
-                  </div>
-                  <div v-else class="flex-1 grid place-items-center">
-                    <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
-                  </div>
+              <div class="h-full overflow-auto nc-scrollbar-thin flex flex-col">
+                <div class="!sticky top-0 flex gap-2 bg-white px-2 py-2">
+                  <a-input
+                    ref="inputRef"
+                    v-model:value="searchQuery"
+                    :placeholder="$t('placeholder.searchIcons')"
+                    class="nc-dropdown-search-unified-input z-10"
+                  >
+                    <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
+                  ></a-input>
+                </div>
+
+                <div v-if="icons.length" class="grid px-3 auto-rows-max pb-2 gap-3 grid-cols-10">
+                  <component
+                    :is="i"
+                    v-for="({ icon: i, name }, idx) in icons"
+                    :key="idx"
+                    :icon="i"
+                    class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
+                    @click="selectIcon(name)"
+                  />
+                </div>
+                <div v-else class="flex-1 grid place-items-center">
+                  <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" class="!my-0" />
                 </div>
               </div>
             </a-tab-pane>
@@ -405,6 +404,10 @@ watch(showImageCropper, (newValue) => {
     }
   }
 
+  :deep(.ant-tabs-content) {
+    @apply h-full;
+  }
+
   &.nc-ai-loading {
     :deep(.ant-tabs-tab) {
       @apply !cursor-wait;
@@ -430,7 +433,7 @@ watch(showImageCropper, (newValue) => {
 }
 
 .nc-workspace-emoji-picker.emoji-mart {
-  @apply !w-108 !border-none;
+  @apply !w-108 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
 
   span.emoji-type-native {
     @apply cursor-pointer;

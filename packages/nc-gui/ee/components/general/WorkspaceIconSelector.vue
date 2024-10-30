@@ -179,7 +179,7 @@ watch(showImageCropper, (newValue) => {
   <div>
     <NcDropdown v-model:visible="isOpen" overlay-class-name="w-[432px]" @visible-change="onVisibilityChange">
       <div
-        class="mt-2 rounded-lg border-1 flex-none w-16 h-16 overflow-hidden transition-all duration-300 cursor-pointer"
+        class="rounded-lg border-1 flex-none w-17 h-17 overflow-hidden transition-all duration-300 cursor-pointer"
         :class="{
           'border-transparent': !isOpen && vIconType === WorkspaceIconType.IMAGE,
           'border-nc-gray-medium': !isOpen && vIconType !== WorkspaceIconType.IMAGE,

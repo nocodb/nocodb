@@ -179,7 +179,6 @@ const onCancel = () => {
       <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
         <div class="flex gap-4 mt-6">
           <div>
-            <div class="text-sm text-nc-content-gray-subtle2">Icon</div>
             <GeneralWorkspaceIconSelector
               v-model:icon="form.icon"
               v-model:icon-type="form.iconType"
@@ -188,7 +187,7 @@ const onCancel = () => {
           </div>
           <div class="flex-1">
             <div class="text-sm text-nc-content-gray-subtle2">Name</div>
-            <a-form-item name="title" :rules="formRules.title" class="!mt-2">
+            <a-form-item name="title" :rules="formRules.title" class="!mt-2 !mb-0">
               <a-input
                 v-model:value="form.title"
                 class="w-full !rounded-lg !px-4 h-10"

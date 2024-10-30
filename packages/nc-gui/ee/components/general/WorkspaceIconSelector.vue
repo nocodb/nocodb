@@ -96,7 +96,7 @@ const imageCropperData = ref({
     minWidth: 150,
   },
   imageConfig: {
-    src: currentWorkspace.value?.image,
+    src: '',
     type: 'image',
     name: 'icon',
   },

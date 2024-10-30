@@ -25,6 +25,8 @@ const isDeleteModalVisible = ref(false)
 const toBeDeletedWorkspaceTitle = ref('')
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const deleteWsInputRef = ref<HTMLInputElement>()
+
 const form = reactive<{
   title: string
   modalInput: string
@@ -129,6 +131,10 @@ const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
   toBeDeletedWorkspaceTitle.value = currentWorkspace.value.title
   isDeleteModalVisible.value = true
+
+  setTimeout(() => {
+    deleteWsInputRef.value?.focus()
+  }, 250)
 }
 
 watch(
@@ -203,6 +209,7 @@ const onCancel = () => {
           <NcButton
             v-if="isSaveChangesBtnEnabled"
             type="secondary"
+            size="small"
             data-testid="nc-workspace-settings-settings-rename-cancel"
             @click="onCancel"
           >
@@ -212,39 +219,43 @@ const onCancel = () => {
             v-e="['c:workspace:settings:rename']"
             type="primary"
             html-type="submit"
+            size="small"
             :disabled="isErrored || !isSaveChangesBtnEnabled || isWorkspaceUpdating"
             :loading="isWorkspaceUpdating"
             data-testid="nc-workspace-settings-settings-rename-submit"
           >
-            <template #loading> Saving Changes </template>
-            Save Changes
+            <template #loading> Saving </template>
+            Save
           </NcButton>
         </div>
       </a-form>
     </div>
     <div class="item-card flex flex-col border-1 border-red-500">
-      <div class="font-medium text-base">Delete Workspace</div>
-      <div class="text-gray-500 mt-2">Delete this workspace and all it’s contents.</div>
+      <div class="text-base font-bold text-nc-content-red-dark">Danger Zone</div>
+      <div class="text-sm text-nc-content-gray-muted mt-2">Delete this workspace and all it’s contents.</div>
       <div class="flex p-4 border-1 rounded-lg mt-6 items-center">
         <component :is="iconMap.error" class="text-red-500 text-xl" />
         <div class="font-sm text-normal font-medium ml-3">This action is irreversible</div>
       </div>
       <div class="flex flex-row w-full justify-end mt-8">
-        <NcButton v-e="['c:workspace:settings:delete']" type="danger" @click="handleDelete"> Delete Workspace </NcButton>
+        <NcButton v-e="['c:workspace:settings:delete']" type="danger" size="small" @click="handleDelete">
+          Delete Workspace
+        </NcButton>
       </div>
     </div>
   </div>
 
-  <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-attachment-rename-modal" size="small">
+  <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-attachment-rename-modal" size="small" centered>
     <div class="flex flex-col items-center justify-center h-full !p-6">
       <div class="text-lg font-semibold self-start mb-5">Delete Workspace</div>
-      <span class="self-start mb-2"
-        >Enter workspace name to delete - <b class="select-none"> ‘{{ toBeDeletedWorkspaceTitle }}’ </b>
+      <span class="self-start mb-2">
+        Enter workspace name to delete - <b class="select-none"> ‘{{ toBeDeletedWorkspaceTitle }}’ </b>
       </span>
       <a-form class="w-full h-full" no-style :model="form" @finish="onDelete">
         <a-form-item class="w-full !mb-0" name="title" :rules="rules.modalInput">
           <a-input
-            ref="inputEl"
+            ref="deleteWsInputRef"
+            autocomplete="off"
             v-model:value="form.modalInput"
             class="w-full nc-input-sm nc-input-shadow"
             placeholder="Workspace Name"

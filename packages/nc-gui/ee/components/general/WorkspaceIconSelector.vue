@@ -43,11 +43,9 @@ const activeTab = computed({
 
     activeTabLocal.value = value
 
-    if (value === WorkspaceIconType.ICON) {
-      nextTick(() => {
-        inputRef.value?.focus()
-      })
-    }
+    nextTick(() => {
+      focusInput()
+    })
   },
 })
 
@@ -196,6 +194,24 @@ const onVisibilityChange = (value: boolean) => {
   }
 }
 
+function focusInput() {
+  if (activeTab.value === WorkspaceIconType.EMOJI) {
+    setTimeout(() => {
+      const emojiInput = document.querySelector('.emoji-mart-search input') as HTMLInputElement
+
+      if (!emojiInput) return
+
+      emojiInput.focus()
+      emojiInput.select()
+    })
+  } else if (activeTab.value === WorkspaceIconType.ICON) {
+    setTimeout(() => {
+      inputRef.value?.focus()
+      inputRef.value?.select()
+    }, 250)
+  }
+}
+
 watch(showImageCropper, (newValue) => {
   if (newValue) {
     showImageCropperLocal.value = true
@@ -203,6 +219,14 @@ watch(showImageCropper, (newValue) => {
     setTimeout(() => {
       showImageCropperLocal.value = false
     }, 500)
+  }
+})
+
+watch(isOpen, (newValue) => {
+  if (newValue) {
+    nextTick(() => {
+      focusInput()
+    })
   }
 })
 </script>
@@ -255,8 +279,7 @@ watch(showImageCropper, (newValue) => {
                     :placeholder="$t('placeholder.searchIcons')"
                     class="nc-dropdown-search-unified-input z-10"
                   >
-                    <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
-                  ></a-input>
+                  </a-input>
                 </div>
 
                 <div v-if="icons.length" class="grid px-3 auto-rows-max pb-2 gap-3 grid-cols-10">
@@ -356,6 +379,9 @@ watch(showImageCropper, (newValue) => {
                   color="#40444D"
                   :auto-focus="true"
                   :show-categories="false"
+                  :i18n="{
+                    search: 'Search emoji',
+                  }"
                   class="nc-workspace-emoji-picker"
                   @select="selectEmoji"
                   @click.stop="() => {}"
@@ -419,6 +445,10 @@ watch(showImageCropper, (newValue) => {
     }
   }
 }
+
+:deep(.ant-input::placeholder) {
+  @apply text-gray-500;
+}
 </style>
 
 <style>
@@ -448,7 +478,7 @@ watch(showImageCropper, (newValue) => {
   .emoji-mart-search {
     @apply px-2 mt-2;
     input {
-      @apply text-sm pl-3.5 rounded-lg !h-8 transition-all duration-300 !outline-none ring-0;
+      @apply text-sm pl-[11px] rounded-lg !h-8 transition-all duration-300 !outline-none ring-0;
 
       &:focus {
         @apply !outline-none ring-0 !h-8 shadow-selected border-primary;

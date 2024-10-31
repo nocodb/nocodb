@@ -6,7 +6,7 @@ const route = router.currentRoute
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isViewsLoading } = storeToRefs(useViewsStore())
+const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
@@ -54,7 +54,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <GeneralApiLoader v-if="!isMobileMode" />
 
         <NcButton
-          v-if="!isSharedBase && extensionsEgg"
+          v-if="!isSharedBase && extensionsEgg && openedViewsTab === 'view'"
           v-e="['c:extension-toggle']"
           type="secondary"
           size="small"

@@ -12,8 +12,6 @@ const searchQuery = useVModel(props, 'searchQuery', emits)
 
 const isOpen = useVModel(props, 'isOpen', emits)
 
-const {} = toRefs(props)
-
 const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails } = useExtensions()
 
 const filteredAvailableExtensions = computed(() =>

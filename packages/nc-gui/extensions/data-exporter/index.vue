@@ -473,9 +473,6 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-:deep(.extension-content-container) {
-  @apply !p-0;
-}
 .data-exporter {
   @apply flex flex-col overflow-hidden h-full;
   .data-exporter-header {

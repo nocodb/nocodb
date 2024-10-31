@@ -204,11 +204,7 @@ useEventListener('keydown', (e) => {
 }
 
 .extension-content {
-  @apply rounded-lg;
-
-  &:not(.fullscreen) {
-    @apply p-3;
-  }
+  @apply rounded-b-lg;
 }
 
 .extension-modal {

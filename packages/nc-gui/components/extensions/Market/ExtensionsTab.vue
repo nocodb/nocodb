@@ -42,14 +42,15 @@ const onAddExtension = (ext: any) => {
       <div v-if="searchQuery" class="text-base text-nc-content-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
 
       <div
-        class="pb-2 grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
+        class="pb-2 grid gap-4"
         :class="{
           'h-full': searchQuery && !filteredAvailableExtensions.length && availableExtensions.length,
+          'grid-cols-1 md:grid-cols-2 xl:grid-cols-3': !(searchQuery && !filteredAvailableExtensions.length && availableExtensions.length),
         }"
       >
         <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
           <div
-            class="nc-market-extension-item  flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
+            class="nc-market-extension-item flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
             @click="onExtensionClick(ext.id)"
           >
             <div class="h-[56px] w-[56px] overflow-hidden m-auto flex-none">

@@ -40,9 +40,13 @@ const tabs = [
 
 const vModel = useVModel(props, 'modelValue', emit)
 
+const searchWrapperRef = ref<HTMLDivElement>()
+
 const searchRef = ref<HTMLInputElement>()
 
 const searchQuery = ref<string>('')
+
+const showSearchBox = ref<boolean>(true)
 
 const activeTab = ref<TabKeysType>('extensions')
 
@@ -54,14 +58,28 @@ const focusSearchInput = () => {
   })
 }
 
+const handleShowSearchInput = () => {
+  showSearchBox.value = true
+
+  focusSearchInput()
+}
+
 const handleSetActiveTab = (tab: TabItem) => {
   if (tab.isDisabled) return
 
   searchQuery.value = ''
   activeTab.value = tab.tabKey
 
-  focusSearchInput()
+  handleShowSearchInput()
 }
+
+onClickOutside(searchWrapperRef, (e) => {
+  if (searchQuery.value) {
+    return
+  }
+
+  showSearchBox.value = false
+})
 
 onMounted(() => {
   focusSearchInput()
@@ -116,8 +134,13 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex-1 flex gap-3 justify-end">
-          <div v-if="activeTab !== 'build-an-extension'" class="flex-1 flex max-w-[290px]">
+          <div ref="searchWrapperRef" v-if="activeTab !== 'build-an-extension'" class="flex-1 flex max-w-[290px] justify-end">
+            <NcButton v-if="!searchQuery && !showSearchBox" class="!px-1" type="text" size="small" @click="handleShowSearchInput">
+              <GeneralIcon icon="search" class="h-4 w-4 text-current" />
+            </NcButton>
+
             <a-input
+              v-if="searchQuery || showSearchBox"
               ref="searchRef"
               v-model:value="searchQuery"
               type="text"

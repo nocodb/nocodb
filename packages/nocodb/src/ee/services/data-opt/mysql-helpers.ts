@@ -1278,6 +1278,21 @@ export async function singleQueryList(
   const countQb = knex(baseModel.getTnPath(ctx.model));
   countQb.count({ count: ctx.model.primaryKey?.column_name || '*' });
 
+  // handle shuffle if query param preset
+  if (+listArgs?.shuffle) {
+    await baseModel.shuffle({ qb: rootQb });
+  }
+
+  if (listArgs.pks) {
+    const pks = listArgs.pks.split(',');
+    rootQb.where((qb) => {
+      pks.forEach((pk) => {
+        qb.orWhere(_wherePk(ctx.model.primaryKeys, pk));
+      });
+      return qb;
+    });
+  }
+
   const aliasColObjMap = await ctx.model.getAliasColObjMap(context);
   let sorts = extractSortsObject(
     listArgs?.sort,

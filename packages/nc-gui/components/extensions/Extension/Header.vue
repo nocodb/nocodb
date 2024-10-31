@@ -75,7 +75,7 @@ const handleDuplicateExtension = async (id: string, open: boolean = false) => {
       'border-b-1 border-nc-border-gray-medium h-[49px]': !collapsed && !isFullscreen,
       'collapsed border-transparent h-[48px]': collapsed && !isFullscreen,
       'px-3 py-2 gap-1': !isFullscreen,
-      'gap-3 px-4 pt-4 pb-[15px] border-b-1 border-nc-border-gray-medium': isFullscreen,
+      'gap-3 px-4 pt-3 pb-[11px] border-b-1 border-nc-border-gray-medium': isFullscreen,
     }"
     @click="expandExtension"
   >

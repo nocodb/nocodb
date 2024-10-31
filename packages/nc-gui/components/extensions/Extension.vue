@@ -151,7 +151,10 @@ useEventListener('keydown', (e) => {
         <Teleport to="body" :disabled="!fullscreen">
           <div
             ref="extensionModalRef"
-            :class="{ 'extension-modal': fullscreen, 'h-[calc(100%_-_50px)]': !fullscreen }"
+            :class="[
+              fullscreen ? `nc-${extensionManifest?.id}` : '',
+              { 'extension-modal': fullscreen, 'h-[calc(100%_-_50px)]': !fullscreen },
+            ]"
             @click="closeFullscreen"
           >
             <div
@@ -212,7 +215,7 @@ useEventListener('keydown', (e) => {
   @apply absolute top-0 left-0 z-1000 w-full h-full bg-black bg-opacity-50 flex items-center justify-center;
 
   .extension-modal-content {
-    @apply bg-white rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col;
+    @apply bg-white rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col overflow-hidden;
   }
 }
 

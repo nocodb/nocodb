@@ -252,24 +252,29 @@ onMounted(async () => {
       ref="dataExporterRef"
       class="data-exporter"
       :class="{
-        'p-4': fullscreen,
+        'bg-nc-bg-gray-extralight': fullscreen,
       }"
     >
-      <div class="p-3 flex items-center justify-between gap-2.5 flex-wrap">
+      <div
+        class="p-3 flex items-center justify-between gap-2.5 flex-wrap"
+        :class="{
+          'bg-white': fullscreen,
+        }"
+      >
         <div
-          class="flex-1 flex items-center"
+          class="nc-data-exporter-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default"
           :class="{
-            'max-w-[min(350px,calc(100%-131px))]': isExporting && !fullscreen && width > 425,
-            'max-w-[min(350px,calc(100%_-_87px))]': !isExporting && !fullscreen && width > 425,
+            'max-w-[min(400px,calc(100%-131px))]': isExporting && !fullscreen && width > 425,
+            'max-w-[min(400px,calc(100%_-_87px))]': !isExporting && !fullscreen && width > 425,
             'max-w-full': width <= 425,
-            'max-w-[480px]': fullscreen,
+            'max-w-[474px]': fullscreen,
           }"
         >
           <a-form-item
             class="!my-0"
             :class="{
-              'flex-1 max-w-[240px]': fullscreen,
-              'min-w-1/2 max-w-[175px]': !fullscreen,
+              'flex-1 max-w-[237px]': fullscreen,
+              'min-w-1/2 max-w-[200px]': !fullscreen,
             }"
           >
             <NcSelect
@@ -306,8 +311,8 @@ onMounted(async () => {
           <a-form-item
             class="!my-0"
             :class="{
-              'flex-1 max-w-[240px]': fullscreen,
-              'min-w-1/2 max-w-[175px]': !fullscreen,
+              'flex-1 max-w-[237px]': fullscreen,
+              'min-w-1/2 max-w-[200px]': !fullscreen,
             }"
           >
             <NcSelect
@@ -319,6 +324,7 @@ onMounted(async () => {
               :filter-option="filterOption"
               show-search
               size="large"
+              placement="bottomRight"
               @change="onViewSelect"
             >
               <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
@@ -356,7 +362,7 @@ onMounted(async () => {
       <div
         class="data-exporter-body flex-1 flex flex-col"
         :class="{
-          'rounded-lg border-1': fullscreen,
+          'rounded-lg border-1 m-3': fullscreen,
         }"
       >
         <div class="data-exporter-header">Recent Exports</div>
@@ -365,7 +371,7 @@ onMounted(async () => {
             <div
               v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
               :key="exp.id"
-              class="p-3 flex gap-2 justify-between border-b-1 hover:bg-gray-50"
+              class="p-3 flex gap-2 justify-between border-b-1 bg-white hover:bg-gray-50"
               :class="{
                 'px-4 py-3': fullscreen,
                 'px-3 py-2': !fullscreen,
@@ -465,29 +471,47 @@ onMounted(async () => {
     @apply px-3 py-1 bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
   }
 
+  .nc-data-exporter-select-wrapper {
+    &:not(:focus-within) {
+      &::after {
+        @apply absolute left-1/2 h-full content-[''] border-r-1 border-nc-border-gray-medium;
+      }
+    }
+  }
+
   :deep(.nc-data-exporter-table-select.ant-select) {
     &.ant-select-focused {
       .ant-select-selector {
-        @apply z-10;
+        @apply z-10 !rounded-r-lg;
+      }
+    }
+
+    &:not(.ant-select-focused) {
+      .ant-select-selector {
+        @apply !border-transparent !shadow-none;
       }
     }
 
     .ant-select-selector {
-      @apply relative !border-r-1 !rounded-lg !rounded-r-none !text-sm;
+      @apply relative !rounded-lg !text-sm;
     }
   }
 
   :deep(.nc-data-exporter-view-select.ant-select) {
-    @apply -ml-[1px];
-
     &.ant-select-focused {
       .ant-select-selector {
-        @apply z-10;
+        @apply z-10 !rounded-l-lg;
+      }
+    }
+
+    &:not(.ant-select-focused) {
+      .ant-select-selector {
+        @apply !border-transparent !shadow-none;
       }
     }
 
     .ant-select-selector {
-      @apply relative !border-l-1 !rounded-lg !rounded-l-none !text-sm;
+      @apply relative !rounded-lg !text-sm;
     }
   }
 
@@ -501,8 +525,14 @@ onMounted(async () => {
 }
 </style>
 
-<style>
+<style lang="scss">
 .nc-nc-data-exporter .extension-content {
   @apply !p-0;
+
+  &.fullscreen {
+    .extension-header {
+      @apply !border-b-transparent;
+    }
+  }
 }
 </style>

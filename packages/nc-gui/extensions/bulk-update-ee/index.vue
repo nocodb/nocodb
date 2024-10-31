@@ -1,11 +1,25 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { type ViewType, ViewTypes } from 'nocodb-sdk'
+import { type ColumnType, type ViewType, ViewTypes, UITypes, getSystemColumnsIds } from 'nocodb-sdk'
 
 const jobStatusTooltip = {
   [JobStatus.COMPLETED]: 'Export successful',
   [JobStatus.FAILED]: 'Export failed',
 } as Record<string, string>
+
+const hiddenColTypes = [
+  UITypes.Rollup,
+  UITypes.Lookup,
+  UITypes.Formula,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.Button,
+  UITypes.SpecificDBType,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+]
 
 const { $api, $poller } = useNuxtApp()
 
@@ -21,8 +35,8 @@ const activeViewTitleOrId = computed(() => {
 })
 
 interface BulkUpdatePayloadType {
-  activeTableId?: string
-  activeViewId?: string
+  selectedTableId?: string
+  selectedViewId?: string
   history: BulkUpdateHistory[]
 }
 
@@ -40,12 +54,19 @@ interface BulkUpdateFieldConfig {
 }
 
 const bulkUpdatePayloadPlaceholder: BulkUpdatePayloadType = {
-  activeTableId: '',
-  activeViewId: '',
+  selectedTableId: '',
+  selectedViewId: '',
   history: [],
 }
 
-const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOrThrow()
+const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
+  id: '',
+  columnId: '',
+  op_type: '',
+  value: null,
+}
+
+const { extension, tables, fullscreen, getViewsForTable, getTableMeta } = useExtensionHelperOrThrow()
 
 const { jobList, loadJobsForBase } = useJobs()
 
@@ -57,19 +78,16 @@ const bulkUpdateRef = ref<HTMLDivElement>()
 
 const { width } = useElementSize(bulkUpdateRef)
 
-const exportedFiles = computed(() => {
-  return jobList.value
-    .filter(
-      (job) =>
-        job.job === 'data-export' && job.result?.extension_id === extension.value.id && !deletedExports.value.includes(job.id),
-    )
-    .map((job) => {
-      return {
-        ...job,
-        result: (job.result || {}) as { url: string; type: 'csv' | 'json' | 'xlsx'; title: string; timestamp: number },
-      }
-    })
-    .sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())
+const columns = ref<ColumnType[]>()
+
+const systemFieldsIds = computed(() => getSystemColumnsIds(columns.value))
+
+const columnsById = ref<Record<string, ColumnType>>({})
+
+const bulkUpdateColumns = computed(() => {
+  return columns.value?.filter((c) => {
+    return hiddenColTypes.includes(c.uidt) && !systemFieldsIds.value.includes(f.id)
+  })
 })
 
 const savedPayloads = ref<BulkUpdatePayloadType>(bulkUpdatePayloadPlaceholder)
@@ -85,7 +103,7 @@ const tableList = computed(() => {
 })
 
 const viewList = computed(() => {
-  if (!savedPayloads.value.activeTableId) return []
+  if (!savedPayloads.value.selectedTableId) return []
   return (
     views.value
       .filter((view) => view.type === ViewTypes.GRID)
@@ -123,9 +141,9 @@ const bulkUpdatePayload = computedAsync(async () => {
 
       saved.history = saved.history.filter((h) => (h.tableId && deletedTableIds.has(h.tableId) ? false : true))
 
-      if (saved.activeTableId && deletedTableIds.has(saved.activeTableId)) {
-        saved.activeTableId = ''
-        saved.activeViewId = ''
+      if (saved.selectedTableId && deletedTableIds.has(saved.selectedTableId)) {
+        saved.selectedTableId = ''
+        saved.selectedViewId = ''
       }
 
       savedPayloads.value = saved
@@ -136,7 +154,7 @@ const bulkUpdatePayload = computedAsync(async () => {
        * Todo: remove history object if table view is deleted
        */
 
-      if (!savedPayloads.value.activeTableId && tableList.value.find((table) => table.value === activeTableId.value)) {
+      if (!savedPayloads.value.selectedTableId && tableList.value.find((table) => table.value === activeTableId.value)) {
         onTableSelect()
       }
 
@@ -144,17 +162,17 @@ const bulkUpdatePayload = computedAsync(async () => {
     }
   }
 
-  if (savedPayloads.value.activeTableId && savedPayloads.value.activeViewId) {
+  if (savedPayloads.value.selectedTableId && savedPayloads.value.selectedViewId) {
     const historyIndex = savedPayloads.value.history.findIndex(
-      (h) => h.tableId === savedPayloads.value.activeTableId && h.viewId === savedPayloads.value.activeViewId,
+      (h) => h.tableId === savedPayloads.value.selectedTableId && h.viewId === savedPayloads.value.selectedViewId,
     )
 
     if (historyIndex !== -1) {
       return savedPayloads.value.history[historyIndex]
     } else {
       savedPayloads.value.history.push({
-        tableId: savedPayloads.value.activeTableId,
-        viewId: savedPayloads.value.activeViewId,
+        tableId: savedPayloads.value.selectedTableId,
+        viewId: savedPayloads.value.selectedViewId,
         config: [],
       })
 
@@ -164,29 +182,40 @@ const bulkUpdatePayload = computedAsync(async () => {
 })
 
 async function reloadViews() {
-  if (!savedPayloads.value.activeTableId) return
+  if (!savedPayloads.value.selectedTableId) return
 
-  views.value = await getViewsForTable(savedPayloads.value.activeTableId)
+  views.value = await getViewsForTable(savedPayloads.value.selectedTableId)
 }
 
 async function onTableSelect(tableId?: string) {
   if (!tableId) {
-    savedPayloads.value.activeTableId = activeTableId.value
+    savedPayloads.value.selectedTableId = activeTableId.value
     await reloadViews()
-    savedPayloads.value.activeViewId = activeViewTitleOrId.value
+    savedPayloads.value.selectedViewId = activeViewTitleOrId.value
       ? views.value.find((view) => view.id === activeViewTitleOrId.value)?.id
       : views.value.find((view) => view.is_default)?.id
   } else {
-    savedPayloads.value.activeTableId = tableId
+    savedPayloads.value.selectedTableId = tableId
     await reloadViews()
-    savedPayloads.value.activeViewId = views.value.find((view) => view.is_default)?.id
+    savedPayloads.value.selectedViewId = views.value.find((view) => view.is_default)?.id
+  }
+
+  const tableMeta = await getTableMeta(savedPayloads.value.selectedTableId)
+  if (tableMeta?.columns) {
+    columns.value = tableMeta.columns
+
+    columnsById.value = columns.value.reduce((acc, column) => {
+      if (!column.id) return acc
+      acc[column.id] = column
+      return acc
+    }, {} as Record<string, ColumnType>)
   }
 
   await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
 }
 
 const onViewSelect = async (viewId: string) => {
-  savedPayloads.value.activeViewId = viewId
+  savedPayloads.value.selectedViewId = viewId
   await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
 }
 
@@ -196,6 +225,53 @@ const filterOption = (input: string, option: { key: string }) => {
   return option.key?.toLowerCase()?.includes(input?.toLowerCase())
 }
 
+const fieldConfigExpansionPanel = ref<string[]>([])
+
+const handleUpdateFieldConfigExpansionPanel = (key: string) => {
+  if (fieldConfigExpansionPanel.value.includes(key)) {
+    fieldConfigExpansionPanel.value = []
+  } else {
+    fieldConfigExpansionPanel.value = [key]
+  }
+}
+
+const getNewFieldConfigId = (initId = 'fieldConfig') => {
+  let id = initId
+  let i = 1
+  while ((bulkUpdatePayload.value?.config || []).find((c) => c.id === id)) {
+    id = `${initId}_${i}`
+    i++
+  }
+  return id
+}
+
+function addNewAction() {
+  if (!bulkUpdatePayload.value) return
+  console.log('add action', bulkUpdatePayload.value)
+  const configId = getNewFieldConfigId()
+
+  bulkUpdatePayload.value.config = [
+    ...(bulkUpdatePayload.value.config || []),
+    { ...bulkUpdateFieldConfigPlaceholder, id: configId },
+  ]
+
+  handleUpdateFieldConfigExpansionPanel(configId)
+}
+
+watch(
+  fullscreen,
+  (newValue) => {
+    if (newValue) {
+      if (!bulkUpdatePayload.value?.config?.length) {
+        addNewAction()
+      }
+    }
+  },
+  {
+    immediate: true,
+  },
+)
+
 onMounted(async () => {
   await loadJobsForBase()
 })
@@ -204,6 +280,71 @@ onMounted(async () => {
 <template>
   <ExtensionsExtensionWrapper>
     <template v-if="fullscreen" #headerExtra>
+      <div
+        class="nc-bulk-update-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-[474px]"
+      >
+        <a-form-item class="!my-0 min-w-1/2">
+          <NcSelect
+            v-model:value="savedPayloads.selectedTableId"
+            placeholder="-select table-"
+            :disabled="isExporting"
+            class="nc-bulk-update-table-select nc-select-shadow"
+            :filter-option="filterOption"
+            dropdown-class-name="w-[250px]"
+            show-search
+            @change="onTableSelect"
+          >
+            <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
+              <div class="w-full flex items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+                </div>
+                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ table.label }}</template>
+                  <span>{{ table.label }}</span>
+                </NcTooltip>
+                <component
+                  :is="iconMap.check"
+                  v-if="savedPayloads.selectedTableId === table.value"
+                  id="nc-selected-item-icon"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </div>
+            </a-select-option>
+          </NcSelect>
+        </a-form-item>
+
+        <a-form-item class="!my-0 min-w-1/2">
+          <NcSelect
+            v-model:value="savedPayloads.selectedViewId"
+            placeholder="-select view-"
+            :disabled="isExporting"
+            class="nc-bulk-update-view-select nc-select-shadow"
+            dropdown-class-name="w-[250px]"
+            :filter-option="filterOption"
+            show-search
+            placement="bottomRight"
+            @change="onViewSelect"
+          >
+            <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
+              <div class="w-full flex items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                </div>
+                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ view.label }}</template>
+                  <span>{{ view.label }}</span>
+                </NcTooltip>
+                <component
+                  :is="iconMap.check"
+                  v-if="savedPayloads.selectedViewId === view.value"
+                  id="nc-selected-item-icon"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </div> </a-select-option
+          ></NcSelect>
+        </a-form-item>
+      </div>
       <NcButton size="small">Update Records</NcButton>
     </template>
 
@@ -211,103 +352,152 @@ onMounted(async () => {
       ref="bulkUpdateRef"
       class="bulk-update-ee"
       :class="{
-        'p-4': fullscreen,
+        'py-6 px-4 h-full flex flex-col gap-6 bg-nc-bg-gray-extralight': fullscreen,
       }"
     >
-      <div class="p-3 flex items-center justify-between gap-2.5 flex-wrap">
-        <div
-          class="nc-data-exporter-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-[474px]"
-        >
-          <a-form-item
-            class="!my-0"
-            :class="{
-              'flex-1 max-w-[237px]': fullscreen,
-              'min-w-1/2 max-w-[200px]': !fullscreen,
-            }"
+      <template v-if="!fullscreen">
+        <div class="p-3 flex">
+          <div
+            class="nc-bulk-update-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-[474px]"
           >
-            <NcSelect
-              v-model:value="savedPayloads.activeTableId"
-              placeholder="-select table-"
-              :disabled="isExporting"
-              class="nc-data-exporter-table-select nc-select-shadow"
-              :filter-option="filterOption"
-              dropdown-class-name="w-[250px]"
-              show-search
-              size="large"
-              @change="onTableSelect"
-            >
-              <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
-                <div class="w-full flex items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
-                    <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+            <a-form-item class="!my-0 min-w-1/2">
+              <NcSelect
+                v-model:value="savedPayloads.selectedTableId"
+                placeholder="-select table-"
+                :disabled="isExporting"
+                class="nc-bulk-update-table-select nc-select-shadow"
+                :filter-option="filterOption"
+                dropdown-class-name="w-[250px]"
+                show-search
+                size="large"
+                @change="onTableSelect"
+              >
+                <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
+                  <div class="w-full flex items-center gap-2">
+                    <div class="min-w-5 flex items-center justify-center">
+                      <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+                    </div>
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ table.label }}</template>
+                      <span>{{ table.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="savedPayloads.selectedTableId === table.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
                   </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ table.label }}</template>
-                    <span>{{ table.label }}</span>
-                  </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="savedPayloads.activeTableId === table.value"
-                    id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
-          </a-form-item>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
 
-          <a-form-item
-            class="!my-0"
-            :class="{
-              'flex-1 max-w-[237px]': fullscreen,
-              'min-w-1/2 max-w-[200px]': !fullscreen,
-            }"
-          >
-            <NcSelect
-              v-model:value="savedPayloads.activeViewId"
-              placeholder="-select view-"
-              :disabled="isExporting"
-              class="nc-data-exporter-view-select nc-select-shadow"
-              dropdown-class-name="w-[250px]"
-              :filter-option="filterOption"
-              show-search
-              size="large"
-              placement="bottomRight"
-              @change="onViewSelect"
-            >
-              <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
-                <div class="w-full flex items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
-                    <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
-                  </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ view.label }}</template>
-                    <span>{{ view.label }}</span>
-                  </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="savedPayloads.activeViewId === view.value"
-                    id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
-                  />
-                </div> </a-select-option
-            ></NcSelect>
-          </a-form-item>
+            <a-form-item class="!my-0 min-w-1/2">
+              <NcSelect
+                v-model:value="savedPayloads.selectedViewId"
+                placeholder="-select view-"
+                :disabled="isExporting"
+                class="nc-bulk-update-view-select nc-select-shadow"
+                dropdown-class-name="w-[250px]"
+                :filter-option="filterOption"
+                show-search
+                size="large"
+                placement="bottomRight"
+                @change="onViewSelect"
+              >
+                <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
+                  <div class="w-full flex items-center gap-2">
+                    <div class="min-w-5 flex items-center justify-center">
+                      <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                    </div>
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ view.label }}</template>
+                      <span>{{ view.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="savedPayloads.selectedViewId === view.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div> </a-select-option
+              ></NcSelect>
+            </a-form-item>
+          </div>
         </div>
-      </div>
-      <div class="data-exporter-body flex-1 flex flex-col">
-        <div class="data-exporter-header">Actions</div>
-        <div
-          v-if="bulkUpdatePayload && bulkUpdatePayload.config?.length"
-          class="flex-1 flex flex-col nc-scrollbar-thin max-h-[calc(100%_-_25px)]"
-        ></div>
-        <div v-else class="px-3 py-4 min-h-[120px] flex-1 flex flex-col gap-3 items-center justify-center text-gray-600">
-          <div>No fields set</div>
-          <NcButton size="small">
+        <div class="data-exporter-body flex-1 flex flex-col">
+          <div class="data-exporter-header">Actions</div>
+          <div
+            v-if="bulkUpdatePayload && bulkUpdatePayload.config?.length"
+            class="flex-1 flex flex-col nc-scrollbar-thin max-h-[calc(100%_-_25px)]"
+          ></div>
+          <div v-else class="px-3 py-4 min-h-[120px] flex-1 flex flex-col gap-3 items-center justify-center text-gray-600">
+            <div>No fields set</div>
+            <NcButton size="small">
+              <template #icon>
+                <GeneralIcon icon="ncPlus" />
+              </template>
+              Add fields to update
+            </NcButton>
+          </div>
+        </div>
+      </template>
+      <div v-else class="flex flex-col gap-6 w-full max-w-[520px] mx-auto">
+        <div class="flex items-center gap-3">
+          <NcBadge color="brand" :border="false">23 records</NcBadge>
+          <div class="text-nc-content-gray-subtle2">{{ bulkUpdatePayload?.config?.length || 0 }} fields set for bulk update</div>
+        </div>
+
+        <a-collapse
+          v-if="bulkUpdatePayload"
+          v-model:active-key="fieldConfigExpansionPanel"
+          class="nc-bulk-update-field-config-section flex flex-col"
+        >
+          <template #expandIcon> </template>
+          <a-collapse-panel v-for="fieldConfig in bulkUpdatePayload?.config" :key="fieldConfig.id" collapsible="disabled">
+            <template #header>
+              <div class="w-full flex items-center px-4 py-2" @click="handleUpdateFieldConfigExpansionPanel(fieldConfig.id)">
+                <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
+                  <NcCheckbox :checked="true" />
+                  <NcTooltip show-on-truncate-only class="truncate text-sm font-weight-500">
+                    <template #title>
+                      {{ fieldConfig.id }}
+                    </template>
+                    {{ fieldConfig.id }}
+                  </NcTooltip>
+                </div>
+                <NcButton
+                  size="xs"
+                  type="text"
+                  theme="ai"
+                  icon-only
+                  class="!px-0 !h-6 !w-6 !min-w-6"
+                  :class="{
+                    hidden: false,
+                  }"
+                >
+                  <template #icon>
+                    <GeneralIcon
+                      icon="arrowDown"
+                      class="transform transition-all opacity-80"
+                      :class="{
+                        'rotate-180': fieldConfigExpansionPanel.includes(fieldConfig.id),
+                      }"
+                    />
+                  </template>
+                </NcButton>
+              </div>
+            </template>
+            <div class="w-full flex flex-col">field config</div>
+          </a-collapse-panel>
+        </a-collapse>
+
+        <div class="nc-bulk-update-add-action-section">
+          <NcButton type="secondary" size="medium" class="w-full" @click="addNewAction">
             <template #icon>
               <GeneralIcon icon="ncPlus" />
             </template>
-            Add fields to update
+            New action
           </NcButton>
         </div>
       </div>
@@ -315,20 +505,22 @@ onMounted(async () => {
   </ExtensionsExtensionWrapper>
 </template>
 
-<style lang="scss" scoped>
-.nc-nc-bulk-update .bulk-update-ee {
+<style lang="scss" scoped></style>
+
+<style lang="scss">
+.nc-nc-bulk-update {
   @apply flex flex-col overflow-hidden h-full;
   .data-exporter-header {
     @apply px-3 py-1 bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
   }
-  .nc-data-exporter-select-wrapper {
+  .nc-bulk-update-select-wrapper {
     &:not(:focus-within) {
       &::after {
         @apply absolute left-1/2 h-full content-[''] border-r-1 border-nc-border-gray-medium;
       }
     }
   }
-  :deep(.nc-data-exporter-table-select.ant-select) {
+  .nc-bulk-update-table-select.ant-select {
     &.ant-select-focused {
       .ant-select-selector {
         @apply z-10 !rounded-r-lg;
@@ -343,7 +535,7 @@ onMounted(async () => {
       @apply relative !rounded-lg !text-sm;
     }
   }
-  :deep(.nc-data-exporter-view-select.ant-select) {
+  .nc-bulk-update-view-select.ant-select {
     &.ant-select-focused {
       .ant-select-selector {
         @apply z-10 !rounded-l-lg;
@@ -358,17 +550,29 @@ onMounted(async () => {
       @apply relative !rounded-lg !text-sm;
     }
   }
-  .data-exporter-body {
-    @apply flex-1 overflow-hidden;
-  }
 
-  .data-exporter-footer {
-    @apply flex items-center justify-end bg-gray-100;
-  }
-}
-</style>
+  .nc-bulk-update-field-config-section.ant-collapse {
+    @apply !rounded-2xl bg-white overflow-hidden;
 
-<style lang="scss">
-.nc-nc-data-exporter {
+    .ant-collapse-header {
+      @apply !p-0 flex items-center !cursor-default children:first:flex;
+    }
+    .nc-bulk-update-field-config-section .ant-collapse-header {
+      @apply !cursor-pointer;
+    }
+    .ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow {
+      @apply !right-0;
+    }
+    .ant-collapse-content-box {
+      @apply !p-0;
+    }
+
+    .ant-collapse-item {
+      // @apply border-b-purple-100 last:(border-b-0 !rounded-b-lg overflow-hidden);
+      // .ant-collapse-content {
+      //   @apply border-0;
+      // }
+    }
+  }
 }
 </style>

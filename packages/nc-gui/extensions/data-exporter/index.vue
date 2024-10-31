@@ -16,6 +16,10 @@ const route = router.currentRoute
 
 const activeTableId = computed(() => route.value.params.viewId as string | undefined)
 
+const activeViewTitleOrId = computed(() => {
+  return route.value.params.viewTitle
+})
+
 const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOrThrow()
 
 const { jobList, loadJobsForBase } = useJobs()
@@ -81,9 +85,18 @@ const reloadViews = async () => {
 }
 
 const onTableSelect = async (tableId: string) => {
-  exportPayload.value.tableId = tableId
-  await reloadViews()
-  exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
+  if (!tableId) {
+    exportPayload.value.tableId = activeTableId.value
+    await reloadViews()
+    exportPayload.value.viewId = activeViewTitleOrId.value
+      ? views.value.find((view) => view.id === activeViewTitleOrId.value)?.id
+      : views.value.find((view) => view.is_default)?.id
+  } else {
+    exportPayload.value.tableId = tableId
+    await reloadViews()
+    exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
+  }
+
   await extension.value.kvStore.set('exportPayload', exportPayload.value)
 }
 
@@ -207,7 +220,7 @@ onMounted(async () => {
   await loadJobsForBase()
 
   if (!exportPayload.value.tableId && tableList.value.find((table) => table.value === activeTableId.value)) {
-    onTableSelect(activeTableId.value)
+    onTableSelect()
   }
 })
 </script>

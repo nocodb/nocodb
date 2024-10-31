@@ -11,6 +11,11 @@ const { $api, $poller } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
+const router = useRouter()
+const route = router.currentRoute
+
+const activeTableId = computed(() => route.value.params.viewId as string | undefined)
+
 const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOrThrow()
 
 const { jobList, loadJobsForBase } = useJobs()
@@ -194,11 +199,16 @@ const filterOption = (input: string, option: { key: string }) => {
   return option.key?.toLowerCase()?.includes(input?.toLowerCase())
 }
 
-onMounted(() => {
+onMounted(async () => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
   deletedExports.value = extension.value.kvStore.get('deletedExports') || []
-  reloadViews()
-  loadJobsForBase()
+
+  await reloadViews()
+  await loadJobsForBase()
+
+  if (!exportPayload.value.tableId && tableList.value.find((table) => table.value === activeTableId.value)) {
+    onTableSelect(activeTableId.value)
+  }
 })
 </script>
 

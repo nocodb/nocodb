@@ -371,10 +371,12 @@ onMounted(async () => {
             <div
               v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
               :key="exp.id"
-              class="p-3 flex gap-2 justify-between border-b-1 bg-white hover:bg-gray-50"
+              class="p-3 flex gap-2 justify-between border-b-1"
               :class="{
                 'px-4 py-3': fullscreen,
                 'px-3 py-2': !fullscreen,
+                'bg-white hover:bg-gray-50': exp.status === JobStatus.COMPLETED,
+                'bg-nc-bg-red-light': exp.status !== JobStatus.COMPLETED,
               }"
             >
               <div
@@ -455,7 +457,16 @@ onMounted(async () => {
             </div>
           </template>
         </div>
-        <div v-else class="px-3 py-2 flex-1 flex items-center justify-center text-gray-600">No exports</div>
+        <div v-else class="px-3 py-2 flex-1 flex items-center justify-center text-gray-800">
+          <a-empty
+            :image-style="{
+              height: '24px',
+            }"
+            :image="Empty.PRESENTED_IMAGE_SIMPLE"
+            description="No exports"
+            class="!my-0"
+          />
+        </div>
       </div>
     </div>
   </ExtensionsExtensionWrapper>

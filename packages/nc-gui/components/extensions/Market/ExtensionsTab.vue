@@ -36,16 +36,27 @@ const onAddExtension = (ext: any) => {
 </script>
 
 <template>
-  <div class="h-full py-4">
-    <div class="h-full flex flex-col gap-6 flex-1 pt-2 px-6 max-w-[900px] w-full mx-auto">
-      <div v-if="searchQuery" class="text-base text-nc-content-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
+  <div class="h-full py-4 overflow-auto nc-scrollbar-thin">
+    <div class="h-full flex flex-col gap-5 flex-1 pt-2 px-6 max-w-[900px] w-full mx-auto">
+      <div>
+        <div class="text-base font-bold text-nc-content-gray">Popular Extensions</div>
+        <div v-if="searchQuery" class="text-base text-nc-content-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
+      </div>
       <div
-        class="flex flex-wrap gap-6 overflow-auto nc-scrollbar-thin pb-2"
+        class="flex flex-wrap gap-6 pb-2"
         :class="{
           'h-full': searchQuery && !filteredAvailableExtensions.length && availableExtensions.length,
         }"
       >
-        <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
+        <template
+          v-for="ext of [
+            ...filteredAvailableExtensions,
+            ...filteredAvailableExtensions,
+            ...filteredAvailableExtensions,
+            ...filteredAvailableExtensions,
+          ]"
+          :key="ext.id"
+        >
           <div
             class="nc-market-extension-item w-full md:w-[calc(50%_-_12px)] flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
             @click="onExtensionClick(ext.id)"
@@ -53,12 +64,19 @@ const onAddExtension = (ext: any) => {
             <div class="h-[60px] w-[60px] overflow-hidden m-auto flex-none">
               <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />
             </div>
-            <div class="flex-1 flex flex-grow flex-col gap-1">
-              <div class="font-weight-600 text-base line-clamp-1">
-                {{ ext.title }}
+            <div class="flex-1 flex flex-grow flex-col gap-2">
+              <div>
+                <div class="text-sm font-bold text-nc-content-gray line-clamp-1">
+                  {{ ext.title }}
+                </div>
+                <div v-if="ext.publisher?.name" class="mt-0.5 text-xs leading-[18px] text-nc-content-gray-muted line-clamp-1">
+                  Built by {{ ext.publisher.name }}
+                </div>
               </div>
 
-              <div class="max-h-[32px] text-xs text-gray-500 line-clamp-2">{{ ext.subTitle }}</div>
+              <div class="max-h-[36px] text-small leading-[18px] text-nc-content-gray-subtle line-clamp-2">
+                {{ ext.subTitle }}
+              </div>
             </div>
             <NcButton size="small" type="secondary" class="flex-none !px-7px" @click.stop="onAddExtension(ext)">
               <div class="flex items-center gap-1 -ml-3px text-small">

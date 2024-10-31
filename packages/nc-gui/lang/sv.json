@@ -1215,7 +1215,7 @@
     "exitFullWidth": "Avsluta full bredd",
     "markAllAsRead": "Markera alla som lästa",
     "column": {
-      "delete": "Ta bort fält",
+      "delete": "Radera fält",
       "addNumber": "Lägg till sifferfält",
       "addSingleLineText": "Lägg till enradstextfält",
       "addLongText": "Lägg till långtextfält",

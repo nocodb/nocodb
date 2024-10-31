@@ -94,16 +94,6 @@ useEventListener('keydown', (e) => {
     fullscreen.value = false
   }
 })
-
-eventBus.on((event, payload) => {
-  if (event === ExtensionsEvents.DUPLICATE && extension.value.id === payload) {
-    setTimeout(() => {
-      nextTick(() => {
-        extensionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
-    }, 500)
-  }
-})
 </script>
 
 <template>
@@ -161,7 +151,10 @@ eventBus.on((event, payload) => {
         <Teleport to="body" :disabled="!fullscreen">
           <div
             ref="extensionModalRef"
-            :class="{ 'extension-modal': fullscreen, 'h-[calc(100%_-_50px)]': !fullscreen }"
+            :class="[
+              fullscreen ? `nc-${extensionManifest?.id}` : '',
+              { 'extension-modal': fullscreen, 'h-[calc(100%_-_50px)]': !fullscreen },
+            ]"
             @click="closeFullscreen"
           >
             <div
@@ -211,18 +204,14 @@ eventBus.on((event, payload) => {
 }
 
 .extension-content {
-  @apply rounded-lg;
-
-  &:not(.fullscreen) {
-    @apply p-3;
-  }
+  @apply rounded-b-lg;
 }
 
 .extension-modal {
   @apply absolute top-0 left-0 z-1000 w-full h-full bg-black bg-opacity-50 flex items-center justify-center;
 
   .extension-modal-content {
-    @apply bg-white rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col;
+    @apply bg-white rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col overflow-hidden;
   }
 }
 

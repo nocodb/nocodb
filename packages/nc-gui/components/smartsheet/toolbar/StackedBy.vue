@@ -136,7 +136,11 @@ const getIcon = (c: ColumnType) =>
     overlay-class-name="nc-dropdown-kanban-stacked-by-menu"
     class="!xs:hidden"
   >
-    <div class="nc-kanban-btn">
+    <NcTooltip :disabled="!isToolbarIconMode" class="nc-kanban-btn">
+      <template #title>
+        {{ $t('activity.kanban.stackedBy') }}
+      </template>
+
       <NcButton
         v-e="['c:kanban:change-grouping-field']"
         class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn !border-0 !h-7 group"
@@ -158,7 +162,8 @@ const getIcon = (c: ColumnType) =>
           </div>
         </div>
       </NcButton>
-    </div>
+    </NcTooltip>
+
     <template #overlay>
       <div v-if="open" class="p-4 w-90 bg-white nc-table-toolbar-menu rounded-lg flex flex-col gap-5" @click.stop>
         <div class="flex flex-col gap-2">

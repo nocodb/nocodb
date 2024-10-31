@@ -77,7 +77,7 @@ onMounted(() => {
     wrap-class-name="nc-modal-extension-market"
   >
     <div class="h-full">
-      <div class="nc-extension-market-header flex items-center gap-3 p-4 border-b-1 border-gray-200">
+      <div class="nc-extension-market-header flex items-center gap-3 px-4 py-3 border-b-1 border-gray-200">
         <div
           class="flex items-center gap-3 flex-none"
           :style="{
@@ -136,7 +136,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="flex flex-col h-[calc(100%_-_65px)]">
+      <div class="flex flex-col h-[calc(100%_-_57px)]">
         <ExtensionsMarketExtensionsTab
           v-if="activeTab === 'extensions'"
           v-model:is-open="vModel"

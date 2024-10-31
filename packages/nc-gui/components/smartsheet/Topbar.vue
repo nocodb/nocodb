@@ -6,7 +6,7 @@ const route = router.currentRoute
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isViewsLoading } = storeToRefs(useViewsStore())
+const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
@@ -54,7 +54,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <GeneralApiLoader v-if="!isMobileMode" />
 
         <NcButton
-          v-if="!isSharedBase && extensionsEgg"
+          v-if="!isSharedBase && extensionsEgg && openedViewsTab === 'view'"
           v-e="['c:extension-toggle']"
           type="secondary"
           size="small"
@@ -65,7 +65,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         >
           <div class="flex items-center justify-center min-w-[28.69px]">
             <GeneralIcon
-              icon="ncPuzzleOutline"
+              :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'"
               class="w-4 h-4 !stroke-transparent"
               :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
             />

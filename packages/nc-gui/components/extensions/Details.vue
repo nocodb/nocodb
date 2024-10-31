@@ -71,7 +71,7 @@ const detailsBody = computed(() => {
     wrap-class-name="nc-modal-extension-details"
   >
     <div v-if="activeExtension" class="flex flex-col w-full h-full">
-      <div class="flex items-center gap-3 p-4 border-b-1 border-gray-200">
+      <div class="flex items-center gap-3 px-4 py-3 border-b-1 border-gray-200">
         <NcButton v-if="from === 'market'" size="small" type="text" @click="onBack">
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
@@ -171,7 +171,7 @@ const detailsBody = computed(() => {
 
 <style lang="scss" scoped>
 .extension-details {
-  @apply flex w-full h-[calc(100%_-_83px)];
+  @apply flex w-full h-[calc(100%_-_75px)];
 
   .extension-details-left {
     @apply p-6 flex-1 flex flex-col gap-6 nc-scrollbar-thin;

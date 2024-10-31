@@ -116,7 +116,10 @@ onMounted(() => {
     class="!xs:hidden"
     overlay-class-name="nc-dropdown-sort-menu nc-toolbar-dropdown"
   >
-    <div :class="{ 'nc-active-btn': sorts?.length }">
+    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': sorts?.length }">
+      <template #title>
+        {{ $t('activity.sort') }}
+      </template>
       <NcButton
         v-e="['c:sort']"
         :class="{
@@ -128,7 +131,7 @@ onMounted(() => {
         size="small"
         type="secondary"
       >
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
             <component :is="iconMap.sort" class="h-4 w-4 text-inherit" />
 
@@ -140,7 +143,8 @@ onMounted(() => {
           <span v-if="sorts?.length" class="bg-brand-50 text-brand-500 py-1 px-2 text-md rounded-md">{{ sorts.length }}</span>
         </div>
       </NcButton>
-    </div>
+    </NcTooltip>
+
     <template #overlay>
       <SmartsheetToolbarCreateSort v-if="!sorts.length" :is-parent-open="open" @created="addSort" />
       <div v-else class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] min-w-102" data-testid="nc-sorts-menu">

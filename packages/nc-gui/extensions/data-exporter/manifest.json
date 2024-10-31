@@ -11,12 +11,17 @@
     "email": "contact@nocodb.com",
     "url": "https://www.nocodb.com",
     "icon": {
-      "src": "csv-import-ee/assets/publisher-icon.svg",
+      "src": "data-exporter/assets/publisher-icon.svg",
       "width": 24,
       "height": 24
     }
   },
-  "links": [],
+  "links": [
+    {
+      "title": "Documentation",
+      "href": "https://docs.nocodb.com/extensions/data-exporter"
+    }
+  ],
   "config": {
     "modalSize": "sm",
     "contentMinHeight": "310px"

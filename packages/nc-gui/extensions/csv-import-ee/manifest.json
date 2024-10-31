@@ -19,7 +19,7 @@
   "links": [
     {
       "title": "Documentation",
-      "href": ""
+      "href": "https://docs.nocodb.com/extensions/import-csv"
     }
   ],
   "config": {

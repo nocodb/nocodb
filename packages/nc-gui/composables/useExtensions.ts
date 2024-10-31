@@ -1,4 +1,4 @@
-import type { ExtensionsEvents } from '#imports'
+import { ExtensionsEvents } from '#imports'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
@@ -121,6 +121,10 @@ export const useExtensions = createSharedComposable(() => {
 
     if (newExtension) {
       baseExtensions.value[base.value.id].extensions.push(new Extension(newExtension))
+
+      nextTick(() => {
+        eventBus.emit(ExtensionsEvents.ADD, newExtension?.id)
+      })
     }
 
     return newExtension
@@ -434,9 +438,9 @@ export const useExtensions = createSharedComposable(() => {
       console.error('Error loading extensions:', error)
     }
 
-    // if (isEeUI) {
-    //   extensionsEgg.value = true
-    // }
+    if (isEeUI) {
+      extensionsEgg.value = true
+    }
   })
 
   watch(

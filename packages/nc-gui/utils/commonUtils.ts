@@ -16,3 +16,18 @@ export const modalSizes = {
     height: 'min(90vh, 864px)',
   },
 }
+
+/**
+ * Creates a promise that resolves after a specified delay.
+ *
+ * @param ms - The delay in milliseconds.
+ * @returns A promise that resolves after the specified delay.
+ *
+ * @example
+ * ```ts
+ * // Wait for 2 seconds
+ * await delay(2000);
+ * console.log('2 seconds have passed');
+ * ```
+ */
+export const ncDelay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))

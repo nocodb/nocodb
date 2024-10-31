@@ -229,9 +229,7 @@ onMounted(() => {
             @change="onMove($event)"
           >
             <template #item="{ element: ext }">
-              <div class="nc-extension-item w-full">
-                <ExtensionsWrapper :extension-id="ext.id" />
-              </div>
+              <ExtensionsWrapper :extension-id="ext.id" class="nc-extension-item w-full" />
             </template>
             <template v-if="searchQuery && !filteredExtensionList.length && extensionList.length" #header>
               <div class="w-full h-full flex-1 flex items-center justify-center">

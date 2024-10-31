@@ -59,7 +59,10 @@ const handleDuplicateExtension = async (id: string, open: boolean = false) => {
 
   if (duplicatedExt?.id && open) {
     fullscreen.value = false
-    eventBus.emit(ExtensionsEvents.DUPLICATE, duplicatedExt.id)
+
+    nextTick(() => {
+      eventBus.emit(ExtensionsEvents.DUPLICATE, duplicatedExt.id)
+    })
   }
 }
 </script>

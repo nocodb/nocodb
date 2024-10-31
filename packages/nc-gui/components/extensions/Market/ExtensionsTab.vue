@@ -38,30 +38,21 @@ const onAddExtension = (ext: any) => {
 <template>
   <div class="h-full py-4 overflow-auto nc-scrollbar-thin">
     <div class="h-full flex flex-col gap-5 flex-1 pt-2 px-6 max-w-[900px] w-full mx-auto">
-      <div>
-        <div class="text-base font-bold text-nc-content-gray">Popular Extensions</div>
-        <div v-if="searchQuery" class="text-base text-nc-content-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
-      </div>
+      <div class="text-base font-bold text-nc-content-gray">Popular Extensions</div>
+      <div v-if="searchQuery" class="text-base text-nc-content-gray-subtle">Search result for ‘{{ searchQuery }}’</div>
+
       <div
         class="flex flex-wrap gap-6 pb-2"
         :class="{
           'h-full': searchQuery && !filteredAvailableExtensions.length && availableExtensions.length,
         }"
       >
-        <template
-          v-for="ext of [
-            ...filteredAvailableExtensions,
-            ...filteredAvailableExtensions,
-            ...filteredAvailableExtensions,
-            ...filteredAvailableExtensions,
-          ]"
-          :key="ext.id"
-        >
+        <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
           <div
             class="nc-market-extension-item w-full md:w-[calc(50%_-_12px)] flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
             @click="onExtensionClick(ext.id)"
           >
-            <div class="h-[60px] w-[60px] overflow-hidden m-auto flex-none">
+            <div class="h-[56px] w-[56px] overflow-hidden m-auto flex-none">
               <img :src="getExtensionAssetsUrl(ext.iconUrl)" alt="icon" class="w-full h-full object-contain" />
             </div>
             <div class="flex-1 flex flex-grow flex-col gap-2">

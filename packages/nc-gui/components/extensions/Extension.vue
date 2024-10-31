@@ -94,20 +94,6 @@ useEventListener('keydown', (e) => {
     fullscreen.value = false
   }
 })
-
-const handleAutoScroll = () => {
-  setTimeout(() => {
-    nextTick(() => {
-      extensionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-  }, 500)
-}
-
-eventBus.on((event, payload) => {
-  if ([ExtensionsEvents.DUPLICATE, ExtensionsEvents.ADD].includes(event) && extension.value.id === payload) {
-    handleAutoScroll()
-  }
-})
 </script>
 
 <template>

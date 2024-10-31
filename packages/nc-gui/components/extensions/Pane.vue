@@ -13,6 +13,7 @@ const {
   isMarketVisible,
   extensionPanelSize,
   updateExtension,
+  eventBus,
 } = useExtensions()
 
 const { $e } = useNuxtApp()
@@ -119,6 +120,24 @@ onClickOutside(searchExtensionRef, () => {
   }
 
   showSearchBox.value = false
+})
+
+const handleAutoScroll = async (id: string) => {
+  await ncDelay(500)
+
+  await nextTick()
+
+  const extension = document.querySelector(`.nc-extension-list-wrapper .nc-extension-item-${id}`)
+
+  if (extension) {
+    extension.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+eventBus.on((event, payload) => {
+  if ([ExtensionsEvents.DUPLICATE, ExtensionsEvents.ADD].includes(event) && payload) {
+    handleAutoScroll(payload)
+  }
 })
 
 onMounted(() => {
@@ -229,7 +248,9 @@ onMounted(() => {
             @change="onMove($event)"
           >
             <template #item="{ element: ext }">
-              <ExtensionsWrapper :extension-id="ext.id" class="nc-extension-item w-full" />
+              <div class="nc-extension-item w-full" :class="`nc-extension-item-${ext.id}`">
+                <ExtensionsWrapper :extension-id="ext.id" />
+              </div>
             </template>
             <template v-if="searchQuery && !filteredExtensionList.length && extensionList.length" #header>
               <div class="w-full h-full flex-1 flex items-center justify-center">

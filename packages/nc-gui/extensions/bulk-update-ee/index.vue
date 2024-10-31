@@ -11,6 +11,40 @@ const { $api, $poller } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
+const router = useRouter()
+const route = router.currentRoute
+
+const activeTableId = computed(() => route.value.params.viewId as string | undefined)
+
+const activeViewTitleOrId = computed(() => {
+  return route.value.params.viewTitle
+})
+
+interface BulkUpdatePayloadType {
+  activeTableId?: string
+  activeViewId?: string
+  history: BulkUpdateHistory[]
+}
+
+interface BulkUpdateHistory {
+  tableId?: string
+  viewId?: string
+  config: BulkUpdateFieldConfig[]
+}
+
+interface BulkUpdateFieldConfig {
+  id: string
+  columnId?: string
+  op_type?: string
+  value?: any
+}
+
+const bulkUpdatePayloadPlaceholder: BulkUpdatePayloadType = {
+  activeTableId: '',
+  activeViewId: '',
+  history: [],
+}
+
 const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOrThrow()
 
 const { jobList, loadJobsForBase } = useJobs()
@@ -19,9 +53,9 @@ const views = ref<ViewType[]>([])
 
 const deletedExports = ref<string[]>([])
 
-const dataExporterRef = ref<HTMLDivElement>()
+const bulkUpdateRef = ref<HTMLDivElement>()
 
-const { width } = useElementSize(dataExporterRef)
+const { width } = useElementSize(bulkUpdateRef)
 
 const exportedFiles = computed(() => {
   return jobList.value
@@ -38,10 +72,7 @@ const exportedFiles = computed(() => {
     .sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())
 })
 
-const exportPayload = ref<{
-  tableId?: string
-  viewId?: string
-}>({})
+const savedPayloads = ref<BulkUpdatePayloadType>(bulkUpdatePayloadPlaceholder)
 
 const tableList = computed(() => {
   return tables.value.map((table) => {
@@ -54,7 +85,7 @@ const tableList = computed(() => {
 })
 
 const viewList = computed(() => {
-  if (!exportPayload.value.tableId) return []
+  if (!savedPayloads.value.activeTableId) return []
   return (
     views.value
       .filter((view) => view.type === ViewTypes.GRID)
@@ -69,176 +100,140 @@ const viewList = computed(() => {
   )
 })
 
-const reloadViews = async () => {
-  if (exportPayload.value.tableId) {
-    views.value = await getViewsForTable(exportPayload.value.tableId)
+const isDataLoaded = ref(false)
+
+const bulkUpdatePayload = computedAsync(async () => {
+  if (!isDataLoaded.value && !savedPayloads.value.history?.length) {
+    let saved = (await extension.value.kvStore.get('savedPayloads')) as BulkUpdatePayloadType
+    console.log('on mounted')
+    if (saved) {
+      saved.history = saved.history || []
+
+      const deletedTableIds = new Set<string>()
+
+      const deletedViewIds = new Set<string>()
+
+      const availableTables: string[] = (tableList.value || []).map((t) => t.value) || []
+
+      for (const h of saved.history) {
+        if (h.tableId && !availableTables.includes(h.tableId)) {
+          deletedTableIds.add(h.tableId)
+        }
+      }
+
+      saved.history = saved.history.filter((h) => (h.tableId && deletedTableIds.has(h.tableId) ? false : true))
+
+      if (saved.activeTableId && deletedTableIds.has(saved.activeTableId)) {
+        saved.activeTableId = ''
+        saved.activeViewId = ''
+      }
+
+      savedPayloads.value = saved
+
+      await reloadViews()
+
+      /**
+       * Todo: remove history object if table view is deleted
+       */
+
+      if (!savedPayloads.value.activeTableId && tableList.value.find((table) => table.value === activeTableId.value)) {
+        onTableSelect()
+      }
+
+      isDataLoaded.value = true
+    }
   }
+
+  if (savedPayloads.value.activeTableId && savedPayloads.value.activeViewId) {
+    const historyIndex = savedPayloads.value.history.findIndex(
+      (h) => h.tableId === savedPayloads.value.activeTableId && h.viewId === savedPayloads.value.activeViewId,
+    )
+
+    if (historyIndex !== -1) {
+      return savedPayloads.value.history[historyIndex]
+    } else {
+      savedPayloads.value.history.push({
+        tableId: savedPayloads.value.activeTableId,
+        viewId: savedPayloads.value.activeViewId,
+        config: [],
+      })
+
+      return savedPayloads.value.history[savedPayloads.value.history.length - 1]
+    }
+  }
+})
+
+async function reloadViews() {
+  if (!savedPayloads.value.activeTableId) return
+
+  views.value = await getViewsForTable(savedPayloads.value.activeTableId)
 }
 
-const onTableSelect = async (tableId: string) => {
-  exportPayload.value.tableId = tableId
-  await reloadViews()
-  exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
-  await extension.value.kvStore.set('exportPayload', exportPayload.value)
+async function onTableSelect(tableId?: string) {
+  if (!tableId) {
+    savedPayloads.value.activeTableId = activeTableId.value
+    await reloadViews()
+    savedPayloads.value.activeViewId = activeViewTitleOrId.value
+      ? views.value.find((view) => view.id === activeViewTitleOrId.value)?.id
+      : views.value.find((view) => view.is_default)?.id
+  } else {
+    savedPayloads.value.activeTableId = tableId
+    await reloadViews()
+    savedPayloads.value.activeViewId = views.value.find((view) => view.is_default)?.id
+  }
+
+  await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
 }
 
 const onViewSelect = async (viewId: string) => {
-  exportPayload.value.viewId = viewId
-  await extension.value.kvStore.set('exportPayload', exportPayload.value)
+  savedPayloads.value.activeViewId = viewId
+  await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
 }
 
 const isExporting = ref(false)
-
-async function exportDataAsync() {
-  try {
-    if (isExporting.value || !exportPayload.value.viewId) return
-
-    isExporting.value = true
-
-    const jobData = await $api.export.data(exportPayload.value.viewId, 'csv', { extension_id: extension.value.id })
-    jobList.value.unshift(jobData)
-
-    $poller.subscribe(
-      { id: jobData.id },
-      async (data: {
-        id: string
-        status?: string
-        data?: {
-          error?: {
-            message: string
-          }
-          message?: string
-          result?: any
-        }
-      }) => {
-        if (data.status !== 'close') {
-          if (data.status === JobStatus.COMPLETED) {
-            // Export completed successfully
-            message.info('Successfully exported data!')
-
-            const job = jobList.value.find((j) => j.id === data.id)
-            if (job) {
-              job.status = JobStatus.COMPLETED
-              job.result = data.data?.result
-            }
-
-            isExporting.value = false
-          } else if (data.status === JobStatus.FAILED) {
-            message.error('Failed to export data!')
-
-            const job = jobList.value.find((j) => j.id === data.id)
-            if (job) {
-              job.status = JobStatus.FAILED
-              job.result = data.data?.result
-
-              // Add title if not present in response
-              if (!job.result?.title) {
-                job.result = {
-                  ...(job.result || {}),
-                  title: titleHelper(),
-                }
-              }
-            }
-
-            isExporting.value = false
-          }
-        }
-      },
-    )
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-const urlHelper = (url: string) => {
-  if (url.startsWith('http')) {
-    return url
-  } else {
-    return `${appInfo.value.ncSiteUrl || BASE_FALLBACK_URL}/${url}`
-  }
-}
-
-const handleDownload = async (url: string) => {
-  const isExpired = await isLinkExpired(url)
-
-  if (isExpired) {
-    navigateTo(url, {
-      open: navigateToBlankTargetOpenOption,
-    })
-    return
-  }
-
-  const link = document.createElement('a')
-  link.href = url
-  link.style.display = 'none' // Hide the link
-
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
-
-function titleHelper() {
-  const table = tables.value.find((t) => t.id === exportPayload.value.tableId)
-  const view = views.value.find((v) => v.id === exportPayload.value.viewId)
-
-  return `${table?.title} (${view?.is_default ? 'Default View' : view?.title})`
-}
-
-const onRemoveExportedFile = async (exportId: string) => {
-  deletedExports.value.push(exportId)
-
-  await extension.value.kvStore.set('deletedExports', deletedExports.value)
-}
 
 const filterOption = (input: string, option: { key: string }) => {
   return option.key?.toLowerCase()?.includes(input?.toLowerCase())
 }
 
-onMounted(() => {
-  console.log('extension mounted', extension.value)
-  exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
-  deletedExports.value = extension.value.kvStore.get('deletedExports') || []
-  reloadViews()
-  loadJobsForBase()
+onMounted(async () => {
+  await loadJobsForBase()
 })
 </script>
 
 <template>
   <ExtensionsExtensionWrapper>
+    <template v-if="fullscreen" #headerExtra>
+      <NcButton size="small">Update Records</NcButton>
+    </template>
+
     <div
-      ref="dataExporterRef"
+      ref="bulkUpdateRef"
       class="bulk-update-ee"
       :class="{
         'p-4': fullscreen,
-        'p-3': !fullscreen,
       }"
     >
-      <div class="pb-3 flex items-center justify-between gap-2.5 flex-wrap">
+      <div class="p-3 flex items-center justify-between gap-2.5 flex-wrap">
         <div
-          class="flex-1 flex items-center"
-          :class="{
-            'max-w-[min(350px,calc(100%-124px))]': isExporting && !fullscreen && width > 325,
-            'max-w-[min(350px,calc(100%_-_84px))]': !isExporting && !fullscreen && width > 325,
-            'max-w-full': width <= 325,
-            'max-w-[480px]': fullscreen,
-          }"
+          class="nc-data-exporter-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-[474px]"
         >
-          <div
-            class="flex-1 flex items-center border-1 border-gray-200 rounded-lg focus-within:(border-brand-500 shadow-selected) transition-colors transition-shadow"
+          <a-form-item
+            class="!my-0"
+            :class="{
+              'flex-1 max-w-[237px]': fullscreen,
+              'min-w-1/2 max-w-[200px]': !fullscreen,
+            }"
           >
             <NcSelect
-              v-model:value="exportPayload.tableId"
+              v-model:value="savedPayloads.activeTableId"
               placeholder="-select table-"
               :disabled="isExporting"
-              class="nc-data-exporter-table-select"
-              :class="{
-                'flex-1 max-w-[240px]': fullscreen,
-                'min-w-1/2 max-w-[175px]': !fullscreen,
-              }"
-              :bordered="false"
+              class="nc-data-exporter-table-select nc-select-shadow"
               :filter-option="filterOption"
               dropdown-class-name="w-[250px]"
               show-search
+              size="large"
               @change="onTableSelect"
             >
               <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
@@ -252,28 +247,32 @@ onMounted(() => {
                   </NcTooltip>
                   <component
                     :is="iconMap.check"
-                    v-if="exportPayload.tableId === table.value"
+                    v-if="savedPayloads.activeTableId === table.value"
                     id="nc-selected-item-icon"
                     class="flex-none text-primary w-4 h-4"
                   />
                 </div>
               </a-select-option>
             </NcSelect>
-            <div class="flex-none h-8 border-l-1 border-gray-200"></div>
+          </a-form-item>
 
+          <a-form-item
+            class="!my-0"
+            :class="{
+              'flex-1 max-w-[237px]': fullscreen,
+              'min-w-1/2 max-w-[200px]': !fullscreen,
+            }"
+          >
             <NcSelect
-              v-model:value="exportPayload.viewId"
+              v-model:value="savedPayloads.activeViewId"
               placeholder="-select view-"
               :disabled="isExporting"
-              class="nc-data-exporter-view-select"
-              :class="{
-                'flex-1 max-w-[240px]': fullscreen,
-                'min-w-1/2 max-w-[175px]': !fullscreen,
-              }"
-              :bordered="false"
+              class="nc-data-exporter-view-select nc-select-shadow"
               dropdown-class-name="w-[250px]"
               :filter-option="filterOption"
               show-search
+              size="large"
+              placement="bottomRight"
               @change="onViewSelect"
             >
               <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
@@ -287,136 +286,80 @@ onMounted(() => {
                   </NcTooltip>
                   <component
                     :is="iconMap.check"
-                    v-if="exportPayload.viewId === view.value"
+                    v-if="savedPayloads.activeViewId === view.value"
                     id="nc-selected-item-icon"
                     class="flex-none text-primary w-4 h-4"
                   />
                 </div> </a-select-option
             ></NcSelect>
-          </div>
-        </div>
-        <div class="flex-none flex justify-end">
-          <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
-            <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-            <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="xs" @click="exportDataAsync">{{
-              isExporting ? 'Generating' : 'Export'
-            }}</NcButton>
-          </NcTooltip>
+          </a-form-item>
         </div>
       </div>
       <div class="data-exporter-body flex-1 flex flex-col">
-        <div class="data-exporter-header">Recent Exports</div>
-        <div v-if="exportedFiles.length" class="flex-1 flex flex-col nc-scrollbar-thin max-h-[calc(100%_-_25px)]">
-          <template v-for="exp of exportedFiles">
-            <div
-              v-if="exp.status === JobStatus.COMPLETED ? exp.result : true"
-              :key="exp.id"
-              class="p-3 flex gap-2 justify-between border-b-1 hover:bg-gray-50"
-              :class="{
-                'px-4 py-3': fullscreen,
-                'px-3 py-2': !fullscreen,
-              }"
-            >
-              <div
-                class="flex-1 flex items-start gap-3"
-                :class="{
-                  'max-w-[calc(100%_-_74px)]': exp.status === JobStatus.COMPLETED,
-                  'max-w-[calc(100%_-_38px)]': exp.status !== JobStatus.COMPLETED,
-                }"
-              >
-                <NcTooltip v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
-                  <template #title>
-                    {{ jobStatusTooltip[exp.status] }}
-                  </template>
-                  <GeneralIcon
-                    :icon="exp.status === JobStatus.COMPLETED ? 'circleCheckSolid' : 'alertTriangleSolid'"
-                    class="flex-none h-5 w-5"
-                    :class="{
-                      '!text-green-700': exp.status === JobStatus.COMPLETED,
-                      '!text-red-700': exp.status === JobStatus.FAILED,
-                    }"
-                  />
-                </NcTooltip>
-                <div v-else class="h-5 flex items-center">
-                  <GeneralLoader size="regular" class="flex-none" />
-                </div>
-
-                <div class="flex-1 max-w-[calc(100%_-_28px)] flex flex-col gap-1">
-                  <div class="inline-flex gap-1 text-sm text-gray-800 -ml-[1px]">
-                    <span class="inline-flex items-center h-5">
-                      <GeneralIcon icon="file" class="flex-none text-gray-600/80 h-3.5 w-3.5" />
-                    </span>
-                    <NcTooltip class="truncate max-w-[calc(100%_-_20px)]" show-on-truncate-only>
-                      <template #title>
-                        {{ exp.result.title || titleHelper() }}
-                      </template>
-                      {{ exp.result.title || titleHelper() }}
-                    </NcTooltip>
-                  </div>
-
-                  <div v-if="exp.result.timestamp" name="error" class="text-small leading-[18px] text-nc-content-gray-muted">
-                    {{ timeAgo(dayjs(exp.result.timestamp).toString()) }}
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="exp.status === JobStatus.COMPLETED" class="flex" @click="handleDownload(urlHelper(exp.result.url))">
-                <NcTooltip class="flex">
-                  <template #title>
-                    {{ $t('general.download') }}
-                  </template>
-
-                  <NcButton type="secondary" size="xs" class="!px-[5px]">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="download" />
-                    </div>
-                  </NcButton>
-                </NcTooltip>
-              </div>
-
-              <div class="flex">
-                <NcTooltip class="flex">
-                  <template #title>
-                    {{ $t('general.remove') }}
-                  </template>
-
-                  <NcButton type="text" size="xs" class="!px-[5px]" @click="onRemoveExportedFile(exp.id)">
-                    <GeneralIcon icon="close" />
-                  </NcButton>
-                </NcTooltip>
-              </div>
-            </div>
-          </template>
+        <div class="data-exporter-header">Actions</div>
+        <div
+          v-if="bulkUpdatePayload && bulkUpdatePayload.config?.length"
+          class="flex-1 flex flex-col nc-scrollbar-thin max-h-[calc(100%_-_25px)]"
+        ></div>
+        <div v-else class="px-3 py-4 min-h-[120px] flex-1 flex flex-col gap-3 items-center justify-center text-gray-600">
+          <div>No fields set</div>
+          <NcButton size="small">
+            <template #icon>
+              <GeneralIcon icon="ncPlus" />
+            </template>
+            Add fields to update
+          </NcButton>
         </div>
-        <div v-else class="px-3 py-2 flex-1 flex items-center justify-center text-gray-600">No exports</div>
       </div>
     </div>
   </ExtensionsExtensionWrapper>
 </template>
 
 <style lang="scss" scoped>
-:deep(.extension-content-container) {
-  @apply !p-0;
-}
-.data-exporter {
+.nc-nc-bulk-update .bulk-update-ee {
   @apply flex flex-col overflow-hidden h-full;
   .data-exporter-header {
     @apply px-3 py-1 bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
   }
-
-  // .nc-data-exporter-table-select {
-  //   :deep(.ant-select-selector) {
-  //     @apply !border-r-1 rounded-lg !rounded-r-none shadow-none;
-  //   }
-  // }
-  // .nc-data-exporter-view-select {
-  //   :deep(.ant-select-selector) {
-  //     @apply !border-l-0 rounded-lg !rounded-l-none shadow-none;
-  //   }
-  // }
-
+  .nc-data-exporter-select-wrapper {
+    &:not(:focus-within) {
+      &::after {
+        @apply absolute left-1/2 h-full content-[''] border-r-1 border-nc-border-gray-medium;
+      }
+    }
+  }
+  :deep(.nc-data-exporter-table-select.ant-select) {
+    &.ant-select-focused {
+      .ant-select-selector {
+        @apply z-10 !rounded-r-lg;
+      }
+    }
+    &:not(.ant-select-focused) {
+      .ant-select-selector {
+        @apply !border-transparent !shadow-none;
+      }
+    }
+    .ant-select-selector {
+      @apply relative !rounded-lg !text-sm;
+    }
+  }
+  :deep(.nc-data-exporter-view-select.ant-select) {
+    &.ant-select-focused {
+      .ant-select-selector {
+        @apply z-10 !rounded-l-lg;
+      }
+    }
+    &:not(.ant-select-focused) {
+      .ant-select-selector {
+        @apply !border-transparent !shadow-none;
+      }
+    }
+    .ant-select-selector {
+      @apply relative !rounded-lg !text-sm;
+    }
+  }
   .data-exporter-body {
-    @apply flex-1 rounded-lg border-1 overflow-hidden;
+    @apply flex-1 overflow-hidden;
   }
 
   .data-exporter-footer {
@@ -425,8 +368,7 @@ onMounted(() => {
 }
 </style>
 
-<style>
-.nc-nc-bulk-update-ee .extension-content {
-  @apply !p-0;
+<style lang="scss">
+.nc-nc-data-exporter {
 }
 </style>

@@ -16,7 +16,12 @@
       "height": 24
     }
   },
-  "links": [],
+  "links": [
+    {
+      "title": "Documentation",
+      "href": "https://docs.nocodb.com/extensions/data-exporter"
+    }
+  ],
   "config": {
     "modalSize": "sm",
     "contentMinHeight": "310px"

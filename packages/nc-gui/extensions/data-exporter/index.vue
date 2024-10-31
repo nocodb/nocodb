@@ -222,19 +222,18 @@ onMounted(() => {
             'max-w-[480px]': fullscreen,
           }"
         >
-          <div
-            class="flex-1 flex items-center border-1 border-gray-200 rounded-lg focus-within:(border-brand-500 shadow-selected) transition-colors transition-shadow"
+          <a-form-item
+            class="!my-0"
+            :class="{
+              'flex-1 max-w-[240px]': fullscreen,
+              'min-w-1/2 max-w-[175px]': !fullscreen,
+            }"
           >
             <NcSelect
               v-model:value="exportPayload.tableId"
               placeholder="-select table-"
               :disabled="isExporting"
-              class="nc-data-exporter-table-select"
-              :class="{
-                'flex-1 max-w-[240px]': fullscreen,
-                'min-w-1/2 max-w-[175px]': !fullscreen,
-              }"
-              :bordered="false"
+              class="nc-data-exporter-table-select nc-select-shadow"
               :filter-option="filterOption"
               dropdown-class-name="w-[250px]"
               show-search
@@ -258,18 +257,20 @@ onMounted(() => {
                 </div>
               </a-select-option>
             </NcSelect>
-            <div class="flex-none h-8 border-l-1 border-gray-200"></div>
+          </a-form-item>
 
+          <a-form-item
+            class="!my-0"
+            :class="{
+              'flex-1 max-w-[240px]': fullscreen,
+              'min-w-1/2 max-w-[175px]': !fullscreen,
+            }"
+          >
             <NcSelect
               v-model:value="exportPayload.viewId"
               placeholder="-select view-"
               :disabled="isExporting"
-              class="nc-data-exporter-view-select"
-              :class="{
-                'flex-1 max-w-[240px]': fullscreen,
-                'min-w-1/2 max-w-[175px]': !fullscreen,
-              }"
-              :bordered="false"
+              class="nc-data-exporter-view-select nc-select-shadow"
               dropdown-class-name="w-[250px]"
               :filter-option="filterOption"
               show-search
@@ -292,7 +293,7 @@ onMounted(() => {
                   />
                 </div> </a-select-option
             ></NcSelect>
-          </div>
+          </a-form-item>
         </div>
         <div class="flex-none flex justify-end">
           <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
@@ -403,16 +404,31 @@ onMounted(() => {
     @apply px-3 py-1 bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
   }
 
-  // .nc-data-exporter-table-select {
-  //   :deep(.ant-select-selector) {
-  //     @apply !border-r-1 rounded-lg !rounded-r-none shadow-none;
-  //   }
-  // }
-  // .nc-data-exporter-view-select {
-  //   :deep(.ant-select-selector) {
-  //     @apply !border-l-0 rounded-lg !rounded-l-none shadow-none;
-  //   }
-  // }
+  :deep(.nc-data-exporter-table-select.ant-select) {
+    &.ant-select-focused {
+      .ant-select-selector {
+        @apply z-10;
+      }
+    }
+
+    .ant-select-selector {
+      @apply relative !border-r-1 rounded-lg !rounded-r-none;
+    }
+  }
+
+  :deep(.nc-data-exporter-view-select.ant-select) {
+    @apply -ml-[1px];
+
+    &.ant-select-focused {
+      .ant-select-selector {
+        @apply z-10;
+      }
+    }
+
+    .ant-select-selector {
+      @apply relative !border-l-1 rounded-lg !rounded-l-none;
+    }
+  }
 
   .data-exporter-body {
     @apply flex-1 rounded-lg border-1 overflow-hidden;

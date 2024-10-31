@@ -352,7 +352,8 @@ export class ColumnsService {
         exclude_id: param.columnId,
       }))
     ) {
-      NcError.badRequest('Duplicate column alias');
+      // This error will be thrown if there are more than one column linking to the same table. You have to delete one of them
+      NcError.badRequest(`Duplicate column alias for table ${table.title} and column is ${param.column.title}. Please change the name of this column and retry.`);
     }
 
     let colBody = { ...param.column } as Column & {

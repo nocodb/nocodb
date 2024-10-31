@@ -65,7 +65,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         >
           <div class="flex items-center justify-center min-w-[28.69px]">
             <GeneralIcon
-              icon="ncPuzzleOutline"
+              :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'"
               class="w-4 h-4 !stroke-transparent"
               :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
             />

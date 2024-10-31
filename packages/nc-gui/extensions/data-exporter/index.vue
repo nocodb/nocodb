@@ -84,7 +84,7 @@ const reloadViews = async () => {
   }
 }
 
-const onTableSelect = async (tableId: string) => {
+const onTableSelect = async (tableId?: string) => {
   if (!tableId) {
     exportPayload.value.tableId = activeTableId.value
     await reloadViews()

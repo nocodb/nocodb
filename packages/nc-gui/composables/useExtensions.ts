@@ -207,8 +207,21 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
+    let defaultKvStore = {}
+
+    switch (extension.extensionId) {
+      case 'nc-data-exporter': {
+        defaultKvStore = {
+          ...defaultKvStore,
+          deletedExports: extension.kvStore.get('deletedExports') || [],
+        }
+      }
+    }
+
     return updateExtension(extensionId, {
-      kv_store: {},
+      kv_store: {
+        ...defaultKvStore,
+      },
     })
   }
 
@@ -358,7 +371,7 @@ export const useExtensions = createSharedComposable(() => {
       return updateExtensionMeta(this.id, key, value)
     }
 
-    clear(): Promise<any> {
+    async clear(): Promise<any> {
       return clearKvStore(this.id).then(() => {
         this.uiKey++
       })

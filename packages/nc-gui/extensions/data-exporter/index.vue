@@ -20,6 +20,8 @@ const activeViewTitleOrId = computed(() => {
   return route.value.params.viewTitle
 })
 
+const { eventBus } = useExtensions()
+
 const { extension, tables, fullscreen, getViewsForTable } = useExtensionHelperOrThrow()
 
 const { jobList, loadJobsForBase } = useJobs()
@@ -39,9 +41,17 @@ const exportedFiles = computed(() => {
         job.job === 'data-export' && job.result?.extension_id === extension.value.id && !deletedExports.value.includes(job.id),
     )
     .map((job) => {
+      const isNew = job.result?.timestamp ? dayjs().diff(job.result?.timestamp) < 10000 : false
+
       return {
         ...job,
-        result: (job.result || {}) as { url: string; type: 'csv' | 'json' | 'xlsx'; title: string; timestamp: number },
+        result: { ...(job.result || {}), isNew } as {
+          url: string
+          type: 'csv' | 'json' | 'xlsx'
+          title: string
+          timestamp: number
+          isNew: boolean
+        },
       }
     })
     .sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())
@@ -212,6 +222,17 @@ const filterOption = (input: string, option: { key: string }) => {
   return option.key?.toLowerCase()?.includes(input?.toLowerCase())
 }
 
+eventBus.on(async (event, payload) => {
+  if (event === ExtensionsEvents.CLEARDATA && payload && extension.value.id && payload === extension.value.id) {
+    const deleteExportsPayload = exportedFiles.value.map((exp) => exp.id)
+
+    if (deleteExportsPayload.length) {
+      deletedExports.value.push(...deleteExportsPayload)
+      await extension.value.kvStore.set('deletedExports', deletedExports.value)
+    }
+  }
+})
+
 onMounted(async () => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
   deletedExports.value = extension.value.kvStore.get('deletedExports') || []
@@ -232,16 +253,15 @@ onMounted(async () => {
       class="data-exporter"
       :class="{
         'p-4': fullscreen,
-        'p-3': !fullscreen,
       }"
     >
-      <div class="pb-3 flex items-center justify-between gap-2.5 flex-wrap">
+      <div class="p-3 flex items-center justify-between gap-2.5 flex-wrap">
         <div
           class="flex-1 flex items-center"
           :class="{
-            'max-w-[min(350px,calc(100%-124px))]': isExporting && !fullscreen && width > 325,
-            'max-w-[min(350px,calc(100%_-_84px))]': !isExporting && !fullscreen && width > 325,
-            'max-w-full': width <= 325,
+            'max-w-[min(350px,calc(100%-131px))]': isExporting && !fullscreen && width > 425,
+            'max-w-[min(350px,calc(100%_-_87px))]': !isExporting && !fullscreen && width > 425,
+            'max-w-full': width <= 425,
             'max-w-[480px]': fullscreen,
           }"
         >
@@ -260,6 +280,7 @@ onMounted(async () => {
               :filter-option="filterOption"
               dropdown-class-name="w-[250px]"
               show-search
+              size="large"
               @change="onTableSelect"
             >
               <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
@@ -297,6 +318,7 @@ onMounted(async () => {
               dropdown-class-name="w-[250px]"
               :filter-option="filterOption"
               show-search
+              size="large"
               @change="onViewSelect"
             >
               <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
@@ -321,13 +343,22 @@ onMounted(async () => {
         <div class="flex-none flex justify-end">
           <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
             <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-            <NcButton :disabled="!exportPayload?.viewId" :loading="isExporting" size="xs" @click="exportDataAsync">{{
-              isExporting ? 'Generating' : 'Export'
-            }}</NcButton>
+            <NcButton
+              :disabled="!exportPayload?.viewId || isExporting"
+              :loading="isExporting"
+              size="medium"
+              @click="exportDataAsync"
+              >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
+            >
           </NcTooltip>
         </div>
       </div>
-      <div class="data-exporter-body flex-1 flex flex-col">
+      <div
+        class="data-exporter-body flex-1 flex flex-col"
+        :class="{
+          'rounded-lg border-1': fullscreen,
+        }"
+      >
         <div class="data-exporter-header">Recent Exports</div>
         <div v-if="exportedFiles.length" class="flex-1 flex flex-col nc-scrollbar-thin max-h-[calc(100%_-_25px)]">
           <template v-for="exp of exportedFiles">
@@ -343,8 +374,10 @@ onMounted(async () => {
               <div
                 class="flex-1 flex items-start gap-3"
                 :class="{
-                  'max-w-[calc(100%_-_74px)]': exp.status === JobStatus.COMPLETED,
-                  'max-w-[calc(100%_-_38px)]': exp.status !== JobStatus.COMPLETED,
+                  'max-w-[calc(100%_-_74px)]': exp.status === JobStatus.COMPLETED && !exp.result.isNew,
+                  'max-w-[calc(100%_-_113px)]': exp.status === JobStatus.COMPLETED && exp.result.isNew,
+                  'max-w-[calc(100%_-_48px)]': exp.status !== JobStatus.COMPLETED && !exp.result.isNew,
+                  'max-w-[calc(100%_-_85px)]': exp.status !== JobStatus.COMPLETED && exp.result.isNew,
                 }"
               >
                 <NcTooltip v-if="[JobStatus.COMPLETED, JobStatus.FAILED].includes(exp.status)" class="flex">
@@ -383,6 +416,11 @@ onMounted(async () => {
                 </div>
               </div>
 
+              <div v-if="exp.result.isNew" class="flex h-7 flex items-center">
+                <NcBadge color="green" :border="false" class="!bg-nc-bg-green-light !text-nc-content-green-dark">{{
+                  $t('general.new')
+                }}</NcBadge>
+              </div>
               <div v-if="exp.status === JobStatus.COMPLETED" class="flex" @click="handleDownload(urlHelper(exp.result.url))">
                 <NcTooltip class="flex">
                   <template #title>
@@ -435,7 +473,7 @@ onMounted(async () => {
     }
 
     .ant-select-selector {
-      @apply relative !border-r-1 rounded-lg !rounded-r-none;
+      @apply relative !border-r-1 !rounded-lg !rounded-r-none !text-sm;
     }
   }
 
@@ -449,12 +487,12 @@ onMounted(async () => {
     }
 
     .ant-select-selector {
-      @apply relative !border-l-1 rounded-lg !rounded-l-none;
+      @apply relative !border-l-1 !rounded-lg !rounded-l-none !text-sm;
     }
   }
 
   .data-exporter-body {
-    @apply flex-1 rounded-lg border-1 overflow-hidden;
+    @apply flex-1 overflow-hidden;
   }
 
   .data-exporter-footer {

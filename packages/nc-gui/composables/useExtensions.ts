@@ -374,6 +374,10 @@ export const useExtensions = createSharedComposable(() => {
     async clear(): Promise<any> {
       return clearKvStore(this.id).then(() => {
         this.uiKey++
+
+        nextTick(() => {
+          eventBus.emit(ExtensionsEvents.CLEARDATA, this.id)
+        })
       })
     }
 

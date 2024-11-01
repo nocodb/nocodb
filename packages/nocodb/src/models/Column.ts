@@ -1112,7 +1112,7 @@ export default class Column<T = any> implements ColumnType {
     skipFormulaInvalidate = false,
   ) {
     const oldCol = await Column.get(context, { colId }, ncMeta);
-
+    let colOptDeleted = true;
     switch (oldCol.uidt) {
       case UITypes.Lookup: {
         // LookupColumn.insert()
@@ -1158,8 +1158,8 @@ export default class Column<T = any> implements ColumnType {
             'fk_related_model_id',
           ].some((k) => !column[k])
         ) {
+          colOptDeleted = false;
           break;
-          s;
         }
 
         await ncMeta.metaDelete(
@@ -1361,7 +1361,9 @@ export default class Column<T = any> implements ColumnType {
       prepareForResponse(updateObj),
     );
 
-    await this.insertColOption(context, column, colId, ncMeta);
+    // insert new col options only if existing colOption meta is deleted
+    if (colOptDeleted)
+      await this.insertColOption(context, column, colId, ncMeta);
 
     // on column update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, oldCol.fk_model_id, null, ncMeta);

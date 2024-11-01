@@ -12,7 +12,8 @@ import ncXcdbLTARUpgrader from './upgraders/0108002_ncXcdbLTARUpgrader';
 import ncXcdbLTARIndexUpgrader from './upgraders/0111002_ncXcdbLTARIndexUpgrader';
 import ncXcdbCreatedAndUpdatedSystemFieldsUpgrader from './upgraders/0111005_ncXcdbCreatedAndUpdatedSystemFieldsUpgrader';
 import ncDatasourceDecrypt from './upgraders/0225002_ncDatasourceDecrypt';
-// import dupColMergeUpgrader from './0205003_dupColMergeUpgrader';
+// import ncBrokenLinkRecovery from './upgraders/0227002_ncBrokenLinkRecovery';
+// import dupColMergeUpgrader from './upgraders/0227003_dupColMergeUpgrader';
 import type { MetaService } from '~/meta/meta.service';
 import type { NcConfig } from '~/interface/config';
 import { T } from '~/utils';
@@ -152,6 +153,7 @@ export default class NcUpgrader {
       { name: '0111005', handler: ncXcdbCreatedAndUpdatedSystemFieldsUpgrader },
       { name: '0225002', handler: ncDatasourceDecrypt },
       // disable for now
+      // { name: '0257002', handler: ncBrokenLinkRecovery },
       // { name: '0227000', handler: dupColMergeUpgrader },
     ];
   }

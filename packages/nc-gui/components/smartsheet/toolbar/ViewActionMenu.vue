@@ -286,7 +286,7 @@ function closePdfExportDialog()  {
 
         <template #expandIcon></template>
 
-        <LazySmartsheetToolbarPdfExportDialog    :isOpen="isPdfExportDialogOpen" @close="closePdfExportDialog" />
+        <LazyDlgPDFExport   :isOpen="isPdfExportDialogOpen" @close="closePdfExportDialog" />
       </NcSubMenu>
     </template>
 

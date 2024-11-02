@@ -5,7 +5,7 @@ import 'jspdf-autotable';
 import type { BaseType } from 'nocodb-sdk';
 import Item from '~/components/notification/Item.vue';
 import { Drawer } from 'ant-design-vue/es';
-import NcModal from '../../../nc/Modal.vue'
+import NcModal from '../nc/Modal.vue'
 
 import logo from '@/assets/img/brand/nocodb.png'; // Adjust the path as needed
 
@@ -183,7 +183,7 @@ const modalWidth = computed(() => {
 <!-- :width="isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(70vw,768px)'" -->
 <template>
     <a-modal :footer="null" :closable=true v-model:visible="localIsOpen" :class="{ active: props.isOpen }"
-        :width="modalWidth" wrap-class-name="nc-modal-quick-import" @keydown.esc="closeDialog">
+        :width="modalWidth"  @keydown.esc="closeDialog">
         <a-spin :spinning="false" tip="progressMs" size="large">
             <div class="px-5">
                 <div class="prose-xl font-weight-bold my-5">{{ $t('labels.pdfExport') }}</div>
@@ -200,7 +200,6 @@ const modalWidth = computed(() => {
                             <label class="font-small">
                                 <input type="radio" className="focus:primary" value="portrait" v-model="orientation" />
                                 <span class="radio-icon">
-                                    <font-awesome-icon icon="file-alt" />
                                 </span>
                                 Portrait
                             </label>
@@ -208,7 +207,6 @@ const modalWidth = computed(() => {
                             <label class="font-small">
                                 <input type="radio" value="landscape" v-model="orientation" />
                                 <span class="radio-icon">
-                                    <font-awesome-icon icon="file-alt" rotation="270" />
                                 </span>
                                 Landscape
                             </label>
@@ -223,7 +221,6 @@ const modalWidth = computed(() => {
                             <label class="font-small">
                                 <input type="radio" value="a4" v-model="pageSize" />
                                 <span class="radio-icon">
-                                    <font-awesome-icon icon="file-alt" />
                                 </span>
                                 A4
                             </label>
@@ -231,7 +228,6 @@ const modalWidth = computed(() => {
                             <label class="font-small">
                                 <input type="radio" value="a5" v-model="pageSize" />
                                 <span class="radio-icon">
-                                    <font-awesome-icon icon="file-alt" rotation="270" />
                                 </span>
                                 A5
                             </label>
@@ -239,7 +235,6 @@ const modalWidth = computed(() => {
                             <label class="font-small">
                                 <input type="radio" value="a10" v-model="pageSize" />
                                 <span class="radio-icon">
-                                    <font-awesome-icon icon="file-alt" rotation="270" />
                                 </span>
                                 A10
                             </label>
@@ -247,23 +242,7 @@ const modalWidth = computed(() => {
                         </div>
                     </div>
                 </div>
-                <!-- <LazyTemplateEditor
-              v-if="templateEditorModal"
-              ref="templateEditorRef"
-              :base-template="templateData"
-              :import-data="importData"
-              :import-columns="importColumns"
-              :import-data-only="importDataOnly"
-              :quick-import-type="importType"
-              :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
-              :base-id="baseId"
-              :source-id="sourceId"
-              :import-worker="importWorker"
-              class="nc-quick-import-template-editor"
-              @import="handleImport"
-              @error="onError"
-              @change="onChange"
-            /> -->
+                
             </div>
         </a-spin>
 
@@ -273,17 +252,7 @@ const modalWidth = computed(() => {
                 {{ $t('labels.pdfExport') }}
             </a-button>
         </div>
-        <!-- <a-button
-          v-else
-          key="import"
-          type="primary"
-          class="!rounded-md"
-          :loading="importLoading"
-          :disabled="disableImportButton"
-          @click="handleImport"
-        >
-          {{ $t('activity.import') }}
-        </a-button> -->
+       
     </a-modal>
 
 </template>

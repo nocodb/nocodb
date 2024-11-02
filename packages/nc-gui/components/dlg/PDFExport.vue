@@ -54,11 +54,6 @@ function setOrientation(text: string) {
     orientation.value = text;
 }
 
-
-
-
-
-
 const { getPossibleAttachmentSrc } = useAttachment()
 
 function checkCellIsAttachment( cell: any ) : boolean {
@@ -170,7 +165,7 @@ const generatePDF = async () => {
        
 
 
-   await   doc.save('table-data.pdf');
+   await doc.save('table-data.pdf');
    emit('close')
     
 };
@@ -231,13 +226,13 @@ const modalWidth = computed(() => {
                                 </span>
                                 A5
                             </label>
-                            <div className="p-2"></div>
+                            <!-- <div className="p-2"></div>
                             <label class="font-small">
                                 <input type="radio" value="a10" v-model="pageSize" />
                                 <span class="radio-icon">
                                 </span>
                                 A10
-                            </label>
+                            </label> -->
 
                         </div>
                     </div>

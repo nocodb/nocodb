@@ -129,17 +129,12 @@ const onDelete = async () => {
   emits('delete')
 }
 
-const isPdfExportDialogOpen = ref<boolean>(false)
-function openPdfExportDialog() {  
 
+const closeModal = () => {
   emits('closeModal')
-  isPdfExportDialogOpen.value = true;
 }
 
-function closePdfExportDialog()  {  
-  
-  isPdfExportDialogOpen.value = false;
-}
+
 
 /**
  * ## Known Issue and Fix
@@ -267,27 +262,9 @@ function closePdfExportDialog()  {
 
         <template #expandIcon></template>
 
-        <LazySmartsheetToolbarExportSubActions />
+        <LazySmartsheetToolbarExportSubActions @closeModal="closeModal" />
       </NcSubMenu>
-      <NcSubMenu key="pdf download" @click="openPdfExportDialog">
-        <template #title>
-          <div v-e="[
-              'c:download',
-              {
-                sidebar: props.inSidebar,
-              },
-            ]" class="nc-base-menu-item group nc-view-context-pdf-export-option">
-            <!-- todov -->
-            <GeneralIcon icon="download" />
 
-            {{ $t('labels.pdfExport') }}
-          </div>
-        </template>
-
-        <template #expandIcon></template>
-
-        <LazyDlgPDFExport   :isOpen="isPdfExportDialogOpen" @close="closePdfExportDialog" />
-      </NcSubMenu>
     </template>
 
     <template v-if="isUIAllowed('viewCreateOrEdit')">

@@ -77,19 +77,33 @@ const exportFile = async (exportType: ExportTypes) => {
   } catch (e: any) {
     isExportingType.value = undefined
     message.error(await extractSdkResponseErrorMsg(e))
+ 
   }
 }
+
+const isPdfExportDialogOpen = ref<boolean>(false)
+
+const emits = defineEmits(['closeModal'])
+
+function openPdfExportDialog() {  
+
+  emits('closeModal')
+  isPdfExportDialogOpen.value = true;
+}
+
+function closePdfExportDialog()  {  
+  
+  isPdfExportDialogOpen.value = false;
+}
+
 </script>
 
 <template>
   <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.downloadData') }}</div>
 
   <a-menu-item class="!mx-1 !py-2 !rounded-md">
-    <div
-      v-e="['a:download:csv']"
-      class="flex flex-row items-center nc-base-menu-item !py-0"
-      @click.stop="exportFile(ExportTypes.CSV)"
-    >
+    <div v-e="['a:download:csv']" class="flex flex-row items-center nc-base-menu-item !py-0"
+      @click.stop="exportFile(ExportTypes.CSV)">
       <GeneralLoader v-if="isExportingType === ExportTypes.CSV" class="!max-h-4.5 !-mt-1 !mr-0.7" />
       <component :is="iconMap.csv" v-else />
       <!-- Download as CSV -->
@@ -98,16 +112,23 @@ const exportFile = async (exportType: ExportTypes) => {
   </a-menu-item>
 
   <a-menu-item class="!mx-1 !py-2 !rounded-md">
-    <div
-      v-e="['a:download:excel']"
-      class="flex flex-row items-center nc-base-menu-item !py-0"
-      @click="exportFile(ExportTypes.EXCEL)"
-    >
+    <div v-e="['a:download:excel']" class="flex flex-row items-center nc-base-menu-item !py-0"
+      @click="exportFile(ExportTypes.EXCEL)">
       <GeneralLoader v-if="isExportingType === ExportTypes.EXCEL" class="!max-h-4.5 !-mt-1 !mr-0.7" />
       <component :is="iconMap.excel" v-else />
 
       <!-- Download as XLSX -->
       {{ $t('activity.downloadExcel') }}
     </div>
+  </a-menu-item>
+  <a-menu-item class="!mx-1 !py-2 !rounded-md">
+    <div v-e="['a:download:excel']" class="flex flex-row items-center nc-base-menu-item !py-0"
+      @click="openPdfExportDialog">
+      <component :is="iconMap.pdfFile" />
+
+      <!-- Download as XLSX -->
+      {{ $t('labels.pdfExport') }}
+    </div>
+    <LazyDlgPDFExport :isOpen="isPdfExportDialogOpen" @close="closePdfExportDialog" />
   </a-menu-item>
 </template>

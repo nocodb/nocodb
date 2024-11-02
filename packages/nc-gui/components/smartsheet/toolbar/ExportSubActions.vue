@@ -122,7 +122,7 @@ function closePdfExportDialog()  {
     </div>
   </a-menu-item>
   <a-menu-item class="!mx-1 !py-2 !rounded-md">
-    <div v-e="['a:download:excel']" class="flex flex-row items-center nc-base-menu-item !py-0"
+    <div  class="flex flex-row items-center nc-base-menu-item !py-0"
       @click="openPdfExportDialog">
       <component :is="iconMap.pdfFile" />
 

@@ -1002,7 +1002,11 @@
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
-    "redirectToUrl": "Redirect to URL"
+    "redirectToUrl": "Redirect to URL",
+    "orientation": "Orientation",
+    "pageSize": "Page Size",
+    "pdfExport": "Export PDF"
+
   },
   "activity": {
     "webhookDetails": "Webhook Details",

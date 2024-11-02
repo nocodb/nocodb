@@ -161,6 +161,67 @@ export function useViewData(
 
   const controller = ref()
 
+
+  async function loadDataForPDFExport() {
+  
+    if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
+
+    if (controller.value) {
+      controller.value.cancel()
+    }
+
+    const CancelToken = axios.CancelToken
+
+    controller.value = CancelToken.source()
+
+    let response
+
+    const tempQuery = JSON.stringify(queryParams.value)
+
+    const newQuery = JSON.parse(tempQuery)
+    newQuery['limit'] = 0
+    try {
+      response = !isPublic.value
+        ? await api.dbViewRow.list(
+            'noco',
+            base.value.id!,
+            metaId.value!,
+            viewMeta.value!.id!,
+            {
+              ...newQuery,
+              
+              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+              where: where?.value,
+              ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
+            } as any,
+            {
+              cancelToken: controller.value.token,
+            },
+          )
+        : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value })
+    } catch (error) {
+      // if the request is canceled, then do nothing
+      if (error.code === 'ERR_CANCELED') {
+        return
+      }
+
+      // retry the request if the error is FORMULA_ERROR
+      if (error?.response?.data?.error === 'FORMULA_ERROR') {
+        message.error(await extractSdkResponseErrorMsg(error))
+
+        await tablesStore.reloadTableMeta(metaId.value as string)
+
+        return loadData(params, shouldShowLoading)
+      }
+
+      return message.error(await extractSdkResponseErrorMsg(error))
+    }
+
+
+   return response;
+  }
+  
   async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}, shouldShowLoading = true) {
     if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
 
@@ -384,6 +445,7 @@ export function useViewData(
     error,
     isLoading,
     loadData,
+    loadDataForPDFExport,
     paginationData,
     queryParams,
     formattedData,

@@ -1200,6 +1200,16 @@ const parseConditionV2 = async (
                 .whereNull(customWhereClause || field)
                 .orWhere(field, '[]')
                 .orWhere(field, 'null');
+            } else if (column.uidt === UITypes.Formula) {
+              qb = qb.whereNull(customWhereClause || field);
+
+              if (
+                ![UITypes.DateTime, UITypes.Number, UITypes.Checkbox].includes(
+                  getEquivalentUIType({ formulaColumn: column }) || column.uidt,
+                )
+              ) {
+                qb = qb.orWhere(field, '');
+              }
             } else {
               qb = qb.whereNull(customWhereClause || field);
               if (
@@ -1222,6 +1232,15 @@ const parseConditionV2 = async (
                 .whereNotNull(customWhereClause || field)
                 .whereNot(field, '[]')
                 .whereNot(field, 'null');
+            } else if (column.uidt === UITypes.Formula) {
+              qb = qb.whereNotNull(customWhereClause || field);
+              if (
+                ![UITypes.DateTime, UITypes.Number, UITypes.Checkbox].includes(
+                  getEquivalentUIType({ formulaColumn: column }) || column.uidt,
+                )
+              ) {
+                qb = qb.whereNot(customWhereClause || field, '');
+              }
             } else {
               qb = qb.whereNotNull(customWhereClause || field);
               if (

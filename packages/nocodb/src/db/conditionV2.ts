@@ -214,7 +214,7 @@ const parseConditionV2 = async (
         NcError.fieldNotFound(filter.fk_column_id);
       }
     }
-    if (column.uidt === UITypes.LinkToAnotherRecord || column.uidt == UITypes.Links) {
+    if (column.uidt === UITypes.LinkToAnotherRecord) {
       const colOptions = (await column.getColOptions(
         context,
       )) as LinkToAnotherRecordColumn;

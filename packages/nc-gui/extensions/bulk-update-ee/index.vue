@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { helpers } from '@vuelidate/validators'
+import { required, helpers, maxLength } from '@vuelidate/validators'
 import useVuelidate from '@vuelidate/core'
+
 import {
   type ColumnType,
   type ViewType,
@@ -98,15 +99,6 @@ const bulkUpdateColumns = computed(() => {
   })
 })
 
-const bulkUpdateColumnsMap = computed(() => {
-  return bulkUpdateColumns.value.reduce((acc, col: ColumnType) => {
-    if (col.id) {
-      acc[col.id] = col
-    }
-    return acc
-  }, {} as Record<string, any>)
-})
-
 const savedPayloads = ref<BulkUpdatePayloadType>(bulkUpdatePayloadPlaceholder)
 
 const tableList = computed(() => {
@@ -172,13 +164,16 @@ const bulkUpdatePayload = computedAsync(async () => {
       /**
        * Todo: remove history object if table view is deleted
        */
-
       if (!savedPayloads.value.selectedTableId && tableList.value.find((table) => table.value === activeTableId.value)) {
         onTableSelect()
       }
 
       isDataLoaded.value = true
+    } else {
+      onTableSelect()
     }
+
+    validateAll()
   }
 
   if (savedPayloads.value.selectedTableId && savedPayloads.value.selectedViewId) {
@@ -202,7 +197,7 @@ const bulkUpdatePayload = computedAsync(async () => {
 
 const fieldConfigMap = computed(() => {
   return (
-    bulkUpdatePayload.value?.config?.reduce((acc, col) => {
+    (bulkUpdatePayload.value?.config || []).reduce((acc, col) => {
       if (col.id) {
         acc[col.id] = col
       }
@@ -295,6 +290,7 @@ function addNewAction() {
   ]
 
   handleUpdateFieldConfigExpansionPanel(configId)
+  validateAll()
 }
 
 async function handleRemoveFieldConfig(configId: string) {
@@ -307,6 +303,7 @@ async function handleRemoveFieldConfig(configId: string) {
   bulkUpdatePayload.value.config = bulkUpdatePayload.value.config.filter((fc) => fc.id !== configId)
 
   await saveChanges()
+  validateAll()
 }
 
 const rules = computed(() => {
@@ -315,24 +312,26 @@ const rules = computed(() => {
 
     acc[config.id] = {
       columnId: {
-        validators: {},
+        required,
       },
-      op_type: {
-        validators: {},
-      },
-      value: {
-        validators: {},
-      },
+      // op_type: {
+      //   required,
+      // },
+      // value: {
+      //   required,
+      // },
     }
 
     return acc
-  })
-
-  return {}
+  }, {})
 })
 
 // Use Vuelidate to create validation instance
-// const v$ = useVuelidate(rules, fieldConfigMap)
+const v$ = useVuelidate(rules, fieldConfigMap)
+
+async function validateAll() {
+  await v$.value?.$validate()
+}
 
 watch(
   fullscreen,
@@ -421,7 +420,7 @@ onMounted(async () => {
           ></NcSelect>
         </a-form-item>
       </div>
-      <NcButton size="small">Update Records</NcButton>
+      <NcButton size="small" :disabled="v$.$error">Update Records</NcButton>
     </template>
 
     <div
@@ -543,33 +542,35 @@ onMounted(async () => {
                   class="w-full flex items-center p-6"
                   @click="handleUpdateFieldConfigExpansionPanel(fieldConfig.id)"
                 >
-                  <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
-                    <NcCheckbox :checked="true" />
-                    <NcTooltip show-on-truncate-only class="truncate text-sm font-weight-500">
-                      <template #title>
+                  <div v-if="v$?.[fieldConfig.id]?.$error" class="flex-1 flex">
+                    <div
+                      class="text-nc-content-red-dark rounded-md px-1 inline-flex items-center gap-1 text-sm bg-nc-bg-red-light"
+                    >
+                      <GeneralIcon icon="ncAlertTriangle" />
+                      Incomplete configuration
+                    </div>
+                  </div>
+
+                  <div v-else class="flex-1 flex">
+                    <div class="flex items-center gap-3 text-nc-content-purple-dark">
+                      <NcCheckbox :checked="true" />
+                      <NcTooltip show-on-truncate-only class="truncate text-sm font-weight-500">
+                        <template #title>
+                          {{ fieldConfig.id }}
+                        </template>
                         {{ fieldConfig.id }}
-                      </template>
-                      {{ fieldConfig.id }}
-                    </NcTooltip>
+                      </NcTooltip>
+                    </div>
                   </div>
                   <NcButton
                     size="xs"
                     type="text"
-                    theme="ai"
                     icon-only
-                    class="!px-0 !h-6 !w-6 !min-w-6"
-                    :class="{
-                      hidden: false,
-                    }"
+                    class="!px-0 -my-1"
+                    @click.stop="handleRemoveFieldConfig(fieldConfig.id)"
                   >
                     <template #icon>
-                      <GeneralIcon
-                        icon="arrowDown"
-                        class="transform transition-all opacity-80"
-                        :class="{
-                          'rotate-180': fieldConfigExpansionPanel.includes(fieldConfig.id),
-                        }"
-                      />
+                      <GeneralIcon icon="delete" />
                     </template>
                   </NcButton>
                 </div>

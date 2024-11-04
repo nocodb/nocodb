@@ -1202,11 +1202,9 @@ const parseConditionV2 = async (
                 .orWhere(field, 'null');
             } else if (column.uidt === UITypes.Formula) {
               qb = qb.whereNull(customWhereClause || field);
-
               if (
-                ![UITypes.DateTime, UITypes.Number, UITypes.Checkbox].includes(
-                  getEquivalentUIType({ formulaColumn: column }) || column.uidt,
-                )
+                (column?.colOptions as any).parsed_tree?.dataType ===
+                FormulaDataTypes.STRING
               ) {
                 qb = qb.orWhere(field, '');
               }
@@ -1235,9 +1233,8 @@ const parseConditionV2 = async (
             } else if (column.uidt === UITypes.Formula) {
               qb = qb.whereNotNull(customWhereClause || field);
               if (
-                ![UITypes.DateTime, UITypes.Number, UITypes.Checkbox].includes(
-                  getEquivalentUIType({ formulaColumn: column }) || column.uidt,
-                )
+                (column?.colOptions as any).parsed_tree?.dataType ===
+                FormulaDataTypes.STRING
               ) {
                 qb = qb.whereNot(customWhereClause || field, '');
               }

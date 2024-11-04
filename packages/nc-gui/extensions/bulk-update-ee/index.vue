@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { type ColumnType, type ViewType, ViewTypes, UITypes, getSystemColumnsIds } from 'nocodb-sdk'
+import { helpers } from '@vuelidate/validators'
+import useVuelidate from '@vuelidate/core'
+import {
+  type ColumnType,
+  type ViewType,
+  ViewTypes,
+  UITypes,
+  getSystemColumnsIds,
+  type TableType,
+  getSystemColumns,
+} from 'nocodb-sdk'
 
 const jobStatusTooltip = {
   [JobStatus.COMPLETED]: 'Export successful',
@@ -78,16 +88,23 @@ const bulkUpdateRef = ref<HTMLDivElement>()
 
 const { width } = useElementSize(bulkUpdateRef)
 
-const columns = ref<ColumnType[]>()
+const meta = ref<TableType>()
 
-const systemFieldsIds = computed(() => getSystemColumnsIds(columns.value))
-
-const columnsById = ref<Record<string, ColumnType>>({})
+const systemFieldsIds = computed(() => getSystemColumnsIds(meta.value?.columns || []))
 
 const bulkUpdateColumns = computed(() => {
-  return columns.value?.filter((c) => {
-    return hiddenColTypes.includes(c.uidt) && !systemFieldsIds.value.includes(f.id)
+  return (meta.value?.columns || []).filter((c) => {
+    return !hiddenColTypes.includes(c.uidt) && !systemFieldsIds.value.includes(c.id)
   })
+})
+
+const bulkUpdateColumnsMap = computed(() => {
+  return bulkUpdateColumns.value.reduce((acc, col: ColumnType) => {
+    if (col.id) {
+      acc[col.id] = col
+    }
+    return acc
+  }, {} as Record<string, any>)
 })
 
 const savedPayloads = ref<BulkUpdatePayloadType>(bulkUpdatePayloadPlaceholder)
@@ -123,7 +140,7 @@ const isDataLoaded = ref(false)
 const bulkUpdatePayload = computedAsync(async () => {
   if (!isDataLoaded.value && !savedPayloads.value.history?.length) {
     let saved = (await extension.value.kvStore.get('savedPayloads')) as BulkUpdatePayloadType
-    console.log('on mounted')
+
     if (saved) {
       saved.history = saved.history || []
 
@@ -147,6 +164,8 @@ const bulkUpdatePayload = computedAsync(async () => {
       }
 
       savedPayloads.value = saved
+
+      await updateColumns()
 
       await reloadViews()
 
@@ -181,10 +200,35 @@ const bulkUpdatePayload = computedAsync(async () => {
   }
 })
 
+const fieldConfigMap = computed(() => {
+  return (
+    bulkUpdatePayload.value?.config?.reduce((acc, col) => {
+      if (col.id) {
+        acc[col.id] = col
+      }
+      return acc
+    }, {} as Record<string, any>) || {}
+  )
+})
+
+watchEffect(() => {
+  console.log('fieldConfigMap', fieldConfigMap.value, bulkUpdatePayload.value?.config)
+})
+
 async function reloadViews() {
   if (!savedPayloads.value.selectedTableId) return
 
   views.value = await getViewsForTable(savedPayloads.value.selectedTableId)
+}
+
+async function updateColumns() {
+  if (!savedPayloads.value.selectedTableId) return
+
+  const tableMeta = await getTableMeta(savedPayloads.value.selectedTableId)
+
+  if (tableMeta) {
+    meta.value = tableMeta
+  }
 }
 
 async function onTableSelect(tableId?: string) {
@@ -200,29 +244,24 @@ async function onTableSelect(tableId?: string) {
     savedPayloads.value.selectedViewId = views.value.find((view) => view.is_default)?.id
   }
 
-  const tableMeta = await getTableMeta(savedPayloads.value.selectedTableId)
-  if (tableMeta?.columns) {
-    columns.value = tableMeta.columns
+  await updateColumns()
 
-    columnsById.value = columns.value.reduce((acc, column) => {
-      if (!column.id) return acc
-      acc[column.id] = column
-      return acc
-    }, {} as Record<string, ColumnType>)
-  }
-
-  await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
+  await saveChanges()
 }
 
 const onViewSelect = async (viewId: string) => {
   savedPayloads.value.selectedViewId = viewId
-  await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
+  await saveChanges()
 }
 
 const isExporting = ref(false)
 
 const filterOption = (input: string, option: { key: string }) => {
   return option.key?.toLowerCase()?.includes(input?.toLowerCase())
+}
+
+async function saveChanges() {
+  await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
 }
 
 const fieldConfigExpansionPanel = ref<string[]>([])
@@ -247,7 +286,7 @@ const getNewFieldConfigId = (initId = 'fieldConfig') => {
 
 function addNewAction() {
   if (!bulkUpdatePayload.value) return
-  console.log('add action', bulkUpdatePayload.value)
+
   const configId = getNewFieldConfigId()
 
   bulkUpdatePayload.value.config = [
@@ -257,6 +296,43 @@ function addNewAction() {
 
   handleUpdateFieldConfigExpansionPanel(configId)
 }
+
+async function handleRemoveFieldConfig(configId: string) {
+  if (!bulkUpdatePayload.value) return
+
+  if (!bulkUpdatePayload.value?.config) {
+    bulkUpdatePayload.value.config = []
+  }
+
+  bulkUpdatePayload.value.config = bulkUpdatePayload.value.config.filter((fc) => fc.id !== configId)
+
+  await saveChanges()
+}
+
+const rules = computed(() => {
+  return (bulkUpdatePayload.value?.config || []).reduce((acc, config) => {
+    if (!config?.id) return acc
+
+    acc[config.id] = {
+      columnId: {
+        validators: {},
+      },
+      op_type: {
+        validators: {},
+      },
+      value: {
+        validators: {},
+      },
+    }
+
+    return acc
+  })
+
+  return {}
+})
+
+// Use Vuelidate to create validation instance
+// const v$ = useVuelidate(rules, fieldConfigMap)
 
 watch(
   fullscreen,
@@ -350,9 +426,9 @@ onMounted(async () => {
 
     <div
       ref="bulkUpdateRef"
-      class="bulk-update-ee"
+      class="bulk-update-ee h-full flex flex-col"
       :class="{
-        'py-6 px-4 h-full flex flex-col gap-6 bg-nc-bg-gray-extralight': fullscreen,
+        'py-6 px-4  gap-6 bg-nc-bg-gray-extralight': fullscreen,
       }"
     >
       <template v-if="!fullscreen">
@@ -425,8 +501,8 @@ onMounted(async () => {
             </a-form-item>
           </div>
         </div>
-        <div class="data-exporter-body flex-1 flex flex-col">
-          <div class="data-exporter-header">Actions</div>
+        <div class="bulk-update-body flex-1 flex flex-col">
+          <div class="bulk-update-header">Actions</div>
           <div
             v-if="bulkUpdatePayload && bulkUpdatePayload.config?.length"
             class="flex-1 flex flex-col nc-scrollbar-thin max-h-[calc(100%_-_25px)]"
@@ -442,55 +518,105 @@ onMounted(async () => {
           </div>
         </div>
       </template>
-      <div v-else class="flex flex-col gap-6 w-full max-w-[520px] mx-auto">
+      <div v-else class="flex-1 flex flex-col gap-6 w-full max-w-[520px] mx-auto">
         <div class="flex items-center gap-3">
           <NcBadge color="brand" :border="false">23 records</NcBadge>
           <div class="text-nc-content-gray-subtle2">{{ bulkUpdatePayload?.config?.length || 0 }} fields set for bulk update</div>
         </div>
 
-        <a-collapse
-          v-if="bulkUpdatePayload"
-          v-model:active-key="fieldConfigExpansionPanel"
-          class="nc-bulk-update-field-config-section flex flex-col"
+        <a-form
+          no-style
+          name="column-create-or-edit"
+          layout="vertical"
+          class="border-1 border-nc-border-gray-medium rounded-2xl bg-white"
         >
-          <template #expandIcon> </template>
-          <a-collapse-panel v-for="fieldConfig in bulkUpdatePayload?.config" :key="fieldConfig.id" collapsible="disabled">
-            <template #header>
-              <div class="w-full flex items-center px-4 py-2" @click="handleUpdateFieldConfigExpansionPanel(fieldConfig.id)">
-                <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
-                  <NcCheckbox :checked="true" />
-                  <NcTooltip show-on-truncate-only class="truncate text-sm font-weight-500">
-                    <template #title>
-                      {{ fieldConfig.id }}
-                    </template>
-                    {{ fieldConfig.id }}
-                  </NcTooltip>
-                </div>
-                <NcButton
-                  size="xs"
-                  type="text"
-                  theme="ai"
-                  icon-only
-                  class="!px-0 !h-6 !w-6 !min-w-6"
-                  :class="{
-                    hidden: false,
-                  }"
+          <a-collapse
+            v-if="bulkUpdatePayload"
+            v-model:active-key="fieldConfigExpansionPanel"
+            class="nc-bulk-update-field-config-section flex flex-col"
+          >
+            <template #expandIcon> </template>
+            <a-collapse-panel v-for="fieldConfig in bulkUpdatePayload?.config" :key="fieldConfig.id" collapsible="disabled">
+              <template #header>
+                <div
+                  v-if="!fieldConfigExpansionPanel.includes(fieldConfig.id)"
+                  class="w-full flex items-center p-6"
+                  @click="handleUpdateFieldConfigExpansionPanel(fieldConfig.id)"
                 >
-                  <template #icon>
-                    <GeneralIcon
-                      icon="arrowDown"
-                      class="transform transition-all opacity-80"
-                      :class="{
-                        'rotate-180': fieldConfigExpansionPanel.includes(fieldConfig.id),
-                      }"
-                    />
+                  <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
+                    <NcCheckbox :checked="true" />
+                    <NcTooltip show-on-truncate-only class="truncate text-sm font-weight-500">
+                      <template #title>
+                        {{ fieldConfig.id }}
+                      </template>
+                      {{ fieldConfig.id }}
+                    </NcTooltip>
+                  </div>
+                  <NcButton
+                    size="xs"
+                    type="text"
+                    theme="ai"
+                    icon-only
+                    class="!px-0 !h-6 !w-6 !min-w-6"
+                    :class="{
+                      hidden: false,
+                    }"
+                  >
+                    <template #icon>
+                      <GeneralIcon
+                        icon="arrowDown"
+                        class="transform transition-all opacity-80"
+                        :class="{
+                          'rotate-180': fieldConfigExpansionPanel.includes(fieldConfig.id),
+                        }"
+                      />
+                    </template>
+                  </NcButton>
+                </div>
+              </template>
+              <div class="w-full flex flex-col gap-6 p-6">
+                <a-form-item class="!my-0 w-full">
+                  <template #label>
+                    <span>Select field</span>
                   </template>
-                </NcButton>
+                  <NcSelect
+                    :value="fieldConfig.columnId || undefined"
+                    class="nc-field-select-input w-full nc-select-shadow !border-none"
+                    placeholder="-select a field-"
+                    @update:value="(value) => (fieldConfig.columnId = value)"
+                    @change="saveChanges()"
+                  >
+                    <a-select-option v-for="(col, i) of bulkUpdateColumns" :key="i" :value="col.id">
+                      <div class="flex items-center gap-2 w-full">
+                        <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                          <template #title>
+                            {{ col.title }}
+                          </template>
+                          {{ col.title }}
+                        </NcTooltip>
+                        <component
+                          :is="iconMap.check"
+                          v-if="fieldConfig.columnId === col.id"
+                          id="nc-selected-item-icon"
+                          class="flex-none text-primary w-4 h-4"
+                        />
+                      </div>
+                    </a-select-option>
+                  </NcSelect>
+                </a-form-item>
+
+                <div>
+                  <NcButton type="text" size="xs" @click="handleRemoveFieldConfig(fieldConfig.id)">
+                    <template #icon>
+                      <GeneralIcon icon="delete" />
+                    </template>
+                    Remove update
+                  </NcButton>
+                </div>
               </div>
-            </template>
-            <div class="w-full flex flex-col">field config</div>
-          </a-collapse-panel>
-        </a-collapse>
+            </a-collapse-panel>
+          </a-collapse>
+        </a-form>
 
         <div class="nc-bulk-update-add-action-section">
           <NcButton type="secondary" size="medium" class="w-full" @click="addNewAction">
@@ -510,7 +636,7 @@ onMounted(async () => {
 <style lang="scss">
 .nc-nc-bulk-update {
   @apply flex flex-col overflow-hidden h-full;
-  .data-exporter-header {
+  .bulk-update-header {
     @apply px-3 py-1 bg-gray-100 text-[11px] leading-4 text-gray-600 border-b-1;
   }
   .nc-bulk-update-select-wrapper {
@@ -552,7 +678,7 @@ onMounted(async () => {
   }
 
   .nc-bulk-update-field-config-section.ant-collapse {
-    @apply !rounded-2xl bg-white overflow-hidden;
+    @apply !rounded-2xl bg-white overflow-hidden !border-0 bg-transparent;
 
     .ant-collapse-header {
       @apply !p-0 flex items-center !cursor-default children:first:flex;
@@ -568,10 +694,10 @@ onMounted(async () => {
     }
 
     .ant-collapse-item {
-      // @apply border-b-purple-100 last:(border-b-0 !rounded-b-lg overflow-hidden);
-      // .ant-collapse-content {
-      //   @apply border-0;
-      // }
+      @apply border-b-nc-border-gray-medium last:(border-b-0 !rounded-b-lg overflow-hidden);
+      .ant-collapse-content {
+        @apply border-0;
+      }
     }
   }
 }

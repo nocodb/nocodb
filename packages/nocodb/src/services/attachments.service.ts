@@ -58,6 +58,14 @@ export class AttachmentsService {
     path?: string;
     scope?: PublicAttachmentScope;
   }) {
+    // Validate scope if exist
+    if (
+      param.scope &&
+      !Object.values(PublicAttachmentScope).includes(param.scope)
+    ) {
+      NcError.invalidAttachmentUploadScope();
+    }
+
     const userId = param.req?.user.id || 'anonymous';
 
     param.path = param.scope
@@ -206,6 +214,14 @@ export class AttachmentsService {
     path?: string;
     scope?: PublicAttachmentScope;
   }) {
+    // Validate scope if exist
+    if (
+      param.scope &&
+      !Object.values(PublicAttachmentScope).includes(param.scope)
+    ) {
+      NcError.invalidAttachmentUploadScope();
+    }
+
     const userId = param.req?.user.id || 'anonymous';
 
     param.path = param.scope

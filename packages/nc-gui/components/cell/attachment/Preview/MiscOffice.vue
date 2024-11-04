@@ -10,7 +10,7 @@ const emits = defineEmits(['error'])
 
 const currentIndex = ref(0)
 
-const handleError = () => {
+const handleError = async () => {
   if (currentIndex.value < props.src.length - 1) {
     currentIndex.value = currentIndex.value + 1
   } else {

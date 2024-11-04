@@ -1200,6 +1200,14 @@ const parseConditionV2 = async (
                 .whereNull(customWhereClause || field)
                 .orWhere(field, '[]')
                 .orWhere(field, 'null');
+            } else if (column.uidt === UITypes.Formula) {
+              qb = qb.whereNull(customWhereClause || field);
+              if (
+                (column?.colOptions as any).parsed_tree?.dataType ===
+                FormulaDataTypes.STRING
+              ) {
+                qb = qb.orWhere(field, '');
+              }
             } else {
               qb = qb.whereNull(customWhereClause || field);
               if (
@@ -1222,6 +1230,14 @@ const parseConditionV2 = async (
                 .whereNotNull(customWhereClause || field)
                 .whereNot(field, '[]')
                 .whereNot(field, 'null');
+            } else if (column.uidt === UITypes.Formula) {
+              qb = qb.whereNotNull(customWhereClause || field);
+              if (
+                (column?.colOptions as any).parsed_tree?.dataType ===
+                FormulaDataTypes.STRING
+              ) {
+                qb = qb.whereNot(customWhereClause || field, '');
+              }
             } else {
               qb = qb.whereNotNull(customWhereClause || field);
               if (

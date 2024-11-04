@@ -7,9 +7,17 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const emits = defineEmits(['error'])
+
 const index = ref(0)
 
-const onError = () => index.value++
+const onError = () => {
+  index.value++
+
+  if (index.value >= props.srcs.length) {
+    emits('error')
+  }
+}
 </script>
 
 <template>

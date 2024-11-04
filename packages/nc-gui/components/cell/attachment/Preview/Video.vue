@@ -17,6 +17,7 @@ const emit = defineEmits<Emits>()
 
 interface Emits {
   (event: 'init', player: any): void
+  (event: 'error'): void
 }
 
 const videoPlayer = ref<HTMLElement>()
@@ -36,6 +37,10 @@ onBeforeUnmount(() => {
     player.value.destroy()
   }
 })
+
+const handleError = () => {
+  emit('error')
+}
 </script>
 
 <template>
@@ -47,6 +52,7 @@ onBeforeUnmount(() => {
       [props.class]: props.class,
     }"
     class="videoplayer !min-w-128 !min-h-72 w-full"
+    @error="handleError"
   >
     <source v-for="(source, id) in props.src" :key="id" :src="source" :type="mimeType" />
   </video>

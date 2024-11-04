@@ -6,13 +6,16 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const emits = defineEmits(['error'])
+
 const currentIndex = ref(0)
 
 const handleError = () => {
   if (currentIndex.value < props.src.length - 1) {
     currentIndex.value = currentIndex.value + 1
   } else {
-    currentIndex.value = -1
+    emits('error')
+    currentIndex.value = 0
   }
 }
 

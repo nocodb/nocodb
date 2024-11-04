@@ -6,6 +6,7 @@ import {
   OrgUserRoles,
   ProjectRoles,
   validatePassword,
+  WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -43,6 +44,79 @@ import Noco from '~/Noco';
 import { CacheGetType, MetaTable, RootScopes } from '~/utils/globals';
 import { IntegrationsService } from '~/services/integrations.service';
 import NocoCache from '~/cache/NocoCache';
+
+async function listUserBases(
+  fk_user_id: string,
+  ncMeta: MetaService,
+): Promise<(BaseType & { base_role: string })[]> {
+  return ncMeta
+    .knexConnection(`${MetaTable.PROJECT} as b`)
+    .select(
+      'b.*',
+      ncMeta.knexConnection.raw(`CASE
+          WHEN "bu"."roles" is not null THEN "bu"."roles"
+          ${Object.values(WorkspaceUserRoles)
+            .map(
+              (value) =>
+                `WHEN "wu"."roles" = '${value}' THEN '${WorkspaceRolesToProjectRoles[value]}'`,
+            )
+            .join(' ')}
+          ELSE '${ProjectRoles.NO_ACCESS}'
+          END as base_role`),
+    )
+    .innerJoin(
+      `${MetaTable.WORKSPACE_USER} as wu`,
+      `wu.fk_workspace_id`,
+      `b.fk_workspace_id`,
+    )
+    .leftJoin(`${MetaTable.PROJECT_USERS} as bu`, function () {
+      this.on(`bu.base_id`, `=`, `b.id`).andOn(
+        `bu.fk_user_id`,
+        `=`,
+        `wu.fk_user_id`,
+      );
+    })
+    .where('wu.fk_user_id', fk_user_id);
+}
+
+async function listBaseUsers(
+  fk_workspace_id: string,
+  base_id: string,
+  ncMeta: MetaService,
+) {
+  // return base_role considering inherited roles from workspace
+  const qb = ncMeta
+    .knexConnection(`${MetaTable.WORKSPACE_USER} as wu`)
+    .select(
+      'wu.*',
+      ncMeta.knexConnection.raw(`CASE
+        WHEN "bu"."roles" IS NOT NULL THEN "bu"."roles"
+        ${Object.values(WorkspaceUserRoles)
+          .map(
+            (value) =>
+              `WHEN "wu"."roles" = '${value}' THEN '${WorkspaceRolesToProjectRoles[value]}'`,
+          )
+          .join(' ')}
+        ELSE '${ProjectRoles.NO_ACCESS}'
+        END as base_role`),
+    )
+    .innerJoin(
+      `${MetaTable.PROJECT} as b`,
+      `b.fk_workspace_id`,
+      `wu.fk_workspace_id`,
+    )
+    .leftJoin(`${MetaTable.PROJECT_USERS} as bu`, function () {
+      this.on(`bu.fk_user_id`, `=`, `wu.fk_user_id`).andOn(
+        `bu.base_id`,
+        `=`,
+        `b.id`,
+      );
+    })
+    .where('b.id', base_id)
+    .andWhere('wu.fk_workspace_id', fk_workspace_id);
+
+  return qb;
+}
 
 @Injectable()
 export class UsersService extends UsersServiceCE {
@@ -327,7 +401,7 @@ export class UsersService extends UsersServiceCE {
     }
 
     // find user bases
-    const bases = await BaseUser.getProjectsList(user.id, {}, ncMeta);
+    const bases = await listUserBases(user.id, ncMeta);
 
     for (const base of bases) {
       // if user is sole owner of workspace, all bases of that workspace will be deleted
@@ -336,20 +410,10 @@ export class UsersService extends UsersServiceCE {
         continue;
       }
 
-      if (base.project_role === ProjectRoles.OWNER) {
+      if (base.base_role === ProjectRoles.OWNER) {
         const owners = (
-          await BaseUser.getUsersList(
-            {
-              workspace_id: base.fk_workspace_id,
-              base_id: base.id,
-            },
-            {
-              base_id: base.id,
-              mode: 'full',
-            },
-            ncMeta,
-          )
-        ).filter((u) => u.roles === ProjectRoles.OWNER);
+          await listBaseUsers(base.fk_workspace_id, base.id, ncMeta)
+        ).filter((u) => u.base_role === ProjectRoles.OWNER);
 
         // Delete base if user is sole owner
         if (owners.length === 1) {
@@ -474,24 +538,14 @@ export class UsersService extends UsersServiceCE {
       }
 
       // find user bases
-      const bases = await BaseUser.getProjectsList(user.id, {}, transaction);
+      const bases = await listUserBases(user.id, transaction);
 
       for (const base of bases) {
         let soleOwner = false;
-        if (base.project_role === ProjectRoles.OWNER) {
+        if (base.base_role === ProjectRoles.OWNER) {
           const owners = (
-            await BaseUser.getUsersList(
-              {
-                workspace_id: base.fk_workspace_id,
-                base_id: base.id,
-              },
-              {
-                base_id: base.id,
-                mode: 'full',
-              },
-              transaction,
-            )
-          ).filter((u) => u.project_role === ProjectRoles.OWNER);
+            await listBaseUsers(base.fk_workspace_id, base.id, ncMeta)
+          ).filter((u) => u.base_role === ProjectRoles.OWNER);
 
           // Delete base if user is sole owner
           if (owners.length === 1) {

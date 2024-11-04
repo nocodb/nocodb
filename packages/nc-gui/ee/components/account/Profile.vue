@@ -229,6 +229,10 @@ const onValidate = async (_: any, valid: boolean) => {
           <Transition>
             <div v-if="toBeDeleted" class="flex flex-col">
               <div class="flex flex-col gap-2">
+                <p v-if="Object.values(toBeDeleted).every((el) => !(el as any)?.length)" class="text-gray-500 p-2">
+                  <GeneralIcon icon="info" class="text-primary" />
+                  No entities found where you are the sole owner. Deleting your account will not affect any entities.
+                </p>
                 <template v-for="ent of entities" :key="ent.key">
                   <template v-if="toBeDeleted[ent.key].length">
                     <div class="rounded-lg border-1">
@@ -246,7 +250,7 @@ const onValidate = async (_: any, valid: boolean) => {
               </div>
             </div>
           </Transition>
-          <div class="flex flex-row mt-4">
+          <div class="flex flex-row">
             <NcButton
               v-if="toBeDeleted"
               type="danger"

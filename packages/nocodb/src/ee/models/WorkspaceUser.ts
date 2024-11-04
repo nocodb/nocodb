@@ -461,6 +461,18 @@ export default class WorkspaceUser {
     return res;
   }
 
+  static async clearCache(
+    workspaceId: any,
+    userId: any,
+    _ncMeta = Noco.ncMeta,
+  ) {
+    await NocoCache.deepDel(
+      `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+    await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
+  }
+
   static async getByToken(
     invitationToken: any,
     userId: string,

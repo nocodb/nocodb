@@ -4,7 +4,7 @@
 ###########
 # Litestream Builder
 ###########
-FROM --platform=$BUILDPLATFORM golang:alpine3.19 as lt-builder
+FROM --platform=$BUILDPLATFORM golang:alpine3.20 as lt-builder
 
 WORKDIR /usr/src/
 
@@ -14,8 +14,7 @@ RUN apk --no-cache add git make musl-dev gcc
 # Build litestream for the target platform
 RUN git clone https://github.com/benbjohnson/litestream.git litestream \
     && cd litestream \
-    && GOARCH=$(echo $TARGETPLATFORM | cut -d '/' -f 2) GOOS=$(echo $TARGETPLATFORM | cut -d '/' -f 1) go install ./cmd/litestream \
-    && cp $GOPATH/bin/litestream /usr/src/lt
+    && GOARCH=$(echo $TARGETPLATFORM | cut -d '/' -f 2) GOOS=$(echo $TARGETPLATFORM | cut -d '/' -f 1) go install ./cmd/litestream
 
 ###########
 # Builder
@@ -82,7 +81,7 @@ ENV LITESTREAM_S3_SKIP_VERIFY=false \
 RUN apk add --update --no-cache dasel dumb-init nodejs
 
 # Copy litestream binary and config file
-COPY --link --from=lt-builder /usr/src/lt /usr/local/bin/litestream
+COPY --link --from=lt-builder /go/bin/litestream /usr/local/bin/litestream
 COPY --link ./docker/litestream.yml /etc/litestream.yml
 
 # Copy production code & main entry file

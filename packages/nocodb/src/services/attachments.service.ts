@@ -73,13 +73,13 @@ export class AttachmentsService {
       : param.path || `${moment().format('YYYY/MM/DD')}/${hash(userId)}`;
 
     // TODO: add getAjvValidatorMw
-    const filePath = this.sanitizeUrlPath(
+    const _filePath = this.sanitizeUrlPath(
       param.path?.toString()?.split('/') || [''],
     );
     const _destPath = path.join(
       'nc',
       param.scope ? param.scope : 'uploads',
-      ...filePath,
+      ..._filePath,
     );
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
@@ -97,8 +97,15 @@ export class AttachmentsService {
     queue.addAll(
       param.files?.map((file) => async () => {
         try {
+          const nanoId = nanoid(5);
+
+          const filePath = this.sanitizeUrlPath([
+            ...(param?.path?.toString()?.split('/') || ['']),
+            ...(param.scope ? [nanoId] : []),
+          ]);
+
           const destPath = param.scope
-            ? path.join(_destPath, `${nanoid(5)}`)
+            ? path.join(_destPath, `${nanoId}`)
             : _destPath;
 
           const originalName = utf8ify(file.originalname);
@@ -229,14 +236,14 @@ export class AttachmentsService {
       ? `${hash(userId)}`
       : param.path || `${moment().format('YYYY/MM/DD')}/${hash(userId)}`;
 
-    const filePath = this.sanitizeUrlPath(
+    const _filePath = this.sanitizeUrlPath(
       param?.path?.toString()?.split('/') || [''],
     );
 
     const _destPath = path.join(
       'nc',
       param.scope ? param.scope : 'uploads',
-      ...filePath,
+      ..._filePath,
     );
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
@@ -256,8 +263,15 @@ export class AttachmentsService {
         try {
           const { url, fileName: _fileName } = urlMeta;
 
+          const nanoId = nanoid(5);
+
+          const filePath = this.sanitizeUrlPath([
+            ...(param?.path?.toString()?.split('/') || ['']),
+            ...(param.scope ? [nanoId] : []),
+          ]);
+
           const destPath = param.scope
-            ? path.join(_destPath, `${nanoid(5)}`)
+            ? path.join(_destPath, `${nanoId}`)
             : _destPath;
 
           let mimeType,

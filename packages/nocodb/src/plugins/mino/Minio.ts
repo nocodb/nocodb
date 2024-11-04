@@ -22,7 +22,28 @@ export default class Minio implements IStorageAdapterV2 {
   private input: MinioObjectStorageInput;
 
   constructor(input: unknown) {
-    this.input = input as MinioObjectStorageInput;
+    this.input = this.normalizeInput(input as MinioObjectStorageInput);
+  }
+
+  private normalizeInput(input: MinioObjectStorageInput) {
+    let endPoint = input.endPoint;
+    let useSSL = input.useSSL;
+
+    if (endPoint.startsWith('http://')) {
+      endPoint = endPoint.replace('http://', '');
+      useSSL = false;
+    } else if (endPoint.startsWith('https://')) {
+      useSSL = true;
+      endPoint = endPoint.replace('https://', '');
+    }
+
+    endPoint = endPoint.trim().replace(/\/+$/, '');
+
+    return {
+      ...input,
+      endPoint,
+      useSSL,
+    };
   }
 
   public async init(): Promise<any> {

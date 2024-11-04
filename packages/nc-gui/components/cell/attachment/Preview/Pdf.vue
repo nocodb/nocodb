@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { isURLExpired } from '../../../../utils/attachmentUtils'
+
 interface Props {
   src: string[]
   class?: string
@@ -10,11 +12,14 @@ const emits = defineEmits(['error'])
 
 const currentIndex = ref(0)
 
-const handleError = () => {
+const handleError = async () => {
   if (currentIndex.value < props.src.length - 1) {
     currentIndex.value = currentIndex.value + 1
   } else {
-    emits('error')
+    const isURLExp = await isURLExpired(props.src[0])
+    if (isURLExp.isExpired) {
+      emits('error')
+    }
     currentIndex.value = 0
   }
 }

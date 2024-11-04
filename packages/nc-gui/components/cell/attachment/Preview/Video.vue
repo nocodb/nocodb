@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Plyr from 'plyr'
 import 'plyr/dist/plyr.css'
+import { isURLExpired } from '../../../../utils/attachmentUtils'
 
 interface Props {
   src?: string[]
@@ -38,8 +39,11 @@ onBeforeUnmount(() => {
   }
 })
 
-const handleError = () => {
-  emit('error')
+const handleError = async () => {
+  const isURLExp = await isURLExpired(props.src?.[0])
+  if (isURLExp.isExpired) {
+    emit('error')
+  }
 }
 </script>
 

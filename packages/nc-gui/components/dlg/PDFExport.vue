@@ -188,7 +188,6 @@ const modalWidth = computed(() => {
                 }"> </div>
                 <div class="flex flex-row">
                     <div class="orientation-selector  ">
-                        <!-- todov -->
                         <span class="font-semibold">{{ $t('labels.orientation') }}</span>
 
                         <div className="flex flex-row">
@@ -209,7 +208,6 @@ const modalWidth = computed(() => {
                     </div>
                     <div className="px-8"></div>
                     <div class="orientation-selector">
-                        <!-- todov -->
                         <span class="font-semibold">{{ $t('labels.pageSize') }}</span>
 
                         <div className="flex flex-row">

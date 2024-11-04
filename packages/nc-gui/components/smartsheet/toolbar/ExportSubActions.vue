@@ -126,7 +126,7 @@ function closePdfExportDialog()  {
       @click="openPdfExportDialog">
       <component :is="iconMap.pdfFile" />
 
-      <!-- Download as XLSX -->
+      <!-- Download as PDF -->
       {{ $t('labels.pdfExport') }}
     </div>
     <LazyDlgPDFExport :isOpen="isPdfExportDialogOpen" @close="closePdfExportDialog" />

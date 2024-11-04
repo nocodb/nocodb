@@ -2,6 +2,10 @@ import { promisify } from 'util';
 import { UsersService as UsersServiceCE } from 'src/services/users/users.service';
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  AdminDeleteUserCommand,
+  CognitoIdentityProviderClient,
+} from '@aws-sdk/client-cognito-identity-provider';
+import {
   AppEvents,
   OrgUserRoles,
   ProjectRoles,
@@ -13,9 +17,10 @@ import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
 import * as ejs from 'ejs';
 import bcrypt from 'bcryptjs';
+import { ConfigService } from '@nestjs/config';
 import { setTokenCookie } from './helpers';
 import type { BaseType, SignUpReqType, UserType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { AppConfig, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
 import { T } from '~/utils';
 import { NC_APP_SETTINGS } from '~/constants';
@@ -128,6 +133,7 @@ export class UsersService extends UsersServiceCE {
     protected workspaceService: WorkspacesService,
     protected baseService: BasesService,
     protected integrationsService: IntegrationsService,
+    protected configService: ConfigService<AppConfig>,
   ) {
     super(metaService, appHooksService, baseService);
   }
@@ -641,6 +647,25 @@ export class UsersService extends UsersServiceCE {
 
       // mark user as deleted in meta
       await User.softDelete(user.id, transaction);
+
+      // delete user from cognito if configured
+      if (
+        this.configService.get('cognito.aws_user_pools_id', { infer: true })
+      ) {
+        const client = new CognitoIdentityProviderClient({
+          region: this.configService.get('cognito.aws_cognito_region', {
+            infer: true,
+          }),
+        });
+        await client.send(
+          new AdminDeleteUserCommand({
+            UserPoolId: this.configService.get('cognito.aws_user_pools_id', {
+              infer: true,
+            }),
+            Username: user.email,
+          }),
+        );
+      }
 
       await transaction.commit();
     } catch (e) {

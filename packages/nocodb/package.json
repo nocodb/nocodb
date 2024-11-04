@@ -62,6 +62,7 @@
     "@ai-sdk/azure": "^0.0.52",
     "@ai-sdk/google": "^0.0.47",
     "@ai-sdk/openai": "^0.0.58",
+    "@aws-sdk/client-cognito-identity-provider": "^3.682.0",
     "@aws-sdk/client-kafka": "^3.620.0",
     "@aws-sdk/client-kinesis": "^3.620.0",
     "@aws-sdk/client-s3": "^3.620.0",

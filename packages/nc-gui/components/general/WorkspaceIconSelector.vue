@@ -5,6 +5,7 @@ import data from 'emoji-mart-vue-fast/data/apple.json'
 import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
 import { WorkspaceIconType } from '#imports'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
+import { PublicAttachmentScope } from 'nocodb-sdk'
 
 interface Props {
   icon: string | Record<string, any>
@@ -104,6 +105,7 @@ const imageCropperData = ref({
   },
   uploadConfig: {
     path: [NOCO, 'workspace', currentWorkspace.value?.id, 'icon'].join('/'),
+    scope: PublicAttachmentScope.WORKSPACEPICS,
   },
 })
 

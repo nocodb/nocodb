@@ -16,18 +16,19 @@ import {
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import contentDisposition from 'content-disposition';
-import type {
-  AttachmentReqType,
-  FileType,
-  PublicAttachmentScope,
-} from 'nocodb-sdk';
+import { PublicAttachmentScope } from 'nocodb-sdk';
+import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
 import { PresignedUrl } from '~/models';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcContext, NcRequest } from '~/interface/config';
-import { isPreviewAllowed, localFileExists } from '~/helpers/attachmentHelpers';
+import {
+  ATTACHMENT_ROOTS,
+  isPreviewAllowed,
+  localFileExists,
+} from '~/helpers/attachmentHelpers';
 import { DataTableService } from '~/services/data-table.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -48,8 +49,8 @@ export class AttachmentsController {
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
   async upload(
     @UploadedFiles() files: Array<FileType>,
-    @Query('scope') scope: PublicAttachmentScope,
     @Req() req: NcRequest,
+    @Query('scope') scope?: PublicAttachmentScope,
   ) {
     const attachments = await this.attachmentsService.upload({
       files: files,
@@ -68,8 +69,8 @@ export class AttachmentsController {
   async uploadViaURL(
     @Body() body: Array<AttachmentReqType>,
     @Query('path') path: string,
-    @Query('scope') scope: PublicAttachmentScope,
     @Req() req: NcRequest,
+    @Query('scope') scope?: PublicAttachmentScope,
   ) {
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,
@@ -176,7 +177,9 @@ export class AttachmentsController {
         );
       }
 
-      const filePath = param.split('/')[2] === 'thumbnails' ? '' : 'uploads';
+      const targetParam = param.split('/')[2];
+
+      const filePath = ATTACHMENT_ROOTS.includes(targetParam) ? '' : 'uploads';
 
       const file = await this.attachmentsService.getFile({
         path: path.join('nc', filePath, fpath),

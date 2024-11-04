@@ -128,7 +128,7 @@ export class ThumbnailGeneratorProcessor {
     if (attachment.path) {
       relativePath = path.join(
         'nc',
-        scope ? scope : 'uploads',
+        scope ? '' : 'uploads',
         attachment.path.replace(/^download[/\\]/i, ''),
       );
     } else if (attachment.url) {

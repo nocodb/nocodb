@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import Plyr from 'plyr'
 import 'plyr/dist/plyr.css'
-import { isURLExpired } from '../../../../utils/attachmentUtils'
 
 interface Props {
   src?: string[]

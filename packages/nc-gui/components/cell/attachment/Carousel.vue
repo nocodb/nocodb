@@ -195,6 +195,7 @@ const initEmblaApi = (val: any) => {
                   v-if="isImage(item.title, item.mimeType)"
                   class="nc-attachment-img-wrapper"
                   object-fit="contain"
+                  controls
                   :alt="item.title"
                   :srcs="getPossibleAttachmentSrc(item)"
                   @error="triggerReload"

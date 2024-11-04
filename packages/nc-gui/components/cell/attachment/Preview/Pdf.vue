@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { isURLExpired } from '../../../../utils/attachmentUtils'
-
 interface Props {
   src: string[]
   class?: string

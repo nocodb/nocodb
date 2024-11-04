@@ -13,6 +13,7 @@ const {
   isMarketVisible,
   extensionPanelSize,
   updateExtension,
+  eventBus,
 } = useExtensions()
 
 const { $e } = useNuxtApp()
@@ -121,6 +122,24 @@ onClickOutside(searchExtensionRef, () => {
   showSearchBox.value = false
 })
 
+const handleAutoScroll = async (id: string) => {
+  await ncDelay(500)
+
+  await nextTick()
+
+  const extension = document.querySelector(`.nc-extension-list-wrapper .nc-extension-item-${id}`)
+
+  if (extension) {
+    extension.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+eventBus.on((event, payload) => {
+  if ([ExtensionsEvents.DUPLICATE, ExtensionsEvents.ADD].includes(event) && payload) {
+    handleAutoScroll(payload)
+  }
+})
+
 onMounted(() => {
   if (searchQuery.value && !showSearchBox.value) {
     showSearchBox.value = true
@@ -190,11 +209,12 @@ onMounted(() => {
           </NcButton>
         </div>
         <template v-if="extensionList.length === 0">
-          <div class="flex items-center flex-col gap-4 w-full nc-scrollbar-md text-center p-4">
-            <GeneralIcon icon="ncPuzzleSolid" class="h-12 w-12 flex-none mt-[120px] text-gray-500 !stroke-transparent" />
-
-            <div class="font-weight-700 text-base">No extensions added</div>
-            <div class="text-sm text-gray-700">Add Extensions from the community extensions marketplace</div>
+          <div class="flex-1 flex items-center justify-center flex-col gap-4 w-full nc-scrollbar-md text-center p-4">
+            <div class="text-base font-bold text-nc-content-gray">Supercharge Your Workflow with Extensions</div>
+            <div class="text-sm text-nc-content-gray-subtle2">
+              Unlock powerful scripts and tools to enhance how you work with your databases. Get started by exploring available
+              extensions.
+            </div>
             <NcButton size="small" @click="toggleMarket">
               <div class="flex items-center gap-1 -ml-3px">
                 <GeneralIcon icon="plus" />
@@ -208,6 +228,8 @@ onMounted(() => {
                 {{ $t('activity.goToDocs') }}
               </div>
             </NcButton>
+
+            <img src="~assets/img/placeholder/extension.png" class="!w-full min-w-[250px] max-w-[432px] flex-none" />
           </div>
         </template>
         <template v-else>
@@ -226,7 +248,7 @@ onMounted(() => {
             @change="onMove($event)"
           >
             <template #item="{ element: ext }">
-              <div class="nc-extension-item w-full">
+              <div class="nc-extension-item w-full" :class="`nc-extension-item-${ext.id}`">
                 <ExtensionsWrapper :extension-id="ext.id" />
               </div>
             </template>

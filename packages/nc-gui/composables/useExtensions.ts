@@ -1,4 +1,4 @@
-import type { ExtensionsEvents } from '#imports'
+import { ExtensionsEvents } from '#imports'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
@@ -121,6 +121,10 @@ export const useExtensions = createSharedComposable(() => {
 
     if (newExtension) {
       baseExtensions.value[base.value.id].extensions.push(new Extension(newExtension))
+
+      nextTick(() => {
+        eventBus.emit(ExtensionsEvents.ADD, newExtension?.id)
+      })
     }
 
     return newExtension
@@ -203,8 +207,21 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
+    let defaultKvStore = {}
+
+    switch (extension.extensionId) {
+      case 'nc-data-exporter': {
+        defaultKvStore = {
+          ...defaultKvStore,
+          deletedExports: extension.kvStore.get('deletedExports') || [],
+        }
+      }
+    }
+
     return updateExtension(extensionId, {
-      kv_store: {},
+      kv_store: {
+        ...defaultKvStore,
+      },
     })
   }
 
@@ -354,9 +371,13 @@ export const useExtensions = createSharedComposable(() => {
       return updateExtensionMeta(this.id, key, value)
     }
 
-    clear(): Promise<any> {
+    async clear(): Promise<any> {
       return clearKvStore(this.id).then(() => {
         this.uiKey++
+
+        nextTick(() => {
+          eventBus.emit(ExtensionsEvents.CLEARDATA, this.id)
+        })
       })
     }
 

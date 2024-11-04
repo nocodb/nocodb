@@ -195,7 +195,10 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
     class="!xs:hidden"
     overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown overflow-hidden"
   >
-    <div :class="{ 'nc-active-btn': groupedByColumnIds?.length }">
+    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': groupedByColumnIds?.length }">
+      <template #title>
+        {{ $t('activity.group') }}
+      </template>
       <NcButton
         v-e="['c:group-by']"
         :disabled="isLocked"
@@ -203,7 +206,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
         size="small"
         type="secondary"
       >
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
             <component :is="iconMap.group" class="h-4 w-4" />
 
@@ -217,7 +220,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
           }}</span>
         </div>
       </NcButton>
-    </div>
+    </NcTooltip>
     <template #overlay>
       <SmartsheetToolbarCreateGroupBy
         v-if="!_groupBy.length"

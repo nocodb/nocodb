@@ -67,7 +67,7 @@ const overlayTop = computed(() => {
 
   const minutes = currTime.value.minute() + currTime.value.hour() * 60
 
-  const top = (perRecordHeight / 60) * minutes
+  const top = (perRecordHeight / 60) * minutes - 9
 
   return top
 })
@@ -921,9 +921,9 @@ watch(
       <div class="flex w-full items-center">
         <span
           class="text-brand-500 text-xs rounded-md border-1 pointer-events-auto px-0.5 border-brand-200 cursor-pointer bg-brand-50"
-          @click="newRecord(dayjs())"
+          @click="newRecord(currTime)"
         >
-          {{ dayjs().format('hh:mm A') }}
+          {{ currTime.format('hh:mm A') }}
         </span>
         <div class="flex-1 border-b-1 border-brand-500"></div>
       </div>

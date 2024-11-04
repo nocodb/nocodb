@@ -73,6 +73,11 @@ const importTypeOptions = [
   },
 ] as ImportType[]
 
+const router = useRouter()
+const route = router.currentRoute
+
+const activeTableId = computed(() => route.value.params.viewId as string | undefined)
+
 const { fullscreen, fullscreenModalSize, extension, tables, insertData, upsertData, getTableMeta, reloadData } =
   useExtensionHelperOrThrow()
 
@@ -298,7 +303,9 @@ const handleChange = (info: { file: UploadFile }) => {
         updateHistory()
 
         if (!importPayload.value.tableId && tables.value?.length) {
-          importPayload.value.tableId = tables.value[0].id
+          importPayload.value.tableId = tables.value.find((t) => t.id === activeTableId.value)
+            ? activeTableId.value
+            : tables.value[0].id
         }
 
         onTableSelect()
@@ -510,10 +517,16 @@ const newImport = () => {
 }
 
 const isAllFieldsSelected = computed(() => {
-  return importPayload.value.importColumns.length && importPayload.value.importColumns.every((c) => c.enabled === true)
+  return !!importPayload.value.importColumns.length && importPayload.value.importColumns.every((c) => c.enabled === true)
 })
 
-const onClickSelectAllFields = (value) => {
+const isSomeFieldsSelected = computed(() => {
+  return !!importPayload.value.importColumns.length && importPayload.value.importColumns.some((c) => c.enabled === true)
+})
+
+const onClickSelectAllFields = (value: boolean) => {
+  value = value ? (isSomeFieldsSelected.value ? false : true) : value
+
   for (const importMeta of importPayload.value.importColumns) {
     if (!importMeta.mapIndex) continue
 
@@ -595,7 +608,12 @@ watch(
       <NcButton size="small" :disabled="!readyForImport" :loading="isImportingRecords" @click="onImport">Import</NcButton>
     </template>
 
-    <div class="h-full flex children:(flex-none w-full)">
+    <div
+      class="h-full flex children:(flex-none w-full)"
+      :class="{
+        'bg-nc-bg-gray-extralight': fullscreen && importPayload.step !== 1,
+      }"
+    >
       <div
         v-if="importPayload.step === 2 || importPayload.step === 3 || viewImportHistory"
         class="h-full flex flex-col justify-between"
@@ -603,7 +621,12 @@ watch(
           'p-4': fullscreen,
         }"
       >
-        <div class="border-1 border-nc-border-gray-medium rounded-lg flex flex-col h-[calc(100%_-_40px)] overflow-hidden">
+        <div
+          class="flex flex-col h-[calc(100%_-_40px)] overflow-hidden"
+          :class="{
+            'border-1 border-nc-border-gray-medium rounded-lg': fullscreen,
+          }"
+        >
           <div class="border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-light text-tiny py-1 px-3 text-gray-600">
             Recent Imports
           </div>
@@ -639,7 +662,13 @@ watch(
           </div>
         </div>
 
-        <div class="flex justify-end pt-2">
+        <div
+          class="flex justify-end"
+          :class="{
+            'pt-3': fullscreen,
+            'p-3 border-t-1 border-t-nc-border-gray-medium bg-white': !fullscreen,
+          }"
+        >
           <NcButton size="small" @click="newImport">New import</NcButton>
         </div>
       </div>
@@ -649,6 +678,7 @@ watch(
           class="h-full flex flex-col justify-between gap-3"
           :class="{
             'p-4': fullscreen,
+            'p-3': !fullscreen,
           }"
         >
           <div
@@ -681,6 +711,7 @@ watch(
           v-else
           :class="{
             'p-4': fullscreen,
+            'p-3': !fullscreen,
           }"
         >
           <a-upload-dragger
@@ -870,7 +901,11 @@ watch(
               >
                 <template #headerCell="{ column }">
                   <template v-if="column.key === 'select'">
-                    <NcCheckbox :checked="isAllFieldsSelected" @update:checked="onClickSelectAllFields" />
+                    <NcCheckbox
+                      :checked="isAllFieldsSelected"
+                      :indeterminate="isSomeFieldsSelected && !isAllFieldsSelected"
+                      @update:checked="onClickSelectAllFields"
+                    />
                   </template>
                   <div v-if="column.key === 'nocodb-field'" class="w-full flex items-center gap-3">
                     {{ column.title }}
@@ -963,7 +998,7 @@ watch(
           </general-overlay>
         </div>
 
-        <div v-else class="h-full flex flex-col justify-between gap-3">
+        <div v-else class="h-full flex flex-col justify-between gap-3 p-3">
           <div v-if="isImportingRecords">
             <ImportStatus
               status="inprogress"
@@ -1010,11 +1045,6 @@ watch(
 </template>
 
 <style lang="scss" scoped>
-:deep(.extension-content-container) {
-  &.fullscreen {
-    @apply p-0;
-  }
-}
 :deep(.nc-import-upsert-type .ant-radio-group) {
   @apply flex flex-col gap-2;
 

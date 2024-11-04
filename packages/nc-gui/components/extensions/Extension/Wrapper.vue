@@ -27,7 +27,7 @@ const { height } = useElementSize(headerRef)
     <div
       class="extension-content-container"
       :class="{
-        'fullscreen p-6 nc-scrollbar-thin': fullscreen,
+        'fullscreen nc-scrollbar-thin': fullscreen,
         'h-full': !fullscreen,
       }"
       :style="fullscreen ? { height: height ? `calc(100% - ${height}px)` : 'calc(100% - 64px)' } : {}"

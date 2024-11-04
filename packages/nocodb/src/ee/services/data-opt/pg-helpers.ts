@@ -21,6 +21,7 @@ import type {
 } from '~/models';
 import { Column, Filter, Model, Sort } from '~/models';
 import {
+  _wherePk,
   extractFilterFromXwhere,
   extractSortsObject,
   getAs,
@@ -1404,6 +1405,16 @@ export async function singleQueryList(
   // handle shuffle if query param preset
   if (+listArgs?.shuffle) {
     await baseModel.shuffle({ qb: rootQb });
+  }
+
+  if (listArgs.pks) {
+    const pks = listArgs.pks.split(',');
+    rootQb.where((qb) => {
+      pks.forEach((pk) => {
+        qb.orWhere(_wherePk(ctx.model.primaryKeys, pk));
+      });
+      return qb;
+    });
   }
 
   const aliasColObjMap = await ctx.model.getAliasColObjMap(context);

@@ -5,7 +5,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 const config: XcPluginConfig = {
   builder: GcsPlugin,
   title: 'GCS',
-  version: '0.0.3',
+  version: '0.0.4',
   logo: 'plugins/gcs.png',
   description:
     'Google Cloud Storage is a RESTful online file storage web service for storing and accessing data on Google Cloud Platform infrastructure.',
@@ -41,6 +41,12 @@ const config: XcPluginConfig = {
         label: 'Project ID',
         placeholder: 'Project ID',
         type: XcType.SingleLineText,
+        required: false,
+      },
+      {
+        key: 'uniform_bucket_level_access',
+        label: 'Uniform Bucket Level Access',
+        type: XcType.Checkbox,
         required: false,
       },
     ],

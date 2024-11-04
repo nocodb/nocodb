@@ -436,7 +436,15 @@ useMenuCloseOnEsc(open)
     class="!xs:hidden"
     overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
   >
-    <div :class="{ 'nc-active-btn': numberOfHiddenFields }">
+    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': numberOfHiddenFields }">
+      <template #title>
+        {{
+          activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY
+            ? $t('title.editCards')
+            : $t('objects.fields')
+        }}
+      </template>
+
       <NcButton
         v-e="['c:fields']"
         :disabled="isLocked"
@@ -445,7 +453,7 @@ useMenuCloseOnEsc(open)
         type="secondary"
       >
         <div class="flex items-center gap-1">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 min-h-5">
             <GeneralIcon
               v-if="activeView?.type === ViewTypes.KANBAN || activeView?.type === ViewTypes.GALLERY"
               class="h-4 w-4"
@@ -468,7 +476,7 @@ useMenuCloseOnEsc(open)
           </span>
         </div>
       </NcButton>
-    </div>
+    </NcTooltip>
 
     <template #overlay>
       <div

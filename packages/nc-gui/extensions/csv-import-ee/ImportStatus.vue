@@ -37,7 +37,7 @@ const handleScroll = () => {
 <template>
   <div
     ref="itemRef"
-    class="flex flex-col gap-4 p-3 group transition-all duration-300 border-nc-border-gray-medium cursor-pointer"
+    class="flex flex-col gap-4 p-3 group transition-all duration-300 border-nc-border-gray-medium cursor-pointer bg-white"
     :class="{
       'border-1 rounded-lg': status === 'inprogress',
       'border-b-1 hover:bg-nc-bg-gray-extralight ': status !== 'inprogress',
@@ -47,7 +47,13 @@ const handleScroll = () => {
     <div class="w-full flex items-start flex gap-3">
       <GeneralIcon :icon="statusObj.icon" class="h-5 w-5 flex-none" :class="statusObj.color" />
 
-      <div class="flex-1 w-[calc(100%_-_60px)] text-sm flex flex-col gap-1">
+      <div
+        class="flex-1 text-sm flex flex-col gap-1"
+        :class="{
+          'w-[calc(100%_-_60px)]': status === 'inprogress',
+          'w-[calc(100%_-_36px)]': status !== 'inprogress',
+        }"
+      >
         <div class="flex flex-col gap-2.5">
           <slot name="subtitle">
             <div class="text-sm text-nc-content-gray-subtle">
@@ -101,7 +107,12 @@ const handleScroll = () => {
           <a-progress :percent="inprogressPercentage" size="small" />
         </div>
       </div>
-      <GeneralIcon icon="chevronDown" class="h-4 w-4 flex-none transform opacity-80" :class="{ '!rotate-180': isOpen }" />
+      <GeneralIcon
+        v-if="status !== 'inprogress'"
+        icon="chevronDown"
+        class="h-4 w-4 flex-none transform opacity-80"
+        :class="{ '!rotate-180': isOpen }"
+      />
     </div>
     <div
       v-if="isOpen && status !== 'inprogress'"

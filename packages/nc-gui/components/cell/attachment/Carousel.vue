@@ -10,10 +10,6 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
-/*
-const openComments = ref(false)
-*/
-
 const { isUIAllowed } = useRoles()
 
 const container = ref<HTMLElement | null>(null)
@@ -141,7 +137,10 @@ function onKeyDown(event: KeyboardEvent) {
   }
 }
 
-/* const toggleComment = () => {
+/*
+const openComments = ref(false)
+
+const toggleComment = () => {
   openComments.value = !openComments.value
 }
 
@@ -366,7 +365,14 @@ const initEmblaApi = (val: any) => {
           </template>
         </GeneralDeleteModal>
       </div>
-      <!--      <div v-if="openComments && isUIAllowed('commentList') && !isExpandedFormOpen" class="bg-white w-88 min-w-88 max-w-88">
+      <!--      <div
+        v-if="isUIAllowed('commentList') && !isExpandedFormOpen"
+        :class="{
+          'w-0': !openComments,
+          '!w-88': openComments,
+        }"
+        class="bg-white max-w-88 transition-all"
+      >
         <LazySmartsheetExpandedFormSidebarComments />
       </div> -->
     </div>

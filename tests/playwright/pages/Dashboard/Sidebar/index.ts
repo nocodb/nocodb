@@ -76,6 +76,8 @@ export class SidebarPage extends BasePage {
     if (type === ProjectTypes.DOCUMENTATION) {
       await this.dashboard.get().locator('.nc-create-base-btn-docs').click();
     }
+    await this.rootPage.locator('.nc-create-base').waitFor();
+    await this.rootPage.locator('.nc-create-base').click();
     await this.dashboard.get().locator('.nc-metadb-base-name').clear();
     await this.dashboard.get().locator('.nc-metadb-base-name').fill(title);
 

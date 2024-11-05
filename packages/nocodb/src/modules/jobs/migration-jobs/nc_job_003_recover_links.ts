@@ -315,9 +315,9 @@ export class RecoverLinksMigration {
         }
       }
       this.log('Recovery completed');
-      await (await ncMeta).commit();
+      await ncMeta.commit();
     } catch (e) {
-      await (await ncMeta).rollback(e);
+      await ncMeta.rollback(e);
       this.log('Error recovering links', e);
       return false;
     }

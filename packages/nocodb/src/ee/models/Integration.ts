@@ -359,7 +359,8 @@ export default class Integration extends IntegrationCE {
                   eq: id,
                 },
               },
-              ...(context.workspace_id !== RootScopes.BYPASS
+              ...(context.workspace_id &&
+              context.workspace_id !== RootScopes.BYPASS
                 ? [
                     {
                       _or: [

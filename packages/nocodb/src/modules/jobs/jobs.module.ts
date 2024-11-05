@@ -41,6 +41,8 @@ import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobsService as FallbackJobsService } from '~/modules/jobs/fallback/jobs.service';
 import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { JOBS_QUEUE } from '~/interface/Jobs';
+import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
+import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
 
 export const JobsModuleMetadata = {
   imports: [
@@ -101,6 +103,8 @@ export const JobsModuleMetadata = {
     InitMigrationJobs,
     AttachmentMigration,
     ThumbnailMigration,
+    RecoverLinksMigration,
+    CleanupDuplicateColumnMigration,
   ],
   exports: ['JobsService'],
 };

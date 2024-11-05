@@ -199,6 +199,7 @@ export class CleanupDuplicateColumnMigration {
       }
 
       await ncMeta.commit();
+      this.log('Completed duplicate cleanup');
     } catch (e) {
       await ncMeta.rollback(e);
       this.log('Error recovering links', e);

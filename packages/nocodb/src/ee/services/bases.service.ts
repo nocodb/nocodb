@@ -95,7 +95,7 @@ export class BasesService extends BasesServiceCE {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
 
     if (process.env.TEST !== 'true') {
-      const fk_workspace_id = (param.base as any)?.fk_workspace_id;
+      const fk_workspace_id = (param.base as any).fk_workspace_id;
 
       if (!fk_workspace_id) {
         NcError.badRequest('fk_workspace_id is required');

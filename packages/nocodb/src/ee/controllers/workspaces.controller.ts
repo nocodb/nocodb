@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Logger,
   Param,
   Patch,
@@ -10,7 +11,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { WorkspacePlan } from 'nocodb-sdk';
+import { ProjectReqType, WorkspacePlan } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import type { WorkspaceType } from 'nocodb-sdk';
 import { WorkspacesService } from '~/services/workspaces.service';
@@ -22,7 +23,9 @@ import NocoCache from '~/cache/NocoCache';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { NcRequest } from '~/interface/config';
+import { NcContext, NcRequest } from '~/interface/config';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { BasesService } from '~/services/bases.service';
 
 @Controller()
 export class WorkspacesController {
@@ -32,6 +35,7 @@ export class WorkspacesController {
     private readonly workspacesService: WorkspacesService,
     private readonly workspaceUserService: WorkspaceUsersService,
     private readonly metaService: MetaService,
+    private readonly basesService: BasesService,
   ) {}
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -179,6 +183,28 @@ export class WorkspacesController {
       user: req.user,
       req,
     });
+  }
+
+  @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+  @Post(['/api/v2/meta/workspaces/:workspaceId/bases'])
+  @Acl('baseCreate', {
+    scope: 'workspace',
+  })
+  async baseCreate(
+    @Param('workspaceId') workspaceId: string,
+    @Req() req: NcRequest,
+    @Body() baseBody: ProjectReqType,
+  ) {
+    const base = await this.basesService.baseCreate({
+      base: {
+        ...(baseBody || {}),
+        fk_workspace_id: workspaceId,
+      } as ProjectReqType,
+      user: req['user'],
+      req,
+    });
+
+    return base;
   }
 
   @Patch([

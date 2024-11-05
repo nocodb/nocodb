@@ -90,7 +90,7 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const isPrimitiveType = (val) =>
   typeof val === 'string' || typeof val === 'number';
 
-const JSON_COLUMN_TYPES = [UITypes.Button, UITypes.AI];
+const JSON_COLUMN_TYPES = [UITypes.Button];
 
 export async function populatePk(
   context: NcContext,
@@ -9764,7 +9764,6 @@ class BaseModelSqlv2 {
           UITypes.LastModifiedTime,
           UITypes.CreatedBy,
           UITypes.LastModifiedBy,
-          UITypes.AI,
         ].includes(column.uidt)
       )
         continue;
@@ -10034,73 +10033,6 @@ class BaseModelSqlv2 {
         ) {
           data[column.column_name] = JSON.stringify(data[column.column_name]);
         }
-      } else if (UITypes.AI === column.uidt) {
-        if (data[column.column_name]) {
-          let value = data[column.column_name];
-
-          if (typeof value === 'object') {
-            value = value.value;
-          }
-
-          const obj: {
-            value?: string;
-            lastModifiedBy?: string;
-            lastModifiedTime?: string;
-            isStale?: string;
-          } = {};
-
-          if (cookie?.system === true) {
-            Object.assign(obj, {
-              value,
-              lastModifiedBy: null,
-              lastModifiedTime: null,
-              isStale: false,
-            });
-          } else {
-            const oldObj = oldData?.[column.title];
-            const isStale = oldObj ? oldObj.isStale : false;
-            Object.assign(obj, {
-              value,
-              lastModifiedBy: cookie?.user?.id,
-              lastModifiedTime: this.now(),
-              isStale,
-            });
-          }
-
-          data[column.column_name] = JSON.stringify(obj);
-        }
-      }
-    }
-
-    // AI column isStale handling
-    const aiColumns = this.model.columns.filter((c) => c.uidt === UITypes.AI);
-
-    for (const aiColumn of aiColumns) {
-      if (
-        !oldData ||
-        !oldData[aiColumn.title] ||
-        oldData[aiColumn.title]?.isStale === true
-      ) {
-        continue;
-      }
-
-      const oldAiData = data[aiColumn.column_name]
-        ? JSON.parse(data[aiColumn.column_name])
-        : oldData[aiColumn.title];
-
-      const referencedColumnIds = aiColumn.colOptions.prompt
-        .match(/{(.*?)}/g)
-        .map((id) => id.replace(/{|}/g, ''));
-
-      const referencedColumns = referencedColumnIds.map(
-        (id) => this.model.columnsById[id],
-      );
-
-      if (referencedColumns.some((c) => c.column_name in data)) {
-        data[aiColumn.column_name] = JSON.stringify({
-          ...oldAiData,
-          isStale: true,
-        });
       }
     }
   }

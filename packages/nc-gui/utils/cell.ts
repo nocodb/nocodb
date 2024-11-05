@@ -39,8 +39,8 @@ export const isGeometry = (column: ColumnType) => column.uidt === UITypes.Geomet
 export const isUser = (column: ColumnType) => column.uidt === UITypes.User
 export const isButton = (column: ColumnType) => column.uidt === UITypes.Button
 export const isAiButton = (column: ColumnType) =>
-  column.uidt === UITypes.Button && column?.colOptions?.type === ButtonActionsType.Ai
-export const isAI = (column: ColumnType) => column.uidt === UITypes.AI
+  column.uidt === UITypes.Button && (column?.colOptions as any)?.type === ButtonActionsType.Ai
+export const isAI = (_column: ColumnType) => false
 export const isAutoSaved = (column: ColumnType) =>
   [
     UITypes.SingleLineText,
@@ -59,7 +59,7 @@ export const isAutoSaved = (column: ColumnType) =>
     UITypes.Duration,
   ].includes(column.uidt as UITypes)
 
-export const isManualSaved = (column: ColumnType) => [UITypes.Currency, UITypes.AI].includes(column.uidt as UITypes)
+export const isManualSaved = (column: ColumnType) => [UITypes.Currency].includes(column.uidt as UITypes)
 
 export const isPrimary = (column: ColumnType) => !!column.pv
 

@@ -42,7 +42,7 @@ export class AiDataController {
             title: string;
             prompt_raw: string;
             fk_integration_id: string;
-            uidt: UITypes.AI | UITypes.Button;
+            uidt: UITypes.Button;
             output_column_ids?: string;
             model?: string;
           };

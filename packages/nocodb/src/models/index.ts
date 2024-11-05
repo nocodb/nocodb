@@ -48,4 +48,3 @@ export { default as Integration } from './Integration';
 export { default as IntegrationStore } from './IntegrationStore';
 export { default as FileReference } from './FileReference';
 export { default as ButtonColumn } from './ButtonColumn';
-export { default as AIColumn } from './AIColumn';

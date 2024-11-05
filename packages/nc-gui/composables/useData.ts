@@ -286,7 +286,6 @@ export function useData(args: {
                 col.uidt === UITypes.Lookup ||
                 col.uidt === UITypes.Button ||
                 col.uidt === UITypes.Attachment ||
-                col.uidt === UITypes.AI ||
                 col.au ||
                 (isValidValue(col?.cdf) && / on update /i.test(col.cdf)))
             )
@@ -434,7 +433,6 @@ export function useData(args: {
           UITypes.LastModifiedTime,
           UITypes.Barcode,
           UITypes.Formula,
-          UITypes.AI,
           UITypes.Lookup,
           UITypes.Rollup,
           UITypes.LinkToAnotherRecord,

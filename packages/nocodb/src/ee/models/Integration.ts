@@ -81,7 +81,7 @@ export default class Integration extends IntegrationCE {
     if (insertObj.is_global) {
       const user = await User.get(insertObj.created_by, ncMeta);
 
-      if (user.email.match(/@nocodb.com$/)) {
+      if (!user.email.match(/@nocodb.com$/)) {
         NcError.badRequest('Only admin can create global integrations');
       }
 

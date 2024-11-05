@@ -18,7 +18,6 @@ import Filter from '~/models/Filter';
 import QrCodeColumn from '~/models/QrCodeColumn';
 import BarcodeColumn from '~/models/BarcodeColumn';
 import {
-  AIColumn,
   ButtonColumn,
   FileReference,
   GalleryView,
@@ -426,22 +425,6 @@ export default class Column<T = any> implements ColumnType {
         }
         break;
       }
-      case UITypes.AI: {
-        await AIColumn.insert(
-          context,
-          {
-            fk_column_id: colId,
-            fk_integration_id: column.fk_integration_id,
-            model: column.model,
-            prompt: column.prompt,
-            prompt_raw: column.prompt_raw,
-            rich_text: column.rich_text,
-            auto_generate: column.auto_generate,
-          },
-          ncMeta,
-        );
-        break;
-      }
 
       /*  default:
         {
@@ -544,9 +527,6 @@ export default class Column<T = any> implements ColumnType {
         break;
       case UITypes.Barcode:
         res = await BarcodeColumn.read(context, this.id, ncMeta);
-        break;
-      case UITypes.AI:
-        res = await AIColumn.read(context, this.id, ncMeta);
         break;
       // default:
       //   res = await DbColumn.read(this.id);
@@ -898,46 +878,6 @@ export default class Column<T = any> implements ColumnType {
       }
     }
 
-    {
-      const cachedList = await NocoCache.getList(CacheScope.COLUMN, [
-        col.fk_model_id,
-      ]);
-      let { list: aiColumns } = cachedList;
-      const { isNoneList } = cachedList;
-      if (!isNoneList && !aiColumns.length) {
-        aiColumns = await ncMeta.metaList2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COLUMNS,
-          {
-            condition: {
-              fk_model_id: col.fk_model_id,
-              uidt: UITypes.AI,
-            },
-          },
-        );
-      }
-
-      aiColumns = aiColumns.filter((c) => c.uidt === UITypes.AI);
-
-      for (const aiCol of aiColumns) {
-        const ai = await new Column(aiCol).getColOptions<AIColumn>(
-          context,
-          ncMeta,
-        );
-
-        if (!ai) continue;
-
-        /*
-          if prompt includes deleted column id {column_id}, add error and update
-        */
-        if (ai.prompt && ai.prompt.match(/{column_id}/)) {
-          ai.error = `Field '${col.title}' not found`;
-          await AIColumn.update(context, aiCol.id, ai, ncMeta);
-        }
-      }
-    }
-
     //  if relation column check lookup and rollup and delete
     if (isLinksOrLTAR(col.uidt)) {
       {
@@ -1068,10 +1008,6 @@ export default class Column<T = any> implements ColumnType {
       case UITypes.Barcode:
         colOptionTableName = MetaTable.COL_BARCODE;
         cacheScopeName = CacheScope.COL_BARCODE;
-        break;
-      case UITypes.AI:
-        colOptionTableName = MetaTable.COL_AI;
-        cacheScopeName = CacheScope.COL_AI;
         break;
     }
 
@@ -1325,22 +1261,6 @@ export default class Column<T = any> implements ColumnType {
         await NocoCache.deepDel(
           `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
           CacheDelDirection.PARENT_TO_CHILD,
-        );
-        break;
-      }
-      case UITypes.AI: {
-        await ncMeta.metaDelete(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_AI,
-          {
-            fk_column_id: colId,
-          },
-        );
-
-        await NocoCache.deepDel(
-          `${CacheScope.COL_AI}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT,
         );
         break;
       }
@@ -1931,13 +1851,6 @@ export default class Column<T = any> implements ColumnType {
           }
           break;
         }
-        case UITypes.AI: {
-          insertArr.push({
-            fk_column_id: column.id,
-            ai: column.ai,
-          });
-          break;
-        }
       }
     }
 
@@ -2001,14 +1914,6 @@ export default class Column<T = any> implements ColumnType {
             context.workspace_id,
             context.base_id,
             MetaTable.COL_FORMULA,
-            insertGroups.get(group),
-          );
-          break;
-        case UITypes.AI:
-          await ncMeta.bulkMetaInsert(
-            context.workspace_id,
-            context.base_id,
-            MetaTable.COL_AI,
             insertGroups.get(group),
           );
           break;

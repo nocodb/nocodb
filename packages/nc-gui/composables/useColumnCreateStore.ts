@@ -106,10 +106,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     })
 
     const isAiMode = computed(() => {
-      if (
-        formState.value.uidt === UITypes.AI ||
-        (formState.value.uidt === UITypes.Button && formState.value.type === ButtonActionsType.Ai)
-      ) {
+      if (formState.value.uidt === UITypes.Button && formState.value.type === ButtonActionsType.Ai) {
         return true
       }
 

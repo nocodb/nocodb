@@ -13,7 +13,7 @@ import { z } from 'zod';
 import type { FileType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type AiIntegration from '~/integrations/ai/ai.interface';
-import type { AIColumn, ButtonColumn, Column } from '~/models';
+import type { ButtonColumn, Column } from '~/models';
 import Model from '~/models/Model';
 
 import { TablesService } from '~/services/tables.service';
@@ -278,7 +278,7 @@ export class AiDataService {
         title: string;
         prompt_raw: string;
         fk_integration_id: string;
-        uidt: UITypes.AI | UITypes.Button;
+        uidt: UITypes.Button;
         output_column_ids?: string;
         model?: string;
       };
@@ -315,7 +315,7 @@ export class AiDataService {
 
     await model.getColumns(context);
 
-    let ai: Partial<AIColumn>;
+    let ai: Partial<any>; // AIColumn
     let returnTitle: string;
 
     if (columnId) {
@@ -325,7 +325,7 @@ export class AiDataService {
         NcError.fieldNotFound(columnId);
       }
 
-      if (column.uidt !== UITypes.AI && column.uidt !== UITypes.Button) {
+      if (column.uidt !== UITypes.Button) {
         NcError.unprocessableEntity('Only AI columns are supported');
       }
 
@@ -342,7 +342,9 @@ export class AiDataService {
         });
       }
 
-      ai = await column.getColOptions<AIColumn>(context);
+      NcError.notImplemented('AI columns are not supported yet');
+
+      ai = await column.getColOptions<any>(context); // AIColumn
 
       if (!ai) {
         NcError.unprocessableEntity('AI column not found');
@@ -538,7 +540,7 @@ export class AiDataService {
         title: string;
         prompt_raw: string;
         fk_integration_id: string;
-        uidt: UITypes.AI | UITypes.Button;
+        uidt: UITypes.Button;
         output_column_ids?: string;
         model?: string;
       };

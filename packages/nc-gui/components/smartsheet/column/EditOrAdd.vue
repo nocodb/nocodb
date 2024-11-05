@@ -606,7 +606,6 @@ watch(activeAiTab, (newValue) => {
       'min-w-[422px] !w-full': isLinksOrLTAR(formState.uidt),
       'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
-      'min-w-[446px]': formState.uidt === UITypes.AI,
       'h-full': props.fromTableExplorer,
       '!bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt && !props.fromTableExplorer,
     }"
@@ -1041,7 +1040,7 @@ watch(activeAiTab, (newValue) => {
                 v-bind="validateInfos.uidt"
                 :class="{
                   'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
-                  '!text-nc-content-purple-dark': [UITypes.AI, AIButton].includes(opt.name),
+                  '!text-nc-content-purple-dark': [AIButton].includes(opt.name),
                 }"
                 @mouseover="handleResetHoverEffect"
               >
@@ -1150,11 +1149,6 @@ watch(activeAiTab, (newValue) => {
           :saving="saving"
           @navigate-to-integrations="handleNavigateToIntegrations"
           @on-submit="onSubmit"
-        />
-        <SmartsheetColumnAIOptions
-          v-if="formState.uidt === UITypes.AI"
-          v-model="formState"
-          @navigate-to-integrations="handleNavigateToIntegrations"
         />
       </template>
       <template v-if="formState.uidt">

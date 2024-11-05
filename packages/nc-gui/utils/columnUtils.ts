@@ -14,11 +14,6 @@ export const AIButton = 'AIButton'
 
 const uiTypes: UiTypesType[] = [
   {
-    name: UITypes.AI,
-    icon: iconMap.cellAi,
-    isNew: 1,
-  },
-  {
     name: AIButton,
     icon: iconMap.cellAiButton,
     virtual: 1,
@@ -378,7 +373,6 @@ const formViewHiddenColTypes = [
   UITypes.QrCode,
   UITypes.Barcode,
   UITypes.Button,
-  UITypes.AI,
   UITypes.SpecificDBType,
   UITypes.CreatedTime,
   UITypes.LastModifiedTime,

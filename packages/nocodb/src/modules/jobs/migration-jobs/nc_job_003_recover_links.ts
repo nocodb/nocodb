@@ -4,6 +4,7 @@ import { RelationTypes, UITypes } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { isEE } from '~/utils';
 import { Column } from '~/models';
 
@@ -15,10 +16,12 @@ import { Column } from '~/models';
 export class RecoverLinksMigration {
   private readonly debugLog = debug('nc:migration-jobs:recover-links');
 
-  constructor() {}
+  constructor(
+    private readonly thumbnailGeneratorProcessor: ThumbnailGeneratorProcessor,
+  ) {}
 
   log = (...msgs: string[]) => {
-    console.log('[nc_job_003_recover_links]: ', ...msgs);
+    console.log('[nc_job_003_thumbnail]: ', ...msgs);
   };
 
   async job() {
@@ -314,7 +317,6 @@ export class RecoverLinksMigration {
           this.log(`Recovered column '${column.title}' (ID: '${column.id}')`);
         }
       }
-      this.log('Recovery completed');
       await (await ncMeta).commit();
     } catch (e) {
       await (await ncMeta).rollback(e);

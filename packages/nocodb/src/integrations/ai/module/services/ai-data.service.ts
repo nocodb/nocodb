@@ -91,7 +91,7 @@ const uidtHelper = (cols: Column[]) => {
 
       return [col.title, z.boolean().nullable().optional()];
     } else if (col.uidt === UITypes.Number) {
-      userMessageAddition += `\n"${col.title}" must be a number or null`;
+      userMessageAddition += `\n"${col.title}" must be a number (no thousand separator & "," as decimal separator) or null`;
 
       return [col.title, z.number().nullable().optional()];
     } else if (col.uidt === UITypes.Currency) {

@@ -15,7 +15,6 @@ import { Column } from '~/models';
 export class RecoverLinksMigration {
   private readonly debugLog = debug('nc:migration-jobs:recover-links');
 
-  constructor() {}
 
   log = (...msgs: string[]) => {
     console.log('[nc_job_003_recover_links]: ', ...msgs);
@@ -315,9 +314,9 @@ export class RecoverLinksMigration {
         }
       }
       this.log('Recovery completed');
-      await (await ncMeta).commit();
+      await ncMeta.commit();
     } catch (e) {
-      await (await ncMeta).rollback(e);
+      await ncMeta.rollback(e);
       this.log('Error recovering links', e);
       return false;
     }

@@ -289,17 +289,21 @@ export class AttachmentsService {
             size = response.headers['content-length'];
             finalUrl = response.request.res.responseUrl;
           } else {
-            if (urlMeta.size && urlMeta.size * 1.33 > 3 * 1024 * 1024) {
-              NcError.badRequest('Base64 data URL is too large');
+            if (!url.startsWith('data')) {
+              NcError.badRequest('Invalid data URL format');
             }
 
-            const matches = url.match(/^data:(.+);base64,(.+)$/);
-            if (!matches) throw new Error('Invalid data URL format.');
+            const [metadata, base64Data] = url.split(',');
 
-            // Extract MIME type and base64 data
-            const [, _mimeType, base64Data] = matches;
+            const metadataHelper = metadata.split(':');
 
-            mimeType = _mimeType;
+            if (metadataHelper.length < 2) {
+              NcError.badRequest('Invalid data URL format');
+            }
+
+            const mimetypeHelper = metadataHelper[1].split(';');
+
+            mimeType = mimetypeHelper[0];
             size = Buffer.byteLength(base64Data, 'base64');
             base64TempStream = Readable.from(Buffer.from(base64Data, 'base64'));
           }

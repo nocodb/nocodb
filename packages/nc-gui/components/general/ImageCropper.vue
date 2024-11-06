@@ -15,6 +15,8 @@ interface Props {
   uploadConfig?: {
     path?: string
     scope?: PublicAttachmentScope
+    // filesize in bytes
+    maxFileSize?: number
   }
   showCropper: boolean
 }
@@ -38,12 +40,21 @@ const previewImage = ref({
   src: '',
 })
 
+const fileSize = ref<number>(0)
+
+const isValidFileSize = computed(() => {
+  return !!(fileSize.value && fileSize.value * 1.33 <= (uploadConfig?.maxFileSize || 3 * 1024 * 1024))
+})
+
 const handleCropImage = () => {
   const { canvas } = cropperRef.value.getResult()
   previewImage.value = {
     canvas,
     src: canvas.toDataURL(imageConfig.type),
   }
+  ;(canvas as any).toBlob((blob: Blob) => {
+    fileSize.value = blob.size
+  }, imageConfig.type)
 }
 
 const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
@@ -77,18 +88,16 @@ const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
 
 const handleSaveImage = async () => {
   if (previewImage.value.canvas) {
-    ;(previewImage.value.canvas as any).toBlob(async (blob: Blob) => {
-      await handleUploadImage([
-        {
-          title: imageConfig.name,
-          fileName: imageConfig.name,
-          mimetype: imageConfig.type,
-          size: blob.size,
-          url: previewImage.value.src,
-          data: previewImage.value.src,
-        },
-      ])
-    }, imageConfig.type)
+    await handleUploadImage([
+      {
+        title: imageConfig.name,
+        fileName: imageConfig.name,
+        mimetype: imageConfig.type,
+        size: fileSize.value,
+        url: previewImage.value.src,
+        data: previewImage.value.src,
+      },
+    ])
   }
 }
 
@@ -139,7 +148,13 @@ watch(showCropper, () => {
           <span class="ml-2">Crop</span>
         </NcButton>
 
-        <NcButton size="small" :loading="isLoading" :disabled="!previewImage.src" @click="handleSaveImage"> Save </NcButton>
+        <NcTooltip :disabled="isValidFileSize">
+          <template #title> Cropped file size is greter than max file size </template>
+
+          <NcButton size="small" :loading="isLoading" :disabled="!previewImage.src || !isValidFileSize" @click="handleSaveImage">
+            Save
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
   </NcModal>

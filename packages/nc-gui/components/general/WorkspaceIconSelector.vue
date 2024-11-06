@@ -106,6 +106,7 @@ const imageCropperData = ref({
   uploadConfig: {
     path: [NOCO, 'workspace', currentWorkspace.value?.id, 'icon'].join('/'),
     scope: PublicAttachmentScope.WORKSPACEPICS,
+    maxFileSize: 2 * 1024 * 1024
   },
 })
 

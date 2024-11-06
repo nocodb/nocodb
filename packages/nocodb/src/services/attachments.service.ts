@@ -289,6 +289,10 @@ export class AttachmentsService {
             size = response.headers['content-length'];
             finalUrl = response.request.res.responseUrl;
           } else {
+            if (urlMeta.size && urlMeta.size * 1.33 > 3 * 1024 * 1024) {
+              NcError.badRequest('Base64 data URL is too large');
+            }
+
             const matches = url.match(/^data:(.+);base64,(.+)$/);
             if (!matches) throw new Error('Invalid data URL format.');
 

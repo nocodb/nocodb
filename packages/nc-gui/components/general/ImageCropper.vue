@@ -43,7 +43,7 @@ const previewImage = ref({
 const fileSize = ref<number>(0)
 
 const isValidFileSize = computed(() => {
-  return !!(fileSize.value && fileSize.value * 1.33 <= (uploadConfig?.maxFileSize || 3 * 1024 * 1024))
+  return uploadConfig?.maxFileSize ? fileSize.value && fileSize.value <= uploadConfig?.maxFileSize : true
 })
 
 const handleCropImage = () => {

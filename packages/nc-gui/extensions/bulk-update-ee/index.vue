@@ -11,6 +11,7 @@ import {
   getSystemColumnsIds,
   type TableType,
   getSystemColumns,
+  isVirtualCol,
 } from 'nocodb-sdk'
 
 const jobStatusTooltip = {
@@ -60,8 +61,13 @@ interface BulkUpdateHistory {
 interface BulkUpdateFieldConfig {
   id: string
   columnId?: string
-  op_type?: string
+  op_type?: BulkUpdateFieldActionOpTypes
   value?: any
+}
+
+enum BulkUpdateFieldActionOpTypes {
+  CLEAR_VALUE = 'CLEAR_VALUE',
+  SET_VALUE = 'SET_VALUE',
 }
 
 const bulkUpdatePayloadPlaceholder: BulkUpdatePayloadType = {
@@ -206,9 +212,19 @@ const fieldConfigMap = computed(() => {
   )
 })
 
-watchEffect(() => {
-  console.log('fieldConfigMap', fieldConfigMap.value, bulkUpdatePayload.value?.config)
-})
+const fieldActionOptions: {
+  label: string
+  value: BulkUpdateFieldActionOpTypes
+}[] = [
+  {
+    label: 'Clear cell contents',
+    value: BulkUpdateFieldActionOpTypes.CLEAR_VALUE,
+  },
+  {
+    label: 'Set cell values',
+    value: BulkUpdateFieldActionOpTypes.SET_VALUE,
+  },
+]
 
 async function reloadViews() {
   if (!savedPayloads.value.selectedTableId) return
@@ -314,9 +330,9 @@ const rules = computed(() => {
       columnId: {
         required,
       },
-      // op_type: {
-      //   required,
-      // },
+      op_type: {
+        required,
+      },
       // value: {
       //   required,
       // },
@@ -350,6 +366,9 @@ watch(
 onMounted(async () => {
   await loadJobsForBase()
 })
+
+provide(IsFormInj, ref(true))
+provide(IsGalleryInj, ref(false))
 </script>
 
 <template>
@@ -551,15 +570,32 @@ onMounted(async () => {
                     </div>
                   </div>
 
-                  <div v-else class="flex-1 flex">
-                    <div class="flex items-center gap-3 text-nc-content-purple-dark">
+                  <div v-else class="flex-1 flex text-nc-content-gray">
+                    <div class="flex items-center gap-3">
                       <NcCheckbox :checked="true" />
-                      <NcTooltip show-on-truncate-only class="truncate text-sm font-weight-500">
-                        <template #title>
-                          {{ fieldConfig.id }}
-                        </template>
-                        {{ fieldConfig.id }}
-                      </NcTooltip>
+                      <div class="flex items-center gap-1">
+                        {{ fieldConfig.op_type === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
+                        <NcBadge color="grey" :border="false" class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium">
+                          <component
+                            :is="getUIDTIcon(UITypes[meta?.columnsById?.[fieldConfig.columnId]?.uidt])"
+                            class="h-3.5 w-3.5"
+                          />
+
+                          <NcTooltip class="truncate max-w-[100px]" show-on-truncate-only>
+                            <template #title>
+                              {{ meta?.columnsById?.[fieldConfig.columnId]?.title }}
+                            </template>
+                            {{ meta?.columnsById?.[fieldConfig.columnId]?.title }}
+                          </NcTooltip>
+                        </NcBadge>
+                        {{
+                          fieldConfig.op_type === BulkUpdateFieldActionOpTypes.CLEAR_VALUE
+                            ? ''
+                            : fieldConfig.op_type === BulkUpdateFieldActionOpTypes.SET_VALUE
+                            ? 'to'
+                            : ''
+                        }}
+                      </div>
                     </div>
                   </div>
                   <NcButton
@@ -589,6 +625,8 @@ onMounted(async () => {
                   >
                     <a-select-option v-for="(col, i) of bulkUpdateColumns" :key="i" :value="col.id">
                       <div class="flex items-center gap-2 w-full">
+                        <component :is="getUIDTIcon(UITypes[col.uidt])" class="h-3.5 w-3.5" />
+
                         <NcTooltip class="truncate flex-1" show-on-truncate-only>
                           <template #title>
                             {{ col.title }}
@@ -604,6 +642,60 @@ onMounted(async () => {
                       </div>
                     </a-select-option>
                   </NcSelect>
+                </a-form-item>
+                <a-form-item class="!my-0 w-full">
+                  <template #label>
+                    <span>Update type</span>
+                  </template>
+                  <NcSelect
+                    :value="fieldConfig.op_type || undefined"
+                    class="nc-field-select-input w-full nc-select-shadow !border-none"
+                    placeholder="-select a field-"
+                    @update:value="(value) => (fieldConfig.op_type = value)"
+                    @change="saveChanges()"
+                  >
+                    <a-select-option v-for="(action, i) of fieldActionOptions" :key="i" :value="action.value">
+                      <div class="flex items-center gap-2 w-full">
+                        <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                          <template #title>
+                            {{ action.label }}
+                          </template>
+                          {{ action.label }}
+                        </NcTooltip>
+                        <component
+                          :is="iconMap.check"
+                          v-if="fieldConfig.op_type === action.value"
+                          id="nc-selected-item-icon"
+                          class="flex-none text-primary w-4 h-4"
+                        />
+                      </div>
+                    </a-select-option>
+                  </NcSelect>
+                </a-form-item>
+
+                <a-form-item
+                  v-if="
+                    fieldConfig.columnId &&
+                    !!meta?.columnsById?.[fieldConfig.columnId] &&
+                    fieldConfig.op_type === BulkUpdateFieldActionOpTypes.SET_VALUE
+                  "
+                  class="!my-0 w-full"
+                >
+                  <LazySmartsheetDivDataCell class="relative min-h-8" @click.stop>
+                    <LazySmartsheetVirtualCell
+                      v-if="isVirtualCol(meta?.columnsById?.[fieldConfig.columnId]?.uidt)"
+                      v-model="fieldConfig.value"
+                      class="nc-input"
+                      :column="meta.columnsById[fieldConfig.columnId]"
+                    />
+                    <LazySmartsheetCell
+                      v-else
+                      v-model="fieldConfig.value"
+                      class="nc-input truncate"
+                      :column="meta.columnsById[fieldConfig.columnId]"
+                      :edit-enabled="true"
+                    />
+                  </LazySmartsheetDivDataCell>
                 </a-form-item>
 
                 <div>
@@ -701,5 +793,99 @@ onMounted(async () => {
       }
     }
   }
+}
+</style>
+
+<style lang="scss" scoped>
+:deep(.ant-select-selector) {
+  @apply !xs:(h-full);
+}
+
+.nc-data-cell {
+  @apply !rounded-lg;
+  transition: all 0.3s;
+
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  }
+  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button) {
+    @apply !border-1;
+    &:not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
+      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+    }
+  }
+
+  &.nc-readonly-div-data-cell,
+  &.nc-system-field {
+    @apply !border-gray-200;
+
+    :deep(.nc-cell),
+    :deep(.nc-virtual-cell) {
+      @apply text-gray-400;
+    }
+  }
+
+  :deep(.nc-cell),
+  :deep(.nc-virtual-cell) {
+    &:not(.nc-cell-checkbox) {
+      @apply bg-white dark:bg-slate-500;
+
+      &.nc-input {
+        @apply w-full h-8;
+      }
+    }
+  }
+  &.nc-readonly-div-data-cell:focus-within,
+  &.nc-system-field:focus-within {
+    @apply !border-gray-200;
+  }
+
+  &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+    @apply !shadow-selected;
+  }
+
+  &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
+  &:has(.nc-virtual-cell-barcode .nc-barcode-container) {
+    @apply !border-none px-0 !rounded-none;
+    :deep(.nc-virtual-cell-qrcode),
+    :deep(.nc-virtual-cell-barcode) {
+      @apply px-0;
+      & > div {
+        @apply !px-0;
+      }
+      .barcode-wrapper {
+        @apply ml-0;
+      }
+    }
+    :deep(.nc-virtual-cell-qrcode) {
+      img {
+        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
+      }
+    }
+    :deep(.nc-virtual-cell-barcode) {
+      .nc-barcode-container {
+        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
+        svg {
+          @apply !h-full;
+        }
+      }
+    }
+  }
+}
+.nc-data-cell:focus-within {
+  @apply !border-1 !border-brand-500;
+}
+
+:deep(.nc-system-field input) {
+  @apply bg-transparent;
+}
+:deep(.nc-data-cell .nc-cell .nc-cell-field) {
+  @apply px-2;
+}
+:deep(.nc-data-cell .nc-virtual-cell .nc-cell-field) {
+  @apply px-2;
+}
+:deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
+  @apply px-0;
 }
 </style>

@@ -61,8 +61,10 @@ interface BulkUpdateHistory {
 interface BulkUpdateFieldConfig {
   id: string
   columnId?: string
-  op_type?: BulkUpdateFieldActionOpTypes
+  opType?: BulkUpdateFieldActionOpTypes
+  subOpType?: BulkUpdateFieldActionOpTypes
   value?: any
+  selected: boolean
 }
 
 enum BulkUpdateFieldActionOpTypes {
@@ -79,8 +81,10 @@ const bulkUpdatePayloadPlaceholder: BulkUpdatePayloadType = {
 const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
   id: '',
   columnId: '',
-  op_type: '',
+  opType: undefined,
+  subOpType: undefined,
   value: null,
+  selected: true,
 }
 
 const { extension, tables, fullscreen, getViewsForTable, getTableMeta } = useExtensionHelperOrThrow()
@@ -96,6 +100,8 @@ const bulkUpdateRef = ref<HTMLDivElement>()
 const { width } = useElementSize(bulkUpdateRef)
 
 const meta = ref<TableType>()
+
+const formRef = ref()
 
 const systemFieldsIds = computed(() => getSystemColumnsIds(meta.value?.columns || []))
 
@@ -247,7 +253,7 @@ async function onTableSelect(tableId?: string) {
     savedPayloads.value.selectedTableId = activeTableId.value
     await reloadViews()
     savedPayloads.value.selectedViewId = activeViewTitleOrId.value
-      ? views.value.find((view) => view.id === activeViewTitleOrId.value)?.id
+      ? views.value.find((view) => view.type === ViewTypes.GRID && view.id === activeViewTitleOrId.value)?.id
       : views.value.find((view) => view.is_default)?.id
   } else {
     savedPayloads.value.selectedTableId = tableId
@@ -283,6 +289,7 @@ const handleUpdateFieldConfigExpansionPanel = (key: string) => {
   } else {
     fieldConfigExpansionPanel.value = [key]
   }
+  validateAll()
 }
 
 const getNewFieldConfigId = (initId = 'fieldConfig') => {
@@ -304,6 +311,10 @@ function addNewAction() {
     ...(bulkUpdatePayload.value.config || []),
     { ...bulkUpdateFieldConfigPlaceholder, id: configId },
   ]
+
+  if (!fullscreen.value) {
+    fullscreen.value = true
+  }
 
   handleUpdateFieldConfigExpansionPanel(configId)
   validateAll()
@@ -328,14 +339,73 @@ const rules = computed(() => {
 
     acc[config.id] = {
       columnId: {
-        required,
+        required: helpers.withMessage('Field is required', (value) => {
+          if (!value) return false
+
+          return true
+        }),
+        isColumnPresent: helpers.withMessage('Field is deleted from table', (value, _currentConfig) => {
+          const currentConfig = _currentConfig as BulkUpdateFieldConfig
+
+          if (!currentConfig?.columnId || !meta.value) return true
+
+          const column = meta.value.columnsById?.[currentConfig.columnId]
+
+          if (!column) {
+            return false
+          }
+
+          return true
+        }),
       },
-      op_type: {
-        required,
+      opType: {
+        required: helpers.withMessage('Update type is required', (value, _currentConfig) => {
+          const currentConfig = _currentConfig as BulkUpdateFieldConfig
+
+          if (!currentConfig.columnId) return true
+
+          if (!value) return false
+
+          return true
+        }),
       },
-      // value: {
-      //   required,
-      // },
+      value: {
+        required: helpers.withMessage('Cell value is required', (value, _currentConfig) => {
+          const currentConfig = _currentConfig as BulkUpdateFieldConfig
+
+          if (
+            !meta.value ||
+            !currentConfig?.columnId ||
+            !currentConfig?.opType ||
+            currentConfig?.opType !== BulkUpdateFieldActionOpTypes.SET_VALUE
+          ) {
+            return true
+          }
+
+          const column = meta.value.columnsById?.[currentConfig.columnId]
+
+          if (currentConfig.selected) {
+            if (typeof value === 'string') {
+              value = value.trim()
+            }
+
+            if (
+              (column.uidt === UITypes.Checkbox && !value) ||
+              (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
+            ) {
+              return false
+            }
+
+            if (column.uidt === UITypes.Rating && (!value || Number(value) < 1)) {
+              return false
+            }
+
+            return true
+          }
+
+          return false
+        }),
+      },
     }
 
     return acc
@@ -349,13 +419,23 @@ async function validateAll() {
   await v$.value?.$validate()
 }
 
+onClickOutside(formRef, (e) => {
+  if (!fullscreen.value || (e.target as HTMLElement)?.closest(`.nc-bulk-update-add-action-section`)) return
+
+  validateAll()
+})
+
 watch(
-  fullscreen,
-  (newValue) => {
-    if (newValue) {
+  [() => fullscreen.value, () => bulkUpdatePayload.value?.viewId],
+  ([isFullscreen, isViewChanged]) => {
+    if (isFullscreen) {
       if (!bulkUpdatePayload.value?.config?.length) {
         addNewAction()
       }
+    }
+
+    if (isViewChanged && bulkUpdatePayload.value?.config?.length) {
+      fieldConfigExpansionPanel.value = [bulkUpdatePayload.value.config[0]?.id]
     }
   },
   {
@@ -527,7 +607,7 @@ provide(IsGalleryInj, ref(false))
           ></div>
           <div v-else class="px-3 py-4 min-h-[120px] flex-1 flex flex-col gap-3 items-center justify-center text-gray-600">
             <div>No fields set</div>
-            <NcButton size="small">
+            <NcButton size="small" @click="addNewAction">
               <template #icon>
                 <GeneralIcon icon="ncPlus" />
               </template>
@@ -543,13 +623,14 @@ provide(IsGalleryInj, ref(false))
         </div>
 
         <a-form
+          ref="formRef"
           no-style
           name="column-create-or-edit"
           layout="vertical"
           class="border-1 border-nc-border-gray-medium rounded-2xl bg-white"
         >
           <a-collapse
-            v-if="bulkUpdatePayload"
+            v-if="bulkUpdatePayload?.config?.length"
             v-model:active-key="fieldConfigExpansionPanel"
             class="nc-bulk-update-field-config-section flex flex-col"
           >
@@ -572,9 +653,9 @@ provide(IsGalleryInj, ref(false))
 
                   <div v-else class="flex-1 flex text-nc-content-gray">
                     <div class="flex items-center gap-3">
-                      <NcCheckbox :checked="true" />
+                      <NcCheckbox v-model:checked="fieldConfig.selected" @click.stop />
                       <div class="flex items-center gap-1">
-                        {{ fieldConfig.op_type === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
+                        {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
                         <NcBadge color="grey" :border="false" class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium">
                           <component
                             :is="getUIDTIcon(UITypes[meta?.columnsById?.[fieldConfig.columnId]?.uidt])"
@@ -589,9 +670,9 @@ provide(IsGalleryInj, ref(false))
                           </NcTooltip>
                         </NcBadge>
                         {{
-                          fieldConfig.op_type === BulkUpdateFieldActionOpTypes.CLEAR_VALUE
+                          fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE
                             ? ''
-                            : fieldConfig.op_type === BulkUpdateFieldActionOpTypes.SET_VALUE
+                            : fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE
                             ? 'to'
                             : ''
                         }}
@@ -612,15 +693,26 @@ provide(IsGalleryInj, ref(false))
                 </div>
               </template>
               <div class="w-full flex flex-col gap-6 p-6">
-                <a-form-item class="!my-0 w-full">
+                <a-form-item
+                  class="!my-0 w-full nc-input-required-error"
+                  v-bind="{
+                    validateStatus: v$?.[fieldConfig.id]?.columnId?.$error ? 'error' : 'success',
+                    help: v$?.[fieldConfig.id]?.columnId?.$errors?.map((er) => er.$message) || [],
+                  }"
+                >
                   <template #label>
                     <span>Select field</span>
                   </template>
                   <NcSelect
                     :value="fieldConfig.columnId || undefined"
-                    class="nc-field-select-input w-full nc-select-shadow !border-none"
+                    class="nc-field-select-input w-full nc-select-shadow"
                     placeholder="-select a field-"
-                    @update:value="(value) => (fieldConfig.columnId = value)"
+                    @update:value="
+                      (value) => {
+                        fieldConfig.columnId = value
+                        fieldConfig.value = null
+                      }
+                    "
                     @change="saveChanges()"
                   >
                     <a-select-option v-for="(col, i) of bulkUpdateColumns" :key="i" :value="col.id">
@@ -643,15 +735,27 @@ provide(IsGalleryInj, ref(false))
                     </a-select-option>
                   </NcSelect>
                 </a-form-item>
-                <a-form-item class="!my-0 w-full">
+                <a-form-item
+                  class="!my-0 w-full nc-input-required-error"
+                  v-bind="{
+                    validateStatus: v$?.[fieldConfig.id]?.opType?.$error ? 'error' : 'success',
+                    help: v$?.[fieldConfig.id]?.opType?.$errors?.map((er) => er.$message) || [],
+                  }"
+                >
                   <template #label>
                     <span>Update type</span>
                   </template>
                   <NcSelect
-                    :value="fieldConfig.op_type || undefined"
-                    class="nc-field-select-input w-full nc-select-shadow !border-none"
-                    placeholder="-select a field-"
-                    @update:value="(value) => (fieldConfig.op_type = value)"
+                    :value="fieldConfig.opType || undefined"
+                    :disabled="!fieldConfig.columnId"
+                    class="nc-field-update-type-select-input w-full nc-select-shadow"
+                    placeholder="-select an update type-"
+                    @update:value="
+                      (value) => {
+                        fieldConfig.opType = value
+                        fieldConfig.value = null
+                      }
+                    "
                     @change="saveChanges()"
                   >
                     <a-select-option v-for="(action, i) of fieldActionOptions" :key="i" :value="action.value">
@@ -664,7 +768,7 @@ provide(IsGalleryInj, ref(false))
                         </NcTooltip>
                         <component
                           :is="iconMap.check"
-                          v-if="fieldConfig.op_type === action.value"
+                          v-if="fieldConfig.opType === action.value"
                           id="nc-selected-item-icon"
                           class="flex-none text-primary w-4 h-4"
                         />
@@ -677,13 +781,27 @@ provide(IsGalleryInj, ref(false))
                   v-if="
                     fieldConfig.columnId &&
                     !!meta?.columnsById?.[fieldConfig.columnId] &&
-                    fieldConfig.op_type === BulkUpdateFieldActionOpTypes.SET_VALUE
+                    fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE
                   "
-                  class="!my-0 w-full"
+                  class="!my-0 w-full nc-input-required-error"
+                  v-bind="{
+                    validateStatus: v$?.[fieldConfig.id]?.value?.$error ? 'error' : 'success',
+                    help: v$?.[fieldConfig.id]?.value?.$errors?.map((er) => er.$message) || [],
+                  }"
                 >
-                  <LazySmartsheetDivDataCell class="relative min-h-8" @click.stop>
+                  <template #label>
+                    <span> Set cell value to</span>
+                  </template>
+
+                  <LazySmartsheetDivDataCell
+                    class="relative min-h-8"
+                    :key="meta?.columnsById?.[fieldConfig.columnId]?.uidt"
+                    :data-label="meta?.columnsById?.[fieldConfig.columnId]?.uidt"
+                    :data-ver="isVirtualCol(meta?.columnsById?.[fieldConfig.columnId])"
+                    @click.stop
+                  >
                     <LazySmartsheetVirtualCell
-                      v-if="isVirtualCol(meta?.columnsById?.[fieldConfig.columnId]?.uidt)"
+                      v-if="isVirtualCol(meta?.columnsById?.[fieldConfig.columnId])"
                       v-model="fieldConfig.value"
                       class="nc-input"
                       :column="meta.columnsById[fieldConfig.columnId]"
@@ -709,6 +827,7 @@ provide(IsGalleryInj, ref(false))
               </div>
             </a-collapse-panel>
           </a-collapse>
+          <div v-else class="p-6 text-center text-gray-600">No fields set</div>
         </a-form>
 
         <div class="nc-bulk-update-add-action-section">
@@ -791,6 +910,12 @@ provide(IsGalleryInj, ref(false))
       .ant-collapse-content {
         @apply border-0;
       }
+    }
+  }
+
+  .nc-field-select-input {
+    .ant-select-selector {
+      @apply !rounded-lg;
     }
   }
 }
@@ -887,5 +1012,13 @@ provide(IsGalleryInj, ref(false))
 }
 :deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
   @apply px-0;
+}
+
+.nc-input-required-error {
+  &:focus-within {
+    :deep(.ant-form-item-explain-error) {
+      @apply text-gray-400;
+    }
+  }
 }
 </style>

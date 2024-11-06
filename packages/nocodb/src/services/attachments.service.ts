@@ -21,6 +21,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
 import { validateAndNormaliseLocalPath } from '~/helpers/attachmentHelpers';
 import Noco from '~/Noco';
+import { UseWorker } from '~/decorators/use-worker.decorator';
 
 interface AttachmentObject {
   url?: string;
@@ -179,6 +180,7 @@ export class AttachmentsService {
     return attachments;
   }
 
+  @UseWorker()
   async uploadViaURL(param: {
     urls: AttachmentReqType[];
     req?: NcRequest;

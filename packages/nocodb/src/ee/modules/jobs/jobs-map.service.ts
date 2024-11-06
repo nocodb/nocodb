@@ -13,6 +13,7 @@ import { InitMigrationJobs } from '~/modules/jobs/migration-jobs/init-migration-
 import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor';
 import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-stats.processor';
 import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processor';
+import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
 import { JobTypes } from '~/interface/Jobs';
 
 @Injectable()
@@ -28,6 +29,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly thumbnailGeneratorProcessor: ThumbnailGeneratorProcessor,
     protected readonly attachmentCleanUpProcessor: AttachmentCleanUpProcessor,
     protected readonly initMigrationJobs: InitMigrationJobs,
+    protected readonly useWorkerProcessor: UseWorkerProcessor,
     // EE
     protected readonly healthCheckProcessor: HealthCheckProcessor,
     protected readonly updateStatsProcessor: UpdateStatsProcessor,
@@ -44,6 +46,7 @@ export class JobsMap extends JobsMapCE {
       thumbnailGeneratorProcessor,
       attachmentCleanUpProcessor,
       initMigrationJobs,
+      useWorkerProcessor,
     );
   }
 

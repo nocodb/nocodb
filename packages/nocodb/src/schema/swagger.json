@@ -15,7 +15,7 @@
         "Auth",
         "API Token"
       ]
-    },
+    },x
     {
       "name": "Public APIs",
       "tags": [
@@ -4629,6 +4629,99 @@
             "in": "path",
             "required": true,
             "description": "Unique Column ID"
+          }
+        ]
+      }
+    },
+
+    "/api/v2/meta/duplicate/:workspaceId/shared/{sharedBaseId}": {
+      "post": {
+        "summary": "Duplicate Shared Base",
+        "operationId": "base-duplicate-shared",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "excludeData": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeViews": {
+                        "type": "boolean",
+                        "required": false
+                      }
+                    }
+                  },
+                  "base": {
+                    "type": "object",
+                    "required": false
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "excludeData": true,
+                    "excludeViews": true,
+                    "excludeHooks": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ],
+        "description": "Duplicate a shared base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "w_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Workspace ID"
+          },
+          {
+            "name": "sharedBaseId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Shared Base ID"
           }
         ]
       }

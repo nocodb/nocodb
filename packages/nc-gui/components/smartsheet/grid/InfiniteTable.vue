@@ -1576,7 +1576,7 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
             class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
           >
             <thead ref="tableHeadEl">
-              <tr v-if="isViewColumnsLoading">
+              <tr v-show="isViewColumnsLoading">
                 <td
                   v-for="(_col, colIndex) of dummyColumnDataForLoading"
                   :key="colIndex"
@@ -1595,7 +1595,7 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
                   />
                 </td>
               </tr>
-              <tr v-else class="nc-grid-header">
+              <tr v-show="!isViewColumnsLoading" class="nc-grid-header">
                 <th
                   :style="{
                     left: `-${leftOffset}px`,

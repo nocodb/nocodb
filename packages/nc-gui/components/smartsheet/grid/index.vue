@@ -18,6 +18,8 @@ const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
 
+const { betaFeatureToggleState } = useBetaFeatureToggle()
+
 const bulkUpdateDlg = ref(false)
 
 const routeQuery = computed(() => route.value.query as Record<string, string>)
@@ -220,8 +222,6 @@ const updateRowCommentCount = (count: number) => {
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
-const isFallbackToPagination = ref(false)
-
 onMounted(() => {
   updateViewWidth()
 })
@@ -249,7 +249,7 @@ const {
     :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
-      v-if="!isGroupBy && isFallbackToPagination"
+      v-if="!isGroupBy && betaFeatureToggleState?.show"
       ref="tableRef"
       v-model:selected-all-records="pSelectedAllRecords"
       :data="pData"

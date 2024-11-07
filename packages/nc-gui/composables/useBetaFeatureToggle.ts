@@ -19,4 +19,4 @@ const _useBetaFeatureToggle = () => {
 }
 
 const useBetaFeatureToggle = createSharedComposable(_useBetaFeatureToggle)
-export { useBetaFeatureToggle }
+export { useBetaFeatureToggle, betaFeatureToggleState }

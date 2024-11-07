@@ -10,6 +10,8 @@ const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
+const { toggleBetaFeature } = useBetaFeatureToggle()
+
 const { appInfo } = useGlobal()
 
 const { toggleExtensionPanel, isPanelExpanded, extensionsEgg, onEggClick } = useExtensions()
@@ -52,6 +54,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
       <div class="flex items-center justify-end gap-2 flex-1">
         <GeneralApiLoader v-if="!isMobileMode" />
+
+        <div class="h-4 w-4 cursor-pointer" @dblclick="toggleBetaFeature"></div>
 
         <NcButton
           v-if="!isSharedBase && extensionsEgg && openedViewsTab === 'view'"

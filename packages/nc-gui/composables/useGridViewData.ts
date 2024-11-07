@@ -183,6 +183,10 @@ export function useGridViewData(
 
       const data = formatData(response.list, response.pageInfo)
 
+      if (response.pageInfo.totalRows) {
+        totalRows.value = response.pageInfo.totalRows
+      }
+
       await loadAggCommentsCount(data)
 
       return data

@@ -244,7 +244,7 @@ const renderAltOrOptlKey = () => {
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
-          class="flex items-center overflow-x-hidden justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
+          class="flex items-center overflow-hidden justify-end group hover:bg-gray-100 cursor-pointer text-gray-500 transition-all transition-linear px-3 py-2"
           :style="{
             'min-width': width,
             'max-width': width,

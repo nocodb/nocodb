@@ -61,6 +61,7 @@ const buttonTypes = [
   {
     label: t('labels.generateFieldDataUsingAi'),
     value: ButtonActionsType.Ai,
+    tooltip: t('tooltip.generateFieldDataUsingAiButtonOption'),
   },
 ]
 
@@ -488,17 +489,19 @@ watch(isWebhookModal, (newVal) => {
             <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-500" /> </template>
 
             <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
-              <div class="flex gap-2 w-full capitalize text-gray-800 truncate items-center">
-                <div class="flex-1">
-                  {{ type.label }}
+              <NcTooltip :disabled="!type.tooltip" placement="right" class="w-full" :title="type.tooltip">
+                <div class="flex gap-2 w-full capitalize text-gray-800 truncate items-center">
+                  <div class="flex-1">
+                    {{ type.label }}
+                  </div>
+                  <component
+                    :is="iconMap.check"
+                    v-if="vModel.type === type.value"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
                 </div>
-                <component
-                  :is="iconMap.check"
-                  v-if="vModel.type === type.value"
-                  id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
-                />
-              </div>
+              </NcTooltip>
             </a-select-option>
           </a-select>
         </a-form-item>

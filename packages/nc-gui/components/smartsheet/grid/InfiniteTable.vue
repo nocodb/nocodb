@@ -257,6 +257,11 @@ const updateVisibleRows = async () => {
     chunksToFetch.add(nextChunkId)
   }
 
+  const prevChunkId = firstChunkId - 1
+  if (prevChunkId >= 0 && start % CHUNK_SIZE < PREFETCH_THRESHOLD && !chunkStates.value[prevChunkId]) {
+    chunksToFetch.add(prevChunkId)
+  }
+
   if (chunksToFetch.size > 0) {
     const isInitialLoad = firstChunkId === 0 && !chunkStates.value[0]
 

@@ -42,7 +42,7 @@ const props = defineProps<{
   expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   removeRowIfNew?: (row: Row) => void
   rowSortRequiredRows: Row[]
-  applySorting?: () => void
+  applySorting?: (newRows?: Row | Row[]) => void
   clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
   syncCount: () => Promise<void>
   selectedRows: Array<Row>
@@ -1530,7 +1530,7 @@ watch(
     if (oldVal !== newVal) {
       clearInvalidRows?.()
       if (rowSortRequiredRows.value.length) {
-        applySorting?.()
+        applySorting?.(rowSortRequiredRows.value)
       }
     }
   },
@@ -1921,18 +1921,18 @@ watch(
               >
                 <LazySmartsheetRow
                   v-for="(row, index) in visibleRows"
-                  :key="`${row.rowMeta.rowIndex}-${row.rowMeta?.new}-${row.rowMeta.isValidationFailed}`"
+                  :key="`${row.rowMeta.rowIndex}-${row.rowMeta?.new}`"
                   :row="row"
                 >
                   <template #default="{ state }">
                     <div
                       v-if="row.rowMeta?.isValidationFailed"
                       :style="{
-                        left: `${leftOffset}px`,
                         top: `${(index + 1) * rowHeight}px`,
-                        zIndex: 100000,
+                        zIndex: 100001,
+                        left: `${scrollLeft}px`,
                       }"
-                      class="absolute bg-yellow-500 px-2 font-semibold py-1 z-30 left-0 rounded-br-md flex text-xs items-center gap-2 text-gray-800"
+                      class="absolute bg-yellow-500 px-2 font-semibold py-1 z-30 rounded-br-md flex text-xs items-center gap-2 text-gray-800"
                     >
                       Row filtered
 
@@ -1947,11 +1947,11 @@ watch(
                     <div
                       v-if="row.rowMeta?.isRowOrderUpdated"
                       :style="{
-                        left: `${leftOffset}px`,
                         top: `${(index + 1) * rowHeight}px`,
                         zIndex: 100000,
+                        translate: `translateX(${leftOffset}px)`,
                       }"
-                      class="absolute bg-yellow-500 px-2 font-semibold py-1 z-30 left-0 rounded-br-md flex text-xs items-center gap-2 text-gray-800"
+                      class="absolute transform bg-yellow-500 px-2 font-semibold py-1 z-30 left-0 rounded-br-md flex text-xs items-center gap-2 text-gray-800"
                     >
                       Row moved
 
@@ -2354,7 +2354,7 @@ watch(
       </NcDropdown>
     </div>
 
-    <div class="absolute bottom-12 left-2">
+    <div class="absolute bottom-13 left-8">
       <NcDropdown v-if="isAddingEmptyRowAllowed">
         <div class="flex">
           <NcButton
@@ -2751,6 +2751,7 @@ watch(
 }
 
 .invalid-row {
+  @apply transform scale-y-105 -translate-y-2 transition-transform;
   position: relative;
   z-index: 10000;
 

@@ -31,25 +31,25 @@ export function useInfiniteData(args: {
 }) {
   const { meta, viewMeta, callbacks, where } = args
 
+  const NOCO = 'noco'
+
+  const { $api } = useNuxtApp()
+
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
+
   const { t } = useI18n()
 
-  const NOCO = 'noco'
+  const { fetchCount } = useSharedView()
+
+  const { getBaseType } = useBase()
 
   const { getMeta, metas } = useMetas()
 
   const { base } = storeToRefs(useBase())
 
-  const { $api } = useNuxtApp()
-
-  const reloadAggregate = inject(ReloadAggregateHookInj)
-
-  const { addUndo, clone, defineViewScope } = useUndoRedo()
-
-  const cachedRows = ref<Map<number, Row>>(new Map())
-
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { fetchCount } = useSharedView()
+  const reloadAggregate = inject(ReloadAggregateHookInj)
 
   const { nestedFilters, allFilters, xWhere, sorts } = useSmartsheetStoreOrThrow()
 
@@ -76,22 +76,24 @@ export function useInfiniteData(args: {
     })
   })
 
+  const cachedRows = ref<Map<number, Row>>(new Map())
+
   const totalRows = ref(0)
 
-  const MAX_CACHE_SIZE = 500
+  const MAX_CACHE_SIZE = 100
 
   const CHUNK_SIZE = 50
 
   const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
 
-  const { getBaseType } = useBase()
+  const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
 
   const syncLocalChunks = (indexes: number | number[], operation: 'create' | 'delete') => {
     const indexArray = Array.isArray(indexes) ? indexes : [indexes]
     if (indexArray.length === 0) return
 
-    const affectedChunks = new Set(indexArray.map((index) => Math.floor(index / CHUNK_SIZE)))
-    const maxChunk = Math.floor((cachedRows.value.size - 1) / CHUNK_SIZE)
+    const affectedChunks = new Set(indexArray.map((index) => getChunkIndex(index)))
+    const maxChunk = getChunkIndex(cachedRows.value.size - 1)
 
     const cachedKeys = [...cachedRows.value.keys()]
 
@@ -114,6 +116,30 @@ export function useInfiniteData(args: {
     }
   }
 
+  const fetchChunk = async (chunkId: number) => {
+    if (chunkStates.value[chunkId]) return
+
+    if (!callbacks?.loadData) return
+
+    chunkStates.value[chunkId] = 'loading'
+    const offset = chunkId * CHUNK_SIZE
+
+    try {
+      const newItems = await callbacks.loadData({ offset, limit: CHUNK_SIZE })
+      if (!newItems) {
+        chunkStates.value[chunkId] = undefined
+        return
+      }
+      newItems.forEach((item) => {
+        cachedRows.value.set(item.rowMeta.rowIndex!, item)
+      })
+      chunkStates.value[chunkId] = 'loaded'
+    } catch (error) {
+      console.error('Error fetching chunk:', error)
+      chunkStates.value[chunkId] = undefined
+    }
+  }
+
   const clearCache = (visibleStartIndex: number, visibleEndIndex: number) => {
     if (visibleEndIndex === Number.POSITIVE_INFINITY && visibleStartIndex === Number.NEGATIVE_INFINITY) {
       cachedRows.value.clear()
@@ -125,14 +151,14 @@ export function useInfiniteData(args: {
 
     const safeStartIndex = Math.max(0, visibleStartIndex)
     const safeEndIndex = Math.min(totalRows.value - 1, visibleEndIndex)
-    const safeStartChunk = Math.floor(safeStartIndex / CHUNK_SIZE)
-    const safeEndChunk = Math.floor(safeEndIndex / CHUNK_SIZE)
+    const safeStartChunk = getChunkIndex(safeStartIndex)
+    const safeEndChunk = getChunkIndex(safeEndIndex)
 
     const newCachedRows = new Map<number, Row>()
     let keptCount = 0
 
     cachedRows.value.forEach((row, index) => {
-      const chunk = Math.floor(index / CHUNK_SIZE)
+      const chunk = getChunkIndex(index)
       if (
         (chunk >= safeStartChunk && chunk <= safeEndChunk) ||
         row.rowMeta.selected ||
@@ -263,51 +289,106 @@ export function useInfiniteData(args: {
     return false
   }
 
-  const applySorting = () => {
-    if (!sorts.value.length) {
-      return cachedRows.value
+  const getContinuousRanges = (cachedRows: Map<number, Row>) => {
+    const indexes = Array.from(cachedRows.keys()).sort((a, b) => a - b)
+    const ranges: { start: number; end: number }[] = []
+
+    let rangeStart = indexes[0]
+    let prev = indexes[0]
+
+    for (let i = 1; i <= indexes.length; i++) {
+      const current = indexes[i]
+      if (current !== prev + 1) {
+        ranges.push({ start: rangeStart, end: prev })
+        rangeStart = current
+      }
+      prev = current
     }
 
-    const rowsArray = Array.from(cachedRows.value.entries()).map(([index, row]) => ({
-      originalIndex: index,
-      row,
-    }))
+    return ranges
+  }
 
-    const orderedSorts = [...sorts.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  const applySorting = (rows: Row | Row[]) => {
+    if (!sorts.value.length) return
+    const orderedSorts = sorts.value.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    const inputRows = Array.isArray(rows) ? rows : [rows]
+    const ranges = getContinuousRanges(cachedRows.value)
 
-    rowsArray.sort((a, b) => {
-      for (const sort of orderedSorts) {
-        const column = columnsById.value[sort.fk_column_id!]
-        if (!column?.title) continue
+    inputRows.forEach((inputRow) => {
+      const originalIndex = inputRow.rowMeta.rowIndex!
+      const sourceRange = ranges.find((r) => originalIndex >= r.start && originalIndex <= r.end)
+      if (!sourceRange) return
 
-        const direction = sort.direction || 'asc'
-        const comparison = sortByUIType({
-          uidt: column.uidt as UITypes,
-          a: a.row.row[column.title],
-          b: b.row.row[column.title],
-          options: { direction },
-        })
+      const rangeEntries = Array.from(cachedRows.value.entries())
+        .filter(([index]) => index >= sourceRange.start && index <= sourceRange.end)
+        .map(([index, row]) => ({
+          currentIndex: index,
+          row,
+          pk: extractPkFromRow(row.row, meta.value?.columns),
+        }))
 
-        if (comparison !== 0) {
-          return comparison
+      const sortedRangeEntries = rangeEntries.sort((a, b) => {
+        for (const sort of orderedSorts) {
+          const column = columnsById.value[sort.fk_column_id!]?.title
+          if (!column) continue
+
+          const direction = sort.direction || 'asc'
+          const comparison = sortByUIType({
+            uidt: columnsById.value[sort.fk_column_id!].uidt as UITypes,
+            a: a.row.row[column],
+            b: b.row.row[column],
+            options: { direction },
+          })
+
+          if (comparison !== 0) return comparison
+        }
+        return a.currentIndex - b.currentIndex
+      })
+
+      const entry = sortedRangeEntries.find((e) => e.pk === extractPkFromRow(inputRow.row, meta.value?.columns))
+      if (!entry) return
+
+      const targetIndex = sourceRange.start + sortedRangeEntries.indexOf(entry)
+
+      const newCachedRows = new Map(cachedRows.value)
+
+      if (targetIndex !== originalIndex) {
+        if (targetIndex < originalIndex) {
+          // Move up
+          for (let i = originalIndex - 1; i >= targetIndex; i--) {
+            const row = newCachedRows.get(i)
+            if (row) {
+              row.rowMeta.rowIndex = i + 1
+              row.rowMeta.isRowOrderUpdated = false
+              newCachedRows.set(i + 1, row)
+            }
+          }
+        } else {
+          // Move down
+          for (let i = originalIndex + 1; i <= targetIndex; i++) {
+            const row = newCachedRows.get(i)
+            if (row) {
+              row.rowMeta.rowIndex = i - 1
+              row.rowMeta.isRowOrderUpdated = false
+              newCachedRows.set(i - 1, row)
+            }
+          }
+        }
+
+        // Place the input row at its new position
+        inputRow.rowMeta.rowIndex = targetIndex
+        inputRow.rowMeta.isRowOrderUpdated = false
+        newCachedRows.set(targetIndex, inputRow)
+
+        // Update chunk state
+        const chunkIndex = getChunkIndex(targetIndex)
+        if (chunkStates.value[chunkIndex] !== undefined) {
+          chunkStates.value[chunkIndex] = undefined
         }
       }
-      return a.originalIndex - b.originalIndex
+
+      cachedRows.value = newCachedRows
     })
-
-    const newCachedRows = new Map<number, Row>()
-
-    rowsArray.forEach((item, index) => {
-      const updatedRow = { ...item.row }
-      updatedRow.rowMeta = {
-        ...updatedRow.rowMeta,
-        rowIndex: index,
-        isRowOrderUpdated: false,
-      }
-      newCachedRows.set(index, updatedRow)
-    })
-
-    cachedRows.value = newCachedRows
   }
 
   function addEmptyRow(newRowIndex = totalRows.value, metaValue = meta.value) {
@@ -545,7 +626,7 @@ export function useInfiniteData(args: {
     totalRows.value = Math.max(0, (totalRows.value || 0) - removedRowsData.length)
 
     if (deletedIndexes.length > 0) {
-      const firstAffectedChunk = Math.floor(Math.min(...deletedIndexes) / CHUNK_SIZE)
+      const firstAffectedChunk = getChunkIndex(Math.min(...deletedIndexes))
       syncLocalChunks(firstAffectedChunk * CHUNK_SIZE, 'delete')
     }
 
@@ -592,7 +673,7 @@ export function useInfiniteData(args: {
           totalRows.value = Math.max(0, (totalRows.value || 0) - removedRowsData.length)
 
           if (deletedIndexes.length > 0) {
-            const firstAffectedChunk = Math.floor(Math.min(...deletedIndexes) / CHUNK_SIZE)
+            const firstAffectedChunk = getChunkIndex(Math.min(...deletedIndexes))
             syncLocalChunks(firstAffectedChunk * CHUNK_SIZE, 'delete')
           }
           callbacks?.syncVisibleData?.()
@@ -895,7 +976,7 @@ export function useInfiniteData(args: {
       callbacks?.syncVisibleData?.()
 
       if (undo) {
-        applySorting()
+        applySorting(toUpdate)
       }
 
       return updatedRowData
@@ -1027,7 +1108,7 @@ export function useInfiniteData(args: {
       })
     }
 
-    applySorting()
+    applySorting(rows)
   }
 
   async function bulkUpdateView(
@@ -1081,33 +1162,9 @@ export function useInfiniteData(args: {
     }
   }
 
-  const fetchChunk = async (chunkId: number) => {
-    if (chunkStates.value[chunkId]) return
-
-    if (!callbacks?.loadData) return
-
-    chunkStates.value[chunkId] = 'loading'
-    const offset = chunkId * CHUNK_SIZE
-
-    try {
-      const newItems = await callbacks.loadData({ offset, limit: CHUNK_SIZE })
-      if (!newItems) {
-        chunkStates.value[chunkId] = undefined
-        return
-      }
-      newItems.forEach((item) => {
-        cachedRows.value.set(item.rowMeta.rowIndex!, item)
-      })
-      chunkStates.value[chunkId] = 'loaded'
-    } catch (error) {
-      console.error('Error fetching chunk:', error)
-      chunkStates.value[chunkId] = undefined
-    }
-  }
-
   const fetchMissingChunks = async (startIndex: number, endIndex: number) => {
-    const firstChunkId = Math.floor(startIndex / CHUNK_SIZE)
-    const lastChunkId = Math.floor(endIndex / CHUNK_SIZE)
+    const firstChunkId = getChunkIndex(startIndex)
+    const lastChunkId = getChunkIndex(endIndex)
 
     const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
       (chunkId) => !chunkStates.value[chunkId],

@@ -1522,9 +1522,8 @@ watch(
   () => activeCell.row,
   (newVal, oldVal) => {
     if (disableWatch) return
-    console.log(oldVal, newVal)
     if (oldVal !== newVal) {
-      clearInvalidRows()
+      clearInvalidRows?.()
     }
   },
   { immediate: true },
@@ -1918,6 +1917,26 @@ watch(
                   :row="row"
                 >
                   <template #default="{ state }">
+                    <div
+                      v-if="row.rowMeta?.isValidationFailed"
+                      :style="{
+                        left: `${leftOffset}px`,
+                        top: `${(index + 1) * rowHeight}px`,
+                        zIndex: 100000,
+                      }"
+                      class="absolute bg-red-500 px-2 py-1 z-30 left-0 rounded-br-md flex items-center gap-2 text-white"
+                    >
+                      Row filtered
+
+                      <NcTooltip>
+                        <template #title>
+                          This row is no longer visible based on this view's filters, and will be hidden when you select another
+                          row
+                        </template>
+
+                        <GeneralIcon icon="info" />
+                      </NcTooltip>
+                    </div>
                     <tr
                       class="nc-grid-row transition transition-opacity duration-500 opacity-100 !xs:h-14"
                       :style="{
@@ -1929,13 +1948,11 @@ watch(
                           activeCell.row === row.rowMeta.rowIndex || selectedRange._start?.row === row.rowMeta.rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,
                         'selected-row': row.rowMeta.selected,
+                        'invalid-row': row.rowMeta?.isValidationFailed,
                       }"
                     >
                       <td
                         key="row-index"
-                        :class="{
-                          'invalid-cell': row.rowMeta?.isValidationFailed,
-                        }"
                         class="caption nc-grid-cell w-[64px] min-w-[64px]"
                         :data-testid="`cell-Id-${row.rowMeta.rowIndex}`"
                         :style="{
@@ -2015,7 +2032,6 @@ watch(
                           'readonly':
                             colMeta[0]?.isReadonly && hasEditPermission && selectRangeMap?.[`${row.rowMeta.rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
-                          'invalid-cell': row.rowMeta?.isValidationFailed,
                         }"
                         :style="{
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2089,7 +2105,6 @@ watch(
                             hasEditPermission &&
                             selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
-                          'invalid-cell': row.rowMeta?.isValidationFailed,
                         }"
                         :style="{
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',
@@ -2708,6 +2723,22 @@ watch(
     .nc-check-all {
       @apply flex;
     }
+  }
+}
+
+.invalid-row {
+  position: relative;
+  z-index: 10000;
+
+  &:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 0 0 2px #d54401 !important;
+    pointer-events: none;
   }
 }
 

@@ -754,7 +754,6 @@ export function useInfiniteData(args: {
       meta.value?.columns as ColumnType[],
       getBaseType(viewMeta.value?.view.source_id),
     )
-
     if (row.rowMeta.new) {
       await insertRow(row, ltarState, args, false, true)
     } else if (property) {

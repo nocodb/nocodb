@@ -127,25 +127,27 @@ export function useInfiniteData(args: {
     const safeEndChunk = getChunkIndex(safeEndIndex)
 
     const newCachedRows = new Map<number, Row>()
-    let keptCount = 0
 
-    cachedRows.value.forEach((row, index) => {
-      const chunk = getChunkIndex(index)
-      if (
-        (chunk >= safeStartChunk && chunk <= safeEndChunk) ||
-        row.rowMeta.selected ||
-        row.rowMeta.new ||
-        keptCount < MAX_CACHE_SIZE
-      ) {
-        newCachedRows.set(index, row)
-        keptCount++
+    for (let chunk = 0; chunk <= Math.max(...Array.from(cachedRows.value.keys()).map(getChunkIndex)); chunk++) {
+      const isVisibleChunk = chunk >= safeStartChunk && chunk <= safeEndChunk
+      const chunkStart = chunk * CHUNK_SIZE
+      const chunkEnd = chunkStart + CHUNK_SIZE
+
+      const hasImportantRows = Array.from(cachedRows.value)
+        .filter(([index]) => index >= chunkStart && index < chunkEnd)
+        .some(([_, row]) => row.rowMeta.selected || row.rowMeta.new)
+
+      if (isVisibleChunk || hasImportantRows) {
+        for (let i = chunkStart; i < chunkEnd; i++) {
+          const row = cachedRows.value.get(i)
+          if (row) newCachedRows.set(i, row)
+        }
       }
-    })
+    }
 
     cachedRows.value = newCachedRows
-
-    chunkStates.value = chunkStates.value.map((state, chunkId) =>
-      chunkId >= safeStartChunk && chunkId <= safeEndChunk ? state : undefined,
+    chunkStates.value = chunkStates.value.map((state, chunk) =>
+      chunk >= safeStartChunk && chunk <= safeEndChunk ? state : undefined,
     )
   }
 
@@ -326,7 +328,6 @@ export function useInfiniteData(args: {
 
       if (targetIndex !== originalIndex) {
         if (targetIndex < originalIndex) {
-          // Move up
           for (let i = originalIndex - 1; i >= targetIndex; i--) {
             const row = newCachedRows.get(i)
             if (row) {
@@ -336,7 +337,6 @@ export function useInfiniteData(args: {
             }
           }
         } else {
-          // Move down
           for (let i = originalIndex + 1; i <= targetIndex; i++) {
             const row = newCachedRows.get(i)
             if (row) {
@@ -352,9 +352,19 @@ export function useInfiniteData(args: {
         inputRow.rowMeta.isRowOrderUpdated = false
         newCachedRows.set(targetIndex, inputRow)
 
-        // Update chunk state
-        const chunkIndex = getChunkIndex(targetIndex)
-        chunkStates.value[chunkIndex] = undefined
+        const targetChunkIndex = getChunkIndex(targetIndex)
+
+        if (targetIndex <= sourceRange.start || targetIndex >= sourceRange.end) {
+          if (targetIndex <= sourceRange.start) {
+            for (let i = 0; i <= targetChunkIndex; i++) {
+              chunkStates.value[i] = undefined
+            }
+          } else if (targetIndex >= sourceRange.end) {
+            for (let i = targetChunkIndex; i <= getChunkIndex(totalRows.value - 1); i++) {
+              chunkStates.value[i] = undefined
+            }
+          }
+        }
       }
 
       cachedRows.value = newCachedRows

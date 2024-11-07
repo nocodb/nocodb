@@ -302,21 +302,6 @@ const rowSlice = reactive({
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 10
 
-const forceTriggerUpdate = ref(0)
-
-const visibleRows = computed(() => {
-  const { start, end } = rowSlice
-
-  if (forceTriggerUpdate.value) {
-    console.log('forceTriggerUpdate', forceTriggerUpdate.value)
-  }
-
-  return Array.from({ length: end - start }, (_, i) => {
-    const rowIndex = start + i
-    return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
-  })
-})
-
 const fetchChunk = async (chunkId: number) => {
   if (chunkStates.value[chunkId]) return
 
@@ -348,6 +333,18 @@ const updateVisibleRows = async () => {
 
   clearCache(start - BUFFER_SIZE, end + BUFFER_SIZE)
 }
+
+const visibleRows = computedAsync(async () => {
+  const { start, end } = rowSlice
+
+  // Fetch necessary chunks
+  await updateVisibleRows()
+
+  return Array.from({ length: end - start }, (_, i) => {
+    const rowIndex = start + i
+    return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+  })
+}, [])
 
 // Scroll top of the grid
 const scrollTop = ref(0)
@@ -1292,7 +1289,6 @@ async function addEmptyRow(row?: number, skipUpdate: boolean = false) {
   }
 
   await nextTick(() => {
-    forceTriggerUpdate.value = forceTriggerUpdate.value + 1
     scrollToRow(row ?? totalRows.value - 1)
   })
 }
@@ -1545,7 +1541,6 @@ const reloadViewDataHookHandler = async () => {
   })
 
   totalRows.value = totalRows.value + temporaryNewRowStore.value.length
-  forceTriggerUpdate.value = forceTriggerUpdate.value + 1
 }
 
 onMounted(async () => {
@@ -1627,7 +1622,7 @@ watch(
 )
 
 reloadVisibleDataHook?.on(async () => {
-  forceTriggerUpdate.value = forceTriggerUpdate.value + 1
+  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
 })
 
 defineExpose({

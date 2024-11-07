@@ -869,7 +869,11 @@ watch(
 )
 
 let isProcessing = false
-const rowQueue: Array<{ row?: number; skipUpdate: boolean }> = []
+const rowQueue: Array<{
+  row?: number
+  skipUpdate: boolean
+  resolve: (rowObj: Row | undefined) => void
+}> = []
 
 async function processRowQueue() {
   if (isProcessing) return
@@ -878,7 +882,7 @@ async function processRowQueue() {
 
   try {
     while (rowQueue.length > 0) {
-      const { row, skipUpdate } = rowQueue.shift()!
+      const { row, skipUpdate, resolve } = rowQueue.shift()!
 
       clearInvalidRows?.()
       if (rowSortRequiredRows.value.length) {
@@ -902,6 +906,8 @@ async function processRowQueue() {
           disableWatch = false
         }, 200)
       })
+
+      resolve(rowObj)
     }
   } finally {
     isProcessing = false
@@ -909,8 +915,10 @@ async function processRowQueue() {
 }
 
 async function addEmptyRow(row?: number, skipUpdate = false) {
-  rowQueue.push({ row, skipUpdate })
-  await processRowQueue()
+  return new Promise((resolve) => {
+    rowQueue.push({ row, skipUpdate, resolve })
+    processRowQueue()
+  })
 }
 
 const confirmDeleteRow = (row: number) => {

@@ -19,7 +19,7 @@ import { type CellRange, NavigateDir, type Row } from '#imports'
 
 const props = defineProps<{
   totalRows: number
-  data: Record<number, Row>
+  data: Map<number, Row>
   rowHeightEnum?: number
   loadData: (params?: any, shouldShowLoading?: boolean) => Promise<Array<Row>>
   callAddEmptyRow?: (addAfter?: number) => Row | undefined
@@ -44,7 +44,7 @@ const props = defineProps<{
   syncCount: () => Promise<void>
   selectedRows: Array<Row>
   syncVisibleData: () => void
-  chunkStates: Map<number, 'loading' | 'loaded'>
+  chunkStates: Array<'loading' | 'loaded' | undefined>
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg'])
@@ -65,6 +65,8 @@ const {
 // $e is a helper function to emit telemetry events
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { api } = useApi()
 
 const VIRTUAL_MARGIN = 10
@@ -77,10 +79,6 @@ const { paste } = usePaste()
 // getMeta - function to get the table and
 // metas - reactive ref of the table metas
 const { getMeta } = useMetas()
-
-// Number of additional rows to be fetched when the user scrolls
-// Buffer is applied on both start and end
-const bufferSize = 100
 
 // Global states
 // isMobileMode - reactive ref to check if the viewports is mobile
@@ -159,8 +157,6 @@ const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
 // selectedRows - reactive ref to get the selected rows
 const selectedRows = toRef(props, 'selectedRows')
-
-const chunkStates = toRef(props, 'chunkStates')
 
 // isViewColumnsLoading - reactive ref to check if the view columns are loading
 // updateGridViewColumn - function to update the grid view column
@@ -296,7 +292,9 @@ const totalRows = toRef(props, 'totalRows')
 const rowHeight = computed(() => rowHeightInPx[`${props.rowHeightEnum}`])
 
 // Reactive ref to the store of cached local rows
-const cachedLocalRows = toRef(props, 'data')
+const cachedRows = toRef(props, 'data')
+
+const chunkStates = toRef(props, 'chunkStates')
 
 // Row slice is used to determine which rows are visible
 const rowSlice = reactive({
@@ -304,67 +302,55 @@ const rowSlice = reactive({
   end: 100,
 })
 
-// Ref to track if data is being loaded
-const isLoading = ref(false)
-
 // Set to keep track of chunks that are currently loading
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 10
 
 const forceTriggerUpdate = ref(0)
 
-// Computed property for visible rows
 const visibleRows = computed(() => {
   const { start, end } = rowSlice
 
   if (forceTriggerUpdate.value) {
-    //
     console.log('forceTriggerUpdate', forceTriggerUpdate.value)
   }
 
   return Array.from({ length: end - start }, (_, i) => {
     const rowIndex = start + i
-    return cachedLocalRows.value[rowIndex] || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+    return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
   })
 })
 
-// Function to fetch a single chunk
 const fetchChunk = async (chunkId: number) => {
-  if (chunkStates.value.get(chunkId)) return
+  if (chunkStates.value[chunkId]) return
 
-  chunkStates.value.set(chunkId, 'loading')
+  chunkStates.value[chunkId] = 'loading'
   const offset = chunkId * CHUNK_SIZE
 
   try {
     const newItems = await loadData({ offset, limit: CHUNK_SIZE })
     newItems.forEach((item) => {
-      cachedLocalRows.value[item.rowMeta.rowIndex] = item
+      cachedRows.value.set(item.rowMeta.rowIndex!, item)
     })
-    chunkStates.value.set(chunkId, 'loaded')
+    chunkStates.value[chunkId] = 'loaded'
   } catch (error) {
     console.error('Error fetching chunk:', error)
-    chunkStates.value.delete(chunkId)
+    chunkStates.value[chunkId] = undefined
   }
 }
 
-// Function to update visible rows
 const updateVisibleRows = async () => {
-  if (isLoading.value) return
-  isLoading.value = true
-
   const { start, end } = rowSlice
   const firstChunkId = Math.floor(start / CHUNK_SIZE)
   const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
 
   const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
-    (chunkId) => !chunkStates.value.has(chunkId),
+    (chunkId) => !chunkStates.value[chunkId],
   )
 
   await Promise.all(chunksToFetch.map(fetchChunk))
 
   clearCache(start - BUFFER_SIZE, end + BUFFER_SIZE)
-
-  isLoading.value = false
 }
 
 // Scroll top of the grid
@@ -729,7 +715,7 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   if (colMeta.value[ctx.col].isReadonly) return
 
   // Get the row and column object
-  const rowObj = cachedLocalRows.value[ctx.row]
+  const rowObj = cachedRows.value.get(ctx.row)
   const columnObj = fields.value[ctx.col]
 
   if (isVirtualCol(columnObj)) {
@@ -743,9 +729,10 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
       undo: {
         fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row, mmClearResult: any[]) => {
           const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-          const rowObj = cachedLocalRows.value[ctx.row]
+          const rowObj = cachedRows.value.get(ctx.row)
           const columnObj = fields.value[ctx.col]
           if (
+            rowObj &&
             columnObj.title &&
             rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
             columnObj.id === col.id
@@ -779,9 +766,9 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
       redo: {
         fn: async (ctx: { row: number; col: number }, col: ColumnType, row: Row) => {
           const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-          const rowObj = cachedLocalRows.value[ctx.row]
+          const rowObj = cachedRows.value.get(ctx.row)
           const columnObj = fields.value[ctx.col]
-          if (rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
+          if (rowObj && rowId === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) && columnObj.id === col.id) {
             if (isBt(columnObj) || isOo(columnObj)) {
               await clearLTARCell(rowObj, columnObj)
             } else if (isMm(columnObj)) {
@@ -845,7 +832,8 @@ const {
 } = useMultiSelect(
   meta,
   fields,
-  cachedLocalRows,
+  cachedRows,
+  totalRows,
   editEnabled,
   isPkAvail,
   contextMenu,
@@ -875,7 +863,7 @@ const {
 
       if (isCellActive.value && !editEnabled.value && hasEditPermission.value && activeCell.row !== null && !isRichModalOpen) {
         e.preventDefault()
-        const row = cachedLocalRows.value[activeCell.row]
+        const row = cachedRows.value.get(activeCell.row)
         expandForm?.(row)
         return true
       }
@@ -982,7 +970,7 @@ const {
     }
   },
   async (ctx: { row: number; col?: number; updatedColumnTitle?: string }) => {
-    const rowObj = cachedLocalRows.value[ctx.row]
+    const rowObj = cachedRows.value.get(ctx.row)
     const columnObj = ctx.col !== undefined ? fields.value[ctx.col] : null
 
     if (!rowObj || !columnObj) {
@@ -994,9 +982,19 @@ const {
     }
 
     // See DateTimePicker.vue for details
-    cachedLocalRows.value[ctx.row].rowMeta.isUpdatedFromCopyNPaste = {
-      ...cachedLocalRows.value[ctx.row].rowMeta.isUpdatedFromCopyNPaste,
-      [(ctx.updatedColumnTitle || columnObj.title) as string]: true,
+    const row = cachedRows.value.get(ctx.row)
+    if (row) {
+      const updatedRow = {
+        ...row,
+        rowMeta: {
+          ...row.rowMeta,
+          isUpdatedFromCopyNPaste: {
+            ...(row.rowMeta.isUpdatedFromCopyNPaste || {}),
+            [(ctx.updatedColumnTitle || columnObj.title) as string]: true,
+          },
+        },
+      }
+      cachedRows.value.set(ctx.row, updatedRow)
     }
 
     // update/save cell value
@@ -1016,22 +1014,6 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   activeCell.row = null
   activeCell.col = null
   selectedRange.clear()
-}
-
-// Select all thw cells in a column
-const selectColumn = (colId: string) => {
-  // this is triggered with click event, so do nothing & clear resizingColumn flag if it's true
-  if (resizingColumn.value) {
-    resizingColumn.value = false
-    return
-  }
-
-  const colIndex = fields.value.findIndex((col) => col.id === colId)
-  if (colIndex !== -1) {
-    makeActive(0, colIndex)
-    selectedRange.startRange({ row: 0, col: colIndex })
-    selectedRange.endRange({ row: totalRows.value - 1, col: colIndex })
-  }
 }
 
 // Clear the selected range
@@ -1079,7 +1061,7 @@ const temporaryNewRowStore = ref<Row[]>([])
 const saveOrUpdateRecords = async (
   args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any; keepNewRecords?: boolean } = {},
 ) => {
-  for (const currentRow of args.data || Object.values(cachedLocalRows.value)) {
+  for (const currentRow of args.data || cachedRows.value.entries()) {
     if (currentRow.rowMeta.fromExpandedForm) continue
 
     /** if new record save row and save the LTAR cells */
@@ -1154,7 +1136,7 @@ const commentRow = (rowId: number) => {
     // set the expanded form comment mode
     isExpandedFormCommentMode.value = true
 
-    const row = cachedLocalRows.value[rowId]
+    const row = cachedRows.value.get(rowId)
     if (expandForm) {
       expandForm(row)
     }
@@ -1267,7 +1249,7 @@ function scrollToCell(row?: number | null, col?: number | null) {
 
 // handleCellClick - function to handle the cell click
 const handleCellClick = (event: MouseEvent, row: number, col: number) => {
-  const rowData = cachedLocalRows.value[row]
+  const rowData = cachedRows.value.get(row)
 
   // If isMobileMode is true, expand the form and loose focus
   if (isMobileMode.value) {
@@ -1417,7 +1399,7 @@ const showFillHandle = computed(
     !readOnly.value &&
     !editEnabled.value &&
     (!selectedRange.isEmpty() || (activeCell.row !== null && activeCell.col !== null)) &&
-    !cachedLocalRows.value[(isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1]?.rowMeta?.new &&
+    !cachedRows.value.get((isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row) ?? -1)?.rowMeta?.new &&
     activeCell.col !== null &&
     fields.value[activeCell.col] &&
     totalRows.value &&
@@ -1438,7 +1420,7 @@ watch(
 // smartTable - reactive ref to get the smart table element
 const smartTable = ref(null)
 
-const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 500)
+const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 200)
 
 // On scroll event listener
 // Update the scrollLeft and scrollTop values
@@ -1559,11 +1541,10 @@ const reloadViewDataHookHandler = async () => {
 
   await syncCount()
   clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-  visibleRows.value = []
 
   temporaryNewRowStore.value.forEach((row, index) => {
     row.rowMeta.rowIndex = totalRows.value + index
-    cachedLocalRows.value[totalRows.value + index] = row
+    cachedRows.value.set(totalRows.value + index, row)
   })
 
   totalRows.value = totalRows.value + temporaryNewRowStore.value.length
@@ -1572,7 +1553,7 @@ const reloadViewDataHookHandler = async () => {
 onMounted(async () => {
   const resizeObserver = new ResizeObserver(() => {
     refreshFillHandle()
-    if (activeCell.row !== null && !cachedLocalRows.value?.[activeCell.row]) {
+    if (activeCell.row !== null && !cachedRows.value.get(activeCell.row)) {
       clearSelectedRange()
       activeCell.row = null
       activeCell.col = null
@@ -1584,7 +1565,7 @@ onMounted(async () => {
 onBeforeUnmount(async () => {
   /** save/update records before unmounting the component */
   const viewMetaValue = view.value
-  const dataValue = Object.values(cachedLocalRows.value)
+  const dataValue = cachedRows.value.values()
   if (viewMetaValue) {
     getMeta(viewMetaValue.fk_model_id, false, true).then((res) => {
       const metaValue = res
@@ -1619,7 +1600,7 @@ watch(
             await saveOrUpdateRecords({
               viewMetaValue: old,
               metaValue: oldMeta as TableType,
-              data: Object.values(cachedLocalRows.value),
+              data: cachedRows.value.entries(),
             })
           }
         }
@@ -1754,7 +1735,6 @@ defineExpose({
                   @xcstartresizing="onXcStartResizing(fields[0].id, $event)"
                   @xcresize="onresize(fields[0].id, $event)"
                   @xcresizing="onXcResizing(fields[0].id, $event)"
-                  @click="selectColumn(fields[0].id!)"
                 >
                   <div
                     class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
@@ -1789,7 +1769,6 @@ defineExpose({
                   @xcstartresizing="onXcStartResizing(col.id, $event)"
                   @xcresize="onresize(col.id, $event)"
                   @xcresizing="onXcResizing(col.id, $event)"
-                  @click="selectColumn(col.id!)"
                 >
                   <div
                     class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
@@ -1964,7 +1943,7 @@ defineExpose({
                 <div
                   class="placeholder-column"
                   :style="{
-                    width: '63px',
+                    width: '64px',
                     left: '0px',
                   }"
                 ></div>
@@ -2215,26 +2194,6 @@ defineExpose({
                   }"
                 ></div>
               </div>
-              <tr
-                v-if="isAddingEmptyRowAllowed"
-                v-e="['c:row:add:grid-bottom']"
-                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
-                :class="{
-                  '!border-r-2 !border-r-gray-100': visibleColLength === 1,
-                }"
-                @mouseup.stop
-                @click="addEmptyRow()"
-              >
-                <div
-                  class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
-                  :style="{
-                    left: `-${leftOffset}px`,
-                  }"
-                >
-                  <component :is="iconMap.plus" class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black" />
-                </div>
-                <td class="!border-gray-100" :colspan="visibleColLength"></td>
-              </tr>
             </tbody>
           </table>
           <div

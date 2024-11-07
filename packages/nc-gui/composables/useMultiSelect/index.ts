@@ -2,15 +2,7 @@ import type { Ref } from 'vue'
 import { computed } from 'vue'
 import dayjs from 'dayjs'
 import type { MaybeRef } from '@vueuse/core'
-import type {
-  AttachmentType,
-  ColumnType,
-  LinkToAnotherRecordType,
-  PaginatedType,
-  TableType,
-  UserFieldRecordType,
-  ViewType,
-} from 'nocodb-sdk'
+import type { AttachmentType, ColumnType, LinkToAnotherRecordType, TableType, UserFieldRecordType, ViewType } from 'nocodb-sdk'
 import {
   UITypes,
   dateFormats,
@@ -33,7 +25,8 @@ const MAIN_MOUSE_PRESSED = 0
 export function useMultiSelect(
   _meta: MaybeRef<TableType | undefined>,
   fields: MaybeRef<ColumnType[]>,
-  data: MaybeRef<Record<number, Row>>,
+  data: MaybeRef<Map<number, Row>>,
+  _totalRows: MaybeRef<number>,
   _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
   contextMenu: Ref<boolean>,
@@ -282,7 +275,7 @@ export function useMultiSelect(
   async function copyValue(ctx?: Cell) {
     try {
       if (selectedRange.start !== null && selectedRange.end !== null && !selectedRange.isSingleCell()) {
-        const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
+        const cprows = Array.from(unref(data).values()).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
         const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
         await copyTable(cprows, cpcols)
@@ -294,7 +287,8 @@ export function useMultiSelect(
         const cpCol = ctx?.col ?? activeCell.col
 
         if (cpRow != null && cpCol != null) {
-          const rowObj = unref(data)[cpRow]
+          const rowObj = unref(data).get(cpRow)
+          if (!rowObj) return
           const columnObj = unref(fields)[cpCol]
 
           const textToCopy = valueToCopy(rowObj, columnObj)
@@ -387,7 +381,9 @@ export function useMultiSelect(
 
   function handleMouseOver(event: MouseEvent, row: number, col: number) {
     if (isFillMode.value) {
-      const rw = unref(data)[row]
+      const rw = unref(data).get(row)
+
+      if (!rw) return
 
       if (!selectedRange._start || !selectedRange._end) return
 
@@ -467,7 +463,9 @@ export function useMultiSelect(
       if (selectedRange._start !== null && selectedRange._end !== null) {
         const tempActiveCell = { row: selectedRange._start.row, col: selectedRange._start.col }
 
-        const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
+        const cprows = Array.from(unref(data))
+          .filter(([index]) => index >= selectedRange.start.row && index <= selectedRange.end.row)
+          .map(([, row]) => row)
         const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
         const rawMatrix = serializeRange(cprows, cpcols).json
@@ -488,7 +486,11 @@ export function useMultiSelect(
             continue
           }
 
-          const rowObj = unref(data)[row]
+          const rowObj = unref(data).get(row)
+
+          if (!rowObj) {
+            continue
+          }
 
           let pasteIndex = 0
 
@@ -590,7 +592,7 @@ export function useMultiSelect(
           if (activeCell.col < unref(columnLength.value) - 1) {
             activeCell.col++
             editEnabled.value = false
-          } else if (activeCell.row < unref(data).length - 1) {
+          } else if (activeCell.row < unref(_totalRows) - 1) {
             activeCell.row++
             activeCell.col = 0
             editEnabled.value = false
@@ -603,7 +605,7 @@ export function useMultiSelect(
         e.preventDefault()
         selectedRange.clear()
 
-        makeEditable(unref(data)[activeCell.row], unref(fields)[activeCell.col])
+        makeEditable(unref(data).get(activeCell.row), unref(fields)[activeCell.col])
         break
       /** on delete key press clear cell */
       case 'Delete':
@@ -718,11 +720,11 @@ export function useMultiSelect(
           if (cmdOrCtrl) {
             editEnabled.value = false
             selectedRange.endRange({
-              row: unref(data).length - 1,
+              row: unref(_totalRows) - 1,
               col: selectedRange._end?.col ?? activeCell.col,
             })
             scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
-          } else if ((selectedRange._end?.row ?? activeCell.row) < unref(data).length - 1) {
+          } else if ((selectedRange._end?.row ?? activeCell.row) < unref(_totalRows) - 1) {
             editEnabled.value = false
             selectedRange.endRange({
               row: (selectedRange._end?.row ?? activeCell.row) + 1,
@@ -733,7 +735,7 @@ export function useMultiSelect(
         } else {
           selectedRange.clear()
 
-          if (activeCell.row < unref(data).length - 1) {
+          if (activeCell.row < unref(_totalRows) - 1) {
             activeCell.row++
             selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
             scrollToCell?.()
@@ -743,7 +745,8 @@ export function useMultiSelect(
         break
       default:
         {
-          const rowObj = unref(data)[activeCell.row]
+          const rowObj = unref(data).get(activeCell.row)
+          if (!rowObj) return
           const columnObj = unref(fields)[activeCell.col]
 
           if (
@@ -759,7 +762,7 @@ export function useMultiSelect(
               // select all - ctrl/cmd +a
               case 65:
                 selectedRange.startRange({ row: 0, col: 0 })
-                selectedRange.endRange({ row: unref(data).length - 1, col: unref(columnLength.value) - 1 })
+                selectedRange.endRange({ row: unref(_totalRows) - 1, col: unref(columnLength.value) - 1 })
                 break
             }
           }
@@ -846,7 +849,10 @@ export function useMultiSelect(
         const pasteMatrixCols = clipboardMatrix[0].length
 
         const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
-        const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + selectionRowCount)
+        const rowsToPaste = Array.from(unref(data))
+          .filter(([index]) => index >= activeCell.row && index < activeCell.row + selectionRowCount)
+          .map(([, row]) => row)
+
         const propsToPaste: string[] = []
 
         let pastedRows = 0
@@ -900,7 +906,8 @@ export function useMultiSelect(
         }
       } else {
         if (selectedRange.isSingleCell()) {
-          const rowObj = unref(data)[activeCell.row]
+          const rowObj = unref(data).get(activeCell.row)
+          if (!rowObj) return
           const columnObj = unref(fields)[activeCell.col]
 
           // handle belongs to column, skip custom links
@@ -1003,7 +1010,8 @@ export function useMultiSelect(
                     result: { link: any[]; unlink: any[] },
                   ) => {
                     const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                    const rowObj = unref(data)[activeCell.row]
+                    const rowObj = unref(data).get(activeCell.row)
+                    if (!rowObj) return
                     const columnObj = unref(fields)[activeCell.col]
                     if (
                       pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
@@ -1046,7 +1054,8 @@ export function useMultiSelect(
                     result: { link: any[]; unlink: any[] },
                   ) => {
                     const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                    const rowObj = unref(data)[activeCell.row]
+                    const rowObj = unref(data).get(activeCell.row)
+                    if (!rowObj) return
                     const columnObj = unref(fields)[activeCell.col]
 
                     if (
@@ -1119,7 +1128,9 @@ export function useMultiSelect(
           const endCol = Math.max(start.col, end.col)
 
           const cols = unref(fields).slice(startCol, endCol + 1)
-          const rows = unref(data).slice(startRow, endRow + 1)
+          const rows = Array.from(unref(data))
+            .filter(([index]) => index >= startRow && index <= endRow)
+            .map(([, row]) => row)
           const props = []
 
           let pasteValue

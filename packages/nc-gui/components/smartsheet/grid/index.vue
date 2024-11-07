@@ -33,7 +33,7 @@ const reloadVisibleDataHook = createEventHook()
 
 provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
 
-const tableRef = ref<typeof Table>()
+const tableRef = ref<typeof InfiniteTable>()
 
 useProvideViewAggregate(view, meta, xWhere)
 
@@ -44,7 +44,7 @@ const {
   addEmptyRow: _addEmptyRow,
   deleteRow,
   deleteSelectedRows,
-  cachedLocalRows,
+  cachedRows,
   clearCache,
   removeRowIfNew,
   navigateToSiblingRow,
@@ -206,23 +206,23 @@ const baseColor = computed(() => {
   }
 })
 
-/* const updateRowCommentCount = (count: number) => {
+const updateRowCommentCount = (count: number) => {
   if (!routeQuery.value.rowId) return
 
-  const aggCommentCountIndex = aggCommentCount.value.findIndex((row) => row.row_id === routeQuery.value.rowId)
-
-  const currentRowIndex = data.value.findIndex(
+  const currentRowIndex = cachedRows.value.findIndex(
     (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
   )
 
-  if (aggCommentCountIndex === -1 || currentRowIndex === -1) return
+  if (currentRowIndex === -1) return
 
-  if (Number(aggCommentCount.value[aggCommentCountIndex].count) === count) return
+  const currentRow = cachedRows.value[currentRowIndex]
 
-  aggCommentCount.value[aggCommentCountIndex].count = count
+  if (currentRow.rowMeta.commentCount === count) return
 
-  data.value[currentRowIndex].rowMeta.commentCount = count
-} */
+  currentRow.rowMeta.commentCount = count
+
+  syncVisibleData?.()
+}
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
@@ -248,7 +248,7 @@ onMounted(() => {
       :delete-range-of-rows="deleteRangeOfRows"
       :bulk-update-rows="bulkUpdateRows"
       :clear-cache="clearCache"
-      :data="cachedLocalRows"
+      :data="cachedRows"
       :total-rows="totalRows"
       :sync-count="syncCount"
       :chunk-states="chunkStates"

@@ -87,7 +87,7 @@ const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
   selected: true,
 }
 
-const { extension, tables, fullscreen, getViewsForTable, getTableMeta } = useExtensionHelperOrThrow()
+const { extension, tables, fullscreen, getViewsForTable, getTableMeta, reloadData } = useExtensionHelperOrThrow()
 
 const { jobList, loadJobsForBase } = useJobs()
 
@@ -419,6 +419,35 @@ async function validateAll() {
   await v$.value?.$validate()
 }
 
+async function bulkUpdateView(data: Record<string, any>) {
+  if (!meta.value || !bulkUpdatePayload.value?.viewId) return
+
+  try {
+    await $api.dbTableRow.bulkUpdateAll(NOCO, meta.value.base_id as string, meta.value.id as string, data, {
+      viewId: bulkUpdatePayload.value?.viewId,
+    })
+  } catch (e) {
+    console.error(e)
+  } finally {
+    reloadData()
+  }
+}
+
+async function handleBulkUpdate() {
+  const data = (bulkUpdatePayload.value?.config || []).reduce((acc, config) => {
+    if (config.columnId && meta.value?.columnsById?.[config.columnId]) {
+      const column = meta.value.columnsById[config.columnId]
+
+      if (!column.title) return acc
+
+      acc[column.title] = config.opType === BulkUpdateFieldActionOpTypes.SET_VALUE ? config.value : null
+    }
+    return acc
+  }, {} as Record<string, any>)
+
+  bulkUpdateView(data)
+}
+
 onClickOutside(formRef, (e) => {
   if (!fullscreen.value || (e.target as HTMLElement)?.closest(`.nc-bulk-update-add-action-section`)) return
 
@@ -519,7 +548,9 @@ provide(IsGalleryInj, ref(false))
           ></NcSelect>
         </a-form-item>
       </div>
-      <NcButton size="small" :disabled="v$.$error">Update Records</NcButton>
+      <NcButton size="small" :disabled="v$.$error || !bulkUpdatePayload?.config?.length" @click="handleBulkUpdate"
+        >Update Records</NcButton
+      >
     </template>
 
     <div

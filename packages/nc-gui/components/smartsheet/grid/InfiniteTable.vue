@@ -1021,8 +1021,10 @@ function scrollToCell(row?: number | null, col?: number | null, behaviour: Scrol
   row = row ?? activeCell.row
   col = col ?? activeCell.col
 
-  const isRapidMovement = Date.now() - lastScrollTime.value < 100
-  behaviour = isRapidMovement ? 'auto' : behaviour
+  const timeSub = Date.now() - lastScrollTime.value
+  console.log(timeSub)
+  const isRapidMovement = timeSub < 100
+  behaviour = isRapidMovement ? 'instant' : behaviour
   lastScrollTime.value = Date.now()
 
   if (row !== null && col !== null && gridWrapper.value) {

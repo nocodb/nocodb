@@ -498,8 +498,7 @@ const isAddingEmptyRowAllowed = computed(() => hasEditPermission.value && !isSql
 const visibleColLength = computed(() => fields.value?.length)
 
 const dummyColumnDataForLoading = computed(() => {
-  let length = fields.value?.length ?? 40
-  length = length || 40
+  const length = 10
   return Array.from({ length: length + 1 }).map(() => ({}))
 })
 
@@ -1576,9 +1575,9 @@ watch(
               desktop: !isMobileMode,
             }"
             :style="{
-              transform: `translateX(${leftOffset}px) translateY(${startRowHeight}})`,
+              transform: `translateX(${leftOffset}px)`,
             }"
-            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
+            class="xc-row-table nc-grid transform backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
           >
             <thead ref="tableHeadEl">
               <tr v-show="isViewColumnsLoading">
@@ -1608,14 +1607,7 @@ watch(
                   class="w-[64px] min-w-[64px]"
                   data-testid="grid-id-column"
                 >
-                  <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
-                    <template v-if="!readOnly">
-                      <div class="nc-no-label text-gray-500">#</div>
-                    </template>
-                    <template v-else>
-                      <div class="text-gray-500">#</div>
-                    </template>
-                  </div>
+                  <div class="w-full h-full text-gray-500 flex pl-2 pr-1 items-center">#</div>
                 </th>
                 <th
                   v-if="fields[0] && fields[0].id"
@@ -1632,7 +1624,7 @@ watch(
                         }
                       : {}),
                   }"
-                  class="nc-grid-column-header column-header column"
+                  class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                   }"
@@ -1665,8 +1657,9 @@ watch(
                     'min-width': gridViewCols[col.id]?.width || '180px',
                     'max-width': gridViewCols[col.id]?.width || '180px',
                     'width': gridViewCols[col.id]?.width || '180px',
+                    'transform': `translateX(${leftOffset}px)`,
                   }"
-                  class="nc-grid-column-header column-header column"
+                  class="nc-grid-column-header"
                   :class="{
                     '!border-r-blue-400 !border-r-3': toBeDroppedColId === col.id,
                   }"
@@ -1980,6 +1973,11 @@ watch(
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
                           'max-width': gridViewCols[fields[0].id]?.width || '180px',
                           'width': gridViewCols[fields[0].id]?.width || '180px',
+                          ...(leftOffset > 0
+                            ? {
+                                left: `-${leftOffset - 64}px`,
+                              }
+                            : {}),
                         }"
                         :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
                         :data-key="`data-key-${row.rowMeta.rowIndex}-${fields[0].id}`"

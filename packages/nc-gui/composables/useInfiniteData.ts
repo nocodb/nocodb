@@ -773,6 +773,7 @@ export function useInfiniteData(args: {
 
       await syncCount()
       callbacks?.syncVisibleData?.()
+      applySorting()
 
       return bulkInsertedIds
     } catch (error: any) {
@@ -1019,6 +1020,7 @@ export function useInfiniteData(args: {
     })
 
     await reloadAggregate?.trigger()
+    applySorting()
     callbacks?.syncVisibleData?.()
   }
 

@@ -1276,6 +1276,10 @@ const calculateSlices = () => {
     end: renderEndFound ? Math.min(fields.value.length, renderEnd + COL_VIRTUAL_MARGIN) : fields.value.length,
   }
 
+  if (gridWrapper.value.clientWidth === 0) {
+    setTimeout(calculateSlices, 50)
+  }
+
   const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
   const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
   const endIndex = Math.min(startIndex + visibleCount, totalRows.value)

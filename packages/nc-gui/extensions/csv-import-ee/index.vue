@@ -525,7 +525,7 @@ const isSomeFieldsSelected = computed(() => {
 })
 
 const onClickSelectAllFields = (value: boolean) => {
-  value = value ? (isSomeFieldsSelected.value ? false : true) : value
+  value = value ? !isSomeFieldsSelected.value : value
 
   for (const importMeta of importPayload.value.importColumns) {
     if (!importMeta.mapIndex) continue

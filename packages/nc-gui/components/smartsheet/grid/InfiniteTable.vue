@@ -139,6 +139,8 @@ const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta
 
 const resizingColumn = ref(false)
 
+const scrollToCell = useThrottleFn(_scrollToCell, 500)
+
 const columnWidthLimit = {
   [UITypes.Attachment]: {
     minWidth: 80,
@@ -1017,15 +1019,15 @@ const scrollTop = ref(0)
 
 const lastScrollTime = ref(Date.now())
 
-function scrollToCell(row?: number | null, col?: number | null, behaviour: ScrollBehavior = 'smooth') {
+function _scrollToCell(row?: number | null, col?: number | null, behaviour: ScrollBehavior = 'smooth') {
   row = row ?? activeCell.row
   col = col ?? activeCell.col
 
-  const timeSub = Date.now() - lastScrollTime.value
+  /*  const timeSub = Date.now() - lastScrollTime.value
   console.log(timeSub)
   const isRapidMovement = timeSub < 100
   behaviour = isRapidMovement ? 'auto' : behaviour
-  lastScrollTime.value = Date.now()
+  lastScrollTime.value = Date.now() */
 
   if (row !== null && col !== null && gridWrapper.value) {
     // calculate cell position

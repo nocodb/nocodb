@@ -33,19 +33,6 @@ const hiddenColTypes = [
   UITypes.LastModifiedBy,
 ]
 
-const { $api, $poller } = useNuxtApp()
-
-const { appInfo } = useGlobal()
-
-const router = useRouter()
-const route = router.currentRoute
-
-const activeTableId = computed(() => route.value.params.viewId as string | undefined)
-
-const activeViewTitleOrId = computed(() => {
-  return route.value.params.viewTitle
-})
-
 interface BulkUpdatePayloadType {
   selectedTableId?: string
   selectedViewId?: string
@@ -72,6 +59,19 @@ enum BulkUpdateFieldActionOpTypes {
   SET_VALUE = 'SET_VALUE',
 }
 
+const { $api, $poller } = useNuxtApp()
+
+const { appInfo } = useGlobal()
+
+const router = useRouter()
+const route = router.currentRoute
+
+const activeTableId = computed(() => route.value.params.viewId as string | undefined)
+
+const activeViewTitleOrId = computed(() => {
+  return route.value.params.viewTitle
+})
+
 const bulkUpdatePayloadPlaceholder: BulkUpdatePayloadType = {
   selectedTableId: '',
   selectedViewId: '',
@@ -87,7 +87,7 @@ const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
   selected: true,
 }
 
-const { extension, tables, fullscreen, getViewsForTable, getTableMeta, reloadData } = useExtensionHelperOrThrow()
+const { extension, tables, fullscreen, eventBus, getViewsForTable, getTableMeta, reloadData } = useExtensionHelperOrThrow()
 
 const { jobList, loadJobsForBase } = useJobs()
 
@@ -102,6 +102,8 @@ const { width } = useElementSize(bulkUpdateRef)
 const meta = ref<TableType>()
 
 const formRef = ref()
+
+const fieldConfigRef = ref()
 
 const systemFieldsIds = computed(() => getSystemColumnsIds(meta.value?.columns || []))
 
@@ -268,7 +270,12 @@ async function onTableSelect(tableId?: string) {
 
 const onViewSelect = async (viewId: string) => {
   savedPayloads.value.selectedViewId = viewId
+
   await saveChanges()
+
+  if (bulkUpdatePayload.value?.config?.length) {
+    fieldConfigExpansionPanel.value = [bulkUpdatePayload.value?.config[0].columnId]
+  }
 }
 
 const isExporting = ref(false)
@@ -284,6 +291,9 @@ async function saveChanges() {
 const fieldConfigExpansionPanel = ref<string[]>([])
 
 const handleUpdateFieldConfigExpansionPanel = (key: string) => {
+  if (!fullscreen.value) {
+    fullscreen.value = true
+  }
   if (fieldConfigExpansionPanel.value.includes(key)) {
     fieldConfigExpansionPanel.value = []
   } else {
@@ -318,6 +328,14 @@ function addNewAction() {
 
   handleUpdateFieldConfigExpansionPanel(configId)
   validateAll()
+
+  nextTick(() => {
+    setTimeout(() => {
+      if (fieldConfigRef.value) {
+        fieldConfigRef.value.scrollTop = fieldConfigRef.value.scrollHeight
+      }
+    }, 200)
+  })
 }
 
 async function handleRemoveFieldConfig(configId: string) {
@@ -461,16 +479,20 @@ watch(
       if (!bulkUpdatePayload.value?.config?.length) {
         addNewAction()
       }
-    }
-
-    if (isViewChanged && bulkUpdatePayload.value?.config?.length) {
-      fieldConfigExpansionPanel.value = [bulkUpdatePayload.value.config[0]?.id]
+    } else {
+      fieldConfigExpansionPanel.value = []
     }
   },
   {
     immediate: true,
   },
 )
+
+eventBus.on((event) => {
+  if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
+    updateColumns()
+  }
+})
 
 onMounted(async () => {
   await loadJobsForBase()
@@ -557,317 +579,343 @@ provide(IsGalleryInj, ref(false))
       ref="bulkUpdateRef"
       class="bulk-update-ee h-full flex flex-col"
       :class="{
-        'py-6 px-4  gap-6 bg-nc-bg-gray-extralight': fullscreen,
+        'gap-6 bg-nc-bg-gray-extralight': fullscreen,
       }"
     >
-      <template v-if="!fullscreen">
-        <div class="p-3 flex">
-          <div
-            class="nc-bulk-update-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-[474px]"
-          >
-            <a-form-item class="!my-0 min-w-1/2">
-              <NcSelect
-                v-model:value="savedPayloads.selectedTableId"
-                placeholder="-select table-"
-                :disabled="isExporting"
-                class="nc-bulk-update-table-select nc-select-shadow"
-                :filter-option="filterOption"
-                dropdown-class-name="w-[250px]"
-                show-search
-                size="large"
-                @change="onTableSelect"
-              >
-                <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
-                  <div class="w-full flex items-center gap-2">
-                    <div class="min-w-5 flex items-center justify-center">
-                      <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
-                    </div>
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ table.label }}</template>
-                      <span>{{ table.label }}</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="savedPayloads.selectedTableId === table.value"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
-            </a-form-item>
-
-            <a-form-item class="!my-0 min-w-1/2">
-              <NcSelect
-                v-model:value="savedPayloads.selectedViewId"
-                placeholder="-select view-"
-                :disabled="isExporting"
-                class="nc-bulk-update-view-select nc-select-shadow"
-                dropdown-class-name="w-[250px]"
-                :filter-option="filterOption"
-                show-search
-                size="large"
-                placement="bottomRight"
-                @change="onViewSelect"
-              >
-                <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
-                  <div class="w-full flex items-center gap-2">
-                    <div class="min-w-5 flex items-center justify-center">
-                      <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
-                    </div>
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ view.label }}</template>
-                      <span>{{ view.label }}</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="savedPayloads.selectedViewId === view.value"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div> </a-select-option
-              ></NcSelect>
-            </a-form-item>
-          </div>
-        </div>
-        <div class="bulk-update-body flex-1 flex flex-col">
-          <div class="bulk-update-header">Actions</div>
-          <div
-            v-if="bulkUpdatePayload && bulkUpdatePayload.config?.length"
-            class="flex-1 flex flex-col nc-scrollbar-thin max-h-[calc(100%_-_25px)]"
-          ></div>
-          <div v-else class="px-3 py-4 min-h-[120px] flex-1 flex flex-col gap-3 items-center justify-center text-gray-600">
-            <div>No fields set</div>
-            <NcButton size="small" @click="addNewAction">
-              <template #icon>
-                <GeneralIcon icon="ncPlus" />
-              </template>
-              Add fields to update
-            </NcButton>
-          </div>
-        </div>
-      </template>
-      <div v-else class="flex-1 flex flex-col gap-6 w-full max-w-[520px] mx-auto">
-        <div class="flex items-center gap-3">
-          <NcBadge color="brand" :border="false">23 records</NcBadge>
-          <div class="text-nc-content-gray-subtle2">{{ bulkUpdatePayload?.config?.length || 0 }} fields set for bulk update</div>
-        </div>
-
-        <a-form
-          ref="formRef"
-          no-style
-          name="column-create-or-edit"
-          layout="vertical"
-          class="border-1 border-nc-border-gray-medium rounded-2xl bg-white"
+      <div v-if="!fullscreen" class="p-3 flex">
+        <div
+          class="nc-bulk-update-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-[474px]"
         >
-          <a-collapse
-            v-if="bulkUpdatePayload?.config?.length"
-            v-model:active-key="fieldConfigExpansionPanel"
-            class="nc-bulk-update-field-config-section flex flex-col"
-          >
-            <template #expandIcon> </template>
-            <a-collapse-panel v-for="fieldConfig in bulkUpdatePayload?.config" :key="fieldConfig.id" collapsible="disabled">
-              <template #header>
-                <div
-                  v-if="!fieldConfigExpansionPanel.includes(fieldConfig.id)"
-                  class="w-full flex items-center p-6"
-                  @click="handleUpdateFieldConfigExpansionPanel(fieldConfig.id)"
-                >
-                  <div v-if="v$?.[fieldConfig.id]?.$error" class="flex-1 flex">
-                    <div
-                      class="text-nc-content-red-dark rounded-md px-1 inline-flex items-center gap-1 text-sm bg-nc-bg-red-light"
-                    >
-                      <GeneralIcon icon="ncAlertTriangle" />
-                      Incomplete configuration
-                    </div>
+          <a-form-item class="!my-0 min-w-1/2">
+            <NcSelect
+              v-model:value="savedPayloads.selectedTableId"
+              placeholder="-select table-"
+              :disabled="isExporting"
+              class="nc-bulk-update-table-select nc-select-shadow"
+              :filter-option="filterOption"
+              dropdown-class-name="w-[250px]"
+              show-search
+              size="large"
+              @change="onTableSelect"
+            >
+              <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
+                <div class="w-full flex items-center gap-2">
+                  <div class="min-w-5 flex items-center justify-center">
+                    <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
                   </div>
+                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                    <template #title>{{ table.label }}</template>
+                    <span>{{ table.label }}</span>
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.check"
+                    v-if="savedPayloads.selectedTableId === table.value"
+                    id="nc-selected-item-icon"
+                    class="flex-none text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </NcSelect>
+          </a-form-item>
 
-                  <div v-else class="flex-1 flex text-nc-content-gray">
-                    <div class="flex items-center gap-3">
-                      <NcCheckbox v-model:checked="fieldConfig.selected" @click.stop />
-                      <div class="flex items-center gap-1">
-                        {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
-                        <NcBadge color="grey" :border="false" class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium">
-                          <component
-                            :is="getUIDTIcon(UITypes[meta?.columnsById?.[fieldConfig.columnId]?.uidt])"
-                            class="h-3.5 w-3.5"
-                          />
-
-                          <NcTooltip class="truncate max-w-[100px]" show-on-truncate-only>
-                            <template #title>
-                              {{ meta?.columnsById?.[fieldConfig.columnId]?.title }}
-                            </template>
-                            {{ meta?.columnsById?.[fieldConfig.columnId]?.title }}
-                          </NcTooltip>
-                        </NcBadge>
-                        {{
-                          fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE
-                            ? ''
-                            : fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE
-                            ? 'to'
-                            : ''
-                        }}
-                      </div>
-                    </div>
+          <a-form-item class="!my-0 min-w-1/2">
+            <NcSelect
+              v-model:value="savedPayloads.selectedViewId"
+              placeholder="-select view-"
+              :disabled="isExporting"
+              class="nc-bulk-update-view-select nc-select-shadow"
+              dropdown-class-name="w-[250px]"
+              :filter-option="filterOption"
+              show-search
+              size="large"
+              placement="bottomRight"
+              @change="onViewSelect"
+            >
+              <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
+                <div class="w-full flex items-center gap-2">
+                  <div class="min-w-5 flex items-center justify-center">
+                    <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
                   </div>
-                  <NcButton
-                    size="xs"
-                    type="text"
-                    icon-only
-                    class="!px-0 -my-1"
-                    @click.stop="handleRemoveFieldConfig(fieldConfig.id)"
-                  >
-                    <template #icon>
-                      <GeneralIcon icon="delete" />
-                    </template>
-                  </NcButton>
-                </div>
-              </template>
-              <div class="w-full flex flex-col gap-6 p-6">
-                <a-form-item
-                  class="!my-0 w-full nc-input-required-error"
-                  v-bind="{
-                    validateStatus: v$?.[fieldConfig.id]?.columnId?.$error ? 'error' : 'success',
-                    help: v$?.[fieldConfig.id]?.columnId?.$errors?.map((er) => er.$message) || [],
-                  }"
-                >
-                  <template #label>
-                    <span>Select field</span>
-                  </template>
-                  <NcSelect
-                    :value="fieldConfig.columnId || undefined"
-                    class="nc-field-select-input w-full nc-select-shadow"
-                    placeholder="-select a field-"
-                    @update:value="
-                      (value) => {
-                        fieldConfig.columnId = value
-                        fieldConfig.value = null
-                      }
-                    "
-                    @change="saveChanges()"
-                  >
-                    <a-select-option v-for="(col, i) of bulkUpdateColumns" :key="i" :value="col.id">
-                      <div class="flex items-center gap-2 w-full">
-                        <component :is="getUIDTIcon(UITypes[col.uidt])" class="h-3.5 w-3.5" />
-
-                        <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                          <template #title>
-                            {{ col.title }}
-                          </template>
-                          {{ col.title }}
-                        </NcTooltip>
-                        <component
-                          :is="iconMap.check"
-                          v-if="fieldConfig.columnId === col.id"
-                          id="nc-selected-item-icon"
-                          class="flex-none text-primary w-4 h-4"
-                        />
-                      </div>
-                    </a-select-option>
-                  </NcSelect>
-                </a-form-item>
-                <a-form-item
-                  class="!my-0 w-full nc-input-required-error"
-                  v-bind="{
-                    validateStatus: v$?.[fieldConfig.id]?.opType?.$error ? 'error' : 'success',
-                    help: v$?.[fieldConfig.id]?.opType?.$errors?.map((er) => er.$message) || [],
-                  }"
-                >
-                  <template #label>
-                    <span>Update type</span>
-                  </template>
-                  <NcSelect
-                    :value="fieldConfig.opType || undefined"
-                    :disabled="!fieldConfig.columnId"
-                    class="nc-field-update-type-select-input w-full nc-select-shadow"
-                    placeholder="-select an update type-"
-                    @update:value="
-                      (value) => {
-                        fieldConfig.opType = value
-                        fieldConfig.value = null
-                      }
-                    "
-                    @change="saveChanges()"
-                  >
-                    <a-select-option v-for="(action, i) of fieldActionOptions" :key="i" :value="action.value">
-                      <div class="flex items-center gap-2 w-full">
-                        <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                          <template #title>
-                            {{ action.label }}
-                          </template>
-                          {{ action.label }}
-                        </NcTooltip>
-                        <component
-                          :is="iconMap.check"
-                          v-if="fieldConfig.opType === action.value"
-                          id="nc-selected-item-icon"
-                          class="flex-none text-primary w-4 h-4"
-                        />
-                      </div>
-                    </a-select-option>
-                  </NcSelect>
-                </a-form-item>
-
-                <a-form-item
-                  v-if="
-                    fieldConfig.columnId &&
-                    !!meta?.columnsById?.[fieldConfig.columnId] &&
-                    fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE
-                  "
-                  class="!my-0 w-full nc-input-required-error"
-                  v-bind="{
-                    validateStatus: v$?.[fieldConfig.id]?.value?.$error ? 'error' : 'success',
-                    help: v$?.[fieldConfig.id]?.value?.$errors?.map((er) => er.$message) || [],
-                  }"
-                >
-                  <template #label>
-                    <span> Set cell value to</span>
-                  </template>
-
-                  <LazySmartsheetDivDataCell
-                    class="relative min-h-8"
-                    :key="meta?.columnsById?.[fieldConfig.columnId]?.uidt"
-                    :data-label="meta?.columnsById?.[fieldConfig.columnId]?.uidt"
-                    :data-ver="isVirtualCol(meta?.columnsById?.[fieldConfig.columnId])"
-                    @click.stop
-                  >
-                    <LazySmartsheetVirtualCell
-                      v-if="isVirtualCol(meta?.columnsById?.[fieldConfig.columnId])"
-                      v-model="fieldConfig.value"
-                      class="nc-input"
-                      :column="meta.columnsById[fieldConfig.columnId]"
-                    />
-                    <LazySmartsheetCell
-                      v-else
-                      v-model="fieldConfig.value"
-                      class="nc-input truncate"
-                      :column="meta.columnsById[fieldConfig.columnId]"
-                      :edit-enabled="true"
-                    />
-                  </LazySmartsheetDivDataCell>
-                </a-form-item>
-
-                <div>
-                  <NcButton type="text" size="xs" @click="handleRemoveFieldConfig(fieldConfig.id)">
-                    <template #icon>
-                      <GeneralIcon icon="delete" />
-                    </template>
-                    Remove update
-                  </NcButton>
-                </div>
+                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                    <template #title>{{ view.label }}</template>
+                    <span>{{ view.label }}</span>
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.check"
+                    v-if="savedPayloads.selectedViewId === view.value"
+                    id="nc-selected-item-icon"
+                    class="flex-none text-primary w-4 h-4"
+                  />
+                </div> </a-select-option
+            ></NcSelect>
+          </a-form-item>
+        </div>
+      </div>
+      <div class="bulk-update-body flex-1 flex flex-col">
+        <div v-if="!fullscreen" class="bulk-update-header">Actions</div>
+        <div
+          ref="fieldConfigRef"
+          class="flex-1 flex flex-col nc-scrollbar-thin"
+          :class="{
+            'pt-6 px-4 relative': fullscreen,
+            'max-h-[calc(100%_-_25px)]': !fullscreen,
+          }"
+        >
+          <div class="flex-1 flex flex-col gap-6 w-full max-w-[520px] mx-auto">
+            <div v-if="fullscreen" class="flex items-center gap-3">
+              <NcBadge color="brand" :border="false">23 records</NcBadge>
+              <div class="text-nc-content-gray-subtle2">
+                {{ bulkUpdatePayload?.config?.length || 0 }} fields set for bulk update
               </div>
-            </a-collapse-panel>
-          </a-collapse>
-          <div v-else class="p-6 text-center text-gray-600">No fields set</div>
-        </a-form>
+            </div>
 
-        <div class="nc-bulk-update-add-action-section">
-          <NcButton type="secondary" size="medium" class="w-full" @click="addNewAction">
-            <template #icon>
-              <GeneralIcon icon="ncPlus" />
-            </template>
-            New action
-          </NcButton>
+            <a-form
+              ref="formRef"
+              no-style
+              name="column-create-or-edit"
+              layout="vertical"
+              class=""
+              :class="{
+                'border-1 border-nc-border-gray-medium rounded-2xl bg-white': fullscreen,
+                'flex-1 flex': !fullscreen,
+              }"
+            >
+              <a-collapse
+                v-if="bulkUpdatePayload?.config?.length"
+                v-model:active-key="fieldConfigExpansionPanel"
+                class="nc-bulk-update-field-config-section flex flex-col w-full"
+              >
+                <template #expandIcon> </template>
+                <a-collapse-panel v-for="fieldConfig in bulkUpdatePayload?.config" :key="fieldConfig.id" collapsible="disabled">
+                  <template #header>
+                    <div
+                      v-if="!fieldConfigExpansionPanel.includes(fieldConfig.id)"
+                      class="w-full flex items-center"
+                      :class="{
+                        'p-6': fullscreen,
+                        'p-4': !fullscreen,
+                      }"
+                      @click="handleUpdateFieldConfigExpansionPanel(fieldConfig.id)"
+                    >
+                      <div v-if="v$?.[fieldConfig.id]?.$error" class="flex-1 flex">
+                        <div
+                          class="text-nc-content-red-dark rounded-md px-1 inline-flex items-center gap-1 text-sm bg-nc-bg-red-light"
+                        >
+                          <GeneralIcon icon="ncAlertTriangle" />
+                          Incomplete configuration
+                        </div>
+                      </div>
+
+                      <div v-else class="flex-1 flex text-nc-content-gray">
+                        <div class="flex items-center gap-3">
+                          <NcCheckbox v-model:checked="fieldConfig.selected" @click.stop />
+                          <div class="flex items-center gap-1">
+                            {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
+                            <NcBadge color="grey" :border="false" class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium">
+                              <component
+                                :is="getUIDTIcon(UITypes[meta?.columnsById?.[fieldConfig.columnId]?.uidt])"
+                                class="h-3.5 w-3.5"
+                              />
+
+                              <NcTooltip class="truncate max-w-[100px]" show-on-truncate-only>
+                                <template #title>
+                                  {{ meta?.columnsById?.[fieldConfig.columnId]?.title }}
+                                </template>
+                                {{ meta?.columnsById?.[fieldConfig.columnId]?.title }}
+                              </NcTooltip>
+                            </NcBadge>
+                            {{
+                              fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE
+                                ? ''
+                                : fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE
+                                ? 'to'
+                                : ''
+                            }}
+                            <LazySmartsheetPlainCell
+                              v-if="fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE && !!fieldConfig.value"
+                              v-model="fieldConfig.value"
+                              :column="meta?.columnsById?.[fieldConfig.columnId]"
+                              class="field-config-plain-cell-value"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <NcButton
+                        size="xs"
+                        type="text"
+                        icon-only
+                        class="!px-0 -my-1"
+                        @click.stop="handleRemoveFieldConfig(fieldConfig.id)"
+                      >
+                        <template #icon>
+                          <GeneralIcon icon="delete" />
+                        </template>
+                      </NcButton>
+                    </div>
+                  </template>
+                  <div class="w-full flex flex-col gap-6 p-6">
+                    <a-form-item
+                      class="!my-0 w-full nc-input-required-error"
+                      v-bind="{
+                        validateStatus: v$?.[fieldConfig.id]?.columnId?.$error ? 'error' : 'success',
+                        help: v$?.[fieldConfig.id]?.columnId?.$errors?.map((er) => er.$message) || [],
+                      }"
+                    >
+                      <template #label>
+                        <span>Select field</span>
+                      </template>
+                      <NcSelect
+                        :value="fieldConfig.columnId || undefined"
+                        class="nc-field-select-input w-full nc-select-shadow"
+                        placeholder="-select a field-"
+                        @update:value="
+                          (value) => {
+                            fieldConfig.columnId = value
+                            fieldConfig.value = null
+                          }
+                        "
+                        @change="saveChanges()"
+                      >
+                        <a-select-option v-for="(col, i) of bulkUpdateColumns" :key="i" :value="col.id">
+                          <div class="flex items-center gap-2 w-full">
+                            <component :is="getUIDTIcon(UITypes[col.uidt])" class="h-3.5 w-3.5" />
+
+                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                              <template #title>
+                                {{ col.title }}
+                              </template>
+                              {{ col.title }}
+                            </NcTooltip>
+                            <component
+                              :is="iconMap.check"
+                              v-if="fieldConfig.columnId === col.id"
+                              id="nc-selected-item-icon"
+                              class="flex-none text-primary w-4 h-4"
+                            />
+                          </div>
+                        </a-select-option>
+                      </NcSelect>
+                    </a-form-item>
+                    <a-form-item
+                      class="!my-0 w-full nc-input-required-error"
+                      v-bind="{
+                        validateStatus: v$?.[fieldConfig.id]?.opType?.$error ? 'error' : 'success',
+                        help: v$?.[fieldConfig.id]?.opType?.$errors?.map((er) => er.$message) || [],
+                      }"
+                    >
+                      <template #label>
+                        <span>Update type</span>
+                      </template>
+                      <NcSelect
+                        :value="fieldConfig.opType || undefined"
+                        :disabled="!fieldConfig.columnId"
+                        class="nc-field-update-type-select-input w-full nc-select-shadow"
+                        placeholder="-select an update type-"
+                        @update:value="
+                          (value) => {
+                            fieldConfig.opType = value
+                            fieldConfig.value = null
+                          }
+                        "
+                        @change="saveChanges()"
+                      >
+                        <a-select-option v-for="(action, i) of fieldActionOptions" :key="i" :value="action.value">
+                          <div class="flex items-center gap-2 w-full">
+                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                              <template #title>
+                                {{ action.label }}
+                              </template>
+                              {{ action.label }}
+                            </NcTooltip>
+                            <component
+                              :is="iconMap.check"
+                              v-if="fieldConfig.opType === action.value"
+                              id="nc-selected-item-icon"
+                              class="flex-none text-primary w-4 h-4"
+                            />
+                          </div>
+                        </a-select-option>
+                      </NcSelect>
+                    </a-form-item>
+
+                    <a-form-item
+                      v-if="
+                        fieldConfig.columnId &&
+                        !!meta?.columnsById?.[fieldConfig.columnId] &&
+                        fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE
+                      "
+                      class="!my-0 w-full nc-input-required-error"
+                      v-bind="{
+                        validateStatus: v$?.[fieldConfig.id]?.value?.$error ? 'error' : 'success',
+                        help: v$?.[fieldConfig.id]?.value?.$errors?.map((er) => er.$message) || [],
+                      }"
+                    >
+                      <template #label>
+                        <span> Set cell value to</span>
+                      </template>
+
+                      <LazySmartsheetDivDataCell
+                        class="relative min-h-8"
+                        :key="meta?.columnsById?.[fieldConfig.columnId]?.uidt"
+                        :data-label="meta?.columnsById?.[fieldConfig.columnId]?.uidt"
+                        :data-ver="isVirtualCol(meta?.columnsById?.[fieldConfig.columnId])"
+                        @click.stop
+                      >
+                        <LazySmartsheetVirtualCell
+                          v-if="isVirtualCol(meta?.columnsById?.[fieldConfig.columnId])"
+                          v-model="fieldConfig.value"
+                          class="nc-input"
+                          :column="meta.columnsById[fieldConfig.columnId]"
+                        />
+                        <LazySmartsheetCell
+                          v-else
+                          v-model="fieldConfig.value"
+                          class="nc-input truncate"
+                          :column="meta.columnsById[fieldConfig.columnId]"
+                          :edit-enabled="true"
+                        />
+                      </LazySmartsheetDivDataCell>
+                    </a-form-item>
+
+                    <div>
+                      <NcButton type="text" size="xs" @click="handleRemoveFieldConfig(fieldConfig.id)">
+                        <template #icon>
+                          <GeneralIcon icon="delete" />
+                        </template>
+                        Remove update
+                      </NcButton>
+                    </div>
+                  </div>
+                </a-collapse-panel>
+              </a-collapse>
+
+              <div
+                v-else
+                class="text-gray-600"
+                :class="{
+                  'p-6 text-center': fullscreen,
+                  'px-3 py-4 min-h-[120px] flex-1 flex flex-col gap-3 items-center justify-center': !fullscreen,
+                }"
+              >
+                <div>No fields set</div>
+                <NcButton v-if="!fullscreen" size="small" @click="addNewAction">
+                  <template #icon>
+                    <GeneralIcon icon="ncPlus" />
+                  </template>
+                  Add fields to update
+                </NcButton>
+              </div>
+            </a-form>
+
+            <div v-if="fullscreen" class="nc-bulk-update-add-action-section sticky bottom-0 py-6 bg-nc-bg-gray-extralight -mt-6">
+              <NcButton type="secondary" size="medium" class="w-full" @click="addNewAction">
+                <template #icon>
+                  <GeneralIcon icon="ncPlus" />
+                </template>
+                New action
+              </NcButton>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -955,6 +1003,17 @@ provide(IsGalleryInj, ref(false))
 <style lang="scss" scoped>
 :deep(.ant-select-selector) {
   @apply !xs:(h-full);
+}
+
+.bulk-update-body {
+  @apply flex-1 overflow-hidden;
+}
+
+:deep(.field-config-plain-cell-value.plain-cell) {
+  &::before {
+    content: '';
+    padding: 0 0;
+  }
 }
 
 .nc-data-cell {

@@ -1499,6 +1499,10 @@ watch([() => fields.value.length, () => cachedRows.value.size], () => {
   updateVisibleRows()
 })
 
+watch(rowHeight, () => {
+  calculateSlices()
+})
+
 provide(CellUrlDisableOverlayInj, disableUrlOverlay)
 
 defineExpose({

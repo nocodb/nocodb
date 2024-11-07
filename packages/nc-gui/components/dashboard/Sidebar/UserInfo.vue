@@ -52,11 +52,11 @@ onMounted(() => {
   isMounted.value = true
 })
 
-const isExpirementalFeatureModalOpen = ref(false)
+const isExperimentalFeatureModalOpen = ref(false)
 
-const openExpirementationMenu = () => {
+const openExperimentationMenu = () => {
   isMenuOpen.value = false
-  isExpirementalFeatureModalOpen.value = true
+  isExperimentalFeatureModalOpen.value = true
 }
 
 const accountUrl = computed(() => {
@@ -190,7 +190,7 @@ const accountUrl = computed(() => {
               <NcDivider />
 
               <DashboardSidebarEEMenuOption v-if="isEeUI" />
-              <NcMenuItem @click="openExpirementationMenu">
+              <NcMenuItem @click="openExperimentationMenu">
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
@@ -202,7 +202,7 @@ const accountUrl = computed(() => {
           </NcMenu>
         </template>
       </NcDropdown>
-      <DashboardFeatureExpirementation v-model:value="isExpirementalFeatureModalOpen" />
+      <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
       <LazyNotificationMenu />
     </div>
 

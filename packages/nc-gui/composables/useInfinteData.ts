@@ -35,6 +35,8 @@ export function useInfiniteData(args: {
 
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
+
   const cachedRows = ref<Map<number, Row>>(new Map())
 
   const totalRows = ref(1000)
@@ -47,53 +49,23 @@ export function useInfiniteData(args: {
 
   const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
 
-  const syncRowIndex = (indices: number | number[], operation: 'create' | 'delete') => {
-    const indexSet = new Set(Array.isArray(indices) ? indices : [indices])
-    const newCachedRows = new Map<number, Row>()
+  const syncLocalChunks = (index: number, operation: 'create' | 'delete') => {
+    const affectedChunk = Math.floor(index / CHUNK_SIZE)
 
-    const shift = operation === 'delete' ? -1 : 1
-
-    for (const [oldIndex, row] of cachedRows.value) {
-      if (operation === 'delete' && indexSet.has(oldIndex)) {
-        continue // Skip deleted rows
-      }
-
-      let newIndex = oldIndex
-      indexSet.forEach((targetIndex) => {
-        if ((operation === 'delete' && oldIndex > targetIndex) || (operation === 'create' && oldIndex >= targetIndex)) {
-          newIndex += shift
-        }
-      })
-
-      newCachedRows.set(newIndex, {
-        ...row,
-        rowMeta: { ...row.rowMeta, rowIndex: newIndex },
-      })
-    }
-
-    // Handle newly created rows
     if (operation === 'create') {
-      indexSet.forEach((createIndex) => {
-        if (!newCachedRows.has(createIndex)) {
-          newCachedRows.set(createIndex, {
-            row: {},
-            oldRow: {},
-            rowMeta: { rowIndex: createIndex, isLoading: true },
-          })
-        }
-      })
+      chunkStates.value[affectedChunk] = 'loaded'
+    } else if (operation === 'delete') {
+      const chunkStart = affectedChunk * CHUNK_SIZE
+      const chunkEnd = (affectedChunk + 1) * CHUNK_SIZE
+      const hasRowsInChunk = Array.from(cachedRows.value.keys()).some((i) => i >= chunkStart && i < chunkEnd)
+      chunkStates.value[affectedChunk] = hasRowsInChunk ? 'loaded' : undefined
     }
 
-    cachedRows.value = newCachedRows
-
-    // Update chunk states
-    const minAffectedChunk = Math.floor(Math.min(...newCachedRows.keys()) / CHUNK_SIZE)
-    const maxAffectedChunk = Math.floor(Math.max(...newCachedRows.keys()) / CHUNK_SIZE)
-
-    for (let i = minAffectedChunk; i <= maxAffectedChunk; i++) {
+    const lastChunk = Math.floor((cachedRows.value.size - 1) / CHUNK_SIZE)
+    for (let i = affectedChunk + 1; i <= lastChunk; i++) {
       const chunkStart = i * CHUNK_SIZE
       const chunkEnd = (i + 1) * CHUNK_SIZE
-      const hasRowsInChunk = Array.from(newCachedRows.keys()).some((index) => index >= chunkStart && index < chunkEnd)
+      const hasRowsInChunk = Array.from(cachedRows.value.keys()).some((index) => index >= chunkStart && index < chunkEnd)
       chunkStates.value[i] = hasRowsInChunk ? 'loaded' : undefined
     }
   }
@@ -156,7 +128,64 @@ export function useInfiniteData(args: {
     return newRow
   }
 
-  async function deleteRow(rowIndex: number) {
+  const linkRecord = async (
+    rowId: string,
+    relatedRowId: string,
+    column: ColumnType,
+    type: RelationTypes,
+    { metaValue = meta.value }: { metaValue?: TableType } = {},
+  ): Promise<void> => {
+    try {
+      await $api.dbTableRow.nestedAdd(
+        NOCO,
+        base.value.id as string,
+        metaValue?.id as string,
+        encodeURIComponent(rowId),
+        type,
+        column.title as string,
+        encodeURIComponent(relatedRowId),
+      )
+    } catch (e: any) {
+      const errorMessage = await extractSdkResponseErrorMsg(e)
+      message.error(`Failed to link record: ${errorMessage}`)
+      throw e
+    }
+    callbacks?.syncVisibleData?.()
+  }
+
+  const recoverLTARRefs = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
+    const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
+
+    if (!id) return
+
+    for (const column of metaValue?.columns ?? []) {
+      if (column.uidt !== UITypes.LinkToAnotherRecord) continue
+
+      const colOptions = column.colOptions as LinkToAnotherRecordType
+
+      const relatedTableMeta = metas.value?.[colOptions?.fk_related_model_id as string]
+
+      if (isHm(column) || isMm(column)) {
+        const relatedRows = (row[column.title!] ?? []) as Record<string, any>[]
+
+        for (const relatedRow of relatedRows) {
+          const relatedId = extractPkFromRow(relatedRow, relatedTableMeta?.columns as ColumnType[])
+          if (relatedId) {
+            await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta })
+          }
+        }
+      } else if (isBt(column) && row[column.title!]) {
+        const relatedId = extractPkFromRow(row[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[])
+
+        if (relatedId) {
+          await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta })
+        }
+      }
+    }
+    callbacks?.syncVisibleData?.()
+  }
+
+  async function deleteRow(rowIndex: number, undo = false) {
     try {
       const row = cachedRows.value.get(rowIndex)
       if (!row) return
@@ -183,10 +212,35 @@ export function useInfiniteData(args: {
         }
 
         row.row = fullRecord
+
+        console.log(row)
+
+        if (!undo) {
+          addUndo({
+            undo: {
+              fn: async (row: Row, ltarState: Record<string, any>) => {
+                const pkData = rowPkData(row.row, meta?.value?.columns as ColumnType[])
+
+                row.row = { ...pkData, ...row.row }
+                await insertRow(row, ltarState, {}, true)
+
+                await recoverLTARRefs(row.row)
+              },
+              args: [clone(row), {}],
+            },
+            redo: {
+              fn: async (id: string) => {
+                await deleteRowById(id)
+              },
+              args: [id],
+            },
+            scope: defineViewScope({ view: viewMeta.value }),
+          })
+        }
       }
 
       cachedRows.value.delete(rowIndex)
-      syncRowIndex(rowIndex, 'delete')
+      syncLocalChunks(rowIndex, 'delete')
       totalRows.value = (totalRows.value || 0) - 1
 
       await callbacks?.syncCount?.()
@@ -230,7 +284,7 @@ export function useInfiniteData(args: {
       const deletedIndexes = removedRowsData.map((row) => row.rowIndex).sort((a, b) => b - a)
       for (const index of deletedIndexes) {
         cachedRows.value.delete(index)
-        syncRowIndex(index, 'delete')
+        syncLocalChunks(index, 'delete')
       }
 
       totalRows.value = Math.max(0, (totalRows.value || 0) - removedRowsData.length)
@@ -248,10 +302,13 @@ export function useInfiniteData(args: {
     currentRow: Row,
     ltarState: Record<string, any> = {},
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
   ): Promise<Record<string, any> | undefined> {
     if (!currentRow.rowMeta) {
       throw new Error('Row metadata is missing')
     }
+
+    console.log(currentRow, 'atInsertRow Method')
 
     currentRow.rowMeta.saving = true
 
@@ -272,21 +329,49 @@ export function useInfiniteData(args: {
         base?.value.id as string,
         metaValue?.id as string,
         viewMetaValue?.id as string,
-        { ...insertObj, ...ltarState },
+        { ...insertObj, ...(ltarState || {}) },
       )
 
-      // Update the current row with the inserted data
-      Object.assign(currentRow.row, insertedData)
       currentRow.rowMeta.new = false
 
-      // Find the appropriate index for the new row
       const insertIndex = currentRow.rowMeta.rowIndex!
 
-      // Insert the new row into cachedRows
-      cachedRows.value.set(insertIndex, currentRow)
+      if (cachedRows.value.has(insertIndex)) {
+        const rows = Array.from(cachedRows.value.entries())
+        const rowsToShift = rows.filter(([index]) => index >= insertIndex)
+        rowsToShift.sort((a, b) => b[0] - a[0]) // Sort in descending order
 
-      // Update row indices
-      syncRowIndex(insertIndex, 'create')
+        for (const [index, row] of rowsToShift) {
+          row.rowMeta.rowIndex = index + 1
+          cachedRows.value.set(index + 1, row)
+        }
+      }
+      cachedRows.value.set(insertIndex, currentRow)
+      syncLocalChunks(insertIndex, 'create')
+      totalRows.value++
+
+      if (!undo) {
+        Object.assign(currentRow.row, insertedData)
+        const id = extractPkFromRow(insertedData, metaValue!.columns as ColumnType[])
+        const pkData = rowPkData(insertedData, metaValue?.columns as ColumnType[])
+
+        addUndo({
+          undo: {
+            fn: async (id: string) => {
+              await deleteRowById(id)
+            },
+            args: [id],
+          },
+          redo: {
+            fn: async (row: Row, ltarState: Record<string, any>) => {
+              row.row = { ...pkData, ...row.row }
+              await insertRow(row, ltarState, undefined, true)
+            },
+            args: [clone(currentRow), clone(ltarState)],
+          },
+          scope: defineViewScope({ view: viewMeta.value }),
+        })
+      }
 
       await reloadAggregate?.trigger()
       await callbacks?.syncCount?.()
@@ -356,7 +441,7 @@ export function useInfiniteData(args: {
       totalRows.value += validRowsToInsert.length
 
       // Update row indices
-      syncRowIndex(startIndex, 'create')
+      syncLocalChunks(startIndex, 'create')
 
       await callbacks?.syncCount?.()
       callbacks?.syncVisibleData?.()
@@ -373,6 +458,7 @@ export function useInfiniteData(args: {
     toUpdate: Row,
     property: string,
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
   ): Promise<Record<string, any> | undefined> {
     if (!toUpdate.rowMeta) {
       throw new Error('Row metadata is missing')
@@ -393,6 +479,29 @@ export function useInfiniteData(args: {
           [property]: toUpdate.row[property] ?? null,
         },
       )
+
+      if (!undo) {
+        addUndo({
+          undo: {
+            fn: async (toUpdate: Row, property: string) => {
+              await updateRowProperty(
+                { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
+                property,
+                undefined,
+                true,
+              )
+            },
+            args: [clone(toUpdate), property],
+          },
+          redo: {
+            fn: async (toUpdate: Row, property: string) => {
+              await updateRowProperty(toUpdate, property, undefined, true)
+            },
+            args: [clone(toUpdate), property],
+          },
+          scope: defineViewScope({ view: viewMeta.value }),
+        })
+      }
 
       // Update specific columns based on their types
       const columnsToUpdate = new Set([
@@ -470,6 +579,7 @@ export function useInfiniteData(args: {
     rows: Row[],
     props: string[],
     { metaValue = meta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    undo = false,
   ): Promise<void> {
     await Promise.all(
       rows.map(async (row) => {
@@ -504,6 +614,24 @@ export function useInfiniteData(args: {
     }
 
     callbacks?.syncVisibleData?.()
+
+    if (!undo) {
+      addUndo({
+        undo: {
+          fn: async (undoRows: Row[], props: string[]) => {
+            await bulkUpdateRows(undoRows, props, undefined, true)
+          },
+          args: [clone(rows.map((row) => ({ row: row.oldRow, oldRow: row.row, rowMeta: row.rowMeta }))), props],
+        },
+        redo: {
+          fn: async (redoRows: Row[], props: string[]) => {
+            await bulkUpdateRows(redoRows, props, undefined, true)
+          },
+          args: [clone(rows), props],
+        },
+        scope: defineViewScope({ view: viewMeta.value }),
+      })
+    }
   }
 
   async function bulkUpdateView(
@@ -519,63 +647,6 @@ export function useInfiniteData(args: {
     })
 
     await reloadAggregate?.trigger()
-    callbacks?.syncVisibleData?.()
-  }
-
-  const linkRecord = async (
-    rowId: string,
-    relatedRowId: string,
-    column: ColumnType,
-    type: RelationTypes,
-    { metaValue = meta.value }: { metaValue?: TableType } = {},
-  ): Promise<void> => {
-    try {
-      await $api.dbTableRow.nestedAdd(
-        NOCO,
-        base.value.id as string,
-        metaValue?.id as string,
-        encodeURIComponent(rowId),
-        type,
-        column.title as string,
-        encodeURIComponent(relatedRowId),
-      )
-    } catch (e: any) {
-      const errorMessage = await extractSdkResponseErrorMsg(e)
-      message.error(`Failed to link record: ${errorMessage}`)
-      throw e
-    }
-    callbacks?.syncVisibleData?.()
-  }
-
-  const recoverLTARRefs = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
-    const id = extractPkFromRow(row, metaValue?.columns as ColumnType[])
-
-    if (!id) return
-
-    for (const column of metaValue?.columns ?? []) {
-      if (column.uidt !== UITypes.LinkToAnotherRecord) continue
-
-      const colOptions = column.colOptions as LinkToAnotherRecordType
-
-      const relatedTableMeta = metas.value?.[colOptions?.fk_related_model_id as string]
-
-      if (isHm(column) || isMm(column)) {
-        const relatedRows = (row[column.title!] ?? []) as Record<string, any>[]
-
-        for (const relatedRow of relatedRows) {
-          const relatedId = extractPkFromRow(relatedRow, relatedTableMeta?.columns as ColumnType[])
-          if (relatedId) {
-            await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta })
-          }
-        }
-      } else if (isBt(column) && row[column.title!]) {
-        const relatedId = extractPkFromRow(row[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[])
-
-        if (relatedId) {
-          await linkRecord(id, relatedId, column, colOptions.type as RelationTypes, { metaValue: relatedTableMeta })
-        }
-      }
-    }
     callbacks?.syncVisibleData?.()
   }
 
@@ -606,23 +677,11 @@ export function useInfiniteData(args: {
         return false
       }
 
-      // Remove the deleted row from cachedRows
-      const deletedRowIndex = Array.from(cachedRows.value.entries()).find(
-        ([_, row]) => extractPkFromRow(row.row, metaValue?.columns as ColumnType[]) === id,
-      )?.[0]
-
-      if (deletedRowIndex !== undefined) {
-        cachedRows.value.delete(deletedRowIndex)
-        syncRowIndex(deletedRowIndex, 'delete')
-        totalRows.value = Math.max(0, (totalRows.value || 0) - 1)
-      }
-
-      callbacks?.syncVisibleData?.()
       return true
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)
       message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
-      throw error
+      return false
     }
   }
 
@@ -668,7 +727,7 @@ export function useInfiniteData(args: {
       for (let i = rowsToDelete.length - 1; i >= 0; i--) {
         const { rowIndex } = rowsToDelete[i]
         cachedRows.value.delete(rowIndex)
-        syncRowIndex(rowIndex, 'delete')
+        syncLocalChunks(rowIndex, 'delete')
       }
 
       totalRows.value = Math.max(0, totalRows.value - rowsToDelete.length)
@@ -704,7 +763,7 @@ export function useInfiniteData(args: {
 
     if (index !== undefined && row.rowMeta.new) {
       cachedRows.value.delete(index)
-      syncRowIndex(index, 'delete')
+      syncLocalChunks(index, 'delete')
       return true
     }
     return false
@@ -747,7 +806,7 @@ export function useInfiniteData(args: {
     clearCache,
     syncCount,
     selectedRows,
-    syncRowIndex,
+    syncLocalChunks,
     chunkStates,
   }
 }

@@ -16,7 +16,7 @@ export function useInfiniteData(args: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>
   callbacks: {
-    loadData?: () => Promise<void>
+    loadData?: () => Promise<Row[] | undefined>
     syncCount?: () => Promise<void>
     syncVisibleData?: () => void
   }
@@ -45,7 +45,7 @@ export function useInfiniteData(args: {
 
   const CHUNK_SIZE = 50
 
-  const chunkStates = ref<Array<'loading' | 'loaded' | null>>([])
+  const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
 
   const syncRowIndex = (indices: number | number[], operation: 'create' | 'delete') => {
     const indexSet = new Set(Array.isArray(indices) ? indices : [indices])
@@ -94,7 +94,7 @@ export function useInfiniteData(args: {
       const chunkStart = i * CHUNK_SIZE
       const chunkEnd = (i + 1) * CHUNK_SIZE
       const hasRowsInChunk = Array.from(newCachedRows.keys()).some((index) => index >= chunkStart && index < chunkEnd)
-      chunkStates.value[i] = hasRowsInChunk ? 'loaded' : null
+      chunkStates.value[i] = hasRowsInChunk ? 'loaded' : undefined
     }
   }
 
@@ -132,7 +132,7 @@ export function useInfiniteData(args: {
 
     // Update chunk states
     chunkStates.value = chunkStates.value.map((state, chunkId) =>
-      chunkId >= safeStartChunk && chunkId <= safeEndChunk ? state : null,
+      chunkId >= safeStartChunk && chunkId <= safeEndChunk ? state : undefined,
     )
 
     callbacks?.syncVisibleData?.()

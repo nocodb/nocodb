@@ -105,6 +105,10 @@ const formRef = ref()
 
 const fieldConfigRef = ref()
 
+const isOpenConfigModal = ref(false)
+
+const isUpdating = ref(false)
+
 const systemFieldsIds = computed(() => getSystemColumnsIds(meta.value?.columns || []))
 
 const bulkUpdateColumns = computed(() => {
@@ -402,26 +406,22 @@ const rules = computed(() => {
 
           const column = meta.value.columnsById?.[currentConfig.columnId]
 
-          if (currentConfig.selected) {
-            if (typeof value === 'string') {
-              value = value.trim()
-            }
-
-            if (
-              (column.uidt === UITypes.Checkbox && !value) ||
-              (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
-            ) {
-              return false
-            }
-
-            if (column.uidt === UITypes.Rating && (!value || Number(value) < 1)) {
-              return false
-            }
-
-            return true
+          if (typeof value === 'string') {
+            value = value.trim()
           }
 
-          return false
+          if (
+            (column.uidt === UITypes.Checkbox && !value) ||
+            (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
+          ) {
+            return false
+          }
+
+          if (column.uidt === UITypes.Rating && (!value || Number(value) < 1)) {
+            return false
+          }
+
+          return true
         }),
       },
     }
@@ -439,7 +439,7 @@ async function validateAll() {
 
 async function bulkUpdateView(data: Record<string, any>) {
   if (!meta.value || !bulkUpdatePayload.value?.viewId) return
-
+  isUpdating.value = true
   try {
     await $api.dbTableRow.bulkUpdateAll(NOCO, meta.value.base_id as string, meta.value.id as string, data, {
       viewId: bulkUpdatePayload.value?.viewId,
@@ -448,11 +448,17 @@ async function bulkUpdateView(data: Record<string, any>) {
     console.error(e)
   } finally {
     reloadData()
+    isUpdating.value = false
+    isOpenConfigModal.value = false
   }
 }
 
 async function handleBulkUpdate() {
   const data = (bulkUpdatePayload.value?.config || []).reduce((acc, config) => {
+    if (!config.selected) {
+      return acc
+    }
+
     if (config.columnId && meta.value?.columnsById?.[config.columnId]) {
       const column = meta.value.columnsById[config.columnId]
 
@@ -464,6 +470,10 @@ async function handleBulkUpdate() {
   }, {} as Record<string, any>)
 
   bulkUpdateView(data)
+}
+
+const handleConfirmUpdate = () => {
+  isOpenConfigModal.value = true
 }
 
 onClickOutside(formRef, (e) => {
@@ -497,6 +507,14 @@ eventBus.on((event) => {
 onMounted(async () => {
   await loadJobsForBase()
 })
+
+const { state, row } = useProvideSmartsheetRowStore(
+  ref({
+    row: {},
+    oldRow: {},
+    rowMeta: { new: true },
+  }),
+)
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
@@ -570,7 +588,7 @@ provide(IsGalleryInj, ref(false))
           ></NcSelect>
         </a-form-item>
       </div>
-      <NcButton size="small" :disabled="v$.$error || !bulkUpdatePayload?.config?.length" @click="handleBulkUpdate"
+      <NcButton size="small" :disabled="v$.$error || !bulkUpdatePayload?.config?.length" @click="handleConfirmUpdate"
         >Update Records</NcButton
       >
     </template>
@@ -864,8 +882,10 @@ provide(IsGalleryInj, ref(false))
                         <LazySmartsheetVirtualCell
                           v-if="isVirtualCol(meta?.columnsById?.[fieldConfig.columnId])"
                           v-model="fieldConfig.value"
+                          :row="row"
                           class="nc-input"
                           :column="meta.columnsById[fieldConfig.columnId]"
+                          
                         />
                         <LazySmartsheetCell
                           v-else
@@ -919,6 +939,20 @@ provide(IsGalleryInj, ref(false))
         </div>
       </div>
     </div>
+    <NcModal v-model:visible="isOpenConfigModal" class="" :show-separator="false" size="small" :mask-closable="!isUpdating">
+      <div class="flex flex-col gap-5">
+        <div class="flex flex-col gap-2">
+          <div class="text-base text-nc-content-gray-emphasis font-bold">Confirm bulk update</div>
+          <div class="text-sm text-nc-content-gray-emphasis">3 field values from 23 records will be updated</div>
+        </div>
+        <div class="flex items-center gap-3 justify-end">
+          <NcButton size="small" type="secondary" :disabled="isUpdating" @click="isOpenConfigModal = false">Cancel</NcButton>
+          <NcButton size="small" :disabled="isUpdating" :loading="isUpdating" @click="handleBulkUpdate">{{
+            isUpdating ? 'Updating records' : 'Confirm Update'
+          }}</NcButton>
+        </div>
+      </div>
+    </NcModal>
   </ExtensionsExtensionWrapper>
 </template>
 
@@ -988,6 +1022,14 @@ provide(IsGalleryInj, ref(false))
       @apply border-b-nc-border-gray-medium last:(border-b-0 !rounded-b-lg overflow-hidden);
       .ant-collapse-content {
         @apply border-0;
+      }
+    }
+  }
+
+  .extension-content {
+    &:not(.fullscreen) {
+      .ant-collapse-item {
+        @apply last:(border-b-1 !rounded-b-none);
       }
     }
   }
@@ -1110,5 +1152,12 @@ provide(IsGalleryInj, ref(false))
       @apply text-gray-400;
     }
   }
+}
+
+:deep(.ant-form-item-has-error .nc-data-cell .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
+}
+:deep(.ant-form-item-has-success .nc-data-cell .ant-select:not(.ant-select-disabled) .ant-select-selector) {
+  border: none !important;
 }
 </style>

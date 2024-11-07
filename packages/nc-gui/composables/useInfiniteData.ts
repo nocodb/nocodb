@@ -579,28 +579,7 @@ export function useInfiniteData(args: {
       return message.error(`${t('msg.error.deleteRowFailed')}: ${errorMessage}`)
     }
 
-    const deletedIndexes = removedRowsData.map((row) => row.rowMeta.rowIndex).sort((a, b) => b - a)
-    const deletedIndexSet = new Set(deletedIndexes)
-
-    const maxIndex = Math.max(...cachedRows.value.keys())
-    const newCachedRows = new Map<number, Row>()
-    let newIndex = 0
-
-    for (let i = 0; i <= maxIndex + 1; i++) {
-      if (cachedRows.value.has(i) && !deletedIndexSet.has(i)) {
-        const row = cachedRows.value.get(i)
-        if (row) {
-          row.rowMeta.rowIndex = newIndex
-          newCachedRows.set(newIndex, row)
-          newIndex++
-        }
-      }
-    }
-
-    chunkStates.value[getChunkIndex(maxIndex)] = undefined
-
-    cachedRows.value = newCachedRows
-    totalRows.value = Math.max(0, (totalRows.value || 0) - removedRowsData.length)
+    await updateCacheAfterDelete(removedRowsData, false)
 
     addUndo({
       undo: {
@@ -624,29 +603,9 @@ export function useInfiniteData(args: {
       redo: {
         fn: async (toBeRemovedData: Record<string, any>[]) => {
           await bulkDeleteRows(toBeRemovedData.map((row) => row.pkData))
-          const deletedIndexes = toBeRemovedData.map((row) => row.rowMeta.rowIndex).sort((a, b) => b - a)
 
-          const deletedIndexSet = new Set(deletedIndexes)
+          await updateCacheAfterDelete(toBeRemovedData, false)
 
-          const maxIndex = Math.max(...cachedRows.value.keys())
-          const newCachedRows = new Map<number, Row>()
-          let newIndex = 0
-
-          for (let i = 0; i <= maxIndex + 1; i++) {
-            if (cachedRows.value.has(i) && !deletedIndexSet.has(i)) {
-              const row = cachedRows.value.get(i)
-              if (row) {
-                row.rowMeta.rowIndex = newIndex
-                newCachedRows.set(newIndex, row)
-                newIndex++
-              }
-            }
-          }
-
-          cachedRows.value = newCachedRows
-          totalRows.value = Math.max(0, (totalRows.value || 0) - removedRowsData.length)
-          chunkStates.value[getChunkIndex(maxIndex)] = undefined
-          callbacks?.syncVisibleData?.()
           await syncCount()
         },
         args: [removedRowsData],
@@ -654,7 +613,6 @@ export function useInfiniteData(args: {
       scope: defineViewScope({ view: viewMeta.value }),
     })
 
-    callbacks?.syncVisibleData?.()
     await syncCount()
   }
 
@@ -1137,26 +1095,42 @@ export function useInfiniteData(args: {
     await Promise.all(chunksToFetch.map(fetchChunk))
   }
 
-  async function updateCacheAfterDelete(rowsToDelete: Record<string, any>[]): Promise<void> {
+  async function updateCacheAfterDelete(rowsToDelete: Record<string, any>[], nested = true): Promise<void> {
     const maxCachedIndex = Math.max(...cachedRows.value.keys())
     const newCachedRows = new Map<number, Row>()
-    let newIndex = 0
+
+    const deleteSet = new Set(rowsToDelete.map((row) => (nested ? row.row : row).rowMeta.rowIndex))
+
+    let deletionCount = 0
+    let lastIndex = -1
 
     for (let i = 0; i <= maxCachedIndex + 1; i++) {
-      if (!rowsToDelete.some((row) => row.rowIndex === i) && cachedRows.value.has(i)) {
+      if (deleteSet.has(i)) {
+        deletionCount++
+        continue
+      }
+
+      if (cachedRows.value.has(i)) {
         const row = cachedRows.value.get(i)
         if (row) {
+          const newIndex = i - deletionCount
+          if (lastIndex !== -1 && newIndex - lastIndex > 1) {
+            chunkStates.value[getChunkIndex(lastIndex)] = undefined
+          }
+
           row.rowMeta.rowIndex = newIndex
           newCachedRows.set(newIndex, row)
-          newIndex++
+          lastIndex = newIndex
         }
       }
     }
 
+    if (lastIndex !== -1) {
+      chunkStates.value[getChunkIndex(lastIndex)] = undefined
+    }
+
     cachedRows.value = newCachedRows
     totalRows.value = Math.max(0, totalRows.value - rowsToDelete.length)
-
-    chunkStates.value[getChunkIndex(maxCachedIndex)] = undefined
 
     await syncCount()
     callbacks?.syncVisibleData?.()

@@ -2617,7 +2617,6 @@ watch(
   td.active-cell::after {
     @apply bg-opacity-3;
     content: '';
-    z-index: 200;
     position: absolute;
     top: 0;
     left: 0;

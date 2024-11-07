@@ -1504,6 +1504,18 @@ const maxGridHeight = computed(() => {
 
 const startRowHeight = computed(() => `${rowSlice.start * rowHeight.value}px`)
 const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.end) * rowHeight.value)}px`)
+
+const { width, height } = useWindowSize()
+
+watch(
+  [width, height],
+  () => {
+    calculateSlices()
+  },
+  {
+    immediate: true,
+  },
+)
 </script>
 
 <template>
@@ -1840,7 +1852,7 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
                 </tr>
                 <LazySmartsheetRow
                   v-for="(row, index) in visibleRows"
-                  :key="`${row.rowMeta.rowIndex}-${row.rowMeta.rowIndex}`"
+                  :key="`${row.rowMeta.rowIndex}-${row.rowMeta?.new}`"
                   :row="row"
                 >
                   <template #default="{ state }">

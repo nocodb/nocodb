@@ -1096,7 +1096,8 @@ const onVisibilityChange = () => {
   }
 }
 
-const VIRTUAL_MARGIN = 10
+const COL_VIRTUAL_MARGIN = 10
+const ROW_VIRTUAL_MARGIN = 20
 
 const colSlice = ref({
   start: 0,
@@ -1157,16 +1158,16 @@ const calculateSlices = () => {
   }
 
   colSlice.value = {
-    start: Math.max(0, renderStart - VIRTUAL_MARGIN),
-    end: renderEndFound ? Math.min(fields.value.length, renderEnd + VIRTUAL_MARGIN) : fields.value.length,
+    start: Math.max(0, renderStart - COL_VIRTUAL_MARGIN),
+    end: renderEndFound ? Math.min(fields.value.length, renderEnd + COL_VIRTUAL_MARGIN) : fields.value.length,
   }
 
   const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
   const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
   const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
 
-  rowSlice.start = startIndex
-  rowSlice.end = endIndex
+  rowSlice.start = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
+  rowSlice.end = Math.min(totalRows.value, endIndex + ROW_VIRTUAL_MARGIN)
 }
 
 const visibleFields = computed(() => {

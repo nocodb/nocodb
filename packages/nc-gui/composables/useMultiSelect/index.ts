@@ -33,7 +33,7 @@ const MAIN_MOUSE_PRESSED = 0
 export function useMultiSelect(
   _meta: MaybeRef<TableType | undefined>,
   fields: MaybeRef<ColumnType[]>,
-  data: MaybeRef<Row[]>,
+  data: MaybeRef<Record<number, Row>>,
   _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
   contextMenu: Ref<boolean>,
@@ -46,8 +46,6 @@ export function useMultiSelect(
   bulkUpdateRows?: Function,
   fillHandle?: MaybeRef<HTMLElement | undefined>,
   view?: MaybeRef<ViewType | undefined>,
-  paginationData?: MaybeRef<PaginatedType | undefined>,
-  changePage?: (page: number) => void,
 ) {
   const meta = ref(_meta)
 
@@ -76,8 +74,6 @@ export function useMultiSelect(
   const isFillMode = ref(false)
 
   const activeView = ref(view)
-
-  const paginationDataRef = ref(paginationData)
 
   const selectedRange = reactive(new CellRange())
 

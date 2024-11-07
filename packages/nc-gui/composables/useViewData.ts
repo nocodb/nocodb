@@ -23,6 +23,7 @@ export function useViewData(
   const { activeTableId, activeTable } = storeToRefs(tablesStore)
 
   const meta = computed(() => _meta.value || activeTable.value)
+
   const metaId = computed(() => _meta.value?.id || activeTableId.value)
 
   const { t } = useI18n()

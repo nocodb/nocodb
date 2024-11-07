@@ -8,6 +8,7 @@ const props = defineProps<{
   changePage?: (page: number) => void
   showSizeChanger?: boolean
   customLabel?: string
+  totalRows?: number
   depth?: number
   disablePagination?: boolean
 }>()
@@ -138,6 +139,19 @@ const renderAltOrOptlKey = () => {
                 >
                   {{ Intl.NumberFormat('en', { notation: 'compact' }).format(count) }}
                   {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
+                </span>
+              </NcTooltip>
+            </template>
+
+            <template v-if="totalRows">
+              <NcTooltip class="flex sticky items-center h-full">
+                <template #title> {{ totalRows }} {{ totalRows !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
+                <span
+                  data-testid="grid-pagination"
+                  class="text-gray-500 text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
+                >
+                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(totalRows) }}
+                  {{ totalRows !== 1 ? $t('objects.records') : $t('objects.record') }}
                 </span>
               </NcTooltip>
             </template>

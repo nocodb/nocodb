@@ -93,6 +93,7 @@ export function useGridViewData(
       loadData,
       syncVisibleData,
     },
+    where,
   })
 
   function syncVisibleData() {

@@ -359,6 +359,8 @@ export function useInfiniteData(args: {
 
       cachedRows.value = newCachedRows
     })
+
+    callbacks?.syncVisibleData?.()
   }
 
   function addEmptyRow(newRowIndex = totalRows.value, metaValue = meta.value) {
@@ -707,7 +709,7 @@ export function useInfiniteData(args: {
         totalRows.value++
       }
 
-      await reloadAggregate?.trigger()
+      reloadAggregate?.trigger()
       callbacks?.syncVisibleData?.()
 
       return insertedData
@@ -893,7 +895,7 @@ export function useInfiniteData(args: {
         cachedRows.value.set(toUpdate.rowMeta.rowIndex, toUpdate)
       }
 
-      await reloadAggregate?.trigger({ fields: [{ title: property }] })
+      reloadAggregate?.trigger({ fields: [{ title: property }] })
 
       callbacks?.syncVisibleData?.()
 
@@ -996,7 +998,7 @@ export function useInfiniteData(args: {
 
     try {
       await $api.dbTableRow.bulkUpdate(NOCO, metaValue?.base_id as string, metaValue?.id as string, updateArray)
-      await reloadAggregate?.trigger({ fields: props.map((p) => ({ title: p })) })
+      reloadAggregate?.trigger({ fields: props.map((p) => ({ title: p })) })
 
       // Update cachedRows with the updated data
       rows.forEach((row) => {
@@ -1045,7 +1047,7 @@ export function useInfiniteData(args: {
       viewId: viewMetaValue.id,
     })
 
-    await reloadAggregate?.trigger()
+    reloadAggregate?.trigger()
     callbacks?.syncVisibleData?.()
   }
 
@@ -1066,7 +1068,7 @@ export function useInfiniteData(args: {
         encodeURIComponent(id),
       )
 
-      await reloadAggregate?.trigger()
+      reloadAggregate?.trigger()
 
       if (res.message) {
         const errorMessage = `Unable to delete record with ID ${id} because of the following:\n${res.message.join(
@@ -1252,7 +1254,7 @@ export function useInfiniteData(args: {
       const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows.length === 1 ? rows[0] : rows, {
         viewId: viewMetaValue?.id as string,
       })
-      await reloadAggregate?.trigger()
+      reloadAggregate?.trigger()
 
       return rows.length === 1 && bulkDeletedRowsData ? [bulkDeletedRowsData] : bulkDeletedRowsData
     } catch (error: any) {

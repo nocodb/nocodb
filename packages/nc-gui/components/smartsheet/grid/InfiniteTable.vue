@@ -854,22 +854,63 @@ async function saveEmptyRow(rowObj: Row) {
 
 let disableWatch = false
 
-async function addEmptyRow(row?: number, skipUpdate = false) {
-  clearInvalidRows?.()
-  const rowObj = callAddEmptyRow?.(row)
-  disableWatch = true
-  setTimeout(() => {
-    disableWatch = false
-  }, 200)
+watch(
+  () => activeCell.row,
+  (newVal, oldVal) => {
+    if (disableWatch) return
+    if (oldVal !== newVal) {
+      clearInvalidRows?.()
+      if (rowSortRequiredRows.value.length) {
+        applySorting?.(rowSortRequiredRows.value)
+      }
+    }
+  },
+  { immediate: true },
+)
 
-  if (!skipUpdate && rowObj) {
-    await saveEmptyRow(rowObj)
+let isProcessing = false
+const rowQueue: Array<{ row?: number; skipUpdate: boolean }> = []
+
+async function processRowQueue() {
+  if (isProcessing) return
+
+  isProcessing = true
+
+  try {
+    while (rowQueue.length > 0) {
+      const { row, skipUpdate } = rowQueue.shift()!
+
+      clearInvalidRows?.()
+      if (rowSortRequiredRows.value.length) {
+        applySorting?.(rowSortRequiredRows.value)
+      }
+
+      const rowObj = callAddEmptyRow?.(row)
+      disableWatch = true
+
+      if (!skipUpdate && rowObj) {
+        await saveEmptyRow(rowObj)
+      }
+
+      scrollToRow(row ?? totalRows.value - 1)
+      makeActive(row ?? totalRows.value - 1, 0)
+      clearSelectedRange()
+      selectedRange.startRange({ row: activeCell.row!, col: activeCell.col! })
+      scrollToCell?.(row)
+      await nextTick(() => {
+        setTimeout(() => {
+          disableWatch = false
+        }, 200)
+      })
+    }
+  } finally {
+    isProcessing = false
   }
+}
 
-  await nextTick(() => {})
-
-  scrollToRow(row ?? totalRows.value - 1)
-  return rowObj
+async function addEmptyRow(row?: number, skipUpdate = false) {
+  rowQueue.push({ row, skipUpdate })
+  await processRowQueue()
 }
 
 const confirmDeleteRow = (row: number) => {
@@ -1540,20 +1581,6 @@ defineExpose({
   scrollToRow,
   openColumnCreate,
 })
-
-watch(
-  () => activeCell.row,
-  (newVal, oldVal) => {
-    if (disableWatch) return
-    if (oldVal !== newVal) {
-      clearInvalidRows?.()
-      if (rowSortRequiredRows.value.length) {
-        applySorting?.(rowSortRequiredRows.value)
-      }
-    }
-  },
-  { immediate: true },
-)
 
 const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   if (expandForm) {

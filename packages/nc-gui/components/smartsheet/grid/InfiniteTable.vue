@@ -233,38 +233,29 @@ const rowSlice = reactive({
 })
 
 const clearCache = (visibleStartIndex: number, visibleEndIndex: number) => {
-  // If the cache size is less than the maxCacheSize, skip
   const cacheSize = Object.keys(cachedLocalRows.value).length
   if (cacheSize <= maxCacheSize) return
 
-  // Calculate the number of items to remove
   const itemsToRemove = cacheSize - maxCacheSize
-  const sortedIndices = Object.keys(cachedLocalRows.value)
-    .map(Number)
-    .sort((a, b) => a - b)
-
-  // Calculate the safe start
   const safeStartIndex = Math.max(0, visibleStartIndex - bufferSize)
-
-  // Ensure the end index is within the total items and within the buffer size
   const safeEndIndex = Math.min(totalRows.value - 1, visibleEndIndex + bufferSize)
 
   let removed = 0
+  const toRemove = []
 
-  // Remove items from the start of the cache
-  for (let i = 0; i < sortedIndices.length && removed < itemsToRemove; i++) {
-    if (sortedIndices[i] < safeStartIndex) {
-      delete cachedLocalRows.value[sortedIndices[i]]
-      removed++
+  for (const [indexStr, row] of Object.entries(cachedLocalRows.value)) {
+    const index = Number(indexStr)
+    if (index < safeStartIndex || index > safeEndIndex) {
+      if (!row.rowMeta.selected) {
+        toRemove.push(index)
+        if (toRemove.length >= itemsToRemove) break
+      }
     }
   }
 
-  // If we still need to remove items, remove from the end
-  for (let i = sortedIndices.length - 1; i >= 0 && removed < itemsToRemove; i--) {
-    if (sortedIndices[i] > safeEndIndex) {
-      delete cachedLocalRows.value[sortedIndices[i]]
-      removed++
-    }
+  for (const index of toRemove) {
+    delete cachedLocalRows.value[index]
+    removed++
   }
 }
 
@@ -326,6 +317,8 @@ const updateVisibleItems = async (newScrollTop: number) => {
       })
 
       visibleRows.value = newVisibleRows
+
+      clearCache(startIndex, endIndex)
     } catch (error) {
       console.error('Error fetching items:', error)
     }
@@ -446,6 +439,7 @@ useScroll(scrollWrapper, {
       // refreshFillHandle()
     })
   },
+  behavior: 'auto',
 })
 
 // Check
@@ -632,8 +626,6 @@ defineExpose({
                     }"
                     class="nc-check-all w-full items-center"
                   >
-                    <a-checkbox v-model:checked="vSelectedAllRecords" />
-
                     <span class="flex-1" />
                   </div>
                 </template>
@@ -878,7 +870,7 @@ defineExpose({
           </div>
           <LazySmartsheetRow
             v-for="(row, index) in visibleRows"
-            :key="`${rowSlice.start + index}-${row.rowMeta.rowIndex}`"
+            :key="`${rowSlice.start + index}-${row.rowMeta.rowIndex}-${row.rowMeta.loading}`"
             :row="row"
           >
             <template #default="{ state }">

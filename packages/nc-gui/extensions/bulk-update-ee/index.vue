@@ -224,6 +224,17 @@ const fieldConfigMap = computed(() => {
   )
 })
 
+const fieldConfigMapByColumnId = computed(() => {
+  return (
+    (bulkUpdatePayload.value?.config || []).reduce((acc, col) => {
+      if (col.columnId) {
+        acc[col.columnId] = col
+      }
+      return acc
+    }, {} as Record<string, any>) || {}
+  )
+})
+
 const fieldActionOptions: {
   label: string
   value: BulkUpdateFieldActionOpTypes
@@ -355,6 +366,10 @@ async function handleRemoveFieldConfig(configId: string) {
   validateAll()
 }
 
+const getFieldConfigs = () => {
+  return bulkUpdatePayload.value?.config || []
+}
+
 const rules = computed(() => {
   return (bulkUpdatePayload.value?.config || []).reduce((acc, config) => {
     if (!config?.id) return acc
@@ -379,6 +394,21 @@ const rules = computed(() => {
 
           return true
         }),
+        // isDuplicated: helpers.withMessage('This field is already added', (value, _currentConfig) => {
+        //   const currentConfig = _currentConfig as BulkUpdateFieldConfig
+
+        //   if (!currentConfig?.columnId || !meta.value) return true
+
+        //   const column = meta.value.columnsById?.[currentConfig.columnId]
+
+        //   if (!column) return true
+
+        //   const allFields = getFieldConfigs()
+
+        //   if (allFields.find((f) => f.id !== currentConfig.id && f.columnId === currentConfig.columnId)) return false
+
+        //   return true
+        // }),
       },
       opType: {
         required: helpers.withMessage('Update type is required', (value, _currentConfig) => {
@@ -679,7 +709,9 @@ provide(IsGalleryInj, ref(false))
             'max-h-[calc(100%_-_25px)]': !fullscreen,
           }"
         >
-          <div class="flex-1 flex flex-col gap-6 w-full max-w-[520px] mx-auto">
+          <div class="flex-1 flex flex-col gap-6 w-full" :class="{
+            'max-w-[520px] mx-auto': fullscreen
+          }">
             <div v-if="fullscreen" class="flex items-center gap-3">
               <NcBadge color="brand" :border="false">23 records</NcBadge>
               <div class="text-nc-content-gray-subtle2">
@@ -794,7 +826,12 @@ provide(IsGalleryInj, ref(false))
                         "
                         @change="saveChanges()"
                       >
-                        <a-select-option v-for="(col, i) of bulkUpdateColumns" :key="i" :value="col.id">
+                        <a-select-option
+                          v-for="(col, i) of bulkUpdateColumns"
+                          :key="i"
+                          :value="col.id"
+                          :disabled="!!fieldConfigMapByColumnId[col.id!]"
+                        >
                           <div class="flex items-center gap-2 w-full">
                             <component :is="getUIDTIcon(UITypes[col.uidt])" class="h-3.5 w-3.5" />
 
@@ -885,7 +922,7 @@ provide(IsGalleryInj, ref(false))
                           :row="row"
                           class="nc-input"
                           :column="meta.columnsById[fieldConfig.columnId]"
-                          
+                          @update:model-value="saveChanges()"
                         />
                         <LazySmartsheetCell
                           v-else
@@ -893,6 +930,7 @@ provide(IsGalleryInj, ref(false))
                           class="nc-input truncate"
                           :column="meta.columnsById[fieldConfig.columnId]"
                           :edit-enabled="true"
+                          @update:model-value="saveChanges()"
                         />
                       </LazySmartsheetDivDataCell>
                     </a-form-item>

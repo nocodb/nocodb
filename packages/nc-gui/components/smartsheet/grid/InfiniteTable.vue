@@ -1939,15 +1939,15 @@ defineExpose({
             @contextmenu="showContextMenu"
           >
             <tbody ref="tableBodyEl">
-              <div class="placeholder top-placeholder" :style="`height: ${startRowHeight};`">
-                <div
+              <tr class="placeholder top-placeholder" :style="`height: ${startRowHeight};`">
+                <td
                   class="placeholder-column"
                   :style="{
                     width: '64px',
                     left: '0px',
                   }"
-                ></div>
-                <div
+                ></td>
+                <td
                   v-for="({ id }, index) in fields"
                   :key="id"
                   class="placeholder-column px-2"
@@ -1955,8 +1955,8 @@ defineExpose({
                     width: gridViewCols[id]?.width || '200px',
                     left: `${(cumulativeWidths[index - 1] || 0) + 64}px`,
                   }"
-                ></div>
-              </div>
+                ></td>
+              </tr>
               <LazySmartsheetRow
                 v-for="(row, index) in visibleRows"
                 :key="`${row.rowMeta.rowIndex}-${row.rowMeta.rowIndex}`"
@@ -2173,18 +2173,18 @@ defineExpose({
                   </tr>
                 </template>
               </LazySmartsheetRow>
-              <div
+              <tr
                 class="placeholder relative bottom-placeholder"
                 :style="`height: ${endRowHeight}; top: ${rowSlice.end * rowHeight}px;`"
               >
-                <div
+                <td
                   class="placeholder-column"
                   :style="{
                     width: '63px',
                     left: '0px',
                   }"
-                ></div>
-                <div
+                ></td>
+                <td
                   v-for="({ id }, index) in fields"
                   :key="id"
                   class="placeholder-column px-2"
@@ -2192,8 +2192,8 @@ defineExpose({
                     width: gridViewCols[id]?.width || '200px',
                     left: `${(cumulativeWidths[index - 1] || 0) + 64}px`,
                   }"
-                ></div>
-              </div>
+                ></td>
+              </tr>
             </tbody>
           </table>
           <div
@@ -2635,7 +2635,7 @@ defineExpose({
       @apply border-r-1 border-r-gray-200;
     }
 
-    tbody tr:not(.nc-grid-add-new-cell) td:nth-child(2) {
+    tbody tr:not(.nc-grid-add-new-cell):not(.placeholder) td:not(.placeholder-column):nth-child(2) {
       position: sticky !important;
       z-index: 4;
       left: 64px;

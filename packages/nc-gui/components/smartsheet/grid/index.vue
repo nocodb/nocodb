@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { ColumnType, GridType } from 'nocodb-sdk'
 import InfiniteTable from './InfiniteTable.vue'
+import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
 
 const meta = inject(MetaInj, ref())
@@ -219,9 +220,26 @@ const updateRowCommentCount = (count: number) => {
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
 
+const isFallbackToPagination = ref(false)
+
 onMounted(() => {
   updateViewWidth()
 })
+
+const {
+  selectedAllRecords: pSelectedAllRecords,
+  formattedData: pData,
+  paginationData: pPaginationData,
+  loadData: pLoadData,
+  changePage: pChangePage,
+  addEmptyRow: pAddEmptyRow,
+  deleteRow: pDeleteRow,
+  updateOrSaveRow: pUpdateOrSaveRow,
+  deleteSelectedRows: pDeleteSelectedRows,
+  deleteRangeOfRows: pDeleteRangeOfRows,
+  bulkUpdateRows: pBulkUpdateRows,
+  removeRowIfNew: pRemoveRowIfNew,
+} = useViewData(meta, view, xWhere)
 </script>
 
 <template>
@@ -230,8 +248,28 @@ onMounted(() => {
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
+    <Table
+      v-if="!isGroupBy && isFallbackToPagination"
+      ref="tableRef"
+      v-model:selected-all-records="pSelectedAllRecords"
+      :data="pData"
+      :pagination-data="pPaginationData"
+      :load-data="pLoadData"
+      :change-page="pChangePage"
+      :call-add-empty-row="pAddEmptyRow"
+      :delete-row="pDeleteRow"
+      :update-or-save-row="pUpdateOrSaveRow"
+      :delete-selected-rows="pDeleteSelectedRows"
+      :delete-range-of-rows="pDeleteRangeOfRows"
+      :bulk-update-rows="pBulkUpdateRows"
+      :expand-form="expandForm"
+      :remove-row-if-new="pRemoveRowIfNew"
+      :row-height="rowHeight"
+      @toggle-optimised-query="toggleOptimisedQuery"
+      @bulk-update-dlg="bulkUpdateDlg = true"
+    />
     <InfiniteTable
-      v-if="!isGroupBy"
+      v-else-if="!isGroupBy"
       ref="tableRef"
       :load-data="loadData"
       :call-add-empty-row="_addEmptyRow"

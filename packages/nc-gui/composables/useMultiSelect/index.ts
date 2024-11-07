@@ -50,7 +50,6 @@ export function useMultiSelect(
   view?: MaybeRef<ViewType | undefined>,
   paginationData?: MaybeRef<PaginatedType | undefined>,
   changePage?: (page: number) => void,
-  _isGroupBy?: MaybeRef<boolean>,
   fetchChunk?: (chunkId: number) => Promise<void>,
 ) {
   const meta = ref(_meta)
@@ -77,7 +76,7 @@ export function useMultiSelect(
 
   const { isDataReadOnly } = useRoles()
 
-  const isGroupBy = !!unref(_isGroupBy)
+  const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
 
   const paginationDataRef = ref(paginationData)
 
@@ -307,7 +306,7 @@ export function useMultiSelect(
     try {
       if (selectedRange.start !== null && selectedRange.end !== null && !selectedRange.isSingleCell()) {
         let cprows
-        if (isGroupBy) {
+        if (isArrayStructure) {
           cprows = unref(data as Row[]).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
         } else {
           const startChunkId = Math.floor(selectedRange.start.row / CHUNK_SIZE)
@@ -335,7 +334,7 @@ export function useMultiSelect(
         const cpCol = ctx?.col ?? activeCell.col
 
         if (cpRow != null && cpCol != null) {
-          const rowObj = isGroupBy ? unref(data as Row[])[cpRow] : unref(data as Map<number, Row>).get(cpRow)
+          const rowObj = isArrayStructure ? unref(data as Row[])[cpRow] : unref(data as Map<number, Row>).get(cpRow)
           if (!rowObj) return
           const columnObj = unref(fields)[cpCol]
 
@@ -429,7 +428,7 @@ export function useMultiSelect(
 
   function handleMouseOver(event: MouseEvent, row: number, col: number) {
     if (isFillMode.value) {
-      const rw = isGroupBy ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
+      const rw = isArrayStructure ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
 
       if (!rw) return
 
@@ -513,7 +512,7 @@ export function useMultiSelect(
 
         let cprows
 
-        if (isGroupBy) {
+        if (isArrayStructure) {
           cprows = (unref(data) as Row[]).slice(selectedRange.start.row, selectedRange.end.row + 1)
         } else {
           cprows = Array.from(unref(data) as Map<number, Row>)
@@ -541,7 +540,7 @@ export function useMultiSelect(
             continue
           }
 
-          const rowObj = isGroupBy ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
+          const rowObj = isArrayStructure ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
 
           if (!rowObj) {
             continue
@@ -633,7 +632,7 @@ export function useMultiSelect(
           if (activeCell.col < unref(columnLength.value) - 1) {
             activeCell.col++
             editEnabled.value = false
-          } else if (activeCell.row < (isGroupBy ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1) {
+          } else if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1) {
             activeCell.row++
             activeCell.col = 0
             editEnabled.value = false
@@ -733,7 +732,7 @@ export function useMultiSelect(
 
           if (cmdOrCtrl) {
             newEnd = {
-              row: (isGroupBy ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1,
+              row: (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1,
               col: selectedRange._end?.col ?? activeCell.col,
             }
           } else {
@@ -750,7 +749,7 @@ export function useMultiSelect(
         } else {
           selectedRange.clear()
 
-          if (activeCell.row < (isGroupBy ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1) {
+          if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1) {
             activeCell.row++
             selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
             scrollToCell?.()
@@ -763,7 +762,7 @@ export function useMultiSelect(
 
         let row
 
-        if (isGroupBy) {
+        if (isArrayStructure) {
           row = (unref(data) as Row[])[activeCell.row]
         } else {
           row = (unref(data) as Map<number, Row>).get(activeCell.row)
@@ -787,7 +786,7 @@ export function useMultiSelect(
     }
   }
 
-  const handleThrottledKeyDownAction = useThrottleFn(handleKeyDownAction, 60)
+  const handleThrottledKeyDownAction = useThrottleFn(handleKeyDownAction, 50)
 
   const handleKeyDown = async (e: KeyboardEvent) => {
     // invoke the keyEventHandler if provided and return if it returns true
@@ -817,7 +816,7 @@ export function useMultiSelect(
         break
       default:
         {
-          const rowObj = isGroupBy
+          const rowObj = isArrayStructure
             ? (unref(data) as Row[])[activeCell.row]
             : (unref(data) as Map<number, Row>).get(activeCell.row)
           if (!rowObj) return
@@ -921,7 +920,7 @@ export function useMultiSelect(
 
         let rowsToPaste
 
-        if (isGroupBy) {
+        if (isArrayStructure) {
           rowsToPaste = (unref(data) as Row[]).slice(activeCell.row, activeCell.row + selectionRowCount)
         } else {
           rowsToPaste = Array.from(unref(data) as Map<number, Row>)
@@ -982,7 +981,7 @@ export function useMultiSelect(
         }
       } else {
         if (selectedRange.isSingleCell()) {
-          const rowObj = isGroupBy
+          const rowObj = isArrayStructure
             ? (unref(data) as Row[])[activeCell.row]
             : (unref(data) as Map<number, Row>).get(activeCell.row)
           if (!rowObj) return
@@ -1079,7 +1078,7 @@ export function useMultiSelect(
                 return
               }
 
-              if (isGroupBy) {
+              if (isArrayStructure) {
                 addUndo({
                   redo: {
                     fn: async (
@@ -1333,7 +1332,7 @@ export function useMultiSelect(
           const cols = unref(fields).slice(startCol, endCol + 1)
           let rows
 
-          if (isGroupBy) {
+          if (isArrayStructure) {
             rows = (unref(data) as Row[]).slice(startRow, endRow + 1)
           } else {
             rows = Array.from(unref(data) as Map<number, Row>)

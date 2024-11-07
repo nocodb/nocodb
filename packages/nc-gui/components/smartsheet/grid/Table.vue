@@ -774,7 +774,6 @@ const {
   view,
   paginationDataRef,
   changePage,
-  true,
 )
 
 function scrollToRow(row?: number) {
@@ -1022,32 +1021,38 @@ function scrollToCell(row?: number | null, col?: number | null) {
     }
 
     if (row === dataRef.value.length - 1) {
-      scrollWrapper.value.scrollTo({
-        top: isGroupBy.value ? scrollWrapper.value.scrollTop : scrollWrapper.value.scrollHeight,
-        left:
-          col === fields.value.length - 1 // if corner cell
-            ? scrollWrapper.value.scrollWidth
-            : tdScroll.left,
-        behavior: 'smooth',
+      requestAnimationFrame(() => {
+        scrollWrapper.value.scrollTo({
+          top: isGroupBy.value ? scrollWrapper.value.scrollTop : scrollWrapper.value.scrollHeight,
+          left:
+            col === fields.value.length - 1 // if corner cell
+              ? scrollWrapper.value.scrollWidth
+              : tdScroll.left,
+          behavior: 'instant',
+        })
       })
       return
     }
 
     if (col === fields.value.length - 1) {
       // if last column make 'Add New Column' visible
-      scrollWrapper.value.scrollTo({
-        top: tdScroll.top,
-        left: scrollWrapper.value.scrollWidth,
-        behavior: 'smooth',
+      requestAnimationFrame(() => {
+        scrollWrapper.value.scrollTo({
+          top: tdScroll.top,
+          left: scrollWrapper.value.scrollWidth,
+          behavior: 'instant',
+        })
       })
       return
     }
 
     // scroll into the active cell
-    scrollWrapper.value.scrollTo({
-      top: tdScroll.top,
-      left: tdScroll.left,
-      behavior: 'smooth',
+    requestAnimationFrame(() => {
+      scrollWrapper.value.scrollTo({
+        top: tdScroll.top,
+        left: tdScroll.left,
+        behavior: 'instant',
+      })
     })
   }
 }

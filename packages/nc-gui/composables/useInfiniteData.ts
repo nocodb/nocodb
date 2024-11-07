@@ -25,7 +25,7 @@ export function useInfiniteData(args: {
     ) => Promise<Row[] | undefined>
     syncVisibleData?: () => void
   }
-  where?: ComputedRef<string | undefined>,
+  where?: ComputedRef<string | undefined>
 }) {
   const { meta, viewMeta, callbacks, where } = args
 
@@ -125,6 +125,23 @@ export function useInfiniteData(args: {
   })
 
   function addEmptyRow(newRowIndex = totalRows.value, metaValue = meta.value) {
+    if (cachedRows.value.has(newRowIndex)) {
+      const entriesToShift = Array.from(cachedRows.value.entries())
+        .filter(([index]) => index >= newRowIndex)
+        .sort((a, b) => b[0] - a[0])
+
+      for (const [index, rowData] of entriesToShift) {
+        const shiftedRowData = {
+          ...rowData,
+          rowMeta: {
+            ...rowData.rowMeta,
+            rowIndex: index + 1,
+          },
+        }
+        cachedRows.value.set(index + 1, shiftedRowData)
+      }
+    }
+
     const newRow = {
       row: { ...rowDefaultData(metaValue?.columns) },
       oldRow: {},
@@ -137,6 +154,7 @@ export function useInfiniteData(args: {
 
     return newRow
   }
+
   const linkRecord = async (
     rowId: string,
     relatedRowId: string,
@@ -1038,11 +1056,11 @@ export function useInfiniteData(args: {
       const { count } = isPublic.value
         ? await fetchCount({
             filtersArr: nestedFilters.value,
-          where: where?.value,
+            where: where?.value,
           })
         : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
             where: where?.value,
-        })
+          })
 
       totalRows.value = count as number
       callbacks?.syncVisibleData?.()

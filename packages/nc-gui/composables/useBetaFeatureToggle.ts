@@ -44,6 +44,15 @@ const STORAGE_KEY = 'featureToggleStates'
 export const useBetaFeatureToggle = createSharedComposable(() => {
   const features = ref<Feature[]>(structuredClone(FEATURES))
 
+  const featureStates = computed(() => {
+    return features.value.reduce((acc, feature) => {
+      acc[feature.id] = feature.enabled
+      return acc
+    }, {} as Record<FeatureId, boolean>)
+  })
+
+  const { $e } = useNuxtApp()
+
   const isEngineeringModeOn = ref(false)
 
   const saveFeatures = () => {
@@ -58,13 +67,14 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     const feature = features.value.find((f) => f.id === id)
     if (feature) {
       feature.enabled = !feature.enabled
+      $e(`a:feature-preview:${id}:${feature.enabled ? 'on' : 'off'}`)
       saveFeatures()
     } else {
       console.error(`Feature ${id} not found`)
     }
   }
 
-  const isFeatureEnabled = (id: FeatureId) => features.value.find((f) => f.id === id)?.enabled ?? false
+  const isFeatureEnabled = (id: FeatureId) => featureStates.value[id] ?? false
 
   const initializeFeatures = () => {
     try {

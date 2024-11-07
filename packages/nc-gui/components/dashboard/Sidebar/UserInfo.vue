@@ -192,7 +192,7 @@ const accountUrl = computed(() => {
               <DashboardSidebarEEMenuOption v-if="isEeUI" />
               <NcMenuItem @click="openExpirementationMenu">
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
-                <span class="menu-btn"> {{ $t('general.featureExperimentation') }} </span>
+                <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
 
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl">

@@ -66,7 +66,7 @@ onUnmounted(() => {
       <div>
         <h1 class="text-base text-gray-800 font-semibold">
           <component :is="iconMap.bulb" class="text-gray-500 h-5 mr-1 pb-1" @click="handleClick" />
-          {{ $t('general.featureExperimentation') }}
+          {{ $t('general.featurePreview') }}
         </h1>
         <div class="text-gray-600 leading-5">
           {{ $t('labels.toggleExperimentalFeature') }}

@@ -1,4 +1,3 @@
-import axios from 'axios'
 import type { Api, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
@@ -181,15 +180,18 @@ export function useGridViewData(
             where: where?.value,
             ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
           } as any)
-        : await fetchSharedViewData({
-            sortsArr: sorts.value,
-            filtersArr: nestedFilters.value,
-            where: where?.value,
-            offset: params.offset,
-            limit: params.limit,
-          }, {
-          isInfiniteScroll: true
-        })
+        : await fetchSharedViewData(
+            {
+              sortsArr: sorts.value,
+              filtersArr: nestedFilters.value,
+              where: where?.value,
+              offset: params.offset,
+              limit: params.limit,
+            },
+            {
+              isInfiniteScroll: true,
+            },
+          )
 
       const data = formatData(response.list, response.pageInfo)
 

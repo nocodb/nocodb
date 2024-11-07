@@ -88,34 +88,6 @@ export function useInfiniteData(args: {
 
   const getChunkIndex = (rowIndex: number) => Math.floor(rowIndex / CHUNK_SIZE)
 
-  const syncLocalChunks = (indexes: number | number[], operation: 'create' | 'delete') => {
-    const indexArray = Array.isArray(indexes) ? indexes : [indexes]
-    if (indexArray.length === 0) return
-
-    const affectedChunks = new Set(indexArray.map((index) => getChunkIndex(index)))
-    const maxChunk = getChunkIndex(cachedRows.value.size - 1)
-
-    const cachedKeys = [...cachedRows.value.keys()]
-
-    const hasRowsInChunk = (chunkIndex: number) => {
-      const chunkStart = chunkIndex * CHUNK_SIZE
-      const chunkEnd = (chunkIndex + 1) * CHUNK_SIZE
-      return cachedKeys.some((index) => index >= chunkStart && index < chunkEnd)
-    }
-
-    affectedChunks.forEach((chunkIndex) => {
-      if (operation === 'create') {
-        chunkStates.value[chunkIndex] = 'loaded'
-      } else {
-        chunkStates.value[chunkIndex] = hasRowsInChunk(chunkIndex) ? 'loaded' : undefined
-      }
-    })
-
-    for (let i = Math.max(...affectedChunks) + 1; i <= maxChunk; i++) {
-      chunkStates.value[i] = hasRowsInChunk(i) ? 'loaded' : undefined
-    }
-  }
-
   const fetchChunk = async (chunkId: number) => {
     if (chunkStates.value[chunkId]) return
 
@@ -207,11 +179,13 @@ export function useInfiniteData(args: {
       }
     }
 
+    // Update chunk state for the last shifted row in the chunk
+    chunkStates.value[getChunkIndex(Math.max(...invalidIndexes))] = undefined
+
     cachedRows.value = newCachedRows
 
     totalRows.value = Math.max(0, (totalRows.value || 0) - invalidIndexes.length)
 
-    syncLocalChunks(Math.min(...invalidIndexes), 'delete')
     callbacks?.syncVisibleData?.()
   }
 
@@ -544,7 +518,7 @@ export function useInfiniteData(args: {
         cachedRows.value.set(newIndex, row)
       }
 
-      syncLocalChunks(rowIndex, 'delete')
+      chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
       totalRows.value = (totalRows.value || 0) - 1
 
       await syncCount()
@@ -613,22 +587,21 @@ export function useInfiniteData(args: {
     const newCachedRows = new Map<number, Row>()
     let newIndex = 0
 
-    for (let oldIndex = 0; oldIndex <= maxIndex; oldIndex++) {
-      if (cachedRows.value.has(oldIndex) && !deletedIndexSet.has(oldIndex)) {
-        const row = cachedRows.value.get(oldIndex)!
-        row.rowMeta.rowIndex = newIndex
-        newCachedRows.set(newIndex, row)
-        newIndex++
+    for (let i = 0; i <= maxIndex + 1; i++) {
+      if (cachedRows.value.has(i) && !deletedIndexSet.has(i)) {
+        const row = cachedRows.value.get(i)
+        if (row) {
+          row.rowMeta.rowIndex = newIndex
+          newCachedRows.set(newIndex, row)
+          newIndex++
+        }
       }
     }
 
+    chunkStates.value[getChunkIndex(maxIndex)] = undefined
+
     cachedRows.value = newCachedRows
     totalRows.value = Math.max(0, (totalRows.value || 0) - removedRowsData.length)
-
-    if (deletedIndexes.length > 0) {
-      const firstAffectedChunk = getChunkIndex(Math.min(...deletedIndexes))
-      syncLocalChunks(firstAffectedChunk * CHUNK_SIZE, 'delete')
-    }
 
     addUndo({
       undo: {
@@ -660,22 +633,20 @@ export function useInfiniteData(args: {
           const newCachedRows = new Map<number, Row>()
           let newIndex = 0
 
-          for (let oldIndex = 0; oldIndex <= maxIndex; oldIndex++) {
-            if (cachedRows.value.has(oldIndex) && !deletedIndexSet.has(oldIndex)) {
-              const row = cachedRows.value.get(oldIndex)!
-              row.rowMeta.rowIndex = newIndex
-              newCachedRows.set(newIndex, row)
-              newIndex++
+          for (let i = 0; i <= maxIndex + 1; i++) {
+            if (cachedRows.value.has(i) && !deletedIndexSet.has(i)) {
+              const row = cachedRows.value.get(i)
+              if (row) {
+                row.rowMeta.rowIndex = newIndex
+                newCachedRows.set(newIndex, row)
+                newIndex++
+              }
             }
           }
 
           cachedRows.value = newCachedRows
           totalRows.value = Math.max(0, (totalRows.value || 0) - removedRowsData.length)
-
-          if (deletedIndexes.length > 0) {
-            const firstAffectedChunk = getChunkIndex(Math.min(...deletedIndexes))
-            syncLocalChunks(firstAffectedChunk * CHUNK_SIZE, 'delete')
-          }
+          chunkStates.value[getChunkIndex(maxIndex)] = undefined
           callbacks?.syncVisibleData?.()
           await syncCount()
         },
@@ -774,7 +745,6 @@ export function useInfiniteData(args: {
       }
 
       cachedRows.value.set(insertIndex, currentRow)
-      syncLocalChunks(insertIndex, 'create')
 
       if (!ignoreShifting) {
         totalRows.value++
@@ -871,11 +841,6 @@ export function useInfiniteData(args: {
       cachedRows.value = newCachedRows
 
       totalRows.value += validRowsToInsert.length
-
-      syncLocalChunks(
-        validRowsToInsert.map(({ rowIndex }) => rowIndex),
-        'create',
-      )
 
       await syncCount()
       callbacks?.syncVisibleData?.()
@@ -1329,7 +1294,6 @@ export function useInfiniteData(args: {
 
     if (index !== undefined && row.rowMeta.new) {
       cachedRows.value.delete(index)
-      syncLocalChunks(index, 'delete')
       return true
     }
     return false
@@ -1374,7 +1338,6 @@ export function useInfiniteData(args: {
     clearCache,
     syncCount,
     selectedRows,
-    syncLocalChunks,
     chunkStates,
     isRowSortRequiredRows,
     clearInvalidRows,

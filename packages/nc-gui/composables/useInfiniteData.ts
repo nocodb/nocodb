@@ -169,17 +169,14 @@ export function useInfiniteData(args: {
     }
 
     const newCachedRows = new Map<number, Row>()
-    let newIndex = 0
 
     for (const [oldIndex, row] of sortedEntries) {
       if (!invalidIndexes.includes(oldIndex)) {
-        row.rowMeta.rowIndex = newIndex
+        const newIndex = oldIndex - invalidIndexes.filter((i) => i < oldIndex).length
         newCachedRows.set(newIndex, row)
-        newIndex++
       }
     }
 
-    // Update chunk state for the last shifted row in the chunk
     chunkStates.value[getChunkIndex(Math.max(...invalidIndexes))] = undefined
 
     cachedRows.value = newCachedRows

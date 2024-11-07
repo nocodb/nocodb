@@ -1929,7 +1929,7 @@ watch(
                     <div
                       v-if="row.rowMeta?.isValidationFailed"
                       :style="{
-                        top: `${(index + 1) * rowHeight - 7}px`,
+                        top: `${(index + 1) * rowHeight - 6}px`,
                         zIndex: 100001,
                       }"
                       class="absolute z-30 left-0"
@@ -1954,7 +1954,7 @@ watch(
                     <div
                       v-if="row.rowMeta?.isRowOrderUpdated"
                       :style="{
-                        top: `${(index + 1) * rowHeight - 7}px`,
+                        top: `${(index + 1) * rowHeight - 6}px`,
                         zIndex: 100000,
                       }"
                       class="absolute transform z-30 left-0"
@@ -2598,7 +2598,7 @@ watch(
     content: '';
     position: absolute;
     z-index: 3;
-    height: calc(100% + 2px);
+    height: calc(100%);
     width: calc(100% + 2px);
     left: -1px;
     top: -1px;
@@ -2615,7 +2615,16 @@ watch(
   }
 
   td.active-cell::after {
-    @apply border-1 border-solid text-primary border-current bg-primary bg-opacity-3;
+    @apply bg-opacity-3;
+    content: '';
+    z-index: 200;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: 0 0 0 2px #3366ff !important;
+    border-radius: 2px;
   }
 
   td.filling::after {
@@ -2774,7 +2783,7 @@ watch(
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 97%;
     box-shadow: 0 0 0 2px #fcbe3a !important;
     pointer-events: none;
   }

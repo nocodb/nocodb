@@ -5,7 +5,7 @@
   "description": "url-preview-ee/description.md",
   "entry": "url-preview-ee",
   "version": "0.1",
-  "iconUrl": "url-preview-ee/assets/icon.png",
+  "iconUrl": "url-preview-ee/assets/icon.svg",
   "publisher": {
     "name": "NocoDB",
     "email": "contact@nocodb.com",
@@ -19,7 +19,7 @@
   "links": [],
   "disabled": false,
   "config": {
-    "modalSize": "sm",
+    "modalSize": "md",
     "contentMinHeight": "340px"
   }
 }

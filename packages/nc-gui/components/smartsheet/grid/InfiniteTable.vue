@@ -781,6 +781,10 @@ const {
   bulkUpdateRows,
   fillHandle,
   view,
+  undefined,
+  undefined,
+  undefined,
+  fetchChunk,
 )
 
 function scrollToRow(row?: number) {

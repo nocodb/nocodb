@@ -349,6 +349,8 @@ test.describe('Clipboard support', () => {
 
   test('multiple cells - horizontal, all data types', async ({ page }) => {
     // skip for local run (clipboard access issue in headless mode)
+    // Cmd A or Control A support is removed
+    test.skip();
     if (!process.env.CI && config.use.headless) {
       test.skip();
     }

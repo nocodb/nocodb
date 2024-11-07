@@ -51,7 +51,7 @@ export function useMultiSelect(
   paginationData?: MaybeRef<PaginatedType | undefined>,
   changePage?: (page: number) => void,
   _isGroupBy?: MaybeRef<boolean>,
-  fetchChunk?: Function,
+  fetchChunk?: (chunkId: number) => Promise<void>,
 ) {
   const meta = ref(_meta)
 

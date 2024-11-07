@@ -236,8 +236,6 @@ export function useViewData(
     if (viewMeta.value?.type === ViewTypes.GRID) {
       loadAggCommentsCount()
     }
-
-    return formattedData.value
   }
 
   async function loadGalleryData() {

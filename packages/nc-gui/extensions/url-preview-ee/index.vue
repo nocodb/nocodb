@@ -3,7 +3,7 @@ import { YoutubeVue3 } from 'youtube-vue3'
 
 const { eventBus } = useExtensionHelperOrThrow()
 
-const previewType = ref<'youtube' | 'figma' | 'unsupported'>()
+const previewType = ref<'youtube' | 'figma' | 'google' | 'unsupported'>()
 const previewParams = ref<any>({})
 const showEmptyState = computed(() => !previewType.value)
 
@@ -14,6 +14,28 @@ const matchYT = (url: string) => {
     const match = url.match(YOUTUBE_RE)
     return match ? match[1] : null
   } catch (error) {
+    return null
+  }
+}
+
+const GOOGLE_RE =
+  /^https?:\/\/(docs|drive)\.google\.com\/(document|spreadsheets|presentation|file)\/d\/([a-zA-Z0-9_-]+)(?:\/.*)?(?:\?.*)?$/
+
+const matchGoogle = (url: string) => {
+  try {
+    const match = url.match(GOOGLE_RE)
+    if (!match) {
+      return null
+    }
+    const [, domain, type, docId] = match
+
+    const urlObj = new URL(url)
+    let embedUrl = `https://${domain}.google.com/${type}/d/${docId}/preview`
+    urlObj.searchParams.set('embed', 'true')
+    embedUrl += '?' + urlObj.searchParams.toString()
+
+    return embedUrl;
+  } catch {
     return null
   }
 }
@@ -68,6 +90,10 @@ eventBus.on((event, payload) => {
           const embedURL = matchFigma(selectedValue)
           previewType.value = 'figma'
           previewParams.value = { embedURL }
+        } else if (matchGoogle(selectedValue)) {
+          const embedURL = matchGoogle(selectedValue)
+          previewType.value = 'google';
+          previewParams.value = { embedURL };
         } else {
           previewType.value = 'unsupported'
           previewParams.value = {}
@@ -90,7 +116,7 @@ eventBus.on((event, payload) => {
       </div>
       <!-- @vue-expect-error -->
       <YoutubeVue3 class="w-full h-full" :videoid="previewParams.videoId" :autoplay="0" v-else-if="previewType === 'youtube'" />
-      <iframe class="w-full h-full" :src="previewParams.embedURL" v-else-if="previewType === 'figma'"></iframe>
+      <iframe class="w-full h-full" :src="previewParams.embedURL" v-else-if="previewType === 'figma' || previewType === 'google'"></iframe>
       <div class="w-full text-center" v-else-if="previewType === 'unsupported'">
         <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-8 h-8 flex-none" />
         <div class="mb-2 font-bold">URL not supported</div>

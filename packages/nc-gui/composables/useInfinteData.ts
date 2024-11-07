@@ -44,7 +44,7 @@ export function useInfiniteData(args: {
 
   const cachedRows = ref<Map<number, Row>>(new Map())
 
-  const totalRows = ref(1000)
+  const totalRows = ref(0)
 
   const BUFFER_SIZE = 100
 

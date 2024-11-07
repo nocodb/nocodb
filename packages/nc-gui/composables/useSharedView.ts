@@ -134,6 +134,7 @@ export function useSharedView() {
       /** Query params for nested data */
       nested?: any
       offset?: number
+      limit?: number
     },
     opts?: {
       isGroupBy?: boolean

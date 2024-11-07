@@ -51,6 +51,7 @@ export function useMultiSelect(
   paginationData?: MaybeRef<PaginatedType | undefined>,
   changePage?: (page: number) => void,
   fetchChunk?: (chunkId: number) => Promise<void>,
+  onActiveCellChanged?: () => void,
 ) {
   const meta = ref(_meta)
 
@@ -730,6 +731,7 @@ export function useMultiSelect(
             editEnabled.value = false
           }
         }
+        onActiveCellChanged?.()
         break
       case 'ArrowDown':
         if (e.shiftKey) {
@@ -761,6 +763,7 @@ export function useMultiSelect(
             editEnabled.value = false
           }
         }
+        onActiveCellChanged?.()
         break
       case 'Enter':
         selectedRange.clear()

@@ -934,6 +934,7 @@ export function useInfiniteData(args: {
       throw new Error('Row metadata is missing')
     }
 
+    console.log(JSON.parse(JSON.stringify(row.rowMeta)))
     row.rowMeta.changed = false
 
     await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)

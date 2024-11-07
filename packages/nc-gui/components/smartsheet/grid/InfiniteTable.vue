@@ -632,6 +632,13 @@ const getContainerScrollForElement = (
   return scroll
 }
 
+const onActiveCellChanged = () => {
+  clearInvalidRows?.()
+  if (rowSortRequiredRows.value.length) {
+    applySorting?.(rowSortRequiredRows.value)
+  }
+}
+
 const {
   selectRangeMap,
   fillRangeMap,
@@ -730,6 +737,8 @@ const {
 
           scrollToCell?.(undefined, undefined, 'instant')
           editEnabled.value = false
+          onActiveCellChanged()
+
           return true
         case 'ArrowDown':
           e.preventDefault()
@@ -742,6 +751,8 @@ const {
 
           scrollToCell?.(undefined, undefined, 'instant')
           editEnabled.value = false
+          onActiveCellChanged()
+
           return true
         case 'ArrowRight':
           e.preventDefault()
@@ -839,6 +850,7 @@ const {
   undefined,
   undefined,
   fetchChunk,
+  onActiveCellChanged,
 )
 
 function scrollToRow(row?: number) {
@@ -851,22 +863,6 @@ function scrollToRow(row?: number) {
 async function saveEmptyRow(rowObj: Row) {
   await updateOrSaveRow?.(rowObj)
 }
-
-let disableWatch = false
-
-watch(
-  () => activeCell.row,
-  (newVal, oldVal) => {
-    if (disableWatch) return
-    if (oldVal !== newVal) {
-      clearInvalidRows?.()
-      if (rowSortRequiredRows.value.length) {
-        applySorting?.(rowSortRequiredRows.value)
-      }
-    }
-  },
-  { immediate: true },
-)
 
 let isProcessing = false
 const rowQueue: Array<{
@@ -890,7 +886,6 @@ async function processRowQueue() {
       }
 
       const rowObj = callAddEmptyRow?.(row)
-      disableWatch = true
 
       if (!skipUpdate && rowObj) {
         await saveEmptyRow(rowObj)
@@ -901,11 +896,6 @@ async function processRowQueue() {
       clearSelectedRange()
       selectedRange.startRange({ row: activeCell.row!, col: activeCell.col! })
       scrollToCell?.(row)
-      await nextTick(() => {
-        setTimeout(() => {
-          disableWatch = false
-        }, 200)
-      })
 
       resolve(rowObj)
     }
@@ -1004,6 +994,8 @@ onClickOutside(tableBodyEl, (e) => {
   if (isDrawerOrModalExist()) {
     return
   }
+  onActiveCellChanged()
+
   // clear the active cell and selected range
   clearSelectedRange()
   activeCell.row = null
@@ -1606,6 +1598,10 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
 
 const handleCellClick = (event: MouseEvent, row: number, col: number) => {
   const rowData = cachedRows.value.get(row)
+
+  if (activeCell.row !== row) {
+    onActiveCellChanged()
+  }
 
   if (isMobileMode.value) {
     return expandAndLooseFocus(rowData, fields.value[col])

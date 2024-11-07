@@ -3,7 +3,7 @@ import { YoutubeVue3 } from 'youtube-vue3'
 
 const { eventBus } = useExtensionHelperOrThrow()
 
-const previewType = ref<'youtube' | 'figma' | 'google' | 'vimeo' | 'unsupported'>()
+const previewType = ref<'youtube' | 'figma' | 'google' | 'vimeo' | 'loom' | 'unsupported'>()
 const previewParams = ref<any>({})
 const showEmptyState = computed(() => !previewType.value)
 
@@ -90,6 +90,23 @@ const matchVimeo = (url: string) => {
   }
 }
 
+const LOOM_RE = /^https?:\/\/(www\.|share\.|)loom\.com\/(share|embed)\/([a-zA-Z0-9]+)(?:\?.*)?$/
+const matchLoom = (url: string) => {
+  try {
+    const match = url.match(LOOM_RE)
+
+    if (!match) {
+      return null
+    }
+    const videoId = match[3]
+
+    // Build embed URL
+    return `https://www.loom.com/embed/${videoId}`
+  } catch (error) {
+    return null
+  }
+}
+
 eventBus.on((event, payload) => {
   if (event === SmartsheetStoreEvents.CELL_SELECTED) {
     const selectedValue = payload.val
@@ -112,6 +129,10 @@ eventBus.on((event, payload) => {
         } else if (matchVimeo(selectedValue)) {
           const embedURL = matchVimeo(selectedValue)
           previewType.value = 'vimeo'
+          previewParams.value = { embedURL }
+        } else if (matchLoom(selectedValue)) {
+          const embedURL = matchLoom(selectedValue)
+          previewType.value = 'loom'
           previewParams.value = { embedURL }
         } else {
           previewType.value = 'unsupported'
@@ -138,7 +159,7 @@ eventBus.on((event, payload) => {
       <iframe
         class="w-full h-full"
         :src="previewParams.embedURL"
-        v-else-if="previewType === 'figma' || previewType === 'google' || previewType === 'vimeo'"
+        v-else-if="previewType === 'figma' || previewType === 'google' || previewType === 'vimeo' || previewType === 'loom'"
       ></iframe>
       <div class="w-full text-center" v-else-if="previewType === 'unsupported'">
         <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-8 h-8 flex-none" />

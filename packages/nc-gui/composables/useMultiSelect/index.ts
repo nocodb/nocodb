@@ -999,118 +999,83 @@ export function useMultiSelect(
                     activeCell: Cell,
                     col: ColumnType,
                     row: Row,
-                    pg: PaginatedType,
                     value: number,
                     result: { link: any[]; unlink: any[] },
                   ) => {
-                    if (paginationDataRef.value?.pageSize === pg?.pageSize) {
-                      if (paginationDataRef.value?.page !== pg?.page) {
-                        await changePage?.(pg?.page)
-                      }
-                      const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                      const rowObj = unref(data)[activeCell.row]
-                      const columnObj = unref(fields)[activeCell.col]
-                      if (
-                        pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                        columnObj.id === col.id
-                      ) {
-                        await Promise.all([
-                          result.link.length &&
-                            api.dbDataTableRow.nestedLink(
-                              meta.value?.id as string,
-                              columnObj.id as string,
-                              encodeURIComponent(pasteRowPk),
-                              result.link,
-                              {
-                                viewId: activeView?.value?.id,
-                              },
-                            ),
-                          result.unlink.length &&
-                            api.dbDataTableRow.nestedUnlink(
-                              meta.value?.id as string,
-                              columnObj.id as string,
-                              encodeURIComponent(pasteRowPk),
-                              result.unlink,
-                              { viewId: activeView?.value?.id },
-                            ),
-                        ])
+                    const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                    const rowObj = unref(data)[activeCell.row]
+                    const columnObj = unref(fields)[activeCell.col]
+                    if (
+                      pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+                      columnObj.id === col.id
+                    ) {
+                      await Promise.all([
+                        result.link.length &&
+                          api.dbDataTableRow.nestedLink(
+                            meta.value?.id as string,
+                            columnObj.id as string,
+                            encodeURIComponent(pasteRowPk),
+                            result.link,
+                            {
+                              viewId: activeView?.value?.id,
+                            },
+                          ),
+                        result.unlink.length &&
+                          api.dbDataTableRow.nestedUnlink(
+                            meta.value?.id as string,
+                            columnObj.id as string,
+                            encodeURIComponent(pasteRowPk),
+                            result.unlink,
+                            { viewId: activeView?.value?.id },
+                          ),
+                      ])
 
-                        rowObj.row[columnObj.title!] = value
+                      rowObj.row[columnObj.title!] = value
 
-                        await syncCellData?.(activeCell)
-                      } else {
-                        throw new Error(t('msg.recordCouldNotBeFound'))
-                      }
-                    } else {
-                      throw new Error(t('msg.pageSizeChanged'))
+                      await syncCellData?.(activeCell)
                     }
                   },
-                  args: [
-                    clone(activeCell),
-                    clone(columnObj),
-                    clone(rowObj),
-                    clone(paginationDataRef.value),
-                    clone(pasteVal.value),
-                    result,
-                  ],
+                  args: [clone(activeCell), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
                 },
                 undo: {
                   fn: async (
                     activeCell: Cell,
                     col: ColumnType,
                     row: Row,
-                    pg: PaginatedType,
                     value: number,
                     result: { link: any[]; unlink: any[] },
                   ) => {
-                    if (paginationDataRef.value?.pageSize === pg.pageSize) {
-                      if (paginationDataRef.value?.page !== pg.page) {
-                        await changePage?.(pg.page!)
-                      }
+                    const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                    const rowObj = unref(data)[activeCell.row]
+                    const columnObj = unref(fields)[activeCell.col]
 
-                      const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                      const rowObj = unref(data)[activeCell.row]
-                      const columnObj = unref(fields)[activeCell.col]
+                    if (
+                      pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+                      columnObj.id === col.id
+                    ) {
+                      await Promise.all([
+                        result.unlink.length &&
+                          api.dbDataTableRow.nestedLink(
+                            meta.value?.id as string,
+                            columnObj.id as string,
+                            encodeURIComponent(pasteRowPk),
+                            result.unlink,
+                          ),
+                        result.link.length &&
+                          api.dbDataTableRow.nestedUnlink(
+                            meta.value?.id as string,
+                            columnObj.id as string,
+                            encodeURIComponent(pasteRowPk),
+                            result.link,
+                          ),
+                      ])
 
-                      if (
-                        pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
-                        columnObj.id === col.id
-                      ) {
-                        await Promise.all([
-                          result.unlink.length &&
-                            api.dbDataTableRow.nestedLink(
-                              meta.value?.id as string,
-                              columnObj.id as string,
-                              encodeURIComponent(pasteRowPk),
-                              result.unlink,
-                            ),
-                          result.link.length &&
-                            api.dbDataTableRow.nestedUnlink(
-                              meta.value?.id as string,
-                              columnObj.id as string,
-                              encodeURIComponent(pasteRowPk),
-                              result.link,
-                            ),
-                        ])
+                      rowObj.row[columnObj.title!] = value
 
-                        rowObj.row[columnObj.title!] = value
-
-                        await syncCellData?.(activeCell)
-                      } else {
-                        throw new Error(t('msg.recordCouldNotBeFound'))
-                      }
-                    } else {
-                      throw new Error(t('msg.pageSizeChanged'))
+                      await syncCellData?.(activeCell)
                     }
                   },
-                  args: [
-                    clone(activeCell),
-                    clone(columnObj),
-                    clone(rowObj),
-                    clone(paginationDataRef.value),
-                    clone(oldCellValue),
-                    result,
-                  ],
+                  args: [clone(activeCell), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
                 },
                 scope: defineViewScope({ view: activeView?.value }),
               })

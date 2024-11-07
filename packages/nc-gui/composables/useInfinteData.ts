@@ -45,7 +45,7 @@ export function useInfiniteData(args: {
 
   const bufferSize = 100
 
-  const maxCacheSize = 300
+  const maxCacheSize = 1000
 
   // Keep track of deleted rows
   const deletedRows = ref(new Set<number>())
@@ -82,9 +82,9 @@ export function useInfiniteData(args: {
   }
 
   const clearCache = (visibleStartIndex: number, visibleEndIndex: number) => {
-    console.log('cacheCleared')
     if (visibleEndIndex === Number.POSITIVE_INFINITY && visibleStartIndex === Number.NEGATIVE_INFINITY) {
       cachedLocalRows.value = {}
+      return
     }
 
     const cacheSize = Object.keys(cachedLocalRows.value).length
@@ -94,12 +94,15 @@ export function useInfiniteData(args: {
     const safeStartIndex = Math.max(0, visibleStartIndex - bufferSize)
     const safeEndIndex = Math.min(totalRows.value - 1, visibleEndIndex + bufferSize)
 
-    const toRemove = []
+    const toRemove: number[] = []
+    const cachedIndices = Object.keys(cachedLocalRows.value)
+      .map(Number)
+      .sort((a, b) => a - b)
 
-    for (const [indexStr, row] of Object.entries(cachedLocalRows.value)) {
-      const index = Number(indexStr)
+    for (const index of cachedIndices) {
       if (index < safeStartIndex || index > safeEndIndex) {
-        if (!row.rowMeta.selected) {
+        const row = cachedLocalRows.value[index]
+        if (!row.rowMeta.selected && !row.rowMeta.new) {
           toRemove.push(index)
           if (toRemove.length >= itemsToRemove) break
         }
@@ -110,6 +113,10 @@ export function useInfiniteData(args: {
       delete cachedLocalRows.value[index]
     }
   }
+
+  const selectedRows = computed<Row[]>(() => {
+    return Object.values(cachedLocalRows).filter((row) => row.rowMeta?.selected)
+  })
 
   function addEmptyRow(addAfter = totalRows.value, metaValue = meta.value) {
     const newIndex = addAfter + 1
@@ -932,5 +939,6 @@ export function useInfiniteData(args: {
     clearCache,
     getRowByVirtualIndex,
     syncCount,
+    selectedRows,
   }
 }

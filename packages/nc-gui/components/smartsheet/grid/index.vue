@@ -35,9 +35,8 @@ useProvideViewAggregate(view, meta, xWhere)
 
 const {
   loadData,
-  paginationData,
+  selectedRows,
   updateOrSaveRow,
-  changePage,
   addEmptyRow: _addEmptyRow,
   deleteRow,
   deleteSelectedRows,
@@ -248,7 +247,8 @@ onMounted(() => {
       :sync-count="syncCount"
       :expand-form="expandForm"
       :remove-row-if-new="removeRowIfNew"
-      :row-height="rowHeight"
+      :row-height-enum="rowHeight"
+      :selected-rows="selectedRows"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
     />

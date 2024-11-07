@@ -112,9 +112,17 @@ const isUpdating = ref(false)
 const systemFieldsIds = computed(() => getSystemColumnsIds(meta.value?.columns || []))
 
 const bulkUpdateColumns = computed(() => {
-  return (meta.value?.columns || []).filter((c) => {
-    return !hiddenColTypes.includes(c.uidt) && !systemFieldsIds.value.includes(c.id)
-  })
+  return (meta.value?.columns || [])
+    .filter((c) => {
+      return !hiddenColTypes.includes(c.uidt) && !systemFieldsIds.value.includes(c.id)
+    })
+    .map((c) => {
+      const disabled = c.uidt === UITypes.Attachment
+
+      const tooltip = c.uidt === UITypes.Attachment ? 'Not supported' : ''
+
+      return { ...c, disabled, tooltip }
+    })
 })
 
 const savedPayloads = ref<BulkUpdatePayloadType>(bulkUpdatePayloadPlaceholder)
@@ -709,9 +717,12 @@ provide(IsGalleryInj, ref(false))
             'max-h-[calc(100%_-_25px)]': !fullscreen,
           }"
         >
-          <div class="flex-1 flex flex-col gap-6 w-full" :class="{
-            'max-w-[520px] mx-auto': fullscreen
-          }">
+          <div
+            class="flex-1 flex flex-col gap-6 w-full"
+            :class="{
+              'max-w-[520px] mx-auto': fullscreen,
+            }"
+          >
             <div v-if="fullscreen" class="flex items-center gap-3">
               <NcBadge color="brand" :border="false">23 records</NcBadge>
               <div class="text-nc-content-gray-subtle2">
@@ -830,24 +841,36 @@ provide(IsGalleryInj, ref(false))
                           v-for="(col, i) of bulkUpdateColumns"
                           :key="i"
                           :value="col.id"
-                          :disabled="!!fieldConfigMapByColumnId[col.id!]"
+                          :disabled="col.disabled || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
                         >
-                          <div class="flex items-center gap-2 w-full">
-                            <component :is="getUIDTIcon(UITypes[col.uidt])" class="h-3.5 w-3.5" />
+                          <NcTooltip
+                            class="w-full"
+                            :disabled="!(col.disabled || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id))"
+                          >
+                            <template #title>
+                              {{ col.disabled ? col.tooltip : 'Already added' }}
+                            </template>
+                            <div class="flex items-center gap-2 w-full">
+                              <component :is="getUIDTIcon(UITypes[col.uidt])" class="h-3.5 w-3.5" />
 
-                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                              <template #title>
+                              <NcTooltip
+                                class="truncate flex-1"
+                                :disabled="col.disabled || !col.tooltip || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
+                                show-on-truncate-only
+                              >
+                                <template #title>
+                                  {{ col.title }}
+                                </template>
                                 {{ col.title }}
-                              </template>
-                              {{ col.title }}
-                            </NcTooltip>
-                            <component
-                              :is="iconMap.check"
-                              v-if="fieldConfig.columnId === col.id"
-                              id="nc-selected-item-icon"
-                              class="flex-none text-primary w-4 h-4"
-                            />
-                          </div>
+                              </NcTooltip>
+                              <component
+                                :is="iconMap.check"
+                                v-if="fieldConfig.columnId === col.id"
+                                id="nc-selected-item-icon"
+                                class="flex-none text-primary w-4 h-4"
+                              />
+                            </div>
+                          </NcTooltip>
                         </a-select-option>
                       </NcSelect>
                     </a-form-item>

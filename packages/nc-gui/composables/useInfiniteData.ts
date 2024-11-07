@@ -258,8 +258,7 @@ export function useInfiniteData(args: {
   }
 
   const applySorting = () => {
-    const existingIndices = Array.from(cachedRows.value.keys()).sort((a, b) => a - b)
-    if (existingIndices.length === 0) {
+    if (!sorts.value.length) {
       return cachedRows.value
     }
 
@@ -281,27 +280,21 @@ export function useInfiniteData(args: {
           options: { direction },
         })
 
-        if (comparison !== 0) return comparison
+        return comparison
       }
       return a.originalIndex - b.originalIndex
     })
 
     const newCachedRows = new Map<number, Row>()
-    let nextIndex = 0
 
-    rowsArray.forEach((item) => {
-      while (
-        nextIndex < existingIndices[existingIndices.length - 1] &&
-        cachedRows.value.has(nextIndex) &&
-        newCachedRows.has(nextIndex)
-      ) {
-        nextIndex++
-      }
-
+    rowsArray.forEach((item, index) => {
       const updatedRow = { ...item.row }
-      updatedRow.rowMeta = { ...updatedRow.rowMeta, rowIndex: nextIndex, isRowOrderUpdated: false }
-      newCachedRows.set(nextIndex, updatedRow)
-      nextIndex++
+      updatedRow.rowMeta = {
+        ...updatedRow.rowMeta,
+        rowIndex: index,
+        isRowOrderUpdated: false,
+      }
+      newCachedRows.set(index, updatedRow)
     })
 
     cachedRows.value = newCachedRows
@@ -994,6 +987,7 @@ export function useInfiniteData(args: {
         undo: {
           fn: async (undoRows: Row[], props: string[]) => {
             await bulkUpdateRows(undoRows, props, undefined, true)
+            applySorting()
           },
           args: [clone(rows.map((row) => ({ row: row.oldRow, oldRow: row.row, rowMeta: row.rowMeta }))), props],
         },
@@ -1006,6 +1000,10 @@ export function useInfiniteData(args: {
         scope: defineViewScope({ view: viewMeta.value }),
       })
     }
+
+    await nextTick(() => {
+      applySorting()
+    })
   }
 
   async function bulkUpdateView(

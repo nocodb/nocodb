@@ -64,7 +64,7 @@ const syncValue = useDebounceFn(
     currentRow.value.rowMeta.changed = false
     emit('save')
   },
-  1000,
+  500,
   { maxWait: 2000 },
 )
 

@@ -843,7 +843,7 @@ async function addEmptyRow(row?: number, skipUpdate: boolean = false) {
   disableWatch = true
   setTimeout(() => {
     disableWatch = false
-  }, 1000)
+  }, 200)
 
   if (!skipUpdate && rowObj) {
     await saveEmptyRow(rowObj)
@@ -1529,7 +1529,7 @@ watch(
     if (disableWatch) return
     if (oldVal !== newVal) {
       clearInvalidRows?.()
-      if (rowSortRequiredRows.value) {
+      if (rowSortRequiredRows.value.length) {
         applySorting?.()
       }
     }

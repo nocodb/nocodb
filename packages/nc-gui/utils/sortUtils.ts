@@ -1,5 +1,4 @@
-import type { ColumnType, SortType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { type ColumnType, type SortType, UITypes } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
 export const getSortDirectionOptions = (uidt: UITypes | string, isGroupBy?: boolean) => {
@@ -47,17 +46,22 @@ export const sortByUIType = ({
   uidt,
   a,
   b,
-  options: { nullsLast = true, caseSensitive = false, direction = 'asc' },
+  options: { caseSensitive = true, direction },
 }: {
   uidt: UITypes
   a: any
   b: any
   options: {
-    nullsLast?: boolean
     caseSensitive?: boolean
     direction?: 'asc' | 'desc'
   }
 }) => {
+  let nullsLast = direction !== 'asc'
+
+  if ([UITypes.Formula, UITypes.User].includes(uidt)) {
+    nullsLast = !nullsLast
+  }
+
   if (a === null || a === undefined) {
     return nullsLast ? 1 : -1
   }
@@ -110,9 +114,44 @@ export const sortByUIType = ({
     case UITypes.LastModifiedTime:
       result = dayjs(a).valueOf() - dayjs(b).valueOf()
       break
-    case UITypes.Time:
-      result = dayjs(`2000-01-01 ${a}`).valueOf() - dayjs(`2000-01-01 ${b}`).valueOf()
+    case UITypes.Time: {
+      const normalizeTimeValue = (value: any): dayjs.Dayjs => {
+        // If it's already a dayjs object
+        if (dayjs.isDayjs(value)) {
+          return dayjs(`1999-01-01 ${value.format('HH:mm:ss')}`)
+        }
+
+        // If it's a string in HH:mm:ss format (from server)
+        if (typeof value === 'string' && /^\d{2}:\d{2}:\d{2}$/.test(value)) {
+          return dayjs(`1999-01-01 ${value}`)
+        }
+
+        // If it's a string in HH:mm format (from local state)
+        if (typeof value === 'string' && /^\d{2}:\d{2}$/.test(value)) {
+          return dayjs(`1999-01-01 ${value}:00`)
+        }
+
+        // For any other format, try parsing with dayjs
+        let parsed = dayjs(value)
+
+        // If not valid, try parsing as time only
+        if (!parsed.isValid()) {
+          parsed = dayjs(value, 'HH:mm:ss')
+        }
+
+        // If still not valid, try with dummy date
+        if (!parsed.isValid()) {
+          parsed = dayjs(`1999-01-01 ${value}`)
+        }
+
+        return parsed
+      }
+
+      const timeA = normalizeTimeValue(a)
+      const timeB = normalizeTimeValue(b)
+      result = timeA.valueOf() - timeB.valueOf()
       break
+    }
 
     case UITypes.Year:
       result = Number(a) - Number(b)
@@ -173,28 +212,6 @@ export const sortByUIType = ({
   }
 
   return direction === 'desc' ? -result : result
-}
-
-export const createSortFunction = ({
-  field,
-  uidt,
-  options = {},
-}: {
-  field: string
-  uidt: UITypes
-  options?: {
-    nullsLast?: boolean
-    caseSensitive?: boolean
-    direction?: 'asc' | 'desc'
-  }
-}) => {
-  return (a: any, b: any) =>
-    sortByUIType({
-      uidt,
-      a: a[field],
-      b: b[field],
-      options,
-    })
 }
 
 export const isSortRelevantChange = (

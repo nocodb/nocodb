@@ -852,8 +852,7 @@ const isSelectedOnlyAI = computed(() => {
   if (selectedRange.start.col === selectedRange.end.col) {
     const field = fields.value[selectedRange.start.col]
     return {
-      enabled:
-        (field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai),
+      enabled: field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai,
       disabled: !ncIsArrayIncludes(aiIntegrations.value, (field?.colOptions as ButtonType)?.fk_integration_id, 'id'),
     }
   }

@@ -3,7 +3,7 @@ import { YoutubeVue3 } from 'youtube-vue3'
 
 const { eventBus } = useExtensionHelperOrThrow()
 
-const previewType = ref<'youtube' | 'figma' | 'google' | 'vimeo' | 'loom' | 'spotify' | 'unsupported'>()
+const previewType = ref<'youtube' | 'figma' | 'google' | 'vimeo' | 'loom' | 'spotify' | 'soundcloud' | 'unsupported'>()
 const previewParams = ref<any>({})
 const showEmptyState = computed(() => !previewType.value)
 
@@ -121,6 +121,19 @@ const matchSpotify = (url: string) => {
   }
 }
 
+const SOUNDCLOUD_RE = /^https?:\/\/(www\.|)soundcloud\.com\/([a-zA-Z0-9-_]+)(\/[a-zA-Z0-9-_]+)?(?:\?.*)?$/
+const matchSoundCloud = (url: string) => {
+  try {
+    const match = url.match(SOUNDCLOUD_RE)
+    if (!match) {
+      return null
+    }
+    return `https://w.soundcloud.com/player/?url=${url}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`
+  } catch (error) {
+    return null
+  }
+}
+
 eventBus.on((event, payload) => {
   if (event === SmartsheetStoreEvents.CELL_SELECTED) {
     const selectedValue = payload.val
@@ -152,6 +165,10 @@ eventBus.on((event, payload) => {
           const embedURL = matchSpotify(selectedValue)
           previewType.value = 'spotify'
           previewParams.value = { embedURL }
+        } else if (matchSoundCloud(selectedValue)) {
+          const embedURL = matchSoundCloud(selectedValue)
+          previewType.value = 'soundcloud'
+          previewParams.value = { embedURL }
         } else {
           previewType.value = 'unsupported'
           previewParams.value = {}
@@ -177,7 +194,14 @@ eventBus.on((event, payload) => {
       <iframe
         class="w-full h-full"
         :src="previewParams.embedURL"
-        v-else-if="previewType === 'figma' || previewType === 'google' || previewType === 'vimeo' || previewType === 'loom' || previewType === 'spotify'"
+        v-else-if="
+          previewType === 'figma' ||
+          previewType === 'google' ||
+          previewType === 'vimeo' ||
+          previewType === 'loom' ||
+          previewType === 'spotify' ||
+          previewType === 'soundcloud'
+        "
       ></iframe>
       <div class="w-full text-center" v-else-if="previewType === 'unsupported'">
         <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-8 h-8 flex-none" />

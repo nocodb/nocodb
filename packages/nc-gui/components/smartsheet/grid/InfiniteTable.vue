@@ -724,6 +724,10 @@ const {
           clearSelectedRange()
           activeCell.row = 0
           activeCell.col = activeCell.col ?? 0
+
+          selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+          selectedRange.endRange({ row: activeCell.row, col: activeCell.col })
+
           scrollToCell?.(undefined, undefined, 'instant')
           editEnabled.value = false
           return true
@@ -732,6 +736,10 @@ const {
           clearSelectedRange()
           activeCell.row = totalRows.value - 1
           activeCell.col = activeCell.col ?? 0
+
+          selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+          selectedRange.endRange({ row: activeCell.row, col: activeCell.col })
+
           scrollToCell?.(undefined, undefined, 'instant')
           editEnabled.value = false
           return true
@@ -740,6 +748,10 @@ const {
           clearSelectedRange()
           activeCell.row = activeCell.row ?? 0
           activeCell.col = fields.value?.length - 1
+
+          selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+          selectedRange.endRange({ row: activeCell.row, col: activeCell.col })
+
           scrollToCell?.()
           editEnabled.value = false
           return true
@@ -748,6 +760,10 @@ const {
           clearSelectedRange()
           activeCell.row = activeCell.row ?? 0
           activeCell.col = 0
+
+          selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
+          selectedRange.endRange({ row: activeCell.row, col: activeCell.col })
+
           scrollToCell?.()
           editEnabled.value = false
           return true

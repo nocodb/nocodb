@@ -437,8 +437,14 @@ export function useMultiSelect(
       // fill is not supported for new rows yet
       if (rw.rowMeta.new) return
 
-      fillRange.endRange({ row, col: selectedRange._end.col })
-      scrollToCell?.(row, col)
+      const endRow = Math.min(selectedRange._start.row + 100, row)
+
+      fillRange.endRange({
+        row: endRow,
+        col: selectedRange._end.col,
+      })
+
+      scrollToCell?.(endRow, col)
       return
     }
 
@@ -748,8 +754,7 @@ export function useMultiSelect(
           scrollToCell?.(limitedEnd.row, limitedEnd.col, 'instant')
         } else {
           selectedRange.clear()
-
-          if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1) {
+          if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!))) {
             activeCell.row++
             selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
             scrollToCell?.()

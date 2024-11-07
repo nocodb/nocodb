@@ -1871,8 +1871,8 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
                     <tr
                       class="nc-grid-row transition transition-opacity opacity-100 !xs:h-14"
                       :style="{
-                        transform: `translateY(${rowSlice.start * rowHeight}px)`,
                         height: `${rowHeight}px`,
+                        transform: `translateY(${rowSlice.start * rowHeight}px)`,
                       }"
                       :data-testid="`grid-row-${index}`"
                       :class="{

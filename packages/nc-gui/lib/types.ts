@@ -78,6 +78,7 @@ interface Row {
     rowIndex?: number
     isLoading?: boolean
     isValidationFailed?: boolean
+    isRowOrderUpdated?: boolean
 
     new?: boolean
     selected?: boolean

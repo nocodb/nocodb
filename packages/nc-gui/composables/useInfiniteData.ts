@@ -51,12 +51,19 @@ export function useInfiniteData(args: {
 
   const { fetchCount } = useSharedView()
 
-  const { nestedFilters, allFilters, xWhere } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, allFilters, xWhere, sorts } = useSmartsheetStoreOrThrow()
 
   const columnsByAlias = computed(() => {
     if (!meta.value?.columns?.length) return {}
     return meta.value?.columns.reduce((acc, column) => {
       acc[column.title!] = column
+      return acc
+    }, {} as Record<string, ColumnType>)
+  })
+  const columnsById = computed(() => {
+    if (!meta.value?.columns?.length) return {}
+    return meta.value?.columns.reduce((acc, column) => {
+      acc[column.id!] = column
       return acc
     }, {} as Record<string, ColumnType>)
   })
@@ -142,6 +149,10 @@ export function useInfiniteData(args: {
     return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.selected)
   })
 
+  const isRowSortRequiredRows = computed(() => {
+    return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated)
+  })
+
   function clearInvalidRows() {
     const sortedEntries = Array.from(cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
 
@@ -170,6 +181,130 @@ export function useInfiniteData(args: {
 
     syncLocalChunks(Math.min(...invalidIndexes), 'delete')
     callbacks?.syncVisibleData?.()
+  }
+
+  const willSortOrderChange = ({ row, newData }: { row: Row; newData: Record<string, any> }): boolean => {
+    if (!sorts.value.length) return false
+
+    const currentIndex = row.rowMeta.rowIndex!
+    if (currentIndex === undefined) return true
+
+    const indices = Array.from(cachedRows.value.keys()).sort((a, b) => a - b)
+    const currentPos = indices.indexOf(currentIndex)
+    const prevRow = currentPos > 0 ? cachedRows.value.get(indices[currentPos - 1]) : null
+    const nextRow = currentPos < indices.length - 1 ? cachedRows.value.get(indices[currentPos + 1]) : null
+
+    const updatedRow = {
+      ...row,
+      row: {
+        ...row.row,
+        ...newData,
+      },
+    }
+
+    if (prevRow) {
+      let shouldBeBefore = false
+      let isDifferent = false
+
+      for (const sort of sorts.value) {
+        const column = columnsById.value[sort.fk_column_id!]
+        if (!column?.title) continue
+
+        const direction = sort.direction || 'asc'
+        const comparison = sortByUIType({
+          uidt: column.uidt as UITypes,
+          a: updatedRow.row[column.title],
+          b: prevRow.row[column.title],
+          options: { direction },
+        })
+
+        if (comparison !== 0) {
+          isDifferent = true
+          shouldBeBefore = comparison < 0
+          break
+        }
+      }
+
+      if (isDifferent && shouldBeBefore) return true
+    }
+
+    if (nextRow) {
+      let shouldBeAfter = false
+      let isDifferent = false
+
+      for (const sort of sorts.value) {
+        const column = columnsById.value[sort.fk_column_id!]
+        if (!column?.title) continue
+
+        const direction = sort.direction || 'asc'
+        const comparison = sortByUIType({
+          uidt: column.uidt as UITypes,
+          a: updatedRow.row[column.title],
+          b: nextRow.row[column.title],
+          options: { direction },
+        })
+
+        if (comparison !== 0) {
+          isDifferent = true
+          shouldBeAfter = comparison > 0
+          break
+        }
+      }
+
+      if (isDifferent && shouldBeAfter) return true
+    }
+
+    return false
+  }
+
+  const applySorting = () => {
+    const existingIndices = Array.from(cachedRows.value.keys()).sort((a, b) => a - b)
+    if (existingIndices.length === 0) {
+      return cachedRows.value
+    }
+
+    const rowsArray = Array.from(cachedRows.value.entries()).map(([index, row]) => ({
+      originalIndex: index,
+      row,
+    }))
+
+    rowsArray.sort((a, b) => {
+      for (const sort of sorts.value) {
+        const column = columnsById.value[sort.fk_column_id!]
+        if (!column?.title) continue
+
+        const direction = sort.direction || 'asc'
+        const comparison = sortByUIType({
+          uidt: column.uidt as UITypes,
+          a: a.row.row[column.title],
+          b: b.row.row[column.title],
+          options: { direction },
+        })
+
+        if (comparison !== 0) return comparison
+      }
+      return a.originalIndex - b.originalIndex
+    })
+
+    const newCachedRows = new Map<number, Row>()
+    let nextIndex = 0
+
+    rowsArray.forEach((item) => {
+      while (
+        nextIndex < existingIndices[existingIndices.length - 1] &&
+        cachedRows.value.has(nextIndex) &&
+        newCachedRows.has(nextIndex)
+      ) {
+        nextIndex++
+      }
+
+      const updatedRow = { ...item.row }
+      updatedRow.rowMeta = { ...updatedRow.rowMeta, rowIndex: nextIndex, isRowOrderUpdated: false }
+      newCachedRows.set(nextIndex, updatedRow)
+      nextIndex++
+    })
+
+    cachedRows.value = newCachedRows
   }
 
   function addEmptyRow(newRowIndex = totalRows.value, metaValue = meta.value) {
@@ -771,12 +906,32 @@ export function useInfiniteData(args: {
       meta.value?.columns as ColumnType[],
       getBaseType(viewMeta.value?.view.source_id),
     )
+
+    let data
+
     if (row.rowMeta.new) {
-      await insertRow(row, ltarState, args, false, true)
+      data = await insertRow(row, ltarState, args, false, true)
     } else if (property) {
-      await updateRowProperty(row, property, args)
+      data = await updateRowProperty(row, property, args)
     }
 
+    const changedFields = property ? [property] : Object.keys(row.row)
+
+    if (isSortRelevantChange(changedFields, sorts.value, columnsById.value)) {
+      const needsResorting = willSortOrderChange({
+        row,
+        newData: data,
+        sorts: sorts.value,
+        columnsById: columnsById.value,
+        cachedRows: cachedRows.value,
+      })
+
+      if (needsResorting) {
+        const newRow = cachedRows.value.get(row.rowMeta.rowIndex!)
+        newRow.rowMeta.isRowOrderUpdated = needsResorting
+      }
+      callbacks?.syncVisibleData?.()
+    }
     callbacks?.syncVisibleData?.()
   }
 
@@ -1144,6 +1299,8 @@ export function useInfiniteData(args: {
     selectedRows,
     syncLocalChunks,
     chunkStates,
+    isRowSortRequiredRows,
     clearInvalidRows,
+    applySorting,
   }
 }

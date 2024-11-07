@@ -57,6 +57,8 @@ const {
   isFirstRow,
   chunkStates,
   clearInvalidRows,
+  isRowSortRequiredRows,
+  applySorting,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
@@ -278,6 +280,7 @@ const {
       :update-or-save-row="updateOrSaveRow"
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
+      :apply-sorting="applySorting"
       :bulk-update-rows="bulkUpdateRows"
       :clear-cache="clearCache"
       :clear-invalid-rows="clearInvalidRows"
@@ -289,6 +292,7 @@ const {
       :remove-row-if-new="removeRowIfNew"
       :row-height-enum="rowHeight"
       :selected-rows="selectedRows"
+      :row-sort-required-rows="isRowSortRequiredRows"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
     />

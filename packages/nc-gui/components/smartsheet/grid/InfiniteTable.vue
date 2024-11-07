@@ -41,6 +41,8 @@ const props = defineProps<{
   ) => Promise<void>
   expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   removeRowIfNew?: (row: Row) => void
+  rowSortRequiredRows: Row[]
+  applySorting?: () => void
   clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
   syncCount: () => Promise<void>
   selectedRows: Array<Row>
@@ -61,6 +63,7 @@ const {
   deleteRangeOfRows,
   removeRowIfNew,
   clearInvalidRows,
+  applySorting,
 } = props
 
 // Injections
@@ -183,6 +186,8 @@ const onXcStartResizing = (cn: string | undefined, event: any) => {
 }
 
 const cachedRows = toRef(props, 'data')
+
+const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
 
 const totalRows = toRef(props, 'totalRows')
 
@@ -1524,6 +1529,9 @@ watch(
     if (disableWatch) return
     if (oldVal !== newVal) {
       clearInvalidRows?.()
+      if (rowSortRequiredRows.value) {
+        applySorting?.()
+      }
     }
   },
   { immediate: true },
@@ -1936,6 +1944,23 @@ watch(
                         <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
                       </NcTooltip>
                     </div>
+                    <div
+                      v-if="row.rowMeta?.isRowOrderUpdated"
+                      :style="{
+                        left: `${leftOffset}px`,
+                        top: `${(index + 1) * rowHeight}px`,
+                        zIndex: 100000,
+                      }"
+                      class="absolute bg-yellow-500 px-2 font-semibold py-1 z-30 left-0 rounded-br-md flex text-xs items-center gap-2 text-gray-800"
+                    >
+                      Row moved
+
+                      <NcTooltip>
+                        <template #title> This row will move to its new position when you select another row </template>
+
+                        <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
+                      </NcTooltip>
+                    </div>
                     <tr
                       class="nc-grid-row transition transition-opacity duration-500 opacity-100 !xs:h-14"
                       :style="{
@@ -1947,7 +1972,7 @@ watch(
                           activeCell.row === row.rowMeta.rowIndex || selectedRange._start?.row === row.rowMeta.rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,
                         'selected-row': row.rowMeta.selected,
-                        'invalid-row': row.rowMeta?.isValidationFailed,
+                        'invalid-row': row.rowMeta?.isValidationFailed || row.rowMeta?.isRowOrderUpdated,
                       }"
                     >
                       <td

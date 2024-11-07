@@ -85,7 +85,9 @@ export function useGridViewData(
     syncCount,
     selectedRows,
     chunkStates,
+    isRowSortRequiredRows,
     clearInvalidRows,
+    applySorting,
   } = useInfiniteData({
     meta,
     viewMeta,
@@ -295,5 +297,7 @@ export function useGridViewData(
     syncVisibleData,
     chunkStates,
     clearInvalidRows,
+    applySorting,
+    isRowSortRequiredRows,
   }
 }

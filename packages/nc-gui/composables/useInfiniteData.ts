@@ -668,17 +668,6 @@ export function useInfiniteData(args: {
 
       const insertIndex = currentRow.rowMeta.rowIndex!
 
-      if (cachedRows.value.has(insertIndex) && !ignoreShifting) {
-        const rows = Array.from(cachedRows.value.entries())
-        const rowsToShift = rows.filter(([index]) => index >= insertIndex)
-        rowsToShift.sort((a, b) => b[0] - a[0]) // Sort in descending order
-
-        for (const [index, row] of rowsToShift) {
-          row.rowMeta.rowIndex = index + 1
-          cachedRows.value.set(index + 1, row)
-        }
-      }
-
       if (!undo) {
         Object.assign(currentRow.oldRow, insertedData)
 
@@ -687,7 +676,16 @@ export function useInfiniteData(args: {
 
         addUndo({
           undo: {
-            fn: async (id: string) => {
+            fn: async (
+              id: string,
+              tempLocalCache: Map<number, Row>,
+              tempTotalRows: number,
+              tempChunkStates: Array<'loading' | 'loaded' | undefined>,
+            ) => {
+              cachedRows.value = new Map(tempLocalCache)
+              totalRows.value = tempTotalRows
+              chunkStates.value = tempChunkStates
+
               await deleteRowById(id)
               cachedRows.value.delete(insertIndex)
 
@@ -700,17 +698,59 @@ export function useInfiniteData(args: {
               totalRows.value = totalRows.value! - 1
               callbacks?.syncVisibleData?.()
             },
-            args: [id],
+            args: [id, clone(new Map(cachedRows.value)), clone(totalRows.value), clone(chunkStates.value)],
           },
           redo: {
-            fn: async (row: Row, ltarState: Record<string, any>) => {
+            fn: async (
+              row: Row,
+              ltarState: Record<string, any>,
+              tempLocalCache: Map<number, Row>,
+              tempTotalRows: number,
+              tempChunkStates: Array<'loading' | 'loaded' | undefined>,
+            ) => {
+              cachedRows.value = new Map(tempLocalCache)
+              totalRows.value = tempTotalRows
+              chunkStates.value = tempChunkStates
+
               row.row = { ...pkData, ...row.row }
-              await insertRow(row, ltarState, undefined, true)
+              const newData = await insertRow(row, ltarState, undefined, true)
+
+              const needsResorting = willSortOrderChange({
+                row,
+                newData,
+                sorts: sorts.value,
+                columnsById: columnsById.value,
+                cachedRows: cachedRows.value,
+              })
+
+              if (needsResorting) {
+                const newRow = cachedRows.value.get(row.rowMeta.rowIndex!)
+                if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
+              }
+
+              callbacks?.syncVisibleData?.()
             },
-            args: [clone(currentRow), clone(ltarState)],
+            args: [
+              clone(currentRow),
+              clone(ltarState),
+              clone(new Map(cachedRows.value)),
+              clone(totalRows.value),
+              clone(chunkStates.value),
+            ],
           },
           scope: defineViewScope({ view: viewMeta.value }),
         })
+      }
+
+      if (cachedRows.value.has(insertIndex) && !ignoreShifting) {
+        const rows = Array.from(cachedRows.value.entries())
+        const rowsToShift = rows.filter(([index]) => index >= insertIndex)
+        rowsToShift.sort((a, b) => b[0] - a[0]) // Sort in descending order
+
+        for (const [index, row] of rowsToShift) {
+          row.rowMeta.rowIndex = index + 1
+          cachedRows.value.set(index + 1, row)
+        }
       }
 
       cachedRows.value.set(insertIndex, currentRow)
@@ -851,7 +891,10 @@ export function useInfiniteData(args: {
       if (!undo) {
         addUndo({
           undo: {
-            fn: async (toUpdate: Row, property: string) => {
+            fn: async (toUpdate: Row, property: string, previousCache: Map<number, Row>, tempTotalRows: number) => {
+              cachedRows.value = new Map(previousCache)
+              totalRows.value = tempTotalRows
+
               await updateRowProperty(
                 { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
                 property,
@@ -859,7 +902,7 @@ export function useInfiniteData(args: {
                 true,
               )
             },
-            args: [clone(toUpdate), property],
+            args: [clone(toUpdate), property, clone(new Map(cachedRows.value)), clone(totalRows.value)],
           },
           redo: {
             fn: async (toUpdate: Row, property: string) => {

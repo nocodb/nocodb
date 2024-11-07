@@ -165,6 +165,7 @@ export function useGridViewData(
   async function loadData(
     params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
       limit?: number
+      offset?: number
     } = {},
   ): Promise<Row[] | undefined> {
     if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
@@ -185,7 +186,9 @@ export function useGridViewData(
             where: where?.value,
             offset: params.offset,
             limit: params.limit,
-          })
+          }, {
+          isInfiniteScroll: true
+        })
 
       const data = formatData(response.list, response.pageInfo)
 

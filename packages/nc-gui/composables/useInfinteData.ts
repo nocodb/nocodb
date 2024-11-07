@@ -20,6 +20,7 @@ export function useInfiniteData(args: {
     loadData?: (
       params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
         limit?: number
+        offset?: number
       },
     ) => Promise<Row[] | undefined>
     syncVisibleData?: () => void

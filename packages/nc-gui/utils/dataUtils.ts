@@ -310,11 +310,13 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
         }
 
         if ([UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt!)) {
-          const userIds = Array.isArray(data[field])
-            ? data[field].map((user) => user.id)
-            : data[field]?.id
-            ? [data[field].id]
-            : []
+          let userIds: string[] = []
+
+          if ([UITypes.CreatedBy, UITypes.LastModifiedBy].includes(column.uidt)) {
+            userIds = Array.isArray(data[field]) ? data[field].map((user) => user.id) : data[field]?.id ? [data[field].id] : []
+          } else {
+            userIds = (data[field]?.split(',') ?? []) as string[]
+          }
 
           const filterValues = filter.value.split(',').map((v) => v.trim())
 

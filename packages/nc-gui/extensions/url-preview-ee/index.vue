@@ -3,7 +3,7 @@ import { YoutubeVue3 } from 'youtube-vue3'
 
 const { eventBus } = useExtensionHelperOrThrow()
 
-const previewType = ref<'youtube' | 'figma' | 'google' | 'vimeo' | 'loom' | 'unsupported'>()
+const previewType = ref<'youtube' | 'figma' | 'google' | 'vimeo' | 'loom' | 'spotify' | 'unsupported'>()
 const previewParams = ref<any>({})
 const showEmptyState = computed(() => !previewType.value)
 
@@ -107,6 +107,20 @@ const matchLoom = (url: string) => {
   }
 }
 
+const SPOTIFY_RE = /^https?:\/\/open\.spotify\.com\/(track|album|artist|playlist)\/([a-zA-Z0-9]+)(?:\?.*)?$/
+const matchSpotify = (url: string) => {
+  try {
+    const match = url.match(SPOTIFY_RE)
+    if (!match) {
+      return null
+    }
+    // Simply insert /embed after domain
+    return url.replace('open.spotify.com/', 'open.spotify.com/embed/')
+  } catch (error) {
+    return null
+  }
+}
+
 eventBus.on((event, payload) => {
   if (event === SmartsheetStoreEvents.CELL_SELECTED) {
     const selectedValue = payload.val
@@ -134,6 +148,10 @@ eventBus.on((event, payload) => {
           const embedURL = matchLoom(selectedValue)
           previewType.value = 'loom'
           previewParams.value = { embedURL }
+        } else if (matchSpotify(selectedValue)) {
+          const embedURL = matchSpotify(selectedValue)
+          previewType.value = 'spotify'
+          previewParams.value = { embedURL }
         } else {
           previewType.value = 'unsupported'
           previewParams.value = {}
@@ -159,7 +177,7 @@ eventBus.on((event, payload) => {
       <iframe
         class="w-full h-full"
         :src="previewParams.embedURL"
-        v-else-if="previewType === 'figma' || previewType === 'google' || previewType === 'vimeo' || previewType === 'loom'"
+        v-else-if="previewType === 'figma' || previewType === 'google' || previewType === 'vimeo' || previewType === 'loom' || previewType === 'spotify'"
       ></iframe>
       <div class="w-full text-center" v-else-if="previewType === 'unsupported'">
         <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-8 h-8 flex-none" />

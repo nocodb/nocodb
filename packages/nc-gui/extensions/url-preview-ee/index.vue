@@ -51,7 +51,7 @@ eventBus.on((event, payload) => {
       <!-- @vue-expect-error -->
       <YoutubeVue3 class="w-full h-full" :videoid="previewParams.videoId" :autoplay="0" v-else-if="previewType === 'youtube'" />
       <div class="w-full text-center" v-else-if="previewType === 'unsupported'">
-        <img src="./assets/alert.svg" class="w-8 mx-auto mb-2" />
+        <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-8 h-8 flex-none" />
         <div class="mb-2 font-bold">URL not supported</div>
         <div>We currently do not support this link.</div>
       </div>

@@ -1924,17 +1924,16 @@ watch(
                         top: `${(index + 1) * rowHeight}px`,
                         zIndex: 100000,
                       }"
-                      class="absolute bg-red-500 px-2 py-1 z-30 left-0 rounded-br-md flex items-center gap-2 text-white"
+                      class="absolute bg-yellow-500 px-2 font-semibold py-1 z-30 left-0 rounded-br-md flex text-xs items-center gap-2 text-gray-800"
                     >
                       Row filtered
 
                       <NcTooltip>
                         <template #title>
-                          This row is no longer visible based on this view's filters, and will be hidden when you select another
-                          row
+                          This record will be hidden as it does not match the filters applied to this view.
                         </template>
 
-                        <GeneralIcon icon="info" />
+                        <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
                       </NcTooltip>
                     </div>
                     <tr
@@ -2737,7 +2736,7 @@ watch(
     left: 0;
     width: 100%;
     height: 100%;
-    box-shadow: 0 0 0 2px #d54401 !important;
+    box-shadow: 0 0 0 2px #fcbe3a !important;
     pointer-events: none;
   }
 }

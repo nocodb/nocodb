@@ -16,7 +16,7 @@ export class ToolbarSearchDataPage extends BasePage {
 
   async verify(query: string) {
     const searchEnableBtn = await this.rootPage
-      .waitForSelector('[data-testid="nc-global-search-show-input"]', { timeout: 100 })
+      .waitForSelector('[data-testid="nc-global-search-show-input"]', { timeout: 1000 })
       .catch(() => null);
 
     if (searchEnableBtn) {

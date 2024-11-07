@@ -51,7 +51,7 @@ const triggerAction = async () => {
 const componentProps = computed(() => {
   if (column.value.colOptions.type === 'url') {
     let url = `${cellValue.value?.url}`
-    url = /^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `http://${url}` : ''
+    url = /^(https?|ftp|mailto|file):\/\//.test(url) ? url : url.trim() ? `https://${url}` : ''
 
     // if url params not encoded, encode them using encodeURI
     try {

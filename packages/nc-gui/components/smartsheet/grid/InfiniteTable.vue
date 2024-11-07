@@ -59,7 +59,6 @@ const {
   bulkUpdateRows,
   deleteRangeOfRows,
   removeRowIfNew,
-  syncVisibleData,
 } = props
 
 // $e is a helper function to emit telemetry events
@@ -312,7 +311,7 @@ const colSlice = ref({
 // Row slice is used to determine which rows are visible
 const rowSlice = reactive({
   start: 0,
-  end: 0,
+  end: 100,
 })
 
 // Flag to prevent multiple updates
@@ -357,8 +356,9 @@ const updateVisibleItems = async (newScrollTop: number, force = false, fetchData
     }
   }
 
-  visibleRows.value = newVisibleRows
-
+  requestAnimationFrame(() => {
+    visibleRows.value = newVisibleRows
+  })
   // Fetch the items that are not in the cache
   if (fetchData && itemsToFetch.length > 0) {
     try {
@@ -375,7 +375,11 @@ const updateVisibleItems = async (newScrollTop: number, force = false, fetchData
         }
       })
 
-      visibleRows.value = newVisibleRows
+      requestAnimationFrame(() => {
+        visibleRows.value = newVisibleRows
+      })
+
+      // visibleRows.value = newVisibleRows
       // Update the visible items
       updateVisibleItems(newScrollTop, true, false)
 
@@ -398,6 +402,10 @@ const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleItems, 16)
 const startRowHeight = computed(() => `${rowSlice.start * rowHeight.value}px`)
 // The height of placeholder rows after the visible rows
 const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.end) * rowHeight.value)}px`)
+
+const topOffset = computed(() => {
+  return rowHeightInPx[`${props.rowHeightEnum}`] * rowSlice.start
+})
 
 const calculateSlices = () => {
   // if the grid is not rendered yet
@@ -1399,10 +1407,6 @@ onClickOutside(tableBodyEl, (e) => {
 // leftOffset for the columns
 const leftOffset = computed(() => {
   return colSlice.value.start > 0 ? colPositions.value[colSlice.value.start] - colPositions.value[1] : 0
-})
-
-const topOffset = computed(() => {
-  return rowHeightInPx[`${props.rowHeightEnum}`] * rowSlice.start
 })
 
 // fillHandleTop - reactive ref to get the top position of the fill handle

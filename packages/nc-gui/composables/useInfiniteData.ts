@@ -900,13 +900,6 @@ export function useInfiniteData(args: {
     row.rowMeta.changed = false
 
     await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
-    row.rowMeta.isValidationFailed = !validateRowFilters(
-      [...allFilters.value, ...computedWhereFilter.value],
-      row.row,
-      meta.value?.columns as ColumnType[],
-      getBaseType(viewMeta.value?.view.source_id),
-    )
-
     let data
 
     if (row.rowMeta.new) {
@@ -914,6 +907,13 @@ export function useInfiniteData(args: {
     } else if (property) {
       data = await updateRowProperty(row, property, args)
     }
+
+    row.rowMeta.isValidationFailed = !validateRowFilters(
+      [...allFilters.value, ...computedWhereFilter.value],
+      data,
+      meta.value?.columns as ColumnType[],
+      getBaseType(viewMeta.value?.view.source_id),
+    )
 
     const changedFields = property ? [property] : Object.keys(row.row)
 

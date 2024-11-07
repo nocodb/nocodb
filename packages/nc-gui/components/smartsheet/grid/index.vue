@@ -203,15 +203,14 @@ const baseColor = computed(() => {
 const updateRowCommentCount = (count: number) => {
   if (!routeQuery.value.rowId) return
 
-  const currentRowIndex = cachedRows.value.findIndex(
-    (row) => extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === routeQuery.value.rowId,
-  )
+  const currentRowIndex = Array.from(cachedRows.value.values()).find(
+    (row) => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
+  )?.rowMeta.rowIndex
 
-  if (currentRowIndex === -1) return
+  if (!currentRowIndex) return
 
-  const currentRow = cachedRows.value[currentRowIndex]
-
-  if (currentRow.rowMeta.commentCount === count) return
+  const currentRow = cachedRows.value.get(currentRowIndex)
+  if (!currentRow) return
 
   currentRow.rowMeta.commentCount = count
 
@@ -295,7 +294,7 @@ onMounted(() => {
       :expand-form="expandForm"
       @next="goToNextRow()"
       @prev="goToPreviousRow()"
-      @update-row-comment-count="() => {}"
+      @update-row-comment-count="updateRowCommentCount"
     />
 
     <!-- Suspense>

@@ -85,11 +85,10 @@ test.describe('Column menu operations', () => {
       insertAfterColumnTitle: 'Title',
     });
 
-    await dashboard.grid.toolbar.fields.toggle({ title: 'Actors', isLocallySaved: false, checked: true });
     await dashboard.grid.column.create({
       title: 'InsertAfterColumn1',
       type: 'SingleLineText',
-      insertAfterColumnTitle: 'Actors',
+      insertAfterColumnTitle: 'Title',
     });
 
     await dashboard.closeTab({ title: 'Film' });

@@ -43,7 +43,6 @@ const props = defineProps<{
   clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
   syncCount: () => Promise<void>
   selectedRows: Array<Row>
-  syncVisibleData: () => void
   chunkStates: Array<'loading' | 'loaded' | undefined>
 }>()
 
@@ -1423,13 +1422,13 @@ onBeforeUnmount(async () => {
   // reset hooks
   reloadViewDataHook?.off(reloadViewDataHookHandler)
   openNewRecordFormHook?.off(openNewRecordHandler)
-  reloadVisibleDataHook?.off(updateVisibleRows)
+  reloadVisibleDataHook?.off(calculateVisibleRows)
 })
 
 openNewRecordFormHook?.on(openNewRecordHandler)
 reloadViewDataHook?.on(reloadViewDataHookHandler)
 
-reloadVisibleDataHook?.on(updateVisibleRows)
+reloadVisibleDataHook?.on(calculateVisibleRows)
 
 watch(contextMenu, () => {
   if (!contextMenu.value) {

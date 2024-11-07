@@ -226,6 +226,17 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   }
 }
 
+const visibleRows = ref<Row[]>([])
+
+const calculateVisibleRows = () => {
+  const { start, end } = rowSlice
+
+  visibleRows.value = Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
+    const rowIndex = start + i
+    return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+  })
+}
+
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
 
@@ -253,19 +264,11 @@ const updateVisibleRows = async () => {
     }
 
     await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
+    calculateVisibleRows()
   }
 
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
 }
-
-const visibleRows = computed(() => {
-  const { start, end } = rowSlice
-
-  return Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
-    const rowIndex = start + i
-    return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
-  })
-})
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
@@ -561,6 +564,9 @@ const onNewRecordToFormClick = () => {
   onDraftRecordClick()
 }
 
+const numColHeader = ref<HTMLElement | null>(null)
+const primaryColHeader = ref<HTMLElement | null>(null)
+
 const getContainerScrollForElement = (
   childPos: {
     top: number
@@ -581,8 +587,9 @@ const getContainerScrollForElement = (
   // provide an extra offset to show the prev/next/up/bottom cell
   const extraOffset = 15
 
-  const numColWidth = container.querySelector('thead th:nth-child(1)')?.getBoundingClientRect().width ?? 0
-  const primaryColWidth = container.querySelector('thead th:nth-child(2)')?.getBoundingClientRect().width ?? 0
+  // Use refs instead of querySelector
+  const numColWidth = numColHeader.value?.getBoundingClientRect().width ?? 0
+  const primaryColWidth = primaryColHeader.value?.getBoundingClientRect().width ?? 0
 
   const stickyColsWidth = numColWidth + primaryColWidth
 
@@ -649,7 +656,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
-  async (e: KeyboardEvent) => {
+  (e: KeyboardEvent) => {
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
     )
@@ -1124,6 +1131,9 @@ const colSlice = ref({
   end: 0,
 })
 
+const lastScrollTop = ref()
+const lastScrollLeft = ref()
+
 const calculateSlices = () => {
   // if the grid is not rendered yet
   if (!gridWrapper.value || !gridWrapper.value) {
@@ -1137,29 +1147,35 @@ const calculateSlices = () => {
     return
   }
 
+  // skip calculation if scrolling only vertical & scroll is smaller than (ROW_VIRTUAL_MARGIN / 2) x smallest row height
+  if (
+    lastScrollLeft.value === scrollLeft.value &&
+    Math.abs(lastScrollTop.value - scrollTop.value) < 32 * (ROW_VIRTUAL_MARGIN / 2)
+  ) {
+    return
+  }
+
+  lastScrollTop.value = scrollTop.value
+  lastScrollLeft.value = scrollLeft.value
+
   let renderStart = 0
 
   // use binary search to find the start and end columns
   let startRange = 0
   let endRange = colPositions.value.length - 1
 
-  while (endRange !== startRange) {
-    const middle = Math.floor((endRange - startRange) / 2 + startRange)
+  while (startRange <= endRange) {
+    const middle = Math.floor((startRange + endRange) / 2)
 
     if (colPositions.value[middle] <= scrollLeft.value && colPositions.value[middle + 1] > scrollLeft.value) {
       renderStart = middle
       break
     }
 
-    if (middle === startRange) {
-      renderStart = endRange
-      break
+    if (colPositions.value[middle] < scrollLeft.value) {
+      startRange = middle + 1
     } else {
-      if (colPositions.value[middle] <= scrollLeft.value) {
-        startRange = middle
-      } else {
-        endRange = middle
-      }
+      endRange = middle - 1
     }
   }
 
@@ -1183,8 +1199,19 @@ const calculateSlices = () => {
   const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
   const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
 
-  rowSlice.start = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
-  rowSlice.end = Math.min(totalRows.value, endIndex + ROW_VIRTUAL_MARGIN)
+  const newStart = Math.max(0, startIndex - ROW_VIRTUAL_MARGIN)
+  const newEnd = Math.min(totalRows.value, endIndex + ROW_VIRTUAL_MARGIN)
+
+  if (
+    Math.abs(newStart - rowSlice.start) >= ROW_VIRTUAL_MARGIN / 2 ||
+    Math.abs(newEnd - rowSlice.end) >= ROW_VIRTUAL_MARGIN / 2
+  ) {
+    rowSlice.start = newStart
+    rowSlice.end = newEnd
+
+    updateVisibleRows()
+    calculateVisibleRows()
+  }
 }
 
 const visibleFields = computed(() => {
@@ -1202,21 +1229,19 @@ const fillHandleTop = ref()
 const fillHandleLeft = ref()
 
 const refreshFillHandle = () => {
-  nextTick(() => {
-    const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
-    const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
-    if (rowIndex !== null && colIndex !== null) {
-      if (!gridWrapper.value || !gridWrapper.value) return
+  const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
+  const colIndex = isNaN(selectedRange.end.col) ? activeCell.col : selectedRange.end.col
+  if (rowIndex !== null && colIndex !== null) {
+    if (!gridWrapper.value || !gridWrapper.value) return
 
-      // 32 for the header
-      fillHandleTop.value = (rowIndex + 1) * rowHeight.value + 32
-      // 64 for the row number column
-      fillHandleLeft.value =
-        64 +
-        colPositions.value[colIndex + 1] +
-        (colIndex === 0 ? Math.max(0, gridWrapper.value.scrollLeft - gridWrapper.value.offsetLeft) : 0)
-    }
-  })
+    // 32 for the header
+    fillHandleTop.value = (rowIndex + 1) * rowHeight.value + 32
+    // 64 for the row number column
+    fillHandleLeft.value =
+      64 +
+      colPositions.value[colIndex + 1] +
+      (colIndex === 0 ? Math.max(0, gridWrapper.value.scrollLeft - gridWrapper.value.offsetLeft) : 0)
+  }
 }
 
 const selectedReadonly = computed(
@@ -1246,7 +1271,6 @@ watch(
   [() => selectedRange.end.row, () => selectedRange.end.col, () => activeCell.row, () => activeCell.col],
   ([sr, sc, ar, ac], [osr, osc, oar, oac]) => {
     if (sr !== osr || sc !== osc || ar !== oar || ac !== oac) {
-      calculateSlices()
       refreshFillHandle()
     }
   },
@@ -1288,18 +1312,20 @@ const reloadViewDataHookHandler = async () => {
   })
 }
 
-watch(scrollTop, async () => {
-  await updateVisibleRows()
-  refreshFillHandle()
-})
+let scrollRaf = false
 
 useScroll(gridWrapper, {
   onScroll: (e) => {
-    setTimeout(async () => {
+    if (scrollRaf) return
+
+    scrollRaf = true
+    requestAnimationFrame(() => {
       scrollLeft.value = e.target?.scrollLeft
       scrollTop.value = e.target?.scrollTop
       calculateSlices()
-    }, 10)
+      refreshFillHandle()
+      scrollRaf = false
+    })
   },
   throttle: 100,
   behavior: 'smooth',
@@ -1585,6 +1611,7 @@ watch(
                 class="nc-grid-header transform"
               >
                 <th
+                  ref="numColHeader"
                   class="w-[64px] min-w-[64px]"
                   :style="{
                     left: `-${leftOffset}px`,
@@ -1595,6 +1622,7 @@ watch(
                 </th>
                 <th
                   v-if="fields[0] && fields[0].id"
+                  ref="primaryColHeader"
                   v-xc-ver-resize
                   :data-col="fields[0].id"
                   :data-title="fields[0].title"

@@ -15,7 +15,6 @@ import {
 
 import axios from 'axios'
 import { useColumnDrag } from './useColumnDrag'
-import Table from './Table.vue'
 import { type CellRange, NavigateDir, type Row } from '#imports'
 
 const props = defineProps<{
@@ -44,6 +43,7 @@ const props = defineProps<{
   clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
   syncCount: () => Promise<void>
   selectedRows: Array<Row>
+  syncVisibleData: () => void
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg'])
@@ -59,6 +59,7 @@ const {
   bulkUpdateRows,
   deleteRangeOfRows,
   removeRowIfNew,
+  syncVisibleData,
 } = props
 
 // $e is a helper function to emit telemetry events
@@ -89,6 +90,8 @@ const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlo
 
 // Event hook to fire when a new record via form is clicked
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
+
+const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
 // get the current route
 const route = useRoute()
@@ -316,8 +319,7 @@ const rowSlice = reactive({
 const isUpdating = ref(false)
 
 // Update the visible rows in the grid
-
-const updateVisibleItems = async (newScrollTop: number, force = false) => {
+const updateVisibleItems = async (newScrollTop: number, force = false, fetchData = true) => {
   // If we are already updating the visibleItems, skip
   if (!force && isUpdating.value) return
 
@@ -358,7 +360,7 @@ const updateVisibleItems = async (newScrollTop: number, force = false) => {
   visibleRows.value = newVisibleRows
 
   // Fetch the items that are not in the cache
-  if (itemsToFetch.length > 0) {
+  if (fetchData && itemsToFetch.length > 0) {
     try {
       const newItems = await loadData({
         offset: itemsToFetch[0],
@@ -375,7 +377,7 @@ const updateVisibleItems = async (newScrollTop: number, force = false) => {
 
       visibleRows.value = newVisibleRows
       // Update the visible items
-      updateVisibleItems(newScrollTop, true)
+      updateVisibleItems(newScrollTop, true, false)
 
       // Clear the cache with a buffer
       clearCache(startIndex - bufferSize, endIndex + bufferSize)
@@ -1619,6 +1621,11 @@ onBeforeUnmount(async () => {
 openNewRecordFormHook?.on(openNewRecordHandler)
 
 reloadViewDataHook?.on(reloadViewDataHookHandler)
+
+reloadVisibleDataHook?.on(async () => {
+  console.log('reloadVisibleDataHook')
+  await updateVisibleItems(scrollTop.value, true, false)
+})
 
 watch(
   view,

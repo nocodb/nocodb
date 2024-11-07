@@ -15,12 +15,13 @@ import type { CellRange } from './useMultiSelect/cellRange'
 export function useInfiniteData(args: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>
-  callbacks?: {
+  callbacks: {
     changePage?: (page: number) => Promise<void>
     loadData?: () => Promise<void>
     globalCallback?: (...args: any[]) => Promise<void>
     syncCount?: () => Promise<void>
     syncPagination?: () => Promise<void>
+    syncVisibleData?: () => void
   }
 }) {
   const { meta, viewMeta, callbacks } = args
@@ -112,6 +113,8 @@ export function useInfiniteData(args: {
     for (const index of toRemove) {
       delete cachedLocalRows.value[index]
     }
+
+    callbacks?.syncVisibleData()
   }
 
   const selectedRows = computed<Row[]>(() => {
@@ -125,6 +128,8 @@ export function useInfiniteData(args: {
       oldRow: {},
       rowMeta: { new: true, rowIndex: newIndex },
     }
+
+    callbacks?.syncVisibleData()
 
     return cachedLocalRows.value[newIndex]
   }
@@ -202,6 +207,7 @@ export function useInfiniteData(args: {
       if (currentRow.rowMeta) currentRow.rowMeta.saving = false
       await callbacks?.globalCallback?.()
     }
+    callbacks?.syncVisibleData()
   }
 
   async function bulkInsertRows(
@@ -274,12 +280,14 @@ export function useInfiniteData(args: {
       }
 
       // await callbacks?.syncCount?.()
+
       return bulkInsertedIds
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     } finally {
       // await callbacks?.globalCallback?.()
-      isPaginationLoading.value = false
+      callbacks?.syncVisibleData()
+      // isPaginationLoading.value = false
     }
   }
 
@@ -359,6 +367,7 @@ export function useInfiniteData(args: {
       }
 
       // await callbacks?.globalCallback?.()
+      callbacks?.syncVisibleData()
 
       return updatedRowData
     } catch (e: any) {
@@ -389,6 +398,7 @@ export function useInfiniteData(args: {
         await updateRowProperty(row, property, args)
       }
     }
+    callbacks?.syncVisibleData()
   }
 
   async function bulkUpdateRows(
@@ -469,6 +479,7 @@ export function useInfiniteData(args: {
     for (const row of rows) {
       if (row.rowMeta) row.rowMeta.saving = false
     }
+    callbacks?.syncVisibleData()
 
     // await callbacks?.globalCallback?.()
   }
@@ -484,6 +495,7 @@ export function useInfiniteData(args: {
     })
 
     await reloadAggregate?.trigger()
+    callbacks?.syncVisibleData()
 
     // await callbacks?.loadData?.()
     // await callbacks?.globalCallback?.()
@@ -509,6 +521,7 @@ export function useInfiniteData(args: {
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
+    callbacks?.syncVisibleData()
   }
 
   const recoverLTARRefs = async (row: Record<string, any>, { metaValue = meta.value }: { metaValue?: TableType } = {}) => {
@@ -540,6 +553,7 @@ export function useInfiniteData(args: {
         }
       }
     }
+    callbacks?.syncVisibleData()
   }
 
   async function deleteRowById(
@@ -568,6 +582,8 @@ export function useInfiniteData(args: {
       )
       return false
     }
+    callbacks?.syncVisibleData()
+
     return true
   }
 
@@ -633,6 +649,8 @@ export function useInfiniteData(args: {
     } catch (e: any) {
       message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
+    callbacks?.syncVisibleData()
+
     // await callbacks?.globalCallback?.()
   }
 
@@ -736,6 +754,7 @@ export function useInfiniteData(args: {
     } catch (e: any) {
       return message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
+    callbacks?.syncVisibleData()
 
     // await callbacks?.syncCount?.()
     // await callbacks?.syncPagination?.()
@@ -850,6 +869,7 @@ export function useInfiniteData(args: {
     } catch (e: any) {
       message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
     }
+    callbacks?.syncVisibleData()
   }
 
   async function bulkDeleteRows(
@@ -898,6 +918,7 @@ export function useInfiniteData(args: {
       })
 
       clearCache(startIndex, endIndex)
+      // callbacks?.syncVisibleData()
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     }
@@ -915,6 +936,7 @@ export function useInfiniteData(args: {
       totalRows.value = Infinity
     }
     totalRows.value = count as number
+    callbacks?.syncVisibleData()
   }
 
   return {

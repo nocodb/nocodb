@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { Api, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import type { EventHook } from '@vueuse/core'
 import { NavigateDir, type Row } from '#imports'
 
 const formatData = (list: Record<string, any>[], pageInfo: PaginatedType) =>
@@ -17,6 +18,7 @@ export function useGridViewData(
   _meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
   where?: ComputedRef<string | undefined>,
+  reloadVisibleDataHook?: EventHook<void>,
 ) {
   const tablesStore = useTablesStore()
   const { activeTableId, activeTable } = storeToRefs(tablesStore)
@@ -92,8 +94,13 @@ export function useGridViewData(
       changePage,
       loadData,
       syncPagination,
+      syncVisibleData,
     },
   })
+
+  function syncVisibleData() {
+    reloadVisibleDataHook?.trigger()
+  }
 
   function getExpandedRowIndex(): number {
     const rowId = routeQuery.value.rowId
@@ -329,5 +336,6 @@ export function useGridViewData(
     clearCache,
     totalRows,
     selectedRows,
+    syncVisibleData,
   }
 }

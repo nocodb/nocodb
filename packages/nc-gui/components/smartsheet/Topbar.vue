@@ -27,6 +27,10 @@ const topbarBreadcrumbItemWidth = computed(() => {
     return 'calc(\(100% - 12px\) / 2)'
   }
 })
+
+const toggleFeature = () => {
+  toggleBetaFeature(BetaFeatures.GRID_INFINITE_SCROLL)
+}
 </script>
 
 <template>
@@ -55,7 +59,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
       <div class="flex items-center justify-end gap-2 flex-1">
         <GeneralApiLoader v-if="!isMobileMode" />
 
-        <div class="h-4 w-4 cursor-pointer" @dblclick="toggleBetaFeature"></div>
+        <div class="h-4 w-4 cursor-pointer" @dblclick="toggleFeature"></div>
 
         <NcButton
           v-if="!isSharedBase && extensionsEgg && openedViewsTab === 'view'"

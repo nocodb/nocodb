@@ -74,6 +74,9 @@ interface Row {
   row: Record<string, any>
   oldRow: Record<string, any>
   rowMeta: {
+    // Used in InfiniteScroll Grid View
+    rowIndex?: number
+
     new?: boolean
     selected?: boolean
     commentCount?: number

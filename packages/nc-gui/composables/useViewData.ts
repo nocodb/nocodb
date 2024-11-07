@@ -4,11 +4,14 @@ import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedT
 import type { ComputedRef, Ref } from 'vue'
 import { NavigateDir } from '#imports'
 
-const formatData = (list: Record<string, any>[]) =>
-  list.map((row) => ({
+const formatData = (list: Record<string, any>[], pageInfo: PaginatedType) =>
+  list.map((row, index) => ({
     row: { ...row },
     oldRow: { ...row },
-    rowMeta: {},
+    rowMeta: {
+      // Calculate the rowIndex based on the offset and the index of the row
+      rowIndex: (pageInfo.offset ?? 0) + index,
+    },
   }))
 
 export function useViewData(
@@ -213,7 +216,7 @@ export function useViewData(
       console.error(error)
       return message.error(await extractSdkResponseErrorMsg(error))
     }
-    formattedData.value = formatData(response.list)
+    formattedData.value = formatData(response.list, response.pageInfo)
     paginationData.value = response.pageInfo || paginationData.value || {}
 
     // if public then update sharedPaginationData
@@ -235,6 +238,8 @@ export function useViewData(
     if (viewMeta.value?.type === ViewTypes.GRID) {
       loadAggCommentsCount()
     }
+
+    return formattedData.value
   }
 
   async function loadGalleryData() {

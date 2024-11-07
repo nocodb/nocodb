@@ -195,7 +195,7 @@ const rowSlice = reactive({
 })
 
 const CHUNK_SIZE = 50
-const BUFFER_SIZE = 10
+const BUFFER_SIZE = 100
 const INITIAL_LOAD_SIZE = 100
 const PREFETCH_THRESHOLD = 40
 

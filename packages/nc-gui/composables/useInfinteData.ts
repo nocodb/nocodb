@@ -448,8 +448,15 @@ export function useInfiniteData(args: {
           undo: {
             fn: async (id: string) => {
               await deleteRowById(id)
+              cachedRows.value.delete(insertIndex)
 
-              totalRows.value--
+              for (const [index, row] of cachedRows.value) {
+                if (index > insertIndex) {
+                  row.rowMeta.rowIndex = index - 1
+                  cachedRows.value.set(index - 1, row)
+                }
+              }
+              totalRows.value = totalRows.value! - 1
               callbacks?.syncVisibleData?.()
             },
             args: [id],

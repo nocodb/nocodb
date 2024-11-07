@@ -108,7 +108,7 @@ test.describe('Column menu operations', () => {
     await dashboard.grid.column.create({
       title: 'InsertBeforeColumn1',
       type: 'SingleLineText',
-      insertBeforeColumnTitle: 'Actors',
+      insertBeforeColumnTitle: 'ReleaseYear',
     });
 
     await dashboard.closeTab({ title: 'Film' });
@@ -124,7 +124,7 @@ test.describe('Column menu operations', () => {
 
     await dashboard.grid.toolbar.fields.toggle({ title: 'Actors', isLocallySaved: false, checked: true });
     await dashboard.grid.column.hideColumn({
-      title: 'Actors',
+      title: 'RentalDuration',
     });
 
     await dashboard.closeTab({ title: 'Film' });

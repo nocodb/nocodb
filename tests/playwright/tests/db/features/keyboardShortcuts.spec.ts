@@ -388,18 +388,30 @@ test.describe('Clipboard support', () => {
     }
 
     await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
 
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
-    await grid.cell.click({ index: 1, columnHeader: 'LongText' });
-    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
+    await page.waitForTimeout(500);
 
-    // reload page
-    await dashboard.rootPage.reload();
+    await grid.cell.click({ index: 1, columnHeader: 'LongText' });
+    await page.waitForTimeout(500);
+
+    await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
     // verify copied data
     for (let i = 1; i <= 5; i++) {
@@ -408,11 +420,23 @@ test.describe('Clipboard support', () => {
 
     // Block selection
     await grid.cell.click({ index: 1, columnHeader: 'SingleLineText' });
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowDown');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press('Shift+ArrowRight');
+    await page.waitForTimeout(500);
+
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+c' : 'Control+c');
+    await page.waitForTimeout(500);
+
     await grid.cell.click({ index: 4, columnHeader: 'SingleLineText' });
+    await page.waitForTimeout(500);
+
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
     // reload page

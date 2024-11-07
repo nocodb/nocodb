@@ -41,7 +41,11 @@ export function useInfiniteData(args: {
 
   const bufferSize = 100
 
-  const maxCacheSize = 1000
+  const maxCacheSize = 500
+
+  const CHUNK_SIZE = 50
+
+  const chunkStates = new Map<number, 'loading' | 'loaded'>()
 
   const syncRowIndex = (indices: number | number[], operation: 'create' | 'delete') => {
     const indexSet = new Set(Array.isArray(indices) ? indices : [indices])
@@ -51,6 +55,9 @@ export function useInfiniteData(args: {
       operation === 'delete'
         ? (oldIndex: number, targetIndex: number) => oldIndex > targetIndex
         : (oldIndex: number, targetIndex: number) => oldIndex >= targetIndex
+
+    let maxAffectedChunk = -1
+    let minAffectedChunk = Infinity
 
     for (const [index, row] of Object.entries(cachedLocalRows.value)) {
       const oldIndex = Number(index)
@@ -70,6 +77,10 @@ export function useInfiniteData(args: {
         ...row,
         rowMeta: { ...row.rowMeta, rowIndex: newIndex },
       }
+
+      const affectedChunk = Math.floor(newIndex / CHUNK_SIZE)
+      maxAffectedChunk = Math.max(maxAffectedChunk, affectedChunk)
+      minAffectedChunk = Math.min(minAffectedChunk, affectedChunk)
     }
 
     // Handle newly created rows
@@ -81,44 +92,85 @@ export function useInfiniteData(args: {
             oldRow: {},
             rowMeta: { rowIndex: createIndex, isLoading: true },
           }
+          const affectedChunk = Math.floor(createIndex / CHUNK_SIZE)
+          maxAffectedChunk = Math.max(maxAffectedChunk, affectedChunk)
+          minAffectedChunk = Math.min(minAffectedChunk, affectedChunk)
         }
       })
     }
 
     cachedLocalRows.value = newCachedLocalRows
+
+    for (let i = minAffectedChunk; i <= maxAffectedChunk; i++) {
+      const chunkStart = i * CHUNK_SIZE
+      const chunkEnd = (i + 1) * CHUNK_SIZE
+      const hasRowsInChunk = Object.keys(newCachedLocalRows).some(
+        (key) => parseInt(key) >= chunkStart && parseInt(key) < chunkEnd,
+      )
+      if (hasRowsInChunk) {
+        chunkStates.set(i, 'loaded')
+      } else {
+        chunkStates.delete(i)
+      }
+    }
   }
 
   const clearCache = (visibleStartIndex: number, visibleEndIndex: number) => {
     if (visibleEndIndex === Number.POSITIVE_INFINITY && visibleStartIndex === Number.NEGATIVE_INFINITY) {
       cachedLocalRows.value = {}
+      chunkStates.clear()
       return
     }
 
     const cacheSize = Object.keys(cachedLocalRows.value).length
     if (cacheSize <= maxCacheSize) return
 
-    const itemsToRemove = cacheSize - maxCacheSize
     const safeStartIndex = Math.max(0, visibleStartIndex - bufferSize)
     const safeEndIndex = Math.min(totalRows.value - 1, visibleEndIndex + bufferSize)
+    const safeStartChunk = Math.floor(safeStartIndex / CHUNK_SIZE)
+    const safeEndChunk = Math.floor(safeEndIndex / CHUNK_SIZE)
 
-    const toRemove: number[] = []
-    const cachedIndices = Object.keys(cachedLocalRows.value)
-      .map(Number)
-      .sort((a, b) => a - b)
+    const chunksToKeep = new Set()
+    for (let i = safeStartChunk; i <= safeEndChunk; i++) {
+      chunksToKeep.add(i)
+    }
 
-    for (const index of cachedIndices) {
-      if (index < safeStartIndex || index > safeEndIndex) {
-        const row = cachedLocalRows.value[index]
-        if (!row.rowMeta.selected && !row.rowMeta.new) {
-          toRemove.push(index)
-          if (toRemove.length >= itemsToRemove) break
+    const rowsToKeep = new Set()
+    Object.keys(cachedLocalRows.value).forEach((key) => {
+      const index = Number(key)
+      const chunk = Math.floor(index / CHUNK_SIZE)
+      const row = cachedLocalRows.value[index]
+      if (chunksToKeep.has(chunk) || row.rowMeta.selected || row.rowMeta.new) {
+        rowsToKeep.add(index)
+      }
+    })
+
+    const newCachedLocalRows: Record<number, Row> = {}
+    let removedCount = 0
+
+    Object.keys(cachedLocalRows.value).forEach((key) => {
+      const index = Number(key)
+      if (rowsToKeep.has(index)) {
+        newCachedLocalRows[index] = cachedLocalRows.value[index]
+      } else {
+        removedCount++
+        if (removedCount > cacheSize - maxCacheSize) {
+          newCachedLocalRows[index] = cachedLocalRows.value[index]
         }
       }
-    }
+    })
 
-    for (const index of toRemove) {
-      delete cachedLocalRows.value[index]
-    }
+    cachedLocalRows.value = newCachedLocalRows
+
+    // Update chunk states
+    chunkStates.forEach((state, chunkId) => {
+      if (
+        !chunksToKeep.has(chunkId) &&
+        !Object.keys(newCachedLocalRows).some((key) => Math.floor(Number(key) / CHUNK_SIZE) === chunkId)
+      ) {
+        chunkStates.delete(chunkId)
+      }
+    })
 
     callbacks?.syncVisibleData?.()
   }
@@ -344,6 +396,8 @@ export function useInfiniteData(args: {
         )
         Object.assign(toUpdate.oldRow, updatedRowData)
       }
+
+      cachedLocalRows.value[toUpdate.rowMeta.rowIndex!] = toUpdate
 
       callbacks?.syncVisibleData?.()
 
@@ -923,5 +977,6 @@ export function useInfiniteData(args: {
     syncCount,
     selectedRows,
     syncRowIndex,
+    chunkStates,
   }
 }

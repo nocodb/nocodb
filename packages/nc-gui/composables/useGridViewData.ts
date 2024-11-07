@@ -85,6 +85,7 @@ export function useGridViewData(
     removeRowIfNew,
     syncCount,
     selectedRows,
+    chunkStates,
   } = useInfiniteData({
     meta,
     viewMeta,
@@ -291,5 +292,6 @@ export function useGridViewData(
     totalRows,
     selectedRows,
     syncVisibleData,
+    chunkStates,
   }
 }

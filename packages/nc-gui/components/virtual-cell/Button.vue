@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ButtonType, ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { decode, encode } from 'html-entities'
 
 const column = inject(ColumnInj) as Ref<
   ColumnType & {

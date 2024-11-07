@@ -1402,7 +1402,7 @@ const leftOffset = computed(() => {
 })
 
 const topOffset = computed(() => {
-  return rowHeightInPx[`${props.rowHeightEnum}`] * rowSlice.value.start
+  return rowHeightInPx[`${props.rowHeightEnum}`] * rowSlice.start
 })
 
 // fillHandleTop - reactive ref to get the top position of the fill handle
@@ -2215,26 +2215,6 @@ defineExpose({
                   </tr>
                 </template>
               </LazySmartsheetRow>
-              <tr
-                v-if="isAddingEmptyRowAllowed"
-                v-e="['c:row:add:grid-bottom']"
-                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
-                :class="{
-                  '!border-r-2 !border-r-gray-100': visibleColLength === 1,
-                }"
-                @mouseup.stop
-                @click="addEmptyRow()"
-              >
-                <div
-                  class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
-                  :style="{
-                    left: `-${leftOffset}px`,
-                  }"
-                >
-                  <component :is="iconMap.plus" class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black" />
-                </div>
-                <td class="!border-gray-100" :colspan="visibleColLength"></td>
-              </tr>
               <div
                 class="placeholder relative bottom-placeholder"
                 :style="`height: ${endRowHeight}; top: ${rowSlice.end * rowHeight}px;`"
@@ -2256,6 +2236,26 @@ defineExpose({
                   }"
                 ></div>
               </div>
+              <tr
+                v-if="isAddingEmptyRowAllowed"
+                v-e="['c:row:add:grid-bottom']"
+                class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
+                :class="{
+                  '!border-r-2 !border-r-gray-100': visibleColLength === 1,
+                }"
+                @mouseup.stop
+                @click="addEmptyRow()"
+              >
+                <div
+                  class="h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                  :style="{
+                    left: `-${leftOffset}px`,
+                  }"
+                >
+                  <component :is="iconMap.plus" class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black" />
+                </div>
+                <td class="!border-gray-100" :colspan="visibleColLength"></td>
+              </tr>
             </tbody>
           </table>
           <div

@@ -11,6 +11,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
 } from 'nocodb-sdk'
 import type { Row } from '../lib/types'
+import { validateRowFilters } from '../utils/dataUtils'
 import type { CellRange } from './useMultiSelect/cellRange'
 
 export function useInfiniteData(args: {
@@ -49,17 +50,17 @@ export function useInfiniteData(args: {
 
   const { fetchCount } = useSharedView()
 
-  const { nestedFilters } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, allFilters } = useSmartsheetStoreOrThrow()
 
   const totalRows = ref(0)
-
-  const BUFFER_SIZE = 100
 
   const MAX_CACHE_SIZE = 500
 
   const CHUNK_SIZE = 50
 
   const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
+
+  const { getBaseType } = useBase()
 
   const syncLocalChunks = (index: number, operation: 'create' | 'delete') => {
     const affectedChunk = Math.floor(index / CHUNK_SIZE)
@@ -123,6 +124,36 @@ export function useInfiniteData(args: {
   const selectedRows = computed<Row[]>(() => {
     return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.selected)
   })
+
+  function clearInvalidRows() {
+    const sortedEntries = Array.from(cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
+
+    const invalidIndexes = sortedEntries.filter(([_, row]) => row.rowMeta.isValidationFailed).map(([index]) => index)
+
+    if (invalidIndexes.length === 0) return
+
+    for (const index of invalidIndexes) {
+      cachedRows.value.delete(index)
+    }
+
+    const newCachedRows = new Map<number, Row>()
+    let newIndex = 0
+
+    for (const [oldIndex, row] of sortedEntries) {
+      if (!invalidIndexes.includes(oldIndex)) {
+        row.rowMeta.rowIndex = newIndex
+        newCachedRows.set(newIndex, row)
+        newIndex++
+      }
+    }
+
+    cachedRows.value = newCachedRows
+
+    totalRows.value = Math.max(0, (totalRows.value || 0) - invalidIndexes.length)
+
+    syncLocalChunks(Math.min(...invalidIndexes), 'delete')
+    callbacks?.syncVisibleData?.()
+  }
 
   function addEmptyRow(newRowIndex = totalRows.value, metaValue = meta.value) {
     if (cachedRows.value.has(newRowIndex)) {
@@ -377,7 +408,7 @@ export function useInfiniteData(args: {
         args: [removedRowsData],
       },
       redo: {
-        fn: async (toBeRemovedData: Record<string, any>) => {
+        fn: async (toBeRemovedData: Record<string, any>[]) => {
           await bulkDeleteRows(toBeRemovedData.map((row) => row.pkData))
           // Need to update the cached rows
           const deletedIndexes = toBeRemovedData.map((row) => row.rowMeta.rowIndex).sort((a, b) => b - a)
@@ -500,7 +531,6 @@ export function useInfiniteData(args: {
       }
 
       await reloadAggregate?.trigger()
-      await syncCount()
       callbacks?.syncVisibleData?.()
 
       return insertedData
@@ -549,7 +579,7 @@ export function useInfiniteData(args: {
         }),
       )
 
-      const validRowsToInsert = rowsToInsert.filter(Boolean)
+      const validRowsToInsert = rowsToInsert.filter(Boolean) as { insertObj: Record<string, any>; rowIndex: number }[]
 
       const bulkInsertedIds = await $api.dbDataTableRow.create(
         metaValue.id!,
@@ -718,6 +748,12 @@ export function useInfiniteData(args: {
     row.rowMeta.changed = false
 
     await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
+    row.rowMeta.isValidationFailed = !validateRowFilters(
+      allFilters.value,
+      row.row,
+      meta.value?.columns as ColumnType[],
+      getBaseType(viewMeta.value?.view.source_id),
+    )
 
     if (row.rowMeta.new) {
       await insertRow(row, ltarState, args, false, true)
@@ -993,7 +1029,7 @@ export function useInfiniteData(args: {
           syncLocalChunks(Math.min(...rowsToDelete.map((row) => row.rowIndex)), 'delete')
 
           await syncCount()
-          await callbacks?.syncVisibleData?.()
+          callbacks?.syncVisibleData?.()
         },
         args: [rowsToDelete],
       },
@@ -1092,5 +1128,6 @@ export function useInfiniteData(args: {
     selectedRows,
     syncLocalChunks,
     chunkStates,
+    clearInvalidRows,
   }
 }

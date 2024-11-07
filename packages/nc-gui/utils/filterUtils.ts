@@ -1,3 +1,4 @@
+import type { FilterType } from 'nocodb-sdk'
 import { UITypes, isDateMonthFormat, isNumericCol, numericUITypes } from 'nocodb-sdk'
 
 const getEqText = (fieldUiType: UITypes) => {
@@ -484,4 +485,34 @@ export const comparisonSubOpList = (
       includedTypes: [UITypes.Date, UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime],
     },
   ]
+}
+
+/**
+ * Converts a flat array of filter objects into a nested tree structure
+ * @param {FilterType[]} items - Array of filter objects
+ * @returns {FilterType[]} - Nested tree structure
+ */
+export function buildFilterTree(items: FilterType[]) {
+  const itemMap = new Map()
+
+  items.forEach((item) => {
+    itemMap.set(item.id, { ...item, children: [] })
+  })
+
+  const rootItems: FilterType[] = []
+
+  items.forEach((item) => {
+    const mappedItem = itemMap.get(item.id)
+
+    if (item.fk_parent_id === null) {
+      rootItems.push(mappedItem)
+    } else {
+      const parent = itemMap.get(item.fk_parent_id)
+      if (parent) {
+        parent.children.push(mappedItem)
+      }
+    }
+  })
+
+  return rootItems
 }

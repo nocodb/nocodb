@@ -56,6 +56,7 @@ const {
   isLastRow,
   isFirstRow,
   chunkStates,
+  clearInvalidRows,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
@@ -279,6 +280,7 @@ const {
       :delete-range-of-rows="deleteRangeOfRows"
       :bulk-update-rows="bulkUpdateRows"
       :clear-cache="clearCache"
+      :clear-invalid-rows="clearInvalidRows"
       :data="cachedRows"
       :total-rows="totalRows"
       :sync-count="syncCount"

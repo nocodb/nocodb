@@ -31,6 +31,7 @@ const props = defineProps<{
     args?: { metaValue?: TableType; viewMetaValue?: ViewType },
   ) => Promise<any>
   deleteSelectedRows?: () => Promise<void>
+  clearInvalidRows?: () => void
   deleteRangeOfRows?: (cellRange: CellRange) => Promise<void>
   bulkUpdateRows?: (
     rows: Row[],
@@ -59,6 +60,7 @@ const {
   bulkUpdateRows,
   deleteRangeOfRows,
   removeRowIfNew,
+  clearInvalidRows,
 } = props
 
 // Injections
@@ -829,8 +831,14 @@ async function saveEmptyRow(rowObj: Row) {
   await updateOrSaveRow?.(rowObj)
 }
 
+let disableWatch = false
+
 async function addEmptyRow(row?: number, skipUpdate: boolean = false) {
   const rowObj = callAddEmptyRow?.(row)
+  disableWatch = true
+  setTimeout(() => {
+    disableWatch = false
+  }, 1000)
 
   if (!skipUpdate && rowObj) {
     await saveEmptyRow(rowObj)
@@ -1510,6 +1518,18 @@ defineExpose({
   openColumnCreate,
 })
 
+watch(
+  () => activeCell.row,
+  (newVal, oldVal) => {
+    if (disableWatch) return
+    console.log(oldVal, newVal)
+    if (oldVal !== newVal) {
+      clearInvalidRows()
+    }
+  },
+  { immediate: true },
+)
+
 const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   if (expandForm) {
     expandForm(row, col)
@@ -1894,7 +1914,7 @@ watch(
               >
                 <LazySmartsheetRow
                   v-for="(row, index) in visibleRows"
-                  :key="`${row.rowMeta.rowIndex}-${row.rowMeta?.new}`"
+                  :key="`${row.rowMeta.rowIndex}-${row.rowMeta?.new}-${row.rowMeta.isValidationFailed}`"
                   :row="row"
                 >
                   <template #default="{ state }">
@@ -1913,6 +1933,9 @@ watch(
                     >
                       <td
                         key="row-index"
+                        :class="{
+                          'invalid-cell': row.rowMeta?.isValidationFailed,
+                        }"
                         class="caption nc-grid-cell w-[64px] min-w-[64px]"
                         :data-testid="`cell-Id-${row.rowMeta.rowIndex}`"
                         :style="{
@@ -1992,6 +2015,7 @@ watch(
                           'readonly':
                             colMeta[0]?.isReadonly && hasEditPermission && selectRangeMap?.[`${row.rowMeta.rowIndex}-0`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
+                          'invalid-cell': row.rowMeta?.isValidationFailed,
                         }"
                         :style="{
                           'min-width': gridViewCols[fields[0].id]?.width || '180px',
@@ -2065,6 +2089,7 @@ watch(
                             hasEditPermission &&
                             selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                           '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
+                          'invalid-cell': row.rowMeta?.isValidationFailed,
                         }"
                         :style="{
                           'min-width': gridViewCols[columnObj.id]?.width || '180px',

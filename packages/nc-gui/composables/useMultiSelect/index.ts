@@ -487,7 +487,7 @@ export function useMultiSelect(
 
     if (activeCell.row !== row || activeCell.col !== col) {
       // clear active cell on selection start
-      activeCell.row = null
+      // activeCell.row = null
       activeCell.col = null
     }
   }

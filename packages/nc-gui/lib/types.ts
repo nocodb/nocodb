@@ -77,6 +77,7 @@ interface Row {
     // Used in InfiniteScroll Grid View
     rowIndex?: number
     isLoading?: boolean
+    isValidationFailed?: boolean
 
     new?: boolean
     selected?: boolean
@@ -97,7 +98,6 @@ interface Row {
     id?: string
     position?: string
     dayIndex?: number
-
     overLapIteration?: number
     numberOfOverlaps?: number
     minutes?: number

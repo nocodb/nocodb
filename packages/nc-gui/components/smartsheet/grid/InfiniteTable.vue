@@ -62,70 +62,50 @@ const {
   removeRowIfNew,
 } = props
 
-// $e is a helper function to emit telemetry events
-const { $e } = useNuxtApp()
+// Injections
+const meta = inject(MetaInj, ref())
 
-const { t } = useI18n()
+const view = inject(ActiveViewInj, ref())
 
-const { api } = useApi()
+const fields = inject(FieldsInj, ref([]))
 
-const VIRTUAL_MARGIN = 10
+const readOnly = inject(ReadonlyInj, ref(false))
 
-const switchingTab = ref(false)
+const isLocked = inject(IsLockedInj, ref(false))
 
-// Helper composable to handle paste from the clipboard
-const { paste } = usePaste()
+const isPublicView = inject(IsPublicInj, ref(false))
 
-// getMeta - function to get the table and
-// metas - reactive ref of the table metas
-const { getMeta } = useMetas()
+const route = useRoute()
 
-// Global states
-// isMobileMode - reactive ref to check if the viewports is mobile
-// isAddNewRecordGridMode - reactive ref. contains whether to show createRow with form or grid
-// setAddNewRecordGridMode - function to set the value of isAddNewRecordGridMode
-const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-// Event hook to fire when a new record via form is clicked
 const openNewRecordFormHook = inject(OpenNewRecordFormHookInj, createEventHook())
 
 const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
 
-// get the current route
-const route = useRoute()
+const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode } = useGlobal()
 
-// Event hook to fire when a viewMeta is updated
-// When fired, should clear all localCache and reload Data
-const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
 
-// Link To Another Record/Links Helper methods
-const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
+const { $e } = useNuxtApp()
 
-// Meta Information of the active Table
-const meta = inject(MetaInj, ref())
+const { api } = useApi()
 
-// Fields of the active Table
-const fields = inject(FieldsInj, ref([]))
+const { t } = useI18n()
 
-// View Meta of the active View
-const view = inject(ActiveViewInj, ref())
+const { getMeta } = useMetas()
 
-// Is the view is Locked
-const isLocked = inject(IsLockedInj, ref(false))
-
-// Is the view is Public
-const isPublicView = inject(IsPublicInj, ref(false))
-
-// Readonly Mode. If true, user can't edit the data
-const readOnly = inject(ReadonlyInj, ref(false))
-
-// addUndo - function to add an undo action
-// clone - function to clone an object
-// defineViewScope - function to define the scope of the undo action
 const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-// function to trigger the aggregation api
-const { loadViewAggregate } = useViewAggregateOrThrow()
+const {
+  isViewColumnsLoading: _isViewColumnsLoading,
+  updateGridViewColumn,
+  gridViewCols,
+  metaColumnById,
+  resizingColOldWith,
+} = useViewColumnsOrThrow()
+
+const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
 
 const {
   predictingNextColumn,
@@ -136,70 +116,29 @@ const {
   predictNextFormulas,
 } = useNocoEe().table
 
-// isReadOnly - Helper function to check if the column is readonly
-const isReadonly = (col: ColumnType) => {
-  return (
-    isSystemColumn(col) ||
-    isLookup(col) ||
-    isRollup(col) ||
-    isFormula(col) ||
-    isButton(col) ||
-    isVirtualCol(col) ||
-    isCreatedOrLastModifiedTimeCol(col) ||
-    isCreatedOrLastModifiedByCol(col)
-  )
-}
+const { paste } = usePaste()
 
-// isPkAvail - reactive ref to check if the table has primary key
-// isSqlView - reactive ref to check if the view is SQL view
-// eventBus - event bus to listen to events
-const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
+const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
-// selectedRows - reactive ref to get the selected rows
-const selectedRows = toRef(props, 'selectedRows')
+const { loadViewAggregate } = useViewAggregateOrThrow()
 
-// isViewColumnsLoading - reactive ref to check if the view columns are loading
-// updateGridViewColumn - function to update the grid view column
-// gridViewCols - reactive ref to get the grid view columns
-// metaColumnById - reactive ref to get the meta column by id
-// resizingColOldWith - reactive ref to get the old width of the column being resized
-const {
-  isViewColumnsLoading: _isViewColumnsLoading,
-  updateGridViewColumn,
-  gridViewCols,
-  metaColumnById,
-  resizingColOldWith,
-} = useViewColumnsOrThrow()
+// Element refs
+const smartTable = ref(null)
 
-// Dummy data used for loading skeleton
-const dummyColumnDataForLoading = computed(() => {
-  let length = fields.value?.length ?? 40
-  length = length || 40
-  return Array.from({ length: length + 1 }).map(() => ({}))
-})
+const tableBodyEl = ref<HTMLElement>()
 
-// Temporary column meta. Data is stored in the order of fields
-// Stores if it is a virtual column and if it is readonly
-const colMeta = computed(() => {
-  return fields.value.map((col) => {
-    return {
-      isVirtualCol: isVirtualCol(col),
-      isReadonly: isReadonly(col),
-    }
-  })
-})
+const gridWrapper = ref<HTMLElement>()
 
-// The number of visible colummns
-const visibleColLength = computed(() => fields.value?.length)
+const tableHeadEl = ref<HTMLElement>()
 
-// Set to true if view columns are loading or the meta is not available
+const fillHandle = ref<HTMLElement>()
+
+const { height: tableHeadHeight } = useElementBounding(tableHeadEl)
+
 const isViewColumnsLoading = computed(() => _isViewColumnsLoading.value || !meta.value)
 
-// Set to true if user is resizing a column
 const resizingColumn = ref(false)
 
-// Max and Minimum width for each column type
-// If the limit it not set, user can resize the column to any width
 const columnWidthLimit = {
   [UITypes.Attachment]: {
     minWidth: 80,
@@ -210,8 +149,6 @@ const columnWidthLimit = {
     maxWidth: 320,
   },
 }
-
-// Applies the width limit to the column
 const normalizedWidth = (col: ColumnType, width: number) => {
   if (col.uidt! in columnWidthLimit) {
     const { minWidth, maxWidth } = columnWidthLimit[col.uidt]
@@ -223,8 +160,6 @@ const normalizedWidth = (col: ColumnType, width: number) => {
   return width
 }
 
-// onResize is called when the user has resized a column
-// It updates the column width in the grid view
 const onresize = (colID: string | undefined, event: any) => {
   if (!colID) return
   const size = event.detail.split('px')[0]
@@ -232,73 +167,31 @@ const onresize = (colID: string | undefined, event: any) => {
   updateGridViewColumn(colID, { width: `${normalizedWidth(metaColumnById.value[colID], size)}px` })
 }
 
-// onXcResizing is called when the user is resizing a column
 const onXcResizing = (cn: string | undefined, event: any) => {
   if (!cn) return
   const size = event.detail.split('px')[0]
   gridViewCols.value[cn].width = `${normalizedWidth(metaColumnById.value[cn], size)}px`
 }
 
-// onXcStartResizing is called when the user starts resizing a column
 const onXcStartResizing = (cn: string | undefined, event: any) => {
   if (!cn) return
   resizingColOldWith.value = event.detail
   resizingColumn.value = true
 }
 
-// Ref of the table body element
-const tableBodyEl = ref<HTMLElement>()
-
-// Ref of the grid wrapper element
-const gridWrapper = ref<HTMLElement>()
-
-// Helper functions for column drag
-// onDrag - called when the user is dragging a column
-// onDragStart - called when the user starts dragging a column
-// onDragEnd - called when the user stops dragging a column
-// draggedCol - the column that is being dragged
-// dragColPlaceholderDomRef - the dom element that is used as a placeholder when the user is dragging a column
-// toBeDroppedColId - the column id where the dragged column will be dropped
-const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
-  fields, // fields are the columns of the table
-  tableBodyEl, // tableBodyEl is the ref of the table body element
-  gridWrapper, // gridWrapper is the ref of the grid wrapper element
-})
-
-// Used to calculate the column slices when the grid is scrolled horizontally
-const colPositions = computed(() => {
-  return fields.value
-    .filter((col) => col.id && gridViewCols.value[col.id] && gridViewCols.value[col.id].width && gridViewCols.value[col.id].show)
-    .map((col) => {
-      return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 200
-    })
-    .reduce(
-      (acc, width, i) => {
-        acc.push(acc[i] + width)
-        return acc
-      },
-      [0],
-    )
-})
-
-// Total number of rows in the table
-const totalRows = toRef(props, 'totalRows')
-
-// calculatedRowHeight
-const rowHeight = computed(() => rowHeightInPx[`${props.rowHeightEnum}`])
-
-// Reactive ref to the store of cached local rows
 const cachedRows = toRef(props, 'data')
+
+const totalRows = toRef(props, 'totalRows')
 
 const chunkStates = toRef(props, 'chunkStates')
 
-// Row slice is used to determine which rows are visible
+const rowHeight = computed(() => rowHeightInPx[`${props.rowHeightEnum}`])
+
 const rowSlice = reactive({
   start: 0,
   end: 100,
 })
 
-// Set to keep track of chunks that are currently loading
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 10
 const PREFETCH_THRESHOLD = 0.8
@@ -366,285 +259,40 @@ const visibleRows = computedAsync(async () => {
   })
 }, [])
 
-// Scroll top of the grid
-const scrollTop = ref(0)
-
-// Column slice is used to determine which columns are visible
-const colSlice = ref({
-  start: 0,
-  end: 0,
-})
-
-// The height of placeholder rows before the visible rows
-const startRowHeight = computed(() => `${rowSlice.start * rowHeight.value}px`)
-// The height of placeholder rows after the visible rows
-const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.end) * rowHeight.value)}px`)
-
-const calculateSlices = () => {
-  // if the grid is not rendered yet
-  if (!gridWrapper.value || !gridWrapper.value) {
-    colSlice.value = {
-      start: 0,
-      end: 0,
-    }
-
-    // try again until the grid is rendered
-    setTimeout(calculateSlices, 100)
-    return
-  }
-
-  let renderStart = 0
-
-  // use binary search to find the start and end columns
-  let startRange = 0
-  let endRange = colPositions.value.length - 1
-
-  while (endRange !== startRange) {
-    const middle = Math.floor((endRange - startRange) / 2 + startRange)
-
-    if (
-      colPositions.value[middle] <= gridWrapper.value.scrollLeft &&
-      colPositions.value[middle + 1] > gridWrapper.value.scrollLeft
-    ) {
-      renderStart = middle
-      break
-    }
-
-    if (middle === startRange) {
-      renderStart = endRange
-      break
-    } else {
-      if (colPositions.value[middle] <= gridWrapper.value.scrollLeft) {
-        startRange = middle
-      } else {
-        endRange = middle
-      }
-    }
-  }
-
-  let renderEnd = 0
-  let renderEndFound = false
-
-  for (let i = renderStart; i < colPositions.value.length; i++) {
-    if (colPositions.value[i] > gridWrapper.value.clientWidth + gridWrapper.value.scrollLeft) {
-      renderEnd = i
-      renderEndFound = true
-      break
-    }
-  }
-
-  colSlice.value = {
-    start: Math.max(0, renderStart - VIRTUAL_MARGIN),
-    end: renderEndFound ? Math.min(fields.value.length, renderEnd + VIRTUAL_MARGIN) : fields.value.length,
-  }
-
-  const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
-  const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
-  const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
-
-  rowSlice.start = startIndex
-  rowSlice.end = endIndex
-}
-
-// Calculate if the cell is required and null
-const cellMeta = computed(() => {
-  return visibleRows.value?.map((row) => {
-    return fields.value.map((col) => {
-      return {
-        isColumnRequiredAndNull: isColumnRequiredAndNull(col, row.row),
-      }
-    })
-  })
-})
-
-// Only the visible fields are shown in the grid
-// This is to optimize the performance when large number of columns are present
-const visibleFields = computed(() => {
-  // return data as { field, index } to keep track of the index
-  const vFields = fields.value.slice(colSlice.value.start, colSlice.value.end)
-  return vFields.map((field, index) => ({ field, index: index + colSlice.value.start })).filter((f) => f.index !== 0)
-})
-
-// Scroll Left is used to apply scroll to the aggregation bar when the grid is scrolled
-const scrollLeft = ref(0)
-
-// Check permissions
 const { isUIAllowed, isDataReadOnly } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
 const isAddingColumnAllowed = computed(() => !readOnly.value && !isLocked.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
-// addColumnDropdown - reactive ref to check if the add column dropdown is open
+const { onDrag, onDragStart, onDragEnd, draggedCol, dragColPlaceholderDomRef, toBeDroppedColId } = useColumnDrag({
+  fields,
+  tableBodyEl,
+  gridWrapper,
+})
+
 const addColumnDropdown = ref(false)
 
-// editOrAddProviderRef - reactive ref to get the edit or add provider Element
-const editOrAddProviderRef = ref()
-
-// altModifier - reactive ref to check if the alt key is pressed
-// Used to trigger the magic feature
 const altModifier = ref(false)
 
 const persistMenu = ref(false)
 
+const disableUrlOverlay = ref(false)
+
 const preloadColumn = ref<any>()
 
-// columnOrder - reactive ref to store the column order of the new column
+const scrolling = ref(false)
+
+const switchingTab = ref(false)
+
 const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
 
-// isJsonExpand - reactive ref to check if the json expand modal is open
-const isJsonExpand = ref(false)
-provide(JsonExpandInj, isJsonExpand)
-
-// openColumnCreate - function to open the column create modal
-function openColumnCreate(data: any) {
-  scrollToAddNewColumnHeader('smooth')
-
-  setTimeout(() => {
-    addColumnDropdown.value = true
-    preloadColumn.value = data
-  }, 500)
-}
-
-// loadColumn - function to preload the column. used along with magic functions
-const loadColumn = (title: string, tp: string, colOptions?: any) => {
-  preloadColumn.value = {
-    title,
-    uidt: tp,
-    colOptions,
-  }
-  persistMenu.value = false
-}
-
-// function to close the add column dropdown
-// scrollToLastCol - boolean to check if the grid should scroll to the last column
-const closeAddColumnDropdown = (scrollToLastCol = false) => {
-  columnOrder.value = null
-  addColumnDropdown.value = false
-  preloadColumn.value = {}
-  if (scrollToLastCol) {
-    setTimeout(() => {
-      scrollToAddNewColumnHeader('smooth')
-    }, 200)
-  }
-}
-
-// scrollToAddNewColumnHeader - function to scroll to the last column
-// behavior - scroll behavior
-function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
-  gridWrapper.value?.scrollTo({
-    top: gridWrapper.value.scrollTop,
-    left: gridWrapper.value.scrollWidth,
-    behavior,
-  })
-}
-
-// onVisibilityChange - function to check if the add column dropdown should be closed
-// Keep the dropdown open if the webhook modal is open
-const onVisibilityChange = () => {
-  addColumnDropdown.value = true
-  if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
-    addColumnDropdown.value = false
-  }
-}
-
-// Helper functions for placeholder rendering
-const parsePixelValue = (value: string): number => {
-  return +value.replace('px', '') || 0
-}
-
-// Compute cumulative widths for each column
-const cumulativeWidths = computed(() => {
-  let sum = 0
-
-  return fields.value.map(({ id }) => {
-    const width = parsePixelValue(gridViewCols[id]?.width || '200px')
-    sum += width + 16 + 1 // 1 px for border 16px for padding
-    return sum
-  })
-})
-
-// tableHeadEl - reactive ref to get the table head element
-const tableHeadEl = ref<HTMLElement>()
-
-// _tableHeadWidth - reactive ref to get the width of the table head
-// tableHeadHeight - reactive ref to get the height of the table head
-const { height: tableHeadHeight, width: _tableHeadWidth } = useElementBounding(tableHeadEl)
-
-// getContainerScrollForElement - function to get the scroll position of the container
-// childPos - position of the child element
-// container - container element
-// offset - offset to show the prev/next/up/bottom cell
-const getContainerScrollForElement = (
-  childPos: {
-    top: number
-    right: number
-    bottom: number
-    left: number
-  },
-  container: HTMLElement,
-  offset?: {
-    top?: number
-    bottom?: number
-    left?: number
-    right?: number
-  },
-) => {
-  const parentPos = container.getBoundingClientRect()
-
-  // provide an extra offset to show the prev/next/up/bottom cell
-  const extraOffset = 15
-
-  const numColWidth = container.querySelector('thead th:nth-child(1)')?.getBoundingClientRect().width ?? 0
-  const primaryColWidth = container.querySelector('thead th:nth-child(2)')?.getBoundingClientRect().width ?? 0
-
-  const stickyColsWidth = numColWidth + primaryColWidth
-
-  const relativePos = {
-    right: childPos.right + numColWidth - parentPos.width - container.scrollLeft,
-    left: childPos.left + numColWidth - container.scrollLeft - stickyColsWidth,
-    bottom: childPos.bottom - parentPos.height - container.scrollTop,
-    top: childPos.top - container.scrollTop,
-  }
-
-  const scroll = {
-    top: 0,
-    left: 0,
-  }
-
-  /*
-   * If the element is to the right of the container, scroll right (positive)
-   * If the element is to the left of the container, scroll left (negative)
-   */
-  scroll.left =
-    relativePos.right + (offset?.right || 0) > 0
-      ? container.scrollLeft + relativePos.right + (offset?.right || 0) + extraOffset
-      : relativePos.left - (offset?.left || 0) < 0
-      ? container.scrollLeft + relativePos.left - (offset?.left || 0) - extraOffset
-      : container.scrollLeft
-
-  /*
-   * If the element is below the container, scroll down (positive)
-   * If the element is above the container, scroll up (negative)
-   */
-  scroll.top =
-    relativePos.bottom + (offset?.bottom || 0) > 0
-      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0) + extraOffset
-      : relativePos.top - (offset?.top || 0) < 0
-      ? container.scrollTop + relativePos.top - (offset?.top || 0) - extraOffset
-      : container.scrollTop
-
-  return scroll
-}
-
-// Is the edit Enabled in any cell
 const editEnabled = ref(false)
 
-// isKeyDown - reactive ref to check if the key is pressed
-const isKeyDown = ref(false)
+const isGridCellMouseDown = ref(false)
 
-// _contextMenu - reactive ref to check if the context menu is open
 const _contextMenu = ref(false)
 
-// contextMenu - computed ref to check if the context menu is open
+const selectedRows = toRef(props, 'selectedRows')
+
 const contextMenu = computed({
   get: () => {
     if (selectedRows.value.length && isDataReadOnly.value) return false
@@ -654,15 +302,11 @@ const contextMenu = computed({
     _contextMenu.value = val
   },
 })
-// contextMenuClosing - reactive ref to check if the context menu is closing
+
 const contextMenuClosing = ref(false)
 
-// contextMenuTarget - reactive ref to get the target of the context menu
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
 
-// showContextMenu - function to show the context menu
-// e - mouse event
-// target - target of the context menu
 const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
   if (isSqlView.value) return
   e.preventDefault()
@@ -671,46 +315,33 @@ const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) =
   }
 }
 
-// isAddingEmptyRowAllowed - computed ref to check if the empty row can be added
-const isAddingEmptyRowAllowed = computed(() => hasEditPermission.value && !isSqlView.value && !isPublicView.value)
+const isJsonExpand = ref(false)
+provide(JsonExpandInj, isJsonExpand)
 
-// function to make the cell editable
-function makeEditable(row: Row, col: ColumnType) {
-  // If the cell is readonly, return
-  if (!hasEditPermission.value || editEnabled.value || readOnly.value || isSystemColumn(col)) {
-    return
-  }
+const isKeyDown = ref(false)
 
-  if (!isPkAvail.value && !row.rowMeta.new) {
-    // Update not allowed for table which doesn't have primary Key or for new rows
-    message.info(t('msg.info.updateNotAllowedWithoutPK'))
-    return
-  }
-
-  if (col.ai) {
-    // Auto Increment field is not editable
-    message.info(t('msg.info.autoIncFieldNotEditable'))
-    return
-  }
-
-  if (col.pk && !row.rowMeta.new) {
-    // Editing primary key not supported
-    message.info(t('msg.info.editingPKnotSupported'))
-    return
-  }
-
-  if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt as UITypes)) {
-    return
-  }
-
-  return (editEnabled.value = true)
+const isReadonly = (col: ColumnType) => {
+  return (
+    isSystemColumn(col) ||
+    isLookup(col) ||
+    isRollup(col) ||
+    isFormula(col) ||
+    isButton(col) ||
+    isVirtualCol(col) ||
+    isCreatedOrLastModifiedTimeCol(col) ||
+    isCreatedOrLastModifiedByCol(col)
+  )
 }
 
-// reactive ref to check if the mouse is down on the grid
-// used for the fill handle
-const isGridCellMouseDown = ref(false)
+const colMeta = computed(() => {
+  return fields.value.map((col) => {
+    return {
+      isVirtualCol: isVirtualCol(col),
+      isReadonly: isReadonly(col),
+    }
+  })
+})
 
-// clearCell - function to clear content the cell
 async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = false) {
   // If the data is readonly, return
   // If the cell is not available, return
@@ -831,7 +462,159 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
   }
 }
 
-const fillHandle = ref<HTMLElement>()
+function makeEditable(row: Row, col: ColumnType) {
+  // If the cell is readonly, return
+  if (!hasEditPermission.value || editEnabled.value || readOnly.value || isSystemColumn(col)) {
+    return
+  }
+
+  if (!isPkAvail.value && !row.rowMeta.new) {
+    // Update not allowed for table which doesn't have primary Key or for new rows
+    message.info(t('msg.info.updateNotAllowedWithoutPK'))
+    return
+  }
+
+  if (col.ai) {
+    // Auto Increment field is not editable
+    message.info(t('msg.info.autoIncFieldNotEditable'))
+    return
+  }
+
+  if (col.pk && !row.rowMeta.new) {
+    // Editing primary key not supported
+    message.info(t('msg.info.editingPKnotSupported'))
+    return
+  }
+
+  if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt as UITypes)) {
+    return
+  }
+
+  return (editEnabled.value = true)
+}
+
+const isAddingEmptyRowAllowed = computed(() => hasEditPermission.value && !isSqlView.value && !isPublicView.value)
+
+const visibleColLength = computed(() => fields.value?.length)
+
+const dummyColumnDataForLoading = computed(() => {
+  let length = fields.value?.length ?? 40
+  length = length || 40
+  return Array.from({ length: length + 1 }).map(() => ({}))
+})
+
+const cellMeta = computed(() => {
+  return visibleRows.value?.map((row) => {
+    return fields.value.map((col) => {
+      return {
+        isColumnRequiredAndNull: isColumnRequiredAndNull(col, row.row),
+      }
+    })
+  })
+})
+
+function openColumnCreate(data: any) {
+  scrollToAddNewColumnHeader('smooth')
+
+  setTimeout(() => {
+    addColumnDropdown.value = true
+    preloadColumn.value = data
+  }, 500)
+}
+
+const closeAddColumnDropdown = (scrollToLastCol = false) => {
+  columnOrder.value = null
+  addColumnDropdown.value = false
+  preloadColumn.value = {}
+  if (scrollToLastCol) {
+    setTimeout(() => {
+      scrollToAddNewColumnHeader('smooth')
+    }, 200)
+  }
+}
+
+async function openNewRecordHandler() {
+  // Add an empty row
+  const newRow = addEmptyRow(totalRows.value + 1, true)
+  // Expand the form
+  if (newRow) expandForm?.(newRow, undefined, true)
+}
+
+const onDraftRecordClick = () => {
+  openNewRecordFormHook.trigger()
+}
+
+const onNewRecordToGridClick = () => {
+  setAddNewRecordGridMode(true)
+  addEmptyRow()
+}
+
+const onNewRecordToFormClick = () => {
+  setAddNewRecordGridMode(false)
+  onDraftRecordClick()
+}
+
+const getContainerScrollForElement = (
+  childPos: {
+    top: number
+    right: number
+    bottom: number
+    left: number
+  },
+  container: HTMLElement,
+  offset?: {
+    top?: number
+    bottom?: number
+    left?: number
+    right?: number
+  },
+) => {
+  const parentPos = container.getBoundingClientRect()
+
+  // provide an extra offset to show the prev/next/up/bottom cell
+  const extraOffset = 15
+
+  const numColWidth = container.querySelector('thead th:nth-child(1)')?.getBoundingClientRect().width ?? 0
+  const primaryColWidth = container.querySelector('thead th:nth-child(2)')?.getBoundingClientRect().width ?? 0
+
+  const stickyColsWidth = numColWidth + primaryColWidth
+
+  const relativePos = {
+    right: childPos.right + numColWidth - parentPos.width - container.scrollLeft,
+    left: childPos.left + numColWidth - container.scrollLeft - stickyColsWidth,
+    bottom: childPos.bottom - parentPos.height - container.scrollTop,
+    top: childPos.top - container.scrollTop,
+  }
+
+  const scroll = {
+    top: 0,
+    left: 0,
+  }
+
+  /*
+   * If the element is to the right of the container, scroll right (positive)
+   * If the element is to the left of the container, scroll left (negative)
+   */
+  scroll.left =
+    relativePos.right + (offset?.right || 0) > 0
+      ? container.scrollLeft + relativePos.right + (offset?.right || 0) + extraOffset
+      : relativePos.left - (offset?.left || 0) < 0
+      ? container.scrollLeft + relativePos.left - (offset?.left || 0) - extraOffset
+      : container.scrollLeft
+
+  /*
+   * If the element is below the container, scroll down (positive)
+   * If the element is above the container, scroll up (negative)
+   */
+  scroll.top =
+    relativePos.bottom + (offset?.bottom || 0) > 0
+      ? container.scrollTop + relativePos.bottom + (offset?.bottom || 0) + extraOffset
+      : relativePos.top - (offset?.top || 0) < 0
+      ? container.scrollTop + relativePos.top - (offset?.top || 0) - extraOffset
+      : container.scrollTop
+
+  return scroll
+}
 
 const {
   selectRangeMap,
@@ -1023,18 +806,144 @@ const {
   view,
 )
 
-// Expand the form when the user clicks on a expand button
-const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
-  if (expandForm) {
-    expandForm(row, col)
-  }
-  // remove focus from the cell
-  activeCell.row = null
-  activeCell.col = null
-  selectedRange.clear()
+function scrollToRow(row?: number) {
+  clearSelectedRange()
+  makeActive(row ?? totalRows.value - 1, 0)
+  selectedRange.startRange({ row: activeCell.row!, col: activeCell.col! })
+  scrollToCell?.(row)
 }
 
-// Clear the selected range
+async function saveEmptyRow(rowObj: Row) {
+  await updateOrSaveRow?.(rowObj)
+}
+
+async function addEmptyRow(row?: number, skipUpdate: boolean = false) {
+  const rowObj = callAddEmptyRow?.(row)
+
+  if (!skipUpdate && rowObj) {
+    await saveEmptyRow(rowObj)
+  }
+
+  await nextTick(() => {})
+
+  scrollToRow(row ?? totalRows.value - 1)
+}
+
+const confirmDeleteRow = (row: number) => {
+  try {
+    deleteRow?.(row)
+
+    if (selectedRange.isRowInRange(row)) {
+      clearSelectedRange()
+    }
+
+    // If the active cell is in the row, clear the active cell
+    if (activeCell.row === row) {
+      activeCell.row = null
+      activeCell.col = null
+    }
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+
+const commentRow = (rowId: number) => {
+  try {
+    // set the expanded form comment mode
+    isExpandedFormCommentMode.value = true
+
+    const row = cachedRows.value.get(rowId)
+    if (expandForm) {
+      expandForm(row)
+    }
+
+    activeCell.row = null
+    activeCell.col = null
+    selectedRange.clear()
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
+
+const deleteSelectedRangeOfRows = () => {
+  deleteRangeOfRows?.(selectedRange).then(() => {
+    clearSelectedRange()
+    activeCell.row = null
+    activeCell.col = null
+  })
+}
+
+onClickOutside(tableBodyEl, (e) => {
+  // do nothing if mousedown on the scrollbar (scrolling)
+  if (scrolling.value || resizingColumn.value) {
+    return
+  }
+
+  // do nothing if context menu was open
+  if (contextMenu.value) return
+
+  // do nothing active cell is not set
+  if (activeCell.row === null || activeCell.col === null) return
+
+  // do nothing if the cell is readonly
+  const isRichModalOpen = isExpandedCellInputExist()
+  if (isRichModalOpen) return
+
+  const activeCol = fields.value[activeCell.col]
+
+  if (editEnabled.value && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
+
+  // skip if fill mode is active
+  if (isFillMode.value) return
+
+  // ignore unselecting if clicked inside or on the picker(Date, Time, DateTime, Year)
+  // or single/multi select options
+  const activePickerOrDropdownEl = document.querySelector(
+    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-dropdown-user-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active,.nc-link-dropdown-root',
+  )
+  if (
+    e.target &&
+    activePickerOrDropdownEl &&
+    (activePickerOrDropdownEl === e.target || activePickerOrDropdownEl?.contains(e.target as Element))
+  )
+    return
+
+  // skip if drawer / modal is active
+  if (isDrawerOrModalExist()) {
+    return
+  }
+  // clear the active cell and selected range
+  clearSelectedRange()
+  activeCell.row = null
+  activeCell.col = null
+})
+
+const onNavigate = (dir: NavigateDir) => {
+  if (activeCell.row === null || activeCell.col === null) return
+
+  editEnabled.value = false
+  clearSelectedRange()
+
+  switch (dir) {
+    case NavigateDir.NEXT:
+      if (activeCell.row < totalRows.value - 1) {
+        activeCell.row++
+      } else {
+        addEmptyRow()
+        activeCell.row++
+      }
+      break
+    case NavigateDir.PREV:
+      if (activeCell.row > 0) {
+        activeCell.row--
+      }
+      break
+  }
+  nextTick(() => {
+    scrollToCell()
+  })
+}
+
 async function clearSelectedRangeOfCells() {
   if (!hasEditPermission.value || isDataReadOnly.value) return
 
@@ -1075,139 +984,25 @@ async function clearSelectedRangeOfCells() {
   await bulkUpdateRows?.(rows, props)
 }
 
-const temporaryNewRowStore = ref<Row[]>([])
+const colPositions = computed(() => {
+  return fields.value
+    .filter((col) => col.id && gridViewCols.value[col.id] && gridViewCols.value[col.id].width && gridViewCols.value[col.id].show)
+    .map((col) => {
+      return +gridViewCols.value[col.id!]!.width!.replace('px', '') || 200
+    })
+    .reduce(
+      (acc, width, i) => {
+        acc.push(acc[i] + width)
+        return acc
+      },
+      [0],
+    )
+})
 
-const saveOrUpdateRecords = async (
-  args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any; keepNewRecords?: boolean } = {},
-) => {
-  for (const currentRow of args.data || cachedRows.value.entries()) {
-    if (currentRow.rowMeta.fromExpandedForm) continue
+const scrollLeft = ref(0)
 
-    /** if new record save row and save the LTAR cells */
-    if (currentRow.rowMeta.new) {
-      const beforeSave = clone(currentRow)
-      const savedRow = await updateOrSaveRow?.(currentRow, '', currentRow.rowMeta.ltarState || {}, args)
-      if (savedRow) {
-        currentRow.rowMeta.changed = false
-      } else {
-        if (args.keepNewRecords) {
-          if (beforeSave.rowMeta.new && Object.keys(beforeSave.row).length) {
-            temporaryNewRowStore.value.push(beforeSave)
-          }
-        }
-      }
-      continue
-    }
+const scrollTop = ref(0)
 
-    /** if existing row check updated cell and invoke update method */
-    if (currentRow.rowMeta.changed) {
-      currentRow.rowMeta.changed = false
-      for (const field of (args.metaValue || meta.value)?.columns ?? []) {
-        // `url` would be enriched in attachment during listing
-        // hence it would consider as a change while it is not necessary to update
-        if (isVirtualCol(field) || field.uidt === UITypes.Attachment) continue
-        if (field.title! in currentRow.row && currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
-          await updateOrSaveRow?.(currentRow, field.title!, {}, args)
-        }
-      }
-    }
-  }
-}
-
-const deleteSelectedRangeOfRows = () => {
-  deleteRangeOfRows?.(selectedRange).then(() => {
-    clearSelectedRange()
-    activeCell.row = null
-    activeCell.col = null
-  })
-}
-
-// Confirm if the user wants to delete the row
-// row - the row to be deleted
-const confirmDeleteRow = (row: number) => {
-  try {
-    deleteRow?.(row)
-
-    if (selectedRange.isRowInRange(row)) {
-      clearSelectedRange()
-    }
-
-    // If the active cell is in the row, clear the active cell
-    if (activeCell.row === row) {
-      activeCell.row = null
-      activeCell.col = null
-    }
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
-// isExpandedFormCommentMode - reactive ref to set the expanded form comment mode is enabled
-// The focus is set to the comments
-
-const { isExpandedFormCommentMode } = storeToRefs(useConfigStore())
-
-// commentRow - function to comment the row
-// rowId - the row to be commented
-const commentRow = (rowId: number) => {
-  try {
-    // set the expanded form comment mode
-    isExpandedFormCommentMode.value = true
-
-    const row = cachedRows.value.get(rowId)
-    if (expandForm) {
-      expandForm(row)
-    }
-
-    activeCell.row = null
-    activeCell.col = null
-    selectedRange.clear()
-  } catch (e: any) {
-    message.error(e.message)
-  }
-}
-
-//  onNavigate - function to navigate to the next or previous cell
-const onNavigate = (dir: NavigateDir) => {
-  if (activeCell.row === null || activeCell.col === null) return
-
-  editEnabled.value = false
-  clearSelectedRange()
-
-  switch (dir) {
-    case NavigateDir.NEXT:
-      if (activeCell.row < totalRows.value - 1) {
-        activeCell.row++
-      } else {
-        addEmptyRow()
-        activeCell.row++
-      }
-      break
-    case NavigateDir.PREV:
-      if (activeCell.row > 0) {
-        activeCell.row--
-      }
-      break
-  }
-  nextTick(() => {
-    scrollToCell()
-  })
-}
-
-// selectedReadonly - computed ref to check if the selected columns are readonly
-const selectedReadonly = computed(
-  () =>
-    // if all the selected columns are not readonly
-    (selectedRange.isEmpty() && activeCell.col && colMeta.value[activeCell.col].isReadonly) ||
-    (!selectedRange.isEmpty() &&
-      Array.from({ length: selectedRange.end.col - selectedRange.start.col + 1 }).every(
-        (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
-      )),
-)
-
-// function to scroll to a cell
-// row - the row to scroll to
-// col - the column to scroll to
 function scrollToCell(row?: number | null, col?: number | null) {
   row = activeCell.row
   col = activeCell.col
@@ -1265,132 +1060,150 @@ function scrollToCell(row?: number | null, col?: number | null) {
   }
 }
 
-// handleCellClick - function to handle the cell click
-const handleCellClick = (event: MouseEvent, row: number, col: number) => {
-  const rowData = cachedRows.value.get(row)
+const temporaryNewRowStore = ref<Row[]>([])
 
-  // If isMobileMode is true, expand the form and loose focus
-  if (isMobileMode.value) {
-    return expandAndLooseFocus(rowData, fields.value[col])
+const saveOrUpdateRecords = async (
+  args: { metaValue?: TableType; viewMetaValue?: ViewType; data?: any; keepNewRecords?: boolean } = {},
+) => {
+  for (const currentRow of args.data || cachedRows.value.entries()) {
+    if (currentRow.rowMeta.fromExpandedForm) continue
+
+    /** if new record save row and save the LTAR cells */
+    if (currentRow.rowMeta.new) {
+      const beforeSave = clone(currentRow)
+      const savedRow = await updateOrSaveRow?.(currentRow, '', currentRow.rowMeta.ltarState || {}, args)
+      if (savedRow) {
+        currentRow.rowMeta.changed = false
+      } else {
+        if (args.keepNewRecords) {
+          if (beforeSave.rowMeta.new && Object.keys(beforeSave.row).length) {
+            temporaryNewRowStore.value.push(beforeSave)
+          }
+        }
+      }
+      continue
+    }
+
+    /** if existing row check updated cell and invoke update method */
+    if (currentRow.rowMeta.changed) {
+      currentRow.rowMeta.changed = false
+      for (const field of (args.metaValue || meta.value)?.columns ?? []) {
+        // `url` would be enriched in attachment during listing
+        // hence it would consider as a change while it is not necessary to update
+        if (isVirtualCol(field) || field.uidt === UITypes.Attachment) continue
+        if (field.title! in currentRow.row && currentRow.row[field.title!] !== currentRow.oldRow[field.title!]) {
+          await updateOrSaveRow?.(currentRow, field.title!, {}, args)
+        }
+      }
+    }
   }
-
-  // Else make the cell active based on conditions
-  _handleCellClick(event, row, col)
 }
 
-// scrollToRow - function to scroll to a row
-// row - the row to scroll to
-function scrollToRow(row?: number) {
-  clearSelectedRange()
-  makeActive(row ?? totalRows.value - 1, 0)
-  selectedRange.startRange({ row: activeCell.row!, col: activeCell.col! })
-  scrollToCell?.(row)
-}
-
-// openNewRecordHandler - function to create a new Record in expanded form
-async function openNewRecordHandler() {
-  // Add an empty row
-  const newRow = addEmptyRow(totalRows.value + 1, true)
-  // Expand the form
-  if (newRow) expandForm?.(newRow, undefined, true)
-}
-
-// onDraftRecordClick - function to create a new Record in expanded form
-const onDraftRecordClick = () => {
-  openNewRecordFormHook.trigger()
-}
-
-// saveEmptyRow - function to save the empty row
-async function saveEmptyRow(rowObj: Row) {
-  await updateOrSaveRow?.(rowObj)
-}
-
-// addEmptyRow - function to add an empty row at the end
-async function addEmptyRow(row?: number, skipUpdate: boolean = false) {
-  const rowObj = callAddEmptyRow?.(row)
-
-  if (!skipUpdate && rowObj) {
-    await saveEmptyRow(rowObj)
+const loadColumn = (title: string, tp: string, colOptions?: any) => {
+  preloadColumn.value = {
+    title,
+    uidt: tp,
+    colOptions,
   }
-
-  await nextTick(() => {})
-
-  scrollToRow(row ?? totalRows.value - 1)
+  persistMenu.value = false
 }
 
-// onNewRecordToGridClick - function to add a new record from the grid
-const onNewRecordToGridClick = () => {
-  setAddNewRecordGridMode(true)
-  addEmptyRow()
-}
+const editOrAddProviderRef = ref()
 
-// onNewRecordToFormClick - function to add a new record from the expanded form
-const onNewRecordToFormClick = () => {
-  setAddNewRecordGridMode(false)
-  onDraftRecordClick()
-}
-
-// scrolling - reactive ref to check if the user is scrolling
-const scrolling = ref(false)
-
-// on CLicked outside the tableBody
-onClickOutside(tableBodyEl, (e) => {
-  // do nothing if mousedown on the scrollbar (scrolling)
-  if (scrolling.value || resizingColumn.value) {
-    return
+const onVisibilityChange = () => {
+  addColumnDropdown.value = true
+  if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
+    addColumnDropdown.value = false
   }
+}
 
-  // do nothing if context menu was open
-  if (contextMenu.value) return
+const VIRTUAL_MARGIN = 10
 
-  // do nothing active cell is not set
-  if (activeCell.row === null || activeCell.col === null) return
-
-  // do nothing if the cell is readonly
-  const isRichModalOpen = isExpandedCellInputExist()
-  if (isRichModalOpen) return
-
-  const activeCol = fields.value[activeCell.col]
-
-  if (editEnabled.value && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
-
-  // skip if fill mode is active
-  if (isFillMode.value) return
-
-  // ignore unselecting if clicked inside or on the picker(Date, Time, DateTime, Year)
-  // or single/multi select options
-  const activePickerOrDropdownEl = document.querySelector(
-    '.nc-picker-datetime.active,.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active,.nc-dropdown-user-select-cell.active,.nc-picker-date.active,.nc-picker-year.active,.nc-picker-time.active,.nc-link-dropdown-root',
-  )
-  if (
-    e.target &&
-    activePickerOrDropdownEl &&
-    (activePickerOrDropdownEl === e.target || activePickerOrDropdownEl?.contains(e.target as Element))
-  )
-    return
-
-  // skip if drawer / modal is active
-  if (isDrawerOrModalExist()) {
-    return
-  }
-  // clear the active cell and selected range
-  clearSelectedRange()
-  activeCell.row = null
-  activeCell.col = null
+const colSlice = ref({
+  start: 0,
+  end: 0,
 })
 
-// leftOffset for the columns
+const calculateSlices = () => {
+  // if the grid is not rendered yet
+  if (!gridWrapper.value || !gridWrapper.value) {
+    colSlice.value = {
+      start: 0,
+      end: 0,
+    }
+
+    // try again until the grid is rendered
+    setTimeout(calculateSlices, 100)
+    return
+  }
+
+  let renderStart = 0
+
+  // use binary search to find the start and end columns
+  let startRange = 0
+  let endRange = colPositions.value.length - 1
+
+  while (endRange !== startRange) {
+    const middle = Math.floor((endRange - startRange) / 2 + startRange)
+
+    if (
+      colPositions.value[middle] <= gridWrapper.value.scrollLeft &&
+      colPositions.value[middle + 1] > gridWrapper.value.scrollLeft
+    ) {
+      renderStart = middle
+      break
+    }
+
+    if (middle === startRange) {
+      renderStart = endRange
+      break
+    } else {
+      if (colPositions.value[middle] <= gridWrapper.value.scrollLeft) {
+        startRange = middle
+      } else {
+        endRange = middle
+      }
+    }
+  }
+
+  let renderEnd = 0
+  let renderEndFound = false
+
+  for (let i = renderStart; i < colPositions.value.length; i++) {
+    if (colPositions.value[i] > gridWrapper.value.clientWidth + gridWrapper.value.scrollLeft) {
+      renderEnd = i
+      renderEndFound = true
+      break
+    }
+  }
+
+  colSlice.value = {
+    start: Math.max(0, renderStart - VIRTUAL_MARGIN),
+    end: renderEndFound ? Math.min(fields.value.length, renderEnd + VIRTUAL_MARGIN) : fields.value.length,
+  }
+
+  const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
+  const visibleCount = Math.ceil(gridWrapper.value.clientHeight / rowHeight.value)
+  const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
+
+  rowSlice.start = startIndex
+  rowSlice.end = endIndex
+}
+
+const visibleFields = computed(() => {
+  // return data as { field, index } to keep track of the index
+  const vFields = fields.value.slice(colSlice.value.start, colSlice.value.end)
+  return vFields.map((field, index) => ({ field, index: index + colSlice.value.start })).filter((f) => f.index !== 0)
+})
+
 const leftOffset = computed(() => {
   return colSlice.value.start > 0 ? colPositions.value[colSlice.value.start] - colPositions.value[1] : 0
 })
 
-// fillHandleTop - reactive ref to get the top position of the fill handle
+// Fill Handle
 const fillHandleTop = ref()
-
-// fillHandleLeft - reactive ref to get the left position of the fill handle
 const fillHandleLeft = ref()
 
-// Update the fillHandle position
 const refreshFillHandle = () => {
   nextTick(() => {
     const rowIndex = isNaN(selectedRange.end.row) ? activeCell.row : selectedRange.end.row
@@ -1409,7 +1222,6 @@ const refreshFillHandle = () => {
   })
 }
 
-// showFillHandle - computed ref to check if the fill handle should be shown
 const showFillHandle = computed(
   () =>
     !isDataReadOnly.value &&
@@ -1423,7 +1235,16 @@ const showFillHandle = computed(
     !selectedReadonly.value,
 )
 
-// Update the slices and refreshHanfle positions
+const selectedReadonly = computed(
+  () =>
+    // if all the selected columns are not readonly
+    (selectedRange.isEmpty() && activeCell.col && colMeta.value[activeCell.col].isReadonly) ||
+    (!selectedRange.isEmpty() &&
+      Array.from({ length: selectedRange.end.col - selectedRange.start.col + 1 }).every(
+        (_, i) => colMeta.value[selectedRange.start.col + i].isReadonly,
+      )),
+)
+
 watch(
   [() => selectedRange.end.row, () => selectedRange.end.col, () => activeCell.row, () => activeCell.col],
   ([sr, sc, ar, ac], [osr, osc, oar, oac]) => {
@@ -1434,28 +1255,22 @@ watch(
   },
 )
 
-// smartTable - reactive ref to get the smart table element
-const smartTable = ref(null)
+onMounted(async () => {
+  const resizeObserver = new ResizeObserver(() => {
+    refreshFillHandle()
+    if (activeCell.row !== null && !cachedRows.value.get(activeCell.row)) {
+      clearSelectedRange()
+      activeCell.row = null
+      activeCell.col = null
+    }
+  })
+  if (smartTable.value) resizeObserver.observe(smartTable.value)
 
-const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 100)
-
-// On scroll event listener
-// Update the scrollLeft and scrollTop values
-useScroll(gridWrapper, {
-  onScroll: (e) => {
-    scrollLeft.value = e.target?.scrollLeft
-    scrollTop.value = e.target?.scrollTop
-    calculateSlices() // Calculate the column slices when the user scrolls
-
-    debouncedUpdateVisibleItems()
-
-    refreshFillHandle() // Refresh the fill handle when the user scrolls
-  },
-  behavior: 'auto',
+  until(gridWrapper)
+    .toBeTruthy()
+    .then(() => calculateSlices())
 })
 
-// FIELD_ADD -> Triggered when a new column is added
-// CLEAR_NEW_ROW -> Triggered when a new row is cleared
 eventBus.on(async (event, payload) => {
   if (event === SmartsheetStoreEvents.FIELD_ADD) {
     columnOrder.value = payload
@@ -1470,8 +1285,42 @@ eventBus.on(async (event, payload) => {
   }
 })
 
-// eventListenner for mouse down event
-// If the user is scrolling, set the scrolling value to true
+const reloadViewDataHookHandler = async () => {
+  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+
+  await saveOrUpdateRecords({
+    keepNewRecords: true,
+  })
+
+  await syncCount()
+
+  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+
+  temporaryNewRowStore.value.forEach((row, index) => {
+    row.rowMeta.rowIndex = totalRows.value + index
+    cachedRows.value.set(totalRows.value + index, row)
+  })
+
+  calculateSlices()
+
+  totalRows.value = totalRows.value + temporaryNewRowStore.value.length
+}
+
+const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 100)
+
+useScroll(gridWrapper, {
+  onScroll: (e) => {
+    scrollLeft.value = e.target?.scrollLeft
+    scrollTop.value = e.target?.scrollTop
+    calculateSlices()
+
+    debouncedUpdateVisibleItems()
+
+    refreshFillHandle()
+  },
+  behavior: 'auto',
+})
+
 useEventListener(document, 'mousedown', (e) => {
   if (e.offsetX > (e.target as HTMLElement)?.clientWidth || e.offsetY > (e.target as HTMLElement)?.clientHeight) {
     scrolling.value = true
@@ -1490,11 +1339,6 @@ useEventListener(document, 'mouseup', () => {
   }, 100)
 })
 
-const disableUrlOverlay = ref(false)
-
-provide(CellUrlDisableOverlayInj, disableUrlOverlay)
-
-/** handle keypress events */
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   const isRichModalOpen = isExpandedCellInputExist()
 
@@ -1503,7 +1347,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-/** handle keypress events */
 useEventListener(document, 'keyup', async (e: KeyboardEvent) => {
   const isRichModalOpen = isExpandedCellInputExist()
 
@@ -1551,37 +1394,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const reloadViewDataHookHandler = async () => {
-  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-
-  await saveOrUpdateRecords({
-    keepNewRecords: true,
-  })
-
-  await syncCount()
-
-  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-
-  temporaryNewRowStore.value.forEach((row, index) => {
-    row.rowMeta.rowIndex = totalRows.value + index
-    cachedRows.value.set(totalRows.value + index, row)
-  })
-
-  totalRows.value = totalRows.value + temporaryNewRowStore.value.length
-}
-
-onMounted(async () => {
-  const resizeObserver = new ResizeObserver(() => {
-    refreshFillHandle()
-    if (activeCell.row !== null && !cachedRows.value.get(activeCell.row)) {
-      clearSelectedRange()
-      activeCell.row = null
-      activeCell.col = null
-    }
-  })
-  if (smartTable.value) resizeObserver.observe(smartTable.value)
-})
-
 onBeforeUnmount(async () => {
   /** save/update records before unmounting the component */
   const viewMetaValue = view.value
@@ -1601,11 +1413,22 @@ onBeforeUnmount(async () => {
   // reset hooks
   reloadViewDataHook?.off(reloadViewDataHookHandler)
   openNewRecordFormHook?.off(openNewRecordHandler)
+  reloadVisibleDataHook?.off(updateVisibleRows)
 })
 
 openNewRecordFormHook?.on(openNewRecordHandler)
-
 reloadViewDataHook?.on(reloadViewDataHookHandler)
+
+reloadVisibleDataHook?.on(updateVisibleRows)
+
+watch(contextMenu, () => {
+  if (!contextMenu.value) {
+    contextMenuClosing.value = true
+    contextMenuTarget.value = null
+  } else {
+    contextMenuClosing.value = false
+  }
+})
 
 watch(
   view,
@@ -1651,14 +1474,61 @@ watch(
   },
 )
 
-reloadVisibleDataHook?.on(async () => {
-  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+watch([() => fields.value.length, () => cachedRows.value.size], () => {
+  calculateSlices()
 })
+
+provide(CellUrlDisableOverlayInj, disableUrlOverlay)
 
 defineExpose({
   scrollToRow,
   openColumnCreate,
 })
+
+const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
+  if (expandForm) {
+    expandForm(row, col)
+  }
+  // remove focus from the cell
+  activeCell.row = null
+  activeCell.col = null
+  selectedRange.clear()
+}
+
+const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+  const rowData = cachedRows.value.get(row)
+
+  if (isMobileMode.value) {
+    return expandAndLooseFocus(rowData, fields.value[col])
+  }
+
+  _handleCellClick(event, row, col)
+}
+
+function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
+  gridWrapper.value?.scrollTo({
+    top: gridWrapper.value.scrollTop,
+    left: gridWrapper.value.scrollWidth,
+    behavior,
+  })
+}
+
+const parsePixelValue = (value: string): number => {
+  return +value.replace('px', '') || 0
+}
+
+const cumulativeWidths = computed(() => {
+  let sum = 0
+
+  return fields.value.map(({ id }) => {
+    const width = parsePixelValue(gridViewCols[id]?.width || '200px')
+    sum += width + 16 + 1 // 1 px for border 16px for padding
+    return sum
+  })
+})
+
+const startRowHeight = computed(() => `${rowSlice.start * rowHeight.value}px`)
+const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.end) * rowHeight.value)}px`)
 </script>
 
 <template>
@@ -2225,14 +2095,14 @@ defineExpose({
                 :class="{
                   '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                 }"
+                :style="{
+                  left: `-${leftOffset}px `,
+                }"
                 @mouseup.stop
                 @click="addEmptyRow()"
               >
                 <td
                   class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
-                  :style="{
-                    left: `-${leftOffset}px`,
-                  }"
                 >
                   <component
                     :is="iconMap.plus"

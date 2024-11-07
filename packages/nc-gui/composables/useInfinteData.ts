@@ -421,6 +421,7 @@ export function useInfiniteData(args: {
       )
 
       currentRow.rowMeta.new = false
+
       Object.assign(currentRow.row, insertedData)
 
       const insertIndex = currentRow.rowMeta.rowIndex!
@@ -436,14 +437,9 @@ export function useInfiniteData(args: {
         }
       }
 
-      cachedRows.value.set(insertIndex, currentRow)
-      syncLocalChunks(insertIndex, 'create')
-
-      if (!ignoreShifting) {
-        totalRows.value++
-      }
-
       if (!undo) {
+        Object.assign(currentRow.oldRow, insertedData)
+
         const id = extractPkFromRow(insertedData, metaValue!.columns as ColumnType[])
         const pkData = rowPkData(insertedData, metaValue?.columns as ColumnType[])
 
@@ -451,6 +447,9 @@ export function useInfiniteData(args: {
           undo: {
             fn: async (id: string) => {
               await deleteRowById(id)
+
+              totalRows.value--
+              callbacks?.syncVisibleData?.()
             },
             args: [id],
           },
@@ -463,6 +462,13 @@ export function useInfiniteData(args: {
           },
           scope: defineViewScope({ view: viewMeta.value }),
         })
+      }
+
+      cachedRows.value.set(insertIndex, currentRow)
+      syncLocalChunks(insertIndex, 'create')
+
+      if (!ignoreShifting) {
+        totalRows.value++
       }
 
       await reloadAggregate?.trigger()

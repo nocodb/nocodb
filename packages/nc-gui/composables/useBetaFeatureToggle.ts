@@ -24,8 +24,8 @@ const FEATURES = [
   },
   {
     id: 'extensions',
-    title: 'Enable extensions',
-    description: 'Extensions allows you to add new features or functionalities to the platform.',
+    title: 'Extensions',
+    description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
     enabled: false,
     isEngineering: true,
   },

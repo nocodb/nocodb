@@ -1016,7 +1016,7 @@ export function useInfiniteData(args: {
         viewMeta?.value?.id as string,
       )
 
-      totalRows.value = count === 0 ? Infinity : (count as number)
+      totalRows.value = count as number
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
       const errorMessage = await extractSdkResponseErrorMsg(error)

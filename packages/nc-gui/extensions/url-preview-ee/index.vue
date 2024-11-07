@@ -3,7 +3,7 @@ import { YoutubeVue3 } from 'youtube-vue3'
 
 const { eventBus } = useExtensionHelperOrThrow()
 
-const previewType = ref<'youtube' | 'figma' | 'google' | 'unsupported'>()
+const previewType = ref<'youtube' | 'figma' | 'google' | 'vimeo' | 'unsupported'>()
 const previewParams = ref<any>({})
 const showEmptyState = computed(() => !previewType.value)
 
@@ -34,7 +34,7 @@ const matchGoogle = (url: string) => {
     urlObj.searchParams.set('embed', 'true')
     embedUrl += '?' + urlObj.searchParams.toString()
 
-    return embedUrl;
+    return embedUrl
   } catch {
     return null
   }
@@ -75,6 +75,21 @@ const matchFigma = (url: string) => {
   }
 }
 
+const VIMEO_RE = /^https?:\/\/(www\.|)vimeo\.com\/(\d+)(?:\?.*)?$/
+const matchVimeo = (url: string) => {
+  try {
+    const match = url.match(VIMEO_RE)
+    if (!match) {
+      return null
+    }
+    const videoId = match[2]
+    // Build embed URL with parameters
+    return `https://player.vimeo.com/video/${videoId}`
+  } catch (error) {
+    return null
+  }
+}
+
 eventBus.on((event, payload) => {
   if (event === SmartsheetStoreEvents.CELL_SELECTED) {
     const selectedValue = payload.val
@@ -92,8 +107,12 @@ eventBus.on((event, payload) => {
           previewParams.value = { embedURL }
         } else if (matchGoogle(selectedValue)) {
           const embedURL = matchGoogle(selectedValue)
-          previewType.value = 'google';
-          previewParams.value = { embedURL };
+          previewType.value = 'google'
+          previewParams.value = { embedURL }
+        } else if (matchVimeo(selectedValue)) {
+          const embedURL = matchVimeo(selectedValue)
+          previewType.value = 'vimeo'
+          previewParams.value = { embedURL }
         } else {
           previewType.value = 'unsupported'
           previewParams.value = {}
@@ -116,7 +135,11 @@ eventBus.on((event, payload) => {
       </div>
       <!-- @vue-expect-error -->
       <YoutubeVue3 class="w-full h-full" :videoid="previewParams.videoId" :autoplay="0" v-else-if="previewType === 'youtube'" />
-      <iframe class="w-full h-full" :src="previewParams.embedURL" v-else-if="previewType === 'figma' || previewType === 'google'"></iframe>
+      <iframe
+        class="w-full h-full"
+        :src="previewParams.embedURL"
+        v-else-if="previewType === 'figma' || previewType === 'google' || previewType === 'vimeo'"
+      ></iframe>
       <div class="w-full text-center" v-else-if="previewType === 'unsupported'">
         <GeneralIcon icon="alertTriangleSolid" class="!text-red-700 w-8 h-8 flex-none" />
         <div class="mb-2 font-bold">URL not supported</div>

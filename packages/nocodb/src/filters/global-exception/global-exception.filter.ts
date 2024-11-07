@@ -2,7 +2,11 @@ import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
 import { InjectSentry, SentryService } from '@ntegral/nestjs-sentry';
 import { ThrottlerException } from '@nestjs/throttler';
 import hash from 'object-hash';
-import { NcErrorType } from 'nocodb-sdk';
+import {
+  NcErrorType,
+  NcSDKError,
+  BadRequest as SdkBadRequest,
+} from 'nocodb-sdk';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import NocoCache from '~/cache/NocoCache';
@@ -64,6 +68,8 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof NotFoundException ||
         exception instanceof ThrottlerException ||
         exception instanceof ExternalError ||
+        exception instanceof SdkBadRequest ||
+        exception instanceof NcSDKError ||
         (exception instanceof NcBaseErrorv2 &&
           ![
             NcErrorType.INTERNAL_SERVER_ERROR,
@@ -164,7 +170,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response.status(400).json(dbError);
     }
 
-    if (exception instanceof BadRequest || exception.getStatus?.() === 400) {
+    if (
+      exception instanceof BadRequest ||
+      exception instanceof SdkBadRequest ||
+      exception.getStatus?.() === 400
+    ) {
       return response.status(400).json({ msg: exception.message });
     } else if (
       exception instanceof Unauthorized ||

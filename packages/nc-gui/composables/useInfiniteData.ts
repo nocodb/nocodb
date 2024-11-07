@@ -7,6 +7,7 @@ import {
   type TableType,
   UITypes,
   type ViewType,
+  extractFilterFromXwhere,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
 } from 'nocodb-sdk'
@@ -50,7 +51,23 @@ export function useInfiniteData(args: {
 
   const { fetchCount } = useSharedView()
 
-  const { nestedFilters, allFilters } = useSmartsheetStoreOrThrow()
+  const { nestedFilters, allFilters, xWhere } = useSmartsheetStoreOrThrow()
+
+  const columnsByAlias = computed(() => {
+    if (!meta.value?.columns?.length) return {}
+    return meta.value?.columns.reduce((acc, column) => {
+      acc[column.title!] = column
+      return acc
+    }, {} as Record<string, ColumnType>)
+  })
+
+  const computedWhereFilter = computed(() => {
+    const filter = extractFilterFromXwhere(xWhere.value, columnsByAlias.value)
+
+    return filter.map((f) => {
+      return { ...f, value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value }
+    })
+  })
 
   const totalRows = ref(0)
 
@@ -749,7 +766,7 @@ export function useInfiniteData(args: {
 
     await until(() => !(row.rowMeta?.new && row.rowMeta?.saving)).toMatch((v) => v)
     row.rowMeta.isValidationFailed = !validateRowFilters(
-      allFilters.value,
+      [...allFilters.value, ...computedWhereFilter.value],
       row.row,
       meta.value?.columns as ColumnType[],
       getBaseType(viewMeta.value?.view.source_id),

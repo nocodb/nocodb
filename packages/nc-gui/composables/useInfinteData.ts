@@ -22,7 +22,6 @@ export function useInfiniteData(args: {
         limit?: number
       },
     ) => Promise<Row[] | undefined>
-    syncCount?: () => Promise<void>
     syncVisibleData?: () => void
   }
 }) {
@@ -43,6 +42,12 @@ export function useInfiniteData(args: {
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const cachedRows = ref<Map<number, Row>>(new Map())
+
+  const isPublic = inject(IsPublicInj, ref(false))
+
+  const { fetchCount } = useSharedView()
+
+  const { nestedFilters } = useSmartsheetStoreOrThrow()
 
   const totalRows = ref(0)
 
@@ -256,7 +261,7 @@ export function useInfiniteData(args: {
       syncLocalChunks(rowIndex, 'delete')
       totalRows.value = (totalRows.value || 0) - 1
 
-      await callbacks?.syncCount?.()
+      await syncCount()
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
       message.error(`${t('msg.error.deleteRowFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
@@ -378,7 +383,7 @@ export function useInfiniteData(args: {
     })
 
     callbacks?.syncVisibleData?.()
-    await callbacks?.syncCount?.()
+    await syncCount()
   }
 
   async function insertRow(
@@ -461,7 +466,7 @@ export function useInfiniteData(args: {
       }
 
       await reloadAggregate?.trigger()
-      await callbacks?.syncCount?.()
+      await syncCount()
       callbacks?.syncVisibleData?.()
 
       return insertedData
@@ -557,7 +562,7 @@ export function useInfiniteData(args: {
         syncLocalChunks(rowIndex!, 'create')
       }
 
-      await callbacks?.syncCount?.()
+      await syncCount()
       callbacks?.syncVisibleData?.()
 
       return bulkInsertedIds
@@ -953,7 +958,7 @@ export function useInfiniteData(args: {
           // Update chunks
           syncLocalChunks(Math.min(...rowsToDelete.map((row) => row.rowIndex)), 'delete')
 
-          await callbacks?.syncCount?.()
+          await syncCount()
           await callbacks?.syncVisibleData?.()
         },
         args: [rowsToDelete],
@@ -980,7 +985,7 @@ export function useInfiniteData(args: {
     // Update chunks
     syncLocalChunks(start, 'delete')
 
-    await callbacks?.syncCount?.()
+    await syncCount()
     callbacks?.syncVisibleData?.()
   }
 
@@ -1014,12 +1019,11 @@ export function useInfiniteData(args: {
 
   async function syncCount(): Promise<void> {
     try {
-      const { count } = await $api.dbViewRow.count(
-        NOCO,
-        base?.value?.id as string,
-        meta.value!.id as string,
-        viewMeta?.value?.id as string,
-      )
+      const { count } = isPublic.value
+        ? await fetchCount({
+            filtersArr: nestedFilters.value,
+          })
+        : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string)
 
       totalRows.value = count as number
       callbacks?.syncVisibleData?.()

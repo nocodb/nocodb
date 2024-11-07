@@ -3029,7 +3029,7 @@ class PGClient extends KnexClient {
           n.dt,
           castedColumn,
           limit,
-          n.meta.date_format || 'YYYY-MM-DD',
+          n.meta?.date_format || 'YYYY-MM-DD',
         );
 
         query += this.genQuery(castQuery, [], shouldSanitize);

@@ -518,7 +518,10 @@ export function useInfiniteData(args: {
         cachedRows.value.set(newIndex, row)
       }
 
-      chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
+      if (rowsToShift.length) {
+        chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
+      }
+
       totalRows.value = (totalRows.value || 0) - 1
 
       await syncCount()

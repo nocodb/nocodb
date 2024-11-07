@@ -94,8 +94,10 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
   }
 
   const handleStorageEvent = (event: StorageEvent) => {
-    if (event.key === STORAGE_KEY) {
-      initializeFeatures()
+    if (event.key === STORAGE_KEY && event.newValue !== null) {
+      if (JSON.parse(event.newValue) !== features.value) {
+        initializeFeatures()
+      }
     }
   }
 

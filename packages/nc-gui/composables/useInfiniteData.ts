@@ -69,7 +69,7 @@ export function useInfiniteData(args: {
   })
 
   const computedWhereFilter = computed(() => {
-    const filter = extractFilterFromXwhere(xWhere.value, columnsByAlias.value)
+    const filter = extractFilterFromXwhere(xWhere.value ?? '', columnsByAlias.value)
 
     return filter.map((f) => {
       return { ...f, value: f.value ? f.value?.toString().replace(/(^%)(.*?)(%$)/, '$2') : f.value }
@@ -86,25 +86,31 @@ export function useInfiniteData(args: {
 
   const { getBaseType } = useBase()
 
-  const syncLocalChunks = (index: number, operation: 'create' | 'delete') => {
-    const affectedChunk = Math.floor(index / CHUNK_SIZE)
+  const syncLocalChunks = (indexes: number | number[], operation: 'create' | 'delete') => {
+    const indexArray = Array.isArray(indexes) ? indexes : [indexes]
+    if (indexArray.length === 0) return
 
-    if (operation === 'create') {
-      chunkStates.value[affectedChunk] = 'loaded'
-    } else if (operation === 'delete') {
-      const chunkStart = affectedChunk * CHUNK_SIZE
-      const chunkEnd = (affectedChunk + 1) * CHUNK_SIZE
-      const hasRowsInChunk = [...cachedRows.value.keys()].some((i) => i >= chunkStart && i < chunkEnd)
-      chunkStates.value[affectedChunk] = hasRowsInChunk ? 'loaded' : undefined
+    const affectedChunks = new Set(indexArray.map((index) => Math.floor(index / CHUNK_SIZE)))
+    const maxChunk = Math.floor((cachedRows.value.size - 1) / CHUNK_SIZE)
+
+    const cachedKeys = [...cachedRows.value.keys()]
+
+    const hasRowsInChunk = (chunkIndex: number) => {
+      const chunkStart = chunkIndex * CHUNK_SIZE
+      const chunkEnd = (chunkIndex + 1) * CHUNK_SIZE
+      return cachedKeys.some((index) => index >= chunkStart && index < chunkEnd)
     }
 
-    const lastChunk = Math.floor((cachedRows.value.size - 1) / CHUNK_SIZE)
-    const cachedKeys = [...cachedRows.value.keys()]
-    for (let i = affectedChunk + 1; i <= lastChunk; i++) {
-      const chunkStart = i * CHUNK_SIZE
-      const chunkEnd = (i + 1) * CHUNK_SIZE
-      const hasRowsInChunk = cachedKeys.some((index) => index >= chunkStart && index < chunkEnd)
-      chunkStates.value[i] = hasRowsInChunk ? 'loaded' : undefined
+    affectedChunks.forEach((chunkIndex) => {
+      if (operation === 'create') {
+        chunkStates.value[chunkIndex] = 'loaded'
+      } else {
+        chunkStates.value[chunkIndex] = hasRowsInChunk(chunkIndex) ? 'loaded' : undefined
+      }
+    })
+
+    for (let i = Math.max(...affectedChunks) + 1; i <= maxChunk; i++) {
+      chunkStates.value[i] = hasRowsInChunk(i) ? 'loaded' : undefined
     }
   }
 
@@ -267,8 +273,10 @@ export function useInfiniteData(args: {
       row,
     }))
 
+    const orderedSorts = [...sorts.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
     rowsArray.sort((a, b) => {
-      for (const sort of sorts.value) {
+      for (const sort of orderedSorts) {
         const column = columnsById.value[sort.fk_column_id!]
         if (!column?.title) continue
 
@@ -280,7 +288,9 @@ export function useInfiniteData(args: {
           options: { direction },
         })
 
-        return comparison
+        if (comparison !== 0) {
+          return comparison
+        }
       }
       return a.originalIndex - b.originalIndex
     })
@@ -553,7 +563,7 @@ export function useInfiniteData(args: {
           const insertedRowIds = await bulkInsertRows(rowsToInsert as Row[], undefined, true)
 
           if (Array.isArray(insertedRowIds)) {
-            for (const { row } of rowsToInsert) recoverLTARRefs(row.row)
+            await Promise.all(rowsToInsert.map((row, _index) => recoverLTARRefs(row.row)))
           }
         },
         args: [removedRowsData],
@@ -781,9 +791,10 @@ export function useInfiniteData(args: {
 
       totalRows.value += validRowsToInsert.length
 
-      for (const { rowIndex } of validRowsToInsert) {
-        syncLocalChunks(rowIndex!, 'create')
-      }
+      syncLocalChunks(
+        validRowsToInsert.map(({ rowIndex }) => rowIndex),
+        'create',
+      )
 
       await syncCount()
       callbacks?.syncVisibleData?.()
@@ -938,7 +949,7 @@ export function useInfiniteData(args: {
             UITypes.Lookup,
             UITypes.Rollup,
             UITypes.LinkToAnotherRecord,
-          ].includes(c.uidt!),
+          ].includes(c.uidt as UITypes),
         )
         .map((c) => c.title!) || []),
     )
@@ -952,10 +963,8 @@ export function useInfiniteData(args: {
         cachedRows: cachedRows.value,
       })
 
-      if (needsResorting) {
-        const newRow = cachedRows.value.get(row.rowMeta.rowIndex!)
-        newRow.rowMeta.isRowOrderUpdated = needsResorting
-      }
+      const newRow = cachedRows.value.get(row.rowMeta.rowIndex!)
+      if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
     }
     callbacks?.syncVisibleData?.()
   }

@@ -53,7 +53,7 @@ export const sortByUIType = ({
   b: any
   options: {
     caseSensitive?: boolean
-    direction?: 'asc' | 'desc'
+    direction?: 'asc' | 'desc' | 'count-asc' | 'count-desc'
   }
 }) => {
   let nullsLast = direction !== 'asc'

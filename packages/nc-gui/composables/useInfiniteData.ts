@@ -773,7 +773,6 @@ export function useInfiniteData(args: {
 
       await syncCount()
       callbacks?.syncVisibleData?.()
-      applySorting()
 
       return bulkInsertedIds
     } catch (error: any) {
@@ -869,6 +868,10 @@ export function useInfiniteData(args: {
       await reloadAggregate?.trigger({ fields: [{ title: property }] })
 
       callbacks?.syncVisibleData?.()
+
+      if (undo) {
+        applySorting()
+      }
 
       return updatedRowData
     } catch (e: any) {
@@ -988,7 +991,6 @@ export function useInfiniteData(args: {
         undo: {
           fn: async (undoRows: Row[], props: string[]) => {
             await bulkUpdateRows(undoRows, props, undefined, true)
-            applySorting()
           },
           args: [clone(rows.map((row) => ({ row: row.oldRow, oldRow: row.row, rowMeta: row.rowMeta }))), props],
         },
@@ -1002,9 +1004,7 @@ export function useInfiniteData(args: {
       })
     }
 
-    await nextTick(() => {
-      applySorting()
-    })
+    applySorting()
   }
 
   async function bulkUpdateView(
@@ -1020,7 +1020,6 @@ export function useInfiniteData(args: {
     })
 
     await reloadAggregate?.trigger()
-    applySorting()
     callbacks?.syncVisibleData?.()
   }
 

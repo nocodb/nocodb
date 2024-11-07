@@ -245,11 +245,7 @@ const updateVisibleRows = async () => {
 }
 
 const visibleRows = computedAsync(async () => {
-  const { start: startRow, end: endRow } = rowSlice
-
-  const start = Math.max(0, startRow - BUFFER_SIZE)
-
-  const end = Math.min(totalRows.value, endRow + BUFFER_SIZE)
+  const { start, end } = rowSlice
 
   return Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
     const rowIndex = start + i
@@ -1515,16 +1511,6 @@ const parsePixelValue = (value: string): number => {
   return +value.replace('px', '') || 0
 }
 
-const cumulativeWidths = computed(() => {
-  let sum = 0
-
-  return fields.value.map(({ id }) => {
-    const width = parsePixelValue(gridViewCols[id]?.width || '200px')
-    sum += width + 16 + 1 // 1 px for border 16px for padding
-    return sum
-  })
-})
-
 const maxGridWidth = computed(() => {
   return colPositions.value[colPositions.value.length - 1] + 64
 })
@@ -1854,12 +1840,14 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
                     }"
                   ></td>
                   <td
-                    v-for="({ id }, index) in fields"
-                    :key="id"
-                    class="placeholder-column px-2"
+                    v-for="(columnObj, index) in visibleFields"
+                    :key="`placeholder-top-${index}`"
+                    class="placeholder-column"
                     :style="{
-                      width: gridViewCols[id]?.width || '200px',
-                      left: `${(cumulativeWidths[index - 1] || 0) + 64}px`,
+                      width: gridViewCols[columnObj.field.id]?.width || '180px',
+                      left: `${
+                        64 + (gridViewCols[fields[0].id]?.width || 180) + index * (gridViewCols[columnObj.field.id]?.width || 180)
+                      }px`,
                     }"
                   ></td>
                 </tr>
@@ -2093,12 +2081,14 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
                     }"
                   ></td>
                   <td
-                    v-for="({ id }, index) in fields"
-                    :key="id"
-                    class="placeholder-column px-2"
+                    v-for="(columnObj, index) in visibleFields"
+                    :key="`placeholder-bottom-${index}`"
+                    class="placeholder-column"
                     :style="{
-                      width: gridViewCols[id]?.width || '200px',
-                      left: `${(cumulativeWidths[index - 1] || 0) + 64}px`,
+                      width: gridViewCols[columnObj.field.id]?.width || '180px',
+                      left: `${
+                        64 + (gridViewCols[fields[0].id]?.width || 180) + index * (gridViewCols[columnObj.field.id]?.width || 180)
+                      }px`,
                     }"
                   ></td>
                 </tr>

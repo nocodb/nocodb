@@ -353,7 +353,7 @@ const updateVisibleItems = async (newScrollTop: number, force = false, fetchData
       // If the item is not in the cache, add it to the itemsToFetch
       // For temporary, we will show a loading skeleton
       itemsToFetch.push(i)
-      newVisibleRows.push({ row: {}, oldRow: {}, rowMeta: { rowIndex: i, loading: true } })
+      newVisibleRows.push({ row: {}, oldRow: {}, rowMeta: { rowIndex: i, isLoading: true } })
     }
   }
 
@@ -1649,7 +1649,7 @@ watch(
           await syncCount()
           // Calculate the slices and load the view aggregate and data
           calculateSlices()
-          await Promise.allSettled([loadViewAggregate(), updateVisibleItems(scrollTop.value)])
+          await Promise.allSettled([loadViewAggregate(), updateVisibleItems(scrollTop.value, true, true)])
         } catch (e) {
           if (!axios.isCancel(e)) {
             console.log(e)

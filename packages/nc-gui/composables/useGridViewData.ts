@@ -79,8 +79,6 @@ export function useGridViewData(
     updateOrSaveRow,
     cachedLocalRows,
     clearCache,
-    virtualToRealIndex,
-    realToVirtualIndex,
     totalRows,
     bulkUpdateRows,
     bulkUpdateView,
@@ -91,9 +89,7 @@ export function useGridViewData(
     meta,
     viewMeta,
     callbacks: {
-      changePage,
       loadData,
-      syncPagination,
       syncVisibleData,
     },
   })
@@ -120,15 +116,13 @@ export function useGridViewData(
   const isLastRow = computed(() => {
     const expandedRowIndex = getExpandedRowIndex()
     if (expandedRowIndex === -1) return false
-    const virtualIndex = realToVirtualIndex(expandedRowIndex)
-    return virtualIndex === totalRows.value - 1
+    return expandedRowIndex === totalRows.value - 1
   })
 
   const isFirstRow = computed(() => {
     const expandedRowIndex = getExpandedRowIndex()
     if (expandedRowIndex === -1) return false
-    const virtualIndex = realToVirtualIndex(expandedRowIndex)
-    return virtualIndex === 0
+    return expandedRowIndex === 0
   })
 
   const queryParams = computed(() => ({
@@ -136,33 +130,6 @@ export function useGridViewData(
     limit: paginationData.value.pageSize ?? appInfoDefaultLimit,
     where: where?.value ?? '',
   }))
-
-  async function syncPagination() {
-    // total records in the current table
-    const count = paginationData.value?.totalRows ?? Infinity
-    // the number of rows in a page
-    const size = paginationData.value.pageSize ?? appInfoDefaultLimit
-    // the current page number
-    const currentPage = paginationData.value.page ?? 1
-    // the maximum possible page given the current count and the size
-    const mxPage = Math.ceil(count / size)
-    // calculate targetPage where 1 <= targetPage <= mxPage
-    const targetPage = Math.max(1, Math.min(mxPage, currentPage))
-    // if the current page is greater than targetPage,
-    // then the page should be changed instead of showing an empty page
-    // e.g. deleting all records in the last page N should return N - 1 page
-    if (currentPage > targetPage) {
-      // change to target page and load data of that page
-      changePage?.(targetPage)
-    } else {
-      // the current page is same as target page
-      // reload it to avoid empty row in this page
-      await loadData({
-        offset: (targetPage - 1) * size,
-        where: where?.value,
-      } as any)
-    }
-  }
 
   /** load row comments count */
   async function loadAggCommentsCount(formattedData: Array<Row>) {
@@ -260,24 +227,16 @@ export function useGridViewData(
     return data
   }
 
-  async function changePage(page: number) {
-    paginationData.value.page = page
-    await loadData({
-      offset: (page - 1) * (paginationData.value.pageSize || appInfoDefaultLimit),
-      where: where?.value,
-    } as any)
-  }
-
   const navigateToSiblingRow = async (dir: NavigateDir) => {
     const expandedRowIndex = getExpandedRowIndex()
     console.log(expandedRowIndex)
     if (expandedRowIndex === -1) return
 
     // calculate next row index based on direction
-    let siblingVirtualIndex = realToVirtualIndex(expandedRowIndex) + (dir === NavigateDir.NEXT ? 1 : -1)
+    let siblingVirtualIndex = expandedRowIndex + (dir === NavigateDir.NEXT ? 1 : -1)
 
     // if unsaved row skip it
-    while (cachedLocalRows.value[virtualToRealIndex(siblingVirtualIndex)]?.rowMeta?.new) {
+    while (cachedLocalRows.value[expandedRowIndex]?.rowMeta?.new) {
       siblingVirtualIndex = siblingVirtualIndex + (dir === NavigateDir.NEXT ? 1 : -1)
     }
 
@@ -286,7 +245,7 @@ export function useGridViewData(
       return message.info(t('msg.info.noMoreRecords'))
     }
 
-    if (!cachedLocalRows.value[virtualToRealIndex(siblingVirtualIndex)]) {
+    if (!cachedLocalRows.value[expandedRowIndex]) {
       await loadData({
         offset: siblingVirtualIndex,
         limit: 10,
@@ -294,10 +253,7 @@ export function useGridViewData(
     }
 
     // extract the row id of the sibling row
-    const rowId = extractPkFromRow(
-      cachedLocalRows.value[virtualToRealIndex(siblingVirtualIndex)].row,
-      meta.value?.columns as ColumnType[],
-    )
+    const rowId = extractPkFromRow(cachedLocalRows.value[expandedRowIndex].row, meta.value?.columns as ColumnType[])
     if (rowId) {
       await router.push({
         query: {
@@ -315,7 +271,6 @@ export function useGridViewData(
     queryParams,
     insertRow,
     updateRowProperty,
-    changePage,
     addEmptyRow,
     deleteRow,
     deleteRowById,
@@ -324,7 +279,6 @@ export function useGridViewData(
     updateOrSaveRow,
     bulkUpdateRows,
     bulkUpdateView,
-    syncPagination,
     loadAggCommentsCount,
     syncCount,
     removeRowIfNew,

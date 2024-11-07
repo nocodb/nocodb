@@ -831,14 +831,6 @@ export function useMultiSelect(
               case 67:
                 await copyValue()
                 break
-              // select all - ctrl/cmd +a
-              case 65:
-                selectedRange.startRange({ row: 0, col: 0 })
-                selectedRange.endRange({
-                  row: (isGroupBy ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1,
-                  col: unref(columnLength.value) - 1,
-                })
-                break
             }
           }
 

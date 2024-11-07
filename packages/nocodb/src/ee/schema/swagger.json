@@ -2266,7 +2266,7 @@
         }
       }
     },
-    "/api/v2/meta/duplicate/:workspaceId/shared/{sharedBaseId}": {
+    "/api/v2/meta/duplicate/{workspaceId}/shared/{sharedBaseId}": {
       "post": {
         "summary": "Duplicate Shared Base",
         "operationId": "base-duplicate-shared",

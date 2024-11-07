@@ -1017,7 +1017,6 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
 }
 
 // Clear the selected range
-// TODO: Either remove them or handle them in useInfinite Data
 async function clearSelectedRangeOfCells() {
   if (!hasEditPermission.value || isDataReadOnly.value) return
 
@@ -1028,7 +1027,9 @@ async function clearSelectedRangeOfCells() {
   const endCol = Math.max(start.col, end.col)
 
   const cols = fields.value.slice(startCol, endCol + 1)
-  const rows = visibleRows.value
+  // Get rows in the selected range
+  const rows = Array.from(cachedRows.value.values()).slice(start.row, end.row + 1)
+
   const props = []
   let isInfoShown = false
 
@@ -1095,7 +1096,6 @@ const saveOrUpdateRecords = async (
   }
 }
 
-// TODO: Either remove them or handle them in useInfinite Data
 const deleteSelectedRangeOfRows = () => {
   deleteRangeOfRows?.(selectedRange).then(() => {
     clearSelectedRange()

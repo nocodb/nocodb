@@ -1235,6 +1235,7 @@ const calculateSlices = () => {
   const newEnd = Math.min(totalRows.value, Math.max(endIndex + activeVerticalMargin.value, newStart + 50))
 
   if (
+    rowSlice.start < 10 ||
     Math.abs(newStart - rowSlice.start) >= activeVerticalMargin.value / 2 ||
     Math.abs(newEnd - rowSlice.end) >= activeVerticalMargin.value / 2 ||
     lastTotalRows.value !== totalRows.value
@@ -1908,28 +1909,6 @@ watch(
               }"
               @contextmenu="showContextMenu"
             >
-              <thead v-if="+startRowHeight.split('px')[0] > 32">
-                <tr class="placeholder top-placeholder" :style="`height: ${startRowHeight};`">
-                  <td
-                    class="placeholder-column"
-                    :style="{
-                      width: '64px',
-                      left: '0px',
-                    }"
-                  ></td>
-                  <td
-                    v-for="(columnObj, index) in visibleFields"
-                    :key="`placeholder-top-${index}`"
-                    class="placeholder-column"
-                    :style="{
-                      width: gridViewCols[columnObj.field.id]?.width || '180px',
-                      left: `${
-                        64 + (gridViewCols[fields[0].id]?.width || 180) + index * (gridViewCols[columnObj.field.id]?.width || 180)
-                      }px`,
-                    }"
-                  ></td>
-                </tr>
-              </thead>
               <tbody
                 ref="tableBodyEl"
                 :style="{

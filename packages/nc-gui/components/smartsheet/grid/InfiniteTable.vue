@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { type ColumnType, type PaginatedType, type TableType, UITypes, type ViewType, isVirtualCol } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  type PaginatedType,
+  type TableType,
+  UITypes,
+  type ViewType,
+  isVirtualCol,
+} from 'nocodb-sdk'
 import type { Group, Row } from '../../../lib/types'
 import type { CellRange } from '../../../composables/useMultiSelect/cellRange'
 import { useColumnDrag } from './useColumnDrag'
@@ -78,6 +86,19 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const paginationDataRef = toRef(props, 'paginationData')
 
+const { loadViewAggregate } = useViewAggregateOrThrow()
+
+const {
+  predictingNextColumn,
+  predictedNextColumn,
+  predictingNextFormulas,
+  predictedNextFormulas,
+  predictNextColumn,
+  predictNextFormulas,
+} = useNocoEe().table
+
+const { isPkAvail, isSqlView, eventBus } = useSmartsheetStoreOrThrow()
+
 const {
   isViewColumnsLoading: _isViewColumnsLoading,
   updateGridViewColumn,
@@ -91,10 +112,6 @@ const dummyColumnDataForLoading = computed(() => {
   let length = fields.value?.length ?? 40
   length = length || 40
   return Array.from({ length: length + 1 }).map(() => ({}))
-})
-// Dummy data used for loading skeleton
-const dummyRowDataForLoading = computed(() => {
-  return Array.from({ length: 40 }).map(() => ({}))
 })
 
 // Temporary column meta. Data is stored in the order of fields
@@ -433,7 +450,8 @@ onMounted(() => {
     .toBeTruthy()
     .then(async () => {
       calculateSlices()
-      await updateVisibleItems(0)
+
+      await Promise.allSettled([loadViewAggregate(), updateVisibleItems(0)])
     })
 })
 
@@ -445,6 +463,90 @@ const selectColumn = (colId: string) => {
     draggedCol = null
   } */
 }
+
+// Add new Column
+
+const addColumnDropdown = ref(false)
+
+const editOrAddProviderRef = ref()
+
+const altModifier = ref(false)
+
+const persistMenu = ref(false)
+
+const preloadColumn = ref<any>()
+
+const columnOrder = ref<Pick<ColumnReqType, 'column_order'> | null>(null)
+
+const isJsonExpand = ref(false)
+provide(JsonExpandInj, isJsonExpand)
+
+function openColumnCreate(data: any) {
+  scrollToAddNewColumnHeader('smooth')
+
+  setTimeout(() => {
+    addColumnDropdown.value = true
+    preloadColumn.value = data
+  }, 500)
+}
+
+const loadColumn = (title: string, tp: string, colOptions?: any) => {
+  preloadColumn.value = {
+    title,
+    uidt: tp,
+    colOptions,
+  }
+  persistMenu.value = false
+}
+
+const closeAddColumnDropdown = (scrollToLastCol = false) => {
+  columnOrder.value = null
+  addColumnDropdown.value = false
+  preloadColumn.value = {}
+  if (scrollToLastCol) {
+    setTimeout(() => {
+      scrollToAddNewColumnHeader('smooth')
+    }, 200)
+  }
+}
+
+function scrollToAddNewColumnHeader(behavior: ScrollOptions['behavior']) {
+  if (scrollWrapper.value) {
+    scrollWrapper.value?.scrollTo({
+      top: scrollWrapper.value.scrollTop,
+      left: scrollWrapper.value.scrollWidth,
+      behavior,
+    })
+  }
+}
+
+const onVisibilityChange = () => {
+  addColumnDropdown.value = true
+  if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
+    addColumnDropdown.value = false
+  }
+}
+
+// Listeners
+eventBus.on(async (event, payload) => {
+  if (event === SmartsheetStoreEvents.FIELD_ADD) {
+    columnOrder.value = payload
+    addColumnDropdown.value = true
+  }
+  if (event === SmartsheetStoreEvents.CLEAR_NEW_ROW) {
+    // TODO: Implement this
+    /* clearSelectedRange()
+    activeCell.row = null
+    activeCell.col = null
+
+    removeRowIfNew?.(payload) */
+  }
+})
+
+defineExpose({
+  scrollToRow: () => {},
+  openColumnCreate,
+})
 </script>
 
 <template>
@@ -580,6 +682,143 @@ const selectColumn = (colId: string) => {
                   :hide-menu="readOnly || !!isMobileMode"
                 />
                 <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="readOnly || !!isMobileMode" />
+              </div>
+            </th>
+            <th
+              v-if="isAddingColumnAllowed"
+              v-e="['c:column:add']"
+              class="cursor-pointer !border-0 relative !xs:hidden"
+              :style="{
+                borderWidth: '0px !important',
+              }"
+              @click.stop="addColumnDropdown = true"
+            >
+              <div class="absolute top-0 left-0 h-8 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
+                <a-dropdown
+                  v-model:visible="addColumnDropdown"
+                  :trigger="['click']"
+                  overlay-class-name="nc-dropdown-grid-add-column"
+                  @visible-change="onVisibilityChange"
+                >
+                  <div class="h-full w-[60px] flex items-center justify-center">
+                    <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
+                    <component :is="iconMap.plus" class="text-base nc-column-add text-gray-500 !group-hover:text-black" />
+                  </div>
+                  <template v-if="isEeUI && persistMenu" #overlay>
+                    <NcMenu>
+                      <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
+                        <template #title>
+                          <div class="flex flex-row items-center py-3">
+                            <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs pl-2">
+                              {{ $t('activity.predictColumns') }}
+                            </div>
+                            <MdiChevronRight class="text-gray-500 ml-2" />
+                          </div>
+                        </template>
+                        <template #expandIcon></template>
+                        <NcMenu>
+                          <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
+                            <NcMenuItem>
+                              <div class="flex flex-row items-center py-3" @click="loadColumn(col.title, col.type)">
+                                <div class="text-xs pl-2">{{ col.title }}</div>
+                              </div>
+                            </NcMenuItem>
+                          </template>
+
+                          <NcMenuItem>
+                            <div class="flex flex-row items-center py-3" @click="predictNextColumn">
+                              <div class="text-red-500 text-xs pl-2">
+                                <MdiReload />
+                                Generate Again
+                              </div>
+                            </div>
+                          </NcMenuItem>
+                        </NcMenu>
+                      </a-sub-menu>
+                      <NcMenuItem v-else>
+                        <!-- Predict Columns -->
+                        <div class="flex flex-row items-center py-3" @click="predictNextColumn">
+                          <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
+                          <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
+                          <div class="text-xs pl-2">
+                            {{ $t('activity.predictColumns') }}
+                          </div>
+                        </div>
+                      </NcMenuItem>
+                      <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
+                        <template #title>
+                          <div class="flex flex-row items-center py-3">
+                            <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs pl-2">
+                              {{ $t('activity.predictFormulas') }}
+                            </div>
+                            <MdiChevronRight class="text-gray-500 ml-2" />
+                          </div>
+                        </template>
+                        <template #expandIcon></template>
+                        <NcMenu>
+                          <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
+                            <NcMenuItem>
+                              <div
+                                class="flex flex-row items-center py-3"
+                                @click="
+                                  loadColumn(col.title, 'Formula', {
+                                    formula_raw: col.formula,
+                                  })
+                                "
+                              >
+                                <div class="text-xs pl-2">{{ col.title }}</div>
+                              </div>
+                            </NcMenuItem>
+                          </template>
+                        </NcMenu>
+                      </a-sub-menu>
+                      <NcMenuItem v-else>
+                        <!-- Predict Formulas -->
+                        <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
+                          <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
+                          <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
+                          <div class="text-xs pl-2">
+                            {{ $t('activity.predictFormulas') }}
+                          </div>
+                        </div>
+                      </NcMenuItem>
+                    </NcMenu>
+                  </template>
+                  <template v-else #overlay>
+                    <div class="nc-edit-or-add-provider-wrapper">
+                      <LazySmartsheetColumnEditOrAddProvider
+                        v-if="addColumnDropdown"
+                        ref="editOrAddProviderRef"
+                        :preload="preloadColumn"
+                        :column-position="columnOrder"
+                        :class="{ hidden: isJsonExpand }"
+                        @submit="closeAddColumnDropdown(true)"
+                        @cancel="closeAddColumnDropdown()"
+                        @click.stop
+                        @keydown.stop
+                        @mounted="preloadColumn = undefined"
+                      />
+                    </div>
+                  </template>
+                </a-dropdown>
+              </div>
+            </th>
+            <th
+              class="!border-0 relative !xs:hidden"
+              :style="{
+                borderWidth: '0px !important',
+              }"
+            >
+              <div
+                class="absolute top-0 w-45"
+                :class="{
+                  'left-[60px]': isAddingColumnAllowed,
+                  'left-0': !isAddingColumnAllowed,
+                }"
+              >
+                &nbsp;
               </div>
             </th>
           </tr>

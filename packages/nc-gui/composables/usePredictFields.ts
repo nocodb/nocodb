@@ -535,6 +535,7 @@ export const usePredictFields = createSharedComposable(
       async (newMeta) => {
         if (newMeta?.id) {
           columnsHash.value = (await $api.dbTableColumn.hash(newMeta.id)).hash
+          predictHistory.value = []
         }
       },
       { deep: true, immediate: true },

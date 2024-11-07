@@ -2059,7 +2059,7 @@ watch(
                         class="cell relative nc-grid-cell cursor-pointer"
                         :class="{
                           'active': selectRangeMap[`${row.rowMeta.rowIndex}-0`],
-                          'active-cell':
+                          'active-cell !after:h-[calc(100%-2px)]':
                             (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0) ||
                             (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0),
                           'nc-required-cell': cellMeta[index]?.[0]?.isColumnRequiredAndNull && !isPublicView,
@@ -2203,12 +2203,14 @@ watch(
                   }"
                   :style="{
                     height: '32px',
-                    left: `-${leftOffset}px`,
                   }"
                   @mouseup.stop
                   @click="addEmptyRow()"
                 >
                   <td
+                    :style="{
+                      left: `-${leftOffset}px`,
+                    }"
                     class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
                   >
                     <component
@@ -2367,7 +2369,7 @@ watch(
       </NcDropdown>
     </div>
 
-    <div class="absolute bottom-13 left-8">
+    <div class="absolute bottom-12 left-2">
       <NcDropdown v-if="isAddingEmptyRowAllowed">
         <div class="flex">
           <NcButton
@@ -2621,7 +2623,6 @@ watch(
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
     box-shadow: 0 0 0 2px #3366ff !important;
     border-radius: 2px;
   }

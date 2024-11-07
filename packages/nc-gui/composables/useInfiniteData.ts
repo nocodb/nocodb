@@ -917,6 +917,21 @@ export function useInfiniteData(args: {
 
     const changedFields = property ? [property] : Object.keys(row.row)
 
+    changedFields.push(
+      ...(meta.value
+        ?.columns!.filter((c) =>
+          [
+            UITypes.LastModifiedBy,
+            UITypes.LastModifiedTime,
+            UITypes.Formula,
+            UITypes.Lookup,
+            UITypes.Rollup,
+            UITypes.LinkToAnotherRecord,
+          ].includes(c.uidt!),
+        )
+        .map((c) => c.title!) || []),
+    )
+
     if (isSortRelevantChange(changedFields, sorts.value, columnsById.value)) {
       const needsResorting = willSortOrderChange({
         row,
@@ -930,7 +945,6 @@ export function useInfiniteData(args: {
         const newRow = cachedRows.value.get(row.rowMeta.rowIndex!)
         newRow.rowMeta.isRowOrderUpdated = needsResorting
       }
-      callbacks?.syncVisibleData?.()
     }
     callbacks?.syncVisibleData?.()
   }

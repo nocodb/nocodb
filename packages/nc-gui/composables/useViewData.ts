@@ -4,14 +4,11 @@ import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedT
 import type { ComputedRef, Ref } from 'vue'
 import { NavigateDir } from '#imports'
 
-const formatData = (list: Record<string, any>[], pageInfo: PaginatedType) =>
-  list.map((row, index) => ({
+const formatData = (list: Record<string, any>[]) =>
+  list.map((row) => ({
     row: { ...row },
     oldRow: { ...row },
-    rowMeta: {
-      // Calculate the rowIndex based on the offset and the index of the row
-      rowIndex: (pageInfo.offset ?? 0) + index,
-    },
+    rowMeta: {},
   }))
 
 export function useViewData(
@@ -217,7 +214,7 @@ export function useViewData(
       console.error(error)
       return message.error(await extractSdkResponseErrorMsg(error))
     }
-    formattedData.value = formatData(response.list, response.pageInfo)
+    formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo || paginationData.value || {}
 
     // if public then update sharedPaginationData

@@ -290,7 +290,6 @@ const colPositions = computed(() => {
 const totalRows = toRef(props, 'totalRows')
 
 // calculatedRowHeight
-
 const rowHeight = computed(() => rowHeightInPx[`${props.rowHeightEnum}`])
 
 // Reactive ref to the store of cached local rows
@@ -302,49 +301,77 @@ const rowSlice = reactive({
   end: 100,
 })
 
-const visibleRows = computedAsync(async () => {
-  const { start: startIndex, end: endIndex } = rowSlice
+// Ref to track if data is being loaded
+const isLoading = ref(false)
 
-  const newVisibleRows = new Array(endIndex - startIndex)
-  const itemsToFetch = []
+// Set to keep track of chunks that are currently loading
+const CHUNK_SIZE = 50
+const BUFFER_SIZE = 10
 
-  for (let i = 0; i < newVisibleRows.length; i++) {
-    const rowIndex = startIndex + i
-    if (rowIndex in cachedLocalRows.value) {
-      newVisibleRows[i] = cachedLocalRows.value[rowIndex]
-    } else {
-      itemsToFetch.push(rowIndex)
-      newVisibleRows[i] = { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
-    }
+const forceTriggerUpdate = ref(0)
+
+const chunkStates = new Map<number, 'loading' | 'loaded'>()
+
+// Computed property for visible rows
+const visibleRows = computed(() => {
+  const { start, end } = rowSlice
+
+  if (forceTriggerUpdate.value) {
+    //
+    console.log('forceTriggerUpdate', forceTriggerUpdate.value)
   }
 
-  if (itemsToFetch.length > 0) {
-    try {
-      const [firstIndex, lastIndex] = [itemsToFetch[0], itemsToFetch[itemsToFetch.length - 1]]
-      const newItems = await loadData({
-        offset: firstIndex,
-        limit: lastIndex - firstIndex + 1 + bufferSize,
-      })
-
-      const itemMap = new Map(newItems.map((item) => [item.rowMeta.rowIndex, item]))
-
-      for (let i = 0; i < newVisibleRows.length; i++) {
-        const rowIndex = startIndex + i
-        const item = itemMap.get(rowIndex)
-        if (item) {
-          newVisibleRows[i] = item
-          cachedLocalRows.value[rowIndex] = item
-        }
-      }
-
-      clearCache(startIndex - bufferSize, endIndex + bufferSize)
-    } catch (error) {
-      console.error('Error fetching items:', error)
-    }
-  }
-
-  return newVisibleRows
+  return Array.from({ length: end - start }, (_, i) => {
+    const rowIndex = start + i
+    return cachedLocalRows.value[rowIndex] || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+  })
 })
+
+// Function to fetch a single chunk
+const fetchChunk = async (chunkId: number) => {
+  if (chunkStates.get(chunkId)) return
+
+  chunkStates.set(chunkId, 'loading')
+  const offset = chunkId * CHUNK_SIZE
+
+  try {
+    const newItems = await loadData({ offset, limit: CHUNK_SIZE })
+    newItems.forEach((item) => {
+      cachedLocalRows.value[item.rowMeta.rowIndex] = item
+    })
+    chunkStates.set(chunkId, 'loaded')
+  } catch (error) {
+    console.error('Error fetching chunk:', error)
+    chunkStates.delete(chunkId)
+  }
+}
+
+// Function to update visible rows
+const updateVisibleRows = async () => {
+  if (isLoading.value) return
+  isLoading.value = true
+
+  const { start, end } = rowSlice
+  const firstChunkId = Math.floor(start / CHUNK_SIZE)
+  const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
+
+  const chunksToFetch = Array.from({ length: lastChunkId - firstChunkId + 1 }, (_, i) => firstChunkId + i).filter(
+    (chunkId) => !chunkStates.has(chunkId),
+  )
+
+  await Promise.all(chunksToFetch.map(fetchChunk))
+
+  // Clear cache outside buffer zone
+  Object.keys(cachedLocalRows.value).forEach((key) => {
+    const rowIndex = parseInt(key)
+    if (rowIndex < start - BUFFER_SIZE * CHUNK_SIZE || rowIndex >= end + BUFFER_SIZE * CHUNK_SIZE) {
+      delete cachedLocalRows.value[rowIndex]
+      chunkStates.delete(Math.floor(rowIndex / CHUNK_SIZE))
+    }
+  })
+
+  isLoading.value = false
+}
 
 // Scroll top of the grid
 const scrollTop = ref(0)
@@ -1419,6 +1446,8 @@ watch(
 // smartTable - reactive ref to get the smart table element
 const smartTable = ref(null)
 
+const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleRows, 16)
+
 // On scroll event listener
 // Update the scrollLeft and scrollTop values
 useScroll(scrollWrapper, {
@@ -1426,6 +1455,8 @@ useScroll(scrollWrapper, {
     scrollLeft.value = e.target?.scrollLeft
     scrollTop.value = e.target?.scrollTop
     calculateSlices() // Calculate the column slices when the user scrolls
+
+    debouncedUpdateVisibleItems()
 
     refreshFillHandle() // Refresh the fill handle when the user scrolls
   },
@@ -1605,7 +1636,7 @@ watch(
           await syncCount()
           // Calculate the slices and load the view aggregate and data
           calculateSlices()
-          await Promise.allSettled([loadViewAggregate()])
+          await Promise.allSettled([loadViewAggregate(), updateVisibleRows()])
         } catch (e) {
           if (!axios.isCancel(e)) {
             console.log(e)

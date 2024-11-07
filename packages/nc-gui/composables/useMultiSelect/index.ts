@@ -790,10 +790,10 @@ export function useMultiSelect(
 
   const handleKeyDown = async (e: KeyboardEvent) => {
     // invoke the keyEventHandler if provided and return if it returns true
+
     if (keyEventHandler?.(e)) {
       return true
     }
-
     if (isExpandedCellInputExist()) {
       return
     }

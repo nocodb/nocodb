@@ -249,7 +249,7 @@ const {
     :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
-      v-if="!isGroupBy && !betaFeatureToggleStates[BetaFeatures.GRID_INFINITE_SCROLL]"
+      v-if="!isGroupBy && betaFeatureToggleStates[BetaFeatures.FALLBACK_GRID_PAGINATED_SCROLL]"
       ref="tableRef"
       v-model:selected-all-records="pSelectedAllRecords"
       :data="pData"

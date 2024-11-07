@@ -2,7 +2,9 @@ import { reactive } from 'vue'
 import { createSharedComposable } from '@vueuse/core'
 
 export const BetaFeatures = {
-  GRID_INFINITE_SCROLL: 'grid_infinite_scroll',
+  FALLBACK_GRID_PAGINATED_SCROLL: 'fallback_grid_paginated_scroll',
+  ENABLE_GEO_COLUMN: 'geo_column',
+  FORM_SUPPORT_COLUMN_SCANNING: 'form_support_column_scanning',
 } as const
 
 type BetaFeature = (typeof BetaFeatures)[keyof typeof BetaFeatures]

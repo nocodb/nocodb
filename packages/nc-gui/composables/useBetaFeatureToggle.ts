@@ -58,6 +58,7 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
   const saveFeatures = () => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(features.value))
+      window.dispatchEvent(new StorageEvent('storage', { key: STORAGE_KEY }))
     } catch (error) {
       console.error('Failed to save features:', error)
     }
@@ -91,6 +92,21 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     }
     saveFeatures()
   }
+
+  const handleStorageEvent = (event: StorageEvent) => {
+    if (event.key === STORAGE_KEY) {
+      initializeFeatures()
+    }
+  }
+
+  onMounted(() => {
+    initializeFeatures()
+    window.addEventListener('storage', handleStorageEvent)
+  })
+
+  onUnmounted(() => {
+    window.removeEventListener('storage', handleStorageEvent)
+  })
 
   onMounted(initializeFeatures)
 

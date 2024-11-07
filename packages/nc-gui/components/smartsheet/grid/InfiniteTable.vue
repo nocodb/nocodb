@@ -2099,6 +2099,30 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
                     }"
                   ></td>
                 </tr>
+                <tr
+                  v-if="isAddingEmptyRowAllowed"
+                  v-e="['c:row:add:grid-bottom']"
+                  class="text-left nc-grid-add-new-cell cursor-pointer group relative z-3 xs:hidden"
+                  :class="{
+                    '!border-r-2 !border-r-gray-100': visibleColLength === 1,
+                  }"
+                  @mouseup.stop
+                  @click="addEmptyRow()"
+                >
+                  <td
+                    class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                    :style="{
+                      left: `-${leftOffset}px`,
+                    }"
+                  >
+                    <component
+                      :is="iconMap.plus"
+                      v-if="!isViewColumnsLoading"
+                      class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
+                    />
+                  </td>
+                  <td class="!border-gray-100" :colspan="visibleColLength"></td>
+                </tr>
               </tbody>
             </table>
             <div
@@ -2253,7 +2277,7 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
           <NcButton
             v-if="isMobileMode"
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="nc-grid-add-new-row nc-grid-add-new-cell"
+            class="nc-grid-add-new-row"
             size="small"
             type="secondary"
             @click.stop="onNewRecordToFormClick()"
@@ -2266,7 +2290,7 @@ const endRowHeight = computed(() => `${Math.max(0, (totalRows.value - rowSlice.e
           <NcButton
             v-else
             v-e="[isAddNewRecordGridMode ? 'c:row:add:grid' : 'c:row:add:form']"
-            class="!rounded-r-none !border-r-0 nc-grid-add-new-cell nc-grid-add-new-row"
+            class="!rounded-r-none !border-r-0 nc-grid-add-new-row"
             size="small"
             type="secondary"
             @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"

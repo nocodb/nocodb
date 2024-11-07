@@ -838,7 +838,8 @@ async function saveEmptyRow(rowObj: Row) {
 
 let disableWatch = false
 
-async function addEmptyRow(row?: number, skipUpdate: boolean = false) {
+async function addEmptyRow(row?: number, skipUpdate = false) {
+  clearInvalidRows?.()
   const rowObj = callAddEmptyRow?.(row)
   disableWatch = true
   setTimeout(() => {

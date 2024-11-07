@@ -533,7 +533,7 @@ export function useInfiniteData(args: {
 
   async function deleteSelectedRows(): Promise<void> {
     const removedRowsData: Record<string, any>[] = []
-    let compositePrimaryKey: string = ''
+    let compositePrimaryKey = ''
 
     for (const row of selectedRows.value) {
       const { row: rowData, rowMeta } = row
@@ -562,7 +562,6 @@ export function useInfiniteData(args: {
     try {
       const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
         pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
-        limit: 200,
       })
 
       for (const deleteRow of removedRowsData) {
@@ -1214,7 +1213,6 @@ export function useInfiniteData(args: {
 
     const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
       pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
-      limit: 200,
     })
 
     try {

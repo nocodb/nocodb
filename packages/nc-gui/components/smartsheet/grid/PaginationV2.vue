@@ -143,7 +143,7 @@ const renderAltOrOptlKey = () => {
               </NcTooltip>
             </template>
 
-            <template v-if="totalRows">
+            <template v-if="+totalRows >= 0">
               <NcTooltip class="flex sticky items-center h-full">
                 <template #title> {{ totalRows }} {{ totalRows !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
                 <span

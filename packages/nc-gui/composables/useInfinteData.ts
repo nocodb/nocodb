@@ -62,15 +62,16 @@ export function useInfiniteData(args: {
     } else if (operation === 'delete') {
       const chunkStart = affectedChunk * CHUNK_SIZE
       const chunkEnd = (affectedChunk + 1) * CHUNK_SIZE
-      const hasRowsInChunk = Array.from(cachedRows.value.keys()).some((i) => i >= chunkStart && i < chunkEnd)
+      const hasRowsInChunk = [...cachedRows.value.keys()].some((i) => i >= chunkStart && i < chunkEnd)
       chunkStates.value[affectedChunk] = hasRowsInChunk ? 'loaded' : undefined
     }
 
     const lastChunk = Math.floor((cachedRows.value.size - 1) / CHUNK_SIZE)
+    const cachedKeys = [...cachedRows.value.keys()]
     for (let i = affectedChunk + 1; i <= lastChunk; i++) {
       const chunkStart = i * CHUNK_SIZE
       const chunkEnd = (i + 1) * CHUNK_SIZE
-      const hasRowsInChunk = Array.from(cachedRows.value.keys()).some((index) => index >= chunkStart && index < chunkEnd)
+      const hasRowsInChunk = cachedKeys.some((index) => index >= chunkStart && index < chunkEnd)
       chunkStates.value[i] = hasRowsInChunk ? 'loaded' : undefined
     }
   }
@@ -92,7 +93,7 @@ export function useInfiniteData(args: {
     const newCachedRows = new Map<number, Row>()
     let keptCount = 0
 
-    for (const [index, row] of cachedRows.value) {
+    cachedRows.value.forEach((row, index) => {
       const chunk = Math.floor(index / CHUNK_SIZE)
       if (
         (chunk >= safeStartChunk && chunk <= safeEndChunk) ||
@@ -103,16 +104,13 @@ export function useInfiniteData(args: {
         newCachedRows.set(index, row)
         keptCount++
       }
-    }
+    })
 
     cachedRows.value = newCachedRows
 
-    // Update chunk states
     chunkStates.value = chunkStates.value.map((state, chunkId) =>
       chunkId >= safeStartChunk && chunkId <= safeEndChunk ? state : undefined,
     )
-
-    callbacks?.syncVisibleData?.()
   }
 
   const selectedRows = computed<Row[]>(() => {

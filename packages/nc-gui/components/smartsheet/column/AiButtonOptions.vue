@@ -377,7 +377,7 @@ onBeforeUnmount(() => {
                       v-model="vModel.formula_raw"
                       :options="availableFields"
                       placeholder="Enter prompt here..."
-                      prompt-field-tag-class-name="!bg-nc-bg-brand !text-nc-content-brand"
+                      prompt-field-tag-class-name="!bg-nc-bg-gray-medium !text-nc-content-gray"
                     />
                     <div class="rounded-b-lg flex items-center gap-2 p-1">
                       <GeneralIcon icon="info" class="!text-nc-content-purple-medium h-4 w-4" />
@@ -562,7 +562,7 @@ onBeforeUnmount(() => {
                         @click.stop="generate"
                       >
                         <template #icon>
-                          <GeneralIcon icon="ncAutoAwesome" class="text-nc-content-yellow-medium h-4 w-4" />
+                          <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
                         </template>
                         <template #loadingIcon>
                           <GeneralLoader class="!text-current" size="regular" />
@@ -609,7 +609,7 @@ onBeforeUnmount(() => {
                             {{ inputColumns.length }}</a-tag
                           >
 
-                          <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-medium !px-1">
+                          <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-dark !px-1">
                             <GeneralIcon
                               icon="arrowRight"
                               class="transform"
@@ -692,7 +692,7 @@ onBeforeUnmount(() => {
                         >
                           {{ outputColumnIds.length }}</a-tag
                         >
-                        <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-medium !px-1">
+                        <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-dark !px-1">
                           <GeneralIcon
                             icon="arrowRight"
                             class="transform"
@@ -803,7 +803,7 @@ onBeforeUnmount(() => {
 }
 
 .nc-ai-button-output-field {
-  @apply cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none !mx-0;
+  @apply cursor-pointer !rounded-md !bg-nc-bg-gray-medium !text-nc-content-gray hover:!bg-nc-bg-gray-dark !border-none !mx-0;
 }
 
 .nc-ai-button-test-generate {

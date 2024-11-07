@@ -93,6 +93,7 @@
     "none": "None"
   },
   "general": {
+    "featureExperimentation": "Feature Experimentation",
     "scripts": "Scripts",
     "configure": "Configure",
     "switch": "Switch",
@@ -626,6 +627,7 @@
     "noConditionsAdded": "No conditions added"
   },
   "labels": {
+    "toggleExperimentalFeature": "Easily toggle experimental features on or off to explore upcoming functionalities.",
     "modifiedOn": "Modified on",
     "configuration": "Configuration",
     "setup": "Setup",

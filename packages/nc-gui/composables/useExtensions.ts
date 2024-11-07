@@ -3,12 +3,7 @@ import { ExtensionsEvents } from '#imports'
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
 
-  // Egg
-  const extensionsEgg = ref(false)
-
-  const extensionsEggCounter = ref(0)
-
-  return { baseExtensions, extensionsEgg, extensionsEggCounter }
+  return { baseExtensions }
 })
 
 export interface ExtensionManifest {
@@ -61,7 +56,7 @@ abstract class ExtensionType {
 export { ExtensionType }
 
 export const useExtensions = createSharedComposable(() => {
-  const { baseExtensions, extensionsEgg, extensionsEggCounter } = extensionsState()
+  const { baseExtensions } = extensionsState()
 
   const { $api } = useNuxtApp()
 
@@ -488,13 +483,6 @@ export const useExtensions = createSharedComposable(() => {
   // Extension market modal
   const isMarketVisible = ref(false)
 
-  const onEggClick = () => {
-    extensionsEggCounter.value++
-    if (extensionsEggCounter.value >= 2) {
-      extensionsEgg.value = true
-    }
-  }
-
   return {
     extensionsLoaded,
     availableExtensions,
@@ -514,8 +502,6 @@ export const useExtensions = createSharedComposable(() => {
     detailsFrom,
     showExtensionDetails,
     isMarketVisible,
-    onEggClick,
-    extensionsEgg,
     extensionPanelSize,
     eventBus,
   }

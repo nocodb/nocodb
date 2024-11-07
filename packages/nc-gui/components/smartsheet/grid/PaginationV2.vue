@@ -105,12 +105,6 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
-
-const { toggleBetaFeature } = useBetaFeatureToggle()
-
-const toggleFeature = () => {
-  toggleBetaFeature(BetaFeatures.FALLBACK_GRID_PAGINATED_SCROLL)
-}
 </script>
 
 <template>
@@ -129,7 +123,6 @@ const toggleFeature = () => {
             'width': displayFieldComputed?.width,
             'margin-left': `${getAddnlMargin(depth ?? 0)}px`,
           }"
-          @dblclick="toggleFeature"
         >
           <div class="flex relative justify-between gap-2 w-full">
             <template v-if="!disablePagination">

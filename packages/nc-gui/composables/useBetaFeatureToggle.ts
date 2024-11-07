@@ -1,36 +1,93 @@
-import { reactive } from 'vue'
+import { onMounted, ref } from 'vue'
 import { createSharedComposable } from '@vueuse/core'
 
-export const BetaFeatures = {
-  FALLBACK_GRID_PAGINATED_SCROLL: 'fallback_grid_paginated_scroll',
-  ENABLE_GEO_COLUMN: 'geo_column',
-  FORM_SUPPORT_COLUMN_SCANNING: 'form_support_column_scanning',
-} as const
+const FEATURES = [
+  {
+    id: 'infinite_scrolling',
+    title: 'Infinite scrolling',
+    description: 'Effortlessly browse large datasets with infinite scrolling.',
+    enabled: true,
+  },
+  {
+    id: 'geodata_column',
+    title: 'Geodata column',
+    description: 'Enable the geodata column.',
+    enabled: false,
+    isEngineering: true,
+  },
+  {
+    id: 'form_support_column_scanning',
+    title: 'Scanner for filling data in forms',
+    description: 'Enable scanner to fill data in forms.',
+    enabled: false,
+    isEngineering: true,
+  },
+  {
+    id: 'extensions',
+    title: 'Enable extensions',
+    description: 'Extensions allows you to add new features or functionalities to the platform.',
+    enabled: false,
+    isEngineering: true,
+  },
+]
 
-type BetaFeature = (typeof BetaFeatures)[keyof typeof BetaFeatures]
+export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<
+  Uppercase<(typeof FEATURES)[number]['id']>,
+  (typeof FEATURES)[number]['id']
+>
 
-type FeatureToggleStates = {
-  [K in BetaFeature]: boolean
-}
+type FeatureId = (typeof FEATURES)[number]['id']
+type Feature = (typeof FEATURES)[number]
 
-const STORAGE_KEY = 'betaFeatureToggleStates'
+const STORAGE_KEY = 'featureToggleStates'
 
 export const useBetaFeatureToggle = createSharedComposable(() => {
-  const storedValue = localStorage.getItem(STORAGE_KEY)
+  const features = ref<Feature[]>(structuredClone(FEATURES))
 
-  const initialToggleStates: FeatureToggleStates = storedValue
-    ? JSON.parse(storedValue)
-    : (Object.fromEntries(Object.values(BetaFeatures).map((feature) => [feature, false])) as FeatureToggleStates)
+  const isEngineeringModeOn = ref(false)
 
-  const betaFeatureToggleStates = reactive<FeatureToggleStates>(initialToggleStates)
-
-  const toggleBetaFeature = (featureName: BetaFeature): void => {
-    betaFeatureToggleStates[featureName] = !betaFeatureToggleStates[featureName]
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(betaFeatureToggleStates))
+  const saveFeatures = () => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(features.value))
+    } catch (error) {
+      console.error('Failed to save features:', error)
+    }
   }
 
+  const toggleFeature = (id: FeatureId) => {
+    const feature = features.value.find((f) => f.id === id)
+    if (feature) {
+      feature.enabled = !feature.enabled
+      saveFeatures()
+    } else {
+      console.error(`Feature ${id} not found`)
+    }
+  }
+
+  const isFeatureEnabled = (id: FeatureId) => features.value.find((f) => f.id === id)?.enabled ?? false
+
+  const initializeFeatures = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        const parsedFeatures = JSON.parse(stored) as Partial<Feature>[]
+        features.value = FEATURES.map((defaultFeature) => ({
+          ...defaultFeature,
+          enabled: parsedFeatures.find((f) => f.id === defaultFeature.id)?.enabled ?? defaultFeature.enabled,
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to initialize features:', error)
+    }
+    saveFeatures()
+  }
+
+  onMounted(initializeFeatures)
+
   return {
-    betaFeatureToggleStates,
-    toggleBetaFeature,
+    features,
+    toggleFeature,
+    isFeatureEnabled,
+    isEngineeringModeOn,
   }
 })

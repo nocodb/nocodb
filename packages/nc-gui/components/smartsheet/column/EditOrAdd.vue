@@ -59,7 +59,7 @@ const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
-const { betaFeatureToggleStates, toggleBetaFeature } = useBetaFeatureToggle()
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
@@ -122,13 +122,9 @@ const isColumnTypeOpen = ref(false)
 const geoDataToggleCondition = (t: { name: UITypes }) => {
   if (!appInfo.value.ee) return true
 
-  return betaFeatureToggleStates[BetaFeatures.ENABLE_GEO_COLUMN]
-    ? betaFeatureToggleStates[BetaFeatures.ENABLE_GEO_COLUMN]
-    : !t.name.includes(UITypes.GeoData)
-}
+  const isColEnabled = isFeatureEnabled(FEATURE_FLAG.GEODATA_COLUMN)
 
-const toggleGeoData = () => {
-  toggleBetaFeature(BetaFeatures.ENABLE_GEO_COLUMN)
+  return isColEnabled || !t.name.includes(UITypes.GeoData)
 }
 
 const showDeprecated = ref(false)
@@ -444,7 +440,6 @@ const isFullUpdateAllowed = computed(() => {
           :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
           :disabled="isKanban || readOnly || !isFullUpdateAllowed"
           @input="onAlter(8)"
-          @dblclick="toggleGeoData"
         />
       </a-form-item>
 

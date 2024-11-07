@@ -52,6 +52,13 @@ onMounted(() => {
   isMounted.value = true
 })
 
+const isExpirementalFeatureModalOpen = ref(false)
+
+const openExpirementationMenu = () => {
+  isMenuOpen.value = false
+  isExpirementalFeatureModalOpen.value = true
+}
+
 const accountUrl = computed(() => {
   return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
 })
@@ -183,6 +190,10 @@ const accountUrl = computed(() => {
               <NcDivider />
 
               <DashboardSidebarEEMenuOption v-if="isEeUI" />
+              <NcMenuItem @click="openExpirementationMenu">
+                <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
+                <span class="menu-btn"> {{ $t('general.featureExperimentation') }} </span>
+              </NcMenuItem>
 
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl">
                 <NcMenuItem> <GeneralIcon icon="ncSettings" class="menu-icon" /> {{ $t('title.accountSettings') }} </NcMenuItem>
@@ -191,6 +202,7 @@ const accountUrl = computed(() => {
           </NcMenu>
         </template>
       </NcDropdown>
+      <DashboardFeatureExpirementation v-model:value="isExpirementalFeatureModalOpen" />
       <LazyNotificationMenu />
     </div>
 

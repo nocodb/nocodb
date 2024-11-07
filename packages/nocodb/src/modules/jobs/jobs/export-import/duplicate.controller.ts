@@ -32,7 +32,7 @@ export class DuplicateController {
 
   @Post([
     '/api/v1/db/meta/duplicate/:workspaceId/shared/:sharedBaseId',
-    '/api/v1/meta/duplicate/:workspaceId/shared/:sharedBaseId',
+    '/api/v2/meta/duplicate/:workspaceId/shared/:sharedBaseId',
   ])
   @HttpCode(200)
   @Acl('duplicateSharedBase', {

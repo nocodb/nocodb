@@ -296,8 +296,55 @@ const rowHeight = computed(() => rowHeightInPx[`${props.rowHeightEnum}`])
 // Reactive ref to the store of cached local rows
 const cachedLocalRows = toRef(props, 'data')
 
-// Visible rows in the grid They are updated when the user scrolls
-const visibleRows = ref<Array<Row>>()
+// Row slice is used to determine which rows are visible
+const rowSlice = reactive({
+  start: 0,
+  end: 100,
+})
+
+const visibleRows = computedAsync(async () => {
+  const { start: startIndex, end: endIndex } = rowSlice
+
+  const newVisibleRows = new Array(endIndex - startIndex)
+  const itemsToFetch = []
+
+  for (let i = 0; i < newVisibleRows.length; i++) {
+    const rowIndex = startIndex + i
+    if (rowIndex in cachedLocalRows.value) {
+      newVisibleRows[i] = cachedLocalRows.value[rowIndex]
+    } else {
+      itemsToFetch.push(rowIndex)
+      newVisibleRows[i] = { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+    }
+  }
+
+  if (itemsToFetch.length > 0) {
+    try {
+      const [firstIndex, lastIndex] = [itemsToFetch[0], itemsToFetch[itemsToFetch.length - 1]]
+      const newItems = await loadData({
+        offset: firstIndex,
+        limit: lastIndex - firstIndex + 1 + bufferSize,
+      })
+
+      const itemMap = new Map(newItems.map((item) => [item.rowMeta.rowIndex, item]))
+
+      for (let i = 0; i < newVisibleRows.length; i++) {
+        const rowIndex = startIndex + i
+        const item = itemMap.get(rowIndex)
+        if (item) {
+          newVisibleRows[i] = item
+          cachedLocalRows.value[rowIndex] = item
+        }
+      }
+
+      clearCache(startIndex - bufferSize, endIndex + bufferSize)
+    } catch (error) {
+      console.error('Error fetching items:', error)
+    }
+  }
+
+  return newVisibleRows
+})
 
 // Scroll top of the grid
 const scrollTop = ref(0)
@@ -307,96 +354,6 @@ const colSlice = ref({
   start: 0,
   end: 0,
 })
-
-// Row slice is used to determine which rows are visible
-const rowSlice = reactive({
-  start: 0,
-  end: 100,
-})
-
-// Flag to prevent multiple updates
-const isUpdating = ref(false)
-
-// Update the visible rows in the grid
-const updateVisibleItems = async (newScrollTop: number, force = false, fetchData = true) => {
-  // If we are already updating the visibleItems, skip
-  if (!force && isUpdating.value) return
-
-  isUpdating.value = true
-
-  // Calculate the start and end index of the visible items
-  // Add a buffer to top and bottom to make the elements load before they are visible
-  const startIndex = Math.max(0, Math.floor(newScrollTop / rowHeight.value - bufferSize))
-  const visibleCount = Math.ceil(scrollWrapper.value.clientHeight / rowHeight.value)
-  const endIndex = Math.min(startIndex + visibleCount + bufferSize, totalRows.value)
-
-  // If the start and end index are the same as the previous slice, skip except if force is true
-  if (startIndex === rowSlice.start && endIndex === rowSlice.end && !force) {
-    isUpdating.value = false
-    return
-  }
-
-  rowSlice.start = startIndex
-  rowSlice.end = endIndex
-
-  const itemsToFetch: number[] = []
-  const newVisibleRows: Array<Row> = []
-
-  // Determine which items we need to fetch
-  // If the item is not in the cache, we need to fetch it
-  for (let i = startIndex; i < endIndex; i++) {
-    if (i in cachedLocalRows.value) {
-      // If the item is in the cache, use it
-      newVisibleRows.push(cachedLocalRows.value[i])
-    } else {
-      // If the item is not in the cache, add it to the itemsToFetch
-      // For temporary, we will show a loading skeleton
-      itemsToFetch.push(i)
-      newVisibleRows.push({ row: {}, oldRow: {}, rowMeta: { rowIndex: i, isLoading: true } })
-    }
-  }
-
-  requestAnimationFrame(() => {
-    visibleRows.value = newVisibleRows
-  })
-  // Fetch the items that are not in the cache
-  if (fetchData && itemsToFetch.length > 0) {
-    try {
-      const newItems = await loadData({
-        offset: itemsToFetch[0],
-        limit: itemsToFetch[itemsToFetch.length - 1] - itemsToFetch[0] + 1,
-      })
-
-      newItems.forEach((item) => {
-        const index = item.rowMeta.rowIndex! - startIndex
-        cachedLocalRows.value[item.rowMeta.rowIndex!] = item
-        if (index >= 0 && index < newVisibleRows.length) {
-          newVisibleRows[index] = item
-        }
-      })
-
-      requestAnimationFrame(() => {
-        visibleRows.value = newVisibleRows
-      })
-
-      // visibleRows.value = newVisibleRows
-      // Update the visible items
-      updateVisibleItems(newScrollTop, true, false)
-
-      // Clear the cache with a buffer
-      clearCache(startIndex - bufferSize, endIndex + bufferSize)
-    } catch (error) {
-      console.error('Error fetching items:', error)
-    }
-  }
-
-  await nextTick(() => {
-    isUpdating.value = false
-  })
-}
-
-// Debounce the updateVisibleItems function to prevent multiple updates
-const debouncedUpdateVisibleItems = useDebounceFn(updateVisibleItems, 16)
 
 // The height of placeholder rows before the visible rows
 const startRowHeight = computed(() => `${rowSlice.start * rowHeight.value}px`)
@@ -460,6 +417,13 @@ const calculateSlices = () => {
     start: Math.max(0, renderStart - VIRTUAL_MARGIN),
     end: renderEndFound ? Math.min(fields.value.length, renderEnd + VIRTUAL_MARGIN) : fields.value.length,
   }
+
+  const startIndex = Math.max(0, Math.floor(scrollTop.value / rowHeight.value))
+  const visibleCount = Math.ceil(scrollWrapper.value.clientHeight / rowHeight.value)
+  const endIndex = Math.min(startIndex + visibleCount, totalRows.value)
+
+  rowSlice.start = startIndex
+  rowSlice.end = endIndex
 }
 
 // Calculate if the cell is required and null
@@ -1330,9 +1294,6 @@ function addEmptyRow(row?: number, skipUpdate: boolean = false) {
     saveEmptyRow(rowObj)
   }
 
-  // on add new row, scroll to the new row
-  updateVisibleItems(scrollTop.value, true)
-
   nextTick().then(() => {
     scrollToRow(row ?? totalRows.value - 1)
   })
@@ -1465,7 +1426,6 @@ useScroll(scrollWrapper, {
     scrollLeft.value = e.target?.scrollLeft
     scrollTop.value = e.target?.scrollTop
     calculateSlices() // Calculate the column slices when the user scrolls
-    debouncedUpdateVisibleItems(scrollTop.value) // Update the visible items when the user scrolls
 
     refreshFillHandle() // Refresh the fill handle when the user scrolls
   },
@@ -1577,7 +1537,6 @@ const reloadViewDataHookHandler = async () => {
   await syncCount()
   clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
   visibleRows.value = []
-  await updateVisibleItems(0, true)
 
   temporaryNewRowStore.value.forEach((row, index) => {
     row.rowMeta.rowIndex = totalRows.value + index
@@ -1585,8 +1544,6 @@ const reloadViewDataHookHandler = async () => {
   })
 
   totalRows.value = totalRows.value + temporaryNewRowStore.value.length
-
-  await updateVisibleItems(0, true)
 }
 
 onMounted(async () => {
@@ -1626,11 +1583,6 @@ openNewRecordFormHook?.on(openNewRecordHandler)
 
 reloadViewDataHook?.on(reloadViewDataHookHandler)
 
-reloadVisibleDataHook?.on(async () => {
-  console.log('reloadVisibleDataHook')
-  await updateVisibleItems(scrollTop.value, true, false)
-})
-
 watch(
   view,
   async (next, old) => {
@@ -1653,7 +1605,7 @@ watch(
           await syncCount()
           // Calculate the slices and load the view aggregate and data
           calculateSlices()
-          await Promise.allSettled([loadViewAggregate(), updateVisibleItems(scrollTop.value, true, true)])
+          await Promise.allSettled([loadViewAggregate()])
         } catch (e) {
           if (!axios.isCancel(e)) {
             console.log(e)

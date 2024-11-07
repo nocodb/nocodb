@@ -1928,38 +1928,50 @@ watch(
                     <div
                       v-if="row.rowMeta?.isValidationFailed"
                       :style="{
-                        top: `${(index + 1) * rowHeight}px`,
+                        top: `${(index + 1) * rowHeight - 7}px`,
                         zIndex: 100001,
-                        left: `${scrollLeft}px`,
                       }"
-                      class="absolute bg-yellow-500 px-2 font-semibold py-1 z-30 rounded-br-md flex text-xs items-center gap-2 text-gray-800"
+                      class="absolute z-30 left-0"
                     >
-                      Row filtered
+                      <div
+                        class="flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
+                        :style="{
+                          transform: `translateX(${scrollLeft - leftOffset}px)`,
+                        }"
+                      >
+                        Row filtered
 
-                      <NcTooltip>
-                        <template #title>
-                          This record will be hidden as it does not match the filters applied to this view.
-                        </template>
+                        <NcTooltip>
+                          <template #title>
+                            This record will be hidden as it does not match the filters applied to this view.
+                          </template>
 
-                        <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
-                      </NcTooltip>
+                          <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
+                        </NcTooltip>
+                      </div>
                     </div>
                     <div
                       v-if="row.rowMeta?.isRowOrderUpdated"
                       :style="{
-                        top: `${(index + 1) * rowHeight}px`,
+                        top: `${(index + 1) * rowHeight - 7}px`,
                         zIndex: 100000,
-                        translate: `translateX(${leftOffset}px)`,
                       }"
-                      class="absolute transform bg-yellow-500 px-2 font-semibold py-1 z-30 left-0 rounded-br-md flex text-xs items-center gap-2 text-gray-800"
+                      class="absolute transform z-30 left-0"
                     >
-                      Row moved
+                      <div
+                        class="flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
+                        :style="{
+                          transform: `translateX(${scrollLeft - leftOffset}px)`,
+                        }"
+                      >
+                        Row moved
 
-                      <NcTooltip>
-                        <template #title> This record will move to a new position when you click outside of it. </template>
+                        <NcTooltip>
+                          <template #title> This record will move to a new position when you click outside of it. </template>
 
-                        <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
-                      </NcTooltip>
+                          <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
+                        </NcTooltip>
+                      </div>
                     </div>
                     <tr
                       class="nc-grid-row transition transition-opacity duration-500 opacity-100 !xs:h-14"

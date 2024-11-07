@@ -346,6 +346,7 @@ export function useInfiniteData(args: {
       })
 
       const entry = sortedRangeEntries.find((e) => e.pk === extractPkFromRow(inputRow.row, meta.value?.columns))
+
       if (!entry) return
 
       const targetIndex = sourceRange.start + sortedRangeEntries.indexOf(entry)
@@ -382,9 +383,7 @@ export function useInfiniteData(args: {
 
         // Update chunk state
         const chunkIndex = getChunkIndex(targetIndex)
-        if (chunkStates.value[chunkIndex] !== undefined) {
-          chunkStates.value[chunkIndex] = undefined
-        }
+        chunkStates.value[chunkIndex] = undefined
       }
 
       cachedRows.value = newCachedRows

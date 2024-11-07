@@ -1401,6 +1401,10 @@ const leftOffset = computed(() => {
   return colSlice.value.start > 0 ? colPositions.value[colSlice.value.start] - colPositions.value[1] : 0
 })
 
+const topOffset = computed(() => {
+  return rowHeightInPx[`${props.rowHeightEnum}`] * rowSlice.value.start
+})
+
 // fillHandleTop - reactive ref to get the top position of the fill handle
 const fillHandleTop = ref()
 
@@ -1972,7 +1976,7 @@ defineExpose({
               'w-full': visibleRows?.length === 0,
             }"
             :style="{
-              transform: `translateX(${leftOffset}px)`,
+              transform: `translateY(${topOffset}px) translateX(${leftOffset}px)`,
             }"
             @contextmenu="showContextMenu"
           >
@@ -1997,20 +2001,19 @@ defineExpose({
               </div>
               <LazySmartsheetRow
                 v-for="(row, index) in visibleRows"
-                :key="`${rowSlice.start + index}-${rowSlice.start + index}`"
+                :key="`${row.rowMeta.rowIndex}-${row.rowMeta.rowIndex}`"
                 :row="row"
               >
                 <template #default="{ state }">
                   <tr
                     class="nc-grid-row transition transition-opacity opacity-100 !xs:h-14"
                     :style="{
-                      transform: `translateY(${rowSlice.start + index}px)`,
+                      transform: `translateY(${row.rowMeta.rowIndex}px)`,
                       height: `${rowHeightEnum ?? rowHeightInPx['1']}px`,
                     }"
                     :data-testid="`grid-row-${index}`"
                     :class="{
-                      'active-row':
-                        activeCell.row === rowSlice.start + index || selectedRange._start?.row === rowSlice.start + index,
+                      'active-row': activeCell.row === row.rowMeta.rowIndex || selectedRange._start?.row === row.rowMeta.rowIndex,
                       'mouse-down': isGridCellMouseDown || isFillMode,
                       'selected-row': row.rowMeta.selected,
                     }"
@@ -2018,7 +2021,7 @@ defineExpose({
                     <td
                       key="row-index"
                       class="caption nc-grid-cell w-[64px] min-w-[64px]"
-                      :data-testid="`cell-Id-${rowSlice.start + index}`"
+                      :data-testid="`cell-Id-${row.rowMeta.rowIndex}`"
                       :style="{
                         left: `-${leftOffset}px`,
                       }"
@@ -2029,7 +2032,7 @@ defineExpose({
                           class="nc-row-no sm:min-w-4 text-xs text-gray-500"
                           :class="{ toggle: !readOnly, hidden: row.rowMeta?.selected }"
                         >
-                          {{ rowSlice.start + index + 1 }}
+                          {{ row.rowMeta.rowIndex + 1 }}
                         </div>
                         <div
                           v-if="!readOnly"
@@ -2045,13 +2048,13 @@ defineExpose({
 
                         <div
                           class="nc-expand"
-                          :data-testid="`nc-expand-${rowSlice.start + index}`"
+                          :data-testid="`nc-expand-${row.rowMeta.rowIndex}`"
                           :class="{ 'nc-comment': row.rowMeta?.commentCount }"
                         >
                           <a-spin
                             v-if="row.rowMeta?.saving"
                             class="!flex items-center"
-                            :data-testid="`row-save-spinner-${rowSlice.start + index}`"
+                            :data-testid="`row-save-spinner-${row.rowMeta.rowIndex}`"
                           />
 
                           <span
@@ -2082,15 +2085,15 @@ defineExpose({
                       :key="fields[0].id"
                       class="cell relative nc-grid-cell cursor-pointer"
                       :class="{
-                        'active': selectRangeMap[`${rowSlice.start + index}-0`],
+                        'active': selectRangeMap[`${row.rowMeta.rowIndex}-0`],
                         'active-cell':
-                          (activeCell.row === rowSlice.start + index && activeCell.col === 0) ||
-                          (selectedRange._start?.row === rowSlice.start + index && selectedRange._start?.col === 0),
+                          (activeCell.row === row.rowMeta.rowIndex && activeCell.col === 0) ||
+                          (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === 0),
                         'nc-required-cell': cellMeta[index][0].isColumnRequiredAndNull && !isPublicView,
                         'align-middle': !rowHeightEnum || rowHeightEnum === 1,
                         'align-top': rowHeightEnum && rowHeightEnum !== 1,
-                        'filling': fillRangeMap[`${rowSlice.start + index}-0`],
-                        'readonly': colMeta[0].isReadonly && hasEditPermission && selectRangeMap[`${rowSlice.start + index}-0`],
+                        'filling': fillRangeMap[`${row.rowMeta.rowIndex}-0`],
+                        'readonly': colMeta[0].isReadonly && hasEditPermission && selectRangeMap[`${row.rowMeta.rowIndex}-0`],
                         '!border-r-blue-400 !border-r-3': toBeDroppedColId === fields[0].id,
                       }"
                       :style="{
@@ -2098,23 +2101,23 @@ defineExpose({
                         'max-width': gridViewCols[fields[0].id]?.width || '180px',
                         'width': gridViewCols[fields[0].id]?.width || '180px',
                       }"
-                      :data-testid="`cell-${fields[0].title}-${rowSlice.start + index}`"
-                      :data-key="`data-key-${rowSlice.start + index}-${fields[0].id}`"
+                      :data-testid="`cell-${fields[0].title}-${row.rowMeta.rowIndex}`"
+                      :data-key="`data-key-${row.rowMeta.rowIndex}-${fields[0].id}`"
                       :data-col="fields[0].id"
                       :data-title="fields[0].title"
-                      :data-row-index="rowSlice.start + index"
+                      :data-row-index="row.rowMeta.rowIndex"
                       :data-col-index="0"
-                      @mousedown="handleMouseDown($event, rowSlice.start + index, 0)"
-                      @mouseover="handleMouseOver($event, rowSlice.start + index, 0)"
+                      @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, 0)"
+                      @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, 0)"
                       @dblclick="makeEditable(row, fields[0])"
-                      @contextmenu="showContextMenu($event, { row: rowSlice.start + index, col: 0 })"
-                      @click="handleCellClick($event, rowSlice.start + index, 0)"
+                      @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: 0 })"
+                      @click="handleCellClick($event, row.rowMeta.rowIndex, 0)"
                     >
                       <div v-if="!switchingTab" class="w-full">
                         <LazySmartsheetVirtualCell
                           v-if="fields[0] && colMeta[0].isVirtualCol && fields[0].title"
                           v-model="row.row[fields[0].title]"
-                          :active="activeCell.col === 0 && activeCell.row === rowSlice.start + index"
+                          :active="activeCell.col === 0 && activeCell.row === row.rowMeta.rowIndex"
                           :column="fields[0]"
                           :row="row"
                           :read-only="!hasEditPermission"
@@ -2130,10 +2133,10 @@ defineExpose({
                             !!hasEditPermission &&
                             !!editEnabled &&
                             activeCell.col === 0 &&
-                            activeCell.row === rowSlice.start + index
+                            activeCell.row === row.rowMeta.rowIndex
                           "
-                          :row-index="rowSlice.start + index"
-                          :active="activeCell.col === 0 && activeCell.row === rowSlice.start + index"
+                          :row-index="row.rowMeta.rowIndex"
+                          :active="activeCell.col === 0 && activeCell.row === row.rowMeta.rowIndex"
                           :read-only="!hasEditPermission"
                           @update:edit-enabled="editEnabled = $event"
                           @navigate="onNavigate"
@@ -2144,21 +2147,21 @@ defineExpose({
                     </SmartsheetTableDataCell>
                     <SmartsheetTableDataCell
                       v-for="{ field: columnObj, index: colIndex } of visibleFields"
-                      :key="`cell-${colIndex}-${rowSlice.start + index}`"
+                      :key="`cell-${colIndex}-${row.rowMeta.rowIndex}`"
                       class="cell relative nc-grid-cell cursor-pointer"
                       :class="{
-                        'active': selectRangeMap[`${rowSlice.start + index}-${colIndex}`],
+                        'active': selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                         'active-cell':
-                          (activeCell.row === rowSlice.start + index && activeCell.col === colIndex) ||
-                          (selectedRange._start?.row === rowSlice.start + index && selectedRange._start?.col === colIndex),
+                          (activeCell.row === row.rowMeta.rowIndex && activeCell.col === colIndex) ||
+                          (selectedRange._start?.row === row.rowMeta.rowIndex && selectedRange._start?.col === colIndex),
                         'nc-required-cell': cellMeta[index][colIndex].isColumnRequiredAndNull && !isPublicView,
                         'align-middle': !rowHeightEnum || rowHeightEnum === 1,
                         'align-top': rowHeightEnum && rowHeightEnum !== 1,
-                        'filling': fillRangeMap[`${rowSlice.start + index}-${colIndex}`],
+                        'filling': fillRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                         'readonly':
                           colMeta[colIndex].isReadonly &&
                           hasEditPermission &&
-                          selectRangeMap[`${rowSlice.start + index}-${colIndex}`],
+                          selectRangeMap[`${row.rowMeta.rowIndex}-${colIndex}`],
                         '!border-r-blue-400 !border-r-3': toBeDroppedColId === columnObj.id,
                       }"
                       :style="{
@@ -2166,17 +2169,17 @@ defineExpose({
                         'max-width': gridViewCols[columnObj.id]?.width || '180px',
                         'width': gridViewCols[columnObj.id]?.width || '180px',
                       }"
-                      :data-testid="`cell-${columnObj.title}-${rowSlice.start + index}`"
-                      :data-key="`data-key-${rowSlice.start + index}-${columnObj.id}`"
+                      :data-testid="`cell-${columnObj.title}-${row.rowMeta.rowIndex}`"
+                      :data-key="`data-key-${row.rowMeta.rowIndex}-${columnObj.id}`"
                       :data-col="columnObj.id"
                       :data-title="columnObj.title"
-                      :data-row-index="rowSlice.start + index"
+                      :data-row-index="row.rowMeta.rowIndex"
                       :data-col-index="colIndex"
-                      @mousedown="handleMouseDown($event, rowSlice.start + index, colIndex)"
-                      @mouseover="handleMouseOver($event, rowSlice.start + index, colIndex)"
-                      @click="handleCellClick($event, rowSlice.start + index, colIndex)"
+                      @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, colIndex)"
+                      @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, colIndex)"
+                      @click="handleCellClick($event, row.rowMeta.rowIndex, colIndex)"
                       @dblclick="makeEditable(row, columnObj)"
-                      @contextmenu="showContextMenu($event, { row: rowSlice.start + index, col: colIndex })"
+                      @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: colIndex })"
                     >
                       <div v-if="!switchingTab" class="w-full">
                         <LazySmartsheetVirtualCell
@@ -2184,7 +2187,7 @@ defineExpose({
                           v-model="row.row[columnObj.title]"
                           :column="columnObj"
                           :row="row"
-                          :active="activeCell.col === colIndex && activeCell.row === rowSlice.start + index"
+                          :active="activeCell.col === colIndex && activeCell.row === row.rowMeta.rowIndex"
                           :read-only="!hasEditPermission"
                           @navigate="onNavigate"
                           @save="updateOrSaveRow?.(row, '', state)"
@@ -2197,12 +2200,12 @@ defineExpose({
                             !!hasEditPermission &&
                             !!editEnabled &&
                             activeCell.col === colIndex &&
-                            activeCell.row === rowSlice.start + index
+                            activeCell.row === row.rowMeta.rowIndex
                           "
-                          :active="activeCell.col === colIndex && activeCell.row === rowSlice.start + index"
+                          :active="activeCell.col === colIndex && activeCell.row === row.rowMeta.rowIndex"
                           :read-only="!hasEditPermission"
                           :column="columnObj"
-                          :row-index="rowSlice.start + index"
+                          :row-index="row.rowMeta.rowIndex"
                           @save="updateOrSaveRow?.(row, columnObj.title, state)"
                           @navigate="onNavigate"
                           @cancel="editEnabled = false"

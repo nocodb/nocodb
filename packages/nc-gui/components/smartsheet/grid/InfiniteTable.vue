@@ -1239,8 +1239,8 @@ onMounted(async () => {
     refreshFillHandle()
     if (activeCell.row !== null && !cachedRows.value.get(activeCell.row)) {
       clearSelectedRange()
-      activeCell.row = null
-      activeCell.col = null
+      // activeCell.row = null
+      // activeCell.col = null
     }
   })
   if (smartTable.value) resizeObserver.observe(smartTable.value)

@@ -197,8 +197,9 @@ const rowSlice = reactive({
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 10
 const INITIAL_LOAD_SIZE = 100
+const PREFETCH_THRESHOLD = 40
 
-const fetchChunk = async (chunkId, isInitialLoad = false) => {
+const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
   if (chunkStates.value[chunkId]) return
 
   chunkStates.value[chunkId] = 'loading'
@@ -235,6 +236,11 @@ const updateVisibleRows = async () => {
 
   for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
     chunksToFetch.add(chunkId)
+  }
+
+  const nextChunkId = lastChunkId + 1
+  if (end % CHUNK_SIZE > CHUNK_SIZE - PREFETCH_THRESHOLD && !chunkStates.value[nextChunkId]) {
+    chunksToFetch.add(nextChunkId)
   }
 
   if (chunksToFetch.size > 0) {

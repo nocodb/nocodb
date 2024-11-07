@@ -944,7 +944,6 @@ export function useInfiniteData(args: {
     } else if (property) {
       data = await updateRowProperty(row, property, args)
     }
-
     row.rowMeta.isValidationFailed = !validateRowFilters(
       [...allFilters.value, ...computedWhereFilter.value],
       data,
@@ -981,7 +980,6 @@ export function useInfiniteData(args: {
       const newRow = cachedRows.value.get(row.rowMeta.rowIndex!)
       if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
     }
-    callbacks?.syncVisibleData?.()
   }
 
   async function bulkUpdateRows(

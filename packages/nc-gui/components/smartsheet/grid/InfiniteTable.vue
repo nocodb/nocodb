@@ -234,6 +234,7 @@ const fetchChunk = async (chunkId: number, isInitialLoad = false) => {
 
 const visibleRows = computed(() => {
   const { start, end } = rowSlice
+
   return Array.from({ length: Math.min(end, totalRows.value) - start }, (_, i) => {
     const rowIndex = start + i
     return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
@@ -869,51 +870,23 @@ async function saveEmptyRow(rowObj: Row) {
   await updateOrSaveRow?.(rowObj)
 }
 
-let isProcessing = false
-const rowQueue: Array<{
-  row?: number
-  skipUpdate: boolean
-  resolve: (rowObj: Row | undefined) => void
-}> = []
-
-async function processRowQueue() {
-  if (isProcessing) return
-
-  isProcessing = true
-
-  try {
-    while (rowQueue.length > 0) {
-      const { row, skipUpdate, resolve } = rowQueue.shift()!
-
-      clearInvalidRows?.()
-      if (rowSortRequiredRows.value.length) {
-        applySorting?.(rowSortRequiredRows.value)
-      }
-
-      const rowObj = callAddEmptyRow?.(row)
-
-      if (!skipUpdate && rowObj) {
-        await saveEmptyRow(rowObj)
-      }
-
-      scrollToRow(row ?? totalRows.value - 1)
-      makeActive(row ?? totalRows.value - 1, 0)
-      clearSelectedRange()
-      selectedRange.startRange({ row: activeCell.row!, col: activeCell.col! })
-      scrollToCell?.(row)
-
-      resolve(rowObj)
-    }
-  } finally {
-    isProcessing = false
-  }
-}
-
 async function addEmptyRow(row?: number, skipUpdate = false) {
-  return new Promise((resolve) => {
-    rowQueue.push({ row, skipUpdate, resolve })
-    processRowQueue()
+  clearInvalidRows?.()
+  if (rowSortRequiredRows.value.length) {
+    applySorting?.(rowSortRequiredRows.value)
+  }
+
+  const rowObj = callAddEmptyRow?.(row)
+
+  if (!skipUpdate && rowObj) {
+    saveEmptyRow(rowObj)
+  }
+
+  nextTick().then(() => {
+    scrollToRow(row ?? totalRows.value - 1)
   })
+
+  return rowObj
 }
 
 const confirmDeleteRow = (row: number) => {
@@ -1490,7 +1463,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 const triggerReload = () => {
   calculateSlices()
-  updateVisibleRows()
 }
 
 onBeforeUnmount(async () => {

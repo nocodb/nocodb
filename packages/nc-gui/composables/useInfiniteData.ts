@@ -80,7 +80,7 @@ export function useInfiniteData(args: {
 
   const totalRows = ref(0)
 
-  const MAX_CACHE_SIZE = 100
+  const MAX_CACHE_SIZE = 200
 
   const CHUNK_SIZE = 50
 
@@ -585,6 +585,7 @@ export function useInfiniteData(args: {
     try {
       const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
         pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
+        limit: 200,
       })
 
       for (const deleteRow of removedRowsData) {
@@ -1177,7 +1178,7 @@ export function useInfiniteData(args: {
     const newCachedRows = new Map<number, Row>()
     let newIndex = 0
 
-    for (let i = 0; i <= maxCachedIndex; i++) {
+    for (let i = 0; i <= maxCachedIndex + 1; i++) {
       if (!rowsToDelete.some((row) => row.rowIndex === i) && cachedRows.value.has(i)) {
         const row = cachedRows.value.get(i)
         if (row) {
@@ -1191,8 +1192,7 @@ export function useInfiniteData(args: {
     cachedRows.value = newCachedRows
     totalRows.value = Math.max(0, totalRows.value - rowsToDelete.length)
 
-    const minDeletedIndex = Math.min(...rowsToDelete.map((row) => row.rowIndex))
-    syncLocalChunks(minDeletedIndex, 'delete')
+    chunkStates.value[getChunkIndex(maxCachedIndex)] = undefined
 
     await syncCount()
     callbacks?.syncVisibleData?.()
@@ -1246,6 +1246,7 @@ export function useInfiniteData(args: {
 
     const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
       pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
+      limit: 200,
     })
 
     try {

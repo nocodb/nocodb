@@ -152,7 +152,7 @@ async function generateEntryBoilerplate(type: string, subType: string) {
   // Step 4: Generate the new class code
   let boilerplate = `${imports.join("\n")}\n`;
   boilerplate += `import ${abstractClassName} from '~/integrations/${type}/${type}.interface';\n\n`;
-  boilerplate += `export default class ${newClassName}Integration extends ${abstractClassName} {\n`;
+  boilerplate += `export default class ${newClassName} extends ${abstractClassName} {\n`;
 
   abstractFields.forEach((field) => {
     boilerplate += `  ${field.scope} ${field.name}: ${field.type};\n`;
@@ -234,8 +234,20 @@ async function generateFormBoilerplate(type: string, subType: string) {
 
     const options = [];
 
+    let selectMode: 'single' | 'multiple' | 'multipleWithInput';
+
     if (menu === "Select") {
       let counter = 0;
+
+      // 'single' | 'multiple' | 'multipleWithInput'
+      selectMode = await select({
+        message: "Select selectMode",
+        choices: [
+          { name: "Single", value: "single" },
+          { name: "Multiple", value: "multiple" },
+          { name: "Multiple with Input", value: "multipleWithInput" },
+        ],
+      });
 
       while (true) {
         counter++;
@@ -284,13 +296,14 @@ async function generateFormBoilerplate(type: string, subType: string) {
       model: 'config.${model}',
       category: '${category}',` +
         `${placeholder ? `\nplaceholder: '${placeholder}',\n` : ""}` +
+        `${menu === "Select" ? `selectMode: '${selectMode}',\n` : ""}` +
         `${
-          menu === "Select" ? `\noptions: ${JSON.stringify(options)},\n` : ""
+          menu === "Select" ? `options: ${JSON.stringify(options)},\n` : ""
         }` +
-        `${defaultValue ? `\ndefaultValue: '${defaultValue}',\n` : ""}` +
+        `${defaultValue ? `defaultValue: '${defaultValue}',\n` : ""}` +
         `${
           isRequired
-            ? `\nvalidators: [\n  {\n    type: 'required',\n    message: '${label} is required',\n  }],\n`
+            ? `validators: [\n  {\n    type: 'required',\n    message: '${label} is required',\n  }],\n`
             : ""
         }` +
         `}`

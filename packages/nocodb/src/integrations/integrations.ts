@@ -8,6 +8,12 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
 
 import AiCommonManifest from '~/integrations/ai/ai.manifest';
 
+import AiAmazonBedrockEntry from '~/integrations/ai/amazon-bedrock/entry';
+import AiAmazonBedrockForm from '~/integrations/ai/amazon-bedrock/form';
+import AiAmazonBedrockManifest from '~/integrations/ai/amazon-bedrock/manifest';
+import AiAzureEntry from '~/integrations/ai/azure/entry';
+import AiAzureForm from '~/integrations/ai/azure/form';
+import AiAzureManifest from '~/integrations/ai/azure/manifest';
 import AiClaudeEntry from '~/integrations/ai/claude/entry';
 import AiClaudeForm from '~/integrations/ai/claude/credentials.form';
 import AiClaudeManifest from '~/integrations/ai/claude/manifest';
@@ -22,6 +28,26 @@ import AiOpenaiForm from '~/integrations/ai/openai/credentials.form';
 import AiOpenaiManifest from '~/integrations/ai/openai/manifest';
 
 export default [
+  {
+    type: 'ai',
+    subType: 'amazon-bedrock',
+    wrapper: AiAmazonBedrockEntry,
+    form: AiAmazonBedrockForm,
+    meta: {
+      ...AiCommonManifest,
+      ...AiAmazonBedrockManifest,
+    },
+  },
+  {
+    type: 'ai',
+    subType: 'azure',
+    wrapper: AiAzureEntry,
+    form: AiAzureForm,
+    meta: {
+      ...AiCommonManifest,
+      ...AiAzureManifest,
+    },
+  },
   {
     type: 'ai',
     subType: 'claude',

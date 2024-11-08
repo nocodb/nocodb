@@ -4,6 +4,10 @@ const { glob } = require('glob');
 
 const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
 
+const camelize = (s) => s.replace(/-./g, (x) => x[1].toUpperCase());
+
+const prepareComponentName = (name) => capitalize(camelize(name));
+
 async function registerIntegrations() {
   const files = await glob('src/integrations/**/*', {
     ignore: [
@@ -73,7 +77,7 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
 
   // Generate import statements for types
   for (const type of availableTypes) {
-    integrationsEntry += `import ${capitalize(
+    integrationsEntry += `import ${prepareComponentName(
       type,
     )}CommonManifest from '~/integrations/${type}/${type}.manifest';\n`;
   }
@@ -83,19 +87,25 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
   // Generate import statements
   for (const integration of availableIntegrations) {
     if (integration.entry) {
-      integrationsEntry += `import ${capitalize(integration.type)}${capitalize(
-        integration.subType,
-      )}Entry from '${integration.entry}';\n`;
+      integrationsEntry += `import ${prepareComponentName(
+        integration.type,
+      )}${prepareComponentName(integration.subType)}Entry from '${
+        integration.entry
+      }';\n`;
     }
     if (integration.form) {
-      integrationsEntry += `import ${capitalize(integration.type)}${capitalize(
-        integration.subType,
-      )}Form from '${integration.form}';\n`;
+      integrationsEntry += `import ${prepareComponentName(
+        integration.type,
+      )}${prepareComponentName(integration.subType)}Form from '${
+        integration.form
+      }';\n`;
     }
     if (integration.manifest) {
-      integrationsEntry += `import ${capitalize(integration.type)}${capitalize(
-        integration.subType,
-      )}Manifest from '${integration.manifest}';\n`;
+      integrationsEntry += `import ${prepareComponentName(
+        integration.type,
+      )}${prepareComponentName(integration.subType)}Manifest from '${
+        integration.manifest
+      }';\n`;
     }
   }
 
@@ -107,19 +117,19 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
     integrationsEntry += `    type: '${integration.type}',\n`;
     integrationsEntry += `    subType: '${integration.subType}',\n`;
     if (integration.entry) {
-      integrationsEntry += `    wrapper: ${capitalize(
+      integrationsEntry += `    wrapper: ${prepareComponentName(
         integration.type,
-      )}${capitalize(integration.subType)}Entry,\n`;
+      )}${prepareComponentName(integration.subType)}Entry,\n`;
     }
     if (integration.form) {
-      integrationsEntry += `    form: ${capitalize(
+      integrationsEntry += `    form: ${prepareComponentName(
         integration.type,
-      )}${capitalize(integration.subType)}Form,\n`;
+      )}${prepareComponentName(integration.subType)}Form,\n`;
     }
     if (integration.manifest) {
       integrationsEntry += `    meta: {
-      ...${capitalize(integration.type)}CommonManifest,
-      ...${capitalize(integration.type)}${capitalize(
+      ...${prepareComponentName(integration.type)}CommonManifest,
+      ...${prepareComponentName(integration.type)}${prepareComponentName(
         integration.subType,
       )}Manifest,
     },\n`;

@@ -33,7 +33,6 @@ This extension enhances the data visualization capabilities of NocoDB by providi
   <li>Google Docs</li>
   <li>Google Sheets</li>
   <li>Google Slides</li>
-  <li>Figma</li>
   <li>Loom share links</li>
 </ul>
 <br>
@@ -41,4 +40,5 @@ This extension enhances the data visualization capabilities of NocoDB by providi
 <ul>
   <li>GitHub (gists)</li>
   <li>Codepen</li>
+  <li>Figma</li>
 </ul>

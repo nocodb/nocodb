@@ -37,6 +37,22 @@ const matchGoogle = (url: string) => {
 }
 urlMatchers.push(['Google', matchGoogle])
 
+const DRIVE_RE =
+  /^https?:\/\/drive\.google\.com\/drive\/folders\/([a-zA-Z0-9_-]+)(?:\/.*)?(?:\?.*)?$/
+
+const matchDrive = (url: string) => {
+  try {
+    const match = url.match(DRIVE_RE)
+    if (!match) {
+      return null
+    }
+    return `https://drive.google.com/embeddedfolderview?id=${match[1]}`
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['Drive', matchDrive])
+
 const FIGMA_RE =
   /^https?:\/\/(www\.|)figma\.com\/(file|proto|design)\/([0-9a-zA-Z]{22,})(?:\/.*)?(?:\?node-id=([0-9%:A-Za-z-]+))?/
 

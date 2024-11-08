@@ -3,13 +3,13 @@ import { helpers } from '@vuelidate/validators'
 import useVuelidate from '@vuelidate/core'
 
 import {
+  type PaginatedType,
+  type TableType,
+  UITypes,
   type ViewType,
   ViewTypes,
-  UITypes,
   getSystemColumnsIds,
-  type TableType,
   isVirtualCol,
-  type PaginatedType,
 } from 'nocodb-sdk'
 
 const hiddenColTypes = [
@@ -53,9 +53,7 @@ enum BulkUpdateFieldActionOpTypes {
   SET_VALUE = 'SET_VALUE',
 }
 
-const { $api, $poller } = useNuxtApp()
-
-const { appInfo } = useGlobal()
+const { $api } = useNuxtApp()
 
 const router = useRouter()
 const route = router.currentRoute
@@ -85,10 +83,6 @@ const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
 const { extension, tables, fullscreen, eventBus, getViewsForTable, getTableMeta, reloadData } = useExtensionHelperOrThrow()
 
 const views = ref<ViewType[]>([])
-
-const bulkUpdateRef = ref<HTMLDivElement>()
-
-const { width } = useElementSize(bulkUpdateRef)
 
 const meta = ref<TableType>()
 
@@ -146,9 +140,11 @@ const viewList = computed(() => {
 
 const isDataLoaded = ref(false)
 
+const fieldConfigExpansionPanel = ref<string[]>([])
+
 const bulkUpdatePayload = computedAsync(async () => {
   if (!isDataLoaded.value && !savedPayloads.value.history?.length) {
-    let saved = (await extension.value.kvStore.get('savedPayloads')) as BulkUpdatePayloadType
+    const saved = (await extension.value.kvStore.get('savedPayloads')) as BulkUpdatePayloadType
 
     if (saved) {
       saved.history = saved.history || []
@@ -165,7 +161,7 @@ const bulkUpdatePayload = computedAsync(async () => {
         }
       }
 
-      saved.history = saved.history.filter((h) => (h.tableId && deletedTableIds.has(h.tableId) ? false : true))
+      saved.history = saved.history.filter((h) => !(h.tableId && deletedTableIds.has(h.tableId)))
 
       if (saved.selectedTableId && deletedTableIds.has(saved.selectedTableId)) {
         saved.selectedTableId = ''
@@ -336,8 +332,6 @@ const filterOption = (input: string, option: { key: string }) => {
 async function saveChanges() {
   await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
 }
-
-const fieldConfigExpansionPanel = ref<string[]>([])
 
 const handleUpdateFieldConfigExpansionPanel = (key: string) => {
   if (!fullscreen.value) {
@@ -633,7 +627,7 @@ onClickOutside(formRef, (e) => {
 
 watch(
   [() => fullscreen.value, () => bulkUpdatePayload.value?.viewId],
-  ([isFullscreen, isViewChanged]) => {
+  ([isFullscreen]) => {
     if (isFullscreen) {
       if (!bulkUpdatePayload.value?.config?.length) {
         addNewAction()
@@ -658,7 +652,6 @@ const focusInput = async (initQuery: string) => {
     (formRef.value?.$el.querySelector(`${initQuery} .nc-cell [contenteditable="true"]`) as HTMLElement) ||
     (formRef.value?.$el.querySelector(`${initQuery} .nc-cell [tabindex="0"]`) as HTMLElement)
 
-  console.log('inputEl', inputEl)
   if (inputEl) {
     inputEl?.select?.()
     inputEl?.focus?.()
@@ -704,7 +697,7 @@ eventBus.on((event) => {
   }
 })
 
-const { state, row } = useProvideSmartsheetRowStore(
+const { row } = useProvideSmartsheetRowStore(
   ref({
     row: {},
     oldRow: {},
@@ -795,7 +788,6 @@ provide(IsGalleryInj, ref(false))
     </template>
 
     <div
-      ref="bulkUpdateRef"
       class="bulk-update-ee h-full flex flex-col"
       :class="{
         'gap-6 bg-nc-bg-gray-extralight': fullscreen,
@@ -873,8 +865,8 @@ provide(IsGalleryInj, ref(false))
       <div class="bulk-update-body flex-1 flex flex-col">
         <div v-if="!fullscreen" class="bulk-update-header">Actions</div>
         <div
-          class="nc-field-config-ref flex-1 flex flex-col nc-scrollbar-thin"
           ref="fieldConfigRef"
+          class="nc-field-config-ref flex-1 flex flex-col nc-scrollbar-thin"
           :class="{
             'pt-6 px-4 relative': fullscreen,
             'max-h-[calc(100%_-_25px)]': !fullscreen,
@@ -1105,8 +1097,8 @@ provide(IsGalleryInj, ref(false))
                       </template>
 
                       <LazySmartsheetDivDataCell
-                        class="relative min-h-8"
                         :key="meta?.columnsById?.[fieldConfig.columnId]?.uidt"
+                        class="relative min-h-8"
                         :data-label="meta?.columnsById?.[fieldConfig.columnId]?.uidt"
                         :data-ver="isVirtualCol(meta?.columnsById?.[fieldConfig.columnId])"
                         @click.stop

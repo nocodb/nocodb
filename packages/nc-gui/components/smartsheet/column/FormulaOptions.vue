@@ -127,6 +127,9 @@ watch(
   () => {
     debouncedValidate()
   },
+  {
+    immediate: true,
+  },
 )
 
 // set additional validations

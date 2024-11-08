@@ -1287,6 +1287,8 @@ provide(IsGalleryInj, ref(false))
 
         &:not(.readonly) {
           &:not(.nc-cell-longtext) {
+            @apply h-auto;
+
             input,
             textarea,
             &.nc-virtual-cell {
@@ -1419,16 +1421,6 @@ provide(IsGalleryInj, ref(false))
     }
   }
 
-  :deep(.nc-cell),
-  :deep(.nc-virtual-cell) {
-    &:not(.nc-cell-checkbox) {
-      @apply bg-white dark:bg-slate-500;
-
-      &.nc-input {
-        @apply w-full h-8;
-      }
-    }
-  }
   &.nc-readonly-div-data-cell:focus-within,
   &.nc-system-field:focus-within {
     @apply !border-gray-200;

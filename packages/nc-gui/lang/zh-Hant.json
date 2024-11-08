@@ -93,6 +93,7 @@
     "none": "無"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "腳本",
     "configure": "配置",
     "switch": "切換",
@@ -626,6 +627,7 @@
     "noConditionsAdded": "未添加條件"
   },
   "labels": {
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "修改於",
     "configuration": "配置",
     "setup": "設置",

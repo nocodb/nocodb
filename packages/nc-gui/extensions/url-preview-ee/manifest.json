@@ -1,7 +1,7 @@
 {
   "id": "nc-url-preview",
   "title": "URL Preview",
-  "subTitle": "See URL Previews",
+  "subTitle": "Generates visual previews of links within your database.",
   "description": "url-preview-ee/description.md",
   "entry": "url-preview-ee",
   "version": "0.1",

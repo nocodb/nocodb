@@ -321,8 +321,9 @@ export function useMultiSelect(
           // Fetch all required chunks
           await Promise.all([...chunksToFetch].map(fetchChunk))
 
-          // Make sure all data is loaded before copying
-          cprows = Array.from(unref(data as Map<number, Row>).values()).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
+          cprows = Array.from(unref(data as Map<number, Row>).entries())
+            .filter(([index]) => index >= selectedRange.start.row && index <= selectedRange.end.row)
+            .map(([, row]) => row)
         }
         const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 

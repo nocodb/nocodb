@@ -384,14 +384,6 @@ function addNewAction() {
 
   handleUpdateFieldConfigExpansionPanel(configId)
   validateAll()
-
-  nextTick(() => {
-    setTimeout(() => {
-      if (fieldConfigRef.value) {
-        fieldConfigRef.value.scrollTop = fieldConfigRef.value.scrollHeight
-      }
-    }, 200)
-  })
 }
 
 async function handleRemoveFieldConfig(configId: string) {
@@ -405,6 +397,18 @@ async function handleRemoveFieldConfig(configId: string) {
 
   await saveChanges()
   validateAll()
+}
+
+function handleAutoScrollField(configId: string) {
+  if (!formRef.value) return
+
+  nextTick(() => {
+    const field = formRef.value.querySelector(`.nc-bulk-update-field-confit-${configId}`)
+
+    if (!field) return
+
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
 }
 
 function handleFieldSelect(fieldConfig: BulkUpdateFieldConfig, columnId: string) {
@@ -812,7 +816,12 @@ provide(IsGalleryInj, ref(false))
                 class="nc-bulk-update-field-config-section flex flex-col w-full"
               >
                 <template #expandIcon> </template>
-                <a-collapse-panel v-for="fieldConfig in bulkUpdatePayload?.config" :key="fieldConfig.id" collapsible="disabled">
+                <a-collapse-panel
+                  v-for="fieldConfig in bulkUpdatePayload?.config"
+                  :key="fieldConfig.id"
+                  collapsible="disabled"
+                  :class="`nc-bulk-update-field-confit-${fieldConfig.id}`"
+                >
                   <template #header>
                     <div
                       v-if="!fieldConfigExpansionPanel.includes(fieldConfig.id)"
@@ -1076,6 +1085,29 @@ provide(IsGalleryInj, ref(false))
             </div>
           </div>
         </div>
+        <div
+          v-if="!fullscreen"
+          class="flex items-center gap-3 justify-end"
+          :class="{
+            'pt-3': fullscreen,
+            'p-3 border-t-1 border-t-nc-border-gray-medium bg-white': !fullscreen,
+          }"
+        >
+          <NcButton size="small" type="secondary" @click="addNewAction">
+            <template #icon>
+              <GeneralIcon icon="ncPlus" />
+            </template>
+            New action
+          </NcButton>
+          <NcButton
+            size="small"
+            :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo"
+            :loading="isLoadingViewInfo"
+            @click="handleConfirmUpdate"
+          >
+            Update Records
+          </NcButton>
+        </div>
       </div>
     </div>
     <NcModal v-model:visible="isOpenConfigModal" class="" :show-separator="false" size="small" :mask-closable="!isUpdating">
@@ -1171,6 +1203,9 @@ provide(IsGalleryInj, ref(false))
     &:not(.fullscreen) {
       .ant-collapse-item {
         @apply last:(border-b-1 !rounded-b-none);
+      }
+      .nc-bulk-update-field-config-section.ant-collapse {
+        @apply rounded-none;
       }
     }
   }

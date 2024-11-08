@@ -1170,7 +1170,7 @@ provide(IsGalleryInj, ref(false))
           </div>
         </div>
         <div
-          v-if="!fullscreen"
+          v-if="!fullscreen && bulkUpdatePayload?.config?.length"
           class="flex items-center gap-3 justify-end"
           :class="{
             'pt-3': fullscreen,

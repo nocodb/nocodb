@@ -1,19 +1,17 @@
-Bulk update
+The Bulk Update extension in NocoDB streamlines the process of updating multiple records at once. With a few clicks, you can set or clear values across numerous records, enabling quick adjustments to data without manually updating each entry.
 </br> </br>
 
-// Todo: update details
-
-The download process is handled asynchronously in the background, ensuring that your workflow remains uninterrupted. Once your file is ready, you’ll receive a notification, allowing you to download the CSV at your convenience.
+Designed for efficiency, the extension is perfect for large datasets or routine tasks that require consistent updates. Whether you’re updating status fields across all records in a view or clearing outdated tags from multiple entries, Bulk Update provides a straightforward way to manage your data en masse.
 </br> </br>
 
 **Key Features**
 
-- Easy CSV downloads for specific tables and views
-- Asynchronous processing for seamless operation
-- Instant notifications when the file is ready for download
+- Simple set and clear actions for bulk updates
+- Efficient for updating large datasets quickly
+- Ideal for repeated workflows with multiple records
   </br> </br>
 
-Elevate your data handling capabilities with the NocoDB Data Exporter extension!
+Take control of your data management with the NocoDB Bulk Update extension!
 </br></br>
 
 <!-- Todo: Add docs link -->
@@ -28,12 +26,11 @@ Elevate your data handling capabilities with the NocoDB Data Exporter extension!
 
 </br></br>
 
-<div class="flex">
-<!-- Todo: image  -->
-    <img src="" width="50%" class="object-contain rounded-xl"/>
+<div class="flex gap-5">
+    <img src="bulk-update-ee/assets/empty-placeholder.png" class="w-[calc(50%_-_10px)] object-contain rounded-xl"/>
+    <img src="bulk-update-ee/assets/actions-in-sidebar.png" class="w-[calc(50%_-_10px)] object-contain rounded-xl"/>
 </div>
 </br>
 <div>
-<!-- Todo: image  -->
- <img src="" width="100%" class="object-contain rounded-xl"/>
+ <img src="bulk-update-ee/assets/actions-in-modal.png" width="100%" class="object-contain rounded-xl"/>
 </div>

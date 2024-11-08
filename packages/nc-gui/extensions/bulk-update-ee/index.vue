@@ -491,10 +491,7 @@ const rules = computed(() => {
             value = value.trim()
           }
 
-          if (
-            (column.uidt === UITypes.Checkbox && !value) ||
-            (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value))
-          ) {
+          if (column.uidt !== UITypes.Checkbox && !requiredFieldValidatorFn(value)) {
             return false
           }
 
@@ -835,10 +832,10 @@ provide(IsGalleryInj, ref(false))
                         </div>
                       </div>
 
-                      <div v-else class="flex-1 flex text-nc-content-gray">
-                        <div class="flex items-center gap-3">
+                      <div v-else class="flex-1 flex text-nc-content-gray w-[calc(100%_-_32px)]">
+                        <div class="flex items-center gap-3 w-full">
                           <NcCheckbox v-model:checked="fieldConfig.selected" @click.stop />
-                          <div class="flex items-center gap-1">
+                          <div class="flex items-center gap-1 w-[calc(100%_-_28px)]">
                             {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
                             <NcBadge color="grey" :border="false" class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium">
                               <component
@@ -860,12 +857,26 @@ provide(IsGalleryInj, ref(false))
                                 ? 'to'
                                 : ''
                             }}
-                            <LazySmartsheetPlainCell
+
+                            <NcTooltip
                               v-if="fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE && !!fieldConfig.value"
-                              v-model="fieldConfig.value"
-                              :column="meta?.columnsById?.[fieldConfig.columnId]"
-                              class="field-config-plain-cell-value"
-                            />
+                              class="truncate"
+                              show-on-truncate-only
+                            >
+                              <template #title>
+                                <LazySmartsheetPlainCell
+                                  v-model="fieldConfig.value"
+                                  :column="meta?.columnsById?.[fieldConfig.columnId]"
+                                  class="field-config-plain-cell-value"
+                                />
+                              </template>
+
+                              <LazySmartsheetPlainCell
+                                v-model="fieldConfig.value"
+                                :column="meta?.columnsById?.[fieldConfig.columnId]"
+                                class="field-config-plain-cell-value"
+                              />
+                            </NcTooltip>
                           </div>
                         </div>
                       </div>
@@ -1166,6 +1177,139 @@ provide(IsGalleryInj, ref(false))
       @apply !rounded-lg;
     }
   }
+
+  .nc-cell {
+    &:first-child {
+      @apply h-full;
+    }
+  }
+  .nc-cell,
+  .nc-virtual-cell {
+    @apply bg-white dark:bg-slate-500 appearance-none;
+
+    &.nc-cell-checkbox {
+      @apply color-transition !border-0;
+
+      .nc-icon {
+        @apply !text-2xl;
+      }
+
+      .nc-cell-hover-show {
+        opacity: 100 !important;
+
+        div {
+          background-color: transparent !important;
+        }
+      }
+    }
+
+    &:not(.nc-cell-checkbox) {
+      &.nc-input {
+        @apply w-full h-8;
+
+        &:not(.layout-list) {
+          & > div {
+            @apply !bg-transparent;
+          }
+        }
+
+        .duration-cell-wrapper {
+          @apply w-full;
+
+          input {
+            @apply !outline-none;
+
+            &::placeholder {
+              @apply text-gray-400 dark:text-slate-300;
+            }
+          }
+        }
+
+        &:not(.readonly) {
+          &:not(.nc-cell-longtext) {
+            input,
+            textarea,
+            &.nc-virtual-cell {
+              @apply bg-white !disabled:bg-transparent;
+            }
+          }
+          &.nc-cell-longtext {
+            textarea {
+              @apply bg-white !disabled:bg-transparent;
+            }
+          }
+        }
+
+        input,
+        textarea,
+        &.nc-virtual-cell {
+          .ant-btn {
+            @apply dark:(bg-slate-300);
+          }
+
+          .chip {
+            @apply dark:(bg-slate-700 text-white);
+          }
+        }
+
+        &.layout-list > div {
+          .ant-btn {
+            @apply dark:(bg-slate-300);
+          }
+
+          .chip {
+            @apply dark:(bg-slate-700 text-white);
+          }
+        }
+
+        &.nc-cell-longtext {
+          @apply p-0 h-auto;
+          & > div {
+            @apply w-full;
+          }
+          &.readonly > div {
+            @apply px-3 py-1;
+          }
+
+          textarea {
+            @apply px-3;
+          }
+        }
+        &.nc-cell:not(.nc-cell-longtext) {
+          @apply px-2 py-1;
+        }
+        &.nc-virtual-cell {
+          @apply px-2 py-1;
+        }
+
+        &.nc-cell-json {
+          @apply h-auto;
+          & > div {
+            @apply w-full;
+          }
+        }
+
+        .ant-picker,
+        input.nc-cell-field {
+          @apply !py-0 !px-1;
+        }
+        &.nc-cell-currency {
+          @apply !py-0 !pl-0 flex items-stretch;
+
+          .nc-currency-code {
+            @apply !bg-gray-100;
+          }
+        }
+        &.nc-cell-attachment {
+          @apply h-auto;
+        }
+      }
+    }
+
+    .nc-attachment-cell > div {
+      @apply dark:(bg-slate-100);
+    }
+  }
 }
 </style>
 
@@ -1225,52 +1369,12 @@ provide(IsGalleryInj, ref(false))
   }
 
   &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
-    @apply !shadow-selected;
+    @apply !shadow-selected !border-1 !border-brand-500;
   }
-
-  &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
-  &:has(.nc-virtual-cell-barcode .nc-barcode-container) {
-    @apply !border-none px-0 !rounded-none;
-    :deep(.nc-virtual-cell-qrcode),
-    :deep(.nc-virtual-cell-barcode) {
-      @apply px-0;
-      & > div {
-        @apply !px-0;
-      }
-      .barcode-wrapper {
-        @apply ml-0;
-      }
-    }
-    :deep(.nc-virtual-cell-qrcode) {
-      img {
-        @apply !h-[84px] border-1 border-solid border-gray-200 rounded;
-      }
-    }
-    :deep(.nc-virtual-cell-barcode) {
-      .nc-barcode-container {
-        @apply border-1 rounded-lg border-gray-200 h-[64px] max-w-full p-2;
-        svg {
-          @apply !h-full;
-        }
-      }
-    }
-  }
-}
-.nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500;
 }
 
 :deep(.nc-system-field input) {
   @apply bg-transparent;
-}
-:deep(.nc-data-cell .nc-cell .nc-cell-field) {
-  @apply px-2;
-}
-:deep(.nc-data-cell .nc-virtual-cell .nc-cell-field) {
-  @apply px-2;
-}
-:deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
-  @apply px-0;
 }
 
 .nc-input-required-error {

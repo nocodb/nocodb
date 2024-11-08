@@ -407,7 +407,7 @@ async function handleRemoveFieldConfig(configId: string) {
 async function handleAutoScrollField(configId: string) {
   if (!formRef.value) return
 
-  await ncDelay(300)
+  await ncDelay(400)
 
   const field = formRef.value?.$el?.querySelector(`.nc-bulk-update-field-confit-${configId}`)
 
@@ -644,6 +644,57 @@ watch(
   },
   {
     immediate: true,
+  },
+)
+
+const focusInput = async (initQuery: string) => {
+  await ncDelay(300)
+
+  if (!formRef.value?.$el) return
+
+  const inputEl =
+    (formRef.value?.$el.querySelector(`${initQuery} .nc-cell input`) as HTMLInputElement) ||
+    (formRef.value?.$el.querySelector(`${initQuery} .nc-cell textarea`) as HTMLTextAreaElement) ||
+    (formRef.value?.$el.querySelector(`${initQuery} .nc-cell [contenteditable="true"]`) as HTMLElement) ||
+    (formRef.value?.$el.querySelector(`${initQuery} .nc-cell [tabindex="0"]`) as HTMLElement)
+
+  console.log('inputEl', inputEl)
+  if (inputEl) {
+    inputEl?.select?.()
+    inputEl?.focus?.()
+  }
+}
+
+const handleOpenDropdown = async (query: string, eventName: 'mousedown' | 'click' = 'mousedown') => {
+  await ncDelay(300)
+
+  const el = formRef.value?.$el?.querySelector(query)
+
+  if (!el) return
+
+  el.dispatchEvent(new Event(eventName))
+}
+
+watch(
+  () => fieldConfigExpansionPanel.value,
+  (value) => {
+    if (!value.length) return
+
+    const activeField = bulkUpdatePayload.value?.config.find((config) => config.id === value[0])
+
+    if (!activeField) return
+
+    if (!activeField.columnId) {
+      handleOpenDropdown(`.nc-bulk-update-field-confit-${activeField.id} .nc-field-select-input .ant-select-selector`)
+    } else if (!activeField.opType) {
+      handleOpenDropdown(`.nc-bulk-update-field-confit-${activeField.id} .nc-field-update-type-select-input .ant-select-selector`)
+    } else if (activeField.opType === BulkUpdateFieldActionOpTypes.SET_VALUE && !activeField.value) {
+      if ([UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User].includes(activeField.uidt)) {
+        handleOpenDropdown(`.nc-bulk-update-field-confit-${activeField.id} .nc-data-cell .nc-input .ant-select-selector`, 'click')
+      } else {
+        focusInput(`.nc-bulk-update-field-confit-${activeField.id}`)
+      }
+    }
   },
 )
 

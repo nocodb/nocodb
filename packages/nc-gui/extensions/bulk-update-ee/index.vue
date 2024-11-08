@@ -413,7 +413,7 @@ async function handleAutoScrollField(configId: string) {
 
   if (!field) return
 
-  field.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  field.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 }
 
 const isScrolledToBottom = ref(true)
@@ -447,7 +447,12 @@ function handleFieldSelect(fieldConfig: BulkUpdateFieldConfig, columnId: string)
 
 function handleFieldUpdateTypeSelect(fieldConfig: BulkUpdateFieldConfig, opType: BulkUpdateFieldActionOpTypes) {
   fieldConfig.opType = opType
-  fieldConfig.value = null
+
+  if (fieldConfig.uidt === UITypes.Checkbox && opType === BulkUpdateFieldActionOpTypes.SET_VALUE) {
+    fieldConfig.value = true
+  } else {
+    fieldConfig.value = null
+  }
 
   handleAutoScrollField(fieldConfig.id)
 }
@@ -1035,7 +1040,8 @@ provide(IsGalleryInj, ref(false))
                       v-if="
                         fieldConfig.columnId &&
                         !!meta?.columnsById?.[fieldConfig.columnId] &&
-                        fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE
+                        fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE &&
+                        fieldConfig.uidt !== UITypes.Checkbox
                       "
                       class="!my-0 w-full nc-input-required-error"
                       v-bind="{
@@ -1320,8 +1326,6 @@ provide(IsGalleryInj, ref(false))
 
         &:not(.readonly) {
           &:not(.nc-cell-longtext) {
-            @apply h-auto;
-
             input,
             textarea,
             &.nc-virtual-cell {

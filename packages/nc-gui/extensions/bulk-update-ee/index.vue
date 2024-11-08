@@ -413,6 +413,7 @@ function handleAutoScrollField(configId: string) {
 
 function handleFieldSelect(fieldConfig: BulkUpdateFieldConfig, columnId: string) {
   fieldConfig.columnId = columnId
+  fieldConfig.opType = BulkUpdateFieldActionOpTypes.SET_VALUE
   fieldConfig.uidt = meta?.value?.columnsById?.[columnId]?.uidt
   fieldConfig.value = null
 }
@@ -551,6 +552,7 @@ async function bulkUpdateView(data: Record<string, any>) {
     reloadData()
     isUpdating.value = false
     isOpenConfigModal.value = false
+    fullscreen.value = false
   }
 }
 

@@ -59,7 +59,7 @@ const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
-const { betaFeatureToggleState } = useBetaFeatureToggle()
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
@@ -122,7 +122,9 @@ const isColumnTypeOpen = ref(false)
 const geoDataToggleCondition = (t: { name: UITypes }) => {
   if (!appInfo.value.ee) return true
 
-  return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
+  const isColEnabled = isFeatureEnabled(FEATURE_FLAG.GEODATA_COLUMN)
+
+  return isColEnabled || !t.name.includes(UITypes.GeoData)
 }
 
 const showDeprecated = ref(false)

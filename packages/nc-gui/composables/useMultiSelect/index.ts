@@ -30,17 +30,19 @@ const MAIN_MOUSE_PRESSED = 0
 /**
  * Utility to help with multi-selecting rows/cells in the smartsheet
  */
+
 export function useMultiSelect(
   _meta: MaybeRef<TableType | undefined>,
   fields: MaybeRef<ColumnType[]>,
-  data: MaybeRef<Row[]>,
+  data: MaybeRef<Row[]> | MaybeRef<Map<number, Row>>,
+  _totalRows?: MaybeRef<number>,
   _editEnabled: MaybeRef<boolean>,
   isPkAvail: MaybeRef<boolean | undefined>,
   contextMenu: Ref<boolean>,
   clearCell: Function,
   clearSelectedRangeOfCells: Function,
   makeEditable: Function,
-  scrollToCell?: (row?: number | null, col?: number | null) => void,
+  scrollToCell?: (row?: number | null, col?: number | null, scrollBehaviour?: ScrollBehavior) => void,
   keyEventHandler?: Function,
   syncCellData?: Function,
   bulkUpdateRows?: Function,
@@ -48,8 +50,14 @@ export function useMultiSelect(
   view?: MaybeRef<ViewType | undefined>,
   paginationData?: MaybeRef<PaginatedType | undefined>,
   changePage?: (page: number) => void,
+  fetchChunk?: (chunkId: number) => Promise<void>,
+  onActiveCellChanged?: () => void,
 ) {
   const meta = ref(_meta)
+
+  const MAX_ROW_SELECTION = 100
+
+  const CHUNK_SIZE = 50
 
   const { t } = useI18n()
 
@@ -69,6 +77,10 @@ export function useMultiSelect(
 
   const { isDataReadOnly } = useRoles()
 
+  const isArrayStructure = typeof unref(data) === 'object' && Array.isArray(unref(data))
+
+  const paginationDataRef = ref(paginationData)
+
   const editEnabled = ref(_editEnabled)
 
   const isMouseDown = ref(false)
@@ -76,8 +88,6 @@ export function useMultiSelect(
   const isFillMode = ref(false)
 
   const activeView = ref(view)
-
-  const paginationDataRef = ref(paginationData)
 
   const selectedRange = reactive(new CellRange())
 
@@ -90,6 +100,16 @@ export function useMultiSelect(
   const isCellActive = computed(
     () => !(activeCell.row === null || activeCell.col === null || isNaN(activeCell.row) || isNaN(activeCell.col)),
   )
+
+  function limitSelection(anchor: Cell, end: Cell): Cell {
+    const limitedEnd = { ...end }
+    const totalRows = Math.abs(end.row - anchor.row) + 1
+    if (totalRows > MAX_ROW_SELECTION) {
+      const direction = end.row > anchor.row ? 1 : -1
+      limitedEnd.row = anchor.row + (MAX_ROW_SELECTION - 1) * direction
+    }
+    return limitedEnd
+  }
 
   function makeActive(row: number, col: number) {
     if (activeCell.row === row && activeCell.col === col) {
@@ -286,7 +306,24 @@ export function useMultiSelect(
   async function copyValue(ctx?: Cell) {
     try {
       if (selectedRange.start !== null && selectedRange.end !== null && !selectedRange.isSingleCell()) {
-        const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
+        let cprows
+        if (isArrayStructure) {
+          cprows = unref(data as Row[]).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
+        } else {
+          const startChunkId = Math.floor(selectedRange.start.row / CHUNK_SIZE)
+          const endChunkId = Math.floor(selectedRange.end.row / CHUNK_SIZE)
+
+          const chunksToFetch = new Set()
+          for (let chunkId = startChunkId; chunkId <= endChunkId; chunkId++) {
+            chunksToFetch.add(chunkId)
+          }
+
+          // Fetch all required chunks
+          await Promise.all([...chunksToFetch].map(fetchChunk))
+
+          // Make sure all data is loaded before copying
+          cprows = Array.from(unref(data as Map<number, Row>).values()).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
+        }
         const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
         await copyTable(cprows, cpcols)
@@ -298,7 +335,8 @@ export function useMultiSelect(
         const cpCol = ctx?.col ?? activeCell.col
 
         if (cpRow != null && cpCol != null) {
-          const rowObj = unref(data)[cpRow]
+          const rowObj = isArrayStructure ? unref(data as Row[])[cpRow] : unref(data as Map<number, Row>).get(cpRow)
+          if (!rowObj) return
           const columnObj = unref(fields)[cpCol]
 
           const textToCopy = valueToCopy(rowObj, columnObj)
@@ -391,15 +429,23 @@ export function useMultiSelect(
 
   function handleMouseOver(event: MouseEvent, row: number, col: number) {
     if (isFillMode.value) {
-      const rw = unref(data)[row]
+      const rw = isArrayStructure ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
+
+      if (!rw) return
 
       if (!selectedRange._start || !selectedRange._end) return
 
       // fill is not supported for new rows yet
       if (rw.rowMeta.new) return
 
-      fillRange.endRange({ row, col: selectedRange._end.col })
-      scrollToCell?.(row, col)
+      const endRow = Math.min(selectedRange._start.row + 100, row)
+
+      fillRange.endRange({
+        row: endRow,
+        col: selectedRange._end.col,
+      })
+
+      scrollToCell?.(endRow, col)
       return
     }
 
@@ -407,9 +453,9 @@ export function useMultiSelect(
       return
     }
 
-    // extend the selection and scroll to the cell
-    selectedRange.endRange({ row, col })
-    scrollToCell?.(row, col)
+    const limitedEnd = limitSelection(selectedRange.start, { row, col })
+    selectedRange.endRange(limitedEnd)
+    scrollToCell?.(limitedEnd.row, limitedEnd.col)
 
     // avoid selecting text
     event.preventDefault()
@@ -448,7 +494,7 @@ export function useMultiSelect(
 
     if (activeCell.row !== row || activeCell.col !== col) {
       // clear active cell on selection start
-      activeCell.row = null
+      // activeCell.row = null
       activeCell.col = null
     }
   }
@@ -471,7 +517,16 @@ export function useMultiSelect(
       if (selectedRange._start !== null && selectedRange._end !== null) {
         const tempActiveCell = { row: selectedRange._start.row, col: selectedRange._start.col }
 
-        const cprows = unref(data).slice(selectedRange.start.row, selectedRange.end.row + 1) // slice the selected rows for copy
+        let cprows
+
+        if (isArrayStructure) {
+          cprows = (unref(data) as Row[]).slice(selectedRange.start.row, selectedRange.end.row + 1)
+        } else {
+          cprows = Array.from(unref(data) as Map<number, Row>)
+            .filter(([index]) => index >= selectedRange.start.row && index <= selectedRange.end.row)
+            .map(([, row]) => row)
+        }
+
         const cpcols = unref(fields).slice(selectedRange.start.col, selectedRange.end.col + 1) // slice the selected cols for copy
 
         const rawMatrix = serializeRange(cprows, cpcols).json
@@ -492,7 +547,11 @@ export function useMultiSelect(
             continue
           }
 
-          const rowObj = unref(data)[row]
+          const rowObj = isArrayStructure ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
+
+          if (!rowObj) {
+            continue
+          }
 
           let pasteIndex = 0
 
@@ -559,26 +618,12 @@ export function useMultiSelect(
     }
   }
 
-  const handleKeyDown = async (e: KeyboardEvent) => {
-    // invoke the keyEventHandler if provided and return if it returns true
-    if (await keyEventHandler?.(e)) {
-      return true
-    }
-
-    if (isExpandedCellInputExist()) {
-      return
-    }
-
-    if (!isCellActive.value || activeCell.row === null || activeCell.col === null) {
-      return
-    }
-
+  const handleKeyDownAction = async (e: KeyboardEvent) => {
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
 
-    /** on tab key press navigate through cells */
+    if (activeCell.row === null || activeCell.col === null) return
     switch (e.key) {
       case 'Tab':
-        e.preventDefault()
         selectedRange.clear()
 
         if (e.shiftKey) {
@@ -594,7 +639,7 @@ export function useMultiSelect(
           if (activeCell.col < unref(columnLength.value) - 1) {
             activeCell.col++
             editEnabled.value = false
-          } else if (activeCell.row < unref(data).length - 1) {
+          } else if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1) {
             activeCell.row++
             activeCell.col = 0
             editEnabled.value = false
@@ -602,32 +647,7 @@ export function useMultiSelect(
         }
         scrollToCell?.()
         break
-      /** on enter key press make cell editable */
-      case 'Enter':
-        e.preventDefault()
-        selectedRange.clear()
-
-        makeEditable(unref(data)[activeCell.row], unref(fields)[activeCell.col])
-        break
-      /** on delete key press clear cell */
-      case 'Delete':
-      case 'Backspace':
-        e.preventDefault()
-        if (isDataReadOnly.value) {
-          return
-        }
-        if (selectedRange.isSingleCell()) {
-          selectedRange.clear()
-
-          await clearCell(activeCell as { row: number; col: number })
-        } else {
-          await clearSelectedRangeOfCells()
-        }
-        break
-      /** on arrow key press navigate through cells */
       case 'ArrowRight':
-        e.preventDefault()
-
         if (e.shiftKey) {
           if (cmdOrCtrl) {
             editEnabled.value = false
@@ -656,8 +676,6 @@ export function useMultiSelect(
         }
         break
       case 'ArrowLeft':
-        e.preventDefault()
-
         if (e.shiftKey) {
           if (cmdOrCtrl) {
             editEnabled.value = false
@@ -686,24 +704,23 @@ export function useMultiSelect(
         }
         break
       case 'ArrowUp':
-        e.preventDefault()
-
         if (e.shiftKey) {
+          const anchor = selectedRange._start ?? activeCell
+          let newEnd: Cell
+
           if (cmdOrCtrl) {
-            editEnabled.value = false
-            selectedRange.endRange({
-              row: 0,
-              col: selectedRange._end?.col ?? activeCell.col,
-            })
-            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
-          } else if ((selectedRange._end?.row ?? activeCell.row) > 0) {
-            editEnabled.value = false
-            selectedRange.endRange({
+            newEnd = { row: 0, col: selectedRange._end?.col ?? activeCell.col }
+          } else {
+            newEnd = {
               row: (selectedRange._end?.row ?? activeCell.row) - 1,
               col: selectedRange._end?.col ?? activeCell.col,
-            })
-            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+            }
           }
+
+          const limitedEnd = limitSelection(anchor, newEnd)
+          editEnabled.value = false
+          selectedRange.endRange(limitedEnd)
+          scrollToCell?.(limitedEnd.row, limitedEnd.col, 'instant')
         } else {
           selectedRange.clear()
 
@@ -714,40 +731,104 @@ export function useMultiSelect(
             editEnabled.value = false
           }
         }
+        onActiveCellChanged?.()
         break
       case 'ArrowDown':
-        e.preventDefault()
-
         if (e.shiftKey) {
+          const anchor = selectedRange._start ?? activeCell
+          let newEnd: Cell
+
           if (cmdOrCtrl) {
-            editEnabled.value = false
-            selectedRange.endRange({
-              row: unref(data).length - 1,
+            newEnd = {
+              row: (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!)) - 1,
               col: selectedRange._end?.col ?? activeCell.col,
-            })
-            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
-          } else if ((selectedRange._end?.row ?? activeCell.row) < unref(data).length - 1) {
-            editEnabled.value = false
-            selectedRange.endRange({
+            }
+          } else {
+            newEnd = {
               row: (selectedRange._end?.row ?? activeCell.row) + 1,
               col: selectedRange._end?.col ?? activeCell.col,
-            })
-            scrollToCell?.(selectedRange._end?.row, selectedRange._end?.col)
+            }
           }
+
+          const limitedEnd = limitSelection(anchor, newEnd)
+          editEnabled.value = false
+          selectedRange.endRange(limitedEnd)
+          scrollToCell?.(limitedEnd.row, limitedEnd.col, 'instant')
         } else {
           selectedRange.clear()
-
-          if (activeCell.row < unref(data).length - 1) {
+          if (activeCell.row < (isArrayStructure ? (unref(data) as Row[]).length : unref(_totalRows!))) {
             activeCell.row++
             selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
             scrollToCell?.()
             editEnabled.value = false
           }
         }
+        onActiveCellChanged?.()
+        break
+      case 'Enter':
+        selectedRange.clear()
+
+        let row
+
+        if (isArrayStructure) {
+          row = (unref(data) as Row[])[activeCell.row]
+        } else {
+          row = (unref(data) as Map<number, Row>).get(activeCell.row)
+        }
+
+        makeEditable(row, unref(fields)[activeCell.col])
+        break
+      case 'Delete':
+      case 'Backspace':
+        if (isDataReadOnly.value) {
+          return
+        }
+        if (selectedRange.isSingleCell()) {
+          selectedRange.clear()
+
+          await clearCell(activeCell as { row: number; col: number })
+        } else {
+          await clearSelectedRangeOfCells()
+        }
+        break
+    }
+  }
+
+  const handleThrottledKeyDownAction = useThrottleFn(handleKeyDownAction, 60)
+
+  const handleKeyDown = async (e: KeyboardEvent) => {
+    // invoke the keyEventHandler if provided and return if it returns true
+
+    if (isArrayStructure ? await keyEventHandler?.(e) : keyEventHandler?.(e)) {
+      return true
+    }
+
+    if (isExpandedCellInputExist()) {
+      return
+    }
+
+    if (!isCellActive.value || activeCell.row === null || activeCell.col === null) {
+      return
+    }
+    /** on tab key press navigate through cells */
+    switch (e.key) {
+      case 'Tab':
+      case 'Enter':
+      case 'Delete':
+      case 'Backspace':
+      case 'ArrowRight':
+      case 'ArrowLeft':
+      case 'ArrowUp':
+      case 'ArrowDown':
+        e.preventDefault()
+        handleThrottledKeyDownAction(e)
         break
       default:
         {
-          const rowObj = unref(data)[activeCell.row]
+          const rowObj = isArrayStructure
+            ? (unref(data) as Row[])[activeCell.row]
+            : (unref(data) as Map<number, Row>).get(activeCell.row)
+          if (!rowObj) return
           const columnObj = unref(fields)[activeCell.col]
 
           if (
@@ -759,11 +840,6 @@ export function useMultiSelect(
               // copy - ctrl/cmd +c
               case 67:
                 await copyValue()
-                break
-              // select all - ctrl/cmd +a
-              case 65:
-                selectedRange.startRange({ row: 0, col: 0 })
-                selectedRange.endRange({ row: unref(data).length - 1, col: unref(columnLength.value) - 1 })
                 break
             }
           }
@@ -850,7 +926,17 @@ export function useMultiSelect(
         const pasteMatrixCols = clipboardMatrix[0].length
 
         const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
-        const rowsToPaste = unref(data).slice(activeCell.row, activeCell.row + selectionRowCount)
+
+        let rowsToPaste
+
+        if (isArrayStructure) {
+          rowsToPaste = (unref(data) as Row[]).slice(activeCell.row, activeCell.row + selectionRowCount)
+        } else {
+          rowsToPaste = Array.from(unref(data) as Map<number, Row>)
+            .filter(([index]) => index >= activeCell.row! && index < activeCell.row! + selectionRowCount)
+            .map(([, row]) => row)
+        }
+
         const propsToPaste: string[] = []
 
         let pastedRows = 0
@@ -904,7 +990,10 @@ export function useMultiSelect(
         }
       } else {
         if (selectedRange.isSingleCell()) {
-          const rowObj = unref(data)[activeCell.row]
+          const rowObj = isArrayStructure
+            ? (unref(data) as Row[])[activeCell.row]
+            : (unref(data) as Map<number, Row>).get(activeCell.row)
+          if (!rowObj) return
           const columnObj = unref(fields)[activeCell.col]
 
           // handle belongs to column, skip custom links
@@ -997,22 +1086,142 @@ export function useMultiSelect(
                 rowObj.row[columnObj.title!] = oldCellValue
                 return
               }
-              addUndo({
-                redo: {
-                  fn: async (
-                    activeCell: Cell,
-                    col: ColumnType,
-                    row: Row,
-                    pg: PaginatedType,
-                    value: number,
-                    result: { link: any[]; unlink: any[] },
-                  ) => {
-                    if (paginationDataRef.value?.pageSize === pg?.pageSize) {
-                      if (paginationDataRef.value?.page !== pg?.page) {
-                        await changePage?.(pg?.page)
+
+              if (isArrayStructure) {
+                addUndo({
+                  redo: {
+                    fn: async (
+                      activeCell: Cell,
+                      col: ColumnType,
+                      row: Row,
+                      pg: PaginatedType,
+                      value: number,
+                      result: { link: any[]; unlink: any[] },
+                    ) => {
+                      if (paginationDataRef.value?.pageSize === pg?.pageSize) {
+                        if (paginationDataRef.value?.page !== pg?.page) {
+                          await changePage?.(pg?.page)
+                        }
+                        const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                        const rowObj = (unref(data) as Row[])[activeCell.row]
+                        const columnObj = unref(fields)[activeCell.col]
+                        if (
+                          pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+                          columnObj.id === col.id
+                        ) {
+                          await Promise.all([
+                            result.link.length &&
+                              api.dbDataTableRow.nestedLink(
+                                meta.value?.id as string,
+                                columnObj.id as string,
+                                encodeURIComponent(pasteRowPk),
+                                result.link,
+                                {
+                                  viewId: activeView?.value?.id,
+                                },
+                              ),
+                            result.unlink.length &&
+                              api.dbDataTableRow.nestedUnlink(
+                                meta.value?.id as string,
+                                columnObj.id as string,
+                                encodeURIComponent(pasteRowPk),
+                                result.unlink,
+                                { viewId: activeView?.value?.id },
+                              ),
+                          ])
+
+                          rowObj.row[columnObj.title!] = value
+
+                          await syncCellData?.(activeCell)
+                        } else {
+                          throw new Error(t('msg.recordCouldNotBeFound'))
+                        }
+                      } else {
+                        throw new Error(t('msg.pageSizeChanged'))
                       }
+                    },
+                    args: [
+                      clone(activeCell),
+                      clone(columnObj),
+                      clone(rowObj),
+                      clone(paginationDataRef.value),
+                      clone(pasteVal.value),
+                      result,
+                    ],
+                  },
+                  undo: {
+                    fn: async (
+                      activeCell: Cell,
+                      col: ColumnType,
+                      row: Row,
+                      pg: PaginatedType,
+                      value: number,
+                      result: { link: any[]; unlink: any[] },
+                    ) => {
+                      if (paginationDataRef.value?.pageSize === pg.pageSize) {
+                        if (paginationDataRef.value?.page !== pg.page) {
+                          await changePage?.(pg.page!)
+                        }
+
+                        const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+                        const rowObj = (unref(data) as Row[])[activeCell.row]
+                        const columnObj = unref(fields)[activeCell.col]
+
+                        if (
+                          pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
+                          columnObj.id === col.id
+                        ) {
+                          await Promise.all([
+                            result.unlink.length &&
+                              api.dbDataTableRow.nestedLink(
+                                meta.value?.id as string,
+                                columnObj.id as string,
+                                encodeURIComponent(pasteRowPk),
+                                result.unlink,
+                              ),
+                            result.link.length &&
+                              api.dbDataTableRow.nestedUnlink(
+                                meta.value?.id as string,
+                                columnObj.id as string,
+                                encodeURIComponent(pasteRowPk),
+                                result.link,
+                              ),
+                          ])
+
+                          rowObj.row[columnObj.title!] = value
+
+                          await syncCellData?.(activeCell)
+                        } else {
+                          throw new Error(t('msg.recordCouldNotBeFound'))
+                        }
+                      } else {
+                        throw new Error(t('msg.pageSizeChanged'))
+                      }
+                    },
+                    args: [
+                      clone(activeCell),
+                      clone(columnObj),
+                      clone(rowObj),
+                      clone(paginationDataRef.value),
+                      clone(oldCellValue),
+                      result,
+                    ],
+                  },
+                  scope: defineViewScope({ view: activeView?.value }),
+                })
+              } else {
+                addUndo({
+                  redo: {
+                    fn: async (
+                      activeCell: Cell,
+                      col: ColumnType,
+                      row: Row,
+                      value: number,
+                      result: { link: any[]; unlink: any[] },
+                    ) => {
                       const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                      const rowObj = unref(data)[activeCell.row]
+                      const rowObj = (unref(data) as Map<number, Row>).get(activeCell.row)
+                      if (!rowObj) return
                       const columnObj = unref(fields)[activeCell.col]
                       if (
                         pasteRowPk === extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[]) &&
@@ -1042,38 +1251,21 @@ export function useMultiSelect(
                         rowObj.row[columnObj.title!] = value
 
                         await syncCellData?.(activeCell)
-                      } else {
-                        throw new Error(t('msg.recordCouldNotBeFound'))
                       }
-                    } else {
-                      throw new Error(t('msg.pageSizeChanged'))
-                    }
+                    },
+                    args: [clone(activeCell), clone(columnObj), clone(rowObj), clone(pasteVal.value), result],
                   },
-                  args: [
-                    clone(activeCell),
-                    clone(columnObj),
-                    clone(rowObj),
-                    clone(paginationDataRef.value),
-                    clone(pasteVal.value),
-                    result,
-                  ],
-                },
-                undo: {
-                  fn: async (
-                    activeCell: Cell,
-                    col: ColumnType,
-                    row: Row,
-                    pg: PaginatedType,
-                    value: number,
-                    result: { link: any[]; unlink: any[] },
-                  ) => {
-                    if (paginationDataRef.value?.pageSize === pg.pageSize) {
-                      if (paginationDataRef.value?.page !== pg.page) {
-                        await changePage?.(pg.page!)
-                      }
-
+                  undo: {
+                    fn: async (
+                      activeCell: Cell,
+                      col: ColumnType,
+                      row: Row,
+                      value: number,
+                      result: { link: any[]; unlink: any[] },
+                    ) => {
                       const pasteRowPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-                      const rowObj = unref(data)[activeCell.row]
+                      const rowObj = (unref(data) as Map<number, Row>).get(activeCell.row)
+                      if (!rowObj) return
                       const columnObj = unref(fields)[activeCell.col]
 
                       if (
@@ -1100,24 +1292,13 @@ export function useMultiSelect(
                         rowObj.row[columnObj.title!] = value
 
                         await syncCellData?.(activeCell)
-                      } else {
-                        throw new Error(t('msg.recordCouldNotBeFound'))
                       }
-                    } else {
-                      throw new Error(t('msg.pageSizeChanged'))
-                    }
+                    },
+                    args: [clone(activeCell), clone(columnObj), clone(rowObj), clone(oldCellValue), result],
                   },
-                  args: [
-                    clone(activeCell),
-                    clone(columnObj),
-                    clone(rowObj),
-                    clone(paginationDataRef.value),
-                    clone(oldCellValue),
-                    result,
-                  ],
-                },
-                scope: defineViewScope({ view: activeView?.value }),
-              })
+                  scope: defineViewScope({ view: activeView?.value }),
+                })
+              }
             }
 
             return await syncCellData?.(activeCell)
@@ -1158,7 +1339,15 @@ export function useMultiSelect(
           const endCol = Math.max(start.col, end.col)
 
           const cols = unref(fields).slice(startCol, endCol + 1)
-          const rows = unref(data).slice(startRow, endRow + 1)
+          let rows
+
+          if (isArrayStructure) {
+            rows = (unref(data) as Row[]).slice(startRow, endRow + 1)
+          } else {
+            rows = Array.from(unref(data) as Map<number, Row>)
+              .filter(([index]) => index >= startRow && index <= endRow)
+              .map(([, row]) => row)
+          }
           const props = []
 
           let pasteValue

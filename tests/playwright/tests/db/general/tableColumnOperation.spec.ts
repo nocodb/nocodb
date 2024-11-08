@@ -51,7 +51,13 @@ test.describe('Table Column Operations', () => {
     await grid.addNewRow({ index: 2, value: `Row 2` });
     await grid.addNewRow({ index: 3, value: `Row 3` });
     await grid.addNewRow({ index: 4, value: `Row 4` });
-    await grid.deleteAll();
+
+    // Delete all rows is not supported in Infinite Scroll
+    await grid.deleteRow(4);
+    await grid.deleteRow(3);
+    await grid.deleteRow(2);
+    await grid.deleteRow(1);
+    await grid.deleteRow(0);
 
     await grid.verifyRowDoesNotExist({ index: 0 });
 

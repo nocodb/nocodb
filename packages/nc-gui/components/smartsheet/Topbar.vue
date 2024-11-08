@@ -14,6 +14,8 @@ const { appInfo } = useGlobal()
 
 const { toggleExtensionPanel, isPanelExpanded, extensionsEgg, onEggClick } = useExtensions()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
 const topbarBreadcrumbItemWidth = computed(() => {
@@ -54,7 +56,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <GeneralApiLoader v-if="!isMobileMode" />
 
         <NcButton
-          v-if="!isSharedBase && extensionsEgg && openedViewsTab === 'view'"
+          v-if="!isSharedBase && isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) && openedViewsTab === 'view'"
           v-e="['c:extension-toggle']"
           type="secondary"
           size="small"
@@ -77,7 +79,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
             </span>
           </div>
         </NcButton>
-        <div v-else-if="!isSharedBase && !extensionsEgg" class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
 
         <div v-if="!isSharedBase">
           <LazySmartsheetTopbarCmdK />

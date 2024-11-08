@@ -53,12 +53,16 @@ export default defineNuxtPlugin(async (_nuxtApp) => {
           [authStatus],
           async ([status]) => {
             if (status === 'authenticated' && !signedIn.value) {
-              await refreshToken({
-                cognitoOnly: true
-              })
-              const route = useRoute()
-              if (/signin|signup/i.test(route.name)) {
-                navigateTo('/')
+              try {
+                await refreshToken({
+                  cognitoOnly: true,
+                })
+                const route = useRoute()
+                if (/signin|signup/i.test(route.name)) {
+                  navigateTo('/')
+                }
+              } catch (e) {
+                console.info('Error refreshing token', (e as Error)?.message)
               }
             }
           },

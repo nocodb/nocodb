@@ -12,11 +12,6 @@ import {
   type PaginatedType,
 } from 'nocodb-sdk'
 
-const jobStatusTooltip = {
-  [JobStatus.COMPLETED]: 'Export successful',
-  [JobStatus.FAILED]: 'Export failed',
-} as Record<string, string>
-
 const hiddenColTypes = [
   UITypes.Rollup,
   UITypes.Lookup,
@@ -89,11 +84,7 @@ const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
 
 const { extension, tables, fullscreen, eventBus, getViewsForTable, getTableMeta, reloadData } = useExtensionHelperOrThrow()
 
-const { jobList, loadJobsForBase } = useJobs()
-
 const views = ref<ViewType[]>([])
-
-const deletedExports = ref<string[]>([])
 
 const bulkUpdateRef = ref<HTMLDivElement>()
 
@@ -103,7 +94,7 @@ const meta = ref<TableType>()
 
 const formRef = ref()
 
-const fieldConfigRef = ref()
+const fieldConfigRef = ref<HTMLDivElement>()
 
 const isOpenConfigModal = ref(false)
 
@@ -330,7 +321,9 @@ const onViewSelect = async (viewId: string) => {
   await saveChanges()
 
   if (bulkUpdatePayload.value?.config?.length) {
-    fieldConfigExpansionPanel.value = [bulkUpdatePayload.value?.config[0].columnId]
+    fieldConfigExpansionPanel.value = [bulkUpdatePayload.value?.config[0].id]
+
+    handleAutoScrollField(bulkUpdatePayload.value?.config[0].id)
   }
 }
 
@@ -354,8 +347,11 @@ const handleUpdateFieldConfigExpansionPanel = (key: string) => {
     fieldConfigExpansionPanel.value = []
   } else {
     fieldConfigExpansionPanel.value = [key]
+    handleAutoScrollField(key)
   }
   validateAll()
+
+  handleScroll()
 }
 
 const getNewFieldConfigId = (initId = 'fieldConfig') => {
@@ -384,6 +380,14 @@ function addNewAction() {
 
   handleUpdateFieldConfigExpansionPanel(configId)
   validateAll()
+
+  nextTick(() => {
+    setTimeout(() => {
+      if (fieldConfigRef.value) {
+        fieldConfigRef.value.scrollTop = fieldConfigRef.value.scrollHeight
+      }
+    }, 200)
+  })
 }
 
 async function handleRemoveFieldConfig(configId: string) {
@@ -397,25 +401,55 @@ async function handleRemoveFieldConfig(configId: string) {
 
   await saveChanges()
   validateAll()
+  handleScroll()
 }
 
-function handleAutoScrollField(configId: string) {
+async function handleAutoScrollField(configId: string) {
   if (!formRef.value) return
 
-  nextTick(() => {
-    const field = formRef.value.querySelector(`.nc-bulk-update-field-confit-${configId}`)
+  await ncDelay(300)
 
-    if (!field) return
+  const field = formRef.value?.$el?.querySelector(`.nc-bulk-update-field-confit-${configId}`)
 
-    field.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  })
+  if (!field) return
+
+  field.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+const isScrolledToBottom = ref(true)
+
+async function handleScroll(useDelay = true) {
+  if (useDelay) {
+    await ncDelay(400)
+  }
+
+  const el = fieldConfigRef.value
+  if (!el) return
+
+  // Check if scrolled to the bottom
+  const isAtBottom = el.scrollTop + el.clientHeight >= el.scrollHeight
+
+  if (isAtBottom) {
+    isScrolledToBottom.value = true
+  } else if (isScrolledToBottom.value) {
+    isScrolledToBottom.value = false
+  }
 }
 
 function handleFieldSelect(fieldConfig: BulkUpdateFieldConfig, columnId: string) {
   fieldConfig.columnId = columnId
-  fieldConfig.opType = BulkUpdateFieldActionOpTypes.SET_VALUE
+  if (!fieldConfig.opType) {
+    fieldConfig.opType = BulkUpdateFieldActionOpTypes.SET_VALUE
+  }
   fieldConfig.uidt = meta?.value?.columnsById?.[columnId]?.uidt
   fieldConfig.value = null
+}
+
+function handleFieldUpdateTypeSelect(fieldConfig: BulkUpdateFieldConfig, opType: BulkUpdateFieldActionOpTypes) {
+  fieldConfig.opType = opType
+  fieldConfig.value = null
+
+  handleAutoScrollField(fieldConfig.id)
 }
 
 const handleUpdateFieldValue = (columnId: string, value: any) => {
@@ -583,9 +617,10 @@ const handleConfirmUpdate = async () => {
 
 onClickOutside(formRef, (e) => {
   if (!fullscreen.value || (e.target as HTMLElement)?.closest(`.nc-bulk-update-add-action-section`)) return
-
-  if ((e.target as HTMLElement) === fieldConfigRef.value) {
+  if ((e.target as HTMLElement) === fieldConfigRef.value?.children?.[0]) {
     fieldConfigExpansionPanel.value = []
+
+    handleScroll()
   }
 
   validateAll()
@@ -782,20 +817,16 @@ provide(IsGalleryInj, ref(false))
       <div class="bulk-update-body flex-1 flex flex-col">
         <div v-if="!fullscreen" class="bulk-update-header">Actions</div>
         <div
-          ref="fieldConfigRef"
           class="nc-field-config-ref flex-1 flex flex-col nc-scrollbar-thin"
+          ref="fieldConfigRef"
           :class="{
             'pt-6 px-4 relative': fullscreen,
             'max-h-[calc(100%_-_25px)]': !fullscreen,
           }"
+          @scroll="handleScroll(false)"
         >
-          <div
-            class="flex-1 flex flex-col gap-6 w-full"
-            :class="{
-              'max-w-[520px] mx-auto': fullscreen,
-            }"
-          >
-            <div v-if="fullscreen" class="flex items-center gap-3">
+          <div class="flex-1 flex flex-col gap-6 w-full">
+            <div v-if="fullscreen" class="flex items-center gap-3 w-full max-w-[520px] mx-auto">
               <div class="text-nc-content-gray-subtle2">
                 {{ selectedFieldConfigForBulkUpdate.length }} fields set for bulk update
               </div>
@@ -808,8 +839,8 @@ provide(IsGalleryInj, ref(false))
               layout="vertical"
               class=""
               :class="{
-                'border-1 border-nc-border-gray-medium rounded-2xl bg-white': fullscreen,
-                'flex-1 flex': !fullscreen,
+                'border-1 border-nc-border-gray-medium rounded-2xl bg-white w-full max-w-[520px] !mx-auto': fullscreen,
+                'flex-1 flex ': !fullscreen,
               }"
             >
               <a-collapse
@@ -978,12 +1009,7 @@ provide(IsGalleryInj, ref(false))
                         :disabled="!fieldConfig.columnId"
                         class="nc-field-update-type-select-input w-full nc-select-shadow"
                         placeholder="-select an update type-"
-                        @update:value="
-                          (value) => {
-                            fieldConfig.opType = value
-                            fieldConfig.value = null
-                          }
-                        "
+                        @update:value="(value) => handleFieldUpdateTypeSelect(fieldConfig, value)"
                         @change="saveChanges()"
                       >
                         <a-select-option v-for="(action, i) of fieldActionOptions" :key="i" :value="action.value">
@@ -1076,9 +1102,16 @@ provide(IsGalleryInj, ref(false))
                 </NcButton>
               </div>
             </a-form>
+            <div v-if="bulkUpdatePayload?.config?.length && fullscreen" class="-mt-2"></div>
 
-            <div v-if="fullscreen" class="nc-bulk-update-add-action-section sticky bottom-0 py-6 bg-nc-bg-gray-extralight -mt-6">
-              <NcButton type="secondary" size="medium" class="w-full" @click="addNewAction">
+            <div
+              v-if="fullscreen"
+              class="nc-bulk-update-add-action-section sticky bottom-0 py-2 bg-nc-bg-gray-extralight -mt-6 -mx-4 flex items-center"
+              :class="{
+                'border-t-1 border-nc-border-gray-medium': !isScrolledToBottom,
+              }"
+            >
+              <NcButton type="secondary" size="medium" class="w-full max-w-[520px] !mx-auto" @click="addNewAction">
                 <template #icon>
                   <GeneralIcon icon="ncPlus" />
                 </template>

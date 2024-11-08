@@ -93,6 +93,7 @@
     "none": "कुनै पनि छैन"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "स्क्रिप्टहरू",
     "configure": "कन्फिगर गर्नुहोस्",
     "switch": "स्विच गर्नुहोस्",
@@ -626,6 +627,7 @@
     "noConditionsAdded": "कुनै अवस्था थपिएको छैन"
   },
   "labels": {
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "परिवर्तित मिति",
     "configuration": "कन्फिगरेसन",
     "setup": "सेटअप",

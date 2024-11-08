@@ -835,7 +835,7 @@ provide(IsGalleryInj, ref(false))
                       <div v-else class="flex-1 flex text-nc-content-gray w-[calc(100%_-_32px)]">
                         <div class="flex items-center gap-3 w-full">
                           <NcCheckbox v-model:checked="fieldConfig.selected" @click.stop />
-                          <div class="flex items-center gap-1 w-[calc(100%_-_28px)]">
+                          <div class="flex items-center gap-1 w-[calc(100%_-_36px)]">
                             {{ fieldConfig.opType === BulkUpdateFieldActionOpTypes.CLEAR_VALUE ? 'Clear' : 'Set' }}
                             <NcBadge color="grey" :border="false" class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium">
                               <component
@@ -858,25 +858,28 @@ provide(IsGalleryInj, ref(false))
                                 : ''
                             }}
 
-                            <NcTooltip
+                            <div
                               v-if="fieldConfig.opType === BulkUpdateFieldActionOpTypes.SET_VALUE && !!fieldConfig.value"
-                              class="truncate"
-                              show-on-truncate-only
+                              class="flex truncate"
                             >
-                              <template #title>
+                              "
+                              <NcTooltip class="truncate" show-on-truncate-only>
+                                <template #title>
+                                  <LazySmartsheetPlainCell
+                                    v-model="fieldConfig.value"
+                                    :column="meta?.columnsById?.[fieldConfig.columnId]"
+                                    class="field-config-plain-cell-value"
+                                  />
+                                </template>
+
                                 <LazySmartsheetPlainCell
                                   v-model="fieldConfig.value"
                                   :column="meta?.columnsById?.[fieldConfig.columnId]"
                                   class="field-config-plain-cell-value"
                                 />
-                              </template>
-
-                              <LazySmartsheetPlainCell
-                                v-model="fieldConfig.value"
-                                :column="meta?.columnsById?.[fieldConfig.columnId]"
-                                class="field-config-plain-cell-value"
-                              />
-                            </NcTooltip>
+                              </NcTooltip>
+                              "
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1214,14 +1217,34 @@ provide(IsGalleryInj, ref(false))
         }
 
         .duration-cell-wrapper {
-          @apply w-full;
+          @apply w-full h-full;
 
           input {
-            @apply !outline-none;
+            @apply !outline-none h-full;
 
             &::placeholder {
               @apply text-gray-400 dark:text-slate-300;
             }
+          }
+        }
+
+        &.nc-cell-percent {
+          & > div,
+          input {
+            @apply h-full;
+          }
+        }
+
+        &.nc-cell-phonenumber,
+        &.nc-cell-email {
+          input {
+            @apply h-full;
+          }
+        }
+
+        &.nc-cell-datetime {
+          .nc-cell-field {
+            @apply h-full;
           }
         }
 
@@ -1283,7 +1306,8 @@ provide(IsGalleryInj, ref(false))
         }
 
         &.nc-cell-json {
-          @apply h-auto;
+          @apply !h-auto;
+
           & > div {
             @apply w-full;
           }
@@ -1293,6 +1317,11 @@ provide(IsGalleryInj, ref(false))
         input.nc-cell-field {
           @apply !py-0 !px-1;
         }
+
+        .ant-picker-input {
+          @apply h-full;
+        }
+
         &.nc-cell-currency {
           @apply !py-0 !pl-0 flex items-stretch;
 

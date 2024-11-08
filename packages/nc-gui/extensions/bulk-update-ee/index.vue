@@ -712,7 +712,7 @@ provide(IsGalleryInj, ref(false))
     >
       <div v-if="!fullscreen" class="p-3 flex">
         <div
-          class="nc-bulk-update-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-[474px]"
+          class="nc-bulk-update-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default max-w-full"
         >
           <a-form-item class="!my-0 min-w-1/2">
             <NcSelect

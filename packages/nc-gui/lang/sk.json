@@ -93,6 +93,7 @@
     "none": "Žiadne"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Skripty",
     "configure": "Konfigurovať",
     "switch": "Prepínač",
@@ -626,6 +627,7 @@
     "noConditionsAdded": "Žiadne podmienky neboli pridané"
   },
   "labels": {
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Upravené",
     "configuration": "Konfigurácia",
     "setup": "Nastavenie",

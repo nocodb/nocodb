@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { helpers } from '@vuelidate/validators'
 import useVuelidate from '@vuelidate/core'
+import isMobilePhone from 'validator/lib/isMobilePhone'
 
 import {
   type PaginatedType,
@@ -553,6 +554,27 @@ const rules = computed(() => {
           }
 
           return true
+        }),
+        urlValidator: helpers.withMessage('Invalid URL', (value, _currentConfig) => {
+          const currentConfig = _currentConfig as BulkUpdateFieldConfig
+
+          if (currentConfig.uidt !== UITypes.URL || !value || isValidURL(value)) return true
+
+          return false
+        }),
+        phoneNumberValidator: helpers.withMessage('Invalid phone number', (value, _currentConfig) => {
+          const currentConfig = _currentConfig as BulkUpdateFieldConfig
+
+          if (currentConfig.uidt !== UITypes.PhoneNumber || !value || isMobilePhone(value)) return true
+
+          return false
+        }),
+        emailValidator: helpers.withMessage('Invalid Email', (value, _currentConfig) => {
+          const currentConfig = _currentConfig as BulkUpdateFieldConfig
+
+          if (currentConfig.uidt !== UITypes.Email || !value || validateEmail(value)) return true
+
+          return false
         }),
       },
     }

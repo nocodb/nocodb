@@ -999,6 +999,8 @@ provide(IsGalleryInj, ref(false))
                       </template>
                       <NcSelect
                         :value="fieldConfig.columnId || undefined"
+                        show-search
+                        :filter-option="filterOption"
                         class="nc-field-select-input w-full nc-select-shadow"
                         placeholder="-select a field-"
                         @update:value="(value) => handleFieldSelect(fieldConfig, value)"
@@ -1006,7 +1008,7 @@ provide(IsGalleryInj, ref(false))
                       >
                         <a-select-option
                           v-for="(col, i) of bulkUpdateColumns"
-                          :key="i"
+                          :key="col.title"
                           :value="col.id"
                           :disabled="col.disabled || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
                         >
@@ -1054,13 +1056,15 @@ provide(IsGalleryInj, ref(false))
                       </template>
                       <NcSelect
                         :value="fieldConfig.opType || undefined"
+                        show-search
                         :disabled="!fieldConfig.columnId"
+                        :filter-option="filterOption"
                         class="nc-field-update-type-select-input w-full nc-select-shadow"
                         placeholder="-select an update type-"
                         @update:value="(value) => handleFieldUpdateTypeSelect(fieldConfig, value)"
                         @change="saveChanges()"
                       >
-                        <a-select-option v-for="(action, i) of fieldActionOptions" :key="i" :value="action.value">
+                        <a-select-option v-for="(action, i) of fieldActionOptions" :key="action.label" :value="action.value">
                           <div class="flex items-center gap-2 w-full">
                             <NcTooltip class="truncate flex-1" show-on-truncate-only>
                               <template #title>

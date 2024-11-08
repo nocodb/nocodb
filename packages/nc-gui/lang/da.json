@@ -93,6 +93,7 @@
     "none": "Ingen"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Scripts",
     "configure": "Konfigurer",
     "switch": "Skift",
@@ -626,6 +627,7 @@
     "noConditionsAdded": "Ingen betingelser tilføjet"
   },
   "labels": {
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Ændret den",
     "configuration": "Konfiguration",
     "setup": "Opsætning",

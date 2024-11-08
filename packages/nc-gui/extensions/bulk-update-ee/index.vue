@@ -504,6 +504,21 @@ const rules = computed(() => {
 
           return true
         }),
+        numberInputValidator: helpers.withMessage('Please enter a number', (value, _currentConfig) => {
+          const currentConfig = _currentConfig as BulkUpdateFieldConfig
+
+          if (![UITypes.Number, UITypes.Currency, UITypes.Percent].includes(currentConfig.uidt)) return true
+
+          if (
+            value &&
+            value !== '-' &&
+            !(currentConfig.uidt === UITypes.Number ? /^-?\d+$/.test(value) : /^-?\d*\.?\d+$/.test(value))
+          ) {
+            return false
+          }
+
+          return true
+        }),
       },
     }
 

@@ -93,6 +93,7 @@
     "none": "Нічого"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Сценарії",
     "configure": "Налаштування",
     "switch": "Перемикач",
@@ -626,6 +627,7 @@
     "noConditionsAdded": "Умови не додані"
   },
   "labels": {
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Змінено на",
     "configuration": "Конфігурація",
     "setup": "Налаштування",

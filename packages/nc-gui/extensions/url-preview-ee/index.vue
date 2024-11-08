@@ -18,6 +18,9 @@ eventBus.on((event, payload) => {
         if (embedURL.value) {
           selectedURL.value = selectedValue
         }
+      } else {
+        embedURL.value = null;
+        selectedURL.value = null;
       }
     }
   }

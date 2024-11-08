@@ -1,4 +1,4 @@
-const urlMatchers: ((u: string) => string | null)[] = []
+const urlMatchers: ([string, (u: string) => string | null])[] = []
 
 const YOUTUBE_RE = /^https?:\/\/(www\.|)youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:\?.*)?$/
 const matchYoutube = (url: string) => {
@@ -12,7 +12,7 @@ const matchYoutube = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchYoutube)
+urlMatchers.push(['Youtube', matchYoutube])
 
 const GOOGLE_RE =
   /^https?:\/\/(docs|drive)\.google\.com\/(document|spreadsheets|presentation|file)\/d\/([a-zA-Z0-9_-]+)(?:\/.*)?(?:\?.*)?$/
@@ -35,7 +35,7 @@ const matchGoogle = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchGoogle)
+urlMatchers.push(['Google', matchGoogle])
 
 const FIGMA_RE =
   /^https?:\/\/(www\.|)figma\.com\/(file|proto|design)\/([0-9a-zA-Z]{22,})(?:\/.*)?(?:\?node-id=([0-9%:A-Za-z-]+))?/
@@ -71,7 +71,7 @@ const matchFigma = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchFigma)
+urlMatchers.push(['Figma', matchFigma])
 
 const VIMEO_RE = /^https?:\/\/(www\.|)vimeo\.com\/(\d+)(?:\?.*)?$/
 const matchVimeo = (url: string) => {
@@ -87,7 +87,7 @@ const matchVimeo = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchVimeo)
+urlMatchers.push(['Vimeo', matchVimeo])
 
 const LOOM_RE = /^https?:\/\/(www\.|share\.|)loom\.com\/(share|embed)\/([a-zA-Z0-9]+)(?:\?.*)?$/
 const matchLoom = (url: string) => {
@@ -105,7 +105,7 @@ const matchLoom = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchLoom)
+urlMatchers.push(['Loom', matchLoom])
 
 const SPOTIFY_RE = /^https?:\/\/open\.spotify\.com\/(track|album|artist|playlist)\/([a-zA-Z0-9]+)(?:\?.*)?$/
 const matchSpotify = (url: string) => {
@@ -120,7 +120,7 @@ const matchSpotify = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchSpotify)
+urlMatchers.push(['Spotify', matchSpotify])
 
 const SOUNDCLOUD_RE = /^https?:\/\/(www\.|)soundcloud\.com\/([a-zA-Z0-9-_]+)(\/[a-zA-Z0-9-_]+)?(?:\?.*)?$/
 const matchSoundCloud = (url: string) => {
@@ -134,7 +134,7 @@ const matchSoundCloud = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchSoundCloud)
+urlMatchers.push(['SoundCloud', matchSoundCloud])
 
 // Twitter/X Posts
 const TWITTER_RE = /^https?:\/\/(www\.|)(?:twitter|x)\.com\/\w+\/status\/(\d+)(?:\?.*)?$/
@@ -147,7 +147,7 @@ const matchTwitter = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchTwitter)
+urlMatchers.push(['Twitter', matchTwitter])
 
 // CodePen
 const CODEPEN_RE = /^https?:\/\/codepen\.io\/([^\/]+)\/pen\/([^\/]+)(?:\?.*)?$/
@@ -160,7 +160,7 @@ const matchCodePen = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchCodePen)
+urlMatchers.push(['CodePen', matchCodePen])
 
 // GitHub Gists
 const GIST_RE = /^https?:\/\/gist\.github\.com\/([^\/]+)\/([a-zA-Z0-9]+)(?:\?.*)?$/
@@ -173,7 +173,7 @@ const matchGist = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchGist)
+urlMatchers.push(['Gist', matchGist])
 
 // Behance Projects
 const BEHANCE_RE = /^https?:\/\/(www\.|)behance\.net\/gallery\/(\d+)\/([^\/\?]+)(?:\?.*)?$/
@@ -186,7 +186,7 @@ const matchBehance = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchBehance)
+urlMatchers.push(['Behance', matchBehance])
 
 // Dailymotion
 const DAILYMOTION_RE = /^https?:\/\/(www\.|)dailymotion\.com\/video\/([a-zA-Z0-9]+)(?:\?.*)?$/
@@ -199,14 +199,14 @@ const matchDailymotion = (url: string) => {
     return null
   }
 }
-urlMatchers.push(matchDailymotion)
+urlMatchers.push(['Dailymotion', matchDailymotion])
 
-export const getEmbedURL = (url: string) => {
+export const getEmbedURL = (url: string): [string, string] => {
   for (const matcher of urlMatchers) {
-    const embedURL = matcher(url)
+    const embedURL = matcher[1](url)
     if (embedURL) {
-      return embedURL
+      return [matcher[0], embedURL]
     }
   }
-  return "unsupported"
+  return ["unsupported", "unsupported"]
 }

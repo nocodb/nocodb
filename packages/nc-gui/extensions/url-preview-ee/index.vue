@@ -4,8 +4,15 @@ import { getEmbedURL } from './utils'
 const { eventBus, fullscreen } = useExtensionHelperOrThrow()
 
 const embedURL = ref<string | null>(null)
+const platform = ref<string | null>(null)
 const showEmptyState = computed(() => !embedURL.value)
 const selectedURL = ref<string | null>(null)
+
+const clearSelection = () => {
+  platform.value = null
+  embedURL.value = null
+  selectedURL.value = null
+}
 
 eventBus.on((event, payload) => {
   if (event === SmartsheetStoreEvents.CELL_SELECTED) {
@@ -15,17 +22,17 @@ eventBus.on((event, payload) => {
     // null rowId indicates "un-selection".
     if (payload.rowId !== null) {
       if (isValidURL(selectedValue)) {
-        embedURL.value = getEmbedURL(selectedValue)
+        const [platformRaw, embedURLRaw] = getEmbedURL(selectedValue)
+        platform.value = platformRaw
+        embedURL.value = embedURLRaw
         selectedURL.value = selectedValue
       } else {
-        embedURL.value = null;
-        selectedURL.value = null;
+        clearSelection()
       }
     } else {
       // Clear on unselection only when invalid url was found. Else, keep as it is.
       if (embedURL.value === 'unsupported') {
-        embedURL.value = null;
-        selectedURL.value = null;
+        clearSelection()
       }
     }
   }
@@ -61,7 +68,7 @@ const openSelectedLink = async () => {
         <div class="mb-2 font-bold">URL not supported</div>
         <div>We currently do not support this link.</div>
       </div>
-      <iframe class="w-full h-full" :src="embedURL" v-else-if="embedURL"></iframe>
+      <iframe class="w-full h-full" :class="platform === 'Spotify' ? 'p-2' : ''" :src="embedURL" v-else-if="embedURL"></iframe>
     </div>
   </ExtensionsExtensionWrapper>
 </template>

@@ -175,7 +175,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
 
   const refreshToken = useSharedExecutionFn('refreshToken', _refreshToken, {
     timeout: 10000,
-    storageDelay: 1000
+    storageDelay: 1000,
   })
 
   const loadAppInfo = async () => {

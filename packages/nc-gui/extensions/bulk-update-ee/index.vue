@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import dayjs from 'dayjs'
-import { required, helpers, maxLength } from '@vuelidate/validators'
+import { helpers } from '@vuelidate/validators'
 import useVuelidate from '@vuelidate/core'
 
 import {
-  type ColumnType,
   type ViewType,
   ViewTypes,
   UITypes,
   getSystemColumnsIds,
   type TableType,
-  getSystemColumns,
   isVirtualCol,
+  type PaginatedType,
 } from 'nocodb-sdk'
 
 const jobStatusTooltip = {
@@ -48,6 +46,7 @@ interface BulkUpdateHistory {
 interface BulkUpdateFieldConfig {
   id: string
   columnId?: string
+  uidt?: UITypes
   opType?: BulkUpdateFieldActionOpTypes
   subOpType?: BulkUpdateFieldActionOpTypes
   value?: any
@@ -81,6 +80,7 @@ const bulkUpdatePayloadPlaceholder: BulkUpdatePayloadType = {
 const bulkUpdateFieldConfigPlaceholder: BulkUpdateFieldConfig = {
   id: '',
   columnId: '',
+  uidt: undefined,
   opType: undefined,
   subOpType: undefined,
   value: null,
@@ -114,7 +114,7 @@ const systemFieldsIds = computed(() => getSystemColumnsIds(meta.value?.columns |
 const bulkUpdateColumns = computed(() => {
   return (meta.value?.columns || [])
     .filter((c) => {
-      return !hiddenColTypes.includes(c.uidt) && !systemFieldsIds.value.includes(c.id)
+      return !hiddenColTypes.includes(c.uidt) && !systemFieldsIds.value.includes(c.id) && !isVirtualCol(c) && !c.pk && !c.unique
     })
     .map((c) => {
       const disabled = c.uidt === UITypes.Attachment
@@ -243,6 +243,10 @@ const fieldConfigMapByColumnId = computed(() => {
   )
 })
 
+const selectedFieldConfigForBulkUpdate = computed(() => {
+  return (bulkUpdatePayload.value?.config || []).filter((config) => config.selected)
+})
+
 const fieldActionOptions: {
   label: string
   value: BulkUpdateFieldActionOpTypes
@@ -270,6 +274,35 @@ async function updateColumns() {
 
   if (tableMeta) {
     meta.value = tableMeta
+  }
+}
+
+const viewPageInfo = ref<PaginatedType>({})
+
+const isLoadingViewInfo = ref(false)
+
+async function loadViewData() {
+  if (!meta.value || !savedPayloads.value.selectedTableId || !savedPayloads.value.selectedViewId) return
+
+  isLoadingViewInfo.value = true
+
+  try {
+    const { pageInfo } = await $api.dbViewRow.list(
+      'noco',
+      meta.value.base_id!,
+      savedPayloads.value.selectedTableId as string,
+      savedPayloads.value.selectedViewId as string,
+      {
+        offset: 0,
+        limit: 10,
+      } as any,
+    )
+
+    viewPageInfo.value = pageInfo
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoadingViewInfo.value = false
   }
 }
 
@@ -374,8 +407,20 @@ async function handleRemoveFieldConfig(configId: string) {
   validateAll()
 }
 
-const getFieldConfigs = () => {
-  return bulkUpdatePayload.value?.config || []
+function handleFieldSelect(fieldConfig: BulkUpdateFieldConfig, columnId: string) {
+  fieldConfig.columnId = columnId
+  fieldConfig.uidt = meta?.value?.columnsById?.[columnId]?.uidt
+  fieldConfig.value = null
+}
+
+const handleUpdateFieldValue = (columnId: string, value: any) => {
+  const fieldConfig = bulkUpdatePayload.value?.config.find((f) => f.columnId === columnId)
+
+  if (!fieldConfig) return
+
+  fieldConfig.value = value
+
+  saveChanges()
 }
 
 const rules = computed(() => {
@@ -402,21 +447,19 @@ const rules = computed(() => {
 
           return true
         }),
-        // isDuplicated: helpers.withMessage('This field is already added', (value, _currentConfig) => {
-        //   const currentConfig = _currentConfig as BulkUpdateFieldConfig
+        isColumnTypeChanged: helpers.withMessage('', (value, _currentConfig) => {
+          const currentConfig = _currentConfig as BulkUpdateFieldConfig
 
-        //   if (!currentConfig?.columnId || !meta.value) return true
+          if (!currentConfig?.columnId || !meta.value || !currentConfig?.uidt) return true
 
-        //   const column = meta.value.columnsById?.[currentConfig.columnId]
+          const column = meta.value.columnsById?.[currentConfig.columnId]
 
-        //   if (!column) return true
+          if (column && column.uidt !== currentConfig?.uidt) {
+            handleUpdateFieldValue(currentConfig?.columnId, null)
+          }
 
-        //   const allFields = getFieldConfigs()
-
-        //   if (allFields.find((f) => f.id !== currentConfig.id && f.columnId === currentConfig.columnId)) return false
-
-        //   return true
-        // }),
+          return true
+        }),
       },
       opType: {
         required: helpers.withMessage('Update type is required', (value, _currentConfig) => {
@@ -477,13 +520,17 @@ async function validateAll() {
 
 async function bulkUpdateView(data: Record<string, any>) {
   if (!meta.value || !bulkUpdatePayload.value?.viewId) return
+
   isUpdating.value = true
   try {
     await $api.dbTableRow.bulkUpdateAll(NOCO, meta.value.base_id as string, meta.value.id as string, data, {
       viewId: bulkUpdatePayload.value?.viewId,
     })
-  } catch (e) {
+
+    message.success('Fields successfully bulk updated')
+  } catch (e: any) {
     console.error(e)
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     reloadData()
     isUpdating.value = false
@@ -510,12 +557,18 @@ async function handleBulkUpdate() {
   bulkUpdateView(data)
 }
 
-const handleConfirmUpdate = () => {
+const handleConfirmUpdate = async () => {
+  await loadViewData()
+
   isOpenConfigModal.value = true
 }
 
 onClickOutside(formRef, (e) => {
   if (!fullscreen.value || (e.target as HTMLElement)?.closest(`.nc-bulk-update-add-action-section`)) return
+
+  if ((e.target as HTMLElement) === fieldConfigRef.value) {
+    fieldConfigExpansionPanel.value = []
+  }
 
   validateAll()
 })
@@ -537,13 +590,9 @@ watch(
 )
 
 eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
+  if (event === SmartsheetStoreEvents.FIELD_RELOAD && bulkUpdatePayload.value?.tableId === activeTableId.value) {
     updateColumns()
   }
-})
-
-onMounted(async () => {
-  await loadJobsForBase()
 })
 
 const { state, row } = useProvideSmartsheetRowStore(
@@ -626,9 +675,14 @@ provide(IsGalleryInj, ref(false))
           ></NcSelect>
         </a-form-item>
       </div>
-      <NcButton size="small" :disabled="v$.$error || !bulkUpdatePayload?.config?.length" @click="handleConfirmUpdate"
-        >Update Records</NcButton
+      <NcButton
+        size="small"
+        :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo"
+        :loading="isLoadingViewInfo"
+        @click="handleConfirmUpdate"
       >
+        Update Records
+      </NcButton>
     </template>
 
     <div
@@ -711,7 +765,7 @@ provide(IsGalleryInj, ref(false))
         <div v-if="!fullscreen" class="bulk-update-header">Actions</div>
         <div
           ref="fieldConfigRef"
-          class="flex-1 flex flex-col nc-scrollbar-thin"
+          class="nc-field-config-ref flex-1 flex flex-col nc-scrollbar-thin"
           :class="{
             'pt-6 px-4 relative': fullscreen,
             'max-h-[calc(100%_-_25px)]': !fullscreen,
@@ -724,9 +778,8 @@ provide(IsGalleryInj, ref(false))
             }"
           >
             <div v-if="fullscreen" class="flex items-center gap-3">
-              <NcBadge color="brand" :border="false">23 records</NcBadge>
               <div class="text-nc-content-gray-subtle2">
-                {{ bulkUpdatePayload?.config?.length || 0 }} fields set for bulk update
+                {{ selectedFieldConfigForBulkUpdate.length }} fields set for bulk update
               </div>
             </div>
 
@@ -829,12 +882,7 @@ provide(IsGalleryInj, ref(false))
                         :value="fieldConfig.columnId || undefined"
                         class="nc-field-select-input w-full nc-select-shadow"
                         placeholder="-select a field-"
-                        @update:value="
-                          (value) => {
-                            fieldConfig.columnId = value
-                            fieldConfig.value = null
-                          }
-                        "
+                        @update:value="(value) => handleFieldSelect(fieldConfig, value)"
                         @change="saveChanges()"
                       >
                         <a-select-option
@@ -845,6 +893,7 @@ provide(IsGalleryInj, ref(false))
                         >
                           <NcTooltip
                             class="w-full"
+                            placement="right"
                             :disabled="!(col.disabled || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id))"
                           >
                             <template #title>
@@ -1004,7 +1053,9 @@ provide(IsGalleryInj, ref(false))
       <div class="flex flex-col gap-5">
         <div class="flex flex-col gap-2">
           <div class="text-base text-nc-content-gray-emphasis font-bold">Confirm bulk update</div>
-          <div class="text-sm text-nc-content-gray-emphasis">3 field values from 23 records will be updated</div>
+          <div class="text-sm text-nc-content-gray-emphasis">
+            {{ selectedFieldConfigForBulkUpdate.length }} field values from {{ viewPageInfo.totalRows }} records will be updated
+          </div>
         </div>
         <div class="flex items-center gap-3 justify-end">
           <NcButton size="small" type="secondary" :disabled="isUpdating" @click="isOpenConfigModal = false">Cancel</NcButton>

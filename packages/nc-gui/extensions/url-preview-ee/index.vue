@@ -10,15 +10,20 @@ const selectedURL = ref<string | null>(null)
 eventBus.on((event, payload) => {
   if (event === SmartsheetStoreEvents.CELL_SELECTED) {
     const selectedValue = payload.val as string
-    // We only modify state when something is selected. We don't update on un-selections.
+    // We only modify state when something is selected. We don't update on un-selections
+    // (except when unsupported url detected).
     // null rowId indicates "un-selection".
     if (payload.rowId !== null) {
       if (isValidURL(selectedValue)) {
         embedURL.value = getEmbedURL(selectedValue)
-        if (embedURL.value) {
-          selectedURL.value = selectedValue
-        }
+        selectedURL.value = selectedValue
       } else {
+        embedURL.value = null;
+        selectedURL.value = null;
+      }
+    } else {
+      // Clear on unselection only when invalid url was found. Else, keep as it is.
+      if (embedURL.value === 'unsupported') {
         embedURL.value = null;
         selectedURL.value = null;
       }

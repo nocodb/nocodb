@@ -74,6 +74,12 @@ interface Row {
   row: Record<string, any>
   oldRow: Record<string, any>
   rowMeta: {
+    // Used in InfiniteScroll Grid View
+    rowIndex?: number
+    isLoading?: boolean
+    isValidationFailed?: boolean
+    isRowOrderUpdated?: boolean
+
     new?: boolean
     selected?: boolean
     commentCount?: number
@@ -93,7 +99,6 @@ interface Row {
     id?: string
     position?: string
     dayIndex?: number
-
     overLapIteration?: number
     numberOfOverlaps?: number
     minutes?: number

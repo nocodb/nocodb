@@ -1,27 +1,19 @@
 <script setup lang="ts">
-import type { PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 interface Props {
   modelValue: boolean
   meta: TableType
-  paginationData: PaginatedType
   view?: ViewType
   bulkUpdateRows?: Function
-  bulkUpdateView?: Function
-  selectedAllRecords?: boolean
   rows?: Row[]
 }
 
 const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel'])
-
-enum BulkUpdateMode {
-  ALL = 0,
-  SELECTED = 1,
-}
 
 const meta = toRef(props, 'meta')
 
@@ -41,8 +33,6 @@ provide(IsExpandedFormOpenInj, isExpanded)
 provide(IsExpandedBulkUpdateFormOpenInj, isExpanded)
 
 const formState: Record<string, any> = reactive({})
-
-const updateMode = ref(BulkUpdateMode.ALL)
 
 const moved = ref(false)
 
@@ -71,11 +61,7 @@ const fields = computed(() => {
 })
 
 const editCount = computed(() => {
-  if (updateMode.value === BulkUpdateMode.SELECTED) {
-    return props.rows!.length
-  } else {
-    return props.paginationData.totalRows ?? Infinity
-  }
+  return props.rows!.length
 })
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
@@ -128,13 +114,7 @@ function handleRemove(col: Record<string, any>) {
 }
 
 const modalQn = computed(() => {
-  const qnToAsk =
-    editCount.value <= 1
-      ? 'Do you want to update 1 selected record in current view?'
-      : `Do you want to update all ${editCount.value} records in current view? `
-  return updateMode.value === BulkUpdateMode.SELECTED
-    ? `Do you want to update ${editCount.value} selected ${editCount.value === 1 ? 'record' : 'records'}?`
-    : qnToAsk
+  return `Do you want to update ${editCount.value} selected ${editCount.value === 1 ? 'record' : 'records'}?`
 })
 
 const isModalOpen = ref(false)
@@ -144,23 +124,17 @@ const isDeleting = ref(false)
 const saveData = async () => {
   try {
     isDeleting.value = true
-    if (updateMode.value === BulkUpdateMode.SELECTED) {
-      if (props.rows && props.bulkUpdateRows) {
-        const propsToUpdate = Object.keys(formState)
-        for (const row of props.rows) {
-          for (const prop of Object.keys(row.row)) {
-            if (propsToUpdate.includes(prop)) {
-              row.row[prop] = formState[prop]
-              row.rowMeta.selected = false
-            }
+    if (props.rows && props.bulkUpdateRows) {
+      const propsToUpdate = Object.keys(formState)
+      for (const row of props.rows) {
+        for (const prop of Object.keys(row.row)) {
+          if (propsToUpdate.includes(prop)) {
+            row.row[prop] = formState[prop]
+            row.rowMeta.selected = false
           }
         }
-        await props.bulkUpdateRows(props.rows, propsToUpdate)
       }
-    } else {
-      if (props.bulkUpdateView) {
-        await props.bulkUpdateView(formState)
-      }
+      await props.bulkUpdateRows(props.rows, propsToUpdate)
     }
   } finally {
     isExpanded.value = false
@@ -187,16 +161,8 @@ const removeAllColumns = () => {
 }
 
 onMounted(() => {
-  if (!props.selectedAllRecords && !props.rows) {
+  if (!props.rows) {
     isExpanded.value = false
-    return
-  }
-  if (props.selectedAllRecords && props.selectedAllRecords === true) {
-    updateMode.value = BulkUpdateMode.ALL
-  } else {
-    if (props.rows && props.rows.length) {
-      updateMode.value = BulkUpdateMode.SELECTED
-    }
   }
 })
 </script>
@@ -213,7 +179,7 @@ onMounted(() => {
   >
     <div class="flex p-2 items-center gap-2 p-4 nc-bulk-update-header">
       <h5 class="text-lg font-weight-medium flex items-center gap-1 mb-0 min-w-0 overflow-x-hidden truncate">
-        <GeneralTableIcon :style="{ color: iconColor }" :meta="meta" class="mx-2" />
+        <GeneralTableIcon :meta="meta" class="mx-2" />
 
         <template v-if="meta">
           {{ meta.title }}
@@ -223,26 +189,7 @@ onMounted(() => {
       </h5>
 
       <div class="flex-1" />
-      <NcButton
-        v-if="updateMode === BulkUpdateMode.ALL"
-        class="nc-bulk-update-save-btn"
-        type="primary"
-        :disabled="!editColumns.length"
-        @click="isModalOpen = true"
-      >
-        <div class="flex items-center">
-          <component :is="iconMap.contentSaveExit" class="mr-1" />
-          <!-- TODO i18n -->
-          Bulk Update All
-        </div>
-      </NcButton>
-      <NcButton
-        v-else-if="updateMode === BulkUpdateMode.SELECTED"
-        class="nc-bulk-update-save-btn"
-        type="primary"
-        :disabled="!editColumns.length"
-        @click="isModalOpen = true"
-      >
+      <NcButton class="nc-bulk-update-save-btn" type="primary" :disabled="!editColumns.length" @click="isModalOpen = true">
         <div class="flex items-center">
           <component :is="iconMap.contentSaveStay" class="mr-1" />
           <!-- TODO i18n -->
@@ -276,7 +223,6 @@ onMounted(() => {
           draggable=".item"
           group="form-inputs"
           class="h-full"
-          :move="onMoveCallback"
           @change="onMove($event)"
           @start="drag = true"
           @end="drag = false"

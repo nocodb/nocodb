@@ -1,5 +1,10 @@
 // eslint-disable-file no-fallthrough
-import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  NcDataErrorCodes,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import {
   checkForStaticDateValFilters,
@@ -22,7 +27,6 @@ import type {
 import { Column, Filter, Model, Sort } from '~/models';
 import {
   _wherePk,
-  extractFilterFromXwhere,
   extractSortsObject,
   getAs,
   getColumnName,

@@ -1,6 +1,8 @@
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  extractCondition,
+  extractFilterFromXwhere,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -12,8 +14,6 @@ import {
 import {
   _wherePk,
   BaseModelSqlv2 as BaseModelSqlv2CE,
-  extractCondition,
-  extractFilterFromXwhere,
   extractSortsObject,
   getAs,
   getColumnName,
@@ -2204,8 +2204,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 export {
   BaseModelSqlv2,
   _wherePk,
-  extractCondition,
-  extractFilterFromXwhere,
   extractSortsObject,
   getListArgs,
   haveFormulaColumn,

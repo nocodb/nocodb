@@ -93,6 +93,7 @@
     "none": "없음"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "스크립트",
     "configure": "구성",
     "switch": "전환",
@@ -626,6 +627,7 @@
     "noConditionsAdded": "조건이 추가되지 않았습니다"
   },
   "labels": {
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "수정된 날짜",
     "configuration": "구성",
     "setup": "설정",

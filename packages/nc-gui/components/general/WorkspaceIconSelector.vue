@@ -15,7 +15,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['update:icon', 'update:iconType'])
+const emits = defineEmits(['update:icon', 'update:iconType', 'submit'])
 
 const { currentWorkspace } = toRefs(props)
 
@@ -58,6 +58,8 @@ const selectIcon = (icon: string) => {
   vIcon.value = icon
   vIconType.value = WorkspaceIconType.ICON
 
+  emits('submit')
+
   isOpen.value = false
 }
 
@@ -83,6 +85,8 @@ const emojiIndex = new EmojiIndex(data, {
 function selectEmoji(_emoji: any) {
   vIcon.value = _emoji.native
   vIconType.value = WorkspaceIconType.EMOJI
+
+  emits('submit')
 
   isOpen.value = false
 }
@@ -113,6 +117,8 @@ const imageCropperData = ref({
 const handleOnUploadImage = async (data: any) => {
   vIcon.value = data
   vIconType.value = WorkspaceIconType.IMAGE
+
+  emits('submit')
 
   isOpen.value = false
 }

@@ -189,6 +189,7 @@ const onCancel = () => {
               v-model:icon="form.icon"
               v-model:icon-type="form.iconType"
               :current-workspace="currentWorkspace"
+              @submit="saveChanges"
             />
           </div>
           <div class="flex-1">

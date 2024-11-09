@@ -177,7 +177,7 @@ const onCancel = () => {
     }"
   >
     <div class="item-card flex flex-col w-full">
-      <div class="font-bold text-base text-nc-content-gray-emphasis">Workspace Apearance</div>
+      <div class="font-bold text-base text-nc-content-gray-emphasis">Workspace Appearance</div>
       <a-form ref="formValidator" layout="vertical" no-style :model="form" class="w-full" @finish="saveChanges">
         <div class="flex gap-4 mt-6">
           <div>

@@ -30,7 +30,7 @@ const form = reactive<{
   title: string
   modalInput: string
   icon: string | Record<string, any>
-  iconType: WorkspaceIconType | string
+  iconType: typeof WorkspaceIconType | string
 }>({
   title: '',
   modalInput: '',

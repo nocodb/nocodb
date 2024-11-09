@@ -6,6 +6,7 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
 import equal from 'fast-deep-equal';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   extractFilterFromXwhere,
@@ -72,6 +73,7 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getAliasGenerator } from '~/utils';
 import applyAggregation from '~/db/aggregation';
+import { extractMentions } from '~/utils/richTextHelper';
 
 dayjs.extend(utc);
 
@@ -6257,6 +6259,14 @@ class BaseModelSqlv2 {
    *  Hooks
    * */
 
+  public async handleRichTextMentions(
+    prevData,
+    newData: Record<string, any> | Array<Record<string, any>>,
+    req,
+  ) {
+    return;
+  }
+
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('before.insert', null, data, req);
   }
@@ -6342,6 +6352,8 @@ class BaseModelSqlv2 {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
+
+    await this.handleRichTextMentions(prevData, newData, req);
   }
 
   public async afterBulkDelete(

@@ -7,7 +7,10 @@ export const Mention = TipTapMention.Mention.extend({
 
     const innerText = attributes.name && attributes.name.length > 0 ? attributes.name : attributes.email
 
-    const styles = attributes.isSameUser === 'true' ? 'bg-[#D4F7E0] text-[#17803D]' : 'bg-brand-50 text-brand-500'
+    const styles =
+      attributes.isSameUser === true || attributes.isSameUser === 'true'
+        ? 'bg-[#D4F7E0] text-[#17803D]'
+        : 'bg-brand-50 text-brand-500'
 
     return [
       'span',

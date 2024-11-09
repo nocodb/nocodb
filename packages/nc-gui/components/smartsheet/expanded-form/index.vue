@@ -576,7 +576,7 @@ watch([expandedFormScrollWrapper, isLoading], () => {
           })
           mentionedCell.value = columnId as string
           scrollToColumn(columnId as string)
-          onClickOutside(document.querySelector(`.${mentionedCell.value}`)! as HTMLDivElement, () => {
+          onClickOutside(document.querySelector(`[col-id="${columnId}"]`)! as HTMLDivElement, () => {
             mentionedCell.value = null
           })
         } else {
@@ -813,7 +813,7 @@ export default {
               v-for="(col, i) of fields"
               v-show="!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
               :key="col.title"
-              :class="`nc-expand-col-${col.title} ${col.id}`"
+              :class="`nc-expand-col-${col.title}`"
               :col-id="col.id"
               :data-testid="`nc-expand-col-${col.title}`"
               class="nc-expanded-form-row w-full"

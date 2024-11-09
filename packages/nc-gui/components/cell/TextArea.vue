@@ -225,16 +225,22 @@ watch([widthTextArea, heightTextArea], () => {
 })
 
 const updateSize = () => {
-  const size = localStorage.getItem(STORAGE_KEY)
-  let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
+  try {
+    const size = localStorage.getItem(STORAGE_KEY)
+    let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
 
-  if (isRichMode.value) {
-    elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
-  }
+    if (isRichMode.value) {
+      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
+    }
 
-  if (size && elem) {
-    elem.style.width = `${JSON.parse(size).width}px`
-    elem.style.height = `${JSON.parse(size).height}px`
+    const parsedJSON = JSON.parse(size)
+
+    if (parsedJSON && elem) {
+      elem.style.width = `${parsedJSON.width}px`
+      elem.style.height = `${parsedJSON.height}px`
+    }
+  } catch (e) {
+    console.error(e)
   }
 }
 

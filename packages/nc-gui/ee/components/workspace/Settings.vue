@@ -19,7 +19,6 @@ const router = useRouter()
 const formValidator = ref()
 const isDeleting = ref(false)
 const isErrored = ref(false)
-const isWorkspaceUpdating = ref(false)
 const isDeleteModalVisible = ref(false)
 // if activeworkspace.title is used it will show new workspace name in loading state
 const toBeDeletedWorkspaceTitle = ref('')
@@ -59,14 +58,6 @@ const currentWorkspace = computedAsync(async () => {
   return activeWorkspace.value
 })
 
-const isSaveChangesBtnEnabled = computed(() => {
-  return !!(
-    (form.title && form.title !== currentWorkspace.value?.title) ||
-    form.icon !== (currentWorkspace.value?.meta?.icon ?? '') ||
-    form.iconType !== (currentWorkspace.value?.meta?.iconType ?? '')
-  )
-})
-
 const onDelete = async () => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
@@ -102,13 +93,12 @@ const rules = {
 }
 
 const saveChanges = async () => {
-  if (!currentWorkspace.value || !currentWorkspace.value.id || isWorkspaceUpdating.value) return
+  if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
   const valid = await formValidator.value.validate()
 
   if (!valid) return
 
-  isWorkspaceUpdating.value = true
   isErrored.value = false
 
   try {
@@ -122,10 +112,16 @@ const saveChanges = async () => {
     })
   } catch (e: any) {
     console.error(e)
-  } finally {
-    isWorkspaceUpdating.value = false
   }
 }
+
+const saveChangeWithDebounce = useDebounceFn(
+  async () => {
+    await saveChanges()
+  },
+  250,
+  { maxWait: 2000 },
+)
 
 const handleDelete = () => {
   if (!currentWorkspace.value || !currentWorkspace.value.title) return
@@ -201,33 +197,10 @@ const onCancel = () => {
                 placeholder="Workspace name"
                 size="large"
                 data-testid="nc-workspace-settings-settings-rename-input"
+                @update:value="saveChangeWithDebounce"
               />
             </a-form-item>
           </div>
-        </div>
-
-        <div class="flex flex-row w-full justify-end mt-8 gap-4">
-          <NcButton
-            v-if="isSaveChangesBtnEnabled"
-            type="secondary"
-            size="small"
-            data-testid="nc-workspace-settings-settings-rename-cancel"
-            @click="onCancel"
-          >
-            Cancel
-          </NcButton>
-          <NcButton
-            v-e="['c:workspace:settings:rename']"
-            type="primary"
-            html-type="submit"
-            size="small"
-            :disabled="isErrored || !isSaveChangesBtnEnabled || isWorkspaceUpdating"
-            :loading="isWorkspaceUpdating"
-            data-testid="nc-workspace-settings-settings-rename-submit"
-          >
-            <template #loading> Saving </template>
-            Save
-          </NcButton>
         </div>
       </a-form>
     </div>

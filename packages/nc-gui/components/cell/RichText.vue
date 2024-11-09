@@ -32,7 +32,7 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['update:value', 'focus', 'blur'])
+const emits = defineEmits(['update:value', 'focus', 'blur', 'close'])
 
 const { fullMode, isFormField, hiddenBubbleMenuOptions } = toRefs(props)
 
@@ -416,7 +416,14 @@ onClickOutside(editorDom, (e) => {
         }"
       >
         <div class="scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent">
-          <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode :is-form-field="isFormField" />
+          <CellRichTextSelectedBubbleMenu
+            v-if="editor"
+            :editor="editor"
+            embed-mode
+            :is-form-field="isFormField"
+            :enable-close-button="fullMode"
+            @close="emits('close')"
+          />
         </div>
       </div>
       <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField && !isForm" :editor="editor" />
@@ -688,6 +695,10 @@ onClickOutside(editorDom, (e) => {
 
   pre {
     height: fit-content;
+  }
+
+  .mention span {
+    display: none;
   }
 }
 .nc-form-field-bubble-menu-wrapper {

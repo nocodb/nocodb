@@ -87,6 +87,16 @@ watch(isVisible, () => {
 onClickOutside(inputWrapperRef, (e) => {
   if ((e.target as HTMLElement)?.className.includes('nc-long-text-toggle-expand')) return
 
+  const targetEl = e?.target as HTMLElement
+
+  if (
+    targetEl?.closest(
+      '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+    )
+  ) {
+    return
+  }
+
   isVisible.value = false
 })
 
@@ -195,6 +205,10 @@ watch(inputWrapperRef, () => {
     modal.parentElement.removeEventListener('mouseup', stopPropagation)
   }
 })
+
+const handleClose = () => {
+  isVisible.value = false
+}
 </script>
 
 <template>
@@ -351,6 +365,12 @@ watch(inputWrapperRef, () => {
               {{ column.title }}
             </span>
           </div>
+
+          <div class="flex-1" />
+
+          <NcButton class="mr-2" type="text" size="small" @click="isVisible = false">
+            <GeneralIcon icon="close" />
+          </NcButton>
         </div>
         <div v-if="!isRichMode" class="p-3 pb-0 h-full">
           <a-textarea
@@ -365,7 +385,7 @@ watch(inputWrapperRef, () => {
           />
         </div>
 
-        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" />
+        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
       </div>
     </a-modal>
   </div>

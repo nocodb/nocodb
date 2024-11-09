@@ -17,15 +17,19 @@ interface Props {
   embedMode?: boolean
   isFormField?: boolean
   hiddenOptions?: RichTextBubbleMenuOptions[]
+  enableCloseButton?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   embedMode: false,
   isFormField: false,
   hiddenOptions: () => [],
+  enableCloseButton: false,
 })
 
-const { editor, embedMode, isFormField, hiddenOptions } = toRefs(props)
+const emits = defineEmits(['close'])
+
+const { editor, embedMode, isFormField, hiddenOptions, enableCloseButton } = toRefs(props)
 
 const { appInfo } = useGlobal()
 
@@ -123,6 +127,10 @@ const newMentionNode = () => {
     editor.value?.commands.insertContent('@')
     editor.value?.chain().focus().run()
   }
+}
+
+const closeTextArea = () => {
+  emits('close')
 }
 </script>
 
@@ -375,10 +383,9 @@ const newMentionNode = () => {
         </div>
       </template>
       <NcButton
+        size="small"
         :class="{ 'is-active': editor?.isActive('suggestions') }"
         :tabindex="tabIndex"
-        class="!h-7 !w-7 !hover:bg-gray-200"
-        size="xsmall"
         type="text"
         @click="newMentionNode"
       >
@@ -419,6 +426,10 @@ const newMentionNode = () => {
         </div>
       </NcButton>
     </NcTooltip>
+
+    <NcButton v-if="enableCloseButton" class="mr-2" type="text" size="small" @click="closeTextArea">
+      <GeneralIcon icon="close" />
+    </NcButton>
   </div>
 </template>
 

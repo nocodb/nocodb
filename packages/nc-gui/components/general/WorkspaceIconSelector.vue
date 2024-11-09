@@ -106,7 +106,7 @@ const imageCropperData = ref({
   uploadConfig: {
     path: [NOCO, 'workspace', currentWorkspace.value?.id, 'icon'].join('/'),
     scope: PublicAttachmentScope.WORKSPACEPICS,
-    maxFileSize: 2 * 1024 * 1024
+    maxFileSize: 2 * 1024 * 1024,
   },
 })
 
@@ -253,7 +253,7 @@ watch(isOpen, (newValue) => {
             iconType: vIconType,
           }"
           size="xlarge"
-          class="!w-full !h-full !min-w-full rounded-none select-none"
+          class="!w-full !h-full !min-w-full rounded-none select-none cursor-pointer"
         />
       </div>
       <template #overlay>
@@ -452,6 +452,10 @@ watch(isOpen, (newValue) => {
 
 :deep(.ant-input::placeholder) {
   @apply text-gray-500;
+}
+
+:deep(.nc-workspace-avatar img) {
+  @apply !cursor-pointer;
 }
 </style>
 

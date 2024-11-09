@@ -209,6 +209,36 @@ watch(inputWrapperRef, () => {
 const handleClose = () => {
   isVisible.value = false
 }
+
+const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
+
+const { width: widthTextArea, height: heightTextArea } = useElementSize(inputRef)
+
+watch([widthTextArea, heightTextArea], () => {
+  if (isVisible.value) {
+    const size = {
+      width: widthTextArea.value,
+      height: heightTextArea.value,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(size))
+  }
+})
+
+watch([isVisible, inputRef], (value) => {
+  if (value) {
+    const size = localStorage.getItem(STORAGE_KEY)
+    let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
+
+    if (isRichMode.value) {
+      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
+    }
+
+    if (size && elem) {
+      elem.style.width = `${JSON.parse(size).width}px`
+      elem.style.height = `${JSON.parse(size).height}px`
+    }
+  }
+})
 </script>
 
 <template>

@@ -38,7 +38,7 @@ const onSubmit = async () => {
   try {
     await updateUserProfile({ attrs: { display_name: form.value?.title } })
   } catch (e: any) {
-    console.error(e)
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isTitleUpdating.value = false
   }

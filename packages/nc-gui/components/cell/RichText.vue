@@ -9,9 +9,8 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
 import { Link } from '~/helpers/dbTiptapExtensions/links'
-import type { RichTextBubbleMenuOptions } from '#imports'
-import { Mention } from '~/helpers/dbTiptapExtensions/mention'
-import suggestion from '~/helpers/dbTiptapExtensions/mention/suggestion'
+import { Mention } from '~/helpers/tiptapExtensions/mention'
+import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
 
 const props = withDefaults(
   defineProps<{
@@ -114,57 +113,59 @@ turndownService.addRule('strikethrough', {
 
 turndownService.keep(['u', 'del'])
 
-const renderer = new marked.Renderer()
+if (appInfo.value.ee) {
+  const renderer = new marked.Renderer()
 
-renderer.paragraph = (text: string) => {
-  const regex = /@\(([^)]+)\)/g
+  renderer.paragraph = (text: string) => {
+    const regex = /@\(([^)]+)\)/g
 
-  const replacement = (match: string, content: string) => {
-    const id = content.split('|')[0]
-    let bUser = baseUsers.value.find((user) => user.id === id)
+    const replacement = (match: string, content: string) => {
+      const id = content.split('|')[0]
+      let bUser = baseUsers.value.find((user) => user.id === id)
 
-    if (!bUser) {
-      bUser = {
-        id,
-        email: content.split('|')[1],
-        display_name: content.split('|')[2],
-      } as any
-    }
-    const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
+      if (!bUser) {
+        bUser = {
+          id,
+          email: content.split('|')[1],
+          display_name: content.split('|')[2],
+        } as any
+      }
+      const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
 
-    const colorStyles = bUser?.id === user.value?.id ? '' : 'bg-[#D4F7E0] text-[#17803D]'
+      const colorStyles = bUser?.id === user.value?.id ? '' : 'bg-[#D4F7E0] text-[#17803D]'
 
-    return `<span data-type="mention" data-id='{
+      return `<span data-type="mention" data-id='{
     "id": "${bUser?.id}",
     "email": "${bUser?.email}",
     "name": "${bUser?.display_name ?? ''}",
     "isSameUser": "${bUser?.id === user.value?.id}"
 }' class="${colorStyles} mention font-semibold  m-0.5 rounded-md px-1">@${processedContent}</span>`
+    }
+
+    return text.replace(regex, replacement)
   }
 
-  return text.replace(regex, replacement)
+  marked.use({ renderer })
+
+  turndownService.addRule('mention', {
+    filter: (node) => {
+      return node.nodeName === 'SPAN' && node.classList.contains('mention')
+    },
+    replacement: (content) => {
+      content = content.substring(1).split('|')[0]
+      const user = baseUsers.value
+        .map((user) => ({
+          id: user.id,
+          label: user?.display_name && user.display_name.length > 0 ? user.display_name : user.email,
+          name: user.display_name,
+          email: user.email,
+        }))
+        .filter((user) => user.label.toLowerCase() === content.toLowerCase())[0]
+
+      return `@(${user.id}|${user.email}|${user.display_name ?? ''})`
+    },
+  })
 }
-
-marked.use({ renderer })
-
-turndownService.addRule('mention', {
-  filter: (node) => {
-    return node.nodeName === 'SPAN' && node.classList.contains('mention')
-  },
-  replacement: (content) => {
-    content = content.substring(1).split('|')[0]
-    const user = baseUsers.value
-      .map((user) => ({
-        id: user.id,
-        label: user?.display_name && user.display_name.length > 0 ? user.display_name : user.email,
-        name: user.display_name,
-        email: user.email,
-      }))
-      .filter((user) => user.label.toLowerCase() === content.toLowerCase())[0]
-
-    return `@(${user.id}|${user.email}|${user.display_name ?? ''})`
-  },
-})
 
 const checkListItem = {
   name: 'checkListItem',

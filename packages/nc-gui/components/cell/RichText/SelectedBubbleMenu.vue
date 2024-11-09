@@ -27,6 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { editor, embedMode, isFormField, hiddenOptions } = toRefs(props)
 
+const { appInfo } = useGlobal()
+
 const isEditColumn = inject(EditColumnInj, ref(false))
 
 const cmdOrCtrlKey = computed(() => {
@@ -99,6 +101,28 @@ const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
 
 const showDivider = (options: RichTextBubbleMenuOptions[]) => {
   return !isFormField.value || options.some((o) => !hiddenOptions.value.includes(o))
+}
+
+const newMentionNode = () => {
+  if (!editor.value) return
+
+  const lastCharacter = editor.value.state.doc.textBetween(
+    editor.value.state.selection.$from.pos - 1,
+    editor.value.state.selection.$from.pos,
+  )
+
+  if (lastCharacter === '@') {
+    editor.value
+      .chain()
+      .deleteRange({ from: editor.value.state.selection.$from.pos - 1, to: editor.value.state.selection.$from.pos })
+      .run()
+  } else if (lastCharacter !== ' ') {
+    editor.value?.commands.insertContent(' @')
+    editor.value?.chain().focus().run()
+  } else {
+    editor.value?.commands.insertContent('@')
+    editor.value?.chain().focus().run()
+  }
 }
 </script>
 
@@ -338,6 +362,27 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
         @click="editor!.chain().focus().toggleTaskList().run()"
       >
         <MdiFormatListCheckbox />
+      </NcButton>
+    </NcTooltip>
+
+    <NcTooltip v-if="appInfo.ee">
+      <template #title>
+        <div class="flex flex-col items-center">
+          <div>
+            {{ $t('labels.mention') }}
+          </div>
+          <div>@</div>
+        </div>
+      </template>
+      <NcButton
+        :class="{ 'is-active': editor?.isActive('suggestions') }"
+        :tabindex="tabIndex"
+        class="!h-7 !w-7 !hover:bg-gray-200"
+        size="xsmall"
+        type="text"
+        @click="newMentionNode"
+      >
+        <GeneralIcon icon="atSign" />
       </NcButton>
     </NcTooltip>
 

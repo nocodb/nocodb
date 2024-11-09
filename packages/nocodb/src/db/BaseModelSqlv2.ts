@@ -6,6 +6,7 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
 import equal from 'fast-deep-equal';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   extractFilterFromXwhere,
@@ -72,6 +73,7 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getAliasGenerator } from '~/utils';
 import applyAggregation from '~/db/aggregation';
+import { extractMentions } from '~/utils/richTextHelper';
 
 dayjs.extend(utc);
 
@@ -6257,6 +6259,45 @@ class BaseModelSqlv2 {
    *  Hooks
    * */
 
+  public async handleRichTextMentions(
+    prevData,
+    newData: Record<string, any> | Array<Record<string, any>>,
+    req,
+  ) {
+    newData = Array.isArray(newData) ? newData : [newData];
+
+    prevData = Array.isArray(prevData) ? prevData : prevData ? [prevData] : [];
+
+    const columns = (await this.model.getColumns(this.context)).filter(
+      (c) => c.uidt === UITypes.LongText && c.meta?.richMode,
+    );
+
+    newData.forEach((newRow, index) => {
+      const prevRow = prevData[index];
+      for (const column of columns) {
+        const prevMentions = extractMentions(
+          prevRow?.[column.column_name] ?? '',
+        );
+        const newMentions = extractMentions(newRow[column.column_name]);
+
+        const uniqMentions = newMentions.filter(
+          (m) => !prevMentions.includes(m),
+        );
+
+        if (uniqMentions.length > 0) {
+          Noco.eventEmitter.emit(AppEvents.ROW_USER_MENTION, {
+            mentions: uniqMentions,
+            user: req?.user,
+            column,
+            rowId: this.extractPksValues(newRow, true),
+            model: this.model,
+            req,
+          });
+        }
+      }
+    });
+  }
+
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('before.insert', null, data, req);
   }
@@ -6342,6 +6383,8 @@ class BaseModelSqlv2 {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
+
+    await this.handleRichTextMentions(prevData, newData, req);
   }
 
   public async afterBulkDelete(

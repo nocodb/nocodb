@@ -269,10 +269,13 @@ const viewPageInfo = ref<PaginatedType>({})
 
 const isLoadingViewInfo = ref(false)
 
+const showNoRecordToUpdateInlineToast = ref(false)
+
 async function loadViewData() {
   if (!meta.value || !savedPayloads.value.selectedTableId || !savedPayloads.value.selectedViewId) return
 
   isLoadingViewInfo.value = true
+  showNoRecordToUpdateInlineToast.value = false
 
   try {
     const { pageInfo } = await $api.dbViewRow.list(
@@ -287,6 +290,16 @@ async function loadViewData() {
     )
 
     viewPageInfo.value = pageInfo
+
+    if (!viewPageInfo.value?.totalRows) {
+      if (fullscreen.value) {
+        showNoRecordToUpdateInlineToast.value = true
+      } else {
+        message.warning('No Records to Update')
+      }
+    } else {
+      isOpenConfigModal.value = true
+    }
   } catch (e) {
     console.error(e)
   } finally {
@@ -632,8 +645,6 @@ async function handleBulkUpdate() {
 
 const handleConfirmUpdate = async () => {
   await loadViewData()
-
-  isOpenConfigModal.value = true
 }
 
 onClickOutside(formRef, (e) => {
@@ -896,11 +907,30 @@ provide(IsGalleryInj, ref(false))
           @scroll="handleScroll(false)"
         >
           <div class="flex-1 flex flex-col gap-6 w-full">
-            <div v-if="fullscreen" class="flex items-center gap-3 w-full max-w-[520px] mx-auto">
-              <div class="text-nc-content-gray-subtle2">
-                {{ selectedFieldConfigForBulkUpdate.length }} fields set for bulk update
+            <template v-if="fullscreen">
+              <div
+                v-if="showNoRecordToUpdateInlineToast"
+                class="w-full max-w-[520px] mx-auto p-4 flex items-start gap-4 bg-white border-1 border-nc-border-gray-medium rounded-lg"
+              >
+                <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
+                <div class="flex flex-col gap-1">
+                  <div class="text-nc-content-gray text-sm font-bold">No Records to Update</div>
+                  <div class="text-nc-content-gray-muted text-sm">
+                    No values will be updated as there are 0 records in Table name/View name.
+                  </div>
+                </div>
+                <NcButton size="xs" type="text" @click="showNoRecordToUpdateInlineToast = false" icon-only>
+                  <template #icon>
+                    <GeneralIcon icon="close" class="text-gray-600" />
+                  </template>
+                </NcButton>
               </div>
-            </div>
+              <div v-else class="flex items-center gap-3 w-full max-w-[520px] mx-auto">
+                <div class="text-nc-content-gray-subtle2">
+                  {{ selectedFieldConfigForBulkUpdate.length }} fields set for bulk update
+                </div>
+              </div>
+            </template>
 
             <a-form
               ref="formRef"

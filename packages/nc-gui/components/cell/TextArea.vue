@@ -224,19 +224,45 @@ watch([widthTextArea, heightTextArea], () => {
   }
 })
 
+const updateSize = () => {
+  const size = localStorage.getItem(STORAGE_KEY)
+  let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
+
+  if (isRichMode.value) {
+    elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
+  }
+
+  if (size && elem) {
+    elem.style.width = `${JSON.parse(size).width}px`
+    elem.style.height = `${JSON.parse(size).height}px`
+  }
+}
+
 watch([isVisible, inputRef], (value) => {
+  const observer = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const { width, height } = entry.contentRect
+
+      if (!isVisible.value) {
+        return
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
+    }
+  })
+
   if (value) {
-    const size = localStorage.getItem(STORAGE_KEY)
-    let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
-
     if (isRichMode.value) {
-      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
-    }
+      setTimeout(() => {
+        observer.observe(document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement)
 
-    if (size && elem) {
-      elem.style.width = `${JSON.parse(size).width}px`
-      elem.style.height = `${JSON.parse(size).height}px`
+        updateSize()
+      }, 50)
+    } else {
+      updateSize()
     }
+  } else {
+    observer.disconnect()
   }
 })
 </script>
@@ -406,7 +432,7 @@ watch([isVisible, inputRef], (value) => {
           <a-textarea
             ref="inputRef"
             v-model:value="vModel"
-            class="nc-text-area-expanded !py-1 !px-3 !text-black !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
+            class="nc-text-area-expanded !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
             :placeholder="$t('activity.enterText')"
             :style="{ resize: 'both' }"
             :disabled="readOnly"

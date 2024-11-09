@@ -2,7 +2,7 @@ import { getActivePinia } from 'pinia'
 import type { Actions, AppInfo, Getters, State } from './types'
 import type { NcProjectType } from '#imports'
 
-export function useGlobalActions(state: State, getters: Getters): Actions {
+export function useGlobalActions(state: State, _getters: Getters): Actions {
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
 
   const setIsMobileMode = (isMobileMode: boolean) => {

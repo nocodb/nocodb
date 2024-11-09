@@ -3809,7 +3809,14 @@
       "parameters": [
         {
           "schema": {
-            "type": "boolean"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
           },
           "name": "dry",
           "in": "query",

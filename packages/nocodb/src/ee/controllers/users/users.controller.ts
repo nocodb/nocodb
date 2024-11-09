@@ -32,8 +32,8 @@ export class UsersController extends UsersControllerCE {
     scope: 'org',
   })
   @HttpCode(200)
-  async delete(@Request() req, @Response() res, @Query('dry') dry?: boolean) {
-    if (dry) {
+  async delete(@Request() req, @Response() res, @Query('dry') dry?: string) {
+    if (dry && dry === 'true') {
       return res.json(
         await this.usersService.userDryDelete({
           id: req.user.id,

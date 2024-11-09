@@ -155,6 +155,8 @@ export enum AppEvents {
   INTEGRATION_DELETE = 'integration.delete',
   INTEGRATION_CREATE = 'integration.create',
   INTEGRATION_UPDATE = 'integration.update',
+
+  ROW_USER_MENTION = 'row.user.mention',
 }
 
 export enum ClickhouseTables {

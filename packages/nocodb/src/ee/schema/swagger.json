@@ -5129,6 +5129,23 @@
                   "id"
                 ]
               },
+              "column": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the Column"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the Column"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title"
+                ]
+              },
               "user": {
                 "type": "object",
                 "properties": {

@@ -51,6 +51,7 @@ export default {
 
       if (event.key === 'Enter') {
         event.stopPropagation()
+        event.preventDefault()
         this.enterHandler(event)
         return true
       }

@@ -17,15 +17,21 @@ interface Props {
   embedMode?: boolean
   isFormField?: boolean
   hiddenOptions?: RichTextBubbleMenuOptions[]
+  enableCloseButton?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   embedMode: false,
   isFormField: false,
   hiddenOptions: () => [],
+  enableCloseButton: false,
 })
 
-const { editor, embedMode, isFormField, hiddenOptions } = toRefs(props)
+const emits = defineEmits(['close'])
+
+const { editor, embedMode, isFormField, hiddenOptions, enableCloseButton } = toRefs(props)
+
+const { appInfo } = useGlobal()
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
@@ -99,6 +105,32 @@ const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
 
 const showDivider = (options: RichTextBubbleMenuOptions[]) => {
   return !isFormField.value || options.some((o) => !hiddenOptions.value.includes(o))
+}
+
+const newMentionNode = () => {
+  if (!editor.value) return
+
+  const lastCharacter = editor.value.state.doc.textBetween(
+    editor.value.state.selection.$from.pos - 1,
+    editor.value.state.selection.$from.pos,
+  )
+
+  if (lastCharacter === '@') {
+    editor.value
+      .chain()
+      .deleteRange({ from: editor.value.state.selection.$from.pos - 1, to: editor.value.state.selection.$from.pos })
+      .run()
+  } else if (lastCharacter !== ' ') {
+    editor.value?.commands.insertContent(' @')
+    editor.value?.chain().focus().run()
+  } else {
+    editor.value?.commands.insertContent('@')
+    editor.value?.chain().focus().run()
+  }
+}
+
+const closeTextArea = () => {
+  emits('close')
 }
 </script>
 
@@ -341,6 +373,26 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
       </NcButton>
     </NcTooltip>
 
+    <NcTooltip v-if="appInfo.ee">
+      <template #title>
+        <div class="flex flex-col items-center">
+          <div>
+            {{ $t('labels.mention') }}
+          </div>
+          <div>@</div>
+        </div>
+      </template>
+      <NcButton
+        size="small"
+        :class="{ 'is-active': editor?.isActive('suggestions') }"
+        :tabindex="tabIndex"
+        type="text"
+        @click="newMentionNode"
+      >
+        <GeneralIcon icon="atSign" />
+      </NcButton>
+    </NcTooltip>
+
     <div
       v-if="
         showDivider([
@@ -374,6 +426,10 @@ const showDivider = (options: RichTextBubbleMenuOptions[]) => {
         </div>
       </NcButton>
     </NcTooltip>
+
+    <NcButton v-if="enableCloseButton" class="mr-2" type="text" size="small" @click="closeTextArea">
+      <GeneralIcon icon="close" />
+    </NcButton>
   </div>
 </template>
 

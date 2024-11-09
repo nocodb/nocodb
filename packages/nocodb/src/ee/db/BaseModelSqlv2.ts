@@ -1,4 +1,5 @@
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
   extractCondition,
@@ -53,6 +54,7 @@ import { NcError } from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
 import { getLimit } from '~/plan-limits';
+import { extractMentions } from '~/utils/richTextHelper';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -292,6 +294,45 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     return data;
+  }
+
+  public async handleRichTextMentions(
+    prevData,
+    newData: Record<string, any> | Array<Record<string, any>>,
+    req,
+  ) {
+    newData = Array.isArray(newData) ? newData : [newData];
+
+    prevData = Array.isArray(prevData) ? prevData : prevData ? [prevData] : [];
+
+    const columns = (await this.model.getColumns(this.context)).filter(
+      (c) => c.uidt === UITypes.LongText && c.meta?.richMode,
+    );
+
+    newData.forEach((newRow, index) => {
+      const prevRow = prevData[index];
+      for (const column of columns) {
+        const prevMentions = extractMentions(
+          prevRow?.[column.column_name] ?? '',
+        );
+        const newMentions = extractMentions(newRow[column.column_name]);
+
+        const uniqMentions = newMentions.filter(
+          (m) => !prevMentions.includes(m),
+        );
+
+        if (uniqMentions.length > 0) {
+          Noco.eventEmitter.emit(AppEvents.ROW_USER_MENTION, {
+            mentions: uniqMentions,
+            user: req?.user,
+            column,
+            rowId: this.extractPksValues(newRow, true),
+            model: this.model,
+            req,
+          });
+        }
+      }
+    });
   }
 
   async runOps(ops: Promise<string>[], trx = this.dbDriver) {
@@ -763,6 +804,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       user: req?.user?.email,
     });
 
+    await this.handleRichTextMentions(null, data, req);
+
     Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
       context: this.context,
       fk_workspace_id: this.model.fk_workspace_id,
@@ -791,6 +834,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
+
+    await this.handleRichTextMentions(null, data, req);
 
     Noco.eventEmitter.emit(UPDATE_WORKSPACE_COUNTER, {
       context: this.context,
@@ -2120,6 +2165,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
       await this.handleHooks('after.update', prevData, newData, req);
     }
+    await this.handleRichTextMentions(prevData, newData, req);
   }
 
   async getCustomConditionsAndApply({

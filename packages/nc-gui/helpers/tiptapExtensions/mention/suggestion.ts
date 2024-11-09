@@ -26,7 +26,7 @@ export default {
           showOnCreate: true,
           interactive: true,
           trigger: 'manual',
-          placement: 'top-start',
+          placement: 'bottom-start',
         })
       },
 

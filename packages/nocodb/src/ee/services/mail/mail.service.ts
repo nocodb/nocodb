@@ -2,13 +2,16 @@ import { AppEvents } from 'nocodb-sdk';
 import * as ejs from 'ejs';
 import { Injectable } from '@nestjs/common';
 import { Mention } from './templates';
-import type { RowCommentEvent } from '~/services/app-hooks/interfaces';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import type {
+  RowCommentEvent,
+  RowMentionEvent,
+} from '~/services/app-hooks/interfaces';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractMentions } from '~/utils/richTextHelper';
 import { DatasService } from '~/services/datas.service';
-import { BaseUser, Column, Workspace } from '~/models';
+import { Base, BaseUser, Column, Workspace } from '~/models';
 
 @Injectable()
 export class MailService implements OnModuleInit, OnModuleDestroy {
@@ -36,6 +39,10 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
     );
     this.appHooks.on(AppEvents.COMMENT_UPDATE, (data) =>
       this.hookHandler({ event: AppEvents.COMMENT_UPDATE, data }),
+    );
+
+    this.appHooks.on(AppEvents.ROW_USER_MENTION, (data) =>
+      this.hookHandler({ event: AppEvents.ROW_USER_MENTION, data }),
     );
   }
 
@@ -109,6 +116,62 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
               }),
             });
           }
+        }
+        break;
+      }
+
+      case AppEvents.ROW_USER_MENTION: {
+        const {
+          model: table,
+          rowId,
+          user,
+          column,
+          req,
+          mentions,
+        } = data as RowMentionEvent;
+
+        const base = await Base.get(req.context, table.base_id);
+
+        const row = await this.datasService.dataRead(req.context, {
+          rowId: rowId,
+          baseName: base.id,
+          tableName: table.id,
+          query: {},
+        });
+
+        const cols = await Column.list(req.context, {
+          fk_model_id: table.id,
+        });
+
+        const ws = await Workspace.get(base.fk_workspace_id);
+
+        const pvc = cols.find((c) => c.pv);
+
+        const displayValue = row[pvc?.title ?? ''] ?? '';
+
+        const baseUsers = await BaseUser.getUsersList(req.context, {
+          base_id: base.id,
+        });
+
+        for (const mention of mentions ?? []) {
+          const mentionedUser = baseUsers.find((b) => b.id === mention);
+
+          if (!mentionedUser) continue;
+          if (mentionedUser.id === user.id) continue;
+
+          await mailerAdapter.mailSend({
+            to: mentionedUser.email,
+            subject: `New comment on ${table.title}`,
+            html: ejs.render(Mention, {
+              name: user.display_name ?? user.email,
+              display_name: displayValue ?? '',
+              table: table.title,
+              base: base.title,
+              url: `${(req as any).ncSiteUrl}${(req as any).dashboardUrl}#/${
+                ws.id
+              }/${base.id}/${table.id}?rowId=${rowId}&columnId=${column.id}`,
+            }),
+          });
         }
         break;
       }

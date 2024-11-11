@@ -12,7 +12,7 @@ const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { appInfo } = useGlobal()
 
-const { toggleExtensionPanel, isPanelExpanded, extensionsEgg, onEggClick } = useExtensions()
+const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 

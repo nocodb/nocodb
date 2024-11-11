@@ -83,19 +83,18 @@ const emailVerify = async () => {
   loading.value = true
   if (confirmCodeForm.value) {
     try {
-      const res = await Auth.confirmSignUp(email.value, confirmCode.value)
-      console.log(res)
+      await Auth.confirmSignUp(email.value, confirmCode.value)
       confirmCodeForm.value = false
+      await message.success('Email verified successfully, Now you can try resetting password.')
     } catch (e) {
-      console.log(e)
+      await message.error(await extractSdkResponseErrorMsg(e as any))
     }
   } else {
     try {
-      const res = await Auth.resendSignUp(email.value)
-      console.log(res)
+      await Auth.resendSignUp(email.value)
       confirmCodeForm.value = true
     } catch (e) {
-      console.log(e)
+      await message.error(await extractSdkResponseErrorMsg(e as any))
     }
   }
   loading.value = false

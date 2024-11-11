@@ -39,6 +39,13 @@ const props = defineProps<{
     metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
     undo?: boolean,
   ) => Promise<void>
+  bulkUpsertRows?: (
+    insertRows: Row[],
+    updateRows: [],
+    props: string[],
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    newColumns?: Partial<ColumnType>[],
+  ) => Promise<void>
   expandForm?: (row: Row, state?: Record<string, any>, fromToolbar?: boolean) => void
   removeRowIfNew?: (row: Row) => void
   rowSortRequiredRows: Row[]
@@ -47,6 +54,7 @@ const props = defineProps<{
   syncCount: () => Promise<void>
   selectedRows: Array<Row>
   chunkStates: Array<'loading' | 'loaded' | undefined>
+  isBulkOperationInProgress: boolean
 }>()
 
 const emits = defineEmits(['bulkUpdateDlg'])
@@ -60,6 +68,7 @@ const {
   clearCache,
   syncCount,
   bulkUpdateRows,
+  bulkUpsertRows,
   deleteRangeOfRows,
   removeRowIfNew,
   clearInvalidRows,
@@ -192,6 +201,8 @@ const rowSortRequiredRows = toRef(props, 'rowSortRequiredRows')
 const totalRows = toRef(props, 'totalRows')
 
 const chunkStates = toRef(props, 'chunkStates')
+
+const isBulkOperationInProgress = toRef(props, 'isBulkOperationInProgress')
 
 const rowHeight = computed(() => rowHeightInPx[`${props.rowHeightEnum}`])
 
@@ -645,6 +656,45 @@ const onActiveCellChanged = () => {
   }
 }
 
+const isOpen = ref(false)
+async function expandRows({
+  newRows,
+  newColumns,
+  cellsOverwritten,
+  rowsUpdated,
+}: {
+  newRows: number
+  newColumns: number
+  cellsOverwritten: number
+  rowsUpdated: number
+}) {
+  isOpen.value = true
+  const options = {
+    continue: false,
+    expand: true,
+  }
+  const { close } = useDialog(resolveComponent('DlgExpandTable'), {
+    'modelValue': isOpen,
+    'newRows': newRows,
+    'newColumns': newColumns,
+    'cellsOverwritten': cellsOverwritten,
+    'rowsUpdated': rowsUpdated,
+    'onUpdate:expand': closeDialog,
+    'onUpdate:modelValue': closeDlg,
+  })
+  function closeDlg() {
+    isOpen.value = false
+    close(1000)
+  }
+  async function closeDialog(expand: boolean) {
+    options.continue = true
+    options.expand = expand
+    close(1000)
+  }
+  await until(isOpen).toBe(false)
+  return options
+}
+
 const {
   selectRangeMap,
   fillRangeMap,
@@ -671,6 +721,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
+  expandRows,
   (e: KeyboardEvent) => {
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
@@ -851,6 +902,7 @@ const {
     await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
   bulkUpdateRows,
+  bulkUpsertRows,
   fillHandle,
   view,
   undefined,
@@ -1603,8 +1655,6 @@ const maxGridHeight = computed(() => {
   return totalRows.value * (isMobileMode.value ? 56 : rowHeight.value)
 })
 
-const startRowHeight = computed(() => `${rowSlice.start * rowHeight.value}px`)
-
 const { width, height } = useWindowSize()
 
 watch(
@@ -1637,6 +1687,12 @@ watch(
       }"
         class="border-r-1 border-l-1 border-gray-200 h-full"
       ></div>
+    </div>
+    <div
+      v-if="isBulkOperationInProgress"
+      class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-white/50"
+    >
+      <GeneralLoader size="regular" />
     </div>
 
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative !overflow-auto">
@@ -1907,7 +1963,7 @@ watch(
           <div
             class="table-overlay"
             :style="{
-              height: `${maxGridHeight + 256}px`,
+              height: isBulkOperationInProgress ? '100%' : `${maxGridHeight + 256}px`,
               width: `${maxGridWidth}px`,
             }"
           >

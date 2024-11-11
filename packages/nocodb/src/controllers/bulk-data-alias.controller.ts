@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Req,
   Res,
   UseGuards,
@@ -112,6 +113,23 @@ export class BulkDataAliasController {
       baseName: baseName,
       tableName: tableName,
       query: req.query,
+    });
+  }
+
+  @Post(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName/upsert'])
+  @Acl('bulkDataUpsert')
+  async bulkDataUpsert(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
+    @Param('tableName') tableName: string,
+    @Body() body: any,
+  ) {
+    return await this.bulkDataAliasService.bulkDataUpsert(context, {
+      body: body,
+      cookie: req,
+      baseName: baseName,
+      tableName: tableName,
     });
   }
 }

@@ -1485,6 +1485,286 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
   }
 
+  async bulkUpsert(
+    datas: any[],
+    {
+      chunkSize = 100,
+      cookie,
+      raw = false,
+      foreign_key_checks = true,
+      insertOneByOneAsFallback = false,
+    }: {
+      chunkSize?: number;
+      cookie?: any;
+      raw?: boolean;
+      foreign_key_checks?: boolean;
+      insertOneByOneAsFallback?: boolean;
+    } = {},
+  ) {
+    const insertQueries: string[] = [];
+    const updateQueries: string[] = [];
+
+    try {
+      const columns = await this.model.getColumns(this.context);
+
+      // validate and prepare data
+      const preparedDatas = raw
+        ? datas
+        : await Promise.all(
+            datas.map(async (d) => {
+              await this.validate(d, columns);
+              return this.model.mapAliasToColumn(
+                this.context,
+                d,
+                this.clientMeta,
+                this.dbDriver,
+                columns,
+              );
+            }),
+          );
+
+      const dataWithPks = [];
+      const dataWithoutPks = [];
+
+      const updatePkValues = [];
+
+      for (const data of preparedDatas) {
+        if (!raw) {
+          await this.prepareNocoData(data, true, cookie);
+        }
+
+        const pkValues = this.extractPksValues(data);
+        if (pkValues !== 'N/A' && pkValues !== undefined) {
+          dataWithPks.push({ pk: pkValues, data });
+        } else {
+          // const insertObj = this.handleValidateBulkInsert(data, columns);
+          dataWithoutPks.push(data);
+        }
+      }
+      // Check which records with PKs exist in the database
+
+      const existingRecords = await this.chunkList({
+        pks: dataWithPks.map((v) => v.pk),
+      });
+
+      const existingPkSet = new Set(
+        existingRecords.map((r) => this.extractPksValues(r, true)),
+      );
+
+      const toInsert = [...dataWithoutPks];
+      const toUpdate = [];
+
+      for (const { pk, data } of dataWithPks) {
+        if (existingPkSet.has(pk)) {
+          toUpdate.push(data);
+
+          updatePkValues.push(
+            getCompositePkValue(this.model.primaryKeys, {
+              ...data,
+            }),
+          );
+        } else {
+          // const insertObj = this.handleValidateBulkInsert(data, columns);
+          toInsert.push(data);
+        }
+      }
+
+      const chunkSize = this.isSqlite ? 10 : 100;
+      let trimLeading = 0;
+      let trimTrailing = 0;
+      if (toInsert.length > 0) {
+        if (!foreign_key_checks) {
+          if (this.isPg) {
+            insertQueries.push(
+              this.dbDriver
+                .raw('set session_replication_role to replica;')
+                .toQuery(),
+            );
+            trimLeading++;
+          } else if (this.isMySQL) {
+            insertQueries.push(
+              this.dbDriver.raw('SET foreign_key_checks = 0;').toQuery(),
+            );
+            trimLeading++;
+          }
+        }
+
+        if (insertOneByOneAsFallback && (this.isSqlite || this.isMySQL)) {
+          for (const insertData of toInsert) {
+            insertQueries.push(
+              this.dbDriver(this.tnPath).insert(insertData).toQuery(),
+            );
+          }
+        } else {
+          const batches = [];
+
+          const returningObj: Record<string, string> = {};
+
+          for (const col of this.model.primaryKeys) {
+            returningObj[col.title] = col.column_name;
+          }
+
+          for (let i = 0; i < toInsert.length; i += chunkSize) {
+            batches.push(toInsert.slice(i, i + chunkSize));
+          }
+
+          for (const batch of batches) {
+            if (this.isPg || this.isMssql) {
+              insertQueries.push(
+                this.dbDriver(this.tnPath)
+                  .insert(batch)
+                  .returning(
+                    this.model.primaryKeys?.length
+                      ? (returningObj as any)
+                      : '*',
+                  )
+                  .toQuery(),
+              );
+            } else {
+              insertQueries.push(
+                this.dbDriver(this.tnPath).insert(batch).toQuery(),
+              );
+            }
+          }
+        }
+
+        if (!foreign_key_checks) {
+          if (this.isPg) {
+            insertQueries.push(
+              this.dbDriver
+                .raw('set session_replication_role to origin;')
+                .toQuery(),
+            );
+            trimTrailing++;
+          } else if (this.isMySQL) {
+            insertQueries.push(
+              this.dbDriver.raw('SET foreign_key_checks = 1;').toQuery(),
+            );
+            trimTrailing++;
+          }
+        }
+      }
+
+      if (toUpdate.length > 0) {
+        for (const d of toUpdate) {
+          const pkValues = getCompositePkValue(
+            this.model.primaryKeys,
+            this.extractPksValues(d),
+          );
+
+          const wherePk = await this._wherePk(pkValues, true);
+
+          // remove pk from update data for databricks
+          if (this.isDatabricks) {
+            const dWithoutPk = {};
+
+            for (const k in d) {
+              if (!(k in wherePk)) {
+                dWithoutPk[k] = d[k];
+              }
+            }
+
+            updateQueries.push(
+              this.dbDriver(this.tnPath)
+                .update(dWithoutPk)
+                .where(wherePk)
+                .toQuery(),
+            );
+          } else {
+            updateQueries.push(
+              this.dbDriver(this.tnPath).update(d).where(wherePk).toQuery(),
+            );
+          }
+        }
+      }
+
+      let updateResponses = [];
+      let insertResponses = [];
+
+      if ((this.dbDriver as any).isExternal) {
+        insertResponses = await runExternal(
+          this.sanitizeQuery(insertQueries),
+          (this.dbDriver as any).extDb,
+        );
+
+        await runExternal(
+          this.sanitizeQuery(updateQueries),
+          (this.dbDriver as any).extDb,
+        );
+      } else {
+        const trx = await this.dbDriver.transaction();
+        try {
+          for (const q of insertQueries) {
+            insertResponses.push(...(await this.execAndGetRows(q, trx)));
+          }
+          for (const q of updateQueries) {
+            await trx.raw(this.sanitizeQuery(q));
+          }
+
+          await trx.commit();
+        } catch (e) {
+          await trx.rollback();
+          throw e;
+        }
+      }
+
+      if (trimLeading) {
+        insertResponses = insertResponses.slice(trimLeading);
+      }
+      if (trimTrailing) {
+        insertResponses = insertResponses.slice(0, -trimTrailing);
+      }
+
+      if (!raw) {
+        // Insertion
+        if (this.isMySQL) {
+          insertResponses = insertResponses.map((r) => ({
+            [this.model.primaryKey.column_name]: r,
+          }));
+        }
+
+        insertResponses = await this.chunkList({
+          pks: insertResponses.map((d) => this.extractPksValues(d)),
+        });
+
+        if (insertResponses.length === 1) {
+          const insertData = await this.readByPk(insertResponses[0]);
+          await this.afterInsert(insertData, this.dbDriver, cookie);
+        } else {
+          await this.afterBulkInsert(insertResponses, this.dbDriver, cookie);
+        }
+
+        // Updated Records
+        updateResponses = await this.chunkList({
+          pks: updatePkValues,
+        });
+
+        if (!raw) {
+          if (updateResponses.length === 1) {
+            await this.afterUpdate(
+              existingRecords[0],
+              updateResponses[0],
+              null,
+              cookie,
+              toUpdate[0],
+            );
+          } else {
+            await this.afterBulkUpdate(
+              toUpdate,
+              updateResponses,
+              this.dbDriver,
+              cookie,
+            );
+          }
+        }
+      }
+
+      return [...updateResponses, ...insertResponses];
+    } catch (e) {
+      throw e;
+    }
+  }
+
   async bulkUpdate(
     datas: any[],
     {

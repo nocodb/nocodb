@@ -11539,6 +11539,134 @@
         }
       }
     },
+    "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/upsert": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseName",
+          "in": "path",
+          "required": true,
+          "description": "Base Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        }
+      ],
+      "post": {
+        "summary": "Bulk Upsert Table Rows",
+        "operationId": "db-table-row-bulk-upsert",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "List of returned values. 1 means successful. 0 means failed."
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 1,
+                        "Title": "abc"
+                      },
+                      {
+                        "Id": 2,
+                        "Title": "def"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "description": "List of data objects",
+                "items": {
+                  "x-stoplight": {
+                    "id": "7u0mp8nzlvysz"
+                  },
+                  "type": "object"
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 1,
+                      "Title": "abc"
+                    },
+                    {
+                      "Title": "def"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "description": ""
+        },
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "description": "List of data objects",
+            "items": {
+              "x-stoplight": {
+                "id": "7u0mp8nzlvysz"
+              },
+              "type": "object"
+            }
+          },
+          "examples": {
+            "Example 1": {
+              "value": [
+                {
+                  "Title": "abc"
+                },
+                {
+                  "Title": "def"
+                }
+              ]
+            }
+          }
+        },
+        "description": "Bulk upsert table rows in one go.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}": {
       "parameters": [
         {
@@ -11647,6 +11775,103 @@
           "description": ""
         },
         "description": "Bulk insert table rows in one go.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "put": {
+        "summary": "Bulk Upsert Table Rows",
+        "operationId": "db-table-row-bulk-upsert",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "List of returned values. 1 means successful. 0 means failed."
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 1,
+                        "Title": "abc"
+                      },
+                      {
+                        "Id": 2,
+                        "Title": "def"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "description": "List of data objects",
+                "items": {
+                  "x-stoplight": {
+                    "id": "7u0mp8nzlvysz"
+                  },
+                  "type": "object"
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 1,
+                      "Title": "abc"
+                    },
+                    {
+                      "Title": "def"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "description": ""
+        },
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "description": "List of data objects",
+            "items": {
+              "x-stoplight": {
+                "id": "7u0mp8nzlvysz"
+              },
+              "type": "object"
+            }
+          },
+          "examples": {
+            "Example 1": {
+              "value": [
+                {
+                  "Title": "abc"
+                },
+                {
+                  "Title": "def"
+                }
+              ]
+            }
+          }
+        },
+        "description": "Bulk upsert table rows in one go.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"

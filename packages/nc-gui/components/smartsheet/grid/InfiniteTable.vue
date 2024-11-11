@@ -258,7 +258,7 @@ const updateVisibleRows = async () => {
   const firstChunkId = Math.floor(start / CHUNK_SIZE)
   const lastChunkId = Math.floor((end - 1) / CHUNK_SIZE)
 
-  const chunksToFetch = new Set()
+  const chunksToFetch = new Set<number>()
 
   for (let chunkId = firstChunkId; chunkId <= lastChunkId; chunkId++) {
     if (!chunkStates.value[chunkId]) chunksToFetch.add(chunkId)
@@ -1397,6 +1397,17 @@ eventBus.on(async (event, payload) => {
 
     removeRowIfNew?.(payload)
   }
+})
+
+watch(activeCell, (activeCell) => {
+  const row =  activeCell.row !== null ? cachedRows.value.get(activeCell.row)?.row : undefined;
+  const col = (row && activeCell.col !== null) ? fields.value[activeCell.col] : undefined;
+  const val = (row && col) ? row[col.title as string] : undefined;
+
+  const rowId = extractPkFromRow(row!, meta.value?.columns as ColumnType[])
+  const viewId = view.value?.id;
+
+  eventBus.emit(SmartsheetStoreEvents.CELL_SELECTED, { rowId, colId: col?.id, val, viewId });
 })
 
 const reloadViewDataHookHandler = async () => {

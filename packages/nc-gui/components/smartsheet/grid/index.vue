@@ -49,6 +49,7 @@ const {
   navigateToSiblingRow,
   deleteRangeOfRows,
   bulkUpdateRows,
+  bulkUpsertRows,
   syncCount,
   totalRows,
   syncVisibleData,
@@ -59,6 +60,7 @@ const {
   clearInvalidRows,
   isRowSortRequiredRows,
   applySorting,
+  isBulkOperationInProgress,
 } = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
@@ -282,6 +284,7 @@ const {
       :delete-range-of-rows="deleteRangeOfRows"
       :apply-sorting="applySorting"
       :bulk-update-rows="bulkUpdateRows"
+      :bulk-upsert-rows="bulkUpsertRows"
       :clear-cache="clearCache"
       :clear-invalid-rows="clearInvalidRows"
       :data="cachedRows"
@@ -293,6 +296,7 @@ const {
       :row-height-enum="rowHeight"
       :selected-rows="selectedRows"
       :row-sort-required-rows="isRowSortRequiredRows"
+      :is-bulk-operation-in-progress="isBulkOperationInProgress"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
     />

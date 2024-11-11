@@ -593,6 +593,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
+  undefined,
   async (e: KeyboardEvent) => {
     // ignore navigating if single/multi select options is open
     const activeDropdownEl = document.querySelector(
@@ -770,6 +771,7 @@ const {
     await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
   bulkUpdateRows,
+  undefined,
   fillHandle,
   view,
   paginationDataRef,
@@ -787,7 +789,7 @@ async function saveEmptyRow(rowObj: Row) {
   await updateOrSaveRow?.(rowObj)
 }
 
-function addEmptyRow(row?: number, skipUpdate: boolean = false) {
+function addEmptyRow(row?: number, skipUpdate = false) {
   const rowObj = callAddEmptyRow?.(row)
 
   if (!skipUpdate && rowObj) {

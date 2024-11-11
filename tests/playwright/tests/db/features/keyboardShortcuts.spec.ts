@@ -439,9 +439,13 @@ test.describe('Clipboard support', () => {
 
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
-    // reload page
-    await dashboard.rootPage.reload();
+    await page.waitForTimeout(1000);
 
+    await grid.expandTableOverlay.upsert();
+
+    await page.waitForTimeout(1000);
+
+    // reload page
     // verify copied data
     for (let i = 4; i <= 5; i++) {
       await grid.cell.verify({ index: i, columnHeader: 'SingleLineText', value: cellText[i - 4] });

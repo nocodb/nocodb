@@ -1120,13 +1120,6 @@ export function useMultiSelect(
             undefined,
             bulkOpsCols.map(({ column }) => column),
           )
-
-          clearSelectedRange()
-          selectedRange.startRange({ row: totalRowsBeforeActiveCell, col: startColIndex })
-          activeCell.row = totalRowsBeforeActiveCell + selectionRowCount - 1
-          activeCell.col = startColIndex + pasteMatrixCols
-
-          selectedRange.endRange({ row: activeCell.row, col: activeCell.col })
           scrollToCell?.()
         } else {
           await bulkUpdateRows?.(updatedRows, propsToPaste)

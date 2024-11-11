@@ -1,19 +1,77 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import type { ViewType } from 'nocodb-sdk'
+import { LockType } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
+  view?: ViewType
+  changeType?: LockType
 }>()
 
 const emits = defineEmits(['update:modelValue', 'submit'])
 
 const dialogShow = useVModel(props, 'modelValue', emits)
 
+const { $api, $e } = useNuxtApp()
+
+const { user } = useGlobal()
+
+const { idUserMap } = storeToRefs(useBase())
+
+const { activeView } = storeToRefs(useViewsStore())
+
+const view = computed(() => props.view || activeView.value)
+
+const changeType = computed(() =>
+  view.value?.lock_type !== LockType.Locked ? LockType.Locked : props.changeType || LockType.Collaborative,
+)
+
+watchEffect(() => {
+  console.log('props', props.view, view.value?.meta)
+})
+
 const focusInput: VNodeRef = (el) => el && el?.focus?.()
 
 const creating = ref(false)
 
-const table = ref({})
+const description = ref('')
+
+const isLoading = ref(false)
+
+const changeLockType = async () => {
+  if (!view.value) return
+  const payload = {
+    lockedViewDescription: changeType.value === LockType.Locked ? description.value : '',
+    lockedByUserId: changeType.value === LockType.Locked ? user.value?.id : '',
+  }
+
+  isLoading.value = true
+
+  try {
+    await $api.dbView.update(view.value.id as string, {
+      lock_type: changeType.value,
+      meta: {
+        ...parseProp(view.value.meta),
+        ...payload,
+      },
+    })
+
+    view.value.meta = {
+      ...parseProp(view.value.meta),
+      ...payload,
+    }
+
+    view.value.lock_type = changeType.value
+
+    message.success(`Successfully Switched to ${changeType.value} view`)
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    dialogShow.value = false
+    isLoading.value = false
+  }
+}
 </script>
 
 <template>
@@ -24,47 +82,60 @@ const table = ref({})
     size="small"
     @keydown.esc="dialogShow = false"
   >
-    <template #header>
+    <template v-if="changeType === LockType.Locked" #header>
       <div class="flex flex-col gap-2 w-full">
         <div class="text-base font-bold text-nc-content-gray-emphasis">
-          {{ $t('title.lockeThisView') }}
+          {{ $t('title.lockThisView') }}
         </div>
         <div class="text-sm text-nc-content-gray">
-          {{ $t('title.lockeThisViewSubtle') }}
+          {{ $t('title.lockThisViewSubtle') }}
         </div>
       </div>
     </template>
 
     <a-form
       layout="vertical"
-      :model="table"
       name="create-new-table-form"
       class="flex flex-col gap-5 !mt-1"
       @keydown.enter="emits('submit')"
       @keydown.esc="dialogShow = false"
     >
-      <div class="flex flex-col gap-5">
+      <div v-if="changeType === LockType.Locked" class="flex flex-col gap-5">
         <a-form-item>
           <a-textarea
             :ref="focusInput"
-            v-model:value="table.title"
+            v-model:value="description"
             class="!rounded-lg !text-sm nc-input-shadow !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
             size="large"
             hide-details
-            data-testid="create-table-title-input"
+            data-testid="lock-view-description-input"
             :placeholder="$t('placeholder.lockViewDescription')"
           />
         </a-form-item>
+      </div>
+      <div v-else class="flex flex-col gap-2">
+        <div class="text-base font-bold text-nc-content-gray-emphasis">
+          {{ $t('title.unlockViewTitle') }}
+        </div>
+        <div v-if="view?.meta?.lockedViewDescription" class="text-sm bg-nc-bg-gray-light rounded-lg px-2 py-2">
+          {{ view?.meta?.lockedViewDescription }}
+        </div>
+        <div class="text-sm text-nc-content-gray">
+          {{ $t('title.unlockViewTitleSubtitle') }}
+          <span class="font-bold">
+            {{ idUserMap[view?.meta?.lockedByUserId]?.display_name || idUserMap[view?.meta?.lockedByUserId]?.email }}
+          </span>
+        </div>
       </div>
 
       <div class="flex gap-2 items-center justify-end">
         <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
-        <NcButton type="primary" size="small" :loading="creating" @click="emits('submit')">
+        <NcButton type="primary" size="small" :loading="creating" @click="changeLockType">
           <template #icon>
-            <GeneralIcon icon="ncLock" class="flex-none" />
+            <GeneralIcon :icon="changeType === LockType.Locked ? 'ncLock' : 'ncUnlock'" class="flex-none" />
           </template>
-          {{ $t('labels.lockView') }}
+          {{ changeType === LockType.Locked ? $t('labels.lockView') : $t('labels.unlockView') }}
         </NcButton>
       </div>
     </a-form>

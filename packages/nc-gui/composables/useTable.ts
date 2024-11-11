@@ -32,6 +32,8 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void, sourceI
       sourceId = base.value.sources?.[0].id
     }
 
+
+
     if (!sqlUi?.value) return
     const columns = sqlUi?.value?.getNewTableColumns().filter((col: ColumnType) => {
       if (col.column_name === 'id' && table.columns.includes('id_ag')) {

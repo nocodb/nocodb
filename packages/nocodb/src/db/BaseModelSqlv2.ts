@@ -5501,7 +5501,7 @@ class BaseModelSqlv2 {
   ) {
     const { allowSystemColumn } = params;
     const cols = columns || (await this.model.getColumns(this.context));
-    let insertObj;
+    let insertObj = {};
 
     for (let i = 0; i < cols.length; ++i) {
       const col = cols[i];

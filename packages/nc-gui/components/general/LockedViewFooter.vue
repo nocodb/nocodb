@@ -18,16 +18,18 @@ const handleUnlockView = () => {
 </script>
 
 <template>
-  <div class="flex items-center gap-2 bg-nc-bg-gray-light pl-3 pr-2 py-1.5">
+  <div
+    class="flex items-center gap-2 bg-nc-bg-gray-light pl-3 pr-2 py-1.5 text-nc-content-gray-subtle2 text-small leading-[18px]"
+  >
     <GeneralIcon icon="ncLock" class="flex-none" />
 
     <div class="flex-1">{{ $t('title.thisViewIsLocked') }}</div>
 
-    <NcButton type="text" size="small" class="!text-nc-content-brand !hover:bg-nc-bg-gray-medium" @click="handleUnlockView">
+    <NcButton type="text" size="xs" class="!text-nc-content-brand !hover:bg-nc-bg-gray-medium" @click="handleUnlockView">
       <template #icon>
         <GeneralIcon icon="ncUnlock" class="flex-none" />
       </template>
-      {{ $t('labels.unlockView') }}
+      {{ $t('general.unlock') }}
     </NcButton>
   </div>
 </template>

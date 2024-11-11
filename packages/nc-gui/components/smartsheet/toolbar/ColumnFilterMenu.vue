@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 
-const isLocked = inject(IsLockedInj, ref(false))
-
 const activeView = inject(ActiveViewInj, ref())
 
 const isToolbarIconMode = inject(
@@ -67,7 +65,7 @@ eventBus.on(async (event, column: ColumnType) => {
   <NcDropdown
     v-model:visible="open"
     :trigger="['click']"
-    overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown"
+    overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown overflow-hidden"
     class="!xs:hidden"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
@@ -75,13 +73,7 @@ eventBus.on(async (event, column: ColumnType) => {
         {{ $t('activity.filter') }}
       </template>
 
-      <NcButton
-        v-e="['c:filter']"
-        :disabled="isLocked"
-        class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7"
-        size="small"
-        type="secondary"
-      >
+      <NcButton v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7" size="small" type="secondary">
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
             <component :is="iconMap.filter" class="h-4 w-4" />
@@ -102,7 +94,8 @@ eventBus.on(async (event, column: ColumnType) => {
         class="nc-table-toolbar-menu"
         :auto-save="true"
         data-testid="nc-filter-menu"
-        :is-open="open"
+        v-model:is-open="open"
+        :is-view-filter="true"
         @update:filters-length="filtersLength = $event"
       >
       </SmartsheetToolbarColumnFilter>

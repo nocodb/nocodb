@@ -20,6 +20,7 @@ interface Props {
   // column could be possibly undefined when the filter is created
   column?: ColumnType
   filter: Filter
+  disabled?: boolean
 }
 
 interface Emits {
@@ -207,7 +208,7 @@ const isSingleOrMultiSelect = computed(() => {
   <a-select
     v-if="column && isBoolean(column, abstractType)"
     v-model:value="filterInput"
-    :disabled="filter.readOnly"
+    :disabled="filter.readOnly || props.disabled"
     :options="booleanOptions"
   />
   <div
@@ -219,10 +220,13 @@ const isSingleOrMultiSelect = computed(() => {
     <component
       :is="filterType ? componentMap[filterType] : Text"
       v-model="filterInput"
-      :disabled="filter.readOnly"
+      :disabled="filter.readOnly || props.disabled"
       placeholder="Enter a value"
       :column="column"
       class="flex !rounded-lg"
+      :class="{
+        'text-nc-content-gray-muted': props.disabled,
+      }"
       v-bind="componentProps"
       location="filter"
       @focus="isInputBoxOnFocus = true"

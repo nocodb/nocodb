@@ -627,6 +627,7 @@
     "noConditionsAdded": "조건이 추가되지 않았습니다"
   },
   "labels": {
+    "continue": "Continue",
     "toggleExperimentalFeature": "실험 기능을 쉽게 활성화 또는 비활성화하여 향후 출시될 기능들을 탐색하고 평가할 수 있습니다.",
     "modifiedOn": "수정된 날짜",
     "configuration": "구성",

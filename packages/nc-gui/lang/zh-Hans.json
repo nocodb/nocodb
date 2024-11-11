@@ -627,6 +627,7 @@
     "noConditionsAdded": "未添加条件"
   },
   "labels": {
+    "continue": "Continue",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "修改于",
     "configuration": "配置",

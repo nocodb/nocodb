@@ -38,6 +38,8 @@ const { user } = useGlobal()
 const open = ref(false)
 
 const updateRowHeight = async (rh: number, undo = false) => {
+  if (isLocked.value) return
+
   if (view.value?.id) {
     if (rh === (view.value.view as GridType).row_height) return
 
@@ -86,7 +88,6 @@ useMenuCloseOnEsc(open)
     <div>
       <NcButton
         v-e="['c:row-height']"
-        :disabled="isLocked"
         class="nc-height-menu-btn nc-toolbar-btn !border-0 !h-7 !px-1.5 !min-w-7"
         size="small"
         type="secondary"
@@ -99,12 +100,21 @@ useMenuCloseOnEsc(open)
     </div>
     <template #overlay>
       <div
-        class="w-full bg-white shadow-lg p-1.5 menu-filter-dropdown border-1 border-gray-200 rounded-lg overflow-hidden w-[160px]"
+        class="w-full bg-white shadow-lg p-1.5 menu-filter-dropdown border-1 border-gray-200 rounded-lg overflow-hidden min-w-[160px]"
         data-testid="nc-height-menu"
       >
         <div class="flex flex-col w-full text-sm" @click.stop>
           <div class="text-xs text-gray-500 px-3 pt-2 pb-1 select-none">{{ $t('objects.rowHeight') }}</div>
-          <div v-for="(item, i) of rowHeightOptions" :key="i" class="nc-row-height-option" @click="updateRowHeight(i)">
+          <div
+            v-for="(item, i) of rowHeightOptions"
+            :key="i"
+            class="nc-row-height-option"
+            :class="{
+              'hover:bg-gray-100 cursor-pointer': !isLocked,
+              'cursor-not-allowed': isLocked,
+            }"
+            @click="updateRowHeight(i)"
+          >
             <div class="flex items-center gap-2">
               <GeneralIcon :icon="item.icon" class="nc-row-height-icon" />
               {{ $t(`objects.heightClass.${item.heightClass}`) }}
@@ -116,6 +126,7 @@ useMenuCloseOnEsc(open)
             />
           </div>
         </div>
+        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" class="-mx-1.5 -mb-1.5" />
       </div>
     </template>
   </a-dropdown>
@@ -123,7 +134,7 @@ useMenuCloseOnEsc(open)
 
 <style scoped>
 .nc-row-height-option {
-  @apply flex items-center gap-2 p-2 justify-between hover:bg-gray-100 rounded-md cursor-pointer text-gray-600;
+  @apply flex items-center gap-2 p-2 justify-between rounded-md text-gray-600;
 }
 
 .nc-row-height-icon {

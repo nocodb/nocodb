@@ -627,6 +627,7 @@
     "noConditionsAdded": "Žiadne podmienky neboli pridané"
   },
   "labels": {
+    "continue": "Continue",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Upravené",
     "configuration": "Konfigurácia",

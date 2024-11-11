@@ -627,6 +627,7 @@
     "noConditionsAdded": "Nav pievienoti nosacījumi"
   },
   "labels": {
+    "continue": "Continue",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Modificēts",
     "configuration": "Konfigurācija",

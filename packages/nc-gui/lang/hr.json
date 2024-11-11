@@ -627,6 +627,7 @@
     "noConditionsAdded": "Nema dodanih uvjeta"
   },
   "labels": {
+    "continue": "Continue",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Izmijenjeno na",
     "configuration": "Konfiguracija",

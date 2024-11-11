@@ -743,7 +743,11 @@ useMenuCloseOnEsc(open)
 
 .nc-fields-show-all-fields,
 .nc-fields-show-system-fields {
-  @apply !text-xs !w-1/2 !text-gray-500 !border-none bg-gray-100 hover:(!text-gray-600 bg-gray-200);
+  @apply !text-xs !w-1/2 !text-gray-500 !border-none bg-gray-100;
+
+  &:not(:disabled) {
+    @apply hover:(!text-gray-600 bg-gray-200);
+  }
 }
 
 .nc-cover-image-object-fit-dropdown-menu {

@@ -602,10 +602,10 @@ useMenuCloseOnEsc(open)
               v-model="fields"
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"
+              :disabled="isLocked"
               @change="onMove($event)"
               @start="isDragging = true"
               @end="isDragging = false"
-              :disabled="isLocked"
             >
               <template #item="{ element: field }">
                 <div

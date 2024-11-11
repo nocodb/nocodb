@@ -13,7 +13,7 @@ const emits = defineEmits(['update:modelValue', 'submit'])
 
 const dialogShow = useVModel(props, 'modelValue', emits)
 
-const { $api, $e } = useNuxtApp()
+const { $api } = useNuxtApp()
 
 const { user } = useGlobal()
 

@@ -126,7 +126,7 @@ useMenuCloseOnEsc(open)
             />
           </div>
         </div>
-        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" class="-mx-1.5 -mb-1.5" />
+        <GeneralLockedViewFooter v-if="isLocked" class="-mx-1.5 -mb-1.5" @on-open="open = false" />
       </div>
     </template>
   </a-dropdown>

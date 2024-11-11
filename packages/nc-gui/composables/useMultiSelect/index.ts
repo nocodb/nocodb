@@ -21,6 +21,8 @@ import {
   timeFormats,
 } from 'nocodb-sdk'
 import { parse } from 'papaparse'
+import type { Row } from '../../lib/types'
+import { generateUniqueColumnName } from '../../helpers/parsers/parserHelpers'
 import type { Cell } from './cellRange'
 import { CellRange } from './cellRange'
 import convertCellData from './convertCellData'
@@ -43,9 +45,35 @@ export function useMultiSelect(
   clearSelectedRangeOfCells: Function,
   makeEditable: Function,
   scrollToCell?: (row?: number | null, col?: number | null, scrollBehaviour?: ScrollBehavior) => void,
+  expandRows?: ({
+    newRows,
+    newColumns,
+    cellsOverwritten,
+    rowsUpdated,
+  }: {
+    newRows: number
+    newColumns: number
+    cellsOverwritten: number
+    rowsUpdated: number
+  }) => Promise<{
+    continue: boolean
+    expand: boolean
+  }>,
   keyEventHandler?: Function,
   syncCellData?: Function,
-  bulkUpdateRows?: Function,
+  bulkUpdateRows?: (
+    rows: Row[],
+    props: string[],
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    undo?: boolean,
+  ) => Promise<void>,
+  bulkUpsertRows?: (
+    insertRows: Row[],
+    updateRows: Row[],
+    props: string[],
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    newColumns?: Partial<ColumnType>[],
+  ) => Promise<void>,
   fillHandle?: MaybeRef<HTMLElement | undefined>,
   view?: MaybeRef<ViewType | undefined>,
   paginationData?: MaybeRef<PaginatedType | undefined>,
@@ -923,71 +951,185 @@ export function useMultiSelect(
 
         const selectionRowCount = Math.max(clipboardMatrix.length, selectedRange.end.row - selectedRange.start.row + 1)
 
-        const pasteMatrixRows = selectionRowCount
         const pasteMatrixCols = clipboardMatrix[0].length
 
-        const colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
+        const existingFields = unref(fields)
+        const startColIndex = activeCell.col
+        const existingColCount = existingFields.length - startColIndex
+        const newColsNeeded = Math.max(0, pasteMatrixCols - existingColCount)
 
-        let rowsToPaste
-
+        let tempTotalRows = 0
+        let totalRowsBeforeActiveCell
+        let availableRowsToUpdate
+        let rowsToAdd
         if (isArrayStructure) {
-          rowsToPaste = (unref(data) as Row[]).slice(activeCell.row, activeCell.row + selectionRowCount)
+          const { totalRows: _tempTr, page = 1, pageSize = 100 } = unref(paginationData)!
+          tempTotalRows = _tempTr as number
+          totalRowsBeforeActiveCell = (page - 1) * pageSize + activeCell.row
+          availableRowsToUpdate = Math.max(0, tempTotalRows - totalRowsBeforeActiveCell)
+          rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
         } else {
-          rowsToPaste = Array.from(unref(data) as Map<number, Row>)
-            .filter(([index]) => index >= activeCell.row! && index < activeCell.row! + selectionRowCount)
-            .map(([, row]) => row)
+          tempTotalRows = unref(_totalRows) as number
+          totalRowsBeforeActiveCell = activeCell.row
+          availableRowsToUpdate = Math.max(0, tempTotalRows - totalRowsBeforeActiveCell)
+          rowsToAdd = Math.max(0, selectionRowCount - availableRowsToUpdate)
         }
 
-        const propsToPaste: string[] = []
+        let options = {
+          continue: false,
+          expand: (rowsToAdd > 0 || newColsNeeded > 0) && !isArrayStructure,
+        }
+        if (options.expand && !isArrayStructure) {
+          options = await expandRows?.({
+            newRows: rowsToAdd,
+            newColumns: newColsNeeded,
+            cellsOverwritten: Math.min(availableRowsToUpdate, selectionRowCount) * (pasteMatrixCols - newColsNeeded),
+            rowsUpdated: Math.min(availableRowsToUpdate, selectionRowCount),
+          })
+          if (!options.continue) return
+        }
 
-        let pastedRows = 0
-        let isInfoShown = false
+        let colsToPaste
+        const bulkOpsCols = []
 
-        for (let i = 0; i < pasteMatrixRows; i++) {
-          const pasteRow = rowsToPaste[i]
+        if (options.expand) {
+          colsToPaste = existingFields.slice(startColIndex, startColIndex + pasteMatrixCols)
 
-          // TODO handle insert new row
-          if (!pasteRow || pasteRow.rowMeta.new) break
+          if (newColsNeeded > 0) {
+            const columnsHash = (await api.dbTableColumn.hash(meta.value?.id)).hash
+            const columnsLength = meta.value?.columns?.length || 0
 
-          pastedRows++
-
-          for (let j = 0; j < pasteMatrixCols; j++) {
-            const pasteCol = colsToPaste[j]
-
-            if (!isPasteable(pasteRow, pasteCol)) {
-              if ((isBt(pasteCol) || isOo(pasteCol) || isMm(pasteCol)) && !isInfoShown) {
-                message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
-                isInfoShown = true
+            for (let i = 0; i < newColsNeeded; i++) {
+              const tempCol = {
+                uidt: UITypes.SingleLineText,
+                order: columnsLength + i,
+                column_order: {
+                  order: columnsLength + i,
+                  view_id: activeView.value?.id,
+                },
+                view_id: activeView.value?.id,
+                table_name: meta.value?.table_name,
               }
-              continue
+
+              const newColTitle = generateUniqueColumnName({
+                metaColumns: [...(meta.value?.columns ?? []), ...bulkOpsCols.map(({ column }) => column)],
+                formState: tempCol,
+              })
+
+              bulkOpsCols.push({
+                op: 'add',
+                column: {
+                  ...tempCol,
+                  title: newColTitle,
+                },
+              })
             }
 
-            propsToPaste.push(pasteCol.title!)
+            await api.dbTableColumn.bulk(meta.value?.id, {
+              hash: columnsHash,
+              ops: bulkOpsCols,
+            })
 
-            const pasteValue = convertCellData(
-              {
-                // Repeat the clipboard data array if the matrix is smaller than the selection
-                value: clipboardMatrix[i % clipboardMatrix.length][j],
-                to: pasteCol.uidt as UITypes,
-                column: pasteCol,
-                appInfo: unref(appInfo),
-                oldValue: pasteCol.uidt === UITypes.Attachment ? pasteRow.row[pasteCol.title!] : undefined,
+            await getMeta(meta?.value?.id as string, true)
+
+            colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
+          }
+        } else {
+          colsToPaste = unref(fields).slice(activeCell.col, activeCell.col + pasteMatrixCols)
+        }
+
+        const dataRef = unref(data)
+
+        const updatedRows: Row[] = []
+        const newRows: Row[] = []
+        const propsToPaste: string[] = []
+        let isInfoShown = false
+
+        for (let i = 0; i < selectionRowCount; i++) {
+          const clipboardRowIndex = i % clipboardMatrix.length
+          let targetRow: any
+
+          if (i < availableRowsToUpdate) {
+            const absoluteRowIndex = totalRowsBeforeActiveCell + i
+            if (isArrayStructure) {
+              targetRow =
+                i < (dataRef as Row[]).length
+                  ? (dataRef as Row[])[absoluteRowIndex]
+                  : {
+                      row: {},
+                      oldRow: {},
+                      rowMeta: {
+                        isExistingRow: true,
+                        rowIndex: absoluteRowIndex,
+                      },
+                    }
+            } else {
+              targetRow = (dataRef as Map<number, Row>).get(absoluteRowIndex) || {
+                row: {},
+                oldRow: {},
+                rowMeta: {
+                  isExistingRow: true,
+                  rowIndex: absoluteRowIndex,
+                },
+              }
+            }
+            updatedRows.push(targetRow)
+          } else {
+            targetRow = {
+              row: {},
+              oldRow: {},
+              rowMeta: {
+                isExistingRow: false,
               },
-              isMysql(meta.value?.source_id),
-              true,
-            )
+            }
+            newRows.push(targetRow)
+          }
 
-            if (pasteValue !== undefined) {
-              pasteRow.row[pasteCol.title!] = pasteValue
+          for (let j = 0; j < clipboardMatrix[clipboardRowIndex].length; j++) {
+            const column = colsToPaste[j]
+            if (!column) continue
+            if (column && isPasteable(targetRow, column)) {
+              propsToPaste.push(column.title!)
+              const pasteValue = convertCellData(
+                {
+                  value: clipboardMatrix[clipboardRowIndex][j],
+                  to: column.uidt as UITypes,
+                  column,
+                  appInfo: unref(appInfo),
+                  oldValue: column.uidt === UITypes.Attachment ? targetRow.row[column.title!] : undefined,
+                },
+                isMysql(meta.value?.source_id),
+                true,
+              )
+
+              if (pasteValue !== undefined) {
+                targetRow.row[column.title!] = pasteValue
+              }
+            } else if ((isBt(column) || isOo(column) || isMm(column)) && !isInfoShown) {
+              message.info(t('msg.info.groupPasteIsNotSupportedOnLinksColumn'))
+              isInfoShown = true
             }
           }
         }
-        await bulkUpdateRows?.(rowsToPaste, propsToPaste)
 
-        if (pastedRows > 0) {
-          // highlight the pasted range
-          selectedRange.startRange({ row: activeCell.row, col: activeCell.col })
-          selectedRange.endRange({ row: activeCell.row + pastedRows - 1, col: activeCell.col + pasteMatrixCols - 1 })
+        if (options.expand && !isArrayStructure) {
+          await bulkUpsertRows?.(
+            newRows,
+            updatedRows,
+            propsToPaste,
+            undefined,
+            bulkOpsCols.map(({ column }) => column),
+          )
+
+          clearSelectedRange()
+          selectedRange.startRange({ row: totalRowsBeforeActiveCell, col: startColIndex })
+          activeCell.row = totalRowsBeforeActiveCell + selectionRowCount - 1
+          activeCell.col = startColIndex + pasteMatrixCols
+
+          selectedRange.endRange({ row: activeCell.row, col: activeCell.col })
+          scrollToCell?.()
+        } else {
+          await bulkUpdateRows?.(updatedRows, propsToPaste)
         }
       } else {
         if (selectedRange.isSingleCell()) {

@@ -73,12 +73,7 @@ const importTypeOptions = [
   },
 ] as ImportType[]
 
-const router = useRouter()
-const route = router.currentRoute
-
-const activeTableId = computed(() => route.value.params.viewId as string | undefined)
-
-const { fullscreen, fullscreenModalSize, extension, tables, insertData, upsertData, getTableMeta, reloadData } =
+const { fullscreen, fullscreenModalSize, extension, tables, insertData, upsertData, getTableMeta, reloadData, activeTableId } =
   useExtensionHelperOrThrow()
 
 const fileList = ref<UploadFile[]>([])

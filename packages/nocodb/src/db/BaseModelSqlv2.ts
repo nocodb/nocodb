@@ -5326,8 +5326,6 @@ class BaseModelSqlv2 {
         }
       }
 
-      trx = await this.dbDriver.transaction();
-
       // Check which records with PKs exist in the database
       const existingRecords = await this.chunkList({
         pks: dataWithPks.map((v) => v.pk),
@@ -5349,20 +5347,18 @@ class BaseModelSqlv2 {
         }
       }
 
+      trx = await this.dbDriver.transaction();
+
+      const updatedPks = [];
+
       if (toUpdate.length > 0) {
-        const pks = [];
         for (const data of toUpdate) {
           if (!raw) await this.validate(data, columns);
           const pkValues = this.extractPksValues(data);
-          pks.push(pkValues);
+          updatedPks.push(pkValues);
           const wherePk = await this._wherePk(pkValues, true);
           await trx(this.tnPath).update(data).where(wherePk);
         }
-
-        const updatedRecords = await this.chunkList({
-          pks,
-        });
-        updatedDatas.push(...updatedRecords);
       }
 
       if (toInsert.length > 0) {
@@ -5420,11 +5416,15 @@ class BaseModelSqlv2 {
             await trx.raw('SET foreign_key_checks = 1;');
           }
         }
-
         insertedDatas.push(...responses);
       }
 
       await trx.commit();
+
+      const updatedRecords = await this.chunkList({
+        pks: updatedPks,
+      });
+      updatedDatas.push(...updatedRecords);
 
       const insertedDataList =
         insertedDatas.length > 0
@@ -5501,7 +5501,7 @@ class BaseModelSqlv2 {
   ) {
     const { allowSystemColumn } = params;
     const cols = columns || (await this.model.getColumns(this.context));
-    let insertObj;
+    const insertObj = {};
 
     for (let i = 0; i < cols.length; ++i) {
       const col = cols[i];

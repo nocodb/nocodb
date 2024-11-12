@@ -486,6 +486,9 @@ useMenuCloseOnEsc(open)
 
           <div
             class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s max-w-[206px]"
+            :class="{
+              'nc-disabled': isLocked,
+            }"
           >
             <a-select
               v-model:value="coverImageColumnId"
@@ -534,7 +537,7 @@ useMenuCloseOnEsc(open)
               :disabled="isLocked"
               placement="bottomRight"
             >
-              <button class="flex items-center px-2 border-l-1 border-gray-200" :disabled="isLocked">
+              <button class="flex items-center px-2 border-l-1 border-gray-200 disabled:(cursor-not-allowed opacity-80)" :disabled="isLocked">
                 <GeneralIcon
                   icon="settings"
                   class="h-4 w-4"
@@ -757,10 +760,10 @@ useMenuCloseOnEsc(open)
 }
 .nc-dropdown-cover-image-wrapper {
   @apply h-8;
-  &:not(:focus-within) {
+  &:not(.nc-disabled):not(:focus-within) {
     @apply shadow-default hover:shadow-hover;
   }
-  &:focus-within {
+  &:not(.nc-disabled):focus-within {
     @apply shadow-selected border-brand-500;
   }
 }

@@ -133,7 +133,7 @@ const getIcon = (c: ColumnType) =>
     v-if="!IsPublic"
     v-model:visible="open"
     :trigger="['click']"
-    overlay-class-name="nc-dropdown-kanban-stacked-by-menu"
+    overlay-class-name="nc-dropdown-kanban-stacked-by-menu overflow-hidden"
     class="!xs:hidden"
   >
     <NcTooltip :disabled="!isToolbarIconMode" class="nc-kanban-btn">
@@ -146,7 +146,6 @@ const getIcon = (c: ColumnType) =>
         class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn !border-0 !h-7 group"
         size="small"
         type="secondary"
-        :disabled="isLocked"
       >
         <div class="flex items-center gap-2">
           <GeneralIcon icon="settings" class="h-4 w-4" />
@@ -179,6 +178,7 @@ const getIcon = (c: ColumnType) =>
                 placeholder="Select a Grouping Field"
                 @change="handleChange"
                 @click.stop
+                :disabled="isLocked"
               >
                 <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
                 <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
@@ -187,7 +187,7 @@ const getIcon = (c: ColumnType) =>
                       <component
                         :is="getIcon(metaColumnById[option.value])"
                         v-if="option.value"
-                        class="!w-3.5 !h-3.5 !text-gray-700 !ml-0"
+                        class="!w-3.5 !h-3.5 !text-current opacity-80 !ml-0"
                       />
 
                       <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
@@ -209,7 +209,13 @@ const getIcon = (c: ColumnType) =>
           </div>
         </div>
         <div class="flex items-center gap-1">
-          <NcSwitch v-model:checked="hideEmptyStack" size="small" class="nc-switch" :loading="isLoading === 'hideEmptyStack'">
+          <NcSwitch
+            v-model:checked="hideEmptyStack"
+            size="small"
+            class="nc-switch"
+            :loading="isLoading === 'hideEmptyStack'"
+            :disabled="isLocked"
+          >
             <div class="text-sm text-gray-800">
               {{ $t('general.hide') }}
               {{ $t('general.empty').toLowerCase() }}
@@ -217,6 +223,7 @@ const getIcon = (c: ColumnType) =>
             </div>
           </NcSwitch>
         </div>
+        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" class="-mb-4 -mx-4" />
       </div>
     </template>
   </NcDropdown>

@@ -10,6 +10,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Model, ModelRoleVisibility, View } from '~/models';
+import {WorkspaceUser} from "~/ee/models";
 
 // todo: move
 async function xcVisibilityMetaGet(
@@ -136,18 +137,72 @@ export class ViewsService {
       'swagger.json#/components/schemas/ViewUpdateReq',
       param.view,
     );
+    const oldView = await View.get(context, param.viewId);
 
-    const view = await View.get(context, param.viewId);
-
-    if (!view) {
+    if (!oldView) {
       NcError.viewNotFound(param.viewId);
     }
 
-    const result = await View.update(context, param.viewId, param.view);
+    let ownedBy = oldView.owned_by;
+    let createdBy = oldView.created_by;
+    let includeCreatedByAndUpdateBy = false;
+
+    // check if the lock_type changing to `personal` and only allow if user is the owner
+    // if the owned_by is not the same as the user, then throw error
+    // if owned_by is empty, then only allow owner of project to change
+    if (
+      param.view.lock_type === 'personal' &&
+      param.view.lock_type !== oldView.lock_type
+    ) {
+      // if owned_by is not empty then check if the user is the owner of the project
+      if (ownedBy && ownedBy !== param.user.id) {
+        NcError.unauthorized('Only owner can change to personal view');
+      }
+
+      // if empty then check if current user is the owner of the project then allow and update the owned_by
+      if (!ownedBy && (param.user as any).base_roles?.[ProjectRoles.OWNER]) {
+        includeCreatedByAndUpdateBy = true;
+        ownedBy = param.user.id;
+        if (!createdBy) {
+          createdBy = param.user.id;
+        }
+      } else if (!ownedBy) {
+        // todo: move to catchError
+        NcError.unauthorized('Only owner can change to personal view');
+      }
+    }
+
+    if(ownedBy && param.view.owned_by && param.user.id === ownedBy) {
+      ownedBy = param.view.owned_by
+
+      // verify if the new owned_by is a valid user who have access to the base/workspace
+      // if not then throw error
+      const baseUser = await BaseUser.get(context,param.view.owned_by, context.base_id);
+
+      if(!baseUser){
+        NcError.badRequest('Invalid user');
+      }
+
+      // // todo: ee only
+      // if(!baseUser) {
+      //   const workspace = await WorkspaceUser
+      // }
+    }
+
+    const result = await View.update(
+      context,
+      param.viewId,
+      {
+        ...param.view,
+        owned_by: ownedBy,
+        created_by: createdBy,
+      },
+      includeCreatedByAndUpdateBy,
+    );
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view: {
-        ...view,
+        ...oldView,
         ...param.view,
       },
       user: param.user,

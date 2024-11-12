@@ -10,7 +10,9 @@ import {
   ProjectRoles,
   RelationTypes,
   UITypes,
+  ViewLockType,
 } from 'nocodb-sdk';
+import { LockType } from 'nc-gui/lib/enums';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
 import type {
@@ -353,9 +355,13 @@ export class TablesService {
     );
 
     //await View.list(param.tableId)
-    table.views = viewList.filter((table: any) => {
-      return Object.keys(param.user?.roles).some(
-        (role) => param.user?.roles[role] && !table.disabled[role],
+    table.views = viewList.filter((view: any) => {
+      return (
+        Object.keys(param.user?.roles).some(
+          (role) => param.user?.roles[role] && !view.disabled[role],
+        ) &&
+        (view.lock_type !== ViewLockType.Locked ||
+          view.fk_owned_by === param.user.id)
       );
     });
 

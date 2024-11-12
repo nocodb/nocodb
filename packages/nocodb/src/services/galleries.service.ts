@@ -47,6 +47,8 @@ export class GalleriesService {
         type: ViewTypes.GALLERY,
         base_id: model.base_id,
         source_id: model.source_id,
+        created_by: param.user.id,
+        owned_by: param.user.id,
       },
       model,
     );

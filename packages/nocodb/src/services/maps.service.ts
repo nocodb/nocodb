@@ -42,6 +42,8 @@ export class MapsService {
         type: ViewTypes.MAP,
         base_id: model.base_id,
         source_id: model.source_id,
+        created_by: param.user.id,
+        owned_by: param.user.id,
       },
       model,
     );

@@ -70,9 +70,9 @@ async function changeLockType(type: LockType) {
 
   if (!view.value) return
 
-  if (type === 'personal') {
-    // Coming soon
-    return message.info(t('msg.toast.futureRelease'))
+  // if default view block the change since it's not allowed
+  if (type === 'personal' && view.value.is_default) {
+    return message.info(t('msg.toast.notAllowedToChangeDefaultView'))
   }
   try {
     view.value.lock_type = type
@@ -304,6 +304,10 @@ const onDelete = async () => {
         <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewMode') }}</div>
         <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
           <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
+        </a-menu-item>
+
+        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
+          <LazySmartsheetToolbarLockType :type="LockType.Personal" @click="changeLockType(LockType.Personal)" />
         </a-menu-item>
 
         <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">

@@ -3,6 +3,7 @@ import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { isLinksOrLTAR } from 'nocodb-sdk';
 import { getUniqueColumnAliasName, getUniqueColumnName } from './getUniqueName';
+import type { UserType } from 'nocodb-sdk';
 import type { RollupColumn } from '~/models';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type Source from '~/models/Source';
@@ -205,9 +206,17 @@ export async function extractAndGenerateManyToManyRelations(
 
 export async function populateMeta(
   context: NcContext,
-  source: Source,
-  base: Base,
-  logger?: (message: string) => void,
+  {
+    source,
+    base,
+    logger,
+    user,
+  }: {
+    source: Source;
+    base: Base;
+    logger?: (message: string) => void;
+    user: UserType;
+  },
 ): Promise<any> {
   const info = {
     type: 'rest',
@@ -347,6 +356,7 @@ export async function populateMeta(
           title: table.title,
           type: table.type || 'table',
           order: table.order,
+          user_id: user.id,
         },
       );
 
@@ -489,6 +499,7 @@ export async function populateMeta(
           // todo: sanitize
           type: ModelTypes.VIEW,
           order: table.order,
+          user_id: user.id,
         },
       );
 

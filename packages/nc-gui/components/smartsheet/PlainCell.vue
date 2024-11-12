@@ -94,7 +94,7 @@ const getDateTimeValue = (modelValue: string | null, col: ColumnType) => {
   const isXcDB = isXcdbBase(col.source_id)
 
   if (!isXcDB) {
-    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, dateTimeFormat).format(dateTimeFormat)
+    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue).format(dateTimeFormat)
   }
 
   if (isMssql(col.source_id)) {

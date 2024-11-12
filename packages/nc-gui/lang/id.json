@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Klik untuk menyalin ID Tabel",
     "clickToCopyViewID": "Klik untuk menyalin View ID",
     "viewMode": "Mode tampilan",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Cari Pengguna",
     "superAdmin": "Super Admin",
     "allTables": "Semua Tabel",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Alihkan ke URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Detail Webhook",
     "hideWeekends": "Sembunyikan akhir pekan",
     "renameBase": "Ganti Nama Dasar",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Tampilkan semua tampilan bersama dari tabel ini",
       "collabView": "Kolaborator dengan izin edit atau lebih tinggi dapat mengubah konfigurasi tampilan.",
       "lockedView": "Tidak ada yang dapat mengedit konfigurasi tampilan sampai tidak terkunci.",
-      "personalView": "Hanya Anda yang dapat mengedit konfigurasi tampilan. Pandangan pribadi kolaborator lainnya disembunyikan secara default.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Dapat menambah / menghapus pembuat. Dan struktur & bidang edit lengkap.",
       "creatorDesc": "Dapat sepenuhnya mengedit struktur & nilai basis data.",
       "editorDesc": "Dapat mengedit catatan tetapi tidak dapat mengubah struktur basis data / bidang.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Silakan Aktifkan Plugin SMTP di App Store untuk Mengaktifkan Pemberitahuan Email",
       "collabView": "Berhasil beralih ke tampilan kolaboratif",
       "lockedView": "Berhasil beralih ke tampilan yang dikunci",
-      "futureRelease": "Segera akan datang!"
+      "futureRelease": "Segera akan datang!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Kunci Lisensi Diperbarui",

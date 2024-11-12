@@ -1,4 +1,4 @@
-<script lang="ts" setup>
+<script setup lang="ts">
 import { UITypes, ViewTypes, isVirtualCol } from 'nocodb-sdk'
 import type { Attachment } from '../../lib/types'
 import type { Row as RowType } from '#imports'
@@ -27,8 +27,8 @@ provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 provide(IsCalendarInj, ref(false))
 provide(RowHeightInj, ref(1 as const))
-// provide view data reload hook as fallback to row data reload
 provide(ReloadRowDataHookInj, reloadViewDataHook!)
+
 const {
   fetchChunk,
   loadGalleryData,
@@ -54,7 +54,6 @@ const coverImageColumn: any = computed(() =>
 
 const coverImageObjectFitClass = computed(() => {
   const fk_cover_image_object_fit = parseProp(galleryData.value?.meta)?.fk_cover_image_object_fit || CoverImageObjectFit.FIT
-
   if (fk_cover_image_object_fit === CoverImageObjectFit.FIT) return '!object-contain'
   if (fk_cover_image_object_fit === CoverImageObjectFit.COVER) return '!object-cover'
 })
@@ -158,8 +157,6 @@ const handleClick = (col, event) => {
 
 openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
-// remove openNewRecordFormHookHandler before unmounting
-// so that it won't be triggered multiple times
 onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
 
 const reloadAttachments = ref(false)
@@ -190,7 +187,7 @@ const scrollTop = ref(0)
 
 const rowSlice = reactive({
   start: 0,
-  end: 100,
+  end: 12,
 })
 
 const { width: scrollContainerWidth } = useElementSize(scrollContainer)
@@ -255,33 +252,34 @@ const updateVisibleRows = async () => {
   clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
 }
 
+const containerTransformY = ref(0)
+
 const calculateSlices = () => {
-  if (!scrollContainer.value || cardHeight.value === 0) {
+  if (!scrollContainer.value) {
     setTimeout(calculateSlices, 50)
     return
   }
 
-  const { clientHeight, scrollHeight } = scrollContainer.value
+  const { clientHeight } = scrollContainer.value
 
-  const scrollTopRow = Math.floor(scrollTop.value / (cardHeight.value + 12))
+  const visibleRowStart = Math.floor(scrollTop.value / (cardHeight.value + 12))
 
-  const visibleRows = Math.ceil(clientHeight / (cardHeight.value + 12))
+  const rowsVisible = Math.ceil((clientHeight - 12) / (cardHeight.value + 12))
+
   const BUFFER_ROWS = 2
-  const startRow = Math.max(0, scrollTopRow - BUFFER_ROWS) * columnsPerRow.value
-  const endRow = Math.min(totalRows.value, (scrollTopRow + visibleRows + BUFFER_ROWS) * columnsPerRow.value)
 
-  const isNearBottom = scrollTop.value + clientHeight >= scrollHeight - cardHeight.value * 2
+  const startRecordIndex = Math.max(0, visibleRowStart - BUFFER_ROWS) * columnsPerRow.value
+  const endRecordIndex = Math.min((visibleRowStart + rowsVisible + BUFFER_ROWS) * columnsPerRow.value, totalRows.value)
 
-  rowSlice.start = startRow
-  rowSlice.end = isNearBottom ? endRow + columnsPerRow.value * 2 : endRow
+  rowSlice.start = startRecordIndex
+  rowSlice.end = endRecordIndex
+
+  const val = Math.ceil(rowSlice.start / columnsPerRow.value) * (cardHeight.value + 12)
+
+  containerTransformY.value = val
 
   updateVisibleRows()
 }
-
-const containerTransformY = computed(() => {
-  const rowStartIndex = Math.floor(rowSlice.start / columnsPerRow.value)
-  return rowStartIndex * (cardHeight.value + 12)
-})
 
 const containerHeight = computed(() => {
   const numberOfRows = Math.ceil(totalRows.value / columnsPerRow.value)
@@ -293,10 +291,9 @@ let scrollRaf = false
 useScroll(scrollContainer, {
   onScroll: (e) => {
     if (scrollRaf) return
-
     scrollRaf = true
     requestAnimationFrame(() => {
-      scrollTop.value = e.target?.scrollTop
+      scrollTop.value = e.target?.scrollTop || 0
       calculateSlices()
       scrollRaf = false
     })
@@ -327,21 +324,20 @@ watch(
   },
 )
 
+const placeholderAboveHeight = computed(() => {
+  const visibleRowStart = Math.floor(scrollTop.value / (cardHeight.value + 12))
+
+  const startRecordIndex = Math.max(0, visibleRowStart - 2)
+
+  return startRecordIndex * (cardHeight.value + 12)
+})
+
 const { width, height } = useWindowSize()
 
-let resizeTimeout: number | null = null
-
 watch(
-  [width, height, cardHeight, columnsPerRow],
+  [() => width.value, () => height.value, () => columnsPerRow.value],
   () => {
-    if (resizeTimeout) {
-      clearTimeout(resizeTimeout)
-    }
-
-    resizeTimeout = setTimeout(() => {
-      calculateSlices()
-      resizeTimeout = null
-    }, 150) as unknown as number
+    calculateSlices()
   },
   {
     immediate: true,
@@ -350,50 +346,52 @@ watch(
 
 reloadViewDataHook?.on(async () => {
   clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+  await syncCount()
   calculateSlices()
-  await updateVisibleRows()
 })
 </script>
 
 <template>
-  <NcDropdown
-    v-model:visible="contextMenu"
-    :disabled="contextMenuTarget === null"
-    :trigger="isSqlView ? [] : ['contextmenu']"
-    overlay-class-name="nc-dropdown-grid-context-menu"
+  <div
+    ref="scrollContainer"
+    data-testid="nc-gallery-wrapper"
+    class="flex flex-col w-full nc-gallery select-none relative nc-scrollbar-md bg-gray-50 h-[calc(100svh-93px)]"
   >
-    <template #overlay>
-      <NcMenu @click="contextMenu = false">
-        <NcMenuItem v-if="contextMenuTarget" @click="expandForm(contextMenuTarget.row)">
-          <div v-e="['a:row:expand-record']" class="flex items-center gap-2">
-            <component :is="iconMap.expand" class="flex" />
-            {{ $t('activity.expandRecord') }}
-          </div>
-        </NcMenuItem>
-        <NcDivider />
-
-        <NcMenuItem
-          v-if="contextMenuTarget?.index !== undefined"
-          class="!text-red-600 !hover:bg-red-50"
-          @click="deleteRow(contextMenuTarget.index)"
-        >
-          <div v-e="['a:row:delete']" class="flex items-center gap-2">
-            <component :is="iconMap.delete" class="flex" />
-            <!-- Delete Row -->
-            {{ $t('activity.deleteRow') }}
-          </div>
-        </NcMenuItem>
-      </NcMenu>
-    </template>
-
-    <div
-      ref="scrollContainer"
-      data-testid="nc-gallery-wrapper"
-      class="flex flex-col w-full nc-gallery select-none relative nc-scrollbar-md bg-gray-50 h-[calc(100svh-93px)]"
+    <NcDropdown
+      v-model:visible="contextMenu"
+      :disabled="contextMenuTarget === null"
+      :trigger="isSqlView ? [] : ['contextmenu']"
+      overlay-class-name="nc-dropdown-grid-context-menu"
     >
-      <div>
-        <div :style="{ height: `${containerHeight}px` }">
-          <div :style="{ transform: `translateY(${containerTransformY}px)` }" class="nc-gallery-container grid gap-3 p-3">
+      <template #overlay>
+        <NcMenu @click="contextMenu = false">
+          <NcMenuItem v-if="contextMenuTarget" @click="expandForm(contextMenuTarget.row)">
+            <div v-e="['a:row:expand-record']" class="flex items-center gap-2">
+              <component :is="iconMap.expand" class="flex" />
+              {{ $t('activity.expandRecord') }}
+            </div>
+          </NcMenuItem>
+          <NcDivider />
+          <NcMenuItem
+            v-if="contextMenuTarget?.index !== undefined"
+            class="!text-red-600 !hover:bg-red-50"
+            @click="deleteRow(contextMenuTarget.index)"
+          >
+            <div v-e="['a:row:delete']" class="flex items-center gap-2">
+              <component :is="iconMap.delete" class="flex" />
+              {{ $t('activity.deleteRow') }}
+            </div>
+          </NcMenuItem>
+        </NcMenu>
+      </template>
+      <div
+        :class="{
+          'h-full': totalRows < 30,
+        }"
+      >
+        <div :key="containerHeight" class="relative" :style="{ height: `${containerHeight}px` }">
+          <div :style="{ height: `${placeholderAboveHeight}px` }"></div>
+          <div class="nc-gallery-container grid gap-3 p-3">
             <div
               v-for="(record, rowIndex) in visibleRows"
               :key="`record-${record.rowMeta.rowIndex}`"
@@ -420,7 +418,6 @@ reloadViewDataHook?.on(async () => {
                           </div>
                         </a>
                       </template>
-
                       <template #prevArrow>
                         <div class="z-10 arrow">
                           <NcButton
@@ -432,7 +429,6 @@ reloadViewDataHook?.on(async () => {
                           </NcButton>
                         </div>
                       </template>
-
                       <template #nextArrow>
                         <div class="z-10 arrow">
                           <NcButton
@@ -444,7 +440,6 @@ reloadViewDataHook?.on(async () => {
                           </NcButton>
                         </div>
                       </template>
-
                       <template v-for="(attachment, index) in attachments(record)">
                         <LazyCellAttachmentPreviewImage
                           v-if="isImage(attachment.title, attachment.mimetype ?? attachment.type)"
@@ -470,7 +465,6 @@ reloadViewDataHook?.on(async () => {
                           :column="displayField"
                           :row="record"
                         />
-
                         <LazySmartsheetCell
                           v-else
                           v-model="record.row[displayField.title]"
@@ -482,7 +476,6 @@ reloadViewDataHook?.on(async () => {
                       </template>
                       <template v-else> - </template>
                     </h2>
-
                     <div
                       v-for="col in fieldsWithoutDisplay"
                       :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
@@ -495,11 +488,9 @@ reloadViewDataHook?.on(async () => {
                         <div class="flex flex-row w-full justify-start">
                           <div class="nc-card-col-header w-full !children:text-gray-500">
                             <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-
                             <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                           </div>
                         </div>
-
                         <div
                           v-if="!isRowEmpty(record, col)"
                           class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
@@ -511,7 +502,6 @@ reloadViewDataHook?.on(async () => {
                             :row="record"
                             class="!text-gray-800"
                           />
-
                           <LazySmartsheetCell
                             v-else
                             v-model="record.row[col.title]"
@@ -535,17 +525,16 @@ reloadViewDataHook?.on(async () => {
           </div>
         </div>
       </div>
-      <div class="sticky bottom-4">
-        <NcButton v-if="isUIAllowed('dataInsert')" size="xs" type="secondary" class="ml-4" @click="openNewRecordFormHook.trigger">
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.plus" class="" />
-            {{ $t('activity.newRecord') }}
-          </div>
-        </NcButton>
-      </div>
+    </NcDropdown>
+    <div class="sticky bottom-4">
+      <NcButton v-if="isUIAllowed('dataInsert')" size="xs" type="secondary" class="ml-4" @click="openNewRecordFormHook.trigger">
+        <div class="flex items-center gap-2">
+          <component :is="iconMap.plus" class="" />
+          {{ $t('activity.newRecord') }}
+        </div>
+      </NcButton>
     </div>
-  </NcDropdown>
-
+  </div>
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"
@@ -557,7 +546,6 @@ reloadViewDataHook?.on(async () => {
       :view="view"
     />
   </Suspense>
-
   <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"

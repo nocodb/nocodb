@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Kliknij, aby skopiować identyfikator tabeli",
     "clickToCopyViewID": "Kliknij, aby skopiować ID widoku",
     "viewMode": "Tryb widoku",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Szukaj użytkowników",
     "superAdmin": "Super Administrator",
     "allTables": "Wszystkie tabele",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Przekieruj do URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Szczegóły Webhooka",
     "hideWeekends": "Ukryj weekendy",
     "renameBase": "Zmień nazwę tabeli",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Pokaż wszystkie wspólne widoki na tę tabelę",
       "collabView": "Współpracownicy z uprawnieniami edycji lub wyższe mogą zmienić konfigurację widoku.",
       "lockedView": "Nikt nie może edytować konfiguracji widoku, dopóki nie zostanie odblokowany.",
-      "personalView": "Tylko możesz edytować konfigurację widoku. Domyślne widoki innych współpracowników są domyślnie ukryte.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Może dodawać / usunąć twórców. I pełne edycja struktur i pola bazy danych.",
       "creatorDesc": "Może w pełni edytować strukturę i wartości bazy danych.",
       "editorDesc": "Może edytować rekordy, ale nie można zmienić struktury bazy danych / pól.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Aktywuj wtyczkę SMTP w App Store, aby umożliwić powiadomienia e-mail",
       "collabView": "Pomyślnie przełączono na widok współpracy",
       "lockedView": "Pomyślnie przełączono na zablokowany widok",
-      "futureRelease": "Wkrótce!"
+      "futureRelease": "Wkrótce!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Klucz licencyjny zaktualizowany",

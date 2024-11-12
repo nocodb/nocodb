@@ -53,6 +53,8 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
+const { eventBus } = useSmartsheetStoreOrThrow()
+
 const columnLabel = computed(() => props.columnLabel || t('objects.field'))
 
 const { $e } = useNuxtApp()
@@ -178,6 +180,8 @@ const onSelectType = (uidt: UITypes) => {
 
 const reloadMetaAndData = async () => {
   await getMeta(meta.value?.id as string, true)
+
+  eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
   if (!isKanban.value) {
     reloadDataTrigger?.trigger()

@@ -1278,7 +1278,7 @@ export default class View implements ViewType {
       'password',
       'meta',
       'uuid',
-      ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : [])
+      ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
     ]);
 
     const oldView = await this.get(context, viewId, ncMeta);
@@ -2010,6 +2010,7 @@ export default class View implements ViewType {
       'meta',
       'created_by',
       'owned_by',
+      'lock_type',
     ]);
 
     if (!insertObj.order) {

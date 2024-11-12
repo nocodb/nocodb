@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import UsersIcon from '~icons/nc-icons/users'
 import LockIcon from '~icons/nc-icons/lock'
+import PersonalIcon from '~icons/nc-icons/personal'
 import { LockType } from '#imports'
 
 const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType }>()
@@ -10,7 +11,7 @@ const emit = defineEmits(['select'])
 const types = {
   [LockType.Personal]: {
     title: 'title.personal',
-    icon: iconMap.account,
+    icon: PersonalIcon,
     subtitle: 'msg.info.personalView',
   },
   [LockType.Collaborative]: {
@@ -35,7 +36,7 @@ const selectedView = inject(ActiveViewInj)
         <div class="flex items-center gap-2 flex-grow">
           <component
             :is="types[type].icon"
-            class="flex-none"
+            class="flex-none w-6"
             :class="{
               '!w-3 h-3': hideTick,
               '!w-4 h-4': !hideTick,

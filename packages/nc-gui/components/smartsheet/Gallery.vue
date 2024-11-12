@@ -38,6 +38,8 @@ const {
   chunkStates,
   cachedRows,
   totalRows,
+  isFirstRow,
+  isLastRow,
   clearCache,
   viewData: galleryData,
 } = useGalleryViewData(meta, view, xWhere)
@@ -541,6 +543,8 @@ reloadViewDataHook?.on(async () => {
       v-model="expandedFormDlg"
       :row="expandedFormRow"
       :load-row="!isPublic"
+      :first-row="isFirstRow"
+      :last-row="isLastRow"
       :state="expandedFormRowState"
       :meta="meta"
       :view="view"
@@ -554,6 +558,8 @@ reloadViewDataHook?.on(async () => {
       :meta="meta"
       :load-row="!isPublic"
       :row-id="route.query.rowId"
+      :first-row="isFirstRow"
+      :last-row="isLastRow"
       :view="view"
       show-next-prev-icons
       :expand-form="expandForm"

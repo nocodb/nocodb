@@ -21,13 +21,24 @@ export function useGalleryViewData(
 
   const viewData = ref<GalleryType | undefined>()
 
-  const { cachedRows, syncCount, clearCache, deleteRow, loadData, navigateToSiblingRow, totalRows, fetchChunk, chunkStates } =
-    useInfiniteData({
-      meta,
-      viewMeta,
-      callbacks: {},
-      where,
-    })
+  const {
+    cachedRows,
+    syncCount,
+    clearCache,
+    deleteRow,
+    loadData,
+    navigateToSiblingRow,
+    totalRows,
+    fetchChunk,
+    chunkStates,
+    isFirstRow,
+    isLastRow,
+  } = useInfiniteData({
+    meta,
+    viewMeta,
+    callbacks: {},
+    where,
+  })
 
   async function loadGalleryData() {
     if (!viewMeta?.value?.id) return
@@ -46,5 +57,7 @@ export function useGalleryViewData(
     chunkStates,
     syncCount,
     fetchChunk,
+    isFirstRow,
+    isLastRow,
   }
 }

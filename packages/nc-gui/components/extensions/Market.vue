@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
-
 interface Prop {
   modelValue?: boolean
 }
@@ -73,7 +71,7 @@ const handleSetActiveTab = (tab: TabItem) => {
   handleShowSearchInput()
 }
 
-onClickOutside(searchWrapperRef, (e) => {
+onClickOutside(searchWrapperRef, () => {
   if (searchQuery.value) {
     return
   }

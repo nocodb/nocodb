@@ -13,6 +13,8 @@ const emits = defineEmits(['update:modelValue', 'submit'])
 
 const dialogShow = useVModel(props, 'modelValue', emits)
 
+const isForm = inject(IsFormInj)
+
 const { $api } = useNuxtApp()
 
 const { user } = useGlobal()
@@ -75,11 +77,38 @@ watch(dialogShow, (newValue) => {
 </script>
 
 <template>
+  <div v-if="isForm" class="nc-unlock-view-wrapper rounded-2xl bg-white p-6 w-full max-w-[384px] flex flex-col gap-5">
+    <div class="flex flex-col gap-2">
+      <div class="text-base font-bold text-nc-content-gray-emphasis">
+        {{ $t('title.thisFormIsLocked') }}
+      </div>
+      <div v-if="view?.meta?.lockedViewDescription" class="text-sm bg-nc-bg-gray-light rounded-lg px-2 py-2">
+        {{ view?.meta?.lockedViewDescription }}
+      </div>
+      <div class="text-sm text-nc-content-gray">{{ $t('title.unlockThisVieToMakeChanges') }}</div>
+      <div class="text-sm text-nc-content-gray">
+        {{ $t('title.unlockViewTitleSubtitle') }}
+        <span v-if="idUserMap[view?.meta?.lockedByUserId]?.id === user.id" class="font-bold"> You </span>
+        <span v-else class="font-bold">
+          {{ idUserMap[view?.meta?.lockedByUserId]?.display_name || idUserMap[view?.meta?.lockedByUserId]?.email }}
+        </span>
+      </div>
+    </div>
+
+    <NcButton type="secondary" size="small" class="!w-full" :loading="isLoading" :disabled="isLoading" @click="changeLockType">
+      <template #icon>
+        <GeneralIcon icon="ncUnlock" class="flex-none" />
+      </template>
+      {{ $t('labels.unlockView') }}
+    </NcButton>
+  </div>
   <NcModal
+    v-else
     v-model:visible="dialogShow"
     :show-separator="false"
     :header="$t('activity.createTable')"
     size="small"
+    wrap-class-name="nc-lock-view-modal-wrapper"
     @keydown.esc="dialogShow = false"
   >
     <template v-if="changeType === LockType.Locked" #header>
@@ -148,5 +177,9 @@ watch(dialogShow, (newValue) => {
 <style scoped lang="scss">
 .ant-form-item {
   @apply mb-0;
+}
+
+.nc-unlock-view-wrapper {
+  box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1);
 }
 </style>

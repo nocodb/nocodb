@@ -298,60 +298,58 @@ const isDefaultView = computed(() => view.value?.is_default)
 
     <template v-if="isUIAllowed('viewCreateOrEdit')">
       <NcDivider />
-      <SmartsheetToolbarNotAllowedTooltip
-        v-if="isEeUI"
-        :enabled="!isViewOwner && view.lock_type === LockType.Personal"
-        message="Only view owner can change personal view"
+      <NcSubMenu
+        key="lock-type"
+        :disabled="!isViewOwner && !isUIAllowed('reAssignViewOwner') && view.lock_type === LockType.Personal"
+        class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
       >
-        <NcSubMenu
-          key="lock-type"
-          :disabled="!isViewOwner && view.lock_type === LockType.Personal"
-          class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
-        >
-          <template #title>
-            <div
-              v-e="[
-                'c:navdraw:preview-as',
-                {
-                  sidebar: props.inSidebar,
-                },
-              ]"
-              class="flex flex-row items-center gap-x-3"
-            >
-              <div :class="{ 'text-gray-400': !isViewOwner && view.lock_type === LockType.Personal }">
-                {{ $t('labels.viewMode') }}
-              </div>
-              <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
-                <LazySmartsheetToolbarLockType
-                  :type="lockType"
-                  :disabled="!isViewOwner && view.lock_type === LockType.Personal"
-                  class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
-                  hide-tick
-                />
-              </div>
-              <div class="flex flex-grow"></div>
+        <template #title>
+          <div
+            v-e="[
+              'c:navdraw:preview-as',
+              {
+                sidebar: props.inSidebar,
+              },
+            ]"
+            class="flex flex-row items-center gap-x-3"
+          >
+            <div>
+              {{ $t('labels.viewMode') }}
             </div>
-          </template>
+            <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
+              <LazySmartsheetToolbarLockType
+                :type="lockType"
+                class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
+                hide-tick
+              />
+            </div>
+            <div class="flex flex-grow"></div>
+          </div>
+        </template>
 
-          <template #expandIcon></template>
-          <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewMode') }}</div>
-          <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
-            <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
-          </a-menu-item>
+        <template #expandIcon></template>
+        <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewMode') }}</div>
+        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
+          <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
+        </a-menu-item>
 
+        <SmartsheetToolbarNotAllowedTooltip
+          v-if="isEeUI && !isDefaultView"
+          :enabled="!isViewOwner"
+          message="Only view owner can change to personal view"
+        >
           <a-menu-item
-            v-if="isViewOwner && !isDefaultView"
+            :disabled="!isViewOwner"
             class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
             @click="changeLockType(LockType.Personal)"
           >
             <LazySmartsheetToolbarLockType :type="LockType.Personal" />
           </a-menu-item>
-
-          <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
-            <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
-          </a-menu-item>
-        </NcSubMenu>
-      </SmartsheetToolbarNotAllowedTooltip>
+        </SmartsheetToolbarNotAllowedTooltip>
+        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
+          <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
+        </a-menu-item>
+      </NcSubMenu>
       <SmartsheetToolbarNotAllowedTooltip
         v-if="isEeUI && !isDefaultView"
         :enabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"

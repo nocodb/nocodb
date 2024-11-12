@@ -16,6 +16,8 @@ const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
 const topbarBreadcrumbItemWidth = computed(() => {

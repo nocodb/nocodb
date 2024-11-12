@@ -11,44 +11,59 @@ import {
 } from 'nocodb-sdk'
 import type { Row } from '../lib/types'
 import { validateRowFilters } from '../utils/dataUtils'
+import { NavigateDir } from '../lib/enums'
+
+const formatData = (list: Record<string, any>[], pageInfo: PaginatedType) =>
+  list.map((row, index) => ({
+    row: { ...row },
+    oldRow: { ...row },
+    rowMeta: {
+      // Calculate the rowIndex based on the offset and the index of the row
+      rowIndex: (pageInfo.page - 1) * pageInfo.pageSize + index,
+    },
+  }))
 
 export function useInfiniteData(args: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>
   callbacks: {
-    loadData?: (
-      params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
-        limit?: number
-        offset?: number
-      },
-    ) => Promise<Row[] | undefined>
     syncVisibleData?: () => void
   }
   where?: ComputedRef<string | undefined>
 }) {
-  const { meta, viewMeta, callbacks, where } = args
-
   const NOCO = 'noco'
+
+  const { meta, viewMeta, callbacks, where } = args
 
   const { $api } = useNuxtApp()
 
-  const { addUndo, clone, defineViewScope } = useUndoRedo()
-
   const { t } = useI18n()
 
-  const { fetchCount } = useSharedView()
+  const router = useRouter()
 
-  const { getBaseType } = useBase()
+  const { isUIAllowed } = useRoles()
 
-  const { getMeta, metas } = useMetas()
-
-  const { base } = storeToRefs(useBase())
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
 
   const isPublic = inject(IsPublicInj, ref(false))
 
   const reloadAggregate = inject(ReloadAggregateHookInj)
 
+  const tablesStore = useTablesStore()
+
+  const baseStore = useBase()
+
+  const { base } = storeToRefs(baseStore)
+
+  const { getBaseType } = baseStore
+
+  const { getMeta, metas } = useMetas()
+
+  const { fetchSharedViewData, fetchCount } = useSharedView()
+
   const { nestedFilters, allFilters, xWhere, sorts } = useSmartsheetStoreOrThrow()
+
+  const routeQuery = computed(() => router.currentRoute.value.query as Record<string, string>)
 
   const columnsByAlias = computed(() => {
     if (!meta.value?.columns?.length) return {}
@@ -75,6 +90,14 @@ export function useInfiniteData(args: {
 
   const cachedRows = ref<Map<number, Row>>(new Map())
 
+  const selectedRows = computed<Row[]>(() => {
+    return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.selected)
+  })
+
+  const isRowSortRequiredRows = computed(() => {
+    return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated)
+  })
+
   const totalRows = ref(0)
 
   const MAX_CACHE_SIZE = 200
@@ -88,13 +111,11 @@ export function useInfiniteData(args: {
   const fetchChunk = async (chunkId: number) => {
     if (chunkStates.value[chunkId]) return
 
-    if (!callbacks?.loadData) return
-
     chunkStates.value[chunkId] = 'loading'
     const offset = chunkId * CHUNK_SIZE
 
     try {
-      const newItems = await callbacks.loadData({ offset, limit: CHUNK_SIZE })
+      const newItems = await loadData({ offset, limit: CHUNK_SIZE })
       if (!newItems) {
         chunkStates.value[chunkId] = undefined
         return
@@ -124,7 +145,6 @@ export function useInfiniteData(args: {
     const safeEndChunk = getChunkIndex(safeEndIndex)
 
     const newCachedRows = new Map<number, Row>()
-
     for (let chunk = 0; chunk <= Math.max(...Array.from(cachedRows.value.keys()).map(getChunkIndex)); chunk++) {
       const isVisibleChunk = chunk >= safeStartChunk && chunk <= safeEndChunk
       const chunkStart = chunk * CHUNK_SIZE
@@ -148,6 +168,139 @@ export function useInfiniteData(args: {
     )
   }
 
+  async function loadAggCommentsCount(formattedData: Array<Row>) {
+    if (!isUIAllowed('commentCount') || isPublic.value) return
+
+    const ids = formattedData
+      .filter(({ rowMeta: { new: isNew } }) => !isNew)
+      .map(({ row }) => extractPkFromRow(row, meta?.value?.columns as ColumnType[]))
+      .filter(Boolean)
+
+    if (!ids.length) return
+
+    try {
+      const aggCommentCount = await $api.utils.commentCount({
+        ids,
+        fk_model_id: meta.value!.id as string,
+      })
+
+      formattedData.forEach((row) => {
+        const cachedRow = Array.from(cachedRows.value.values()).find(
+          (cachedRow) => cachedRow.rowMeta.rowIndex === row.rowMeta.rowIndex,
+        )
+        if (!cachedRow) return
+
+        const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+        const count = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
+        cachedRow.rowMeta.commentCount = +count
+      })
+    } catch (e) {
+      console.error('Failed to load aggregate comment count:', e)
+    }
+  }
+
+  async function loadData(
+    params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
+      limit?: number
+      offset?: number
+    } = {},
+  ): Promise<Row[]> {
+    if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
+
+    try {
+      const response = !isPublic.value
+        ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
+            ...params,
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
+            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
+            where: where?.value,
+          } as any)
+        : await fetchSharedViewData(
+            {
+              sortsArr: sorts.value,
+              filtersArr: nestedFilters.value,
+              where: where?.value,
+              offset: params.offset,
+              limit: params.limit,
+            },
+            {
+              isInfiniteScroll: true,
+            },
+          )
+
+      const data = formatData(response.list, response.pageInfo)
+
+      if (response.pageInfo.totalRows) {
+        totalRows.value = response.pageInfo.totalRows
+      }
+
+      loadAggCommentsCount(data)
+
+      return data
+    } catch (error: any) {
+      if (error?.response?.data.error === 'INVALID_OFFSET_VALUE') {
+        return []
+      }
+      if (error?.response?.data?.error === 'FORMULA_ERROR') {
+        await tablesStore.reloadTableMeta(meta.value!.id! as string)
+        return loadData(params)
+      }
+
+      console.error(error)
+      message.error(await extractSdkResponseErrorMsg(error))
+      return []
+    }
+  }
+
+  const navigateToSiblingRow = async (dir: NavigateDir) => {
+    const expandedRowIndex = getExpandedRowIndex()
+    if (expandedRowIndex === -1) return
+
+    const sortedIndices = Array.from(cachedRows.value.keys()).sort((a, b) => a - b)
+    let siblingIndex = sortedIndices.findIndex((index) => index === expandedRowIndex) + (dir === NavigateDir.NEXT ? 1 : -1)
+
+    // Skip unsaved rows
+    while (
+      siblingIndex >= 0 &&
+      siblingIndex < sortedIndices.length &&
+      cachedRows.value.get(sortedIndices[siblingIndex])?.rowMeta?.new
+    ) {
+      siblingIndex += dir === NavigateDir.NEXT ? 1 : -1
+    }
+
+    // Check if we've gone out of bounds
+    if (siblingIndex < 0 || siblingIndex >= totalRows.value) {
+      return message.info(t('msg.info.noMoreRecords'))
+    }
+
+    // If the sibling row is not in cachedRows, load more data
+    if (siblingIndex >= sortedIndices.length) {
+      await loadData({
+        offset: sortedIndices[sortedIndices.length - 1] + 1,
+        limit: 10,
+      })
+      sortedIndices.push(
+        ...Array.from(cachedRows.value.keys())
+          .filter((key) => !sortedIndices.includes(key))
+          .sort((a, b) => a - b),
+      )
+    }
+
+    // Extract the row id of the sibling row
+    const siblingRow = cachedRows.value.get(sortedIndices[siblingIndex])
+    if (siblingRow) {
+      const rowId = extractPkFromRow(siblingRow.row, meta.value?.columns as ColumnType[])
+      if (rowId) {
+        await router.push({
+          query: {
+            ...routeQuery.value,
+            rowId,
+          },
+        })
+      }
+    }
+  }
+
   const fetchMissingChunks = async (startIndex: number, endIndex: number) => {
     const firstChunkId = Math.floor(startIndex / CHUNK_SIZE)
     const lastChunkId = Math.floor(endIndex / CHUNK_SIZE)
@@ -158,14 +311,6 @@ export function useInfiniteData(args: {
 
     await Promise.all(chunksToFetch.map(fetchChunk))
   }
-
-  const selectedRows = computed<Row[]>(() => {
-    return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.selected)
-  })
-
-  const isRowSortRequiredRows = computed(() => {
-    return Array.from(cachedRows.value.values()).filter((row) => row.rowMeta?.isRowOrderUpdated)
-  })
 
   function clearInvalidRows() {
     const sortedEntries = Array.from(cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
@@ -327,6 +472,7 @@ export function useInfiniteData(args: {
       })
 
       const entry = sortedRangeEntries.find((e) => e.pk === extractPkFromRow(inputRow.row, meta.value?.columns ?? []))
+
       if (!entry) return
 
       const targetIndex = sourceRange.start + sortedRangeEntries.indexOf(entry)
@@ -335,6 +481,7 @@ export function useInfiniteData(args: {
 
       if (targetIndex !== originalIndex) {
         if (targetIndex < originalIndex) {
+          // Move up
           for (let i = originalIndex - 1; i >= targetIndex; i--) {
             const row = newCachedRows.get(i)
             if (row) {
@@ -344,6 +491,7 @@ export function useInfiniteData(args: {
             }
           }
         } else {
+          // Move down
           for (let i = originalIndex + 1; i <= targetIndex; i++) {
             const row = newCachedRows.get(i)
             if (row) {
@@ -587,6 +735,17 @@ export function useInfiniteData(args: {
 
       const insertIndex = currentRow.rowMeta.rowIndex!
 
+      /*   if (cachedRows.value.has(insertIndex) && !ignoreShifting) {
+        const rows = Array.from(cachedRows.value.entries())
+        const rowsToShift = rows.filter(([index]) => index >= insertIndex)
+        rowsToShift.sort((a, b) => b[0] - a[0]) // Sort in descending order
+
+        for (const [index, row] of rowsToShift) {
+          row.rowMeta.rowIndex = index + 1
+          cachedRows.value.set(index + 1, row)
+        }
+      }
+*/
       if (!undo) {
         Object.assign(currentRow.oldRow, insertedData)
 
@@ -816,6 +975,7 @@ export function useInfiniteData(args: {
     } else if (property) {
       data = await updateRowProperty(row, property, args)
     }
+
     row.rowMeta.isValidationFailed = !validateRowFilters(
       [...allFilters.value, ...computedWhereFilter.value],
       data,
@@ -852,6 +1012,7 @@ export function useInfiniteData(args: {
       const newRow = cachedRows.value.get(row.rowMeta.rowIndex!)
       if (newRow) newRow.rowMeta.isRowOrderUpdated = needsResorting
     }
+    callbacks?.syncVisibleData?.()
   }
 
   async function bulkUpdateView(
@@ -934,6 +1095,32 @@ export function useInfiniteData(args: {
     }
   }
 
+  function getExpandedRowIndex(): number {
+    const rowId = routeQuery.value.rowId
+    if (!rowId) return -1
+
+    for (const [_index, row] of cachedRows.value.entries()) {
+      if (extractPkFromRow(row.row, meta.value?.columns as ColumnType[]) === rowId) {
+        return row.rowMeta.rowIndex!
+      }
+    }
+    return -1
+  }
+
+  const isLastRow = computed(() => {
+    const expandedRowIndex = getExpandedRowIndex()
+    if (expandedRowIndex === -1) return false
+
+    return expandedRowIndex === totalRows.value - 1
+  })
+
+  const isFirstRow = computed(() => {
+    const expandedRowIndex = getExpandedRowIndex()
+    if (expandedRowIndex === -1) return false
+
+    return expandedRowIndex === 0
+  })
+
   return {
     insertRow,
     updateRowProperty,
@@ -957,5 +1144,11 @@ export function useInfiniteData(args: {
     clearInvalidRows,
     applySorting,
     CHUNK_SIZE,
+    loadData,
+    isLastRow,
+    isFirstRow,
+    getExpandedRowIndex,
+    loadAggCommentsCount,
+    navigateToSiblingRow,
   }
 }

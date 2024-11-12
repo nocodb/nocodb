@@ -151,6 +151,8 @@ const isViewOwner = computed(() => {
   )
 })
 
+const isDefaultView = computed(() => view.value?.is_default)
+
 /**
  * ## Known Issue and Fix
  * - **Issue**: When conditionally rendering `NcMenuItem` using `v-if` without a corresponding `v-else` fallback,
@@ -328,7 +330,10 @@ const isViewOwner = computed(() => {
           <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
         </a-menu-item>
 
-        <a-menu-item v-if="isViewOwner && isEeUI" class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
+        <a-menu-item
+          v-if="isViewOwner && isEeUI && !isDefaultView"
+          class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
+        >
           <LazySmartsheetToolbarLockType :type="LockType.Personal" @click="changeLockType(LockType.Personal)" />
         </a-menu-item>
 
@@ -337,7 +342,7 @@ const isViewOwner = computed(() => {
         </a-menu-item>
       </NcSubMenu>
 
-      <NcMenuItem @click="openReAssignDlg" v-if="(isViewOwner || isUIAllowed('reAssignViewOwner')) && isEeUI">
+      <NcMenuItem v-if="(isViewOwner || isUIAllowed('reAssignViewOwner')) && isEeUI && !isDefaultView" @click="openReAssignDlg">
         <div
           v-e="[
             'c:navdraw:preview-as',

@@ -164,7 +164,7 @@ export class ViewsService {
     ) {
       // if owned_by is not empty then check if the user is the owner of the project
       if (ownedBy && ownedBy !== param.user.id) {
-        NcError.unauthorized('Only owner can change to personal view');
+        NcError.unauthorized('Only owner/creator can change to personal view');
       }
 
       // if empty then check if current user is the owner of the project then allow and update the owned_by
@@ -180,7 +180,17 @@ export class ViewsService {
       }
     }
 
-    if (ownedBy && param.view.owned_by && param.user.id === ownedBy) {
+    // handle view ownership transfer
+    if (ownedBy && param.view.owned_by && ownedBy !== param.view.owned_by) {
+      // extract user roles and allow creator and owner to change to personal view
+      if (
+        param.user.id !== ownedBy &&
+        !param.user.base_roles?.[ProjectRoles.OWNER] &&
+        !param.user.base_roles?.[ProjectRoles.CREATOR]
+      ) {
+        NcError.unauthorized('Only owner/creator can transfer view ownership');
+      }
+
       ownedBy = param.view.owned_by;
 
       // verify if the new owned_by is a valid user who have access to the base/workspace
@@ -196,11 +206,6 @@ export class ViewsService {
       }
 
       includeCreatedByAndUpdateBy = true;
-
-      // // todo: ee only
-      // if(!baseUser) {
-      //   const workspace = await WorkspaceUser
-      // }
     }
 
     const result = await View.update(

@@ -337,7 +337,7 @@ const isViewOwner = computed(() => {
         </a-menu-item>
       </NcSubMenu>
 
-      <NcMenuItem @click="openReAssignDlg" v-if="isViewOwner && isEeUI">
+      <NcMenuItem @click="openReAssignDlg" v-if="(isViewOwner || isUIAllowed('reAssignViewOwner')) && isEeUI">
         <div
           v-e="[
             'c:navdraw:preview-as',

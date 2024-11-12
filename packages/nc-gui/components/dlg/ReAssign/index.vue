@@ -74,6 +74,15 @@ const searchQuery = ref('')
 const selectedUser = ref()
 const userSelectMenu = ref(false)
 
+const currentOwner = computed(() => {
+  return (
+    (props.view && basesUser.value.get(props.view.base_id)?.find((u) => u.id === props.view.owned_by)) || {
+      id: props.view.owned_by,
+      display_name: 'Unknown',
+    }
+  )
+})
+
 const filterdBaseUsers = computed(() => {
   let users = props.view.base_id ? basesUser.value.get(props.view.base_id) || [] : []
   if (searchQuery.value) {
@@ -83,7 +92,8 @@ const filterdBaseUsers = computed(() => {
     })
   }
 
-  return users.filter((u) => u.id !== user.value?.id)
+  // exclude current owner from the list
+  return users.filter((u) => u.id !== currentOwner.value?.id)
 })
 
 const { user } = useGlobal()
@@ -142,12 +152,12 @@ const inputEl = (el: HTMLInputElement) => {
   <NcModal v-model:visible="vModel" wrap-class-name="nc-modal-re-assign" width="448px">
     <div class="mb-4">
       <div class="flex text-base font-bold mb-2">Re-assign this view</div>
-      <div class="flex">Once reassigned, you will no longer be able to edit the view configuration.</div>
+      <div class="flex">Once reassigned, current owner will no longer be able to edit the view configuration.</div>
     </div>
 
     <div class="mb-4">
       <div class="mb-1">Current owner</div>
-      <UserItem :user="user" class="bg-gray-100" />
+      <UserItem :user="currentOwner" class="bg-gray-100" />
     </div>
     <div>
       <div class="mb-1">New owner</div>

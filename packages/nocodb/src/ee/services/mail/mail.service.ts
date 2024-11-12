@@ -1,7 +1,7 @@
 import { AppEvents } from 'nocodb-sdk';
 import * as ejs from 'ejs';
 import { Injectable } from '@nestjs/common';
-import { Mention } from './templates';
+import { Mention, MentionRow } from './templates';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
   RowCommentEvent,
@@ -161,8 +161,8 @@ export class MailService implements OnModuleInit, OnModuleDestroy {
 
           await mailerAdapter.mailSend({
             to: mentionedUser.email,
-            subject: `New comment on ${table.title}`,
-            html: ejs.render(Mention, {
+            subject: `You have been mentioned on ${table.title}`,
+            html: ejs.render(MentionRow, {
               name: user.display_name ?? user.email,
               display_name: displayValue ?? '',
               table: table.title,

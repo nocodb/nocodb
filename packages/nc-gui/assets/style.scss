@@ -1043,3 +1043,21 @@ svg.nc-virtual-cell-icon {
     @apply cursor-not-allowed !text-nc-content-purple-light;
   }
 }
+
+.ant-dropdown {
+  &.nc-dropdown-group-by-menu,
+  &.nc-dropdown-sort-menu {
+    .nc-locked-view {
+      .nc-unified-search-list-wrapper {
+        @apply cursor-not-allowed;
+        & > div {
+          @apply !pointer-events-none select-none !bg-white;
+
+          &.nc-unified-list-option-active {
+            @apply bg-white;
+          }
+        }
+      }
+    }
+  }
+}

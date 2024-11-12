@@ -216,7 +216,11 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
       </NcButton>
     </NcTooltip>
     <template #overlay>
-      <div>
+      <div
+        :class="{
+          'nc-locked-view': isLocked,
+        }"
+      >
         <SmartsheetToolbarCreateGroupBy
           v-if="!_groupBy.length"
           :is-parent-open="open"

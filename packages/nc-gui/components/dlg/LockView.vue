@@ -5,14 +5,14 @@ import { ViewTypesNameMap } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = defineProps<{
-  modelValue: boolean
+  modelValue?: boolean
   view?: ViewType
   changeType?: LockType
 }>()
 
 const emits = defineEmits(['update:modelValue', 'submit'])
 
-const dialogShow = useVModel(props, 'modelValue', emits)
+const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false })
 
 const isForm = inject(IsFormInj)
 

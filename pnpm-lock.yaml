@@ -552,7 +552,7 @@ importers:
         version: 5.0.8(eslint@8.56.0)(typescript@5.6.2)
       eslint-plugin-import:
         specifier: ^2.29.1
-        version: 2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.56.0)(typescript@5.6.2))(eslint@8.56.0)
+        version: 2.29.1(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)
       eslint-plugin-prettier:
         specifier: ^4.2.1
         version: 4.2.1(eslint-config-prettier@8.10.0(eslint@8.56.0))(eslint@8.56.0)(prettier@2.8.8)
@@ -806,8 +806,8 @@ importers:
         specifier: ^3.3.7
         version: 3.3.7
       nc-lib-gui:
-        specifier: 0.257.2
-        version: 0.257.2
+        specifier: 0.258.0
+        version: 0.258.0
       nestjs-throttler-storage-redis:
         specifier: ^0.4.4
         version: 0.4.4(@nestjs/common@10.3.8(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1))(@nestjs/core@10.3.8)(@nestjs/throttler@5.1.2(@nestjs/common@10.3.8(class-validator@0.14.1)(reflect-metadata@0.2.1)(rxjs@7.8.1))(@nestjs/core@10.3.8)(reflect-metadata@0.2.1))(ioredis@5.4.1)(reflect-metadata@0.2.1)
@@ -10930,8 +10930,8 @@ packages:
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
 
-  nc-lib-gui@0.257.2:
-    resolution: {integrity: sha512-3sSzAmRNUFqDZjvX5mIe5WRKf0l9ytjLw1Q1WcVHLV5qLT25E1RoaX/vp5qybCG6Y0WPld/tjD/r1wBvpXqz4w==}
+  nc-lib-gui@0.258.0:
+    resolution: {integrity: sha512-xU37sju2WTb67vj2yqTI9AyOmoffq9eCxUiL/yF9p0G353W4SpPB+CeKKXLuEQ8jcVesN2YS3h0ZWPnXrleLlw==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -28594,7 +28594,7 @@ snapshots:
 
   natural-compare@1.4.0: {}
 
-  nc-lib-gui@0.257.2:
+  nc-lib-gui@0.258.0:
     dependencies:
       express: 4.19.2
     transitivePeerDependencies:

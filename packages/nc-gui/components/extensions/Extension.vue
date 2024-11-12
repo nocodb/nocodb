@@ -6,7 +6,7 @@ interface Prop {
 
 const { extensionId, error } = defineProps<Prop>()
 
-const { extensionList, extensionsLoaded, availableExtensions, eventBus } = useExtensions()
+const { extensionList, extensionsLoaded, availableExtensions } = useExtensions()
 
 const isLoadedExtension = ref<boolean>(true)
 

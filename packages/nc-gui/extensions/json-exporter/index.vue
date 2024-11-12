@@ -103,7 +103,7 @@ onMounted(() => {
 
 <style lang="scss">
 .nc-nc-json-exporter .extension-content {
-  &:not(.fullscreen){
+  &:not(.fullscreen) {
     @apply p-3;
   }
 }

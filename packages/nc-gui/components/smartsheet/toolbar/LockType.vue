@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { LockType } from '#imports'
+import type { LockType } from '#imports'
 
 const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType; disabled?: boolean }>()
 
 const emit = defineEmits(['select'])
 
-const types = viewLockIcons;
+const types = viewLockIcons
 
 const selectedView = inject(ActiveViewInj)
 </script>

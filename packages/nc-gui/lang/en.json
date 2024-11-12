@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Click to copy Table ID",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "View mode",
+    "reAssignView": "Re-Assign View",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
     "allTables": "All Tables",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",

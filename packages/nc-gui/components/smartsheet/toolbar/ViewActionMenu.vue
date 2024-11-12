@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
+import { resolveComponent } from '@vue/runtime-core'
 import { LockType } from '#imports'
 
 const props = withDefaults(
@@ -127,6 +128,16 @@ const onViewIdCopy = async () => {
 
 const onDelete = async () => {
   emits('delete')
+}
+
+const openReAssignDlg = () => {
+  const { close } = useDialog(resolveComponent('DlgReAssign'), {
+    'modelValue': ref(true),
+    'onUpdate:modelValue': () => {
+      close()
+    },
+    view,
+  })
 }
 
 /**
@@ -314,6 +325,23 @@ const onDelete = async () => {
           <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
         </a-menu-item>
       </NcSubMenu>
+
+      <NcMenuItem @click="openReAssignDlg">
+        <div
+          v-e="[
+            'c:navdraw:preview-as',
+            {
+              sidebar: props.inSidebar,
+            },
+          ]"
+          class="flex flex-row items-center gap-x-3"
+        >
+          <div>
+            {{ $t('labels.reAssignView') }}
+          </div>
+          <div class="flex flex-grow"></div>
+        </div>
+      </NcMenuItem>
     </template>
 
     <template v-if="!view.is_default && isUIAllowed('viewCreateOrEdit')">

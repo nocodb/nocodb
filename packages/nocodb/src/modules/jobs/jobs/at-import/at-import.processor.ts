@@ -687,6 +687,7 @@ export class AtImportProcessor {
             base_roles: {
               owner: true,
             },
+            id: syncDB.user.id
           },
         });
         recordPerfStats(_perfStart, 'dbView.list');

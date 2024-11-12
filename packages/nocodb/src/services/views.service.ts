@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ProjectRoles } from 'nocodb-sdk';
+import { AppEvents, ProjectRoles, ViewLockType } from 'nocodb-sdk';
 import type {
   SharedViewReqType,
   UserType,
@@ -9,8 +9,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { Model, ModelRoleVisibility, View } from '~/models';
-import {WorkspaceUser} from "~/ee/models";
+import { BaseUser, Model, ModelRoleVisibility, View } from '~/models';
 
 // todo: move
 async function xcVisibilityMetaGet(
@@ -78,6 +77,7 @@ export class ViewsService {
       user: {
         roles?: Record<string, boolean> | string;
         base_roles?: Record<string, boolean>;
+        id: string;
       };
     },
   ) {
@@ -95,6 +95,14 @@ export class ViewsService {
     // todo: user roles
     //await View.list(param.tableId)
     const filteredViewList = viewList.filter((view: any) => {
+      if (
+        view.lock_type === ViewLockType.Personal &&
+        view.owned_by !== param.user.id &&
+        !(!view.owned_by && !param.user.base_roles?.[ProjectRoles.OWNER])
+      ) {
+        return false;
+      }
+
       return Object.values(ProjectRoles).some(
         (role) => param?.user?.['base_roles']?.[role] && !view.disabled[role],
       );
@@ -172,14 +180,18 @@ export class ViewsService {
       }
     }
 
-    if(ownedBy && param.view.owned_by && param.user.id === ownedBy) {
-      ownedBy = param.view.owned_by
+    if (ownedBy && param.view.owned_by && param.user.id === ownedBy) {
+      ownedBy = param.view.owned_by;
 
       // verify if the new owned_by is a valid user who have access to the base/workspace
       // if not then throw error
-      const baseUser = await BaseUser.get(context,param.view.owned_by, context.base_id);
+      const baseUser = await BaseUser.get(
+        context,
+        param.view.owned_by,
+        context.base_id,
+      );
 
-      if(!baseUser){
+      if (!baseUser) {
         NcError.badRequest('Invalid user');
       }
 

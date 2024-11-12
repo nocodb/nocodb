@@ -68,6 +68,10 @@ export const useExtensions = createSharedComposable(() => {
 
   const availableExtensions = ref<ExtensionManifest[]>([])
 
+  const availableExtensionIds = computed(() => {
+    return availableExtensions.value.map((e) => e.id)
+  })
+
   // Object to store description content for each extension
   const descriptionContent = ref<Record<string, string>>({})
 
@@ -85,11 +89,11 @@ export const useExtensions = createSharedComposable(() => {
   })
 
   const extensionList = computed<ExtensionType[]>(() => {
-    return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : []).sort(
-      (a: ExtensionType, b: ExtensionType) => {
+    return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : [])
+      .filter((e: ExtensionType) => availableExtensionIds.value.includes(e.extensionId))
+      .sort((a: ExtensionType, b: ExtensionType) => {
         return (a?.order ?? Infinity) - (b?.order ?? Infinity)
-      },
-    )
+      })
   })
 
   const toggleExtensionPanel = () => {

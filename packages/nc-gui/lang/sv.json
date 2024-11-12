@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Klicka för att kopiera bord ID",
     "clickToCopyViewID": "Klicka för att kopiera vy-ID",
     "viewMode": "Visningsläge",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Sök användare",
     "superAdmin": "Superadmin",
     "allTables": "Alla tabeller",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Omdirigera till URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook Detaljer",
     "hideWeekends": "Dölj helger",
     "renameBase": "Byt namn på Bas",
@@ -1251,7 +1253,7 @@
     "startCommenting": "Börja kommentera!",
     "noCommentsYet": "Inga kommentarer ännu!",
     "clearForm": "Rensa formulär",
-    "addFieldFromFormView": "Add Field",
+    "addFieldFromFormView": "Lägg till fält",
     "selectAllFields": "Välj alla fält",
     "preFilledFields": {
       "title": "Aktivera förifyllning",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Visa alla delade utsikt över denna tabell",
       "collabView": "Samarbetare med redigeringsbehörigheter eller högre kan ändra visningskonfigurationen.",
       "lockedView": "Ingen kan redigera visningskonfigurationen tills den är upplåst.",
-      "personalView": "Endast du kan redigera visningskonfigurationen. Andra samarbetspersonella synpunkter är gömda som standard.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Kan lägga till / ta bort skapare. Och fullständiga Redigera databasstrukturer och fält.",
       "creatorDesc": "Kan helt redigera databasstruktur och värden.",
       "editorDesc": "Kan redigera poster men kan inte ändra strukturen i databas / fält.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Vänligen aktivera SMTP-plugin i App Store för att aktivera e-postmeddelande",
       "collabView": "Framgångsrikt bytte till collaborative view",
       "lockedView": "Bytte framgångsrikt till låst vy",
-      "futureRelease": "Kommer snart!"
+      "futureRelease": "Kommer snart!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Licensnyckeln uppdaterades",

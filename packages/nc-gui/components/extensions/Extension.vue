@@ -67,10 +67,14 @@ onMounted(() => {
         return
       }
 
-      import(`../../extensions/${extensionManifest.value.entry}/index.vue`).then((mod) => {
-        component.value = markRaw(mod.default)
-        isLoadedExtension.value = false
-      })
+      import(`../../extensions/${extensionManifest.value.entry}/index.vue`)
+        .then((mod) => {
+          component.value = markRaw(mod.default)
+          isLoadedExtension.value = false
+        })
+        .catch((e) => {
+          throw new Error(e)
+        })
     })
     .catch((err) => {
       if (!extensionManifest.value) {

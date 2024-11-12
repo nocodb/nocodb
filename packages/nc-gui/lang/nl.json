@@ -93,7 +93,7 @@
     "none": "Geen"
   },
   "general": {
-    "featurePreview": "Feature Preview",
+    "featurePreview": "Voorbeschouwing functionaliteiten",
     "scripts": "Scripts",
     "configure": "Configureren",
     "switch": "Overschakelen",
@@ -627,8 +627,8 @@
     "noConditionsAdded": "Geen voorwaarden toegevoegd"
   },
   "labels": {
-    "continue": "Continue",
-    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
+    "continue": "Doorgaan",
+    "toggleExperimentalFeature": "Schakel experimentele functies gemakkelijk in of uit, zodat je toekomstige functionaliteiten kunt verkennen en evalueren.",
     "modifiedOn": "Gewijzigd op",
     "configuration": "Configuratie",
     "setup": "Installatie",

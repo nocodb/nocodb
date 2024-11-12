@@ -129,53 +129,24 @@ const calculateNewDates = useMemoize(
     return { startDate, endDate }
   },
 )
-
 // Since it is a datetime Week view, we need to create a 2D array of dayjs objects to represent the hours in a day for each day in the week
 const datesHours = computed(() => {
-  const datesHours: Array<Array<dayjs.Dayjs>> = []
-  let startOfWeek = dayjs(selectedDateRange.value.start) ?? dayjs().startOf('week')
-  let endOfWeek = dayjs(selectedDateRange.value.end) ?? dayjs().endOf('week')
-
-  if (maxVisibleDays.value === 5) {
-    endOfWeek = endOfWeek.subtract(2, 'day')
-  }
-
-  while (startOfWeek.isSameOrBefore(endOfWeek)) {
-    const hours: Array<dayjs.Dayjs> = []
-    for (let i = 0; i < 24; i++) {
-      hours.push(
-        dayjs()
-          .hour(i)
-          .minute(0)
-          .second(0)
-          .millisecond(0)
-          .year(startOfWeek.year())
-          .month(startOfWeek.month())
-          .date(startOfWeek.date()),
-      )
-    }
-    datesHours.push(hours)
-    startOfWeek = startOfWeek.add(1, 'day')
-  }
-  return datesHours
+  const start = dayjs(selectedDateRange.value.start).startOf('week')
+  return Array.from({ length: maxVisibleDays.value }, (_, i) =>
+    Array.from({ length: 24 }, (_, h) => start.add(i, 'day').hour(h).minute(0).second(0)),
+  )
 })
 
 const getGridTime = (date: dayjs.Dayjs, round = false) => {
-  const gridCalc = date.hour() * 60 + date.minute()
-  if (round) {
-    return Math.ceil(gridCalc)
-  } else {
-    return Math.floor(gridCalc)
-  }
+  const minutes = date.hour() * 60 + date.minute()
+  return round ? Math.ceil(minutes) : Math.floor(minutes)
 }
 
-const getGridTimeSlots = (from: dayjs.Dayjs, to: dayjs.Dayjs) => {
-  return {
-    from: getGridTime(from, false),
-    to: getGridTime(to, true) - 1,
-    dayIndex: getDayIndex(from),
-  }
-}
+const getGridTimeSlots = (from: dayjs.Dayjs, to: dayjs.Dayjs) => ({
+  from: getGridTime(from),
+  to: getGridTime(to, true) - 1,
+  dayIndex: getDayIndex(from),
+})
 
 const hasSlotForRecord = (
   columnArray: Row[],

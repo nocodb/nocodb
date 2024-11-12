@@ -303,7 +303,11 @@ const isDefaultView = computed(() => view.value?.is_default)
         :enabled="!isViewOwner && view.lock_type === LockType.Personal"
         message="Only view owner can change personal view"
       >
-        <NcSubMenu :disabled="!isViewOwner && view.lock_type === LockType.Personal" key="lock-type" class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0">
+        <NcSubMenu
+          key="lock-type"
+          :disabled="!isViewOwner && view.lock_type === LockType.Personal"
+          class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
+        >
           <template #title>
             <div
               v-e="[
@@ -314,7 +318,7 @@ const isDefaultView = computed(() => view.value?.is_default)
               ]"
               class="flex flex-row items-center gap-x-3"
             >
-              <div :class="{'text-gray-400': !isViewOwner && view.lock_type === LockType.Personal}">
+              <div :class="{ 'text-gray-400': !isViewOwner && view.lock_type === LockType.Personal }">
                 {{ $t('labels.viewMode') }}
               </div>
               <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
@@ -336,7 +340,7 @@ const isDefaultView = computed(() => view.value?.is_default)
           </a-menu-item>
 
           <a-menu-item
-            v-if="!isViewOwner || isDefaultView"
+            v-if="isViewOwner && !isDefaultView"
             class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
             @click="changeLockType(LockType.Personal)"
           >

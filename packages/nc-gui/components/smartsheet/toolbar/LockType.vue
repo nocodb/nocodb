@@ -40,12 +40,14 @@ const selectedView = inject(ActiveViewInj)
             :class="{
               '!w-3 h-3': hideTick,
               '!w-4 h-4': !hideTick,
+              'text-gray-400': disabled,
             }"
           />
           <div
             class="flex"
             :class="{
               'text-xs py-0.7': hideTick,
+              'text-gray-400': disabled,
             }"
           >
             {{ $t(types[type].title) }}
@@ -56,7 +58,10 @@ const selectedView = inject(ActiveViewInj)
             <span v-else />
           </template>
         </div>
-        <div v-if="!hideTick" class="nc-subtitle max-w-120 text-xs text-gray-500 whitespace-normal ml-6">
+        <div v-if="!hideTick" class="nc-subtitle max-w-120 text-xs whitespace-normal ml-6" :class="{
+              'text-gray-400': disabled,
+              'text-gray-500': !disabled,
+        }">
           {{ $t(types[type].subtitle) }}
         </div>
       </div>

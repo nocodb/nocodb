@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ViewLockType } from 'nocodb-sdk'
+import { ProjectRoles, ViewLockType } from 'nocodb-sdk'
 import UserItem from './UserItem.vue'
 const props = defineProps<Props>()
 
@@ -91,7 +91,7 @@ const filterdBaseUsers = computed(() => {
   }
 
   // exclude current owner from the list
-  return users.filter((u) => u.id !== currentOwner.value?.id)
+  return users.filter((u) => u.id !== currentOwner.value?.id && u.base_roles !== ProjectRoles.NO_ACCESS)
 })
 
 const { api, isLoading } = useApi()
@@ -135,18 +135,18 @@ const inputEl = (el: HTMLInputElement) => {
 
 <template>
   <NcModal v-model:visible="vModel" wrap-class-name="nc-modal-re-assign" width="448px">
-    <div class="mb-4">
+    <div class="mb-5">
       <div class="flex text-base font-bold mb-2">Re-assign this view</div>
       <div class="flex">Once reassigned, current owner will no longer be able to edit the view configuration.</div>
     </div>
 
-    <div class="mb-4">
+    <div class="mb-5">
       <div class="mb-1">Current owner</div>
-      <UserItem :user="currentOwner" class="bg-gray-100" />
+      <UserItem :user="currentOwner" class="bg-gray-100 rounded-lg" />
     </div>
-    <div>
+    <div class="mb-5">
       <div class="mb-1">New owner</div>
-      <div class="rounded border-1">
+      <div class="rounded-lg border-1">
         <UserItem
           v-if="selectedUser && !userSelectMenu"
           :user="selectedUser"
@@ -158,17 +158,21 @@ const inputEl = (el: HTMLInputElement) => {
           </template>
         </UserItem>
 
-        <div v-else class="flex flex-row items-center gap-x-2 h-12.5 p-2" style="border-bottom: 1px solid; border-color: inherit">
+        <div v-else class="flex flex-row items-center gap-x-2 h-12.5 p-2 nc-list-user-item">
           <GeneralIcon icon="search" class="text-gray-500 ml-2" />
-          <input :ref="inputEl" v-model="searchQuery" class="border-0 px-2.5 outline-none" />
+          <input
+            :ref="inputEl"
+            v-model="searchQuery"
+            placeholder="Search User to assign..."
+            class="border-0 px-2.5 outline-none nc-search-input"
+          />
         </div>
 
         <div v-if="!selectedUser || userSelectMenu" class="max-h-65 overflow-auto">
           <UserItem
             v-for="user of filterdBaseUsers"
-            style="border-bottom: 1px solid; border-color: inherit"
             :key="user.id"
-            class="cursor-pointer hover:(bg-gray-100)"
+            class="cursor-pointer hover:(bg-gray-100) nc-list-user-item"
             :class="{ 'bg-gray-100': selectedUser === user }"
             :user="user"
             @click="selectUser(user)"
@@ -182,7 +186,7 @@ const inputEl = (el: HTMLInputElement) => {
       </div>
     </div>
 
-    <div class="flex mt-8 justify-end">
+    <div class="flex justify-end">
       <div class="flex gap-2">
         <NcButton size="small" type="secondary" @click="vModel = false"> {{ $t('labels.cancel') }} </NcButton>
         <NcButton
@@ -199,3 +203,16 @@ const inputEl = (el: HTMLInputElement) => {
     </div>
   </NcModal>
 </template>
+
+<style scoped lang="scss">
+.nc-modal-re-assign {
+  .nc-search-input::placeholder {
+    @apply text-gray-400;
+  }
+
+  .nc-list-user-item:not(:last-of-type) {
+    border-bottom: 1px solid;
+    border-color: inherit;
+  }
+}
+</style>

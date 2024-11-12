@@ -332,18 +332,17 @@ const isDefaultView = computed(() => view.value?.is_default)
         <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
           <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
         </a-menu-item>
-
         <SmartsheetToolbarNotAllowedTooltip
-          v-if="isEeUI && !isDefaultView"
-          :enabled="!isViewOwner"
-          message="Only view owner can change to personal view"
+          v-if="isEeUI"
+          :enabled="!isViewOwner || isDefaultView"
+          :message="isDefaultView ? 'Default view can\'t be made personal' : 'Only view owner can change to personal view'"
         >
           <a-menu-item
-            :disabled="!isViewOwner"
+            :disabled="!isViewOwner || isDefaultView"
             class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
             @click="changeLockType(LockType.Personal)"
           >
-            <LazySmartsheetToolbarLockType :type="LockType.Personal" />
+            <LazySmartsheetToolbarLockType :type="LockType.Personal" :disabled="!isViewOwner || isDefaultView" />
           </a-menu-item>
         </SmartsheetToolbarNotAllowedTooltip>
         <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">

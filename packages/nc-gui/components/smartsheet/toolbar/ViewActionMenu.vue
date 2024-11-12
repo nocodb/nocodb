@@ -5,124 +5,119 @@ import { LockType } from '#imports'
 
 const props = withDefaults(
   defineProps<{
-    view: ViewType;
-    table: TableType;
-    inSidebar?: boolean;
+    view: ViewType
+    table: TableType
+    inSidebar?: boolean
   }>(),
   {
     inSidebar: false,
-  }
-);
+  },
+)
 
-const emits = defineEmits(["rename", "closeModal", "delete", "descriptionUpdate"]);
+const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate', 'onLockTypeChange'])
 
-const { isUIAllowed, isDataReadOnly } = useRoles();
+const { isUIAllowed, isDataReadOnly } = useRoles()
 
-const isPublicView = inject(IsPublicInj, ref(false));
+const isPublicView = inject(IsPublicInj, ref(false))
 
-const { $api, $e } = useNuxtApp();
+const { $api, $e } = useNuxtApp()
 
-const { t } = useI18n();
+const { t } = useI18n()
 
-const view = computed(() => props.view);
+const view = computed(() => props.view)
 
-const table = computed(() => props.table);
+const table = computed(() => props.table)
 
-const { loadViews, navigateToView, duplicateView } = useViewsStore();
+const { loadViews, navigateToView, duplicateView } = useViewsStore()
 
-const { user } = useGlobal();
+const { user } = useGlobal()
 
-const { base } = storeToRefs(useBase());
+const { base } = storeToRefs(useBase())
 
-const { refreshCommandPalette } = useCommandPalette();
+const { refreshCommandPalette } = useCommandPalette()
 
-const lockType = computed(
-  () => (view.value?.lock_type as LockType) || LockType.Collaborative
-);
+const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
-const changeType = ref<LockType>();
+const changeType = ref<LockType>()
 
-const isViewIdCopied = ref(false);
+const isViewIdCopied = ref(false)
 
-const currentSourceId = computed(() => table.value?.source_id);
+const currentSourceId = computed(() => table.value?.source_id)
 
 const onRenameMenuClick = () => {
-  emits("rename");
-};
+  emits('rename')
+}
 
 const onDescriptionUpdateClick = () => {
-  emits("descriptionUpdate");
-};
+  emits('descriptionUpdate')
+}
 
-const quickImportDialogTypes: QuickImportDialogType[] = ["csv", "excel"];
+const quickImportDialogTypes: QuickImportDialogType[] = ['csv', 'excel']
 
-const quickImportDialogs: Record<
-  typeof quickImportDialogTypes[number],
-  Ref<boolean>
-> = quickImportDialogTypes.reduce((acc: any, curr) => {
-  acc[curr] = ref(false);
-  return acc;
-}, {}) as Record<QuickImportDialogType, Ref<boolean>>;
+const quickImportDialogs: Record<(typeof quickImportDialogTypes)[number], Ref<boolean>> = quickImportDialogTypes.reduce(
+  (acc: any, curr) => {
+    acc[curr] = ref(false)
+    return acc
+  },
+  {},
+) as Record<QuickImportDialogType, Ref<boolean>>
 
 const onImportClick = (dialog: any) => {
-  if (lockType.value === LockType.Locked) return;
+  if (lockType.value === LockType.Locked) return
 
-  emits("closeModal");
-  dialog.value = true;
-};
+  emits('closeModal')
+  dialog.value = true
+}
 
-const isOpenLockViewDlg = ref(false);
+const isOpenLockViewDlg = ref(false)
 
 async function changeLockType(type: LockType) {
-  if (!view.value || view.value?.lock_type === type) return;
+  if (!view.value || view.value?.lock_type === type) return
 
   // if default view block the change since it's not allowed
-  if (type === "personal" && view.value.is_default) {
-    return message.info(t("msg.toast.notAllowedToChangeDefaultView"));
+  if (type === 'personal' && view.value.is_default) {
+    return message.info(t('msg.toast.notAllowedToChangeDefaultView'))
   }
 
   if (type === LockType.Locked || view.value.lock_type === LockType.Locked) {
-    emits("closeModal");
+    emits('onLockTypeChange', type)
 
-    changeType.value = type;
-    isOpenLockViewDlg.value = true;
-
-    return;
+    return
   } else {
-    $e(`a:${ViewTypesNameMap[view.value.type] || "view"}:lockmenu`, {
+    $e(`a:${ViewTypesNameMap[view.value.type] || 'view'}:lockmenu`, {
       lockType: type,
       sidebar: props.inSidebar,
-    });
+    })
   }
 
   try {
-    view.value.lock_type = type;
+    view.value.lock_type = type
     await $api.dbView.update(view.value.id as string, {
       lock_type: type,
-    });
+    })
 
-    message.success(`Successfully Switched to ${type} view`);
+    message.success(`Successfully Switched to ${type} view`)
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e));
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
-  emits("closeModal");
+  emits('closeModal')
 }
 
-const isOnDuplicateLoading = ref<boolean>(false);
+const isOnDuplicateLoading = ref<boolean>(false)
 
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
 async function onDuplicate() {
-  isOnDuplicateLoading.value = true;
-  const duplicatedView = await duplicateView(view.value);
+  isOnDuplicateLoading.value = true
+  const duplicatedView = await duplicateView(view.value)
 
-  refreshCommandPalette();
+  refreshCommandPalette()
 
   await loadViews({
     force: true,
     tableId: table.value!.id!,
-  });
+  })
 
   if (duplicatedView) {
     navigateToView({
@@ -130,47 +125,46 @@ async function onDuplicate() {
       tableId: table.value!.id!,
       baseId: base.value.id!,
       hardReload: duplicatedView.type === ViewTypes.FORM,
-    });
+    })
 
-    $e("a:view:create", { view: duplicatedView.type, sidebar: true });
+    $e('a:view:create', { view: duplicatedView.type, sidebar: true })
   }
 
-  isOnDuplicateLoading.value = false;
-  emits("closeModal");
+  isOnDuplicateLoading.value = false
+  emits('closeModal')
 }
 
-const { copy } = useCopy();
+const { copy } = useCopy()
 
 const onViewIdCopy = async () => {
-  await copy(view.value!.id!);
-  isViewIdCopied.value = true;
-};
+  await copy(view.value!.id!)
+  isViewIdCopied.value = true
+}
 
 const onDelete = async () => {
-  emits("delete");
-};
+  emits('delete')
+}
 
 const openReAssignDlg = () => {
-  const { close } = useDialog(resolveComponent("DlgReAssign"), {
-    modelValue: ref(true),
-    "onUpdate:modelValue": () => {
-      close();
+  const { close } = useDialog(resolveComponent('DlgReAssign'), {
+    'modelValue': ref(true),
+    'onUpdate:modelValue': () => {
+      close()
     },
     view,
-  });
-  emits("closeModal");
-};
+  })
+  emits('closeModal')
+}
 
 const isViewOwner = computed(() => {
   return (
     view.value?.owned_by === user.value?.id ||
     (!view.value?.owned_by &&
-      (user.value.base_roles?.[ProjectRoles.OWNER] ||
-        user.value.workspace_roles?.[WorkspaceUserRoles.OWNER]))
-  );
-});
+      (user.value.base_roles?.[ProjectRoles.OWNER] || user.value.workspace_roles?.[WorkspaceUserRoles.OWNER]))
+  )
+})
 
-const isDefaultView = computed(() => view.value?.is_default);
+const isDefaultView = computed(() => view.value?.is_default)
 
 /**
  * ## Known Issue and Fix
@@ -474,7 +468,6 @@ const isDefaultView = computed(() => view.value?.is_default);
         :source-id="currentSourceId"
       />
     </template>
-    <LazyDlgLockView v-model="isOpenLockViewDlg" :change-type="changeType" :view="view" />
   </NcMenu>
   <span v-else></span>
 </template>

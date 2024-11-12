@@ -141,7 +141,7 @@ watch(dialogShow, (newValue) => {
             class="!rounded-lg !text-sm nc-input-shadow !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
             size="large"
             hide-details
-            data-testid="lock-view-description-input"
+            data-testid="nc-lock-view-description-input"
             :placeholder="$t('placeholder.lockViewDescription')"
           />
         </a-form-item>
@@ -163,11 +163,23 @@ watch(dialogShow, (newValue) => {
       </div>
 
       <div class="flex gap-2 items-center justify-end">
-        <NcButton type="secondary" size="small" :disabled="isLoading" @click="dialogShow = false">{{
-          $t('general.cancel')
-        }}</NcButton>
+        <NcButton
+          type="secondary"
+          size="small"
+          :disabled="isLoading"
+          @click="dialogShow = false"
+          data-testid="nc-cancel-btn"
+          >{{ $t('general.cancel') }}</NcButton
+        >
 
-        <NcButton type="primary" size="small" :loading="isLoading" :disabled="isLoading" @click="changeLockType">
+        <NcButton
+          type="primary"
+          size="small"
+          :loading="isLoading"
+          :disabled="isLoading"
+          data-testid="nc-lock-or-unlock-btn"
+          @click="changeLockType"
+        >
           <template #icon>
             <GeneralIcon :icon="changeType === LockType.Locked ? 'ncLock' : 'ncUnlock'" class="flex-none" />
           </template>

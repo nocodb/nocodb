@@ -248,12 +248,41 @@ export class ToolbarPage extends BasePage {
     expect(await this.btn_rowHeight.count()).toBe(1);
   }
 
+  getToolbarBtns() {
+    return [
+      {
+        locator: this.btn_fields,
+        dropdownLocator: this.rootPage.locator('.nc-dropdown.nc-dropdown-fields-menu'),
+      },
+      {
+        locator: this.btn_filter,
+        dropdownLocator: this.rootPage.locator('.nc-dropdown.nc-dropdown-filter-menu'),
+      },
+      {
+        locator: this.btn_sort,
+        dropdownLocator: this.rootPage.locator('.nc-dropdown.nc-dropdown-sort-menu'),
+      },
+      {
+        locator: this.btn_groupBy,
+        dropdownLocator: this.rootPage.locator('.nc-dropdown.nc-dropdown-group-by-menu'),
+      },
+      {
+        locator: this.btn_rowHeight,
+        dropdownLocator: this.rootPage.locator('.ant-dropdown.nc-dropdown-height-menu'),
+      },
+    ];
+  }
+
   async verifyLockMode() {
-    await expect(this.btn_fields).toBeDisabled();
-    await expect(this.btn_filter).toBeDisabled();
-    await expect(this.btn_sort).toBeDisabled();
-    await expect(this.btn_groupBy).toBeDisabled();
-    await expect(this.btn_rowHeight).toBeDisabled();
+    for (const menu of this.getToolbarBtns()) {
+      await menu.locator.click();
+
+      await menu.dropdownLocator.waitFor({ state: 'visible' });
+
+      const lockedViewFooter = menu.dropdownLocator.locator('.nc-locked-view-footer');
+
+      await expect(lockedViewFooter).toBeVisible();
+    }
   }
 
   async verifyPersonalMode() {
@@ -265,10 +294,14 @@ export class ToolbarPage extends BasePage {
   }
 
   async verifyCollaborativeMode() {
-    await expect(this.btn_fields).toBeEnabled();
-    await expect(this.btn_filter).toBeEnabled();
-    await expect(this.btn_sort).toBeEnabled();
-    await expect(this.btn_groupBy).toBeEnabled();
-    await expect(this.btn_rowHeight).toBeEnabled();
+    for (const menu of this.getToolbarBtns()) {
+      await menu.locator.click();
+
+      await menu.dropdownLocator.waitFor({ state: 'visible' });
+
+      const lockedViewFooter = menu.dropdownLocator.locator('.nc-locked-view-footer');
+
+      await expect(lockedViewFooter).toBeHidden();
+    }
   }
 }

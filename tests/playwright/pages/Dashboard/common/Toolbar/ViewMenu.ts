@@ -104,6 +104,11 @@ export class ToolbarViewMenuPage extends BasePage {
         });
       } else {
         await this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last().click();
+
+        if (['Collaborative', 'Locked'].includes(subMenu)) {
+          await this.rootPage.locator(`.nc-lock-view-modal-wrapper`).waitFor({ state: 'visible' });
+          await this.rootPage.locator(`.nc-lock-view-modal-wrapper`).getByTestId('nc-lock-or-unlock-btn').click();
+        }
       }
 
       switch (subMenu) {

@@ -1521,6 +1521,7 @@ export class ImportService {
         const gview = await this.gridsService.gridViewCreate(context, {
           tableId: md.id,
           grid: vw as ViewCreateReqType,
+          ownedBy: vw.owned_by,
           req,
         });
         const gridData = withoutNull(vw.view);
@@ -1528,6 +1529,7 @@ export class ImportService {
           await this.gridsService.gridViewUpdate(context, {
             viewId: gview.id,
             grid: gridData,
+            ownedBy: vw.owned_by,
             req,
           });
         }
@@ -1538,6 +1540,7 @@ export class ImportService {
           tableId: md.id,
           body: vw as ViewCreateReqType,
           user,
+          ownedBy: vw.owned_by,
           req,
         });
         const formData = withoutNull(vw.view);
@@ -1553,6 +1556,7 @@ export class ImportService {
       case ViewTypes.CALENDAR: {
         return await this.calendarsService.calendarViewCreate(context, {
           tableId: md.id,
+          ownedBy: vw.owned_by,
           calendar: {
             ...vw,
             calendar_range: (vw.view as CalendarView).calendar_range.map(
@@ -1569,6 +1573,7 @@ export class ImportService {
       case ViewTypes.GALLERY: {
         const glview = await this.galleriesService.galleryViewCreate(context, {
           tableId: md.id,
+          ownedBy: vw.owned_by,
           gallery: vw as ViewCreateReqType,
           user,
           req,
@@ -1593,6 +1598,7 @@ export class ImportService {
       case ViewTypes.KANBAN: {
         const kview = await this.kanbansService.kanbanViewCreate(context, {
           tableId: md.id,
+          ownedBy: vw.owned_by,
           kanban: vw as ViewCreateReqType,
           user,
           req,

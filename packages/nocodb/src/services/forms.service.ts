@@ -29,6 +29,7 @@ export class FormsService {
       body: ViewCreateReqType;
       user: UserType;
       req: NcRequest;
+      ownedBy?: string;
     },
   ) {
     validatePayload(
@@ -54,7 +55,7 @@ export class FormsService {
         base_id: model.base_id,
         source_id: model.source_id,
         created_by: param.user.id,
-        owned_by: param.user.id,
+        owned_by: param.ownedBy || param.user.id,
       },
       model,
     );

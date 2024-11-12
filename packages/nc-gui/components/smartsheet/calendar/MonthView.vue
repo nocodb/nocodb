@@ -127,26 +127,61 @@ const recordsToDisplay = computed<{
   records: Row[]
   count: { [p: string]: { overflow: boolean; count: number; overflowCount: number } }
 }>(() => {
-  if (!dates.value || !calendarRange.value) return []
+  if (!dates.value || !calendarRange.value) return { records: [], count: {} }
 
   const perWidth = gridContainerWidth.value / maxVisibleDays.value
   const perHeight = gridContainerHeight.value / dates.value.length
   const perRecordHeight = 24
 
   const spaceBetweenRecords = 27
+  const maxLanes = Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 4))
 
-  // This object is used to keep track of the number of records in a day
-  // The key is the date in the format YYYY-MM-DD
+  // Track records and lanes for each day
   const recordsInDay: {
     [key: string]: {
       overflow: boolean
       count: number
       overflowCount: number
+      lanes: boolean[]
     }
   } = {}
-  if (!calendarRange.value) return []
+
+  const findAvailableLane = (dateKey: string, duration: number = 1): number => {
+    if (!recordsInDay[dateKey]) {
+      recordsInDay[dateKey] = { overflow: false, count: 0, overflowCount: 0, lanes: [] }
+    }
+
+    const { lanes } = recordsInDay[dateKey]
+    for (let i = 0; i < maxLanes; i++) {
+      if (!lanes[i]) {
+        // Check if the lane is available for the entire duration
+        let isAvailable = true
+        for (let j = 0; j < duration; j++) {
+          const checkDate = dayjs(dateKey).add(j, 'day').format('YYYY-MM-DD')
+          if (recordsInDay[checkDate]?.lanes[i]) {
+            isAvailable = false
+            break
+          }
+        }
+        if (isAvailable) return i
+      }
+    }
+    return -1 // No available lane
+  }
+
+  const occupyLane = (dateKey: string, lane: number, duration: number = 1) => {
+    for (let i = 0; i < duration; i++) {
+      const occupyDate = dayjs(dateKey).add(i, 'day').format('YYYY-MM-DD')
+      if (!recordsInDay[occupyDate]) {
+        recordsInDay[occupyDate] = { overflow: false, count: 0, overflowCount: 0, lanes: [] }
+      }
+      recordsInDay[occupyDate].lanes[lane] = true
+      recordsInDay[occupyDate].count++
+    }
+  }
 
   const recordsToDisplay: Array<Row> = []
+
   calendarRange.value.forEach((range) => {
     const startCol = range.fk_from_col
     const endCol = range.fk_to_col
@@ -170,48 +205,29 @@ const recordsToDisplay = computed<{
         const startDate = dayjs(record.row[startCol.title!])
         const dateKey = startDate.format('YYYY-MM-DD')
 
-        if (!recordsInDay[dateKey]) {
-          recordsInDay[dateKey] = { overflow: false, count: 0, overflowCount: 0 }
+        const lane = findAvailableLane(dateKey)
+        if (lane === -1) {
+          recordsInDay[dateKey].overflow = true
+          recordsInDay[dateKey].overflowCount++
+          return // Skip this record as there's no available lane
         }
-        recordsInDay[dateKey].count++
-        const id = record.rowMeta.id ?? generateRandomNumber()
 
-        // Find the index of the week from the dates array
+        occupyLane(dateKey, lane)
+
         const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(startDate, 'day')))
-
-        // Find the index of the day from the dates array
-        const dayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => {
-          return dayjs(day).isSame(startDate, 'day')
-        })
+        const dayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(startDate, 'day'))
 
         const style: Partial<CSSStyleDeclaration> = {
           left: `${dayIndex * perWidth}px`,
           width: `${perWidth}px`,
+          top: `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
         }
 
-        if (maxVisibleDays.value === 5) {
-          if (dayIndex === 5 || dayIndex === 6) {
-            style.display = 'none'
-          }
-        }
-
-        // Number of records in that day
-        const recordIndex = recordsInDay[dateKey].count
-
-        // The top is calculated from the week index and the record index
-        // If the record in 1st week and no record in that date them the top will be 0
-        const top = weekIndex * perHeight + spaceBetweenRecords + (recordIndex - 1) * (perRecordHeight + 4)
-
-        // The 25 is obtained from the trial and error
-        const heightRequired = perRecordHeight * recordIndex + spaceBetweenRecords + 12
-
-        if (heightRequired > perHeight) {
+        if (maxVisibleDays.value === 5 && (dayIndex === 5 || dayIndex === 6)) {
           style.display = 'none'
-          recordsInDay[dateKey].overflow = true
-          recordsInDay[dateKey].overflowCount++
-        } else {
-          style.top = `${top}px`
         }
+
+        const id = record.rowMeta.id ?? Math.random().toString(36).substr(2, 9)
 
         recordsToDisplay.push({
           ...record,
@@ -224,7 +240,7 @@ const recordsToDisplay = computed<{
           },
         })
       } else if (startCol && endCol) {
-        // If the range specifies fromCol and endCol
+        // Multi-day event logic
         const startDate = dayjs(record.row[startCol.title!])
         const endDate = dayjs(record.row[endCol.title!])
 
@@ -250,81 +266,34 @@ const recordsToDisplay = computed<{
 
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
+          const duration = recordEnd.diff(recordStart, 'day') + 1
 
-          const dayIndex = recordStart.day()
+          const dateKey = recordStart.format('YYYY-MM-DD')
+          const lane = findAvailableLane(dateKey, duration)
 
-          // If the record spans multiple weeks and the maxVisibleDays is 5 and startDate is weekedend, we skip the weekends
-          if (maxVisibleDays.value === 5 && (dayIndex === 0 || dayIndex === 6)) {
-            currentWeekStart = currentWeekStart.add(1, 'week')
-            continue
-          }
-
-          if (recordEnd.isBefore(dates.value[0][0])) {
-            currentWeekStart = currentWeekStart.add(1, 'week')
-            continue
-          }
-
-          // Update the recordsInDay object to keep track of the number of records in a day
-          let day = recordStart.clone()
-          while (day.isSameOrBefore(recordEnd)) {
-            const dateKey = day.format('YYYY-MM-DD')
-
-            if (!recordsInDay[dateKey]) {
-              recordsInDay[dateKey] = { overflow: false, count: 0, overflowCount: 0 }
-            }
-            recordsInDay[dateKey].count++
-            day = day.add(1, 'day')
-          }
-
-          // Find the index of the week from the dates array
-          const weekIndex = Math.max(
-            dates.value.findIndex((week) => {
-              return (
-                week.findIndex((day) => {
-                  return dayjs(day).isSame(recordStart, 'day')
-                }) !== -1
-              )
-            }),
-            0,
-          )
-
-          let maxRecordCount = 0
-
-          // Find the maximum number of records in a day in that week
-          for (let i = 0; i < (dates.value[weekIndex] ?? []).length; i++) {
-            const day = dates.value[weekIndex][i]
-
-            const dateKey = dayjs(day).format('YYYY-MM-DD')
-            if (!recordsInDay[dateKey]) {
-              recordsInDay[dateKey] = {
-                count: 0,
-                overflow: false,
-                overflowCount: 0,
+          if (lane === -1) {
+            for (let i = 0; i < duration; i++) {
+              const overflowDate = recordStart.add(i, 'day').format('YYYY-MM-DD')
+              if (recordsInDay[overflowDate]) {
+                recordsInDay[overflowDate].overflow = true
+                recordsInDay[overflowDate].overflowCount++
               }
             }
-            maxRecordCount = Math.max(maxRecordCount, recordsInDay[dateKey].count)
+            currentWeekStart = currentWeekStart.add(1, 'week')
+            continue
           }
 
-          const startDayIndex = Math.max(
-            (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordStart, 'day')),
-            0,
-          )
-          const endDayIndex = Math.max(
-            (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordEnd, 'day')),
-            0,
-          )
+          occupyLane(dateKey, lane, duration)
 
-          // The left and width of the record is calculated based on the start and end day index
+          const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(recordStart, 'day')))
+          const startDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordStart, 'day'))
+          const endDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordEnd, 'day'))
+
           const style: Partial<CSSStyleDeclaration> = {
             left: `${startDayIndex * perWidth}px`,
             width: `${(endDayIndex - startDayIndex + 1) * perWidth}px`,
+            top: `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
           }
-
-          // The top is calculated from the week index and the record index
-          // If the record in 1st week and no record in that date them the top will be 0
-          // If the record in 1st week and 1 record in that date then the top will be perRecordHeight + spaceBetweenRecords
-          const top = weekIndex * perHeight + spaceBetweenRecords + Math.max(maxRecordCount - 1, 0) * (perRecordHeight + 4)
-          const heightRequired = perRecordHeight * Math.max(maxRecordCount, 0) + spaceBetweenRecords + 12
 
           let position = 'rounded'
           // Here we are checking if the startDay is before all the dates shown in UI rather that the current month
@@ -332,7 +301,11 @@ const recordsToDisplay = computed<{
             ? dayjs(dates.value[weekIndex - 1][0]).isBefore(startDate, 'month')
             : false
 
-          if (startDate.isSame(currentWeekStart, 'week') && endDate.isSame(currentWeekEnd, 'week')) {
+          if (
+            startDate.isSame(currentWeekStart, 'week') &&
+            endDate.isSame(currentWeekEnd, 'week') &&
+            endDate.isSameOrBefore(currentWeekEnd) // Weekend check
+          ) {
             position = 'rounded'
           } else if (startDate.isSame(recordStart, 'week')) {
             if (isStartMonthBeforeCurrentWeek) {
@@ -346,23 +319,6 @@ const recordsToDisplay = computed<{
             position = 'none'
           }
 
-          // If the height required is more than the height of the week, we hide the record
-          // and update the recordsInDay object for all the spanned days
-          if (heightRequired > perHeight) {
-            style.display = 'none'
-            for (let i = startDayIndex; i <= endDayIndex; i++) {
-              const week = dates.value[weekIndex]
-              if (!week) continue
-              const day = week[i]
-              const dateKey = dayjs(day).format('YYYY-MM-DD')
-              if (!recordsInDay[dateKey]) continue
-              recordsInDay[dateKey].overflow = true
-              recordsInDay[dateKey].overflowCount++
-            }
-          } else {
-            style.top = `${top}px`
-          }
-
           recordsToDisplay.push({
             ...record,
             rowMeta: {
@@ -373,6 +329,7 @@ const recordsToDisplay = computed<{
               id,
             },
           })
+
           currentWeekStart = currentWeekStart.add(1, 'week')
         }
       }

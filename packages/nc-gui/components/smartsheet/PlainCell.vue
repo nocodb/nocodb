@@ -361,7 +361,7 @@ const parseValue = (value: any, col: ColumnType): string => {
     class="plain-cell before:px-1"
     :class="{
       '!font-bold': bold,
-      'italic': italic,
+      '!italic': italic,
       'underline': underline,
     }"
     data-testid="nc-plain-cell"

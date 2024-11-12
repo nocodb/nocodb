@@ -93,6 +93,7 @@
     "none": "Nincs"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Scriptek",
     "configure": "Konfiguráció",
     "switch": "Váltás",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Nincsenek hozzáadott feltételek"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Módosítva",
     "configuration": "Konfiguráció",
     "setup": "Beállítás",

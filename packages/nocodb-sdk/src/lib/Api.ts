@@ -5481,6 +5481,54 @@ export class Api<
       }),
 
     /**
+ * @description Duplicate a shared base
+ * 
+ * @tags Base
+ * @name DuplicateShared
+ * @summary Duplicate Shared Base
+ * @request POST:/api/v2/meta/duplicate/{workspaceId}/shared/{sharedBaseId}
+ * @response `200` `{
+  name?: string,
+  id?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    duplicateShared: (
+      workspaceId: IdType,
+      sharedBaseId: any,
+      data: {
+        options?: {
+          excludeData?: boolean;
+          excludeViews?: boolean;
+        };
+        base?: object;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          name?: string;
+          id?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/meta/duplicate/${workspaceId}/shared/${sharedBaseId}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Synchronise the meta data difference between NC_DB and external data sources 
  * 
  * @tags Base
@@ -8416,6 +8464,42 @@ export class Api<
       }),
 
     /**
+ * @description Bulk upsert table rows in one go.
+ * 
+ * @tags DB Table Row
+ * @name BulkUpsert
+ * @summary Bulk Upsert Table Rows
+ * @request POST:/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/upsert
+ * @response `200` `(any)[]` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    bulkUpsert: (
+      orgs: string,
+      baseName: string,
+      tableName: string,
+      data: object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        any[],
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/data/bulk/${orgs}/${baseName}/${tableName}/upsert`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Bulk insert table rows in one go.
  * 
  * @tags DB Table Row
@@ -9460,6 +9544,40 @@ export class Api<
         }
       >({
         path: `/api/v1/db/public/calendar-view/${sharedViewUuid}/countByDate`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Count how many rows in the given Table View
+ * 
+ * @tags Public
+ * @name DbViewRowCount
+ * @summary Count Table View Rows
+ * @request GET:/api/v2/public/shared-view/{sharedViewUuid}/count
+ * @response `200` `{
+  count?: number,
+
+}` OK
+ */
+    dbViewRowCount: (
+      sharedViewUuid: string,
+      query?: {
+        where?: string;
+        /** Query params for nested data */
+        nested?: any;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          count?: number;
+        },
+        any
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/count`,
         method: 'GET',
         query: query,
         format: 'json',

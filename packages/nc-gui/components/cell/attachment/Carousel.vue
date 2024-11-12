@@ -10,10 +10,6 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
-/*
-const openComments = ref(false)
-*/
-
 const { isUIAllowed } = useRoles()
 
 const container = ref<HTMLElement | null>(null)
@@ -107,6 +103,15 @@ watchOnce(emblaMainApi, async (emblaMainApi) => {
   })
 })
 
+const { loadRow } = useSmartsheetRowStoreOrThrow()
+
+const isUpdated = ref(1)
+
+const triggerReload = async () => {
+  await loadRow()
+  isUpdated.value = isUpdated.value + 1
+}
+
 onMounted(() => {
   document.addEventListener('keydown', onKeyDown)
 })
@@ -132,7 +137,10 @@ function onKeyDown(event: KeyboardEvent) {
   }
 }
 
-/* const toggleComment = () => {
+/*
+const openComments = ref(false)
+
+const toggleComment = () => {
   openComments.value = !openComments.value
 }
 
@@ -181,13 +189,15 @@ const initEmblaApi = (val: any) => {
         <NcCarousel class="!absolute inset-y-16 inset-x-24 keep-open flex justify-center items-center" @init-api="initEmblaApi">
           <NcCarouselContent>
             <NcCarouselItem v-for="(item, index) in visibleItems" :key="index">
-              <div v-if="selectedIndex === index" class="justify-center w-full h-full flex items-center">
+              <div v-if="selectedIndex === index" :key="isUpdated" class="justify-center w-full h-full flex items-center">
                 <LazyCellAttachmentPreviewImage
                   v-if="isImage(item.title, item.mimeType)"
                   class="nc-attachment-img-wrapper"
                   object-fit="contain"
+                  controls
                   :alt="item.title"
                   :srcs="getPossibleAttachmentSrc(item)"
+                  @error="triggerReload"
                 />
 
                 <LazyCellAttachmentPreviewVideo
@@ -196,16 +206,19 @@ const initEmblaApi = (val: any) => {
                   :mime-type="item.mimeType"
                   :title="item.title"
                   :src="getPossibleAttachmentSrc(item)"
+                  @error="triggerReload"
                 />
                 <LazyCellAttachmentPreviewPdf
                   v-else-if="isPdf(item.title, item.mimeType)"
                   class="keep-open"
                   :src="getPossibleAttachmentSrc(item)"
+                  @error="triggerReload"
                 />
                 <LazyCellAttachmentPreviewMiscOffice
                   v-else-if="isOffice(item.title, item.mimeType)"
                   class="keep-open"
                   :src="getPossibleAttachmentSrc(item)"
+                  @error="triggerReload"
                 />
                 <div v-else class="bg-white h-full flex flex-col justify-center rounded-md gap-1 items-center w-full">
                   <component :is="iconMap.file" class="text-gray-600 w-20 h-20" />
@@ -266,6 +279,7 @@ const initEmblaApi = (val: any) => {
                     object-fit="contain"
                     :alt="item.title"
                     :srcs="getPossibleAttachmentSrc(item, 'tiny')"
+                    @error="triggerReload"
                   />
                   <div
                     v-else-if="isVideo(item.title, item.mimeType)"
@@ -351,7 +365,14 @@ const initEmblaApi = (val: any) => {
           </template>
         </GeneralDeleteModal>
       </div>
-      <!--      <div v-if="openComments && isUIAllowed('commentList') && !isExpandedFormOpen" class="bg-white w-88 min-w-88 max-w-88">
+      <!--      <div
+        v-if="isUIAllowed('commentList') && !isExpandedFormOpen"
+        :class="{
+          'w-0': !openComments,
+          '!w-88': openComments,
+        }"
+        class="bg-white max-w-88 transition-all"
+      >
         <LazySmartsheetExpandedFormSidebarComments />
       </div> -->
     </div>

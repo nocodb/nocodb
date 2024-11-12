@@ -547,13 +547,9 @@ export class ColumnPageObject extends BasePage {
       await columnHdr.locator('.nc-ui-dt-dropdown:visible').click();
     }
 
-    // select all menu access
-    await expect(
-      await this.grid.get().locator('[data-testid="nc-check-all"]').locator('input[type="checkbox"]')
-    ).toHaveCount(role === 'creator' || role === 'owner' || role === 'editor' ? 1 : 0);
-
     if (role === 'creator' || role === 'owner' || role === 'editor') {
-      await this.grid.selectAll();
+      await this.grid.selectRow(0);
+      await this.grid.selectRow(1);
       await this.grid.openAllRowContextMenu();
       await this.rootPage.locator('.nc-dropdown-grid-context-menu').waitFor({ state: 'visible' });
       await expect(this.rootPage.locator('.nc-dropdown-grid-context-menu')).toHaveCount(1);

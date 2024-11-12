@@ -93,6 +93,7 @@
     "none": "কোনটিই নয়"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "স্ক্রিপ্টসমূহ",
     "configure": "কনফিগার করুন",
     "switch": "সুইচ করুন",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "কোন শর্ত যোগ করা হয়নি"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "পরিবর্তন করা হয়েছে",
     "configuration": "কনফিগারেশন",
     "setup": "সেটআপ",

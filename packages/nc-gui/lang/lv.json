@@ -93,6 +93,7 @@
     "none": "Neviens"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Skripti",
     "configure": "Konfigurēt",
     "switch": "Pārslēgt",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Nav pievienoti nosacījumi"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Modificēts",
     "configuration": "Konfigurācija",
     "setup": "Iestatīšana",

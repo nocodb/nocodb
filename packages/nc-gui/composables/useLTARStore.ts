@@ -88,18 +88,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
 
-    const rowId = computed(() =>
-      meta.value.columns
-        .filter((c: Required<ColumnType>) => c.pk)
-        .map((c: Required<ColumnType>) => row?.value?.row?.[c.title])
-        .join('___'),
-    )
+    const rowId = computed(() => extractPkFromRow(row.value.row, meta.value.columns))
 
     const getRelatedTableRowId = (row: Record<string, any>) => {
-      return relatedTableMeta.value?.columns
-        ?.filter((c) => c.pk)
-        .map((c) => row?.[c.title as string] ?? row?.[c.id as string])
-        .join('___')
+      return extractPkFromRow(row, relatedTableMeta.value?.columns)
     }
 
     // actions

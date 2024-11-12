@@ -93,6 +93,7 @@
     "none": "Ezer ez"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Script-ak",
     "configure": "Konfiguratu",
     "switch": "Aldatu",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Ez da baldintzarik gehitu"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Aldatze data",
     "configuration": "Konfigurazioa",
     "setup": "Konfiguratu",

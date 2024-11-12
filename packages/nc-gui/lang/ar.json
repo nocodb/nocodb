@@ -93,6 +93,7 @@
     "none": "لا شيء"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "سكربتات",
     "configure": "تكوين",
     "switch": "تبديل",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "لم تتم إضافة أي شروط"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "تم التعديل في",
     "configuration": "التكوين",
     "setup": "إعداد",

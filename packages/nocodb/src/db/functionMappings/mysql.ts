@@ -171,6 +171,19 @@ END) ${colAlias}`,
       ),
     };
   },
+  JSON_EXTRACT: async ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    return {
+      builder: knex.raw(
+        `CASE WHEN JSON_VALID(${
+          (await fn(pt.arguments[0])).builder
+        }) = 1 THEN JSON_EXTRACT(${
+          (await fn(pt.arguments[0])).builder
+        }, CONCAT('$', ${
+          (await fn(pt.arguments[1])).builder
+        })) ELSE NULL END${colAlias}`,
+      ),
+    };
+  },
 };
 
 export default mysql2;

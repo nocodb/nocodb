@@ -93,6 +93,7 @@
     "none": "គ្មាន"
   },
   "general": {
+    "featurePreview": "ការមើលមុខងារជាមុន",
     "scripts": "Scripts",
     "configure": "កំណត់រចនាសម្ព័ន្ធ",
     "switch": "ប្តូរទិស",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "គ្មានលក្ខខណ្ឌត្រូវបានបន្ថែម"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "បើក ឬបិទមុខងារពិសោធន៍ដោយភាពងាយស្រួល ដែលអនុញ្ញាតឱ្យអ្នករុករក និងវាយតម្លៃមុខងារដែលនឹងមកដល់នាពេលខាងមុខ។",
     "modifiedOn": "បានផ្លាស់ប្តូរកាលបរិច្ឆេទ",
     "configuration": "ការកំណត់រចនាសម្ព័ន្ធ",
     "setup": "រៀបចំ",

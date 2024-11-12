@@ -87,6 +87,16 @@ watch(isVisible, () => {
 onClickOutside(inputWrapperRef, (e) => {
   if ((e.target as HTMLElement)?.className.includes('nc-long-text-toggle-expand')) return
 
+  const targetEl = e?.target as HTMLElement
+
+  if (
+    targetEl?.closest(
+      '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+    )
+  ) {
+    return
+  }
+
   isVisible.value = false
 })
 
@@ -195,12 +205,78 @@ watch(inputWrapperRef, () => {
     modal.parentElement.removeEventListener('mouseup', stopPropagation)
   }
 })
+
+const handleClose = () => {
+  isVisible.value = false
+}
+
+const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
+
+const { width: widthTextArea, height: heightTextArea } = useElementSize(inputRef)
+
+watch([widthTextArea, heightTextArea], () => {
+  if (isVisible.value) {
+    const size = {
+      width: widthTextArea.value,
+      height: heightTextArea.value,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(size))
+  }
+})
+
+const updateSize = () => {
+  try {
+    const size = localStorage.getItem(STORAGE_KEY)
+    let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
+
+    if (isRichMode.value) {
+      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
+    }
+
+    const parsedJSON = JSON.parse(size)
+
+    if (parsedJSON && elem) {
+      elem.style.width = `${parsedJSON.width}px`
+      elem.style.height = `${parsedJSON.height}px`
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+watch([isVisible, inputRef], (value) => {
+  const observer = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const { width, height } = entry.contentRect
+
+      if (!isVisible.value) {
+        return
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
+    }
+  })
+
+  if (value) {
+    if (isRichMode.value) {
+      setTimeout(() => {
+        observer.observe(document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement)
+
+        updateSize()
+      }, 50)
+    } else {
+      updateSize()
+    }
+  } else {
+    observer.disconnect()
+  }
+})
 </script>
 
 <template>
   <div>
     <div
-      class="flex flex-row w-full long-text-wrapper"
+      class="flex flex-row w-full long-text-wrapper items-center"
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
         'min-h-5.5': rowHeight === 1 && !isExpandedFormOpen,
@@ -351,12 +427,18 @@ watch(inputWrapperRef, () => {
               {{ column.title }}
             </span>
           </div>
+
+          <div class="flex-1" />
+
+          <NcButton class="mr-2" type="text" size="small" @click="isVisible = false">
+            <GeneralIcon icon="close" />
+          </NcButton>
         </div>
         <div v-if="!isRichMode" class="p-3 pb-0 h-full">
           <a-textarea
             ref="inputRef"
             v-model:value="vModel"
-            class="nc-text-area-expanded !py-1 !px-3 !text-black !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
+            class="nc-text-area-expanded !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
             :placeholder="$t('activity.enterText')"
             :style="{ resize: 'both' }"
             :disabled="readOnly"
@@ -365,7 +447,7 @@ watch(inputWrapperRef, () => {
           />
         </div>
 
-        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" />
+        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
       </div>
     </a-modal>
   </div>

@@ -961,6 +961,34 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['MID("NocoDB", 3, 2) => "co"', 'MID({column1}, 3, 2)'],
     returnType: FormulaDataTypes.STRING,
   },
+  ISBLANK: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#isblank',
+
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Check if the input parameter is blank.',
+    syntax: 'ISBLANK(value)',
+    examples: ['ISBLANK({column1}) => false', 'ISBLANK("") => true'],
+    returnType: FormulaDataTypes.BOOLEAN,
+  },
+  ISNOTBLANK: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#isnotblank',
+
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Check if the input parameter is not blank.',
+    syntax: 'ISNOTBLANK(value)',
+    examples: ['ISNOTBLANK({column1}) => true', 'ISNOTBLANK("") => false'],
+    returnType: FormulaDataTypes.BOOLEAN,
+  },
   IF: {
     docsUrl:
       'https://docs.nocodb.com/fields/field-types/formula/conditional-expressions#if',
@@ -1378,6 +1406,24 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
     docsUrl:
       'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#value',
+  },
+  JSON_EXTRACT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/json-functions#json_extract',
+    validation: {
+      args: {
+        min: 2,
+        max: 2,
+        type: [FormulaDataTypes.STRING, FormulaDataTypes.STRING],
+      },
+    },
+    description: 'Extracts a value from a JSON string using a jq-like syntax',
+    syntax: 'JSON_EXTRACT(json_string, path)',
+    examples: [
+      'JSON_EXTRACT(\'{"a": {"b": "c"}}\', \'.a.b\') => "c"',
+      "JSON_EXTRACT({json_column}, '.key')",
+    ],
+    returnType: FormulaDataTypes.STRING,
   },
   // Disabling these functions for now; these act as alias for CreatedAt & UpdatedAt fields;
   // Issue: Error noticed if CreatedAt & UpdatedAt fields are removed from the table after creating these formulas

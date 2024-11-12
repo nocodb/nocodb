@@ -42,6 +42,7 @@ interface moveOp {
   index: number
   order: number
 }
+
 const { t } = useI18n()
 
 const { $api } = useNuxtApp()
@@ -893,7 +894,7 @@ onKeyDown('ArrowUp', () => {
 })
 
 onKeyDown('Delete', () => {
-  if (isLocked.value) return
+  if (isLocked.value || activeField.value?.pv) return
 
   if (isActiveInputElementExist()) {
     return
@@ -906,7 +907,7 @@ onKeyDown('Delete', () => {
 })
 
 onKeyDown('Backspace', () => {
-  if (isLocked.value) return
+  if (isLocked.value || activeField.value?.pv) return
 
   if (isActiveInputElementExist()) {
     return
@@ -1045,7 +1046,7 @@ watch(
           </a-input>
           <div class="flex gap-2">
             <NcTooltip :disabled="isLocked">
-              <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
+              <template #title> {{ `${renderAltOrOptlKey()} + C` }}</template>
               <NcButton
                 data-testid="nc-field-add-new"
                 type="secondary"
@@ -1070,7 +1071,7 @@ watch(
               {{ $t('general.reset') }}
             </NcButton>
             <NcTooltip :disabled="isLocked">
-              <template #title> {{ `${renderCmdOrCtrlKey()} + S` }} </template>
+              <template #title> {{ `${renderCmdOrCtrlKey()} + S` }}</template>
 
               <NcButton
                 data-testid="nc-field-save-changes"
@@ -1148,7 +1149,7 @@ watch(
                       class="truncate flex-1"
                       show-on-truncate-only
                     >
-                      <template #title> {{ fieldState(field)?.title || field.title }} </template>
+                      <template #title> {{ fieldState(field)?.title || field.title }}</template>
                       <span data-testid="nc-field-title">
                         {{ fieldState(field)?.title || field.title }}
                       </span>
@@ -1167,7 +1168,7 @@ watch(
                       </NcBadge>
                       <NcBadge
                         v-else-if="isColumnValid(field) && fieldStatus(field) === 'add'"
-                        color="orange"
+                        color="green"
                         :border="false"
                         class="bg-green-50 text-green-700"
                         data-testid="nc-field-status-new-field"
@@ -1360,7 +1361,7 @@ watch(
                       }"
                       show-on-truncate-only
                     >
-                      <template #title> {{ fieldState(displayColumn)?.title || displayColumn.title }} </template>
+                      <template #title> {{ fieldState(displayColumn)?.title || displayColumn.title }}</template>
                       <span data-testid="nc-field-title">
                         {{ fieldState(displayColumn)?.title || displayColumn.title }}
                       </span>
@@ -1485,6 +1486,7 @@ watch(
                 embed-mode
                 :readonly="isLocked"
                 from-table-explorer
+                :disable-title-focus="!!activeField?.id || !!activeField?.title"
                 @update="onFieldUpdate"
                 @add="onFieldAdd"
               />
@@ -1507,6 +1509,7 @@ watch(
 .nc-dropdown-table-explorer {
   @apply !overflow-hidden;
 }
+
 .nc-dropdown-table-explorer > div > ul.ant-dropdown-menu.nc-menu {
   @apply !pt-0;
 }
@@ -1514,6 +1517,7 @@ watch(
 .nc-dropdown-table-explorer-display-column {
   @apply !overflow-hidden;
 }
+
 .nc-dropdown-table-explorer-display-column > div > ul.ant-dropdown-menu.nc-menu {
   @apply !py-1.5;
 }
@@ -1523,21 +1527,26 @@ watch(
 :deep(ul.ant-dropdown-menu.nc-menu) {
   @apply !pt-0;
 }
+
 .add {
   background-color: #e6ffed !important;
   border-color: #b7eb8f;
 }
+
 .update {
   background-color: #fffbe6 !important;
   border-color: #ffe58f;
 }
+
 .delete {
   background-color: #fff1f0 !important;
   border-color: #ffa39e;
 }
+
 .selected {
   @apply bg-brand-50;
 }
+
 .slide-fade-enter-active {
   transition: all 0.3s ease-out;
 }
@@ -1554,6 +1563,7 @@ watch(
   transform: translateX(20px);
   opacity: 0;
 }
+
 .slide-fade-leave-to {
   opacity: 0;
 }

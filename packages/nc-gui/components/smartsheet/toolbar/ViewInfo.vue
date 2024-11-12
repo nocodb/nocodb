@@ -36,13 +36,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
                 </span>
               </template>
 
-              <GeneralProjectIcon
-                :type="base?.type"
-                class="!grayscale min-w-4"
-                :style="{
-                  filter: 'grayscale(100%) brightness(115%)',
-                }"
-              />
+              <GeneralProjectIcon :type="base?.type" :color="parseProp(base.meta).iconColor" class="!grayscale min-w-4" />
             </NcTooltip>
             <template v-if="isSharedBase">
               <NcTooltip

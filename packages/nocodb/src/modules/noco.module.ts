@@ -22,7 +22,11 @@ import { UsersController } from '~/controllers/users/users.controller';
 import { UsersService } from '~/services/users/users.service';
 
 /* Metas */
-import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
+import {
+  NC_ATTACHMENT_FIELD_SIZE,
+  NC_MAX_ATTACHMENTS_ALLOWED,
+  NC_NON_ATTACHMENT_FIELD_SIZE,
+} from '~/constants';
 import { MetaService } from '~/meta/meta.service';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
@@ -132,7 +136,9 @@ export const nocoModuleMetadata = {
     MulterModule.register({
       storage: multer.diskStorage({}),
       limits: {
-        fieldSize: NC_ATTACHMENT_FIELD_SIZE,
+        fieldSize: NC_NON_ATTACHMENT_FIELD_SIZE,
+        fileSize: NC_ATTACHMENT_FIELD_SIZE,
+        files: NC_MAX_ATTACHMENTS_ALLOWED,
       },
     }),
   ],

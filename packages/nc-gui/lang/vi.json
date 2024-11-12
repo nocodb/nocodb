@@ -93,6 +93,7 @@
     "none": "Không có"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Script",
     "configure": "Cấu hình",
     "switch": "Chuyển đổi",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Không có điều kiện nào được thêm"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Chỉnh sửa vào",
     "configuration": "Cấu hình",
     "setup": "Cài đặt",

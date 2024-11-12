@@ -1112,7 +1112,7 @@ export default class Column<T = any> implements ColumnType {
     skipFormulaInvalidate = false,
   ) {
     const oldCol = await Column.get(context, { colId }, ncMeta);
-
+    let insertColOpt = true;
     switch (oldCol.uidt) {
       case UITypes.Lookup: {
         // LookupColumn.insert()
@@ -1147,7 +1147,21 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
 
+      case UITypes.Links:
       case UITypes.LinkToAnotherRecord: {
+        // delete only if all required fields are present
+        if (
+          [
+            'type',
+            'fk_child_column_id',
+            'fk_parent_column_id',
+            'fk_related_model_id',
+          ].some((k) => !column[k])
+        ) {
+          insertColOpt = false;
+          break;
+        }
+
         await ncMeta.metaDelete(
           context.workspace_id,
           context.base_id,
@@ -1347,7 +1361,9 @@ export default class Column<T = any> implements ColumnType {
       prepareForResponse(updateObj),
     );
 
-    await this.insertColOption(context, column, colId, ncMeta);
+    // insert new col options only if existing colOption meta is deleted
+    if (insertColOpt)
+      await this.insertColOption(context, column, colId, ncMeta);
 
     // on column update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, oldCol.fk_model_id, null, ncMeta);

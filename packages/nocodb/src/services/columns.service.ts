@@ -47,7 +47,6 @@ import {
   createHmAndBtColumn,
   createOOColumn,
   generateFkName,
-  randomID,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -133,6 +132,42 @@ async function reuseOrSave(
   params[tp] = res;
 
   return res;
+}
+
+async function getJunctionTableName(
+  param: {
+    base: Base;
+  },
+  parent: Model,
+  child: Model,
+) {
+  const parentTable = param.base?.prefix
+    ? parent.table_name.replace(`${param.base?.prefix}_`, '')
+    : parent.table_name;
+  const childTable = param.base?.prefix
+    ? child.table_name.replace(`${param.base?.prefix}_`, '')
+    : child.table_name;
+
+  const tableName = `${param.base?.prefix ?? ''}_nc_m2m_${parentTable.slice(
+    0,
+    15,
+  )}_${childTable.slice(0, 15)}`;
+  let suffix: number = null;
+  // check table name avail or not, if not then add incremental suffix
+  while (
+    await Noco.ncMeta.metaGet2(
+      (parent as any).fk_workspace_id,
+      parent.base_id,
+      MetaTable.MODELS,
+      {
+        table_name: `${tableName}${suffix ?? ''}`,
+        source_id: parent.source_id,
+      },
+    )
+  ) {
+    suffix = suffix ? suffix + 1 : 1;
+  }
+  return `${tableName}${suffix ?? ''}`;
 }
 
 @Injectable()
@@ -316,7 +351,10 @@ export class ColumnsService {
         exclude_id: param.columnId,
       }))
     ) {
-      NcError.badRequest('Duplicate column alias');
+      // This error will be thrown if there are more than one column linking to the same table. You have to delete one of them
+      NcError.badRequest(
+        `Duplicate column alias for table ${table.title} and column is ${param.column.title}. Please change the name of this column and retry.`,
+      );
     }
 
     let colBody = { ...param.column } as Column & {
@@ -389,7 +427,7 @@ export class ColumnsService {
             );
           } catch (e) {
             console.error(e);
-            NcError.badRequest('Invalid Formula');
+            throw e;
           }
 
           await Column.update(context, column.id, {
@@ -1669,7 +1707,7 @@ export class ColumnsService {
 
       if (!isVirtualCol(param.column)) {
         param.column.column_name = sanitizeColumnName(
-          param.column.column_name,
+          param.column.column_name || param.column.title,
           source.type,
         );
       }
@@ -1843,7 +1881,7 @@ export class ColumnsService {
           );
         } catch (e) {
           console.error(e);
-          NcError.badRequest('Invalid Formula');
+          throw e;
         }
 
         await Column.insert(context, {
@@ -3266,7 +3304,7 @@ export class ColumnsService {
         param.colExtra,
       );
     } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
-      const aTn = `${param.base?.prefix ?? ''}_nc_m2m_${randomID()}`;
+      const aTn = await getJunctionTableName(param, parent, child);
       const aTnAlias = aTn;
 
       const parentPK = parent.primaryKey;
@@ -3274,8 +3312,13 @@ export class ColumnsService {
 
       const associateTableCols = [];
 
-      const parentCn = 'table1_id';
-      const childCn = 'table2_id';
+      const parentCn = `${parent.table_name.slice(0, 30)}_id`;
+      let childCn = `${child.table_name.slice(0, 30)}_id`;
+
+      // handle duplicate column names in self referencing tables or if first 30 characters are same
+      if (parentCn === childCn) {
+        childCn = `${child.table_name.slice(0, 29)}1_id`;
+      }
 
       associateTableCols.push(
         {
@@ -3462,6 +3505,7 @@ export class ColumnsService {
             ...associateTableCols[0],
             fk_model_id: assocModel.id,
           }),
+          indexName: generateFkName(parent, child),
           source: param.source,
           sqlMgr,
         });
@@ -3470,6 +3514,7 @@ export class ColumnsService {
             ...associateTableCols[1],
             fk_model_id: assocModel.id,
           }),
+          indexName: generateFkName(parent, child),
           source: param.source,
           sqlMgr,
         });

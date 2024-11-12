@@ -27,6 +27,7 @@ const props = defineProps<{
   fromTableExplorer?: boolean
   editDescription?: boolean
   readonly?: boolean
+  disableTitleFocus?: boolean
 }>()
 
 const emit = defineEmits(['submit', 'cancel', 'mounted', 'add', 'update'])
@@ -52,13 +53,15 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
+const { eventBus } = useSmartsheetStoreOrThrow()
+
 const columnLabel = computed(() => props.columnLabel || t('objects.field'))
 
 const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
-const { betaFeatureToggleState } = useBetaFeatureToggle()
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
@@ -121,7 +124,9 @@ const isColumnTypeOpen = ref(false)
 const geoDataToggleCondition = (t: { name: UITypes }) => {
   if (!appInfo.value.ee) return true
 
-  return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
+  const isColEnabled = isFeatureEnabled(FEATURE_FLAG.GEODATA_COLUMN)
+
+  return isColEnabled || !t.name.includes(UITypes.GeoData)
 }
 
 const showDeprecated = ref(false)
@@ -175,6 +180,8 @@ const onSelectType = (uidt: UITypes) => {
 
 const reloadMetaAndData = async () => {
   await getMeta(meta.value?.id as string, true)
+
+  eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
   if (!isKanban.value) {
     reloadDataTrigger?.trigger()
@@ -231,7 +238,12 @@ watchEffect(() => {
     // todo: replace setTimeout
     setTimeout(() => {
       // focus and select input only if active element is not an input or textarea
-      if (document.activeElement === document.body || document.activeElement === null) {
+      if (
+        (document.activeElement === document.body ||
+          document.activeElement === null ||
+          ['BUTTON', 'DIV'].includes(document.activeElement?.tagName)) &&
+        !props.disableTitleFocus
+      ) {
         antInput.value?.focus()
         antInput.value?.select()
       }

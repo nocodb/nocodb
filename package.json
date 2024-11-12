@@ -16,7 +16,6 @@
   },
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "fs": "0.0.1-security",
     "lerna": "^7.4.2",
     "husky": "^8.0.3",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
@@ -47,7 +46,7 @@
   "pnpm": {
     "overrides": {
       "vue": "latest",
-      "typescript": "latest",
+      "typescript": "~5.4.5",
       "ajv@<6.12.3": ">=6.12.3",
       "node.extend@<1.1.7": ">=1.1.7",
       "tough-cookie@<4.1.3": ">=4.1.3",

@@ -148,7 +148,11 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
 
 <template>
   <NcDropdown v-if="!IsPublic" v-model:visible="calendarRangeDropdown" :trigger="['click']" class="!xs:hidden">
-    <div class="nc-calendar-btn">
+    <NcTooltip :disabled="!isToolbarIconMode" class="nc-calendar-btn">
+      <template #title>
+        {{ $t('activity.settings') }}
+      </template>
+
       <NcButton
         v-e="['c:calendar:change-calendar-range']"
         :disabled="isLocked"
@@ -164,7 +168,8 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
           </span>
         </div>
       </NcButton>
-    </div>
+    </NcTooltip>
+
     <template #overlay>
       <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
         <div

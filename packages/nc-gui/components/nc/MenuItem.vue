@@ -1,4 +1,15 @@
 <script setup lang="ts">
+/**
+ * ## Known Issue and Fix
+ * - **Issue**: When conditionally rendering `NcMenuItem` using `v-if` without a corresponding `v-else` fallback,
+ *   Vue may throw a
+ * `NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.`.
+ *
+ * - This issue occurs specifically when the `NcMenu` is open, and the condition changes dynamically (e.g., during runtime state changes)
+ *
+ * - **Fix**: Use `v-show` instead of `v-if` when no replacement (fallback) node is provided. This keeps the element
+ *   in the DOM but toggles its visibility, preventing the DOM manipulation issue.
+ */
 import type { StyleValue } from '@vue/runtime-dom'
 
 defineProps<{

@@ -5,6 +5,8 @@ export const JOBS_QUEUE = 'jobs';
 export enum MigrationJobTypes {
   Attachment = 'attachment',
   Thumbnail = 'thumbnail',
+  RecoverLinks = 'recover-links',
+  CleanupDuplicateColumns = 'cleanup-duplicate-columns',
 }
 
 export enum JobTypes {

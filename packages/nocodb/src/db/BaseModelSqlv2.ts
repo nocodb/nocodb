@@ -6,8 +6,10 @@ import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone';
 import equal from 'fast-deep-equal';
 import {
+  AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
+  extractFilterFromXwhere,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -66,17 +68,13 @@ import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
 import Noco from '~/Noco';
 import { HANDLE_WEBHOOK } from '~/services/hook-handler.service';
-import {
-  COMPARISON_OPS,
-  COMPARISON_SUB_OPS,
-  GROUPBY_COMPARISON_OPS,
-  IS_WITHIN_COMPARISON_SUB_OPS,
-} from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getAliasGenerator } from '~/utils';
 import applyAggregation from '~/db/aggregation';
+import { extractMentions } from '~/utils/richTextHelper';
+import { chunkArray } from '~/utils/tsUtils';
 
 dayjs.extend(utc);
 
@@ -5271,6 +5269,375 @@ class BaseModelSqlv2 {
     return { postInsertOps, preInsertOps };
   }
 
+  async bulkUpsert(
+    datas: any[],
+    {
+      chunkSize = 100,
+      cookie,
+      raw = false,
+      foreign_key_checks = true,
+    }: {
+      chunkSize?: number;
+      cookie?: any;
+      raw?: boolean;
+      foreign_key_checks?: boolean;
+    } = {},
+  ) {
+    let trx;
+    try {
+      const columns = await this.model.getColumns(this.context);
+
+      const insertedDatas = [];
+      const updatedDatas = [];
+
+      const aiPkCol = this.model.primaryKeys.find((pk) => pk.ai);
+      const agPkCol = this.model.primaryKeys.find((pk) => pk.meta?.ag);
+
+      // validate and prepare data
+      const preparedDatas = raw
+        ? datas
+        : await Promise.all(
+            datas.map(async (d) => {
+              await this.validate(d, columns);
+              return this.model.mapAliasToColumn(
+                this.context,
+                d,
+                this.clientMeta,
+                this.dbDriver,
+                columns,
+              );
+            }),
+          );
+
+      const dataWithPks = [];
+      const dataWithoutPks = [];
+
+      for (const data of preparedDatas) {
+        if (!raw) {
+          await this.prepareNocoData(data, true, cookie);
+        }
+
+        const pkValues = this.extractPksValues(data);
+        if (pkValues !== 'N/A' && pkValues !== undefined) {
+          dataWithPks.push({ pk: pkValues, data });
+        } else {
+          // const insertObj = this.handleValidateBulkInsert(data, columns);
+          dataWithoutPks.push(data);
+        }
+      }
+
+      // Check which records with PKs exist in the database
+      const existingRecords = await this.chunkList({
+        pks: dataWithPks.map((v) => v.pk),
+      });
+
+      const existingPkSet = new Set(
+        existingRecords.map((r) => this.extractPksValues(r, true)),
+      );
+
+      const toInsert = [...dataWithoutPks];
+      const toUpdate = [];
+
+      for (const { pk, data } of dataWithPks) {
+        if (existingPkSet.has(pk)) {
+          toUpdate.push(data);
+        } else {
+          // const insertObj = this.handleValidateBulkInsert(data, columns);
+          toInsert.push(data);
+        }
+      }
+
+      trx = await this.dbDriver.transaction();
+
+      const updatedPks = [];
+
+      if (toUpdate.length > 0) {
+        for (const data of toUpdate) {
+          if (!raw) await this.validate(data, columns);
+          const pkValues = this.extractPksValues(data);
+          updatedPks.push(pkValues);
+          const wherePk = await this._wherePk(pkValues, true);
+          await trx(this.tnPath).update(data).where(wherePk);
+        }
+      }
+
+      if (toInsert.length > 0) {
+        if (!foreign_key_checks) {
+          if (this.isPg) {
+            await trx.raw('set session_replication_role to replica;');
+          } else if (this.isMySQL) {
+            await trx.raw('SET foreign_key_checks = 0;');
+          }
+        }
+        let responses;
+
+        if (this.isSqlite || this.isMySQL) {
+          responses = [];
+
+          for (const insertData of toInsert) {
+            const query = trx(this.tnPath).insert(insertData);
+            let id = (await query)[0];
+
+            if (agPkCol) {
+              id = insertData[agPkCol.column_name];
+            }
+
+            responses.push(
+              this.extractCompositePK({
+                rowId: id,
+                ai: aiPkCol,
+                ag: agPkCol,
+                insertObj: insertData,
+                force: true,
+              }) || insertData,
+            );
+          }
+        } else {
+          const returningObj: Record<string, string> = {};
+
+          for (const col of this.model.primaryKeys) {
+            returningObj[col.title] = col.column_name;
+          }
+
+          responses =
+            !raw && (this.isPg || this.isMssql)
+              ? await trx
+                  .batchInsert(this.tnPath, toInsert, chunkSize)
+                  .returning(
+                    this.model.primaryKeys?.length ? returningObj : '*',
+                  )
+              : await trx.batchInsert(this.tnPath, toInsert, chunkSize);
+        }
+
+        if (!foreign_key_checks) {
+          if (this.isPg) {
+            await trx.raw('set session_replication_role to origin;');
+          } else if (this.isMySQL) {
+            await trx.raw('SET foreign_key_checks = 1;');
+          }
+        }
+        insertedDatas.push(...responses);
+      }
+
+      await trx.commit();
+
+      const updatedRecords = await this.chunkList({
+        pks: updatedPks,
+      });
+      updatedDatas.push(...updatedRecords);
+
+      const insertedDataList =
+        insertedDatas.length > 0
+          ? await this.chunkList({
+              pks: insertedDatas.map((d) => this.extractPksValues(d)),
+            })
+          : [];
+
+      const updatedDataList =
+        updatedDatas.length > 0
+          ? await this.chunkList({
+              pks: updatedDatas.map((d) => this.extractPksValues(d)),
+            })
+          : [];
+
+      if (insertedDatas.length === 1) {
+        await this.afterInsert(insertedDataList[0], this.dbDriver, cookie);
+      } else if (insertedDatas.length > 1) {
+        await this.afterBulkInsert(insertedDataList, this.dbDriver, cookie);
+      }
+
+      if (updatedDataList.length === 1) {
+        await this.afterUpdate(
+          existingRecords[0],
+          updatedDataList[0],
+          null,
+          cookie,
+          datas[0],
+        );
+      } else {
+        await this.afterBulkUpdate(
+          existingRecords,
+          updatedDataList,
+          this.dbDriver,
+          cookie,
+        );
+      }
+
+      return [...updatedDataList, ...insertedDataList];
+    } catch (e) {
+      await trx?.rollback();
+      throw e;
+    }
+  }
+
+  async chunkList(args: { pks: string[]; chunkSize?: number }) {
+    const { pks, chunkSize = 1000 } = args;
+
+    const data = [];
+
+    const chunkedPks = chunkArray(pks, chunkSize);
+
+    for (const chunk of chunkedPks) {
+      const chunkData = await this.list(
+        {
+          pks: chunk.join(','),
+        },
+        {
+          limitOverride: chunk.length,
+          ignoreViewFilterAndSort: true,
+        },
+      );
+
+      data.push(...chunkData);
+    }
+
+    return data;
+  }
+
+  private async handleValidateBulkInsert(
+    d: Record<string, any>,
+    columns?: Column[],
+    params = { allowSystemColumn: false },
+  ) {
+    const { allowSystemColumn } = params;
+    const cols = columns || (await this.model.getColumns(this.context));
+    const insertObj = {};
+
+    for (let i = 0; i < cols.length; ++i) {
+      const col = cols[i];
+
+      if (col.title in d) {
+        if (
+          isCreatedOrLastModifiedTimeCol(col) ||
+          isCreatedOrLastModifiedByCol(col)
+        ) {
+          NcError.badRequest(
+            `Column "${col.title}" is auto generated and cannot be updated`,
+          );
+        }
+
+        if (
+          col.system &&
+          !allowSystemColumn &&
+          col.uidt !== UITypes.ForeignKey
+        ) {
+          NcError.badRequest(
+            `Column "${col.title}" is system column and cannot be updated`,
+          );
+        }
+      }
+
+      // populate pk columns
+      if (col.pk) {
+        if (col.meta?.ag && !d[col.title]) {
+          d[col.title] = col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+        }
+      }
+
+      // map alias to column
+      if (!isVirtualCol(col)) {
+        let val =
+          d?.[col.column_name] !== undefined
+            ? d?.[col.column_name]
+            : d?.[col.title];
+        if (val !== undefined) {
+          if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
+            val = JSON.stringify(val);
+          }
+          if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
+            val = this.formatDate(val);
+          }
+          insertObj[sanitize(col.column_name)] = val;
+        }
+      }
+
+      await this.validateOptions(col, insertObj);
+
+      // validate data
+      if (col?.meta?.validate && col?.validate) {
+        const validate = col.getValidators();
+        const cn = col.column_name;
+        const columnTitle = col.title;
+        if (validate) {
+          const { func, msg } = validate;
+          for (let j = 0; j < func.length; ++j) {
+            const fn =
+              typeof func[j] === 'string'
+                ? customValidators[func[j]]
+                  ? customValidators[func[j]]
+                  : Validator[func[j]]
+                : func[j];
+            const columnValue = insertObj?.[cn] || insertObj?.[columnTitle];
+            const arg =
+              typeof func[j] === 'string' ? columnValue + '' : columnValue;
+            if (
+              ![null, undefined, ''].includes(columnValue) &&
+              !(fn.constructor.name === 'AsyncFunction'
+                ? await fn(arg)
+                : fn(arg))
+            ) {
+              NcError.badRequest(
+                msg[j]
+                  .replace(/\{VALUE}/g, columnValue)
+                  .replace(/\{cn}/g, columnTitle),
+              );
+            }
+          }
+        }
+      }
+    }
+    return insertObj;
+  }
+
+  // Helper method to format date
+  private formatDate(val: string): any {
+    const { isMySQL, isSqlite, isMssql, isPg } = this.clientMeta;
+    if (val.indexOf('-') < 0 && val.indexOf('+') < 0 && val.slice(-1) !== 'Z') {
+      // if no timezone is given,
+      // then append +00:00 to make it as UTC
+      val += '+00:00';
+    }
+    if (isMySQL) {
+      // first convert the value to utc
+      // from UI
+      // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+      // from API
+      // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+      // if timezone info is not found - considered as utc
+      // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
+      // if timezone info is found
+      // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
+      // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-01 20:00:00
+      // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
+      // then we use CONVERT_TZ to convert that in the db timezone
+      return this.dbDriver.raw(`CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`, [
+        dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss'),
+      ]);
+    } else if (isSqlite) {
+      // convert to UTC
+      // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
+      return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+    } else if (isPg) {
+      // convert to UTC
+      // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+      // then convert to db timezone
+      return this.dbDriver.raw(`? AT TIME ZONE CURRENT_SETTING('timezone')`, [
+        dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ'),
+      ]);
+    } else if (isMssql) {
+      // convert ot UTC
+      // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
+      // then convert to db timezone
+      return this.dbDriver.raw(
+        `SWITCHOFFSET(CONVERT(datetimeoffset, ?), DATENAME(TzOffset, SYSDATETIMEOFFSET()))`,
+        [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
+      );
+    } else {
+      // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
+      return dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
+    }
+  }
+
   async bulkInsert(
     datas: any[],
     {
@@ -5295,7 +5662,6 @@ class BaseModelSqlv2 {
   ) {
     let trx;
     try {
-      // TODO: ag column handling for raw bulk insert
       const insertDatas = raw ? datas : [];
       let postInsertOps: ((rowId: any) => Promise<string>)[] = [];
       let preInsertOps: (() => Promise<string>)[] = [];
@@ -5307,149 +5673,9 @@ class BaseModelSqlv2 {
         const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
 
         for (const d of datas) {
-          const insertObj = {};
-
-          // populate pk, map alias to column, validate data
-          for (let i = 0; i < this.model.columns.length; ++i) {
-            const col = this.model.columns[i];
-
-            if (col.title in d) {
-              if (
-                isCreatedOrLastModifiedTimeCol(col) ||
-                isCreatedOrLastModifiedByCol(col)
-              ) {
-                NcError.badRequest(
-                  `Column "${col.title}" is auto generated and cannot be updated`,
-                );
-              }
-
-              if (
-                col.system &&
-                !allowSystemColumn &&
-                col.uidt !== UITypes.ForeignKey
-              ) {
-                NcError.badRequest(
-                  `Column "${col.title}" is system column and cannot be updated`,
-                );
-              }
-            }
-
-            // populate pk columns
-            if (col.pk) {
-              if (col.meta?.ag && !d[col.title]) {
-                d[col.title] =
-                  col.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
-              }
-            }
-
-            // map alias to column
-            if (!isVirtualCol(col)) {
-              let val =
-                d?.[col.column_name] !== undefined
-                  ? d?.[col.column_name]
-                  : d?.[col.title];
-              if (val !== undefined) {
-                if (
-                  col.uidt === UITypes.Attachment &&
-                  typeof val !== 'string'
-                ) {
-                  val = JSON.stringify(val);
-                }
-                if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
-                  const { isMySQL, isSqlite, isMssql, isPg } = this.clientMeta;
-                  if (
-                    val.indexOf('-') < 0 &&
-                    val.indexOf('+') < 0 &&
-                    val.slice(-1) !== 'Z'
-                  ) {
-                    // if no timezone is given,
-                    // then append +00:00 to make it as UTC
-                    val += '+00:00';
-                  }
-                  if (isMySQL) {
-                    // first convert the value to utc
-                    // from UI
-                    // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
-                    // from API
-                    // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
-                    // if timezone info is not found - considered as utc
-                    // e.g. 2022-01-01 20:00:00 -> 2022-01-01 20:00:00
-                    // if timezone info is found
-                    // e.g. 2022-01-01 20:00:00Z -> 2022-01-01 20:00:00
-                    // e.g. 2022-01-01 20:00:00+00:00 -> 2022-01-01 20:00:00
-                    // e.g. 2022-01-01 20:00:00+08:00 -> 2022-01-01 12:00:00
-                    // then we use CONVERT_TZ to convert that in the db timezone
-                    val = this.dbDriver.raw(
-                      `CONVERT_TZ(?, '+00:00', @@GLOBAL.time_zone)`,
-                      [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ss')],
-                    );
-                  } else if (isSqlite) {
-                    // convert to UTC
-                    // e.g. 2022-01-01T10:00:00.000Z -> 2022-01-01 04:30:00+00:00
-                    val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
-                  } else if (isPg) {
-                    // convert to UTC
-                    // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
-                    // then convert to db timezone
-                    val = this.dbDriver.raw(
-                      `? AT TIME ZONE CURRENT_SETTING('timezone')`,
-                      [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
-                    );
-                  } else if (isMssql) {
-                    // convert ot UTC
-                    // e.g. 2023-05-10T08:49:32.000Z -> 2023-05-10 08:49:32-08:00
-                    // then convert to db timezone
-                    val = this.dbDriver.raw(
-                      `SWITCHOFFSET(CONVERT(datetimeoffset, ?), DATENAME(TzOffset, SYSDATETIMEOFFSET()))`,
-                      [dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ')],
-                    );
-                  } else {
-                    // e.g. 2023-01-01T12:00:00.000Z -> 2023-01-01 12:00:00+00:00
-                    val = dayjs(val).utc().format('YYYY-MM-DD HH:mm:ssZ');
-                  }
-                }
-                insertObj[sanitize(col.column_name)] = val;
-              }
-            }
-
-            await this.validateOptions(col, insertObj);
-
-            // validate data
-            if (col?.meta?.validate && col?.validate) {
-              const validate = col.getValidators();
-              const cn = col.column_name;
-              const columnTitle = col.title;
-              if (validate) {
-                const { func, msg } = validate;
-                for (let j = 0; j < func.length; ++j) {
-                  const fn =
-                    typeof func[j] === 'string'
-                      ? customValidators[func[j]]
-                        ? customValidators[func[j]]
-                        : Validator[func[j]]
-                      : func[j];
-                  const columnValue =
-                    insertObj?.[cn] || insertObj?.[columnTitle];
-                  const arg =
-                    typeof func[j] === 'string'
-                      ? columnValue + ''
-                      : columnValue;
-                  if (
-                    ![null, undefined, ''].includes(columnValue) &&
-                    !(fn.constructor.name === 'AsyncFunction'
-                      ? await fn(arg)
-                      : fn(arg))
-                  ) {
-                    NcError.badRequest(
-                      msg[j]
-                        .replace(/\{VALUE}/g, columnValue)
-                        .replace(/\{cn}/g, columnTitle),
-                    );
-                  }
-                }
-              }
-            }
-          }
+          const insertObj = await this.handleValidateBulkInsert(d, columns, {
+            allowSystemColumn,
+          });
 
           await this.prepareNocoData(insertObj, true, cookie);
 
@@ -5658,15 +5884,9 @@ class BaseModelSqlv2 {
             i === updateDatas.length - 1
           ) {
             const tempToRead = pkAndData.splice(0, pkAndData.length);
-            const oldRecords = await this.list(
-              {
-                pks: tempToRead.map((v) => v.pk).join(','),
-              },
-              {
-                limitOverride: tempToRead.length,
-                ignoreViewFilterAndSort: true,
-              },
-            );
+            const oldRecords = await this.chunkList({
+              pks: tempToRead.map((v) => v.pk),
+            });
 
             for (const record of tempToRead) {
               const oldRecord = oldRecords.find((r) =>
@@ -6262,6 +6482,14 @@ class BaseModelSqlv2 {
    *  Hooks
    * */
 
+  public async handleRichTextMentions(
+    prevData,
+    newData: Record<string, any> | Array<Record<string, any>>,
+    req,
+  ) {
+    return;
+  }
+
   public async beforeInsert(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('before.insert', null, data, req);
   }
@@ -6347,6 +6575,8 @@ class BaseModelSqlv2 {
       ip: req?.clientIp,
       user: req?.user?.email,
     });
+
+    await this.handleRichTextMentions(prevData, newData, req);
   }
 
   public async afterBulkDelete(
@@ -6517,7 +6747,11 @@ class BaseModelSqlv2 {
       for (const pk of this.model.primaryKeys) {
         pkValues[pk.title] = data[pk.title] ?? data[pk.column_name];
       }
-      return asString ? Object.values(pkValues).join('___') : pkValues;
+      return asString
+        ? Object.values(pkValues)
+            .map((val) => val?.toString?.().replaceAll('_', '\\_'))
+            .join('___')
+        : pkValues;
     } else if (this.model.primaryKey) {
       return (
         data[this.model.primaryKey.title] ??
@@ -9928,201 +10162,6 @@ export function extractSortsObject(
   });
 }
 
-export function extractFilterFromXwhere(
-  str,
-  aliasColObjMap: { [columnAlias: string]: Column },
-  throwErrorIfInvalid = false,
-) {
-  if (!str) {
-    return [];
-  }
-
-  // if array treat it as `and` group
-  if (Array.isArray(str)) {
-    // calling recursively for nested query
-    return str.map((s) =>
-      extractFilterFromXwhere(s, aliasColObjMap, throwErrorIfInvalid),
-    );
-  } else if (typeof str !== 'string' && throwErrorIfInvalid) {
-    throw new Error(
-      'Invalid filter format. Expected string or array of strings.',
-    );
-  }
-
-  let nestedArrayConditions = [];
-
-  let openIndex = str.indexOf('((');
-
-  if (openIndex === -1) openIndex = str.indexOf('(~');
-
-  let nextOpenIndex = openIndex;
-
-  let closingIndex = str.indexOf('))');
-
-  // if it's a simple query simply return array of conditions
-  if (openIndex === -1) {
-    if (str && str != '~not')
-      nestedArrayConditions = str.split(
-        /(?=~(?:or(?:not)?|and(?:not)?|not)\()/,
-      );
-    return extractCondition(
-      nestedArrayConditions || [],
-      aliasColObjMap,
-      throwErrorIfInvalid,
-    );
-  }
-
-  // iterate until finding right closing
-  while (
-    (nextOpenIndex = str
-      .substring(0, closingIndex)
-      .indexOf('((', nextOpenIndex + 1)) != -1
-  ) {
-    closingIndex = str.indexOf('))', closingIndex + 1);
-  }
-
-  if (closingIndex === -1)
-    throw new Error(
-      `${str
-        .substring(0, openIndex + 1)
-        .slice(-10)} : Closing bracket not found`,
-    );
-
-  // getting operand starting index
-  const operandStartIndex = str.lastIndexOf('~', openIndex);
-  const operator =
-    operandStartIndex != -1
-      ? str.substring(operandStartIndex + 1, openIndex)
-      : '';
-  const lhsOfNestedQuery = str.substring(0, openIndex);
-
-  nestedArrayConditions.push(
-    ...extractFilterFromXwhere(
-      lhsOfNestedQuery,
-      aliasColObjMap,
-      throwErrorIfInvalid,
-    ),
-    // calling recursively for nested query
-    new Filter({
-      is_group: true,
-      logical_op: operator,
-      children: extractFilterFromXwhere(
-        str.substring(openIndex + 1, closingIndex + 1),
-        aliasColObjMap,
-      ),
-    }),
-    // RHS of nested query(recursion)
-    ...extractFilterFromXwhere(
-      str.substring(closingIndex + 2),
-      aliasColObjMap,
-      throwErrorIfInvalid,
-    ),
-  );
-  return nestedArrayConditions;
-}
-
-// mark `op` and `sub_op` any for being assignable to parameter of type
-function validateFilterComparison(uidt: UITypes, op: any, sub_op?: any) {
-  if (!COMPARISON_OPS.includes(op) && !GROUPBY_COMPARISON_OPS.includes(op)) {
-    NcError.badRequest(`${op} is not supported.`);
-  }
-
-  if (sub_op) {
-    if (
-      ![
-        UITypes.Date,
-        UITypes.DateTime,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-      ].includes(uidt)
-    ) {
-      NcError.badRequest(`'${sub_op}' is not supported for UI Type'${uidt}'.`);
-    }
-    if (!COMPARISON_SUB_OPS.includes(sub_op)) {
-      NcError.badRequest(`'${sub_op}' is not supported.`);
-    }
-    if (
-      (op === 'isWithin' && !IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op)) ||
-      (op !== 'isWithin' && IS_WITHIN_COMPARISON_SUB_OPS.includes(sub_op))
-    ) {
-      NcError.badRequest(`'${sub_op}' is not supported for '${op}'`);
-    }
-  }
-}
-
-export function extractCondition(
-  nestedArrayConditions,
-  aliasColObjMap,
-  throwErrorIfInvalid,
-) {
-  return nestedArrayConditions?.map((str) => {
-    let [logicOp, alias, op, value] =
-      str.match(/(?:~(and|or|not))?\((.*?),(\w+),(.*)\)/)?.slice(1) || [];
-
-    if (!alias && !op && !value) {
-      // try match with blank filter format
-      [logicOp, alias, op, value] =
-        str.match(/(?:~(and|or|not))?\((.*?),(\w+)\)/)?.slice(1) || [];
-    }
-
-    // handle isblank and isnotblank filter format
-    switch (op) {
-      case 'is':
-        if (value === 'blank') {
-          op = 'blank';
-          value = undefined;
-        } else if (value === 'notblank') {
-          op = 'notblank';
-          value = undefined;
-        }
-        break;
-      case 'isblank':
-      case 'is_blank':
-        op = 'blank';
-        break;
-      case 'isnotblank':
-      case 'is_not_blank':
-      case 'is_notblank':
-        op = 'notblank';
-        break;
-    }
-
-    let sub_op = null;
-
-    if (aliasColObjMap[alias]) {
-      if (
-        [
-          UITypes.Date,
-          UITypes.DateTime,
-          UITypes.LastModifiedTime,
-          UITypes.CreatedTime,
-        ].includes(aliasColObjMap[alias].uidt)
-      ) {
-        value = value?.split(',');
-        // the first element would be sub_op
-        sub_op = value?.[0];
-        // remove the first element which is sub_op
-        value?.shift();
-        value = value?.[0];
-      } else if (op === 'in') {
-        value = value.split(',');
-      }
-
-      validateFilterComparison(aliasColObjMap[alias].uidt, op, sub_op);
-    } else if (throwErrorIfInvalid) {
-      NcError.invalidFilter(str);
-    }
-
-    return new Filter({
-      comparison_op: op,
-      ...(sub_op && { comparison_sub_op: sub_op }),
-      fk_column_id: aliasColObjMap[alias]?.id,
-      logical_op: logicOp,
-      value,
-    });
-  });
-}
-
 function applyPaginate(
   query,
   {
@@ -10170,7 +10209,16 @@ export function _wherePk(
     return where;
   }
 
-  const ids = Array.isArray(id) ? id : (id + '').split('___');
+  let ids = id;
+
+  if (Array.isArray(id)) {
+    ids = id;
+  } else if (primaryKeys.length === 1) {
+    ids = [id];
+  } else {
+    ids = (id + '').split('___').map((val) => val.replaceAll('\\_', '_'));
+  }
+
   for (let i = 0; i < primaryKeys.length; ++i) {
     if (primaryKeys[i].dt === 'bytea') {
       // if column is bytea, then we need to encode the id to hex based on format
@@ -10216,7 +10264,20 @@ export function getCompositePkValue(primaryKeys: Column[], row) {
 
   if (typeof row !== 'object') return row;
 
-  return primaryKeys.map((c) => row[c.title] ?? row[c.column_name]).join('___');
+  if (primaryKeys.length > 1) {
+    return primaryKeys
+      .map((c) =>
+        (row[c.title] ?? row[c.column_name])
+          ?.toString?.()
+          .replaceAll('_', '\\_'),
+      )
+      .join('___');
+  }
+
+  return (
+    primaryKeys[0] &&
+    (row[primaryKeys[0].title] ?? row[primaryKeys[0].column_name])
+  );
 }
 
 export function haveFormulaColumn(columns: Column[]) {

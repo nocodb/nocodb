@@ -76,7 +76,7 @@ const overlayStyle = computed(() => {
   const left = (containerWidth.value / maxVisibleDays.value) * getDayIndex(currTime.value)
   const minutes = currTime.value.hour() * 60 + currTime.value.minute()
 
-  const top = (52 / 60) * minutes
+  const top = (52 / 60) * minutes - 12
 
   return {
     width: `${containerWidth.value / maxVisibleDays.value}px`,
@@ -965,7 +965,7 @@ watch(
           class="text-brand-500 rounded-md text-xs border-1 pointer-events-auto px-0.5 border-brand-200 cursor-pointer bg-brand-50"
           @click="addRecord(dayjs())"
         >
-          {{ dayjs().format('hh:mm A') }}
+          {{ currTime.format('hh:mm A') }}
         </span>
         <div class="flex-1 border-b-1 border-brand-500"></div>
       </div>

@@ -128,6 +128,18 @@ const onViewIdCopy = async () => {
 const onDelete = async () => {
   emits('delete')
 }
+
+/**
+ * ## Known Issue and Fix
+ * - **Issue**: When conditionally rendering `NcMenuItem` using `v-if` without a corresponding `v-else` fallback,
+ *   Vue may throw a
+ * `NotFoundError: Failed to execute 'insertBefore' on 'Node': The node before which the new node is to be inserted is not a child of this node.`.
+ *
+ * - This issue occurs specifically when the `NcMenu` is open, and the condition changes dynamically (e.g., during runtime state changes)
+ *
+ * - **Fix**: Use `v-show` instead of `v-if` when no replacement (fallback) node is provided. This keeps the element
+ *   in the DOM but toggles its visibility, preventing the DOM manipulation issue.
+ */
 </script>
 
 <template>
@@ -180,7 +192,7 @@ const onDelete = async () => {
             }}
           </NcMenuItem>
         </NcTooltip>
-        <NcMenuItem v-if="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
+        <NcMenuItem v-show="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
           <GeneralIcon icon="ncAlignLeft" />
           {{ $t('general.edit') }}
 

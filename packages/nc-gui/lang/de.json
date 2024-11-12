@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Klicken, um die Tabellen-ID zu kopieren",
     "clickToCopyViewID": "Klicken, um View-ID zu kopieren",
     "viewMode": "Ansichtsmodus",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Benutzer durchsuchen",
     "superAdmin": "Super-Admin",
     "allTables": "Alle Tabellen",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Weiterleitung zu einer URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook-Details",
     "hideWeekends": "Wochenenden ausblenden",
     "renameBase": "Basis umbenennen",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Alle geteilten Ansichten dieser Tabelle anzeigen",
       "collabView": "Mitarbeitern mit Bearbeitungsberechtigung oder höher können die Ansichtenkonfiguration ändern",
       "lockedView": "Niemand kann die Ansichtenkonfiguration bearbeiten, bis sie freigeschaltet ist.",
-      "personalView": "Nur Sie können die Ansichtenkonfiguration bearbeiten. Weitere Mitarbeiter-Ansichten sind standardmäßig ausgeblendet.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Kann Ersteller hinzufügen / entfernen und Datenbankstrukturen und -felder voll bearbeiten.",
       "creatorDesc": "Kann Datenbankstrukturen und Werte vollständig bearbeiten.",
       "editorDesc": "Kann Datensätze bearbeiten, aber die Struktur von Datenbanken / Feldern nicht ändern.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Bitte aktivieren Sie das SMTP-Plug-In im App-Store, um die E-Mail-Benachrichtigung zu aktivieren",
       "collabView": "Erfolgreich auf die kollaborative Ansicht gewechselt",
       "lockedView": "Erfolgreich auf gesperrte Ansicht gewechselt",
-      "futureRelease": "Kommt bald!"
+      "futureRelease": "Kommt bald!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Lizenzschlüssel aktualisiert",

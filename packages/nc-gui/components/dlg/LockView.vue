@@ -37,6 +37,7 @@ const isLoading = ref(false)
 
 const changeLockType = async () => {
   if (!view.value) return
+
   const payload = {
     lockedViewDescription: changeType.value === LockType.Locked ? description.value : '',
     lockedByUserId: changeType.value === LockType.Locked ? user.value?.id : '',
@@ -60,7 +61,7 @@ const changeLockType = async () => {
 
     view.value.lock_type = changeType.value
 
-    message.success(`Successfully Switched to ${changeType.value} view`)
+    message.success(`Successfully Switched to ${view.value.lock_type} view`)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

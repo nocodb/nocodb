@@ -1,30 +1,11 @@
 <script setup lang="ts">
-import UsersIcon from '~icons/nc-icons/users'
-import LockIcon from '~icons/nc-icons/lock'
-import PersonalIcon from '~icons/nc-icons/personal'
 import { LockType } from '#imports'
 
 const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType; disabled?: boolean }>()
 
 const emit = defineEmits(['select'])
 
-const types = {
-  [LockType.Personal]: {
-    title: 'title.personal',
-    icon: PersonalIcon,
-    subtitle: 'msg.info.personalView',
-  },
-  [LockType.Collaborative]: {
-    title: 'title.collaborative',
-    icon: UsersIcon,
-    subtitle: 'msg.info.collabView',
-  },
-  [LockType.Locked]: {
-    title: 'title.locked',
-    icon: LockIcon,
-    subtitle: 'msg.info.lockedView',
-  },
-}
+const types = viewLockIcons;
 
 const selectedView = inject(ActiveViewInj)
 </script>
@@ -58,10 +39,14 @@ const selectedView = inject(ActiveViewInj)
             <span v-else />
           </template>
         </div>
-        <div v-if="!hideTick" class="nc-subtitle max-w-120 text-xs whitespace-normal ml-6" :class="{
-              'text-gray-400': disabled,
-              'text-gray-500': !disabled,
-        }">
+        <div
+          v-if="!hideTick"
+          class="nc-subtitle max-w-120 text-xs whitespace-normal ml-6"
+          :class="{
+            'text-gray-400': disabled,
+            'text-gray-500': !disabled,
+          }"
+        >
           {{ $t(types[type].subtitle) }}
         </div>
       </div>

@@ -148,7 +148,12 @@ const inputEl = (el: HTMLInputElement) => {
     </div>
     <div class="mb-5">
       <div class="mb-1">New owner</div>
-      <div class="rounded-lg border-1">
+      <div
+        class="rounded-lg border-1"
+        :class="{
+          'shadow-sm': selectedUser && !userSelectMenu,
+        }"
+      >
         <UserItem
           v-if="selectedUser && !userSelectMenu"
           :user="selectedUser"

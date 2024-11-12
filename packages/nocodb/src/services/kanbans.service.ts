@@ -47,7 +47,7 @@ export class KanbansService {
         type: ViewTypes.KANBAN,
         base_id: model.base_id,
         source_id: model.source_id,
-        owned_by: param.user?.id,
+        created_by: param.user?.id,
         owned_by: param.ownedBy || param.user?.id,
       },
       model,

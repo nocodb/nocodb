@@ -1529,7 +1529,6 @@ export class ImportService {
           await this.gridsService.gridViewUpdate(context, {
             viewId: gview.id,
             grid: gridData,
-            ownedBy: vw.owned_by,
             req,
           });
         }

@@ -185,8 +185,8 @@ export class ViewsService {
       // extract user roles and allow creator and owner to change to personal view
       if (
         param.user.id !== ownedBy &&
-        !param.user.base_roles?.[ProjectRoles.OWNER] &&
-        !param.user.base_roles?.[ProjectRoles.CREATOR]
+        !(param.user as any).base_roles?.[ProjectRoles.OWNER] &&
+        !(param.user as any).base_roles?.[ProjectRoles.CREATOR]
       ) {
         NcError.unauthorized('Only owner/creator can transfer view ownership');
       }

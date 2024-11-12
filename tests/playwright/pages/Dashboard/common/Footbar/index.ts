@@ -49,6 +49,11 @@ export class FootbarPage extends BasePage {
     await expect(this.btn_addNewRow).toBeVisible({ visible: true });
   }
 
+  async verifyPersonalMode() {
+    // add record button
+    await expect(this.btn_addNewRow).toBeVisible({ visible: true });
+  }
+
   async verifyCollaborativeMode() {
     // add record button
     await expect(this.btn_addNewRow).toBeVisible({ visible: true });

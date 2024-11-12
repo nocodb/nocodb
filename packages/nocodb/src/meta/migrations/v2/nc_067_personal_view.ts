@@ -9,7 +9,7 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.SOURCES, (table) => {
+  await knex.schema.alterTable(MetaTable.VIEWS, (table) => {
     table.dropColumn('created_by');
     table.dropColumn('owned_by');
   });

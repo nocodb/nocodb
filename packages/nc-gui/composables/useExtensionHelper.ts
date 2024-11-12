@@ -4,7 +4,7 @@ import type { ExtensionManifest, ExtensionType } from '#imports'
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
   (extension: Ref<ExtensionType>, extensionManifest: ComputedRef<ExtensionManifest | undefined>, activeError: Ref<any>) => {
     const { $api } = useNuxtApp()
-    const route = useRoute();
+    const route = useRoute()
 
     const basesStore = useBases()
 

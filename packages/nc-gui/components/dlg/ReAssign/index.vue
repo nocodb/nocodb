@@ -18,50 +18,11 @@ interface Emits {
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const { t } = useI18n()
-
-const useForm = Form.useForm
-const validators = computed(() => {
-  return {
-    emails: [
-      {
-        validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
-          if (!value || value.length === 0) {
-            callback(t('msg.error.signUpRules.emailRequired'))
-            return
-          }
-          const invalidEmails = (value || '').split(/\s*,\s*/).filter((e: string) => !validateEmail(e))
-          if (invalidEmails.length > 0) {
-            callback(
-              `${
-                invalidEmails.length > 1 ? t('msg.error.signUpRules.invalidEmails') : t('msg.error.signUpRules.invalidEmail')
-              } ${invalidEmails.join(', ')} `,
-            )
-          } else {
-            callback()
-          }
-        },
-      },
-    ],
-  }
-})
-
-const invitationUsersData = ref({})
-
-const { validateInfos } = useForm(invitationUsersData, validators)
-
 onMounted(async () => {
   if (!users.value) {
     await loadUsers()
   }
 })
-
-watch(
-  () => validateInfos.emails.validateStatus,
-  () => {
-    invitationValid.value = validateInfos.emails.validateStatus === 'success' && invitationUsersData.emails?.length !== 0
-  },
-)
 
 const basesStore = useBases()
 const viewsStore = useViewsStore()

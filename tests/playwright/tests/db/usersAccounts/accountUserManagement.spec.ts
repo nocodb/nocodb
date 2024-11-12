@@ -10,7 +10,7 @@ import { LoginPage } from '../../../pages/LoginPage';
 import { isEE } from '../../../setup/db';
 let api: Api<any>;
 
-const xroleDb = [
+const roleDb = [
   { email: `org_creator_@nocodb.com`, role: 'Organization Level Creator', url: '' },
   { email: `org_viewer_@nocodb.com`, role: 'Organization Level Viewer', url: '' },
 ];

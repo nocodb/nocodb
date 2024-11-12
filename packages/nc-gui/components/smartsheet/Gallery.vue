@@ -243,6 +243,11 @@ const updateVisibleRows = async () => {
     chunksToFetch.add(nextChunkId)
   }
 
+  const prevChunkId = firstChunkId - 1
+  if (prevChunkId >= 0 && start % CHUNK_SIZE < PREFETCH_THRESHOLD && !chunkStates.value[prevChunkId]) {
+    chunksToFetch.add(prevChunkId)
+  }
+
   if (chunksToFetch.size > 0) {
     await Promise.all([...chunksToFetch].map((chunkId) => fetchChunk(chunkId)))
   }
@@ -251,7 +256,7 @@ const updateVisibleRows = async () => {
 }
 
 const calculateSlices = () => {
-  if (!scrollContainer.value) {
+  if (!scrollContainer.value || cardHeight.value === 0) {
     setTimeout(calculateSlices, 50)
     return
   }
@@ -273,6 +278,16 @@ const calculateSlices = () => {
   updateVisibleRows()
 }
 
+const containerTransformY = computed(() => {
+  const rowStartIndex = Math.floor(rowSlice.start / columnsPerRow.value)
+  return rowStartIndex * (cardHeight.value + 12)
+})
+
+const containerHeight = computed(() => {
+  const numberOfRows = Math.ceil(totalRows.value / columnsPerRow.value)
+  return numberOfRows * cardHeight.value + (numberOfRows - 1) * 12
+})
+
 let scrollRaf = false
 
 useScroll(scrollContainer, {
@@ -286,18 +301,7 @@ useScroll(scrollContainer, {
       scrollRaf = false
     })
   },
-  throttle: 100,
-  behavior: 'smooth',
-})
-
-const containerTransformY = computed(() => {
-  const rowStartIndex = Math.floor(rowSlice.start / columnsPerRow.value)
-  return rowStartIndex * (cardHeight.value + 12) // Add 12px gap between rows
-})
-
-const containerHeight = computed(() => {
-  const numberOfRows = Math.ceil(totalRows.value / columnsPerRow.value)
-  return numberOfRows * cardHeight.value + (numberOfRows - 1) * 12
+  throttle: 200,
 })
 
 watch(
@@ -328,7 +332,7 @@ const { width, height } = useWindowSize()
 let resizeTimeout: number | null = null
 
 watch(
-  [width, height],
+  [width, height, cardHeight, columnsPerRow],
   () => {
     if (resizeTimeout) {
       clearTimeout(resizeTimeout)
@@ -344,7 +348,7 @@ watch(
   },
 )
 
-reloadViewDataHook?.on(async (params) => {
+reloadViewDataHook?.on(async () => {
   clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
   calculateSlices()
   await updateVisibleRows()
@@ -390,7 +394,11 @@ reloadViewDataHook?.on(async (params) => {
       <div>
         <div :style="{ height: `${containerHeight}px` }">
           <div :style="{ transform: `translateY(${containerTransformY}px)` }" class="nc-gallery-container grid gap-3 p-3">
-            <div v-for="(record, rowIndex) in visibleRows" :key="`record-${record.rowMeta.rowIndex}`">
+            <div
+              v-for="(record, rowIndex) in visibleRows"
+              :key="`record-${record.rowMeta.rowIndex}`"
+              :data-card-id="`record-${record.rowMeta.rowIndex}`"
+            >
               <LazySmartsheetRow :row="record">
                 <a-card
                   class="!rounded-xl h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer"
@@ -527,18 +535,14 @@ reloadViewDataHook?.on(async (params) => {
           </div>
         </div>
       </div>
-      <NcButton
-        v-if="isUIAllowed('dataInsert')"
-        size="xs"
-        type="secondary"
-        class="!absolute bottom-4 left-4"
-        @click="openNewRecordFormHook.trigger"
-      >
-        <div class="flex items-center gap-2">
-          <component :is="iconMap.plus" class="" />
-          {{ $t('activity.newRecord') }}
-        </div>
-      </NcButton>
+      <div class="sticky bottom-4">
+        <NcButton v-if="isUIAllowed('dataInsert')" size="xs" type="secondary" class="ml-4" @click="openNewRecordFormHook.trigger">
+          <div class="flex items-center gap-2">
+            <component :is="iconMap.plus" class="" />
+            {{ $t('activity.newRecord') }}
+          </div>
+        </NcButton>
+      </div>
     </div>
   </NcDropdown>
 

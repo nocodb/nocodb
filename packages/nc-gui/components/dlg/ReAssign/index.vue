@@ -91,7 +91,9 @@ const filterdBaseUsers = computed(() => {
   }
 
   // exclude current owner from the list
-  return users.filter((u) => u.id !== currentOwner.value?.id && u.base_roles !== ProjectRoles.NO_ACCESS)
+  return users.filter(
+    (u) => u.id !== currentOwner.value?.id && u.roles !== ProjectRoles.NO_ACCESS && u.roles !== ProjectRoles.VIEWER,
+  )
 })
 
 const { api, isLoading } = useApi()

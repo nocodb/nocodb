@@ -1154,8 +1154,10 @@ export default class Model implements TableType {
     context: NcContext,
     {
       modelId,
+      userId
     }: {
       modelId: string;
+      userId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {

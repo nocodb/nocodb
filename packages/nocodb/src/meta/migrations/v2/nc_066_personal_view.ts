@@ -4,7 +4,7 @@ import { MetaTable } from '~/utils/globals';
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.VIEWS, (table) => {
     table.boolean('is_personal').defaultTo(false);
-    table.boolean('created_by', 20).index();
+    table.string('created_by', 20).index();
   });
 };
 

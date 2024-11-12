@@ -705,8 +705,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             v-if="maxVisibleDays === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true"
             :key="`${weekIndex}-${dateIndex}`"
             :class="{
-              'border-brand-500 border-1 !border-r-1 border-b-1':
-                isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
+              'selected-date': isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
               '!text-gray-400': !isDayInPagedMonth(day),
               '!bg-gray-50 !hover:bg-gray-100': day.get('day') === 0 || day.get('day') === 6,
               'border-t-1': weekIndex === 0,
@@ -813,7 +812,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         </template>
       </div>
     </div>
-    <div class="absolute inset-0 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
+    <div class="absolute inset-0 z-2 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
       <template v-for="(record, recordIndex) in recordsToDisplay.records" :key="recordIndex">
         <div
           v-if="record.rowMeta.style?.display !== 'none'"
@@ -870,5 +869,10 @@ const addRecord = (date: dayjs.Dayjs) => {
 
 .grid-cols-5 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.selected-date {
+  z-index: 2;
+  box-shadow: 0 0 0 2px #3366ff !important;
 }
 </style>

@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Haga clic para copiar el ID de la tabla",
     "clickToCopyViewID": "Clic para copiar View ID",
     "viewMode": "Modo solo lectura",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Buscar usuarios",
     "superAdmin": "Super Admin",
     "allTables": "Todas las tablas",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Redirigir a URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Detalles de Webhook",
     "hideWeekends": "Ocultar los fines de semana",
     "renameBase": "Renombrar base",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Mostrar todas las vistas compartidas de esta tabla",
       "collabView": "Los colaboradores con permisos de edición o superior pueden cambiar la configuración de la vista.",
       "lockedView": "Nadie puede editar la configuración de la vista hasta que se desbloquee.",
-      "personalView": "Solo tú puedes editar la configuración de la vista. Otros puntos de vista personales de otros colaboradores están ocultos por defecto.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Puedes agregar / eliminar creadores. Y edición completa de estructuras y campos de base de datos.",
       "creatorDesc": "Puede editar completamente la estructura y los valores de la base de datos.",
       "editorDesc": "Puede editar registros pero no puede cambiar la estructura de la base de datos / campos.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Por favor, active el complemento SMTP en la App Store para habilitar la notificación por correo electrónico",
       "collabView": "Cambiado con éxito a la vista colaborativa",
       "lockedView": "Cambiado con éxito a la vista bloqueada",
-      "futureRelease": "¡Próximamente!"
+      "futureRelease": "¡Próximamente!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Clave de licencia actualizada",

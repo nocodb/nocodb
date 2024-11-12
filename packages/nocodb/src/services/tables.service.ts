@@ -359,9 +359,7 @@ export class TablesService {
       return (
         Object.keys(param.user?.roles).some(
           (role) => param.user?.roles[role] && !view.disabled[role],
-        ) &&
-        (view.lock_type !== ViewLockType.Locked ||
-          view.fk_owned_by === param.user.id)
+        )
       );
     });
 

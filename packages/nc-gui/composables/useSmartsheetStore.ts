@@ -1,4 +1,4 @@
-import { ViewTypes } from 'nocodb-sdk'
+import {ViewLockType, ViewTypes} from 'nocodb-sdk'
 import type { FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { SmartsheetStoreEvents } from '#imports'
@@ -14,6 +14,8 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   ) => {
     const { $api } = useNuxtApp()
 
+    const {user} = useGlobal()
+
     const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
@@ -28,7 +30,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const eventBus = useEventBus<SmartsheetStoreEvents>(Symbol('SmartsheetStore'))
 
-    const isLocked = computed(() => view.value?.lock_type === 'locked')
+    const isLocked = computed(() => (view.value?.lock_type === ViewLockType.Personal && user.value?.id !== view.value?.owned_by) || view.value?.lock_type === ViewLockType.Locked)
     const isPkAvail = computed(() => (meta.value as TableType)?.columns?.some((c) => c.pk))
     const isGrid = computed(() => view.value?.type === ViewTypes.GRID)
     const isForm = computed(() => view.value?.type === ViewTypes.FORM)

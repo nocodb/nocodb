@@ -95,13 +95,13 @@ export class ViewsService {
     // todo: user roles
     //await View.list(param.tableId)
     const filteredViewList = viewList.filter((view: any) => {
-      if (
-        view.lock_type === ViewLockType.Personal &&
-        view.owned_by !== param.user.id &&
-        !(!view.owned_by && !param.user.base_roles?.[ProjectRoles.OWNER])
-      ) {
-        return false;
-      }
+      // if (
+      //   view.lock_type === ViewLockType.Personal &&
+      //   view.owned_by !== param.user.id &&
+      //   !(!view.owned_by && !param.user.base_roles?.[ProjectRoles.OWNER])
+      // ) {
+      //   return false;
+      // }
 
       return Object.values(ProjectRoles).some(
         (role) => param?.user?.['base_roles']?.[role] && !view.disabled[role],

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { ViewLockType } from 'nocodb-sdk'
 import UserItem from './UserItem.vue'
 const props = defineProps<Props>()
 
@@ -63,6 +64,9 @@ watch(
 )
 
 const basesStore = useBases()
+const viewsStore = useViewsStore()
+
+const { navigateToView } = viewsStore
 
 const { basesUser } = storeToRefs(basesStore)
 
@@ -94,7 +98,31 @@ const assignView = async () => {
     })
     props.view.owned_by = selectedUser.value.id
     vModel.value = false
-    await message.success('View reassigned successfully')
+    message.success('View reassigned successfully')
+
+    if (props.view.lock_type === ViewLockType.Personal) {
+      // navigate to default view
+      navigateToView({
+        view: viewsStore.views.find((v) => v.is_default),
+        tableId: props.view.fk_model_id,
+        baseId: props.view.base_id!,
+        force: true,
+      })
+
+      // if locked view is reassigned, then reload the view list
+      viewsStore
+        .loadViews({
+          ignoreLoading: true,
+          tableId: props.view.fk_model_id,
+          force: true,
+        })
+        .catch(() => {
+          // ignore
+        })
+        .finally(() => {
+          // navigate to the view
+        })
+    }
   } catch (e) {
     await message.error(await extractSdkResponseErrorMsg(e))
   }

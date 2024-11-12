@@ -100,6 +100,7 @@ const assignView = async () => {
     vModel.value = false
     message.success('View reassigned successfully')
 
+    // if personal view then redirect to default view and reload view list
     if (props.view.lock_type === ViewLockType.Personal) {
       // navigate to default view
       navigateToView({
@@ -107,9 +108,11 @@ const assignView = async () => {
         tableId: props.view.fk_model_id,
         baseId: props.view.base_id!,
         force: true,
+      }).catch(() => {
+        // ignore
       })
 
-      // if locked view is reassigned, then reload the view list
+      // then reload the view list
       viewsStore
         .loadViews({
           ignoreLoading: true,
@@ -118,9 +121,6 @@ const assignView = async () => {
         })
         .catch(() => {
           // ignore
-        })
-        .finally(() => {
-          // navigate to the view
         })
     }
   } catch (e) {

@@ -4,7 +4,7 @@ import LockIcon from '~icons/nc-icons/lock'
 import PersonalIcon from '~icons/nc-icons/personal'
 import { LockType } from '#imports'
 
-const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType }>()
+const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType; disabled?: boolean }>()
 
 const emit = defineEmits(['select'])
 
@@ -52,7 +52,7 @@ const selectedView = inject(ActiveViewInj)
           </div>
           <div v-if="!hideTick" class="flex flex-grow"></div>
           <template v-if="!hideTick">
-            <GeneralIcon v-if="selectedView?.lock_type === type" icon="check" class="!text-brand-500" />
+            <GeneralIcon v-if="selectedView?.lock_type === type" icon="check" :class="{ '!text-brand-5s00': !disabled }" />
             <span v-else />
           </template>
         </div>

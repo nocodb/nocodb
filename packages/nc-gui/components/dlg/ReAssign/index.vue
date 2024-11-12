@@ -66,8 +66,6 @@ watch(
 const basesStore = useBases()
 const viewsStore = useViewsStore()
 
-const { navigateToView } = viewsStore
-
 const { basesUser } = storeToRefs(basesStore)
 
 const searchQuery = ref('')
@@ -96,8 +94,6 @@ const filterdBaseUsers = computed(() => {
   return users.filter((u) => u.id !== currentOwner.value?.id)
 })
 
-const { user } = useGlobal()
-
 const { api, isLoading } = useApi()
 
 const assignView = async () => {
@@ -106,7 +102,6 @@ const assignView = async () => {
     await api.dbView.update(props.view.id, {
       owned_by: selectedUser.value.id,
     })
-    props.view.owned_by = selectedUser.value.id
     vModel.value = false
     message.success('View reassigned successfully')
 
@@ -172,6 +167,7 @@ const inputEl = (el: HTMLInputElement) => {
           <UserItem
             v-for="user of filterdBaseUsers"
             style="border-bottom: 1px solid; border-color: inherit"
+            :key="user.id"
             class="cursor-pointer hover:(bg-gray-100)"
             :class="{ 'bg-gray-100': selectedUser === user }"
             :user="user"

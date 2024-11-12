@@ -187,13 +187,15 @@ export class ViewsService {
       // if not then throw error
       const baseUser = await BaseUser.get(
         context,
-        param.view.owned_by,
         context.base_id,
+        param.view.owned_by,
       );
 
       if (!baseUser) {
         NcError.badRequest('Invalid user');
       }
+
+      includeCreatedByAndUpdateBy = true;
 
       // // todo: ee only
       // if(!baseUser) {

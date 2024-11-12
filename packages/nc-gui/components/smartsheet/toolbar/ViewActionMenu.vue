@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { TableType, ViewType } from 'nocodb-sdk'
+import { ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { resolveComponent } from '@vue/runtime-core'
 import { LockType } from '#imports'
@@ -30,6 +30,8 @@ const view = computed(() => props.view)
 const table = computed(() => props.table)
 
 const { loadViews, navigateToView, duplicateView } = useViewsStore()
+
+const { user } = useGlobal()
 
 const { base } = storeToRefs(useBase())
 
@@ -138,7 +140,16 @@ const openReAssignDlg = () => {
     },
     view,
   })
+  emits('closeModal')
 }
+
+const isViewOwner = computed(() => {
+  return (
+    view.value?.owned_by === user.value?.id ||
+    (!view.value?.owned_by &&
+      (user.value.base_roles?.[ProjectRoles.OWNER] || user.value.workspace_roles?.[WorkspaceUserRoles.OWNER]))
+  )
+})
 
 /**
  * ## Known Issue and Fix
@@ -317,7 +328,7 @@ const openReAssignDlg = () => {
           <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
         </a-menu-item>
 
-        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
+        <a-menu-item v-if="isViewOwner && isEeUI" class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
           <LazySmartsheetToolbarLockType :type="LockType.Personal" @click="changeLockType(LockType.Personal)" />
         </a-menu-item>
 
@@ -326,7 +337,7 @@ const openReAssignDlg = () => {
         </a-menu-item>
       </NcSubMenu>
 
-      <NcMenuItem @click="openReAssignDlg">
+      <NcMenuItem @click="openReAssignDlg" v-if="isViewOwner && isEeUI">
         <div
           v-e="[
             'c:navdraw:preview-as',

@@ -73,6 +73,8 @@ export default class View implements ViewType {
   order: number;
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
+  created_by?: string;
+  is_personal?: string;
 
   fk_model_id: string;
   model?: Model;

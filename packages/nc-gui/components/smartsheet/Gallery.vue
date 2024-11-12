@@ -330,8 +330,12 @@ const placeholderAboveHeight = computed(() => {
   const visibleRowStart = Math.floor(scrollTop.value / (cardHeight.value + 12))
 
   const startRecordIndex = Math.max(0, visibleRowStart - 2)
+  const placeholderHeight = startRecordIndex * (cardHeight.value + 12)
 
-  return startRecordIndex * (cardHeight.value + 12)
+  if (placeholderHeight > containerHeight.value) {
+    return containerHeight.value - cardHeight.value
+  }
+  return placeholderHeight
 })
 
 const { width, height } = useWindowSize()

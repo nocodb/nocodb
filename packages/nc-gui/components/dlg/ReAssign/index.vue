@@ -78,7 +78,7 @@ const currentOwner = computed(() => {
   return (
     (props.view && basesUser.value.get(props.view.base_id)?.find((u) => u.id === props.view.owned_by)) || {
       id: props.view.owned_by,
-      display_name: 'Unknown',
+      display_name: 'Unknown User',
     }
   )
 })
@@ -112,16 +112,6 @@ const assignView = async () => {
 
     // if personal view then redirect to default view and reload view list
     if (props.view.lock_type === ViewLockType.Personal) {
-      // navigate to default view
-      navigateToView({
-        view: viewsStore.views.find((v) => v.is_default),
-        tableId: props.view.fk_model_id,
-        baseId: props.view.base_id!,
-        force: true,
-      }).catch(() => {
-        // ignore
-      })
-
       // then reload the view list
       viewsStore
         .loadViews({

@@ -19,8 +19,6 @@ const displayName = computed(() => {
       class="!text-[0.65rem]"
     />
     <div class="flex flex-col justify-center flex-grow">
-      <div class="flex" :style="{ fontWeight: 500 }">{{ user.display_name }}</div>
-
       <div class="flex flex-col">
         <span class="capitalize font-weight-medium">{{ displayName }}</span>
         <span class="text-xs">{{ user.email }}</span>

@@ -88,7 +88,6 @@ const rolePermissions = {
       baseDuplicate: true,
       sourceCreate: true,
       baseAuditList: true,
-      reAssignViewOwner: true,
     },
   },
   [ProjectRoles.EDITOR]: {

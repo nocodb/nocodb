@@ -35,6 +35,8 @@ export function useGridViewData(
 
   const { $api } = useNuxtApp()
 
+  const isBulkOperationInProgress = ref(false)
+
   const {
     insertRow,
     updateRowProperty,
@@ -322,7 +324,7 @@ export function useGridViewData(
         }
       })
     } catch (e) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      message.error(await extractSdkResponseErrorMsg(e as any))
       isBulkOperationInProgress.value = false
       return
     } finally {
@@ -485,7 +487,7 @@ export function useGridViewData(
 
                 totalRows.value = totalRows.value - insertedRows.length
 
-                syncVisibleData?.()
+                syncVisibleData()
 
                 await getMeta(meta.value?.id as string, true)
               } catch (e) {
@@ -514,7 +516,7 @@ export function useGridViewData(
 
                 await getMeta(meta.value?.id as string, true)
 
-                syncVisibleData?.()
+                syncVisibleData()
               } finally {
                 isBulkOperationInProgress.value = false
               }
@@ -526,7 +528,7 @@ export function useGridViewData(
         })
       }
 
-      syncVisibleData?.()
+      syncVisibleData()
       await syncCount()
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
@@ -573,7 +575,7 @@ export function useGridViewData(
     totalRows.value = Math.max(0, totalRows.value - rowsToDelete.length)
 
     await syncCount()
-    syncVisibleData?.()
+    syncVisibleData()
   }
 
   async function deleteRangeOfRows(cellRange: CellRange): Promise<void> {
@@ -707,8 +709,6 @@ export function useGridViewData(
   return {
     cachedRows,
     loadData,
-    paginationData,
-    queryParams,
     insertRow,
     updateRowProperty,
     addEmptyRow,

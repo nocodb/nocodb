@@ -6,7 +6,6 @@ export function useGalleryViewData(
   _meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
   where?: ComputedRef<string | undefined>,
-  reloadVisibleDataHook?: EventHook<void>,
 ) {
   const isPublic = inject(IsPublicInj, ref(false))
 

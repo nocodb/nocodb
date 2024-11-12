@@ -1,14 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
-import {
-  type Api,
-  type ColumnType,
-  type LinkToAnotherRecordType,
-  type RelationTypes,
-  type TableType,
-  UITypes,
-  type ViewType,
-  extractFilterFromXwhere,
-} from 'nocodb-sdk'
+import { UITypes, extractFilterFromXwhere } from 'nocodb-sdk'
+import type { Api, ColumnType, LinkToAnotherRecordType, PaginatedType, RelationTypes, TableType, ViewType } from 'nocodb-sdk'
 import type { Row } from '../lib/types'
 import { validateRowFilters } from '../utils/dataUtils'
 import { NavigateDir } from '../lib/enums'
@@ -205,7 +197,7 @@ export function useInfiniteData(args: {
       offset?: number
     } = {},
   ): Promise<Row[]> {
-    if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return
+    if ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) return []
 
     try {
       const response = !isPublic.value

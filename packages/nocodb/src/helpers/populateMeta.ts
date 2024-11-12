@@ -280,6 +280,8 @@ export async function populateMeta(
     };
   }
 
+  const userId = user?.id;
+
   // await this.syncRelations();
 
   const tableMetasInsert = tables.map((table) => {
@@ -356,7 +358,7 @@ export async function populateMeta(
           title: table.title,
           type: table.type || 'table',
           order: table.order,
-          user_id: user.id,
+          user_id: userId,
         },
       );
 
@@ -499,7 +501,7 @@ export async function populateMeta(
           // todo: sanitize
           type: ModelTypes.VIEW,
           order: table.order,
-          user_id: user.id,
+          user_id: userId,
         },
       );
 

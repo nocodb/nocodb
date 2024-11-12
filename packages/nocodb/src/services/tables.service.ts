@@ -356,10 +356,8 @@ export class TablesService {
 
     //await View.list(param.tableId)
     table.views = viewList.filter((view: any) => {
-      return (
-        Object.keys(param.user?.roles).some(
-          (role) => param.user?.roles[role] && !view.disabled[role],
-        )
+      return Object.keys(param.user?.roles).some(
+        (role) => param.user?.roles[role] && !view.disabled[role],
       );
     });
 

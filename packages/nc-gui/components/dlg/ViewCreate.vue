@@ -977,10 +977,10 @@ const getPluralName = (name: string) => {
             />
           </a-form-item>
           <template v-if="form.type === ViewTypes.CALENDAR && !form.copy_from_id">
-            <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full items-center gap-2">
-              <span class="text-gray-800">
+            <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex flex-col w-full gap-2">
+              <div class="text-gray-800">
                 {{ $t('labels.organiseBy') }}
-              </span>
+              </div>
               <NcSelect
                 v-model:value="range.fk_from_column_id"
                 :disabled="isMetaLoading"
@@ -1017,14 +1017,19 @@ const getPluralName = (name: string) => {
                   </div>
                 </a-select-option>
               </NcSelect>
-              <div
-                v-if="range.fk_to_column_id === null && isEeUI"
-                class="cursor-pointer flex items-center text-gray-800 gap-1"
+
+              <NcButton
+                v-if="range.fk_to_column_id === null"
+                size="small"
+                class="!border-none w-28"
+                type="secondary"
+                :disabled="!isEeUI"
                 @click="range.fk_to_column_id = undefined"
               >
                 <component :is="iconMap.plus" class="h-4 w-4" />
                 {{ $t('activity.addEndDate') }}
-              </div>
+              </NcButton>
+
               <template v-else-if="isEeUI">
                 <span>
                   {{ $t('activity.withEndDate') }}
@@ -1036,7 +1041,7 @@ const getPluralName = (name: string) => {
                     :disabled="isMetaLoading"
                     :loading="isMetaLoading"
                     :placeholder="$t('placeholder.notSelected')"
-                    class="!rounded-r-none ct"
+                    class="nc-to-select flex-1"
                   >
                     <a-select-option
                       v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
@@ -1046,7 +1051,7 @@ const getPluralName = (name: string) => {
                         const firstRange = viewSelectFieldOptions.find(
                           (f) => f.value === form.calendar_range[0].fk_from_column_id,
                         )
-                        return firstRange?.uidt === f.uidt
+                        return firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
                       })"
                       :key="id"
                       :value="option.value"
@@ -1435,20 +1440,11 @@ const getPluralName = (name: string) => {
 .nc-input-text-area {
   padding-block: 8px !important;
 }
-
 .ant-form-item-required {
   @apply !text-gray-800 font-medium;
   &:before {
     @apply !content-[''];
   }
-}
-
-.nc-from-select .ant-select-selector {
-  @apply !mr-2;
-}
-
-.nc-to-select .ant-select-selector {
-  @apply !rounded-r-none;
 }
 
 .ant-form-item {
@@ -1471,9 +1467,11 @@ const getPluralName = (name: string) => {
     @apply content-[''] m-0;
   }
 }
-:deep(.ant-select) {
-  .ant-select-selector {
-    @apply !rounded-lg;
+:not(.nc-to-select) {
+  :deep(.ant-select) {
+    .ant-select-selector {
+      @apply !rounded-lg;
+    }
   }
 }
 
@@ -1508,6 +1506,13 @@ const getPluralName = (name: string) => {
 .nc-modal-wrapper.nc-modal-view-create-wrapper {
   .ant-modal-content {
     @apply !rounded-5;
+  }
+}
+
+:deep(.nc-to-select) {
+  .ant-select-selector {
+    @apply !rounded-r-none;
+    border-radius-right: 0rem !important;
   }
 }
 </style>

@@ -26546,6 +26546,10 @@
               }
             ],
             "description": "Associated View Model"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
           }
         },
         "required": [
@@ -26848,6 +26852,10 @@
           "show_system_fields": {
             "$ref": "#/components/schemas/Bool",
             "description": "Should this view show system fields?"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
           }
         }
       },

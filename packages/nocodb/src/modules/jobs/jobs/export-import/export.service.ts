@@ -422,6 +422,7 @@ export class ExportService {
           filter: view.filter,
           sorts: view.sorts,
           lock_type: view.lock_type,
+          owned_by: view.owned_by,
           columns: view.columns.map((column) => {
             const {
               id,

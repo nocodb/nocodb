@@ -434,3 +434,9 @@ export enum IntegrationCategoryType {
   STORAGE = 'storage',
   OTHERS = 'others',
 }
+
+export enum ViewLockType {
+  Personal = 'personal',
+  Locked = 'locked',
+  Collaborative = 'collaborative',
+}

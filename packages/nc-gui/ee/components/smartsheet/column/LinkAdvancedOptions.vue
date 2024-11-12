@@ -9,16 +9,7 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isVirtualCol,
 } from 'nocodb-sdk'
-import {
-  computed,
-  storeToRefs,
-  useBase,
-  useBases,
-  useColumnCreateStoreOrThrow,
-  useMetas,
-  useTablesStore,
-  useVModel,
-} from '#imports'
+import { computed, storeToRefs, useBase, useColumnCreateStoreOrThrow, useMetas, useTablesStore, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any

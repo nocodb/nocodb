@@ -275,7 +275,11 @@ export class BasesService extends BasesServiceCE {
     // populate metadata if existing table
     for (const source of await base.getSources()) {
       if (process.env.NC_CLOUD !== 'true' && !base.is_meta) {
-        const info = await populateMeta(context, source, base);
+        const info = await populateMeta(context, {
+          source,
+          base,
+          user: param.user,
+        });
 
         this.appHooksService.emit(AppEvents.APIS_CREATED, {
           info,

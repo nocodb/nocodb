@@ -15,7 +15,6 @@ import { Column } from '~/models';
 export class RecoverLinksMigration {
   private readonly debugLog = debug('nc:migration-jobs:recover-links');
 
-
   log = (...msgs: string[]) => {
     console.log('[nc_job_003_recover_links]: ', ...msgs);
   };

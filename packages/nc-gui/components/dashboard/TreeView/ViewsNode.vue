@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { TableType, ViewType, ViewTypes } from 'nocodb-sdk'
+import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { isDefaultBase as _isDefaultBase } from '#imports'
 
@@ -285,15 +285,22 @@ watch(isDropdownOpen, async () => {
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
           {{ vModel.alias || vModel.title }}
+          <component
+            :is="viewLockIcons[view.lock_type].icon"
+            v-if="view.lock_type === ViewLockType.Locked || view.lock_type === ViewLockType.Personal"
+            class="text-gray-400 ml-1 -mt-[2px]"
+            :class="{
+              'w-3.2 h-3.2': view.lock_type === ViewLockType.Locked,
+              'w-3.5 h-3.5': view.lock_type !== ViewLockType.Locked,
+            }"
+          />
         </div>
       </NcTooltip>
-
       <template v-if="!isEditing && !isLocked">
         <NcTooltip v-if="vModel.description?.length" placement="bottom">
           <template #title>
             {{ vModel.description }}
           </template>
-
           <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
             <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
           </NcButton>

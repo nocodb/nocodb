@@ -3067,6 +3067,7 @@ export class ColumnsService {
       base: Base;
       reuse?: ReusableParams;
       colExtra?: any;
+      user: UserType;
     },
   ) {
     validateParams(['parentId', 'childId', 'type'], param.column);
@@ -3369,6 +3370,7 @@ export class ColumnsService {
           // todo: sanitize
           mm: true,
           columns: associateTableCols,
+          user_id: param.user.id,
         },
       );
 

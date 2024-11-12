@@ -256,6 +256,14 @@ export class ToolbarPage extends BasePage {
     await expect(this.btn_rowHeight).toBeDisabled();
   }
 
+  async verifyPersonalMode() {
+    await expect(this.btn_fields).toBeDisabled();
+    await expect(this.btn_filter).toBeDisabled();
+    await expect(this.btn_sort).toBeDisabled();
+    await expect(this.btn_groupBy).toBeDisabled();
+    await expect(this.btn_rowHeight).toBeDisabled();
+  }
+
   async verifyCollaborativeMode() {
     await expect(this.btn_fields).toBeEnabled();
     await expect(this.btn_filter).toBeEnabled();

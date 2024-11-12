@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Click to copy Table ID",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "View mode",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
     "allTables": "All Tables",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Show all shared views of this table",
       "collabView": "Collaborators with edit permissions or higher can change the view configuration.",
       "lockedView": "No one can edit the view configuration until it is unlocked.",
-      "personalView": "Only you can edit the view configuration. Other collaborators’ personal views are hidden by default.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Can add/remove creators. And full edit database structures & fields.",
       "creatorDesc": "Can fully edit database structure & values.",
       "editorDesc": "Can edit records but cannot change structure of database/fields.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Please activate SMTP plugin in App store for enabling email notification",
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
-      "futureRelease": "Coming soon!"
+      "futureRelease": "Coming soon!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "License Key Updated",

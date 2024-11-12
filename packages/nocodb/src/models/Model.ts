@@ -140,6 +140,7 @@ export default class Model implements TableType {
       mm?: BoolType;
       type?: ModelTypes;
       source_id?: string;
+      user_id: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -199,6 +200,8 @@ export default class Model implements TableType {
         type: ViewTypes.GRID,
         base_id: baseId,
         source_id: sourceId,
+        created_by: model.user_id,
+        owned_by: model.user_id,
       },
       {
         getColumns: async () => insertedColumns,
@@ -1154,8 +1157,10 @@ export default class Model implements TableType {
     context: NcContext,
     {
       modelId,
+      userId,
     }: {
       modelId: string;
+      userId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {

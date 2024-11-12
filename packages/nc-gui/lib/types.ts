@@ -105,6 +105,10 @@ interface Row {
   }
 }
 
+interface Attachment {
+  url: string
+}
+
 interface CalendarRangeType {
   fk_from_column_id: string
   fk_to_column_id: string | null
@@ -329,4 +333,5 @@ export type {
   NcTableColumnProps,
   SordDirectionType,
   ProductFeedItem,
+  Attachment,
 }

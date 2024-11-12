@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  Put,
   Req,
   Res,
   UseGuards,

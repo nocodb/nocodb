@@ -627,6 +627,7 @@
     "noConditionsAdded": "Tidak ada kondisi yang ditambahkan"
   },
   "labels": {
+    "continue": "Continue",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Dimodifikasi pada",
     "configuration": "Konfigurasi",

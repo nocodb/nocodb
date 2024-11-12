@@ -627,6 +627,7 @@
     "noConditionsAdded": "কোন শর্ত যোগ করা হয়নি"
   },
   "labels": {
+    "continue": "Continue",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "পরিবর্তন করা হয়েছে",
     "configuration": "কনফিগারেশন",

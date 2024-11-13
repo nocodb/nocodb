@@ -6,6 +6,7 @@ interface Props {
   resize?: boolean
   hover?: boolean
   record?: Row
+  selected?: boolean
   size?: 'small' | 'medium' | 'large' | 'auto'
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'
 }

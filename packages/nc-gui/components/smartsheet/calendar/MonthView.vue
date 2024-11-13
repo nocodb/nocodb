@@ -249,7 +249,7 @@ const recordsToDisplay = computed<{
         const id = record.rowMeta.id ?? generateRandomNumber()
         // Since the records can span multiple weeks, to display, we render multiple elements
         // for each week the record spans. The id is used to identify the elements that belong to the same record
-
+        let recordIndex = 0
         while (
           currentWeekStart.isSameOrBefore(endDate, 'day') &&
           // If the current week start is before the last day of the last week
@@ -327,9 +327,10 @@ const recordsToDisplay = computed<{
               style,
               range,
               id,
+              recordIndex,
             },
           })
-
+          recordIndex++
           currentWeekStart = currentWeekStart.add(1, 'week')
         }
       }
@@ -342,11 +343,24 @@ const recordsToDisplay = computed<{
   }
 })
 
+const dragOffset = ref<{
+  x: number | null
+  y: number | null
+}>({ x: null, y: null })
+
 const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeCheck?: boolean) => {
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
-  const percentY = (event.clientY - top - window.scrollY) / height
-  const percentX = (event.clientX - left - window.scrollX) / width
+  let relativeX = event.clientX - left
+
+  if (dragOffset.value.x) {
+    relativeX -= dragOffset.value.x
+  }
+
+  const relativeY = event.clientY - dragOffset.value.y
+
+  const percentX = Math.max(0, Math.min(1, relativeX / width))
+  const percentY = Math.max(0, Math.min(1, relativeY / height))
 
   const fromCol = dragRecord.value?.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value?.rowMeta.range?.fk_to_col
@@ -550,6 +564,11 @@ const stopDrag = (event: MouseEvent) => {
   updateRowProperty(newRow, updateProperty, false)
   focusedDate.value = null
 
+  dragOffset.value = {
+    x: null,
+    y: null,
+  }
+
   $e('c:calendar:month:drag-record')
 
   document.removeEventListener('mousemove', onDrag)
@@ -570,6 +589,15 @@ const dragStart = (event: MouseEvent, record: Row) => {
       target = target.parentElement as HTMLElement
     }
 
+    // TODO: @DarkPhoenix2704
+    // const initialDragElement = document.querySelector(`[data-unique-id="${record.rowMeta.id}-0"]`)
+
+    dragOffset.value = {
+      x: event.clientX - target.getBoundingClientRect().left,
+      y: event.clientY - target.getBoundingClientRect().top,,
+    }
+
+    console.log(initialDragElement?.getBoundingClientRect().top)
     const allRecords = document.querySelectorAll('.draggable-record')
     allRecords.forEach((el) => {
       if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
@@ -817,7 +845,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         <div
           v-if="record.rowMeta.style?.display !== 'none'"
           :data-testid="`nc-calendar-month-record-${record.row[displayField!.title!]}`"
-          :data-unique-id="record.rowMeta.id"
+          :data-unique-id="`${record.rowMeta.id}-${record.rowMeta.recordIndex}`"
           :style="{
             ...record.rowMeta.style,
             zIndex: record.rowMeta.id === draggingId ? 100 : 0,

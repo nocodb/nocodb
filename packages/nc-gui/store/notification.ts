@@ -6,8 +6,6 @@ import { useStorage } from '@vueuse/core'
 const CancelToken = axios.CancelToken
 
 export const useNotification = defineStore('notificationStore', () => {
-  const isTokenRefreshInProgress = useStorage(TOKEN_REFRESH_PROGRESS_KEY, false)
-
   const readNotifications = ref<NotificationType[]>([])
 
   const unreadNotifications = ref<NotificationType[]>([])
@@ -195,7 +193,6 @@ export const useNotification = defineStore('notificationStore', () => {
     cancelTokenSource = null
     // wait if refresh token generation is in progress and cancel the polling after that
     // set a timeout of 10 seconds to avoid hanging
-    await until(isTokenRefreshInProgress).toMatch((v) => !v, { timeout: 10000 })
     source?.cancel()
   }
 

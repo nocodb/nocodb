@@ -919,7 +919,7 @@ provide(IsGalleryInj, ref(false))
                     No values will be updated as there are 0 records in Table name/View name.
                   </div>
                 </div>
-                <NcButton size="xs" type="text" @click="showNoRecordToUpdateInlineToast = false" icon-only>
+                <NcButton size="xs" type="text" icon-only @click="showNoRecordToUpdateInlineToast = false">
                   <template #icon>
                     <GeneralIcon icon="close" class="text-gray-600" />
                   </template>

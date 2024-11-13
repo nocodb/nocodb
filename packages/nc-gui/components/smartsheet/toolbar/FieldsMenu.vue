@@ -445,7 +445,13 @@ useMenuCloseOnEsc(open)
         }}
       </template>
 
-      <NcButton v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0" size="small" type="secondary">
+      <NcButton
+        v-e="['c:fields']"
+        class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0"
+        size="small"
+        type="secondary"
+        :show-as-disabled="isLocked"
+      >
         <div class="flex items-center gap-1">
           <div class="flex items-center gap-2 min-h-5">
             <GeneralIcon

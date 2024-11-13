@@ -199,7 +199,13 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
       <template #title>
         {{ $t('activity.group') }}
       </template>
-      <NcButton v-e="['c:group-by']" class="nc-group-by-menu-btn nc-toolbar-btn !border-0 !h-7" size="small" type="secondary">
+      <NcButton
+        v-e="['c:group-by']"
+        class="nc-group-by-menu-btn nc-toolbar-btn !border-0 !h-7"
+        size="small"
+        type="secondary"
+        :show-as-disabled="isLocked"
+      >
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
             <component :is="iconMap.group" class="h-4 w-4" />

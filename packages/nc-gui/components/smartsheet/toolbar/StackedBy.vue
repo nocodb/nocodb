@@ -146,17 +146,21 @@ const getIcon = (c: ColumnType) =>
         class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn !border-0 !h-7 group"
         size="small"
         type="secondary"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-2">
           <GeneralIcon icon="settings" class="h-4 w-4" />
           <div v-if="!isToolbarIconMode" class="flex items-center gap-0.5">
-            <span class="text-capitalize !text-sm flex items-center gap-1 text-gray-700">
+            <span class="text-capitalize !text-[13px] font-medium flex items-center gap-1">
               {{ $t('activity.kanban.stackedBy') }}
             </span>
             <div
-              class="flex items-center rounded-md transition-colors duration-0.3s bg-gray-100 group-hover:bg-gray-200 px-1 min-h-5 text-gray-600 max-w-[108px]"
+              class="flex items-center rounded-md transition-colors duration-0.3s bg-gray-100 px-1 min-h-5 max-w-[108px]"
+              :class="{
+                'group-hover:bg-gray-200': !isLocked,
+              }"
             >
-              <span class="font-weight-500 text-sm truncate !leading-5">{{ groupingField }}</span>
+              <span class="!text-[13px] font-medium truncate !leading-5">{{ groupingField }}</span>
             </div>
           </div>
         </div>

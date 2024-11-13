@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 
+const isLocked = inject(IsLockedInj, ref(false))
+
 const activeView = inject(ActiveViewInj, ref())
 
 const isToolbarIconMode = inject(
@@ -73,7 +75,13 @@ eventBus.on(async (event, column: ColumnType) => {
         {{ $t('activity.filter') }}
       </template>
 
-      <NcButton v-e="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7" size="small" type="secondary">
+      <NcButton
+        v-e="['c:filter']"
+        class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7"
+        size="small"
+        type="secondary"
+        :show-as-disabled="isLocked"
+      >
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
             <component :is="iconMap.filter" class="h-4 w-4" />

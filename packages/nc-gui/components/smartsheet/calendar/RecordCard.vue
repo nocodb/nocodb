@@ -6,14 +6,12 @@ interface Props {
   resize?: boolean
   hover?: boolean
   record?: Row
-  selected?: boolean
   size?: 'small' | 'medium' | 'large' | 'auto'
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'
 }
 
 withDefaults(defineProps<Props>(), {
   resize: true,
-  selected: false,
   hover: false,
   color: 'blue',
   size: 'small',
@@ -38,11 +36,9 @@ const emit = defineEmits(['resize-start'])
       'bg-yellow-50': color === 'yellow',
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
-      'group-hover:(border-brand-500 border-1)': resize,
-      '!border-blue-200 border-1': selected,
       'shadow-md': hover,
     }"
-    class="relative transition-all flex items-center px-1 gap-2 group border-1 border-transparent"
+    class="relative transition-all flex items-center gap-2 group"
   >
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
@@ -54,22 +50,14 @@ const emit = defineEmits(['resize-start'])
         'bg-pink-500': color === 'pink',
         'bg-purple-500': color === 'purple',
       }"
-      class="w-1 min-h-4 bg-blue-500 rounded-x rounded-y-sm"
+      class="w-1 min-h-6 bg-blue-500 rounded-x rounded-l-md"
     ></div>
 
-    <div v-if="(position === 'leftRounded' || position === 'rounded') && resize" class="mt-0.7 h-7.1 absolute -left-4 resize">
-      <NcButton
-        :class="{
-          '!block z-2 !border-brand-500': selected || hover,
-          '!hidden': !selected && !hover,
-        }"
-        size="xsmall"
-        type="secondary"
-        @mousedown.stop="emit('resize-start', 'left', $event, record)"
-      >
-        <component :is="iconMap.drag" class="text-gray-400"></component>
-      </NcButton>
-    </div>
+    <div
+      v-if="(position === 'leftRounded' || position === 'rounded') && resize"
+      class="mt-0.7 w-2 h-7.1 -left-1 absolute resize"
+      @mousedown.stop="emit('resize-start', 'left', $event, record)"
+    ></div>
 
     <div class="overflow-hidden items-center justify-center gap-2 flex w-full">
       <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2"> .... </span>
@@ -90,19 +78,11 @@ const emit = defineEmits(['resize-start'])
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
 
-    <div v-if="(position === 'rightRounded' || position === 'rounded') && resize" class="absolute mt-0.3 -right-4 resize">
-      <NcButton
-        :class="{
-          '!block !border-brand-500 z-2': selected || hover,
-          '!hidden': !selected && !hover,
-        }"
-        size="xsmall"
-        type="secondary"
-        @mousedown.stop="emit('resize-start', 'right', $event, record)"
-      >
-        <component :is="iconMap.drag" class="text-gray-400"></component>
-      </NcButton>
-    </div>
+    <div
+      v-if="(position === 'rightRounded' || position === 'rounded') && resize"
+      class="absolute mt-0.3 h-7.1 w-2 right-1 resize"
+      @mousedown.stop="emit('resize-start', 'right', $event, record)"
+    ></div>
   </div>
 </template>
 

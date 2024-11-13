@@ -1,6 +1,7 @@
 import { getActivePinia } from 'pinia'
 import { Auth } from 'aws-amplify'
-import type { Actions, AppInfo, SignOutParams, State } from '../../../composables/useGlobal/types'
+import type { AxiosInstance } from 'axios'
+import type { Actions, AppInfo, Getters, SignOutParams, State } from '../../../composables/useGlobal/types'
 import { NcProjectType } from '#imports'
 
 export interface ActionsEE {
@@ -8,7 +9,7 @@ export interface ActionsEE {
   checkForCognitoToken: (params?: { skipRedirect?: boolean }) => Promise<void>
 }
 
-export function useGlobalActions(state: State): Actions & ActionsEE {
+export function useGlobalActions(state: State, getters: Getters): Actions & ActionsEE {
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
 
   const setIsMobileMode = (isMobileMode: boolean) => {
@@ -70,7 +71,7 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
   /** Sign in by setting the token in localStorage
    * keepProps - is for keeping any existing role info if user id is same as previous user
    */
-  const signIn: Actions['signIn'] = async (newToken, keepProps = false) => {
+  const signIn: Actions['signIn'] = (newToken, keepProps = false) => {
     isTokenUpdatedTab.value = true
     state.token.value = newToken
 
@@ -86,20 +87,13 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     }
   }
 
-  let tokenGenerationProgress: Promise<any> | null = null
-  let resolveTokenGenerationProgress: (value: any) => void = null
-
-  const checkForCognitoToken = async () => {
-    if (tokenGenerationProgress) {
-      await tokenGenerationProgress
-    }
-    tokenGenerationProgress = new Promise((resolve) => {
-      resolveTokenGenerationProgress = resolve
-    })
-
-    if (state.token.value) {
-      resolveTokenGenerationProgress(true)
-      tokenGenerationProgress = null
+  const checkForCognitoToken = async ({
+    axiosInstance,
+  }: {
+    axiosInstance?: any
+    skipSignOut?: boolean
+  } = {}) => {
+    if (state.token.value && getters.signedIn.value) {
       return
     }
 
@@ -110,7 +104,11 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
 
       const nuxtApp = useNuxtApp()
 
-      const tokenRes = await nuxtApp.$api.instance.post(
+      if (!axiosInstance) {
+        axiosInstance = nuxtApp.$api?.instance
+      }
+
+      const tokenRes = await axiosInstance.post(
         '/auth/cognito',
         {},
         {
@@ -119,47 +117,66 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
           },
         },
       )
-      if ((await tokenRes).data.token) {
+      if (tokenRes.data.token) {
         updateFirstTimeUser()
         await signIn((await tokenRes).data.token)
       }
-    } catch (err) {
-    } finally {
-      tokenGenerationProgress = null
-      resolveTokenGenerationProgress(true)
-    }
+    } catch (err) {}
   }
 
   /** manually try to refresh token */
-  const refreshToken = async () => {
+  const _refreshToken = async ({
+    axiosInstance,
+    cognitoOnly = false,
+  }: {
+    axiosInstance?: AxiosInstance
+    skipSignOut?: boolean
+    cognitoOnly?: boolean
+  } = {}) => {
     const nuxtApp = useNuxtApp()
     const t = nuxtApp.vueApp.i18n.global.t
 
-    return new Promise((resolve) => {
-      nuxtApp.$api.instance
-        .post('/auth/token/refresh', null, {
-          withCredentials: true,
+    if (!axiosInstance) {
+      const nuxtApp = useNuxtApp()
+      axiosInstance = nuxtApp.$api?.instance
+    }
+
+    try {
+      if (cognitoOnly) {
+        return await checkForCognitoToken({
+          axiosInstance,
         })
-        .then((response) => {
-          if (response.data?.token) {
-            signIn(response.data.token, true)
-          }
+      }
+
+      const response = await axiosInstance.post('/auth/token/refresh', null, {
+        withCredentials: true,
+      })
+
+      if (response.data?.token) {
+        signIn(response.data.token, true)
+        return response.data.token
+      }
+    } catch (e) {
+      // if error occurs, check cognito and generate token or signout
+      if (isAmplifyConfigured.value) {
+        // reset token value to null since cognito token is not valid
+        state.token.value = null
+        await checkForCognitoToken({
+          axiosInstance,
         })
-        .catch(async () => {
-          if (isAmplifyConfigured.value) {
-            // reset token value to null
-            state.token.value = null
-            await checkForCognitoToken()
-          } else if (state.token.value && state.user.value) {
-            await signOut({
-              skipApiCall: true,
-            })
-            message.error(t('msg.error.youHaveBeenSignedOut'))
-          }
+      } else if (state.token.value && state.user.value) {
+        await signOut({
+          skipApiCall: true,
         })
-        .finally(() => resolve(true))
-    })
+        message.error(t('msg.error.youHaveBeenSignedOut'))
+      }
+    }
   }
+
+  const refreshToken = useSharedExecutionFn('refreshToken', _refreshToken, {
+    timeout: 10000,
+    storageDelay: 1000,
+  })
 
   const loadAppInfo = async () => {
     try {
@@ -293,7 +310,6 @@ export function useGlobalActions(state: State): Actions & ActionsEE {
     getBaseUrl,
     ncNavigateTo,
     getMainUrl,
-    checkForCognitoToken,
     setGridViewPageSize,
     setLeftSidebarSize,
     setAddNewRecordGridMode,

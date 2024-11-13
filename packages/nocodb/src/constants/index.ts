@@ -7,7 +7,7 @@ export const NC_ATTACHMENT_FIELD_SIZE =
 export const NC_MAX_ATTACHMENTS_ALLOWED =
   +process.env['NC_MAX_ATTACHMENTS_ALLOWED'] || 10;
 export const NC_REFRESH_TOKEN_EXP_IN_DAYS =
-  parseInt(process.env.NC_REFRESH_TOKEN_EXP_IN_DAYS, 10) || 90;
+  parseInt(process.env.NC_REFRESH_TOKEN_EXP_IN_DAYS, 10) || 30;
 
 // throw error if user provided invalid value
 if (!NC_REFRESH_TOKEN_EXP_IN_DAYS || NC_REFRESH_TOKEN_EXP_IN_DAYS <= 0) {

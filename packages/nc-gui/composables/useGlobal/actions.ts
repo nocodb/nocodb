@@ -73,8 +73,6 @@ export function useGlobalActions(state: State, getters: Getters): Actions {
     const nuxtApp = useNuxtApp()
     const t = nuxtApp.vueApp.i18n.global.t
 
-    isTokenRefreshInProgress.value = true
-
     if (!axiosInstance) {
       axiosInstance = nuxtApp.$api?.instance
     }
@@ -101,6 +99,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions {
 
   const refreshToken = useSharedExecutionFn('refreshToken', _refreshToken, {
     timeout: 10000,
+    storageDelay: 1000
   })
 
   const loadAppInfo = async () => {

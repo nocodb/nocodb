@@ -799,6 +799,7 @@
     "clickToCopyTableID": "टेबल आईडी कॉपी करने के लिए क्लिक करें",
     "clickToCopyViewID": "व्यू आईडी कॉपी करने के लिए क्लिक करें",
     "viewMode": "दृश्य मोड",
+    "reAssignView": "Re-assign view",
     "searchUsers": "उपयोगकर्ताओं को खोजें",
     "superAdmin": "सुपर एडमिन",
     "allTables": "सभी टेबल्स",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "URL पर पुनर्निर्देशित करें"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "वेबहूक विवरण",
     "hideWeekends": "सप्ताहांत छिपाएँ",
     "renameBase": "बेस का नाम बदलें",
@@ -1576,7 +1578,7 @@
       "showAllViews": "इस तालिका के सभी साझा विचार दिखाएं",
       "collabView": "संपादन अनुमतियों या उच्चतर के साथ सहयोगी दृश्य कॉन्फ़िगरेशन को बदल सकते हैं।",
       "lockedView": "कोई भी दृश्य कॉन्फ़िगरेशन को तब तक संपादित नहीं कर सकता है जब तक कि यह अनलॉक न हो जाए।",
-      "personalView": "केवल आप दृश्य कॉन्फ़िगरेशन को संपादित कर सकते हैं। अन्य सहयोगियों के व्यक्तिगत विचार डिफ़ॉल्ट रूप से छिपे हुए हैं।",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "रचनाकारों को जोड़/हटा सकते हैं। और पूर्ण संपादन डेटाबेस संरचनाएं और फ़ील्ड।",
       "creatorDesc": "डेटाबेस संरचना और मानों को पूरी तरह से संपादित कर सकते हैं।",
       "editorDesc": "रिकॉर्ड को संपादित कर सकते हैं लेकिन डेटाबेस/फ़ील्ड की संरचना को नहीं बदल सकते हैं।",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "कृपया ईमेल अधिसूचना को सक्षम करने के लिए ऐप स्टोर में SMTP प्लगइन को सक्रिय करें",
       "collabView": "सफलतापूर्वक सहयोगी दृश्य पर स्विच किया गया",
       "lockedView": "सफलतापूर्वक लॉक किए गए दृश्य पर स्विच किया गया",
-      "futureRelease": "जल्द आ रहा है!"
+      "futureRelease": "जल्द आ रहा है!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "लाइसेंस कुंजी अपडेट की गई",

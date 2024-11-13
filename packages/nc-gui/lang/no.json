@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Klikk for å kopiere tabell ID",
     "clickToCopyViewID": "Klikk for å kopiere visnings-ID",
     "viewMode": "Visningsmodus",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Søk brukere",
     "superAdmin": "Superadministrator",
     "allTables": "Alle tabeller",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Omdiriger til URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook Detaljer",
     "hideWeekends": "Skjul helger",
     "renameBase": "Gi nytt navn til base",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Vis alle felles syn på dette bordet",
       "collabView": "Samarbeidspartnere med redigeringsrettigheter eller høyere kan endre visningskonfigurasjonen.",
       "lockedView": "Ingen kan redigere visningskonfigurasjonen til den er ulåst.",
-      "personalView": "Bare du kan redigere visningskonfigurasjonen. Andre samarbeidspartnere personlige synspunkter er skjult som standard.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Kan legge til / fjerne skapere. Og Full Rediger databasestrukturer og felt.",
       "creatorDesc": "Kan fullt ut redigere databasestruktur og verdier.",
       "editorDesc": "Kan redigere poster, men kan ikke endre strukturen i databasen / feltene.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Vennligst aktiver SMTP-plugin i App Store for å aktivere e-postvarsling",
       "collabView": "Vellykket byttet til samarbeidsvisning",
       "lockedView": "Vellykket byttet til låst visning",
-      "futureRelease": "Kommer snart!"
+      "futureRelease": "Kommer snart!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Lisensnøkkel oppdatert",

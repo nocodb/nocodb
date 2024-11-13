@@ -799,6 +799,7 @@
     "clickToCopyTableID": "टेबल ID कपी गर्न क्लिक गर्नुहोस्",
     "clickToCopyViewID": "View ID प्रतिलिपि गर्न क्लिक गर्नुहोस्",
     "viewMode": "हेर्ने तरिका",
+    "reAssignView": "Re-assign view",
     "searchUsers": "प्रयोगकर्ताहरू खोज्नुहोस्",
     "superAdmin": "सुपर प्रशासक",
     "allTables": "सबै तालिकाहरू",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "URL मा पुनर्निर्देश गर्नुहोस्"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "वेबहुक विवरणहरू",
     "hideWeekends": "सप्ताहन्त लुकाउनुहोस्",
     "renameBase": "बेस नाम परिवर्तन गर्नुहोस्",
@@ -1576,7 +1578,7 @@
       "showAllViews": "यस तालिकाका सबै साझा दृश्यहरू देखाउनुहोस्",
       "collabView": "सम्पादन अनुमति वा उच्च भएका सहयोगकर्ताहरूले दृश्य कन्फिगरेसन परिवर्तन गर्न सक्छन्।",
       "lockedView": "यो अनलक नभएसम्म कसैले पनि दृश्य कन्फिगरेसन सम्पादन गर्न सक्दैन।",
-      "personalView": "दृश्य कन्फिगरेसन केवल तपाईंले मात्र सम्पादन गर्न सक्नुहुन्छ। अन्य सहयोगकर्ताहरूको व्यक्तिगत दृश्यहरू डिफल्ट रूपमा लुकाइन्छ।",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "स्रष्टाहरू थप्न/हटाउन सक्छ। र पूर्ण सम्पादन डाटाबेस संरचनाहरू र क्षेत्रहरू।",
       "creatorDesc": "डाटाबेस संरचना र मानहरू पूर्ण रूपमा सम्पादन गर्न सक्छ।",
       "editorDesc": "रेकर्डहरू सम्पादन गर्न सक्छ तर डाटाबेस/क्षेत्रहरूको संरचना परिवर्तन गर्न सक्दैन।",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "ईमेल सूचना सक्षम गर्नको लागि एप स्टोरमा SMTP प्लगइन सक्रिय गर्नुहोस्",
       "collabView": "सहकार्यात्मक दृश्यमा सफलतापूर्वक सुइच गरियो",
       "lockedView": "लक गरिएको दृश्यमा सफलतापूर्वक सुइच गरियो",
-      "futureRelease": "शीघ्र आउँदैछ!"
+      "futureRelease": "शीघ्र आउँदैछ!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "लाइसेन्स कुञ्जी अद्यावधिक गरियो",

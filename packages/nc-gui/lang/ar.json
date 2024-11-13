@@ -799,6 +799,7 @@
     "clickToCopyTableID": "انقر لنسخ معرف الجدول",
     "clickToCopyViewID": "انقر لنسخ معرف العرض",
     "viewMode": "وضعية العرض",
+    "reAssignView": "Re-assign view",
     "searchUsers": "البحث عن المستخدمين",
     "superAdmin": "مدير النظام",
     "allTables": "كل الجداول",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "إعادة التوجيه إلى URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "تفاصيل Webhook",
     "hideWeekends": "إخفاء العطلات الأسبوعية",
     "renameBase": "إعادة تسمية القاعدة",
@@ -1576,7 +1578,7 @@
       "showAllViews": "عرض جميع المشاهدات المشتركة لهذا الجدول",
       "collabView": "يمكن للمتعاونين الذين لديهم أذونات تحرير أو أعلى تغيير تكوين العرض.",
       "lockedView": "لا يمكن لأحد تحرير تكوين العرض حتى يتم إلغاء قفله.",
-      "personalView": "فقط يمكنك تحرير تكوين العرض. يتم إخفاء طريقة العرض الشخصية للمتعاونين الآخرين بشكل افتراضي.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "يمكن إضافة / إزالة المنشئين. وتحرير كامل هياكل قاعدة البيانات والحقول.",
       "creatorDesc": "يمكن تحرير كامل هيكل قاعدة البيانات والقيم.",
       "editorDesc": "يمكن تحرير السجلات ولكن لا يمكن تغيير بنية قاعدة البيانات/الحقول.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "يرجى تفعيل SMTP لتمكين إشعار البريد الإلكتروني",
       "collabView": "تحولت بنجاح إلى عرض تعاوني",
       "lockedView": "تم التبديل بنجاح إلى العرض المقفل",
-      "futureRelease": "قريبا!"
+      "futureRelease": "قريبا!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "تم تحديث مفتاح الترخيص",

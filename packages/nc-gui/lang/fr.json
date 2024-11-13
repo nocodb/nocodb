@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Cliquer pour copier l'ID de la table",
     "clickToCopyViewID": "Cliquer pour copier l'ID de la vue",
     "viewMode": "Mode d'affichage",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Rechercher des utilisateurs",
     "superAdmin": "Super administrateur",
     "allTables": "Toutes les tables",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Rediriger vers l'URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Détails du Webhook",
     "hideWeekends": "Cacher les week-ends",
     "renameBase": "Renommer la Base",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Montrer toutes les vues partagées sur cette table",
       "collabView": "Les collaborateurs avec des autorisations d'édition ou plus peuvent modifier la configuration de la vue.",
       "lockedView": "Personne ne peut éditer la configuration de la vue jusqu'à ce qu'elle soit déverrouillée.",
-      "personalView": "Seulement vous pouvez modifier la configuration de la vue. Les autres vues personnelles des collaborateurs sont cachées par défaut.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Peut ajouter / supprimer des créateurs. Et éditer des structures de base de données complètes et des champs.",
       "creatorDesc": "Peut éditer complètement la structure de la base de données et les valeurs.",
       "editorDesc": "Peut éditer des lignes mais ne peut pas modifier la structure de la base de données / des champs.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Veuillez activer le plugin SMTP dans le magasin d'applications pour permettre la notification par courriel",
       "collabView": "Vous êtes bien dans la vue collaborative",
       "lockedView": "Vous êtes bien dans la vue vérouillée",
-      "futureRelease": "Bientôt disponible !"
+      "futureRelease": "Bientôt disponible !",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Clé de licence mise à jour",

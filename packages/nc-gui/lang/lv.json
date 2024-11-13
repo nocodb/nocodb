@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Noklikšķiniet, lai kopētu Tabulas ID",
     "clickToCopyViewID": "Noklikšķiniet, lai kopētu Skata ID",
     "viewMode": "Skata režīms",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Meklēt lietotājus",
     "superAdmin": "Super Administrators",
     "allTables": "Visas Tabulas",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Pāradresēt uz URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook detaļas",
     "hideWeekends": "Slēpt nedēļas nogales",
     "renameBase": "Pārdēvēt bāzi",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Parādīt visus šīs tabulas koplietotos skatus",
       "collabView": "Līdzautori ar rediģēšanas vai augstākām atļaujām var mainīt šī skata konfigurāciju.",
       "lockedView": "Neviens nevar rediģēt skata konfigurāciju kamēr tas ir aizslēgts.",
-      "personalView": "Tikai tu vari rediģēt skata konfigurāciju. Citu līdzautoru personīgie skati ir paslēpti pēc noklusējuma.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Var pievienot/dzēst autorus. Un pilnībā rediģēt datubāzes struktūru un laukus.",
       "creatorDesc": "Var pilnībā rediģēt datubāzes struktūru un laukus.",
       "editorDesc": "Var rediģēt ierakstus, bet nevar mainīt datubāzes struktūru un laukus.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Lūdzu aktivizējiet SMTP spraudni Lietotņu veikalā, lai iespējotu epasta paziņojumus",
       "collabView": "Veiksmīgi pārslēgts uz sadarbības skatu",
       "lockedView": "Veiksmīgi pārslēgts uz aizslēgto skatu",
-      "futureRelease": "Drīzumā!"
+      "futureRelease": "Drīzumā!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Licences atslēga atjaunota",

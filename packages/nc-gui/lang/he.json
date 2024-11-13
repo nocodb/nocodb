@@ -799,6 +799,7 @@
     "clickToCopyTableID": "לחץ כדי להעתיק את מזהה הטבלה",
     "clickToCopyViewID": "לחץ כדי להעתיק את מזהה התצוגה",
     "viewMode": "מצב תצוגה",
+    "reAssignView": "Re-assign view",
     "searchUsers": "חפש משתמשים",
     "superAdmin": "מנהל מערכת",
     "allTables": "כל הטבלאות",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "הפניה מחדש ל-URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "פרטי Webhook",
     "hideWeekends": "הסתר סופי שבוע",
     "renameBase": "שנה את שם הבסיס",
@@ -1576,7 +1578,7 @@
       "showAllViews": "הצג את כל נופי התצוגה המשותפים של הטבלה הזו",
       "collabView": "משתפי פעולה עם הרשאות עריכה או גבוה יותר יכולים לשנות את תצורת התצוגה.",
       "lockedView": "אף אחד לא יכול לשנות את תצורת התצוגה עד שהיא נעולה.",
-      "personalView": "רק באפשרותך לשנות את תצורת התצוגה. תצוגות אישיות של משתמשים אחרים מוסתרות כברירת מחדל.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "ניתן להוסיף / להסיר בעלי הזכויות. ולערוך מבנה מסד נתונים ושדות.",
       "creatorDesc": "ניתן לערוך מבנה מסד נתונים וערכים.",
       "editorDesc": "ניתן לערוך רשומות אך אין אפשרות לשנות את מבנה המסד נתונים / השדות.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "הפעלת תוסף SMTP ב- App Store עבור הפעלת הודעת דוא\"ל",
       "collabView": "העבר בהצלחה לתצוגת שיתופית",
       "lockedView": "הפעל בהצלחה לתצוגה נעולה",
-      "futureRelease": "בקרוב!"
+      "futureRelease": "בקרוב!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "מפתח הרישיון עודכן בהצלחה",

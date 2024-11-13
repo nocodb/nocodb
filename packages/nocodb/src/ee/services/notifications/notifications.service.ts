@@ -7,7 +7,7 @@ import type {
   RowCommentEvent,
   RowMentionEvent,
   WelcomeEvent,
-  WorkspaceInviteEvent,
+  WorkspaceUserInviteEvent,
 } from '~/services/app-hooks/interfaces';
 import { extractMentions } from '~/utils/richTextHelper';
 import { DatasService } from '~/services/datas.service';
@@ -25,8 +25,8 @@ export class NotificationsService extends NotificationsServiceCE {
 
   onModuleInit() {
     super.onModuleInit();
-    this.appHooks.on(AppEvents.WORKSPACE_INVITE, (data) =>
-      this.hookHandler({ event: AppEvents.WORKSPACE_INVITE, data }),
+    this.appHooks.on(AppEvents.WORKSPACE_USER_INVITE, (data) =>
+      this.hookHandler({ event: AppEvents.WORKSPACE_USER_INVITE, data }),
     );
     this.appHooks.on(AppEvents.COMMENT_CREATE, (data) =>
       this.hookHandler({ event: AppEvents.COMMENT_CREATE, data }),
@@ -80,15 +80,14 @@ export class NotificationsService extends NotificationsServiceCE {
           );
         }
         break;
-      case AppEvents.WORKSPACE_INVITE:
+      case AppEvents.WORKSPACE_USER_INVITE:
         {
-          const { workspace, user, invitedBy, req } =
-            data as WorkspaceInviteEvent;
+          const { workspace, user, invitedBy, req } = data as WorkspaceUserInviteEvent;
 
           await this.insertNotification(
             {
               fk_user_id: user.id,
-              type: AppEvents.WORKSPACE_INVITE,
+              type: AppEvents.WORKSPACE_USER_INVITE,
               body: {
                 user: {
                   id: invitedBy.id,

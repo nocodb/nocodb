@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import type { Job } from 'bull';
 import { SourcesService } from '~/services/sources.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class SourceCreateProcessor {
@@ -11,6 +12,7 @@ export class SourceCreateProcessor {
   constructor(
     private readonly sourcesService: SourcesService,
     private readonly jobsLogService: JobsLogService,
+    private readonly appHooksService: AppHooksService,
   ) {}
 
   async job(job: Job) {

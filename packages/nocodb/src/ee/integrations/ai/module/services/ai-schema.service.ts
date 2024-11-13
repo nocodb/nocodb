@@ -687,21 +687,23 @@ export class AiSchemaService {
             }
           }
           break;
-        case viewTypeToStringMap[ViewTypes.KANBAN]: {
-          const kanban = await this.kanbansService.kanbanViewCreate(context, {
-            tableId: table.id,
-            kanban: {
-              ...viewData,
-              fk_grp_col_id: getColumnId(view.kanbanGroupBy),
-            },
-            user: req.user,
-            req,
-          });
+        case viewTypeToStringMap[ViewTypes.KANBAN]:
+          {
+            const kanban = await this.kanbansService.kanbanViewCreate(context, {
+              tableId: table.id,
+              kanban: {
+                ...viewData,
+                fk_grp_col_id: getColumnId(view.kanbanGroupBy),
+              },
+              user: req.user,
+              req,
+            });
 
-          createdViews.push(kanban);
+            createdViews.push(kanban);
+          }
 
           break;
-        }
+
         case viewTypeToStringMap[ViewTypes.CALENDAR]: {
           const calendarRange = view.calendar_range
             ? Array.isArray(view.calendar_range)

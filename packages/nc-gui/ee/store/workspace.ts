@@ -153,12 +153,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
           .map((title) => {
             // pick a random color from array and assign to workspace
             const color = baseThemeColors[Math.floor(Math.random() * 1000) % baseThemeColors.length]
-            return { ...workspace, title, meta: { color } }
+            return { ...workspace, title, meta: { color, icon: '', iconType: '' } }
           })
       } else {
         // pick a random color from array and assign to workspace
         const color = baseThemeColors[Math.floor(Math.random() * 1000) % baseThemeColors.length]
-        reqPayload = { ...workspace, meta: { color } }
+        reqPayload = { ...workspace, meta: { color, icon: '', iconType: '' } }
       }
 
       // todo: pagination

@@ -249,6 +249,22 @@ const onAiEnter = async () => {
   }
 }
 
+const getDefaultViewMetas = (viewType: ViewTypes) => {
+  switch (viewType) {
+    case ViewTypes.FORM:
+      return {
+        submit_another_form: false,
+        show_blank_form: false,
+        meta: {
+          hide_branding: false,
+          background_color: '#F9F9FA',
+          hide_banner: false,
+        },
+      }
+  }
+  return {}
+}
+
 async function onSubmit() {
   if (aiMode.value) {
     return onAiEnter()
@@ -282,7 +298,10 @@ async function onSubmit() {
           data = await api.dbView.galleryCreate(tableId.value, form)
           break
         case ViewTypes.FORM:
-          data = await api.dbView.formCreate(tableId.value, form)
+          data = await api.dbView.formCreate(tableId.value, {
+            ...form,
+            ...getDefaultViewMetas(ViewTypes.FORM),
+          })
           break
         case ViewTypes.KANBAN:
           data = await api.dbView.kanbanCreate(tableId.value, form)

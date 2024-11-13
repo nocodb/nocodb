@@ -168,7 +168,6 @@ const permissionScopes = {
     'hideAllColumns',
     'showAllColumns',
     'auditListRow',
-    'auditRowUpdate',
     'dataUpdate',
     'dataDelete',
     'dataInsert',
@@ -431,7 +430,6 @@ const rolePermissions:
     include: {
       hideAllColumns: true,
       showAllColumns: true,
-      auditRowUpdate: true,
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
@@ -836,7 +834,6 @@ const permissionDescriptions: Record<string, string> = {
   hideAllColumns: 'hide all columns',
   showAllColumns: 'show all columns',
   auditListRow: 'view audit log for a row',
-  auditRowUpdate: 'update audit log for a row',
   dataUpdate: 'update data',
   dataDelete: 'delete data',
   dataInsert: 'insert new data',

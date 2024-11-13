@@ -126,6 +126,10 @@ export default class Base extends BaseCE {
     if (insertObj.meta) {
       insertObj.meta = stringifyMetaProp(insertObj);
     }
+    // set default meta if not present
+    else if (!('meta' in insertObj)) {
+      insertObj.meta = '{"iconColor":"#36BFFF"}';
+    }
 
     const { id: baseId } = await ncMeta.metaInsert2(
       RootScopes.BASE,

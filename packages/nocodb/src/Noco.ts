@@ -13,6 +13,7 @@ import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interf
 import type { Express } from 'express';
 import type http from 'http';
 import type Sharp from 'sharp';
+import type { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
@@ -37,6 +38,7 @@ export default class Noco {
   public readonly router: express.Router;
   public readonly baseRouter: express.Router;
   public static _ncMeta: any;
+  public static appHooksService: AppHooksService;
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
   public env: string;

@@ -55,6 +55,7 @@ export class IntegrationsService {
       'swagger.json#/components/schemas/IntegrationReq',
       param.integration,
     );
+    const oldIntegration = await Integration.get(context, param.integrationId);
 
     const integrationBody = param.integration;
     const integration = await Integration.updateIntegration(
@@ -75,6 +76,11 @@ export class IntegrationsService {
       integration,
       req: param.req,
       user: param.req?.user,
+      oldIntegration,
+      context: {
+        ...context,
+        base_id: null,
+      },
     });
 
     return integration;
@@ -157,6 +163,10 @@ export class IntegrationsService {
         integration,
         req: param.req,
         user: param.req?.user,
+        context: {
+          ...context,
+          base_id: null,
+        },
       });
 
       await ncMeta.commit();
@@ -227,6 +237,7 @@ export class IntegrationsService {
     } catch (e) {
       NcError.badRequest(e);
     }
+
     return true;
   }
 
@@ -322,6 +333,10 @@ export class IntegrationsService {
       integration,
       req: param.req,
       user: param.req?.user,
+      context: {
+        ...context,
+        base_id: null,
+      },
     });
 
     return integration;

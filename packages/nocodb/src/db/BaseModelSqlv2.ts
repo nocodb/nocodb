@@ -8,7 +8,7 @@ import timezone from 'dayjs/plugin/timezone';
 import equal from 'fast-deep-equal';
 import {
   AuditOperationSubTypes,
-  AuditOperationTypes,
+  AuditV1OperationTypes,
   ButtonActionsType,
   extractFilterFromXwhere,
   isAIPromptCol,
@@ -23,14 +23,18 @@ import {
   ncIsObject,
   RelationTypes,
   UITypes,
+  NcRequest,
 } from 'nocodb-sdk';
 import Validator from 'validator';
 import { customAlphabet } from 'nanoid';
-import DOMPurify from 'isomorphic-dompurify';
 import { v4 as uuidv4 } from 'uuid';
 import { Logger } from '@nestjs/common';
+import type {
+  BulkAuditV1OperationTypes,
+  FilterType,
+  SortType,
+} from 'nocodb-sdk';
 import { NcApiVersion } from 'nocodb-sdk';
-import type { SortType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type LookupColumn from '~/models/LookupColumn';
 import type CustomKnex from '~/db/CustomKnex';
@@ -51,7 +55,6 @@ import type {
   User,
 } from '~/models';
 import {
-  Audit,
   BaseUser,
   Column,
   FileReference,
@@ -295,6 +298,7 @@ class BaseModelSqlv2 {
     });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
+
     let data;
 
     try {
@@ -4724,7 +4728,12 @@ class BaseModelSqlv2 {
         );
       }
 
-      await this.afterInsert(response, trx, cookie);
+      await this.afterInsert({
+        data: response,
+        insertData: data,
+        trx,
+        req: cookie,
+      });
       return Array.isArray(response) ? response[0] : response;
     } catch (e) {
       await this.errorInsert(e, data, trx, cookie);
@@ -5116,11 +5125,13 @@ class BaseModelSqlv2 {
       let rowId = null;
 
       const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
-      const { postInsertOps, preInsertOps } = await this.prepareNestedLinkQb({
-        nestedCols,
-        data,
-        insertObj,
-      });
+      const { postInsertOps, preInsertOps, postInsertAuditOps } =
+        await this.prepareNestedLinkQb({
+          nestedCols,
+          data,
+          insertObj,
+          req: cookie,
+        });
 
       await this.validate(insertObj, columns);
 
@@ -5217,6 +5228,11 @@ class BaseModelSqlv2 {
 
       await this.runOps(postInsertOps.map((f) => f(rowId)));
 
+      // run link audit operations after link insert
+      for (const f of postInsertAuditOps) {
+        await f(rowId);
+      }
+
       if (this.model.primaryKey && rowId !== null && rowId !== undefined) {
         response = await this.readRecord({
           idOrRecord: rowId,
@@ -5227,7 +5243,12 @@ class BaseModelSqlv2 {
         });
       }
 
-      await this.afterInsert(response, this.dbDriver, cookie);
+      await this.afterInsert({
+        data: response,
+        trx: this.dbDriver,
+        req: cookie,
+        insertData: data,
+      });
 
       return response;
     } catch (e) {
@@ -5282,6 +5303,7 @@ class BaseModelSqlv2 {
     nestedCols,
     data,
     insertObj,
+    req,
   }: {
     nestedCols: Column[];
     data: Record<string, any>;
@@ -5289,11 +5311,20 @@ class BaseModelSqlv2 {
   }) {
     const postInsertOps: ((rowId: any) => Promise<string>)[] = [];
     const preInsertOps: (() => Promise<string>)[] = [];
+    const postInsertAuditOps: ((rowId: any) => Promise<void>)[] = [];
     for (const col of nestedCols) {
       if (col.title in data) {
         const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
           this.context,
         );
+
+        const refModel = await Model.get(
+          this.context,
+          (colOptions as LinkToAnotherRecordColumn).fk_related_model_id,
+        );
+        await refModel.getCachedColumns(this.context);
+        const refModelPkCol = await refModel.primaryKey;
+        const refChildCol = getRelatedLinksColumn(col, refModel);
 
         // parse data if it's JSON string
         let nestedData;
@@ -5319,6 +5350,36 @@ class BaseModelSqlv2 {
                 nestedData,
                 parentCol.title,
               );
+              const refModel = await parentCol.getModel(this.context);
+              postInsertAuditOps.push(async (rowId) => {
+                await this.afterAddChild({
+                  columnTitle: col.title,
+                  columnId: col.id,
+                  refColumnTitle: refChildCol.title,
+                  rowId,
+                  refRowId: nestedData?.[refModelPkCol.title],
+                  req,
+                  model: this.model,
+                  refModel,
+                  refDisplayValue: '',
+                  displayValue: '',
+                  type: RelationTypes.BELONGS_TO,
+                });
+
+                await this.afterAddChild({
+                  columnTitle: refChildCol.title,
+                  columnId: refChildCol.id,
+                  refColumnTitle: col.title,
+                  rowId: nestedData?.[refModelPkCol.title],
+                  refRowId: rowId,
+                  req,
+                  model: refModel,
+                  refModel: this.model,
+                  refDisplayValue: '',
+                  displayValue: '',
+                  type: RelationTypes.HAS_MANY,
+                });
+              });
             }
             break;
           case RelationTypes.ONE_TO_ONE:
@@ -5333,20 +5394,26 @@ class BaseModelSqlv2 {
               const childModel = await childCol.getModel(this.context);
               await childModel.getColumns(this.context);
 
+              let refRowId;
+
               if (isBt) {
                 // if array then extract value from first element
-                const colVal = Array.isArray(nestedData)
+                refRowId = Array.isArray(nestedData)
                   ? nestedData[0]?.[childModel.primaryKey.title]
                   : nestedData[childModel.primaryKey.title];
 
                 // todo: unlink the ref record
                 preInsertOps.push(async () => {
-                  return this.dbDriver(this.getTnPath(childModel.table_name))
+                  const res = this.dbDriver(
+                    this.getTnPath(childModel.table_name),
+                  )
                     .update({
                       [childCol.column_name]: null,
                     })
-                    .where(childCol.column_name, colVal)
+                    .where(childCol.column_name, refRowId)
                     .toQuery();
+
+                  return res;
                 });
 
                 const childCol = await colOptions.getChildColumn(this.context);
@@ -5364,6 +5431,7 @@ class BaseModelSqlv2 {
                 );
                 const parentModel = await parentCol.getModel(this.context);
                 await parentModel.getColumns(this.context);
+                refRowId = nestedData[childModel.primaryKey.title];
 
                 postInsertOps.push(async (rowId) => {
                   let refId = rowId;
@@ -5389,6 +5457,36 @@ class BaseModelSqlv2 {
                     .toQuery();
                 });
               }
+
+              postInsertAuditOps.push(async (rowId) => {
+                await this.afterAddChild({
+                  columnTitle: col.title,
+                  columnId: col.id,
+                  refColumnTitle: refChildCol.title,
+                  rowId,
+                  refRowId: nestedData[refModelPkCol?.title],
+                  req,
+                  model: this.model,
+                  refModel,
+                  refDisplayValue: '',
+                  displayValue: '',
+                  type: RelationTypes.ONE_TO_ONE,
+                });
+
+                await this.afterAddChild({
+                  columnTitle: refChildCol.title,
+                  columnId: refChildCol.id,
+                  refColumnTitle: col.title,
+                  rowId: nestedData[refModelPkCol?.title],
+                  refRowId: rowId,
+                  req,
+                  model: refModel,
+                  refModel: this.model,
+                  refDisplayValue: '',
+                  displayValue: '',
+                  type: RelationTypes.ONE_TO_ONE,
+                });
+              });
             }
             break;
           case RelationTypes.HAS_MANY:
@@ -5424,6 +5522,41 @@ class BaseModelSqlv2 {
                   )
                   .toQuery();
               });
+
+              postInsertAuditOps.push(async (rowId) => {
+                for (const nestedDataObj of Array.isArray(nestedData)
+                  ? nestedData
+                  : [nestedData]) {
+                  if (nestedDataObj === undefined) continue;
+                  await this.afterAddChild({
+                    columnTitle: col.title,
+                    columnId: col.id,
+                    refColumnTitle: refChildCol.title,
+                    rowId,
+                    refRowId: nestedDataObj[refModelPkCol?.title],
+                    req,
+                    model: this.model,
+                    refModel,
+                    refDisplayValue: '',
+                    displayValue: '',
+                    type: RelationTypes.HAS_MANY,
+                  });
+
+                  await this.afterAddChild({
+                    columnTitle: refChildCol.title,
+                    columnId: refChildCol.id,
+                    refColumnTitle: col.title,
+                    rowId: nestedDataObj[refModelPkCol?.title],
+                    refRowId: rowId,
+                    req,
+                    model: refModel,
+                    refModel: this.model,
+                    refDisplayValue: '',
+                    displayValue: '',
+                    type: RelationTypes.BELONGS_TO,
+                  });
+                }
+              });
             }
             break;
           case RelationTypes.MANY_TO_MANY: {
@@ -5452,11 +5585,46 @@ class BaseModelSqlv2 {
                 .insert(rows)
                 .toQuery();
             });
+
+            postInsertAuditOps.push(async (rowId) => {
+              for (const nestedDataObj of Array.isArray(nestedData)
+                ? nestedData
+                : [nestedData]) {
+                if (nestedDataObj === undefined) continue;
+                await this.afterAddChild({
+                  columnTitle: col.title,
+                  columnId: col.id,
+                  refColumnTitle: refChildCol.title,
+                  rowId,
+                  refRowId: nestedDataObj[refModelPkCol?.title],
+                  req,
+                  model: this.model,
+                  refModel,
+                  refDisplayValue: '',
+                  displayValue: '',
+                  type: RelationTypes.MANY_TO_MANY,
+                });
+
+                await this.afterAddChild({
+                  columnTitle: refChildCol.title,
+                  columnId: refChildCol.id,
+                  refColumnTitle: col.title,
+                  rowId: nestedDataObj[refModelPkCol?.title],
+                  refRowId: rowId,
+                  req,
+                  model: refModel,
+                  refModel: this.model,
+                  refDisplayValue: '',
+                  displayValue: '',
+                  type: RelationTypes.MANY_TO_MANY,
+                });
+              }
+            });
           }
         }
       }
     }
-    return { postInsertOps, preInsertOps };
+    return { postInsertOps, preInsertOps, postInsertAuditOps };
   }
 
   async bulkUpsert(
@@ -5642,7 +5810,12 @@ class BaseModelSqlv2 {
           : [];
 
       if (insertedDatas.length === 1) {
-        await this.afterInsert(insertedDataList[0], this.dbDriver, cookie);
+        await this.afterInsert({
+          data: insertedDataList[0],
+          trx: this.dbDriver,
+          req: cookie,
+          insertData: datas[0],
+        });
       } else if (insertedDatas.length > 1) {
         await this.afterBulkInsert(insertedDataList, this.dbDriver, cookie);
       }
@@ -5911,6 +6084,7 @@ class BaseModelSqlv2 {
               nestedCols,
               data: d,
               insertObj,
+              req: cookie,
             });
 
             postInsertOps = operations.postInsertOps;
@@ -6037,7 +6211,12 @@ class BaseModelSqlv2 {
       if (!raw && !skip_hooks) {
         if (isSingleRecordInsertion) {
           const insertData = await this.readByPk(responses[0]);
-          await this.afterInsert(insertData, this.dbDriver, cookie);
+          await this.afterInsert({
+            data: insertData,
+            insertData: datas?.[0],
+            trx: this.dbDriver,
+            req: cookie,
+          });
         } else {
           await this.afterBulkInsert(insertDatas, this.dbDriver, cookie);
         }
@@ -6398,6 +6577,15 @@ class BaseModelSqlv2 {
             },
           )
         )?.count;
+
+        // insert records updating record details to audit table
+        await this.bulkAudit({
+          qb: qb.clone(),
+          data,
+          conditions: conditionObj,
+          req: cookie,
+          event: AuditV1OperationTypes.DATA_BULK_UPDATE,
+        });
 
         qb.update(updateData);
 
@@ -6792,6 +6980,14 @@ class BaseModelSqlv2 {
         offset += limit;
       }
 
+      // insert records updating record details to audit table
+      await this.bulkAudit({
+        qb: qb.clone(),
+        conditions: filterObj,
+        req: cookie,
+        event: AuditV1OperationTypes.DATA_BULK_DELETE,
+      });
+
       await FileReference.delete(this.context, fileReferenceIds);
 
       trx = await this.dbDriver.transaction();
@@ -6835,52 +7031,17 @@ class BaseModelSqlv2 {
     await this.handleHooks('before.bulkInsert', null, data, req);
   }
 
-  public async afterInsert(data: any, _trx: any, req): Promise<void> {
+  public async afterInsert({
+    data,
+    trx: _trx,
+    req,
+  }: {
+    data: any;
+    insertData: any;
+    trx: any;
+    req: NcRequest;
+  }): Promise<void> {
     await this.handleHooks('after.insert', null, data, req);
-    const id = this.extractPksValues(data);
-
-    let details = '';
-
-    if (data && typeof data === 'object') {
-      const updateObj = await this.model.mapColumnToAlias(
-        this.context,
-        data,
-        this.model.columns?.filter((c) => !c.pk && !isSystemColumn(c)),
-      );
-
-      for (const k of Object.keys(updateObj)) {
-        if (
-          updateObj[k] === null ||
-          updateObj[k] === undefined ||
-          (typeof updateObj[k] === 'string' && updateObj[k] === '')
-        ) {
-          continue;
-        }
-
-        const newValue =
-          typeof updateObj[k] === 'object'
-            ? JSON.stringify(updateObj[k])
-            : updateObj[k];
-        details += DOMPurify.sanitize(`<span class="">${k}</span>
-          : <span class="black--text green lighten-4 px-2">${newValue}</span>`);
-      }
-    }
-
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      row_id: id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.INSERT,
-      description: DOMPurify.sanitize(
-        `Record with ID ${id} has been inserted into Table ${this.model.title}`,
-      ),
-      details: details || null,
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
   }
 
   public async afterBulkUpdate(
@@ -6890,28 +7051,9 @@ class BaseModelSqlv2 {
     req,
     isBulkAllOperation = false,
   ): Promise<void> {
-    let noOfUpdatedRecords = newData;
     if (!isBulkAllOperation) {
-      noOfUpdatedRecords = newData.length;
       await this.handleHooks('after.bulkUpdate', prevData, newData, req);
     }
-
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.BULK_UPDATE,
-      description: DOMPurify.sanitize(
-        `${noOfUpdatedRecords} ${
-          noOfUpdatedRecords > 1 ? 'records have' : 'record has'
-        } been bulk updated in ${this.model.title}`,
-      ),
-      // details: JSON.stringify(data),
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
 
     await this.handleRichTextMentions(prevData, newData, req);
   }
@@ -6922,49 +7064,13 @@ class BaseModelSqlv2 {
     req,
     isBulkAllOperation = false,
   ): Promise<void> {
-    let noOfDeletedRecords = data;
     if (!isBulkAllOperation) {
-      noOfDeletedRecords = data.length;
       await this.handleHooks('after.bulkDelete', null, data, req);
     }
-
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.BULK_DELETE,
-      description: DOMPurify.sanitize(
-        `${noOfDeletedRecords} ${
-          noOfDeletedRecords > 1 ? 'records have' : 'record has'
-        } been bulk deleted in ${this.model.title}`,
-      ),
-      // details: JSON.stringify(data),
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
     await this.handleHooks('after.bulkInsert', null, data, req);
-
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.BULK_INSERT,
-      description: DOMPurify.sanitize(
-        `${data.length} ${
-          data.length > 1 ? 'records have' : 'record has'
-        } been bulk inserted in ${this.model.title}`,
-      ),
-      // details: JSON.stringify(data),
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
   }
 
   public async beforeUpdate(data: any, _trx: any, req): Promise<void> {
@@ -6986,41 +7092,22 @@ class BaseModelSqlv2 {
     req,
     updateObj?: Record<string, any>,
   ): Promise<void> {
-    const id = this.extractPksValues(newData);
-    let desc = `Record with ID ${id} has been updated in Table ${this.model.title}.`;
-    let details = '';
+    // const id = this.extractPksValues(newData);
+
+    const oldData: { [key: string]: any } = {};
+    const data: { [key: string]: any } = {};
+
     if (updateObj) {
       updateObj = await this.model.mapColumnToAlias(this.context, updateObj);
 
       for (const k of Object.keys(updateObj)) {
-        const prevValue =
-          typeof prevData[k] === 'object'
-            ? JSON.stringify(prevData[k])
-            : prevData[k];
-        const newValue =
-          typeof newData[k] === 'object'
-            ? JSON.stringify(newData[k])
-            : newData[k];
-        desc += `\n`;
-        desc += `Column "${k}" got changed from "${prevValue}" to "${newValue}"`;
-        details += DOMPurify.sanitize(`<span class="">${k}</span>
-  : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${prevValue}</span>
-  <span class="black--text green lighten-4 px-2">${newValue}</span>`);
+        oldData[k] = prevData[k];
+        data[k] = newData[k];
       }
+    } else {
+      Object.assign(oldData, prevData);
+      Object.assign(data, newData);
     }
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      row_id: id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.UPDATE,
-      description: DOMPurify.sanitize(desc),
-      details,
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
 
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
@@ -7038,22 +7125,6 @@ class BaseModelSqlv2 {
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
-    const id = this.extractPksValues(data);
-    await Audit.insert({
-      fk_workspace_id: this.model.fk_workspace_id,
-      base_id: this.model.base_id,
-      source_id: this.model.source_id,
-      fk_model_id: this.model.id,
-      row_id: id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.DELETE,
-      description: DOMPurify.sanitize(
-        `Record with ID ${id} has been deleted in Table ${this.model.title}`,
-      ),
-      // details: JSON.stringify(data),
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
     await this.handleHooks('after.delete', null, data, req);
   }
 
@@ -7320,15 +7391,21 @@ class BaseModelSqlv2 {
     );
 
     const auditUpdateObj = [] as {
-      rowId: string;
-      childId: string;
+      pkValue?: Record<string, any>;
+      columnTitle: string;
+      columnId: string;
+      refColumnTitle?: string;
+      rowId: unknown;
+      refRowId?: unknown;
+      req: NcRequest;
       model: Model;
-      childModel: Model;
-      op_sub_type:
+      refModel?: Model;
+      displayValue?: unknown;
+      refDisplayValue?: unknown;
+      opSubType:
         | AuditOperationSubTypes.LINK_RECORD
         | AuditOperationSubTypes.UNLINK_RECORD;
-      columnTitle: string;
-      pkValue?: Record<string, any>;
+      type: RelationTypes;
     }[];
 
     const auditConfig = {
@@ -7336,30 +7413,37 @@ class BaseModelSqlv2 {
       parentModel: parentTable,
       childColTitle: relatedChildCol?.title || '',
       parentColTitle: column.title,
+      childColId: relatedChildCol?.id || '',
+      parentColId: column.id,
     } as {
       childModel: Model;
       parentModel: Model;
       childColTitle: string;
       parentColTitle: string;
+      childColId: string;
+      parentColId: string;
     };
 
-    const triggerAfterRemoveChild = async () => {
-      await Promise.allSettled(
-        auditUpdateObj
-          .filter((a) => a.op_sub_type === AuditOperationSubTypes.UNLINK_RECORD)
-          .map((updateObj) => {
-            this.afterRemoveChild(
-              updateObj.columnTitle,
-              updateObj.rowId,
-              updateObj.childId,
-              cookie,
-              updateObj.model,
-              updateObj.childModel,
-              updateObj.pkValue,
-            );
-          }),
-      );
-    };
+    // const triggerAfterRemoveChild = async () => {
+    //   await Promise.allSettled(
+    //     auditUpdateObj
+    //       .filter((a) => a.opSubType === AuditOperationSubTypes.UNLINK_RECORD)
+    //       .map((updateObj) => {
+    //         this.afterRemoveChild({
+    //           columnTitle: updateObj.columnTitle,
+    //           refColumnTitle: updateObj.refColumnTitle,
+    //           rowId: updateObj.rowId,
+    //           refRowId: updateObj.refRowId,
+    //           model: updateObj.model,
+    //           displayValue: updateObj.displayValue,
+    //           refDisplayValue: updateObj.refDisplayValue,
+    //           refModel: updateObj.refModel,
+    //           req: updateObj.req,
+    //           type: updateObj.type,
+    //         });
+    //       }),
+    //   );
+    // };
 
     switch (colOptions.type) {
       case RelationTypes.MANY_TO_MANY:
@@ -7453,7 +7537,7 @@ class BaseModelSqlv2 {
             : null;
 
           if (oldRowId) {
-            const [parentRelatedPkValue, childRelatedPkValue] =
+            const [parentRelatedPkValue, _childRelatedPkValue] =
               await this.readOnlyPrimariesByPkFromModel([
                 { model: childTable, id: childId },
                 { model: parentTable, id: oldRowId },
@@ -7461,23 +7545,29 @@ class BaseModelSqlv2 {
 
             auditUpdateObj.push({
               model: auditConfig.parentModel,
-              childModel: auditConfig.childModel,
+              refModel: auditConfig.childModel,
               rowId: oldRowId as string,
-              childId,
-              op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+              refRowId: childId,
+              opSubType: AuditOperationSubTypes.UNLINK_RECORD,
               columnTitle: auditConfig.parentColTitle,
-              pkValue: parentRelatedPkValue,
+              columnId: auditConfig.parentColId,
+              displayValue: parentRelatedPkValue,
+              req: cookie,
+              type: colOptions.type as RelationTypes,
             });
 
             if (parentTable.id !== childTable.id) {
               auditUpdateObj.push({
                 model: auditConfig.childModel,
-                childModel: auditConfig.parentModel,
+                refModel: auditConfig.parentModel,
                 rowId: childId,
-                childId: oldRowId as string,
-                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                refRowId: oldRowId as string,
+                opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.childColTitle,
-                pkValue: childRelatedPkValue,
+                columnId: auditConfig.childColId,
+                refDisplayValue: parentRelatedPkValue,
+                req: cookie,
+                type: getOppositeRelationType(colOptions.type),
               });
             }
           }
@@ -7497,7 +7587,7 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
-          await triggerAfterRemoveChild();
+          // await triggerAfterRemoveChild();
 
           await this.updateLastModified({
             baseModel: parentBaseModel,
@@ -7520,37 +7610,47 @@ class BaseModelSqlv2 {
                 )
               : null;
 
+            const [childRelatedPkValue] =
+              await this.readOnlyPrimariesByPkFromModel([
+                { model: childTable, id: rowId },
+              ]);
+
             if (oldChildRowId) {
               auditUpdateObj.push({
                 model: auditConfig.parentModel,
-                childModel: auditConfig.childModel,
+                refModel: auditConfig.childModel,
                 rowId,
-                childId: oldChildRowId as string,
-                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                refRowId: oldChildRowId as string,
+                opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.parentColTitle,
-                pkValue:
+                columnId: auditConfig.parentColId,
+                displayValue:
                   prevData[column.title]?.[parentTable.displayValue.title] ??
                   null,
+                refDisplayValue: childRelatedPkValue,
+                req: cookie,
+                type: colOptions.type as RelationTypes,
               });
-
-              const [childRelatedPkValue] =
-                await this.readOnlyPrimariesByPkFromModel([
-                  { model: childTable, id: rowId },
-                ]);
 
               if (parentTable.id !== childTable.id) {
                 auditUpdateObj.push({
                   model: auditConfig.childModel,
-                  childModel: auditConfig.parentModel,
+                  refModel: auditConfig.parentModel,
                   rowId: oldChildRowId as string,
-                  childId: rowId,
-                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  refRowId: rowId,
+                  opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                   columnTitle: auditConfig.childColTitle,
-                  pkValue: childRelatedPkValue,
+                  columnId: auditConfig.childColId,
+                  displayValue: childRelatedPkValue,
+                  refDisplayValue:
+                    prevData[column.title]?.[parentTable.displayValue.title] ??
+                    null,
+                  req: cookie,
+                  type: getOppositeRelationType(colOptions.type),
                 });
               }
             }
-            await triggerAfterRemoveChild();
+            // await triggerAfterRemoveChild();
           } else {
             const linkedHmRowObj = await this.execAndParse(
               this.dbDriver(childTn)
@@ -7561,7 +7661,7 @@ class BaseModelSqlv2 {
                     ),
                   ),
                 )
-                .where(_wherePk(childTable.primaryKeys, rowId)),
+                .where(this._wherePk(rowId)),
               null,
               { raw: true, first: true },
             );
@@ -7579,23 +7679,31 @@ class BaseModelSqlv2 {
 
               auditUpdateObj.push({
                 model: auditConfig.parentModel,
-                childModel: auditConfig.childModel,
+                refModel: auditConfig.childModel,
                 rowId,
-                childId: oldChildRowId as string,
-                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                refRowId: oldChildRowId as string,
+                opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.parentColTitle,
-                pkValue: parentRelatedPkValue,
+                columnId: auditConfig.parentColId,
+                displayValue: parentRelatedPkValue,
+                refDisplayValue: childRelatedPkValue,
+                req: cookie,
+                type: colOptions.type as RelationTypes,
               });
 
               if (parentTable.id !== childTable.id) {
                 auditUpdateObj.push({
                   model: auditConfig.childModel,
-                  childModel: auditConfig.parentModel,
+                  refModel: auditConfig.parentModel,
                   rowId: oldChildRowId as string,
-                  childId: rowId,
-                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  refRowId: rowId,
+                  opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                   columnTitle: auditConfig.childColTitle,
-                  pkValue: childRelatedPkValue,
+                  columnId: auditConfig.childColId,
+                  refDisplayValue: childRelatedPkValue,
+                  displayValue: parentRelatedPkValue,
+                  req: cookie,
+                  type: getOppositeRelationType(colOptions.type),
                 });
               }
             }
@@ -7616,7 +7724,7 @@ class BaseModelSqlv2 {
               { raw: true },
             );
 
-            await triggerAfterRemoveChild();
+            // await triggerAfterRemoveChild();
 
             await this.updateLastModified({
               baseModel: parentBaseModel,
@@ -7664,23 +7772,31 @@ class BaseModelSqlv2 {
 
               auditUpdateObj.push({
                 model: auditConfig.parentModel,
-                childModel: auditConfig.childModel,
-                rowId,
-                childId: oldChildRowId as string,
-                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                refModel: auditConfig.childModel,
+                rowId: rowId,
+                refRowId: oldChildRowId,
+                opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.parentColTitle,
-                pkValue: parentRelatedPkValue,
+                columnId: auditConfig.parentColId,
+                displayValue: parentRelatedPkValue,
+                refDisplayValue: childRelatedPkValue,
+                req: cookie,
+                type: colOptions.type as RelationTypes,
               });
 
               if (parentTable.id !== childTable.id) {
                 auditUpdateObj.push({
                   model: auditConfig.childModel,
-                  childModel: auditConfig.parentModel,
+                  refModel: auditConfig.parentModel,
                   rowId: oldChildRowId as string,
-                  childId: rowId,
-                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  refRowId: rowId,
+                  opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                   columnTitle: auditConfig.childColTitle,
-                  pkValue: childRelatedPkValue,
+                  columnId: auditConfig.childColId,
+                  displayValue: childRelatedPkValue,
+                  refDisplayValue: parentRelatedPkValue,
+                  req: cookie,
+                  type: getOppositeRelationType(colOptions.type),
                 });
               }
             }
@@ -7709,7 +7825,7 @@ class BaseModelSqlv2 {
               );
 
               if (oldRowId) {
-                const [parentRelatedPkValue, childRelatedPkValue] =
+                const [_parentRelatedPkValue, childRelatedPkValue] =
                   await this.readOnlyPrimariesByPkFromModel([
                     { model: parentTable, id: childId },
                     { model: childTable, id: oldRowId },
@@ -7717,23 +7833,31 @@ class BaseModelSqlv2 {
 
                 auditUpdateObj.push({
                   model: auditConfig.parentModel,
-                  childModel: auditConfig.childModel,
+                  refModel: auditConfig.childModel,
                   rowId: oldRowId as string,
-                  childId: childId,
-                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  refRowId: childId,
+                  opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                   columnTitle: auditConfig.parentColTitle,
-                  pkValue: parentRelatedPkValue,
+                  columnId: auditConfig.parentColId,
+                  displayValue: childRelatedPkValue,
+                  refDisplayValue: childRelatedPkValue,
+                  req: cookie,
+                  type: colOptions.type as RelationTypes,
                 });
 
                 if (parentTable.id !== childTable.id) {
                   auditUpdateObj.push({
                     model: auditConfig.childModel,
-                    childModel: auditConfig.parentModel,
+                    refModel: auditConfig.parentModel,
                     rowId: childId,
-                    childId: oldRowId as string,
-                    op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                    refRowId: oldRowId as string,
+                    opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                     columnTitle: auditConfig.childColTitle,
-                    pkValue: childRelatedPkValue,
+                    columnId: auditConfig.childColId,
+                    displayValue: childRelatedPkValue,
+                    refDisplayValue: childRelatedPkValue,
+                    req: cookie,
+                    type: getOppositeRelationType(colOptions.type),
                   });
                 }
               }
@@ -7769,23 +7893,31 @@ class BaseModelSqlv2 {
 
                 auditUpdateObj.push({
                   model: auditConfig.parentModel,
-                  childModel: auditConfig.childModel,
+                  refModel: auditConfig.childModel,
                   rowId,
-                  childId: oldChildRowId as string,
-                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  refRowId: oldChildRowId as string,
+                  opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                   columnTitle: auditConfig.parentColTitle,
-                  pkValue: parentRelatedPkValue,
+                  columnId: auditConfig.parentColId,
+                  displayValue: parentRelatedPkValue,
+                  refDisplayValue: childRelatedPkValue,
+                  req: cookie,
+                  type: colOptions.type as RelationTypes,
                 });
 
                 if (parentTable.id !== childTable.id) {
                   auditUpdateObj.push({
                     model: auditConfig.childModel,
-                    childModel: auditConfig.parentModel,
+                    refModel: auditConfig.parentModel,
                     rowId: oldChildRowId as string,
-                    childId: rowId,
-                    op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                    refRowId: rowId,
+                    opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                     columnTitle: auditConfig.childColTitle,
-                    pkValue: childRelatedPkValue,
+                    columnId: auditConfig.childColId,
+                    displayValue: childRelatedPkValue,
+                    refDisplayValue: parentRelatedPkValue,
+                    req: cookie,
+                    type: getOppositeRelationType(colOptions.type),
                   });
                 }
               }
@@ -7818,23 +7950,31 @@ class BaseModelSqlv2 {
 
               auditUpdateObj.push({
                 model: auditConfig.parentModel,
-                childModel: auditConfig.childModel,
+                refModel: auditConfig.childModel,
                 rowId: oldRowId as string,
-                childId: childId,
-                op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                refRowId: childId,
+                opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                 columnTitle: auditConfig.parentColTitle,
-                pkValue: parentRelatedPkValue,
+                columnId: auditConfig.parentColId,
+                displayValue: parentRelatedPkValue,
+                refDisplayValue: childRelatedPkValue,
+                req: cookie,
+                type: colOptions.type as RelationTypes,
               });
 
               if (parentTable.id !== childTable.id) {
                 auditUpdateObj.push({
                   model: auditConfig.childModel,
-                  childModel: auditConfig.parentModel,
+                  refModel: auditConfig.parentModel,
                   rowId: childId,
-                  childId: oldRowId as string,
-                  op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
+                  refRowId: oldRowId as string,
+                  opSubType: AuditOperationSubTypes.UNLINK_RECORD,
                   columnTitle: auditConfig.childColTitle,
-                  pkValue: childRelatedPkValue,
+                  columnId: auditConfig.childColId,
+                  displayValue: childRelatedPkValue,
+                  refDisplayValue: parentRelatedPkValue,
+                  req: cookie,
+                  type: getOppositeRelationType(colOptions.type),
                 });
               }
             }
@@ -7859,8 +7999,6 @@ class BaseModelSqlv2 {
             null,
             { raw: true },
           );
-
-          await triggerAfterRemoveChild();
 
           await this.execAndParse(
             this.dbDriver(childTn)
@@ -7892,80 +8030,80 @@ class BaseModelSqlv2 {
 
     auditUpdateObj.push({
       model: auditConfig.parentModel,
-      childModel: auditConfig.childModel,
+      refModel: auditConfig.childModel,
       rowId,
-      childId,
-      op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+      refRowId: childId,
+      opSubType: AuditOperationSubTypes.LINK_RECORD,
       columnTitle: auditConfig.parentColTitle,
+      columnId: auditConfig.parentColId,
+      req: cookie,
+      type: colOptions.type as RelationTypes,
     });
 
     if (parentTable.id !== childTable.id) {
       auditUpdateObj.push({
         model: auditConfig.childModel,
-        childModel: auditConfig.parentModel,
+        refModel: auditConfig.parentModel,
         rowId: childId,
-        childId: rowId,
-        op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+        refRowId: rowId,
+        opSubType: AuditOperationSubTypes.LINK_RECORD,
         columnTitle: auditConfig.childColTitle,
+        columnId: auditConfig.childColId,
+        req: cookie,
+        type: getOppositeRelationType(colOptions.type),
       });
     }
 
     await Promise.allSettled(
-      auditUpdateObj
-        .filter((a) => a.op_sub_type === AuditOperationSubTypes.LINK_RECORD)
-        .map((updateObj) => {
-          this.afterAddChild(
-            updateObj.columnTitle,
-            updateObj.rowId,
-            updateObj.childId,
-            cookie,
-            updateObj.model,
-            updateObj.childModel,
-            updateObj.pkValue,
-          );
-        }),
+      auditUpdateObj.map((updateObj) => {
+        if (updateObj.opSubType === AuditOperationSubTypes.LINK_RECORD) {
+          this.afterAddChild({
+            columnTitle: updateObj.columnTitle,
+            columnId: updateObj.columnId,
+            refColumnTitle: updateObj.refColumnTitle,
+            rowId: updateObj.rowId,
+            refRowId: updateObj.refRowId,
+            req: updateObj.req,
+            model: updateObj.model,
+            refModel: updateObj.refModel,
+            displayValue: updateObj.displayValue,
+            refDisplayValue: updateObj.refDisplayValue,
+            type: updateObj.type,
+          });
+        }
+        if (updateObj.opSubType === AuditOperationSubTypes.UNLINK_RECORD) {
+          this.afterRemoveChild({
+            columnTitle: updateObj.columnTitle,
+            columnId: updateObj.columnId,
+            refColumnTitle: updateObj.refColumnTitle,
+            rowId: updateObj.rowId,
+            refRowId: updateObj.refRowId,
+            req: updateObj.req,
+            model: updateObj.model,
+            refModel: updateObj.refModel,
+            displayValue: updateObj.displayValue,
+            refDisplayValue: updateObj.refDisplayValue,
+            type: updateObj.type,
+          });
+        }
+      }),
     );
   }
 
-  public async afterAddChild(
-    columnTitle,
-    rowId,
-    childId,
-    req,
-    model = this.model,
-    childModel = this.model,
-    pkValue = undefined,
-  ): Promise<void> {
-    if (!pkValue) {
-      pkValue = await this.readByPkFromModel(
-        childModel,
-        undefined,
-        true,
-        childId,
-        false,
-        {},
-        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
-      );
-    }
-
-    await Audit.insert({
-      fk_workspace_id: model.fk_workspace_id,
-      base_id: model.base_id,
-      source_id: model.source_id,
-      fk_model_id: model.id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.LINK_RECORD,
-      row_id: rowId,
-      description: DOMPurify.sanitize(
-        `Record [id:${childId}] has been linked with record [id:${rowId}] in ${model.title}`,
-      ),
-      details: DOMPurify.sanitize(`<span class="">${columnTitle}</span>
-      : <span class="black--text green lighten-4 px-2">${
-        pkValue ?? null
-      }</span>`),
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
+  public async afterAddChild(_: {
+    columnTitle: string;
+    columnId: string;
+    refColumnTitle: string;
+    rowId: unknown;
+    refRowId: unknown;
+    req: NcRequest;
+    model: Model;
+    refModel: Model;
+    displayValue: unknown;
+    refDisplayValue: unknown;
+    type: RelationTypes;
+  }): Promise<void> {
+    // placeholder
   }
 
   async removeChild({
@@ -8017,11 +8155,21 @@ class BaseModelSqlv2 {
     );
 
     const auditUpdateObj = [] as {
-      rowId: string;
-      childId: string;
-      model: Model;
-      childModel: Model;
+      pkValue?: Record<string, any>;
       columnTitle: string;
+      columnId: string;
+      refColumnTitle?: string;
+      rowId: unknown;
+      refRowId?: unknown;
+      req: NcRequest;
+      model: Model;
+      refModel?: Model;
+      displayValue?: unknown;
+      refDisplayValue?: unknown;
+      opSubType:
+        | AuditOperationSubTypes.LINK_RECORD
+        | AuditOperationSubTypes.UNLINK_RECORD;
+      type: RelationTypes;
     }[];
 
     const auditConfig = {
@@ -8029,11 +8177,15 @@ class BaseModelSqlv2 {
       parentModel: parentTable,
       childColTitle: relatedChildCol?.title || '',
       parentColTitle: column.title,
+      childColId: relatedChildCol?.id || '',
+      parentColId: column.id,
     } as {
       childModel: Model;
       parentModel: Model;
       childColTitle: string;
       parentColTitle: string;
+      childColId: string;
+      parentColId: string;
     };
 
     switch (colOptions.type) {
@@ -8162,77 +8314,63 @@ class BaseModelSqlv2 {
 
     auditUpdateObj.push({
       model: auditConfig.parentModel,
-      childModel: auditConfig.childModel,
+      refModel: auditConfig.childModel,
       rowId,
       childId,
       columnTitle: auditConfig.parentColTitle,
+      columnId: auditConfig.parentColId,
+      req: cookie,
+      opSubType: AuditOperationSubTypes.UNLINK_RECORD,
+      type: colOptions.type as RelationTypes,
     });
 
     if (parentTable.id !== childTable.id) {
       auditUpdateObj.push({
         model: auditConfig.childModel,
-        childModel: auditConfig.parentModel,
+        refModel: auditConfig.parentModel,
         rowId: childId,
-        childId: rowId,
+        refRowId: rowId,
         columnTitle: auditConfig.childColTitle,
+        columnId: auditConfig.childColId,
+        req: cookie,
+        opSubType: AuditOperationSubTypes.UNLINK_RECORD,
+        type: getOppositeRelationType(colOptions.type),
       });
     }
 
     await Promise.allSettled(
       auditUpdateObj.map(async (updateObj) => {
-        await this.afterRemoveChild(
-          updateObj.columnTitle,
-          updateObj.rowId,
-          updateObj.childId,
-          cookie,
-          updateObj.model,
-          updateObj.childModel,
-        );
+        await this.afterRemoveChild({
+          columnTitle: updateObj.columnTitle,
+          columnId: updateObj.columnId,
+          refColumnTitle: updateObj.refColumnTitle,
+          rowId: updateObj.rowId,
+          refRowId: updateObj.refRowId,
+          req: updateObj.req,
+          model: updateObj.model,
+          refModel: updateObj.refModel,
+          displayValue: updateObj.displayValue,
+          refDisplayValue: updateObj.refDisplayValue,
+          type: updateObj.type,
+        });
       }),
     );
   }
 
-  public async afterRemoveChild(
-    columnTitle,
-    rowId,
-    childId,
-    req,
-    model = this.model,
-    childModel = this.model,
-    pkValue = undefined,
-  ): Promise<void> {
-    if (!pkValue) {
-      pkValue = await this.readByPkFromModel(
-        childModel,
-        undefined,
-        true,
-        childId,
-        false,
-        {},
-        { ignoreView: true, getHiddenColumn: true, extractOnlyPrimaries: true },
-      );
-    }
-
-    await Audit.insert({
-      fk_workspace_id: model.fk_workspace_id,
-      base_id: model.base_id,
-      source_id: model.source_id,
-      fk_model_id: model.id,
-      op_type: AuditOperationTypes.DATA,
-      op_sub_type: AuditOperationSubTypes.UNLINK_RECORD,
-      row_id: rowId,
-      description: DOMPurify.sanitize(
-        `Record [id:${childId}] has been unlinked with record [id:${rowId}] in ${model.title}`,
-      ),
-      details: DOMPurify.sanitize(`<span class="">${columnTitle}</span>
-        : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${
-          pkValue && typeof pkValue === 'object'
-            ? Object.values(pkValue)[0]
-            : pkValue ?? null
-        }</span>`),
-      ip: req?.clientIp,
-      user: req?.user?.email,
-    });
+  public async afterRemoveChild(_: {
+    columnTitle: string;
+    columnId: string;
+    refColumnTitle: string;
+    rowId: unknown;
+    refRowId: unknown;
+    req: NcRequest;
+    model: Model;
+    refModel: Model;
+    displayValue: unknown;
+    refDisplayValue: unknown;
+    type: RelationTypes;
+  }): Promise<void> {
+    // placeholder
   }
 
   public async groupedList(
@@ -9404,14 +9542,21 @@ class BaseModelSqlv2 {
     );
 
     const auditUpdateObj = [] as {
-      rowId: string | number;
-      childId: string | number;
+      pkValue?: Record<string, any>;
+      columnTitle: string;
+      columnId: string;
+      refColumnTitle?: string;
+      rowId: unknown;
+      refRowId?: unknown;
+      req: NcRequest;
       model: Model;
-      childModel: Model;
-      op_sub_type:
+      refModel?: Model;
+      displayValue?: unknown;
+      refDisplayValue?: unknown;
+      opSubType:
         | AuditOperationSubTypes.LINK_RECORD
         | AuditOperationSubTypes.UNLINK_RECORD;
-      columnTitle: string;
+      type: RelationTypes;
     }[];
 
     const auditConfig = {
@@ -9419,11 +9564,15 @@ class BaseModelSqlv2 {
       parentModel: parentTable,
       childColTitle: relatedChildCol?.title || '',
       parentColTitle: column.title,
+      childColId: relatedChildCol?.id || '',
+      parentColId: column.id,
     } as {
       childModel: Model;
       parentModel: Model;
       childColTitle: string;
       parentColTitle: string;
+      childColId: string;
+      parentColId: string;
     };
 
     if (relationType === RelationTypes.ONE_TO_ONE) {
@@ -9554,6 +9703,7 @@ class BaseModelSqlv2 {
             rowIds: childIds,
             cookie,
           });
+
           await this.updateLastModified({
             model: childTable,
             rowIds: [rowId],
@@ -9698,35 +9848,46 @@ class BaseModelSqlv2 {
 
       auditUpdateObj.push({
         model: auditConfig.parentModel,
-        childModel: auditConfig.childModel,
+        refModel: auditConfig.childModel,
         rowId,
-        childId: _childId,
-        op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+        refRowId: _childId,
+        opSubType: AuditOperationSubTypes.LINK_RECORD,
         columnTitle: auditConfig.parentColTitle,
+        columnId: auditConfig.parentColId,
+        req: cookie,
+        type: colOptions.type as RelationTypes,
       });
 
       if (parentTable.id !== childTable.id) {
         auditUpdateObj.push({
           model: auditConfig.childModel,
-          childModel: auditConfig.parentModel,
+          refModel: auditConfig.parentModel,
           rowId: _childId,
-          childId: rowId,
-          op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+          refRowId: rowId,
+          opSubType: AuditOperationSubTypes.LINK_RECORD,
           columnTitle: auditConfig.childColTitle,
+          columnId: auditConfig.childColId,
+          req: cookie,
+          type: getOppositeRelationType(colOptions.type),
         });
       }
     }
 
     await Promise.allSettled(
       auditUpdateObj.map(async (updateObj) => {
-        await this.afterAddChild(
-          updateObj.columnTitle,
-          updateObj.rowId,
-          updateObj.childId,
-          cookie,
-          updateObj.model,
-          updateObj.childModel,
-        );
+        await this.afterAddChild({
+          columnTitle: updateObj.columnTitle,
+          columnId: updateObj.columnId,
+          refColumnTitle: updateObj.refColumnTitle,
+          rowId: updateObj.rowId,
+          refRowId: updateObj.refRowId,
+          req: updateObj.req,
+          model: updateObj.model,
+          refModel: updateObj.refModel,
+          displayValue: updateObj.displayValue,
+          refDisplayValue: updateObj.refDisplayValue,
+          type: updateObj.type,
+        });
       }),
     );
   }
@@ -9791,14 +9952,20 @@ class BaseModelSqlv2 {
     );
 
     const auditUpdateObj = [] as {
-      rowId: string | number;
-      childId: string | number;
+      columnTitle: string;
+      columnId: string;
+      refColumnTitle?: string;
+      rowId: unknown;
+      refRowId: unknown;
+      req: NcRequest;
       model: Model;
-      childModel: Model;
-      op_sub_type:
+      refModel?: Model;
+      displayValue?: unknown;
+      refDisplayValue?: unknown;
+      opSubType:
         | AuditOperationSubTypes.LINK_RECORD
         | AuditOperationSubTypes.UNLINK_RECORD;
-      columnTitle: string;
+      type: RelationTypes;
     }[];
 
     const auditConfig = {
@@ -9806,11 +9973,15 @@ class BaseModelSqlv2 {
       parentModel: parentTable,
       childColTitle: relatedChildCol?.title || '',
       parentColTitle: column.title,
+      childColId: relatedChildCol?.id || '',
+      parentColId: column.id,
     } as {
       childModel: Model;
       parentModel: Model;
       childColTitle: string;
+      childColId: string;
       parentColTitle: string;
+      parentColId: string;
     };
 
     switch (colOptions.type) {
@@ -10060,35 +10231,46 @@ class BaseModelSqlv2 {
 
       auditUpdateObj.push({
         model: auditConfig.parentModel,
-        childModel: auditConfig.childModel,
+        refModel: auditConfig.childModel,
         rowId,
-        childId: _childId,
-        op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+        refRowId: _childId,
+        opSubType: AuditOperationSubTypes.LINK_RECORD,
         columnTitle: auditConfig.parentColTitle,
+        columnId: auditConfig.parentColId,
+        req: cookie,
+        type: colOptions.type as RelationTypes,
       });
 
       if (parentTable.id !== childTable.id) {
         auditUpdateObj.push({
           model: auditConfig.childModel,
-          childModel: auditConfig.parentModel,
+          refModel: auditConfig.parentModel,
           rowId: _childId,
-          childId: rowId,
-          op_sub_type: AuditOperationSubTypes.LINK_RECORD,
+          refRowId: rowId,
+          opSubType: AuditOperationSubTypes.LINK_RECORD,
           columnTitle: auditConfig.childColTitle,
+          columnId: auditConfig.childColId,
+          req: cookie,
+          type: getOppositeRelationType(colOptions.type),
         });
       }
     }
 
     await Promise.allSettled(
       auditUpdateObj.map(async (updateObj) => {
-        await this.afterRemoveChild(
-          updateObj.columnTitle,
-          updateObj.rowId,
-          updateObj.childId,
-          cookie,
-          updateObj.model,
-          updateObj.childModel,
-        );
+        await this.afterRemoveChild({
+          columnTitle: updateObj.columnTitle,
+          columnId: updateObj.columnId,
+          refColumnTitle: updateObj.refColumnTitle,
+          rowId: updateObj.rowId,
+          refRowId: updateObj.refRowId,
+          req: updateObj.req,
+          model: updateObj.model,
+          refModel: updateObj.refModel,
+          displayValue: updateObj.displayValue,
+          refDisplayValue: updateObj.refDisplayValue,
+          type: updateObj.type,
+        });
       }),
     );
   }
@@ -10837,6 +11019,87 @@ class BaseModelSqlv2 {
       );
     }
   }
+
+  protected async bulkAudit({
+    qb,
+    data,
+    conditions,
+    req,
+    event,
+  }: {
+    qb: any;
+    data?: Record<string, any>;
+    conditions: FilterType[];
+    req: NcRequest;
+    event: BulkAuditV1OperationTypes;
+  }) {
+    try {
+      let batchStart = 0;
+      const batchSize = 1000;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const pkQb = qb
+          .clone()
+          .clear('select')
+          .select(
+            this.dbDriver.raw('?? as ??', [
+              this.model.primaryKey.column_name,
+              this.model.primaryKey.title,
+            ]),
+          )
+          .limit(batchSize)
+          .offset(batchStart)
+          .orderBy(this.model.primaryKey.column_name);
+
+        // if bulk update include old data as well
+        if (event === AuditV1OperationTypes.DATA_BULK_UPDATE) {
+          await this.selectObject({
+            qb: pkQb,
+            fields: Object.keys(data),
+          });
+        }
+
+        const ids = await this.execAndParse(pkQb);
+
+        if (!ids?.length) break;
+
+        if (event === AuditV1OperationTypes.DATA_BULK_UPDATE) {
+          await this.bulkUpdateAudit({
+            rowIds: ids,
+            req,
+            conditions,
+            data,
+          });
+        } else if (event === AuditV1OperationTypes.DATA_BULK_DELETE) {
+          await this.bulkDeleteAudit({
+            rowIds: ids,
+            req,
+            conditions,
+          });
+        }
+        batchStart += batchSize;
+      }
+    } catch (e) {
+      logger.error(e.message, e.stack);
+    }
+  }
+
+  public async bulkUpdateAudit(_: {
+    rowIds: any[];
+    conditions: FilterType[];
+    data?: Record<string, any>;
+    req: NcRequest;
+  }) {
+    // placeholder
+  }
+
+  protected async bulkDeleteAudit(_: {
+    rowIds: any[];
+    conditions: FilterType[];
+    req: NcRequest;
+  }) {
+    // placeholder
+  }
 }
 
 export function extractSortsObject(
@@ -11026,6 +11289,17 @@ function shouldSkipField(
     }
     return false;
   }
+}
+
+export function getOppositeRelationType(
+  type: RelationTypes | LinkToAnotherRecordColumn['type'],
+) {
+  if (type === RelationTypes.HAS_MANY) {
+    return RelationTypes.BELONGS_TO;
+  } else if (type === RelationTypes.BELONGS_TO) {
+    return RelationTypes.HAS_MANY;
+  }
+  return type as RelationTypes;
 }
 
 export function getListArgs(

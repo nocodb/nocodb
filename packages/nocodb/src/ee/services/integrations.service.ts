@@ -45,6 +45,11 @@ export class IntegrationsService extends IntegrationsServiceCE {
       param.integration,
     );
 
+    const oldIntegration = await Integration.get(context, param.integrationId);
+
+    if (!oldIntegration) {
+      NcError.integrationNotFound(param.integrationId);
+    }
     const integrationBody = param.integration;
     const integration = await Integration.updateIntegration(
       context,
@@ -64,6 +69,8 @@ export class IntegrationsService extends IntegrationsServiceCE {
       integration,
       req: param.req,
       user: param.req?.user,
+      context,
+      oldIntegration,
     });
 
     return integration;
@@ -76,6 +83,12 @@ export class IntegrationsService extends IntegrationsServiceCE {
       req: NcRequest;
     },
   ) {
+    const oldIntegration = await Integration.get(context, param.integrationId);
+
+    if (!oldIntegration) {
+      NcError.integrationNotFound(param.integrationId);
+    }
+
     const integration = await Integration.setDefault(
       context,
       param.integrationId,
@@ -87,6 +100,8 @@ export class IntegrationsService extends IntegrationsServiceCE {
       integration,
       req: param.req,
       user: param.req?.user,
+      oldIntegration,
+      context,
     });
 
     return integration;
@@ -187,6 +202,10 @@ export class IntegrationsService extends IntegrationsServiceCE {
         integration,
         req: param.req,
         user: param.req?.user,
+        context: {
+          ...context,
+          base_id: null,
+        },
       });
 
       await ncMeta.commit();
@@ -275,6 +294,7 @@ export class IntegrationsService extends IntegrationsServiceCE {
       integration,
       req: param.req,
       user: param.req?.user,
+      context,
     });
 
     return integration;

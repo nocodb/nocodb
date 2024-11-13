@@ -357,7 +357,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
     relativeX -= dragOffset.value.x
   }
 
-  const relativeY = event.clientY - dragOffset.value.y
+  const relativeY = event.clientY - top
 
   const percentX = Math.max(0, Math.min(1, relativeX / width))
   const percentY = Math.max(0, Math.min(1, relativeY / height))
@@ -594,10 +594,9 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
     dragOffset.value = {
       x: event.clientX - target.getBoundingClientRect().left,
-      y: event.clientY - target.getBoundingClientRect().top,,
+      y: event.clientY - target.getBoundingClientRect().top,
     }
 
-    console.log(initialDragElement?.getBoundingClientRect().top)
     const allRecords = document.querySelectorAll('.draggable-record')
     allRecords.forEach((el) => {
       if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {

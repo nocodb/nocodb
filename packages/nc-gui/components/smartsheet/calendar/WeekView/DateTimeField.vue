@@ -596,14 +596,24 @@ const onResize = (event: MouseEvent) => {
   let isValid = true
 
   if (resizeDirection.value === 'right') {
+    const minEndDate = ogStartDate.add(1, 'hour')
     newDate = baseDate.isBefore(ogStartDate)
       ? ogStartDate.add(Math.ceil(ogStartDate.diff(baseDate, 'minute') / 15) * 15, 'minute')
       : baseDate
+
+    if (newDate.isBefore(minEndDate)) {
+      newDate = minEndDate
+    }
     updateProperty = toCol.title
   } else if (resizeDirection.value === 'left') {
+    const minStartDate = ogEndDate.subtract(1, 'hour')
     newDate = baseDate.isAfter(ogEndDate)
       ? ogEndDate.subtract(Math.ceil(baseDate.diff(ogEndDate, 'minute') / 15) * 15, 'minute')
       : baseDate
+
+    if (newDate.isAfter(minStartDate)) {
+      newDate = minStartDate
+    }
     updateProperty = fromCol.title
   } else {
     isValid = false

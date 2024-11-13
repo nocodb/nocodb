@@ -93,6 +93,7 @@
     "none": "Нічого"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Сценарії",
     "configure": "Налаштування",
     "switch": "Перемикач",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Умови не додані"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Змінено на",
     "configuration": "Конфігурація",
     "setup": "Налаштування",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "Натисніть, щоб скопіювати ідентифікатор таблиці",
     "clickToCopyViewID": "Натисніть, щоб скопіювати ідентифікатор перегляду",
     "viewMode": "Режим перегляду",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Пошук користувачів",
     "superAdmin": "Головний адміністратор",
     "allTables": "Всі таблиці",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "Перенаправити на URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Деталі вебхука",
     "hideWeekends": "Сховати вихідні дні",
     "renameBase": "Перейменувати базу",
@@ -1573,7 +1578,7 @@
       "showAllViews": "Показати усі спільні вигляди цієї таблиці",
       "collabView": "Учасники з дозволом на редагування або вище можуть змінювати конфігурацію перегляду.",
       "lockedView": "Ніхто не може відредагувати конфігурацію перегляду, доки вона не розблокована.",
-      "personalView": "Тільки ви можете відредагувати конфігурацію. Іншим учасникам прихована зміна переглядів за замовчуванням.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Може додавати або видаляти редакторів. Також може повністю редагувати структури та поля бази даних.",
       "creatorDesc": "Може повністю редагувати структуру бази даних та значення.",
       "editorDesc": "Може редагувати записи, але не може змінити структуру бази даних або полів.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "Будь ласка, активуйте плагін SMTP в магазині додатків, щоб ввімкнути повідомлення на електронну пошту",
       "collabView": "Переведено в режим спільної роботи",
       "lockedView": "Переведено в заблокований режим",
-      "futureRelease": "Незабаром!"
+      "futureRelease": "Незабаром!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Ліцензійний ключ оновлено",

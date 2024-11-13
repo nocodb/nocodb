@@ -787,6 +787,16 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
           Object.assign(toUpdate.oldRow, updatedRowData)
         }
 
+        const upPk = extractPkFromRow(updatedRowData, meta?.value?.columns as ColumnType[])
+
+        formattedSideBarData.value = formattedSideBarData.value.map((row) => {
+          if (extractPkFromRow(row.row, meta?.value?.columns as ColumnType[]) === upPk) {
+            Object.assign(row.row, updatedRowData)
+            Object.assign(row.oldRow, updatedRowData)
+          }
+          return row
+        })
+
         await fetchActiveDates()
         return updatedRowData
       } catch (e: any) {

@@ -1,14 +1,9 @@
-import type { ExtensionsEvents } from '#imports'
+import { ExtensionsEvents } from '#imports'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
 
-  // Egg
-  const extensionsEgg = ref(false)
-
-  const extensionsEggCounter = ref(0)
-
-  return { baseExtensions, extensionsEgg, extensionsEggCounter }
+  return { baseExtensions }
 })
 
 export interface ExtensionManifest {
@@ -61,7 +56,7 @@ abstract class ExtensionType {
 export { ExtensionType }
 
 export const useExtensions = createSharedComposable(() => {
-  const { baseExtensions, extensionsEgg, extensionsEggCounter } = extensionsState()
+  const { baseExtensions } = extensionsState()
 
   const { $api } = useNuxtApp()
 
@@ -72,6 +67,10 @@ export const useExtensions = createSharedComposable(() => {
   const extensionsLoaded = ref(false)
 
   const availableExtensions = ref<ExtensionManifest[]>([])
+
+  const availableExtensionIds = computed(() => {
+    return availableExtensions.value.map((e) => e.id)
+  })
 
   // Object to store description content for each extension
   const descriptionContent = ref<Record<string, string>>({})
@@ -90,11 +89,11 @@ export const useExtensions = createSharedComposable(() => {
   })
 
   const extensionList = computed<ExtensionType[]>(() => {
-    return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : []).sort(
-      (a: ExtensionType, b: ExtensionType) => {
+    return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : [])
+      .filter((e: ExtensionType) => availableExtensionIds.value.includes(e.extensionId))
+      .sort((a: ExtensionType, b: ExtensionType) => {
         return (a?.order ?? Infinity) - (b?.order ?? Infinity)
-      },
-    )
+      })
   })
 
   const toggleExtensionPanel = () => {
@@ -121,6 +120,10 @@ export const useExtensions = createSharedComposable(() => {
 
     if (newExtension) {
       baseExtensions.value[base.value.id].extensions.push(new Extension(newExtension))
+
+      nextTick(() => {
+        eventBus.emit(ExtensionsEvents.ADD, newExtension?.id)
+      })
     }
 
     return newExtension
@@ -203,8 +206,21 @@ export const useExtensions = createSharedComposable(() => {
       return
     }
 
+    let defaultKvStore = {}
+
+    switch (extension.extensionId) {
+      case 'nc-data-exporter': {
+        defaultKvStore = {
+          ...defaultKvStore,
+          deletedExports: extension.kvStore.get('deletedExports') || [],
+        }
+      }
+    }
+
     return updateExtension(extensionId, {
-      kv_store: {},
+      kv_store: {
+        ...defaultKvStore,
+      },
     })
   }
 
@@ -354,9 +370,13 @@ export const useExtensions = createSharedComposable(() => {
       return updateExtensionMeta(this.id, key, value)
     }
 
-    clear(): Promise<any> {
+    async clear(): Promise<any> {
       return clearKvStore(this.id).then(() => {
         this.uiKey++
+
+        nextTick(() => {
+          eventBus.emit(ExtensionsEvents.CLEARDATA, this.id)
+        })
       })
     }
 
@@ -433,10 +453,6 @@ export const useExtensions = createSharedComposable(() => {
     } catch (error) {
       console.error('Error loading extensions:', error)
     }
-
-    // if (isEeUI) {
-    //   extensionsEgg.value = true
-    // }
   })
 
   watch(
@@ -467,13 +483,6 @@ export const useExtensions = createSharedComposable(() => {
   // Extension market modal
   const isMarketVisible = ref(false)
 
-  const onEggClick = () => {
-    extensionsEggCounter.value++
-    if (extensionsEggCounter.value >= 2) {
-      extensionsEgg.value = true
-    }
-  }
-
   return {
     extensionsLoaded,
     availableExtensions,
@@ -493,8 +502,6 @@ export const useExtensions = createSharedComposable(() => {
     detailsFrom,
     showExtensionDetails,
     isMarketVisible,
-    onEggClick,
-    extensionsEgg,
     extensionPanelSize,
     eventBus,
   }

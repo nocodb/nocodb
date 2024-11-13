@@ -93,6 +93,7 @@
     "none": "Nincs"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Scriptek",
     "configure": "Konfiguráció",
     "switch": "Váltás",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Nincsenek hozzáadott feltételek"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Módosítva",
     "configuration": "Konfiguráció",
     "setup": "Beállítás",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "Kattintson a Tábla ID másolásához",
     "clickToCopyViewID": "Kattintással View ID másolása",
     "viewMode": "Nézet mód",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Felhasználók keresése",
     "superAdmin": "Szuper adminisztrátor",
     "allTables": "Összes táblázat",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "Átirányítás URL-re"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook Részletek",
     "hideWeekends": "Hétvégék elrejtése",
     "renameBase": "Bázis átnevezése",
@@ -1573,7 +1578,7 @@
       "showAllViews": "A tábla összes megosztott nézetének megjelenítése",
       "collabView": "Az együttműködők szerkesztési vagy magasabb jogosultsággal megváltoztathatják a nézet beállításait.",
       "lockedView": "Senki nem szerkesztheti a nézet beállításait, amíg az nincs feloldva.",
-      "personalView": "Csak Ön szerkesztheti a nézet beállításait. Más együttműködők személyes nézetei alapértelmezés szerint rejtve vannak.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Létrehozókat hozzáadhat/eltávolíthat. Teljes szerkesztés az adatbázis struktúráihoz és mezőihez.",
       "creatorDesc": "Teljes körűen szerkesztheti az adatbázis struktúráit és értékeit.",
       "editorDesc": "Rekordok szerkesztése lehetséges, de az adatbázis/mezők struktúrájának módosítása nem.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "Kérjük, aktiválja az SMTP bővítményt az App Store-ban az e-mail értesítések engedélyezéséhez",
       "collabView": "Sikeresen váltott együttműködési nézetre",
       "lockedView": "Sikeresen váltott zárolt nézetre",
-      "futureRelease": "Hamarosan!"
+      "futureRelease": "Hamarosan!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Licence kulcs frissítve",

@@ -93,6 +93,7 @@
     "none": "Ezer ez"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Script-ak",
     "configure": "Konfiguratu",
     "switch": "Aldatu",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Ez da baldintzarik gehitu"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Aldatze data",
     "configuration": "Konfigurazioa",
     "setup": "Konfiguratu",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "Klik egin Taula ID kopiatzeko",
     "clickToCopyViewID": "Klik egin Ikuspegi IDa kopiatzeko",
     "viewMode": "Ikusi modua",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Erabiltzaileak Bilatu",
     "superAdmin": "Super Admin",
     "allTables": "Taula guztiak",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "Bideratu URLa"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook xehetasunak",
     "hideWeekends": "Aste-buruak ezkutatu",
     "renameBase": "Oinarriari izena aldatu",
@@ -1573,7 +1578,7 @@
       "showAllViews": "Erakutsi taula honen ikuspegi partekatu guztiak",
       "collabView": "Editatzeko baimenak dituzten kolaboratzaileek edo gehiagok aldatu dezakete ikuspegiaren konfigurazioa.",
       "lockedView": "Ez dago inork ikuspegiaren konfigurazioa editatzen itxita egon arte.",
-      "personalView": "Zu bakarrik editatu dezakezu ikuspegiaren konfigurazioa. Beste kolaboratzaileen ikuspegi pertsonalak ezkutatuta daude lehenespenez.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Sortzaileak gehitu/kendu ditzake. Eta datu baseen egiturak eta eremuak guztiz editatu.",
       "creatorDesc": "Datu basearen egitura eta balioak guztiz editatu ditzakete.",
       "editorDesc": "Erregistroak editatu ditzakete baina ezin dute datu basearen/eremuen egitura aldatu.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "Mesedez aktibatu SMTP plugin-a App dendan email jakinarazpenak gaitzeko",
       "collabView": "Ikuspegi kolaboratiboan arrakastaz aldatu da",
       "lockedView": "Ikuspegi blokeatuan arrakastaz aldatu da",
-      "futureRelease": "Laster iritsiko da!"
+      "futureRelease": "Laster iritsiko da!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Lizentzia giltza eguneratu da",

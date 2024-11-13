@@ -93,6 +93,7 @@
     "none": "Нет"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Скрипты",
     "configure": "Настроить",
     "switch": "Переключить",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Условия не добавлены"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Изменено",
     "configuration": "Конфигурация",
     "setup": "Настройки",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "Нажмите, чтобы скопировать ИД таблицы",
     "clickToCopyViewID": "Нажмите, чтобы скопировать ID вида",
     "viewMode": "Режим просмотра",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Поиск пользователей",
     "superAdmin": "Супер админ",
     "allTables": "Все таблицы",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "Перенаправление на URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Детали вебхука",
     "hideWeekends": "Скрыть выходные",
     "renameBase": "Переименовать базу",
@@ -1573,7 +1578,7 @@
       "showAllViews": "Показать все общие представление этой таблицы",
       "collabView": "Сотрудники с разрешениями редактирования или выше могут изменить конфигурацию представления",
       "lockedView": "Никто не может редактировать конфигурацию представления, пока она не будет разблокирована.",
-      "personalView": "Только вы можете редактировать конфигурацию представления. Личные представления других сотрудников спрятаны по умолчанию.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Можно добавить / удалить создателей. И полное редактирование структур и полей базы данных.",
       "creatorDesc": "Можно полностью отредактировать структуру базы данных и значения.",
       "editorDesc": "Можно редактировать записи, но нельзя изменить структуру базы данных / полей.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "Пожалуйста, активируйте плагин SMTP в App Store для включения уведомления по электронной почте",
       "collabView": "Успешно перешел на совместное представление",
       "lockedView": "Успешно переключен на заблокированное представление",
-      "futureRelease": "Скоро!"
+      "futureRelease": "Скоро!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Ключ лицензии обновлен",

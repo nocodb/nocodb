@@ -93,6 +93,7 @@
     "none": "Noben"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Skripte",
     "configure": "Konfiguriraj",
     "switch": "Preklopi",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Brez dodanih pogojev"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Spremenjeno dne",
     "configuration": "Konfiguracija",
     "setup": "Nastavi",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "Kliknite za kopiranje ID-ja tabele",
     "clickToCopyViewID": "Klikni za kopiranje ogleda ID",
     "viewMode": "Način pogleda",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Išči uporabnike",
     "superAdmin": "Super skrbnik",
     "allTables": "Vse tabele",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "Preusmeri na URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Podrobnosti Webhook",
     "hideWeekends": "Skrij vikende",
     "renameBase": "Preimenuj bazo",
@@ -1573,7 +1578,7 @@
       "showAllViews": "Pokaži vse skupne poglede na to tabelo",
       "collabView": "Sodelavci z dovoljenji za urejanje ali višje lahko spremenijo konfiguracijo pogleda.",
       "lockedView": "Nihče ne more urejati konfiguracije pogleda, dokler ni odklenjena.",
-      "personalView": "Samo lahko uredite konfiguracijo pogleda. Osebni ogledi drugih sodelavcev so privzeto skrite.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Lahko doda / odstrani ustvarjalce. In polno urejanje baz podatkov in polja.",
       "creatorDesc": "Lahko v celoti uredite strukturo baze podatkov in vrednosti.",
       "editorDesc": "Lahko ureja evidence, vendar ne more spremeniti strukture baze podatkov / polj.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "Aktivirajte Plugin SMTP v App Store za omogočanje e-poštnega obvestila",
       "collabView": "Uspešno prehod na skupni pogled",
       "lockedView": "Uspešno prehod na zaklenjen pogled",
-      "futureRelease": "Prihaja kmalu!"
+      "futureRelease": "Prihaja kmalu!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Ključ licence je posodobljen",

@@ -93,6 +93,7 @@
     "none": "Ei mitään"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Skriptit",
     "configure": "Määritä",
     "switch": "Vaihto",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Ei ehtoja lisätty"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Muutettu",
     "configuration": "Konfiguraatio",
     "setup": "Asetukset",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "Napsauta kopioidaksesi taulukon ID",
     "clickToCopyViewID": "Klikkaa kopioidaksesi näkymän ID",
     "viewMode": "Näyttötila",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Etsi käyttäjiä",
     "superAdmin": "Super Admin",
     "allTables": "Kaikki taulukot",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "Ohjaa URL-osoitteeseen"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhotokin tiedot",
     "hideWeekends": "Piilota viikonloput",
     "renameBase": "Nimeä Perusta Uudelleen",
@@ -1573,7 +1578,7 @@
       "showAllViews": "Näytä kaikki tämän taulukon yhteiset näkymät",
       "collabView": "Yhteistyökumppanit, joissa on muokkausoikeudet tai uudempi, voivat muuttaa näkymäasetusta.",
       "lockedView": "Kukaan ei voi muokata näkymäasetusta, ennen kuin se on lukittu.",
-      "personalView": "Vain voit muokata Näytä kokoonpanoa. Muita yhteistyökumppaneita henkilökohtaisia ​​näkymiä on piilotettu oletusarvoisesti.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Voi lisätä / poistaa luojia. Ja täydelliset muokkaustietokannan rakenteet ja kentät.",
       "creatorDesc": "Voi muokata tietokannan rakennetta ja arvoja.",
       "editorDesc": "Voit muokata tietueita, mutta ei voi muuttaa tietokannan / kenttien rakennetta.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "Aktivoi SMTP-laajennus App Storesta sähköpostin ilmoittamisen mahdollistamiseksi",
       "collabView": "Onnistuneesti siirtynyt yhteistyöhön",
       "lockedView": "Onnistuneesti kytketty lukittuun näkymään",
-      "futureRelease": "Tulossa pian!"
+      "futureRelease": "Tulossa pian!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Lisenssiavain päivitetty",

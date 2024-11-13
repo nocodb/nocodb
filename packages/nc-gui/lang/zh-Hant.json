@@ -93,6 +93,7 @@
     "none": "無"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "腳本",
     "configure": "配置",
     "switch": "切換",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "未添加條件"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "修改於",
     "configuration": "配置",
     "setup": "設置",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "點擊以複製表格ID",
     "clickToCopyViewID": "點擊以複製檢視 ID",
     "viewMode": "檢視模式",
+    "reAssignView": "Re-assign view",
     "searchUsers": "搜索用戶",
     "superAdmin": "超級管理員",
     "allTables": "所有表格",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "重定向到 URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook詳情",
     "hideWeekends": "隱藏週末",
     "renameBase": "重命名基礎",
@@ -1573,7 +1578,7 @@
       "showAllViews": "顯示此表的所有共享視圖",
       "collabView": "擁有編輯權限或更高權限的協作者可以更改檢視配置。",
       "lockedView": "在解鎖之前，沒有人可以編輯檢視配置。",
-      "personalView": "只有您可以編輯檢視配置。其他協作者的個人檢視預設情況下是隱藏的。",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "可以新增或移除建立者，以及完全編輯資料庫的結構和欄位。",
       "creatorDesc": "可以完全編輯資料庫結構和值。",
       "editorDesc": "可以編輯記錄但無法更改資料庫/欄位的結構。",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "請啟用 App Store 中的 SMTP 外掛程式以啟用電子郵件通知",
       "collabView": "成功轉換為協作視圖",
       "lockedView": "成功轉換為鎖定視圖",
-      "futureRelease": "即將推出！"
+      "futureRelease": "即將推出！",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "許可證密鑰已更新",

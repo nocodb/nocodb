@@ -11,6 +11,7 @@ type BulkOperation =
   | 'bulkUpdate'
   | 'bulkUpdateAll'
   | 'bulkDelete'
+  | 'bulkUpsert'
   | 'bulkDeleteAll';
 
 @Injectable()
@@ -124,6 +125,20 @@ export class BulkDataAliasService {
       ...param,
       operation: 'bulkDeleteAll',
       options: [param.query],
+    });
+  }
+
+  async bulkDataUpsert(
+    context: NcContext,
+    param: PathParams & {
+      body: any;
+      cookie: any;
+    },
+  ) {
+    return await this.executeBulkOperation(context, {
+      ...param,
+      operation: 'bulkUpsert',
+      options: [param.body, { cookie: param.cookie }],
     });
   }
 }

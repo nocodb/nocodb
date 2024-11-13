@@ -93,6 +93,7 @@
     "none": "Nulla"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Script",
     "configure": "Configura",
     "switch": "Cambia",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Nessuna condizione aggiunta"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Modificato il",
     "configuration": "Configurazione",
     "setup": "Impostazione",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "Clicca per copiare l'ID della Tabella",
     "clickToCopyViewID": "Clicca per copiare l'ID della vista",
     "viewMode": "Modalità Visualizzazione",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Ricerca Utenti",
     "superAdmin": "Super Admin",
     "allTables": "Tutte le tabelle",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "Reindirizza all'URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Dettagli webhook",
     "hideWeekends": "Nascondi i fine settimana",
     "renameBase": "Rinomina Tabella",
@@ -1573,7 +1578,7 @@
       "showAllViews": "Mostra tutte le viste condivise di questa tabella",
       "collabView": "I collaboratori con autorizzazioni di modifica o superiore possono modificare la configurazione della vista",
       "lockedView": "Nessuno può modificare la configurazione della vista finché non è sbloccata.",
-      "personalView": "Solo tu puoi modificare la visualizzazione della vista. Le viste personali degli altri collaboratori sono nascoste di default",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Può aggiungere / rimuovere i creatori. E modificare completamente strutture e campi",
       "creatorDesc": "Può modificare completamente la struttura e i valori del database.",
       "editorDesc": "Può modificare i record ma non può cambiare la struttura del database / dei campi.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "Si prega di attivare il plugin SMTP in App Store per abilitare la notifica e-mail",
       "collabView": "Passato correttamente alla vista collaborativa",
       "lockedView": "Passato correttamente alla vista bloccata",
-      "futureRelease": "Prossimamente!"
+      "futureRelease": "Prossimamente!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Chiave Di Licenza Aggiornata",

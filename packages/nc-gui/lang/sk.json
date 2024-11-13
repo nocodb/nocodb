@@ -93,6 +93,7 @@
     "none": "Žiadne"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Skripty",
     "configure": "Konfigurovať",
     "switch": "Prepínač",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Žiadne podmienky neboli pridané"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Upravené",
     "configuration": "Konfigurácia",
     "setup": "Nastavenie",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "Kliknite pre skopírovanie ID tabuľky",
     "clickToCopyViewID": "Kliknite na kopírovanie ID zobrazenia",
     "viewMode": "Režim zobrazenia",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Hľadať používateľov",
     "superAdmin": "Super Admin",
     "allTables": "Všetky tabuľky",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "Presmerovať na URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Detaily Webhooku",
     "hideWeekends": "Skryť víkendy",
     "renameBase": "Premenovanie Základu",
@@ -1573,7 +1578,7 @@
       "showAllViews": "Zobrazenie všetkých zdieľaných zobrazení tejto tabuľky",
       "collabView": "Spolupracovníci s oprávneniami na úpravu alebo vyššími môžu zmeniť konfiguráciu zobrazenia.",
       "lockedView": "Konfiguráciu zobrazenia nemôže nikto upravovať, kým nie je odomknutá.",
-      "personalView": "Konfiguráciu zobrazenia môžete upravovať iba vy. Osobné pohľady ostatných spolupracovníkov sú predvolene skryté.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Môže pridávať/odstraňovať tvorcov. Úplná úprava databázových štruktúr a polí.",
       "creatorDesc": "Môže plne upravovať štruktúru databázy a hodnoty.",
       "editorDesc": "Môžete upravovať záznamy, ale nemôžete meniť štruktúru databázy/polí.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "Prosím, aktivujte zásuvný modul SMTP v obchode s aplikáciami, aby ste mohli posielať e-mailové oznámenia",
       "collabView": "Úspešné prepnutie na kolaboratívne zobrazenie",
       "lockedView": "Úspešné prepnutie na uzamknuté zobrazenie",
-      "futureRelease": "Už čoskoro!"
+      "futureRelease": "Už čoskoro!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Licenčný kľúč bol aktualizovaný",

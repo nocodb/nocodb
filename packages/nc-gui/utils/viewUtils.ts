@@ -1,6 +1,9 @@
 import { ViewTypes } from 'nocodb-sdk'
 import { iconMap } from './iconUtils'
 import type { Language } from '~/lib/types'
+import UsersIcon from '~icons/nc-icons/users'
+import LockIcon from '~icons/nc-icons/lock'
+import PersonalIcon from '~icons/nc-icons/personal'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {
   [ViewTypes.GRID]: { icon: iconMap.grid, color: '#36BFFF' },
@@ -42,4 +45,22 @@ export const getViewIcon = (key?: string | number) => {
 
 export function applyNonSelectable() {
   document.body.classList.add('non-selectable')
+}
+
+export const viewLockIcons = {
+  [LockType.Personal]: {
+    title: 'title.personal',
+    icon: PersonalIcon,
+    subtitle: 'msg.info.personalView',
+  },
+  [LockType.Collaborative]: {
+    title: 'title.collaborative',
+    icon: UsersIcon,
+    subtitle: 'msg.info.collabView',
+  },
+  [LockType.Locked]: {
+    title: 'title.locked',
+    icon: LockIcon,
+    subtitle: 'msg.info.lockedView',
+  },
 }

@@ -6,13 +6,15 @@ const route = router.currentRoute
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isViewsLoading } = storeToRefs(useViewsStore())
+const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { appInfo } = useGlobal()
 
-const { toggleExtensionPanel, isPanelExpanded, extensionsEgg, onEggClick } = useExtensions()
+const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -54,7 +56,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <GeneralApiLoader v-if="!isMobileMode" />
 
         <NcButton
-          v-if="!isSharedBase && extensionsEgg"
+          v-if="!isSharedBase && isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) && openedViewsTab === 'view'"
           v-e="['c:extension-toggle']"
           type="secondary"
           size="small"
@@ -65,7 +67,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         >
           <div class="flex items-center justify-center min-w-[28.69px]">
             <GeneralIcon
-              icon="ncPuzzleOutline"
+              :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'"
               class="w-4 h-4 !stroke-transparent"
               :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
             />
@@ -77,7 +79,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
             </span>
           </div>
         </NcButton>
-        <div v-else-if="!isSharedBase && !extensionsEgg" class="w-[15px] h-[15px] cursor-pointer" @dblclick="onEggClick" />
 
         <div v-if="!isSharedBase">
           <LazySmartsheetTopbarCmdK />

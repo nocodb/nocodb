@@ -93,6 +93,7 @@
     "none": "কোনটিই নয়"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "স্ক্রিপ্টসমূহ",
     "configure": "কনফিগার করুন",
     "switch": "সুইচ করুন",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "কোন শর্ত যোগ করা হয়নি"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "পরিবর্তন করা হয়েছে",
     "configuration": "কনফিগারেশন",
     "setup": "সেটআপ",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "টেবিল আইডি কপি করতে ক্লিক করুন",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "দর্শন মোড",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
     "allTables": "All Tables",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "ইউআরএল এ পুনঃনির্দেশনা করুন"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "ওয়েবহুকের বিবরণ",
     "hideWeekends": "সপ্তাহান্ত লুকান",
     "renameBase": "বেস পুনঃনামকরণ",
@@ -1573,7 +1578,7 @@
       "showAllViews": "এই টেবিলের সমস্ত ভাগ করা দর্শন দেখান",
       "collabView": "সম্পাদনা অনুমতি বা উচ্চতর সহ সহযোগীরা ভিউ কনফিগারেশন পরিবর্তন করতে পারে।",
       "lockedView": "এটি আনলক না হওয়া পর্যন্ত কেউ ভিউ কনফিগারেশন সম্পাদনা করতে পারে না।",
-      "personalView": "কেবলমাত্র আপনি ভিউ কনফিগারেশন সম্পাদনা করতে পারেন। অন্যান্য সহযোগীদের ব্যক্তিগত মতামত ডিফল্টরূপে লুকানো থাকে।",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "স্রষ্টা যুক্ত/অপসারণ করতে পারেন। এবং সম্পূর্ণ সম্পাদনা ডাটাবেস স্ট্রাকচার এবং ক্ষেত্রগুলি।",
       "creatorDesc": "ডাটাবেস কাঠামো এবং মানগুলি সম্পূর্ণরূপে সম্পাদনা করতে পারে।",
       "editorDesc": "রেকর্ডগুলি সম্পাদনা করতে পারে তবে ডাটাবেস/ক্ষেত্রগুলির কাঠামো পরিবর্তন করতে পারে না।",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "ইমেল বিজ্ঞপ্তি সক্ষম করার জন্য দয়া করে অ্যাপ স্টোরে এসএমটিপি প্লাগইনটি সক্রিয় করুন",
       "collabView": "সফলভাবে সহযোগী ভিউতে স্যুইচ করা",
       "lockedView": "সফলভাবে লক ভিউতে স্যুইচ করা",
-      "futureRelease": "শীঘ্রই আসছে!"
+      "futureRelease": "শীঘ্রই আসছে!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "লাইসেন্স কী আপডেট করা হয়েছে",

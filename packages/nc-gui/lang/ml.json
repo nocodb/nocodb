@@ -93,6 +93,7 @@
     "none": "ഒന്നുമില്ല"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "സ്ക്രിപ്റുകൾ",
     "configure": "ക്രമീകരിക്കുക",
     "switch": "മാറ്റുക",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "ആവശ്യങ്ങൾ ഒന്നും ചേർക്കാത്തത്"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "മാറ്റിയ തീയതി",
     "configuration": "ക്രമീകരണം",
     "setup": "ക്രമീകരിക്കുക",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "ടേബിൾ ഐഡി പകർപ്പെടുക്കുവാൻ ക്ലിക്ക് ചെയ്യുക",
     "clickToCopyViewID": "കാഴ്ച്ച ID പകർത്താൻ ക്ലിക്കൽ ചെയ്യുക",
     "viewMode": "കാഴ്ച മോഡ്",
+    "reAssignView": "Re-assign view",
     "searchUsers": "ഉപയോക്താക്കളെ തിരയുക",
     "superAdmin": "സുപർ അഡ്മിൻ",
     "allTables": "എല്ലാ പട്ടികകൾ",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "URL-ലേക്ക് തിരിച്ചുവിടുക"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "വെബ്‌ഹുക്ക് വിശദാംശങ്ങൾ",
     "hideWeekends": "വികെൻഡുകൾ മറച്ചുവെക്കുക",
     "renameBase": "അടിത്തളത്തിന്റെ പേര് മാറ്റുക",
@@ -1573,7 +1578,7 @@
       "showAllViews": "ഈ പട്ടികയിലെ എല്ലാ പങ്കുവച്ച കാഴ്ചകളും കാണിക്കുക",
       "collabView": "എഡിറ്റ് അവകാശമോ അതിനപ്പുറത്തുള്ള സഹപ്രവർത്തകർ കാഴ്ച ക്രമീകരണം മാറ്റാം.",
       "lockedView": "അത് അൺലോക്ക് ചെയ്യുന്നതുവരെ ആരും കാഴ്ച ക്രമീകരണം എഡിറ്റ് ചെയ്യാന്‍ കഴിയില്ല.",
-      "personalView": "നിങ്ങൾക്ക് മാത്രമേ കാഴ്ച ക്രമീകരണം എഡിറ്റ് ചെയ്യാൻ കഴിയൂ. മറ്റു സഹപ്രവർത്തകരുടെ വ്യക്തിപരമായ കാഴ്ചകൾ സ്വതവേ മറഞ്ഞിരിക്കുകയും ചെയ്യും.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "സൃഷ്ടാക്കളെ ചേർക്കാനും/നീക്കാനുമാവുന്നു. ഡാറ്റാബേസ് ഘടനകളും ഫീൽഡുകളും പൂർണ്ണമായും എഡിറ്റ് ചെയ്യാം.",
       "creatorDesc": "ഡാറ്റാബേസ് ഘടനയും മൂല്യങ്ങളും പൂർണ്ണമായും എഡിറ്റ് ചെയ്യാം.",
       "editorDesc": "രേഖകളെ എഡിറ്റ് ചെയ്യാം, പക്ഷേ ഡാറ്റാബേസ്/ഫീൽഡുകളുടെ ഘടന മാറ്റാൻ കഴിയില്ല.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "ഇമെയിൽ അറിയിപ്പുകൾ സജ്ജമാക്കാൻ അപ്ലിക്കേഷൻ സ്റ്റോറിൽ SMTP പ്ലഗിൻ സജ്ജീകരിക്കുക",
       "collabView": "സഹകരണം കാഴ്ചയ്ക്ക് വിജയകരമായി മാറ്റി",
       "lockedView": "പൂട്ടിയ കാഴ്ചയ്ക്ക് വിജയകരമായി മാറ്റി",
-      "futureRelease": "വാത്ക്ഷണേ!"
+      "futureRelease": "വാത്ക്ഷണേ!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "ലൈസൻസ് കീ അപ്ഡേറ്റായി",

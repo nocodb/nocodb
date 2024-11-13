@@ -100,6 +100,55 @@ export class PublicDatasService {
     return new PagedResponseImpl(data, { ...param.query, count });
   }
 
+  async dataCount(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+    },
+  ) {
+    const { sharedViewUuid, password, query = {} } = param;
+    const view = await View.getByUUID(context, sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(sharedViewUuid);
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.MAP &&
+      view.type !== ViewTypes.CALENDAR
+    ) {
+      NcError.notFound('Not found');
+    }
+
+    if (view.password && view.password !== password) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
+    const countArgs: any = { ...param.query, throwErrorIfInvalidParams: true };
+    try {
+      countArgs.filterArr = JSON.parse(countArgs.filterArrJson);
+    } catch (e) {}
+
+    const count: number = await baseModel.count(countArgs);
+
+    return { count };
+  }
+
   async dataAggregate(
     context: NcContext,
     param: {

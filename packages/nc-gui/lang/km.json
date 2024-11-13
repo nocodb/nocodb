@@ -93,6 +93,7 @@
     "none": "គ្មាន"
   },
   "general": {
+    "featurePreview": "ការមើលមុខងារជាមុន",
     "scripts": "Scripts",
     "configure": "កំណត់រចនាសម្ព័ន្ធ",
     "switch": "ប្តូរទិស",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "គ្មានលក្ខខណ្ឌត្រូវបានបន្ថែម"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "បើក ឬបិទមុខងារពិសោធន៍ដោយភាពងាយស្រួល ដែលអនុញ្ញាតឱ្យអ្នករុករក និងវាយតម្លៃមុខងារដែលនឹងមកដល់នាពេលខាងមុខ។",
     "modifiedOn": "បានផ្លាស់ប្តូរកាលបរិច្ឆេទ",
     "configuration": "ការកំណត់រចនាសម្ព័ន្ធ",
     "setup": "រៀបចំ",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "ចុចដើម្បីចម្លងអត្តលេខតារាង",
     "clickToCopyViewID": "ចុចដើម្បីចម្លងទិដ្ឋភាព ID",
     "viewMode": "មើលមុខ",
+    "reAssignView": "Re-assign view",
     "searchUsers": "ស្វែងរកអ្នកប្រើ",
     "superAdmin": "អ្នកគ្រប់គ្រងធំ",
     "allTables": "តារាងទាំងអស់",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "ប្តូរទិសទៅ URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "ព័ត៌មានលម្អិតរបស់ Webhook",
     "hideWeekends": "លាក់​ចុងសប្ដាហ៍",
     "renameBase": "ផ្លាស់ប្ដូរឈ្មោះមូលដ្ឋាន",
@@ -1573,7 +1578,7 @@
       "showAllViews": "បង្ហាញទិដ្ឋភាពដែលបានចែកមកពីតារាងនេះទាំងអស់",
       "collabView": "អ្នកសហការដែលមានការអនុញ្ញាតបន្ទាត់ឬលើសពីនេះអាចផ្លាស់ប្តូររចនាសម្ព័ន្ធទិដ្ឋភាព។",
       "lockedView": "គ្មាននរណាម្នាក់អាចកែសម្រួលរចនាសម្ព័ន្ធទិដ្ឋភាពបានរហូតដល់វាត្រូវបានចែក!",
-      "personalView": "មានតែអ្នកមិត្តហើយមើលបាននិងកែសំ​គ្រឹស្តទៀត។ គោលបំណាលិនឹងមានទានាប៉នំបែបនិងថ្លៃ។",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "អាចបន្ថែម / លុបក្រុមរូប​ភាព័ក្ស។ ហើយកែសម្រួលរចនាសម្ព័ន្ធអង្គភាពទិន្នន័យវត្ថុ និងវាលបាន។",
       "creatorDesc": "អាចយកចំណុចទិន្នន័យនិងតំឡើង។",
       "editorDesc": "អាចកែសម្រួលកំណត់ត្រាប៉ុន្តែមិនអាចប្តូររចនាសម្ព័ន្ធអង្គភាព / វាលអង្គភាព។",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "សូមបើកដំណើរការ SMTP plugin នៅក្នុង App store ដើម្បីអនុញ្ញាតការជូនដំណឹងអ៊ីមែល",
       "collabView": "បង្កើនទិដ្ឋភាពដំណើរការក្នុងអាជ្ញាធរជុំគ្នាបានជោគជ័យ",
       "lockedView": "បង្កើនទិដ្ឋភាពខ្លួនឯងបានជោគជ័យ",
-      "futureRelease": "នឹងមកដល់ឆាប់ៗ!"
+      "futureRelease": "នឹងមកដល់ឆាប់ៗ!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "បានធ្វើបច្ចប្បន្នភាពកូនសោអាជ្ញាប័ណ្ណ",

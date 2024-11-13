@@ -93,6 +93,7 @@
     "none": "ಯಾವುದೂ ಇಲ್ಲ"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "ಸ್ಕ್ರಿಪ್ಟ್‌ಗಳು",
     "configure": "ಸಂರಚಿಸು",
     "switch": "ಸ್ವಿಚ್",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "ಯಾವುದೇ ಶರತ್ತುಗಳನ್ನು ಸೇರಿಸಲಾಗಿಲ್ಲ"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "ನವೀಕರಿಸಲಾಗಿದೆ",
     "configuration": "ಸಂರಚನೆ",
     "setup": "ಹೊಂದಾಣಿಕೆ",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "ಕೋಷ್ಟಕ ID ನಕಲಿಸಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "clickToCopyViewID": "ವೀಕ್ಷಣೆ ID ನಕಲು ಮಾಡಲು ಕ್ಲಿಕ್ ಮಾಡಿ",
     "viewMode": "ನೋಟ ಸ್ಥಿತಿ",
+    "reAssignView": "Re-assign view",
     "searchUsers": "ಬಳಕೆದಾರರನ್ನು ಹುಡುಕಿ",
     "superAdmin": "ಸುಪರ್ ಅಡ್ಮಿನ್",
     "allTables": "ಎಲ್ಲಾ ಟೇಬಲ್‌ಗಳು",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "URL ಗೆ ಮಾರ್ಗದರ್ಶಿಸಿ"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "ವೆಬ್‌ಹುಕ್ ವಿವರಣೆಗಳು",
     "hideWeekends": "ವಿಡಂಬನೆಗಳನ್ನು ಮರೆಮಾಡಿ",
     "renameBase": "ಅಡಿಯನ್ನು ಮರುಹೆಸರಿಸು",
@@ -1573,7 +1578,7 @@
       "showAllViews": "ಈ ಟೇಬಲ್‌ನ ಎಲ್ಲಾ ಹಂಚಿದ ನೋಟಗಳನ್ನು ತೋರಿಸಿ",
       "collabView": "ಸಂಪಾದಿಸಲು ಅನುಮತಿ ಹೊಂದಿರುವ ಸಹಯೋಗಿಗಳು ಅಥವಾ ಹೆಚ್ಚು ನೋಟ ಸಂರಚನೆಯನ್ನು ಬದಲಾಯಿಸಬಹುದು.",
       "lockedView": "ನೋಟ ಸಂರಚನೆವನ್ನು ತಾಳೆಯನ್ನಾಗಿ ಮಾಡಿರುವವರೆಗೆ ಯಾರೂ ಅದನ್ನು ಸಂಪಾದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.",
-      "personalView": "ನೀವು ಮಾತ್ರ ನೋಟ ಸಂರಚನೆ ಅನ್ನು ಸಂಪಾದಿಸಬಹುದು. ಇತರೆ ಸಹಯೋಗಿಗಳ ವೈಯಕ್ತಿಕ ನೋಟಗಳು ಪೂರ್ವ ನಿರ್ಧಾರದಂತೆ ಸಿಕ್ಕೆಯಾಗಿವೆ.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "ಸೃಜನಶೀಲರನ್ನು ಸೇರಿಸಿ/ತೆಗೆದುಹಾಕಬಹುದು. ಹಾಗು ಸಂಪೂರ್ಣ ಸಂಪಾದನೆ ಡೇಟಾಬೇಸ್ ರಚನೆಯ ಹಾಗು ಕ್ಷೇತ್ರಗಳು.",
       "creatorDesc": "ಡೇಟಾಬೇಸ್ ರಚನೆ ಮತ್ತು ಮೌಲ್ಯಗಳನ್ನು ಸಂಪೂರ್ಣ ಸಂಪಾದಿಸಬಹುದು.",
       "editorDesc": "ರೆಕಾರ್ಡ್ಸ್‌ಗಳನ್ನು ಸಂಪಾದಿಸಬಹುದು ಆದರೆ ಡೇಟಾಬೇಸ್/ಕ್ಷೇತ್ರಗಳ ರಚನೆಯನ್ನು ಬದಲಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "ಇಮೇಲ್ ನೋಟಿಫಿಕೇಶನ್ ಸಕ್ರಿಯಗೊಳಿಸಲು ದಯವಿಟ್ಟು ಅಪ್ ಸ್ಟೋರ್‌ನಲ್ಲಿ SMTP ಪ್ಲಗಿನ್ ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿ",
       "collabView": "ಯಶಸ್ವಿಯಾಗಿ ಸಹಯೋಗದ ವೀಕ್ಷಣೆಗೆ ಬದಲಾಯಿಸಲಾಗಿದೆ",
       "lockedView": "ಯಶಸ್ವಿಯಾಗಿ ಲಾಕ್ ಮಾಡಿದ ವೀಕ್ಷಣೆಗೆ ಬದಲಾಯಿಸಲಾಗಿದೆ",
-      "futureRelease": "ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿದೆ!"
+      "futureRelease": "ಶೀಘ್ರದಲ್ಲೇ ಬರಲಿದೆ!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "ಲೈಸೆನ್ಸ್ ಕೀ ಅಪ್ಡ್‌ಟೇಟ್ ಮಾಡಿರಬೆಕಾಗಿದೆ",

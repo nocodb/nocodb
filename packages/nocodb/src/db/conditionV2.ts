@@ -7,6 +7,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
+import type { FilterType } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
@@ -31,7 +32,7 @@ import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 
 export default async function conditionV2(
   baseModelSqlv2: BaseModelSqlv2,
-  conditionObj: Filter | Filter[],
+  conditionObj: Filter | FilterType | FilterType[] | Filter[],
   qb: Knex.QueryBuilder,
   alias?: string,
   throwErrorIfInvalid = false,
@@ -66,7 +67,7 @@ function getLogicalOpMethod(filter: Filter) {
 
 const parseConditionV2 = async (
   baseModelSqlv2: BaseModelSqlv2,
-  _filter: Filter | Filter[],
+  _filter: Filter | FilterType | FilterType[] | Filter[],
   aliasCount = { count: 0 },
   alias?,
   customWhereClause?,
@@ -1200,6 +1201,14 @@ const parseConditionV2 = async (
                 .whereNull(customWhereClause || field)
                 .orWhere(field, '[]')
                 .orWhere(field, 'null');
+            } else if (column.uidt === UITypes.Formula) {
+              qb = qb.whereNull(customWhereClause || field);
+              if (
+                (column?.colOptions as any).parsed_tree?.dataType ===
+                FormulaDataTypes.STRING
+              ) {
+                qb = qb.orWhere(field, '');
+              }
             } else {
               qb = qb.whereNull(customWhereClause || field);
               if (
@@ -1222,6 +1231,14 @@ const parseConditionV2 = async (
                 .whereNotNull(customWhereClause || field)
                 .whereNot(field, '[]')
                 .whereNot(field, 'null');
+            } else if (column.uidt === UITypes.Formula) {
+              qb = qb.whereNotNull(customWhereClause || field);
+              if (
+                (column?.colOptions as any).parsed_tree?.dataType ===
+                FormulaDataTypes.STRING
+              ) {
+                qb = qb.whereNot(customWhereClause || field, '');
+              }
             } else {
               qb = qb.whereNotNull(customWhereClause || field);
               if (

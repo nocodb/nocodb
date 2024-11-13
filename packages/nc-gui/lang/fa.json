@@ -93,6 +93,7 @@
     "none": "هیچ کدام"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "اسکریپت‌ها",
     "configure": "پیکربندی",
     "switch": "تعویض",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "هیچ شرطی اضافه نشده است"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "تغییر در",
     "configuration": "پیکربندی",
     "setup": "راه اندازی",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "برای کپی کردن Table ID کلیک کنید",
     "clickToCopyViewID": "برای کپی کردن ID نمایش کلیک کنید",
     "viewMode": "حالت نمایش",
+    "reAssignView": "Re-assign view",
     "searchUsers": "جستجوی کاربران",
     "superAdmin": "مدیر ارشد",
     "allTables": "همهٔ جدول‌ها",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "هدایت به URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "جزئیات وب‌هوک",
     "hideWeekends": "پنهان‌کردن آخر هفته‌ها",
     "renameBase": "تغییر نام پایه",
@@ -1573,7 +1578,7 @@
       "showAllViews": "مشاهده تمام نمایش های به اشتراک گذاشته شده از این جدول",
       "collabView": "همکاران با دسترسی ویرایش یا فراتر می‌توانند پیکربندی نمایش را تغییر دهند.",
       "lockedView": "تا هنگامی‌که نمایش قفل باشد، هیچ‌کس نمی‌تواند پیکربندی آن را تغییر دهد.",
-      "personalView": "فقط شما می‌توانید پیکربندی نمایش را تغییر دهید. نمایش‌های شخصی مربوط به سایر همکاران به‌طور پیش‌فرض پنهان شده‌اند.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "می‌توان ایجادکنندگان را اضافه یا حذف کرد. و به ویرایش کامل ساختارها و فیلدهای پایگاه داده پرداخت.",
       "creatorDesc": "می‌توان به ویرایش کامل ساختار و مقادیر پایگاه داده پرداخت.",
       "editorDesc": "می‌توان سوابق را ویرایش کرد اما اختیار تغییر ساختار پایگاه داده/فیلدها وجود ندارد.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "لطفاْ جهت فعال‌سازی اعلان پست الکترونیکی، پلاگین SMTP را در قسمت اپلیکیشن‌ها فعال کنید",
       "collabView": "با موفقیت به نمایش مشارکتی تغییر یافت",
       "lockedView": "با موفقیت به نمایش قفل‌شده تغییر یافت",
-      "futureRelease": "به زودی!"
+      "futureRelease": "به زودی!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "کد مجوز به‌روزرسانی شد",

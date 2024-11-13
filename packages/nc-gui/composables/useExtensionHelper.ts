@@ -4,6 +4,7 @@ import type { ExtensionManifest, ExtensionType } from '#imports'
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
   (extension: Ref<ExtensionType>, extensionManifest: ComputedRef<ExtensionManifest | undefined>, activeError: Ref<any>) => {
     const { $api } = useNuxtApp()
+    const route = useRoute()
 
     const basesStore = useBases()
 
@@ -26,6 +27,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     const showExpandBtn = ref(true)
 
     const fullscreenModalSize = ref<keyof typeof modalSizes>(extensionManifest.value?.config?.modalSize || 'lg')
+
+    const activeTableId = computed(() => route.params.viewId as string | undefined)
 
     const collapsed = computed({
       get: () => extension.value?.meta?.collapsed ?? false,
@@ -81,7 +84,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       return getMeta(tableId)
     }
 
-    const insertData = async (params: { tableId: string; data: Record<string, any> }) => {
+    const insertData = async (params: { tableId: string; data: Record<string, any>[] }) => {
       const { tableId, data } = params
 
       const chunks = []
@@ -103,7 +106,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       }
     }
 
-    const updateData = async (params: { tableId: string; data: Record<string, any> }) => {
+    const updateData = async (params: { tableId: string; data: Record<string, any>[] }) => {
       const { tableId, data } = params
 
       const chunks = []
@@ -127,7 +130,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
     const upsertData = async (params: {
       tableId: string
-      data: Record<string, any>
+      data: Record<string, any>[]
       upsertField: ColumnType
       importType: 'insert' | 'update' | 'insertAndUpdate'
     }) => {
@@ -221,6 +224,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       tables,
       showExpandBtn,
       fullscreenModalSize,
+      activeTableId,
       getViewsForTable,
       getData,
       getTableMeta,
@@ -229,6 +233,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       upsertData,
       reloadData,
       reloadMeta,
+      eventBus,
     }
   },
   'extension-helper',

@@ -585,6 +585,7 @@ const {
   meta,
   fields,
   dataRef,
+  undefined,
   editEnabled,
   isPkAvail,
   contextMenu,
@@ -592,6 +593,7 @@ const {
   clearSelectedRangeOfCells,
   makeEditable,
   scrollToCell,
+  undefined,
   async (e: KeyboardEvent) => {
     // ignore navigating if single/multi select options is open
     const activeDropdownEl = document.querySelector(
@@ -769,6 +771,7 @@ const {
     await updateOrSaveRow?.(rowObj, ctx.updatedColumnTitle || columnObj.title)
   },
   bulkUpdateRows,
+  undefined,
   fillHandle,
   view,
   paginationDataRef,
@@ -786,7 +789,7 @@ async function saveEmptyRow(rowObj: Row) {
   await updateOrSaveRow?.(rowObj)
 }
 
-function addEmptyRow(row?: number, skipUpdate: boolean = false) {
+function addEmptyRow(row?: number, skipUpdate = false) {
   const rowObj = callAddEmptyRow?.(row)
 
   if (!skipUpdate && rowObj) {
@@ -989,7 +992,7 @@ const scrollWrapper = computed(() => scrollParent.value || gridWrapper.value)
 
 const scrollLeft = ref()
 
-function scrollToCell(row?: number | null, col?: number | null) {
+function scrollToCell(row?: number | null, col?: number | null, scrollBehaviour: ScrollBehavior = 'instant') {
   row = row ?? activeCell.row
   col = col ?? activeCell.col
 
@@ -1020,32 +1023,38 @@ function scrollToCell(row?: number | null, col?: number | null) {
     }
 
     if (row === dataRef.value.length - 1) {
-      scrollWrapper.value.scrollTo({
-        top: isGroupBy.value ? scrollWrapper.value.scrollTop : scrollWrapper.value.scrollHeight,
-        left:
-          col === fields.value.length - 1 // if corner cell
-            ? scrollWrapper.value.scrollWidth
-            : tdScroll.left,
-        behavior: 'smooth',
+      requestAnimationFrame(() => {
+        scrollWrapper.value.scrollTo({
+          top: isGroupBy.value ? scrollWrapper.value.scrollTop : scrollWrapper.value.scrollHeight,
+          left:
+            col === fields.value.length - 1 // if corner cell
+              ? scrollWrapper.value.scrollWidth
+              : tdScroll.left,
+          behavior: 'instant',
+        })
       })
       return
     }
 
     if (col === fields.value.length - 1) {
       // if last column make 'Add New Column' visible
-      scrollWrapper.value.scrollTo({
-        top: tdScroll.top,
-        left: scrollWrapper.value.scrollWidth,
-        behavior: 'smooth',
+      requestAnimationFrame(() => {
+        scrollWrapper.value.scrollTo({
+          top: tdScroll.top,
+          left: scrollWrapper.value.scrollWidth,
+          behavior: 'instant',
+        })
       })
       return
     }
 
     // scroll into the active cell
-    scrollWrapper.value.scrollTo({
-      top: tdScroll.top,
-      left: tdScroll.left,
-      behavior: 'smooth',
+    requestAnimationFrame(() => {
+      scrollWrapper.value.scrollTo({
+        top: tdScroll.top,
+        left: tdScroll.left,
+        behavior: 'instant',
+      })
     })
   }
 }
@@ -1383,6 +1392,17 @@ eventBus.on(async (event, payload) => {
 
     removeRowIfNew?.(payload)
   }
+})
+
+watch(activeCell, (activeCell) => {
+  const row = activeCell.row !== null ? dataRef.value[activeCell.row].row : undefined
+  const col = row && activeCell.col !== null ? fields.value[activeCell.col] : undefined
+  const val = row && col ? row[col.title as string] : undefined
+
+  const rowId = extractPkFromRow(row!, meta.value?.columns as ColumnType[])
+  const viewId = view.value?.id
+
+  eventBus.emit(SmartsheetStoreEvents.CELL_SELECTED, { rowId, colId: col?.id, val, viewId })
 })
 
 async function reloadViewDataHandler(params: void | { shouldShowLoading?: boolean | undefined; offset?: number | undefined }) {

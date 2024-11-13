@@ -93,6 +93,7 @@
     "none": "None"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Scripts",
     "configure": "Configure",
     "switch": "Switch",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "No conditions added"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Modified on",
     "configuration": "Configuration",
     "setup": "Setup",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "Click to copy Table ID",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "View mode",
+    "reAssignView": "Re-Assign View",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
     "allTables": "All Tables",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "Please activate SMTP plugin in App store for enabling email notification",
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
-      "futureRelease": "Coming soon!"
+      "futureRelease": "Coming soon!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "License Key Updated",

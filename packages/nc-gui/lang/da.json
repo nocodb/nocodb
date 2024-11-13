@@ -93,6 +93,7 @@
     "none": "Ingen"
   },
   "general": {
+    "featurePreview": "Feature Preview",
     "scripts": "Scripts",
     "configure": "Konfigurer",
     "switch": "Skift",
@@ -626,6 +627,8 @@
     "noConditionsAdded": "Ingen betingelser tilføjet"
   },
   "labels": {
+    "continue": "Continue",
+    "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Ændret den",
     "configuration": "Konfiguration",
     "setup": "Opsætning",
@@ -796,6 +799,7 @@
     "clickToCopyTableID": "Klik for at kopiere tabel-ID",
     "clickToCopyViewID": "Klik for at kopiere View ID",
     "viewMode": "Visningstilstand",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Søg Brugere",
     "superAdmin": "Super Admin",
     "allTables": "Alle Tabeller",
@@ -1005,6 +1009,7 @@
     "redirectToUrl": "Omdiriger til URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook Detaljer",
     "hideWeekends": "Skjul weekender",
     "renameBase": "Omdøb basis",
@@ -1573,7 +1578,7 @@
       "showAllViews": "Vis alle fælles visninger af denne tabel",
       "collabView": "Samarbejdspartnere med redigeringstilladelser eller højere kan ændre visningskonfigurationen.",
       "lockedView": "Ingen kan redigere visningskonfigurationen, indtil den er låst op.",
-      "personalView": "Kun du kan redigere visningskonfigurationen. Andre samarbejdspartnere 'Personlige synspunkter er gemt som standard.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Kan tilføje / fjerne skabere. Og Full Edit Database Structures & Fields.",
       "creatorDesc": "Kan fuldt ud redigere databasestruktur og værdier.",
       "editorDesc": "Kan redigere poster, men kan ikke ændre strukturen af ​​database / felter.",
@@ -1803,7 +1808,8 @@
       "formEmailSMTP": "Aktivér venligst SMTP-plugin i App Store for at muliggøre e-mail-besked",
       "collabView": "Succesfuldt skiftet til samarbejdsvisning",
       "lockedView": "Succesfuldt skiftet til låst visning",
-      "futureRelease": "Kommer snart!"
+      "futureRelease": "Kommer snart!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Licensnøgle opdateret",

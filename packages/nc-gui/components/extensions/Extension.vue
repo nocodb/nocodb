@@ -6,7 +6,7 @@ interface Prop {
 
 const { extensionId, error } = defineProps<Prop>()
 
-const { extensionList, extensionsLoaded, availableExtensions, eventBus } = useExtensions()
+const { extensionList, extensionsLoaded, availableExtensions } = useExtensions()
 
 const isLoadedExtension = ref<boolean>(true)
 
@@ -67,10 +67,14 @@ onMounted(() => {
         return
       }
 
-      import(`../../extensions/${extensionManifest.value.entry}/index.vue`).then((mod) => {
-        component.value = markRaw(mod.default)
-        isLoadedExtension.value = false
-      })
+      import(`../../extensions/${extensionManifest.value.entry}/index.vue`)
+        .then((mod) => {
+          component.value = markRaw(mod.default)
+          isLoadedExtension.value = false
+        })
+        .catch((e) => {
+          throw new Error(e)
+        })
     })
     .catch((err) => {
       if (!extensionManifest.value) {
@@ -92,16 +96,6 @@ useEventListener('keydown', (e) => {
   // If the target is not a form element and the key is 'Escape', close fullscreen
   if (e.key === 'Escape' && !isFormElement) {
     fullscreen.value = false
-  }
-})
-
-eventBus.on((event, payload) => {
-  if (event === ExtensionsEvents.DUPLICATE && extension.value.id === payload) {
-    setTimeout(() => {
-      nextTick(() => {
-        extensionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      })
-    }, 500)
   }
 })
 </script>
@@ -161,7 +155,10 @@ eventBus.on((event, payload) => {
         <Teleport to="body" :disabled="!fullscreen">
           <div
             ref="extensionModalRef"
-            :class="{ 'extension-modal': fullscreen, 'h-[calc(100%_-_50px)]': !fullscreen }"
+            :class="[
+              fullscreen ? `nc-${extensionManifest?.id}` : '',
+              { 'extension-modal': fullscreen, 'h-[calc(100%_-_50px)]': !fullscreen },
+            ]"
             @click="closeFullscreen"
           >
             <div
@@ -211,18 +208,14 @@ eventBus.on((event, payload) => {
 }
 
 .extension-content {
-  @apply rounded-lg;
-
-  &:not(.fullscreen) {
-    @apply p-3;
-  }
+  @apply rounded-b-lg;
 }
 
 .extension-modal {
   @apply absolute top-0 left-0 z-1000 w-full h-full bg-black bg-opacity-50 flex items-center justify-center;
 
   .extension-modal-content {
-    @apply bg-white rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col;
+    @apply bg-white rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col overflow-hidden;
   }
 }
 

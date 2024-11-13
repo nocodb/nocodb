@@ -53,13 +53,15 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
+const { eventBus } = useSmartsheetStoreOrThrow()
+
 const columnLabel = computed(() => props.columnLabel || t('objects.field'))
 
 const { $e } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
-const { betaFeatureToggleState } = useBetaFeatureToggle()
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
 
@@ -122,7 +124,9 @@ const isColumnTypeOpen = ref(false)
 const geoDataToggleCondition = (t: { name: UITypes }) => {
   if (!appInfo.value.ee) return true
 
-  return betaFeatureToggleState.show ? betaFeatureToggleState.show : !t.name.includes(UITypes.GeoData)
+  const isColEnabled = isFeatureEnabled(FEATURE_FLAG.GEODATA_COLUMN)
+
+  return isColEnabled || !t.name.includes(UITypes.GeoData)
 }
 
 const showDeprecated = ref(false)
@@ -176,6 +180,8 @@ const onSelectType = (uidt: UITypes) => {
 
 const reloadMetaAndData = async () => {
   await getMeta(meta.value?.id as string, true)
+
+  eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
   if (!isKanban.value) {
     reloadDataTrigger?.trigger()

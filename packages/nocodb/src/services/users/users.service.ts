@@ -599,11 +599,11 @@ export class UsersService {
 
     if (!user['token_version']) {
       user['token_version'] = randomTokenString();
-    }
 
-    await User.update(user.id, {
-      token_version: user['token_version'],
-    });
+      await User.update(user.id, {
+        token_version: user['token_version'],
+      });
+    }
 
     await UserRefreshToken.insert({
       token: refreshToken,

@@ -257,7 +257,7 @@ export class AuthController {
           (await import('~/modules/auth/ui/auth/resetPassword')).default,
           {
             ncPublicUrl: process.env.NC_PUBLIC_URL || '',
-            token: JSON.stringify(tokenId),
+            token: tokenId,
             baseUrl: `/`,
           },
         ),

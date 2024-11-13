@@ -26,10 +26,11 @@ const handleUnlockView = () => {
     <div class="flex-1">{{ $t('title.thisViewIsLocked') }}</div>
 
     <NcButton type="text" size="xs" class="!text-nc-content-brand !hover:bg-nc-bg-gray-medium" @click="handleUnlockView">
-      <template #icon>
+      <div class="flex items-center gap-1">
         <GeneralIcon icon="ncUnlock" class="flex-none" />
-      </template>
-      {{ $t('general.unlock') }}
+
+        {{ $t('general.unlock') }}
+      </div>
     </NcButton>
   </div>
 </template>

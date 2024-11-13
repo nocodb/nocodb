@@ -14,7 +14,7 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate', 'onLockTypeChange'])
+const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate'])
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
 
@@ -67,6 +67,19 @@ const onImportClick = (dialog: any) => {
   dialog.value = true
 }
 
+const onLockTypeChange = (type: LockType) => {
+  const { close } = useDialog(resolveComponent('DlgLockView'), {
+    'modelValue': ref(true),
+    'onUpdate:modelValue': () => {
+      close()
+    },
+    'changeType': type,
+    view,
+  })
+
+  emits('closeModal')
+}
+
 async function changeLockType(type: LockType) {
   if (!view.value) return
 
@@ -83,7 +96,7 @@ async function changeLockType(type: LockType) {
   }
 
   if (type === LockType.Locked || view.value.lock_type === LockType.Locked) {
-    emits('onLockTypeChange', type)
+    onLockTypeChange(type)
 
     return
   }
@@ -153,6 +166,7 @@ const openReAssignDlg = () => {
     },
     view,
   })
+
   emits('closeModal')
 }
 

@@ -152,7 +152,7 @@ watch(
         <div class="text-base font-bold text-nc-content-gray-emphasis">
           {{ $t('title.lockThisView') }}
         </div>
-        <div class="text-sm text-nc-content-gray">
+        <div class="text-sm font-normal text-nc-content-gray-subtle">
           {{ $t('title.lockThisViewSubtle') }}
         </div>
       </div>
@@ -163,7 +163,7 @@ watch(
       :model="form"
       layout="vertical"
       name="create-new-table-form"
-      class="flex flex-col gap-5 !mt-1"
+      class="flex flex-col gap-5 !mt-1 font-normal"
       @finish="changeLockType"
     >
       <div v-if="changeType === LockType.Locked" class="flex flex-col gap-5">

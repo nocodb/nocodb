@@ -100,7 +100,9 @@ const inputEl = (el: HTMLInputElement) => {
   <NcModal v-model:visible="vModel" wrap-class-name="nc-modal-re-assign" width="448px">
     <div class="mb-5">
       <div class="flex text-base font-bold mb-2">Re-assign this view</div>
-      <div class="flex">Once reassigned, current owner will no longer be able to edit the view configuration.</div>
+      <div class="flex text-nc-content-gray-subtle">
+        Once reassigned, current owner will no longer be able to edit the view configuration.
+      </div>
     </div>
 
     <div class="mb-5">

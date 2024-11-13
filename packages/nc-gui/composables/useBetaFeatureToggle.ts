@@ -43,6 +43,13 @@ const FEATURES = [
     enabled: false,
     isEngineering: true,
   },
+  {
+    id: 'calendar_view_range',
+    title: 'Allow configuring End Date for Calendar View',
+    description: 'Enables the calendar to display items as date ranges by allowing configuration of both start and end dates. ',
+    enabled: false,
+    isEngineering: true,
+  },
 ]
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

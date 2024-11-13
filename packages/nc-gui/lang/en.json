@@ -1053,7 +1053,7 @@
   "activity": {
     "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
-    "hideWeekends": "Hide weekends",
+    "showSaturdaysAndSundays": "Show Saturdays & Sundays",
     "renameBase": "Rename Base",
     "renameWorkspace": "Rename workspace",
     "deactivate": "De-activate",
@@ -1069,6 +1069,7 @@
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
+    "endDate": "End Date",
     "withEndDate": "with end date",
     "calendar": "Calendar",
     "viewSettings": "View settings",

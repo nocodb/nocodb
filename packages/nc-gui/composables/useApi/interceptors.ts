@@ -73,7 +73,7 @@ export function addAxiosInterceptors(api: Api<any>) {
         const response = await axiosInstance.request(config)
         return response
       } catch (refreshTokenError) {
-        if (refreshTokenError.code === 'ERR_CANCELED') {
+        if ((refreshTokenError as any)?.code === 'ERR_CANCELED') {
           return Promise.reject(refreshTokenError)
         }
 

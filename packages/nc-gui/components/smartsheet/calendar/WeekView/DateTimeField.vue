@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import type { ColumnType } from 'nocodb-sdk'
 import type { Row } from '~/lib/types'
 
 const emits = defineEmits(['expandRecord', 'newRecord'])
@@ -39,17 +38,14 @@ const fields = inject(FieldsInj, ref())
 const { fields: _fields } = useViewColumnsOrThrow()
 
 const fieldStyles = computed(() => {
-  if (!_fields.value) return new Map()
-  return new Map(
-    _fields.value.map((field) => [
-      field.fk_column_id,
-      {
-        underline: field.underline,
-        bold: field.bold,
-        italic: field.italic,
-      },
-    ]),
-  )
+  return (_fields.value ?? []).reduce((acc, field) => {
+    acc[field.fk_column_id!] = {
+      bold: !!field.bold,
+      italic: !!field.italic,
+      underline: !!field.underline,
+    }
+    return acc
+  }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
 
 const getDayIndex = (date: dayjs.Dayjs) => {
@@ -96,9 +92,36 @@ onMounted(() => {
   })
 })
 
-const getFieldStyle = (field: ColumnType) => {
-  return fieldStyles.value.get(field.id)
+const calculateHourIndices = (dayIndex: number, startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
+  // Get the hour component for start and end times
+  const startHour = startDate.hour()
+  const endHour = endDate.hour()
+
+  // Find the indices directly based on hours since datesHours uses integer hours
+  const startHourIndex = Math.max(
+    (datesHours.value[dayIndex] ?? []).findIndex((h) => h.hour() === startHour),
+    0,
+  )
+
+  // For end hour, we need to handle cases where the end time has minutes
+  let endHourIndex = (datesHours.value[dayIndex] ?? []).findIndex((h) => h.hour() === endHour)
+
+  // If we have minutes in the end time, we should include the next hour
+  if (endDate.minute() > 0 && endHour < 23) {
+    endHourIndex++
+  }
+
+  endHourIndex = Math.max(endHourIndex, 0)
+
+  return {
+    startHourIndex,
+    endHourIndex,
+    // You might also want these for more precise calculations
+    startMinutes: startDate.minute(),
+    endMinutes: endDate.minute(),
+  }
 }
+
 const calculateNewDates = useMemoize(
   ({
     startDate,
@@ -219,7 +242,6 @@ const getMaxOverlaps = ({
   if (graph.has(id)) {
     dfs(id)
   }
-
   const overlapIterations: Array<number> = []
 
   columnArray[dayIndex]
@@ -229,7 +251,7 @@ const getMaxOverlaps = ({
       overlapIterations.push(record.rowMeta.overLapIteration!)
     })
 
-  maxOverlaps = Math.max(...overlapIterations)
+  maxOverlaps = overlapIterations?.length > 0 ? Math.max(...overlapIterations) : 1
 
   return { maxOverlaps, dayIndex, overlapIndex }
 }
@@ -274,6 +296,7 @@ const recordsAcrossAllRange = computed<{
     >
   >()
   const recordsToDisplay: Array<Row> = []
+  const recordSpanningDays: Array<Row> = []
 
   calendarRange.value.forEach((range) => {
     const fromCol = range.fk_from_col
@@ -283,23 +306,22 @@ const recordsAcrossAllRange = computed<{
     // But not all fetched records are valid for the certain range, so we filter them out & sort them
     const sortedFormattedData = [...formattedData.value]
       .filter((record) => {
-        const fromDate = record.row[fromCol!.title!] ? dayjs(record.row[fromCol!.title!]) : null
-
         if (fromCol && toCol) {
-          const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
-          const toDate = record.row[toCol.title!] ? dayjs(record.row[toCol.title!]) : null
+          const fromDate = dayjs(record.row[fromCol.title!])
+          const toDate = dayjs(record.row[toCol.title!])
 
-          return fromDate && toDate && !toDate.isBefore(fromDate)
-        } else if (fromCol && !toCol) {
-          return !!fromDate
+          if (fromDate.isValid() && toDate.isValid()) {
+            const isMultiDay = !fromDate.isSame(toDate, 'day')
+            if (isMultiDay) {
+              recordSpanningDays.push(record)
+              return false
+            }
+            return true
+          }
         }
-        return false
+        return fromCol && !!record.row[fromCol.title!]
       })
-      .sort((a, b) => {
-        const aDate = dayjs(a.row[fromCol!.title!])
-        const bDate = dayjs(b.row[fromCol!.title!])
-        return aDate.isBefore(bDate) ? 1 : -1
-      })
+      .sort((a, b) => (dayjs(a.row[fromCol!.title!]).isBefore(dayjs(b.row[fromCol!.title!])) ? 1 : -1))
 
     for (const record of sortedFormattedData) {
       const id = record.rowMeta.id ?? generateRandomNumber()
@@ -311,73 +333,37 @@ const recordsAcrossAllRange = computed<{
           scheduleStart,
           scheduleEnd,
         })
+        const dayIndex = getDayIndex(startDate)
 
-        // Setting the current start date to the start date of the record
-        let currentStartDate: dayjs.Dayjs = startDate.clone()
+        const { startHourIndex, endHourIndex, startMinutes, endMinutes } = calculateHourIndices(dayIndex, startDate, endDate)
 
-        // We loop through the start date to the end date and create a record for each day as it spans bottom to top
-        while (currentStartDate.isSameOrBefore(endDate!, 'day')) {
-          const currentEndDate = currentStartDate.clone().endOf('day')
-          const recordStart: dayjs.Dayjs = currentEndDate.isSame(startDate, 'day') ? startDate : currentStartDate
-          const recordEnd = currentEndDate.isSame(endDate, 'day') ? endDate : currentEndDate
+        console.log(startHourIndex, endHourIndex)
 
-          const dayIndex = getDayIndex(recordStart)
+        let style: Partial<CSSStyleDeclaration> = {}
 
-          // We calculate the index of the start and end hour in the day
-          const startHourIndex = Math.max(
-            (datesHours.value[dayIndex] ?? []).findIndex((h) => h.format('HH:mm') === recordStart.format('HH:mm')),
-            0,
-          )
-          const endHourIndex = Math.max(
-            (datesHours.value[dayIndex] ?? []).findIndex((h) => h.format('HH:mm') === recordEnd?.startOf('hour').format('HH:mm')),
-            0,
-          )
+        const spanHours = endHourIndex - startHourIndex + 1
 
-          let position: 'topRounded' | 'bottomRounded' | 'rounded' | 'none' = 'rounded'
-          const isSelectedDay = (date: dayjs.Dayjs) => date.isSame(currentStartDate, 'day')
-          const isBeforeSelectedDay = (date: dayjs.Dayjs) => date.isBefore(currentStartDate, 'day')
-          const isAfterSelectedDay = (date: dayjs.Dayjs) => date.isAfter(currentStartDate, 'day')
+        const top = startHourIndex * perHeight
 
-          if (isSelectedDay(startDate) && isSelectedDay(endDate)) {
-            position = 'rounded'
-          } else if (isBeforeSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
-            position = 'none'
-          } else if (isSelectedDay(startDate) && isAfterSelectedDay(endDate)) {
-            position = 'topRounded'
-          } else if (isBeforeSelectedDay(startDate) && isSelectedDay(endDate)) {
-            position = 'bottomRounded'
-          } else {
-            position = 'none'
-          }
+        const height = (endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5
 
-          let style: Partial<CSSStyleDeclaration> = {}
-
-          const spanHours = endHourIndex - startHourIndex + 1
-
-          const top = startHourIndex * perHeight
-
-          const height = (endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5
-
-          style = {
-            ...style,
-            top: `${top}px`,
-            height: `${height}px`,
-          }
-
-          recordsToDisplay.push({
-            ...record,
-            rowMeta: {
-              ...record.rowMeta,
-              id,
-              style,
-              range,
-              position,
-              dayIndex,
-            },
-          })
-          // We set the current start date to the next day
-          currentStartDate = currentStartDate.add(1, 'day').hour(0).minute(0)
+        style = {
+          ...style,
+          top: `${top}px`,
+          height: `${height}px`,
         }
+
+        recordsToDisplay.push({
+          ...record,
+          rowMeta: {
+            ...record.rowMeta,
+            id,
+            style,
+            range,
+            position: 'rounded',
+            dayIndex,
+          },
+        })
       } else if (fromCol) {
         // If there is no toColumn chosen in the range
         const { startDate } = calculateNewDates({
@@ -534,12 +520,14 @@ const recordsAcrossAllRange = computed<{
 
       let width = 0
       let left = 100
+
       const majorLeft = dayIndex * perWidth
 
       if (record.rowMeta.overLapIteration! - 1 > 2) {
         display = 'none'
       } else {
         width = 100 / Math.min(maxOverlaps, 3) / maxVisibleDays.value
+
         left = width * (overlapIndex - 1)
       }
       record.rowMeta.style = {
@@ -1046,10 +1034,10 @@ watch(
                     v-if="!isRowEmpty(record, field!)"
                     v-model="record.row[field!.title!]"
                     class="text-xs"
-                    :bold="getFieldStyle(field).bold"
                     :column="field"
-                    :italic="getFieldStyle(field).italic"
-                    :underline="getFieldStyle(field).underline"
+                    :bold="!!fieldStyles[field.id]?.bold"
+                    :italic="!!fieldStyles[field.id]?.italic"
+                    :underline="!!fieldStyles[field.id]?.underline"
                   />
                 </template>
                 <template #time>

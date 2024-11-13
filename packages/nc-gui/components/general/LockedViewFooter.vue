@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const emits = defineEmits(['onOpen'])
 
+const { isUIAllowed } = useRoles()
+
 const { activeView } = storeToRefs(useViewsStore())
 
 const view = computed(() => props.view || activeView.value)
@@ -50,7 +52,7 @@ const handleUnlockView = () => {
     </div>
 
     <NcButton
-      v-if="view?.lock_type === ViewLockType.Locked"
+      v-if="view?.lock_type === ViewLockType.Locked && isUIAllowed('fieldAdd')"
       type="text"
       size="xs"
       class="!text-nc-content-brand !hover:bg-nc-bg-gray-medium"

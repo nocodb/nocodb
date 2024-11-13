@@ -9,13 +9,13 @@ const slots = useSlots()
 <template>
   <a-sub-menu :popup-offset="props.popupOffset" class="nc-sub-menu" popup-class-name="nc-submenu-popup">
     <template #title>
-      <div class="flex flex-row items-center gap-x-1.5 py-1.75 justify-between group hover:text-gray-800">
+      <div class="nc-submenu-title flex flex-row items-center gap-x-1.5 py-1.75 justify-between group">
         <div class="flex flex-row items-center gap-x-2">
           <slot name="title" />
         </div>
 
         <slot v-if="slots.expandIcon" name="expandIcon" />
-        <GeneralIcon v-else icon="arrowRight" class="text-base text-gray-600 group-hover:text-gray-800" />
+        <GeneralIcon v-else icon="arrowRight" class="nc-submenu-arrow text-base" />
       </div>
     </template>
 
@@ -29,6 +29,16 @@ const slots = useSlots()
 <style lang="scss">
 .ant-dropdown-menu-submenu.nc-sub-menu {
   @apply flex mx-1.5 rounded-md overflow-hidden !hover:bg-gray-100;
+
+  &:not(.ant-dropdown-menu-submenu-disabled) {
+    .nc-submenu-title {
+      @apply hover:text-gray-800;
+    }
+
+    .nc-submenu-arrow {
+      @apply text-gray-600 group-hover:text-gray-800;
+    }
+  }
 }
 
 .nc-sub-menu > .ant-dropdown-menu-submenu-title {

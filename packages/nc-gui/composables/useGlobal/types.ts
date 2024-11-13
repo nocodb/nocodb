@@ -91,8 +91,8 @@ export interface SignOutParams {
 
 export interface Actions {
   signOut: (signOutParams?: SignOutParams) => Promise<void>
-  signIn: (token: string, keepProps?: boolean) => Promise<void>
-  refreshToken: () => void
+  signIn: (token: string, keepProps?: boolean) => void
+  refreshToken: () => Promise<void>
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
   navigateToProject: (params: { workspaceId?: string; baseId?: string; type?: NcProjectType; query?: any }) => void

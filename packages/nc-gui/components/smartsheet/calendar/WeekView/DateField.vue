@@ -286,13 +286,25 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
   document.addEventListener('mouseup', onResizeEnd)
 }
 
+const dragOffset = ref<{
+  x: number | null
+  y: number | null
+}>({ x: null, y: null })
+
 // This method is used to calculate the new start and end date of a record when dragging and dropping
 const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   const { width, left } = container.value.getBoundingClientRect()
 
   // Calculate the percentage of the width based on the mouse position
   // This is used to calculate the day index
-  const percentX = (event.clientX - left - window.scrollX) / width
+
+  let relativeX = event.clientX - left
+
+  if (dragOffset.value.x) {
+    relativeX -= dragOffset.value.x
+  }
+
+  const percentX = Math.max(0, Math.min(1, relativeX / width))
 
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
@@ -410,6 +422,11 @@ const dragStart = (event: MouseEvent, record: Row) => {
       target = target.parentElement as HTMLElement
     }
 
+    dragOffset.value = {
+      x: event.clientX - target.getBoundingClientRect().left,
+      y: event.clientY - target.getBoundingClientRect().top,
+    }
+
     const allRecords = document.querySelectorAll('.draggable-record')
     allRecords.forEach((el) => {
       if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
@@ -457,6 +474,12 @@ const dropEvent = (event: DragEvent) => {
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
+
+    dragOffset.value = {
+      x: null,
+      y: null,
+    }
+
     $e('c:calendar:day:drag-record')
   }
 }

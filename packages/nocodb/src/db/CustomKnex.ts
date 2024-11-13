@@ -991,6 +991,7 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
       default:
         // if object handle recursively
         if (
+          val &&
           typeof val === 'object' &&
           !(val instanceof Date) &&
           !Array.isArray(val)
@@ -1252,6 +1253,7 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
       default:
         // if object handle recursively
         if (
+          val &&
           typeof val === 'object' &&
           !(val instanceof Date) &&
           !Array.isArray(val)

@@ -10,7 +10,7 @@ const props = defineProps<{
   changeType?: LockType
 }>()
 
-const emits = defineEmits(['update:modelValue', 'submit'])
+const emits = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false })
 
@@ -34,15 +34,31 @@ const focusInput: VNodeRef = (el) => el && el?.focus?.()
 
 const focusUnlockBtn: VNodeRef = (el) => changeType.value !== LockType.Locked && el?.$el && el.$el?.focus?.()
 
-const description = ref('')
+const formValidator = ref()
+
+const isErrored = ref(false)
+
+const form = reactive({
+  description: '',
+})
+
+const formRules = {
+  description: [{ max: 1000, message: 'Value must be at most 1000 characters long' }],
+}
 
 const isLoading = ref(false)
 
 const changeLockType = async () => {
   if (!view.value) return
 
+  if (changeType.value === LockType.Locked) {
+    const valid = await formValidator.value.validate()
+
+    if (!valid) return
+  }
+
   const payload = {
-    lockedViewDescription: changeType.value === LockType.Locked ? description.value : '',
+    lockedViewDescription: changeType.value === LockType.Locked ? form.description : '',
     lockedByUserId: changeType.value === LockType.Locked ? user.value?.id : '',
   }
 
@@ -77,9 +93,23 @@ const changeLockType = async () => {
 
 watch(dialogShow, (newValue) => {
   if (!newValue) {
-    description.value = ''
+    form.description = ''
+    isErrored.value = false
   }
 })
+
+watch(
+  () => form.description,
+  async () => {
+    if (changeType.value !== LockType.Locked) return
+
+    try {
+      isErrored.value = !(await formValidator.value.validate())
+    } catch (e: any) {
+      isErrored.value = true
+    }
+  },
+)
 </script>
 
 <template>
@@ -129,17 +159,18 @@ watch(dialogShow, (newValue) => {
     </template>
 
     <a-form
+      ref="formValidator"
+      :model="form"
       layout="vertical"
       name="create-new-table-form"
       class="flex flex-col gap-5 !mt-1"
-      @keydown.enter="emits('submit')"
-      @keydown.esc="dialogShow = false"
+      @finish="changeLockType"
     >
       <div v-if="changeType === LockType.Locked" class="flex flex-col gap-5">
-        <a-form-item>
+        <a-form-item name="description" :rules="formRules.description">
           <a-textarea
             :ref="focusInput"
-            v-model:value="description"
+            v-model:value="form.description"
             class="!rounded-lg !text-sm nc-input-shadow !min-h-[120px] max-h-[500px] nc-scrollbar-thin"
             size="large"
             hide-details
@@ -172,11 +203,11 @@ watch(dialogShow, (newValue) => {
         <NcButton
           :ref="focusUnlockBtn"
           type="primary"
+          html-type="submit"
           size="small"
           :loading="isLoading"
-          :disabled="isLoading"
+          :disabled="isLoading || isErrored"
           data-testid="nc-lock-or-unlock-btn"
-          @click="changeLockType"
         >
           <template #icon>
             <GeneralIcon :icon="changeType === LockType.Locked ? 'ncLock' : 'ncUnlock'" class="flex-none" />

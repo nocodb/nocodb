@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Tablo ID'sini kopyalamak için tıklayın",
     "clickToCopyViewID": "Görünüm ID'sini kopyalamak için tıklayın",
     "viewMode": "Görünüm Modu",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Kullanıcıları Ara",
     "superAdmin": "Süper Admin",
     "allTables": "Tüm Tablolar",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "URL'ye Yönlendir"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook Detayları",
     "hideWeekends": "Hafta sonlarını gizle",
     "renameBase": "Tabanı Yeniden Adlandır",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Bu tablonun tüm paylaşılan görünümlerini göster",
       "collabView": "Düzenleme ya da üzeri yetkiye sahip katılımcılar görünüm ayarlarını değiştirebilir.",
       "lockedView": "Kilidi açılana kadar kimse görünüm ayarlarını düzenleyemez.",
-      "personalView": "Yalnızca siz görünüm ayarlarını düzenleyebilirsiniz. Diğer katılımcıların kişisel görünümleri varsayılan olarak gizlendi.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Yaratıcı ekleyebilir/silebilir. Ve tüm veritabanı yapılarını & sütunlarını düzenleyebilir.",
       "creatorDesc": "Tüm veritabanı yapılarını & değerlerini düzenleyebilir.",
       "editorDesc": "Kayıtları düzenleyebilir ancak veritabanı yapısını ya da sütunları değiştiremez.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Please activate SMTP plugin in App store for enabling email notification",
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
-      "futureRelease": "Coming soon!"
+      "futureRelease": "Coming soon!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Lisans Anahtarı Güncellendi",

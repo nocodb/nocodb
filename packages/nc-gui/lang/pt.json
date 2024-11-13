@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Clique para copiar o ID da Tabela",
     "clickToCopyViewID": "Clique para copiar ID da Visualização",
     "viewMode": "Modo de visualização",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Pesquisar Usuários",
     "superAdmin": "Administrador Geral",
     "allTables": "Todas as Tabelas",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Redirecionar para URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Detalhes do Webhook",
     "hideWeekends": "Ocultar fins de semana",
     "renameBase": "Renomear Base",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Mostrar todas as vistas compartilhadas desta mesa",
       "collabView": "Colaboradores com permissões de edição ou maiores podem alterar a configuração da visualização.",
       "lockedView": "Ninguém pode editar a configuração de visualização até que seja desbloqueado.",
-      "personalView": "Só você pode editar a configuração de visualização. As visualizações pessoais de outras colaboradoras estão ocultas por padrão.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Pode adicionar / remover criadores. E estruturas e campos de banco de dados de edição completa.",
       "creatorDesc": "Pode editar totalmente a estrutura e valores do banco de dados.",
       "editorDesc": "Pode editar registros, mas não pode alterar a estrutura do banco de dados / campos.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Por favor, ative o plugin SMTP na App Store para ativar a notificação por e-mail",
       "collabView": "Com sucesso mudou para a visão colaborativa",
       "lockedView": "Mudou com sucesso para vista bloqueada",
-      "futureRelease": "Em breve!"
+      "futureRelease": "Em breve!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Chave de licença atualizada",

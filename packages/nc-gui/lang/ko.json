@@ -627,7 +627,7 @@
     "noConditionsAdded": "조건이 추가되지 않았습니다"
   },
   "labels": {
-    "continue": "Continue",
+    "continue": "계속",
     "toggleExperimentalFeature": "실험 기능을 쉽게 활성화 또는 비활성화하여 향후 출시될 기능들을 탐색하고 평가할 수 있습니다.",
     "modifiedOn": "수정된 날짜",
     "configuration": "구성",
@@ -1009,7 +1009,7 @@
     "redirectToUrl": "URL로 리디렉션"
   },
   "activity": {
-    "assignView": "Assign view",
+    "assignView": "뷰 할당",
     "webhookDetails": "웹훅 상세",
     "hideWeekends": "주말 숨기기",
     "renameBase": "프로젝트 이름 바꾸기",
@@ -1256,7 +1256,7 @@
     "addFieldFromFormView": "필드 추가",
     "selectAllFields": "모든 필드 선택",
     "preFilledFields": {
-      "title": "사전 채우기 활성화",
+      "title": "자동 입력 활성화",
       "default": "기본",
       "locked": "미리 채워진 필드를 읽기 전용으로 잠금",
       "hidden": "미리 채워진 필드 숨기기",
@@ -1308,7 +1308,7 @@
     "clientCA": "CA 파일을 선택하십시오",
     "changeIconColour": "아이콘 색상 변경",
     "preFillFormInfo": "미리 작성된 링크를 생성하려면, 양식 생성기에서 필요한 필드를 모두 채웠는지 확인하세요.",
-    "surveyFormInfo": "페이지당 하나의 필드로 폼 모드",
+    "surveyFormInfo": "페이지당 하나의 필드가 있는 양식 모드",
     "useFieldEditMenuToConfigFieldType": "파일을 가져온 후 유형 변환을 위해 필드 편집 메뉴 사용",
     "roleInheritedFromWorkspace": "워크스페이스에서 상속된 역할",
     "comingSoonIntegration": "곧 출시됩니다! NocoDB에서 필요한 연동을 추천하려면 클릭하세요."
@@ -1809,7 +1809,7 @@
       "collabView": "공동 작업 뷰로 성공적으로 전환했습니다",
       "lockedView": "잠긴 뷰로 성공적으로 전환되었습니다",
       "futureRelease": "곧 출시!",
-      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
+      "notAllowedToChangeDefaultView": "기본 뷰를 변경할 수 없습니다"
     },
     "success": {
       "licenseKeyUpdated": "라이센스 키 업데이트됨",

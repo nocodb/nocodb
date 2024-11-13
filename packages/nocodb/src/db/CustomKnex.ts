@@ -990,7 +990,11 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
         break;
       default:
         // if object handle recursively
-        if (typeof val === 'object' && !Array.isArray(val)) {
+        if (
+          typeof val === 'object' &&
+          !(val instanceof Date) &&
+          !Array.isArray(val)
+        ) {
           qb = parseNestedCondition.call(self, val, qb, key, tn, tableAlias);
         } else {
           // handle based on operator
@@ -1247,7 +1251,11 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
         break;
       default:
         // if object handle recursively
-        if (typeof val === 'object' && !Array.isArray(val)) {
+        if (
+          typeof val === 'object' &&
+          !(val instanceof Date) &&
+          !Array.isArray(val)
+        ) {
           qb = parseNestedCondition.call(self, val, qb, key, tn, tableAlias);
         } else {
           // handle based on operator

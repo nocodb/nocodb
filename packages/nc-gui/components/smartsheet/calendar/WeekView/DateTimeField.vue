@@ -335,17 +335,14 @@ const recordsAcrossAllRange = computed<{
         })
         const dayIndex = getDayIndex(startDate)
 
-        const { startHourIndex, endHourIndex, startMinutes, endMinutes } = calculateHourIndices(dayIndex, startDate, endDate)
-
-        console.log(startHourIndex, endHourIndex)
+        const { startHourIndex, startMinutes } = calculateHourIndices(dayIndex, startDate, endDate)
 
         let style: Partial<CSSStyleDeclaration> = {}
 
-        const spanHours = endHourIndex - startHourIndex + 1
+        const top = (startHourIndex + startMinutes / 60) * perHeight
 
-        const top = startHourIndex * perHeight
-
-        const height = (endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5
+        const totalHours = endDate.diff(startDate, 'minute') / 60
+        const height = totalHours * perHeight
 
         style = {
           ...style,
@@ -565,85 +562,69 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 
 const onResize = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value || !scrollContainer.value) return
-
   if (resizeRecord.value.rowMeta.range?.is_readonly) return
 
   const { width, left, top, bottom } = container.value.getBoundingClientRect()
-
-  const { scrollHeight } = container.value
+  const { scrollHeight, scrollTop } = container.value
 
   // If the mouse is near the bottom of the container, we scroll down
-  // If the mouse is near the top of the container, we scroll up
+  // If the mouse is near the top of the container, we scroll up  if (event.clientY > bottom - 20) {
   if (event.clientY > bottom - 20) {
     container.value.scrollTop += 10
   } else if (event.clientY < top + 20) {
     container.value.scrollTop -= 10
   }
 
-  // We calculate the percentage of the mouse position in the container
-  // percentX is used for the day and percentY is used for the hour
   const percentX = (event.clientX - left - window.scrollX) / width
-  const percentY = (event.clientY - top + container.value.scrollTop) / scrollHeight
+  const percentY = (event.clientY - top + scrollTop) / scrollHeight
 
-  const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
-  const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
+  const { range } = resizeRecord.value.rowMeta
+  const fromCol = range?.fk_from_col
+  const toCol = range?.fk_to_col
+  if (!fromCol?.title || !toCol?.title) return
 
-  if (!fromCol || !toCol) return
-
-  const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
-  const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
+  const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title])
+  const ogEndDate = dayjs(resizeRecord.value.row[toCol.title])
 
   const day = Math.floor(percentX * maxVisibleDays.value)
   const hour = Math.floor(percentY * 23)
-  const minutes = Math.round((percentY * 24 * 60) % 60)
+  const minutes = Math.round((percentY * 24 * 60) / 15) * 15 // Round to nearest 15 minutes
 
-  let updateProperty: string[] = []
-  let newRow: Row = resizeRecord.value
+  const baseDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
+
+  let newDate: dayjs.Dayjs
+  let updateProperty: string
+  let isValid = true
 
   if (resizeDirection.value === 'right') {
-    let newEndDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
-    updateProperty = [toCol.title!]
-
-    // If the new end date is before the start date, we set the new end date to the start date
-    if (dayjs(newEndDate).isBefore(ogStartDate, 'day')) {
-      newEndDate = ogStartDate.clone()
-    }
-
-    if (!newEndDate.isValid()) return
-
-    newRow = {
-      ...resizeRecord.value,
-      row: {
-        ...resizeRecord.value.row,
-        [toCol.title!]: newEndDate.format(updateFormat.value),
-      },
-    }
+    newDate = baseDate.isBefore(ogStartDate)
+      ? ogStartDate.add(Math.ceil(ogStartDate.diff(baseDate, 'minute') / 15) * 15, 'minute')
+      : baseDate
+    updateProperty = toCol.title
   } else if (resizeDirection.value === 'left') {
-    let newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
-    updateProperty = [fromCol.title!]
+    newDate = baseDate.isAfter(ogEndDate)
+      ? ogEndDate.subtract(Math.ceil(baseDate.diff(ogEndDate, 'minute') / 15) * 15, 'minute')
+      : baseDate
+    updateProperty = fromCol.title
+  } else {
+    isValid = false
+  }
 
-    // If the new start date is after the end date, we set the new start date to the end date
-    if (dayjs(newStartDate).isAfter(ogEndDate)) {
-      newStartDate = dayjs(dayjs(ogEndDate)).clone()
-    }
-    if (!newStartDate) return
+  if (!isValid || !newDate.isValid()) return
 
-    newRow = {
-      ...resizeRecord.value,
-      row: {
-        ...resizeRecord.value.row,
-        [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
-      },
-    }
+  const newRow = {
+    ...resizeRecord.value,
+    row: {
+      ...resizeRecord.value.row,
+      [updateProperty]: newDate.format(updateFormat.value),
+    },
   }
 
   const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
 
-  formattedData.value = formattedData.value.map((r) => {
-    const pk = extractPkFromRow(r.row, meta.value!.columns!)
-    return pk === newPk ? newRow : r
-  })
-  useDebouncedRowUpdate(newRow, updateProperty, false)
+  formattedData.value = formattedData.value.map((r) => (extractPkFromRow(r.row, meta.value!.columns!) === newPk ? newRow : r))
+
+  useDebouncedRowUpdate(newRow, [updateProperty], false)
 }
 
 const onResizeEnd = () => {
@@ -710,10 +691,11 @@ const calculateNewRow = (
 
   if (toCol) {
     const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
-    const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
+    const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : fromDate?.clone()
 
     if (fromDate && toDate) {
-      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+      const newMinutes = Math.round(toDate.diff(fromDate, 'minute') / 15) * 15
+      endDate = newStartDate.add(newMinutes, 'minute')
     } else if (fromDate && !toDate) {
       endDate = dayjs(newStartDate).endOf('day')
     } else if (!fromDate && toDate) {
@@ -722,13 +704,12 @@ const calculateNewRow = (
       endDate = newStartDate.clone()
     }
 
+    if (endDate.isBefore(newStartDate)) {
+      endDate = newStartDate.clone().add(15, 'minutes')
+    }
+
     newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
     updatedProperty.push(toCol.title!)
-  }
-
-  // If from and to columns of the dragRecord and the newRow are the same, we don't manipulate the formattedRecords and formattedSideBarData. This removes unwanted computation
-  if (dragRecord.value.row[fromCol.title!] === newRow.row[fromCol.title!] && !skipChangeCheck) {
-    return { newRow: null, updatedProperty: [] }
   }
 
   if (!newRow) return { newRow: null, updatedProperty: [] }

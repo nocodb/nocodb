@@ -1,5 +1,15 @@
 <script lang="ts" setup>
+import { ViewLockType, type ViewType } from 'nocodb-sdk'
+
+const props = defineProps<{
+  view?: ViewType
+}>()
+
 const emits = defineEmits(['onOpen'])
+
+const { activeView } = storeToRefs(useViewsStore())
+
+const view = computed(() => props.view || activeView.value)
 
 const handleUnlockView = () => {
   emits('onOpen')
@@ -21,11 +31,31 @@ const handleUnlockView = () => {
   <div
     class="nc-locked-view-footer flex items-center gap-2 bg-nc-bg-gray-light pl-3 pr-2 py-1.5 text-nc-content-gray-subtle2 text-small leading-[18px]"
   >
-    <GeneralIcon icon="ncLock" class="flex-none" />
+    <component
+      v-if="view?.lock_type"
+      :is="viewLockIcons[view.lock_type].icon"
+      class="flex-none"
+      :class="{
+        'w-4 h-4': view?.lock_type === ViewLockType.Locked,
+        'w-3.5 h-3.5': view?.lock_type !== ViewLockType.Locked,
+      }"
+    />
 
-    <div class="flex-1">{{ $t('title.thisViewIsLocked') }}</div>
+    <div class="flex-1">
+      {{
+        $t('title.thisViewIsLockType', {
+          type: $t(viewLockIcons[view?.lock_type]?.title).toLowerCase(),
+        })
+      }}
+    </div>
 
-    <NcButton type="text" size="xs" class="!text-nc-content-brand !hover:bg-nc-bg-gray-medium" @click="handleUnlockView">
+    <NcButton
+      v-if="view?.lock_type === ViewLockType.Locked"
+      type="text"
+      size="xs"
+      class="!text-nc-content-brand !hover:bg-nc-bg-gray-medium"
+      @click="handleUnlockView"
+    >
       <div class="flex items-center gap-1">
         <GeneralIcon icon="ncUnlock" class="flex-none" />
 

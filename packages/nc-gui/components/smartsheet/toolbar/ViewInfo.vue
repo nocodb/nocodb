@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const { isMobileMode } = useGlobal()
+import { ViewLockType } from 'nocodb-sdk'
+
+const { isMobileMode, user } = useGlobal()
 
 const { activeView, openedViewsTab } = storeToRefs(useViewsStore())
 
@@ -8,6 +10,10 @@ const { base, isSharedBase } = storeToRefs(useBase())
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+const isViewOwner = computed(() => {
+  return activeView.value?.owned_by === user.value?.id
+})
 </script>
 
 <template>
@@ -160,7 +166,15 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               </span>
             </NcTooltip>
 
-            <GeneralIcon v-if="activeView?.lock_type === LockType.Locked" icon="ncLock" class="w-4 h-4 flex-none mx-0.5" />
+            <component
+              v-if="[ViewLockType.Locked, ViewLockType.Personal].includes(activeView?.lock_type)"
+              :is="viewLockIcons[activeView.lock_type].icon"
+              class="flex-none w-3.5 h-3.5 mx-0.5"
+              :class="{
+                'text-brand-400': activeView?.lock_type === ViewLockType.Personal && isViewOwner,
+                'text-gray-400': !(activeView?.lock_type === ViewLockType.Personal && isViewOwner),
+              }"
+            />
 
             <GeneralIcon
               icon="chevronDown"

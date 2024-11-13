@@ -34,7 +34,7 @@ const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType &
 
 const { $e } = useNuxtApp()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, user } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
@@ -77,6 +77,10 @@ const isStopped = ref(false)
 
 /** Original view title when editing the view name */
 const _title = ref<string | undefined>()
+
+const isViewOwner = computed(() => {
+  return vModel.value?.owned_by === user.value?.id
+})
 
 /** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
@@ -298,7 +302,7 @@ watch(isDropdownOpen, async () => {
         v-else
         class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none max-w-full"
         :class="{
-          'w-full': ![LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type!),
+          'w-full': ![ViewLockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type!),
         }"
         show-on-truncate-only
       >
@@ -315,9 +319,12 @@ watch(isDropdownOpen, async () => {
       </NcTooltip>
       <div v-if="!isEditing && [LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)" class="flex-1 flex">
         <component
-          :is="viewLockIcons[view.lock_type].icon"
-          v-if="view.lock_type === ViewLockType.Locked || view.lock_type === ViewLockType.Personal"
-          class="text-gray-400 ml-1 h-4 w-4 flex-none"
+          :is="viewLockIcons[vModel.lock_type].icon"
+          class="ml-1 flex-none w-3.5 h-3.5"
+          :class="{
+            'text-brand-400': vModel?.lock_type === ViewLockType.Personal && isViewOwner,
+            'text-gray-400': !(vModel?.lock_type === ViewLockType.Personal && isViewOwner),
+          }"
         />
       </div>
 

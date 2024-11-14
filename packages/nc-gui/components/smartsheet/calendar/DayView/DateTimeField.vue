@@ -281,7 +281,7 @@ const recordsAcrossAllRange = computed<{
 
         // A minimum height of 52px is set for each record
         // The height of the record is calculated based on the difference between the start and end date
-        const heightInPixels = Math.max(endDate.diff(startDate, 'minute'), perRecordHeight)
+        const heightInPixels = Math.max((endDate.diff(startDate, 'minute') / 60) * 52, perRecordHeight)
 
         const style: Partial<CSSStyleDeclaration> = {
           height: `${heightInPixels - 2}px`,

@@ -510,7 +510,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         v-for="(date, weekIndex) in weekDates"
         :key="weekIndex"
         :class="{
-          '!border-brand-500 !border-b-gray-200': dayjs(date).isSame(selectedDate, 'day'),
+          'selected-date-header': dayjs(date).isSame(selectedDate, 'day'),
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"
@@ -526,7 +526,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         v-for="(date, dateIndex) in weekDates"
         :key="dateIndex"
         :class="{
-          '!border-1 !border-t-0 border-brand-500': dayjs(date).isSame(selectedDate, 'day'),
+          'selected-date': dayjs(date).isSame(selectedDate, 'day'),
           '!bg-gray-50': date.get('day') === 0 || date.get('day') === 6,
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
@@ -587,5 +587,25 @@ const addRecord = (date: dayjs.Dayjs) => {
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.selected-date {
+  @apply relative;
+  &:after {
+    @apply rounded-b-sm pointer-events-none absolute inset-0 w-full h-full;
+    content: '';
+    z-index: 3;
+    box-shadow: 2px 0 0 #3366ff, -2px 0 0 #3366ff, 0 2px 0 #3366ff !important;
+  }
+}
+
+.selected-date-header {
+  @apply relative;
+  &:after {
+    @apply rounded-t-sm pointer-events-none absolute inset-0 -left-0.25 w-[calc(100% + 2px)] h-full;
+    content: '';
+    z-index: 10;
+    box-shadow: 2px 0 0 #3366ff, -2px 0 0 #3366ff, 0 -2px 0 #3366ff !important;
+  }
 }
 </style>

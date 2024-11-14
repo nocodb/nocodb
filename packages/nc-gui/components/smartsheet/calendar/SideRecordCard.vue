@@ -9,7 +9,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   fromDate: '',
-  color: 'blue',
+  color: 'gray',
   showDate: true,
   invalid: false,
 })
@@ -26,6 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
           'bg-yellow-500': props.color === 'yellow',
           'bg-pink-500': props.color === 'pink',
           'bg-purple-500': props.color === 'purple',
+          'bg-gray-900': color === 'gray',
         }"
         class="block h-10 w-1 rounded"
       ></span>

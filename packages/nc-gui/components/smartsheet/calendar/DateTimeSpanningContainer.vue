@@ -232,11 +232,15 @@ const dragStart = (event: MouseEvent, record: Row) => {
 <template>
   <div style="z-index: 100" class="sticky flex top-0 bg-white border-b-1 border-gray-100 prevent-select">
     <div
-      style="width: 64px"
       :style="{
-        width: `${activeCalendarView === 'week' ? '64px' : '66px'}`,
+        maxWidth: `${activeCalendarView === 'week' ? '64px' : '66px'}`,
+        minWidth: `${activeCalendarView === 'week' ? '64px' : '66px'}`,
       }"
-      class="text-xs top-0 text-right z-50 !sticky h-full left-0 text-[#6A7184] p-2"
+      :class="{
+        'p-2': activeCalendarView === 'day',
+        'py-2 pr-1': activeCalendarView === 'week',
+      }"
+      class="text-xs top-0 text-right z-50 !sticky h-full left-0 text-[#6A7184]"
     >
       All day
     </div>
@@ -244,7 +248,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
       ref="container"
       :style="{
         height: `min(64px)`,
-        width: `calc(100% - ${activeCalendarView === 'week' ? '64px' : '66px'})`,
+        width: `calc(100% - ${activeCalendarView === 'week' ? '74px' : '66px'})`,
       }"
       :class="{
         'border-gray-100': activeCalendarView === 'day',

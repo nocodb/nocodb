@@ -270,7 +270,7 @@ watch(isDropdownOpen, async () => {
       :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip"
     >
       <template #title>
-        <div class="flex flex-col gap-2">
+        <div class="flex flex-col gap-3">
           <div>
             <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.viewName') }}</div>
             <div class="text-small leading-[18px]">{{ vModel.alias || vModel.title }}</div>

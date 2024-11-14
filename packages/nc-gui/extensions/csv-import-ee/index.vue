@@ -25,20 +25,24 @@ const GENERATED_COLUMN_TYPES = [
 
 const delimiters = [
   {
-    label: 'Comma (,)',
+    label: 'Auto detect',
+    value: undefined,
+  },
+  {
+    label: ',',
     value: ',',
   },
   {
-    label: 'Semicolon (;)',
+    label: ';',
     value: ';',
   },
   {
-    label: 'Tab (\\t)',
-    value: '\\t',
+    label: '|',
+    value: '|',
   },
   {
-    label: 'Pipe (|)',
-    value: '|',
+    label: '<Tab>',
+    value: '\\t',
   },
 ]
 
@@ -155,7 +159,7 @@ const importPayloadPlaceholder: ImportPayloadType = {
 const savedPayloads = ref<ImportPayloadType[]>([])
 
 const importConfig = ref<ImportConfigPayloadType>({
-  delimiter: ',',
+  delimiter: undefined,
 })
 
 const importHistory = computed(() => {
@@ -301,8 +305,6 @@ const handleChange = (info: { file: UploadFile }) => {
   }
   importPayload.value.file.name = fileInfo.value.name
   importPayload.value.file.size = fileInfo.value.size
-
-  console.log('importConfig.value.delimiter', importConfig.value.delimiter)
 
   const reader = new FileReader()
   reader.onload = (e) => {
@@ -612,14 +614,6 @@ function updateModalSize() {
   fullscreenModalSize.value = importPayload.value.step === 1 ? 'lg' : 'sm'
 }
 
-const handleChangeDelimiter = (checked: boolean) => {
-  if (checked) {
-    importConfig.value.delimiter = ','
-  } else {
-    importConfig.value.delimiter = undefined
-  }
-}
-
 watch(fullscreen, () => {
   if (fullscreen.value && !Object.keys(columns.value).length && importPayload.value.tableId) {
     onTableSelect()
@@ -757,26 +751,24 @@ onMounted(async () => {
           }"
         >
           <div class="flex items-center gap-2 mb-3 min-h-8">
-            <NcSwitch :checked="!!importConfig.delimiter" @change="handleChangeDelimiter" />
-
             <div>Separator</div>
-            <a-form-item v-if="importConfig.delimiter" class="!my-0 flex-1 max-w-[237px]">
+            <a-form-item class="!my-0 flex-1 max-w-[237px]">
               <NcSelect
                 v-model:value="importConfig.delimiter"
                 placeholder="-select separator-"
-                class="nc-data-exporter-separator nc-select-shadow !w-[72px]"
-                dropdown-class-name="w-[200px]"
+                class="nc-csv-import-separator nc-select-shadow !w-[120px]"
+                dropdown-class-name="w-[160px]"
                 @change="updateImportConfig"
               >
                 <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
                   <div class="w-full flex items-center gap-2">
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>{{ delimiter.label }}</template>
-                      <span>{{ delimiter.value }}</span>
+                      <span>{{ delimiter.label }}</span>
                     </NcTooltip>
                     <component
                       :is="iconMap.check"
-                      v-if="importPayload.delimiter === delimiter.value"
+                      v-if="importConfig.delimiter === delimiter.value"
                       id="nc-selected-item-icon"
                       class="flex-none text-primary w-4 h-4"
                     />
@@ -1166,6 +1158,12 @@ onMounted(async () => {
 
 :deep(.ant-select-selection-item) {
   @apply font-weight-400 text-sm !text-nc-content-gray;
+}
+
+:deep(.nc-csv-import-separator.ant-select) {
+  .ant-select-selector {
+    @apply !rounded-lg h-8;
+  }
 }
 </style>
 

@@ -9,20 +9,20 @@ const jobStatusTooltip = {
 
 const delimiters = [
   {
-    label: 'Comma (,)',
+    label: ',',
     value: ',',
   },
   {
-    label: 'Semicolon (;)',
+    label: ';',
     value: ';',
   },
   {
-    label: 'Tab (\\t)',
-    value: '\\t',
+    label: '|',
+    value: '|',
   },
   {
-    label: 'Pipe (|)',
-    value: '|',
+    label: '<Tab>',
+    value: '\\t',
   },
 ]
 
@@ -404,17 +404,15 @@ onMounted(async () => {
               v-model:value="exportPayload.delimiter"
               placeholder="-select separator-"
               :disabled="isExporting"
-              class="nc-data-exporter-separator nc-select-shadow !w-[72px]"
-              :filter-option="filterOption"
-              dropdown-class-name="w-[200px]"
-              show-search
+              class="nc-data-exporter-separator nc-select-shadow !w-[120px]"
+              dropdown-class-name="w-[180px]"
               @change="saveChanges"
             >
               <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
                 <div class="w-full flex items-center gap-2">
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ delimiter.label }}</template>
-                    <span>{{ delimiter.value }}</span>
+                    <span>{{ delimiter.label }}</span>
                   </NcTooltip>
                   <component
                     :is="iconMap.check"

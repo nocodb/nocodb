@@ -26,6 +26,20 @@ const delimiters = [
   },
 ]
 
+const encodings = [
+  { label: 'ASCII', value: 'ascii' },
+  { label: 'UTF-8', value: 'utf8' },
+  { label: 'UTF-8 with hyphen', value: 'utf-8' },
+  { label: 'UTF-16 LE', value: 'utf16le' },
+  { label: 'UCS-2', value: 'ucs2' },
+  { label: 'UCS-2 with hyphen', value: 'ucs-2' },
+  { label: 'Base64', value: 'base64' },
+  { label: 'Base64 URL', value: 'base64url' },
+  { label: 'Latin-1', value: 'latin1' },
+  { label: 'Binary', value: 'binary' },
+  { label: 'Hexadecimal', value: 'hex' },
+]
+
 const { $api, $poller } = useNuxtApp()
 
 const { appInfo } = useGlobal()
@@ -398,7 +412,7 @@ onMounted(async () => {
         </div>
 
         <div v-if="fullscreen" class="flex items-center gap-2">
-          <div>Separator</div>
+          <div class="min-w-[65px]">Separator</div>
           <a-form-item class="!my-0 flex-1 max-w-[237px]">
             <NcSelect
               v-model:value="exportPayload.delimiter"

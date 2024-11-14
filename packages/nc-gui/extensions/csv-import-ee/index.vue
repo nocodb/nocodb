@@ -23,10 +23,12 @@ const GENERATED_COLUMN_TYPES = [
   UITypes.Rollup,
 ]
 
+const autoDetect = 'autoDetect'
+
 const delimiters = [
   {
     label: 'Auto detect',
-    value: undefined,
+    value: autoDetect,
   },
   {
     label: ',',
@@ -44,6 +46,20 @@ const delimiters = [
     label: '<Tab>',
     value: '\\t',
   },
+]
+
+const encodings = [
+  { label: 'ASCII', value: 'ascii' },
+  { label: 'UTF-8', value: 'utf8' },
+  { label: 'UTF-8 with hyphen', value: 'utf-8' },
+  { label: 'UTF-16 LE', value: 'utf16le' },
+  { label: 'UCS-2', value: 'ucs2' },
+  { label: 'UCS-2 with hyphen', value: 'ucs-2' },
+  { label: 'Base64', value: 'base64' },
+  { label: 'Base64 URL', value: 'base64url' },
+  { label: 'Latin-1', value: 'latin1' },
+  { label: 'Binary', value: 'binary' },
+  { label: 'Hexadecimal', value: 'hex' },
 ]
 
 interface ImportType {
@@ -80,6 +96,7 @@ interface ImportPayloadType {
 
 interface ImportConfigPayloadType {
   delimiter?: string
+  encoding?: BufferEncoding
 }
 
 const importTypeOptions = [
@@ -159,7 +176,8 @@ const importPayloadPlaceholder: ImportPayloadType = {
 const savedPayloads = ref<ImportPayloadType[]>([])
 
 const importConfig = ref<ImportConfigPayloadType>({
-  delimiter: undefined,
+  delimiter: autoDetect,
+  encoding: 'utf8',
 })
 
 const importHistory = computed(() => {
@@ -320,7 +338,8 @@ const handleChange = (info: { file: UploadFile }) => {
 
     papaparse.parse(text.trim(), {
       worker: true,
-      delimiter: importConfig.value.delimiter,
+      delimiter: importConfig.value.delimiter === autoDetect ? undefined : importConfig.value.delimiter,
+      encoding: '',
       complete: (results) => {
         parsedData.value = results
         step.value = 1
@@ -365,7 +384,7 @@ const handleChange = (info: { file: UploadFile }) => {
   }
 
   if (info.file.originFileObj instanceof File) {
-    reader.readAsText(info.file.originFileObj)
+    reader.readAsText(info.file.originFileObj, importConfig.value.encoding || 'utf8')
   }
 }
 
@@ -632,7 +651,8 @@ watch(
 
 onMounted(async () => {
   importConfig.value = (await extension.value.kvStore.get('importConfig')) || {}
-  importConfig.value.delimiter = importConfig.value.delimiter || undefined
+  importConfig.value.delimiter = importConfig.value.delimiter || autoDetect
+  importConfig.value.encoding = importConfig.value.encoding || 'utf8'
 })
 </script>
 
@@ -745,46 +765,73 @@ onMounted(async () => {
         </div>
         <div
           v-else
+          class="nc-csv-upload-wrapper flex flex-col gap-3"
           :class="{
             'p-4': fullscreen,
             'p-3': !fullscreen,
           }"
         >
-          <div class="flex items-center gap-2 mb-3 min-h-8">
-            <div>Separator</div>
-            <a-form-item class="!my-0 flex-1 max-w-[237px]">
-              <NcSelect
-                v-model:value="importConfig.delimiter"
-                placeholder="-select separator-"
-                class="nc-csv-import-separator nc-select-shadow !w-[120px]"
-                dropdown-class-name="w-[160px]"
-                @change="updateImportConfig"
-              >
-                <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
-                  <div class="w-full flex items-center gap-2">
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ delimiter.label }}</template>
-                      <span>{{ delimiter.label }}</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="importConfig.delimiter === delimiter.value"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
-            </a-form-item>
+          <div class="flex items-center gap-3 flex-wrap min-h-8">
+            <div class="flex items-center gap-2 flex-1">
+              <div class="min-w-[65px]">Separator</div>
+              <a-form-item class="!my-0 flex-1">
+                <NcSelect
+                  v-model:value="importConfig.delimiter"
+                  placeholder="-select separator-"
+                  class="nc-csv-import-separator nc-select-shadow"
+                  dropdown-class-name="w-[160px]"
+                  @change="updateImportConfig"
+                >
+                  <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
+                    <div class="w-full flex items-center gap-2">
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ delimiter.label }}</template>
+                        <span>{{ delimiter.label }}</span>
+                      </NcTooltip>
+                      <component
+                        :is="iconMap.check"
+                        v-if="importConfig.delimiter === delimiter.value"
+                        id="nc-selected-item-icon"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
+              </a-form-item>
+            </div>
+            <div class="flex items-center gap-2 flex-1">
+              <div class="min-w-[65px]">Encoding</div>
+              <a-form-item class="!my-0 flex-1">
+                <NcSelect
+                  v-model:value="importConfig.encoding"
+                  placeholder="-select separator-"
+                  class="nc-csv-import-separator nc-select-shadow"
+                  dropdown-class-name="w-[190px]"
+                  @change="updateImportConfig"
+                >
+                  <a-select-option v-for="encoding of encodings" :key="encoding.value" :value="encoding.value">
+                    <div class="w-full flex items-center gap-2">
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ encoding.label }}</template>
+                        <span>{{ encoding.label }}</span>
+                      </NcTooltip>
+                      <component
+                        :is="iconMap.check"
+                        v-if="importConfig.encoding === encoding.value"
+                        id="nc-selected-item-icon"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
+              </a-form-item>
+            </div>
           </div>
           <a-upload-dragger
             v-model:fileList="fileList"
             name="file"
             accept=".csv"
-            class="nc-csv-file-uploader"
-            :class="{
-              'max-h-[calc(100%_-_40px)]': importHistory.length,
-            }"
+            class="nc-csv-file-uploader !flex-1"
             :multiple="false"
             @change="handleChange"
           >
@@ -795,7 +842,7 @@ onMounted(async () => {
               Drop your CSV here or <span class="text-nc-content-brand hover:underline">browse file</span>
             </p>
           </a-upload-dragger>
-          <div v-if="importHistory.length" class="mt-2 flex items-center justify-end">
+          <div v-if="importHistory.length" class="flex items-center justify-end">
             <NcButton size="small" type="secondary" @click="viewImportHistory = true">View import history</NcButton>
           </div>
         </div>
@@ -1168,12 +1215,20 @@ onMounted(async () => {
 </style>
 
 <style lang="scss">
-.nc-csv-file-uploader {
-  &.ant-upload.ant-upload-drag {
-    @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
+.nc-nc-csv-import {
+  .nc-csv-file-uploader {
+    &.ant-upload.ant-upload-drag {
+      @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
+    }
+    .ant-upload-btn {
+      @apply !flex flex-col items-center justify-center;
+    }
   }
-  .ant-upload-btn {
-    @apply !flex flex-col items-center justify-center;
+
+  .nc-csv-upload-wrapper {
+    & > span {
+      @apply flex-1;
+    }
   }
 }
 </style>

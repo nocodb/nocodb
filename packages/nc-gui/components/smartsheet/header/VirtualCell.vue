@@ -95,7 +95,7 @@ const tooltipMsg = computed(() => {
       )
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
     } else if (isBt(column.value)) {
-      const fkColumn = meta.value?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
+      const fkColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
     }
   }

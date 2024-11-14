@@ -157,7 +157,7 @@ const calendarData = computed(() => {
           style: {
             width: `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`,
             left: `${startDaysDiff * perDayWidth}px`,
-            top: `${suitableRow * 28}px`,
+            top: `${suitableRow * 28 + suitableRow * 8}px`,
           },
         },
       })
@@ -560,7 +560,6 @@ const addRecord = (date: dayjs.Dayjs) => {
               :position="record.rowMeta.position"
               :record="record"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
-              color="blue"
               @dblclick.stop="emits('expandRecord', record)"
               @resize-start="onResizeStart"
             >

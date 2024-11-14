@@ -14,7 +14,7 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   resize: true,
   hover: false,
-  color: 'blue',
+  color: 'gray',
   size: 'small',
   position: 'rounded',
 })
@@ -25,21 +25,22 @@ const emit = defineEmits(['resize-start'])
 <template>
   <div
     :class="{
-      'h-6': size === 'small',
+      'h-7': size === 'small',
       'h-full': size === 'auto',
-      'rounded-l-md ml-1': position === 'leftRounded',
-      'rounded-r-md mr-1': position === 'rightRounded',
-      'rounded-md mx-1': position === 'rounded',
-      'rounded-none': position === 'none',
+      'rounded-l-[4px] !border-r-0 ml-1': position === 'leftRounded',
+      'rounded-r-[4px] !border-l-0 mr-1': position === 'rightRounded',
+      'rounded-[4px] mx-1': position === 'rounded',
+      'rounded-none !border-x-0': position === 'none',
       'bg-maroon-50': color === 'maroon',
       'bg-blue-50': color === 'blue',
       'bg-green-50': color === 'green',
       'bg-yellow-50': color === 'yellow',
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
+      'bg-white border-gray-200': color === 'gray',
       'shadow-md': hover,
     }"
-    class="relative transition-all flex items-center gap-2 group"
+    class="relative transition-all border-1 flex items-center gap-2 group"
   >
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
@@ -50,8 +51,9 @@ const emit = defineEmits(['resize-start'])
         'bg-yellow-500': color === 'yellow',
         'bg-pink-500': color === 'pink',
         'bg-purple-500': color === 'purple',
+        'bg-gray-900': color === 'gray',
       }"
-      class="w-1 min-h-6 bg-blue-500 rounded-x rounded-l-md"
+      class="w-1 min-h-6.5 rounded-l-[4px] bg-blue-500"
     ></div>
 
     <div
@@ -76,7 +78,7 @@ const emit = defineEmits(['resize-start'])
           </template>
         </NcTooltip>
       </div>
-      <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
+      <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 z-10 right-5"> .... </span>
     </div>
 
     <div

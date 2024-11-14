@@ -268,11 +268,13 @@ const recordsAcrossAllRange = computed<{
       }
     >
   >
+  spanningRecords: Row[]
 }>(() => {
   if (!formattedData.value || !calendarRange.value || !container.value || !scrollContainer.value)
     return {
       records: [],
       gridTimeMap: new Map(),
+      spanningRecords: [],
     }
   const perWidth = containerWidth.value / maxVisibleDays.value
   const perHeight = 52
@@ -529,8 +531,8 @@ const recordsAcrossAllRange = computed<{
       }
       record.rowMeta.style = {
         ...record.rowMeta.style,
-        left: `calc(${majorLeft}px + ${left}%)`,
-        width: `calc(${width}%)`,
+        left: `calc(${majorLeft}px + ${left}% + 4px)`,
+        width: `calc(${width}% - 8px)`,
         display,
       }
     }
@@ -539,6 +541,7 @@ const recordsAcrossAllRange = computed<{
   return {
     records: recordsToDisplay,
     gridTimeMap,
+    spanningRecords: recordSpanningDays,
   }
 })
 
@@ -895,18 +898,24 @@ watch(
   },
   { immediate: true },
 )
+
+const expandRecord = (record: Row) => {
+  emits('expandRecord', record)
+}
 </script>
 
 <template>
   <div
     ref="scrollContainer"
-    class="h-[calc(100vh-5.4rem)] prevent-select relative flex w-full overflow-y-auto nc-scrollbar-md"
+    class="prevent-select h-[calc(100vh-5.4rem)] overflow-y-auto nc-scrollbar-md relative flex flex-col w-full"
     data-testid="nc-calendar-week-view"
     @drop="dropEvent"
   >
+    <!-- mt-23 should be dynamic TODO: @DarkPhoenix2704 -->
+
     <div
       v-if="!isPublic && dayjs().isBetween(selectedDateRange.start, selectedDateRange.end)"
-      class="absolute ml-16 mt-7 pointer-events-none z-4"
+      class="absolute top-16 ml-16 mt-23 pointer-events-none z-2"
       :style="overlayStyle"
     >
       <div class="flex w-full items-center">
@@ -919,8 +928,7 @@ watch(
         <div class="flex-1 border-b-1 border-brand-500"></div>
       </div>
     </div>
-
-    <div class="flex sticky h-6 z-1 top-0 pl-16 bg-gray-50 w-full">
+    <div class="flex sticky h-6 z-2 top-0 pl-16 bg-gray-50 w-full">
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
@@ -934,16 +942,25 @@ watch(
         {{ dayjs(date[0]).format('DD ddd') }}
       </div>
     </div>
-    <div class="absolute bg-white w-16 z-1">
+    <!-- top-16 should be dynamic TODO: @DarkPhoenix2704 -->
+    <div class="absolute top-16 bg-white w-16 z-1">
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
-        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-right pr-2 font-semibold text-xs text-gray-400 py-1"
+        class="h-13 first:mt-0 pt-7.1 nc-calendar-day-hour text-right pr-2 font-semibold text-xs text-gray-500 py-1"
       >
         {{ hour.format('hh a') }}
       </div>
     </div>
-    <div ref="container" class="absolute ml-16 flex w-[calc(100%-64px)]">
+    <div class="sticky top-6 bg-white z-3 inset-x-0 w-full">
+      <SmartsheetCalendarDateTimeSpanningContainer
+        :records="recordsAcrossAllRange.spanningRecords"
+        @expand-record="expandRecord"
+      />
+    </div>
+    <!-- mt-16 should be dynamic TODO: @DarkPhoenix2704 -->
+
+    <div ref="container" class="absolute !mt-16 ml-16 flex w-[calc(100%-64px)]">
       <div
         v-for="(date, index) in datesHours"
         :key="index"
@@ -960,7 +977,7 @@ watch(
           :class="{
             'border-1 !border-brand-500 !bg-gray-100':
               hour.isSame(selectedTime, 'hour') && (hour.get('day') === 6 || hour.get('day') === 0),
-            'border-1 !border-brand-500 bg-gray-50': hour.isSame(selectedTime, 'hour'),
+            'selected-hour': hour.isSame(selectedTime, 'hour'),
             'bg-gray-50 hover:bg-gray-100': hour.get('day') === 0 || hour.get('day') === 6,
             'hover:bg-gray-50': hour.get('day') !== 0 && hour.get('day') !== 6,
           }"
@@ -1015,7 +1032,6 @@ watch(
                 :position="record.rowMeta!.position"
                 :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
                 :record="record"
-                color="blue"
                 :selected="record.rowMeta!.id === dragRecord?.rowMeta?.id"
                 @resize-start="onResizeStart"
               >
@@ -1049,5 +1065,15 @@ watch(
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.selected-hour {
+  @apply relative;
+  &:after {
+    @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
+    content: '';
+    z-index: 3;
+    box-shadow: 0 0 0 2px #3366ff !important;
+  }
 }
 </style>

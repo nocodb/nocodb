@@ -34,8 +34,8 @@ const handleUnlockView = () => {
     class="nc-locked-view-footer flex items-center gap-2 bg-nc-bg-gray-light pl-3 pr-2 py-1.5 text-nc-content-gray-subtle2 text-small leading-[18px]"
   >
     <component
-      v-if="view?.lock_type"
       :is="viewLockIcons[view.lock_type].icon"
+      v-if="view?.lock_type"
       class="flex-none"
       :class="{
         'w-4 h-4': view?.lock_type === ViewLockType.Locked,

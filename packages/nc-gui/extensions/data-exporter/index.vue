@@ -116,6 +116,10 @@ const reloadViews = async () => {
   }
 }
 
+const saveChanges = async () => {
+  await extension.value.kvStore.set('exportPayload', exportPayload.value)
+}
+
 const onTableSelect = async (tableId?: string) => {
   if (!tableId) {
     exportPayload.value.tableId = activeTableId.value
@@ -129,12 +133,12 @@ const onTableSelect = async (tableId?: string) => {
     exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
   }
 
-  await extension.value.kvStore.set('exportPayload', exportPayload.value)
+  await saveChanges()
 }
 
 const onViewSelect = async (viewId: string) => {
   exportPayload.value.viewId = viewId
-  await extension.value.kvStore.set('exportPayload', exportPayload.value)
+  await saveChanges()
 }
 
 const isExporting = ref(false)
@@ -260,6 +264,8 @@ eventBus.on(async (event, payload) => {
 
 onMounted(async () => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
+  exportPayload.value.delimiter = exportPayload.value.delimiter || ','
+
   deletedExports.value = extension.value.kvStore.get('deletedExports') || []
 
   await reloadViews()
@@ -280,7 +286,12 @@ onMounted(async () => {
         'bg-nc-bg-gray-extralight': fullscreen,
       }"
     >
-      <div class="p-3 flex flex-col gap-2">
+      <div
+        class="p-3 flex flex-col gap-3"
+        :class="{
+          'bg-white': fullscreen,
+        }"
+      >
         <div
           class="flex items-center justify-between gap-2.5 flex-wrap"
           :class="{
@@ -386,23 +397,24 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div>
+        <div v-if="fullscreen" class="flex items-center gap-2">
+          <div>Separator</div>
           <a-form-item class="!my-0 flex-1 max-w-[237px]">
             <NcSelect
               v-model:value="exportPayload.delimiter"
               placeholder="-select separator-"
               :disabled="isExporting"
-              class="nc-data-exporter-separator nc-select-shadow"
+              class="nc-data-exporter-separator nc-select-shadow !w-[72px]"
               :filter-option="filterOption"
-              dropdown-class-name="w-[250px]"
+              dropdown-class-name="w-[200px]"
               show-search
-              size="large"
+              @change="saveChanges"
             >
-              <a-select-option v-for="delimiter of delimiters" :key="delimiter.label" :value="delimiter.value">
+              <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
                 <div class="w-full flex items-center gap-2">
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ delimiter.label }}</template>
-                    <span>{{ delimiter.label }}</span>
+                    <span>{{ delimiter.value }}</span>
                   </NcTooltip>
                   <component
                     :is="iconMap.check"
@@ -577,6 +589,12 @@ onMounted(async () => {
 
     .ant-select-selector {
       @apply relative !rounded-lg !text-sm;
+    }
+  }
+
+  :deep(.nc-data-exporter-separator.ant-select) {
+    .ant-select-selector {
+      @apply !rounded-lg h-8;
     }
   }
 

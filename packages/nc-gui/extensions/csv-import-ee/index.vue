@@ -23,6 +23,25 @@ const GENERATED_COLUMN_TYPES = [
   UITypes.Rollup,
 ]
 
+const delimiters = [
+  {
+    label: 'Comma (,)',
+    value: ',',
+  },
+  {
+    label: 'Semicolon (;)',
+    value: ';',
+  },
+  {
+    label: 'Tab (\\t)',
+    value: '\\t',
+  },
+  {
+    label: 'Pipe (|)',
+    value: '|',
+  },
+]
+
 interface ImportType {
   type: 'insert' | 'update' | 'insertAndUpdate'
   title: string
@@ -53,6 +72,10 @@ interface ImportPayloadType {
   stats: { inserted: number | null; updated: number | null; error?: { title?: string; message: string } }
   status?: 'initial' | 'inprogress' | 'completed' | 'failed'
   order: number
+}
+
+interface ImportConfigPayloadType {
+  delimiter?: string
 }
 
 const importTypeOptions = [
@@ -131,6 +154,10 @@ const importPayloadPlaceholder: ImportPayloadType = {
 
 const savedPayloads = ref<ImportPayloadType[]>([])
 
+const importConfig = ref<ImportConfigPayloadType>({
+  delimiter: ',',
+})
+
 const importHistory = computed(() => {
   return savedPayloads.value.filter((payload) => payload.step > 1).sort((a, b) => b.order - a.order)
 })
@@ -177,6 +204,10 @@ const updateHistory = async () => {
   savedPayloads.value = savedPayloads.value.sort((a, b) => b.order - a.order).slice(0, 5)
 
   await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
+}
+
+const updateImportConfig = async () => {
+  await extension.value.kvStore.set('importConfig', importConfig.value)
 }
 
 function getNextOrder(data: ImportPayloadType[]) {
@@ -271,6 +302,8 @@ const handleChange = (info: { file: UploadFile }) => {
   importPayload.value.file.name = fileInfo.value.name
   importPayload.value.file.size = fileInfo.value.size
 
+  console.log('importConfig.value.delimiter', importConfig.value.delimiter)
+
   const reader = new FileReader()
   reader.onload = (e) => {
     const text = e.target?.result
@@ -285,6 +318,7 @@ const handleChange = (info: { file: UploadFile }) => {
 
     papaparse.parse(text.trim(), {
       worker: true,
+      delimiter: importConfig.value.delimiter,
       complete: (results) => {
         parsedData.value = results
         step.value = 1
@@ -578,6 +612,14 @@ function updateModalSize() {
   fullscreenModalSize.value = importPayload.value.step === 1 ? 'lg' : 'sm'
 }
 
+const handleChangeDelimiter = (checked: boolean) => {
+  if (checked) {
+    importConfig.value.delimiter = ','
+  } else {
+    importConfig.value.delimiter = undefined
+  }
+}
+
 watch(fullscreen, () => {
   if (fullscreen.value && !Object.keys(columns.value).length && importPayload.value.tableId) {
     onTableSelect()
@@ -593,6 +635,11 @@ watch(
     immediate: true,
   },
 )
+
+onMounted(async () => {
+  importConfig.value = (await extension.value.kvStore.get('importConfig')) || {}
+  importConfig.value.delimiter = importConfig.value.delimiter || undefined
+})
 </script>
 
 <template>
@@ -709,6 +756,35 @@ watch(
             'p-3': !fullscreen,
           }"
         >
+          <div class="flex items-center gap-2 mb-3 min-h-8">
+            <NcSwitch :checked="!!importConfig.delimiter" @change="handleChangeDelimiter" />
+
+            <div>Separator</div>
+            <a-form-item v-if="importConfig.delimiter" class="!my-0 flex-1 max-w-[237px]">
+              <NcSelect
+                v-model:value="importConfig.delimiter"
+                placeholder="-select separator-"
+                class="nc-data-exporter-separator nc-select-shadow !w-[72px]"
+                dropdown-class-name="w-[200px]"
+                @change="updateImportConfig"
+              >
+                <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
+                  <div class="w-full flex items-center gap-2">
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ delimiter.label }}</template>
+                      <span>{{ delimiter.value }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="importPayload.delimiter === delimiter.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
+          </div>
           <a-upload-dragger
             v-model:fileList="fileList"
             name="file"

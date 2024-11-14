@@ -263,17 +263,21 @@ watch(isDropdownOpen, async () => {
     @click.prevent="handleOnClick"
   >
     <NcTooltip
-      :tooltip-style="{ width: '300px' }"
-      :overlay-inner-style="{ width: '300px' }"
+      :tooltip-style="{ width: '240px' }"
+      :overlay-inner-style="{ width: '240px' }"
       trigger="hover"
       placement="right"
       :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip"
     >
       <template #title>
         <div class="flex flex-col gap-2">
-          <div class="text-small leading-[18px]">{{ vModel.alias || vModel.title }}</div>
+          <div>
+            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.viewName') }}</div>
+            <div class="text-small leading-[18px]">{{ vModel.alias || vModel.title }}</div>
+          </div>
+
           <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
-            <div class="text-[10px] leading-[14px] mb-0.5">{{ $t('labels.createdBy') }}</div>
+            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.createdBy') }}</div>
             <div class="text-xs">
               {{
                 idUserMap[vModel?.created_by]?.id === user?.id
@@ -283,7 +287,7 @@ watch(isDropdownOpen, async () => {
             </div>
           </div>
           <div>
-            <div class="text-[10px] leading-[14px] mb-0.5">{{ $t('activity.editingAccess') }}</div>
+            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('activity.editingAccess') }}</div>
             <div class="text-xs flex items-start gap-2">
               {{
                 vModel.lock_type === ViewLockType.Personal && !isViewOwner

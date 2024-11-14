@@ -3,6 +3,7 @@ import { nextTick } from '@vue/runtime-core'
 import { message } from 'ant-design-vue'
 import {
   ProjectRoles,
+  RoleColors,
   RoleIcons,
   RoleLabels,
   WorkspaceRolesToProjectRoles,
@@ -626,20 +627,34 @@ const showNodeTooltip = ref(true)
       :data-base-id="base.id"
     >
       <NcTooltip
-        :tooltip-style="{ width: '300px' }"
-        :overlay-inner-style="{ width: '300px' }"
+        :tooltip-style="{ width: '240px' }"
+        :overlay-inner-style="{ width: '240px' }"
         trigger="hover"
         placement="right"
         :disabled="editMode || isOptionsOpen || isAddNewProjectChildEntityLoading || !showNodeTooltip || !collaborators.length"
       >
         <template #title>
           <div class="flex flex-col gap-2">
-            <div class="text-small leading-[18px] mb-1">{{ base.title }}</div>
+            <div>
+              <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.projName') }}</div>
+              <div class="text-small leading-[18px] mb-1">{{ base.title }}</div>
+            </div>
 
             <div v-if="currentUserRole">
-              <div class="text-[10px] leading-[14px] mb-0.5">{{ $t('title.myCurrentRole') }}</div>
-              <div class="text-xs font-medium flex items-start gap-2 flex items-center gap-1">
-                <GeneralIcon :icon="RoleIcons[currentUserRole]" class="w-3.5 h-3.5" />
+              <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('title.myCurrentRole') }}</div>
+              <div
+                class="text-xs font-medium flex items-start gap-2 flex items-center gap-1"
+                :class="{
+                  'text-purple-200': RoleColors[currentUserRole] === 'purple',
+                  'text-blue-200': RoleColors[currentUserRole] === 'blue',
+                  'text-green-200': RoleColors[currentUserRole] === 'green',
+                  'text-orange-200': RoleColors[currentUserRole] === 'orange',
+                  'text-yellow-200': RoleColors[currentUserRole] === 'yellow',
+                  'text-red-200': RoleColors[currentUserRole] === 'red',
+                  'text-maroon-200': RoleColors[currentUserRole] === 'maroon',
+                }"
+              >
+                <GeneralIcon :icon="RoleIcons[currentUserRole]" class="w-4 h-4" />
                 {{ $t(`objects.roleType.${RoleLabels[currentUserRole]}`) }}
               </div>
             </div>

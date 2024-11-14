@@ -1066,3 +1066,9 @@ svg.nc-virtual-cell-icon {
     }
   }
 }
+
+.nc-base-node-tooltip .nc-role-badge {
+  & > div {
+    @apply bg-transparent;
+  }
+}

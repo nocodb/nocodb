@@ -461,6 +461,7 @@ export class ExportService {
       _fieldIds?: string[];
       ncSiteUrl?: string;
       delimiter?: string;
+      encoding?: BufferEncoding;
     },
   ) {
     const { dataStream, linkStream, handledMmList } = param;
@@ -537,7 +538,7 @@ export class ExportService {
 
     const hasLink = !dataExportMode && mmColumns.length > 0;
 
-    dataStream.setEncoding('utf8');
+    dataStream.setEncoding(param.encoding || 'utf8');
 
     const formatData = (data: any) => {
       for (const row of data) {
@@ -640,7 +641,7 @@ export class ExportService {
     }
 
     if (hasLink) {
-      linkStream.setEncoding('utf8');
+      linkStream.setEncoding(param.encoding || 'utf8');
 
       let streamedHeaders = false;
 

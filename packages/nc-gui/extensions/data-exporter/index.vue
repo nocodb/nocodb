@@ -94,8 +94,10 @@ const exportPayload = ref<{
   tableId?: string
   viewId?: string
   delimiter?: string
+  encoding?: BufferEncoding
 }>({
   delimiter: ',',
+  encoding: 'utf8',
 })
 
 const tableList = computed(() => {
@@ -166,6 +168,7 @@ async function exportDataAsync() {
     const jobData = await $api.export.data(exportPayload.value.viewId, 'csv', {
       extension_id: extension.value.id,
       delimiter: exportPayload.value.delimiter,
+      encoding: exportPayload.value.encoding,
     })
     jobList.value.unshift(jobData)
 
@@ -279,6 +282,7 @@ eventBus.on(async (event, payload) => {
 onMounted(async () => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
   exportPayload.value.delimiter = exportPayload.value.delimiter || ','
+  exportPayload.value.encoding = exportPayload.value.encoding || 'utf8'
 
   deletedExports.value = extension.value.kvStore.get('deletedExports') || []
 
@@ -411,33 +415,68 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div v-if="fullscreen" class="flex items-center gap-2">
-          <div class="min-w-[65px]">Separator</div>
-          <a-form-item class="!my-0 flex-1 max-w-[237px]">
-            <NcSelect
-              v-model:value="exportPayload.delimiter"
-              placeholder="-select separator-"
-              :disabled="isExporting"
-              class="nc-data-exporter-separator nc-select-shadow !w-[120px]"
-              dropdown-class-name="w-[180px]"
-              @change="saveChanges"
-            >
-              <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
-                <div class="w-full flex items-center gap-2">
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ delimiter.label }}</template>
-                    <span>{{ delimiter.label }}</span>
-                  </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="exportPayload.delimiter === delimiter.value"
-                    id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
-          </a-form-item>
+        <div
+          v-if="fullscreen"
+          class="flex items-center gap-3 flex-wrap"
+          :class="{
+            'max-w-[474px]': fullscreen,
+          }"
+        >
+          <div class="flex items-center gap-2 flex-1">
+            <div class="min-w-[65px]">Separator</div>
+            <a-form-item class="!my-0 flex-1">
+              <NcSelect
+                v-model:value="exportPayload.delimiter"
+                placeholder="-select separator-"
+                :disabled="isExporting"
+                class="nc-data-exporter-separator nc-select-shadow"
+                dropdown-class-name="w-[180px]"
+                @change="saveChanges"
+              >
+                <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
+                  <div class="w-full flex items-center gap-2">
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ delimiter.label }}</template>
+                      <span>{{ delimiter.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="exportPayload.delimiter === delimiter.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
+          </div>
+          <div class="flex items-center gap-2 flex-1">
+            <div class="min-w-[65px]">Encoding</div>
+            <a-form-item class="!my-0 flex-1">
+              <NcSelect
+                v-model:value="exportPayload.encoding"
+                placeholder="-select separator-"
+                class="nc-csv-import-separator nc-select-shadow"
+                dropdown-class-name="w-[190px]"
+                @change="saveChanges"
+              >
+                <a-select-option v-for="encoding of encodings" :key="encoding.value" :value="encoding.value">
+                  <div class="w-full flex items-center gap-2">
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ encoding.label }}</template>
+                      <span>{{ encoding.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="exportPayload.encoding === encoding.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
+          </div>
         </div>
       </div>
       <div

@@ -96,6 +96,7 @@ export default class PresignedUrl {
       filename?: string;
       preview?: boolean;
       mimetype?: string;
+      encoding?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -109,6 +110,7 @@ export default class PresignedUrl {
       expireSeconds = DEFAULT_EXPIRE_SECONDS,
       filename,
       mimetype,
+      encoding,
     } = param;
 
     const preview = param.preview
@@ -152,6 +154,14 @@ export default class PresignedUrl {
 
     if (mimetype) {
       pathParameters.ResponseContentType = mimetype;
+
+      if (encoding) {
+        pathParameters.ResponseContentType = `${mimetype}; charset=${encoding}`;
+      }
+    }
+
+    if (encoding) {
+      pathParameters.ResponseContentEncoding = encoding;
     }
 
     // append query params to the cache path

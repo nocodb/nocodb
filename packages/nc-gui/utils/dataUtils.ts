@@ -81,7 +81,6 @@ export async function populateInsertObject({
   throwError?: boolean
   undo?: boolean
 }) {
-  debugger
   const missingRequiredColumns = new Set()
   const insertObj = await meta.columns?.reduce(async (_o: Promise<any>, col) => {
     const o = await _o

@@ -67,6 +67,14 @@ export function addAxiosInterceptors(api: Api<any>) {
           skipLogout: true,
         })
 
+        if (!token) {
+          await state.signOut({
+            redirectToSignin: !isSharedPage,
+            skipApiCall: true,
+          })
+          return Promise.reject(error)
+        }
+
         const config = error.config
         config.headers['xc-auth'] = token
 

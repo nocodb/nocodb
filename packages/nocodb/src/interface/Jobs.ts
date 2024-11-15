@@ -1,4 +1,4 @@
-import type { AttachmentResType, PublicAttachmentScope, UserType } from 'nocodb-sdk';
+import type { AttachmentResType, PublicAttachmentScope, SupportedExportCharset, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';
 
@@ -152,7 +152,7 @@ export interface DataExportJobData extends JobData {
   options?: {
     delimiter?: string;
     extension_id?: string;
-    encoding?: BufferEncoding;
+    encoding?: SupportedExportCharset;
   };
   modelId: string;
   viewId: string;

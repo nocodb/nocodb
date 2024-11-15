@@ -461,7 +461,6 @@ export class ExportService {
       _fieldIds?: string[];
       ncSiteUrl?: string;
       delimiter?: string;
-      encoding?: BufferEncoding;
     },
   ) {
     const { dataStream, linkStream, handledMmList } = param;

@@ -391,7 +391,7 @@ const onUpsertColumnChange = (columnId: string) => {
   updateHistory()
 }
 
-const filterTableOption = (input: string = '', params: { key: string }) => {
+const filterOption = (input: string = '', params: { key: string }) => {
   return params.key?.toLowerCase().includes(input?.toLowerCase())
 }
 
@@ -762,16 +762,24 @@ onMounted(async () => {
             'p-3': !fullscreen,
           }"
         >
-          <div class="flex items-center gap-3 flex-wrap min-h-8">
-            <div class="flex items-center gap-2 flex-1">
-              <div class="min-w-[65px]">Separator</div>
+          <div
+            class="flex items-center gap-3"
+            :class="{
+              '-mx-4 px-4 -mt-4 py-4 bg-white': fullscreen,
+              'max-w-full': !fullscreen,
+            }"
+          >
+            <div class="flex flex-col gap-2 w-[calc(50%_-_6px)]">
+              <div>Separator</div>
               <a-form-item class="!my-0 flex-1">
                 <NcSelect
                   v-model:value="importConfig.delimiter"
                   placeholder="-select separator-"
                   class="nc-csv-import-separator nc-select-shadow"
                   dropdown-class-name="w-[160px]"
+                  :filter-option="filterOption"
                   @change="updateImportConfig"
+                  show-search
                 >
                   <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
                     <div class="w-full flex items-center gap-2">
@@ -790,17 +798,19 @@ onMounted(async () => {
                 </NcSelect>
               </a-form-item>
             </div>
-            <div class="flex items-center gap-2 flex-1">
-              <div class="min-w-[65px]">Encoding</div>
+            <div class="flex flex-col gap-2 w-[calc(50%_-_6px)]">
+              <div>Encoding</div>
               <a-form-item class="!my-0 flex-1">
                 <NcSelect
                   v-model:value="importConfig.encoding"
-                  placeholder="-select separator-"
-                  class="nc-csv-import-separator nc-select-shadow"
+                  placeholder="-select encoding-"
+                  class="nc-csv-import-encoding nc-select-shadow"
                   dropdown-class-name="w-[190px]"
+                  :filter-option="filterOption"
                   @change="updateImportConfig"
+                  show-search
                 >
-                  <a-select-option v-for="encoding of charsetOptions" :key="encoding.value" :value="encoding.value">
+                  <a-select-option v-for="encoding of charsetOptions" :key="encoding.label" :value="encoding.value">
                     <div class="w-full flex items-center gap-2">
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ encoding.label }}</template>
@@ -849,7 +859,7 @@ onMounted(async () => {
                     v-model:value="importPayload.tableId"
                     class="w-full nc-select-shadow"
                     placeholder="-select table-"
-                    :filter-option="filterTableOption"
+                    :filter-option="filterOption"
                     :show-search="tables?.length > 6"
                     @change="onTableSelect(true)"
                   >
@@ -1198,7 +1208,8 @@ onMounted(async () => {
   @apply font-weight-400 text-sm !text-nc-content-gray;
 }
 
-:deep(.nc-csv-import-separator.ant-select) {
+:deep(.nc-csv-import-separator.ant-select),
+:deep(.nc-csv-import-encoding.ant-select) {
   .ant-select-selector {
     @apply !rounded-lg h-8;
   }

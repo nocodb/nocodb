@@ -225,7 +225,7 @@ export class HooksService {
         model: model,
         view: null,
         prevData: null,
-        newData: data,
+        newData: data.rows,
         user: user,
         testFilters: (hook as any)?.filters,
         throwErrorOnFailure: true,

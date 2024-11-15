@@ -85,7 +85,7 @@ export class LeftSidebarPage extends BasePage {
     await this.clickWorkspace();
 
     // TODO: THere is one extra html attribute
-    await expect(this.modal_workspace.getByTestId('nc-workspace-list')).toHaveCount(count + 1);
+    await expect(this.rootPage.getByTestId('nc-workspace-list')).toHaveCount(count + 1);
   }
 
   async getWorkspaceList() {

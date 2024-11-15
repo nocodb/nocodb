@@ -339,13 +339,15 @@ async function submitForm() {
     }
   }
 
-  await insertRow({
+  const res = await insertRow({
     row: { ...formState.value, ...state.value },
     oldRow: {},
     rowMeta: { new: true },
   })
 
-  submitted.value = true
+  if (res) {
+    submitted.value = true
+  }
 }
 
 async function clearForm() {

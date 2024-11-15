@@ -57,6 +57,27 @@ const selectColors = [
 
 const logger = new Logger('Column');
 
+const requiredColumnsToRecreate = {
+  [UITypes.LinkToAnotherRecord]: [
+    'type',
+    'fk_child_column_id',
+    'fk_parent_column_id',
+    'fk_related_model_id',
+  ],
+  [UITypes.Links]: [
+    'type',
+    'fk_child_column_id',
+    'fk_parent_column_id',
+    'fk_related_model_id',
+  ],
+  [UITypes.Rollup]: ['fk_relation_column_id', 'fk_rollup_column_id'],
+  [UITypes.Lookup]: ['fk_relation_column_id', 'fk_lookup_column_id'],
+  [UITypes.QrCode]: ['fk_qr_value_column_id'],
+  [UITypes.Barcode]: ['fk_barcode_value_column_id'],
+  [UITypes.Button]: ['type', 'label'],
+  [UITypes.Formula]: ['formula'],
+};
+
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;
   public fk_workspace_id?: string;
@@ -1112,157 +1133,148 @@ export default class Column<T = any> implements ColumnType {
     skipFormulaInvalidate = false,
   ) {
     const oldCol = await Column.get(context, { colId }, ncMeta);
-    let insertColOpt = true;
-    switch (oldCol.uidt) {
-      case UITypes.Lookup: {
-        // LookupColumn.insert()
+    const requiredColAvail =
+      !requiredColumnsToRecreate[oldCol.uidt] ||
+      requiredColumnsToRecreate[oldCol.uidt].every((k) => column[k]);
 
-        await ncMeta.metaDelete(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_LOOKUP,
-          {
-            fk_column_id: colId,
-          },
-        );
-        await NocoCache.deepDel(
-          `${CacheScope.COL_LOOKUP}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        );
-        break;
-      }
-      case UITypes.Rollup: {
-        await ncMeta.metaDelete(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_ROLLUP,
-          {
-            fk_column_id: colId,
-          },
-        );
-        await NocoCache.deepDel(
-          `${CacheScope.COL_ROLLUP}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        );
-        break;
-      }
+    if (requiredColAvail) {
+      switch (oldCol.uidt) {
+        case UITypes.Lookup: {
+          // LookupColumn.insert()
 
-      case UITypes.Links:
-      case UITypes.LinkToAnotherRecord: {
-        // delete only if all required fields are present
-        if (
-          [
-            'type',
-            'fk_child_column_id',
-            'fk_parent_column_id',
-            'fk_related_model_id',
-          ].some((k) => !column[k])
-        ) {
-          insertColOpt = false;
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_LOOKUP,
+            {
+              fk_column_id: colId,
+            },
+          );
+          await NocoCache.deepDel(
+            `${CacheScope.COL_LOOKUP}:${colId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+          break;
+        }
+        case UITypes.Rollup: {
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_ROLLUP,
+            {
+              fk_column_id: colId,
+            },
+          );
+          await NocoCache.deepDel(
+            `${CacheScope.COL_ROLLUP}:${colId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
           break;
         }
 
-        await ncMeta.metaDelete(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_RELATIONS,
-          {
-            fk_column_id: colId,
-          },
-        );
-        await NocoCache.deepDel(
-          `${CacheScope.COL_RELATION}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        );
-        break;
-      }
-      case UITypes.Formula: {
-        await ncMeta.metaDelete(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_FORMULA,
-          {
-            fk_column_id: colId,
-          },
-        );
+        case UITypes.Links:
+        case UITypes.LinkToAnotherRecord: {
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_RELATIONS,
+            {
+              fk_column_id: colId,
+            },
+          );
+          await NocoCache.deepDel(
+            `${CacheScope.COL_RELATION}:${colId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+          break;
+        }
+        case UITypes.Formula: {
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_FORMULA,
+            {
+              fk_column_id: colId,
+            },
+          );
 
-        await NocoCache.deepDel(
-          `${CacheScope.COL_FORMULA}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        );
-        break;
-      }
+          await NocoCache.deepDel(
+            `${CacheScope.COL_FORMULA}:${colId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+          break;
+        }
 
-      case UITypes.Button: {
-        await ncMeta.metaDelete(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_BUTTON,
-          {
-            fk_column_id: colId,
-          },
-        );
+        case UITypes.Button: {
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_BUTTON,
+            {
+              fk_column_id: colId,
+            },
+          );
 
-        await NocoCache.deepDel(
-          `${CacheScope.COL_BUTTON}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        );
-        break;
-      }
+          await NocoCache.deepDel(
+            `${CacheScope.COL_BUTTON}:${colId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+          break;
+        }
 
-      case UITypes.QrCode: {
-        await ncMeta.metaDelete(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_QRCODE,
-          {
-            fk_column_id: colId,
-          },
-        );
+        case UITypes.QrCode: {
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_QRCODE,
+            {
+              fk_column_id: colId,
+            },
+          );
 
-        await NocoCache.deepDel(
-          `${CacheScope.COL_QRCODE}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        );
-        break;
-      }
+          await NocoCache.deepDel(
+            `${CacheScope.COL_QRCODE}:${colId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+          break;
+        }
 
-      case UITypes.Barcode: {
-        await ncMeta.metaDelete(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_BARCODE,
-          {
-            fk_column_id: colId,
-          },
-        );
+        case UITypes.Barcode: {
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_BARCODE,
+            {
+              fk_column_id: colId,
+            },
+          );
 
-        await NocoCache.deepDel(
-          `${CacheScope.COL_BARCODE}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT,
-        );
-        break;
-      }
+          await NocoCache.deepDel(
+            `${CacheScope.COL_BARCODE}:${colId}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+          break;
+        }
 
-      case UITypes.MultiSelect:
-      case UITypes.SingleSelect: {
-        await ncMeta.metaDelete(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_SELECT_OPTIONS,
-          {
-            fk_column_id: colId,
-          },
-        );
+        case UITypes.MultiSelect:
+        case UITypes.SingleSelect: {
+          await ncMeta.metaDelete(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_SELECT_OPTIONS,
+            {
+              fk_column_id: colId,
+            },
+          );
 
-        await NocoCache.deepDel(
-          `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
-          CacheDelDirection.PARENT_TO_CHILD,
-        );
-        break;
+          await NocoCache.deepDel(
+            `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
+            CacheDelDirection.PARENT_TO_CHILD,
+          );
+          break;
+        }
       }
     }
-
     const updateObj = extractProps(column, [
       'column_name',
       'title',
@@ -1362,7 +1374,7 @@ export default class Column<T = any> implements ColumnType {
     );
 
     // insert new col options only if existing colOption meta is deleted
-    if (insertColOpt)
+    if (requiredColAvail)
       await this.insertColOption(context, column, colId, ncMeta);
 
     // on column update, delete any optimised single query cache

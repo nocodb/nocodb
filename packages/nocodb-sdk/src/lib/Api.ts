@@ -2846,6 +2846,8 @@ export interface ViewType {
     | MapType
     | CalendarType
     | (FormType & GalleryType & GridType & KanbanType & MapType & CalendarType);
+  /** ID of view owner user */
+  owned_by?: IdType;
 }
 
 /**
@@ -2918,6 +2920,8 @@ export interface ViewUpdateReqType {
   order?: number;
   /** Should this view show system fields? */
   show_system_fields?: BoolType;
+  /** ID of view owner user */
+  owned_by?: IdType;
 }
 
 /**

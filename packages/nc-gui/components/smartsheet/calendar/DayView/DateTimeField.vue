@@ -464,7 +464,7 @@ const dragElement = ref<HTMLElement | null>(null)
 
 const resizeDirection = ref<'right' | 'left' | null>()
 
-const resizeRecord = ref<Row | null>()
+const resizeRecord = ref<Row | null>(null)
 
 const dragTimeout = ref<ReturnType<typeof setTimeout>>()
 
@@ -680,19 +680,13 @@ const stopDrag = (event: MouseEvent) => {
   const { newRow, updateProperty } = calculateNewRow(event, true)
   if (!newRow && !updateProperty) return
 
-  const allRecords = document.querySelectorAll('.draggable-record')
-  allRecords.forEach((el) => {
-    el.style.visibility = ''
-    el.style.opacity = '100%'
-  })
-
   if (dragElement.value) {
     dragElement.value.style.boxShadow = 'none'
     dragElement.value = null
   }
 
   if (dragRecord.value) {
-    dragRecord.value = undefined
+    dragRecord.value = null
   }
 
   if (!newRow) return
@@ -719,17 +713,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
       target = target.parentElement as HTMLElement
     }
 
-    // When the user starts dragging a record, we reduce opacity of all other records
-    const allRecords = document.querySelectorAll('.draggable-record')
-    allRecords.forEach((el) => {
-      if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
-        // el.style.visibility = 'hidden'
-        el.style.opacity = '30%'
-      }
-    })
-
     dragRecord.value = record
-
     dragElement.value = target
 
     document.addEventListener('mousemove', onDrag)
@@ -1050,7 +1034,14 @@ const expandRecord = (record: Row) => {
               v-if="record.rowMeta.style?.display !== 'none'"
               :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
               :data-unique-id="record.rowMeta.id"
-              :style="record.rowMeta.style"
+              :style="{
+                ...record.rowMeta.style,
+                opacity:
+                  (dragRecord === null || record.rowMeta.id === dragRecord?.rowMeta.id) &&
+                  (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)
+                    ? 1
+                    : 0.3,
+              }"
               class="absolute draggable-record transition group cursor-pointer pointer-events-auto"
               @mousedown="dragStart($event, record)"
               @mouseleave="hoverRecord = null"

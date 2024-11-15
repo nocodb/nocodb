@@ -1,13 +1,9 @@
 import { test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
-import { isPg } from '../../../setup/db';
 import { getDefaultPwd } from '../../utils/general';
-import { AccountPage } from '../../../pages/Account';
-import { SignupPage } from '../../../pages/SignupPage';
 import { Api } from 'nocodb-sdk';
 import { LoginPage } from '../../../pages/LoginPage';
-import { AccountUsersPage } from '../../../pages/Account/Users';
 import { WorkspacePage } from '../../../pages/WorkspacePage';
 
 test.describe('Grid view personal', () => {

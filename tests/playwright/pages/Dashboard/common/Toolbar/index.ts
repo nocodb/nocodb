@@ -286,11 +286,15 @@ export class ToolbarPage extends BasePage {
   }
 
   async verifyPersonalMode() {
-    await expect(this.btn_fields).toBeDisabled();
-    await expect(this.btn_filter).toBeDisabled();
-    await expect(this.btn_sort).toBeDisabled();
-    await expect(this.btn_groupBy).toBeDisabled();
-    await expect(this.btn_rowHeight).toBeDisabled();
+    for (const menu of this.getToolbarBtns()) {
+      await menu.locator.click();
+
+      await menu.dropdownLocator.waitFor({ state: 'visible' });
+
+      const lockedViewFooter = menu.dropdownLocator.locator('.nc-locked-view-footer');
+
+      await expect(lockedViewFooter).toBeVisible();
+    }
   }
 
   async verifyCollaborativeMode() {

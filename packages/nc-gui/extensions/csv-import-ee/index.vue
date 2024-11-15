@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UploadFile } from 'ant-design-vue'
-import { charsetOptions, type ColumnType, UITypes } from 'nocodb-sdk'
+import { charsetOptions, type ColumnType, SupportedExportCharset, UITypes } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
 
@@ -48,20 +48,6 @@ const delimiters = [
   },
 ]
 
-const encodings = [
-  { label: 'ASCII', value: 'ascii' },
-  { label: 'UTF-8', value: 'utf8' },
-  { label: 'UTF-8 with hyphen', value: 'utf-8' },
-  { label: 'UTF-16 LE', value: 'utf16le' },
-  { label: 'UCS-2', value: 'ucs2' },
-  { label: 'UCS-2 with hyphen', value: 'ucs-2' },
-  { label: 'Base64', value: 'base64' },
-  { label: 'Base64 URL', value: 'base64url' },
-  { label: 'Latin-1', value: 'latin1' },
-  { label: 'Binary', value: 'binary' },
-  { label: 'Hexadecimal', value: 'hex' },
-]
-
 interface ImportType {
   type: 'insert' | 'update' | 'insertAndUpdate'
   title: string
@@ -96,7 +82,7 @@ interface ImportPayloadType {
 
 interface ImportConfigPayloadType {
   delimiter?: string
-  encoding?: BufferEncoding
+  encoding?: SupportedExportCharset
 }
 
 const importTypeOptions = [
@@ -177,7 +163,7 @@ const savedPayloads = ref<ImportPayloadType[]>([])
 
 const importConfig = ref<ImportConfigPayloadType>({
   delimiter: autoDetect,
-  encoding: 'utf8',
+  encoding: SupportedExportCharset['utf-8'],
 })
 
 const importHistory = computed(() => {
@@ -337,7 +323,7 @@ const handleChange = (info: { file: UploadFile }) => {
     }
 
     // Use TextDecoder to handle more encodings
-    const encoding = importConfig.value.encoding || 'utf-8' // Default to UTF8 if no encoding is specified
+    const encoding = importConfig.value.encoding || SupportedExportCharset['utf-8'] // Default to UTF8 if no encoding is specified
     const decoder = new TextDecoder(encoding)
     const text = decoder.decode(arrayBuffer)
 
@@ -657,7 +643,7 @@ watch(
 onMounted(async () => {
   importConfig.value = (await extension.value.kvStore.get('importConfig')) || {}
   importConfig.value.delimiter = importConfig.value.delimiter || autoDetect
-  importConfig.value.encoding = importConfig.value.encoding || 'utf-8'
+  importConfig.value.encoding = importConfig.value.encoding || SupportedExportCharset['utf-8']
 })
 </script>
 

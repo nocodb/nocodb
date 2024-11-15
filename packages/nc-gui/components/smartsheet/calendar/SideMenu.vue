@@ -346,7 +346,8 @@ onClickOutside(searchRef, toggleSearch)
       'right-2': !showSideMenu,
       'right-74': showSideMenu,
     }"
-    class="absolute transition-all ease-in-out z-9 top-2"
+    style="z-index: 100"
+    class="absolute transition-all ease-in-out top-2"
     hide-on-click
   >
     <template #title> {{ $t('activity.toggleSidebar') }}</template>

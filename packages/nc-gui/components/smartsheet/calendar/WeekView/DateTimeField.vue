@@ -528,11 +528,21 @@ const recordsAcrossAllRange = computed<{
         width = 100 / Math.min(maxOverlaps, 3) / maxVisibleDays.value
 
         left = width * (overlapIndex - 1)
+
+        width = Math.max((width / 100) * containerWidth.value - 8, 72)
+
+        left = majorLeft + (left / 100) * containerWidth.value + 8
+
+        if (majorLeft + perWidth < left + width) {
+          left = majorLeft + (perWidth - width - 4)
+        }
       }
+
       record.rowMeta.style = {
         ...record.rowMeta.style,
-        left: `calc(${majorLeft}px + ${left}% + 4px)`,
-        width: `calc(${width}% - 8px)`,
+        left: `${left}px`,
+        width: `${width}px`,
+        minWidth: '72px',
         display,
       }
     }

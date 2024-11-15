@@ -105,6 +105,10 @@ const calculateNewDates = useMemoize(
       endDate = startDate.clone().add(15, 'minutes')
     }
 
+    if (endDate.diff(startDate, 'minute') < 15) {
+      endDate = startDate.clone().add(15, 'minutes')
+    }
+
     // If the start date is before the opened date, we use the schedule start as the start date
     // This is to ensure the generated style of the record is not outside the bounds of the calendar
     if (startDate.isSameOrBefore(scheduleStart)) {

@@ -9,6 +9,7 @@ interface Props {
   selected?: boolean
   size?: 'small' | 'medium' | 'large' | 'auto'
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'
+  dragging?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -17,6 +18,7 @@ withDefaults(defineProps<Props>(), {
   color: 'gray',
   size: 'small',
   position: 'rounded',
+  dragging: false,
 })
 
 const emit = defineEmits(['resize-start'])
@@ -72,7 +74,7 @@ const emit = defineEmits(['resize-start'])
         }"
         class="flex mb-0.5 overflow-x-hidden break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-ellipsis flex-col gap-1"
       >
-        <NcTooltip :disabled="selected" class="inline-block" show-on-truncate-only wrap-child="span">
+        <NcTooltip :disabled="selected || dragging" class="inline-block" show-on-truncate-only wrap-child="span">
           <slot class="text-sm text-nowrap text-gray-800 leading-7" />
           <template #title>
             <slot />

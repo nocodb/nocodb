@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UploadFile } from 'ant-design-vue'
-import { charsetOptions, type ColumnType, SupportedExportCharset, UITypes } from 'nocodb-sdk'
+import { type ColumnType, SupportedExportCharset, UITypes, charsetOptions } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
 
@@ -778,8 +778,8 @@ onMounted(async () => {
                   class="nc-csv-import-separator nc-select-shadow"
                   dropdown-class-name="w-[160px]"
                   :filter-option="filterOption"
-                  @change="updateImportConfig"
                   show-search
+                  @change="updateImportConfig"
                 >
                   <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
                     <div class="w-full flex items-center gap-2">
@@ -807,8 +807,8 @@ onMounted(async () => {
                   class="nc-csv-import-encoding nc-select-shadow"
                   dropdown-class-name="w-[190px]"
                   :filter-option="filterOption"
-                  @change="updateImportConfig"
                   show-search
+                  @change="updateImportConfig"
                 >
                   <a-select-option v-for="encoding of charsetOptions" :key="encoding.label" :value="encoding.value">
                     <div class="w-full flex items-center gap-2">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UploadFile } from 'ant-design-vue'
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { charsetOptions, type ColumnType, UITypes } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
 
@@ -326,8 +326,8 @@ const handleChange = (info: { file: UploadFile }) => {
 
   const reader = new FileReader()
   reader.onload = (e) => {
-    const text = e.target?.result
-    if (!text || typeof text !== 'string') {
+    const arrayBuffer = e.target?.result
+    if (!arrayBuffer || !(arrayBuffer instanceof ArrayBuffer)) {
       fileList.value = []
       fileInfo.value = {
         ...fileInfo.value,
@@ -336,10 +336,14 @@ const handleChange = (info: { file: UploadFile }) => {
       return
     }
 
+    // Use TextDecoder to handle more encodings
+    const encoding = importConfig.value.encoding || 'utf-8' // Default to UTF8 if no encoding is specified
+    const decoder = new TextDecoder(encoding)
+    const text = decoder.decode(arrayBuffer)
+
     papaparse.parse(text.trim(), {
       worker: true,
       delimiter: importConfig.value.delimiter === autoDetect ? undefined : importConfig.value.delimiter,
-      encoding: '',
       complete: (results) => {
         parsedData.value = results
         step.value = 1
@@ -384,7 +388,8 @@ const handleChange = (info: { file: UploadFile }) => {
   }
 
   if (info.file.originFileObj instanceof File) {
-    reader.readAsText(info.file.originFileObj, importConfig.value.encoding || 'utf8')
+    // Read as ArrayBuffer to allow TextDecoder to interpret encoding
+    reader.readAsArrayBuffer(info.file.originFileObj)
   }
 }
 
@@ -652,7 +657,7 @@ watch(
 onMounted(async () => {
   importConfig.value = (await extension.value.kvStore.get('importConfig')) || {}
   importConfig.value.delimiter = importConfig.value.delimiter || autoDetect
-  importConfig.value.encoding = importConfig.value.encoding || 'utf8'
+  importConfig.value.encoding = importConfig.value.encoding || 'utf-8'
 })
 </script>
 
@@ -809,7 +814,7 @@ onMounted(async () => {
                   dropdown-class-name="w-[190px]"
                   @change="updateImportConfig"
                 >
-                  <a-select-option v-for="encoding of encodings" :key="encoding.value" :value="encoding.value">
+                  <a-select-option v-for="encoding of charsetOptions" :key="encoding.value" :value="encoding.value">
                     <div class="w-full flex items-center gap-2">
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ encoding.label }}</template>

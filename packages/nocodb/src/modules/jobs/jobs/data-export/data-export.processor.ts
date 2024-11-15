@@ -59,7 +59,7 @@ export class DataExportProcessor {
         read() {},
       });
 
-      dataStream.setEncoding(options.encoding || 'utf8');
+      dataStream.setEncoding('utf8');
 
       let error = null;
 
@@ -79,7 +79,7 @@ export class DataExportProcessor {
           viewId: view.id,
           ncSiteUrl: ncSiteUrl,
           delimiter: options?.delimiter,
-          encoding: options?.encoding || 'utf8',
+          encoding: options?.encoding || 'utf-8',
         })
         .catch((e) => {
           this.logger.debug(e);

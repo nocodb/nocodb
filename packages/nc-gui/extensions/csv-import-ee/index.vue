@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UploadFile } from 'ant-design-vue'
-import { type ColumnType, SupportedExportCharset, UITypes, charsetOptions } from 'nocodb-sdk'
+import { type ColumnType, SupportedExportCharset, UITypes, charsetOptions, csvColumnSeparatorOptions } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
 
@@ -30,22 +30,7 @@ const delimiters = [
     label: 'Auto detect',
     value: autoDetect,
   },
-  {
-    label: ',',
-    value: ',',
-  },
-  {
-    label: ';',
-    value: ';',
-  },
-  {
-    label: '|',
-    value: '|',
-  },
-  {
-    label: '<Tab>',
-    value: '\\t',
-  },
+  ...csvColumnSeparatorOptions,
 ]
 
 interface ImportType {

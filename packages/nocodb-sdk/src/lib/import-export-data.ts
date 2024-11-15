@@ -34,13 +34,6 @@ export enum SupportedExportCharset {
   'iso-8859-3' = 'iso-8859-3',
 }
 
-export enum CsvColumnSeparator {
-  ',' = ',',
-  ';' = ';',
-  '|' = '|',
-  'tab' = '\t',
-}
-
 export const charsetOptions = [
   { label: 'Unicode (UTF-8)', value: SupportedExportCharset['utf-8'] },
   { label: 'Arabic (ISO-8859-6)', value: SupportedExportCharset['iso-8859-6'] },
@@ -131,5 +124,31 @@ export const charsetOptions = [
   {
     label: 'Latin 3 (ISO-8859-3)',
     value: SupportedExportCharset['iso-8859-3'],
+  },
+];
+
+export enum CsvColumnSeparator {
+  ',' = ',',
+  ';' = ';',
+  '|' = '|',
+  'tab' = '\t',
+}
+
+export const csvColumnSeparatorOptions = [
+  {
+    label: ',',
+    value: CsvColumnSeparator[','],
+  },
+  {
+    label: ';',
+    value: CsvColumnSeparator[';'],
+  },
+  {
+    label: '|',
+    value: CsvColumnSeparator['|'],
+  },
+  {
+    label: '<Tab>',
+    value: CsvColumnSeparator['tab'],
   },
 ];

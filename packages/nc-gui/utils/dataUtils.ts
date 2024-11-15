@@ -81,7 +81,6 @@ export async function populateInsertObject({
   throwError?: boolean
   undo?: boolean
 }) {
-  debugger
   const missingRequiredColumns = new Set()
   const insertObj = await meta.columns?.reduce(async (_o: Promise<any>, col) => {
     const o = await _o
@@ -92,14 +91,14 @@ export async function populateInsertObject({
       col.uidt === UITypes.LinkToAnotherRecord &&
       (<LinkToAnotherRecordType>col.colOptions).type === RelationTypes.BELONGS_TO
     ) {
-      if (ltarState[col.title!]) {
+      if (ltarState[col.title!] || row[col.title!]) {
+        const ltarVal = ltarState[col.title!] || row[col.title!]
         const colOpt = <LinkToAnotherRecordType>col.colOptions
         const childCol = meta.columns!.find((c) => colOpt.fk_child_column_id === c.id)
         const relatedTableMeta = (await getMeta(colOpt.fk_related_model_id!)) as TableType
         if (relatedTableMeta && childCol) {
-          o[childCol.title!] =
-            ltarState[col.title!][relatedTableMeta!.columns!.find((c) => c.id === colOpt.fk_parent_column_id)!.title!]
-          missingRequiredColumns.delete(childCol.title)
+          o[childCol.title!] = ltarVal[relatedTableMeta!.columns!.find((c) => c.id === colOpt.fk_parent_column_id)!.title!]
+          if (o[childCol.title!] !== null && o[childCol.title!] !== undefined) missingRequiredColumns.delete(childCol.title)
         }
       }
     }

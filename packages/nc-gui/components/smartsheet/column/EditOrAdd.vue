@@ -635,6 +635,7 @@ watch(activeAiTab, (newValue) => {
               }"
             >
               <NcButton
+                v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
                 type="text"
                 size="small"
                 class="-my-1.5 !text-nc-content-purple-dark hover:text-nc-content-purple-dark"

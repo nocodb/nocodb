@@ -14,12 +14,15 @@ const searchQuery = ref('')
 
 const { isMetaReadOnly } = useRoles()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const filteredOptions = computed(
   () =>
     options.value?.filter(
       (c) =>
-        c.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        (UITypesName[c.name] && UITypesName[c.name].toLowerCase().includes(searchQuery.value.toLowerCase())),
+        !(c.name === 'AIButton' && !isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)) &&
+        (c.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          (UITypesName[c.name] && UITypesName[c.name].toLowerCase().includes(searchQuery.value.toLowerCase()))),
     ) ?? [],
 )
 

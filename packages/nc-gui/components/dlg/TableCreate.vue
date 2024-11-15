@@ -36,6 +36,8 @@ const { loadProjectTables, addTable } = useTablesStore()
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const onTableCreate = async (table: TableType) => {
   // await loadProject(props.baseId)
 
@@ -428,6 +430,7 @@ const handleRefreshOnError = () => {
           {{ $t('title.docs') }}
         </a> -->
         <div
+          v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
           :class="{
             'cursor-wait': aiLoading,
           }"

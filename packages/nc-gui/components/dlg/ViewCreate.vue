@@ -85,6 +85,8 @@ const { viewsByTable } = storeToRefs(useViewsStore())
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { selectedViewId, groupingFieldColumnId, geoDataFieldColumnId, tableId, coverImageColumnId, baseId } = toRefs(props)
 
 const meta = ref<TableType | undefined>()
@@ -836,7 +838,7 @@ const getPluralName = (name: string) => {
           Docs
         </a> -->
         <div
-          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent"
+          v-if="!isAIViewCreateMode && isNecessaryColumnsPresent && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)"
           :class="{
             'cursor-wait': aiLoading,
           }"

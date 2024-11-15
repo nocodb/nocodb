@@ -17,6 +17,7 @@ const viewsStore = useViewsStore()
 const { loadViews, navigateToView } = viewsStore
 
 const { aiIntegrationAvailable } = useNocoAi()
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -196,15 +197,17 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
+        <template v-if="aiIntegrationAvailable && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
         <NcDivider />
-        <NcMenuItem v-if="aiIntegrationAvailable" data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
-          <div class="item">
-            <div class="item-inner">
-              <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
-              <div>{{ $t('labels.aiSuggested') }}</div>
+          <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
+            <div class="item">
+              <div class="item-inner">
+                <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+                <div>{{ $t('labels.aiSuggested') }}</div>
+              </div>
             </div>
-          </div>
-        </NcMenuItem>
+          </NcMenuItem>
+        </template>
       </NcMenu>
     </template>
   </NcDropdown>

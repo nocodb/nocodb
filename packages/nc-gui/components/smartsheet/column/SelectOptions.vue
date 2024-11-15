@@ -34,6 +34,8 @@ const { setAdditionalValidations, validateInfos, column } = useColumnCreateStore
 
 const { aiIntegrationAvailable, predictSelectOptions } = useNocoAi()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { isAiModeFieldModal } = usePredictFields()
 
 const meta = inject(MetaInj, ref())
@@ -714,7 +716,7 @@ if (!isKanbanStack.value) {
 
         Add option
       </NcButton>
-      <NcTooltip class="w-1/2">
+      <NcTooltip v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)" class="w-1/2">
         <template #title>
           {{
             aiIntegrationAvailable
@@ -744,7 +746,7 @@ if (!isKanbanStack.value) {
       </NcTooltip>
     </div>
     <div v-else-if="!kanbanStackOption?.id" class="mt-2 pl-1">
-      <NcTooltip class="w-full" placement="bottom">
+      <NcTooltip v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)" class="w-full" placement="bottom">
         <template #title>
           {{ aiIntegrationAvailable ? $t('tooltip.autoSuggestSelectOptions') : $t('title.noAiIntegrationAvailable') }}
         </template>

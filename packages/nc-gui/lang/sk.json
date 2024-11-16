@@ -1006,7 +1006,8 @@
     "coverImageArea": "Obrázok na titulnú stranu",
     "syncData": "Synchronizácia údajov",
     "syncDataModalSubtitle": "Zaregistrujte služby, o ktoré máte záujem, aby ste dostali oznámenia, keď budú dostupné",
-    "redirectToUrl": "Presmerovať na URL"
+    "redirectToUrl": "Presmerovať na URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Skupina",
     "goToDocs": "Prejsť na dokumenty",
     "addCondition": "Pridať podmienku",
-    "addConditionGroup": "Pridať skupinu podmienok"
+    "addConditionGroup": "Pridať skupinu podmienok",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

@@ -107,7 +107,7 @@ const calendarData = computed(() => {
   const firstDayToDisplay = startOfMonth.startOf('week').add(firstDayOffset, 'day')
   const today = dayjs()
 
-  const daysInView = Math.max(
+  const daysInView = Math.min(
     35,
     Math.ceil((startOfMonth.daysInMonth() + startOfMonth.day() + (isMondayFirst.value ? 0 : 1)) / 7) * 7,
   )

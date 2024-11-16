@@ -1,17 +1,9 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
-import {
-  ViewTypes,
-  isCreatedOrLastModifiedByCol,
-  isCreatedOrLastModifiedTimeCol,
-  isLinksOrLTAR,
-  isSystemColumn,
-  isVirtualCol,
-} from 'nocodb-sdk'
+import { ViewTypes, isSystemColumn } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { Drawer } from 'ant-design-vue'
 import NcModal from '../../nc/Modal.vue'
-import MdiChevronDown from '~icons/mdi/chevron-down'
 
 interface Props {
   modelValue?: boolean
@@ -71,8 +63,6 @@ const route = useRoute()
 
 const router = useRouter()
 
-const isPublic = inject(IsPublicInj, ref(false))
-
 // to check if a expanded form which is not yet saved exist or not
 const isUnsavedFormExist = ref(false)
 
@@ -81,8 +71,6 @@ const isUnsavedDuplicatedRecordExist = ref(false)
 const isRecordLinkCopied = ref(false)
 
 const { isUIAllowed } = useRoles()
-
-const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
 const expandedFormScrollWrapper = ref()
 
@@ -102,7 +90,7 @@ const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | '
   isLoading.value = true
 }
 
-const fields = computedInject(FieldsInj, (_fields) => {
+const injectedFields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
     if (maintainDefaultViewOrder.value) {
       return (meta.value.columns ?? [])
@@ -117,6 +105,12 @@ const fields = computedInject(FieldsInj, (_fields) => {
   return _fields?.value ?? []
 })
 
+const fields = computed(() => injectedFields.value ?? [])
+
+const tableTitle = computed(() => meta.value?.title)
+
+const activeViewMode = ref('fields')
+
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
 
 const hiddenFields = computed(() => {
@@ -130,12 +124,6 @@ const hiddenFields = computed(() => {
     .filter((col) => !isSystemColumn(col))
 })
 
-const showHiddenFields = ref(false)
-
-const toggleHiddenFields = () => {
-  showHiddenFields.value = !showHiddenFields.value
-}
-
 const isKanban = inject(IsKanbanInj, ref(false))
 
 provide(MetaInj, meta)
@@ -143,6 +131,8 @@ provide(MetaInj, meta)
 const isLoading = ref(true)
 
 const isSaving = ref(false)
+
+const expandedFormStore = useProvideExpandedFormStore(meta, row)
 
 const {
   commentsDrawer,
@@ -159,7 +149,7 @@ const {
   loadComments,
   loadAudits,
   clearColumns,
-} = useProvideExpandedFormStore(meta, row)
+} = expandedFormStore
 
 reloadViewDataTrigger.on(async () => {
   await _loadRow(rowId.value, false, true)
@@ -506,10 +496,6 @@ watch(rowId, async (nRow) => {
   await triggerRowLoad(nRow)
 })
 
-const showRightSections = computed(() => {
-  return !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
-})
-
 const preventModalStatus = computed({
   get: () => isCloseModalOpen.value || isPreventChangeModalOpen.value,
   set: (v) => {
@@ -537,24 +523,12 @@ const onIsExpandedUpdate = (v: boolean) => {
   }
 }
 
-const isReadOnlyVirtualCell = (column: ColumnType) => {
-  return (
-    isRollup(column) ||
-    isFormula(column) ||
-    isBarcode(column) ||
-    isLookup(column) ||
-    isQrCode(column) ||
-    isSystemColumn(column) ||
-    isCreatedOrLastModifiedTimeCol(column) ||
-    isCreatedOrLastModifiedByCol(column)
-  )
-}
-
 const mentionedCell = ref('')
 
 // Small hack. We need to scroll to the bottom of the form after its mounted and back to top.
 // So that tab to next row works properly, as otherwise browser will focus to save button
 // when we reach to the bottom of the visual scrollable area, not the actual bottom of the form
+// todo: this seems to not be needed anymore. check if we can remove it
 watch([expandedFormScrollWrapper, isLoading], () => {
   if (isMobileMode.value) return
 
@@ -645,7 +619,7 @@ export default {
         </div>
       </div>
       <div
-        class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative p-4 xs:(px-2 py-0 min-h-[48px]) justify-between"
+        class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative p-4 xs:(px-2 py-0 min-h-[48px]) justify-between border-b-1 border-gray-200 relative"
       >
         <div class="flex-1 flex gap-4 lg:w-100 <lg:max-w-[calc(100%_-_178px)] xs:(max-w-[calc(100%_-_44px)])">
           <div class="flex gap-2">
@@ -685,6 +659,10 @@ export default {
               'xs:max-w-[calc(100%_-_82px)]': !isNew,
             }"
           >
+            <div class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
+              <GeneralIcon icon="table" />
+              {{ tableTitle }}
+            </div>
             <div
               v-if="row.rowMeta?.new || props.newRecordHeader"
               class="flex items-center truncate font-bold text-gray-800 text-base overflow-hidden"
@@ -700,6 +678,15 @@ export default {
               </span>
             </div>
           </div>
+        </div>
+        <div class="absolute right-12 lg:(left-1/2 -translate-x-1/2 right-auto)">
+          <NcSelectTab
+            :items="[
+              { icon: 'fields', value: 'fields' },
+              { icon: 'file', value: 'attachments' },
+            ]"
+            v-model="activeViewMode"
+          />
         </div>
         <div class="flex gap-2">
           <NcTooltip v-if="!isMobileMode && isUIAllowed('dataEdit')">
@@ -797,232 +784,31 @@ export default {
           </NcButton>
         </div>
       </div>
-      <div ref="wrapper" class="flex flex-grow flex-row h-[calc(100%_-_4rem)] w-full border-t-1 border-gray-200">
-        <div
-          :class="{
-            'w-full': !showRightSections,
-            'flex-1': showRightSections,
-          }"
-          class="h-full flex xs:w-full flex-col overflow-hidden"
-        >
-          <div
-            ref="expandedFormScrollWrapper"
-            class="flex flex-col flex-grow gap-6 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
-          >
-            <div
-              v-for="(col, i) of fields"
-              v-show="!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
-              :key="col.title"
-              :class="`nc-expand-col-${col.title}`"
-              :col-id="col.id"
-              :data-testid="`nc-expand-col-${col.title}`"
-              class="nc-expanded-form-row w-full"
-            >
-              <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
-                <div class="w-45 <lg:(w-full px-0 mb-1) h-[37px] xs:(h-auto) flex items-center rounded-lg overflow-hidden">
-                  <LazySmartsheetHeaderVirtualCell
-                    v-if="isVirtualCol(col)"
-                    :column="col"
-                    class="nc-expanded-cell-header h-full flex-none"
-                  />
-
-                  <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header flex-none" />
-                </div>
-
-                <template v-if="isLoading">
-                  <a-skeleton-input
-                    active
-                    class="h-[37px] flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
-                    size="small"
-                  />
-                </template>
-                <template v-else>
-                  <SmartsheetDivDataCell
-                    v-if="col.title"
-                    :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                    class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
-                    :class="{
-                      '!select-text nc-system-field': isReadOnlyVirtualCell(col),
-                      '!select-text nc-readonly-div-data-cell': readOnly,
-                      'nc-mentioned-cell': col.id === mentionedCell,
-                    }"
-                  >
-                    <LazySmartsheetVirtualCell
-                      v-if="isVirtualCol(col)"
-                      v-model="_row.row[col.title]"
-                      :class="{
-                        'px-1': isReadOnlyVirtualCell(col),
-                      }"
-                      :column="col"
-                      :read-only="readOnly"
-                      :row="_row"
-                    />
-
-                    <LazySmartsheetCell
-                      v-else
-                      v-model="_row.row[col.title]"
-                      :active="true"
-                      :column="col"
-                      :edit-enabled="true"
-                      :read-only="readOnly"
-                      @update:model-value="changedColumns.add(col.title)"
-                    />
-                  </SmartsheetDivDataCell>
-                </template>
-              </div>
-            </div>
-            <div v-if="hiddenFields.length > 0" class="flex w-full <lg:(px-1) items-center py-6">
-              <div class="flex-grow h-px mr-1 bg-gray-100"></div>
-              <NcButton
-                :size="isMobileMode ? 'medium' : 'small'"
-                class="flex-shrink !text-sm overflow-hidden !text-gray-500 !font-weight-500"
-                type="secondary"
-                @click="toggleHiddenFields"
-              >
-                {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}
-                {{ hiddenFields.length > 1 ? `fields` : `field` }}
-                <MdiChevronDown :class="showHiddenFields ? 'transform rotate-180' : ''" class="ml-1" />
-              </NcButton>
-              <div class="flex-grow h-px ml-1 bg-gray-100"></div>
-            </div>
-            <template v-if="hiddenFields.length > 0 && showHiddenFields">
-              <div
-                v-for="(col, i) of hiddenFields"
-                v-show="isFormula(col) || !isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
-                :key="`${col.id}-${col.title}`"
-                :class="`nc-expand-col-${col.title}`"
-                :data-testid="`nc-expand-col-${col.title}`"
-                class="nc-expanded-form-row w-full"
-              >
-                <div class="flex items-start flex-row sm:(gap-x-2) <lg:(flex-col w-full) nc-expanded-cell min-h-[37px]">
-                  <div class="w-45 <lg:(w-full px-0) h-[37px] xs:(h-auto) flex items-center rounded-lg overflow-hidden">
-                    <LazySmartsheetHeaderVirtualCell
-                      v-if="isVirtualCol(col)"
-                      :column="col"
-                      is-hidden-col
-                      class="nc-expanded-cell-header flex-none"
-                    />
-
-                    <LazySmartsheetHeaderCell v-else :column="col" is-hidden-col class="nc-expanded-cell-header flex-none" />
-                  </div>
-
-                  <template v-if="isLoading">
-                    <a-skeleton-input
-                      active
-                      class="h-[37px] flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
-                      size="small"
-                    />
-                  </template>
-                  <template v-else>
-                    <LazySmartsheetDivDataCell
-                      v-if="col.title"
-                      :ref="i ? null : (el: any) => (cellWrapperEl = el)"
-                      class="bg-white flex-1 <lg:w-full px-1 min-h-[37px] flex items-center relative"
-                      :class="{
-                        '!select-text nc-system-field': isReadOnlyVirtualCell(col),
-                        '!bg-gray-50 !select-text nc-readonly-div-data-cell': readOnly,
-                        'nc-mentioned-cell': col.id === mentionedCell,
-                      }"
-                    >
-                      <LazySmartsheetVirtualCell
-                        v-if="isVirtualCol(col)"
-                        v-model="_row.row[col.title]"
-                        :column="col"
-                        :read-only="readOnly"
-                        :row="_row"
-                      />
-
-                      <LazySmartsheetCell
-                        v-else
-                        v-model="_row.row[col.title]"
-                        :active="true"
-                        :column="col"
-                        :edit-enabled="true"
-                        :read-only="readOnly"
-                        @update:model-value="changedColumns.add(col.title)"
-                      />
-                    </LazySmartsheetDivDataCell>
-                  </template>
-                </div>
-              </div>
-            </template>
+      <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
+        <template v-if="activeViewMode === 'fields'">
+          <SmartsheetExpandedFormPresentorsFields
+            :store="expandedFormStore"
+            :row-id="rowId"
+            :fields="fields"
+            :hidden-fields="hiddenFields"
+            :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
+            :is-unsaved-form-exist="isUnsavedFormExist"
+            :is-loading="isLoading"
+            :is-saving="isSaving"
+            :new-record-submit-btn-text="newRecordSubmitBtnText"
+            @copy:record-url="copyRecordUrl()"
+            @delete:row="onDeleteRowClick()"
+            @save="save()"
+            @update:modelValue="emits('update:modelValue', $event)"
+            @createdRecord="emits('createdRecord', $event)"
+            @updateRowCommentCount="emits('updateRowCommentCount', $event)"
+          />
+        </template>
+        <template v-else-if="activeViewMode === 'attachments'">
+          <div class="h-full flex flex-grow items-center justify-center">
+            Attachments
           </div>
-
-          <div
-            v-if="isUIAllowed('dataEdit')"
-            class="w-full flex items-center justify-end px-2 xs:(p-0 gap-x-4 justify-between)"
-            :class="{
-              'xs(border-t-1 border-gray-200)': !isNew,
-            }"
-          >
-            <div v-if="!isNew && isMobileMode" class="p-2">
-              <NcDropdown placement="bottomRight" class="p-2">
-                <NcButton :disabled="isLoading" class="nc-expand-form-more-actions" type="secondary" size="small">
-                  <GeneralIcon :class="isLoading ? 'text-gray-300' : 'text-gray-700'" class="text-md" icon="threeDotVertical" />
-                </NcButton>
-
-                <template #overlay>
-                  <NcMenu>
-                    <NcMenuItem class="text-gray-700" @click="_loadRow()">
-                      <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
-                        <component :is="iconMap.reload" class="cursor-pointer" />
-                        {{ $t('general.reload') }}
-                      </div>
-                    </NcMenuItem>
-                    <NcMenuItem v-if="rowId" class="text-gray-700" @click="!isNew ? copyRecordUrl() : () => {}">
-                      <div
-                        v-e="['c:row-expand:copy-url']"
-                        class="flex gap-2 items-center"
-                        data-testid="nc-expanded-form-copy-url"
-                      >
-                        <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
-                        {{ $t('labels.copyRecordURL') }}
-                      </div>
-                    </NcMenuItem>
-                    <NcDivider />
-                    <NcMenuItem
-                      v-if="isUIAllowed('dataEdit') && !isNew"
-                      v-e="['c:row-expand:delete']"
-                      class="!text-red-500 !hover:bg-red-50"
-                      @click="!isNew && onDeleteRowClick()"
-                    >
-                      <div data-testid="nc-expanded-form-delete">
-                        <component :is="iconMap.delete" class="cursor-pointer nc-delete-row" />
-                        Delete record
-                      </div>
-                    </NcMenuItem>
-                  </NcMenu>
-                </template>
-              </NcDropdown>
-            </div>
-            <div v-if="isNew && isMobileMode"></div>
-            <div v-if="isMobileMode" class="p-2">
-              <NcButton
-                v-e="['c:row-expand:save']"
-                :disabled="changedColumns.size === 0 && !isUnsavedFormExist"
-                :loading="isSaving"
-                class="nc-expand-form-save-btn !xs:(text-sm) !px-2"
-                :class="{
-                  '!h-7': !isMobileMode,
-                }"
-                data-testid="nc-expanded-form-save"
-                type="primary"
-                :size="isMobileMode ? 'small' : 'xsmall'"
-                @click="save"
-              >
-                <div class="xs:px-1">{{ newRecordSubmitBtnText ?? isNew ? 'Create Record' : 'Save Record' }}</div>
-              </NcButton>
-            </div>
-          </div>
-          <div v-else class="p-2"></div>
-        </div>
-        <div
-          v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
-          :class="{ active: commentsDrawer && isUIAllowed('commentList') }"
-          class="nc-comments-drawer border-l-1 relative border-gray-200 bg-gray-50 w-1/3 max-w-[340px] min-w-0 h-full xs:hidden rounded-br-2xl"
-        >
-          <SmartsheetExpandedFormSidebar />
-        </div>
+        </template>
       </div>
     </div>
   </component>

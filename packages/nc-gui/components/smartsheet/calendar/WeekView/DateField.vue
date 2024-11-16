@@ -521,7 +521,7 @@ const addRecord = (date: dayjs.Dayjs) => {
         {{ dayjs(date).format('DD ddd') }}
       </div>
     </div>
-    <div ref="container" class="flex h-[calc(100vh-11.6rem)]">
+    <div ref="container" class="flex h-[calc(100vh-7.3rem)] w-full">
       <div
         v-for="(date, dateIndex) in weekDates"
         :key="dateIndex"
@@ -538,7 +538,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       ></div>
     </div>
     <div
-      class="absolute nc-scrollbar-md overflow-y-auto mt-9 pointer-events-none inset-0"
+      class="absolute nc-scrollbar-md overflow-y-auto mt-6 pointer-events-none inset-0"
       data-testid="nc-calendar-week-record-container"
     >
       <template v-for="(record, id) in calendarData" :key="id">

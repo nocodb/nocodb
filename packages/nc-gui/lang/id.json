@@ -1006,7 +1006,8 @@
     "coverImageArea": "Tutup area gambar",
     "syncData": "Sinkronkan data",
     "syncDataModalSubtitle": "Daftarkan layanan yang Anda minati untuk mendapatkan pemberitahuan saat tersedia",
-    "redirectToUrl": "Alihkan ke URL"
+    "redirectToUrl": "Alihkan ke URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Grup",
     "goToDocs": "Pergi ke Dokumen",
     "addCondition": "Tambahkan kondisi",
-    "addConditionGroup": "Tambahkan grup kondisi"
+    "addConditionGroup": "Tambahkan grup kondisi",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

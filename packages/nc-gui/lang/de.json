@@ -1006,7 +1006,8 @@
     "coverImageArea": "Bildabdeckung",
     "syncData": "Daten synchronisieren",
     "syncDataModalSubtitle": "Registrieren Sie die Dienste, an denen Sie interessiert sind, um benachrichtigt zu werden, wenn sie verfügbar werden",
-    "redirectToUrl": "Weiterleitung zu einer URL"
+    "redirectToUrl": "Weiterleitung zu einer URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Gruppe",
     "goToDocs": "Zu den Docs gehen",
     "addCondition": "Bedingung hinzufügen",
-    "addConditionGroup": "Bedingungsgruppe hinzufügen"
+    "addConditionGroup": "Bedingungsgruppe hinzufügen",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

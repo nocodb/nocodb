@@ -46,8 +46,8 @@ export class CalendarsService {
         type: ViewTypes.CALENDAR,
         base_id: model.base_id,
         source_id: model.source_id,
-        created_by: param.user.id,
-        owned_by: param.ownedBy || param.user.id,
+        created_by: param.user?.id,
+        owned_by: param.ownedBy || param.user?.id,
       },
       model,
     );

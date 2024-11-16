@@ -17,6 +17,7 @@ import { IntegrationsService } from '~/services/integrations.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { Integration } from '~/models';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -42,9 +43,10 @@ export class IntegrationsController {
       },
     );
 
-    // hide config if not the owner or if not requested
+    // hide config if not the owner or if not requested or if global integration
     if (
       includeConfig !== 'true' ||
+      (integration.is_global && req.user.id !== integration.created_by) ||
       (integration.is_private && req.user.id !== integration.created_by)
     )
       integration.config = undefined;
@@ -107,6 +109,26 @@ export class IntegrationsController {
     return integration;
   }
 
+  @Patch(['/api/v2/meta/integrations/:integrationId/default'])
+  @Acl('integrationUpdate', {
+    scope: 'workspace',
+  })
+  async integrationSetDefault(
+    @TenantContext() context: NcContext,
+    @Param('integrationId') integrationId: string,
+    @Req() req: NcRequest,
+  ) {
+    const integration = await this.integrationsService.integrationSetDefault(
+      context,
+      {
+        integrationId,
+        req,
+      },
+    );
+
+    return integration;
+  }
+
   @Get(['/api/v2/meta/workspaces/:workspaceId/integrations'])
   @Acl('integrationList', {
     scope: 'workspace',
@@ -139,5 +161,84 @@ export class IntegrationsController {
     }
 
     return integrations;
+  }
+
+  @Get(['/api/v2/integrations'])
+  async availableIntegrations() {
+    return Integration.availableIntegrations
+      .sort((a, b) => a.type.localeCompare(b.type))
+      .sort((a, b) => a.subType.localeCompare(b.subType))
+      .map((i) => ({
+        type: i.type,
+        subType: i.subType,
+        meta: i.meta,
+      }));
+  }
+
+  @Get(['/api/v2/integrations/:type/:subType'])
+  async getIntegrationMeta(
+    @Param('type') type: IntegrationsType,
+    @Param('subType') subType: string,
+  ) {
+    const integration = Integration.availableIntegrations.find(
+      (i) => i.type === type && i.subType === subType,
+    );
+
+    if (!integration) {
+      throw new Error('Integration not found!');
+    }
+
+    return {
+      integrationType: integration.type,
+      integrationSubType: integration.subType,
+      form: integration.form,
+      meta: integration.meta,
+    };
+  }
+
+  @Post(['/api/v2/integrations/:integrationId/store'])
+  async storeIntegration(
+    @TenantContext() context: NcContext,
+    @Param('integrationId') integrationId: string,
+    @Body()
+    payload?:
+      | {
+          op: 'list';
+          limit: number;
+          offset: number;
+        }
+      | {
+          op: 'get';
+        }
+      | {
+          op: 'sum';
+          fields: string[];
+        },
+  ) {
+    const integration = await Integration.get(context, integrationId);
+
+    if (!integration) {
+      throw new Error('Integration not found!');
+    }
+
+    return await this.integrationsService.integrationStore(
+      context,
+      integration,
+      payload,
+    );
+  }
+
+  @Post(['/api/v2/integrations/:integrationId/:endpoint'])
+  async integrationEndpointGet(
+    @TenantContext() context: NcContext,
+    @Param('integrationId') integrationId: string,
+    @Param('endpoint') endpoint: string,
+    @Body() body: any,
+  ) {
+    return await this.integrationsService.callIntegrationEndpoint(context, {
+      integrationId,
+      endpoint,
+      payload: body,
+    });
   }
 }

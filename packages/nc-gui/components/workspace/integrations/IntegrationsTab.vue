@@ -9,11 +9,13 @@ const props = withDefaults(
     isModal?: boolean
     filterCategory?: (c: IntegrationCategoryItemType) => boolean
     filterIntegration?: (i: IntegrationItemType) => boolean
+    showFilter?: boolean
   }>(),
   {
     isModal: false,
     filterCategory: () => true,
     filterIntegration: () => true,
+    showFilter: false,
   },
 )
 
@@ -25,7 +27,19 @@ const { t } = useI18n()
 
 const { syncDataUpvotes, updateSyncDataUpvotes } = useGlobal()
 
-const { pageMode, IntegrationsPageMode, requestIntegration, addIntegration, saveIntegraitonRequest } = useIntegrationStore()
+const router = useRouter()
+const route = router.currentRoute
+
+const {
+  pageMode,
+  IntegrationsPageMode,
+  requestIntegration,
+  addIntegration,
+  saveIntegrationRequest,
+  integrationsRefreshKey,
+  integrationsCategoryFilter,
+  activeViewTab,
+} = useIntegrationStore()
 
 const focusTextArea: VNodeRef = (el) => el && el?.focus?.()
 
@@ -57,22 +71,71 @@ const upvotesData = computed(() => {
   return new Set(syncDataUpvotes.value)
 })
 
+const integrationCategoriesRef = computed(() => {
+  return integrationCategories
+    .filter((c) => {
+      const filterByActiveCategory = activeCategory.value ? c.value === activeCategory.value.value : true
+
+      return filterCategory(c) && filterByActiveCategory && !c.value.endsWith('-coming-soon')
+    })
+    .map((c) => {
+      return {
+        label: t(c.title),
+        value: c.value,
+      }
+    })
+})
+
+const isOpenFilter = ref(false)
+
+const categoriesQuery = computed({
+  get: () => {
+    const availableCategories = integrationCategoriesRef.value.map((c) => c.value)
+
+    if (route.value.query.categories === undefined) {
+      return integrationsCategoryFilter.value
+    }
+
+    const query = ((route.value.query.categories as string) || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter((c) => availableCategories.includes(c))
+
+    integrationsCategoryFilter.value = query
+
+    router.push({ query: { ...route.value.query, categories: undefined } })
+
+    return integrationsCategoryFilter.value
+  },
+  set: (value: Array<string>) => {
+    if (!ncIsArray(value)) return
+
+    integrationsCategoryFilter.value = value
+  },
+})
+
 const getIntegrationsByCategory = (category: IntegrationCategoryType, query: string) => {
   return allIntegrations.filter((i) => {
     const isOssOnly = isEeUI ? !i?.isOssOnly : true
     return (
-      isOssOnly &&
-      filterIntegration(i) &&
-      i.categories.includes(category) &&
-      t(i.title).toLowerCase().includes(query.trim().toLowerCase())
+      isOssOnly && filterIntegration(i) && i.type === category && t(i.title).toLowerCase().includes(query.trim().toLowerCase())
     )
   })
 }
 
 const integrationsMapByCategory = computed(() => {
+  // eslint-disable-next-line no-unused-expressions
+  integrationsRefreshKey.value
+
   return integrationCategories
-    .filter(filterCategory)
-    .filter((c) => (activeCategory.value ? c.value === activeCategory.value.value : true))
+    .filter((c) => {
+      const filterByActiveCategory = activeCategory.value ? c.value === activeCategory.value.value : true
+
+      const filterByUrlQuery =
+        categoriesQuery.value.includes(c.value) || categoriesQuery.value.some((q) => `${q}-coming-soon` === c.value)
+
+      return filterCategory(c) && filterByActiveCategory && filterByUrlQuery
+    })
     .reduce(
       (acc, curr) => {
         acc[curr.value] = {
@@ -127,19 +190,38 @@ const handleUpvote = (category: IntegrationCategoryType, syncDataType: SyncDataT
   updateSyncDataUpvotes([...syncDataUpvotes.value, syncDataType])
 }
 
-const handleAddIntegration = (category: IntegrationCategoryType, integration: IntegrationItemType) => {
+const handleAddIntegration = async (category: IntegrationCategoryType, integration: IntegrationItemType) => {
   if (!integration.isAvailable) {
-    handleUpvote(category, integration.value)
+    handleUpvote(category, integration.subType)
     return
   }
 
-  // currently we only support database integration category type
-  if (category !== IntegrationCategoryType.DATABASE) {
-    return
-  }
-
-  addIntegration(integration.value)
+  await addIntegration(integration)
 }
+
+const isVisibleAllCategory = computed(() => {
+  return integrationCategoriesRef.value.length === categoriesQuery.value.length
+})
+
+const toggleShowOrHideAllCategory = () => {
+  if (isVisibleAllCategory.value) {
+    categoriesQuery.value = []
+  } else {
+    categoriesQuery.value = integrationCategoriesRef.value.map((c) => c.value)
+  }
+}
+
+onMounted(() => {
+  if (!integrationsCategoryFilter.value.length) {
+    integrationsCategoryFilter.value = integrationCategoriesRef.value.map((c) => c.value)
+  }
+})
+
+watch(activeViewTab, (value) => {
+  if (value !== 'integrations' && isOpenFilter.value) {
+    isOpenFilter.value = false
+  }
+})
 </script>
 
 <template>
@@ -191,17 +273,60 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                     >
                   </div>
                 </div>
-                <a-input
-                  v-model:value="searchQuery"
-                  type="text"
-                  class="nc-input-border-on-value nc-search-integration-input !min-w-[300px] !max-w-[400px] nc-input-sm flex-none"
-                  placeholder="Search integration"
-                  allow-clear
-                >
-                  <template #prefix>
-                    <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
-                  </template>
-                </a-input>
+                <div class="flex items-center gap-2 !max-w-[400px]">
+                  <a-input
+                    v-model:value="searchQuery"
+                    type="text"
+                    class="flex-1 nc-input-border-on-value nc-search-integration-input !min-w-[300px] nc-input-sm flex-none"
+                    placeholder="Search integration"
+                    allow-clear
+                  >
+                    <template #prefix>
+                      <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
+                    </template>
+                  </a-input>
+                  <NcDropdown v-if="showFilter" v-model:visible="isOpenFilter">
+                    <NcButton size="small" type="secondary">
+                      <div class="flex items-center gap-2">
+                        <GeneralIcon icon="filter" />
+                        <div
+                          v-if="integrationCategoriesRef.length - categoriesQuery.length"
+                          class="bg-nc-bg-brand text-nc-content-brand p-1 text-xs rounded-md min-w-6"
+                        >
+                          {{ integrationCategoriesRef.length - categoriesQuery.length }}
+                        </div>
+                      </div>
+                    </NcButton>
+
+                    <template #overlay>
+                      <NcList
+                        v-model:value="categoriesQuery"
+                        v-model:open="isOpenFilter"
+                        :list="integrationCategoriesRef"
+                        search-input-placeholder="Search category"
+                        :close-on-select="false"
+                        is-multi-select
+                      >
+                        <template #listFooter>
+                          <NcDivider class="!mt-0 !mb-2" />
+                          <div class="px-2 mb-2">
+                            <div
+                              class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-brand-500 hover:bg-gray-100 rounded-md cursor-pointer"
+                              @click="toggleShowOrHideAllCategory"
+                            >
+                              <div class="flex items-center gap-2">
+                                <GeneralIcon :icon="isVisibleAllCategory ? 'eyeSlash' : 'eye'" />
+                                <div>
+                                  {{ isVisibleAllCategory ? $t('general.hideAll') : $t('general.showAll') }}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </template></NcList
+                      >
+                    </template>
+                  </NcDropdown>
+                </div>
               </div>
               <NcButton type="ghost" size="small" class="!text-primary" @click="requestIntegration.isOpen = true">
                 Request Integration
@@ -240,7 +365,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                     <div v-if="category.list.length" class="integration-type-list">
                       <NcTooltip
                         v-for="integration of category.list"
-                        :key="integration.value"
+                        :key="integration.subType"
                         :disabled="integration?.isAvailable"
                         placement="bottom"
                       >
@@ -268,7 +393,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                               size="xs"
                               class="integration-upvote-btn !rounded-lg !px-1 !py-0"
                               :class="{
-                                selected: upvotesData.has(integration.value),
+                                selected: upvotesData.has(integration.subType),
                               }"
                             >
                               <div class="flex items-center gap-2">
@@ -321,7 +446,7 @@ const handleAddIntegration = (category: IntegrationCategoryType, integration: In
                 :disabled="!requestIntegration.msg?.trim()"
                 :loading="requestIntegration.isLoading"
                 size="small"
-                @click="saveIntegraitonRequest(requestIntegration.msg)"
+                @click="saveIntegrationRequest(requestIntegration.msg)"
               >
                 {{ $t('general.submit') }}
               </NcButton>

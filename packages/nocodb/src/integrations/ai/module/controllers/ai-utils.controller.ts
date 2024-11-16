@@ -1,0 +1,75 @@
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { Request } from 'express';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext } from '~/interface/config';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { AiUtilsService } from '~/integrations/ai/module/services/ai-utils.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+
+@Controller()
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
+export class AiUtilsController {
+  constructor(private readonly aiUtilsService: AiUtilsService) {}
+
+  @Post(['/api/v2/ai/bases/:baseId/utils'])
+  @Acl('aiUtils', {
+    scope: 'base',
+  })
+  @HttpCode(200)
+  async aiUtils(
+    @TenantContext() context: NcContext,
+    @Req() req: Request,
+    @Body()
+    body: {
+      operation: string;
+      input: any;
+    },
+  ) {
+    const { operation } = body;
+
+    if (operation === 'predictFieldType') {
+      return await this.aiUtilsService.predictFieldType(context, {
+        input: body.input,
+        req,
+      });
+    } else if (operation === 'predictSelectOptions') {
+      return await this.aiUtilsService.predictSelectOptions(context, {
+        input: body.input,
+        req,
+      });
+    } else if (operation === 'predictNextFields') {
+      return await this.aiUtilsService.predictNextFields(context, {
+        input: body.input,
+        req,
+      });
+    } else if (operation === 'predictNextFormulas') {
+      return await this.aiUtilsService.predictNextFormulas(context, {
+        input: body.input,
+        req,
+      });
+    } else if (operation === 'predictNextTables') {
+      return await this.aiUtilsService.predictNextTables(context, {
+        input: body.input,
+        req,
+      });
+    } else if (operation === 'predictFormula') {
+      return await this.aiUtilsService.predictFormula(context, {
+        input: body.input,
+        req,
+      });
+    } else if (operation === 'repairFormula') {
+      return await this.aiUtilsService.repairFormula(context, {
+        input: body.input,
+        req,
+      });
+    }
+  }
+}

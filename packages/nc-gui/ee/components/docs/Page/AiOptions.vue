@@ -31,7 +31,7 @@ const { openedPage } = storeToRefs(useDocStore())
 
 const inputRef = ref<HTMLInputElement>()
 const searchText = ref('')
-const isAiOptionsVisible = ref(false)
+const isAIOptionsVisible = ref(false)
 const isLoading = ref(false)
 const drafts = ref<any[]>([])
 const draftActiveIndex = ref(0)
@@ -40,7 +40,7 @@ const suggestedMarkdown = ref('')
 const pageContentWidth = ref(0)
 const lastFrom = ref(0)
 
-const checkIsAiOptionVisible = (editor: Editor) => {
+const checkIsAIOptionVisible = (editor: Editor) => {
   const selection = editor.state.selection
   if (!(selection instanceof AISelection)) {
     drafts.value = []
@@ -52,7 +52,7 @@ const checkIsAiOptionVisible = (editor: Editor) => {
 
   updatePageContentWidth()
   setTimeout(() => {
-    isAiOptionsVisible.value = true
+    isAIOptionsVisible.value = true
     inputRef.value?.focus()
   }, 0)
 
@@ -263,7 +263,7 @@ watchDebounced(
   <BubbleMenu
     :editor="editor"
     :tippy-options="{ delay: 0, duration: 0, placement: 'bottom-start' }"
-    :should-show="(checkIsAiOptionVisible as any)"
+    :should-show="(checkIsAIOptionVisible as any)"
   >
     <div
       class="relative docs-ai-options flex flex-col bg-gray-50 border-gray-100 border-1 shadow-sm w-full rounded-lg px-3 py-1"

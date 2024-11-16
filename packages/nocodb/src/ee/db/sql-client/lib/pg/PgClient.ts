@@ -1,6 +1,5 @@
 import PGClientCE from 'src/db/sql-client/lib/pg/PgClient';
 import knex from 'knex';
-import find from 'lodash/find';
 import Debug from '~/db/util/Debug';
 import Result from '~/db/util/Result';
 import { runExternal } from '~/helpers/muxHelpers';

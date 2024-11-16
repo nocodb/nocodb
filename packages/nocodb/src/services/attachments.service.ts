@@ -3,6 +3,7 @@ import Url from 'url';
 import { AppEvents } from 'nocodb-sdk';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
+import mime from 'mime/lite';
 import slash from 'slash';
 import PQueue from 'p-queue';
 import axios from 'axios';
@@ -12,7 +13,7 @@ import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import mimetypes, { mimeIcons } from '~/utils/mimeTypes';
+import { mimeIcons } from '~/utils/mimeTypes';
 import { FileReference, PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
@@ -234,7 +235,7 @@ export class AttachmentsService {
           )}_${nanoid(5)}${path.extname(fileNameWithExt)}`;
 
           if (!mimeType) {
-            mimeType = mimetypes[path.extname(fileNameWithExt).slice(1)];
+            mimeType = mime.getType(path.extname(fileNameWithExt).slice(1));
           }
 
           const { url: attachmentUrl, data: file } =
@@ -346,7 +347,7 @@ export class AttachmentsService {
     type: string;
   }> {
     const type =
-      mimetypes[path.extname(param.path).split('/').pop().slice(1)] ||
+      mime.getType(path.extname(param.path).split('/').pop().slice(1)) ||
       'text/plain';
 
     const filePath = validateAndNormaliseLocalPath(param.path, true);

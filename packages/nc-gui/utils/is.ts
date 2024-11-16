@@ -10,7 +10,7 @@
  * console.log(ncIsObject(value)); // true
  * ```
  */
-export function ncIsObject(value: any): boolean {
+export function ncIsObject(value: any): value is object {
   return value !== null && typeof value === 'object' && !ncIsArray(value)
 }
 
@@ -42,7 +42,7 @@ export function ncIsEmptyObject(value: any): boolean {
  * console.log(ncIsArray(value)); // true
  * ```
  */
-export function ncIsArray(value: any): boolean {
+export function ncIsArray(value: any): value is any[] {
   return Array.isArray(value)
 }
 
@@ -77,7 +77,7 @@ export function ncIsEmptyArray(value: any): boolean {
  * console.log(ncIsString(value)); // true
  * ```
  */
-export function ncIsString(value: any): boolean {
+export function ncIsString(value: any): value is string {
   return typeof value === 'string'
 }
 
@@ -93,7 +93,7 @@ export function ncIsString(value: any): boolean {
  * console.log(ncIsNumber(value)); // true
  * ```
  */
-export function ncIsNumber(value: any): boolean {
+export function ncIsNumber(value: any): value is number {
   return typeof value === 'number' && !isNaN(value)
 }
 
@@ -109,7 +109,7 @@ export function ncIsNumber(value: any): boolean {
  * console.log(ncIsBoolean(value)); // true
  * ```
  */
-export function ncIsBoolean(value: any): boolean {
+export function ncIsBoolean(value: any): value is boolean {
   return typeof value === 'boolean'
 }
 
@@ -125,7 +125,7 @@ export function ncIsBoolean(value: any): boolean {
  * console.log(ncIsUndefined(value)); // true
  * ```
  */
-export function ncIsUndefined(value: any): boolean {
+export function ncIsUndefined(value: any): value is undefined {
   return typeof value === 'undefined'
 }
 
@@ -141,7 +141,7 @@ export function ncIsUndefined(value: any): boolean {
  * console.log(ncIsNull(value)); // true
  * ```
  */
-export function ncIsNull(value: any): boolean {
+export function ncIsNull(value: any): value is null {
   return value === null
 }
 
@@ -157,7 +157,7 @@ export function ncIsNull(value: any): boolean {
  * console.log(ncIsFunction(value)); // true
  * ```
  */
-export function ncIsFunction(value: any): boolean {
+export function ncIsFunction(value: any): value is Function {
   return typeof value === 'function'
 }
 
@@ -175,4 +175,33 @@ export function ncIsFunction(value: any): boolean {
  */
 export function ncIsPromise(value: any): boolean {
   return value instanceof Promise
+}
+
+/**
+ * Checks whether an array includes a specific value.
+ *
+ * If an `objectKey` is provided and the array consists of objects, it will check
+ * whether the value of the specified `objectKey` in any object matches the given value.
+ *
+ * @param {T[]} array - The array to check.
+ * @param {any} value - The value to search for in the array.
+ * @param {keyof T} [objectKey] - The key to check in objects, if the array contains objects.
+ *
+ * @returns {boolean} - Returns `true` if the value or object with matching `objectKey` is found, otherwise `false`.
+ *
+ * @example
+ * // For primitive arrays
+ * ncIsArrayIncludes([1, 2, 3], 2) // true
+ *
+ * // For arrays with objects
+ * ncIsArrayIncludes([{ id: 1 }, { id: 2 }], 2, 'id') // true
+ */
+export function ncIsArrayIncludes<T>(array: T[] = [], value: any, objectKey?: keyof T): boolean {
+  if (!ncIsArray(array) || !array.length) return false
+
+  if (objectKey && ncIsObject(array[0])) {
+    return array.some((item) => item[objectKey] === value)
+  }
+
+  return array.includes(value)
 }

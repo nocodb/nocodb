@@ -116,11 +116,12 @@ export default defineConfig({
         accent: 'rgba(var(--color-accent), var(--tw-ring-opacity))',
       },
       boxShadow: {
-        default: '0px 0px 4px 0px rgba(0, 0, 0, 0.08)',
-        hover: '0px 0px 4px 0px rgba(0, 0, 0, 0.24)',
-        selected: '0px 0px 0px 2px var(--ant-primary-color-outline)',
-        error: '0px 0px 0px 2px var(--ant-error-color-outline)',
-        focus: '0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe',
+        'default': '0px 0px 4px 0px rgba(0, 0, 0, 0.08)',
+        'hover': '0px 0px 4px 0px rgba(0, 0, 0, 0.24)',
+        'selected': '0px 0px 0px 2px var(--ant-primary-color-outline)',
+        'selected-ai': '0px 0px 0px 2px rgba(125, 38, 205, 0.24)',
+        'error': '0px 0px 0px 2px var(--ant-error-color-outline)',
+        'focus': '0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe',
       },
       colors: {
         ...windiColors,

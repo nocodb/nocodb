@@ -24,6 +24,8 @@ const rowRef = ref({
 
 useProvideSmartsheetRowStore(rowRef)
 
+const { isAiModeFieldModal } = usePredictFields()
+
 const cdfValue = ref<string | null>(null)
 
 const editEnabled = ref(false)
@@ -83,6 +85,9 @@ const isCurrentDate = computed(() => {
     <div class="flex flex-row gap-2 relative">
       <div
         class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-gray-300 rounded-lg sm:min-h-[32px] xs:min-h-13 flex items-center focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
+        :class="{
+          'bg-white': isAiModeFieldModal,
+        }"
       >
         <div class="relative flex-grow">
           <div

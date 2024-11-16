@@ -45,8 +45,20 @@ onMounted(async () => {
 
 <template>
   <GeneralModal v-model:visible="isOpen" size="large">
-    <div class="h-[80vh]">
-      <ErdView v-if="!isLoading" :source-id="activeSourceId" :base-id="baseId" :show-all-columns="false" />
+    <div class="flex flex-col h-[80vh]">
+      <div class="flex flex-row pt-3 pb-2 px-4 justify-between items-center w-full">
+        <span class="select-none text-lg font-bold"> {{ $t('title.erdView') }}: {{ base?.title }}</span>
+
+        <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="isOpen = false">
+          <template #icon>
+            <MaterialSymbolsCloseRounded data-testid="nc-root-user-invite-modal-close" class="flex mx-auto" />
+          </template>
+        </a-button>
+      </div>
+
+      <div class="h-full">
+        <ErdView v-if="!isLoading" :source-id="activeSourceId" :base-id="baseId" :show-all-columns="false" />
+      </div>
     </div>
   </GeneralModal>
 </template>

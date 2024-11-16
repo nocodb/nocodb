@@ -31,7 +31,10 @@ export default interface IStorageAdapterV2<
     options?: FileCreateByUrlOptions,
   ): Promise<any>;
   fileCreateByStream(destPath: string, readStream: Readable): Promise<void>;
-  fileReadByStream(key: string): Promise<Readable>;
+  fileReadByStream(
+    key: string,
+    options?: { encoding?: string },
+  ): Promise<Readable>;
   getDirectoryList(path: string): Promise<string[]>;
   scanFiles(_globPattern: string): Promise<Readable>;
 }

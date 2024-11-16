@@ -6,6 +6,9 @@ import multer from 'multer';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
 
+/* Integrations */
+import { NocoAiModule } from '~/integrations/ai/module/ai.module';
+
 /* Generic */
 import { InitMetaServiceProvider } from '~/providers/init-meta-service.provider';
 import { JwtStrategyProvider } from '~/providers/jwt-strategy.provider';
@@ -16,6 +19,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
 import { HookHandlerService } from '~/services/hook-handler.service';
+import { ActionsController } from '~/controllers/actions.controller';
 
 /* User */
 import { UsersController } from '~/controllers/users/users.controller';
@@ -141,6 +145,7 @@ export const nocoModuleMetadata = {
         files: NC_MAX_ATTACHMENTS_ALLOWED,
       },
     }),
+    NocoAiModule,
   ],
   controllers: [
     ...(process.env.NC_WORKER_CONTAINER !== 'true'
@@ -190,6 +195,7 @@ export const nocoModuleMetadata = {
           ExtensionsController,
           JobsMetaController,
           IntegrationsController,
+          ActionsController,
 
           /* Datas */
           DataTableController,
@@ -307,6 +313,7 @@ export const nocoModuleMetadata = {
     /* Datas */
     DatasService,
     BulkDataAliasService,
+    DataTableService,
   ],
 };
 

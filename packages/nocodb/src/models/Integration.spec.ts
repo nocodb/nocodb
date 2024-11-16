@@ -97,12 +97,36 @@ describe('Integration Model', () => {
       expect(result).toBeInstanceOf(Integration);
       expect(result).toEqual(expect.objectContaining(mockIntegration));
       expect(mockNcMeta.metaGet2).toBeCalledWith(
-        null,
-        'workspace',
+        isEE ? 'bypass' : null,
+        isEE ? 'bypass' : 'workspace',
         MetaTable.INTEGRATIONS,
-        isEE ? { fk_workspace_id: null, id: 'test-id' } : 'test-id',
+        isEE ? null : 'test-id',
         null,
-        { _or: [{ deleted: { neq: true } }, { deleted: { eq: null } }] },
+        isEE
+          ? {
+              _and: [
+                {
+                  id: {
+                    eq: 'test-id',
+                  },
+                },
+                {
+                  _or: [
+                    {
+                      deleted: {
+                        neq: true,
+                      },
+                    },
+                    {
+                      deleted: {
+                        eq: null,
+                      },
+                    },
+                  ],
+                },
+              ],
+            }
+          : { _or: [{ deleted: { neq: true } }, { deleted: { eq: null } }] },
       );
     });
   });

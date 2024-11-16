@@ -173,7 +173,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       skipAttachmentConversion?: boolean;
       skipSubstitutingColumnIds?: boolean;
       skipUserConversion?: boolean;
-      skipButtonConversion?: boolean;
+      skipJsonConversion?: boolean;
       bulkAggregate?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
@@ -183,7 +183,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       skipSubstitutingColumnIds: false,
       skipUserConversion: false,
       bulkAggregate: false,
-      skipButtonConversion: false,
+      skipJsonConversion: false,
       raw: false,
       first: false,
     },
@@ -193,7 +193,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
       options.skipUserConversion = true;
-      options.skipButtonConversion = true;
+      options.skipJsonConversion = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -253,13 +253,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       data = await this.convertUserFormat(data, dependencyColumns);
     }
     // Update button fields
-    if (!options.skipButtonConversion) {
-      data = await this.convertButtonType(data, dependencyColumns);
+    if (!options.skipJsonConversion) {
+      data = await this.convertJsonTypes(data, dependencyColumns);
     }
 
     if (options.bulkAggregate) {
       data = data.map(async (d) => {
-        for (let [key, data] of Object.entries(d)) {
+        for (const key in d) {
+          let data = d[key];
+
           if (typeof data === 'string' && data.startsWith('{')) {
             try {
               data = JSON.parse(data);
@@ -1080,7 +1082,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       await this.clearFileReferences({
-        oldData: data,
+        oldData: [data],
         columns: this.model.columns,
       });
 

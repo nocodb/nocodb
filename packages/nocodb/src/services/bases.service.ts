@@ -52,6 +52,11 @@ export class BasesService {
     return bases;
   }
 
+  async getProject(context: NcContext, param: { baseId: string }) {
+    const base = await Base.get(context, param.baseId);
+    return base;
+  }
+
   async getProjectWithInfo(
     context: NcContext,
     param: { baseId: string; includeConfig?: boolean },

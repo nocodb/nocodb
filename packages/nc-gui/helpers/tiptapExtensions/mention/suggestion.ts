@@ -1,16 +1,15 @@
+import type { Component } from 'vue'
 import { VueRenderer } from '@tiptap/vue-3'
 import tippy from 'tippy.js'
 
-import MentionList from './MentionList.vue'
-
-export default {
+export default (comp: Component) => ({
   render: () => {
     let component: VueRenderer
     let popup: any
 
     return {
       onStart: (props: Record<string, any>) => {
-        component = new VueRenderer(MentionList, {
+        component = new VueRenderer(comp, {
           props,
           editor: props.editor,
         })
@@ -58,4 +57,4 @@ export default {
       },
     }
   },
-}
+})

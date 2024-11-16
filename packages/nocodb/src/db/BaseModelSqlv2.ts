@@ -4976,7 +4976,7 @@ class BaseModelSqlv2 {
       let response;
       const query = this.dbDriver(this.tnPath).insert(insertObj);
 
-      if (this.isPg || this.isMssql) {
+      if ((this.isPg || this.isMssql) && this.model.primaryKey) {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.id}`,
         );
@@ -5056,7 +5056,7 @@ class BaseModelSqlv2 {
 
       await this.runOps(postInsertOps.map((f) => f(rowId)));
 
-      if (rowId !== null && rowId !== undefined) {
+      if (this.model.primaryKey && rowId !== null && rowId !== undefined) {
         response = await this.readRecord({
           idOrRecord: rowId,
           validateFormula: false,

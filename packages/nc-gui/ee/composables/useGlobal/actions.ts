@@ -119,7 +119,9 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       )
       if (tokenRes.data.token) {
         updateFirstTimeUser()
-        await signIn((await tokenRes).data.token)
+        const token = tokenRes.data.token
+        await signIn(token)
+        return token
       }
     } catch (err) {}
   }
@@ -161,7 +163,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       if (isAmplifyConfigured.value) {
         // reset token value to null since cognito token is not valid
         state.token.value = null
-        await checkForCognitoToken({
+        return await checkForCognitoToken({
           axiosInstance,
         })
       } else if (state.token.value && state.user.value) {

@@ -1035,7 +1035,8 @@
     "autoSuggestFormulas": "Auto suggest formulas",
     "createAiIntegration": "Create AI integration",
     "suggestTablesViews": "Suggest Tables & Views",
-    "configureAiButton": "Configure AI Button"
+    "configureAiButton": "Configure AI Button",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1298,7 +1299,8 @@
     "group": "Group",
     "goToDocs": "Go to Docs",
     "addCondition": "Add condition",
-    "addConditionGroup": "Add condition group"
+    "addConditionGroup": "Add condition group",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for the data source or the data type",

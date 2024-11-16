@@ -394,7 +394,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
             <a-tab-pane key="acl">
               <template #tab>
                 <div class="tab" data-testid="nc-acl-tab">
-                  <div>{{ $t('labels.uiAcl') }}</div>
+                  <div>{{ $t('labels.viewHide') }}</div>
                 </div>
               </template>
 

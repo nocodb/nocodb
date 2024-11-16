@@ -1006,7 +1006,8 @@
     "coverImageArea": "Borító kép",
     "syncData": "Adatok szinkronizálása",
     "syncDataModalSubtitle": "Regisztrálja az Önt érdeklő szolgáltatásokat, hogy értesítést kapjon, amikor elérhetővé válnak",
-    "redirectToUrl": "Átirányítás URL-re"
+    "redirectToUrl": "Átirányítás URL-re",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Csoport",
     "goToDocs": "Dokumentációkhoz",
     "addCondition": "Feltétel hozzáadása",
-    "addConditionGroup": "Feltételcsoport hozzáadása"
+    "addConditionGroup": "Feltételcsoport hozzáadása",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

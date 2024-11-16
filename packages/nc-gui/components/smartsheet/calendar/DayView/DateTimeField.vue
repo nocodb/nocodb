@@ -895,7 +895,10 @@ const expandRecord = (record: Row) => {
 <template>
   <div class="h-[calc(100vh-5.3rem)] overflow-y-auto nc-scrollbar-md">
     <SmartsheetCalendarDateTimeSpanningContainer
-      v-if="calendarRange.some((range) => range.fk_to_col !== null && range.fk_to_col !== undefined)"
+      v-if="
+        calendarRange.some((range) => range.fk_to_col !== null && range.fk_to_col !== undefined) &&
+        recordsAcrossAllRange.spanningRecords?.length
+      "
       :records="recordsAcrossAllRange.spanningRecords"
       @expand-record="expandRecord"
     />

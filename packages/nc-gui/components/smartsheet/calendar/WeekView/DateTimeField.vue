@@ -139,8 +139,8 @@ const calculateNewDates = useMemoize(
       endDate = startDate.clone().add(15, 'minutes')
     }
 
-    if (endDate.diff(startDate, 'minute') < 60) {
-      endDate = startDate.clone().add(60, 'minutes')
+    if (endDate.diff(startDate, 'minute') <= 60) {
+      endDate = startDate.clone().add(59, 'minutes')
     }
 
     // If the start date is before the start of the schedule, we set it to the start of the schedule
@@ -940,8 +940,9 @@ watch(
       v-if="!isPublic && dayjs().isBetween(selectedDateRange.start, selectedDateRange.end)"
       class="absolute top-16 ml-16 pointer-events-none z-2"
       :class="{
-        'mt-38.5': isExpanded && isRangeEnabled,
-        'mt-23': !isExpanded && isRangeEnabled,
+        '!mt-38.5': isExpanded && isRangeEnabled,
+        'mt-27': !isExpanded && isRangeEnabled,
+        '!mt-6': !recordsAcrossAllRange.spanningRecords?.length,
       }"
       :style="overlayStyle"
     >
@@ -971,8 +972,9 @@ watch(
     </div>
     <div
       :class="{
-        'top-16': !isExpanded && isRangeEnabled,
+        'top-20.5': !isExpanded && isRangeEnabled,
         'top-32': isExpanded && isRangeEnabled,
+        '!top-0': !recordsAcrossAllRange.spanningRecords?.length,
       }"
       class="absolute bg-white w-16 z-1"
     >
@@ -984,7 +986,10 @@ watch(
         {{ hour.format('hh a') }}
       </div>
     </div>
-    <div v-if="isRangeEnabled" class="sticky top-6 bg-white z-3 inset-x-0 w-full">
+    <div
+      v-if="isRangeEnabled && recordsAcrossAllRange.spanningRecords?.length"
+      class="sticky top-6 bg-white z-3 inset-x-0 w-full"
+    >
       <SmartsheetCalendarDateTimeSpanningContainer
         ref="spanningRecordsContainer"
         :records="recordsAcrossAllRange.spanningRecords"
@@ -994,8 +999,9 @@ watch(
     <div
       ref="container"
       :class="{
-        '!mt-16 ': !isExpanded && isRangeEnabled,
+        'mt-20.5 ': !isExpanded && isRangeEnabled,
         'mt-32': isExpanded && isRangeEnabled,
+        '!mt-0': !recordsAcrossAllRange.spanningRecords?.length,
       }"
       class="absolute ml-16 flex w-[calc(100%-64px)]"
     >

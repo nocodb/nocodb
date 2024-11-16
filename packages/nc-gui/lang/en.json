@@ -1006,7 +1006,8 @@
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
-    "redirectToUrl": "Redirect to URL"
+    "redirectToUrl": "Redirect to URL",
+    "viewAccess": "View access "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Group",
     "goToDocs": "Go to Docs",
     "addCondition": "Add condition",
-    "addConditionGroup": "Add condition group"
+    "addConditionGroup": "Add condition group",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for the data source or the data type",

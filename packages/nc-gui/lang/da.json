@@ -1006,7 +1006,8 @@
     "coverImageArea": "Dækkebillede",
     "syncData": "Synkroniser data",
     "syncDataModalSubtitle": "Registrer de tjenester, du er interesseret i, for at blive underrettet, når de bliver tilgængelige",
-    "redirectToUrl": "Omdiriger til URL"
+    "redirectToUrl": "Omdiriger til URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Gruppe",
     "goToDocs": "Gå til Docs",
     "addCondition": "Tilføj betingelse",
-    "addConditionGroup": "Tilføj betingelsesgruppe"
+    "addConditionGroup": "Tilføj betingelsesgruppe",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

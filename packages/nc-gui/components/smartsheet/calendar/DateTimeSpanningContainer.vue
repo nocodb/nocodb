@@ -135,7 +135,7 @@ const calendarData = computed(() => {
       else if (isEndInRange) position = 'rightRounded'
 
       const style: Partial<CSSStyleDeclaration> = {
-        top: `${row * 28 + row * 8 + 4}px`,
+        top: `${row * 28 + row * 8 + 8}px`,
         left: `${startDayIndex * perDayWidth}px`,
         width: `${spanDays * perDayWidth}px`,
       }

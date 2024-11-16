@@ -150,7 +150,7 @@ const columns = [
     <div class="w-full h-full flex flex-col">
       <NcTooltip class="mb-4 first-letter:capital font-bold max-w-100 truncate" show-on-truncate-only>
         <template #title>{{ base.title }}</template>
-        <span> UI ACL : {{ base.title }} </span>
+        <span> {{ $t('labels.viewAccess') }} : {{ base.title }} </span>
       </NcTooltip>
       <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
         <a-input

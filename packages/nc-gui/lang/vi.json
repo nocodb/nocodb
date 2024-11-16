@@ -1006,7 +1006,8 @@
     "coverImageArea": "Hình ảnh bìa",
     "syncData": "Đồng bộ dữ liệu",
     "syncDataModalSubtitle": "Đăng ký các dịch vụ bạn quan tâm để nhận thông báo khi chúng có sẵn",
-    "redirectToUrl": "Chuyển hướng đến URL"
+    "redirectToUrl": "Chuyển hướng đến URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Nhóm",
     "goToDocs": "Đi đến Tài liệu",
     "addCondition": "Thêm điều kiện",
-    "addConditionGroup": "Thêm nhóm điều kiện"
+    "addConditionGroup": "Thêm nhóm điều kiện",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

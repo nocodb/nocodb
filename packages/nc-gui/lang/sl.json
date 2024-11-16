@@ -1006,7 +1006,8 @@
     "coverImageArea": "Pokrijte sliko",
     "syncData": "Sinhroniziraj podatke",
     "syncDataModalSubtitle": "Registrirajte se za storitve, ki vas zanimajo, da boste obveščeni, ko bodo na voljo",
-    "redirectToUrl": "Preusmeri na URL"
+    "redirectToUrl": "Preusmeri na URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Skupina",
     "goToDocs": "Pojdi na dokumentacijo",
     "addCondition": "Dodaj pogoj",
-    "addConditionGroup": "Dodaj skupino pogojev"
+    "addConditionGroup": "Dodaj skupino pogojev",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

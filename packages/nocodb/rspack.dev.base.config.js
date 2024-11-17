@@ -2,6 +2,7 @@ const { join } = require('path');
 const { rspack } = require('@rspack/core');
 const NodeExternals = require('webpack-node-externals');
 const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const baseDevConfig = {
   mode: 'development',
@@ -21,6 +22,7 @@ const baseDevConfig = {
         exclude: /node_modules/,
         loader: 'builtin:swc-loader',
         options: {
+          sourceMap: true,
           jsc: {
             parser: {
               syntax: 'typescript',
@@ -33,9 +35,16 @@ const baseDevConfig = {
               decoratorMetadata: true,
             },
             target: 'es2017',
+            loose: true,
+            externalHelpers: false,
+            keepClassNames: true,
           },
           module: {
             type: 'commonjs',
+            strict: false,
+            strictMode: true,
+            lazy: false,
+            noInterop: false,
           },
         },
       },
@@ -75,6 +84,12 @@ const baseDevConfig = {
     new RunScriptWebpackPlugin({
       name: 'main.js',
       autoRestart: true,
+    }),
+    new ForkTsCheckerWebpackPlugin({
+      typescript: {
+        context: join(__dirname),
+        configFile: join('tsconfig.ee-cloud.json'),
+      },
     }),
   ],
   output: {

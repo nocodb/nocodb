@@ -1,7 +1,8 @@
-const { join } = require('path');
+const { join, resolve } = require('path');
 const { rspack } = require('@rspack/core');
 const NodeExternals = require('webpack-node-externals');
 const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
+const {resolveTsAliases} = require("./build-utils/resolveTsAliases");
 // const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const baseDevConfig = {
@@ -71,6 +72,9 @@ const baseDevConfig = {
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
+    alias: {
+      ...resolveTsAliases(resolve('tsconfig.json')),
+    },
   },
   optimization: {
     minimize: false,

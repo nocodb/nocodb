@@ -1,6 +1,7 @@
 const path = require('path');
 const { rspack } = require('@rspack/core');
 const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
+const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   entry: './src/run/local.ts',
@@ -53,18 +54,7 @@ module.exports = {
     ],
     nodeEnv: false,
   },
-  externals: {
-    '@nestjs/microservices': '@nestjs/microservices',
-    '@nestjs/microservices/microservices-module':
-      '@nestjs/microservices/microservices-module',
-    sharp: 'commonjs sharp',
-    'nocodb-sdk': 'nocodb-sdk',
-    'pg-query-stream': 'pg-query-stream',
-    'better-sqlite3': 'better-sqlite3',
-    oracledb: 'oracledb',
-    'pg-native': 'pg-native',
-    '@nestjs/graphql': '@nestjs/graphql',
-  },
+  externals: [nodeExternals()],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
     alias: resolveTsAliases(path.resolve('tsconfig.json')),

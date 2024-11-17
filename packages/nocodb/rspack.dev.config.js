@@ -1,9 +1,9 @@
 const { join, resolve } = require('path');
 const { rspack } = require('@rspack/core');
-const NodeExternals = require('webpack-node-externals');
 const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
 const {resolveTsAliases} = require("./build-utils/resolveTsAliases");
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const nodeExternals = require('webpack-node-externals');
 
 const baseDevConfig = {
   mode: 'development',
@@ -52,23 +52,9 @@ const baseDevConfig = {
     ],
   },
   externals: [
-    NodeExternals({
+    nodeExternals({
       allowlist: ['webpack/hot/poll?1000'],
-    }),
-    {
-      '@nestjs/microservices': '@nestjs/microservices',
-      '@nestjs/microservices/microservices-module':
-        '@nestjs/microservices/microservices-module',
-      sharp: 'commonjs sharp',
-      'nocodb-sdk': 'nocodb-sdk',
-      'pg-query-stream': 'pg-query-stream',
-      'better-sqlite3': 'better-sqlite3',
-      oracledb: 'oracledb',
-      'pg-native': 'pg-native',
-      '@nestjs/graphql': '@nestjs/graphql',
-      pg: 'commonjs pg',
-      knex: 'commonjs knex',
-    },
+    })
   ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],

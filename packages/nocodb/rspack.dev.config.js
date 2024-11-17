@@ -2,7 +2,7 @@ const { join } = require('path');
 const { rspack } = require('@rspack/core');
 const NodeExternals = require('webpack-node-externals');
 const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+// const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const baseDevConfig = {
   mode: 'development',

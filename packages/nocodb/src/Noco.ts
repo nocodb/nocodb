@@ -105,9 +105,9 @@ export default class Noco {
     this.initCustomLogger(nestApp);
     nestApp.flushLogs();
 
-    if (module.hot) {
-      module.hot.accept();
-      module.hot.dispose(() => nestApp.close());
+    if ((module as any).hot) {
+      (module as any).hot.accept();
+      (module as any).hot.dispose(() => nestApp.close());
     }
 
     try {

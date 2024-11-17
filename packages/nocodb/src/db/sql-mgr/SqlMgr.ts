@@ -15,8 +15,10 @@ import type SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
 import { T } from '~/utils';
 import Result from '~/db/util/Result';
 import Debug from '~/db/util/Debug';
-import KnexMigrator from '~/db/sql-migrator/lib/KnexMigrator';
 import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
+// @ts-expect-error
+import KnexMigrator from '~/db/sql-migrator/lib/KnexMigrator';
+// @ts-expect-error
 import NcConnectionMgr from '~/utils/common/NcConnectionMgr';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 20);

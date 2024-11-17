@@ -37,8 +37,12 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 스마트 스프레드시트�
 ### Docker 사용
 
 ```bash
-docker run -d --name noco -v "$(pwd)"/nocodb:/usr/app/data/ -p 8080:8080 nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+  ```
 
 - NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
 - 데이터를 계속 저장하려면 반드시 `/usr/app/data/`에 볼륨을 마운트해야 합니다
@@ -46,8 +50,14 @@ docker run -d --name noco -v "$(pwd)"/nocodb:/usr/app/data/ -p 8080:8080 nocodb/
   Example:
 
 ```
-docker run -d --name noco -v "$(pwd)"/nocodb:/usr/app/data/ -p 8080:8080 -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
+  ```
 
 
 

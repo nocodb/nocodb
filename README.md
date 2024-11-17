@@ -56,22 +56,12 @@ NocoDB is the fastest and easiest way to build databases online.
 ## Docker with SQLite
 
 ```bash 
-docker run -d --name noco 
-           -v "$(pwd)"/nocodb:/usr/app/data/ 
-           -p 8080:8080 
-           nocodb/nocodb:latest
+docker run -d --name noco -v "$(pwd)"/nocodb:/usr/app/data/ -p 8080:8080 nocodb/nocodb:latest
 ```
 
 ## Docker with PG
 ```bash
-docker run -d --name noco 
-           -v "$(pwd)"/nocodb:/usr/app/data/ 
-           -p 8080:8080 
-            # replace with your pg connection string
-           -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" 
-           # replace with a random secret
-           -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010"  
-           nocodb/nocodb:latest
+docker run -d --name noco -v "$(pwd)"/nocodb:/usr/app/data/ -p 8080:8080 -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" nocodb/nocodb:latest
 ```
 
 ## Auto-upstall

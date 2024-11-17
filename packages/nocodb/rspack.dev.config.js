@@ -88,6 +88,9 @@ const baseDevConfig = {
     new RunScriptWebpackPlugin({
       name: 'main.js',
     }),
+    new rspack.CopyRspackPlugin({
+      patterns: [{ from: 'src/public', to: 'public' }],
+    }),
     new ForkTsCheckerWebpackPlugin({
       typescript: {
         configFile: join('tsconfig.json'),

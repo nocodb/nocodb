@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ComputedRef } from 'vue'
-import { computed, useI18n, useRoles } from '#imports'
 
 interface Tab {
   title: string

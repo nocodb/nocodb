@@ -45,6 +45,7 @@ const dateTimeData = [
     hour: 4,
     minute: 30,
     output: '10-12-2022 04:30',
+    selectFromPicker: true,
   },
   {
     dateFormat: 'DD-MM-YYYY',
@@ -122,15 +123,19 @@ test.describe('DateTime Column', () => {
 
       await dashboard.grid.cell.dateTime.selectDate({
         date: dateTimeData[i].date,
+        index: 0,
+        columnHeader: 'NC_DATETIME_0',
       });
 
       await dashboard.grid.cell.dateTime.selectTime({
+        index: 0,
+        columnHeader: 'NC_DATETIME_0',
         hour: dateTimeData[i].hour,
         minute: dateTimeData[i].minute,
         second: dateTimeData[i].second,
+        fillValue: dateTimeData[i].output.split(' ')[1].trim(),
+        selectFromPicker: !!dateTimeData[i].selectFromPicker,
       });
-
-      await dashboard.grid.cell.dateTime.save();
 
       await dashboard.grid.cell.verifyDateCell({
         index: 0,
@@ -182,6 +187,8 @@ test.describe('Date Column', () => {
       await dashboard.grid.cell.dateTime.selectDate({
         date: dateData[i].date,
         skipDate: dateData[i].dateFormat === 'YYYY-MM',
+        index: 0,
+        columnHeader: 'NC_DATE_0',
       });
 
       await dashboard.grid.cell.verifyDateCell({

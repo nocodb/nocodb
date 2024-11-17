@@ -1,19 +1,6 @@
 <script setup lang="ts">
 import type { Card as AntCard } from 'ant-design-vue'
-import {
-  Form,
-  JobStatus,
-  computed,
-  extractSdkResponseErrorMsg,
-  fieldRequiredValidator,
-  iconMap,
-  message,
-  nextTick,
-  onMounted,
-  ref,
-  useNuxtApp,
-  watch,
-} from '#imports'
+import { JobStatus } from '#imports'
 
 const { modelValue, baseId, sourceId } = defineProps<{
   modelValue: boolean
@@ -34,6 +21,8 @@ const baseStore = useBase()
 const { refreshCommandPalette } = useCommandPalette()
 
 const { loadTables } = baseStore
+
+const { getJobsForBase, loadJobsForBase } = useJobs()
 
 const showGoToDashboardButton = ref(false)
 
@@ -67,7 +56,7 @@ const syncSource = ref({
       syncLookup: true,
       syncFormula: false,
       syncAttachment: true,
-      syncUsers: true,
+      syncUsers: false,
     },
   },
 })
@@ -154,7 +143,16 @@ async function listenForUpdates(id?: string) {
 
   listeningForUpdates.value = true
 
-  const job = id ? { id } : await $api.jobs.status({ syncId: syncSource.value.id })
+  await loadJobsForBase(baseId)
+
+  const jobs = await getJobsForBase(baseId)
+
+  const job = id
+    ? { id }
+    : jobs
+        // sort by created_at desc (latest first)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .find((j) => j.base_id === baseId && j.status !== JobStatus.COMPLETED && j.status !== JobStatus.FAILED)
 
   if (!job) {
     listeningForUpdates.value = false
@@ -223,7 +221,7 @@ async function loadSyncSrc() {
           syncLookup: true,
           syncFormula: false,
           syncAttachment: true,
-          syncUsers: true,
+          syncUsers: false,
         },
       },
     }
@@ -237,6 +235,7 @@ async function sync() {
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
     })
+    listeningForUpdates.value = false
     listenForUpdates(jobData.id)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -416,22 +415,30 @@ function downloadLogs(filename: string) {
             </a-checkbox>
           </div>
 
-          <!--          Import Users Columns -->
+          <!--          Import Formula Columns -->
           <div class="my-2">
-            <a-checkbox v-model:checked="syncSource.details.options.syncUsers">
-              {{ $t('labels.importUsers') }}
-            </a-checkbox>
+            <a-tooltip placement="top">
+              <template #title>
+                <span>{{ $t('title.comingSoon') }}</span>
+              </template>
+              <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>
+                {{ $t('labels.importFormulaColumns') }}
+              </a-checkbox>
+            </a-tooltip>
           </div>
 
-          <!--          Import Formula Columns -->
-          <a-tooltip placement="top">
-            <template #title>
-              <span>{{ $t('title.comingSoon') }}</span>
-            </template>
-            <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>
-              {{ $t('labels.importFormulaColumns') }}
-            </a-checkbox>
-          </a-tooltip>
+          <!--          Invite Users 
+          <div class="my-2">
+            <a-tooltip placement="top">
+              <template #title>
+                <span>{{ $t('title.comingSoon') }}</span>
+              </template>
+              <a-checkbox v-model:checked="syncSource.details.options.syncUsers" disabled>
+                {{ $t('labels.importUsers') }}
+              </a-checkbox>
+            </a-tooltip>
+          </div>
+          -->
         </a-form>
 
         <a-divider />

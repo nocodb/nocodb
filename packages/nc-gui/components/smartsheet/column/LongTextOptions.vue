@@ -1,8 +1,6 @@
 <!-- File not in use for now -->
 
 <script setup lang="ts">
-import { useVModel } from '#imports'
-
 const props = defineProps<{
   value: any
 }>()
@@ -26,11 +24,13 @@ watch(richMode, () => {
 </script>
 
 <template>
-  <div class="flex flex-col mt-2 gap-2">
+  <div class="flex flex-col gap-2">
     <a-form-item>
-      <div class="flex flex-row items-center">
+      <div class="flex items-center gap-1">
         <NcSwitch v-model:checked="richMode">
-          <div class="text-xs">{{ $t('labels.enableRichText') }}</div>
+          <div class="text-sm text-gray-800 select-none">
+            {{ $t('labels.enableRichText') }}
+          </div>
         </NcSwitch>
       </div>
     </a-form-item>

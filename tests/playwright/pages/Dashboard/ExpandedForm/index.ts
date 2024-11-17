@@ -46,8 +46,8 @@ export class ExpandedFormPage extends BasePage {
   }
 
   async clickDeleteRow() {
-    await this.click3DotsMenu('Delete Record');
-    await this.rootPage.locator('.ant-btn-danger:has-text("Delete Record")').click();
+    await this.click3DotsMenu('Delete record');
+    await this.rootPage.locator('.ant-btn-danger:has-text("Delete record")').click();
   }
 
   async isDisabledDuplicateRow() {
@@ -67,7 +67,17 @@ export class ExpandedFormPage extends BasePage {
     await this.dashboard.waitForLoaderToDisappear();
   }
 
-  async fillField({ columnTitle, value, type = 'text' }: { columnTitle: string; value: string; type?: string }) {
+  async fillField({
+    columnTitle,
+    value,
+    type = 'text',
+    ltarCount,
+  }: {
+    columnTitle: string;
+    value: string;
+    type?: string;
+    ltarCount?: number;
+  }) {
     const field = this.get().getByTestId(`nc-expand-col-${columnTitle}`);
     switch (type) {
       case 'text':
@@ -84,21 +94,33 @@ export class ExpandedFormPage extends BasePage {
       case 'belongsTo':
         await field.locator('.nc-virtual-cell').hover();
         await field.locator('.nc-action-icon').click();
-        await this.dashboard.linkRecord.select(value);
+        if (ltarCount !== undefined && ltarCount !== null) {
+          await this.dashboard.linkRecord.verifyCount(ltarCount);
+        }
+        await this.dashboard.linkRecord.select(value, false);
         break;
       case 'hasMany':
       case 'manyToMany':
         await field.locator('.nc-virtual-cell').hover();
         await field.locator('.nc-action-icon').click();
+        if (ltarCount !== undefined && ltarCount !== null) {
+          await this.dashboard.linkRecord.verifyCount(ltarCount);
+        }
         await this.dashboard.linkRecord.select(value);
         break;
       case 'dateTime':
-        await field.locator('.nc-cell').click();
+        await field.locator('.nc-cell .nc-date-input').click();
         // eslint-disable-next-line no-case-declarations
         const dateTimeObj = new DateTimeCellPageObject(this.dashboard.grid.cell);
-        await dateTimeObj.selectDate({ date: value.slice(0, 10) });
-        await dateTimeObj.selectTime({ hour: +value.slice(11, 13), minute: +value.slice(14, 16) });
-        await dateTimeObj.save();
+
+        await dateTimeObj.selectDate({ date: value.slice(0, 10), locator: field.locator('.nc-cell') });
+
+        await dateTimeObj.selectTime({
+          hour: +value.slice(11, 13),
+          minute: +value.slice(14, 16),
+          locator: field.locator('.nc-cell'),
+          fillValue: `${value.slice(11, 13).padStart(2, '0')}:${value.slice(14, 16).padStart(2, '0')}`,
+        });
         break;
     }
   }
@@ -127,9 +149,12 @@ export class ExpandedFormPage extends BasePage {
 
     await this.verifyToast({ message: `updated successfully.` });
     await this.rootPage.locator('[data-testid="grid-load-spinner"]').waitFor({ state: 'hidden' });
+
     // removing focus from toast
+    await this.rootPage.waitForTimeout(1000);
     await this.rootPage.locator('.nc-modal').click();
-    await this.get().press('Escape');
+    await this.rootPage.waitForTimeout(1000);
+    await this.get().locator('.nc-expanded-form-header').locator('.nc-expand-form-close-btn').click();
     await this.get().waitFor({ state: 'hidden' });
   }
 
@@ -191,9 +216,9 @@ export class ExpandedFormPage extends BasePage {
     }
 
     if (role === 'viewer') {
-      await expect(this.get().locator('.nc-comments-drawer')).toHaveCount(0);
+      await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(0);
     } else {
-      await expect(this.get().locator('.nc-comments-drawer')).toHaveCount(1);
+      await expect(this.get().locator('.nc-comments-drawer .nc-comment-input')).toHaveCount(1);
     }
 
     // press escape to close the expanded form

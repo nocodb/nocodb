@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
+  onDeleteColumn?: () => void
 }>()
 
 const emits = defineEmits(['update:visible'])
@@ -22,7 +23,34 @@ const { includeM2M } = useGlobal()
 
 const { loadTables } = useBase()
 
+const viewsStore = useViewsStore()
+
 const isLoading = ref(false)
+
+// disable for time being - internal discussion required
+/*
+const warningMsg = computed(() => {
+  if (!column?.value) return []
+
+  const columns = meta?.value?.columns.filter((c) => {
+    if (isLinksOrLTAR(c) && c.colOptions) {
+      return (
+        (c.colOptions as LinkToAnotherRecordType).fk_parent_column_id === column.value?.id ||
+        (c.colOptions as LinkToAnotherRecordType).fk_child_column_id === column.value?.id ||
+        (c.colOptions as LinkToAnotherRecordType).fk_mm_child_column_id === column.value?.id ||
+        (c.colOptions as LinkToAnotherRecordType).fk_mm_parent_column_id === column.value?.id
+      )
+    }
+
+    return false
+  })
+
+  if (!columns.length) return null
+
+  return `This column is used in following Link column${columns.length > 1 ? 's' : ''}: '${columns
+    .map((c) => c.title)
+    .join("', '")}'. Deleting this column will also delete the related Link column${columns.length > 1 ? 's' : ''}.`
+}) */
 
 const onDelete = async () => {
   if (!column?.value) return
@@ -44,8 +72,17 @@ const onDelete = async () => {
       }
     }
 
+    // Update views if column is used as cover image
+
+    viewsStore.updateViewCoverImageColumnId({
+      metaId: meta.value?.id as string,
+      columnIds: new Set([column?.value?.id as string]),
+    })
+
     $e('a:column:delete')
     visible.value = false
+
+    props.onDeleteColumn?.()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -58,7 +95,8 @@ const onDelete = async () => {
   <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.column')" :on-delete="onDelete">
     <template #entity-preview>
       <div v-if="column" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
-        <SmartsheetHeaderCellIcon class="nc-view-icon"></SmartsheetHeaderCellIcon>
+        <SmartsheetHeaderVirtualCellIcon v-if="isVirtualCol(column)" class="nc-view-icon"></SmartsheetHeaderVirtualCellIcon>
+        <SmartsheetHeaderCellIcon v-else class="nc-view-icon"></SmartsheetHeaderCellIcon>
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.5"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
@@ -67,5 +105,8 @@ const onDelete = async () => {
         </div>
       </div>
     </template>
+
+    <!-- disable for time being - internal discussion required -->
+    <!-- <template v-if="warningMsg" #warning>{{ warningMsg }}</template> -->
   </GeneralDeleteModal>
 </template>

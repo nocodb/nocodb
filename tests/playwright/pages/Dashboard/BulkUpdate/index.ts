@@ -107,20 +107,24 @@ export class BulkUpdatePage extends BasePage {
           .click();
         break;
       case 'year':
-        picker = this.rootPage.locator('.ant-picker-dropdown.active');
+        await field.locator('input').click();
+        picker = this.rootPage.locator('.nc-picker-year.active');
         await picker.waitFor();
-        await picker.locator(`td[title="${value}"]`).click();
+        await this.configureYear(value);
         break;
       case 'time':
-        picker = this.rootPage.locator('.ant-picker-dropdown.active');
-        await picker.waitFor();
         // eslint-disable-next-line no-case-declarations
-        const time = value.split(':');
+        const timeInput = field.locator('.nc-time-input');
+        await timeInput.click();
         // eslint-disable-next-line no-case-declarations
-        const timePanel = picker.locator('.ant-picker-time-panel-column');
-        await timePanel.nth(0).locator('li').nth(+time[0]).click();
-        await timePanel.nth(1).locator('li').nth(+time[1]).click();
-        await picker.locator('.ant-picker-ok').click();
+        const dropdown = this.rootPage.locator('.nc-picker-time.active');
+        await dropdown.waitFor({ state: 'visible' });
+
+        await timeInput.fill(value);
+        await this.rootPage.keyboard.press('Enter');
+
+        await dropdown.waitFor({ state: 'hidden' });
+
         break;
       case 'singleSelect':
         picker = this.rootPage.locator('.ant-select-dropdown.active');
@@ -139,32 +143,63 @@ export class BulkUpdatePage extends BasePage {
           await field.locator('.nc-checkbox').click();
         }
         break;
-      case 'attachment':
-        // eslint-disable-next-line no-case-declarations
-        const attachFileAction = field.locator('[data-testid="attachment-cell-file-picker-button"]').click();
+      case 'attachment': {
+        await field.locator('[data-testid="attachment-cell-file-picker-button"]').click();
+
+        await this.rootPage.locator('.nc-modal-attachment-create').waitFor({ state: 'visible' });
+        const attachFileAction = this.rootPage.getByTestId('attachment-drop-zone').click({ force: true });
         await this.attachFile({ filePickUIAction: attachFileAction, filePath: [value] });
+        await this.rootPage.getByTestId('nc-upload-file').click();
+
         break;
+      }
       case 'date':
         {
+          await field.locator('input').click();
           const values = value.split('-');
           const { year, month, day } = { year: values[0], month: values[1], day: values[2] };
-          picker = this.rootPage.locator('.ant-picker-dropdown.active');
-          const monthBtn = picker.locator('.ant-picker-month-btn');
-          const yearBtn = picker.locator('.ant-picker-year-btn');
+          picker = this.rootPage.locator('.nc-picker-date.active');
 
-          await yearBtn.click();
           await picker.waitFor();
-          await picker.locator(`td[title="${year}"]`).click();
+          const yearBtn = picker.locator('.nc-year-picker-btn');
+          await yearBtn.waitFor();
+          await yearBtn.click();
+          await this.configureYear(year);
+
+          const monthBtn = picker.locator('.nc-month-picker-btn');
 
           await monthBtn.click();
           await picker.waitFor();
-          await picker.locator(`td[title="${year}-${month}"]`).click();
+          await picker.locator(`span[title="${year}-${month}"]`).click();
 
           await picker.waitFor();
-          await picker.locator(`td[title="${year}-${month}-${day}"]`).click();
+          await picker.locator(`span[title="${year}-${month}-${day}"]:visible`).click();
         }
         break;
     }
+  }
+
+  async configureYear(year: string) {
+    // configure year
+    await this.rootPage.locator('.nc-year-picker-btn:visible').waitFor();
+
+    let flag = true;
+
+    while (flag) {
+      const firstVisibleYear = await this.rootPage.locator('.nc-year-item').first().textContent();
+      const lastVisibleYear = await this.rootPage.locator('.nc-year-item').last().textContent();
+
+      if (+year >= +firstVisibleYear && +year <= +lastVisibleYear) {
+        flag = false;
+      } else if (+year < +firstVisibleYear) {
+        await this.rootPage.locator('.nc-prev-page-btn').click();
+      } else if (+year > +lastVisibleYear) {
+        await this.rootPage.locator('.nc-next-page-btn').click();
+      }
+    }
+
+    await this.rootPage.locator(`span[title="${year}"]`).waitFor();
+    await this.rootPage.locator(`span[title="${year}"]`).click({ force: true });
   }
 
   async save({
@@ -183,7 +218,7 @@ export class BulkUpdatePage extends BasePage {
         uiAction: saveRowAction,
         requestUrlPathToMatch: 'api/v1/db/data/noco/',
         httpMethodsToMatch: ['GET'],
-        responseJsonMatcher: json => json['pageInfo'],
+        // responseJsonMatcher: json => json['pageInfo'],
       });
     }
 

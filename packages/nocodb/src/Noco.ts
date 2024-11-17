@@ -2,7 +2,6 @@ import path from 'path';
 import { NestFactory } from '@nestjs/core';
 import clear from 'clear';
 import * as express from 'express';
-import { T } from 'nc-help';
 import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 import { IoAdapter } from '@nestjs/platform-socket.io';
@@ -13,9 +12,10 @@ import type { MetaService } from '~/meta/meta.service';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import type { Express } from 'express';
 import type http from 'http';
-import { MetaTable } from '~/utils/globals';
+import type Sharp from 'sharp';
+import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
-import { isEE } from '~/utils';
+import { isEE, T } from '~/utils';
 
 dotenv.config();
 
@@ -43,6 +43,8 @@ export default class Noco {
 
   protected config: any;
   protected requestContext: any;
+
+  public static sharp: typeof Sharp;
 
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
@@ -101,6 +103,14 @@ export default class Noco {
     this.initCustomLogger(nestApp);
     nestApp.flushLogs();
 
+    try {
+      this.sharp = (await import('sharp')).default;
+    } catch {
+      console.error(
+        'Sharp is not available for your platform, thumbnail generation will be skipped',
+      );
+    }
+
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       if (!process.env.NC_REDIS_URL) {
         throw new Error('NC_REDIS_URL is required');
@@ -146,15 +156,26 @@ export default class Noco {
     if (this.config?.auth?.jwt) {
       if (!this.config.auth.jwt.secret) {
         let secret = (
-          await this._ncMeta.metaGet('', '', MetaTable.STORE, {
-            key: 'nc_auth_jwt_secret',
-          })
+          await this._ncMeta.metaGet(
+            RootScopes.ROOT,
+            RootScopes.ROOT,
+            MetaTable.STORE,
+            {
+              key: 'nc_auth_jwt_secret',
+            },
+          )
         )?.value;
         if (!secret) {
-          await this._ncMeta.metaInsert('', '', MetaTable.STORE, {
-            key: 'nc_auth_jwt_secret',
-            value: (secret = uuidv4()),
-          });
+          await this._ncMeta.metaInsert2(
+            RootScopes.ROOT,
+            RootScopes.ROOT,
+            MetaTable.STORE,
+            {
+              key: 'nc_auth_jwt_secret',
+              value: (secret = uuidv4()),
+            },
+            true,
+          );
         }
         this.config.auth.jwt.secret = secret;
       }
@@ -166,15 +187,26 @@ export default class Noco {
       }
     }
     let serverId = (
-      await this._ncMeta.metaGet('', '', MetaTable.STORE, {
-        key: 'nc_server_id',
-      })
+      await this._ncMeta.metaGet(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.STORE,
+        {
+          key: 'nc_server_id',
+        },
+      )
     )?.value;
     if (!serverId) {
-      await this._ncMeta.metaInsert('', '', MetaTable.STORE, {
-        key: 'nc_server_id',
-        value: (serverId = T.id),
-      });
+      await this._ncMeta.metaInsert2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.STORE,
+        {
+          key: 'nc_server_id',
+          value: (serverId = T.id),
+        },
+        true,
+      );
     }
     process.env.NC_SERVER_UUID = serverId;
   }

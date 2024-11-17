@@ -39,7 +39,10 @@ const isSharedView = computed(() => {
   const routeName = (route.value.name as string) || ''
 
   // check route is not base page by route name
-  return !routeName.startsWith('index-typeOrId-baseId-') && !['index', 'index-typeOrId'].includes(routeName)
+  return (
+    !routeName.startsWith('index-typeOrId-baseId-') &&
+    !['index', 'index-typeOrId', 'index-typeOrId-feed', 'index-typeOrId-integrations'].includes(routeName)
+  )
 })
 
 const isSharedFormView = computed(() => {
@@ -88,20 +91,6 @@ watch(
 // immediate watch, because if route is changed during page transition
 // It will error out nuxt
 onMounted(() => {
-  if (route.value.query?.continueAfterSignIn) {
-    localStorage.removeItem('continueAfterSignIn')
-    return navigateTo(route.value.query.continueAfterSignIn as string)
-  } else {
-    const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
-    localStorage.removeItem('continueAfterSignIn')
-    if (continueAfterSignIn) {
-      return navigateTo({
-        path: continueAfterSignIn,
-        query: route.value.query,
-      })
-    }
-  }
-
   handleRouteTypeIdChange().then(() => {
     if (sharedBaseId.value) {
       if (!isUIAllowed('baseDuplicate')) {

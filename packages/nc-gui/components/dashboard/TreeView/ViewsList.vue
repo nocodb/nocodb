@@ -4,22 +4,6 @@ import { ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
-import {
-  extractSdkResponseErrorMsg,
-  isDefaultBase,
-  message,
-  onMounted,
-  parseProp,
-  ref,
-  resolveComponent,
-  useApi,
-  useCommandPalette,
-  useDialog,
-  useNuxtApp,
-  useUndoRedo,
-  viewTypeAlias,
-  watch,
-} from '#imports'
 
 interface Emits {
   (
@@ -29,6 +13,7 @@ interface Emits {
       title?: string
       copyViewId?: string
       groupingFieldColumnId?: string
+      coverImageColumnId?: string
     },
   ): void
 
@@ -46,6 +31,8 @@ const { activeTableId } = storeToRefs(useTablesStore())
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
+
+const { isSharedBase } = storeToRefs(useBase())
 
 const { $e } = useNuxtApp()
 
@@ -90,11 +77,14 @@ function markItem(id: string) {
   }, 300)
 }
 
-const isDefaultSource = computed(() => {
-  const source = base.value?.sources?.find((b) => b.id === table.value.source_id)
-  if (!source) return false
+const source = computed(() => base.value?.sources?.find((b) => b.id === table.value.source_id))
 
-  return isDefaultBase(source)
+const isDefaultSource = computed(() => {
+  if (base.value?.sources?.length === 1) return true
+
+  if (!source.value) return false
+
+  return isDefaultBase(source.value)
 })
 
 /** validate view title */
@@ -351,6 +341,7 @@ function onOpenModal({
   copyViewId,
   groupingFieldColumnId,
   calendarRange,
+  coverImageColumnId,
 }: {
   title?: string
   type: ViewTypes
@@ -360,6 +351,7 @@ function onOpenModal({
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+  coverImageColumnId?: string
 }) {
   const isOpen = ref(true)
 
@@ -372,6 +364,7 @@ function onOpenModal({
     groupingFieldColumnId,
     'views': views,
     calendarRange,
+    coverImageColumnId,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
@@ -409,35 +402,37 @@ function onOpenModal({
     :selected-keys="selected"
     class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
   >
-    <DashboardTreeViewCreateViewBtn
-      v-if="isUIAllowed('viewCreateOrEdit')"
-      :align-left-level="isDefaultSource ? 1 : 2"
-      :class="{
-        '!pl-18 !xs:(pl-19.75)': isDefaultSource,
-        '!pl-23.5 !xs:(pl-27)': !isDefaultSource,
-      }"
-    >
-      <div
+    <template v-if="!isSharedBase">
+      <DashboardTreeViewCreateViewBtn
+        v-if="isUIAllowed('viewCreateOrEdit')"
+        :align-left-level="isDefaultSource ? 1 : 2"
         :class="{
-          'text-brand-500 hover:text-brand-600': activeTableId === table.id,
-          'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
+          '!pl-13.3 !xs:(pl-13.5)': isDefaultSource,
+          '!pl-18.6 !xs:(pl-20)': !isDefaultSource,
         }"
-        class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
-        role="button"
+        :source="source"
       >
-        <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
-          <GeneralIcon icon="plus" />
-          <div class="pl-1.75">
-            {{
-              $t('general.createEntity', {
-                entity: $t('objects.view'),
-              })
-            }}
+        <div
+          :class="{
+            'text-brand-500 hover:text-brand-600': activeTableId === table.id,
+            'text-gray-500 hover:text-brand-500': activeTableId !== table.id,
+          }"
+          class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
+          role="button"
+        >
+          <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
+            <GeneralIcon icon="plus" />
+            <div class="pl-1.75">
+              {{
+                $t('general.createEntity', {
+                  entity: $t('objects.view'),
+                })
+              }}
+            </div>
           </div>
         </div>
-      </div>
-    </DashboardTreeViewCreateViewBtn>
-
+      </DashboardTreeViewCreateViewBtn>
+    </template>
     <template v-if="views.length">
       <DashboardTreeViewViewsNode
         v-for="view of views"

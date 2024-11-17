@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
-import { type Row, computed, isPrimary, ref, useViewColumnsOrThrow } from '#imports'
-import { generateRandomNumber, isRowEmpty } from '~/utils'
+import { UITypes } from 'nocodb-sdk'
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
 
@@ -11,12 +10,17 @@ const {
   selectedMonth,
   formattedData,
   formattedSideBarData,
+  calDataType,
   sideBarFilterOption,
   displayField,
   calendarRange,
+  viewMetaProperties,
   showSideMenu,
   updateRowProperty,
+  updateFormat,
 } = useCalendarViewStoreOrThrow()
+
+const { $e } = useNuxtApp()
 
 const isMondayFirst = ref(true)
 
@@ -24,12 +28,24 @@ const { isUIAllowed } = useRoles()
 
 const meta = inject(MetaInj, ref())
 
+const maxVisibleDays = computed(() => {
+  return viewMetaProperties.value?.hide_weekend ? 5 : 7
+})
+
 const days = computed(() => {
+  let days = []
+
   if (isMondayFirst.value) {
-    return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   } else {
-    return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
   }
+
+  if (maxVisibleDays.value === 5) {
+    days = days.filter((day) => day !== 'Sat' && day !== 'Sun')
+  }
+
+  return days
 })
 
 const calendarGridContainer = ref()
@@ -64,18 +80,23 @@ const fields = inject(FieldsInj, ref())
 
 const { fields: _fields } = useViewColumnsOrThrow()
 
-const getFieldStyle = (field: ColumnType | undefined) => {
-  if (!field) return { underline: false, bold: false, italic: false }
-  const fi = _fields.value?.find((f) => f.title === field.title)
+const fieldStyles = computed(() => {
+  if (!_fields.value) return new Map()
+  return new Map(
+    _fields.value.map((field) => [
+      field.fk_column_id,
+      {
+        underline: field.underline,
+        bold: field.bold,
+        italic: field.italic,
+      },
+    ]),
+  )
+})
 
-  return {
-    underline: fi?.underline,
-    bold: fi?.bold,
-    italic: fi?.italic,
-  }
+const getFieldStyle = (field: ColumnType) => {
+  return fieldStyles.value.get(field.id)
 }
-
-const fieldsWithoutDisplay = computed(() => fields.value?.filter((f) => !isPrimary(f)))
 
 const dates = computed(() => {
   const startOfMonth = selectedMonth.value.startOf('month')
@@ -108,11 +129,11 @@ const recordsToDisplay = computed<{
 }>(() => {
   if (!dates.value || !calendarRange.value) return []
 
-  const perWidth = gridContainerWidth.value / 7
+  const perWidth = gridContainerWidth.value / maxVisibleDays.value
   const perHeight = gridContainerHeight.value / dates.value.length
   const perRecordHeight = 24
 
-  const spaceBetweenRecords = 26
+  const spaceBetweenRecords = 27
 
   // This object is used to keep track of the number of records in a day
   // The key is the date in the format YYYY-MM-DD
@@ -123,7 +144,6 @@ const recordsToDisplay = computed<{
       overflowCount: number
     }
   } = {}
-
   if (!calendarRange.value) return []
 
   const recordsToDisplay: Array<Row> = []
@@ -167,6 +187,12 @@ const recordsToDisplay = computed<{
         const style: Partial<CSSStyleDeclaration> = {
           left: `${dayIndex * perWidth}px`,
           width: `${perWidth}px`,
+        }
+
+        if (maxVisibleDays.value === 5) {
+          if (dayIndex === 5 || dayIndex === 6) {
+            style.display = 'none'
+          }
         }
 
         // Number of records in that day
@@ -345,7 +371,7 @@ const recordsToDisplay = computed<{
   }
 })
 
-const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
+const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeCheck?: boolean) => {
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
 
   const percentY = (event.clientY - top - window.scrollY) / height
@@ -354,11 +380,20 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
   const fromCol = dragRecord.value?.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value?.rowMeta.range?.fk_to_col
 
-  const week = Math.floor(percentY * dates.value.length)
-  const day = Math.floor(percentX * 7)
+  if (!fromCol) return { newRow: null, updateProperty: [] }
 
-  const newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
-  if (!newStartDate) return
+  const week = Math.floor(percentY * dates.value.length)
+  const day = Math.floor(percentX * maxVisibleDays.value)
+
+  let newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
+  if (!newStartDate) return { newRow: null, updateProperty: [] }
+
+  let fromDate = dayjs(dragRecord.value.row[fromCol.title!])
+  if (!fromDate.isValid()) {
+    fromDate = dayjs()
+  }
+
+  newStartDate = newStartDate.add(fromDate.hour(), 'hour').add(fromDate.minute(), 'minute').add(fromDate.second(), 'second')
 
   let endDate
 
@@ -366,7 +401,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
     ...dragRecord.value,
     row: {
       ...dragRecord.value?.row,
-      [fromCol!.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol!.title!]: dayjs(newStartDate).format(updateFormat.value),
     },
   }
 
@@ -386,8 +421,13 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean) => {
       endDate = newStartDate.clone()
     }
 
-    newRow.row[toCol!.title!] = dayjs(endDate).format('YYYY-MM-DD HH:mm:ssZ')
+    newRow.row[toCol!.title!] = dayjs(endDate).format(updateFormat.value)
     updateProperty.push(toCol!.title!)
+  }
+
+  // If from and to columns of the dragRecord and the newRow are the same, we don't manipulate the formattedRecords and formattedSideBarData. This removes unwanted computation
+  if (dragRecord.value.row[fromCol.title!] === newRow.row[fromCol.title!] && !skipChangeCheck) {
+    return { newRow: null, updatedProperty: [] }
   }
 
   if (!newRow) return { newRow: null, updateProperty: [] }
@@ -437,7 +477,7 @@ const onResize = (event: MouseEvent) => {
   const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
 
   const week = Math.floor(percentY * dates.value.length)
-  const day = Math.floor(percentX * 7)
+  const day = Math.floor(percentX * maxVisibleDays.value)
 
   let updateProperty: string[] = []
   let newRow: Row
@@ -456,7 +496,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [toCol!.title!]: dayjs(newEndDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [toCol!.title!]: dayjs(newEndDate).format(updateFormat.value),
       },
     }
   } else {
@@ -472,7 +512,7 @@ const onResize = (event: MouseEvent) => {
       ...resizeRecord.value,
       row: {
         ...resizeRecord.value.row,
-        [fromCol!.title!]: dayjs(newStartDate).format('YYYY-MM-DD HH:mm:ssZ'),
+        [fromCol!.title!]: dayjs(newStartDate).format(updateFormat.value),
       },
     }
   }
@@ -501,6 +541,8 @@ const onResizeEnd = () => {
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit') || draggingId.value) return
 
+  if (record.rowMeta.range?.is_readonly) return
+
   // selectedDate.value = null
   resizeInProgress.value = true
   resizeDirection.value = direction
@@ -513,11 +555,12 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 const stopDrag = (event: MouseEvent) => {
   clearTimeout(dragTimeout.value)
   if (!isUIAllowed('dataEdit') || !dragRecord.value || !isDragging.value) return
+  if (dragRecord.value.rowMeta.range?.is_readonly) return
 
   event.preventDefault()
   dragElement.value!.style.boxShadow = 'none'
 
-  const { newRow, updateProperty } = calculateNewRow(event, false)
+  const { newRow, updateProperty } = calculateNewRow(event, false, true)
 
   const allRecords = document.querySelectorAll('.draggable-record')
   allRecords.forEach((el) => {
@@ -536,16 +579,20 @@ const stopDrag = (event: MouseEvent) => {
   updateRowProperty(newRow, updateProperty, false)
   focusedDate.value = null
 
+  $e('c:calendar:month:drag-record')
+
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
-  if (!isUIAllowed('dataEdit') || resizeInProgress.value || !record.rowMeta.id) return
+  if (resizeInProgress.value || !record.rowMeta.id) return
   let target = event.target as HTMLElement
   isDragging.value = false
 
   dragTimeout.value = setTimeout(() => {
+    if (!isUIAllowed('dataEdit')) return
+    if (record.rowMeta.range?.is_readonly) return
     isDragging.value = true
 
     while (!target.classList.contains('draggable-record')) {
@@ -588,19 +635,24 @@ const dropEvent = (event: DragEvent) => {
   if (data) {
     const {
       record,
+      isWithoutDates,
     }: {
       record: Row
+      isWithoutDates: boolean
     } = JSON.parse(data)
+
+    if (record.rowMeta.range?.is_readonly) return
 
     dragRecord.value = record
 
-    const { newRow, updateProperty } = calculateNewRow(event, true)
+    const { newRow, updateProperty } = calculateNewRow(event, isWithoutDates)
 
     if (dragElement.value) {
       dragElement.value.style.boxShadow = 'none'
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
+    $e('c:calendar:day:drag-record')
   }
 }
 
@@ -632,7 +684,7 @@ const addRecord = (date: dayjs.Dayjs) => {
   if (!fromCol) return
   const newRecord = {
     row: {
-      [fromCol.title!]: date.format('YYYY-MM-DD HH:mm:ssZ'),
+      [fromCol.title!]: date.format(updateFormat.value),
     },
   }
   emit('newRecord', newRecord)
@@ -641,11 +693,17 @@ const addRecord = (date: dayjs.Dayjs) => {
 
 <template>
   <div v-if="calendarRange" class="h-full prevent-select relative" data-testid="nc-calendar-month-view">
-    <div class="grid grid-cols-7">
+    <div
+      class="grid"
+      :class="{
+        'grid-cols-7': maxVisibleDays === 7,
+        'grid-cols-5': maxVisibleDays === 5,
+      }"
+    >
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-gray-50 py-1 text-sm border-b-1 border-r-1 last:border-r-0 border-gray-100 font-semibold text-gray-500"
+        class="text-center bg-gray-50 py-1 border-r-1 last:border-r-0 border-gray-200 font-semibold leading-4 uppercase text-[10px] text-gray-500"
       >
         {{ day }}
       </div>
@@ -657,53 +715,64 @@ const addRecord = (date: dayjs.Dayjs) => {
         'grid-rows-6': dates.length === 6,
         'grid-rows-7': dates.length === 7,
       }"
-      class="grid h-full pb-7.5"
+      class="grid"
+      style="height: calc(100% - 1.59rem)"
       @drop="dropEvent"
     >
-      <div v-for="(week, weekIndex) in dates" :key="weekIndex" class="grid grid-cols-7 grow" data-testid="nc-calendar-month-week">
-        <div
-          v-for="(day, dateIndex) in week"
-          :key="`${weekIndex}-${dateIndex}`"
-          :class="{
-            'border-brand-500 border-1 !border-r-1 border-b-1':
-              isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
-            '!text-gray-400': !isDayInPagedMonth(day),
-            '!bg-gray-50': day.get('day') === 0 || day.get('day') === 6,
-          }"
-          class="text-right relative group last:border-r-0 text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
-          data-testid="nc-calendar-month-day"
-          @click="selectDate(day)"
-          @dblclick="addRecord(day)"
-        >
-          <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
-            <span
-              :class="{
-                block: !isDateSelected(day),
-                hidden: isDateSelected(day),
-              }"
-              class="group-hover:hidden"
-            ></span>
-
-            <NcDropdown v-if="calendarRange.length > 1" auto-close>
-              <NcButton
+      <div
+        v-for="(week, weekIndex) in dates"
+        :key="weekIndex"
+        :class="{
+          'grid-cols-7': maxVisibleDays === 7,
+          'grid-cols-5': maxVisibleDays === 5,
+        }"
+        class="grid grow"
+        data-testid="nc-calendar-month-week"
+      >
+        <template v-for="(day, dateIndex) in week">
+          <div
+            v-if="maxVisibleDays === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true"
+            :key="`${weekIndex}-${dateIndex}`"
+            :class="{
+              'border-brand-500 border-1 !border-r-1 border-b-1':
+                isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
+              '!text-gray-400': !isDayInPagedMonth(day),
+              '!bg-gray-50 !hover:bg-gray-100': day.get('day') === 0 || day.get('day') === 6,
+              'border-t-1': weekIndex === 0,
+            }"
+            class="text-right relative group last:border-r-0 transition text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
+            data-testid="nc-calendar-month-day"
+            @click="selectDate(day)"
+            @dblclick="addRecord(day)"
+          >
+            <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
+              <span
                 :class="{
-                  '!block': isDateSelected(day),
-                  '!hidden': !isDateSelected(day),
+                  'block group-hover:hidden': !isDateSelected(day) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                  'hidden': isDateSelected(day) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
                 }"
-                class="!group-hover:block rounded"
-                size="small"
-                type="secondary"
-              >
-                <component :is="iconMap.plus" class="h-4 w-4" />
-              </NcButton>
-              <template #overlay>
-                <NcMenu class="w-64">
-                  <NcMenuItem> Select date field to add </NcMenuItem>
-                  <NcMenuItem
-                    v-for="(range, index) in calendarRange"
-                    :key="index"
-                    class="text-gray-800 font-semibold text-sm"
-                    @click="
+              ></span>
+
+              <NcDropdown v-if="calendarRange.length > 1" auto-close>
+                <NcButton
+                  :class="{
+                    '!block': isDateSelected(day),
+                    '!hidden': !isDateSelected(day),
+                  }"
+                  class="!group-hover:block rounded"
+                  size="small"
+                  type="secondary"
+                >
+                  <component :is="iconMap.plus" class="h-4 w-4" />
+                </NcButton>
+                <template #overlay>
+                  <NcMenu class="w-64">
+                    <NcMenuItem> Select date field to add </NcMenuItem>
+                    <NcMenuItem
+                      v-for="(range, index) in calendarRange"
+                      :key="index"
+                      class="text-gray-800 font-semibold text-sm"
+                      @click="
                       () => {
                         const record = {
                           row: {
@@ -713,25 +782,25 @@ const addRecord = (date: dayjs.Dayjs) => {
                         emit('newRecord', record)
                       }
                     "
-                  >
-                    <div class="flex items-center gap-1">
-                      <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
-                      <span class="ml-1">{{ range.fk_from_col!.title }}</span>
-                    </div>
-                  </NcMenuItem>
-                </NcMenu>
-              </template>
-            </NcDropdown>
-            <NcButton
-              v-else
-              :class="{
-                '!block': isDateSelected(day),
-                '!hidden': !isDateSelected(day),
-              }"
-              class="!group-hover:block !w-6 !h-6 !rounded"
-              size="xsmall"
-              type="secondary"
-              @click="
+                    >
+                      <div class="flex items-center gap-1">
+                        <LazySmartsheetHeaderCellIcon :column-meta="range.fk_from_col" />
+                        <span class="ml-1">{{ range.fk_from_col!.title }}</span>
+                      </div>
+                    </NcMenuItem>
+                  </NcMenu>
+                </template>
+              </NcDropdown>
+              <NcButton
+                v-else-if="[UITypes.DateTime, UITypes.Date].includes(calDataType)"
+                :class="{
+                  '!block': isDateSelected(day),
+                  '!hidden': !isDateSelected(day),
+                }"
+                class="!group-hover:block !w-6 !h-6 !rounded"
+                size="xsmall"
+                type="secondary"
+                @click="
                 () => {
                   const record = {
                     row: {
@@ -741,34 +810,36 @@ const addRecord = (date: dayjs.Dayjs) => {
                   emit('newRecord', record)
                 }
               "
-            >
-              <component :is="iconMap.plus" />
-            </NcButton>
-            <span
-              :class="{
-                'bg-brand-50 text-brand-500': day.isSame(dayjs(), 'date'),
-              }"
-              class="px-1.3 py-1 text-xs rounded-lg"
-            >
-              {{ day.format('DD') }}
-            </span>
-          </div>
-          <div v-if="!isUIAllowed('dataEdit')" class="p-3">{{ dayjs(day).format('DD') }}</div>
+              >
+                <component :is="iconMap.plus" />
+              </NcButton>
+              <span
+                :class="{
+                  'bg-brand-50 text-brand-500 !font-bold': day.isSame(dayjs(), 'date'),
+                }"
+                class="px-1.3 py-1 text-sm leading-3 font-medium rounded-lg"
+              >
+                {{ day.format('DD') }}
+              </span>
+            </div>
+            <div v-if="!isUIAllowed('dataEdit')" class="leading-3 p-3">{{ dayjs(day).format('DD') }}</div>
 
-          <NcButton
-            v-if="
-              recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')] &&
-              recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
-              !draggingId
-            "
-            class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
-            size="xxsmall"
-            type="secondary"
-            @click="viewMore(day)"
-          >
-            <span class="text-xs px-1"> + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} </span>
-          </NcButton>
-        </div>
+            <NcButton
+              v-if="
+                recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')] &&
+                recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
+                !draggingId
+              "
+              v-e="`['c:calendar:month-view-more']`"
+              class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
+              size="xxsmall"
+              type="secondary"
+              @click="viewMore(day)"
+            >
+              <span class="text-xs px-1"> + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} </span>
+            </NcButton>
+          </div>
+        </template>
       </div>
     </div>
     <div class="absolute inset-0 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
@@ -781,7 +852,7 @@ const addRecord = (date: dayjs.Dayjs) => {
             ...record.rowMeta.style,
             zIndex: record.rowMeta.id === draggingId ? 100 : 0,
           }"
-          class="absolute group draggable-record cursor-pointer pointer-events-auto"
+          class="absolute group draggable-record transition cursor-pointer pointer-events-auto"
           @mouseleave="hoverRecord = null"
           @mouseover="hoverRecord = record.rowMeta.id"
           @mousedown.stop="dragStart($event, record)"
@@ -794,21 +865,17 @@ const addRecord = (date: dayjs.Dayjs) => {
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
               :selected="dragRecord?.rowMeta?.id === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
               @resize-start="onResizeStart"
-              @dblclick.stop="emit('expandRecord', record)"
             >
-              <template v-if="!isRowEmpty(record, displayField)">
-                <LazySmartsheetCalendarCell
-                  v-model="record.row[displayField!.title!]"
-                  :bold="getFieldStyle(displayField).bold"
-                  :column="displayField"
-                  :italic="getFieldStyle(displayField).italic"
-                  :underline="getFieldStyle(displayField).underline"
-                />
+              <template v-if="[UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(calDataType)" #time>
+                <span class="text-xs font-medium text-gray-400">
+                  {{ dayjs(record.row[record.rowMeta.range?.fk_from_col!.title!]).format('h:mma').slice(0, -1) }}
+                </span>
               </template>
-              <template v-for="(field, id) in fieldsWithoutDisplay" :key="id">
-                <LazySmartsheetCalendarCell
+              <template v-for="(field, id) in fields" :key="id">
+                <LazySmartsheetPlainCell
                   v-if="!isRowEmpty(record, field!)"
                   v-model="record.row[field!.title!]"
+                  class="text-xs"
                   :bold="getFieldStyle(field).bold"
                   :column="field"
                   :italic="getFieldStyle(field).italic"
@@ -828,5 +895,9 @@ const addRecord = (date: dayjs.Dayjs) => {
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
+}
+
+.grid-cols-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 </style>

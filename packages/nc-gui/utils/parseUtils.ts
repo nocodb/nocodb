@@ -7,10 +7,10 @@ export function parseProp(v: any): any {
   }
 }
 
-export function stringifyProp(v: any): string | undefined {
-  if (!v) return undefined
+export function stringifyProp(v: any): string {
+  if (!v) return '{}'
   try {
-    return typeof v === 'string' ? v : JSON.stringify(v)
+    return typeof v === 'string' ? v : JSON.stringify(v) ?? '{}'
   } catch {
     return '{}'
   }

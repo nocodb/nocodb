@@ -5,13 +5,14 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 
 export default class ApiToken implements ApiTokenType {
+  fk_workspace_id?: string;
   base_id?: string;
-  db_alias?: string;
   fk_user_id?: string;
   description?: string;
   permissions?: string;
@@ -28,11 +29,17 @@ export default class ApiToken implements ApiTokenType {
     ncMeta = Noco.ncMeta,
   ) {
     const token = nanoid(40);
-    await ncMeta.metaInsert(null, null, MetaTable.API_TOKENS, {
-      description: apiToken.description,
-      token,
-      fk_user_id: apiToken.fk_user_id,
-    });
+    await ncMeta.metaInsert2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      {
+        description: apiToken.description,
+        token,
+        fk_user_id: apiToken.fk_user_id,
+      },
+      true,
+    );
     return this.getByToken(token).then(async (apiToken) => {
       await NocoCache.appendToList(
         CacheScope.API_TOKEN,
@@ -46,20 +53,31 @@ export default class ApiToken implements ApiTokenType {
   static async list(userId: string, ncMeta = Noco.ncMeta) {
     // let tokens = await NocoCache.getList(CacheScope.API_TOKEN, []);
     // if (!tokens.length) {
-    const tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKENS, {
-      condition: { fk_user_id: userId },
-    });
+    const tokens = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      {
+        condition: { fk_user_id: userId },
+      },
+    );
     // await NocoCache.setList(CacheScope.API_TOKEN, [], tokens);
     // }
     return tokens?.map((t) => new ApiToken(t));
   }
 
-  static async delete(token, ncMeta = Noco.ncMeta) {
+  static async delete(tokenId: string, ncMeta = Noco.ncMeta) {
+    const tokenData = await this.get(tokenId, ncMeta);
     await NocoCache.deepDel(
-      `${CacheScope.API_TOKEN}:${token}`,
+      `${CacheScope.API_TOKEN}:${tokenData.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    return await ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, { token });
+    return await ncMeta.metaDelete(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      tokenId,
+    );
   }
 
   static async getByToken(token, ncMeta = Noco.ncMeta) {
@@ -70,7 +88,12 @@ export default class ApiToken implements ApiTokenType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!data) {
-      data = await ncMeta.metaGet(null, null, MetaTable.API_TOKENS, { token });
+      data = await ncMeta.metaGet(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.API_TOKENS,
+        { token },
+      );
       await NocoCache.set(`${CacheScope.API_TOKEN}:${token}`, data);
     }
     return data && new ApiToken(data);
@@ -142,5 +165,14 @@ export default class ApiToken implements ApiTokenType {
     }
 
     return queryBuilder;
+  }
+
+  static async get(tokenId: string, ncMeta = Noco.ncMeta) {
+    return await ncMeta.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      tokenId,
+    );
   }
 }

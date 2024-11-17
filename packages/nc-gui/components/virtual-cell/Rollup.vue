@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
-import { CellValueInj, ColumnInj, MetaInj, computed, inject, isRollup, ref, useMetas, useShowNotEditableWarning } from '#imports'
 
 const { metas } = useMetas()
 
@@ -38,11 +38,15 @@ const childColumn = computed(() => {
   }
   return ''
 })
+
+const renderAsTextFun = computed(() => {
+  return getRenderAsTextFunForUiType(childColumn.value?.uidt || UITypes.SingleLineText)
+})
 </script>
 
 <template>
   <div class="nc-cell-field" @dblclick="activateShowEditNonEditableFieldWarning">
-    <div v-if="['count', 'avg', 'sum', 'countDistinct', 'sumDistinct', 'avgDistinct'].includes(colOptions.rollup_function)">
+    <div v-if="renderAsTextFun.includes(colOptions.rollup_function)">
       {{ value }}
     </div>
     <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />

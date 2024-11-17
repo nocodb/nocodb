@@ -60,6 +60,11 @@ export class SelectOptionColumnPageObject extends BasePage {
   async deleteOption({ columnTitle, index }: { index: number; columnTitle: string }) {
     await this.column.openEdit({ title: columnTitle });
 
+    await this.column.get().locator(`[data-testid="select-column-option-${index}"]`).hover();
+    await this.column
+      .get()
+      .locator(`[data-testid="select-column-option-remove-${index}"]`)
+      .waitFor({ state: 'visible' });
     await this.column.get().locator(`[data-testid="select-column-option-remove-${index}"]`).click();
 
     await expect(this.column.get().getByTestId(`select-column-option-${index}`)).toHaveClass(/removed/);
@@ -70,10 +75,20 @@ export class SelectOptionColumnPageObject extends BasePage {
   async deleteOptionWithUndo({ columnTitle, index }: { index: number; columnTitle: string }) {
     await this.column.openEdit({ title: columnTitle });
 
+    await this.column.get().locator(`[data-testid="select-column-option-${index}"]`).hover();
+    await this.column
+      .get()
+      .locator(`[data-testid="select-column-option-remove-${index}"]`)
+      .waitFor({ state: 'visible' });
     await this.column.get().locator(`[data-testid="select-column-option-remove-${index}"]`).click();
 
     await expect(this.column.get().getByTestId(`select-column-option-${index}`)).toHaveClass(/removed/);
 
+    await this.column.get().locator(`[data-testid="select-column-option-${index}"]`).hover();
+    await this.column
+      .get()
+      .locator(`[data-testid="select-column-option-remove-undo-${index}"]`)
+      .waitFor({ state: 'visible' });
     await this.column.get().locator(`[data-testid="select-column-option-remove-undo-${index}"]`).click();
 
     await expect(this.column.get().getByTestId(`select-column-option-${index}`)).not.toHaveClass(/removed/);

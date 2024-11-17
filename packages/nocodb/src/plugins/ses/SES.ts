@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
-import AWS from 'aws-sdk';
-import type { IEmailAdapter } from 'nc-plugin';
+
+import { SendRawEmailCommand, SES as SESClient } from '@aws-sdk/client-ses';
+import type { IEmailAdapter } from '~/types/nc-plugin';
 import type Mail from 'nodemailer/lib/mailer';
 import type { XcEmail } from '~/interface/IEmailAdapter';
 
@@ -13,14 +14,20 @@ export default class SES implements IEmailAdapter {
   }
 
   public async init(): Promise<any> {
-    const sesOptions: any = {
-      accessKeyId: this.input.access_key,
-      secretAccessKey: this.input.access_secret,
+    const ses = new SESClient({
+      apiVersion: '2006-03-01',
       region: this.input.region,
-    };
+      credentials: {
+        accessKeyId: this.input.access_key,
+        secretAccessKey: this.input.access_secret,
+      },
+    });
 
     this.transporter = nodemailer.createTransport({
-      SES: new AWS.SES(sesOptions),
+      SES: {
+        ses,
+        aws: { SendRawEmailCommand },
+      },
     });
   }
 

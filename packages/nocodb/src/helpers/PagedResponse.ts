@@ -23,7 +23,7 @@ export class PagedResponseImpl<T> {
 
     this.list = list;
 
-    if (count !== null) {
+    if (count !== null && count !== undefined) {
       this.pageInfo = { totalRows: +count };
       this.pageInfo.page = offset ? offset / limit + 1 : 1;
       this.pageInfo.pageSize = limit;
@@ -37,13 +37,13 @@ export class PagedResponseImpl<T> {
         this.pageInfo.offset = offset;
         delete this.pageInfo.page;
       }
+
+      if (offset && offset >= +count) {
+        NcError.invalidOffsetValue(offset);
+      }
     }
 
     if (additionalProps) Object.assign(this, additionalProps);
-
-    if (offset && offset >= +count) {
-      NcError.badRequest('Offset is beyond the total number of records');
-    }
   }
 
   list: Array<T>;

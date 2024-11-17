@@ -47,7 +47,7 @@ const getLikeText = (fieldUiType: UITypes) => {
 
 const getNotLikeText = (fieldUiType: UITypes) => {
   if (fieldUiType === UITypes.Attachment) {
-    return "filenames doesn't contain"
+    return "filenames don't contain"
   }
   return 'is not like'
 }

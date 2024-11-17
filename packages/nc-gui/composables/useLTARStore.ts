@@ -2,35 +2,11 @@ import type {
   type ColumnType,
   type LinkToAnotherRecordType,
   type PaginatedType,
-  RelationTypes,
   type RequestParams,
   type TableType,
 } from 'nocodb-sdk'
-import { UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
+import { RelationTypes, UITypes, dateFormats, parseStringDateTime, timeFormats } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import type { Row } from '#imports'
-import {
-  IsPublicInj,
-  Modal,
-  NOCO,
-  SharedViewPasswordInj,
-  computed,
-  extractSdkResponseErrorMsg,
-  inject,
-  message,
-  parseProp,
-  reactive,
-  ref,
-  storeToRefs,
-  useBase,
-  useI18n,
-  useInjectionState,
-  useMetas,
-  useNuxtApp,
-  useRouter,
-  useSharedView,
-  watch,
-} from '#imports'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -53,6 +29,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const { $api, $e } = useNuxtApp()
 
     const activeView = inject(ActiveViewInj, ref())
+    const isForm = inject(IsFormInj, ref(false))
 
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -66,6 +43,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       query: '',
       size: 10,
     })
+
     const childrenExcludedOffsetCount = ref(0)
 
     const childrenListPagination = reactive({
@@ -110,18 +88,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
 
-    const rowId = computed(() =>
-      meta.value.columns
-        .filter((c: Required<ColumnType>) => c.pk)
-        .map((c: Required<ColumnType>) => row?.value?.row?.[c.title])
-        .join('___'),
-    )
+    const rowId = computed(() => extractPkFromRow(row.value.row, meta.value.columns))
 
     const getRelatedTableRowId = (row: Record<string, any>) => {
-      return relatedTableMeta.value?.columns
-        ?.filter((c) => c.pk)
-        .map((c) => row?.[c.title as string])
-        .join('___')
+      return extractPkFromRow(row, relatedTableMeta.value?.columns)
     }
 
     // actions
@@ -132,6 +102,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const relatedTableDisplayValueProp = computed(() => {
       return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title || ''
+    })
+
+    // todo: temp fix, handle in backend
+    const relatedTableDisplayValuePropId = computed(() => {
+      return (relatedTableMeta.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.id || ''
     })
 
     const relatedTablePrimaryKeyProps = computed(() => {
@@ -183,21 +158,29 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return row.value.row[displayValueProp.value]
     })
 
-    const loadChildrenExcludedList = async (activeState?: any) => {
+    const loadChildrenExcludedList = async (activeState?: any, resetOffset: boolean = false) => {
       if (activeState) newRowState.state = activeState
       try {
         let offset =
           childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1) - childrenExcludedOffsetCount.value
 
-        if (offset < 0) {
+        if (offset < 0 || resetOffset) {
           offset = 0
           childrenExcludedOffsetCount.value = 0
+          childrenExcludedListPagination.page = 1
         }
         isChildrenExcludedLoading.value = true
         if (isPublic.value) {
           const router = useRouter()
 
           const route = router.currentRoute
+
+          let row
+          // if shared form extract the current form state
+          if (isForm.value) {
+            const { formState } = useSharedFormStoreOrThrow()
+            row = formState?.value
+          }
 
           childrenExcludedList.value = await $api.public.dataRelationList(
             route.value.params.viewId as string,
@@ -214,6 +197,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                   childrenExcludedListPagination.query &&
                   `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
                 fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+
+                // todo: include only required fields
+                rowData: JSON.stringify(row),
               } as RequestParams,
             },
           )
@@ -231,9 +217,24 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
               // fields: [relatedTableDisplayValueProp.value, ...relatedTablePrimaryKeyProps.value],
+
+              // todo: include only required fields
+              linkColumnId: column.value.fk_column_id || column.value.id,
+              linkRowData: JSON.stringify(row.value.row),
             } as any,
           )
         } else {
+          // extract changed data and include with the api call if any
+          let changedRowData
+          try {
+            if (row.value?.row) {
+              changedRowData = Object.keys(row.value?.row).reduce((acc: Record<string, any>, key: string) => {
+                if (row.value.row[key] !== row.value.oldRow[key]) acc[key] = row.value.row[key]
+                return acc
+              }, {})
+            }
+          } catch {}
+
           childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
             NOCO,
             baseId,
@@ -248,6 +249,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               where:
                 childrenExcludedListPagination.query &&
                 `(${relatedTableDisplayValueProp.value},like,${childrenExcludedListPagination.query})`,
+              linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
             } as any,
           )
         }
@@ -261,7 +263,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           // Mark out exact same objects in activeState[column.value.title] as Linked
           // compare all keys and values
           childrenExcludedList.value.list.forEach((row: any, index: number) => {
-            const found = activeState[column.value.title].find((a: any) => {
+            const found = (
+              [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)
+                ? [activeState[column.value.title]]
+                : activeState[column.value.title]
+            ).find((a: any) => {
               let isSame = true
 
               for (const key in a) {
@@ -278,22 +284,30 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           })
         }
       } catch (e: any) {
-        message.error(`${t('msg.error.failedToLoadList')}: ${await extractSdkResponseErrorMsg(e)}`)
+        // temporary fix to handle when offset is beyond limit
+        const error = await extractSdkResponseErrorMsgv2(e)
+
+        if (error.error === NcErrorType.INVALID_OFFSET_VALUE) {
+          childrenExcludedListPagination.page = 0
+          return loadChildrenExcludedList(activeState, true)
+        }
+
+        message.error(`${t('msg.error.failedToLoadList')}: ${error.message}`)
       } finally {
         isChildrenExcludedLoading.value = false
       }
     }
 
-    const loadChildrenList = async () => {
+    const loadChildrenList = async (resetOffset: boolean = false) => {
       try {
         isChildrenLoading.value = true
-        if (colOptions.value.type === 'bt') return
+        if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(colOptions.value.type)) return
         if (!rowId.value || !column.value) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
-
-        if (offset < 0) {
+        if (offset < 0 || resetOffset) {
           offset = 0
           childrenListOffsetCount.value = 0
+          childrenListPagination.page = 1
         } else if (offset >= childrenListCount.value) {
           offset = 0
         }
@@ -336,6 +350,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           isChildrenListLinked.value[index] = true
           isChildrenListLoading.value[index] = false
         })
+
         if (!childrenListPagination.query) {
           childrenListCount.value = childrenList.value?.pageInfo.totalRows ?? 0
         }
@@ -438,7 +453,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         }
         isChildrenExcludedListLinked.value[index] = false
         isChildrenListLinked.value[index] = false
-        if (colOptions.value.type !== 'bt') {
+        if (colOptions.value.type !== RelationTypes.BELONGS_TO && colOptions.value.type !== RelationTypes.ONE_TO_ONE) {
           childrenListCount.value = childrenListCount.value - 1
         }
       } catch (e: any) {
@@ -505,7 +520,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         isChildrenExcludedListLinked.value[index] = true
         isChildrenListLinked.value[index] = true
 
-        if (colOptions.value.type !== 'bt') {
+        if (colOptions.value.type !== RelationTypes.BELONGS_TO && colOptions.value.type !== RelationTypes.ONE_TO_ONE) {
           childrenListCount.value = childrenListCount.value + 1
         } else {
           isChildrenExcludedListLinked.value = Array(childrenExcludedList.value?.list.length).fill(false)
@@ -540,6 +555,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       })
     })
 
+    const resetChildrenExcludedOffsetCount = () => {
+      childrenExcludedOffsetCount.value = 0
+    }
+
+    const resetChildrenListOffsetCount = () => {
+      childrenListOffsetCount.value = 0
+    }
+
     return {
       relatedTableMeta,
       loadRelatedTableMeta,
@@ -569,6 +592,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       deleteRelatedRow,
       getRelatedTableRowId,
       headerDisplayValue,
+      relatedTableDisplayValuePropId,
+      resetChildrenExcludedOffsetCount,
+      resetChildrenListOffsetCount,
     }
   },
   'ltar-store',

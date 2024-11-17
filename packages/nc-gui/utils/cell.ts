@@ -37,6 +37,7 @@ export const isPercent = (column: ColumnType) => column.uidt === UITypes.Percent
 export const isSpecificDBType = (column: ColumnType) => column.uidt === UITypes.SpecificDBType
 export const isGeometry = (column: ColumnType) => column.uidt === UITypes.Geometry
 export const isUser = (column: ColumnType) => column.uidt === UITypes.User
+export const isButton = (column: ColumnType) => column.uidt === UITypes.Button
 export const isAutoSaved = (column: ColumnType) =>
   [
     UITypes.SingleLineText,
@@ -92,4 +93,24 @@ export const isNumericFieldType = (column: ColumnType, abstractType: any) => {
     isPercent(column) ||
     isDuration(column)
   )
+}
+
+export const rowHeightInPx: Record<string, number> = {
+  1: 32,
+  2: 60,
+  4: 90,
+  6: 120,
+}
+
+export const rowHeightTruncateLines = (rowHeight?: number) => {
+  switch (rowHeight) {
+    case 2:
+      return 3
+    case 4:
+      return 4
+    case 6:
+      return 6
+    default:
+      return 1
+  }
 }

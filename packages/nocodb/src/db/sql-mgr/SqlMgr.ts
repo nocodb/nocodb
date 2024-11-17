@@ -6,14 +6,13 @@ import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
 import inflection from 'inflection';
 import slash from 'slash';
-import { T } from 'nc-help';
 import { customAlphabet } from 'nanoid';
 import type MssqlClient from '~/db/sql-client/lib/mssql/MssqlClient';
 import type MysqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
 import type OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
-import type SnowflakeClient from '~/db/sql-client/lib/snowflake/SnowflakeClient';
 import type SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
+import { T } from '~/utils';
 import Result from '~/db/util/Result';
 import Debug from '~/db/util/Debug';
 import KnexMigrator from '~/db/sql-migrator/lib/KnexMigrator';
@@ -344,12 +343,7 @@ export default class SqlMgr {
   public async baseGetSqlClient(
     args,
   ): Promise<
-    | SnowflakeClient
-    | MysqlClient
-    | SqliteClient
-    | MssqlClient
-    | OracleClient
-    | PGClient
+    MysqlClient | SqliteClient | MssqlClient | OracleClient | PGClient
   > {
     const func = this.baseGetSqlClient.name;
     log.api(`${func}:args:`, args);

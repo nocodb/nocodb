@@ -13,15 +13,19 @@ import {
 } from './params';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
 import type { SwaggerView } from '~/services/api-docs/swaggerV2/getSwaggerJSONV2';
+import type { NcContext } from '~/interface/config';
 import { isRelationExist } from '~/services/api-docs/swagger/templates/paths';
 
-export const getModelPaths = async (ctx: {
-  tableName: string;
-  type: ModelTypes;
-  columns: SwaggerColumn[];
-  tableId: string;
-  views: SwaggerView[];
-}): Promise<{ [path: string]: any }> => ({
+export const getModelPaths = async (
+  context: NcContext,
+  ctx: {
+    tableName: string;
+    type: ModelTypes;
+    columns: SwaggerColumn[];
+    tableId: string;
+    views: SwaggerView[];
+  },
+): Promise<{ [path: string]: any }> => ({
   [`/api/v2/tables/${ctx.tableId}/records`]: {
     get: {
       summary: `${ctx.tableName} list`,
@@ -36,7 +40,7 @@ export const getModelPaths = async (ctx: {
         limitParam,
         shuffleParam,
         offsetParam,
-        ...(await getNestedParams(ctx.columns)),
+        ...(await getNestedParams(context, ctx.columns)),
       ],
       responses: {
         '200': {
@@ -321,6 +325,11 @@ export const getModelPaths = async (ctx: {
                             Id: 5,
                           },
                         ],
+                      },
+                      'Example 2': {
+                        value: {
+                          Id: 4,
+                        },
                       },
                     },
                   },

@@ -1,7 +1,9 @@
+# syntax=docker/dockerfile:1
+
 ###########
 # Builder
 ###########
-FROM node:18.19.1-alpine as builder
+FROM node:18-alpine as builder
 WORKDIR /usr/src/app
 
 # install node-gyp dependencies
@@ -11,11 +13,11 @@ RUN apk add --no-cache python3 make g++
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy application dependency manifests to the container image.
-COPY ./package.json ./package.json
-COPY ./docker/nc-gui/ ./docker/nc-gui/
-COPY ./docker/main.js ./docker/index.js
-COPY ./docker/start-local.sh /usr/src/appEntry/start.sh
-COPY src/public/ ./docker/public/
+COPY --link ./package.json ./package.json
+COPY --link ./docker/nc-gui/ ./docker/nc-gui/
+COPY --link ./docker/main.js ./docker/index.js
+COPY --link ./docker/start-local.sh /usr/src/appEntry/start.sh
+COPY --link src/public/ ./docker/public/
 
 # for pnpm to generate a flat node_modules without symlinks
 # so that modclean could work as expected
@@ -23,12 +25,11 @@ RUN echo "node-linker=hoisted" > .npmrc
 
 # install production dependencies,
 # reduce node_module size with modclean & removing sqlite deps,
-# package built code into app.tar.gz & add execute permission to start.sh
+# and add execute permission to start.sh
 RUN pnpm uninstall nocodb-sdk
 RUN pnpm install --prod --shamefully-hoist --reporter=silent \
     && pnpm dlx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,@azure/msal-node/dist/**" --run  \
     && rm -rf ./node_modules/sqlite3/deps \
-    && tar -czf ../appEntry/app.tar.gz ./* \
     && chmod +x /usr/src/appEntry/start.sh
 
 ##########
@@ -37,20 +38,20 @@ RUN pnpm install --prod --shamefully-hoist --reporter=silent \
 FROM alpine:3.19
 WORKDIR /usr/src/app
 
-ENV NC_DOCKER 0.6
-ENV NODE_ENV production
-ENV PORT 8080
-ENV NC_TOOL_DIR=/usr/app/data/
+ENV NC_DOCKER=0.6 \
+    NC_TOOL_DIR=/usr/app/data/ \
+    NODE_ENV=production \
+    PORT=8080
 
-RUN apk --update --no-cache add \
+RUN apk add --update --no-cache \
     nodejs \
-    tar \
     dumb-init \
     curl \
     jq
 
-# Copy packaged production code & main entry file
-COPY --from=builder /usr/src/appEntry/ /usr/src/appEntry/
+# Copy production code & main entry file
+COPY --link --from=builder /usr/src/app/ /usr/src/app/
+COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 EXPOSE 8080
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

@@ -1,20 +1,5 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import {
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  ReadonlyInj,
-  computed,
-  convertDurationToSeconds,
-  convertMS2Duration,
-  durationOptions,
-  inject,
-  parseProp,
-  ref,
-} from '#imports'
 
 interface Props {
   modelValue: number | string | null | undefined
@@ -24,8 +9,6 @@ interface Props {
 const { modelValue, showValidationError = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
-
-const { t } = useI18n()
 
 const { showNull } = useGlobal()
 
@@ -45,9 +28,7 @@ const isEdited = ref(false)
 
 const durationType = computed(() => parseProp(column?.value?.meta)?.duration || 0)
 
-const durationPlaceholder = computed(() =>
-  isEditColumn.value ? `(${t('labels.optional')})` : durationOptions[durationType.value].title,
-)
+const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
 
 const localState = computed({
   get: () => convertMS2Duration(modelValue, durationType.value),
@@ -95,6 +76,7 @@ const focus: VNodeRef = (el) =>
 
 <template>
   <div class="duration-cell-wrapper">
+    <!-- eslint-disable vue/use-v-on-exact -->
     <input
       v-if="!readOnly && editEnabled"
       :ref="focus"
@@ -109,6 +91,7 @@ const focus: VNodeRef = (el) =>
       @keydown.right.stop
       @keydown.up.stop
       @keydown.delete.stop
+      @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
     />

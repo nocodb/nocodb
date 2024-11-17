@@ -1,44 +1,46 @@
 import { Inject, Injectable } from '@nestjs/common';
+
+import type { AppEvents } from 'nocodb-sdk';
 import type {
   ApiCreatedEvent,
   ApiTokenCreateEvent,
   ApiTokenDeleteEvent,
   AttachmentEvent,
   BaseEvent,
+  ColumnEvent,
+  FilterEvent,
   FormColumnEvent,
   GridColumnEvent,
   MetaDiffEvent,
   OrgUserInviteEvent,
   PluginEvent,
   PluginTestEvent,
+  ProjectCreateEvent,
+  ProjectDeleteEvent,
+  ProjectInviteEvent,
+  ProjectUpdateEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
   RelationEvent,
+  RowCommentEvent,
   SharedBaseEvent,
+  SortEvent,
   SyncSourceEvent,
+  TableEvent,
   UIAclEvent,
   UserEmailVerificationEvent,
   UserPasswordChangeEvent,
   UserPasswordForgotEvent,
   UserPasswordResetEvent,
-  ViewColumnEvent,
-  WebhookEvent,
-} from './interfaces';
-import type { AppEvents } from 'nocodb-sdk';
-import type {
-  ColumnEvent,
-  FilterEvent,
-  ProjectCreateEvent,
-  ProjectDeleteEvent,
-  ProjectInviteEvent,
-  ProjectUpdateEvent,
-  SortEvent,
-  TableEvent,
   UserSigninEvent,
   UserSignupEvent,
+  ViewColumnEvent,
   ViewEvent,
+  WebhookEvent,
   WelcomeEvent,
 } from '~/services/app-hooks/interfaces';
+import type { IntegrationEvent } from '~/services/app-hooks/interfaces';
+import type { RowMentionEvent } from '~/services/app-hooks/interfaces';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 
 const ALL_EVENTS = '__nc_all_events__';
@@ -52,6 +54,13 @@ export class AppHooksService {
     @Inject('IEventEmitter') protected readonly eventEmitter: IEventEmitter,
   ) {}
 
+  on(
+    event:
+      | AppEvents.COMMENT_CREATE
+      | AppEvents.COMMENT_UPDATE
+      | AppEvents.COMMENT_DELETE,
+    listener: (data: RowCommentEvent) => void,
+  ): () => void;
   on(
     event: AppEvents.PROJECT_INVITE,
     listener: (data: ProjectInviteEvent) => void,
@@ -118,6 +127,18 @@ export class AppHooksService {
       | AppEvents.COLUMN_CREATE,
     listener: (data: ColumnEvent) => void,
   ): () => void;
+
+  on(
+    event: AppEvents.ROW_USER_MENTION,
+    listener: (data: RowMentionEvent) => void,
+  ): () => void;
+  on(
+    event:
+      | AppEvents.INTEGRATION_UPDATE
+      | AppEvents.INTEGRATION_DELETE
+      | AppEvents.INTEGRATION_CREATE,
+    listener: (data: IntegrationEvent) => void,
+  ): () => void;
   on(event, listener): () => void {
     const unsubscribe = this.eventEmitter.on(event, listener);
 
@@ -166,6 +187,13 @@ export class AppHooksService {
   ): void;
   emit(
     event:
+      | AppEvents.COMMENT_CREATE
+      | AppEvents.COMMENT_UPDATE
+      | AppEvents.COMMENT_DELETE,
+    data: RowCommentEvent,
+  ): void;
+  emit(
+    event:
       | AppEvents.FILTER_UPDATE
       | AppEvents.FILTER_DELETE
       | AppEvents.FILTER_CREATE,
@@ -197,6 +225,7 @@ export class AppHooksService {
       | AppEvents.WEBHOOK_UPDATE
       | AppEvents.WEBHOOK_CREATE
       | AppEvents.WEBHOOK_DELETE
+      | AppEvents.WEBHOOK_TRIGGER
       | AppEvents.WEBHOOK_TEST,
     data: WebhookEvent,
   ): void;
@@ -247,6 +276,19 @@ export class AppHooksService {
   emit(
     event: AppEvents.USER_EMAIL_VERIFICATION,
     data: UserEmailVerificationEvent,
+  ): void;
+  emit(event: AppEvents.ROW_USER_MENTION, data: RowMentionEvent): void;
+
+  emit(event: AppEvents.EXTENSION_CREATE, data: any): void;
+  emit(event: AppEvents.EXTENSION_UPDATE, data: any): void;
+  emit(event: AppEvents.EXTENSION_DELETE, data: any): void;
+
+  emit(
+    event:
+      | AppEvents.INTEGRATION_CREATE
+      | AppEvents.INTEGRATION_DELETE
+      | AppEvents.INTEGRATION_UPDATE,
+    data: IntegrationEvent,
   ): void;
   emit(event, data): void {
     this.eventEmitter.emit(event, data);

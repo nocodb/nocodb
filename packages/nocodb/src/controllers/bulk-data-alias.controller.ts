@@ -10,11 +10,13 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -25,13 +27,14 @@ export class BulkDataAliasController {
   @HttpCode(200)
   @Acl('bulkDataInsert')
   async bulkDataInsert(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Res() res: Response,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
   ) {
-    const exists = await this.bulkDataAliasService.bulkDataInsert({
+    const exists = await this.bulkDataAliasService.bulkDataInsert(context, {
       body: body,
       cookie: req,
       baseName: baseName,
@@ -44,12 +47,13 @@ export class BulkDataAliasController {
   @Patch(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName'])
   @Acl('bulkDataUpdate')
   async bulkDataUpdate(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
   ) {
-    return await this.bulkDataAliasService.bulkDataUpdate({
+    return await this.bulkDataAliasService.bulkDataUpdate(context, {
       body: body,
       cookie: req,
       baseName: baseName,
@@ -61,12 +65,13 @@ export class BulkDataAliasController {
   @Patch(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all'])
   @Acl('bulkDataUpdateAll')
   async bulkDataUpdateAll(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
   ) {
-    return await this.bulkDataAliasService.bulkDataUpdateAll({
+    return await this.bulkDataAliasService.bulkDataUpdateAll(context, {
       body: body,
       cookie: req,
       baseName: baseName,
@@ -78,12 +83,13 @@ export class BulkDataAliasController {
   @Delete(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName'])
   @Acl('bulkDataDelete')
   async bulkDataDelete(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Body() body: any,
   ) {
-    return await this.bulkDataAliasService.bulkDataDelete({
+    return await this.bulkDataAliasService.bulkDataDelete(context, {
       body: body,
       cookie: req,
       baseName: baseName,
@@ -96,15 +102,33 @@ export class BulkDataAliasController {
   @Delete(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName/all'])
   @Acl('bulkDataDeleteAll')
   async bulkDataDeleteAll(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
   ) {
-    return await this.bulkDataAliasService.bulkDataDeleteAll({
+    return await this.bulkDataAliasService.bulkDataDeleteAll(context, {
       // cookie: req,
       baseName: baseName,
       tableName: tableName,
       query: req.query,
+    });
+  }
+
+  @Post(['/api/v1/db/data/bulk/:orgs/:baseName/:tableName/upsert'])
+  @Acl('bulkDataUpsert')
+  async bulkDataUpsert(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('baseName') baseName: string,
+    @Param('tableName') tableName: string,
+    @Body() body: any,
+  ) {
+    return await this.bulkDataAliasService.bulkDataUpsert(context, {
+      body: body,
+      cookie: req,
+      baseName: baseName,
+      tableName: tableName,
     });
   }
 }

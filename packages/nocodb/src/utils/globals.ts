@@ -1,6 +1,6 @@
 export enum MetaTable {
   PROJECT = 'nc_bases_v2',
-  BASES = 'nc_sources_v2',
+  SOURCES = 'nc_sources_v2',
   MODELS = 'nc_models_v2',
   COLUMNS = 'nc_columns_v2',
   COLUMN_VALIDATIONS = 'nc_columns_validations_v2',
@@ -29,7 +29,7 @@ export enum MetaTable {
   KANBAN_VIEW = 'nc_kanban_view_v2',
   KANBAN_VIEW_COLUMNS = 'nc_kanban_view_columns_v2',
   USERS = 'nc_users_v2',
-  ORGS = 'nc_orgs_v2',
+  ORGS_OLD = 'nc_orgs_v2',
   TEAMS = 'nc_teams_v2',
   TEAM_USERS = 'nc_team_users_v2',
   VIEWS = 'nc_views_v2',
@@ -46,6 +46,16 @@ export enum MetaTable {
   MAP_VIEW_COLUMNS = 'nc_map_view_columns_v2',
   STORE = 'nc_store',
   NOTIFICATION = 'notification',
+  USER_REFRESH_TOKENS = 'nc_user_refresh_tokens',
+  EXTENSIONS = 'nc_extensions',
+  COMMENTS = 'nc_comments',
+  USER_COMMENTS_NOTIFICATIONS_PREFERENCE = 'nc_user_comment_notifications_preference',
+  COMMENTS_REACTIONS = 'nc_comment_reactions',
+  JOBS = 'nc_jobs',
+  INTEGRATIONS = 'nc_integrations_v2',
+  INTEGRATIONS_STORE = 'nc_integrations_store_v2',
+  FILE_REFERENCES = 'nc_file_references',
+  COL_BUTTON = 'nc_col_button_v2',
 }
 
 export enum MetaTableOldV2 {
@@ -60,7 +70,7 @@ export const orderedMetaTables = [
   MetaTable.AUDIT,
   MetaTable.TEAM_USERS,
   MetaTable.TEAMS,
-  MetaTable.ORGS,
+  MetaTable.ORGS_OLD,
   MetaTable.PROJECT_USERS,
   MetaTable.USERS,
   MetaTable.MAP_VIEW,
@@ -90,7 +100,7 @@ export const orderedMetaTables = [
   MetaTable.COLUMN_VALIDATIONS,
   MetaTable.COLUMNS,
   MetaTable.MODELS,
-  MetaTable.BASES,
+  MetaTable.SOURCES,
   MetaTable.PROJECT,
 ];
 
@@ -122,7 +132,7 @@ export const sakilaTableNames = [
 
 export enum CacheScope {
   PROJECT = 'base',
-  BASE = 'source',
+  SOURCE = 'source',
   MODEL = 'model',
   COLUMN = 'column',
   COL_PROP = 'colProp',
@@ -151,7 +161,7 @@ export enum CacheScope {
   MAP_VIEW_COLUMN = 'mapViewColumn',
   KANBAN_VIEW_COLUMN = 'kanbanViewColumn',
   USER = 'user',
-  ORGS = 'orgs',
+  ORGS_OLD = 'orgs',
   TEAM = 'team',
   TEAM_USER = 'teamUser',
   VIEW = 'view',
@@ -166,12 +176,18 @@ export enum CacheScope {
   DASHBOARD_PROJECT_DB_PROJECT_LINKING = 'dashboardProjectDBProjectLinking',
   SINGLE_QUERY = 'singleQuery',
   JOBS = 'nc_jobs',
+  JOBS_POLLING = 'nc_jobs_polling',
   PRESIGNED_URL = 'presignedUrl',
   STORE = 'store',
   PROJECT_ALIAS = 'baseAlias',
   MODEL_ALIAS = 'modelAlias',
   VIEW_ALIAS = 'viewAlias',
   SSO_CLIENT = 'ssoClient',
+  EXTENSION = 'uiExtension',
+  INTEGRATION = 'integration',
+  COL_BUTTON = 'colButton',
+  CMD_PALETTE = 'cmdPalette',
+  PRODUCT_FEED = 'productFeed',
 }
 
 export enum CacheGetType {
@@ -185,68 +201,6 @@ export enum CacheDelDirection {
   CHILD_TO_PARENT = 'CHILD_TO_PARENT',
 }
 
-export const GROUPBY_COMPARISON_OPS = <const>[
-  // these are used for groupby
-  'gb_eq',
-  'gb_null',
-];
-export const COMPARISON_OPS = <const>[
-  'eq',
-  'neq',
-  'not',
-  'like',
-  'nlike',
-  'empty',
-  'notempty',
-  'null',
-  'notnull',
-  'checked',
-  'notchecked',
-  'blank',
-  'notblank',
-  'allof',
-  'anyof',
-  'nallof',
-  'nanyof',
-  'gt',
-  'lt',
-  'gte',
-  'lte',
-  'ge',
-  'le',
-  'in',
-  'isnot',
-  'is',
-  'isWithin',
-  'btw',
-  'nbtw',
-];
-
-export const IS_WITHIN_COMPARISON_SUB_OPS = <const>[
-  'pastWeek',
-  'pastMonth',
-  'pastYear',
-  'nextWeek',
-  'nextMonth',
-  'nextYear',
-  'pastNumberOfDays',
-  'nextNumberOfDays',
-];
-
-export const COMPARISON_SUB_OPS = <const>[
-  'today',
-  'tomorrow',
-  'yesterday',
-  'oneWeekAgo',
-  'oneWeekFromNow',
-  'oneMonthAgo',
-  'oneMonthFromNow',
-  'daysAgo',
-  'daysFromNow',
-  'exactDate',
-  ...IS_WITHIN_COMPARISON_SUB_OPS,
-];
-
 export const DB_TYPES = <const>[
   'mysql2',
   'sqlite3',
@@ -255,4 +209,32 @@ export const DB_TYPES = <const>[
   'snowflake',
   'oracledb',
   'pg',
+  'databricks',
 ];
+
+export enum RootScopes {
+  ROOT = 'root',
+  ORG = 'org',
+  WORKSPACE = 'workspace',
+  BASE = 'base',
+  // This scope only used for extract-ids middleware to get initial entity
+  BYPASS = 'bypass',
+}
+
+export const RootScopeTables = {
+  [RootScopes.ROOT]: [
+    MetaTable.USERS,
+    MetaTable.USER_REFRESH_TOKENS,
+    MetaTable.API_TOKENS,
+    MetaTable.PLUGIN,
+    MetaTable.STORE,
+    MetaTable.NOTIFICATION,
+    MetaTable.JOBS,
+    MetaTable.FILE_REFERENCES,
+    // Temporarily added need to be discussed within team
+    MetaTable.AUDIT,
+  ],
+  [RootScopes.BASE]: [MetaTable.PROJECT],
+  // It's a special case and Workspace is equivalent to org in oss
+  [RootScopes.WORKSPACE]: [MetaTable.INTEGRATIONS],
+};

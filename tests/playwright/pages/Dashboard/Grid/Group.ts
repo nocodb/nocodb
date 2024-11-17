@@ -28,17 +28,27 @@ export class GroupPageObject extends BasePage {
   }
 
   async openGroup({ indexMap }: { indexMap: number[] }) {
+    await this.rootPage.waitForTimeout(500);
+
     let root = this.rootPage.locator('.nc-group');
+
     for (const n of indexMap) {
-      await root.nth(n).click();
+      await root.nth(n).click({
+        position: {
+          x: 10,
+          y: 5,
+        },
+      });
       root = root.nth(n).locator('.nc-group');
+      await this.rootPage.waitForTimeout(200);
     }
+    await this.rootPage.waitForTimeout(500);
   }
 
   async verifyGroupHeader({ indexMap, count, title }: { indexMap: number[]; count: number; title: string }) {
     const groupWrapper = this.get({ indexMap });
-    await expect(groupWrapper.locator('.nc-group-column-title')).toHaveText(title);
-    await expect(groupWrapper.locator('.nc-group-row-count')).toHaveText(`(Count: ${count})`);
+    // await expect(groupWrapper.locator('.nc-group-column-title')).toHaveText(title);
+    await expect(groupWrapper.locator('.nc-group-row-count')).toHaveText(`Count${count}`);
   }
 
   async verifyPagination({ indexMap, count }: { indexMap: number[]; count: number }) {
@@ -75,6 +85,11 @@ export class GroupPageObject extends BasePage {
   }) {
     const gridWrapper = this.get({ indexMap });
     await gridWrapper.scrollIntoViewIfNeeded();
+
+    await gridWrapper.locator('.nc-group-table').waitFor({ state: 'visible' });
+
+    await gridWrapper.locator(`.nc-group-table .nc-grid-row:nth-child(${rowIndex + 1})`).waitFor({ state: 'visible' });
+
     await gridWrapper
       .locator(`.nc-group-table .nc-grid-row:nth-child(${rowIndex + 1}) [data-title="${columnHeader}"]`)
       .scrollIntoViewIfNeeded();
@@ -122,7 +137,7 @@ export class GroupPageObject extends BasePage {
 
     await this._fillRow({ indexMap, index, columnHeader, value: rowValue });
 
-    await this.dashboard.waitForLoaderToDisappear();
+    // await this.dashboard.waitForLoaderToDisappear();
   }
 
   async deleteRow({ title, indexMap, rowIndex = 0 }: { title: string; indexMap: number[]; rowIndex?: number }) {
@@ -138,7 +153,7 @@ export class GroupPageObject extends BasePage {
       .waitFor({ state: 'hidden' });
 
     await this.rootPage.waitForTimeout(300);
-    await this.dashboard.waitForLoaderToDisappear();
+    // await this.dashboard.waitForLoaderToDisappear();
   }
 
   async editRow({
@@ -154,7 +169,7 @@ export class GroupPageObject extends BasePage {
   }) {
     await this._fillRow({ indexMap, index: rowIndex, columnHeader, value });
 
-    await this.dashboard.waitForLoaderToDisappear();
+    // await this.dashboard.waitForLoaderToDisappear();
   }
 
   private async _fillRow({

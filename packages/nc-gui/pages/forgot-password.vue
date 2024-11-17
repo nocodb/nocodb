@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { definePageMeta, iconMap, reactive, ref, useApi, useI18n, validateEmail } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
@@ -43,9 +42,13 @@ async function resetPassword() {
 
   resetError()
 
-  await api.auth.passwordForgot(form).then(() => {
-    success.value = true
-  })
+  try {
+    await api.auth.passwordForgot(form).then(() => {
+      success.value = true
+    })
+  } catch {
+    // ignore since error value is set by useApi and will be displayed in UI
+  }
 }
 
 function resetError() {

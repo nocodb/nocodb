@@ -1,12 +1,19 @@
 <script lang="ts" setup>
 import type { ViewType } from 'nocodb-sdk'
+import { LoadingOutlined } from '@ant-design/icons-vue'
+import ManageUsers from './ManageUsers.vue'
+import { useViewsStore } from '~/store/views'
 
 const { isViewToolbar } = defineProps<{
   isViewToolbar?: boolean
 }>()
 
+const { copy } = useCopy()
+const { dashboardUrl } = useDashboard()
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
+const { navigateToProjectPage } = baseStore
+const { activeView } = storeToRefs(useViewsStore())
 
 let view: Ref<ViewType | undefined>
 if (isViewToolbar) {
@@ -18,12 +25,53 @@ if (isViewToolbar) {
   }
 }
 
-const activeTab = ref<'base' | 'view'>('base')
-
-const { formStatus, showShareModal } = storeToRefs(useShare())
+const { formStatus, showShareModal, invitationUsersData, isInvitationLinkCopied } = storeToRefs(useShare())
 const { resetData } = useShare()
+// const { inviteUser } = useManageUsers()
 
-const highlightStyle = ref({ top: isViewToolbar ? '160px' : '4px' })
+// const expandedSharedType = ref<'none' | 'base' | 'view'>('view')
+const isOpeningManageAccess = ref(false)
+
+const inviteUrl = computed(() =>
+  invitationUsersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${invitationUsersData.value.invitationToken}` : null,
+)
+
+const indicator = h(LoadingOutlined, {
+  style: {
+    fontSize: '24px',
+  },
+  spin: true,
+})
+
+/*
+const onShare = async () => {
+  if (!invitationValid) return
+
+  await inviteUser({
+    email: invitationUsersData.value.emails!,
+    roles: invitationUsersData.value.role!,
+  })
+}
+*/
+
+const copyInvitationLink = async () => {
+  await copy(inviteUrl.value!)
+
+  isInvitationLinkCopied.value = true
+}
+
+const openManageAccess = async () => {
+  isOpeningManageAccess.value = true
+  try {
+    await navigateToProjectPage({ page: 'collaborator' })
+    showShareModal.value = false
+  } catch (e) {
+    console.error(e)
+    message.error('Failed to open manage access')
+  } finally {
+    isOpeningManageAccess.value = false
+  }
+}
 
 watch(showShareModal, (val) => {
   if (!val) {
@@ -32,112 +80,123 @@ watch(showShareModal, (val) => {
     }, 500)
   }
 })
-
-watch(showShareModal, () => {
-  if (isViewToolbar && view.value) {
-    activeTab.value = 'view'
-  }
-})
-
-const updateHighlightPosition = () => {
-  nextTick(() => {
-    const activeTab = document.querySelector('.nc-share-active') as HTMLElement
-    if (activeTab) {
-      highlightStyle.value.top = `${activeTab.offsetTop}px`
-    }
-  })
-}
-
-watch(activeTab, () => {
-  updateHighlightPosition()
-})
 </script>
 
 <template>
-  <NcModal
+  <a-modal
     v-model:visible="showShareModal"
-    :centered="false"
+    class="!top-[1%]"
     :class="{ active: showShareModal }"
     wrap-class-name="nc-modal-share-collaborate"
-    :mask-closable="formStatus !== 'base-collaborateSaving'"
-    :width="formStatus === 'manageCollaborators' ? '60rem' : '48rem'"
+    :closable="false"
+    :mask-closable="formStatus === 'base-collaborateSaving' ? false : true"
+    :ok-button-props="{ hidden: true } as any"
+    :cancel-button-props="{ hidden: true } as any"
+    :footer="null"
+    :width="formStatus === 'manageCollaborators' ? '60rem' : '40rem'"
   >
-    <div class="flex flex-col gap-6">
-      <div class="flex text-xl font-bold">{{ $t('activity.share') }}</div>
-      <div class="flex flex-1 gap-3">
-        <div
-          v-if="isViewToolbar"
-          class="flex relative flex-col flex-grow-1 cursor-pointer p-1 w-32 rounded-[10px] h-80 bg-gray-200"
-        >
-          <div :style="highlightStyle" class="highlight"></div>
-
-          <div
-            data-testid="nc-share-base-tab"
-            :class="{ 'nc-share-active': activeTab === 'base' }"
-            class="flex flex-col z-1 text-gray-600 items-center rounded-lg w-full justify-center h-1/2"
-            @click="activeTab = 'base'"
-          >
-            <GeneralProjectIcon
-              :color="parseProp(base.meta).iconColor"
-              :type="base.type"
-              :class="{
-                '!grayscale ': activeTab !== 'base',
-              }"
-              :style="{
-                filter: activeTab !== 'base' ? 'grayscale(100%) brightness(115%)' : '',
-              }"
-              class="nc-view-icon transition-all w-6 h-6 group-hover"
-            />
-            <span
-              :class="{
-                'font-semibold': activeTab === 'base',
-              }"
-            >
-              Base
-            </span>
-          </div>
-          <div
-            :class="{ 'nc-share-active': activeTab === 'view' }"
-            data-testid="nc-share-view-tab"
-            class="flex flex-col items-center text-gray-600 z-1 w-full cursor-pointer rounded-lg justify-center h-1/2"
-            @click="activeTab = 'view'"
-          >
-            <component
-              :is="viewIcons[view?.type]?.icon"
-              :class="{
-                'text-gray-500': activeTab !== 'view',
-              }"
-              :style="{ color: activeTab === 'view' ? viewIcons[view?.type]?.color : '' }"
-              class="nc-view-icon transition-all !text-2xl group-hover"
-            />
-            <span
-              :class="{
-                'font-semibold': activeTab === 'view',
-              }"
-            >
-              View
-            </span>
+    <div v-if="formStatus === 'base-collaborateSaving'" class="flex flex-row w-full px-5 justify-between items-center py-1">
+      <div class="flex text-base font-bold">Adding Members</div>
+      <a-spin :indicator="indicator" />
+    </div>
+    <template v-else-if="formStatus === 'base-collaborateSaved'">
+      <div class="flex flex-col py-1.5">
+        <div class="flex flex-row w-full px-5 justify-between items-center py-0.5">
+          <div class="flex text-base font-medium">Members added</div>
+          <div class="flex">
+            <MdiCheck />
           </div>
         </div>
-        <div class="flex flex-1 h-full flex-col">
-          <LazyDlgShareAndCollaborateShareBase v-if="activeTab === 'base'" :is-view="isViewToolbar" />
-          <LazyDlgShareAndCollaborateSharePage v-else-if="activeTab === 'view'" />
+        <div class="flex flex-row mx-3 mt-2.5 pt-3.5 border-t-1 border-gray-100 justify-end gap-x-2">
+          <a-button type="text" class="!border-1 !border-gray-200 !rounded-md" @click="showShareModal = false">Close </a-button>
+          <a-button
+            type="text"
+            class="!border-1 !border-gray-200 !rounded-md"
+            data-testid="docs-share-invitation-copy"
+            :data-invite-link="inviteUrl"
+            @click="copyInvitationLink"
+          >
+            <div v-if="isInvitationLinkCopied" class="flex flex-row items-center gap-x-1">
+              <MdiTick class="h-3.5" />
+              {{ $t('activity.copiedInviteLink') }}
+            </div>
+            <div v-else class="flex flex-row items-center gap-x-1">
+              <MdiContentCopy class="h-3.3" />
+              {{ $t('activity.copyInviteLink') }}
+            </div>
+          </a-button>
         </div>
       </div>
+    </template>
+    <div v-else-if="formStatus === 'manageCollaborators'">
+      <ManageUsers v-if="formStatus === 'manageCollaborators'" @close="formStatus = 'collaborate'" />
     </div>
-  </NcModal>
+    <div v-else class="flex flex-col px-1">
+      <div class="flex flex-row justify-between items-center pb-1 mx-4 mt-3">
+        <div class="flex text-base font-medium">{{ $t('activity.share') }}</div>
+      </div>
+      <div v-if="isViewToolbar && activeView" class="share-view">
+        <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
+          <component
+            :is="viewIcons[view?.type]?.icon"
+            class="nc-view-icon group-hover"
+            :style="{ color: viewIcons[view?.type]?.color }"
+          />
+          <div>{{ $t('activity.shareView') }}</div>
+          <div
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            <span v-if="activeView.is_default">{{ $t('labels.defaultView') }}</span>
+            <span v-else>
+              {{ activeView.title }}
+            </span>
+          </div>
+        </div>
+        <DlgShareAndCollaborateSharePage />
+      </div>
+      <div class="share-base">
+        <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
+          <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-view-icon group-hover" />
+
+          <div>{{ $t('activity.shareBase.label') }}</div>
+          <div
+            class="max-w-79/100 ml-2 px-2 py-0.5 rounded-md bg-gray-100 capitalize text-ellipsis overflow-hidden"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+          >
+            {{ base.title }}
+          </div>
+        </div>
+        <LazyDlgShareAndCollaborateShareBase />
+      </div>
+      <div class="flex flex-row justify-end mx-3 mt-1 mb-2 pt-4 gap-x-2">
+        <NcButton type="secondary" data-testid="docs-cancel-btn" @click="showShareModal = false">
+          {{ $t('general.close') }}
+        </NcButton>
+        <NcButton
+          data-testid="docs-share-manage-access"
+          type="secondary"
+          :loading="isOpeningManageAccess"
+          @click="openManageAccess"
+          >{{ $t('activity.manageProjectAccess') }}</NcButton
+        >
+
+        <!-- <a-button
+          v-if="formStatus === 'base-collaborate'"
+          data-testid="docs-share-btn"
+          class="!border-0 !rounded-md"
+          type="primary"
+          :disabled="!invitationValid"
+          @click="onShare"
+        >
+          Share
+        </a-button> -->
+      </div>
+    </div>
+  </a-modal>
 </template>
 
 <style lang="scss" scoped>
-.nc-share-active {
-  @apply bg-transparent !text-gray-900;
-}
-
-.highlight {
-  @apply absolute h-[calc(50%-4px)] w-[calc(8rem-8px)] shadow bg-white rounded-lg transition-all duration-300;
-  z-index: 0;
-}
-
 .share-collapse-item {
   @apply !rounded-lg !mb-2 !mt-4 !border-0;
 }
@@ -145,12 +204,10 @@ watch(activeTab, () => {
 .ant-collapse {
   @apply !bg-white !border-0;
 }
+</style>
 
+<style lang="scss">
 .nc-modal-share-collaborate {
-  .ant-modal-content {
-    @apply !rounded-2xl;
-  }
-
   .ant-modal {
     top: 10vh !important;
   }
@@ -170,6 +227,10 @@ watch(activeTab, () => {
 
   .ant-collapse-content-box {
     @apply !p-0;
+  }
+
+  .ant-modal-content {
+    @apply !rounded-lg !px-1 !py-2;
   }
 
   .ant-select-selector {

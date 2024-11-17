@@ -9,17 +9,11 @@ import { Locator } from '@playwright/test';
 
 export class CollaborationPage extends BasePage {
   readonly workspace: WorkspacePage;
-  readonly button_addUser: Locator;
-  readonly input_email: Locator;
-  readonly selector_role: Locator;
   readonly list_collaborators: Locator;
 
   constructor(workspace: WorkspacePage) {
     super(workspace.rootPage);
     this.workspace = workspace;
-    this.button_addUser = this.get().locator('button.ant-btn.ant-btn-primary');
-    this.input_email = this.get().locator('input[id="email"]');
-    this.selector_role = this.get().locator('.ant-select-selector');
     this.list_collaborators = this.get().locator('.nc-collaborators-list-table');
   }
 
@@ -34,21 +28,34 @@ export class CollaborationPage extends BasePage {
   async addUsers(email: string, role: string) {
     await this.waitFor({ state: 'visible' });
 
+    // click add user button to open modal
+    await this.get().getByTestId('nc-add-member-btn').click();
+
+    const inviteModal = this.rootPage.locator('.nc-invite-dlg');
+
+    await inviteModal.waitFor({ state: 'visible' });
+
+    const input_email = inviteModal.locator('input[id="email"]');
+    const selector_role = inviteModal.locator('.ant-select-selector');
+    const button_addUser = inviteModal.locator('.nc-invite-btn');
+
+    // flaky test: wait for the input to be ready
+    await this.rootPage.waitForTimeout(500);
+
     // email
-    await this.input_email.fill(email);
-    await this.rootPage.keyboard.press('Enter');
+    await input_email.fill(email + ' ');
 
     // role
-    await this.selector_role.first().click();
-    const menu = this.rootPage.locator('.nc-role-select-dropdown:visible');
+    await selector_role.first().click();
+    const menu = this.rootPage.locator('.nc-role-selector-dropdown:visible');
     await menu.locator(`.nc-role-select-workspace-level-${role.toLowerCase()}:visible`).first().click();
 
     // submit
 
     // allow button to be enabled
     await this.rootPage.waitForTimeout(500);
-    await this.rootPage.keyboard.press('Enter');
-    await this.button_addUser.click();
+
+    await button_addUser.click();
     await this.verifyToast({ message: 'Invitation sent successfully' });
     await this.rootPage.waitForTimeout(500);
   }

@@ -3,16 +3,6 @@ import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
 import type { VNodeRef } from '@vue/runtime-core'
 import { computed } from '@vue/reactivity'
-import {
-  NcProjectType,
-  baseIconColors,
-  baseTitleValidator,
-  extractSdkResponseErrorMsg,
-  ref,
-  useGlobal,
-  useI18n,
-  useVModel,
-} from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -40,7 +30,7 @@ const nameValidationRules = [
     required: true,
     message: t('msg.info.dbNameRequired'),
   },
-  baseTitleValidator,
+  baseTitleValidator(),
 ] as RuleObject[]
 
 const form = ref<typeof Form>()
@@ -55,6 +45,10 @@ const formState = ref({
 const creating = ref(false)
 
 const createProject = async () => {
+  if (formState.value.title) {
+    formState.value.title = formState.value.title.trim()
+  }
+
   creating.value = true
   try {
     const base = await _createProject({
@@ -112,10 +106,10 @@ const typeLabel = computed(() => {
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" size="small">
+  <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
       <!-- Create A New Table -->
-      <div class="flex flex-row items-center">
+      <div class="flex flex-row items-center text-base text-gray-800">
         <GeneralProjectIcon :color="formState.meta.iconColor" :type="baseType" class="mr-2.5 !text-lg !h-4" />
         {{
           $t('general.createEntity', {
@@ -124,7 +118,7 @@ const typeLabel = computed(() => {
         }}
       </div>
     </template>
-    <div class="mt-3">
+    <div class="mt-1">
       <a-form
         ref="form"
         :model="formState"
@@ -135,24 +129,25 @@ const typeLabel = computed(() => {
         autocomplete="off"
         @finish="createProject"
       >
-        <a-form-item name="title" :rules="nameValidationRules" class="m-10">
+        <a-form-item name="title" :rules="nameValidationRules" class="!mb-0">
           <a-input
             ref="input"
             v-model:value="formState.title"
             name="title"
-            class="nc-metadb-base-name nc-input-md"
+            class="nc-metadb-base-name nc-input-sm nc-input-shadow"
             placeholder="Title"
           />
         </a-form-item>
       </a-form>
 
-      <div class="flex flex-row justify-end mt-7 gap-x-2">
-        <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+      <div class="flex flex-row justify-end mt-5 gap-x-2">
+        <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
         <NcButton
           v-e="['a:base:create']"
           data-testid="docs-create-proj-dlg-create-btn"
           :loading="creating"
           type="primary"
+          size="small"
           :label="`${$t('general.create')} ${typeLabel}`"
           :loading-label="`${$t('general.creating')} ${typeLabel}`"
           @click="createProject"

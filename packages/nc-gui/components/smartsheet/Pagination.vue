@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios'
 import type { PaginatedType } from 'nocodb-sdk'
-import { IsGroupByInj, computed, iconMap, inject, isRtlLang, useI18n } from '#imports'
-import type { Language } from '#imports'
 
 interface Props {
   paginationData: PaginatedType
@@ -15,6 +13,7 @@ interface Props {
   extraStyle?: string
   showApiTiming?: boolean
   alignLeft?: boolean
+  showSizeChanger?: boolean
 }
 
 const props = defineProps<Props>()
@@ -39,11 +38,7 @@ const alignLeft = computed(() => props.alignLeft ?? false)
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
-
 const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
-
-const size = computed(() => vPaginationData.value?.pageSize ?? 25)
 
 const page = computed({
   get: () => vPaginationData?.value?.page ?? 1,
@@ -61,11 +56,33 @@ const page = computed({
   },
 })
 
+const size = computed({
+  get: () => vPaginationData.value?.pageSize ?? 25,
+  set: (size: number) => {
+    if (vPaginationData.value) {
+      // if there is no change in size then return
+      if (vPaginationData.value?.pageSize && vPaginationData.value?.pageSize === size) {
+        return
+      }
+
+      vPaginationData.value.pageSize = size
+
+      if (vPaginationData.value.totalRows && page.value * size < vPaginationData.value.totalRows) {
+        changePage?.(page.value)
+      } else {
+        changePage?.(1)
+      }
+    }
+  },
+})
+
 const isRTLLanguage = computed(() => isRtlLang(locale.value as keyof typeof Language))
 
 const renderAltOrOptlKey = () => {
   return isMac() ? '⌥' : 'ALT'
 }
+
+const tempPageVal = ref(page.value)
 </script>
 
 <template>
@@ -73,13 +90,14 @@ const renderAltOrOptlKey = () => {
     class="flex items-center bg-white border-gray-200 nc-grid-pagination-wrapper"
     :class="{ 'border-t-1': !isGroupBy, 'h-13': isMobileMode, 'h-10': !isMobileMode }"
     :style="`${fixedSize ? `width: ${fixedSize}px;` : ''}${
-      isGroupBy ? 'margin-top:1px; border-radius: 0 0 12px 12px !important;' : ''
-    }${extraStyle}`"
+      isGroupBy ? 'margin-top:1px; border-radius: 0 0 8px 8px !important;' : ''
+    } ${extraStyle}`"
   >
     <div
       class="flex items-center"
       :class="{
         'flex-1': !alignLeft,
+        'left-0 sticky': alignLeft,
       }"
     >
       <slot name="add-record" />
@@ -94,10 +112,11 @@ const renderAltOrOptlKey = () => {
 
     <div
       v-if="!hidePagination"
-      class="transition-all duration-350"
+      class="transition-all ml-2 sticky left-0 duration-350"
       :class="{
-        '-ml-17': isLeftSidebarOpen && !alignLeft,
         'ml-8': alignLeft,
+        'left-[159px]': isGroupBy && $slots['add-record'],
+        'left-[32px]': isGroupBy && !$slots['add-record'],
       }"
     >
       <div v-if="isViewDataLoading" class="nc-pagination-skeleton flex flex-row justify-center item-center min-h-10 min-w-42">
@@ -115,10 +134,18 @@ const renderAltOrOptlKey = () => {
         :next-page-tooltip="`${renderAltOrOptlKey()}+→`"
         :first-page-tooltip="`${renderAltOrOptlKey()}+↓`"
         :last-page-tooltip="`${renderAltOrOptlKey()}+↑`"
+        :show-size-changer="showSizeChanger"
       />
       <div v-else class="mx-auto flex items-center mt-n1" style="max-width: 250px">
         <span class="text-xs" style="white-space: nowrap"> Change page:</span>
-        <a-input :value="page" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(page)">
+        <a-input
+          v-model:value="tempPageVal"
+          size="small"
+          class="ml-1 !text-xs"
+          type="number"
+          @keydown.enter="changePage(tempPageVal)"
+          @blur="tempPageVal = page"
+        >
           <template #suffix>
             <component :is="iconMap.returnKey" class="mt-1" @click="changePage(page)" />
           </template>

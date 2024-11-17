@@ -2,7 +2,6 @@ import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { MaybeRef } from '@vueuse/core'
 import { watchPostEffect } from '@vue/runtime-core'
-import { unref } from '#imports'
 
 export function useSortable(
   element: MaybeRef<HTMLElement | undefined>,
@@ -52,7 +51,9 @@ export function useSortable(
     const _element = unref(element)
 
     onCleanup(() => {
-      if (_element && sortable) sortable.destroy()
+      if (_element && sortable?.el) {
+        sortable.destroy()
+      }
     })
 
     if (_element && !unref(isReadonly)) initSortable(_element)

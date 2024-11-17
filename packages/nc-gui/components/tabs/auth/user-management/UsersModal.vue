@@ -2,24 +2,6 @@
 import type { Input } from 'ant-design-vue'
 import { ProjectRoles, RoleColors } from 'nocodb-sdk'
 import type { ProjectUserReqType } from 'nocodb-sdk'
-import {
-  Form,
-  computed,
-  emailValidator,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  message,
-  onMounted,
-  ref,
-  storeToRefs,
-  useActiveKeyupListener,
-  useBase,
-  useCopy,
-  useDashboard,
-  useI18n,
-  useNuxtApp,
-} from '#imports'
-import type { User, Users } from '#imports'
 
 interface Props {
   show: boolean

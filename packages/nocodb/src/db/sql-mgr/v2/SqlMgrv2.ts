@@ -1,16 +1,19 @@
 // import debug from 'debug';
 
 // import {XKnex} from "../sql-data-mapper";
-import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
-import KnexMigratorv2 from '../../sql-migrator/lib/KnexMigratorv2';
-import Debug from '../../util/Debug';
 import type { MetaService } from '~/meta/meta.service';
 import type Source from '~/models/Source';
+import type { NcContext } from '~/interface/config';
+import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
+import KnexMigratorv2 from '~/db/sql-migrator/lib/KnexMigratorv2';
+import Debug from '~/db/util/Debug';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 const log = new Debug('SqlMgr');
 
 export default class SqlMgrv2 {
+  public context: NcContext;
+
   protected _migrator: KnexMigratorv2;
   protected ncMeta?: MetaService;
   // @ts-ignore
@@ -22,12 +25,13 @@ export default class SqlMgrv2 {
    * @param {String} args.toolDbPath - path to sqlite file that sql mgr will use
    * @memberof SqlMgr
    */
-  constructor(args: { id: string }, ncMeta = null) {
+  constructor(context: NcContext, args: { id: string }, ncMeta = null) {
     const func = 'constructor';
     log.api(`${func}:args:`, args);
     // this.metaDb = args.metaDb;
-    this._migrator = new KnexMigratorv2(args);
+    this._migrator = new KnexMigratorv2(context, args);
     this.ncMeta = ncMeta;
+    this.context = context;
   }
 
   public async migrator(_base: Source) {

@@ -5,7 +5,7 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -17,25 +17,29 @@ import { CacheScope } from '~/utils/globals';
 export class GalleriesService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async galleryViewGet(param: { galleryViewId: string }) {
-    return await GalleryView.get(param.galleryViewId);
+  async galleryViewGet(context: NcContext, param: { galleryViewId: string }) {
+    return await GalleryView.get(context, param.galleryViewId);
   }
 
-  async galleryViewCreate(param: {
-    tableId: string;
-    gallery: ViewCreateReqType;
-    user: UserType;
-
-    req: NcRequest;
-  }) {
+  async galleryViewCreate(
+    context: NcContext,
+    param: {
+      tableId: string;
+      gallery: ViewCreateReqType;
+      user: UserType;
+      ownedBy?: string;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.gallery,
     );
 
-    const model = await Model.get(param.tableId);
+    const model = await Model.get(context, param.tableId);
 
     const { id } = await View.insertMetaOnly(
+      context,
       {
         ...param.gallery,
         // todo: sanitize
@@ -43,12 +47,14 @@ export class GalleriesService {
         type: ViewTypes.GALLERY,
         base_id: model.base_id,
         source_id: model.source_id,
+        created_by: param.user?.id,
+        owned_by: param.ownedBy || param.user?.id,
       },
       model,
     );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(id);
+    const view = await View.get(context, id);
     await NocoCache.appendToList(
       CacheScope.VIEW,
       [view.fk_model_id],
@@ -63,23 +69,30 @@ export class GalleriesService {
     return view;
   }
 
-  async galleryViewUpdate(param: {
-    galleryViewId: string;
-    gallery: GalleryUpdateReqType;
-    req: NcRequest;
-  }) {
+  async galleryViewUpdate(
+    context: NcContext,
+    param: {
+      galleryViewId: string;
+      gallery: GalleryUpdateReqType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/GalleryUpdateReq',
       param.gallery,
     );
 
-    const view = await View.get(param.galleryViewId);
+    const view = await View.get(context, param.galleryViewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.galleryViewId);
     }
 
-    const res = await GalleryView.update(param.galleryViewId, param.gallery);
+    const res = await GalleryView.update(
+      context,
+      param.galleryViewId,
+      param.gallery,
+    );
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,

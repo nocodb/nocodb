@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { computed, iconMap, navigateTo, ref, useGlobal, useNuxtApp, useRoute, useSidebar } from '#imports'
-
 const { signOut, signedIn, isLoading, user, currentVersion, appInfo } = useGlobal()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
@@ -14,8 +12,9 @@ const hasSider = ref(false)
 const sidebar = ref<HTMLDivElement>()
 
 const logout = async () => {
-  await signOut(false)
-  await navigateTo('/signin')
+  await signOut({
+    redirectToSignin: true,
+  })
 }
 
 const { hooks } = useNuxtApp()

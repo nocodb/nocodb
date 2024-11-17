@@ -12,19 +12,11 @@ const emits = defineEmits(['created'])
 
 const { isParentOpen, columns } = toRefs(props)
 
-const inputRef = ref()
-
-const search = ref('')
-
-const activeFieldIndex = ref(-1)
-
-const activeView = inject(ActiveViewInj, ref())
-
 const meta = inject(MetaInj, ref())
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
-const { groupBy } = useViewGroupBy(activeView)
+const { groupBy } = useViewGroupByOrThrow()
 
 const options = computed<ColumnType[]>(
   () =>
@@ -40,7 +32,7 @@ const options = computed<ColumnType[]>(
             return false
           }
 
-          if (isHiddenCol(c)) {
+          if (isHiddenCol(c, meta.value)) {
             /** ignore mm relation column, created by and last modified by system field */
             return false
           }
@@ -50,75 +42,30 @@ const options = computed<ColumnType[]>(
           return false
         } else {
           /** ignore hasmany and manytomany relations if it's using within group menu */
-          return !(isLinksOrLTAR(c) && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO)
+          return !(
+            isLinksOrLTAR(c) &&
+            ![RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+              (c.colOptions as LinkToAnotherRecordType).type as RelationTypes,
+            )
+          )
         }
       })
-      .filter((c: ColumnType) => !groupBy.value.find((g) => g.column?.id === c.id))
-      .filter((c: ColumnType) => c.title?.toLowerCase().includes(search.value.toLowerCase())) ?? [],
+      .filter((c: ColumnType) => !groupBy.value.find((g) => g.column?.id === c.id)) ?? [],
 )
 
 const onClick = (column: ColumnType) => {
   emits('created', column)
 }
-
-watch(
-  isParentOpen,
-  () => {
-    if (!isParentOpen.value) return
-
-    setTimeout(() => {
-      inputRef.value?.focus()
-    }, 100)
-  },
-  {
-    immediate: true,
-  },
-)
-
-onMounted(() => {
-  search.value = ''
-  activeFieldIndex.value = -1
-})
-
-const onArrowDown = () => {
-  activeFieldIndex.value = Math.min(activeFieldIndex.value + 1, options.value.length - 1)
-}
-
-const onArrowUp = () => {
-  activeFieldIndex.value = Math.max(activeFieldIndex.value - 1, 0)
-}
 </script>
 
 <template>
-  <div
-    class="flex flex-col w-full pt-4 pb-2 min-w-64 nc-group-by-create-modal"
-    @keydown.arrow-down.prevent="onArrowDown"
-    @keydown.arrow-up.prevent="onArrowUp"
-    @keydown.enter.prevent="onClick(options[activeFieldIndex])"
-  >
-    <div class="flex pb-3 px-4 border-b-1 border-gray-100">
-      <input ref="inputRef" v-model="search" class="w-full focus:outline-none" :placeholder="$t('msg.selectFieldToGroup')" />
-    </div>
-    <div class="flex-col w-full max-h-100 max-w-76 nc-scrollbar-md !overflow-y-auto">
-      <div v-if="!options.length" class="flex text-gray-500 px-4 py-2.25">{{ $t('general.empty') }}</div>
-      <div
-        v-for="(option, index) in options"
-        :key="index"
-        v-e="['c:group-by:add:column:select']"
-        class="flex flex-row h-10 items-center gap-x-1.5 px-2.5 hover:bg-gray-100 cursor-pointer nc-group-by-column-search-item"
-        :class="{
-          'bg-gray-100': activeFieldIndex === index,
-        }"
-        @click="onClick(option)"
-      >
-        <SmartsheetHeaderIcon :column="option" />
-        <NcTooltip class="truncate">
-          <template #title> {{ option.title }}</template>
-          <span>
-            {{ option.title }}
-          </span>
-        </NcTooltip>
-      </div>
-    </div>
+  <div class="nc-group-by-create-modal">
+    <SmartsheetToolbarFieldListWithSearch
+      :is-parent-open="isParentOpen"
+      :search-input-placeholder="$t('msg.selectFieldToGroup')"
+      :options="options"
+      toolbar-menu="groupBy"
+      @selected="onClick"
+    />
   </div>
 </template>

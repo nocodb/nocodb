@@ -5,12 +5,18 @@ import type {
   GalleryType,
   MetaType,
 } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import View from '~/models/View';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
-import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
+import {
+  parseMetaProp,
+  prepareForDb,
+  prepareForResponse,
+  stringifyMetaProp,
+} from '~/utils/modelUtils';
 
 export default class GalleryView implements GalleryType {
   fk_view_id?: string;
@@ -28,6 +34,7 @@ export default class GalleryView implements GalleryType {
   show_all_fields?: BoolType;
   fk_cover_image_col_id?: string;
 
+  fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
 
@@ -38,7 +45,11 @@ export default class GalleryView implements GalleryType {
     Object.assign(this, data);
   }
 
-  public static async get(viewId: string, ncMeta = Noco.ncMeta) {
+  public static async get(
+    context: NcContext,
+    viewId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     let view =
       viewId &&
       (await NocoCache.get(
@@ -46,19 +57,28 @@ export default class GalleryView implements GalleryType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(null, null, MetaTable.GALLERY_VIEW, {
-        fk_view_id: viewId,
-      });
+      view = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.GALLERY_VIEW,
+        {
+          fk_view_id: viewId,
+        },
+      );
       await NocoCache.set(`${CacheScope.GALLERY_VIEW}:${viewId}`, view);
     }
 
     return view && new GalleryView(view);
   }
 
-  static async insert(view: Partial<GalleryView>, ncMeta = Noco.ncMeta) {
-    const columns = await View.get(view.fk_view_id, ncMeta)
-      .then((v) => v?.getModel(ncMeta))
-      .then((m) => m.getColumns(ncMeta));
+  static async insert(
+    context: NcContext,
+    view: Partial<GalleryView>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const columns = await View.get(context, view.fk_view_id, ncMeta)
+      .then((v) => v?.getModel(context, ncMeta))
+      .then((m) => m.getColumns(context, ncMeta));
 
     const insertObj = extractProps(view, [
       'base_id',
@@ -71,30 +91,40 @@ export default class GalleryView implements GalleryType {
       'restrict_types',
       'restrict_size',
       'restrict_number',
+      'meta',
     ]);
 
     insertObj.fk_cover_image_col_id =
-      view?.fk_cover_image_col_id ||
-      columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
+      view?.fk_cover_image_col_id !== undefined
+        ? view?.fk_cover_image_col_id
+        : columns?.find((c) => c.uidt === UITypes.Attachment)?.id;
 
-    if (!(view.base_id && view.source_id)) {
-      const viewRef = await View.get(view.fk_view_id);
-      insertObj.base_id = viewRef.base_id;
+    insertObj.meta = {
+      fk_cover_image_object_fit:
+        parseMetaProp(insertObj)?.fk_cover_image_object_fit || 'fit',
+    };
+
+    insertObj.meta = stringifyMetaProp(insertObj);
+
+    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+
+    if (!insertObj.source_id) {
       insertObj.source_id = viewRef.source_id;
     }
 
     await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.GALLERY_VIEW,
       insertObj,
       true,
     );
 
-    return this.get(view.fk_view_id, ncMeta);
+    return this.get(context, view.fk_view_id, ncMeta);
   }
 
   static async update(
+    context: NcContext,
     galleryId: string,
     body: Partial<GalleryView>,
     ncMeta = Noco.ncMeta,
@@ -103,8 +133,8 @@ export default class GalleryView implements GalleryType {
 
     // update meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.GALLERY_VIEW,
       prepareForDb(updateObj),
       {
@@ -115,6 +145,16 @@ export default class GalleryView implements GalleryType {
     await NocoCache.update(
       `${CacheScope.GALLERY_VIEW}:${galleryId}`,
       prepareForResponse(updateObj),
+    );
+
+    const view = await View.get(context, galleryId, ncMeta);
+
+    // on update, delete any optimised single query cache
+    await View.clearSingleQueryCache(
+      context,
+      view.fk_model_id,
+      [{ id: galleryId }],
+      ncMeta,
     );
 
     return res;

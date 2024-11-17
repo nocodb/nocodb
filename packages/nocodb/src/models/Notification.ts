@@ -1,8 +1,8 @@
 import type { AppEvents } from 'nocodb-sdk';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
-import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
+import { MetaTable, RootScopes } from '~/utils/globals';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 export default class Notification {
   id?: string;
@@ -30,13 +30,28 @@ export default class Notification {
       'is_deleted',
     ]);
 
-    insertData.body = stringifyMetaProp(insertData, 'body');
-
     return await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.NOTIFICATION,
-      insertData,
+      prepareForDb(insertData, 'body'),
+    );
+  }
+
+  public static async get(
+    params: {
+      fk_user_id: string;
+      id: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const condition = extractProps(params, ['id', 'fk_user_id']);
+
+    return await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.NOTIFICATION,
+      condition,
     );
   }
 
@@ -58,21 +73,23 @@ export default class Notification {
       'fk_user_id',
     ]);
 
-    const notifications = await ncMeta.metaList(
-      null,
-      null,
+    const notifications = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.NOTIFICATION,
       {
         condition,
         limit,
         offset,
+        orderBy: {
+          created_at: 'desc',
+        },
       },
     );
 
     for (const notification of notifications) {
-      notification.body = parseMetaProp(notification, 'body');
+      prepareForResponse(notification, 'body');
     }
-
     return notifications;
   }
 
@@ -89,9 +106,14 @@ export default class Notification {
       'is_deleted',
       'fk_user_id',
     ]);
-    const count = await ncMeta.metaCount(null, null, MetaTable.NOTIFICATION, {
-      condition,
-    });
+    const count = await ncMeta.metaCount(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.NOTIFICATION,
+      {
+        condition,
+      },
+    );
 
     return count;
   }
@@ -109,23 +131,19 @@ export default class Notification {
       'is_deleted',
     ]);
 
-    if ('body' in updateData) {
-      updateData.body = stringifyMetaProp(updateData, 'body');
-    }
-
     return await ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.NOTIFICATION,
-      updateData,
+      prepareForDb(updateData, 'body'),
       id,
     );
   }
 
   public static async markAllAsRead(fk_user_id: string, ncMeta = Noco.ncMeta) {
     return ncMeta.metaUpdate(
-      null,
-      null,
+      RootScopes.ROOT,
+      RootScopes.ROOT,
       MetaTable.NOTIFICATION,
       { is_read: true },
       {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, getMdiIcon, useVModel, watch } from '#imports'
+import { UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -10,36 +10,7 @@ const emit = defineEmits(['update:value'])
 const vModel = useVModel(props, 'value', emit)
 
 // cater existing v1 cases
-const iconList = [
-  {
-    checked: 'mdi-check-bold',
-    unchecked: 'mdi-crop-square',
-  },
-  {
-    checked: 'mdi-check-circle-outline',
-    unchecked: 'mdi-checkbox-blank-circle-outline',
-  },
-  {
-    checked: 'mdi-star',
-    unchecked: 'mdi-star-outline',
-  },
-  {
-    checked: 'mdi-heart',
-    unchecked: 'mdi-heart-outline',
-  },
-  {
-    checked: 'mdi-moon-full',
-    unchecked: 'mdi-moon-new',
-  },
-  {
-    checked: 'mdi-thumb-up',
-    unchecked: 'mdi-thumb-up-outline',
-  },
-  {
-    checked: 'mdi-flag',
-    unchecked: 'mdi-flag-outline',
-  },
-]
+const iconList = checkboxIconList
 
 const picked = computed({
   get: () => vModel.value.meta.color,
@@ -48,14 +19,13 @@ const picked = computed({
   },
 })
 
+const isOpenColorPicker = ref(false)
+
 // set default value
 vModel.value.meta = {
-  icon: {
-    checked: 'mdi-check-bold',
-    unchecked: 'mdi-crop-square',
-  },
-  color: '#777',
-  ...vModel.value.meta,
+  ...columnDefaultMeta[UITypes.Checkbox],
+  ...(vModel.value.meta || {}),
+  icon: extractCheckboxIcon(vModel.value.meta || {}),
 }
 
 // antdv doesn't support object as value
@@ -75,26 +45,19 @@ watch(
 </script>
 
 <template>
-  <a-row>
-    <a-col :span="24">
-      <a-form-item label="Icon">
+  <a-row :gutter="8">
+    <a-col :span="12">
+      <a-form-item :label="$t('labels.icon')">
         <a-select v-model:value="vModel.meta.iconIdx" class="w-52" dropdown-class-name="nc-dropdown-checkbox-icon">
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <div class="flex gap-2 w-full truncate items-center">
-              <div class="flex-1 truncate">
-                <component
-                  :is="getMdiIcon(icon.checked)"
-                  class="mx-1"
-                  :style="{
-                    color: vModel.meta.color,
-                  }"
-                />
-                <component
-                  :is="getMdiIcon(icon.unchecked)"
-                  :style="{
-                    color: vModel.meta.color,
-                  }"
-                />
+              <div class="flex-1 flex items-center text-gray-700 gap-2 children:(h-4 w-4)">
+                <component :is="getMdiIcon(icon.checked)" />
+                <component :is="getMdiIcon(icon.unchecked)" />
               </div>
 
               <component
@@ -108,15 +71,49 @@ watch(
         </a-select>
       </a-form-item>
     </a-col>
-  </a-row>
+    <a-col :span="12">
+      <a-form-item :label="$t('general.colour')">
+        <NcDropdown
+          v-model:visible="isOpenColorPicker"
+          placement="bottomRight"
+          :auto-close="false"
+          class="nc-color-picker-dropdown-trigger"
+        >
+          <div
+            class="flex-1 border-1 border-gray-300 rounded-lg h-8 px-[11px] flex items-center justify-between transition-all cursor-pointer"
+            :class="{
+              'border-brand-500 shadow-selected': isOpenColorPicker,
+            }"
+          >
+            <div class="flex-1 flex items-center gap-2 children:(h-4 w-4)">
+              <component
+                :is="getMdiIcon(iconList[vModel.meta.iconIdx].checked)"
+                :style="{
+                  color: vModel.meta.color,
+                }"
+              />
+              <component
+                :is="getMdiIcon(iconList[vModel.meta.iconIdx].unchecked)"
+                :style="{
+                  color: vModel.meta.color,
+                }"
+              />
+            </div>
 
-  <a-row class="w-full justify-center">
-    <LazyGeneralColorPicker
-      v-model="picked"
-      :row-size="8"
-      :colors="['#FF94B6', '#6A8D9D', '#6DAE42', '#4AC0BF', '#905FB3', '#FF8320', '#6BCC72', '#FF4138']"
-      @input="(el:string)=>vModel.meta.color=el"
-    />
+            <GeneralIcon icon="arrowDown" class="text-gray-700 h-4 w-4" />
+          </div>
+          <template #overlay>
+            <div>
+              <LazyGeneralAdvanceColorPicker
+                v-model="picked"
+                :is-open="isOpenColorPicker"
+                @input="(el:string)=>vModel.meta.color=el"
+              ></LazyGeneralAdvanceColorPicker>
+            </div>
+          </template>
+        </NcDropdown>
+      </a-form-item>
+    </a-col>
   </a-row>
 </template>
 

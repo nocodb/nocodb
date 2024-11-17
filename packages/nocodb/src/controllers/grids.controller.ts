@@ -13,7 +13,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { GridsService } from '~/services/grids.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { NcRequest } from '~/interface/config';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -27,11 +28,12 @@ export class GridsController {
   @HttpCode(200)
   @Acl('gridViewCreate')
   async gridViewCreate(
+    @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
     @Req() req: NcRequest,
   ) {
-    const view = await this.gridsService.gridViewCreate({
+    const view = await this.gridsService.gridViewCreate(context, {
       grid: body,
       tableId,
       req,
@@ -41,11 +43,12 @@ export class GridsController {
   @Patch(['/api/v1/db/meta/grids/:viewId', '/api/v2/meta/grids/:viewId'])
   @Acl('gridViewUpdate')
   async gridViewUpdate(
+    @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
     @Body() body,
     @Req() req: NcRequest,
   ) {
-    return await this.gridsService.gridViewUpdate({
+    return await this.gridsService.gridViewUpdate(context, {
       viewId,
       grid: body,
       req,

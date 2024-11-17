@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { iconMap, navigateTo, useRoles } from '#imports'
-
 definePageMeta({
   hideHeader: true,
 })
@@ -22,19 +20,32 @@ const selectedKeys = computed(() => [
 const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
 
 const logout = async () => {
-  await signOut(false)
-  navigateTo('/signin')
+  await signOut({
+    redirectToSignin: true,
+  })
 }
+
+const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && !isEeUI)
+
+const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
+
+watchEffect(() => {
+  if (isSetupPageAllowed.value) {
+    loadSetupApps()
+  }
+})
+
+const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
 </script>
 
 <template>
   <div>
     <NuxtLayout name="empty">
       <div class="mx-auto h-full">
-        <div class="h-full overflow-y-auto flex">
+        <div class="h-full flex">
           <!-- Side tabs -->
 
-          <div class="h-full bg-white nc-user-sidebar fixed">
+          <div class="h-full bg-white nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
             <NcMenu
               v-model:openKeys="openKeys"
               v-model:selectedKeys="selectedKeys"
@@ -42,20 +53,52 @@ const logout = async () => {
               class="tabs-menu h-full"
               mode="inline"
             >
-              <div
-                v-if="!$route.params.baseType"
-                v-e="['c:navbar:home']"
-                data-testid="nc-noco-brand-icon"
-                class="transition-all duration-200 px-2 mx-2 mt-1.5 cursor-pointer transform hover:bg-gray-100 my-1 nc-noco-brand-icon h-8 rounded-md min-w-60"
-                @click="navigateTo('/')"
-              >
-                <div class="flex flex-row gap-x-2 items-center h-8.5">
-                  <GeneralIcon icon="arrowLeft" class="-mt-0.1" />
-                  <div class="flex text-sm font-medium text-gray-800">{{ $t('labels.backToWorkspace') }}</div>
-                </div>
+              <div class="h-[var(--topbar-height)] flex items-center children:flex-none">
+                <NcButton
+                  v-if="!$route.params.baseType"
+                  v-e="['c:navbar:home']"
+                  type="text"
+                  size="small"
+                  class="transition-all duration-200 mx-2 cursor-pointer transform hover:bg-gray-100 nc-noco-brand-icon"
+                  data-testid="nc-noco-brand-icon"
+                  @click="navigateTo('/')"
+                >
+                  <div class="flex flex-row gap-x-2 items-center">
+                    <GeneralIcon icon="ncArrowLeft" />
+                    <div class="flex text-small leading-[18px] font-semibold">{{ $t('labels.back') }}</div>
+                  </div>
+                </NcButton>
               </div>
+              <NcDivider class="!mt-0" />
 
-              <div class="text-sm text-gray-600 ml-4 p-2 mt-3 gray-600 font-medium">{{ $t('labels.account') }}</div>
+              <div class="text-sm text-gray-500 font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
+
+              <NcMenuItem
+                v-if="isSetupPageAllowed"
+                key="profile"
+                class="item"
+                :class="{
+                  active: $route.path?.startsWith('/account/setup'),
+                }"
+                @click="navigateTo('/account/setup')"
+              >
+                <div class="flex items-center space-x-2 w-full">
+                  <GeneralIcon icon="ncSliders" class="!h-3.5 !w-3.5" />
+
+                  <div class="select-none">
+                    {{ $t('labels.setup') }}
+                  </div>
+                  <span class="flex-grow" />
+                  <NcTooltip v-if="isPending">
+                    <template #title>
+                      <span>
+                        {{ $t('activity.pending') }}
+                      </span>
+                    </template>
+                    <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-4 h-4 nc-pending" />
+                  </NcTooltip>
+                </div>
+              </NcMenuItem>
 
               <NcMenuItem
                 key="profile"
@@ -71,7 +114,6 @@ const logout = async () => {
                   <div class="select-none">{{ $t('labels.profile') }}</div>
                 </div>
               </NcMenuItem>
-
               <NcMenuItem
                 key="tokens"
                 class="item"
@@ -81,24 +123,48 @@ const logout = async () => {
                 @click="navigateTo('/account/tokens')"
               >
                 <div class="flex items-center space-x-2">
-                  <component :is="iconMap.code" />
+                  <MdiShieldKeyOutline />
 
-                  <div class="select-none">API {{ $t('title.tokens') }}</div>
+                  <div class="select-none">{{ $t('title.tokens') }}</div>
+                </div>
+              </NcMenuItem>
+              <NcMenuItem
+                key="audit"
+                class="item"
+                :class="{
+                  active: $route.params.page === 'audit',
+                }"
+                @click="navigateTo('/account/audit')"
+              >
+                <div class="flex items-center space-x-2">
+                  <component :is="iconMap.audit" class="opacity-80" />
+
+                  <div class="select-none">{{ $t('title.auditLogs') }}</div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
                 v-if="isUIAllowed('superAdminAppStore') && !isEeUI"
                 key="apps"
-                class="item"
+                class="item w-full"
                 :class="{
                   active: $route.params.page === 'apps',
                 }"
                 @click="navigateTo('/account/apps')"
               >
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center gap-2 w-full">
                   <component :is="iconMap.appStore" />
 
                   <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
+                  <span class="flex-grow" />
+                  <NcToolti>
+                    <template #title>
+                      <span>
+                        App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of
+                        the plugins here will be moved to integrations.
+                      </span>
+                    </template>
+                    <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-4 h-4 nc-pending" />
+                  </NcToolti>
                 </div>
               </NcMenuItem>
               <a-sub-menu key="users" class="!bg-white !my-0">
@@ -145,9 +211,11 @@ const logout = async () => {
 
           <!-- Sub Tabs -->
 
-          <div class="flex flex-col w-full ml-65">
-            <div class="flex flex-row p-3 items-center h-14">
-              <div class="flex-1" />
+          <div class="h-full flex-1 flex flex-col overflow-y-auto nc-scrollbar-thin">
+            <div class="flex flex-row pt-2 px-2 items-center">
+              <div class="flex-1">
+                <LazyAccountBreadcrumb />
+              </div>
 
               <LazyGeneralReleaseInfo />
 
@@ -187,12 +255,12 @@ const logout = async () => {
               </template>
             </div>
             <div
-              class="flex flex-col container mx-auto"
+              class="flex flex-col w-full"
               :style="{
                 height: 'calc(100vh - 3.5rem)',
               }"
             >
-              <div class="mt-2 h-full">
+              <div class="h-full">
                 <NuxtPage />
               </div>
             </div>
@@ -220,14 +288,15 @@ const logout = async () => {
 :deep(.ant-menu-submenu-selected .ant-menu-submenu-arrow) {
   @apply !text-inherit;
 }
+.tabs-menu {
+  :deep(.item) {
+    @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
+    width: calc(100% - 1rem);
+  }
 
-:deep(.item) {
-  @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 !hover:(bg-brand-50 text-brand-500);
-  width: calc(100% - 1rem);
-}
-
-:deep(.active) {
-  @apply !bg-brand-50 !text-brand-500;
+  :deep(.active) {
+    @apply !bg-brand-50 !text-brand-500;
+  }
 }
 
 :deep(.ant-menu-submenu-title) {

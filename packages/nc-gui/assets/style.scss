@@ -2,6 +2,25 @@
 @import '@vue-flow/core/dist/style.css';
 @import '@vue-flow/core/dist/theme-default.css';
 
+@layer utilities {
+  @variants responsive {
+    /* Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+  }
+}
+
+* {
+  font-synthesis: none;
+}
+
+
 html {
   overflow: hidden;
 }
@@ -11,13 +30,18 @@ body {
 }
 
 :root {
-  --topbar-height: 3.1rem;
+  --toolbar-height: 2.75rem;
+  --topbar-height: 3rem;
   --sidebar-bottom-height: 8.5rem;
   --new-header-height: 3.5rem;
   --tw-text-opacity: 1;
   --navbar-bg: #fafafa;
   --navbar-border: #e0e0e0;
   --nc-grid-bg: #fdfdfd;
+
+  --ant-primary-color-hover: #5c85ff !important;
+  --ant-primary-color-active: #3366ff !important;
+  --ant-primary-color-outline: rgba(51, 102, 255, 0.24) !important;
 }
 
 ::-moz-selection {
@@ -37,7 +61,7 @@ body {
 }
 
 .rc-virtual-list-holder-inner {
-  @apply !px-1.5
+  @apply !px-1.5;
 }
 .ant-layout-header {
   height: var(--topbar-height) !important;
@@ -51,13 +75,73 @@ main {
   @apply m-0 h-full w-full bg-white;
 }
 
-
 .nc-input-md {
   @apply !rounded-lg !py-2 !px-3 mb-1;
 }
 
+.nc-input-sm {
+  @apply !rounded-lg !py-1 !px-3;
+}
+
+.nc-input-shadow {
+  &.ant-input {
+    &:not(:hover):not(:focus):not(:disabled) {
+      @apply shadow-default border-gray-200;
+    }
+
+    &:hover:not(:focus):not(:disabled) {
+      @apply border-gray-200 shadow-hover;
+    }
+    &:focus {
+      @apply shadow-selected ring-0;
+    }
+  }
+}
+
+// add border on input if it has value and it is not focused
+.ant-input-affix-wrapper.nc-input-border-on-value {
+  &:not(:has(.ant-input-clear-icon-hidden)):has(.ant-input-clear-icon) {
+    @apply border-[var(--ant-primary-5)];
+  }
+}
+
+.ant-form-item-explain {
+  @apply !min-h-5;
+  .ant-form-item-explain-error {
+    @apply text-sm;
+    &:first-child {
+      @apply mt-1;
+    }
+  }
+}
+
+.ant-form-item-has-error :not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-borderless).ant-input-affix-wrapper,
+.ant-form-item-has-error
+  :not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-borderless).ant-input-affix-wrapper:hover,
+.ant-form-item-has-error :not(.ant-input-disabled):not(.ant-input-borderless).ant-input,
+.ant-form-item-has-error :not(.ant-input-disabled):not(.ant-input-borderless).ant-input:hover,
+.ant-form-item-has-error
+  :not(.ant-input-number-affix-wrapper-disabled):not(.ant-input-number-affix-wrapper-borderless).ant-input-number-affix-wrapper,
+.ant-form-item-has-error
+  :not(.ant-input-number-affix-wrapper-disabled):not(
+    .ant-input-number-affix-wrapper-borderless
+  ).ant-input-number-affix-wrapper:hover {
+  border-color: var(--ant-error-color) !important;
+}
+
+ant-form-item-explain-error {
+  &:first-child {
+    @apply mt-2;
+  }
+}
+
 .mobile {
-  .nc-scrollbar-md, .nc-scrollbar-lg, .nc-scrollbar-x-md, .nc-scrollbar-dark-md, .nc-scrollbar-x-md-dark, .nc-scrollbar-x-lg {
+  .nc-scrollbar-md,
+  .nc-scrollbar-lg,
+  .nc-scrollbar-x-md,
+  .nc-scrollbar-dark-md,
+  .nc-scrollbar-x-md-dark,
+  .nc-scrollbar-x-lg {
     &::-webkit-scrollbar {
       width: 0px;
     }
@@ -65,7 +149,7 @@ main {
 }
 
 .nc-scrollbar-md {
-  overflow-y: scroll;
+  overflow-y: auto !important;
   overflow-x: hidden;
   scrollbar-width: thin !important;
 
@@ -89,7 +173,7 @@ main {
 }
 
 .nc-scrollbar-lg {
-  overflow-y: scroll;
+  overflow-y: auto !important;
   overflow-x: hidden;
   scrollbar-width: thin !important;
 
@@ -113,9 +197,8 @@ main {
 }
 
 .nc-scrollbar-x-md {
-  overflow-x: scroll;
+  overflow-x: auto !important;
   scrollbar-width: thin !important;
-
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -131,7 +214,6 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
-
     width: 4px;
     @apply bg-gray-200;
   }
@@ -141,10 +223,9 @@ main {
 }
 
 .nc-scrollbar-dark-md {
-  overflow-y: scroll;
+  overflow-y: auto !important;
   overflow-x: hidden;
   scrollbar-width: thin !important;
-
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -174,10 +255,9 @@ main {
 }
 
 .nc-scrollbar-x-md-dark {
-  overflow-x: scroll;
+  overflow-x: auto !important;
   scrollbar-width: thin !important;
 
-  
   &::-webkit-scrollbar {
     width: 4px;
     height: 4px;
@@ -192,19 +272,16 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
-
     width: 4px;
-    background-color: rgba(0, 0, 0, 0.3)
-
+    background-color: rgba(0, 0, 0, 0.3);
   }
   &::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.4)
-
+    background-color: rgba(0, 0, 0, 0.4);
   }
 }
 
 .nc-scrollbar-x-lg {
-  overflow-x: scroll;
+  overflow-x: auto !important;
 
   &::-webkit-scrollbar {
     width: 8px;
@@ -220,7 +297,6 @@ main {
     -webkit-border-radius: 10px;
     border-radius: 10px;
 
-
     width: 8px;
     @apply bg-gray-200;
   }
@@ -235,7 +311,7 @@ main {
 }
 
 a {
-  @apply !text-primary !underline hover:!text-accent;
+  @apply text-primary !underline hover:text-accent;
 }
 
 .nc-icon {
@@ -248,18 +324,50 @@ a {
     @apply !rounded-md;
   }
 }
+
+.nc-select-shadow {
+  &.ant-select {
+    &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+    &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+      @apply shadow-default;
+    }
+
+    &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
+      @apply border-gray-300 shadow-hover;
+    }
+    &.ant-select-disabled .ant-select-selector {
+      box-shadow: none;
+    }
+  }
+}
+
+.ant-form-item:not(.ant-form-item-has-error)
+  .nc-select-shadow.ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
+  .ant-select-selector {
+  @apply !shadow-selected;
+}
+
+.ant-form-item.ant-form-item-has-error
+  .nc-select-shadow.ant-select:not(.ant-select-disabled):not(.ant-select-customize-input).ant-select-focused
+  .ant-select-selector,
+.ant-form-item.ant-form-item-has-error
+  .nc-select-shadow.ant-select:not(.ant-select-disabled):not(.ant-select-customize-input).ant-select-open
+  .ant-select-selector {
+  @apply !shadow-error;
+}
+
 // select dropdown border style
 .ant-select-dropdown {
-  @apply border-1 border-gray-200;
+  @apply border-1 border-gray-200 rounded-lg;
 
   .rc-virtual-list-scrollbar {
     @apply !w-1;
   }
-  
-  .rc-virtual-list-scrollbar-thumb{
+
+  .rc-virtual-list-scrollbar-thumb {
     @apply !bg-gray-200;
 
-    &:hover{
+    &:hover {
       @apply !bg-gray-300;
     }
   }
@@ -465,9 +573,9 @@ a {
 
 .ant-dropdown-menu-submenu {
   @apply !py-0;
-  
-  &.ant-dropdown-menu-submenu-popup{
-    @apply border-1 border-gray-200
+
+  &.ant-dropdown-menu-submenu-popup {
+    @apply border-1 border-gray-200;
   }
   .ant-dropdown-menu,
   .ant-menu {
@@ -519,7 +627,7 @@ a {
 }
 
 .nc-toolbar-btn {
-  @apply !shadow-none rounded hover:(ring-1 ring-gray-200 ring-opacity-100 bg-gray-100 !text-gray-800) focus:(ring-1 ring-gray-300 ring-opacity-100 !text-gray-800 bg-gray-100) text-gray-600 text-xs font-medium px-2 border-0;
+  @apply !shadow-none rounded hover:(bg-gray-50 !text-gray-800) focus:(!text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
 }
 .nc-toolbar-btn[disabled] {
   @apply !text-gray-400 !cursor-not-allowed !hover:ring-0;
@@ -545,11 +653,11 @@ a {
   @apply bg-gray-300 bg-opacity-20;
 }
 
-.ant-select-item-option:hover{
+.ant-select-item-option:hover {
   @apply !bg-gray-100;
 }
 
-.ant-select-item-option-selected{
+.ant-select-item-option-selected {
   @apply !bg-white;
 }
 /* Hide the element with id nc-selected-item-icon */
@@ -658,7 +766,7 @@ a {
 }
 
 .nc-toolbar-dropdown {
-  @apply !rounded-2xl;
+  @apply !rounded-lg;
 }
 
 input[type='number'] {
@@ -712,7 +820,8 @@ input[type='number'] {
   .nc-emoji {
     @apply xs:(text-lg);
   }
-  .material-symbols, .nc-icon {
+  .material-symbols,
+  .nc-icon {
     @apply !xs:(text-xl -mt-0.25);
   }
 
@@ -723,12 +832,19 @@ input[type='number'] {
   .nc-sidebar-node-btn:not(.nc-sidebar-expand) {
     @apply !xs:(hidden);
   }
+
+  .nc-sidebar-node-btn.nc-sidebar-expand {
+    @apply !xs:(flex-none border-1 border-gray-200 w-6.5 h-6.5 mr-1);
+  }
 }
 
 .nc-button.ant-btn.nc-sidebar-node-btn {
   @apply opacity-0 group-hover:(opacity-100) text-gray-600 hover:(bg-gray-400 bg-opacity-20 text-gray-900) duration-100;
 }
 
+.nc-button.ant-btn.nc-sidebar-node-btn:not(.nc-sidebar-expand):not(.nc-sidebar-view-node-context-btn) {
+  @apply hidden group-hover:(inline-block);
+}
 
 .nc-button.ant-btn.nc-sidebar-node-btn.nc-sidebar-expand {
   @apply xs:(opacity-100 hover:bg-gray-50);
@@ -740,18 +856,18 @@ input[type='number'] {
 
 .ant-message-notice-content {
   @apply !rounded-md;
-  .ant-message-custom-content{
+  .ant-message-custom-content {
     @apply flex items-center;
   }
 }
 
-svg.nc-cell-icon, svg.nc-virtual-cell-icon {
+svg.nc-cell-icon,
+svg.nc-virtual-cell-icon {
   @apply w-1em h-1em flex-none;
   font-size: 1rem;
 }
 
-
-// For select type field list layout 
+// For select type field list layout
 .nc-field-layout-list {
   @apply !flex !flex-col !items-start w-full !space-y-0.5 !max-w-full;
 
@@ -786,3 +902,64 @@ svg.nc-cell-icon, svg.nc-virtual-cell-icon {
   }
 }
 
+.nc-dropdown-search-unified-input {
+  @apply !rounded-lg;
+
+  .nc-search-icon {
+    @apply text-gray-400;
+  }
+
+  &:hover .nc-search-icon,
+  &.ant-input-affix-wrapper-focused .nc-search-icon {
+    @apply text-gray-800;
+  }
+}
+.nc-toolbar-dropdown-search-field-input {
+  @apply !rounded-lg;
+
+  .nc-search-icon {
+    @apply text-gray-400;
+  }
+
+  &:hover .nc-search-icon,
+  &.ant-input-affix-wrapper-focused .nc-search-icon {
+    @apply text-gray-800;
+  }
+}
+
+// switch - on tab focus show outline
+.ant-switch:focus-visible,
+.ant-switch-checked:focus-visible {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #3366ff;
+}
+
+.text-nowrap {
+  text-wrap: nowrap;
+}
+
+.nc-edit-or-add-provider-wrapper {
+  @apply overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-xl shadow-lg shadow-gray-300;
+}
+
+.nc-breadcrumb {
+  @apply text-sm text-gray-700 font-weight-500 flex items-center;
+
+  &:not(.nc-no-negative-margin) {
+    @apply -ml-1;
+  }
+
+  .nc-breadcrumb-item {
+    @apply h-8 px-2 flex items-center gap-2 my-0;
+
+    &.nc-clickable {
+      @apply cursor-pointer select-none rounded-lg hover:(bg-gray-100 text-gray-900);
+    }
+
+    &.active {
+      @apply font-bold text-gray-800;
+    }
+  }
+}
+.nc-breadcrumb-divider {
+  @apply flex-none text-gray-500 !stroke-transparent;
+}

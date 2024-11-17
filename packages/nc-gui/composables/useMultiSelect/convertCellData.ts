@@ -1,8 +1,8 @@
 import dayjs from 'dayjs'
 import type { AttachmentType, ColumnType, LinkToAnotherRecordType, SelectOptionsType } from 'nocodb-sdk'
 import { UITypes, getDateFormat, getDateTimeFormat, populateUniqueFileName } from 'nocodb-sdk'
-import type { AppInfo } from '~/composables/useGlobal'
-import { isBt, isMm, parseProp } from '#imports'
+import type { AppInfo } from '~/composables/useGlobal/types'
+import { extractEmail } from '~/helpers/parsers/parserHelpers'
 
 export default function convertCellData(
   args: { to: UITypes; value: string; column: ColumnType; appInfo: AppInfo; files?: FileList | File[]; oldValue?: unknown },
@@ -146,7 +146,7 @@ export default function convertCellData(
           // Maximum Number of Attachments per cell
           maxNumberOfAttachments: Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 50) || 50,
           // Maximum File Size per file
-          maxAttachmentSize: Math.max(1, +args.appInfo.ncMaxAttachmentsAllowed || 20) || 20,
+          maxAttachmentSize: Math.max(1, +args.appInfo.ncAttachmentFieldSize || 20) || 20,
           supportedAttachmentMimeTypes: ['*'],
         }),
       }
@@ -250,7 +250,7 @@ export default function convertCellData(
         return undefined
       }
 
-      if (isBt(column)) {
+      if (isBt(column) || isOo(column)) {
         const parsedVal = typeof value === 'string' ? JSON.parse(value) : value
 
         if (
@@ -290,6 +290,12 @@ export default function convertCellData(
       } else {
         throw new Error(`Unsupported conversion for ${to}`)
       }
+    }
+    case UITypes.Email: {
+      if (parseProp(column.meta).validate) {
+        return extractEmail(value) || value
+      }
+      return value
     }
     case UITypes.Lookup:
     case UITypes.Rollup:

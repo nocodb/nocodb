@@ -1,4 +1,5 @@
-import { ClientType } from '../lib'
+import { type BoolType, SSLUsage } from 'nocodb-sdk'
+import { ClientType } from '~/lib/enums'
 
 // todo: move to noco-sdk
 export enum NcProjectType {
@@ -9,7 +10,7 @@ interface ProjectCreateForm {
   title: string
   dataSource: {
     client: ClientType
-    connection: DefaultConnection | SQLiteConnection | SnowflakeConnection
+    connection: DefaultConnection | SQLiteConnection | SnowflakeConnection | DatabricksConnection
     searchPath?: string[]
   }
   inflection: {
@@ -18,6 +19,10 @@ interface ProjectCreateForm {
   }
   sslUse?: SSLUsage
   extraParameters: { key: string; value: string }[]
+  is_private?: BoolType
+  is_schema_readonly?: BoolType
+  is_data_readonly?: BoolType
+  fk_integration_id?: string
 }
 
 interface DefaultConnection {
@@ -47,21 +52,17 @@ interface SnowflakeConnection {
   schema: string
 }
 
+interface DatabricksConnection {
+  token: string
+  host: string
+  path: string
+  database: string
+  schema: string
+}
+
 const defaultHost = 'localhost'
 
-const testDataBaseNames = {
-  [ClientType.MYSQL]: null,
-  mysql: null,
-  [ClientType.PG]: 'postgres',
-  oracledb: 'xe',
-  [ClientType.MSSQL]: undefined,
-  [ClientType.SQLITE]: 'a.sqlite',
-}
-
-export const getTestDatabaseName = (db: { client: ClientType; connection?: { database?: string } }) => {
-  if (db.client === ClientType.PG || db.client === ClientType.SNOWFLAKE) return db.connection?.database
-  return testDataBaseNames[db.client as keyof typeof testDataBaseNames]
-}
+export { getTestDatabaseName } from 'nocodb-sdk'
 
 export const clientTypes = [
   {
@@ -84,12 +85,21 @@ export const clientTypes = [
     text: 'Snowflake',
     value: ClientType.SNOWFLAKE,
   },
+  {
+    text: 'Databricks',
+    value: ClientType.DATABRICKS,
+  },
 ]
+
+export const clientTypesMap = clientTypes.reduce((acc, curr) => {
+  acc[curr.value] = curr
+  return acc
+}, {} as Record<string, (typeof clientTypes)[0]>)
 
 const homeDir = ''
 
 type ConnectionClientType =
-  | Exclude<ClientType, ClientType.SQLITE | ClientType.SNOWFLAKE>
+  | Exclude<ClientType, ClientType.SQLITE | ClientType.SNOWFLAKE | ClientType.DATABRICKS>
   | 'tidb'
   | 'yugabyte'
   | 'citusdb'
@@ -99,7 +109,7 @@ type ConnectionClientType =
 
 const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection } & { [ClientType.SQLITE]: SQLiteConnection } & {
   [ClientType.SNOWFLAKE]: SnowflakeConnection
-} = {
+} & { [ClientType.DATABRICKS]: DatabricksConnection } = {
   [ClientType.PG]: {
     host: defaultHost,
     port: '5432',
@@ -137,12 +147,19 @@ const sampleConnectionData: { [key in ConnectionClientType]: DefaultConnection }
     useNullAsDefault: true,
   },
   [ClientType.SNOWFLAKE]: {
-    account: 'account',
-    username: 'username',
-    password: 'password',
-    warehouse: 'warehouse',
+    account: 'LOCATOR.REGION',
+    username: 'USERNAME',
+    password: 'PASSWORD',
+    warehouse: 'COMPUTE_WH',
+    database: 'DATABASE',
+    schema: 'PUBLIC',
+  },
+  [ClientType.DATABRICKS]: {
+    token: 'dapiPLACEHOLDER',
+    host: 'PLACEHOLDER.cloud.databricks.com',
+    path: '/sql/1.0/warehouses/PLACEHOLDER',
     database: 'database',
-    schema: 'schema',
+    schema: 'default',
   },
   tidb: {
     host: defaultHost,
@@ -200,19 +217,67 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
   }
 }
 
-enum SSLUsage {
-  No = 'No',
-  Allowed = 'Allowed',
-  Preferred = 'Preferred',
-  Required = 'Required',
-  RequiredWithCa = 'Required-CA',
-  RequiredWithIdentity = 'Required-Identity',
-}
-
 enum CertTypes {
   ca = 'ca',
   cert = 'cert',
   key = 'key',
 }
 
-export { SSLUsage, CertTypes, ProjectCreateForm, DefaultConnection, SQLiteConnection, SnowflakeConnection }
+const errorHandlers = [
+  {
+    messages: ['unable to get local issuer certificate', 'self signed certificate in certificate chain'],
+    codes: ['UNABLE_TO_GET_ISSUER_CERT_LOCALLY', 'SELF_SIGNED_CERT_IN_CHAIN'],
+    action: {
+      connection: {
+        ssl: {
+          rejectUnauthorized: false,
+        },
+      },
+    },
+  },
+  {
+    messages: ['SSL is required'],
+    codes: ['28000'], // PostgreSQL error code for invalid authorization specification
+    action: {
+      connection: {
+        ssl: true,
+      },
+    },
+  },
+  {
+    messages: ['the server does not support SSL connections'],
+    codes: ['08P01'], // PostgreSQL error code for protocol violation
+    action: {
+      connection: {
+        ssl: false,
+      },
+    },
+  },
+]
+
+function generateConfigFix(e: any) {
+  for (const handler of errorHandlers) {
+    const errorMessage = e?.response?.data?.msg
+    const errorCode = e?.response?.data?.sql_code
+
+    if (!errorMessage && !errorCode) return
+
+    const messageMatches = errorMessage && handler.messages.some((msg) => errorMessage?.includes?.(msg))
+    const codeMatches = errorCode && handler.codes.includes(errorCode)
+
+    if (messageMatches || codeMatches) {
+      return handler.action
+    }
+  }
+}
+
+export {
+  generateConfigFix,
+  SSLUsage,
+  CertTypes,
+  ProjectCreateForm,
+  DefaultConnection,
+  SQLiteConnection,
+  SnowflakeConnection,
+  DatabricksConnection,
+}

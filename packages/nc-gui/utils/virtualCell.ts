@@ -15,6 +15,9 @@ export const isMm = (column: ColumnType) =>
 export const isBt = (column: ColumnType) =>
   isLTAR(column.uidt!, column.colOptions) && column.colOptions?.type === RelationTypes.BELONGS_TO
 
+export const isOo = (column: ColumnType) =>
+  isLTAR(column.uidt!, column.colOptions) && column.colOptions?.type === RelationTypes.ONE_TO_ONE
+
 export const isLookup = (column: ColumnType) => column.uidt === UITypes.Lookup
 export const isRollup = (column: ColumnType) => column.uidt === UITypes.Rollup
 export const isFormula = (column: ColumnType) => column.uidt === UITypes.Formula

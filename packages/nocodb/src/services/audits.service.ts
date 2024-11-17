@@ -1,35 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import DOMPurify from 'isomorphic-dompurify';
 import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
-import type { AuditRowUpdateReqType, CommentUpdateReqType } from 'nocodb-sdk';
+import type { AuditRowUpdateReqType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { AppHooksListenerService } from '~/services/app-hooks-listener.service';
-import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { Audit, Model } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class AuditsService {
   constructor(
     protected readonly appHooksListenerService: AppHooksListenerService,
+    protected readonly appHooksService: AppHooksService,
   ) {}
 
-  async commentRow(param: { body: AuditRowUpdateReqType; user: any }) {
-    validatePayload('swagger.json#/components/schemas/CommentReq', param.body);
-
-    return await Audit.insert({
-      ...param.body,
-      user: param.user?.email,
-      op_type: AuditOperationTypes.COMMENT,
-    });
-  }
-
-  async auditRowUpdate(param: { rowId: string; body: AuditRowUpdateReqType }) {
+  async auditRowUpdate(
+    context: NcContext,
+    param: { rowId: string; body: AuditRowUpdateReqType },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/AuditRowUpdateReq',
       param.body,
     );
 
-    const model = await Model.getByIdOrName({ id: param.body.fk_model_id });
+    const model = await Model.getByIdOrName(context, {
+      id: param.body.fk_model_id,
+    });
     return await Audit.insert({
       fk_model_id: param.body.fk_model_id,
       row_id: param.rowId,
@@ -63,8 +60,13 @@ export class AuditsService {
     //   })
   }
 
-  async commentList(param: { query: any }) {
-    return await Audit.commentsList(param.query);
+  async auditOnlyList(param: {
+    query: {
+      row_id: string;
+      fk_model_id: string;
+    };
+  }) {
+    return await Audit.auditList(param.query);
   }
 
   async auditList(param: { query: any; baseId: string }) {
@@ -72,42 +74,22 @@ export class AuditsService {
   }
 
   async auditCount(param: { query?: any; baseId: string }) {
-    return await Audit.baseAuditCount(param.baseId, param.query?.sourceId);
+    return await Audit.baseAuditCount(param.baseId, param.query);
   }
 
-  async commentsCount(param: { fk_model_id: string; ids: string[] }) {
-    return await Audit.commentsCount({
-      fk_model_id: param.fk_model_id as string,
-      ids: param.ids as string[],
-    });
+  async sourceAuditList(param: { query: any; sourceId: any }) {
+    return await Audit.sourceAuditList(param.sourceId, param.query);
   }
 
-  async commentUpdate(param: {
-    auditId: string;
-    userEmail: string;
-    body: CommentUpdateReqType;
-  }) {
-    validatePayload(
-      'swagger.json#/components/schemas/CommentUpdateReq',
-      param.body,
-    );
-
-    const log = await Audit.get(param.auditId);
-    if (log.op_type !== AuditOperationTypes.COMMENT) {
-      NcError.forbidden('Only comments can be updated');
-    }
-
-    if (log.user !== param.userEmail) {
-      NcError.unauthorized('Unauthorized access');
-    }
-    return await Audit.commentUpdate(param.auditId, param.body);
+  async sourceAuditCount(param: { query: any; sourceId: string }) {
+    return await Audit.sourceAuditCount(param.sourceId);
   }
 
-  async baseAuditList(param: { query: any; sourceId: any }) {
-    return await Audit.baseAuditList(param.sourceId, param.query);
+  async projectAuditList(param: { query: any }) {
+    return await Audit.projectAuditList(param.query);
   }
 
-  async baseAuditCount(param: { sourceId: string }) {
-    return await Audit.baseAuditCount(param.sourceId);
+  async projectAuditCount() {
+    return await Audit.projectAuditCount();
   }
 }

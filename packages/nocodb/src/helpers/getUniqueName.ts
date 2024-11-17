@@ -1,6 +1,9 @@
 import type Column from '~/models/Column';
 
-export function getUniqueColumnName(columns: Column[], initialName = 'field') {
+export function getUniqueColumnName(
+  columns: Partial<Column>[],
+  initialName = 'field',
+) {
   let c = 0;
 
   while (
@@ -13,7 +16,7 @@ export function getUniqueColumnName(columns: Column[], initialName = 'field') {
 }
 
 export function getUniqueColumnAliasName(
-  columns: Column[],
+  columns: Partial<Column>[],
   initialName = 'field',
 ) {
   let c = 0;

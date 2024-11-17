@@ -1,5 +1,4 @@
 import type { InjectionKey } from 'vue'
-import { inject, provide, tryOnScopeDispose } from '#imports'
 
 export function useInjectionState<Arguments extends any[], Return>(
   composable: (...args: Arguments) => Return,

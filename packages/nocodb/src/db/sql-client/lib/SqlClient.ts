@@ -1,6 +1,8 @@
 class SqlClient {
   protected connectionConfig: any;
   protected sqlClient: any;
+  protected queries: any;
+  protected _version: any;
 
   constructor(connectionConfig) {
     this.connectionConfig = connectionConfig;
@@ -108,7 +110,9 @@ class SqlClient {
 
   async tableSelectStatement(_args): Promise<any> {}
 
-  async totalRecords(_args): Promise<any> {}
+  async totalRecords(_args?): Promise<any> {}
+
+  async getDefaultByteaOutputFormat(_args = {}): Promise<any> {}
 }
 
 export default SqlClient;

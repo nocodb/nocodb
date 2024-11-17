@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { Icon as IconifyIcon } from '@iconify/vue'
 import InfiniteLoading from 'v3-infinite-loading'
-import { emojiIcons } from '#imports'
 
 const props = defineProps<{
   showReset?: boolean

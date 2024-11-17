@@ -6,8 +6,8 @@ const { commandPalette } = useCommandPalette()
   <NcButton
     v-e="['c:quick-actions']"
     type="text"
-    size="small"
-    class="nc-sidebar-top-button w-full !hover:bg-gray-200 !rounded-md !xs:hidden"
+    size="xsmall"
+    class="nc-sidebar-top-button w-full !hover:bg-gray-200 !rounded-md !xs:hidden !h-7 my-0.5"
     data-testid="nc-sidebar-search-btn"
     :centered="false"
     @click="commandPalette?.open()"

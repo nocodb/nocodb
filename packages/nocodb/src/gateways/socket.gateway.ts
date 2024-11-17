@@ -1,13 +1,13 @@
 import crypto from 'crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
-import { T } from 'nc-help';
 import { Server } from 'socket.io';
 import { AuthGuard } from '@nestjs/passport';
 import { ExecutionContextHost } from '@nestjs/core/helpers/execution-context-host';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import type { OnModuleInit } from '@nestjs/common';
 import type { Socket } from 'socket.io';
+import { T } from '~/utils';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { TelemetryService } from '~/services/telemetry.service';
 

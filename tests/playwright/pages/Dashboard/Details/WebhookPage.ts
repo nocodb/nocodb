@@ -22,11 +22,11 @@ export class WebhookPage extends BasePage {
     super(details.rootPage);
     this.detailsPage = details;
     this.addHookButton = this.get().locator('.nc-view-sidebar-webhook-plus-icon:visible');
-    this.webhookItems = this.get().locator('.nc-view-sidebar-webhook-item');
+    this.webhookItems = this.get().locator('.nc-table-row');
   }
 
   get() {
-    return this.detailsPage.get().locator('.nc-view-sidebar-webhook');
+    return this.detailsPage.get().locator('.nc-table-wrapper');
   }
 
   async itemCount() {
@@ -51,10 +51,18 @@ export class WebhookPage extends BasePage {
       .click();
   }
 
+  async itemContextMenu({ index, operation }: { index: number; operation: 'edit' | 'duplicate' | 'delete' }) {
+    await (await this.getItem({ index })).getByTestId('nc-webhook-item-action').click();
+
+    const contextMenu = this.rootPage.locator('.nc-webhook-item-action-dropdown:visible');
+    await contextMenu.waitFor({ state: 'visible' });
+
+    await contextMenu.getByTestId(`nc-webhook-item-action-${operation}`).click();
+
+    await contextMenu.waitFor({ state: 'hidden' });
+  }
+
   async deleteHook({ index }: { index: number }) {
-    const hookItem = await this.getItem({ index });
-    await hookItem.hover();
-    await hookItem.locator('.nc-button.nc-btn-webhook-more').click({ force: true });
-    await this.rootPage.locator('.ant-dropdown:visible').locator('button.ant-btn:has-text("Delete")').click();
+    return await this.itemContextMenu({ index, operation: 'delete' });
   }
 }

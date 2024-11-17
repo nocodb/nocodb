@@ -1,26 +1,6 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import { useTitle } from '@vueuse/core'
-import {
-  Form,
-  computed,
-  extractSdkResponseErrorMsg,
-  message,
-  nextTick,
-  reactive,
-  storeToRefs,
-  useBase,
-  useCommandPalette,
-  useMetas,
-  useNuxtApp,
-  useTablesStore,
-  useTabs,
-  useUndoRedo,
-  useVModel,
-  validateTableName,
-  watchEffect,
-} from '#imports'
 
 interface Props {
   modelValue?: boolean
@@ -88,11 +68,10 @@ const validators = computed(() => {
       {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
-            if (/^\s+|\s+$/.test(value)) {
-              return reject(new Error('Leading or trailing whitespace not allowed in table name'))
-            }
             if (
-              !(tables?.value || []).every((t) => t.id === tableMeta.id || t.title.toLowerCase() !== (value || '').toLowerCase())
+              !(tables?.value || []).every(
+                (t) => t.id === tableMeta.id || t.title.toLowerCase() !== (value?.trim() || '').toLowerCase(),
+              )
             ) {
               return reject(new Error('Duplicate table alias'))
             }
@@ -124,6 +103,11 @@ watchEffect(
 
 const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undefined) => {
   if (!tableMeta) return
+
+  if (formState.title) {
+    formState.title = formState.title.trim()
+  }
+
   if (formState.title === tableMeta.title && !disableTitleDiffCheck) return
 
   loading.value = true
@@ -180,8 +164,6 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
 
     $e('a:table:rename')
 
-    useTitle(`${base.value?.title}: ${newMeta?.title}`)
-
     dialogShow.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -192,34 +174,35 @@ const renameTable = async (undo = false, disableTitleDiffCheck?: boolean | undef
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" size="small">
+  <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2">
         <GeneralIcon icon="rename" />
         {{ $t('activity.renameTable') }}
       </div>
     </template>
-    <div class="mt-2">
+    <div class="mt-1">
       <a-form :model="formState" name="create-new-table-form">
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"
             v-model:value="formState.title"
-            class="nc-input-md"
+            class="nc-input-sm nc-input-shadow"
             hide-details
-            size="large"
+            size="small"
             :placeholder="$t('msg.info.enterTableName')"
             @keydown.enter="() => renameTable()"
           />
         </a-form-item>
       </a-form>
-      <div class="flex flex-row justify-end gap-x-2 mt-6">
-        <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+      <div class="flex flex-row justify-end gap-x-2 mt-5">
+        <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
 
         <NcButton
           key="submit"
           type="primary"
-          :disabled="validateInfos.title.validateStatus === 'error' || formState.title === tableMeta.title"
+          size="small"
+          :disabled="validateInfos.title.validateStatus === 'error' || formState.title?.trim() === tableMeta.title"
           label="Rename Table"
           loading-label="Renaming Table"
           :loading="loading"

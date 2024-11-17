@@ -5,6 +5,8 @@ import 'splitpanes/dist/splitpanes.css'
 const router = useRouter()
 const route = router.currentRoute
 
+const { setLeftSidebarSize } = useGlobal()
+
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const {
@@ -30,22 +32,37 @@ const currentSidebarSize = computed({
 
 const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 
-const contentSize = computed(() => 100 - sideBarSize.value.current)
-
 const mobileNormalizedContentSize = computed(() => {
   if (isMobileMode.value) {
     return isLeftSidebarOpen.value ? 0 : 100
   }
 
-  return contentSize.value
+  return 100 - leftSidebarWidthPercent.value
 })
 
-const sidebarWidth = computed(() =>
-  isMobileMode.value ? viewportWidth.value : (sideBarSize.value.old * viewportWidth.value) / 100,
-)
-
 watch(currentSidebarSize, () => {
-  leftSidebarWidthPercent.value = currentSidebarSize.value
+  leftSidebarWidthPercent.value = (currentSidebarSize.value / viewportWidth.value) * 100
+  setLeftSidebarSize({ current: currentSidebarSize.value, old: sideBarSize.value.old })
+})
+
+const sidebarWidth = computed(() => (isMobileMode.value ? viewportWidth.value : sideBarSize.value.old))
+
+const remToPx = (rem: number) => {
+  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
+  return rem * fontSize
+}
+
+const normalizedWidth = computed(() => {
+  const maxSize = remToPx(viewportWidth.value <= 1560 ? 20 : 35)
+  const minSize = remToPx(16)
+
+  if (sidebarWidth.value > maxSize) {
+    return maxSize
+  } else if (sidebarWidth.value < minSize) {
+    return minSize
+  } else {
+    return sidebarWidth.value
+  }
 })
 
 watch(isLeftSidebarOpen, () => {
@@ -87,10 +104,20 @@ function handleMouseMove(e: MouseEvent) {
   }
 }
 
-function onWindowResize() {
+function onWindowResize(e?: any): void {
   viewportWidth.value = window.innerWidth
 
-  onResize(currentSidebarSize.value)
+  // if user hide sidebar and refresh the page then sidebar will be visible again so we have to set sidebar width
+  if (!e && isLeftSidebarOpen.value && !sideBarSize.value.current && !isMobileMode.value) {
+    currentSidebarSize.value = sideBarSize.value.old
+  }
+
+  leftSidebarWidthPercent.value = (currentSidebarSize.value / viewportWidth.value) * 100
+
+  // if sidebar width is greater than normalized width and this function is called from window resize event (not from template) update left sidebar width
+  if (e && normalizedWidth.value < sidebarWidth.value) {
+    onResize(leftSidebarWidthPercent.value)
+  }
 }
 
 onMounted(() => {
@@ -125,11 +152,6 @@ onMounted(() => {
   handleSidebarOpenOnMobileForNonViews()
 })
 
-const remToPx = (rem: number) => {
-  const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
-  return rem * fontSize
-}
-
 function onResize(widthPercent: any) {
   if (isMobileMode.value) return
 
@@ -137,34 +159,31 @@ function onResize(widthPercent: any) {
 
   const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize)
 
+  // If the viewport width is less than 1560px, the max sidebar width should be 20rem
+  if (viewportWidth.value <= 1560) {
+    if (width > remToPx(20)) {
+      sideBarSize.value.old = 20 * fontSize
+      if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
+      return
+    }
+  }
+
   const widthRem = width / fontSize
 
   if (widthRem < 16) {
-    sideBarSize.value.old = ((16 * fontSize) / viewportWidth.value) * 100
+    sideBarSize.value.old = 16 * fontSize
     if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
     return
-  } else if (widthRem > 23.5) {
-    sideBarSize.value.old = ((23.5 * fontSize) / viewportWidth.value) * 100
+  } else if (widthRem > 35) {
+    sideBarSize.value.old = 35 * fontSize
     if (isLeftSidebarOpen.value) sideBarSize.value.current = sideBarSize.value.old
 
     return
   }
 
-  sideBarSize.value.old = widthPercent
+  sideBarSize.value.old = width
   sideBarSize.value.current = sideBarSize.value.old
 }
-
-const normalizedWidth = computed(() => {
-  const maxSize = remToPx(23.5)
-  const minSize = remToPx(16)
-  if (sidebarWidth.value > maxSize) {
-    return maxSize
-  } else if (sidebarWidth.value < minSize) {
-    return minSize
-  } else {
-    return sidebarWidth.value
-  }
-})
 </script>
 
 <template>
@@ -173,20 +192,22 @@ const normalizedWidth = computed(() => {
     :class="{
       'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart',
     }"
+    @ready="() => onWindowResize()"
     @resize="(event: any) => onResize(event[0].size)"
   >
     <Pane
       min-size="15%"
       :size="mobileNormalizedSidebarSize"
-      max-size="40%"
-      class="nc-sidebar-splitpane !sm:max-w-94 relative !overflow-visible flex"
+      max-size="60%"
+      class="nc-sidebar-splitpane !sm:max-w-140 relative !overflow-visible flex"
       :style="{
-        width: `${mobileNormalizedSidebarSize}%`,
+        'width': `${mobileNormalizedSidebarSize}%`,
+        'min-width': `${mobileNormalizedSidebarSize}%`,
       }"
     >
       <div
         ref="wrapperRef"
-        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-94) absolute overflow-visible"
+        class="nc-sidebar-wrapper relative flex flex-col h-full justify-center !sm:(max-w-140) absolute overflow-visible"
         :class="{
           'mobile': isMobileMode,
           'minimized-height': !isLeftSidebarOpen,
@@ -204,7 +225,7 @@ const normalizedWidth = computed(() => {
       :size="mobileNormalizedContentSize"
       class="flex-grow"
       :style="{
-        'min-width': `${100 - mobileNormalizedSidebarSize}%`,
+        'min-width': `${mobileNormalizedContentSize}%`,
       }"
     >
       <slot name="content" />

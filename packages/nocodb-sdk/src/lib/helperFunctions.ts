@@ -1,5 +1,6 @@
 import UITypes, { isNumericCol } from './UITypes';
 import { RolesObj, RolesType } from './globals';
+import { ClientType } from './enums';
 
 // import {RelationTypes} from "./globals";
 
@@ -59,19 +60,10 @@ const stringifyRolesObj = (roles?: RolesObj | null): string => {
 };
 
 const getAvailableRollupForUiType = (type: string) => {
-  if (isNumericCol(type as UITypes)) {
-    return [
-      'sum',
-      'count',
-      'min',
-      'max',
-      'avg',
-      'countDistinct',
-      'sumDistinct',
-      'avgDistinct',
-    ];
-  } else if (
+  if (
     [
+      UITypes.Year,
+      UITypes.Time,
       UITypes.Date,
       UITypes.DateTime,
       UITypes.CreatedTime,
@@ -79,18 +71,9 @@ const getAvailableRollupForUiType = (type: string) => {
     ].includes(type as UITypes)
   ) {
     return ['count', 'min', 'max', 'countDistinct'];
-  } else if (
-    [
-      UITypes.SingleLineText,
-      UITypes.LongText,
-      UITypes.User,
-      UITypes.Email,
-      UITypes.PhoneNumber,
-      UITypes.URL,
-    ].includes(type as UITypes)
-  ) {
-    return ['count'];
-  } else {
+  }
+  if (isNumericCol(type as UITypes)) {
+    // Number, Currency, Percent, Duration, Rating, Decimal
     return [
       'sum',
       'count',
@@ -102,36 +85,110 @@ const getAvailableRollupForUiType = (type: string) => {
       'avgDistinct',
     ];
   }
+
+  if (
+    [
+      UITypes.SingleLineText,
+      UITypes.LongText,
+      UITypes.User,
+      UITypes.Email,
+      UITypes.PhoneNumber,
+      UITypes.URL,
+      UITypes.JSON,
+    ].includes(type as UITypes)
+  ) {
+    return ['count', 'countDistinct'];
+  }
+  if ([UITypes.Checkbox].includes(type as UITypes)) {
+    return ['count', 'sum'];
+  }
+  if ([UITypes.Attachment].includes(type as UITypes)) {
+    return [];
+  }
+  if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(type as UITypes)) {
+    return ['count', 'countDistinct'];
+  }
+  return [
+    'sum',
+    'count',
+    'min',
+    'max',
+    'avg',
+    'countDistinct',
+    'sumDistinct',
+    'avgDistinct',
+  ];
 };
 
-function populateUniqueFileName(
-  fileName: string,
-  attachments: string[],
-  mimeType: string
-) {
-  if (!mimeType) return fileName;
-
-  // If the file extension is not present, the while loop will go into an infinite loop. So, add the extension first if not present.
-  if (!fileName?.endsWith(`.${mimeType.split('/')[1]}`)) {
-    fileName = `${fileName}.${mimeType.split('/')[1]}`;
-  } else if (
-    fileName?.endsWith(`.${mimeType.split('/')[1]}`) &&
-    fileName.length === `.${mimeType.split('/')[1]}`.length
+const getRenderAsTextFunForUiType = (type: UITypes) => {
+  if (
+    [
+      UITypes.Year,
+      UITypes.Time,
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+      UITypes.Decimal,
+      UITypes.Currency,
+      UITypes.Duration,
+    ].includes(type)
   ) {
-    fileName = `image.${mimeType.split('/')[1]}`;
+    return ['count', 'countDistinct'];
   }
 
-  const match = fileName.match(/^(.+?)(\((\d+)\))?(\.[^.]+)$/);
+  return [
+    'sum',
+    'count',
+    'avg',
+    'min',
+    'max',
+    'countDistinct',
+    'sumDistinct',
+    'avgDistinct',
+  ];
+};
 
-  if (!match) return fileName;
+const getFileName = ({ name, count, ext }) =>
+  `${name}${count ? `(${count})` : ''}${ext ? `${ext}` : ''}`;
 
-  let c = !isNaN(parseInt(match[3])) ? parseInt(match[3]) : 1;
+// add count before extension if duplicate name found
+function populateUniqueFileName(fileName: string, attachments: string[]) {
+  return fileName.replace(
+    /^(.+?)(?:\((\d+)\))?(\.(?:tar|min)\.(?:\w{2,4})|\.\w+)$/,
+    (fileName, name, count, ext) => {
+      let genFileName = fileName;
+      let c = count || 1;
 
-  while (attachments.some((fn) => fn === fileName)) {
-    fileName = `${match[1]}(${c++})${match[4]}`;
+      // iterate until a unique name
+      while (attachments.some((fn) => fn === genFileName)) {
+        genFileName = getFileName({
+          name,
+          ext,
+          count: c++,
+        });
+      }
+      return genFileName;
+    }
+  );
+}
+
+function roundUpToPrecision(number: number, precision: number = 0) {
+  precision =
+    precision == null
+      ? 0
+      : precision >= 0
+      ? Math.min(precision, 292)
+      : Math.max(precision, -292);
+  if (precision) {
+    // Shift with exponential notation to avoid floating-point issues.
+    // See [MDN](https://mdn.io/round#Examples) for more details.
+    let pair = `${number}e`.split('e');
+    const value = Math.round(Number(`${pair[0]}e${+pair[1] + precision}`));
+    pair = `${value}e`.split('e');
+    return (+`${pair[0]}e${+pair[1] - precision}`).toFixed(precision);
   }
-
-  return fileName;
+  return Math.round(number).toFixed(precision);
 }
 
 export {
@@ -143,5 +200,25 @@ export {
   extractRolesObj,
   stringifyRolesObj,
   getAvailableRollupForUiType,
+  getRenderAsTextFunForUiType,
   populateUniqueFileName,
+  roundUpToPrecision,
+};
+
+const testDataBaseNames = {
+  [ClientType.MYSQL]: null,
+  mysql: null,
+  [ClientType.PG]: 'postgres',
+  oracledb: 'xe',
+  [ClientType.MSSQL]: undefined,
+  [ClientType.SQLITE]: 'a.sqlite',
+};
+
+export const getTestDatabaseName = (db: {
+  client: ClientType;
+  connection?: { database?: string };
+}) => {
+  if (db.client === ClientType.PG || db.client === ClientType.SNOWFLAKE)
+    return db.connection?.database;
+  return testDataBaseNames[db.client as keyof typeof testDataBaseNames];
 };

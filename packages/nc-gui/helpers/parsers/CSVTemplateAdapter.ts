@@ -45,7 +45,8 @@ export default class CSVTemplateAdapter {
 
   initTemplate(tableIdx: number, tn: string, columnNames: string[]) {
     const columnNameRowExist = +columnNames.every((v: any) => v === null || typeof v === 'string')
-    const columnNamePrefixRef: Record<string, any> = { id: 0 }
+    const columnNamePrefixRef: Record<string, any> = { id: 0, Id: 0 }
+    const titlePrefixRef: Record<string, any> = { id: 0, Id: 0 }
 
     const tableObj: Record<string, any> = {
       table_name: tn,
@@ -57,14 +58,21 @@ export default class CSVTemplateAdapter {
     this.tables[tableIdx] = []
 
     for (const [columnIdx, columnName] of columnNames.entries()) {
-      const title = ((columnNameRowExist && columnName.toString().trim()) || `Field ${columnIdx + 1}`).trim()
+      let title = ((columnNameRowExist && columnName.toString().trim()) || `Field ${columnIdx + 1}`).trim()
       let cn: string = ((columnNameRowExist && columnName.toString().trim()) || `field_${columnIdx + 1}`)
         .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
         .trim()
+
       while (cn in columnNamePrefixRef) {
         cn = `${cn}${++columnNamePrefixRef[cn]}`
       }
+
+      while (title in titlePrefixRef) {
+        title = `${title}${++titlePrefixRef[title]}`
+      }
+
       columnNamePrefixRef[cn] = 0
+      titlePrefixRef[title] = 0
 
       this.detectedColumnTypes[columnIdx] = {}
       this.distinctValues[columnIdx] = new Set<string>()

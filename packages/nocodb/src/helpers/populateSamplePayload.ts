@@ -5,9 +5,11 @@ import type {
   LookupColumn,
   SelectOption,
 } from '~/models';
+import type { NcContext } from '~/interface/config';
 import { Column, Model, View } from '~/models';
 
 export async function populateSamplePayload(
+  context: NcContext,
   viewOrModel: View | Model,
   includeNested = false,
   operation = 'insert',
@@ -16,14 +18,15 @@ export async function populateSamplePayload(
   let columns: Column[] = [];
   let model: Model;
   if (viewOrModel instanceof View) {
-    const viewColumns = await viewOrModel.getColumns();
+    const viewColumns = await viewOrModel.getColumns(context);
     for (const col of viewColumns) {
-      if (col.show) columns.push(await Column.get({ colId: col.fk_column_id }));
+      if (col.show)
+        columns.push(await Column.get(context, { colId: col.fk_column_id }));
     }
-    model = await viewOrModel.getModel();
-    await model.getColumns();
+    model = await viewOrModel.getModel(context);
+    await model.getColumns(context);
   } else if (viewOrModel instanceof Model) {
-    columns = await viewOrModel.getColumns();
+    columns = await viewOrModel.getColumns(context);
     model = viewOrModel;
   }
 
@@ -37,13 +40,14 @@ export async function populateSamplePayload(
     if (operation === 'delete' && model.primaryKey?.title !== column.title)
       continue;
 
-    out[column.title] = await getSampleColumnValue(column);
+    out[column.title] = await getSampleColumnValue(context, column);
   }
 
   return out;
 }
 
 export async function populateSamplePayloadV2(
+  context: NcContext,
   viewOrModel: View | Model,
   includeNested = false,
   operation = 'insert',
@@ -53,18 +57,19 @@ export async function populateSamplePayloadV2(
   let columns: Column[] = [];
   let model: Model;
   if (viewOrModel instanceof View) {
-    const viewColumns = await viewOrModel.getColumns();
+    const viewColumns = await viewOrModel.getColumns(context);
     for (const col of viewColumns) {
-      if (col.show) columns.push(await Column.get({ colId: col.fk_column_id }));
+      if (col.show)
+        columns.push(await Column.get(context, { colId: col.fk_column_id }));
     }
-    model = await viewOrModel.getModel();
-    await model.getColumns();
+    model = await viewOrModel.getModel(context);
+    await model.getColumns(context);
   } else if (viewOrModel instanceof Model) {
-    columns = await viewOrModel.getColumns();
+    columns = await viewOrModel.getColumns(context);
     model = viewOrModel;
   }
 
-  await model.getViews();
+  await model.getViews(context);
 
   const samplePayload = {
     type: `${scope}.after.${operation}`,
@@ -72,8 +77,6 @@ export async function populateSamplePayloadV2(
     data: {
       table_id: model.id,
       table_name: model.title,
-      view_id: model.views[0].id,
-      view_name: model.views[0].title,
     },
   };
 
@@ -84,7 +87,7 @@ export async function populateSamplePayloadV2(
     )
       continue;
 
-    rows[column.title] = await getSampleColumnValue(column);
+    rows[column.title] = await getSampleColumnValue(context, column);
   }
 
   let prevRows;
@@ -105,7 +108,10 @@ export async function populateSamplePayloadV2(
   return samplePayload;
 }
 
-async function getSampleColumnValue(column: Column): Promise<any> {
+async function getSampleColumnValue(
+  context: NcContext,
+  column: Column,
+): Promise<any> {
   switch (column.uidt) {
     case UITypes.ID:
       {
@@ -114,9 +120,12 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.LinkToAnotherRecord:
       {
-        const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
+        const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
+          context,
+        );
         const sampleVal = await populateSamplePayload(
-          await colOpt.getRelatedTable(),
+          context,
+          await colOpt.getRelatedTable(context),
         );
         if (colOpt.type !== RelationTypes.BELONGS_TO) {
           return undefined;
@@ -133,12 +142,13 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.Lookup:
       {
-        const colOpt = await column.getColOptions<LookupColumn>();
+        const colOpt = await column.getColOptions<LookupColumn>(context);
         const relColOpt = await colOpt
-          .getRelationColumn()
-          .then((r) => r.getColOptions<LinkToAnotherRecordColumn>());
+          .getRelationColumn(context)
+          .then((r) => r.getColOptions<LinkToAnotherRecordColumn>(context));
         const sampleVal = await getSampleColumnValue(
-          await colOpt.getLookupColumn(),
+          context,
+          await colOpt.getLookupColumn(context),
         );
         return relColOpt.type === RelationTypes.BELONGS_TO
           ? sampleVal
@@ -174,7 +184,7 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.MultiSelect:
       {
-        const colOpt = await column.getColOptions<SelectOption[]>();
+        const colOpt = await column.getColOptions<SelectOption[]>(context);
         return (
           colOpt?.[0]?.title ||
           column?.dtxp?.split(',')?.[0]?.replace(/^['"]|['"]$/g, '')
@@ -183,7 +193,7 @@ async function getSampleColumnValue(column: Column): Promise<any> {
       break;
     case UITypes.SingleSelect:
       {
-        const colOpt = await column.getColOptions<SelectOption[]>();
+        const colOpt = await column.getColOptions<SelectOption[]>(context);
         return (
           colOpt?.[0]?.title ||
           column?.dtxp?.split(',')?.[0]?.replace(/^['"]|['"]$/g, '')

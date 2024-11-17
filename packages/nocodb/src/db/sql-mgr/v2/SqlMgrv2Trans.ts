@@ -3,6 +3,7 @@ import SqlMgrv2 from './SqlMgrv2';
 import type { Knex } from 'knex';
 import type { XKnex } from '../../CustomKnex';
 import type Source from '~/models/Source';
+import type { NcContext } from '~/interface/config';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 export default class SqlMgrv2Trans extends SqlMgrv2 {
@@ -19,8 +20,13 @@ export default class SqlMgrv2Trans extends SqlMgrv2 {
    * @memberof SqlMgr
    */
   // todo: tobe changed
-  constructor(args: { id: string }, ncMeta: any, source: Source) {
-    super(args);
+  constructor(
+    context: NcContext,
+    args: { id: string },
+    ncMeta: any,
+    source: Source,
+  ) {
+    super(context, args);
     this.baseId = args.id;
     this.ncMeta = ncMeta;
     this.source = source;
@@ -28,6 +34,7 @@ export default class SqlMgrv2Trans extends SqlMgrv2 {
 
   public async migrator() {
     return new KnexMigratorv2Tans(
+      this.context,
       { id: this.baseId },
       await this.getSqlClient(this.source),
       this.ncMeta,

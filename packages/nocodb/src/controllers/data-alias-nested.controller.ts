@@ -8,11 +8,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { DataAliasNestedService } from '~/services/data-alias-nested.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -23,13 +24,14 @@ export class DataAliasNestedController {
   @Get(['/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/mm/:columnName'])
   @Acl('mmList')
   async mmList(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
   ) {
-    return await this.dataAliasNestedService.mmList({
+    return await this.dataAliasNestedService.mmList(context, {
       query: req.query,
       columnName: columnName,
       rowId: rowId,
@@ -43,13 +45,14 @@ export class DataAliasNestedController {
   ])
   @Acl('mmExcludedList')
   async mmExcludedList(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
   ) {
-    return await this.dataAliasNestedService.mmExcludedList({
+    return await this.dataAliasNestedService.mmExcludedList(context, {
       query: req.query,
       columnName: columnName,
       rowId: rowId,
@@ -63,13 +66,14 @@ export class DataAliasNestedController {
   ])
   @Acl('hmExcludedList')
   async hmExcludedList(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
   ) {
-    return await this.dataAliasNestedService.hmExcludedList({
+    return await this.dataAliasNestedService.hmExcludedList(context, {
       query: req.query,
       columnName: columnName,
       rowId: rowId,
@@ -83,13 +87,35 @@ export class DataAliasNestedController {
   ])
   @Acl('btExcludedList')
   async btExcludedList(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
   ) {
-    return await this.dataAliasNestedService.btExcludedList({
+    return await this.dataAliasNestedService.btExcludedList(context, {
+      query: req.query,
+      columnName: columnName,
+      rowId: rowId,
+      baseName: baseName,
+      tableName: tableName,
+    });
+  }
+
+  @Get([
+    '/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/oo/:columnName/exclude',
+  ])
+  @Acl('ooExcludedList')
+  async ooExcludedList(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('columnName') columnName: string,
+    @Param('rowId') rowId: string,
+    @Param('baseName') baseName: string,
+    @Param('tableName') tableName: string,
+  ) {
+    return await this.dataAliasNestedService.ooExcludedList(context, {
       query: req.query,
       columnName: columnName,
       rowId: rowId,
@@ -103,13 +129,14 @@ export class DataAliasNestedController {
   @Get(['/api/v1/db/data/:orgs/:baseName/:tableName/:rowId/hm/:columnName'])
   @Acl('hmList')
   async hmList(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
   ) {
-    return await this.dataAliasNestedService.hmList({
+    return await this.dataAliasNestedService.hmList(context, {
       query: req.query,
       columnName: columnName,
       rowId: rowId,
@@ -123,14 +150,15 @@ export class DataAliasNestedController {
   ])
   @Acl('relationDataRemove')
   async relationDataRemove(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('refRowId') refRowId: string,
   ) {
-    await this.dataAliasNestedService.relationDataRemove({
+    await this.dataAliasNestedService.relationDataRemove(context, {
       columnName: columnName,
       rowId: rowId,
       baseName: baseName,
@@ -149,14 +177,15 @@ export class DataAliasNestedController {
   @Acl('relationDataAdd')
   @HttpCode(200)
   async relationDataAdd(
-    @Req() req: Request,
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('columnName') columnName: string,
     @Param('rowId') rowId: string,
     @Param('baseName') baseName: string,
     @Param('tableName') tableName: string,
     @Param('refRowId') refRowId: string,
   ) {
-    await this.dataAliasNestedService.relationDataAdd({
+    await this.dataAliasNestedService.relationDataAdd(context, {
       columnName: columnName,
       rowId: rowId,
       baseName: baseName,

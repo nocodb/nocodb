@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, KanbanType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { PreFilledMode, iconMap, message, storeToRefs, useBase, useMetas } from '#imports'
 
 const { view: _view, $api } = useSmartsheetStoreOrThrow()
 const { $e } = useNuxtApp()
@@ -10,14 +9,6 @@ const { getBaseUrl, appInfo } = useGlobal()
 const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
-
-const { viewsByTable } = storeToRefs(viewStore)
-
-const { showShareModal } = storeToRefs(useShare())
-
-const baseStore = useBase()
-
-const { navigateToProjectPage } = baseStore
 
 const { metas } = useMetas()
 
@@ -52,34 +43,8 @@ const activeView = computed<(ViewType & { meta: object & Record<string, any> }) 
   },
 })
 
-const viewsInTable = computed({
-  get: () => {
-    if (!activeView.value) return []
-    return viewsByTable.value.get(activeView.value?.fk_model_id) || []
-  },
-  set: (val) => {
-    viewsByTable.value.set(activeView.value?.fk_model_id, val)
-  },
-})
-
-const selectedViewId = ref<string | undefined>(activeView.value?.id)
-
-watch(activeView, (val) => {
-  selectedViewId.value = val?.id
-})
-
-const selectedView = computed<(ViewType & { meta: object & Record<string, any> }) | undefined>({
-  get: () => {
-    if (!selectedViewId.value) return
-    return viewsInTable.value.find((v) => v.id === selectedViewId.value)
-  },
-  set: (val) => {
-    viewsInTable.value = viewsInTable.value.map((v) => (v.id === selectedViewId.value ? val : v))
-  },
-})
-
 const isPublicShared = computed(() => {
-  return !!selectedView.value?.uuid
+  return !!activeView.value?.uuid
 })
 
 const url = computed(() => {
@@ -89,27 +54,27 @@ const url = computed(() => {
 const passwordProtectedLocal = ref(false)
 
 const passwordProtected = computed(() => {
-  return !!selectedView.value?.password || passwordProtectedLocal.value
+  return !!activeView.value?.password || passwordProtectedLocal.value
 })
 
 const password = computed({
-  get: () => (passwordProtected.value ? selectedView.value?.password ?? '' : ''),
+  get: () => (passwordProtected.value ? activeView.value?.password ?? '' : ''),
   set: async (value) => {
-    if (!selectedView.value) return
+    if (!activeView.value) return
 
-    selectedView.value = { ...(selectedView.value as any), password: passwordProtected.value ? value : null }
+    activeView.value = { ...(activeView.value as any), password: passwordProtected.value ? value : null }
 
     updateSharedView()
   },
 })
 
 const viewTheme = computed({
-  get: () => !!selectedView.value?.meta.withTheme,
+  get: () => !!activeView.value?.meta.withTheme,
   set: (withTheme) => {
-    if (!selectedView.value?.meta) return
+    if (!activeView.value?.meta) return
 
-    selectedView.value.meta = {
-      ...selectedView.value.meta,
+    activeView.value.meta = {
+      ...activeView.value.meta,
       withTheme,
     }
     saveTheme()
@@ -118,15 +83,15 @@ const viewTheme = computed({
 
 const togglePasswordProtected = async () => {
   passwordProtectedLocal.value = !passwordProtected.value
-  if (!selectedView.value) return
+  if (!activeView.value) return
   if (isUpdating.value.password) return
 
   isUpdating.value.password = true
   try {
     if (passwordProtected.value) {
-      selectedView.value = { ...(selectedView.value as any), password: null }
+      activeView.value = { ...(activeView.value as any), password: null }
     } else {
-      selectedView.value = { ...(selectedView.value as any), password: '' }
+      activeView.value = { ...(activeView.value as any), password: '' }
     }
 
     await updateSharedView()
@@ -137,35 +102,35 @@ const togglePasswordProtected = async () => {
 
 const withRTL = computed({
   get: () => {
-    if (!selectedView.value?.meta) return false
+    if (!activeView.value?.meta) return false
 
-    if (typeof selectedView.value?.meta === 'string') {
-      selectedView.value.meta = JSON.parse(selectedView.value.meta)
+    if (typeof activeView.value?.meta === 'string') {
+      activeView.value.meta = JSON.parse(activeView.value.meta)
     }
 
-    return !!(selectedView.value?.meta as any)?.rtl
+    return !!(activeView.value?.meta as any)?.rtl
   },
   set: (rtl) => {
-    if (!selectedView.value?.meta) return
+    if (!activeView.value?.meta) return
 
-    if (typeof selectedView.value?.meta === 'string') {
-      selectedView.value.meta = JSON.parse(selectedView.value.meta)
+    if (typeof activeView.value?.meta === 'string') {
+      activeView.value.meta = JSON.parse(activeView.value.meta)
     }
 
-    selectedView.value.meta = { ...(selectedView.value.meta as any), rtl }
+    activeView.value.meta = { ...(activeView.value.meta as any), rtl }
     updateSharedView()
   },
 })
 
 const allowCSVDownload = computed({
-  get: () => !!(selectedView.value?.meta as any)?.allowCSVDownload,
+  get: () => !!(activeView.value?.meta as any)?.allowCSVDownload,
   set: async (allow) => {
-    if (!selectedView.value?.meta) return
+    if (!activeView.value?.meta) return
 
     isUpdating.value.download = true
 
     try {
-      selectedView.value.meta = { ...selectedView.value.meta, allowCSVDownload: allow }
+      activeView.value.meta = { ...activeView.value.meta, allowCSVDownload: allow }
       await saveAllowCSVDownload()
     } finally {
       isUpdating.value.download = false
@@ -174,22 +139,22 @@ const allowCSVDownload = computed({
 })
 
 const surveyMode = computed({
-  get: () => !!selectedView.value?.meta.surveyMode,
+  get: () => !!activeView.value?.meta.surveyMode,
   set: (survey) => {
-    if (!selectedView.value?.meta) return
+    if (!activeView.value?.meta) return
 
-    selectedView.value.meta = { ...selectedView.value.meta, surveyMode: survey }
+    activeView.value.meta = { ...activeView.value.meta, surveyMode: survey }
     saveSurveyMode()
   },
 })
 
 const formPreFill = computed({
   get: () => ({
-    preFillEnabled: parseProp(selectedView.value?.meta)?.preFillEnabled ?? false,
-    preFilledMode: parseProp(selectedView.value?.meta)?.preFilledMode || PreFilledMode.Default,
+    preFillEnabled: parseProp(activeView.value?.meta)?.preFillEnabled ?? false,
+    preFilledMode: parseProp(activeView.value?.meta)?.preFilledMode || PreFilledMode.Default,
   }),
   set: (value) => {
-    if (!selectedView.value?.meta) return
+    if (!activeView.value?.meta) return
 
     if (formPreFill.value.preFillEnabled !== value.preFillEnabled) {
       $e(`a:view:share:prefilled-mode-${value.preFillEnabled ? 'enabled' : 'disabled'}`)
@@ -199,8 +164,8 @@ const formPreFill = computed({
       $e(`a:view:share:${value.preFilledMode}-prefilled-mode`)
     }
 
-    selectedView.value.meta = {
-      ...selectedView.value.meta,
+    activeView.value.meta = {
+      ...activeView.value.meta,
       ...value,
     }
     savePreFilledMode()
@@ -215,10 +180,10 @@ const handleChangeFormPreFill = (value: { preFillEnabled?: boolean; preFilledMod
 }
 
 function sharedViewUrl() {
-  if (!selectedView.value) return
+  if (!activeView.value) return
 
   let viewType
-  switch (selectedView.value.type) {
+  switch (activeView.value.type) {
     case ViewTypes.FORM:
       viewType = 'form'
       break
@@ -246,31 +211,29 @@ function sharedViewUrl() {
     dashboardUrl1 = `${baseUrl}${appInfo.value?.dashboardPath}`
   }
 
-  return encodeURI(
-    `${dashboardUrl1}#/nc/${viewType}/${selectedView.value.uuid}${surveyMode.value ? '/survey' : ''}${
-      viewStore.preFillFormSearchParams && formPreFill.value.preFillEnabled ? `?${viewStore.preFillFormSearchParams}` : ''
-    }`,
-  )
+  return `${encodeURI(`${dashboardUrl1}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`)}${
+    viewStore.preFillFormSearchParams && formPreFill.value.preFillEnabled ? `?${viewStore.preFillFormSearchParams}` : ''
+  }`
 }
 
 const toggleViewShare = async () => {
-  if (!selectedView.value?.id) return
+  if (!activeView.value?.id) return
 
-  if (selectedView.value?.uuid) {
-    await $api.dbViewShare.delete(selectedView.value.id)
+  if (activeView.value?.uuid) {
+    await $api.dbViewShare.delete(activeView.value.id)
 
-    selectedView.value = { ...selectedView.value, uuid: undefined, password: undefined }
+    activeView.value = { ...activeView.value, uuid: undefined, password: undefined }
   } else {
-    const response = await $api.dbViewShare.create(selectedView.value.id)
-    selectedView.value = { ...selectedView.value, ...(response as any) }
+    const response = await $api.dbViewShare.create(activeView.value.id)
+    activeView.value = { ...activeView.value, ...(response as any) }
 
-    if (selectedView.value!.type === ViewTypes.KANBAN) {
+    if (activeView.value!.type === ViewTypes.KANBAN) {
       // extract grouping column meta
-      const groupingFieldColumn = metas.value[selectedView.value!.fk_model_id].columns!.find(
-        (col: ColumnType) => col.id === ((selectedView.value.view! as KanbanType).fk_grp_col_id! as string),
+      const groupingFieldColumn = metas.value[viewStore.activeView!.fk_model_id].columns!.find(
+        (col: ColumnType) => col.id === ((viewStore.activeView!.view! as KanbanType).fk_grp_col_id! as string),
       )
 
-      selectedView.value!.meta = { ...selectedView.value!.meta, groupingFieldColumn }
+      activeView.value!.meta = { ...activeView.value!.meta, groupingFieldColumn }
 
       await updateSharedView()
     }
@@ -313,12 +276,12 @@ async function saveTheme() {
 
 async function updateSharedView() {
   try {
-    if (!selectedView.value?.meta) return
-    const meta = selectedView.value.meta
+    if (!activeView.value?.meta) return
+    const meta = activeView.value.meta
 
-    await $api.dbViewShare.update(selectedView.value.id!, {
+    await $api.dbViewShare.update(activeView.value.id!, {
       meta,
-      password: selectedView.value.password,
+      password: activeView.value.password,
     })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -331,55 +294,31 @@ async function savePreFilledMode() {
   await updateSharedView()
 }
 
-const openManageAccess = async () => {
-  try {
-    await navigateToProjectPage({ page: 'collaborator' })
-    showShareModal.value = false
-  } catch (e) {
-    console.error(e)
-    message.error('Failed to open manage access')
-  }
-}
+watchEffect(() => {})
 </script>
 
 <template>
-  <div class="flex flex-col !h-80 justify-between">
-    <div class="flex flex-col p-3 border-gray-200 border-1 rounded-lg gap-y-2">
-      <div class="flex flex-row items-center justify-between">
-        <div class="flex items-center gap-3">
-          <span class="text-gray-900 font-medium">{{ $t('activity.enabledPublicViewing') }}</span>
-
-          <NcSelect v-model:value="selectedViewId" class="w-48" size="medium">
-            <a-select-option v-for="view in viewsInTable" :key="view.id" :value="view.id">
-              <div class="flex items-center w-full justify-between w-full gap-2">
-                <GeneralViewIcon :meta="view" class="!text-md mt-0.5" />
-                <span class="truncate !w-36 flex-1 capitalize">{{ view.title }}</span>
-                <component
-                  :is="iconMap.check"
-                  v-if="view.id === selectedViewId"
-                  id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
-                />
-              </div>
-            </a-select-option>
-          </NcSelect>
-        </div>
+  <div class="flex flex-col py-2 px-3 mb-1">
+    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
+      <div class="flex flex-row w-full justify-between py-0.5">
+        <div class="text-gray-900 font-medium">{{ $t('activity.enabledPublicViewing') }}</div>
         <a-switch
           v-e="['c:share:view:enable:toggle']"
-          size="small"
           :checked="isPublicShared"
           :disabled="isLocked"
           :loading="isUpdating.public"
           class="share-view-toggle !mt-0.25"
           data-testid="share-view-toggle"
-          @change="toggleShare"
+          @click="toggleShare"
         />
       </div>
-
-      <div v-if="isPublicShared" class="space-y-3">
-        <GeneralCopyUrl v-model:url="url" class="w-[34.625rem]" />
-        <div class="flex items-center gap-3 h-8 justify-between">
-          <div class="flex flex-row gap-3 items-center">
+      <template v-if="isPublicShared">
+        <div class="mt-0.5 border-t-1 border-gray-100 pt-3">
+          <GeneralCopyUrl v-model:url="url" />
+        </div>
+        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
+          <div class="flex flex-row items-center justify-between">
+            <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
             <a-switch
               v-e="['c:share:view:password:toggle']"
               :checked="passwordProtected"
@@ -387,42 +326,52 @@ const openManageAccess = async () => {
               class="share-password-toggle !mt-0.25"
               data-testid="share-password-toggle"
               size="small"
-              @change="togglePasswordProtected"
+              @click="togglePasswordProtected"
             />
-            <div class="flex text-black">{{ $t('activity.restrictAccessWithPassword') }}</div>
           </div>
-          <a-input-password
-            v-if="passwordProtected"
-            v-model:value="password"
-            :placeholder="$t('placeholder.password.enter')"
-            class="!rounded-lg flex-1 !focus:border-brand-500 !w-72 !focus:ring-0 !focus:shadow-none !border-gray-200 !py-1 !bg-white"
-            data-testid="nc-modal-share-view__password"
-            size="small"
-            type="password"
-          />
+          <Transition mode="out-in" name="layout">
+            <div v-if="passwordProtected" class="flex gap-2 mt-2 w-2/3">
+              <a-input-password
+                v-model:value="password"
+                :placeholder="$t('placeholder.password.enter')"
+                class="!rounded-lg !py-1 !bg-white"
+                data-testid="nc-modal-share-view__password"
+                size="small"
+                type="password"
+              />
+            </div>
+          </Transition>
         </div>
+        <div class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md">
+          <div
+            v-if="
+              activeView &&
+              [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
+            "
+            class="flex flex-row items-center justify-between"
+          >
+            <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
+            <a-switch
+              v-model:checked="allowCSVDownload"
+              v-e="['c:share:view:allow-csv-download:toggle']"
+              :loading="isUpdating.download"
+              class="public-password-toggle !mt-0.25"
+              data-testid="share-download-toggle"
+              size="small"
+            />
+          </div>
 
-        <div
-          v-if="
-            selectedView &&
-            [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(selectedView.type)
-          "
-          class="flex flex-row items-center gap-3"
-        >
-          <a-switch
-            v-model:checked="allowCSVDownload"
-            v-e="['c:share:view:allow-csv-download:toggle']"
-            :loading="isUpdating.download"
-            class="public-password-toggle !mt-0.25"
-            data-testid="share-download-toggle"
-            size="small"
-          />
-          <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
-        </div>
-
-        <template v-if="selectedView?.type === ViewTypes.FORM">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
+          <template v-if="activeView?.type === ViewTypes.FORM">
+            <div class="flex flex-row items-center justify-between">
+              <div class="text-black flex items-center space-x-1">
+                <div>
+                  {{ $t('activity.surveyMode') }}
+                </div>
+                <NcTooltip class="flex items-center">
+                  <template #title> {{ $t('tooltip.surveyFormInfo') }}</template>
+                  <GeneralIcon icon="info" class="flex-none text-gray-600 cursor-pointer"></GeneralIcon>
+                </NcTooltip>
+              </div>
               <a-switch
                 v-model:checked="surveyMode"
                 v-e="['c:share:view:surver-mode:toggle']"
@@ -430,77 +379,61 @@ const openManageAccess = async () => {
                 size="small"
               >
               </a-switch>
-              {{ $t('activity.surveyMode') }}
             </div>
-            <NcTooltip>
-              <template #title>{{ $t('tooltip.surveyFormInfo') }} </template>
-              <component :is="iconMap.info" class="text-gray-500" />
-            </NcTooltip>
-          </div>
-
-          <div v-if="!isEeUI" class="flex flex-row items-center gap-3">
-            <a-switch
-              v-model:checked="withRTL"
-              v-e="['c:share:view:rtl-orientation:toggle']"
-              data-testid="nc-modal-share-view__RTL"
-              size="small"
-            >
-            </a-switch>
-            <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
-          </div>
-          <div class="flex items-center h-8 justify-between">
-            <div class="flex items-center gap-3">
+            <div v-if="!isEeUI" class="flex flex-row items-center justify-between">
+              <div class="text-black">{{ $t('activity.rtlOrientation') }}</div>
               <a-switch
-                v-e="['c:share:view:surver-mode:toggle']"
-                :checked="formPreFill.preFillEnabled"
-                data-testid="nc-modal-share-view__preFill"
+                v-model:checked="withRTL"
+                v-e="['c:share:view:rtl-orientation:toggle']"
+                data-testid="nc-modal-share-view__RTL"
                 size="small"
-                @update:checked="handleChangeFormPreFill({ preFillEnabled: $event as boolean })"
               >
               </a-switch>
-              {{ $t('activity.preFilledFields.title') }}
-
-              <NcSelect
-                v-if="formPreFill.preFillEnabled"
-                v-model:value="formPreFill.preFilledMode"
-                class="w-48"
-                @change="handleChangeFormPreFill"
-              >
-                <a-select-option
-                  v-for="op of Object.values(PreFilledMode).map((v) => {
-                    return { label: $t(`activity.preFilledFields.${v}`), value: v }
-                  })"
-                  :key="op.value"
-                  :value="op.value"
-                >
-                  <div class="flex items-center w-full justify-between w-full gap-2">
-                    <div class="truncate flex-1 capitalize">{{ op.label }}</div>
-                    <component
-                      :is="iconMap.check"
-                      v-if="formPreFill.preFilledMode === op.value"
-                      id="nc-selected-item-icon"
-                      class="text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
             </div>
-            <NcTooltip>
-              <template #title>{{ $t('tooltip.preFillFormInfo') }} </template>
-              <component :is="iconMap.info" class="text-gray-500" />
-            </NcTooltip>
-          </div>
-        </template>
-      </div>
-    </div>
+          </template>
+        </div>
+        <div
+          v-if="activeView?.type === ViewTypes.FORM"
+          class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+        >
+          <div class="flex flex-row items-center justify-between">
+            <div class="text-black flex items-center space-x-1">
+              <div>
+                {{ $t('activity.preFilledFields.title') }}
+              </div>
 
-    <div class="flex gap-2 items-end justify-end">
-      <NcButton type="secondary" @click="openManageAccess">
-        {{ $t('activity.manageAccess') }}
-      </NcButton>
-      <NcButton type="secondary" @click="showShareModal = false">
-        {{ $t('general.finish') }}
-      </NcButton>
+              <NcTooltip class="flex items-center">
+                <template #title>
+                  <div class="text-center">
+                    {{ $t('tooltip.preFillFormInfo') }}
+                  </div>
+                </template>
+                <GeneralIcon icon="info" class="flex-none text-gray-600 cursor-pointer"></GeneralIcon>
+              </NcTooltip>
+            </div>
+            <a-switch
+              v-e="['c:share:view:surver-mode:toggle']"
+              :checked="formPreFill.preFillEnabled"
+              data-testid="nc-modal-share-view__preFill"
+              size="small"
+              @update:checked="handleChangeFormPreFill({ preFillEnabled: $event as boolean })"
+            >
+            </a-switch>
+          </div>
+
+          <a-radio-group
+            v-if="formPreFill.preFillEnabled"
+            :value="formPreFill.preFilledMode"
+            class="nc-modal-share-view-preFillMode"
+            data-testid="nc-modal-share-view__preFillMode"
+            @update:value="handleChangeFormPreFill({ preFilledMode: $event })"
+          >
+            <a-radio v-for="mode of Object.values(PreFilledMode)" :key="mode" :value="mode">
+              <div class="flex-1">{{ $t(`activity.preFilledFields.${mode}`) }}</div>
+            </a-radio>
+          </a-radio-group>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -521,6 +454,20 @@ const openManageAccess = async () => {
     height: 1rem !important;
     min-width: 1rem !important;
     line-height: 1rem !important;
+  }
+}
+
+.nc-modal-share-view-preFillMode {
+  @apply flex flex-col;
+
+  .ant-radio-wrapper {
+    @apply !m-0 !flex !items-center w-full px-2 py-1 rounded-lg hover:bg-gray-100;
+    .ant-radio {
+      @apply !top-0;
+    }
+    .ant-radio + span {
+      @apply !flex !pl-4;
+    }
   }
 }
 </style>

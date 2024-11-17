@@ -1,11 +1,11 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import SpacesPlugin from './SpacesPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: SpacesPlugin,
   title: 'Spaces',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/spaces.png',
   description:
     'Store & deliver vast amounts of content with a simple architecture.',
@@ -43,6 +43,13 @@ const config: XcPluginConfig = {
         type: XcType.Password,
         required: true,
       },
+      {
+        key: 'acl',
+        label: 'Access Control Lists (ACL)',
+        placeholder: 'Default set to public-read',
+        type: XcType.SingleLineText,
+        required: false,
+      },
     ],
     actions: [
       {
@@ -61,7 +68,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in DigitalOcean Spaces',
+      'Successfully configured! Attachments will now be stored in DigitalOcean Spaces.',
     msgOnUninstall: '',
   },
 };

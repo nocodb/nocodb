@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import ErrorBoundary from './components/nc/ErrorBoundary.vue'
-import { applyNonSelectable, computed, isEeUI, isMac, useCommandPalette, useRouter, useTheme } from '#imports'
-import type { CommandPaletteType } from '~/lib'
+import type { CommandPaletteType } from '~/lib/types'
 
 const router = useRouter()
 
@@ -15,7 +14,7 @@ const disableBaseLayout = computed(() => route.value.path.startsWith('/nc/view')
 
 useTheme()
 
-const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope, refreshCommandPalette } = useCommandPalette()
+const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
 
 applyNonSelectable()
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -92,11 +91,26 @@ function setActiveCmdView(cmd: CommandPaletteType) {
   }
 }
 
-onMounted(() => {
-  nextTick(() => {
-    refreshCommandPalette()
-  })
-})
+// ref: https://github.com/vuejs/vue-cli/issues/7431#issuecomment-1793385162
+// Stop error resizeObserver
+const debounce = (callback: (...args: any[]) => void, delay: number) => {
+  let tid: any
+  return function (...args: any[]) {
+    const ctx = self
+    tid && clearTimeout(tid)
+    tid = setTimeout(() => {
+      callback.apply(ctx, args)
+    }, delay)
+  }
+}
+
+const _ = (window as any).ResizeObserver
+;(window as any).ResizeObserver = class ResizeObserver extends _ {
+  constructor(callback: (...args: any[]) => void) {
+    callback = debounce(callback, 20)
+    super(callback)
+  }
+}
 </script>
 
 <template>

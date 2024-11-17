@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib'
+import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
 
 export const useConfigStore = defineStore('configStore', () => {
   const { isMobileMode: globalIsMobile } = useGlobal()
@@ -33,7 +33,7 @@ export const useConfigStore = defineStore('configStore', () => {
       globalIsMobile.value = isMobileMode.value
 
       // Change --topbar-height css variable
-      document.documentElement.style.setProperty('--topbar-height', isMobileMode.value ? '3.25rem' : '3.1rem')
+      document.documentElement.style.setProperty('--topbar-height', isMobileMode.value ? '3.875rem' : '3rem')
 
       // Set .mobile-mode class on body
       if (isMobileMode.value) {

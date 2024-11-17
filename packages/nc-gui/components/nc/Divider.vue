@@ -1,5 +1,13 @@
+<script lang="ts" setup>
+const props = defineProps<{
+  dividerClass?: string
+}>()
+
+const dividerClass = toRef(props, 'dividerClass')
+</script>
+
 <template>
-  <a-divider class="nc-divider" />
+  <a-divider :class="dividerClass" class="nc-divider" />
 </template>
 
 <style lang="scss">

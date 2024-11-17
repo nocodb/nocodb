@@ -1,24 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import {
-  ActiveCellInj,
-  CellValueInj,
-  ColumnInj,
-  IsFormInj,
-  IsUnderLookupInj,
-  ReadonlyInj,
-  ReloadRowDataHookInj,
-  RowInj,
-  computed,
-  createEventHook,
-  inject,
-  ref,
-  useProvideLTARStore,
-  useRoles,
-  useSelectedCellKeyupListener,
-  useSmartsheetRowStoreOrThrow,
-} from '#imports'
 
 const column = inject(ColumnInj)!
 
@@ -40,18 +22,14 @@ const { isUIAllowed } = useRoles()
 
 const listItemsDlg = ref(false)
 
+const isOpen = ref(false)
+
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
-  column as Ref<Required<ColumnType>>,
-  row,
-  isNew,
-  reloadRowTrigger.trigger,
-)
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, relatedTableDisplayValuePropId, unlink } =
+  useProvideLTARStore(column as Ref<Required<ColumnType>>, row, isNew, reloadRowTrigger.trigger)
 
 await loadRelatedTableMeta()
-
-const addIcon = computed(() => (cellValue?.value ? 'expand' : 'plus'))
 
 const value = computed(() => {
   if (cellValue?.value) {
@@ -84,49 +62,70 @@ const belongsToColumn = computed(
     relatedTableMeta.value?.columns?.find((c: any) => c.title === relatedTableDisplayValueProp.value) as ColumnType | undefined,
 )
 
-const plusBtnRef = ref<HTMLElement | null>(null)
+watch(listItemsDlg, () => {
+  isOpen.value = listItemsDlg.value
+})
 
-watch([listItemsDlg], () => {
-  if (!listItemsDlg.value) {
-    plusBtnRef.value?.focus()
+// When isOpen is false, ensure the listItemsDlg is also closed.
+watch(
+  isOpen,
+  (next) => {
+    if (!next) {
+      listItemsDlg.value = false
+    }
+  },
+  { flush: 'post' },
+)
+
+watch(value, (next) => {
+  if (next) {
+    isOpen.value = false
   }
 })
 </script>
 
 <template>
   <div class="flex w-full chips-wrapper items-center" :class="{ active }">
-    <div class="nc-cell-field chips flex items-center flex-1">
-      <template v-if="value && relatedTableDisplayValueProp">
-        <VirtualCellComponentsItemChip
-          :item="value"
-          :value="!Array.isArray(value) && typeof value === 'object' ? value[relatedTableDisplayValueProp] : value"
+    <LazyVirtualCellComponentsLinkRecordDropdown v-model:is-open="isOpen">
+      <div class="nc-cell-field flex items-center w-full">
+        <div class="chips flex items-center flex-1" :class="{ 'max-w-[calc(100%_-_16px)]': !isUnderLookup }">
+          <template v-if="value && (relatedTableDisplayValueProp || relatedTableDisplayValuePropId)">
+            <VirtualCellComponentsItemChip
+              :item="value"
+              :value="
+                !Array.isArray(value) && typeof value === 'object'
+                  ? value[relatedTableDisplayValueProp] ?? value[relatedTableDisplayValuePropId]
+                  : value
+              "
+              :column="belongsToColumn"
+              :show-unlink-button="true"
+              @unlink="unlinkRef(value)"
+            />
+          </template>
+        </div>
+
+        <div
+          v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
+          class="flex-none flex group items-center min-w-4"
+          tabindex="0"
+          @keydown.enter.stop="listItemsDlg = true"
+        >
+          <GeneralIcon
+            icon="plus"
+            class="flex-none select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+            @click.stop="listItemsDlg = true"
+          />
+        </div>
+      </div>
+
+      <template #overlay>
+        <LazyVirtualCellComponentsUnLinkedItems
+          v-if="listItemsDlg"
+          v-model="listItemsDlg"
           :column="belongsToColumn"
-          :show-unlink-button="true"
-          @unlink="unlinkRef(value)"
-        />
-      </template>
-    </div>
-
-    <div
-      v-if="!readOnly && (isUIAllowed('dataEdit') || isForm) && !isUnderLookup"
-      ref="plusBtnRef"
-      class="flex justify-end group gap-1 min-h-[30px] items-center"
-      tabindex="0"
-      @keydown.enter.stop="listItemsDlg = true"
-    >
-      <GeneralIcon
-        :icon="addIcon"
-        class="text-sm nc-action-icon group-focus:visible invisible text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
-        @click.stop="listItemsDlg = true"
-      />
-    </div>
-
-    <LazyVirtualCellComponentsUnLinkedItems
-      v-if="listItemsDlg"
-      v-model="listItemsDlg"
-      :column="belongsToColumn"
-      @attach-record="listItemsDlg = true"
-    />
+          hide-back-btn
+        /> </template
+    ></LazyVirtualCellComponentsLinkRecordDropdown>
   </div>
 </template>
 

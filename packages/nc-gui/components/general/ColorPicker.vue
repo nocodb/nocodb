@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
-import { computed, enumColor, ref, watch } from '#imports'
 
 interface Props {
   modelValue?: string | any

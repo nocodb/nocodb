@@ -17,7 +17,7 @@ export class FootbarPage extends BasePage {
     this.parent = parent;
     this.leftSidebarToggle = this.get().locator(`div.nc-sidebar-left-toggle-icon`);
     this.rightSidebarToggle = this.get().locator(`div.nc-sidebar-right-toggle-icon`);
-    this.btn_addNewRow = this.get().getByTestId('nc-pagination-add-record');
+    this.btn_addNewRow = this.rootPage.getByTestId('nc-pagination-add-record');
   }
 
   get() {
@@ -38,12 +38,18 @@ export class FootbarPage extends BasePage {
   }
 
   async clickAddRecordFromForm() {
-    await this.get().locator(`button.ant-btn`).nth(1).click();
+    await this.rootPage.locator('.nc-add-record-more-info').click();
+
     await this.rootPage.locator('.ant-dropdown-content:visible').waitFor();
     await this.rootPage.locator('.ant-dropdown-content:visible').locator('.nc-new-record-with-form').click();
   }
 
   async verifyLockMode() {
+    // add record button
+    await expect(this.btn_addNewRow).toBeVisible({ visible: true });
+  }
+
+  async verifyPersonalMode() {
     // add record button
     await expect(this.btn_addNewRow).toBeVisible({ visible: true });
   }

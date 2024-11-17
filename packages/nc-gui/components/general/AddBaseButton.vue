@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { iconMap } from '#imports'
-
 const { isUIAllowed } = useRoles()
 
 const { t } = useI18n()

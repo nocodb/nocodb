@@ -1,5 +1,6 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
+import { ColumnType } from '~/lib';
 
 const dbTypes = [
   'int',
@@ -556,7 +557,7 @@ export class SqliteUi {
     }
   }
 
-  static getDataTypeForUiType(col: { uidt: UITypes; }, idType?: IDType) {
+  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
@@ -697,7 +698,7 @@ export class SqliteUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col: { uidt: UITypes; }, idType?: IDType) {
+  static getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType) {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {
@@ -859,6 +860,7 @@ export class SqliteUi {
         ];
 
       case 'Formula':
+      case 'Button':
         return ['text', 'varchar'];
 
       case 'Rollup':
@@ -927,5 +929,25 @@ export class SqliteUi {
       'MONTH',
       'HOUR',
     ];
+  }
+
+  static getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return null;
+  }
+
+  static isEqual(dataType1: string, dataType2: string) {
+    if (dataType1 === dataType2) return true;
+
+    const abstractType1 = this.getAbstractType({ dt: dataType1 });
+    const abstractType2 = this.getAbstractType({ dt: dataType2 });
+
+    if (
+      abstractType1 &&
+      abstractType1 === abstractType2 &&
+      ['integer', 'float'].includes(abstractType1)
+    )
+      return true;
+
+    return false;
   }
 }

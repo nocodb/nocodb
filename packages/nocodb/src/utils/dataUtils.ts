@@ -52,3 +52,66 @@ export const getParamsHash = (params: Record<string, string | string[]>) => {
 
   return hash64(paramsStr);
 };
+
+const isMergeableObject = (val: any) => {
+  const nonNullObject = val && typeof val === 'object';
+  return (
+    nonNullObject &&
+    Object.prototype.toString.call(val) !== '[object RegExp]' &&
+    Object.prototype.toString.call(val) !== '[object Date]'
+  );
+};
+
+/**
+ * Deep merge two objects
+ * @param target target object to merge
+ * @param sources source objects to merge
+ * @returns
+ **/
+export const deepMerge = (target: any, ...sources: any[]) => {
+  if (!sources.length) return target;
+  const source = sources.shift();
+
+  if (source === undefined) return target;
+
+  if (isMergeableObject(target) && isMergeableObject(source)) {
+    Object.keys(source).forEach((key) => {
+      if (isMergeableObject(source[key])) {
+        if (!target[key]) target[key] = {};
+        deepMerge(target[key], source[key]);
+      } else {
+        target[key] = source[key];
+      }
+    });
+  }
+
+  return deepMerge(target, ...sources);
+};
+
+/**
+ * Function to extract object with certain nested path in same structure
+ */
+export const partialExtract = (obj: any, path: (string[] | string)[]) => {
+  if (typeof obj !== 'object' || obj === null) return obj;
+
+  const result: Record<string, any> = {};
+
+  for (const key of path) {
+    if (Array.isArray(key)) {
+      const [first, ...rest] = key;
+
+      if (rest.length) {
+        result[first] = Object.assign(
+          result[first] || {},
+          partialExtract(obj[first], rest),
+        );
+      } else {
+        result[first] = obj[first];
+      }
+    } else {
+      result[key] = obj[key];
+    }
+  }
+
+  return result;
+};

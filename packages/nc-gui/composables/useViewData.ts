@@ -2,28 +2,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import axios from 'axios'
 import type { Api, ColumnType, FormColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import {
-  IsPublicInj,
-  NOCO,
-  NavigateDir,
-  computed,
-  extractPkFromRow,
-  extractSdkResponseErrorMsg,
-  message,
-  ref,
-  storeToRefs,
-  useApi,
-  useBase,
-  useGlobal,
-  useI18n,
-  useNuxtApp,
-  useRoles,
-  useRouter,
-  useSharedView,
-  useSmartsheetStoreOrThrow,
-  useState,
-} from '#imports'
-import type { Row } from '#imports'
+import { NavigateDir } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -37,9 +16,11 @@ export function useViewData(
   viewMeta: Ref<ViewType | undefined> | ComputedRef<(ViewType & { id: string }) | undefined>,
   where?: ComputedRef<string | undefined>,
 ) {
-  const { activeTableId, activeTable } = storeToRefs(useTablesStore())
+  const tablesStore = useTablesStore()
+  const { activeTableId, activeTable } = storeToRefs(tablesStore)
 
   const meta = computed(() => _meta.value || activeTable.value)
+
   const metaId = computed(() => _meta.value?.id || activeTableId.value)
 
   const { t } = useI18n()
@@ -52,9 +33,9 @@ export function useViewData(
 
   const route = router.currentRoute
 
-  const { appInfo } = useGlobal()
+  const { appInfo, gridViewPageSize } = useGlobal()
 
-  const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
+  const appInfoDefaultLimit = gridViewPageSize.value || appInfo.value.defaultLimit || 25
 
   const _paginationData = ref<PaginatedType>({ page: 1, pageSize: appInfoDefaultLimit })
 
@@ -68,9 +49,11 @@ export function useViewData(
 
   const formattedData = ref<Row[]>([])
 
+  const excludePageInfo = ref(false)
+
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { base, isSharedBase } = storeToRefs(useBase())
+  const { base } = storeToRefs(useBase())
 
   const { sharedView, fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
 
@@ -152,7 +135,7 @@ export function useViewData(
   async function loadAggCommentsCount() {
     if (!isUIAllowed('commentCount')) return
 
-    if (isPublic.value || isSharedBase.value) return
+    if (isPublic.value) return
 
     const ids = formattedData.value
       ?.filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -162,20 +145,24 @@ export function useViewData(
 
     if (!ids?.length || ids?.some((id) => !id)) return
 
-    aggCommentCount.value = await $api.utils.commentCount({
-      ids,
-      fk_model_id: metaId.value as string,
-    })
+    try {
+      aggCommentCount.value = await $api.utils.commentCount({
+        ids,
+        fk_model_id: metaId.value as string,
+      })
 
-    for (const row of formattedData.value) {
-      const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-      row.rowMeta.commentCount = +(aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0)
+      for (const row of formattedData.value) {
+        const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+        row.rowMeta.commentCount = +(aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0)
+      }
+    } catch (e) {
+      console.error(e)
     }
   }
 
   const controller = ref()
 
-  async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) {
+  async function loadData(params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}, shouldShowLoading = true) {
     if ((!base?.value?.id || !metaId.value || !viewMeta.value?.id) && !isPublic.value) return
 
     if (controller.value) {
@@ -186,7 +173,7 @@ export function useViewData(
 
     controller.value = CancelToken.source()
 
-    isPaginationLoading.value = true
+    if (shouldShowLoading) isPaginationLoading.value = true
     let response
 
     try {
@@ -202,8 +189,11 @@ export function useViewData(
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
               where: where?.value,
+              ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
             } as any,
-            { cancelToken: controller.value.token },
+            {
+              cancelToken: controller.value.token,
+            },
           )
         : await fetchSharedViewData({ sortsArr: sorts.value, filtersArr: nestedFilters.value, where: where?.value })
     } catch (error) {
@@ -211,20 +201,38 @@ export function useViewData(
       if (error.code === 'ERR_CANCELED') {
         return
       }
+
+      // retry the request if the error is FORMULA_ERROR
+      if (error?.response?.data?.error === 'FORMULA_ERROR') {
+        message.error(await extractSdkResponseErrorMsg(error))
+
+        await tablesStore.reloadTableMeta(metaId.value as string)
+
+        return loadData(params, shouldShowLoading)
+      }
+
       console.error(error)
       return message.error(await extractSdkResponseErrorMsg(error))
     }
     formattedData.value = formatData(response.list)
-    paginationData.value = response.pageInfo
+    paginationData.value = response.pageInfo || paginationData.value || {}
+
+    // if public then update sharedPaginationData
+    if (isPublic.value) {
+      sharedPaginationData.value = paginationData.value
+    }
+
+    excludePageInfo.value = !response.pageInfo
     isPaginationLoading.value = false
 
     // to cater the case like when querying with a non-zero offset
     // the result page may point to the target page where the actual returned data don't display on
-    const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
-    if (expectedPage < paginationData.value.page!) {
-      await changePage(expectedPage)
+    if (paginationData.value.totalRows !== undefined && paginationData.value.totalRows !== null) {
+      const expectedPage = Math.max(1, Math.ceil(paginationData.value.totalRows! / paginationData.value.pageSize!))
+      if (expectedPage < paginationData.value.page!) {
+        await changePage(expectedPage)
+      }
     }
-
     if (viewMeta.value?.type === ViewTypes.GRID) {
       loadAggCommentsCount()
     }
@@ -297,9 +305,17 @@ export function useViewData(
           fk_column_id: c.id,
           fk_view_id: viewMeta.value?.id,
           ...(fieldById[c.id!] ? fieldById[c.id!] : {}),
-          meta: { ...parseProp(fieldById[c.id!]?.meta), ...parseProp(c.meta) },
+          meta: {
+            validators: [],
+            visibility: {
+              errors: {},
+            },
+            ...parseProp(fieldById[c.id!]?.meta),
+            ...parseProp(c.meta),
+          },
           order: (fieldById[c.id!] && fieldById[c.id!].order) || order++,
           id: fieldById[c.id!] && fieldById[c.id!].id,
+          visible: true,
         }))
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>[]
     } catch (e: any) {
@@ -355,9 +371,8 @@ export function useViewData(
 
     // extract the row id of the sibling row
     const rowId = extractPkFromRow(formattedData.value[siblingRowIndex].row, meta.value?.columns as ColumnType[])
-
     if (rowId) {
-      router.push({
+      await router.push({
         query: {
           ...routeQuery.value,
           rowId,

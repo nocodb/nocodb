@@ -1,6 +1,8 @@
 
 @use 'header';
 
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+
 /**
  * Any CSS included here will be global. The classic template
  * bundles Infima by default. Infima is a CSS framework designed to
@@ -32,7 +34,7 @@
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
 
-.markdown img {
+.markdown :not(em) > * > img {
   -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
   -moz-box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);

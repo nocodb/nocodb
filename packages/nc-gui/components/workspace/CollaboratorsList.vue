@@ -1,182 +1,337 @@
 <script lang="ts" setup>
-import { OrderedWorkspaceRoles, WorkspaceUserRoles, parseStringDateTime, timeAgo } from 'nocodb-sdk'
-import { storeToRefs, useUserSorts, useWorkspace } from '#imports'
+import { OrderedWorkspaceRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 
-const { workspaceRoles, loadRoles } = useRoles()
+const props = defineProps<{
+  workspaceId?: string
+}>()
+
+const { workspaceRoles } = useRoles()
+
+const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
+const { removeCollaborator, updateCollaborator: _updateCollaborator, loadWorkspace } = workspaceStore
 
-const { collaborators, workspaceRole } = storeToRefs(workspaceStore)
+const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading } = storeToRefs(workspaceStore)
 
-const { sorts, sortDirection, loadSorts, saveOrUpdate, handleGetSortedData } = useUserSorts('Workspace')
+const currentWorkspace = computedAsync(async () => {
+  if (props.workspaceId) {
+    const ws = workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+    if (!ws) {
+      await loadWorkspace(props.workspaceId)
+
+      return workspacesList.value.find((workspace) => workspace.id === props.workspaceId)
+    }
+  }
+  return activeWorkspace.value ?? workspacesList.value[0]
+})
+
+const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Workspace')
 
 const userSearchText = ref('')
+
+const isAdminPanel = inject(IsAdminPanelInj, ref(false))
+
+const isOnlyOneOwner = computed(() => {
+  return collaborators.value?.filter((collab) => collab.roles === WorkspaceUserRoles.OWNER).length === 1
+})
+
+const { t } = useI18n()
+
+const inviteDlg = ref(false)
 
 const filterCollaborators = computed(() => {
   if (!userSearchText.value) return collaborators.value ?? []
 
   if (!collaborators.value) return []
 
-  return collaborators.value.filter((collab) =>
-    (collab.display_name || collab.email).toLowerCase().includes(userSearchText.value.toLowerCase()),
+  return collaborators.value.filter(
+    (collab) =>
+      collab.display_name?.toLowerCase().includes(userSearchText.value.toLowerCase()) ||
+      collab.email?.toLowerCase().includes(userSearchText.value.toLowerCase()),
   )
 })
+
+const selected = reactive<{
+  [key: number]: boolean
+}>({})
+
+const toggleSelectAll = (value: boolean) => {
+  filterCollaborators.value.forEach((_, i) => {
+    selected[i] = value
+  })
+}
 
 const sortedCollaborators = computed(() => {
   return handleGetSortedData(filterCollaborators.value, sorts.value)
 })
 
-const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
-  try {
-    await _updateCollaborator(collab.id, roles)
-    message.success('Successfully updated user role')
+const selectAll = computed({
+  get: () =>
+    Object.values(selected).every((v) => v) &&
+    Object.keys(selected).length > 0 &&
+    Object.values(selected).length === sortedCollaborators.value.length,
+  set: (value) => {
+    toggleSelectAll(value)
+  },
+})
 
-    collaborators.value?.forEach((collaborator) => {
-      if (collaborator.id === collab.id) {
-        collaborator.roles = roles
-      }
-    })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
+const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
+  if (!currentWorkspace.value || !currentWorkspace.value.id) return
+
+  const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id)
+  if (!res) return
+  message.success('Successfully updated user role')
+
+  collaborators.value?.forEach((collaborator) => {
+    if (collaborator.id === collab.id) {
+      collaborator.roles = roles
+    }
+  })
 }
+
+const isOwnerOrCreator = computed(() => {
+  return workspaceRoles.value[WorkspaceUserRoles.OWNER] || workspaceRoles.value[WorkspaceUserRoles.CREATOR]
+})
 
 const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
   const currentRoleIndex = OrderedWorkspaceRoles.findIndex(
     (role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role),
   )
   if (currentRoleIndex === -1) return []
-  return OrderedWorkspaceRoles.slice(currentRoleIndex + 1).filter((r) => r)
+  return OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
 })
 
 onMounted(async () => {
-  await loadRoles()
   loadSorts()
 })
+
+const orderBy = computed<Record<string, SordDirectionType>>({
+  get: () => {
+    return sortDirection.value
+  },
+  set: (value: Record<string, SordDirectionType>) => {
+    // Check if value is an empty object
+    if (Object.keys(value).length === 0) {
+      saveOrUpdateUserSort({})
+      return
+    }
+
+    const [field, direction] = Object.entries(value)[0]
+
+    saveOrUpdateUserSort({
+      field,
+      direction,
+    })
+  },
+})
+
+const columns = [
+  {
+    key: 'select',
+    title: '',
+    width: 70,
+    minWidth: 70,
+  },
+  {
+    key: 'email',
+    title: t('objects.users'),
+    minWidth: 220,
+    dataIndex: 'email',
+    showOrderBy: true,
+  },
+  {
+    key: 'role',
+    title: t('general.access'),
+    basis: '25%',
+    minWidth: 252,
+    dataIndex: 'roles',
+    showOrderBy: true,
+  },
+  {
+    key: 'created_at',
+    title: t('title.dateJoined'),
+    basis: '25%',
+    minWidth: 200,
+  },
+  {
+    key: 'action',
+    title: t('labels.actions'),
+    width: 110,
+    minWidth: 110,
+    justify: 'justify-end',
+  },
+] as NcTableColumnProps[]
+
+const customRow = (_record: Record<string, any>, recordIndex: number) => ({
+  class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0`,
+})
+
+const isDeleteOrUpdateAllowed = (user) => {
+  return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
+}
 </script>
 
 <template>
-  <div class="nc-collaborator-table-container mt-4 mx-6 h-[calc(100vh-12rem)]">
-    <div class="w-full flex justify-between items-baseline mt-6.5 mb-2 pr-0.25 ml-2">
-      <div class="text-xl">Invite Members By Email</div>
-      <a-input v-model:value="userSearchText" class="!max-w-90 !rounded-md mr-4" placeholder="Search members">
+  <div
+    class="nc-collaborator-table-container py-6 max-w-350 px-6 flex flex-col gap-6"
+    :class="{
+      'h-[calc(100vh-144px)]': isAdminPanel,
+      'h-[calc(100vh-92px)]': !isAdminPanel,
+    }"
+  >
+    <div class="w-full flex items-center justify-between gap-3">
+      <a-input
+        v-model:value="userSearchText"
+        allow-clear
+        :disabled="isCollaboratorsLoading"
+        class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+        placeholder="Search members"
+      >
         <template #prefix>
-          <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
         </template>
       </a-input>
-    </div>
-    <WorkspaceInviteSection v-if="workspaceRole !== WorkspaceUserRoles.VIEWER" />
-    <div v-if="!filterCollaborators?.length" class="w-full h-full flex flex-col items-center justify-center mt-36">
-      <a-empty description="No members found" />
-    </div>
-    <div v-else class="nc-collaborators-list mt-6 h-full">
-      <div class="flex flex-col rounded-lg overflow-hidden border-1 max-w-350 max-h-[calc(100%-8rem)]">
-        <div class="flex flex-row bg-gray-50 min-h-12 items-center">
-          <div class="text-gray-700 users-email-grid w-3/8 ml-10 mr-3 flex items-center space-x-2">
-            <span>
-              {{ $t('objects.users') }}
-            </span>
-            <LazyAccountUserMenu :direction="sortDirection.email" field="email" :handle-user-sort="saveOrUpdate" />
-          </div>
-          <div class="text-gray-700 user-access-grid w-2/8 mr-3 flex items-center space-x-2">
-            <span>
-              {{ $t('general.access') }}
-            </span>
-            <LazyAccountUserMenu :direction="sortDirection.roles" field="roles" :handle-user-sort="saveOrUpdate" />
-          </div>
-          <div class="text-gray-700 date-joined-grid w-2/8 mr-3">{{ $t('title.dateJoined') }}</div>
-          <div class="text-gray-700 user-access-grid w-1/8">Actions</div>
+      <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
+        <div class="flex items-center gap-2">
+          <component :is="iconMap.plus" class="!h-4 !w-4" />
+          {{ $t('labels.addMember') }}
         </div>
+      </NcButton>
+    </div>
+    <div class="flex h-[calc(100%-4rem)]">
+      <NcTable
+        v-model:order-by="orderBy"
+        :columns="columns"
+        :data="sortedCollaborators"
+        :is-data-loading="isCollaboratorsLoading"
+        :custom-row="customRow"
+        :bordered="false"
+        class="flex-1 nc-collaborators-list"
+      >
+        <template #emptyText>
+          <a-empty :description="$t('title.noMembersFound')" />
+        </template>
 
-        <div class="flex flex-col nc-scrollbar-md">
-          <div
-            v-for="(collab, i) of sortedCollaborators"
-            :key="i"
-            class="flex flex-row border-b-1 py-1 min-h-14 items-center justify-around last"
-          >
-            <div class="flex gap-3 items-center users-email-grid w-3/8 ml-10">
-              <GeneralUserIcon size="base" :name="collab.email" :email="collab.email" />
-              <NcTooltip v-if="collab.display_name">
+        <template #headerCell="{ column }">
+          <template v-if="column.key === 'select'">
+            <NcCheckbox v-model:checked="selectAll" :disabled="!sortedCollaborators.length" />
+          </template>
+          <template v-else>
+            {{ column.title }}
+          </template>
+        </template>
+
+        <template #bodyCell="{ column, record, recordIndex }">
+          <template v-if="column.key === 'select'">
+            <NcCheckbox v-model:checked="selected[recordIndex]" />
+          </template>
+
+          <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
+            <GeneralUserIcon size="base" :email="record.email" class="flex-none" />
+            <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+              <div class="flex gap-3">
+                <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
+                  <template #title>
+                    {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                  </template>
+                  {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
+                </NcTooltip>
+              </div>
+              <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
                 <template #title>
-                  {{ collab.email }}
+                  {{ record.email }}
                 </template>
-                <span class="truncate">
-                  {{ collab.display_name }}
-                </span>
+                {{ record.email }}
               </NcTooltip>
-              <span v-else class="truncate">
-                {{ collab.email }}
-              </span>
-            </div>
-            <div class="user-access-grid w-2/8">
-              <template v-if="accessibleRoles.includes(collab.roles)">
-                <div class="w-[30px]">
-                  <RolesSelector
-                    :role="collab.roles"
-                    :roles="accessibleRoles"
-                    :description="false"
-                    class="cursor-pointer"
-                    :on-role-change="(role) => updateCollaborator(collab, role)"
-                  />
-                </div>
-              </template>
-              <template v-else>
-                <RolesBadge :role="collab.roles" class="cursor-default" />
-              </template>
-            </div>
-            <div class="date-joined-grid w-2/8 flex justify-start">
-              <NcTooltip class="max-w-full">
-                <template #title>
-                  {{ parseStringDateTime(collab.created_at) }}
-                </template>
-                <span>
-                  {{ timeAgo(collab.created_at) }}
-                </span>
-              </NcTooltip>
-            </div>
-            <div class="w-1/8 pl-6">
-              <NcDropdown v-if="collab.roles !== WorkspaceUserRoles.OWNER" :trigger="['click']">
-                <MdiDotsVertical
-                  class="border-1 !text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
-                />
-                <template #overlay>
-                  <NcMenu>
-                    <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="removeCollaborator(collab.id)">
-                      <MaterialSymbolsDeleteOutlineRounded />
-                      Remove user
-                    </NcMenuItem>
-                  </NcMenu>
-                </template>
-              </NcDropdown>
             </div>
           </div>
-          <div v-if="sortedCollaborators.length === 1" class="pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
+          <div v-if="column.key === 'role'">
+            <template
+              v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles as WorkspaceUserRoles)"
+            >
+              <RolesSelector
+                :description="false"
+                :on-role-change="(role) => updateCollaborator(record, role as WorkspaceUserRoles)"
+                :role="record.roles"
+                :roles="accessibleRoles"
+                class="cursor-pointer"
+              />
+            </template>
+            <template v-else>
+              <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
+            </template>
+          </div>
+          <div v-if="column.key === 'created_at'">
+            <NcTooltip class="max-w-full">
+              <template #title>
+                {{ parseStringDateTime(record.created_at) }}
+              </template>
+              <span>
+                {{ timeAgo(record.created_at) }}
+              </span>
+            </NcTooltip>
+          </div>
+
+          <div v-if="column.key === 'action'">
+            <NcDropdown v-if="isOwnerOrCreator || record.id === user.id">
+              <NcButton size="small" type="secondary">
+                <component :is="iconMap.threeDotVertical" />
+              </NcButton>
+              <template #overlay>
+                <NcMenu>
+                  <template v-if="isAdminPanel">
+                    <NcMenuItem data-testid="nc-admin-org-user-delete">
+                      <GeneralIcon class="text-gray-800" icon="signout" />
+                      <span>{{ $t('labels.signOutUser') }}</span>
+                    </NcMenuItem>
+
+                    <a-menu-divider class="my-1.5" />
+                  </template>
+                  <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
+                    <template #title>
+                      Each workspace must have at least one owner. Please assign another user as the Owner before leaving the
+                      workspace. If you are the last member, consider deleting the workspace instead.
+                    </template>
+                    <NcMenuItem
+                      :disabled="!isDeleteOrUpdateAllowed(record)"
+                      :class="{ '!text-red-500 !hover:bg-red-50': isDeleteOrUpdateAllowed(record) }"
+                      @click="removeCollaborator(record.id, currentWorkspace?.id)"
+                    >
+                      <MaterialSymbolsDeleteOutlineRounded />
+                      {{ record.id === user.id ? 'Leave workspace' : 'Remove user' }}
+                    </NcMenuItem>
+                  </NcTooltip>
+                </NcMenu>
+              </template>
+            </NcDropdown>
+          </div>
+        </template>
+
+        <template #extraRow>
+          <div v-if="collaborators?.length === 1" class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
             <div class="text-2xl text-gray-800 font-bold">
               {{ $t('placeholder.inviteYourTeam') }}
             </div>
             <div class="text-sm text-gray-700">
               {{ $t('placeholder.inviteYourTeamLabel') }}
             </div>
-            <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none" />
+            <img src="~assets/img/placeholder/invite-team.png" alt="Invite Team" class="!w-[30rem] flex-none" />
           </div>
-        </div>
-      </div>
+        </template>
+      </NcTable>
     </div>
+    <DlgInviteDlg v-if="currentWorkspace" v-model:model-value="inviteDlg" :workspace-id="currentWorkspace?.id" type="workspace" />
   </div>
 </template>
 
 <style scoped lang="scss">
+:deep(.ant-input::placeholder) {
+  @apply text-gray-500;
+}
+
 .badge-text {
   @apply text-[14px] pt-1 text-center;
-}
-
-.nc-collaborators-list-table {
-  @apply min-w-[700px] !w-full border-gray-100 mt-1;
-}
-
-.last:last-child {
-  border-bottom: none;
 }
 </style>

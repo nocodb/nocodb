@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { definePageMeta, extractSdkResponseErrorMsg, message, ref, useRoute, useSharedView } from '#imports'
+import { ViewTypes } from 'nocodb-sdk'
 
 definePageMeta({
   public: true,
@@ -39,5 +39,5 @@ onMounted(async () => {
     <LazySharedViewAskPassword v-model="showPassword" />
   </div>
 
-  <LazySharedViewGrid v-else-if="meta" />
+  <LazySharedViewGrid v-else-if="meta" :view-type="ViewTypes.GRID" />
 </template>

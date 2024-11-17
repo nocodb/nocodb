@@ -3,12 +3,13 @@ const props = withDefaults(
   defineProps<{
     visible: boolean
     width?: string | number
-    size?: 'small' | 'medium' | 'large'
+    height?: string | number
+    size?: 'small' | 'medium' | 'large' | keyof typeof modalSizes
     destroyOnClose?: boolean
     maskClosable?: boolean
     showSeparator?: boolean
     wrapClassName?: string
-    centered?: boolean
+    closable?: boolean
   }>(),
   {
     size: 'medium',
@@ -16,13 +17,15 @@ const props = withDefaults(
     maskClosable: true,
     showSeparator: true,
     wrapClassName: '',
-    centered: true,
+    closable: false,
   },
 )
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth, destroyOnClose, maskClosable, wrapClassName: _wrapClassName, showSeparator } = props
+const { width: propWidth, height: propHeight, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
+
+const { maskClosable } = toRefs(props)
 
 const { isMobileMode } = useGlobal()
 
@@ -47,12 +50,20 @@ const width = computed(() => {
     return '80rem'
   }
 
+  if (modalSizes[props.size]) {
+    return modalSizes[props.size].width
+  }
+
   return 'max(30vw, 600px)'
 })
 
 const height = computed(() => {
   if (isMobileMode.value) {
     return '95vh'
+  }
+
+  if (propHeight) {
+    return propHeight
   }
 
   if (props.size === 'small') {
@@ -65,6 +76,10 @@ const height = computed(() => {
 
   if (props.size === 'large') {
     return '80vh'
+  }
+
+  if (modalSizes[props.size]) {
+    return modalSizes[props.size].height
   }
 
   return 'auto'
@@ -88,8 +103,8 @@ const slots = useSlots()
     v-model:visible="visible"
     :class="{ active: visible }"
     :width="width"
-    :centered="centered"
-    :closable="false"
+    :centered="true"
+    :closable="closable"
     :wrap-class-name="newWrapClassName"
     :footer="null"
     :mask-closable="maskClosable"
@@ -100,14 +115,15 @@ const slots = useSlots()
       class="flex flex-col nc-modal p-6 h-full"
       :style="{
         maxHeight: height,
+        ...(modalSizes[size] ? { height } : {}),
       }"
     >
       <div
         v-if="slots.header"
         :class="{
-          'border-b-1 border-gray-100': showSeparator,
+          'border-b-1 border-gray-200': showSeparator,
         }"
-        class="flex pb-2 mb-2 text-lg font-medium"
+        class="flex pb-2 mb-2 nc-modal-header text-lg font-medium"
       >
         <slot name="header" />
       </div>

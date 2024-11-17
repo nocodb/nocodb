@@ -24,7 +24,7 @@ test.describe('Swagger', () => {
 
     // authorize with token information
     await swagger.locator('.btn.authorize').click();
-    await swagger.locator('.modal-ux').locator('input').first().fill(context.token);
+    await swagger.locator('.modal-ux').locator('input').first().fill(context.apiToken);
     await swagger.locator('.btn.modal-btn.auth.authorize.button').first().click();
     await swagger.locator('.close-modal').click();
 

@@ -18,3 +18,5 @@ export const GROUP_BY_VARS = {
     __nc_false__: 'Unchecked',
   } as Record<string, string>,
 }
+
+export const INITIAL_LEFT_SIDEBAR_WIDTH = 288

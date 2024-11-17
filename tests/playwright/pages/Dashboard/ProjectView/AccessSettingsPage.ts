@@ -19,7 +19,7 @@ export class AccessSettingsPage extends BasePage {
 
     for (let i = 0; i < userCount; i++) {
       const user = this.get().locator('.user-row').nth(i);
-      const userEmail = (await user.locator('.users-email-grid').innerText()).split('\n')[1];
+      const userEmail = (await user.locator('.users-email-grid').innerText()).split('\n').pop();
 
       if (userEmail === email) {
         const roleDropdown = user.locator('.nc-roles-selector');

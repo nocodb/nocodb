@@ -14,23 +14,35 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import contentDisposition from 'content-disposition';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { AttachmentsService } from '~/services/attachments.service';
 import { PresignedUrl } from '~/models';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { NcContext, NcRequest } from '~/interface/config';
+import { isPreviewAllowed, localFileExists } from '~/helpers/attachmentHelpers';
+import { DataTableService } from '~/services/data-table.service';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { Column } from '~/models';
+import { NcError } from '~/helpers/catchError';
 
 @Controller()
 export class AttachmentsController {
-  constructor(private readonly attachmentsService: AttachmentsService) {}
+  constructor(
+    private readonly attachmentsService: AttachmentsService,
+    private readonly dataTableService: DataTableService,
+  ) {}
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/db/storage/upload', '/api/v2/storage/upload'])
   @HttpCode(200)
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
-  async upload(@UploadedFiles() files: Array<FileType>, @Req() req: Request) {
+  async upload(@UploadedFiles() files: Array<FileType>, @Req() req: NcRequest) {
     const attachments = await this.attachmentsService.upload({
       files: files,
       path: req.query?.path?.toString(),
@@ -47,7 +59,7 @@ export class AttachmentsController {
   async uploadViaURL(
     @Body() body: Array<AttachmentReqType>,
     @Query('path') path: string,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
     const attachments = await this.attachmentsService.uploadViaURL({
       urls: body,
@@ -62,16 +74,30 @@ export class AttachmentsController {
   // , getCacheMiddleware(), catchError(fileRead));
   @Get('/download/:filename(*)')
   // This route will match any URL that starts with
-  async fileRead(@Param('filename') filename: string, @Res() res: Response) {
+  async fileRead(
+    @Param('filename') filename: string,
+    @Res() res: Response,
+    @Query('filename') queryFilename?: string,
+  ) {
     try {
       const file = await this.attachmentsService.getFile({
         path: path.join('nc', 'uploads', filename),
       });
 
-      if (this.attachmentsService.previewAvailable(file.type)) {
+      if (!(await localFileExists(file.path))) {
+        return res.status(404).send('File not found');
+      }
+
+      if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
+        if (queryFilename) {
+          res.setHeader(
+            'Content-Disposition',
+            contentDisposition(queryFilename, { type: 'attachment' }),
+          );
+        }
         res.sendFile(file.path);
       } else {
-        res.download(file.path);
+        res.download(file.path, queryFilename);
       }
     } catch (e) {
       res.status(404).send('Not found');
@@ -86,6 +112,7 @@ export class AttachmentsController {
     @Param('param2') param2: string,
     @Param('filename') filename: string,
     @Res() res: Response,
+    @Query('filename') queryFilename?: string,
   ) {
     try {
       const file = await this.attachmentsService.getFile({
@@ -98,10 +125,20 @@ export class AttachmentsController {
         ),
       });
 
-      if (this.attachmentsService.previewAvailable(file.type)) {
+      if (!(await localFileExists(file.path))) {
+        return res.status(404).send('File not found');
+      }
+
+      if (isPreviewAllowed({ mimetype: file.type, path: file.path })) {
+        if (queryFilename) {
+          res.setHeader(
+            'Content-Disposition',
+            contentDisposition(queryFilename, { type: 'attachment' }),
+          );
+        }
         res.sendFile(file.path);
       } else {
-        res.download(file.path);
+        res.download(file.path, queryFilename);
       }
     } catch (e) {
       res.status(404).send('Not found');
@@ -111,19 +148,82 @@ export class AttachmentsController {
   @Get('/dltemp/:param(*)')
   async fileReadv3(@Param('param') param: string, @Res() res: Response) {
     try {
-      const fpath = await PresignedUrl.getPath(`dltemp/${param}`);
+      const fullPath = await PresignedUrl.getPath(`dltemp/${param}`);
+
+      const queryHelper = fullPath.split('?');
+
+      const fpath = queryHelper[0];
+
+      let queryResponseContentType = null;
+      let queryResponseContentDisposition = null;
+
+      if (queryHelper.length > 1) {
+        const query = new URLSearchParams(queryHelper[1]);
+        queryResponseContentType = query.get('ResponseContentType');
+        queryResponseContentDisposition = query.get(
+          'ResponseContentDisposition',
+        );
+      }
+
+      const filePath = param.split('/')[2] === 'thumbnails' ? '' : 'uploads';
 
       const file = await this.attachmentsService.getFile({
-        path: path.join('nc', 'uploads', fpath),
+        path: path.join('nc', filePath, fpath),
       });
 
-      if (this.attachmentsService.previewAvailable(file.type)) {
-        res.sendFile(file.path);
-      } else {
-        res.download(file.path);
+      if (!(await localFileExists(file.path))) {
+        return res.status(404).send('File not found');
       }
+
+      if (queryResponseContentType) {
+        res.setHeader('Content-Type', queryResponseContentType);
+      }
+
+      if (queryResponseContentDisposition) {
+        res.setHeader('Content-Disposition', queryResponseContentDisposition);
+      }
+
+      res.sendFile(file.path);
     } catch (e) {
       res.status(404).send('Not found');
     }
+  }
+
+  @UseGuards(DataApiLimiterGuard, GlobalGuard)
+  @Get('/api/v2/downloadAttachment/:modelId/:columnId/:rowId')
+  @Acl('dataRead')
+  async downloadAttachment(
+    @TenantContext() context: NcContext,
+    @Param('modelId') modelId: string,
+    @Param('columnId') columnId: string,
+    @Param('rowId') rowId: string,
+    @Query('urlOrPath') urlOrPath: string,
+  ) {
+    const column = await Column.get(context, {
+      colId: columnId,
+    });
+
+    if (!column) {
+      NcError.fieldNotFound(columnId);
+    }
+
+    const record = await this.dataTableService.dataRead(context, {
+      baseId: context.base_id,
+      modelId,
+      rowId,
+      query: {
+        fields: column.title,
+      },
+    });
+
+    if (!record) {
+      NcError.recordNotFound(rowId);
+    }
+
+    return this.attachmentsService.getAttachmentFromRecord({
+      record,
+      column,
+      urlOrPath,
+    });
   }
 }

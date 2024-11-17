@@ -12,19 +12,21 @@ const isCopied = ref({
   embed: false,
 })
 
+const { copy } = useCopy()
+
 const openUrl = async () => {
   window.open(url.value, '_blank', 'noopener,noreferrer')
 }
 
 const embedHtml = async () => {
-  await navigator.clipboard.writeText(`<iframe src="${url.value}" width="100%" height="100%" style="border: none;"></iframe>`)
+  await copy(`<iframe src="${url.value}" width="100%" height="100%" style="border: none;"></iframe>`)
   isCopied.value.embed = true
 }
 
 const copyUrl = async () => {
   isCopied.value.link = false
 
-  await navigator.clipboard.writeText(url.value)
+  await copy(url.value)
 
   setTimeout(() => {
     isCopied.value.link = true
@@ -37,9 +39,9 @@ const copyUrl = async () => {
     class="flex flex-row items-center justify-end text-gray-600 gap-x-1.5 py-1.5 px-1.5 bg-gray-50 rounded-md border-1 border-gray-200"
   >
     <div class="flex flex-row block flex-1 overflow-hidden pl-3 cursor-pointer" @click="copyUrl">
-      <div class="overflow-hidden whitespace-nowrap truncate text-gray-500">{{ url }}</div>
+      <div class="overflow-hidden whitespace-nowrap text-gray-500">{{ url }}</div>
     </div>
-    <div class="flex !text-gray-700 flex-row gap-x-1">
+    <div class="flex flex-row gap-x-1">
       <NcTooltip>
         <template #title>
           {{ $t('activity.openInANewTab') }}

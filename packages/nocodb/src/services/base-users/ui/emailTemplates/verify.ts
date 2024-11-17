@@ -132,7 +132,7 @@ export default `<!doctype html>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
                                             Hi,</p>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            Please verify your email address by clicking the following button.</p>
+                                            Please verify your e-mail address by clicking the following button.</p>
                                         <table role="presentation" border="0" cellpadding="0" cellspacing="0"
                                                class="btn btn-primary"
                                                style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; box-sizing: border-box; width: 100%;"
@@ -149,7 +149,7 @@ export default `<!doctype html>
                                                         <tr>
                                                             <td style="font-family: sans-serif; font-size: 14px; vertical-align: top; border-radius: 5px; text-align: center; background-color: #3498db;"
                                                                 valign="top" align="center" bgcolor="#1088ff"><a
-                                                                        href="<%- verifyLink %>" target="_blank"
+                                                                        href="<%= verifyLink %>" target="_blank"
                                                                         style="border: solid 1px rgb(23, 139, 255); border-radius: 5px; box-sizing: border-box; cursor: pointer; display: inline-block; font-size: 14px; font-weight: bold; margin: 0; padding: 12px 25px; text-decoration: none; text-transform: capitalize; background-color: rgb(23, 139, 255); border-color: #3498db; color: #ffffff;">Verify</a>
                                                             </td>
                                                         </tr>
@@ -160,7 +160,7 @@ export default `<!doctype html>
                                             </tbody>
                                         </table>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            Thanks regards NocoDB.</p>
+                                            Thank you and have a nice day,<br><%= adminEmail %>
                                     </td>
                                 </tr>
                             </table>

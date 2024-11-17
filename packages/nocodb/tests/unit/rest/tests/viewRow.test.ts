@@ -1,17 +1,19 @@
 import 'mocha';
 // @ts-ignore
+import assert from 'assert';
 import request from 'supertest';
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { APIContext, UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
-import { createTable, getTable } from '../../factory/table';
-import { createView } from '../../factory/view';
+import { createTable, getAllTables, getTable } from '../../factory/table';
+import { createView, getView } from '../../factory/view';
 import {
   createColumn,
   createLookupColumn,
   createLtarColumn,
   createRollupColumn,
+  defaultColumns,
   updateViewColumn,
 } from '../../factory/column';
 import {
@@ -19,10 +21,12 @@ import {
   createRow,
   getOneRow,
   getRow,
+  listRow,
 } from '../../factory/row';
+import Model from '../../../../src/models/Model';
+import { getViewColumns, updateViewColumns } from '../../factory/viewColumns';
 import type { ColumnType } from 'nocodb-sdk';
 import type View from '../../../../src/models/View';
-import type Model from '../../../../src/models/Model';
 import type Base from '~/models/Base';
 
 // Test case list
@@ -37,6 +41,14 @@ const isColumnsCorrectInResponse = (row, columns: ColumnType[]) => {
 };
 
 let context;
+let sakilaCtx: {
+  workspace_id: string;
+  base_id: string;
+};
+let ctx: {
+  workspace_id: string;
+  base_id: string;
+};
 // bases
 let base: Base;
 let sakilaProject: Base;
@@ -122,11 +134,19 @@ function viewRowStaticTests() {
     context = await init();
     sakilaProject = await createSakilaProject(context);
     base = await createProject(context);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+    sakilaCtx = {
+      workspace_id: sakilaProject.fk_workspace_id,
+      base_id: sakilaProject.id,
+    };
     customerTable = await getTable({
       base: sakilaProject,
       name: 'customer',
     });
-    customerColumns = await customerTable.getColumns();
+    customerColumns = await customerTable.getColumns(sakilaCtx);
     customerGridView = await createView(context, {
       title: 'Customer Gallery',
       table: customerTable,
@@ -147,7 +167,7 @@ function viewRowStaticTests() {
       base: sakilaProject,
       name: 'film',
     });
-    filmColumns = await filmTable.getColumns();
+    filmColumns = await filmTable.getColumns(sakilaCtx);
     filmKanbanView = await createView(context, {
       title: 'Film Kanban',
       table: filmTable,
@@ -159,7 +179,7 @@ function viewRowStaticTests() {
       name: 'rental',
     });
 
-    rentalColumns = await rentalTable.getColumns();
+    rentalColumns = await rentalTable.getColumns(sakilaCtx);
 
     rentalCalendarView = await createView(context, {
       title: 'Rental Calendar',
@@ -258,7 +278,7 @@ function viewRowStaticTests() {
       Object.keys(response.body.find((e) => e.key === 'NC-17').value.list[0])
         .sort()
         .join(','),
-    ).to.equal('FilmId,Title');
+    ).to.equal('Description,FilmId,Title');
   };
   it('Get grouped view data list with required columns kanban', async () => {
     await testGetGroupedViewDataListWithRequiredColumns(filmKanbanView);
@@ -469,11 +489,19 @@ function viewRowTests() {
     context = await init();
     sakilaProject = await createSakilaProject(context);
     base = await createProject(context);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+    sakilaCtx = {
+      workspace_id: sakilaProject.fk_workspace_id,
+      base_id: sakilaProject.id,
+    };
     customerTable = await getTable({
       base: sakilaProject,
       name: 'customer',
     });
-    customerColumns = await customerTable.getColumns();
+    customerColumns = await customerTable.getColumns(sakilaCtx);
     customerGridView = await createView(context, {
       title: 'Customer Gallery',
       table: customerTable,
@@ -494,7 +522,7 @@ function viewRowTests() {
       base: sakilaProject,
       name: 'film',
     });
-    filmColumns = await filmTable.getColumns();
+    filmColumns = await filmTable.getColumns(sakilaCtx);
     filmKanbanView = await createView(context, {
       title: 'Film Kanban',
       table: filmTable,
@@ -506,7 +534,7 @@ function viewRowTests() {
       name: 'rental',
     });
 
-    rentalColumns = await rentalTable.getColumns();
+    rentalColumns = await rentalTable.getColumns(sakilaCtx);
 
     rentalCalendarView = await createView(context, {
       title: 'Rental Calendar',
@@ -636,7 +664,7 @@ function viewRowTests() {
       relatedTableColumnTitle: 'RentalDate',
     });
 
-    const activeColumn = (await customerTable.getColumns()).find(
+    const activeColumn = (await customerTable.getColumns(sakilaCtx)).find(
       (c) => c.title === 'Active',
     );
 
@@ -895,7 +923,7 @@ function viewRowTests() {
       attr: { show: true },
     });
 
-    const activeColumn = (await customerTable.getColumns()).find(
+    const activeColumn = (await customerTable.getColumns(sakilaCtx)).find(
       (c) => c.title === 'Active',
     );
 
@@ -1695,6 +1723,87 @@ function viewRowTests() {
     }
     if (!response.text) {
       throw new Error('Wrong export');
+    }
+  });
+
+  it('Test view column v3 apis', async function () {
+    const table = new Model(
+      await getTable({
+        base: sakilaProject,
+        name: 'film',
+      }),
+    );
+
+    const view = await getView(context, {
+      table,
+      name: 'Film',
+    });
+
+    const columns = await table.getColumns(sakilaCtx);
+
+    // get rows
+    const rows = await listRow({
+      base: sakilaProject,
+      table: table,
+      view,
+      options: {
+        limit: 1,
+      },
+    });
+
+    // verify fields in response
+
+    // hide few columns using update view column API
+    // const view = await createView(context, {
+    const columnsToHide = ['Rating', 'Description', 'ReleaseYear'];
+
+    // generate key value pair of column id and object with hidden as true
+    const viewColumnsObj: any = columnsToHide.reduce((acc, columnTitle) => {
+      const column = columns.find((c) => c.title === columnTitle);
+      if (column) {
+        acc[column.id] = {
+          show: false,
+        };
+      }
+      return acc;
+    }, {});
+
+    await updateViewColumns(context, {
+      view,
+      viewColumns: viewColumnsObj,
+    });
+
+    // get rows after update
+    const rowsAfterUpdate = await listRow({
+      base: sakilaProject,
+      table: table,
+      view,
+      options: {
+        limit: 1,
+      },
+    });
+
+    // verify column visible in old and hidden in new
+    for (const title of columnsToHide) {
+      expect(rows[0]).to.have.property(title);
+      expect(rowsAfterUpdate[0]).to.not.have.property(title);
+    }
+
+    // get view columns and verify hidden columns
+    const viewColApiRes: any = await getViewColumns(context, {
+      view,
+    });
+
+    for (const colId of Object.keys(viewColApiRes[APIContext.VIEW_COLUMNS])) {
+      const column = columns.find((c) => c.id === colId);
+      if (columnsToHide.includes(column.title)) {
+        expect(viewColApiRes[APIContext.VIEW_COLUMNS][colId]).to.have.property(
+          'show',
+        );
+        expect(!!viewColApiRes[APIContext.VIEW_COLUMNS][colId].show).to.be.eq(
+          false,
+        );
+      }
     }
   });
 }

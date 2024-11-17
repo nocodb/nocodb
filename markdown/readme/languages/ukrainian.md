@@ -58,11 +58,6 @@ Nocodb перетворює будь-яку базу даних MySQL, PostgreSQ
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
 
-<!-- <a href="https://community.nocodb.com/" target="_blank">
-<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
-</a>
- -->
-
 [![Stargazers repo roster for @nocodb/nocodb](http://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
 
 # Швидка спроба проекту
@@ -71,36 +66,23 @@ Nocodb перетворює будь-яку базу даних MySQL, PostgreSQ
 
 ```bash
 # для SQLite
-docker run -d --name nocodb \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
-nocodb/nocodb:latest
-
-# для MySQL
-docker run -d --name nocodb-mysql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
 
 # для PostgreSQL
-docker run -d --name nocodb-postgres \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-
-# для MSSQL
-docker run -d --name nocodb-mssql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-```
-
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
+  ```
+  
+  
 > Щоб зберегти дані в Docker, ви можете змонтувати том в /usr/app/data/ з версії 0.10.6. В іншому випадку ваші дані будуть втрачені після перестворення контейнера.
 
 > Якщо ви плануєте вводити будь-які спеціальні символи, вам може знадобитися змінити набір символів та порівняння при створенні бази даних. Будь ласка, перегляньте приклади для [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
@@ -153,28 +135,14 @@ iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# для MySQL
-cd nocodb/docker-compose/mysql
 # для PostgreSQL
-cd nocodb/docker-compose/pg
-# для MSSQL
-cd nocodb/docker-compose/mssql
+cd nocodb/docker-compose/2_pg
 docker-compose up -d
 ```
 
 > Щоб зберегти дані в Docker, ви можете змонтувати том в /usr/app/data/ з версії 0.10.6. В іншому випадку ваші дані будуть втрачені після перестворення контейнера.
 
 > Якщо ви плануєте вводити будь-які спеціальні символи, вам може знадобитися змінити набір символів та порівняння при створенні бази даних. Будь ласка, перегляньте приклади для [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
-
-## NPX
-
-Ви можете запустити нижченаведену команду, якщо вам потрібна інтерактивна конфігурація.
-
-```
-npx create-nocodb-app
-```
-
-<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
 
 ## Node Application
 

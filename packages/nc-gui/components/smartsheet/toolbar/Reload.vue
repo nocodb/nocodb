@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ReloadViewDataHookInj, iconMap, inject, ref, useNuxtApp, watch } from '#imports'
-
 const { $e, $state } = useNuxtApp()
 
 const { isPaginationLoading } = storeToRefs(useViewsStore())
@@ -27,7 +25,7 @@ watch(isReloading, () => {
 </script>
 
 <template>
-  <a-tooltip placement="bottom">
+  <NcTooltip placement="bottom">
     <template #title> {{ $t('general.reload') }} </template>
 
     <div
@@ -40,5 +38,5 @@ watch(isReloading, () => {
         @click="onClick"
       />
     </div>
-  </a-tooltip>
+  </NcTooltip>
 </template>

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { SortReqType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -11,18 +11,21 @@ import { Sort } from '~/models';
 export class SortsService {
   constructor(protected readonly appHooksService: AppHooksService) {}
 
-  async sortGet(param: { sortId: string }) {
-    return Sort.get(param.sortId);
+  async sortGet(context: NcContext, param: { sortId: string }) {
+    return Sort.get(context, param.sortId);
   }
 
-  async sortDelete(param: { sortId: string; req: NcRequest }) {
-    const sort = await Sort.get(param.sortId);
+  async sortDelete(
+    context: NcContext,
+    param: { sortId: string; req: NcRequest },
+  ) {
+    const sort = await Sort.get(context, param.sortId);
 
     if (!sort) {
       NcError.badRequest('Sort not found');
     }
 
-    await Sort.delete(param.sortId);
+    await Sort.delete(context, param.sortId);
 
     this.appHooksService.emit(AppEvents.SORT_CREATE, {
       sort,
@@ -31,16 +34,19 @@ export class SortsService {
     return true;
   }
 
-  async sortUpdate(param: { sortId: any; sort: SortReqType; req: NcRequest }) {
+  async sortUpdate(
+    context: NcContext,
+    param: { sortId: any; sort: SortReqType; req: NcRequest },
+  ) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
-    const sort = await Sort.get(param.sortId);
+    const sort = await Sort.get(context, param.sortId);
 
     if (!sort) {
       NcError.badRequest('Sort not found');
     }
 
-    const res = await Sort.update(param.sortId, param.sort);
+    const res = await Sort.update(context, param.sortId, param.sort);
 
     this.appHooksService.emit(AppEvents.SORT_UPDATE, {
       sort,
@@ -51,10 +57,13 @@ export class SortsService {
     return res;
   }
 
-  async sortCreate(param: { viewId: any; sort: SortReqType; req: NcRequest }) {
+  async sortCreate(
+    context: NcContext,
+    param: { viewId: any; sort: SortReqType; req: NcRequest },
+  ) {
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
-    const sort = await Sort.insert({
+    const sort = await Sort.insert(context, {
       ...param.sort,
       fk_view_id: param.viewId,
     } as Sort);
@@ -67,7 +76,7 @@ export class SortsService {
     return sort;
   }
 
-  async sortList(param: { viewId: string }) {
-    return Sort.list({ viewId: param.viewId });
+  async sortList(context: NcContext, param: { viewId: string }) {
+    return Sort.list(context, { viewId: param.viewId });
   }
 }

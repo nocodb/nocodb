@@ -33,14 +33,27 @@ export class LinkRecord extends BasePage {
     }
   }
 
-  async select(cardTitle: string) {
+  async select(cardTitle: string, close = true) {
     await this.rootPage.waitForTimeout(100);
-    await this.get().locator(`.ant-card:has-text("${cardTitle}"):visible`).click();
-    await this.close();
+    await this.get()
+      .locator(`.ant-card:has-text("${cardTitle}"):visible`)
+      .locator('button.nc-list-item-link-unlink-btn')
+      .click();
+
+    // explicitly close dropdown (auto closes for belongs to)
+    if (close) {
+      await this.close();
+    }
+  }
+
+  async verifyCount(count: string) {
+    await this.rootPage.waitForTimeout(100);
+    await expect(this.get().locator('button.nc-list-item-link-unlink-btn')).toHaveCount(parseInt(count));
   }
 
   async close() {
-    await this.get().locator('.nc-close-btn').last().click();
+    await this.get().getByTestId('nc-link-count-info').click();
+    await this.rootPage.keyboard.press('Escape');
     await this.get().last().waitFor({ state: 'hidden' });
   }
 

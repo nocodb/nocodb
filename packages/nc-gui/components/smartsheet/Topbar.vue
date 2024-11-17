@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { IsPublicInj, inject, ref, useSmartsheetStoreOrThrow, useViewsStore } from '#imports'
-
 const { isGrid, isForm, isGallery, isKanban, isMap, isCalendar } = useSmartsheetStoreOrThrow()
 
 const router = useRouter()
@@ -8,43 +6,91 @@ const route = router.currentRoute
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isViewsLoading } = storeToRefs(useViewsStore())
+const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { appInfo } = useGlobal()
 
+const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
+
+const topbarBreadcrumbItemWidth = computed(() => {
+  if (!isSharedBase.value && !isMobileMode.value) {
+    return 'calc(\(100% - 167px - 24px\) / 2)'
+  } else if (isMobileMode.value) {
+    return 'calc(75% - 12px)'
+  } else {
+    return 'calc(\(100% - 12px\) / 2)'
+  }
+})
 </script>
 
 <template>
   <div
-    class="nc-table-topbar h-20 py-1 flex gap-2 items-center border-b border-gray-200 overflow-hidden relative max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(pr-2 pl-2) xs:(px-1)"
+    class="nc-table-topbar py-2 border-b-1 border-gray-200 flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1)"
     style="z-index: 7"
   >
     <template v-if="isViewsLoading">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
-      <GeneralOpenLeftSidebarBtn />
-      <LazySmartsheetToolbarViewInfo v-if="!isPublic" />
+      <div
+        class="flex items-center gap-3 min-w-[300px]"
+        :style="{
+          width: topbarBreadcrumbItemWidth,
+        }"
+      >
+        <GeneralOpenLeftSidebarBtn />
+        <LazySmartsheetToolbarViewInfo v-if="!isPublic" />
+      </div>
 
-      <div v-if="!isSharedBase && !isMobileMode" class="w-47.5">
+      <div v-if="!isSharedBase && !isMobileMode">
         <SmartsheetTopbarSelectMode />
       </div>
-      <div class="flex-1" />
 
-      <GeneralApiLoader v-if="!isMobileMode" />
+      <div class="flex items-center justify-end gap-2 flex-1">
+        <GeneralApiLoader v-if="!isMobileMode" />
 
-      <LazyGeneralShareProject
-        v-if="(isForm || isGrid || isKanban || isGallery || isMap || isCalendar) && !isPublic && !isMobileMode"
-        is-view-toolbar
-      />
+        <NcButton
+          v-if="!isSharedBase && isFeatureEnabled(FEATURE_FLAG.EXTENSIONS) && openedViewsTab === 'view'"
+          v-e="['c:extension-toggle']"
+          type="secondary"
+          size="small"
+          class="nc-topbar-extension-btn"
+          :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isPanelExpanded }"
+          data-testid="nc-topbar-extension-btn"
+          @click="toggleExtensionPanel"
+        >
+          <div class="flex items-center justify-center min-w-[28.69px]">
+            <GeneralIcon
+              :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'"
+              class="w-4 h-4 !stroke-transparent"
+              :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
+            />
+            <span
+              class="overflow-hidden trasition-all duration-200"
+              :class="{ 'w-[0px] invisible': isPanelExpanded, 'ml-1 w-[74px]': !isPanelExpanded }"
+            >
+              {{ $t('general.extensions') }}
+            </span>
+          </div>
+        </NcButton>
 
-      <LazyGeneralLanguage
-        v-if="isSharedBase && !appInfo.ee"
-        class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md"
-      />
+        <div v-if="!isSharedBase">
+          <LazySmartsheetTopbarCmdK />
+        </div>
+        <div v-if="(isForm || isGrid || isKanban || isGallery || isMap || isCalendar) && !isPublic && !isMobileMode">
+          <LazyGeneralShareProject is-view-toolbar />
+        </div>
+
+        <div v-if="isSharedBase && !appInfo.ee">
+          <LazyGeneralLanguage class="cursor-pointer text-lg hover:(text-black bg-gray-200) mr-0 p-1.5 rounded-md" />
+        </div>
+      </div>
     </template>
   </div>
 </template>

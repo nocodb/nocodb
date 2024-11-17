@@ -1,6 +1,8 @@
 import type { UserType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 declare module 'express-serve-static-core' {
   interface Request {
+    context: NcContext;
     ncWorkspaceId?: string;
     ncBaseId?: string;
     user: UserType & {

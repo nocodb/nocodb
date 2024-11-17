@@ -1,7 +1,6 @@
 const ignoreKeys = new Set([
   'password',
   'salt',
-  'refresh_token',
   'invite_token',
   'invite_token_expires',
   'reset_password_expires',

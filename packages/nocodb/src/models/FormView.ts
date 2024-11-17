@@ -4,6 +4,7 @@ import type {
   FormType,
   MetaType,
 } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { PresignedUrl } from '~/models';
 import FormViewColumn from '~/models/FormViewColumn';
 import View from '~/models/View';
@@ -37,6 +38,7 @@ export default class FormView implements FormViewType {
 
   fk_view_id: string;
   columns?: FormViewColumn[];
+  fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
   meta?: MetaType;
@@ -45,7 +47,11 @@ export default class FormView implements FormViewType {
     Object.assign(this, data);
   }
 
-  public static async get(viewId: string, ncMeta = Noco.ncMeta) {
+  public static async get(
+    context: NcContext,
+    viewId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     let view =
       viewId &&
       (await NocoCache.get(
@@ -53,9 +59,14 @@ export default class FormView implements FormViewType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(null, null, MetaTable.FORM_VIEW, {
-        fk_view_id: viewId,
-      });
+      view = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FORM_VIEW,
+        {
+          fk_view_id: viewId,
+        },
+      );
 
       if (view) {
         view.meta = deserializeJSON(view.meta);
@@ -63,10 +74,13 @@ export default class FormView implements FormViewType {
       }
     }
 
-    const convertedAttachment = await this.convertAttachmentType({
-      banner_image_url: view?.banner_image_url,
-      logo_url: view?.logo_url,
-    });
+    const convertedAttachment = await this.convertAttachmentType(
+      {
+        banner_image_url: view?.banner_image_url,
+        logo_url: view?.logo_url,
+      },
+      ncMeta,
+    );
 
     view.banner_image_url = convertedAttachment.banner_image_url || null;
     view.logo_url = convertedAttachment.logo_url || null;
@@ -74,7 +88,11 @@ export default class FormView implements FormViewType {
     return view && new FormView(view);
   }
 
-  static async insert(view: Partial<FormView>, ncMeta = Noco.ncMeta) {
+  static async insert(
+    context: NcContext,
+    view: Partial<FormView>,
+    ncMeta = Noco.ncMeta,
+  ) {
     const insertObj = extractProps(view, [
       'fk_view_id',
       'base_id',
@@ -105,17 +123,24 @@ export default class FormView implements FormViewType {
       );
     }
 
-    if (!(view.base_id && view.source_id)) {
-      const viewRef = await View.get(view.fk_view_id);
-      insertObj.base_id = viewRef.base_id;
+    const viewRef = await View.get(context, view.fk_view_id, ncMeta);
+
+    if (!view.source_id) {
       insertObj.source_id = viewRef.source_id;
     }
-    await ncMeta.metaInsert2(null, null, MetaTable.FORM_VIEW, insertObj, true);
+    await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.FORM_VIEW,
+      insertObj,
+      true,
+    );
 
-    return this.get(view.fk_view_id, ncMeta);
+    return this.get(context, view.fk_view_id, ncMeta);
   }
 
   static async update(
+    context: NcContext,
     formId: string,
     body: Partial<FormView>,
     ncMeta = Noco.ncMeta,
@@ -146,8 +171,8 @@ export default class FormView implements FormViewType {
 
     // update meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.FORM_VIEW,
       prepareForDb(updateObj),
       {
@@ -163,13 +188,21 @@ export default class FormView implements FormViewType {
     return res;
   }
 
-  async getColumns(ncMeta = Noco.ncMeta) {
-    return (this.columns = await FormViewColumn.list(this.fk_view_id, ncMeta));
+  async getColumns(context: NcContext, ncMeta = Noco.ncMeta) {
+    return (this.columns = await FormViewColumn.list(
+      context,
+      this.fk_view_id,
+      ncMeta,
+    ));
   }
 
-  static async getWithInfo(formViewId: string, ncMeta = Noco.ncMeta) {
-    const form = await this.get(formViewId, ncMeta);
-    await form.getColumns(ncMeta);
+  static async getWithInfo(
+    context: NcContext,
+    formViewId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const form = await this.get(context, formViewId, ncMeta);
+    await form.getColumns(context, ncMeta);
     return form;
   }
 
@@ -191,6 +224,7 @@ export default class FormView implements FormViewType {
 
   protected static async convertAttachmentType(
     formAttachments: Record<string, any>,
+    ncMeta = Noco.ncMeta,
   ) {
     try {
       if (formAttachments) {
@@ -204,25 +238,14 @@ export default class FormView implements FormViewType {
             formAttachments[key] = deserializeJSON(formAttachments[key]);
           }
 
-          if (formAttachments[key]?.path) {
-            promises.push(
-              PresignedUrl.getSignedUrl({
-                path: formAttachments[key].path.replace(/^download\//, ''),
-              }).then((r) => (formAttachments[key].signedPath = r)),
-            );
-          } else if (formAttachments[key]?.url) {
-            if (formAttachments[key].url.includes('.amazonaws.com/')) {
-              const relativePath = decodeURI(
-                formAttachments[key].url.split('.amazonaws.com/')[1],
-              );
-              promises.push(
-                PresignedUrl.getSignedUrl({
-                  path: relativePath,
-                  s3: true,
-                }).then((r) => (formAttachments[key].signedUrl = r)),
-              );
-            }
-          }
+          promises.push(
+            PresignedUrl.signAttachment(
+              {
+                attachment: formAttachments[key],
+              },
+              ncMeta,
+            ),
+          );
         }
         await Promise.all(promises);
       }

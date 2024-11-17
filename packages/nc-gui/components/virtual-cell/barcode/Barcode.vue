@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ComputedRef } from 'vue'
 import JsBarcodeWrapper from './JsBarcodeWrapper.vue'
-import { RowHeightInj, computed, inject, ref } from '#imports'
 
 const maxNumberOfAllowedCharsForBarcodeValue = 100
 
@@ -9,7 +8,7 @@ const cellValue = inject(CellValueInj)
 
 const column = inject(ColumnInj)
 
-const barcodeValue: ComputedRef<string> = computed(() => String(cellValue?.value || ''))
+const barcodeValue: ComputedRef<string> = computed(() => String(cellValue?.value ?? ''))
 
 const tooManyCharsForBarcode = computed(() => barcodeValue.value.length > maxNumberOfAllowedCharsForBarcodeValue)
 
@@ -30,7 +29,9 @@ const barcodeMeta = computed(() => {
 
 const handleModalOkClick = () => (modalVisible.value = false)
 
-const showBarcode = computed(() => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value)
+const showBarcode = computed(
+  () => barcodeValue?.value.length > 0 && !tooManyCharsForBarcode.value && barcodeValue?.value !== 'ERR!',
+)
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = useShowNotEditableWarning()
 
@@ -66,7 +67,10 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
       :barcode-value="barcodeValue"
       tabindex="-1"
       :barcode-format="barcodeMeta.barcodeFormat"
-      :custom-style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+      :custom-style="{
+        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+      }"
+      class="nc-barcode-container"
       @on-click-barcode="showBarcodeModal"
     >
       <template #barcodeRenderError>
@@ -80,6 +84,7 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
       tabindex="-1"
       :barcode-value="barcodeValue"
       :barcode-format="barcodeMeta.barcodeFormat"
+      class="nc-barcode-container"
       @on-click-barcode="showBarcodeModal"
     >
       <template #barcodeRenderError>
@@ -88,6 +93,12 @@ const rowHeight = inject(RowHeightInj, ref(undefined))
         </div>
       </template>
     </JsBarcodeWrapper>
+    <a-tooltip v-else-if="!showBarcode && barcodeValue === 'ERR!'" placement="bottom" class="text-orange-700">
+      <template #title>
+        <span class="font-bold">Please select a target field!</span>
+      </template>
+      <span>ERR!</span>
+    </a-tooltip>
   </div>
 
   <div v-if="tooManyCharsForBarcode" class="nc-cell-field text-left text-wrap text-[#e65100] text-xs">

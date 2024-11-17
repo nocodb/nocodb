@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useVModel } from '#imports'
+import { UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -24,12 +24,11 @@ const precisionFormatsDisplay = {
 
 const vModel = useVModel(props, 'value', emit)
 
-onMounted(() => {
-  if (!vModel.value.meta?.precision) {
-    if (!vModel.value.meta) vModel.value.meta = {}
-    vModel.value.meta.precision = precisionFormats[0]
-  }
-})
+// set default value
+vModel.value.meta = {
+  ...columnDefaultMeta[UITypes.Decimal],
+  ...(vModel.value.meta || {}),
+}
 
 // update datatype precision when precision is less than the new value
 // avoid downgrading precision if the new value is less than the current precision
@@ -37,6 +36,8 @@ onMounted(() => {
 const onPrecisionChange = (value: number) => {
   vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
 }
+
+const { isMetaReadOnly } = useRoles()
 </script>
 
 <template>
@@ -44,9 +45,13 @@ const onPrecisionChange = (value: number) => {
     <a-select
       v-if="vModel.meta?.precision"
       v-model:value="vModel.meta.precision"
+      :disabled="isMetaReadOnly"
       dropdown-class-name="nc-dropdown-decimal-format"
       @change="onPrecisionChange"
     >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+      </template>
       <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
         <div class="flex gap-2 w-full justify-between items-center">
           {{ (precisionFormatsDisplay as any)[format] }}
@@ -59,5 +64,13 @@ const onPrecisionChange = (value: number) => {
         </div>
       </a-select-option>
     </a-select>
+  </a-form-item>
+
+  <a-form-item>
+    <div class="flex items-center gap-1">
+      <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
+        <div class="text-sm text-gray-800 select-none">{{ $t('labels.showThousandsSeparator') }}</div>
+      </NcSwitch>
+    </div>
   </a-form-item>
 </template>

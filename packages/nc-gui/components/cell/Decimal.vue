@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, inject, useVModel } from '#imports'
+import { roundUpToPrecision } from 'nocodb-sdk'
 
 interface Props {
   // when we set a number, then it is number type
   // for sqlite, when we clear a cell or empty the cell, it returns ""
   // otherwise, it is null type
   modelValue?: number | null | string
+  placeholder?: string
 }
 
 interface Emits {
@@ -40,7 +41,9 @@ const displayValue = computed(() => {
 
   if (isNaN(Number(_vModel.value))) return null
 
-  return Number(_vModel.value).toFixed(meta.value.precision ?? 1)
+  if (meta.value.isLocaleString) return roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1).toLocaleString()
+
+  return roundUpToPrecision(Number(_vModel.value), meta.value.precision ?? 1)
 })
 
 const vModel = computed({
@@ -95,14 +98,15 @@ watch(isExpandedFormOpen, () => {
 </script>
 
 <template>
+  <!-- eslint-disable vue/use-v-on-exact -->
   <input
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
-    class="nc-cell-field outline-none py-1 border-none rounded-md w-full h-full !text-sm"
+    class="nc-cell-field outline-none py-1 border-none rounded-md w-full h-full"
     type="number"
     :step="precision"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
+    :placeholder="placeholder"
     style="letter-spacing: 0.06rem"
     @blur="editEnabled = false"
     @keydown.down.stop="onKeyDown"
@@ -110,11 +114,12 @@ watch(isExpandedFormOpen, () => {
     @keydown.right.stop
     @keydown.up.stop="onKeyDown"
     @keydown.delete.stop
+    @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
   />
   <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-  <span v-else class="nc-cell-field text-sm">{{ displayValue }}</span>
+  <span v-else class="nc-cell-field">{{ displayValue }}</span>
 </template>
 
 <style scoped lang="scss">

@@ -2,7 +2,6 @@
 import type { TreeProps } from 'ant-design-vue'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { fileMimeTypeList, fileMimeTypes } from './utils'
-import { useGlobal, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -30,11 +29,11 @@ vModel.value.meta = {
     // Maximum Number of Attachments per cell
     maxNumberOfAttachments: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 50) || 50,
     // Maximum File Size per file
-    maxAttachmentSize: Math.max(1, +appInfo.value.ncMaxAttachmentsAllowed || 20) || 20,
+    maxAttachmentSize: Math.max(1, +appInfo.value.ncAttachmentFieldSize || 20) || 20,
     // allow all mime types by default
     supportedAttachmentMimeTypes: ['*'],
   }),
-  ...vModel.value.meta,
+  ...(vModel.value.meta || {}),
 }
 
 const expandedKeys = ref<(string | number)[]>([])

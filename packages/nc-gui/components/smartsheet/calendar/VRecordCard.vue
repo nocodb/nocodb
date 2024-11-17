@@ -52,7 +52,7 @@ const emit = defineEmits(['resize-start'])
       '!border-blue-200 border-1': selected,
       'shadow-md': hover,
     }"
-    class="relative flex items-center h-full ml-0.25 border-1 border-transparent"
+    class="relative flex gap-2 items-center !pr-1 h-full ml-0.25 border-1 border-transparent"
   >
     <div class="h-full py-1">
       <div
@@ -64,15 +64,23 @@ const emit = defineEmits(['resize-start'])
           'bg-pink-500': color === 'pink',
           'bg-purple-500': color === 'purple',
         }"
-        class="block h-full min-h-5 ml-1 w-1 rounded"
+        class="block h-full min-h-9 ml-1 w-1 rounded"
       ></div>
     </div>
 
     <div v-if="position === 'bottomRounded' || position === 'none'" class="ml-3">....</div>
 
-    <span class="pl-1 pr-1 text-sm h-[80%] text-gray-800 leading-7 break-all whitespace-normal truncate w-full overflow-y-hidden">
-      <slot />
-    </span>
+    <div
+      class="flex overflow-x-hidden break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-ellipsis flex-col gap-1"
+    >
+      <NcTooltip :disabled="selected" class="inline-block" show-on-truncate-only wrap-child="span">
+        <slot class="pl-1 pr-2 text-sm text-nowrap text-gray-800 leading-7" />
+        <template #title>
+          <slot />
+        </template>
+      </NcTooltip>
+      <slot name="time" />
+    </div>
 
     <div v-if="position === 'topRounded' || position === 'none'" class="h-full pb-7 flex items-end ml-3">....</div>
   </div>

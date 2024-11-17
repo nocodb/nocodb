@@ -1,88 +1,61 @@
 import fs from 'fs';
 import { promisify } from 'util';
+import { Readable } from 'stream';
 import { Storage } from '@google-cloud/storage';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
-import type { IStorageAdapterV2, XcFile } from 'nc-plugin';
-import type { Readable } from 'stream';
-import type { StorageOptions } from '@google-cloud/storage';
+import type { GetSignedUrlConfig, StorageOptions } from '@google-cloud/storage';
+import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
 import { generateTempFilePath, waitForStreamClose } from '~/utils/pluginUtils';
 
+interface GoogleCloudStorageInput {
+  client_email: string;
+  private_key: string;
+  bucket: string;
+  project_id?: string;
+  uniform_bucket_level_access?: boolean;
+}
+
 export default class Gcs implements IStorageAdapterV2 {
+  name = 'Gcs';
+
   private storageClient: Storage;
   private bucketName: string;
-  private input: any;
+  private input: GoogleCloudStorageInput;
 
-  constructor(input: any) {
+  constructor(input: GoogleCloudStorageInput) {
     this.input = input;
   }
 
-  async fileCreate(key: string, file: XcFile): Promise<any> {
-    const uploadResponse = await this.storageClient
-      .bucket(this.bucketName)
-      .upload(file.path, {
-        destination: key,
-        // Support for HTTP requests made with `Accept-Encoding: gzip`
-        gzip: true,
-        // By setting the option `destination`, you can change the name of the
-        // object you are uploading to a bucket.
-        metadata: {
-          // Enable long-lived HTTP caching headers
-          // Use only if the contents of the file will never change
-          // (If the contents will change, use cacheControl: 'no-cache')
-          cacheControl: 'public, max-age=31536000',
-        },
-      });
-
-    return uploadResponse[0].publicUrl();
+  protected patchKey(key: string): string {
+    let patchedKey = decodeURIComponent(key);
+    if (patchedKey.startsWith(`${this.bucketName}/`)) {
+      patchedKey = patchedKey.replace(`${this.bucketName}/`, '');
+    }
+    return patchedKey;
   }
 
-  fileDelete(_path: string): Promise<any> {
-    return Promise.resolve(undefined);
+  private aclConfig(): { predefinedAcl: 'publicRead' } | {} {
+    return this.input.uniform_bucket_level_access
+      ? {}
+      : { predefinedAcl: 'publicRead' };
   }
 
-  public fileRead(key: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      const file = this.storageClient.bucket(this.bucketName).file(key);
-      // Check for existence, since gcloud-node seemed to be caching the result
-      file.exists((err, exists) => {
-        if (exists) {
-          file.download((downerr, data) => {
-            if (err) {
-              return reject(downerr);
-            }
-            return resolve(data);
-          });
-        } else {
-          reject(err);
-        }
-      });
-    });
-  }
-
-  public async init(): Promise<any> {
-    const options: StorageOptions = {};
-
-    // options.credentials = {
-    //   client_email: process.env.NC_GCS_CLIENT_EMAIL,
-    //   private_key: process.env.NC_GCS_PRIVATE_KEY
-    // }
-    //
-    // this.bucketName = process.env.NC_GCS_BUCKET;
-    options.credentials = {
-      client_email: this.input.client_email,
-      // replace \n with real line breaks to avoid
-      // error:0909006C:PEM routines:get_name:no start line
-      private_key: this.input.private_key.replace(/\\n/gm, '\n'),
+  public async init(): Promise<void> {
+    const options: StorageOptions = {
+      credentials: {
+        client_email: this.input.client_email,
+        // replace \n with real line breaks to avoid
+        // error:0909006C:PEM routines:get_name:no start line
+        private_key: this.input.private_key.replace(/\\n/gm, '\n'),
+      },
     };
 
-    // default project ID would be used if it is not provided
     if (this.input.project_id) {
       options.projectId = this.input.project_id;
     }
 
     this.bucketName = this.input.bucket;
-
     this.storageClient = new Storage(options);
   }
 
@@ -93,9 +66,9 @@ export default class Gcs implements IStorageAdapterV2 {
       await waitForStreamClose(createStream);
       await this.fileCreate('nc-test-file.txt', {
         path: tempFile,
-        mimetype: '',
+        mimetype: 'text/plain',
         originalname: 'temp.txt',
-        size: '',
+        size: createStream.bytesWritten.toString(),
       });
       await promisify(fs.unlink)(tempFile);
       return true;
@@ -104,41 +77,155 @@ export default class Gcs implements IStorageAdapterV2 {
     }
   }
 
-  fileCreateByUrl(destPath: string, url: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-      axios
-        .get(url, {
-          httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-          httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-          // TODO - use stream instead of buffer
-          responseType: 'arraybuffer',
-        })
-        .then((response) => {
-          this.storageClient
-            .bucket(this.bucketName)
-            .file(destPath)
-            .save(response.data)
-            .then((res) => resolve(res))
-            .catch(reject);
-        })
-        .catch((error) => {
-          reject(error);
-        });
+  public async fileRead(key: string): Promise<Buffer> {
+    const file = this.storageClient
+      .bucket(this.bucketName)
+      .file(this.patchKey(key));
+    const [exists] = await file.exists();
+    if (!exists) {
+      throw new Error(`File ${this.patchKey(key)} does not exist`);
+    }
+    const [data] = await file.download();
+    return data;
+  }
+
+  public async fileCreate(key: string, file: XcFile): Promise<string> {
+    const [uploadResponse] = await this.storageClient
+      .bucket(this.bucketName)
+      .upload(file.path, {
+        destination: this.patchKey(key),
+        contentType: file?.mimetype || 'application/octet-stream',
+        gzip: true,
+        metadata: {
+          cacheControl: 'public, max-age=31536000',
+        },
+        ...this.aclConfig(),
+      });
+
+    return uploadResponse.publicUrl();
+  }
+
+  public async fileCreateByStream(
+    key: string,
+    stream: Readable,
+    options: {
+      mimetype?: string;
+      size?: number;
+    } = {},
+  ): Promise<any> {
+    const file = this.storageClient
+      .bucket(this.bucketName)
+      .file(this.patchKey(key));
+    await new Promise<void>((resolve, reject) => {
+      stream
+        .pipe(
+          file.createWriteStream({
+            gzip: true,
+            metadata: {
+              contentType: options.mimetype || 'application/octet-stream',
+              cacheControl: 'public, max-age=31536000',
+            },
+            ...this.aclConfig(),
+          }),
+        )
+        .on('finish', () => resolve())
+        .on('error', reject);
     });
+
+    return file.publicUrl();
   }
 
-  // TODO - implement
-  fileCreateByStream(_key: string, _stream: Readable): Promise<void> {
-    return Promise.resolve(undefined);
+  public async fileCreateByUrl(
+    destPath: string,
+    url: string,
+    { fetchOptions: { buffer } = { buffer: false } },
+  ): Promise<{ url: string; data: any }> {
+    const response = await axios.get(url, {
+      httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+      httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+      responseType: buffer ? 'arraybuffer' : 'stream',
+    });
+
+    const file = this.storageClient.bucket(this.bucketName).file(destPath);
+    await file.save(response.data);
+
+    return { url: file.publicUrl(), data: response.data };
   }
 
-  // TODO - implement
-  fileReadByStream(_key: string): Promise<Readable> {
-    return Promise.resolve(undefined);
+  public async fileDelete(path: string): Promise<void> {
+    await this.storageClient.bucket(this.bucketName).file(path).delete();
   }
 
-  // TODO - implement
-  getDirectoryList(_path: string): Promise<string[]> {
-    return Promise.resolve(undefined);
+  public async fileReadByStream(key: string): Promise<Readable> {
+    return this.storageClient
+      .bucket(this.bucketName)
+      .file(this.patchKey(key))
+      .createReadStream();
+  }
+
+  public async getDirectoryList(path: string): Promise<string[]> {
+    const [files] = await this.storageClient.bucket(this.bucketName).getFiles({
+      prefix: path,
+    });
+    return files.map((file) => file.name);
+  }
+
+  public async getSignedUrl(
+    key: string,
+    expiresInSeconds = 7200,
+    pathParameters?: { [key: string]: string },
+  ): Promise<string> {
+    const options: GetSignedUrlConfig = {
+      version: 'v4',
+      action: 'read',
+      expires: Date.now() + expiresInSeconds * 1000,
+      extensionHeaders: pathParameters,
+    };
+
+    const [url] = await this.storageClient
+      .bucket(this.bucketName)
+      .file(this.patchKey(key))
+      .getSignedUrl(options);
+
+    return url;
+  }
+
+  public async scanFiles(globPattern: string): Promise<Readable> {
+    // Remove all dots from the prefix
+    globPattern = globPattern.replace(/\./g, '');
+
+    // Remove the leading slash
+    globPattern = globPattern.replace(/^\//, '');
+
+    // Make sure pattern starts with nc/uploads/
+    if (!globPattern.startsWith('nc/uploads/')) {
+      globPattern = `nc/uploads/${globPattern}`;
+    }
+
+    const stream = new Readable({
+      objectMode: true,
+      read() {},
+    });
+
+    const fileStream = this.storageClient
+      .bucket(this.input.bucket)
+      .getFilesStream({
+        prefix: globPattern,
+        autoPaginate: true,
+      });
+
+    fileStream.on('error', (error) => {
+      stream.emit('error', error);
+    });
+
+    fileStream.on('data', (file) => {
+      stream.push(file.name);
+    });
+
+    fileStream.on('end', () => {
+      stream.push(null);
+    });
+
+    return stream;
   }
 }

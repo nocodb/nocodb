@@ -1,12 +1,11 @@
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import dagre from 'dagre'
 import type { Edge, EdgeMarker, Elements, Node } from '@vue-flow/core'
-import type { MaybeRef } from '@vueuse/core'
 import { MarkerType, Position, isEdge, isNode } from '@vue-flow/core'
+import type { MaybeRef } from '@vueuse/core'
 import { scaleLinear as d3ScaleLinear } from 'd3-scale'
 import tinycolor from 'tinycolor2'
-import { computed, ref, unref, useMetas, useTheme } from '#imports'
 
 export interface ERDConfig {
   showPkAndFk: boolean
@@ -30,6 +29,7 @@ export interface NodeData {
 
 export interface EdgeData {
   isManyToMany: boolean
+  isOneToOne: boolean
   isSelfRelation: boolean
   label?: string
   simpleLabel?: string
@@ -42,7 +42,7 @@ interface Relation {
   childColId?: string
   parentColId?: string
   modelId?: string
-  type: 'mm' | 'hm'
+  type: RelationTypes
 }
 
 /**
@@ -90,27 +90,36 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
             childColId: colOptions.fk_child_column_id,
             parentColId: colOptions.fk_parent_column_id,
             modelId: colOptions.fk_mm_model_id,
-            type: 'hm',
+            type: RelationTypes.HAS_MANY,
           }
 
-          if (colOptions.type === 'hm') {
-            relation.type = 'hm'
+          if (colOptions.type === RelationTypes.HAS_MANY) {
+            relation.type = RelationTypes.HAS_MANY
+
+            acc.push(relation)
+            continue
+          }
+          if (colOptions.type === RelationTypes.ONE_TO_ONE) {
+            relation.type = RelationTypes.ONE_TO_ONE
+
+            // skip adding relation link from both side
+            if (column.meta?.bt) continue
 
             acc.push(relation)
             continue
           }
 
-          if (colOptions.type === 'mm') {
+          if (colOptions.type === RelationTypes.MANY_TO_MANY) {
             // Avoid duplicate mm connections
             const correspondingColumn = acc.find(
               (relation) =>
-                relation.type === 'mm' &&
+                relation.type === RelationTypes.MANY_TO_MANY &&
                 relation.parentColId === colOptions.fk_child_column_id &&
                 relation.childColId === colOptions.fk_parent_column_id,
             )
 
             if (!correspondingColumn) {
-              relation.type = 'mm'
+              relation.type = RelationTypes.MANY_TO_MANY
 
               acc.push(relation)
               continue
@@ -124,7 +133,11 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
   )
 
   function edgeLabel({ type, source, target, modelId, childColId, parentColId }: Relation) {
-    const typeLabel = type === 'mm' ? 'many to many' : 'has many'
+    let typeLabel: string
+
+    if (type === RelationTypes.HAS_MANY) typeLabel = 'has many'
+    else if (type === RelationTypes.MANY_TO_MANY) typeLabel = 'many to many'
+    else if (type === 'oo') typeLabel = 'one to one'
 
     const parentCol = metasWithIdAsKey.value[source].columns?.find((col) => {
       const colOptions = col.colOptions as LinkToAnotherRecordType
@@ -141,12 +154,12 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
       const colOptions = col.colOptions as LinkToAnotherRecordType
       if (!colOptions) return false
 
-      return colOptions.fk_parent_column_id === (type === 'mm' ? childColId : parentColId)
+      return colOptions.fk_parent_column_id === (type === RelationTypes.MANY_TO_MANY ? childColId : parentColId)
     })
 
     if (!parentCol || !childCol) return ''
 
-    if (type === 'mm') {
+    if (type === RelationTypes.MANY_TO_MANY) {
       if (config.value.showJunctionTableNames) {
         if (!modelId) return ''
 
@@ -209,12 +222,12 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
     return relations.value.reduce<Edge<EdgeData>[]>((acc, { source, target, childColId, parentColId, type, modelId }) => {
       let sourceColumnId, targetColumnId
 
-      if (type === 'hm') {
+      if (type === RelationTypes.HAS_MANY || type === 'oo') {
         sourceColumnId = childColId
         targetColumnId = childColId
       }
 
-      if (type === 'mm') {
+      if (type === RelationTypes.MANY_TO_MANY) {
         sourceColumnId = parentColId
         targetColumnId = childColId
       }
@@ -240,7 +253,8 @@ export function useErdElements(tables: MaybeRef<TableType[]>, props: MaybeRef<ER
           type: MarkerType.ArrowClosed,
         },
         data: {
-          isManyToMany: type === 'mm',
+          isManyToMany: type === RelationTypes.MANY_TO_MANY,
+          isOneToOne: type === 'oo',
           isSelfRelation: source === target && sourceColumnId === targetColumnId,
           label,
           simpleLabel,

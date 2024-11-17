@@ -819,16 +819,16 @@
         "description": "Creat an organisation API token. Access with API tokens will be blocked."
       }
     },
-    "/api/v1/tokens/{token}": {
+    "/api/v1/tokens/{tokenId}": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "token",
+          "name": "tokenId",
           "in": "path",
           "required": true,
-          "description": "API Token"
+          "description": "API Token ID"
         }
       ],
       "delete": {
@@ -3013,63 +3013,6 @@
         ]
       }
     },
-    "/api/v1/db/meta/projects/:baseId/bases/:sourceId/sqlView": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "baseId",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "sourceId",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "post": {
-        "summary": "Create sql view",
-        "operationId": "create-sql-view",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Source"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "view_name": {
-                    "type": "string"
-                  },
-                  "view_definition": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/db/meta/projects/{baseId}/bases/": {
       "parameters": [
         {
@@ -4430,6 +4373,11 @@
                     "description": "Table title",
                     "example": "Users"
                   },
+                  "description": {
+                    "$ref": "#/components/schemas/TextOrNull",
+                    "description": "Table description",
+                    "example": "Table for storing User Information"
+                  },
                   "base_id": {
                     "type": "string",
                     "description": "Base ID",
@@ -4541,6 +4489,11 @@
                       "excludeHooks": {
                         "type": "boolean",
                         "required": false
+                      },
+                      "title": {
+                        "type": "string",
+                        "required": false,
+                        "description": "New table title"
                       }
                     }
                   }
@@ -4676,6 +4629,98 @@
             "in": "path",
             "required": true,
             "description": "Unique Column ID"
+          }
+        ]
+      }
+    },
+    "/api/v2/meta/duplicate/{workspaceId}/shared/{sharedBaseId}": {
+      "post": {
+        "summary": "Duplicate Shared Base",
+        "operationId": "base-duplicate-shared",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "options": {
+                    "type": "object",
+                    "properties": {
+                      "excludeData": {
+                        "type": "boolean",
+                        "required": false
+                      },
+                      "excludeViews": {
+                        "type": "boolean",
+                        "required": false
+                      }
+                    }
+                  },
+                  "base": {
+                    "type": "object",
+                    "required": false
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "excludeData": true,
+                    "excludeViews": true,
+                    "excludeHooks": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Base"
+        ],
+        "description": "Duplicate a shared base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "w_124hhlkbeasewh",
+              "type": "string"
+            },
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Workspace ID"
+          },
+          {
+            "name": "sharedBaseId",
+            "in": "path",
+            "required": true,
+            "description": "Unique Shared Base ID"
           }
         ]
       }
@@ -6678,6 +6723,13 @@
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeAllFilters",
+            "in": "query"
           }
         ]
       },
@@ -9934,7 +9986,7 @@
         }
       }
     },
-    "/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/" : {
+    "/api/v1/db/calendar-data/{orgs}/{baseName}/{tableName}/views/{viewName}/countByDate/": {
       "parameters": [
         {
           "schema": {
@@ -11360,6 +11412,261 @@
         ]
       }
     },
+    "/api/v2/tables/{tableId}/bulk/dataList": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID is required"
+        }
+      ],
+      "post": {
+        "summary": "Read Bulk Data",
+        "operationId": "db-data-table-bulk-list",
+        "description": "Read bulk data from a given table with given filters",
+        "tags": [
+          "DB Data Table Bulk List"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/tables/{tableId}/bulk/group": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID is required"
+        }
+      ],
+      "post": {
+        "summary": "Read Bulk Group Data",
+        "operationId": "db-data-table-bulk-group-list",
+        "description": "Read bulk group data from a given table with given filters",
+        "tags": [
+          "DB Data Table Bulk Group List"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}/upsert": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true,
+          "description": "Organisation Name. Currently `noco` will be used."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseName",
+          "in": "path",
+          "required": true,
+          "description": "Base Name"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true,
+          "description": "Table Name"
+        }
+      ],
+      "post": {
+        "summary": "Bulk Upsert Table Rows",
+        "operationId": "db-table-row-bulk-upsert",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "List of returned values. 1 means successful. 0 means failed."
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "Id": 1,
+                        "Title": "abc"
+                      },
+                      {
+                        "Id": 2,
+                        "Title": "def"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Row"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "description": "List of data objects",
+                "items": {
+                  "x-stoplight": {
+                    "id": "7u0mp8nzlvysz"
+                  },
+                  "type": "object"
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": [
+                    {
+                      "Id": 1,
+                      "Title": "abc"
+                    },
+                    {
+                      "Title": "def"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "description": ""
+        },
+        "application/json": {
+          "schema": {
+            "type": "array",
+            "description": "List of data objects",
+            "items": {
+              "x-stoplight": {
+                "id": "7u0mp8nzlvysz"
+              },
+              "type": "object"
+            }
+          },
+          "examples": {
+            "Example 1": {
+              "value": [
+                {
+                  "Title": "abc"
+                },
+                {
+                  "Title": "def"
+                }
+              ]
+            }
+          }
+        },
+        "description": "Bulk upsert table rows in one go.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v1/db/data/bulk/{orgs}/{baseName}/{tableName}": {
       "parameters": [
         {
@@ -11983,7 +12290,8 @@
             "enum": [
               "mm",
               "hm",
-              "bt"
+              "bt",
+              "oo"
             ]
           },
           "name": "relationType",
@@ -12095,7 +12403,8 @@
             "enum": [
               "mm",
               "hm",
-              "bt"
+              "bt",
+              "oo"
             ]
           },
           "name": "relationType",
@@ -12320,7 +12629,8 @@
             "enum": [
               "mm",
               "hm",
-              "bt"
+              "bt",
+              "oo"
             ]
           },
           "name": "relationType",
@@ -12384,6 +12694,416 @@
           }
         ],
         "description": "Get the table rows but exculding the current record's children and parent"
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/count": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Count Table View Rows",
+        "operationId": "public-db-view-row-count",
+        "description": "Count how many rows in the given Table View",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "number",
+                      "x-stoplight": {
+                        "id": "hwq29x70rcipi"
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "count": 25
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/bulk/dataList": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "post": {
+        "summary": "Read Shared View Bulk Data List",
+        "operationId": "public-data-table-bulk-data-list",
+        "description": "Read bulk data from a given table with provided filters",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": {
+                        "Id": 1,
+                        "Title": "90",
+                        "SingleSelect": "50"
+                      },
+                      "alias2": {
+                        "Id": 2,
+                        "Title": "50",
+                        "SingleSelect": "30"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/bulk/group": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "post": {
+        "summary": "Read Shared View Bulk Group Data",
+        "operationId": "public-data-table-bulk-group",
+        "description": "Read bulk group data from a given table with provided filters",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": {
+                        "Id": 1,
+                        "Title": "90",
+                        "SingleSelect": "50"
+                      },
+                      "alias2": {
+                        "Id": 2,
+                        "Title": "50",
+                        "SingleSelect": "30"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/aggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Read Shared View Aggregated Data",
+        "operationId": "public-data-table-aggregate",
+        "description": "Read aggregated data from a given table",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "description": "List of fields to be aggregated",
+              "items": {
+                "type": "object"
+              }
+            },
+            "in": "query",
+            "name": "aggregation",
+            "description": "Used for selective aggregation"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "90",
+                      "SingleSelect": "50"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/downloadAttachment/{columnId}/{rowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "cl_8iw2o4ejzvdyna",
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Column ID"
+        },
+        {
+          "schema": {
+            "example": "1"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Row ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "Get Shared View Attachment",
+        "operationId": "public-data-attachment-download",
+        "description": "Download attachment from a shared view",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "urlOrPath",
+            "description": "URL or Path of the attachment"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "URL to download the attachment"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "Path to download the attachment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
       }
     },
     "/api/v1/db/public/shared-view/{sharedViewUuid}/group/{columnId}": {
@@ -12993,7 +13713,8 @@
             "enum": [
               "mm",
               "hm",
-              "bt"
+              "bt",
+              "oo"
             ]
           },
           "name": "relationType",
@@ -13525,15 +14246,15 @@
         "parameters": []
       }
     },
-    "/api/v1/db/meta/audits/comments": {
+    "/api/v1/db/meta/audits": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
         }
       ],
       "get": {
-        "summary": "List Comments in Audit",
-        "operationId": "utils-comment-list",
+        "summary": "List Audits",
+        "operationId": "utils-audit-list",
         "responses": {
           "200": {
             "description": "OK",
@@ -13608,6 +14329,114 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
+        "description": "List all audits",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "example": "10"
+            },
+            "in": "query",
+            "name": "row_id",
+            "required": true,
+            "description": "Row ID"
+          },
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Id",
+              "example": "md_c6csq89tl37jm5"
+            },
+            "in": "query",
+            "name": "fk_model_id",
+            "required": true,
+            "description": "Foreign Key to Model"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": [
+          "Utils"
+        ]
+      }
+    },
+    "/api/v1/db/meta/comments": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ],
+      "get": {
+        "summary": "List Comments",
+        "operationId": "utils-comment-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "x-stoplight": {
+                        "id": "5zto1xohsngbu"
+                      },
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Comment",
+                        "x-stoplight": {
+                          "id": "d22zkup0c0l80"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "list"
+                  ]
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "adt_3sii7erfwrlegb",
+                          "source_id": null,
+                          "base_id": "p_63b4q0qengen1x",
+                          "fk_model_id": "md_5mipbdg6ketmv8",
+                          "row_id": "1",
+                          "created_by": "",
+                          "resolved_by": "",
+                          "parent_comment_id": null,
+                          "status": null,
+                          "comment": "bar",
+                          "created_at": "2023-03-13T09:39:14.225Z",
+                          "updated_at": "2023-03-13T09:39:14.225Z"
+                        },
+                        {
+                          "id": "adt_3sii7erfwrlegb",
+                          "source_id": null,
+                          "base_id": "p_63b4q0qengen1x",
+                          "fk_model_id": "md_5mipbdg6ketmv8",
+                          "row_id": "1",
+                          "created_by": "",
+                          "resolved_by": "",
+                          "parent_comment_id": null,
+                          "status": null,
+                          "comment": "bar",
+                          "created_at": "2023-03-13T09:39:14.225Z",
+                          "updated_at": "2023-03-13T09:39:14.225Z"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
         "description": "List all comments",
         "parameters": [
           {
@@ -13631,15 +14460,6 @@
             "description": "Foreign Key to Model"
           },
           {
-            "schema": {
-              "type": "boolean",
-              "example": true
-            },
-            "in": "query",
-            "name": "comments_only",
-            "description": "Is showing comments only?"
-          },
-          {
             "$ref": "#/components/parameters/xc-auth"
           }
         ],
@@ -13656,18 +14476,23 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Audit"
+                  "$ref": "#/components/schemas/Comment"
                 },
                 "examples": {
                   "Example 1": {
                     "value": {
-                      "user": "w@nocodb.com",
-                      "row_id": "1",
-                      "fk_model_id": "md_5mipbdg6ketmv8",
-                      "op_type": "COMMENT",
-                      "description": "qq",
+                      "id": "adt_3sii7erfwrlegb",
+                      "source_id": null,
                       "base_id": "p_63b4q0qengen1x",
-                      "id": "adt_vx58jpp0loo8qy"
+                      "fk_model_id": "md_5mipbdg6ketmv8",
+                      "row_id": "1",
+                      "created_by": "",
+                      "resolved_by": "",
+                      "parent_comment_id": null,
+                      "status": null,
+                      "comment": "bar",
+                      "created_at": "2023-03-13T09:39:14.225Z",
+                      "updated_at": "2023-03-13T09:39:14.225Z"
                     }
                   }
                 }
@@ -13699,7 +14524,7 @@
         "tags": [
           "Utils"
         ],
-        "description": "Create a new comment in a row. Logged in Audit.",
+        "description": "Create a new comment in a row.",
         "parameters": [
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -13707,17 +14532,17 @@
         ]
       }
     },
-    "/api/v1/db/meta/audits/{auditId}/comment": {
+    "/api/v1/db/meta/comment/{commentId}/": {
       "parameters": [
         {
           "schema": {
             "type": "string",
             "example": "adt_zlskd6rlf3liay"
           },
-          "name": "auditId",
+          "name": "commentId",
           "in": "path",
           "required": true,
-          "description": "Audit ID"
+          "description": "Comment ID"
         },
         {
           "name": "xc-auth",
@@ -13730,7 +14555,7 @@
         }
       ],
       "patch": {
-        "summary": "Update Comment in Audit",
+        "summary": "Update Comment",
         "operationId": "utils-comment-update",
         "responses": {
           "200": {
@@ -13753,7 +14578,7 @@
         "tags": [
           "Utils"
         ],
-        "description": "Update comment in Audit",
+        "description": "Update comment",
         "requestBody": {
           "content": {
             "application/json": {
@@ -13763,16 +14588,46 @@
               "examples": {
                 "Example 1": {
                   "value": {
-                    "description": "This is the comment for the row"
+                    "comment": "This is the comment for the row"
                   }
                 }
               }
             }
           }
         }
+      },
+      "delete": {
+        "summary": "Delete Comment",
+        "operationId": "utils-comment-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number",
+                  "example": 1
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "description": "Delete comment",
+        "requestBody": {
+          "content": {
+          }
+        }
       }
     },
-    "/api/v1/db/meta/audits/comments/count": {
+    "/api/v1/db/meta/comments/count": {
       "parameters": [
         {
           "$ref": "#/components/parameters/xc-auth"
@@ -13860,6 +14715,100 @@
         ]
       }
     },
+    "/api/v1/db/meta/projects/audits": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ],
+      "get": {
+        "summary": "List Audits in Project",
+        "operationId": "project-audit-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "uniqueItems": true,
+                      "items": {
+                        "$ref": "#/components/schemas/Audit"
+                      }
+                    },
+                    "pageInfo": {
+                      "$ref": "#/components/schemas/Paginated"
+                    }
+                  },
+                  "required": [
+                    "list",
+                    "pageInfo"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "description": "List all audit data in the given project",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "in": "query",
+            "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "properties": {
+                "created_at": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                },
+                "user": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                }
+              },
+              "type": "object"
+            },
+            "in": "query",
+            "name": "orderBy"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "tags": [
+          "Utils"
+        ]
+      }
+    },
     "/api/v1/db/meta/projects/{baseId}/audits": {
       "parameters": [
         {
@@ -13888,7 +14837,6 @@
                     "list": {
                       "type": "array",
                       "uniqueItems": true,
-                      "minItems": 1,
                       "items": {
                         "$ref": "#/components/schemas/Audit"
                       }
@@ -13922,7 +14870,7 @@
           {
             "schema": {
               "type": "integer",
-              "maximum": 1
+              "minimum": 1
             },
             "in": "query",
             "name": "limit"
@@ -13933,6 +14881,33 @@
             },
             "in": "query",
             "name": "sourceId"
+          },
+          {
+            "schema": {
+              "properties": {
+                "created_at": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                },
+                "user": {
+                  "type": "string",
+                  "description": "Sort direction",
+                  "enum": [
+                    "asc",
+                    "desc"
+                  ],
+                  "example": "desc"
+                }
+              },
+              "type": "object"
+            },
+            "in": "query",
+            "name": "orderBy"
           },
           {
             "$ref": "#/components/parameters/xc-auth"
@@ -14828,7 +15803,8 @@
                       "oracledb",
                       "pg",
                       "snowflake",
-                      "sqlite3"
+                      "sqlite3",
+                      "databricks"
                     ],
                     "example": "mysql2",
                     "type": "string"
@@ -14878,32 +15854,6 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
-      }
-    },
-    "/api/v1/db/meta/connection/select": {
-      "parameters": [],
-      "post": {
-        "summary": "",
-        "operationId": "utils-select-query",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Utils"
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {}
-          }
-        },
-        "description": ""
       }
     },
     "/api/v1/url_to_config": {
@@ -14973,7 +15923,8 @@
                         "oracledb",
                         "pg",
                         "snowflake",
-                        "sqlite3"
+                        "sqlite3",
+                        "databricks"
                       ],
                       "example": "mysql2",
                       "type": "string"
@@ -15065,6 +16016,7 @@
                       "defaultLimit": 25,
                       "ncMin": false,
                       "teleEnabled": false,
+                      "errorReportingEnabled": true,
                       "auditEnabled": true,
                       "ncSiteUrl": "http://localhost:8080",
                       "ee": false,
@@ -15107,6 +16059,9 @@
                       "type": "boolean"
                     },
                     "teleEnabled": {
+                      "type": "boolean"
+                    },
+                    "errorReportingEnabled": {
                       "type": "boolean"
                     },
                     "auditEnabled": {
@@ -15159,6 +16114,7 @@
                       "defaultLimit": 25,
                       "ncMin": false,
                       "teleEnabled": false,
+                      "errorReportingEnabled": true,
                       "auditEnabled": true,
                       "ncSiteUrl": "http://localhost:8080",
                       "ee": false,
@@ -15185,6 +16141,26 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
+      }
+    },
+    "/api/v1/error-reporting": {
+      "post": {
+        "summary": "Error Reporting",
+        "operationId": "utils-error-report",
+        "responses": {
+        },
+        "description": "Error Reporting",
+        "tags": [
+          "Utils",
+          "Internal"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "$ref": "#/components/schemas/ErrorReportReq"
+            }
+          }
+        }
       }
     },
     "/api/v1/db/meta/axiosRequestMake": {
@@ -15356,6 +16332,88 @@
           {
             "$ref": "#/components/parameters/xc-auth"
           }
+        ]
+      }
+    },
+    "/api/v2/feed": {
+      "get": {
+        "summary": "Get Feed",
+        "operationId": "utils-feed",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "github",
+                "youtube",
+                "cloud"
+              ]
+            },
+            "name": "type",
+            "in": "query",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "per_page",
+            "in": "query",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "page",
+            "in": "query",
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "Id": {
+                        "type": "string"
+                      },
+                      "Description": {
+                        "type": "string"
+                      },
+                      "Tags": {
+                        "type": "string"
+                      },
+                      "Images": {
+                        "type": "array",
+                        "items": {
+                          "type": "object"
+                        }
+                      },
+                      "Url": {
+                        "type": "string"
+                      },
+                      "Published Time": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Utils"
         ]
       }
     },
@@ -15773,7 +16831,7 @@
         }
       ]
     },
-    "/api/v1/db/meta/projects/{baseId}/api-tokens/{token}": {
+    "/api/v1/db/meta/projects/{baseId}/api-tokens/{tokenId}": {
       "delete": {
         "summary": "Delete API Token",
         "operationId": "api-token-delete",
@@ -15823,12 +16881,12 @@
         {
           "schema": {
             "type": "string",
-            "example": "DYh540o8hbWpUGdarekECKLdN5OhlgCUWutVJYX2"
+            "example": "DYh540o8hbWpU"
           },
-          "name": "token",
+          "name": "tokenId",
           "in": "path",
           "required": true,
-          "description": "API Token"
+          "description": "API Token ID"
         }
       ]
     },
@@ -15844,9 +16902,9 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "type":"object",
-                "properties":{
-                  "files":{
+                "type": "object",
+                "properties": {
+                  "files": {
                     "type": "array",
                     "required": true,
                     "items": {
@@ -15861,9 +16919,9 @@
                     "files": [
                       {
                         "mimetype": "image/jpeg",
-                        "fieldname":"files",
+                        "fieldname": "files",
                         "originalname": "22bc-kavypmq4869759 (1).jpg",
-                        "encoding":"7bit",
+                        "encoding": "7bit",
                         "size": 13052,
                         "buffer": "<Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 03 20 00 00 02 58 08 02 00 00 00 15 14 15 27 00 00 00 09 70 48 59 73 00 00 0b 13 00 00 0b 13 01 >"
                       }
@@ -16000,6 +17058,28 @@
             "$ref": "#/components/parameters/xc-auth"
           }
         ]
+      }
+    },
+    "/api/v1/notifications/poll": {
+      "get": {
+        "summary": "Notification Poll",
+        "operationId": "notification-poll",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Notification"
+        ],
+        "description": "Poll notifications"
       }
     },
     "/api/v1/notifications": {
@@ -16258,6 +17338,93 @@
         ]
       }
     },
+    "/api/v2/tables/{tableId}/aggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID is required"
+        },
+        {
+          "schema": {
+            "type": "array",
+            "description": "List of fields to be aggregated",
+            "items": {
+              "type": "object"
+            }
+          },
+          "in": "query",
+          "name": "aggregation",
+          "description": "Used for selective aggregation"
+        }
+      ],
+      "get": {
+        "summary": "Read Aggregated Data",
+        "operationId": "db-data-table-aggregate",
+        "description": "Read aggregated data from a given table",
+        "tags": [
+          "DB Data Table Aggregate"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "Id": 1,
+                      "Title": "90",
+                      "SingleSelect": "50"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
     "/api/v2/tables/{tableId}/records": {
       "parameters": [
         {
@@ -16510,7 +17677,7 @@
           }
         ]
       },
-      "put": {
+      "patch": {
         "summary": "Update Table Rows",
         "operationId": "db-data-table-row-update",
         "responses": {
@@ -17152,6 +18319,80 @@
         ]
       }
     },
+    "/api/v2/downloadAttachment/{modelId}/{columnId}/{rowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "modelId",
+          "in": "path",
+          "required": true,
+          "description": "Model ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "Column ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Row ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "urlOrPath",
+          "in": "query",
+          "description": "URL or Path of the attachment"
+        }
+      ],
+      "get": {
+        "summary": "Download Attachment",
+        "operationId": "db-data-table-row-attachment-download",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "URL to download attachment"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "Path to download attachment"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB Data Table Row"
+        ],
+        "description": "Download attachment from a given row",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/api/v2/tables/{tableId}/links/{columnId}/records": {
       "parameters": [
         {
@@ -17183,19 +18424,31 @@
                 "schema": {}
               },
               "examples": {
-                "Example 1" : {
+                "Example 1": {
                   "value": {
                     "link": [
-                      {"Id": 1},
-                      {"Id": 2},
-                      {"Id": 3},
-                      {"Id": 5},
-                      {"Id": 6}
+                      {
+                        "Id": 1
+                      },
+                      {
+                        "Id": 2
+                      },
+                      {
+                        "Id": 3
+                      },
+                      {
+                        "Id": 5
+                      },
+                      {
+                        "Id": 6
+                      }
                     ],
                     "unlink": [
-                      {"Id": 4}
+                      {
+                        "Id": 4
+                      }
                     ]
-                }
+                  }
                 }
               }
             }
@@ -17204,7 +18457,9 @@
             "$ref": "#/components/responses/BadRequest"
           }
         },
-        "tags": ["DB Data Table Row"],
+        "tags": [
+          "DB Data Table Row"
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -17277,6 +18532,181 @@
         "description": "Get dynamic command palette suggestions based on scope"
       }
     },
+    "/api/v2/extensions/{baseId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p124hhlkbeasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Extensions",
+        "operationId": "extensions-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "description": "Get all extensions for a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Extension",
+        "operationId": "extensions-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "description": "Create a new extension for a given base",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/extensions/{extensionId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "ext124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "extensionId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Extension ID"
+        }
+      ],
+      "get": {
+        "summary": "Get Extension",
+        "operationId": "extensions-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "description": "Get extension details",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update Extension",
+        "operationId": "extensions-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "description": "Update extension details",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Extension",
+        "operationId": "extensions-delete",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Extensions"
+        ],
+        "description": "Delete extension",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
     "/jobs/listen": {
       "post": {
         "summary": "Jobs Listen",
@@ -17301,13 +18731,56 @@
         }
       ]
     },
-    "/jobs/status": {
+    "/api/v2/jobs/{baseId}": {
       "post": {
-        "summary": "Jobs Status",
-        "operationId": "jobs-status",
-        "description": "Get job status",
+        "summary": "Get Jobs",
+        "operationId": "jobs-list",
+        "description": "Get list of jobs for a given base for the user",
         "tags": [
           "Jobs"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "job": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "p124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Base ID"
+        },
+        {
+          "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
+    },
+    "/api/v2/export/{viewId}/{exportAs}": {
+      "post": {
+        "summary": "Trigger export as job",
+        "operationId": "export-data",
+        "description": "Trigger export as job",
+        "tags": [
+          "Export"
         ],
         "requestBody": {
           "content": {
@@ -17321,7 +18794,255 @@
       },
       "parameters": [
         {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "vw124dflkcvasewh",
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "path",
+          "required": true,
+          "description": "Unique View ID"
+        },
+        {
+          "schema": {
+            "type": "string",
+            "enum": [
+              "csv"
+            ]
+          },
+          "name": "exportAs",
+          "in": "path",
+          "required": true,
+          "description": "Export as format"
+        },
+        {
           "$ref": "#/components/parameters/xc-auth"
+        }
+      ]
+    },
+    "/api/v2/meta/hooks/{hookId}/trigger/{rowId}": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "hookId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Hook ID"
+        },
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "md_w9gpnaousnfss1",
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Row ID"
+        }
+      ],
+      "post": {
+        "summary": "Trigger Manual Hook",
+        "operationId": "db-table-webhook-trigger",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "DB Table Webhook"
+        ],
+        "description": "Trigger the manual WebHook",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ]
+      }
+    },
+    "/api/v2/meta/integrations": {
+      "get": {
+        "summary": "List integrations",
+        "operationId": "integration-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "List integrations",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Integrations"
+            },
+            "name": "type",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeDatabaseInfo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create integration",
+        "operationId": "integration-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Create integration"
+      }
+    },
+    "/api/v2/meta/integrations/{integrationId}": {
+      "get": {
+        "summary": "Read integration",
+        "operationId": "integration-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Read integration",
+        "parameters": [
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeConfig",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeSources",
+            "in": "query"
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update integration",
+        "operationId": "integration-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationReq"
+              }
+            }
+          }
+        },
+        "description": "Update integration"
+      },
+      "delete": {
+        "summary": "Delete integration",
+        "operationId": "integration-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Delete integration"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "integrationId",
+          "in": "path",
+          "required": true
         }
       ]
     }
@@ -17532,7 +19253,7 @@
             "type": "string",
             "description": "Attachment URL to be uploaded via upload-by-url"
           },
-          "fileName":{
+          "fileName": {
             "type": "string",
             "description": "The name of the attachment file name"
           }
@@ -17554,7 +19275,7 @@
                 "path": "download/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg",
                 "signedPath": "dltemp/lNoLbqB62Jdo5Rmp/1709308800000/noco/pm0umqsip16i1u5/m8yn03dncqal6ri//iDL5ednaHz2j2Sa3Cl.jpg"
               },
-              "Example 2" :{
+              "Example 2": {
                 "mimetype": "image/jpeg",
                 "size": 146143,
                 "title": "2 be loved.jpeg",
@@ -17605,9 +19326,9 @@
         "x-examples": {
           "Example 1": {
             "mimetype": "image/jpeg",
-            "fieldname":"files",
+            "fieldname": "files",
             "originalname": "22bc-kavypmq4869759 (1).jpg",
-            "encoding":"7bit",
+            "encoding": "7bit",
             "size": 13052,
             "buffer": "<Buffer 89 50 4e 47 0d 0a 1a 0a 00 00 00 0d 49 48 44 52 00 00 03 20 00 00 02 58 08 02 00 00 00 15 14 15 27 00 00 00 09 70 48 59 73 00 00 0b 13 00 00 0b 13 01 >"
           }
@@ -17833,7 +19554,15 @@
         "properties": {
           "alias": {
             "$ref": "#/components/schemas/StringOrNull",
-            "description": "Source Name - Default BASE will be null by default"
+            "description": "Source Name"
+          },
+          "integration_title": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Integration Name"
+          },
+          "fk_integration_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Integration Id"
           },
           "config": {
             "description": "Source Configuration"
@@ -17864,6 +19593,14 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Is the data source minimal db"
           },
+          "is_schema_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source schema readonly"
+          },
+          "is_data_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source data readonly"
+          },
           "order": {
             "description": "The order of the list of sources",
             "example": 1,
@@ -17882,8 +19619,74 @@
               "oracledb",
               "pg",
               "snowflake",
-              "sqlite3"
+              "sqlite3",
+              "databricks"
             ],
+            "example": "mysql2",
+            "type": "string"
+          }
+        },
+        "x-stoplight": {
+          "id": "qyzsky82ovjiv"
+        }
+      },
+      "Integration": {
+        "description": "Model for Integration",
+        "examples": [
+          {
+            "alias": null,
+            "config": "<ENCRYPTED>",
+            "enabled": 1,
+            "id": "ds_krsappzu9f8vmo",
+            "meta": null,
+            "order": 1,
+            "type": "mysql2"
+          }
+        ],
+        "title": "Source Model",
+        "type": "object",
+        "properties": {
+          "title": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Source Name - Default BASE will be null by default"
+          },
+          "config": {
+            "description": "Source Configuration"
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this Intgration enabled"
+          },
+          "id": {
+            "description": "Unique Integration ID",
+            "type": "string"
+          },
+          "fk_workspace_id": {
+            "description": "Unique Workspace ID",
+            "type": "string"
+          },
+          "order": {
+            "description": "The order of the list of sources",
+            "example": 1,
+            "type": "number"
+          },
+          "base_id": {
+            "description": "The base ID that this source belongs to",
+            "type": "string"
+          },
+          "is_private": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "type": {
+            "$ref": "#/components/schemas/Integrations"
+          },
+          "sub_type": {
+            "description": "DB Type",
+            "example": "mysql2",
+            "type": "string"
+          },
+          "created_by": {
+            "description": "DB Type",
             "example": "mysql2",
             "type": "string"
           }
@@ -18037,6 +19840,14 @@
             "description": "Is the data source minimal db",
             "type": "boolean"
           },
+          "is_schema_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source schema readonly"
+          },
+          "is_data_readonly": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is the data source data readonly"
+          },
           "type": {
             "description": "DB Type",
             "enum": [
@@ -18046,8 +19857,12 @@
               "oracledb",
               "pg",
               "snowflake",
-              "sqlite3"
+              "sqlite3",
+              "databricks"
             ],
+            "type": "string"
+          },
+          "fk_integration_id": {
             "type": "string"
           }
         },
@@ -18056,6 +19871,58 @@
         "x-stoplight": {
           "id": "ky2ak9xsyl3b5"
         }
+      },
+      "Integrations": {
+        "type": "string",
+        "description": "Integration Type",
+        "enum": [
+          "database"
+        ]
+      },
+      "IntegrationReq": {
+        "description": "Model for Integration Request",
+        "examples": [
+          {
+            "title": "My Source",
+            "config": {},
+            "type": "db"
+          }
+        ],
+        "properties": {
+          "title": {
+            "description": "Integration Name - Default BASE will be null by default",
+            "example": "Integration",
+            "maxLength": 128,
+            "type": "string"
+          },
+          "config": {
+            "description": "Source Configuration"
+          },
+          "meta": {
+            "description": "Integration metas"
+          },
+          "type": {
+            "$ref": "#/components/schemas/Integrations"
+          },
+          "sub_type": {
+            "description": "Sub Type",
+            "type": "string"
+          },
+          "copy_from_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of integration to be copied from. Used in Copy Integration."
+          }
+        },
+        "title": "Source Request",
+        "type": "object",
+        "x-stoplight": {
+          "id": "ky2ak9xsyl3b5"
+        },
+        "required": [
+          "title",
+          "config",
+          "type"
+        ]
       },
       "Bool": {
         "description": "Model for Bool",
@@ -18131,6 +19998,10 @@
           "au": {
             "$ref": "#/components/schemas/Bool",
             "description": "Auto Update Timestamp"
+          },
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Column Description"
           },
           "source_id": {
             "description": "Source ID that this column belongs to",
@@ -18489,6 +20360,9 @@
           {
             "anyOf": [
               {
+                "$ref": "#/components/schemas/ButtonColumnReq"
+              },
+              {
                 "$ref": "#/components/schemas/FormulaColumnReq"
               },
               {
@@ -18509,6 +20383,9 @@
             "properties": {
               "column_name": {
                 "type": "string"
+              },
+              "description": {
+                "$ref": "#/components/schemas/TextOrNull"
               },
               "column_order": {
                 "description": "Column order in a specific view",
@@ -18585,7 +20462,7 @@
         "description": "Model for Comment Request",
         "examples": [
           {
-            "description": "This is the comment for the row",
+            "comment": "This is the comment for the row",
             "fk_model_id": "md_ehn5izr99m7d45",
             "row_id": "3"
           }
@@ -18593,10 +20470,11 @@
         "title": "Comment Request Model",
         "type": "object",
         "properties": {
-          "description": {
+          "comment": {
             "type": "string",
             "description": "Description for the target row",
-            "example": "This is the comment for the row"
+            "example": "This is the comment for the row",
+            "maxLength": 3000
           },
           "fk_model_id": {
             "type": "string",
@@ -18624,16 +20502,23 @@
         },
         "examples": [
           {
-            "description": "This is the comment for the row"
+            "comment": "This is the comment for the row",
+            "fk_model_id": "md_ehn5izr99m7d45"
           }
         ],
         "title": "Comment Update Request Model",
         "type": "object",
         "properties": {
-          "description": {
+          "comment": {
             "type": "string",
             "description": "Description for the target row",
-            "example": "This is the comment for the row"
+            "example": "This is the comment for the row",
+            "maxLength": 3000
+          },
+          "fk_model_id": {
+            "type": "string",
+            "description": "Foreign Key to Model",
+            "example": "md_ehn5izr99m7d45"
           }
         }
       },
@@ -18645,6 +20530,7 @@
             "comparison_op": "eq",
             "comparison_sub_op": null,
             "created_at": "2023-03-02 18:18:05",
+            "fk_parent_column_id": "cd_d7ah9n2qfupgys",
             "fk_column_id": "cl_d7ah9n2qfupgys",
             "fk_hook_id": null,
             "fk_parent_id": null,
@@ -18744,6 +20630,10 @@
             ],
             "description": "Comparison Sub-Operator"
           },
+          "fk_parent_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to parent column"
+          },
           "fk_column_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Column"
@@ -18763,6 +20653,14 @@
           "fk_view_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to View"
+          },
+          "fk_value_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to dynamic value Column"
+          },
+          "fk_link_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Link Column"
           },
           "id": {
             "$ref": "#/components/schemas/Id",
@@ -18798,6 +20696,11 @@
           },
           "value": {
             "description": "The filter value. Can be NULL for some operators."
+          },
+          "order": {
+            "type": "number",
+            "description": "The order of the filter",
+            "example": 1
           }
         },
         "readOnly": true,
@@ -19300,7 +21203,7 @@
                 "$ref": "#/components/schemas/AttachmentReq"
               },
               {
-                "type" : "null"
+                "type": "null"
               }
             ],
             "description": "Banner Image URL"
@@ -19321,7 +21224,7 @@
                 "$ref": "#/components/schemas/AttachmentReq"
               },
               {
-                "type" : "null"
+                "type": "null"
               }
             ],
             "description": "Logo URL"
@@ -19560,6 +21463,183 @@
         },
         "x-stoplight": {
           "id": "syn5ameyiipp7"
+        }
+      },
+      "Button": {
+        "description": "Model for Button",
+        "examples": [
+          {
+            "error": "Error Message shows here",
+            "fk_column_id": "cl_h2micb4jdnmsh1",
+            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "formula_raw": "CONCAT(\"FOO\", {Title})",
+            "id": "fm_1lo8wqtvvipdns",
+            "base_id": "pj34mdkvjfdnkf",
+            "label": "Click Me",
+            "theme": "solid",
+            "color": "green",
+            "icon": "plus"
+          }
+        ],
+        "title": "Button Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "type": {
+            "description": "Whether button is webhook or url",
+            "enum": [
+              "webhook",
+              "url"
+            ]
+          },
+          "label": {
+            "description": "Label of Button",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "theme": {
+            "description": "Button Theme",
+            "enum": [
+              "solid",
+              "text",
+              "light"
+            ]
+          },
+          "color": {
+            "description": "Button color",
+            "enum": [
+              "brand",
+              "red",
+              "green",
+              "maroon",
+              "blue",
+              "orange",
+              "pink",
+              "purple",
+              "yellow",
+              "gray"
+            ]
+          },
+          "icon": {
+            "description": "Button Icon",
+            "type": "string"
+          },
+          "formula": {
+            "description": "Formula with column ID replaced",
+            "example": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "type": "string"
+          },
+          "formula_raw": {
+            "description": "Original Formula inputted in UI",
+            "example": "CONCAT(\"FOO\", {Title})",
+            "type": "string"
+          },
+          "error": {
+            "description": "Error Message",
+            "type": "string"
+          },
+          "parsed_tree": {
+            "description": "Parsed Formula Tree",
+            "type": "object"
+          },
+          "fk_webhook_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Webhook ID"
+          },
+          "fk_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Column"
+          }
+        },
+        "x-stoplight": {
+          "id": "syn5ameyiipp7"
+        }
+      },
+      "ButtonColumnReq": {
+        "description": "Model for Button Column Request",
+        "examples": [
+          {
+            "formula": "CONCAT(\"FOO\", {{cl_c5knoi4xs4sfpt}})",
+            "formula_raw": "CONCAT(\"FOO\", {Title})",
+            "title": "Formula",
+            "uidt": "Formula"
+          }
+        ],
+        "title": "Button Column Request Model",
+        "type": "object",
+        "properties": {
+          "title": {
+            "description": "Formula Title",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "uidt": {
+            "description": "UI Data Type",
+            "enum": [
+              "Formula"
+            ],
+            "type": "string"
+          },
+          "type": {
+            "description": "Whether button is webhook or url",
+            "enum": [
+              "webhook",
+              "url"
+            ]
+          },
+          "theme": {
+            "description": "Button Theme",
+            "enum": [
+              "solid",
+              "text",
+              "light"
+            ]
+          },
+          "color": {
+            "description": "Button color",
+            "enum": [
+              "brand",
+              "red",
+              "green",
+              "maroon",
+              "blue",
+              "orange",
+              "pink",
+              "purple",
+              "yellow",
+              "gray"
+            ]
+          },
+          "label": {
+            "description": "Label of Button",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "icon": {
+            "description": "Button Icon",
+            "type": "string"
+          },
+          "fk_webhook_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Webhook ID"
+          },
+          "formula": {
+            "description": "Formula with column ID replaced",
+            "type": "string"
+          },
+          "formula_raw": {
+            "description": "Original Formula inputted in UI",
+            "type": "string"
+          }
+        },
+        "x-stoplight": {
+          "id": "tvczns7x7nj73"
         }
       },
       "FormulaColumnReq": {
@@ -20028,7 +22108,8 @@
             "help": null,
             "group_by": 0,
             "group_by_order": null,
-            "group_by_sort": null
+            "group_by_sort": null,
+            "aggregation": null
           }
         ],
         "title": "Grid Column Model",
@@ -20108,6 +22189,11 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Group By Sort",
             "example": "asc"
+          },
+          "aggregation": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Aggregation Type",
+            "example": "sum"
           }
         },
         "x-stoplight": {
@@ -20158,6 +22244,11 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Group By Sort",
             "example": "asc"
+          },
+          "aggregation": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Aggregation",
+            "example": "sum"
           }
         },
         "title": "Grid Column Request Model",
@@ -20244,7 +22335,8 @@
           "event": {
             "enum": [
               "after",
-              "before"
+              "before",
+              "manual"
             ],
             "type": "string",
             "description": "Event Type for the operation",
@@ -20273,7 +22365,8 @@
               "delete",
               "bulkInsert",
               "bulkUpdate",
-              "bulkDelete"
+              "bulkDelete",
+              "trigger"
             ],
             "type": "string",
             "description": "Hook Operation",
@@ -20364,7 +22457,8 @@
           "event": {
             "enum": [
               "after",
-              "before"
+              "before",
+              "manual"
             ],
             "type": "string",
             "description": "Event Type for the operation",
@@ -20393,7 +22487,8 @@
               "delete",
               "bulkInsert",
               "bulkUpdate",
-              "bulkDelete"
+              "bulkDelete",
+              "trigger"
             ],
             "type": "string",
             "description": "Hook Operation",
@@ -20577,7 +22672,8 @@
             "example": "after",
             "enum": [
               "after",
-              "before"
+              "before",
+              "manual"
             ]
           },
           "execution_time": {
@@ -20606,7 +22702,8 @@
               "delete",
               "bulkInsert",
               "bulkUpdate",
-              "bulkDelete"
+              "bulkDelete",
+              "trigger"
             ],
             "example": "insert"
           },
@@ -21280,6 +23377,10 @@
           }
         ],
         "properties": {
+          "childViewId": {
+            "$ref": "#/components/schemas/IdOrNull",
+            "description": "Foreign Key to child view"
+          },
           "childId": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to chhild column"
@@ -21298,7 +23399,8 @@
             "enum": [
               "bt",
               "hm",
-              "mm"
+              "mm",
+              "oo"
             ],
             "type": "string",
             "description": "The type of the relationship"
@@ -21365,6 +23467,9 @@
             "description": "Foreign Key to Column"
           },
           "fk_index_name": {
+            "type": "string"
+          },
+          "fk_relation_view_id": {
             "type": "string"
           },
           "fk_mm_child_column_id": {
@@ -21888,7 +23993,7 @@
         "title": "Normal Column Request Model",
         "type": "object",
         "required": [
-          "column_name"
+          "title"
         ],
         "x-stoplight": {
           "id": "fn3gqmojvswv2"
@@ -22315,6 +24420,11 @@
             "example": "p_124hhlkbeasewh",
             "type": "string"
           },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "example": "ws_123456",
+            "type": "string"
+          },
           "is_meta": {
             "$ref": "#/components/schemas/Bool"
           },
@@ -22695,6 +24805,7 @@
               "min",
               "max",
               "avg",
+              "sum",
               "countDistinct",
               "sumDistinct",
               "avgDistinct"
@@ -23153,7 +25264,9 @@
             "description": "Sort direction",
             "enum": [
               "asc",
-              "desc"
+              "desc",
+              "count-desc",
+              "count-asc"
             ],
             "example": "desc"
           },
@@ -23303,13 +25416,15 @@
       },
       "CalendarRangeOrNull": {
         "description": "Model for CalendarRangeOrNull",
-        "example": [{
-          "id": "kvc_2skkg5mi1eb37f",
-          "fk_from_column_id": "cl_hzos4ghyncqi4k",
-          "fk_to_column_id": "cl_hzos4ghyncqi4k",
-          "fk_view_id": "vw_wqs4zheuo5lgdy",
-          "label": "string"
-        }],
+        "example": [
+          {
+            "id": "kvc_2skkg5mi1eb37f",
+            "fk_from_column_id": "cl_hzos4ghyncqi4k",
+            "fk_to_column_id": "cl_hzos4ghyncqi4k",
+            "fk_view_id": "vw_wqs4zheuo5lgdy",
+            "label": "string"
+          }
+        ],
         "oneOf": [
           {
             "type": "null"
@@ -23365,6 +25480,21 @@
           }
         ],
         "title": "StringOrNullOrBooleanOrNumber Model"
+      },
+      "IdOrNull": {
+        "description": "Model for IdOrNull",
+        "examples": [
+          "string"
+        ],
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/Id"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "IdOrNull Model"
       },
       "Table": {
         "description": "Model for Table",
@@ -23773,6 +25903,10 @@
             "description": "Unique Base ID",
             "type": "string"
           },
+          "description": {
+            "description": "Table Description",
+            "$ref": "#/components/schemas/TextOrNull"
+          },
           "table_name": {
             "description": "Table Name. Prefix will be added for XCDB bases.",
             "type": "string"
@@ -23791,7 +25925,7 @@
           }
         },
         "required": [
-          "table_name",
+          "title",
           "title"
         ],
         "x-stoplight": {
@@ -24041,6 +26175,10 @@
             },
             "type": "array"
           },
+          "description": {
+            "description": "Table description",
+            "$ref": "#/components/schemas/TextOrNull"
+          },
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "the meta data for this table"
@@ -24067,7 +26205,7 @@
         },
         "required": [
           "columns",
-          "table_name"
+          "title"
         ],
         "title": "Table Request Model",
         "type": "object",
@@ -24350,6 +26488,10 @@
             "description": "The rder of the list of views",
             "type": "number"
           },
+          "description": {
+            "description": "View Description",
+            "$ref": "#/components/schemas/TextOrNull"
+          },
           "password": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Password for protecting the view"
@@ -24404,6 +26546,10 @@
               }
             ],
             "description": "Associated View Model"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
           }
         },
         "required": [
@@ -24660,6 +26806,11 @@
             "description": "View Title",
             "example": "Grid View 1"
           },
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Description of the view.",
+            "example": "This is a grid view."
+          },
           "uuid": {
             "maxLength": 255,
             "type": "string",
@@ -24701,6 +26852,10 @@
           "show_system_fields": {
             "$ref": "#/components/schemas/Bool",
             "description": "Should this view show system fields?"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
           }
         }
       },
@@ -24859,67 +27014,54 @@
           "body": {
             "type": "object",
             "properties": {
-              "id": {
-                "type": "string",
+              "base": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the base being invited to"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "The title of the base being invited to"
+                  },
+                  "type": {
+                    "type": "string",
+                    "description": "The type of the base being invited to"
+                  }
+                },
+                "required": [
+                  "id",
+                  "title",
+                  "type"
+                ],
                 "description": "The ID of the base being invited to"
               },
-              "title": {
-                "type": "string",
-                "description": "The title of the base being invited to"
-              },
-              "type": {
-                "type": "string",
-                "description": "The type of the base being invited to"
-              },
-              "invited_by": {
-                "type": "string",
-                "description": "The email address of the user who invited the recipient"
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "The ID of the user who invited to the base"
+                  },
+                  "email": {
+                    "type": "string",
+                    "description": "The email address of the user who invited to the base"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "description": "The display name of the user who invited to the base"
+                  }
+                },
+                "required": [
+                  "id",
+                  "email"
+                ]
               }
             },
             "required": [
-              "id",
-              "title",
-              "type",
-              "invited_by"
-            ]
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "ProjectEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user"
-          },
-          "type": {
-            "type": "string"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string",
-                "description": "The ID of the base"
-              },
-              "title": {
-                "type": "string",
-                "description": "The title of the base"
-              },
-              "type": {
-                "type": "string",
-                "description": "The type of the base"
-              }
-            },
-            "required": [
-              "id",
-              "title",
-              "type"
+              "base",
+              "user"
             ]
           }
         },
@@ -24943,191 +27085,6 @@
           "body": {
             "type": "object",
             "description": "An empty object"
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "SortEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who created sort"
-          },
-          "type": {
-            "type": "string"
-          },
-          "body": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "FilterEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who created filter"
-          },
-          "type": {
-            "type": "string"
-          },
-          "body": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "TableEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who triggered the event"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of the event"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The title of the table associated with the event"
-              },
-              "base_id": {
-                "type": "string",
-                "description": "The ID of the base that the table belongs to"
-              },
-              "source_id": {
-                "type": "string",
-                "description": "The ID of the source that the table belongs to"
-              },
-              "id": {
-                "type": "string",
-                "description": "The ID of the table associated with the event"
-              }
-            },
-            "required": [
-              "title",
-              "base_id",
-              "source_id",
-              "id"
-            ]
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "ViewEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who triggered the event"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of the event"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The title of the view associated with the event"
-              },
-              "base_id": {
-                "type": "string",
-                "description": "The ID of the base that the view belongs to"
-              },
-              "source_id": {
-                "type": "string",
-                "description": "The ID of the source that the view belongs to"
-              },
-              "id": {
-                "type": "string",
-                "description": "The ID of the view associated with the event"
-              },
-              "fk_model_id": {
-                "type": "string",
-                "description": "The ID of the model that the view is based on"
-              }
-            },
-            "required": [
-              "title",
-              "base_id",
-              "source_id",
-              "id",
-              "fk_model_id"
-            ]
-          }
-        },
-        "required": [
-          "fk_user_id",
-          "type",
-          "body"
-        ]
-      },
-      "ColumnEvent": {
-        "type": "object",
-        "properties": {
-          "fk_user_id": {
-            "type": "string",
-            "description": "The ID of the user who triggered the event"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of the event"
-          },
-          "body": {
-            "type": "object",
-            "properties": {
-              "title": {
-                "type": "string",
-                "description": "The title of the column associated with the event"
-              },
-              "base_id": {
-                "type": "string",
-                "description": "The ID of the base that the column belongs to"
-              },
-              "source_id": {
-                "type": "string",
-                "description": "The ID of the source that the column belongs to"
-              },
-              "id": {
-                "type": "string",
-                "description": "The ID of the column associated with the event"
-              },
-              "fk_model_id": {
-                "type": "string",
-                "description": "The ID of the model that the column belongs to"
-              }
-            },
-            "required": [
-              "title",
-              "base_id",
-              "source_id",
-              "id",
-              "fk_model_id"
-            ]
           }
         },
         "required": [
@@ -25169,25 +27126,7 @@
                 "$ref": "#/components/schemas/ProjectInviteEvent"
               },
               {
-                "$ref": "#/components/schemas/ProjectEvent"
-              },
-              {
-                "$ref": "#/components/schemas/TableEvent"
-              },
-              {
-                "$ref": "#/components/schemas/ViewEvent"
-              },
-              {
-                "$ref": "#/components/schemas/ColumnEvent"
-              },
-              {
                 "$ref": "#/components/schemas/WelcomeEvent"
-              },
-              {
-                "$ref": "#/components/schemas/SortEvent"
-              },
-              {
-                "$ref": "#/components/schemas/FilterEvent"
               }
             ]
           }
@@ -25277,19 +27216,391 @@
           "properties": {
             "operation": {
               "type": "string",
-              "enum": ["copy", "paste", "deleteAll"]
+              "enum": [
+                "copy",
+                "paste",
+                "deleteAll"
+              ]
             },
             "rowId": {
               "type": "string"
             },
-            "columnId":{
+            "columnId": {
               "type": "string"
             },
-            "fk_related_model_id":{
+            "fk_related_model_id": {
               "type": "string"
             }
           },
-          "required": ["operation", "rowId", "columnId", "fk_related_model_id"]
+          "required": [
+            "operation",
+            "rowId",
+            "columnId",
+            "fk_related_model_id"
+          ]
+        }
+      },
+      "KanbanColumnReq": {
+        "description": "Model for Kanban Column Request",
+        "examples": [
+          {
+            "title": "string",
+            "show": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Kanban Column Model Request",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Is this column shown?"
+          },
+          "order": {
+            "type": "number",
+            "example": 1,
+            "description": "Column Order"
+          }
+        }
+      },
+      "GalleryColumnReq": {
+        "description": "Model for Gallery Column Request",
+        "examples": [
+          {
+            "label": "My Column",
+            "width": "200px"
+          }
+        ],
+        "properties": {
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order",
+            "example": 1
+          }
+        }
+      },
+      "CalendarColumnReq": {
+        "description": "Model for Calendar Column Request",
+        "examples": [
+          {
+            "title": "string",
+            "show": 0,
+            "bold": 0,
+            "italic": 0,
+            "underline": 0,
+            "order": "1"
+          }
+        ],
+        "title": "Calendar Column Model",
+        "type": "object",
+        "properties": {
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown?"
+          },
+          "bold": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown as bold?"
+          },
+          "italic": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown as italic?"
+          },
+          "underline": {
+            "$ref": "#/components/schemas/Bool",
+            "x-stoplight": {
+              "id": "uqq8xmyz97t1u"
+            },
+            "description": "Is this column shown underlines?"
+          },
+          "order": {
+            "type": "number",
+            "x-stoplight": {
+              "id": "pbnchzgci5dwa"
+            },
+            "example": 1,
+            "description": "Column Order"
+          }
+        },
+        "x-stoplight": {
+          "id": "psbv6c6y9qvbu"
+        }
+      },
+      "ErrorReportReq": {
+        "type": "object",
+        "properties": {
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "stack": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "extra": {
+            "type": "object"
+          }
+        }
+      },
+      "Comment": {
+        "description": "Model for Comment",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "row_id": {
+            "type": "string",
+            "example": "rec0Adp9PMG9o7uJy",
+            "description": "Row ID"
+          },
+          "comment": {
+            "type": "string",
+            "example": "This is a comment",
+            "description": "Comment"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "example": "usr0Adp9PMG9o7uJy",
+            "description": "Created By User ID"
+          },
+          "created_by_email": {
+            "type": "string",
+            "example": "xxx@nocodb.com",
+            "description": "Created By User Email"
+          },
+          "resolved_by": {
+            "$ref": "#/components/schemas/Id",
+            "example": "usr0Adp9PMG9o7uJy",
+            "description": "Resolved By User ID"
+          },
+          "resolved_by_email": {
+            "type": "string",
+            "example": "xxx@nocodb.com",
+            "description": "Resolved By User Email"
+          },
+          "parent_comment_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "cmt043cx4r30343ff",
+            "description": "Parent Comment ID"
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "src0Adp9PMG9o7uJy",
+            "description": "Source ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "bas0Adp9PMG9o7uJy",
+            "description": "Base ID"
+          },
+          "fk_model_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "mod0Adp9PMG9o7uJy",
+            "description": "Model ID"
+          },
+          "created_at": {
+            "type": "string",
+            "example": "2020-05-20T12:00:00.000000Z",
+            "description": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "example": "2020-05-20T12:00:00.000000Z",
+            "description": "Updated At"
+          },
+          "is_deleted": {
+            "type": "boolean",
+            "description": "Whether the comment has been deleted by the user or not"
+          }
+        }
+      },
+      "UserCommentNotificationPreference": {
+        "description": "Model for User Comment Notification Preference",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "row_id": {
+            "type": "string",
+            "description": "User ID"
+          },
+          "user_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID"
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "src0Adp9PMG9o7uJy",
+            "description": "Source ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "bas0Adp9PMG9o7uJy",
+            "description": "Base ID"
+          },
+          "fk_model_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "mod0Adp9PMG9o7uJy",
+            "description": "Model ID"
+          },
+          "preference": {
+            "type": "string",
+            "enum": [
+              "ALL_COMMENTS",
+              "ONLY_MENTIONS"
+            ],
+            "description": "Is Read"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Updated At"
+          }
+        }
+      },
+      "CommentReactions": {
+        "description": "Model for Comment Reactions",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "row_id": {
+            "type": "string",
+            "description": "Row ID"
+          },
+          "comment_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Comment ID"
+          },
+          "reaction": {
+            "type": "string",
+            "description": "Reaction"
+          },
+          "user_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID"
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "src0Adp9PMG9o7uJy",
+            "description": "Source ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "bas0Adp9PMG9o7uJy",
+            "description": "Base ID"
+          },
+          "fk_model_id": {
+            "$ref": "#/components/schemas/Id",
+            "example": "mod0Adp9PMG9o7uJy",
+            "description": "Model ID"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Updated At"
+          }
+        }
+      },
+      "Extension": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Base ID"
+          },
+          "fk_user_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique User ID"
+          },
+          "extension_id": {
+            "type": "string",
+            "description": "Extension ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Extension Title"
+          },
+          "kv_store": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Key Value Store for the extension"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for the extension"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the extension"
+          }
+        }
+      },
+      "ExtensionReq": {
+        "type": "object",
+        "properties": {
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Base ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Extension Title"
+          },
+          "extension_id": {
+            "type": "string",
+            "description": "Extension ID"
+          },
+          "kv_store": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Key Value Store for the extension"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for the extension"
+          },
+          "order": {
+            "type": "number",
+            "description": "Order of the extension"
+          }
         }
       }
     },
@@ -25747,10 +28058,19 @@
       }
     },
     "parameters": {
+      "xc-token": {
+        "name": "xc-token",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "API Token. Refer [here](https://docs.nocodb.com/account-settings/api-tokens/) to know more"
+      },
       "xc-auth": {
         "name": "xc-auth",
         "in": "header",
-        "required": false,
+        "required": true,
         "schema": {
           "type": "string"
         },

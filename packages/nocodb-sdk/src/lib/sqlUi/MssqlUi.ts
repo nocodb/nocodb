@@ -1,5 +1,6 @@
 import UITypes from '../UITypes';
 import { IDType } from './index';
+import { ColumnType } from '~/lib';
 
 const dbTypes = [
   'bigint',
@@ -68,9 +69,9 @@ export class MssqlUi {
       {
         column_name: 'title',
         title: 'Title',
-        dt: 'varchar',
+        dt: 'TEXT',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: null,
         nrqd: true,
         rqd: false,
         ck: false,
@@ -78,10 +79,10 @@ export class MssqlUi {
         un: false,
         ai: false,
         cdf: null,
-        clen: 45,
+        clen: null,
         np: null,
         ns: null,
-        dtxp: '45',
+        dtxp: '',
         dtxs: '',
         altered: 1,
         uidt: 'SingleLineText',
@@ -187,9 +188,9 @@ export class MssqlUi {
   static getNewColumn(suffix) {
     return {
       column_name: 'title' + suffix,
-      dt: 'varchar',
+      dt: 'TEXT',
       dtx: 'specificType',
-      ct: 'varchar(45)',
+      ct: null,
       nrqd: true,
       rqd: false,
       ck: false,
@@ -197,10 +198,10 @@ export class MssqlUi {
       un: false,
       ai: false,
       cdf: null,
-      clen: 45,
+      clen: null,
       np: null,
       ns: null,
-      dtxp: '45',
+      dtxp: '',
       dtxs: '',
       altered: 1,
       uidt: 'SingleLineText',
@@ -682,7 +683,7 @@ export class MssqlUi {
         colProp.dt = 'varchar';
         break;
       case 'SingleLineText':
-        colProp.dt = 'varchar';
+        colProp.dt = 'text';
         break;
       case 'LongText':
         colProp.dt = 'text';
@@ -733,7 +734,7 @@ export class MssqlUi {
         };
         break;
       case 'URL':
-        colProp.dt = 'varchar';
+        colProp.dt = 'text';
         colProp.validate = {
           func: ['isURL'],
           args: [''],
@@ -819,7 +820,7 @@ export class MssqlUi {
       case 'Attachment':
       case 'Collaborator':
       case 'GeoData':
-        return ['char', 'ntext', 'text', 'varchar', 'nvarchar'];
+        return ['text', 'varchar', 'nvarchar', 'char', 'ntext'];
 
       case 'JSON':
         return ['text', 'ntext'];
@@ -844,7 +845,7 @@ export class MssqlUi {
         return ['varchar'];
 
       case 'URL':
-        return ['varchar', 'text'];
+        return ['text', 'varchar'];
 
       case 'Number':
         return [
@@ -916,6 +917,7 @@ export class MssqlUi {
         ];
 
       case 'Formula':
+      case 'Button':
         return ['text', 'ntext', 'varchar', 'nvarchar'];
 
       case 'Rollup':
@@ -948,7 +950,6 @@ export class MssqlUi {
       case 'Geometry':
         return ['geometry'];
 
-      case 'Button':
       default:
         return dbTypes;
     }
@@ -967,5 +968,25 @@ export class MssqlUi {
       'ROUNDUP',
       'DATESTR',
     ];
+  }
+
+  static getCurrentDateDefault(_col: Partial<ColumnType>) {
+    return null;
+  }
+
+  static isEqual(dataType1: string, dataType2: string) {
+    if (dataType1 === dataType2) return true;
+
+    const abstractType1 = this.getAbstractType({ dt: dataType1 });
+    const abstractType2 = this.getAbstractType({ dt: dataType2 });
+
+    if (
+      abstractType1 &&
+      abstractType1 === abstractType2 &&
+      ['integer', 'float'].includes(abstractType1)
+    )
+      return true;
+
+    return false;
   }
 }

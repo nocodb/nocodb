@@ -1,10 +1,12 @@
 import jsep from 'jsep';
 import { UITypes } from 'nocodb-sdk';
 import type FormulaColumn from '../models/FormulaColumn';
-import type { Column } from '~/models';
+import type { NcContext } from '~/interface/config';
+import type { ButtonColumn, Column } from '~/models';
 import Noco from '~/Noco';
 
 export async function getFormulasReferredTheColumn(
+  context: NcContext,
   {
     column,
     columns,
@@ -27,9 +29,15 @@ export async function getFormulasReferredTheColumn(
 
   return columns.reduce(async (columnsPromise, c) => {
     const columns = await columnsPromise;
-    if (c.uidt !== UITypes.Formula) return columns;
+    if (c.uidt !== UITypes.Formula && c.uidt !== UITypes.Button) return columns;
 
-    const formula = await c.getColOptions<FormulaColumn>(ncMeta);
+    const formula = await c.getColOptions<FormulaColumn | ButtonColumn>(
+      context,
+      ncMeta,
+    );
+
+    if (UITypes.Button === c.uidt && (formula as ButtonColumn)?.type !== 'url')
+      return columns;
 
     if (fn(jsep(formula.formula))) {
       columns.push(c);

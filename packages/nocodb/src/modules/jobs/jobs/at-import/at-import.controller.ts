@@ -13,11 +13,16 @@ import { SyncSource } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class AtImportController {
-  constructor(@Inject('JobsService') private readonly jobsService) {}
+  constructor(
+    @Inject('JobsService') private readonly jobsService: IJobsService,
+  ) {}
 
   @Post([
     '/api/v1/db/meta/syncs/:syncId/trigger',
@@ -25,7 +30,7 @@ export class AtImportController {
   ])
   @Acl('airtableImport')
   @HttpCode(200)
-  async triggerSync(@Req() req: Request) {
+  async triggerSync(@TenantContext() context: NcContext, @Req() req: Request) {
     const jobs = await this.jobsService.jobList();
     const fnd = jobs.find((j) => j.data.syncId === req.params.syncId);
 
@@ -33,7 +38,7 @@ export class AtImportController {
       NcError.badRequest('Sync already in progress');
     }
 
-    const syncSource = await SyncSource.get(req.params.syncId);
+    const syncSource = await SyncSource.get(context, req.params.syncId);
 
     const user = await syncSource.getUser();
 
@@ -47,6 +52,7 @@ export class AtImportController {
     }
 
     const job = await this.jobsService.add(JobTypes.AtImport, {
+      context,
       syncId: req.params.syncId,
       ...(syncSource?.details || {}),
       baseId: syncSource.base_id,
@@ -54,11 +60,6 @@ export class AtImportController {
       authToken: '',
       baseURL,
       user: user,
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-      },
     });
 
     return { id: job.id };

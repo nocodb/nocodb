@@ -4,6 +4,7 @@ import type {
   MetaType,
   StringOrNullType,
 } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import View from '~/models/View';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -16,6 +17,7 @@ export default class FormViewColumn implements FormColumnType {
   id?: string;
   fk_view_id?: string;
   fk_column_id?: string;
+  fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
   label?: StringOrNullType;
@@ -32,7 +34,11 @@ export default class FormViewColumn implements FormColumnType {
     Object.assign(this, data);
   }
 
-  public static async get(formViewColumnId: string, ncMeta = Noco.ncMeta) {
+  public static async get(
+    context: NcContext,
+    formViewColumnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     let viewColumn =
       formViewColumnId &&
       (await NocoCache.get(
@@ -41,8 +47,8 @@ export default class FormViewColumn implements FormColumnType {
       ));
     if (!viewColumn) {
       viewColumn = await ncMeta.metaGet2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.FORM_VIEW_COLUMNS,
         formViewColumnId,
       );
@@ -60,7 +66,11 @@ export default class FormViewColumn implements FormColumnType {
     return viewColumn && new FormViewColumn(viewColumn);
   }
 
-  static async insert(column: Partial<FormViewColumn>, ncMeta = Noco.ncMeta) {
+  static async insert(
+    context: NcContext,
+    column: Partial<FormViewColumn>,
+    ncMeta = Noco.ncMeta,
+  ) {
     const insertObj = extractProps(column, [
       'fk_view_id',
       'fk_column_id',
@@ -86,22 +96,20 @@ export default class FormViewColumn implements FormColumnType {
       insertObj.meta = serializeJSON(insertObj.meta);
     }
 
-    if (!(insertObj.base_id && insertObj.source_id)) {
-      const viewRef = await View.get(insertObj.fk_view_id, ncMeta);
-      insertObj.base_id = viewRef.base_id;
+    const viewRef = await View.get(context, insertObj.fk_view_id, ncMeta);
+
+    if (!insertObj.source_id) {
       insertObj.source_id = viewRef.source_id;
     }
 
-    const { id, fk_column_id } = await ncMeta.metaInsert2(
-      null,
-      null,
+    const { id } = await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
       MetaTable.FORM_VIEW_COLUMNS,
       insertObj,
     );
 
-    await NocoCache.set(`${CacheScope.FORM_VIEW_COLUMN}:${fk_column_id}`, id);
-
-    return this.get(id, ncMeta).then(async (viewColumn) => {
+    return this.get(context, id, ncMeta).then(async (viewColumn) => {
       await NocoCache.appendToList(
         CacheScope.FORM_VIEW_COLUMN,
         [column.fk_view_id],
@@ -112,6 +120,7 @@ export default class FormViewColumn implements FormColumnType {
   }
 
   public static async list(
+    context: NcContext,
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<FormViewColumn[]> {
@@ -122,8 +131,8 @@ export default class FormViewColumn implements FormColumnType {
     const { isNoneList } = cachedList;
     if (!isNoneList && !viewColumns.length) {
       viewColumns = await ncMeta.metaList2(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.FORM_VIEW_COLUMNS,
         {
           condition: {
@@ -154,6 +163,7 @@ export default class FormViewColumn implements FormColumnType {
   }
 
   static async update(
+    context: NcContext,
     columnId: string,
     body: Partial<FormViewColumn>,
     ncMeta = Noco.ncMeta,
@@ -171,8 +181,8 @@ export default class FormViewColumn implements FormColumnType {
 
     // update meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.FORM_VIEW_COLUMNS,
       prepareForDb(updateObj),
       columnId,

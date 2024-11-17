@@ -3,49 +3,18 @@ import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { toRaw, unref } from '@vue/runtime-core'
-import type { ImportWorkerPayload, importFileList, streamImportFileList } from '#imports'
-import {
-  BASE_FALLBACK_URL,
-  CSVTemplateAdapter,
-  ExcelTemplateAdapter,
-  ExcelUrlTemplateAdapter,
-  Form,
-  ImportSource,
-  ImportType,
-  ImportWorkerOperations,
-  ImportWorkerResponse,
-  JSONTemplateAdapter,
-  JSONUrlTemplateAdapter,
-  computed,
-  extractSdkResponseErrorMsg,
-  fieldRequiredValidator,
-  iconMap,
-  importCsvUrlValidator,
-  importExcelUrlValidator,
-  importUrlValidator,
-  initWorker,
-  message,
-  reactive,
-  ref,
-  storeToRefs,
-  useBase,
-  useGlobal,
-  useI18n,
-  useNuxtApp,
-  useVModel,
-} from '#imports'
-
 // import worker script according to the doc of Vite
 import importWorkerUrl from '~/workers/importWorker?worker&url'
 
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
+  baseId: string
   sourceId: string
   importDataOnly?: boolean
 }
 
-const { importType, importDataOnly = false, sourceId, ...rest } = defineProps<Props>()
+const { importType, importDataOnly = false, baseId, sourceId, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -64,6 +33,10 @@ const { t } = useI18n()
 const progressMsg = ref('Parsing Data ...')
 
 const { tables } = storeToRefs(useBase())
+
+const tablesStore = useTablesStore()
+const { loadProjectTables } = tablesStore
+const { baseTables } = storeToRefs(tablesStore)
 
 const activeKey = ref('uploadTab')
 
@@ -97,6 +70,7 @@ const defaultImportState = {
     autoSelectFieldTypes: true,
     firstRowAsHeaders: true,
     shouldImportData: true,
+    importDataOnly: true,
   },
 }
 const importState = reactive(defaultImportState)
@@ -111,7 +85,6 @@ const IsImportTypeExcel = computed(() => importType === 'excel')
 
 const validators = computed(() => ({
   url: [fieldRequiredValidator(), importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
-  maxRowsToParse: [fieldRequiredValidator()],
 }))
 
 const { validate, validateInfos } = useForm(importState, validators)
@@ -146,7 +119,7 @@ const importMeta = computed(() => {
 const dialogShow = useVModel(rest, 'modelValue', emit)
 
 // watch dialogShow to init or terminate worker
-if (isWorkerSupport) {
+if (isWorkerSupport && process.env.NODE_ENV === 'production') {
   watch(
     dialogShow,
     async (val) => {
@@ -179,10 +152,6 @@ const disableImportButton = computed(() => !templateEditorRef.value?.isValid || 
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
 const modalWidth = computed(() => {
-  if (importType === 'excel' && templateEditorModal.value) {
-    return 'max(90vw, 600px)'
-  }
-
   return 'max(60vw, 600px)'
 })
 
@@ -191,6 +160,10 @@ let templateGenerator: CSVTemplateAdapter | JSONTemplateAdapter | ExcelTemplateA
 async function handlePreImport() {
   preImportLoading.value = true
   isParsingData.value = true
+
+  if (!baseTables.value.get(baseId)) {
+    await loadProjectTables(baseId)
+  }
 
   if (activeKey.value === 'uploadTab') {
     if (isImportTypeCsv.value || (isWorkerSupport && importWorker)) {
@@ -277,14 +250,15 @@ function formatJson() {
   jsonEditorRef.value?.format()
 }
 
-function populateUniqueTableName(tn: string) {
+function populateUniqueTableName(tn: string, draftTn: string[] = []) {
   let c = 1
   while (
-    tables.value.some((t: TableType) => {
+    draftTn.includes(tn) ||
+    baseTables.value.get(baseId)?.some((t: TableType) => {
       const s = t.table_name.split('___')
       let target = t.table_name
       if (s.length > 1) target = s[1]
-      return target === `${tn}`
+      return target === `${tn}` || t.table_name === `${tn}`
     })
   ) {
     tn = `${tn}_${c++}`
@@ -344,9 +318,9 @@ const customReqCbk = (customReqArgs: { file: any; onSuccess: () => void }) => {
 
 /** check if the file size exceeds the limit */
 const beforeUpload = (file: UploadFile) => {
-  const exceedLimit = file.size! / 1024 / 1024 > 5
+  const exceedLimit = file.size! / 1024 / 1024 > 25
   if (exceedLimit) {
-    message.error(`File ${file.name} is too big. The accepted file size is less than 5MB.`)
+    message.error(`File ${file.name} is too big. The accepted file size is less than 25MB.`)
   }
   return !exceedLimit || Upload.LIST_IGNORE
 }
@@ -515,10 +489,13 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
       if (importDataOnly) importColumns.value = templateGenerator!.getColumns()
       else {
         // ensure the target table name not exist in current table list
-        templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => ({
-          ...table,
-          table_name: populateUniqueTableName(table.table_name),
-        }))
+        const draftTableNames = [] as string[]
+
+        templateData.value.tables = templateData.value.tables.map((table: Record<string, any>) => {
+          const table_name = populateUniqueTableName(table.table_name, draftTableNames)
+          draftTableNames.push(table_name)
+          return { ...table, table_name }
+        })
       }
       importData.value = templateGenerator!.getData()
     }
@@ -540,6 +517,11 @@ const onError = () => {
 const onChange = () => {
   isError.value = false
 }
+
+onMounted(() => {
+  importState.parserConfig.importDataOnly = importDataOnly
+  importState.parserConfig.autoSelectFieldTypes = importDataOnly
+})
 </script>
 
 <template>
@@ -554,7 +536,12 @@ const onChange = () => {
       <div class="px-5">
         <div class="prose-xl font-weight-bold my-5">{{ importMeta.header }}</div>
 
-        <div class="mt-5">
+        <div
+          class="mt-5"
+          :class="{
+            'mb-4': templateEditorModal,
+          }"
+        >
           <LazyTemplateEditor
             v-if="templateEditorModal"
             ref="templateEditorRef"
@@ -564,6 +551,7 @@ const onChange = () => {
             :import-data-only="importDataOnly"
             :quick-import-type="importType"
             :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
+            :base-id="baseId"
             :source-id="sourceId"
             :import-worker="importWorker"
             class="nc-quick-import-template-editor"
@@ -604,6 +592,9 @@ const onChange = () => {
                   <p class="ant-upload-hint">
                     {{ importMeta.uploadHint }}
                   </p>
+                  <template #removeIcon>
+                    <component :is="iconMap.deleteListItem" />
+                  </template>
                 </a-upload-dragger>
               </div>
             </a-tab-pane>
@@ -630,9 +621,9 @@ const onChange = () => {
               </template>
 
               <div class="pr-10 pt-5">
-                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0">
+                <a-form :model="importState" name="quick-import-url-form" layout="vertical" class="mb-0 !ml-0.5">
                   <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                    <a-input v-model:value="importState.url" size="large" />
+                    <a-input v-model:value="importState.url" size="large" class="!rounded-md" />
                   </a-form-item>
                 </a-form>
               </div>
@@ -646,16 +637,6 @@ const onChange = () => {
           <div class="mb-4">
             <!-- Advanced Settings -->
             <span class="prose-lg">{{ $t('title.advancedSettings') }}</span>
-
-            <a-form-item class="!my-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
-              <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
-            </a-form-item>
-
-            <a-form-item v-if="!importDataOnly" class="!my-2">
-              <a-checkbox v-model:checked="importState.parserConfig.autoSelectFieldTypes">
-                <span class="caption">{{ $t('labels.autoSelectFieldTypes') }}</span>
-              </a-checkbox>
-            </a-form-item>
 
             <a-form-item v-if="isImportTypeCsv || IsImportTypeExcel" class="!my-2">
               <a-checkbox v-model:checked="importState.parserConfig.firstRowAsHeaders">
@@ -721,3 +702,12 @@ const onChange = () => {
     </template>
   </a-modal>
 </template>
+
+<style lang="scss" scoped>
+:deep(.ant-upload-list-item-thumbnail) {
+  line-height: 48px;
+}
+:deep(.ant-upload-list-item-card-actions-btn.ant-btn-icon-only) {
+  @apply !h-6;
+}
+</style>

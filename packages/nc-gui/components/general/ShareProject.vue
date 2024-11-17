@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { isDrawerOrModalExist, isMac, useNuxtApp, useRoles } from '#imports'
-
 interface Props {
   disabled?: boolean
   isViewToolbar?: boolean
@@ -47,7 +45,7 @@ const copySharedBase = async () => {
 <template>
   <div
     v-if="!isSharedBase && isUIAllowed('baseShare') && visibility !== 'hidden' && (activeTable || base)"
-    class="flex flex-col justify-center h-full"
+    class="nc-share-base-button flex flex-col justify-center"
     data-testid="share-base-button"
     :data-sharetype="visibility"
   >
@@ -64,7 +62,8 @@ const copySharedBase = async () => {
       @click="showShareModal = true"
     >
       <div v-if="!isMobileMode" class="flex flex-row items-center w-full gap-x-1">
-        <component :is="iconMap.mobileShare" class="h-3.5" />
+        <MaterialSymbolsPublic v-if="visibility === 'public'" class="h-3.5" />
+        <MaterialSymbolsLockOutline v-else-if="visibility === 'private'" class="h-3.5" />
         <div class="flex">{{ $t('activity.share') }}</div>
       </div>
       <GeneralIcon v-else icon="mobileShare" />

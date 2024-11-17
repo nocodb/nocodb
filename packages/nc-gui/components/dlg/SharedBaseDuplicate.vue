@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ProjectTypes } from 'nocodb-sdk'
-import { isEeUI, useApi, useVModel, useWorkspace } from '#imports'
+import { ProjectTypes, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -97,6 +96,12 @@ const _duplicate = async () => {
     dialogShow.value = false
   }
 }
+
+const filteredWorkspaces = computed(() => {
+  return workspacesList.value
+    ?.filter((ws) => ws.roles === WorkspaceUserRoles.OWNER || ws.roles === WorkspaceUserRoles.CREATOR)
+    .map((w) => ({ label: `${w.title[0].toUpperCase()}${w.title.slice(1)}`, value: w.id }))
+})
 </script>
 
 <template>
@@ -106,12 +111,7 @@ const _duplicate = async () => {
       <template v-if="isEeUI">
         <div class="my-4">Select workspace to duplicate shared base to:</div>
 
-        <NcSelect
-          v-model:value="selectedWorkspace"
-          class="w-full"
-          :options="workspacesList.map((w) => ({ label: `${w.title[0].toUpperCase()}${w.title.slice(1)}`, value: w.id }))"
-          placeholder="Select Workspace"
-        />
+        <NcSelect v-model:value="selectedWorkspace" class="w-full" :options="filteredWorkspaces" placeholder="Select Workspace" />
       </template>
 
       <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>

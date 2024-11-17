@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { TabMetaInj, provide, storeToRefs, useSidebar, useTabs } from '#imports'
-
 const tabStore = useTabs()
 const { activeTab } = storeToRefs(tabStore)
 
@@ -25,6 +23,10 @@ useSidebar('nc-left-sidebar')
 .nc-container {
   height: 100vh;
   flex: 1 1 100%;
+
+  @supports (height: 100dvh) {
+    height: 100dvh;
+  }
 }
 
 :deep(.nc-root-tabs) {

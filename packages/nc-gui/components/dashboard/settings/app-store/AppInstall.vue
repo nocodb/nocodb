@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PluginTestReqType, PluginType } from 'nocodb-sdk'
-import { extractSdkResponseErrorMsg, iconMap, message, onMounted, ref, useI18n, useNuxtApp } from '#imports'
 
 const { id } = defineProps<{
   id: string
@@ -148,7 +147,7 @@ onMounted(async () => {
             class="mr-1 flex items-center justify-center"
             :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
           >
-            <img :alt="plugin.title || 'plugin'" :src="`/${plugin.logo}`" class="h-6" />
+            <img :alt="plugin.title || 'plugin'" :src="plugin.logo" class="h-6" />
           </div>
 
           <span class="font-semibold text-lg">{{ plugin.formDetails.title }}</span>
@@ -220,15 +219,17 @@ onMounted(async () => {
               </tr>
             </tbody>
 
-            <tr>
-              <td :colspan="plugin.formDetails.items.length" class="text-center">
-                <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addSetting">
-                  <template #icon>
-                    <component :is="iconMap.plus" class="flex mx-auto" />
-                  </template>
-                </a-button>
-              </td>
-            </tr>
+            <tfoot>
+              <tr>
+                <td :colspan="plugin.formDetails.items.length" class="text-center">
+                  <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addSetting">
+                    <template #icon>
+                      <component :is="iconMap.plus" class="flex mx-auto" />
+                    </template>
+                  </a-button>
+                </td>
+              </tr>
+            </tfoot>
           </table>
         </div>
 

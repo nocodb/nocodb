@@ -41,10 +41,10 @@ export class SidebarPage extends BasePage {
     }
   }
 
-  async verifyQuickActions({ isVisible }: { isVisible: boolean }) {
-    if (isVisible) await expect(this.get().getByTestId('nc-sidebar-search-btn')).toBeVisible();
-    else await expect(this.get().getByTestId('nc-sidebar-search-btn')).toHaveCount(0);
-  }
+  // async verifyQuickActions({ isVisible }: { isVisible: boolean }) {
+  //   if (isVisible) await expect(this.get().getByTestId('nc-sidebar-search-btn')).toBeVisible();
+  //   else await expect(this.get().getByTestId('nc-sidebar-search-btn')).toHaveCount(0);
+  // }
 
   async verifyTeamAndSettings({ isVisible }: { isVisible: boolean }) {
     if (isVisible) await expect(this.get().getByTestId('nc-sidebar-team-settings-btn')).toBeVisible();
@@ -113,8 +113,6 @@ export class SidebarPage extends BasePage {
     } else if (type === ViewTypes.GALLERY) {
       createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-gallery');
     } else if (type === ViewTypes.CALENDAR) {
-      // TODO: Remove this once the easter egg is removed
-      await this.rootPage.waitForTimeout(4500);
       createViewTypeButton = this.rootPage.getByTestId('sidebar-view-create-calendar');
     }
 

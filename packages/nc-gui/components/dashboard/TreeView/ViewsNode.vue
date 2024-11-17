@@ -1,19 +1,7 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
-import type { TableType, ViewType, ViewTypes } from 'nocodb-sdk'
+import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import {
-  IsLockedInj,
-  isDefaultBase as _isDefaultBase,
-  inject,
-  message,
-  onKeyStroke,
-  useDebounceFn,
-  useMagicKeys,
-  useNuxtApp,
-  useRoles,
-  useVModel,
-} from '#imports'
+import { isDefaultBase as _isDefaultBase } from '#imports'
 
 interface Props {
   view: ViewType
@@ -32,7 +20,10 @@ interface Emits {
 
   (event: 'delete', view: ViewType): void
 
-  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string }): void
+  (
+    event: 'openModal',
+    data: { type: ViewTypes; title?: string; copyViewId?: string; groupingFieldColumnId?: string; coverImageColumnId?: string },
+  ): void
 }
 
 const props = defineProps<Props>()
@@ -53,7 +44,7 @@ const { activeView } = storeToRefs(useViewsStore())
 
 const { getMeta } = useMetas()
 
-const { meta: metaKey, ctrlKey } = useMagicKeys()
+const { meta: metaKey, control } = useMagicKeys()
 
 const table = computed(() => props.table)
 const injectedTable = ref(table.value)
@@ -64,11 +55,17 @@ provide(MetaInj, injectedTable)
 const isLocked = inject(IsLockedInj, ref(false))
 
 const isDefaultBase = computed(() => {
+  if (base.value?.sources?.length === 1) return true
+
   const source = base.value?.sources?.find((b) => b.id === vModel.value.source_id)
   if (!source) return false
 
   return _isDefaultBase(source)
 })
+
+const { openViewDescriptionDialog: _openViewDescriptionDialog } = inject(TreeViewInj)!
+
+const input = ref<HTMLInputElement>()
 
 const isDropdownOpen = ref(false)
 
@@ -89,13 +86,20 @@ const onClick = useDebounceFn(() => {
 const handleOnClick = () => {
   if (isEditing.value || isStopped.value) return
 
-  const cmdOrCtrl = isMac() ? metaKey.value : ctrlKey.value
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   if (cmdOrCtrl) {
     emits('changeView', vModel.value)
   } else {
     onClick()
   }
+}
+
+const focusInput = () => {
+  setTimeout(() => {
+    input.value?.focus()
+    input.value?.select()
+  })
 }
 
 /** Enable editing view name on dbl click */
@@ -107,6 +111,10 @@ function onDblClick() {
     isEditing.value = true
     _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
+
+    nextTick(() => {
+      focusInput()
+    })
   }
 }
 
@@ -148,15 +156,21 @@ const onRenameMenuClick = () => {
     isEditing.value = true
     _title.value = vModel.value.title
     $e('c:view:rename', { view: vModel.value?.type })
+
+    nextTick(() => {
+      focusInput()
+    })
   }
 }
-
-const focusInput: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 /** Rename a view */
 async function onRename() {
   isDropdownOpen.value = false
   if (!isEditing.value) return
+
+  if (_title.value) {
+    _title.value = _title.value.trim()
+  }
 
   const isValid = props.onValidate({ ...vModel.value, title: _title.value! })
 
@@ -179,6 +193,12 @@ async function onRename() {
   emits('rename', vModel.value, originalTitle)
 
   onStopEdit()
+}
+
+const openViewDescriptionDialog = (view: ViewType) => {
+  isDropdownOpen.value = false
+
+  _openViewDescriptionDialog(view)
 }
 
 /** Cancel renaming view */
@@ -215,10 +235,10 @@ watch(isDropdownOpen, async () => {
 
 <template>
   <a-menu-item
-    class="nc-sidebar-node !min-h-7 !max-h-7 !mb-0.25 select-none group text-gray-700 !flex !items-center !mt-0 hover:(!bg-gray-200 !text-gray-900) cursor-pointer"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-gray-700 !flex !items-center hover:(!bg-gray-200 !text-gray-700) cursor-pointer"
     :class="{
-      '!pl-18 !xs:(pl-19.75)': isDefaultBase,
-      '!pl-23.5 !xs:(pl-27)': !isDefaultBase,
+      '!pl-13.5 !xs:(pl-12)': isDefaultBase,
+      '!pl-19 ': !isDefaultBase,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @dblclick.stop="onDblClick"
@@ -239,18 +259,18 @@ watch(isDropdownOpen, async () => {
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>
-            <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
+            <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 !text-[16px]"></GeneralViewIcon>
           </template>
         </LazyGeneralEmojiPicker>
       </div>
 
       <a-input
         v-if="isEditing"
-        :ref="focusInput"
+        ref="input"
         v-model:value="_title"
-        class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent !pl-0"
+        class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent !pl-0 !flex-1 mr-4"
         :class="{
-          'font-medium': activeView?.id === vModel.id,
+          'font-medium !text-brand-600': activeView?.id === vModel.id,
         }"
         @blur="onRename"
         @keydown.stop="onKeyDown($event)"
@@ -260,26 +280,42 @@ watch(isDropdownOpen, async () => {
         <div
           data-testid="sidebar-view-title"
           :class="{
-            'font-medium': activeView?.id === vModel.id,
+            'font-medium text-brand-600': activeView?.id === vModel.id,
           }"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
           {{ vModel.alias || vModel.title }}
+          <component
+            :is="viewLockIcons[view.lock_type].icon"
+            v-if="view.lock_type === ViewLockType.Locked || view.lock_type === ViewLockType.Personal"
+            class="text-gray-400 ml-1 -mt-[2px]"
+            :class="{
+              'w-3.2 h-3.2': view.lock_type === ViewLockType.Locked,
+              'w-3.5 h-3.5': view.lock_type !== ViewLockType.Locked,
+            }"
+          />
         </div>
       </NcTooltip>
-      <div class="flex-1" />
-
       <template v-if="!isEditing && !isLocked">
+        <NcTooltip v-if="vModel.description?.length" placement="bottom">
+          <template #title>
+            {{ vModel.description }}
+          </template>
+          <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
+            <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
+          </NcButton>
+        </NcTooltip>
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <NcButton
             v-e="['c:view:option']"
             type="text"
             size="xxsmall"
-            class="nc-sidebar-node-btn invisible !group-hover:visible nc-sidebar-view-node-context-btn"
+            class="nc-sidebar-node-btn invisible !group-hover:(visible opacity-100) nc-sidebar-view-node-context-btn"
             :class="{
-              '!visible': isDropdownOpen,
+              '!visible !opacity-100': isDropdownOpen,
             }"
             @click.stop="isDropdownOpen = !isDropdownOpen"
+            @dblclick.stop
           >
             <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
           </NcButton>
@@ -293,6 +329,7 @@ watch(isDropdownOpen, async () => {
               @close-modal="isDropdownOpen = false"
               @rename="onRenameMenuClick"
               @delete="onDelete"
+              @description-update="openViewDescriptionDialog(vModel)"
             />
           </template>
         </NcDropdown>

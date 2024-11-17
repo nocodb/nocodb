@@ -1,18 +1,7 @@
 import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
 import type { AppInfo, State, StoredState } from './types'
-import {
-  BASE_FALLBACK_URL,
-  computed,
-  ref,
-  toRefs,
-  useCounter,
-  useJwt,
-  useNuxtApp,
-  usePreferredLanguages,
-  useTimestamp,
-} from '#imports'
-import type { Language, User } from '#imports'
+import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */
@@ -68,6 +57,14 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     hiddenRelease: null,
     isMobileMode: null,
     lastOpenedWorkspaceId: null,
+    gridViewPageSize: 25,
+    leftSidebarSize: {
+      old: INITIAL_LEFT_SIDEBAR_WIDTH,
+      current: INITIAL_LEFT_SIDEBAR_WIDTH,
+    },
+    isAddNewRecordGridMode: true,
+    syncDataUpvotes: [],
+    giftBannerDismissedCount: 0,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
@@ -102,6 +99,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     oneClick: false,
     baseHasAdmin: false,
     teleEnabled: true,
+    errorReportingEnabled: false,
     auditEnabled: true,
     type: 'nocodb',
     version: '0.0.0',
@@ -112,6 +110,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     disableEmailAuth: false,
     dashboardPath: '/dashboard',
     inviteOnlySignup: false,
+    giftUrl: '',
   })
 
   /** reactive token payload */

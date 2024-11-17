@@ -2,32 +2,35 @@
 import dayjs from 'dayjs'
 
 interface Props {
-  size?: 'medium' | 'large' | 'small'
+  size?: 'medium'
   selectedDate?: dayjs.Dayjs | null
-  isDisabled?: boolean
   pageDate?: dayjs.Dayjs
   activeDates?: Array<dayjs.Dayjs>
   isMondayFirst?: boolean
   isWeekPicker?: boolean
-  disablePagination?: boolean
+  hideCalendar?: boolean
   selectedWeek?: {
     start: dayjs.Dayjs
     end: dayjs.Dayjs
   } | null
+  isCellInputField?: boolean
+  pickerType?: 'date' | 'time' | 'year' | 'month'
+  showCurrentDateOption?: boolean | 'disabled'
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 'large',
+  size: 'medium',
   selectedDate: null,
-  isDisabled: false,
   isMondayFirst: true,
-  pageDate: dayjs(),
+  pageDate: () => dayjs(),
   isWeekPicker: false,
-  disablePagination: false,
-  activeDates: [] as Array<dayjs.Dayjs>,
+  activeDates: () => [] as Array<dayjs.Dayjs>,
   selectedWeek: null,
+  hideCalendar: false,
+  isCellInputField: false,
+  pickerType: 'date',
 })
-const emit = defineEmits(['change', 'update:selectedDate', 'update:pageDate', 'update:selectedWeek'])
+const emit = defineEmits(['update:selectedDate', 'update:pageDate', 'update:selectedWeek', 'update:pickerType', 'currentDate'])
 // Page date is the date we use to manage which month/date that is currently being displayed
 const pageDate = useVModel(props, 'pageDate', emit)
 
@@ -37,6 +40,8 @@ const activeDates = useVModel(props, 'activeDates', emit)
 
 const selectedWeek = useVModel(props, 'selectedWeek', emit)
 
+const pickerType = useVModel(props, 'pickerType', emit)
+
 const days = computed(() => {
   if (props.isMondayFirst) {
     return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
@@ -45,19 +50,28 @@ const days = computed(() => {
   }
 })
 
-// Used to display the current month and year
 const currentMonthYear = computed(() => {
   return dayjs(pageDate.value).format('MMMM YYYY')
+})
+
+const currentMonth = computed(() => {
+  return dayjs(pageDate.value).format('MMMM')
+})
+
+const currentYear = computed(() => {
+  return dayjs(pageDate.value).format('YYYY')
 })
 
 const selectWeek = (date: dayjs.Dayjs) => {
   const dayOffset = +props.isMondayFirst
   const dayOfWeek = (date.day() - dayOffset + 7) % 7
   const startDate = date.subtract(dayOfWeek, 'day')
-  selectedWeek.value = {
+  const newWeek = {
     start: startDate,
     end: startDate.endOf('week'),
   }
+  selectedWeek.value = newWeek
+  emit('update:selectedWeek', newWeek)
 }
 
 // Generates all dates should be displayed in the calendar
@@ -103,6 +117,9 @@ const isDayInPagedMonth = (date: dayjs.Dayjs) => {
 const handleSelectDate = (date: dayjs.Dayjs) => {
   if (props.isWeekPicker) {
     selectWeek(date)
+  } else if (props.isCellInputField) {
+    selectedDate.value = date
+    emit('update:selectedDate', date)
   } else {
     if (!isDayInPagedMonth(date)) {
       pageDate.value = date
@@ -137,118 +154,121 @@ const paginate = (action: 'next' | 'prev') => {
 </script>
 
 <template>
-  <div
-    :class="{
-      'gap-1': size === 'small',
-      'gap-4': size === 'medium' || size === 'large',
-    }"
-    class="flex flex-col"
-  >
+  <div class="flex flex-col">
     <div
+      class="flex justify-between border-b-1 nc-date-week-header items-center box-border"
       :class="{
-        'justify-center': disablePagination,
-        'justify-between': !disablePagination,
+        'px-2 py-1 h-10': isCellInputField,
+        'px-3 py-0.5': !isCellInputField,
       }"
-      class="flex items-center"
     >
-      <NcTooltip>
-        <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('prev')">
-          <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
+      <NcTooltip hide-on-click>
+        <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
+          <component :is="iconMap.arrowLeft" class="h-4 w-4" />
         </NcButton>
         <template #title>
-          <span>{{ $t('labels.previousMonth') }}</span>
+          <span>{{ $t('labels.previous') }}</span>
         </template>
       </NcTooltip>
 
-      <span
-        :class="{
-          'text-xs': size === 'small',
-          'text-sm': size === 'medium',
-        }"
-        class="text-gray-700"
-        >{{ currentMonthYear }}</span
-      >
-      <NcTooltip>
-        <NcButton v-if="!disablePagination" size="small" type="secondary" @click="paginate('next')">
-          <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
+      <div v-if="isCellInputField" class="text-gray-700 text-sm font-semibold">
+        <span class="nc-month-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'month'">{{
+          currentMonth
+        }}</span>
+        {{ ' ' }}
+        <span class="nc-year-picker-btn cursor-pointer hover:text-brand-500" @click="pickerType = 'year'">{{ currentYear }}</span>
+      </div>
+      <span v-else class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
+
+      <NcTooltip hide-on-click>
+        <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginate('next')">
+          <component :is="iconMap.arrowRight" class="h-4 w-4" />
         </NcButton>
         <template #title>
-          <span>{{ $t('labels.nextMonth') }}</span>
+          <span>{{ $t('labels.next') }}</span>
         </template>
       </NcTooltip>
     </div>
-    <div
-      :class="{
-        'rounded-lg': size === 'small',
-        'rounded-y-xl': size !== 'small',
-      }"
-      class="border-1 border-gray-200 max-w-[320px]"
-    >
-      <div
-        :class="{
-          'gap-1 px-1': size === 'medium',
-          'gap-2 px-2': size === 'large',
-          'px-2 py-1 !rounded-t-lg': size === 'small',
-          'rounded-t-xl': size !== 'small',
-        }"
-        class="flex flex-row bg-gray-100 justify-between"
-      >
-        <span
-          v-for="(day, index) in days"
-          :key="index"
+    <div v-if="!hideCalendar" class="max-w-[320px] rounded-y-xl">
+      <div class="py-1 px-2.5 h-10">
+        <div
+          class="flex justify-between gap-1"
           :class="{
-            'w-9 h-9': size === 'large',
-            'w-8 h-8': size === 'medium',
-            'text-[10px]': size === 'small',
+            'border-b-1 border-gray-200 ': isCellInputField,
           }"
-          class="flex items-center uppercase justify-center text-gray-500"
-          >{{ day[0] }}</span
         >
+          <span
+            v-for="(day, index) in days"
+            :key="index"
+            class="flex w-8 h-8 items-center uppercase font-medium justify-center text-gray-500"
+            >{{ day[0] }}</span
+          >
+        </div>
       </div>
       <div
+        class="grid gap-1 py-1 nc-date-week-grid-wrapper grid-cols-7"
         :class="{
-          'gap-2 p-2': size === 'large',
-          'gap-1 p-1': size === 'medium',
+          'px-2': isCellInputField,
+          'px-2.5': !isCellInputField,
         }"
-        class="grid grid-cols-7"
       >
         <span
           v-for="(date, index) in dates"
           :key="index"
           :class="{
-            'rounded-lg': !isWeekPicker,
-            'bg-brand-50 border-1 !border-brand-500': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
+            'rounded-lg': !isWeekPicker && !isCellInputField,
+            'border-1 ': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date),
+            'bg-gray-200 !font-bold': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date) && !isCellInputField,
+            'bg-gray-300 !font-weight-600': isSelectedDate(date) && !isWeekPicker && isDayInPagedMonth(date) && isCellInputField,
             'hover:(border-1 border-gray-200 bg-gray-100)': !isSelectedDate(date) && !isWeekPicker,
-            'nc-selected-week z-1': isDateInSelectedWeek(date) && isWeekPicker,
+            'nc-selected-week !font-semibold z-1': isDateInSelectedWeek(date) && isWeekPicker,
             'border-none': isWeekPicker,
             'border-transparent': !isWeekPicker,
             'text-gray-400': !isDateInCurrentMonth(date),
             'nc-selected-week-start': isSameDate(date, selectedWeek?.start),
             'nc-selected-week-end': isSameDate(date, selectedWeek?.end),
-            'rounded-md bg-brand-50 nc-calendar-today text-brand-500': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
-            'h-9 w-9': size === 'large',
-            'h-8 w-8': size === 'medium',
-            'h-6 w-6 text-[10px]': size === 'small',
+            'rounded-md text-brand-500 !font-semibold nc-calendar-today': isSameDate(date, dayjs()) && isDateInCurrentMonth(date),
+            'text-gray-500': date.get('day') === 0 || date.get('day') === 6,
+            'nc-date-item font-weight-400': isCellInputField,
+            'font-medium': !isCellInputField,
+            'rounded': !isWeekPicker && isCellInputField,
           }"
-          class="px-1 py-1 relative border-1 font-large flex items-center cursor-pointer justify-center"
+          class="px-1 h-8 w-8 py-1 relative transition border-1 flex text-gray-700 items-center cursor-pointer justify-center"
           data-testid="nc-calendar-date"
+          :title="isCellInputField ? date.format('YYYY-MM-DD') : undefined"
           @click="handleSelectDate(date)"
         >
           <span
             v-if="isActiveDate(date)"
             :class="{
-              'h-1.5 w-1.5': size === 'large',
-              'h-1 w-1': size === 'medium',
-              'h-0.75 w-0.75': size === 'small',
-              'top-1 right-1': size !== 'small',
-              'top-0.5 right-0.5': size === 'small',
+              '!border-white': isSelectedDate(date),
+              '!border-brand-50': isSameDate(date, dayjs()),
             }"
-            class="absolute z-2 rounded-full bg-brand-500"
+            class="absolute top-1 transition right-1 h-1.5 w-1.5 z-2 border-1 rounded-full border-white bg-brand-500"
           ></span>
-          <span class="z-2">
+          <span class="nc-date-item-inner z-2">
             {{ date.get('date') }}
           </span>
         </span>
+      </div>
+      <div v-if="isCellInputField" class="flex items-center justify-center px-2 pb-2 pt-1 gap-2">
+        <NcButton class="nc-date-picker-now-btn !h-7" size="small" type="secondary" @click="handleSelectDate(dayjs())">
+          <span class="text-small"> {{ $t('labels.today') }} </span>
+        </NcButton>
+        <NcTooltip v-if="showCurrentDateOption" :disabled="showCurrentDateOption !== 'disabled'">
+          <template #title>
+            {{ $t('tooltip.currentDateNotAvail') }}
+          </template>
+          <NcButton
+            class="nc-date-picker-current-date-btn !h-7"
+            size="small"
+            type="secondary"
+            :disabled="showCurrentDateOption === 'disabled'"
+            @click="emit('currentDate')"
+          >
+            <span class="text-small"> {{ $t('labels.currentDate') }} </span>
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
   </div>
@@ -256,13 +276,13 @@ const paginate = (action: 'next' | 'prev') => {
 
 <style lang="scss" scoped>
 .nc-selected-week {
-  @apply relative;
+  @apply relative transition-all;
 }
 
 .nc-selected-week:before {
-  @apply absolute top-0 left-0 w-full h-full border-y-1 bg-brand-50 border-brand-500;
+  @apply absolute top-0 left-0 w-full h-full bg-gray-200;
   content: '';
-  width: 124%;
+  width: 134%;
   height: 100%;
 }
 

@@ -1,7 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { TableType } from 'nocodb-sdk'
-import { useTitle } from '@vueuse/core'
-import type { SidebarTableNode } from '~/lib'
+import type { SidebarTableNode } from '~/lib/types'
 
 export const useTablesStore = defineStore('tablesStore', () => {
   const { includeM2M, ncNavigateTo } = useGlobal()
@@ -48,20 +47,6 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     return activeTables.value.find((t) => t.id === activeTableId.value)
   })
-
-  watch(
-    () => activeTable.value?.title,
-    (title) => {
-      if (basesStore.openedProject?.type !== 'database') return
-
-      if (!title) {
-        useTitle(basesStore.openedProject?.title)
-        return
-      }
-
-      useTitle(`${basesStore.openedProject?.title}: ${title}`)
-    },
-  )
 
   const loadProjectTables = async (baseId: string, force = false) => {
     if (!force && baseTables.value.get(baseId)) {
@@ -243,6 +228,12 @@ export const useTablesStore = defineStore('tablesStore', () => {
     return url.href
   }
 
+  const reloadTableMeta = async (tableId: string) => {
+    const { getMeta } = useMetas()
+
+    await getMeta(tableId, true)
+  }
+
   return {
     baseTables,
     loadProjectTables,
@@ -254,6 +245,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
     activeTableId,
     navigateToTable,
     tableUrl,
+    reloadTableMeta,
   }
 })
 

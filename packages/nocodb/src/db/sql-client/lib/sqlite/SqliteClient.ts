@@ -15,9 +15,6 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 6);
 const log = new Debug('SqliteClient');
 
 class SqliteClient extends KnexClient {
-  private queries: any;
-  private _version: any;
-
   constructor(connectionConfig) {
     // sqlite does not support inserting default values and knex fires a warning without this flag
     connectionConfig.connection.useNullAsDefault = true;
@@ -2132,6 +2129,7 @@ class SqliteClient extends KnexClient {
         ? ' '
         : ` DEFAULT ''`;
       addNewColumnQuery += n.rqd ? ` NOT NULL` : ' ';
+      query += n.unique ? ` UNIQUE` : '';
       addNewColumnQuery = this.genQuery(
         `ALTER TABLE ?? ${addNewColumnQuery};`,
         [t],
@@ -2161,6 +2159,8 @@ class SqliteClient extends KnexClient {
       query += n.dtxp && n.dt !== 'text' ? `(${this.genRaw(n.dtxp)})` : '';
       query += n.cdf ? ` DEFAULT ${this.genValue(n.cdf)}` : ' ';
       query += n.rqd ? ` NOT NULL` : ' ';
+      // todo: unique constraint should be added using index
+      // query += n.unique ? ` UNIQUE` : '';
     } else if (change === 1) {
       shouldSanitize = true;
       query += this.genQuery(
@@ -2175,6 +2175,8 @@ class SqliteClient extends KnexClient {
         ? ' '
         : ` DEFAULT ''`;
       query += n.rqd ? ` NOT NULL` : ' ';
+      // todo: unique constraint should be added using index
+      // query += n.unique ? ` UNIQUE` : '';
       query = this.genQuery(`ALTER TABLE ?? ${query};`, [t], shouldSanitize);
     } else {
       // if(n.cn!==o.cno) {

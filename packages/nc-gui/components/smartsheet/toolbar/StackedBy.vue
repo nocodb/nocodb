@@ -1,23 +1,7 @@
 <script setup lang="ts">
-import { UITypes } from 'nocodb-sdk'
-import type { KanbanType } from 'nocodb-sdk'
+import type { ColumnType, KanbanType } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
-import {
-  ActiveViewInj,
-  IsKanbanInj,
-  IsLockedInj,
-  IsPublicInj,
-  MetaInj,
-  computed,
-  inject,
-  provide,
-  ref,
-  useKanbanViewStoreOrThrow,
-  useMenuCloseOnEsc,
-  useUndoRedo,
-  useViewColumnsOrThrow,
-  watch,
-} from '#imports'
 
 provide(IsKanbanInj, ref(true))
 
@@ -29,10 +13,14 @@ const IsPublic = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const isToolbarIconMode = inject(
+  IsToolbarIconMode,
+  computed(() => false),
+)
+
 const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
-const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField, groupingFieldColumn } =
-  useKanbanViewStoreOrThrow()
+const { kanbanMetaData, loadKanbanMeta, loadKanbanData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -80,6 +68,45 @@ const groupingFieldColumnId = computed({
   },
 })
 
+const updateHideEmptyStack = async (v: boolean) => {
+  const payload = {
+    ...parseProp(kanbanMetaData.value?.meta),
+    hide_empty_stack: v,
+  }
+  await updateKanbanMeta({
+    meta: payload,
+  })
+  await loadKanbanMeta()
+  ;(activeView.value?.view as KanbanType).meta = payload
+}
+
+const isLoading = ref<'hideEmptyStack' | null>(null)
+
+const hideEmptyStack = computed({
+  get: () => {
+    return parseProp(kanbanMetaData.value?.meta).hide_empty_stack || false
+  },
+  set: async (val: boolean) => {
+    isLoading.value = 'hideEmptyStack'
+
+    addUndo({
+      undo: {
+        fn: updateHideEmptyStack,
+        args: [hideEmptyStack.value],
+      },
+      redo: {
+        fn: updateHideEmptyStack,
+        args: [val],
+      },
+      scope: defineViewScope({ view: activeView.value }),
+    })
+
+    await updateHideEmptyStack(val)
+
+    isLoading.value = null
+  },
+})
+
 const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
   return fields.value
     ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.SingleSelect)
@@ -91,75 +118,106 @@ const singleSelectFieldOptions = computed<SelectProps['options']>(() => {
     })
 })
 
-const onSubmit = async () => {
-  open.value = false
-
-  await loadKanbanMeta()
-  await loadKanbanData()
-}
-
 const handleChange = () => {
   open.value = false
 }
+
+const getIcon = (c: ColumnType) =>
+  h(isVirtualCol(c) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
+    columnMeta: c,
+  })
 </script>
 
 <template>
-  <a-dropdown
+  <NcDropdown
     v-if="!IsPublic"
     v-model:visible="open"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-kanban-stacked-by-menu"
     class="!xs:hidden"
   >
-    <div class="nc-kanban-btn">
-      <a-button
+    <NcTooltip :disabled="!isToolbarIconMode" class="nc-kanban-btn">
+      <template #title>
+        {{ $t('activity.kanban.stackedBy') }}
+      </template>
+
+      <NcButton
         v-e="['c:kanban:change-grouping-field']"
-        class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn"
+        class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn !border-0 !h-7 group"
+        size="small"
+        type="secondary"
         :disabled="isLocked"
       >
-        <div class="flex items-center gap-1">
-          <GeneralIcon icon="layers" class="mr-0.5" />
-          <span class="text-capitalize !text-sm">
-            {{ $t('activity.kanban.stackedBy') }}
-            <span class="font-bold ml-0.25">{{ groupingField }}</span>
-          </span>
-        </div>
-      </a-button>
-    </div>
-    <template #overlay>
-      <div v-if="open" class="p-6 w-90 bg-white shadow-lg nc-table-toolbar-menu !border-1 border-gray-50 rounded-2xl" @click.stop>
-        <div>Select a field to stack records by</div>
-        <div class="nc-fields-list py-2">
-          <div class="grouping-field">
-            <a-select
-              v-model:value="groupingFieldColumnId"
-              class="w-full nc-kanban-grouping-field-select"
-              :options="singleSelectFieldOptions"
-              placeholder="Select a Grouping Field"
-              @change="handleChange"
-              @click.stop
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="settings" class="h-4 w-4" />
+          <div v-if="!isToolbarIconMode" class="flex items-center gap-0.5">
+            <span class="text-capitalize !text-sm flex items-center gap-1 text-gray-700">
+              {{ $t('activity.kanban.stackedBy') }}
+            </span>
+            <div
+              class="flex items-center rounded-md transition-colors duration-0.3s bg-gray-100 group-hover:bg-gray-200 px-1 min-h-5 text-gray-600 max-w-[108px]"
             >
-              <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template
-            ></a-select>
+              <span class="font-weight-500 text-sm truncate !leading-5">{{ groupingField }}</span>
+            </div>
           </div>
         </div>
-        <div class="mt-4 border-1 px-4 pt-4 pb-3 border-gray-50 rounded-2xl">
-          <div class="text-base font-medium mb-2">Options</div>
-          <LazySmartsheetColumnEditOrAddProvider
-            v-if="open"
-            :column="groupingFieldColumn"
-            embed-mode
-            :column-label="$t('general.changes')"
-            hide-title
-            hide-type
-            hide-additional-options
-            @cancel="open = false"
-            @submit="onSubmit"
-            @click.stop
-            @keydown.stop
-          />
+      </NcButton>
+    </NcTooltip>
+
+    <template #overlay>
+      <div v-if="open" class="p-4 w-90 bg-white nc-table-toolbar-menu rounded-lg flex flex-col gap-5" @click.stop>
+        <div class="flex flex-col gap-2">
+          <div>
+            {{ $t('general.groupingField') }}
+          </div>
+          <div class="nc-fields-list">
+            <div class="grouping-field">
+              <a-select
+                v-model:value="groupingFieldColumnId"
+                class="nc-select-shadow w-full nc-kanban-grouping-field-select !rounded-lg"
+                dropdown-class-name="!rounded-lg"
+                placeholder="Select a Grouping Field"
+                @change="handleChange"
+                @click.stop
+              >
+                <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+                <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
+                  <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                    <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                      <component
+                        :is="getIcon(metaColumnById[option.value])"
+                        v-if="option.value"
+                        class="!w-3.5 !h-3.5 !text-gray-700 !ml-0"
+                      />
+
+                      <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                        <template #title>
+                          {{ option.label }}
+                        </template>
+                        <template #default>{{ option.label }}</template>
+                      </NcTooltip>
+                    </div>
+                    <GeneralIcon
+                      v-if="groupingFieldColumnId === option.value"
+                      id="nc-selected-item-icon"
+                      icon="check"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div> </a-select-option
+              ></a-select>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-1">
+          <NcSwitch v-model:checked="hideEmptyStack" size="small" class="nc-switch" :loading="isLoading === 'hideEmptyStack'">
+            <div class="text-sm text-gray-800">
+              {{ $t('general.hide') }}
+              {{ $t('general.empty').toLowerCase() }}
+              {{ $t('general.stack').toLowerCase() }}
+            </div>
+          </NcSwitch>
         </div>
       </div>
     </template>
-  </a-dropdown>
+  </NcDropdown>
 </template>

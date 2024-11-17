@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Chrome } from '@ckpack/vue-color'
-import { computed } from '#imports'
 
 interface Props {
   modelValue?: any

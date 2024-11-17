@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { extractSdkResponseErrorMsg, message, useApi, useNuxtApp, useVModel } from '#imports'
-
 interface Props {
   modelValue: boolean
   view?: Record<string, any>
@@ -48,13 +46,16 @@ async function onDelete() {
 <template>
   <GeneralDeleteModal v-model:visible="vModel" :entity-name="$t('objects.view')" :on-delete="onDelete">
     <template #entity-preview>
-      <div v-if="view" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
-        <GeneralViewIcon :meta="props.view" class="nc-view-icon"></GeneralViewIcon>
+      <div v-if="view" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700">
+        <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 min-h-4"></GeneralViewIcon>
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
-          {{ view.title }}
+          <span v-if="view.is_default">{{ $t('labels.defaultView') }}</span>
+          <span v-else>
+            {{ view.title }}
+          </span>
         </div>
       </div>
     </template>

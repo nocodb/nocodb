@@ -2,12 +2,14 @@ import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import { isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { isLinksOrLTAR } from 'nocodb-sdk';
-import { getUniqueColumnAliasName } from './getUniqueName';
+import { getUniqueColumnAliasName, getUniqueColumnName } from './getUniqueName';
+import type { UserType } from 'nocodb-sdk';
 import type { RollupColumn } from '~/models';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type Source from '~/models/Source';
 import type Base from '~/models/Base';
 import type PGClient from '~/db/sql-client/lib/pg/PgClient';
+import type { NcContext } from '~/interface/config';
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
@@ -46,16 +48,19 @@ export const IGNORE_TABLES = [
 ];
 
 async function isMMRelationExist(
+  context: NcContext,
   model: Model,
   assocModel: Model,
   belongsToCol: Column<LinkToAnotherRecordColumn>,
 ) {
   let isExist = false;
   const colChildOpt =
-    await belongsToCol.getColOptions<LinkToAnotherRecordColumn>();
-  for (const col of await model.getColumns()) {
+    await belongsToCol.getColOptions<LinkToAnotherRecordColumn>(context);
+  for (const col of await model.getColumns(context)) {
     if (col.uidt === UITypes.LinkToAnotherRecord) {
-      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
+      const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
+        context,
+      );
       if (
         colOpt &&
         colOpt.type === RelationTypes.MANY_TO_MANY &&
@@ -73,10 +78,11 @@ async function isMMRelationExist(
 
 // @ts-ignore
 export async function extractAndGenerateManyToManyRelations(
+  context: NcContext,
   modelsArr: Array<Model>,
 ) {
   for (const assocModel of modelsArr) {
-    await assocModel.getColumns();
+    await assocModel.getColumns(context);
     // check if table is a Bridge table(or Associative Table) by checking
     // number of foreign keys and columns
 
@@ -84,7 +90,9 @@ export async function extractAndGenerateManyToManyRelations(
     const belongsToCols: Column<LinkToAnotherRecordColumn>[] = [];
     for (const col of assocModel.columns) {
       if (col.uidt == UITypes.LinkToAnotherRecord) {
-        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>();
+        const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
+          context,
+        );
         if (colOpt?.type === RelationTypes.BELONGS_TO) belongsToCols.push(col);
       }
     }
@@ -93,28 +101,34 @@ export async function extractAndGenerateManyToManyRelations(
     if (
       belongsToCols?.length === 2 &&
       normalColumns.length < 5 &&
-      assocModel.primaryKeys.length === 2
+      assocModel.primaryKeys.length === 2 &&
+      // check if both belongsToCol target primary keys
+      assocModel.primaryKeys.every((pk) =>
+        belongsToCols.some((c) => c.colOptions?.fk_child_column_id === pk.id),
+      )
     ) {
-      const modelA = await belongsToCols[0].colOptions.getRelatedTable();
-      const modelB = await belongsToCols[1].colOptions.getRelatedTable();
+      const modelA = await belongsToCols[0].colOptions.getRelatedTable(context);
+      const modelB = await belongsToCols[1].colOptions.getRelatedTable(context);
 
-      await modelA.getColumns();
-      await modelB.getColumns();
+      await modelA.getColumns(context);
+      await modelB.getColumns(context);
 
       // check tableA already have the relation or not
       const isRelationAvailInA = await isMMRelationExist(
+        context,
         modelA,
         assocModel,
         belongsToCols[0],
       );
       const isRelationAvailInB = await isMMRelationExist(
+        context,
         modelB,
         assocModel,
         belongsToCols[1],
       );
 
       if (!isRelationAvailInA) {
-        await Column.insert<LinkToAnotherRecordColumn>({
+        await Column.insert<LinkToAnotherRecordColumn>(context, {
           title: getUniqueColumnAliasName(
             modelA.columns,
             pluralize(modelB.title),
@@ -136,7 +150,7 @@ export async function extractAndGenerateManyToManyRelations(
         });
       }
       if (!isRelationAvailInB) {
-        await Column.insert<LinkToAnotherRecordColumn>({
+        await Column.insert<LinkToAnotherRecordColumn>(context, {
           title: getUniqueColumnAliasName(
             modelB.columns,
             pluralize(modelA.title),
@@ -158,17 +172,19 @@ export async function extractAndGenerateManyToManyRelations(
         });
       }
 
-      await Model.markAsMmTable(assocModel.id, true);
+      await Model.markAsMmTable(context, assocModel.id, true);
 
       // mark has many relation associated with mm as system field in both table
       for (const btCol of [belongsToCols[0], belongsToCols[1]]) {
         const colOpt = await btCol.colOptions;
-        const model = await colOpt.getRelatedTable();
+        const model = await colOpt.getRelatedTable(context);
 
-        for (const col of await model.getColumns()) {
+        for (const col of await model.getColumns(context)) {
           if (!isLinksOrLTAR(col.uidt)) continue;
 
-          const colOpt1 = await col.getColOptions<LinkToAnotherRecordColumn>();
+          const colOpt1 = await col.getColOptions<LinkToAnotherRecordColumn>(
+            context,
+          );
           if (!colOpt1 || colOpt1.type !== RelationTypes.HAS_MANY) continue;
 
           if (
@@ -177,20 +193,30 @@ export async function extractAndGenerateManyToManyRelations(
           )
             continue;
 
-          await Column.markAsSystemField(col.id);
+          await Column.markAsSystemField(context, col.id);
           break;
         }
       }
     } else {
-      if (assocModel.mm) await Model.markAsMmTable(assocModel.id, false);
+      if (assocModel.mm)
+        await Model.markAsMmTable(context, assocModel.id, false);
     }
   }
 }
 
 export async function populateMeta(
-  source: Source,
-  base: Base,
-  logger?: (message: string) => void,
+  context: NcContext,
+  {
+    source,
+    base,
+    logger,
+    user,
+  }: {
+    source: Source;
+    base: Base;
+    logger?: (message: string) => void;
+    user: UserType;
+  },
 ): Promise<any> {
   const info = {
     type: 'rest',
@@ -254,11 +280,13 @@ export async function populateMeta(
     };
   }
 
+  const userId = user?.id;
+
   // await this.syncRelations();
 
   const tableMetasInsert = tables.map((table) => {
-    logger?.(`Populating meta for table '${table.title}'`);
     return async () => {
+      logger?.(`Populating meta for table '${table.title}'`);
       /* filter relation where this table is present */
       const tableRelations = relations.filter(
         (r) => r.tn === table.tn || r.rtn === table.tn,
@@ -321,12 +349,18 @@ export async function populateMeta(
       // await Model.insert(base.id, base.id, meta);
 
       /* create nc_models and its rows if it doesn't exists  */
-      models2[table.table_name] = await Model.insert(base.id, source.id, {
-        table_name: table.tn || table.table_name,
-        title: table.title,
-        type: table.type || 'table',
-        order: table.order,
-      });
+      models2[table.table_name] = await Model.insert(
+        context,
+        base.id,
+        source.id,
+        {
+          table_name: table.tn || table.table_name,
+          title: table.title,
+          type: table.type || 'table',
+          order: table.order,
+          user_id: userId,
+        },
+      );
 
       // table crud apis
       info.apiCount += 5;
@@ -334,7 +368,15 @@ export async function populateMeta(
       let colOrder = 1;
 
       for (const column of columns) {
-        await Column.insert({
+        if (source.type === 'databricks') {
+          if (column.pk && !column.cdf) {
+            column.meta = {
+              ag: 'nc',
+            };
+          }
+        }
+
+        await Column.insert(context, {
           uidt: column.uidt || getColumnUiType(source, column),
           fk_model_id: models2[table.tn].id,
           ...column,
@@ -356,27 +398,32 @@ export async function populateMeta(
           column.title = `${column.title}${c || ''}`;
           columnNames[column.title] = true;
 
+          logger?.(`Populating meta for column '${column.title}'`);
+
           const rel = column.hm || column.bt;
 
-          const rel_column_id = (await models2?.[rel.tn]?.getColumns())?.find(
-            (c) => c.column_name === rel.cn,
-          )?.id;
+          const rel_column_id = (
+            await models2?.[rel.tn]?.getColumns(context)
+          )?.find((c) => c.column_name === rel.cn)?.id;
 
           const tnId = models2?.[rel.tn]?.id;
 
           const ref_rel_column_id = (
-            await models2?.[rel.rtn]?.getColumns()
+            await models2?.[rel.rtn]?.getColumns(context)
           )?.find((c) => c.column_name === rel.rcn)?.id;
 
           const rtnId = models2?.[rel.rtn]?.id;
 
           try {
-            await Column.insert<LinkToAnotherRecordColumn>({
+            await Column.insert<LinkToAnotherRecordColumn>(context, {
               base_id: base.id,
               db_alias: source.id,
               fk_model_id: models2[table.tn].id,
-              cn: column.cn,
-              title: column.title,
+              cn: getUniqueColumnName(models2[table.tn].columns, column.cn),
+              title: getUniqueColumnAliasName(
+                models2[table.tn].columns,
+                column.title,
+              ),
               uidt: column.uidt,
               type: column.hm ? 'hm' : column.mm ? 'mm' : 'bt',
               // column_id,
@@ -396,15 +443,19 @@ export async function populateMeta(
           } catch (e) {
             console.log(e);
           }
+
+          logger?.(`Populated meta for column '${column.title}'`);
         }
       });
+
+      logger?.(`Populated meta for table '${table.title}'`);
     };
   });
 
   /* handle xc_tables update in parallel */
   await NcHelp.executeOperations(tableMetasInsert, source.type);
   await NcHelp.executeOperations(virtualColumnsInsert, source.type);
-  await extractAndGenerateManyToManyRelations(Object.values(models2));
+  await extractAndGenerateManyToManyRelations(context, Object.values(models2));
 
   let views: Array<{ order: number; table_name: string; title: string }> = (
     await sqlClient.viewList({
@@ -429,7 +480,6 @@ export async function populateMeta(
   info.viewsCount = views.length;
 
   const viewMetasInsert = views.map((table) => {
-    logger?.(`Populating meta for view '${table.title}'`);
     return async () => {
       const columns = (
         await sqlClient.columnList({
@@ -441,13 +491,19 @@ export async function populateMeta(
       mapDefaultDisplayValue(columns);
 
       /* create nc_models and its rows if it doesn't exists  */
-      models2[table.table_name] = await Model.insert(base.id, source.id, {
-        table_name: table.table_name,
-        title: getTableNameAlias(table.table_name, base.prefix, source),
-        // todo: sanitize
-        type: ModelTypes.VIEW,
-        order: table.order,
-      });
+      models2[table.table_name] = await Model.insert(
+        context,
+        base.id,
+        source.id,
+        {
+          table_name: table.table_name,
+          title: getTableNameAlias(table.table_name, base.prefix, source),
+          // todo: sanitize
+          type: ModelTypes.VIEW,
+          order: table.order,
+          user_id: userId,
+        },
+      );
 
       let colOrder = 1;
 
@@ -455,7 +511,7 @@ export async function populateMeta(
       info.apiCount += 2;
 
       for (const column of columns) {
-        await Column.insert({
+        await Column.insert(context, {
           fk_model_id: models2[table.table_name].id,
           ...column,
           title: getColumnNameAlias(column.cn, source),
@@ -463,19 +519,24 @@ export async function populateMeta(
           uidt: getColumnUiType(source, column),
         });
       }
+
+      logger?.(`Populated meta for view '${table.title}'`);
     };
   });
 
   await NcHelp.executeOperations(viewMetasInsert, source.type);
 
   // fix pv column for created grid views
-  const models = await Model.list({ base_id: base.id, source_id: source.id });
+  const models = await Model.list(context, {
+    base_id: base.id,
+    source_id: source.id,
+  });
 
   for (const model of models) {
-    const views = await model.getViews();
+    const views = await model.getViews(context);
     for (const view of views) {
       if (view.type === ViewTypes.GRID) {
-        await View.fixPVColumnForView(view.id);
+        await View.fixPVColumnForView(context, view.id);
       }
     }
   }
@@ -491,14 +552,15 @@ export async function populateMeta(
 }
 
 export async function populateRollupColumnAndHideLTAR(
+  context: NcContext,
   source: Source,
   base: Base,
 ) {
-  for (const model of await Model.list({
+  for (const model of await Model.list(context, {
     base_id: base.id,
     source_id: source.id,
   })) {
-    const columns = await model.getColumns();
+    const columns = await model.getColumns(context);
     const hmAndMmLTARColumns = columns.filter(
       (c) =>
         c.uidt === UITypes.LinkToAnotherRecord &&
@@ -506,20 +568,21 @@ export async function populateRollupColumnAndHideLTAR(
         !c.system,
     );
 
-    const views = await model.getViews();
+    const views = await model.getViews(context);
 
     for (const column of hmAndMmLTARColumns) {
       const relatedModel = await column
-        .getColOptions<LinkToAnotherRecordColumn>()
-        .then((colOpt) => colOpt.getRelatedTable());
-      await relatedModel.getColumns();
+        .getColOptions<LinkToAnotherRecordColumn>(context)
+        .then((colOpt) => colOpt.getRelatedTable(context));
+      await relatedModel.getColumns(context);
       const pkId =
-        relatedModel.primaryKey?.id || (await relatedModel.getColumns())[0]?.id;
+        relatedModel.primaryKey?.id ||
+        (await relatedModel.getColumns(context))[0]?.id;
 
-      await Column.insert<RollupColumn>({
+      await Column.insert<RollupColumn>(context, {
         uidt: UITypes.Links,
         title: getUniqueColumnAliasName(
-          await model.getColumns(),
+          await model.getColumns(context),
           `${relatedModel.title}`,
         ),
         fk_rollup_column_id: pkId,
@@ -532,10 +595,10 @@ export async function populateRollupColumnAndHideLTAR(
         },
       });
 
-      const viewCol = await GridViewColumn.list(views[0].id).then((cols) =>
-        cols.find((c) => c.fk_column_id === column.id),
+      const viewCol = await GridViewColumn.list(context, views[0].id).then(
+        (cols) => cols.find((c) => c.fk_column_id === column.id),
       );
-      await GridViewColumn.update(viewCol.id, { show: false });
+      await GridViewColumn.update(context, viewCol.id, { show: false });
     }
   }
 }

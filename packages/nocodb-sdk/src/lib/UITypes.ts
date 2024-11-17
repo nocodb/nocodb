@@ -1,5 +1,6 @@
-import { ColumnReqType, ColumnType } from './Api';
+import { ColumnReqType, ColumnType, TableType } from './Api';
 import { FormulaDataTypes } from './formulaHelpers';
+import { RelationTypes } from '~/lib/globals';
 
 enum UITypes {
   ID = 'ID',
@@ -90,6 +91,50 @@ export const UITypesName = {
   [UITypes.LastModifiedBy]: 'Last modified by',
 };
 
+export const FieldNameFromUITypes = {
+  [UITypes.ID]: 'ID',
+  [UITypes.LinkToAnotherRecord]: '{TableName}',
+  [UITypes.ForeignKey]: 'Foreign key',
+  [UITypes.Lookup]: '{FieldName} (from {TableName})',
+  [UITypes.SingleLineText]: 'Text',
+  [UITypes.LongText]: 'Notes',
+  [UITypes.Attachment]: 'Attachment',
+  [UITypes.Checkbox]: 'Done',
+  [UITypes.MultiSelect]: 'Tags',
+  [UITypes.SingleSelect]: 'Status',
+  [UITypes.Collaborator]: 'User',
+  [UITypes.Date]: 'Date',
+  [UITypes.Year]: 'Year',
+  [UITypes.Time]: 'Time',
+  [UITypes.PhoneNumber]: 'Phone',
+  [UITypes.GeoData]: 'Geo data',
+  [UITypes.Email]: 'Email',
+  [UITypes.URL]: 'URL',
+  [UITypes.Number]: 'Number',
+  [UITypes.Decimal]: 'Decimal',
+  [UITypes.Currency]: 'Currency',
+  [UITypes.Percent]: 'Percent',
+  [UITypes.Duration]: 'Duration',
+  [UITypes.Rating]: 'Rating',
+  [UITypes.Formula]: 'Formula',
+  [UITypes.Rollup]: '{RollupFunction}({FieldName}) from {TableName}',
+  [UITypes.Count]: 'Count',
+  [UITypes.DateTime]: 'Date time',
+  [UITypes.CreatedTime]: 'Created time',
+  [UITypes.LastModifiedTime]: 'Last modified time',
+  [UITypes.AutoNumber]: 'Auto number',
+  [UITypes.Geometry]: 'Geometry',
+  [UITypes.JSON]: 'JSON',
+  [UITypes.SpecificDBType]: 'Specific DB type',
+  [UITypes.Barcode]: 'Barcode',
+  [UITypes.QrCode]: 'Qr code',
+  [UITypes.Button]: 'Button',
+  [UITypes.Links]: '{TableName}',
+  [UITypes.User]: 'User',
+  [UITypes.CreatedBy]: 'Created by',
+  [UITypes.LastModifiedBy]: 'Last modified by',
+};
+
 export const numericUITypes = [
   UITypes.Duration,
   UITypes.Currency,
@@ -135,6 +180,7 @@ export function isVirtualCol(
     UITypes.LastModifiedTime,
     UITypes.CreatedBy,
     UITypes.LastModifiedBy,
+    UITypes.Button,
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
@@ -164,17 +210,25 @@ export function isCreatedOrLastModifiedByCol(
 }
 
 export function isHiddenCol(
-  col: (ColumnReqType | ColumnType) & { system?: number | boolean }
+  col: (ColumnReqType | ColumnType) & {
+    colOptions?: any;
+    system?: number | boolean;
+  },
+  tableMeta: Partial<TableType>
 ) {
-  return (
-    col.system &&
-    (
-      [
-        UITypes.CreatedBy,
-        UITypes.LastModifiedBy,
-        UITypes.LinkToAnotherRecord,
-      ] as string[]
-    ).includes(col.uidt)
+  if (!col.system) return false;
+
+  // hide belongs to column in mm tables only
+  if (col.uidt === UITypes.LinkToAnotherRecord) {
+    if (col.colOptions?.type === RelationTypes.BELONGS_TO && tableMeta?.mm) {
+      return true;
+    }
+    // hide system columns in other tables which are has-many used for mm
+    return col.colOptions?.type === RelationTypes.HAS_MANY;
+  }
+
+  return ([UITypes.CreatedBy, UITypes.LastModifiedBy] as string[]).includes(
+    col.uidt
   );
 }
 
@@ -197,6 +251,7 @@ export const getEquivalentUIType = ({
     case FormulaDataTypes.DATE:
       return UITypes.DateTime;
     case FormulaDataTypes.LOGICAL:
+    case FormulaDataTypes.COND_EXP:
     case FormulaDataTypes.BOOLEAN:
       return UITypes.Checkbox;
   }
@@ -210,3 +265,58 @@ export const isSelectTypeCol = (
   );
 };
 export default UITypes;
+
+export const readonlyMetaAllowedTypes = [
+  UITypes.Lookup,
+  UITypes.Rollup,
+  UITypes.Formula,
+  UITypes.Button,
+  UITypes.Barcode,
+  UITypes.QrCode,
+];
+
+export const partialUpdateAllowedTypes = [
+  // Single/Multi select is disabled for now since it involves updating type in some cases
+  // UITypes.SingleSelect,
+  // UITypes.MultiSelect,
+  UITypes.Checkbox,
+  UITypes.Number,
+  UITypes.Decimal,
+  UITypes.Currency,
+  UITypes.Percent,
+  UITypes.Duration,
+  UITypes.Rating,
+  UITypes.DateTime,
+  UITypes.Date,
+  UITypes.Time,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.LinkToAnotherRecord,
+  UITypes.Links,
+  UITypes.PhoneNumber,
+  UITypes.Email,
+  UITypes.URL,
+];
+
+export const getUITypesForFormulaDataType = (
+  dataType: FormulaDataTypes
+): UITypes[] => {
+  switch (dataType) {
+    case FormulaDataTypes.NUMERIC:
+      return [
+        UITypes.Decimal,
+        UITypes.Currency,
+        UITypes.Percent,
+        UITypes.Rating,
+      ];
+    case FormulaDataTypes.DATE:
+      return [UITypes.DateTime, UITypes.Date, UITypes.Time];
+    case FormulaDataTypes.BOOLEAN:
+    case FormulaDataTypes.COND_EXP:
+      return [UITypes.Checkbox];
+    case FormulaDataTypes.STRING:
+      return [UITypes.Email, UITypes.URL, UITypes.PhoneNumber];
+    default:
+      return [];
+  }
+};

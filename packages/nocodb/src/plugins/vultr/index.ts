@@ -1,11 +1,11 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import VultrPlugin from './VultrPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: VultrPlugin,
-  title: 'Vultr Object Storage',
-  version: '0.0.2',
+  title: 'Vultr',
+  version: '0.0.4',
   logo: 'plugins/vultr.png',
   description:
     'Using Vultr Object Storage can give flexibility and cloud storage that allows applications greater flexibility and access worldwide.',
@@ -41,6 +41,13 @@ const config: XcPluginConfig = {
         type: XcType.Password,
         required: true,
       },
+      {
+        key: 'acl',
+        label: 'Access Control Lists (ACL)',
+        placeholder: 'Default set to public-read',
+        type: XcType.SingleLineText,
+        required: false,
+      },
     ],
     actions: [
       {
@@ -59,7 +66,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in Vultr Object Storage',
+      'Successfully configured! Attachments will now be stored in Vultr Object Storage.',
     msgOnUninstall: '',
   },
   category: 'Storage',

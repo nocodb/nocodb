@@ -4,27 +4,7 @@ import tinycolor from 'tinycolor2'
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { UserFieldRecordType } from 'nocodb-sdk'
-import type { FormFieldsLimitOptionsType } from '~/lib'
-import {
-  ActiveCellInj,
-  CellClickHookInj,
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsKanbanInj,
-  ReadonlyInj,
-  RowHeightInj,
-  computed,
-  h,
-  inject,
-  isDrawerOrModalExist,
-  onMounted,
-  ref,
-  useEventListener,
-  useRoles,
-  useSelectedCellKeyupListener,
-  watch,
-} from '#imports'
+import type { FormFieldsLimitOptionsType } from '~/lib/types'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
@@ -52,7 +32,11 @@ const activeCell = inject(ActiveCellInj, ref(false))
 
 const basesStore = useBases()
 
+const baseStore = useBase()
+
 const { basesUser } = storeToRefs(basesStore)
+
+const { idUserMap } = storeToRefs(baseStore)
 
 const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
 
@@ -142,8 +126,20 @@ const editAllowed = computed(() => (hasEditRoles.value || isForm.value) && activ
 const vModel = computed({
   get: () => {
     let selected: { label: string; value: string }[] = []
-    if (typeof modelValue === 'string') {
-      const idsOrMails = modelValue.split(',').map((idOrMail) => idOrMail.trim())
+
+    let localModelValue = modelValue
+
+    // if stringified json
+    if (typeof localModelValue === 'string' && /^\s*[{[]/.test(localModelValue)) {
+      try {
+        localModelValue = JSON.parse(localModelValue)
+      } catch (e) {
+        // do nothing
+      }
+    }
+
+    if (typeof localModelValue === 'string') {
+      const idsOrMails = localModelValue.split(',').map((idOrMail) => idOrMail.trim())
       selected = idsOrMails.reduce((acc, idOrMail) => {
         const user = options.value.find((u) => u.id === idOrMail || u.email === idOrMail)
         if (user) {
@@ -155,8 +151,8 @@ const vModel = computed({
         return acc
       }, [] as { label: string; value: string }[])
     } else {
-      selected = modelValue
-        ? (Array.isArray(modelValue) ? modelValue : [modelValue]).reduce((acc, item) => {
+      selected = localModelValue
+        ? (Array.isArray(localModelValue) ? localModelValue : [localModelValue]).reduce((acc, item) => {
             const label = item?.display_name || item?.email
             if (label) {
               acc.push({
@@ -311,6 +307,11 @@ const filterOption = (input: string, option: any) => {
     return searchVal.toLowerCase().includes(input.toLowerCase())
   }
 }
+
+// check if user is part of the base
+const isCollaborator = (userIdOrEmail) => {
+  return !idUserMap.value?.[userIdOrEmail]?.deleted
+}
 </script>
 
 <template>
@@ -343,12 +344,11 @@ const filterOption = (input: string, option: any) => {
             <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
               <span
                 :style="{
-                  'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                  color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
                     ? '#fff'
                     : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                  'font-size': '13px',
                 }"
-                class="flex items-stretch gap-2"
+                class="flex items-stretch gap-2 text-small"
               >
                 <div>
                   <GeneralUserIcon
@@ -356,6 +356,7 @@ const filterOption = (input: string, option: any) => {
                     :name="op.display_name?.trim() ? op.display_name?.trim() : ''"
                     :email="op.email"
                     class="!text-[0.65rem]"
+                    :disabled="!isCollaborator(op.id)"
                   />
                 </div>
                 <NcTooltip class="truncate max-w-full" show-on-truncate-only>
@@ -368,6 +369,9 @@ const filterOption = (input: string, option: any) => {
                       wordBreak: 'keep-all',
                       whiteSpace: 'nowrap',
                       display: 'inline',
+                    }"
+                    :class="{
+                      'text-gray-600': !isCollaborator(op.id || op.email),
                     }"
                   >
                     {{ op.display_name?.trim() || op.email }}
@@ -393,25 +397,31 @@ const filterOption = (input: string, option: any) => {
         :style="{
           'display': '-webkit-box',
           'max-width': '100%',
-          '-webkit-line-clamp': rowHeight || 1,
+          '-webkit-line-clamp': rowHeightTruncateLines(rowHeight),
           '-webkit-box-orient': 'vertical',
           'overflow': 'hidden',
         }"
       >
         <template v-for="selectedOpt of vModel" :key="selectedOpt.value">
-          <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
+          <a-tag
+            class="rounded-tag max-w-full !pl-0"
+            :class="{
+              '!my-0': !rowHeight || rowHeight === 1,
+            }"
+            color="'#ccc'"
+          >
             <span
               :style="{
-                'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
               class="flex items-stretch gap-2"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <div class="flex-none">
                 <GeneralUserIcon
+                  :disabled="!isCollaborator(selectedOpt.value)"
                   size="auto"
                   :name="!selectedOpt.label?.includes('@') ? selectedOpt.label.trim() : ''"
                   :email="selectedOpt.label"
@@ -428,6 +438,9 @@ const filterOption = (input: string, option: any) => {
                     wordBreak: 'keep-all',
                     whiteSpace: 'nowrap',
                     display: 'inline',
+                  }"
+                  :class="{
+                    'text-gray-600': !isCollaborator(selectedOpt.value),
                   }"
                 >
                   {{ selectedOpt.label }}
@@ -452,7 +465,7 @@ const filterOption = (input: string, option: any) => {
         :open="isOpen && editAllowed"
         :disabled="readOnly || !editAllowed"
         :class="{ 'caret-transparent': !hasEditRoles }"
-        :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-200px ${isOpen ? 'active' : ''}`"
+        :dropdown-class-name="`nc-dropdown-user-select-cell !min-w-156px ${isOpen ? 'active' : ''}`"
         :filter-option="filterOption"
         @search="search"
         @keydown.stop
@@ -468,16 +481,21 @@ const filterOption = (input: string, option: any) => {
             :class="`nc-select-option-${column.title}-${op.email}`"
             @click.stop
           >
-            <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
+            <a-tag
+              class="rounded-tag max-w-full !pl-0"
+              :class="{
+                '!my-0': !rowHeight || rowHeight === 1,
+              }"
+              color="'#ccc'"
+            >
               <span
                 :style="{
-                  'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                  color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
                     ? '#fff'
                     : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                  'font-size': '13px',
                 }"
                 class="flex items-stretch gap-2"
-                :class="{ 'text-sm': isKanban }"
+                :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
               >
                 <div>
                   <GeneralUserIcon
@@ -511,6 +529,9 @@ const filterOption = (input: string, option: any) => {
           <a-tag
             v-if="options.find((el) => el.id === val)"
             class="rounded-tag nc-selected-option !pl-0"
+            :class="{
+              '!my-0': !rowHeight || rowHeight === 1,
+            }"
             :style="{ display: 'flex', alignItems: 'center' }"
             color="'#ccc'"
             :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
@@ -520,16 +541,15 @@ const filterOption = (input: string, option: any) => {
           >
             <span
               :style="{
-                'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', {
+                color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', {
                   level: 'AA',
                   size: 'large',
                 })
                   ? '#fff'
                   : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
               class="flex items-stretch gap-2"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <div>
                 <GeneralUserIcon
@@ -537,9 +557,16 @@ const filterOption = (input: string, option: any) => {
                   :name="!label?.includes('@') ? label.trim() : ''"
                   :email="label"
                   class="!text-[0.65rem]"
+                  :disabled="!isCollaborator(val)"
                 />
               </div>
-              {{ label }}
+              <span
+                :class="{
+                  'text-gray-600': !isCollaborator(val),
+                }"
+              >
+                {{ label }}
+              </span>
             </span>
           </a-tag>
         </template>
@@ -581,11 +608,11 @@ const filterOption = (input: string, option: any) => {
 }
 
 .rounded-tag {
-  @apply bg-gray-200 py-0 px-[12px] rounded-[12px];
+  @apply bg-gray-200 px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[2px];
+  @apply "rounded-tag" my-[1px];
 }
 
 :deep(.ant-tag-close-icon) {
@@ -597,7 +624,7 @@ const filterOption = (input: string, option: any) => {
 }
 
 :deep(.ant-select-selection-overflow) {
-  @apply flex-nowrap overflow-hidden;
+  @apply flex-nowrap overflow-hidden max-w-[fit-content];
 }
 
 .nc-user-select:not(.read-only) {
@@ -608,10 +635,13 @@ const filterOption = (input: string, option: any) => {
 }
 
 :deep(.ant-select-selector) {
-  @apply !pl-0;
+  @apply !pl-0 flex-nowrap;
 }
 
 :deep(.ant-select-selection-search-input) {
   @apply !text-xs;
+}
+:deep(.nc-user-avatar) {
+  @apply min-h-4.2;
 }
 </style>

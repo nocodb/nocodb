@@ -1,4 +1,5 @@
 import type { LookupType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import Column from '~/models/Column';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -14,19 +15,20 @@ export default class LookupColumn implements LookupType {
     Object.assign(this, data);
   }
 
-  public async getRelationColumn(): Promise<Column> {
-    return await Column.get({
+  public async getRelationColumn(context: NcContext): Promise<Column> {
+    return await Column.get(context, {
       colId: this.fk_relation_column_id,
     });
   }
 
-  public async getLookupColumn(): Promise<Column> {
-    return await Column.get({
+  public async getLookupColumn(context: NcContext): Promise<Column> {
+    return await Column.get(context, {
       colId: this.fk_lookup_column_id,
     });
   }
 
   public static async insert(
+    context: NcContext,
     data: Partial<LookupColumn>,
     ncMeta = Noco.ncMeta,
   ) {
@@ -36,26 +38,37 @@ export default class LookupColumn implements LookupType {
       'fk_lookup_column_id',
     ]);
 
-    await ncMeta.metaInsert2(null, null, MetaTable.COL_LOOKUP, insertObj);
+    await ncMeta.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COL_LOOKUP,
+      insertObj,
+    );
 
-    return this.read(data.fk_column_id, ncMeta).then(async (lookupColumn) => {
-      await NocoCache.appendToList(
-        CacheScope.COL_LOOKUP,
-        [data.fk_lookup_column_id],
-        `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
-      );
+    return this.read(context, data.fk_column_id, ncMeta).then(
+      async (lookupColumn) => {
+        await NocoCache.appendToList(
+          CacheScope.COL_LOOKUP,
+          [data.fk_lookup_column_id],
+          `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
+        );
 
-      await NocoCache.appendToList(
-        CacheScope.COL_LOOKUP,
-        [data.fk_relation_column_id],
-        `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
-      );
+        await NocoCache.appendToList(
+          CacheScope.COL_LOOKUP,
+          [data.fk_relation_column_id],
+          `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
+        );
 
-      return lookupColumn;
-    });
+        return lookupColumn;
+      },
+    );
   }
 
-  public static async read(columnId: string, ncMeta = Noco.ncMeta) {
+  public static async read(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     let colData =
       columnId &&
       (await NocoCache.get(
@@ -64,8 +77,8 @@ export default class LookupColumn implements LookupType {
       ));
     if (!colData) {
       colData = await ncMeta.metaGet2(
-        null, //,
-        null, //model.db_alias,
+        context.workspace_id,
+        context.base_id,
         MetaTable.COL_LOOKUP,
         { fk_column_id: columnId },
       );

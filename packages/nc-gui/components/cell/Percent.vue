@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { EditColumnInj, EditModeInj, IsExpandedFormOpenInj, IsFormInj, ReadonlyInj, inject, useVModel } from '#imports'
 
 interface Props {
   modelValue?: number | string | null
+  placeholder?: string
 }
 
 const props = defineProps<Props>()
@@ -24,17 +24,6 @@ const _vModel = useVModel(props, 'modelValue', emits)
 
 const wrapperRef = ref<HTMLElement>()
 
-const vModel = computed({
-  get: () => _vModel.value,
-  set: (value) => {
-    if (value === '') {
-      _vModel.value = null
-    } else {
-      _vModel.value = value
-    }
-  },
-})
-
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
@@ -46,12 +35,31 @@ const cellFocused = ref(false)
 
 const expandedEditEnabled = ref(false)
 
+const vModel = computed({
+  get: () => {
+    return isForm.value && !isEditColumn.value && _vModel.value && !cellFocused.value && !isNaN(Number(_vModel.value))
+      ? `${_vModel.value}%`
+      : _vModel.value
+  },
+  set: (value) => {
+    if (value === '') {
+      _vModel.value = null
+    } else if (isForm.value && !isEditColumn.value) {
+      _vModel.value = isNaN(Number(value)) ? value : Number(value)
+    } else {
+      _vModel.value = value
+    }
+  },
+})
+
 const percentMeta = computed(() => {
   return {
     is_progress: false,
     ...parseProp(column.value?.meta),
   }
 })
+
+const inputType = computed(() => (isForm.value && !isEditColumn.value ? 'text' : 'number'))
 
 const onBlur = () => {
   if (editEnabled) {
@@ -106,7 +114,11 @@ const onTabPress = (e: KeyboardEvent) => {
       )
 
       for (let i = focusesNcCellIndex - 1; i >= 0; i--) {
-        const lastFormItem = nodes[i].querySelector('[tabindex="0"]') as HTMLElement
+        const node = nodes[i]
+        const lastFormItem = (node.querySelector('[tabindex="0"]') ??
+          node.querySelector('input') ??
+          node.querySelector('textarea') ??
+          node.querySelector('button')) as HTMLElement
         if (lastFormItem) {
           lastFormItem.focus()
           break
@@ -127,13 +139,14 @@ const onTabPress = (e: KeyboardEvent) => {
     @mouseleave="onMouseleave"
     @focus="onWrapperFocus"
   >
+    <!-- eslint-disable vue/use-v-on-exact -->
     <input
-      v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled : true)"
+      v-if="!readOnly && editEnabled && (isExpandedFormOpen ? expandedEditEnabled || !percentMeta.is_progress : true)"
       :ref="focus"
       v-model="vModel"
-      class="nc-cell-field w-full !text-sm !border-none !outline-none focus:ring-0 text-base py-1"
-      type="number"
-      :placeholder="isEditColumn ? $t('labels.optional') : ''"
+      class="nc-cell-field w-full !border-none !outline-none focus:ring-0 py-1"
+      :type="inputType"
+      :placeholder="placeholder"
       @blur="onBlur"
       @focus="onFocus"
       @keydown.down.stop
@@ -142,6 +155,7 @@ const onTabPress = (e: KeyboardEvent) => {
       @keydown.up.stop
       @keydown.delete.stop
       @keydown.tab="onTabPress"
+      @keydown.alt.stop
       @selectstart.capture.stop
       @mousedown.stop
     />
@@ -157,7 +171,7 @@ const onTabPress = (e: KeyboardEvent) => {
       />
     </div>
     <!-- nbsp to keep height even if vModel is zero length -->
-    <span v-else class="nc-cell-field">{{ vModel }}&nbsp;</span>
+    <span v-else class="nc-cell-field">{{ vModel }} {{ !vModel ? '&nbsp;' : '' }}</span>
   </div>
 </template>
 

@@ -1,11 +1,6 @@
-export enum ClientType {
-  MYSQL = 'mysql2',
-  MSSQL = 'mssql',
-  PG = 'pg',
-  SQLITE = 'sqlite3',
-  VITESS = 'vitess',
-  SNOWFLAKE = 'snowflake',
-}
+import { ViewLockType } from 'nocodb-sdk'
+
+export { ClientType, IntegrationCategoryType, SyncDataType } from 'nocodb-sdk'
 
 export enum Language {
   ar = 'العربية',
@@ -22,11 +17,14 @@ export enum Language {
   he = 'עִברִית',
   hi = 'हिन्दी',
   hr = 'Hrvatski',
+  hu = 'Magyar',
   id = 'Bahasa Indonesia',
   it = 'Italiano',
   ja = '日本語',
+  kn = 'ಕನ್ನಡ',
   ko = '한국어',
   lv = 'Latviešu',
+  ml = 'മലയാളം',
   nl = 'Nederlandse',
   no = 'Norsk',
   pl = 'Polski',
@@ -45,7 +43,7 @@ export enum Language {
 }
 
 export enum LanguageAlias {
-  zn_CN = 'zh-Hans',
+  zh_CN = 'zh-Hans',
   zh_TW = 'zh-Hant',
 }
 
@@ -54,11 +52,7 @@ export enum NavigateDir {
   PREV,
 }
 
-export enum LockType {
-  Personal = 'personal',
-  Locked = 'locked',
-  Collaborative = 'collaborative',
-}
+export { ViewLockType as LockType }
 
 export enum TabType {
   TABLE = 'table',
@@ -80,6 +74,10 @@ export enum SmartsheetStoreEvents {
   FIELD_ADD = 'field-add',
   MAPPED_BY_COLUMN_CHANGE = 'mapped-by-column-change',
   CLEAR_NEW_ROW = 'clear-new-row',
+  GROUP_BY_ADD = 'group-by-add',
+  GROUP_BY_REMOVE = 'group-by-remove',
+  FILTER_ADD = 'filter-add',
+  CELL_SELECTED = 'cell-selected',
 }
 
 export enum DataSourcesSubTab {
@@ -141,4 +139,44 @@ export enum PreFilledMode {
   Default = 'default',
   Hidden = 'hidden',
   Locked = 'locked',
+}
+
+export enum RichTextBubbleMenuOptions {
+  bold = 'bold',
+  italic = 'italic',
+  underline = 'underline',
+  strike = 'strike',
+  code = 'code',
+  quote = 'quote',
+  heading1 = 'heading1',
+  heading2 = 'heading2',
+  heading3 = 'heading3',
+  blockQuote = 'blockQuote',
+  bulletList = 'bulletList',
+  numberedList = 'numberedList',
+  taskList = 'taskList',
+  link = 'link',
+}
+
+export enum CoverImageObjectFit {
+  FIT = 'fit',
+  COVER = 'cover',
+}
+
+export enum AuditLogsDateRange {
+  Last24H = 'last24H',
+  PastWeek = 'pastWeek',
+  PastMonth = 'pastMonth',
+  PastYear = 'pastYear',
+  Custom = 'custom',
+}
+
+export enum ExtensionsEvents {
+  ADD = 'add',
+  DUPLICATE = 'duplicate',
+  CLEARDATA = 'clearData',
+}
+
+export enum IntegrationStoreEvents {
+  INTEGRATION_ADD = 'integration-add',
 }

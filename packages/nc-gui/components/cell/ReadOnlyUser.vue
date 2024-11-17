@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ActiveCellInj, EditModeInj, ReadonlyInj, provide, ref } from '#imports'
+import type { UserFieldRecordType } from 'nocodb-sdk'
 
 interface Props {
-  modelValue?: string | null
+  modelValue?: UserFieldRecordType[] | UserFieldRecordType | string | null
 }
 
 defineProps<Props>()

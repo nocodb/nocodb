@@ -121,6 +121,9 @@ export default defineNuxtConfig({
 
   build: {},
 
+  // disabling devtools since causing some significant performance issues when browser console open in development mode
+  devtools: { enabled: false },
+
   vite: {
     worker: {
       format: 'es',
@@ -143,6 +146,9 @@ export default defineNuxtConfig({
         defaultClass: 'nc-icon',
         customCollections: {
           'nc-icons': FileSystemIconLoader('./assets/nc-icons', (svg) =>
+            svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" '),
+          ),
+          'nc-icons-v2': FileSystemIconLoader('./assets/nc-icons-v2', (svg) =>
             svg.replace(/^<svg (?!=\s*data-ignore)/, '<svg stroke="currentColor" '),
           ),
         },
@@ -221,9 +227,8 @@ export default defineNuxtConfig({
   image: {
     dir: 'assets/',
   },
-
   imports: {
-    dirs: ['./context', './utils/**', './lib', './composables/**', './store/**'],
+    dirs: ['./context', './utils/**', './lib', './composables/**', './store/**', './helpers'],
     imports: [
       { name: 'useI18n', from: 'vue-i18n' },
       { name: 'message', from: 'ant-design-vue/es' },

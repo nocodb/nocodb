@@ -7,13 +7,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { BaseReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { SourcesService } from '~/services/sources.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -25,14 +26,18 @@ export class SourcesController {
     '/api/v2/meta/bases/:baseId/sources/:sourceId',
   ])
   @Acl('baseGet')
-  async baseGet(@Param('sourceId') sourceId: string) {
-    const source = await this.sourcesService.baseGetWithConfig({
+  async baseGet(
+    @TenantContext() context: NcContext,
+    @Param('sourceId') sourceId: string,
+  ) {
+    const source = await this.sourcesService.baseGetWithConfig(context, {
       sourceId,
     });
 
     if (source.isMeta()) {
-      delete source.config;
+      source.config = undefined;
     }
+    source.integration_config = undefined;
 
     return source;
   }
@@ -43,17 +48,21 @@ export class SourcesController {
   ])
   @Acl('baseUpdate')
   async baseUpdate(
+    @TenantContext() context: NcContext,
     @Param('sourceId') sourceId: string,
     @Param('baseId') baseId: string,
     @Body() body: BaseReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    const source = await this.sourcesService.baseUpdate({
+    const source = await this.sourcesService.baseUpdate(context, {
       sourceId,
       source: body,
       baseId,
       req,
     });
+
+    source.config = undefined;
+    source.integration_config = undefined;
 
     return source;
   }
@@ -63,15 +72,17 @@ export class SourcesController {
     '/api/v2/meta/bases/:baseId/sources',
   ])
   @Acl('baseList')
-  async baseList(@Param('baseId') baseId: string) {
-    const sources = await this.sourcesService.baseList({
+  async baseList(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+  ) {
+    const sources = await this.sourcesService.baseList(context, {
       baseId,
     });
 
     for (const source of sources) {
-      if (source.isMeta()) {
-        delete source.config;
-      }
+      source.config = undefined;
+      source.integration_config = undefined;
     }
 
     return new PagedResponseImpl(sources, {

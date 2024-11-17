@@ -1,21 +1,27 @@
+import { Logger } from '@nestjs/common';
 import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
-import Source from '~/models/Source';
-import { BaseUser } from '~/models';
+import type { NcContext } from '~/interface/config';
+import { BaseUser, Source } from '~/models';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('Base');
 
 export default class Base implements BaseType {
   public id: string;
+  public fk_workspace_id?: string;
   public title: string;
   public prefix: string;
   public status: string;
@@ -68,14 +74,20 @@ export default class Base implements BaseType {
     }
 
     const { id: baseId } = await ncMeta.metaInsert2(
-      null,
-      null,
+      RootScopes.BASE,
+      RootScopes.BASE,
       MetaTable.PROJECT,
       insertObj,
     );
 
+    const context = {
+      workspace_id: (base as any).fk_workspace_id,
+      base_id: baseId,
+    };
+
     for (const source of base.sources) {
       await Source.createBase(
+        context,
         {
           type: source.config?.client as (typeof DB_TYPES)[number],
           ...source,
@@ -86,19 +98,25 @@ export default class Base implements BaseType {
     }
 
     await NocoCache.del(CacheScope.INSTANCE_META);
-    return this.getWithInfo(baseId, ncMeta).then(async (base) => {
-      await NocoCache.appendToList(
-        CacheScope.PROJECT,
-        [],
-        `${CacheScope.PROJECT}:${baseId}`,
-      );
-      return base;
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
     });
+
+    return this.getWithInfo(context, baseId, true, ncMeta).then(
+      async (base) => {
+        await NocoCache.appendToList(
+          CacheScope.PROJECT,
+          [],
+          `${CacheScope.PROJECT}:${baseId}`,
+        );
+        return base;
+      },
+    );
   }
 
   static async list(
-    // @ts-ignore
-    param,
+    workspaceId?: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Base[]> {
     // todo: pagination
@@ -106,25 +124,30 @@ export default class Base implements BaseType {
     let { list: baseList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !baseList.length) {
-      baseList = await ncMeta.metaList2(null, null, MetaTable.PROJECT, {
-        xcCondition: {
-          _or: [
-            {
-              deleted: {
-                eq: false,
+      baseList = await ncMeta.metaList2(
+        RootScopes.BASE,
+        RootScopes.BASE,
+        MetaTable.PROJECT,
+        {
+          xcCondition: {
+            _or: [
+              {
+                deleted: {
+                  eq: false,
+                },
               },
-            },
-            {
-              deleted: {
-                eq: null,
+              {
+                deleted: {
+                  eq: null,
+                },
               },
-            },
-          ],
+            ],
+          },
+          orderBy: {
+            order: 'asc',
+          },
         },
-        orderBy: {
-          order: 'asc',
-        },
-      });
+      );
       await NocoCache.setList(CacheScope.PROJECT, [], baseList);
     }
 
@@ -141,7 +164,7 @@ export default class Base implements BaseType {
       )
       .map((p) => {
         const base = this.castType(p);
-        promises.push(base.getSources(ncMeta));
+        promises.push(base.getSources(false, ncMeta));
         return base;
       });
 
@@ -151,7 +174,11 @@ export default class Base implements BaseType {
   }
 
   // @ts-ignore
-  static async get(baseId: string, ncMeta = Noco.ncMeta): Promise<Base> {
+  static async get(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Base> {
     let baseData =
       baseId &&
       (await NocoCache.get(
@@ -159,10 +186,15 @@ export default class Base implements BaseType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (!baseData) {
-      baseData = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
-        id: baseId,
-        deleted: false,
-      });
+      baseData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PROJECT,
+        {
+          id: baseId,
+          deleted: false,
+        },
+      );
       if (baseData) {
         baseData.meta = parseMetaProp(baseData);
         await NocoCache.set(`${CacheScope.PROJECT}:${baseId}`, baseData);
@@ -175,14 +207,30 @@ export default class Base implements BaseType {
     return this.castType(baseData);
   }
 
-  async getSources(ncMeta = Noco.ncMeta): Promise<Source[]> {
-    return (this.sources = await Source.list({ baseId: this.id }, ncMeta));
+  async getSources(
+    includeConfig = true,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Source[]> {
+    const sources = await Source.list(
+      { workspace_id: this.fk_workspace_id, base_id: this.id },
+      { baseId: this.id },
+      ncMeta,
+    );
+    this.sources = sources;
+    if (!includeConfig) {
+      sources.forEach((s) => {
+        s.config = undefined;
+        s.integration_config = undefined;
+      });
+    }
+    return sources;
   }
 
-  // todo: hide credentials
   // @ts-ignore
   static async getWithInfo(
+    context: NcContext,
     baseId: string,
+    includeConfig = true,
     ncMeta = Noco.ncMeta,
   ): Promise<Base> {
     let baseData =
@@ -193,10 +241,15 @@ export default class Base implements BaseType {
       ));
 
     if (!baseData) {
-      baseData = await ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
-        id: baseId,
-        deleted: false,
-      });
+      baseData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PROJECT,
+        {
+          id: baseId,
+          deleted: false,
+        },
+      );
       if (baseData) {
         baseData.meta = parseMetaProp(baseData);
         await NocoCache.set(`${CacheScope.PROJECT}:${baseId}`, baseData);
@@ -215,7 +268,7 @@ export default class Base implements BaseType {
     if (baseData) {
       const base = this.castType(baseData);
 
-      await base.getSources(ncMeta);
+      await base.getSources(includeConfig, ncMeta);
 
       return base;
     }
@@ -223,8 +276,12 @@ export default class Base implements BaseType {
   }
 
   // @ts-ignore
-  static async softDelete(baseId: string, ncMeta = Noco.ncMeta): Promise<any> {
-    await this.clearConnectionPool(baseId, ncMeta);
+  static async softDelete(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    await this.clearConnectionPool(context, baseId, ncMeta);
 
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
@@ -249,10 +306,14 @@ export default class Base implements BaseType {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     // set meta
     return await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT,
       { deleted: true },
       baseId,
@@ -261,6 +322,7 @@ export default class Base implements BaseType {
 
   // @ts-ignore
   static async update(
+    context: NcContext,
     baseId: string,
     base: Partial<Base>,
     ncMeta = Noco.ncMeta,
@@ -317,10 +379,14 @@ export default class Base implements BaseType {
       updateObj.meta = stringifyMetaProp(updateObj);
     }
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     // set meta
     return await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT,
       updateObj,
       baseId,
@@ -328,21 +394,29 @@ export default class Base implements BaseType {
   }
 
   // Todo: Remove the base entry from the connection pool in NcConnectionMgrv2
-  static async delete(baseId, ncMeta = Noco.ncMeta): Promise<any> {
-    let base = await this.get(baseId);
-    const users = await BaseUser.getUsersList({
-      base_id: baseId,
-    });
+  static async delete(
+    context: NcContext,
+    baseId,
+    ncMeta = Noco.ncMeta,
+  ): Promise<any> {
+    let base = await this.get(context, baseId, ncMeta);
+    const users = await BaseUser.getUsersList(
+      context,
+      {
+        base_id: baseId,
+      },
+      ncMeta,
+    );
 
     for (const user of users) {
-      await BaseUser.delete(baseId, user.id);
+      await BaseUser.delete(context, baseId, user.id, ncMeta);
     }
 
-    const sources = await Source.list({ baseId });
+    const sources = await Source.list(context, { baseId }, ncMeta);
     for (const source of sources) {
-      await source.delete(ncMeta);
+      await source.delete(context, ncMeta);
     }
-    base = await this.get(baseId);
+    base = await this.get(context, baseId, ncMeta);
 
     if (base) {
       // delete <scope>:<uuid>
@@ -361,14 +435,28 @@ export default class Base implements BaseType {
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
-    await ncMeta.metaDelete(null, null, MetaTable.AUDIT, {
-      base_id: baseId,
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.AUDIT,
+      {
+        base_id: baseId,
+      },
+    );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
     });
 
-    return await ncMeta.metaDelete(null, null, MetaTable.PROJECT, baseId);
+    return await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT,
+      baseId,
+    );
   }
 
-  static async getByUuid(uuid, ncMeta = Noco.ncMeta) {
+  static async getByUuid(context: NcContext, uuid, ncMeta = Noco.ncMeta) {
     const baseId =
       uuid &&
       (await NocoCache.get(
@@ -377,9 +465,14 @@ export default class Base implements BaseType {
       ));
     let baseData = null;
     if (!baseId) {
-      baseData = await Noco.ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
-        uuid,
-      });
+      baseData = await Noco.ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PROJECT,
+        {
+          uuid,
+        },
+      );
       if (baseData) {
         baseData.meta = parseMetaProp(baseData);
         await NocoCache.set(
@@ -388,21 +481,29 @@ export default class Base implements BaseType {
         );
       }
     } else {
-      return this.get(baseId);
+      return this.get(context, baseId, ncMeta);
     }
-    return baseData?.id && this.get(baseData?.id, ncMeta);
+    return baseData?.id && this.get(context, baseData?.id, ncMeta);
   }
 
-  static async getWithInfoByTitle(title: string, ncMeta = Noco.ncMeta) {
-    const base = await this.getByTitle(title, ncMeta);
+  static async getWithInfoByTitle(
+    context: NcContext,
+    title: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const base = await this.getByTitle(context, title, ncMeta);
     if (base) {
-      await base.getSources(ncMeta);
+      await base.getSources(false, ncMeta);
     }
 
     return base;
   }
 
-  static async getByTitle(title: string, ncMeta = Noco.ncMeta) {
+  static async getByTitle(
+    context: NcContext,
+    title: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     const baseId =
       title &&
       (await NocoCache.get(
@@ -411,10 +512,15 @@ export default class Base implements BaseType {
       ));
     let baseData = null;
     if (!baseId) {
-      baseData = await Noco.ncMeta.metaGet2(null, null, MetaTable.PROJECT, {
-        title,
-        deleted: false,
-      });
+      baseData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PROJECT,
+        {
+          title,
+          deleted: false,
+        },
+      );
       if (baseData) {
         baseData.meta = parseMetaProp(baseData);
         await NocoCache.set(
@@ -423,12 +529,16 @@ export default class Base implements BaseType {
         );
       }
     } else {
-      return this.get(baseId);
+      return this.get(context, baseId, ncMeta);
     }
-    return baseData?.id && this.get(baseData?.id, ncMeta);
+    return baseData?.id && this.get(context, baseData?.id, ncMeta);
   }
 
-  static async getByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
+  static async getByTitleOrId(
+    context: NcContext,
+    titleOrId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     const baseId =
       titleOrId &&
       (await NocoCache.get(
@@ -437,9 +547,9 @@ export default class Base implements BaseType {
       ));
     let baseData = null;
     if (!baseId) {
-      baseData = await Noco.ncMeta.metaGet2(
-        null,
-        null,
+      baseData = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
         MetaTable.PROJECT,
         {
           deleted: false,
@@ -471,28 +581,35 @@ export default class Base implements BaseType {
         );
       }
     } else {
-      return this.get(baseId);
+      return this.get(context, baseId, ncMeta);
     }
-    return baseData?.id && this.get(baseData?.id, ncMeta);
+    return baseData?.id && this.get(context, baseData?.id, ncMeta);
   }
 
-  static async getWithInfoByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
-    const base = await this.getByTitleOrId(titleOrId, ncMeta);
-
-    // parse meta
-    base.meta = parseMetaProp(base);
+  static async getWithInfoByTitleOrId(
+    context: NcContext,
+    titleOrId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const base = await this.getByTitleOrId(context, titleOrId, ncMeta);
 
     if (base) {
-      await base.getSources(ncMeta);
+      // parse meta
+      base.meta = parseMetaProp(base);
+      await base.getSources(false, ncMeta);
     }
 
     return base;
   }
 
-  static async clearConnectionPool(baseId: string, ncMeta = Noco.ncMeta) {
-    const base = await this.get(baseId, ncMeta);
+  static async clearConnectionPool(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const base = await this.get(context, baseId, ncMeta);
     if (base) {
-      const sources = await base.getSources(ncMeta);
+      const sources = await base.getSources(false, ncMeta);
       for (const source of sources) {
         await NcConnectionMgrv2.deleteAwait(source);
       }

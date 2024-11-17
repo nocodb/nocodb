@@ -1,12 +1,14 @@
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import * as XLSX from 'xlsx';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DatasService } from '~/services/datas.service';
-import { extractCsvData, extractXlsxData } from '~/modules/datas/helpers';
+import { extractCsvData, extractXlsxData } from '~/helpers/dataHelpers';
 import { View } from '~/models';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(DataApiLimiterGuard, GlobalGuard)
@@ -18,14 +20,25 @@ export class DataAliasExportController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/export/excel',
   ])
   @Acl('exportExcel')
-  async excelDataExport(@Req() req: Request, @Res() res: Response) {
+  async excelDataExport(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Res() res: Response,
+  ) {
     const { model, view } =
-      await this.datasService.getViewAndModelFromRequestByAliasOrId(req);
+      await this.datasService.getViewAndModelFromRequestByAliasOrId(
+        context,
+        req,
+      );
     let targetView = view;
     if (!targetView) {
-      targetView = await View.getDefaultView(model.id);
+      targetView = await View.getDefaultView(context, model.id);
     }
-    const { offset, elapsed, data } = await extractXlsxData(targetView, req);
+    const { offset, elapsed, data } = await extractXlsxData(
+      context,
+      targetView,
+      req,
+    );
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, data, targetView.title);
     const buf = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
@@ -45,14 +58,25 @@ export class DataAliasExportController {
     '/api/v1/db/data/:orgs/:baseName/:tableName/export/csv',
   ])
   @Acl('exportCsv')
-  async csvDataExport(@Req() req: Request, @Res() res: Response) {
+  async csvDataExport(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Res() res: Response,
+  ) {
     const { model, view } =
-      await this.datasService.getViewAndModelFromRequestByAliasOrId(req);
+      await this.datasService.getViewAndModelFromRequestByAliasOrId(
+        context,
+        req,
+      );
     let targetView = view;
     if (!targetView) {
-      targetView = await View.getDefaultView(model.id);
+      targetView = await View.getDefaultView(context, model.id);
     }
-    const { offset, elapsed, data } = await extractCsvData(targetView, req);
+    const { offset, elapsed, data } = await extractCsvData(
+      context,
+      targetView,
+      req,
+    );
 
     res.set({
       'Access-Control-Expose-Headers': 'nc-export-offset',

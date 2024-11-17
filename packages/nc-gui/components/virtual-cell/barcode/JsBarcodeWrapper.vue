@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import JsBarcode from 'jsbarcode'
-import { IsGalleryInj, onMounted } from '#imports'
 import { downloadSvg as _downloadSvg } from '~/utils/svgToPng'
 
 const props = defineProps({
@@ -43,7 +42,6 @@ const downloadSvg = () => {
 }
 
 const onBarcodeClick = (ev: MouseEvent) => {
-  if (isGallery.value) return
   ev.stopPropagation()
   emit('onClickBarcode')
 }

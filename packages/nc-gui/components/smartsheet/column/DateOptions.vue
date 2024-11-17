@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { dateFormats, dateMonthFormats } from 'nocodb-sdk'
-import { useVModel } from '#imports'
+import { UITypes, dateFormats, dateMonthFormats } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -10,22 +9,26 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
-if (!vModel.value.meta?.date_format) {
-  if (!vModel.value.meta) vModel.value.meta = {}
-  vModel.value.meta.date_format = dateFormats[0]
+// set default value
+vModel.value.meta = {
+  ...columnDefaultMeta[UITypes.Date],
+  ...(vModel.value.meta || {}),
 }
 </script>
 
 <template>
-  <a-form-item :label="$t('labels.dateFormat')">
+  <a-form-item>
     <a-select
       v-model:value="vModel.meta.date_format"
       show-search
       class="nc-date-select"
       dropdown-class-name="nc-dropdown-date-format"
     >
+      <template #suffixIcon>
+        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+      </template>
       <a-select-option v-for="(format, i) of [...dateFormats, ...dateMonthFormats]" :key="i" :value="format">
-        <div class="flex gap-2 justify-between items-center">
+        <div class="w-full flex gap-2 justify-between items-center">
           {{ format }}
           <component
             :is="iconMap.check"

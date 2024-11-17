@@ -75,22 +75,36 @@ export const layoutTitleValidator = {
   },
 }
 
-export const baseTitleValidator = {
-  validator: (rule: any, value: any) => {
-    const { t } = getI18n().global
+export const baseTitleValidator = (title: 'project' | 'connection' = 'project') => {
+  return {
+    validator: (rule: any, value: any) => {
+      const { t } = getI18n().global
 
-    return new Promise((resolve, reject) => {
-      if (value?.length > 50) {
-        reject(new Error(t('msg.error.projectNameExceeds50Characters')))
-      }
+      return new Promise((resolve, reject) => {
+        if (value?.length > 50) {
+          reject(
+            new Error(
+              t('msg.error.projectNameExceeds50Characters', {
+                title: title === 'project' ? t('objects.project') : t('general.connection'),
+              }),
+            ),
+          )
+        }
 
-      if (value[0] === ' ') {
-        reject(new Error(t('msg.error.projectNameCannotStartWithSpace')))
-      }
+        if (value[0] === ' ') {
+          reject(
+            new Error(
+              t('msg.error.projectNameCannotStartWithSpace', {
+                title: title === 'project' ? t('objects.project') : t('general.connection'),
+              }),
+            ),
+          )
+        }
 
-      resolve(true)
-    })
-  },
+        resolve(true)
+      })
+    },
+  }
 }
 
 export const fieldRequiredValidator = () => {
@@ -117,6 +131,20 @@ export const fieldLengthValidator = () => {
       return new Promise((resolve, reject) => {
         if (value?.length > fieldLengthLimit) {
           reject(new Error(t('msg.error.columnNameExceedsCharacters', { value: fieldLengthLimit })))
+        }
+        resolve(true)
+      })
+    },
+  }
+}
+export const reservedFieldNameValidator = () => {
+  return {
+    validator: (rule: any, value: any) => {
+      const { t } = getI18n().global
+
+      return new Promise((resolve, reject) => {
+        if (value?.toLowerCase() === 'id') {
+          reject(new Error(t('msg.error.duplicateSystemColumnName')))
         }
         resolve(true)
       })
@@ -178,11 +206,7 @@ export const extraParameterValidator = {
     return new Promise((resolve, reject) => {
       const { t } = getI18n().global
       for (const param of value) {
-        if (param.key === '') {
-          // return reject(new Error('Parameter key cannot be empty'))
-          return reject(new Error(t('msg.error.parameterKeyCannotBeEmpty')))
-        }
-        if (value.filter((el: any) => el.key === param.key).length !== 1) {
+        if (!value.every((el) => el.key === '') && value.filter((el: any) => el.key === param.key).length !== 1) {
           // return reject(new Error('Duplicate parameter keys are not allowed'))
           return reject(new Error(t('msg.error.duplicateParameterKeysAreNotAllowed')))
         }
@@ -212,7 +236,9 @@ export const emailValidator = {
 export const urlValidator = {
   validator: (_: unknown, v: string) => {
     return new Promise((resolve, reject) => {
-      if (!v.length || isValidURL(v)) return resolve()
+      const { t } = getI18n().global
+
+      if (!v.length || isValidURL(v)) return resolve(true)
 
       reject(new Error(t('msg.error.invalidURL')))
     })

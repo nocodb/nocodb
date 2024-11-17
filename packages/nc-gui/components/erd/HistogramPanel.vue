@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { Panel, PanelPosition } from '@vue-flow/additional-components'
-import { iconMap } from '#imports'
 </script>
 
 <template>
@@ -10,7 +9,7 @@ import { iconMap } from '#imports'
   >
     <div class="flex flex-col">
       <div class="flex items-center gap-1.5 p-2">
-        <component :is="iconMap.table" />
+        <component :is="iconMap.table" class="!text-gray-600/75" />
         <div>{{ $t('objects.table') }}</div>
       </div>
 

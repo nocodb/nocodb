@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useSidebar } from '#imports'
-
 const { isOpen } = useSidebar('nc-right-sidebar')
 </script>
 

@@ -31,20 +31,22 @@ export class ToolbarFieldsPage extends BasePage {
     // hack
     await this.rootPage.waitForTimeout(100);
 
+    // toggle only if input checked value is not equal to given checked value
+    await this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('.nc-switch').scrollIntoViewIfNeeded();
+    const isChecked = await this.get()
+      .locator(`[data-testid="nc-fields-menu-${title}"]`)
+      .locator('.nc-switch')
+      .isChecked();
     if (checked !== undefined) {
-      // toggle only if input checked value is not equal to given checked value
-      await this.get()
-        .locator(`[data-testid="nc-fields-menu-${title}"]`)
-        .locator('.nc-switch')
-        .scrollIntoViewIfNeeded();
-      const isChecked = await this.get()
-        .locator(`[data-testid="nc-fields-menu-${title}"]`)
-        .locator('.nc-switch')
-        .isChecked();
       if ((checked && isChecked) || (!checked && !isChecked)) {
         await this.toolbar.clickFields();
         return;
       }
+    }
+
+    if (isChecked === true) {
+      // disable response validation for hide field
+      validateResponse = false;
     }
 
     const toggleColumn = () =>
@@ -75,11 +77,13 @@ export class ToolbarFieldsPage extends BasePage {
   }
 
   async click({ title, isLocallySaved }: { title: string; isLocallySaved?: boolean }) {
-    await this.waitForResponse({
-      uiAction: () => this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('.nc-switch').click(),
-      requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
-      httpMethodsToMatch: ['GET'],
-    });
+    // hide field doesn't trigger an un-solicited update from backend
+    // await this.waitForResponse({
+    //   uiAction: () => this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('.nc-switch').click(),
+    //   requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
+    //   httpMethodsToMatch: ['GET'],
+    // });
+    await this.get().locator(`[data-testid="nc-fields-menu-${title}"]`).locator('.nc-switch').click();
     await this.toolbar.parent.waitLoading();
   }
 
@@ -89,7 +93,7 @@ export class ToolbarFieldsPage extends BasePage {
       uiAction: () => this.get().locator(`.nc-fields-show-all-fields`).click(),
       requestUrlPathToMatch: isLocallySaved ? '/api/v1/db/public/' : '/api/v1/db/data/noco/',
       httpMethodsToMatch: ['GET'],
-      timeout: 10000,
+      timeout: 30000, // for Kanban, show all fields can take a long time
     });
     await this.toolbar.clickFields();
   }

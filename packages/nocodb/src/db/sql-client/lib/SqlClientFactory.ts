@@ -71,11 +71,6 @@ export default class {
       }
     }
 
-    // todo: tobe done
-    // if (Noco.isEE()) {
-    //   return SqlClientFactoryEE.create(connectionConfig);
-    // }
-
     return SqlClientFactory.create(connectionConfig);
   }
 }

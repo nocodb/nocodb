@@ -137,3 +137,16 @@ export const timeAgo = (date: any) => {
   // show in local time
   return dayjs(date).fromNow();
 };
+
+export const isValidTimeFormat = (value: string, format: string) => {
+  const regexValidator = {
+    [timeFormats[0]]: /^([01]\d|2[0-3]):[0-5]\d$/,
+    [timeFormats[1]]: /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/,
+    [timeFormats[2]]: /^([01]\d|2[0-3]):[0-5]\d:[0-5]\d\.\d{3}$/,
+  };
+
+  if (regexValidator[format]) {
+    return regexValidator[format].test(value);
+  }
+  return false;
+};

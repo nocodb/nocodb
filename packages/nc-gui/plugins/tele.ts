@@ -1,6 +1,5 @@
 import type { Socket } from 'socket.io-client'
 import { io } from 'socket.io-client'
-import { defineNuxtPlugin, isEeUI, useRouter } from '#imports'
 
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
@@ -108,6 +107,8 @@ function clickListener(e) {
   e.nc_handled = true
   let target = e.target
 
+  const { $e } = useNuxtApp()
+
   while (target && !target.classList.contains('DocSearch-Hit')) {
     target = target.parentElement
   }
@@ -118,8 +119,13 @@ function clickListener(e) {
 
     e.preventDefault()
     e.stopPropagation()
-    url.searchParams.append('search', searchInput.value)
+    url.searchParams.append('search', searchInput?.value)
     url.searchParams.append('origin', location.hostname)
+
+    $e('a:cmdj:searchDocs', {
+      search: searchInput?.value,
+      url: url.toString(),
+    })
 
     window.open(url.toString(), '_blank', 'noopener,noreferrer')
   }
@@ -128,6 +134,8 @@ function clickListener(e) {
 function keydownListener(e) {
   if (e.nc_handled || e.which !== 13) return
   e.nc_handled = true
+  const { $e } = useNuxtApp()
+
   let target = e.target
 
   while (target && !target.classList.contains('DocSearch-Input')) {
@@ -144,6 +152,11 @@ function keydownListener(e) {
       url.searchParams.append('origin', location.hostname)
       e.preventDefault()
       e.stopPropagation()
+
+      $e('a:cmdj:searchDocs', {
+        search: target?.value,
+        url: url.toString(),
+      })
 
       window.open(url.toString(), '_blank', 'noopener,noreferrer')
     }

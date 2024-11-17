@@ -33,13 +33,6 @@
 
 # 快速尝试
 
-## NPX
-
-如果你需要一个交互式的配置，你可以运行下面的命令。
-
-```
-npx create-nocodb-app
-```
 
 <img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
 
@@ -58,35 +51,21 @@ npm start
 
 ```bash
 # 如果使用 SQLite 的话
-docker run -d --name nocodb \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
-nocodb/nocodb:latest
-
-# 如果使用 MySQL 的话
-docker run -d --name nocodb-mysql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
 
 # 如果使用 PostgreSQL 的话
-docker run -d --name nocodb-postgres \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-
-# 如果使用 MSSQL 的话
-docker run -d --name nocodb-mssql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
+  ```
 
 > 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。
 
@@ -98,13 +77,8 @@ nocodb/nocodb:latest
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# 如果使用 MySQL 的话
-cd nocodb/docker-compose/mysql
 # 如果使用 PostgreSQL 的话
-cd nocodb/docker-compose/pg
-# 如果使用 MSSQL 的话
-cd nocodb/docker-compose/mssql
-docker-compose up -d
+cd nocodb/docker-compose/2_pg
 ```
 
 > 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。
@@ -119,9 +93,6 @@ docker-compose up -d
 
 <a href="https://discord.gg/5RgZmkW" target="_blank">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
-</a>
-<a href="https://community.nocodb.com/" target="_blank">
-<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
 </a>
 
 # 截图

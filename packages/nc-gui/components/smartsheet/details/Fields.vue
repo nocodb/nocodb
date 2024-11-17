@@ -1,11 +1,18 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
 import { message } from 'ant-design-vue'
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import {
+  UITypes,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+  partialUpdateAllowedTypes,
+  readonlyMetaAllowedTypes,
+} from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FilterType, SelectOptionsType } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { onKeyDown, useMagicKeys } from '@vueuse/core'
-import type { ColumnType, SelectOptionsType } from 'nocodb-sdk'
-import { type Field, getUniqueColumnName, ref, useSmartsheetStoreOrThrow } from '#imports'
+import { generateUniqueColumnName } from '~/helpers/parsers/parserHelpers'
 
 interface TableExplorerColumn extends ColumnType {
   id?: string
@@ -15,11 +22,13 @@ interface TableExplorerColumn extends ColumnType {
     view_id: string
   }
   view_id?: string
+  userHasChangedTitle?: boolean
 }
 
 interface op {
   op: 'add' | 'update' | 'delete'
   column: TableExplorerColumn
+  error?: string
 }
 
 interface fieldsVisibilityOps {
@@ -33,6 +42,7 @@ interface moveOp {
   index: number
   order: number
 }
+
 const { t } = useI18n()
 
 const { $api } = useNuxtApp()
@@ -43,7 +53,11 @@ const { meta, view } = useSmartsheetStoreOrThrow()
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { openedViewsTab } = storeToRefs(useViewsStore())
+const viewsStore = useViewsStore()
+
+const { openedViewsTab } = storeToRefs(viewsStore)
+
+const localMetaColumns = ref<ColumnType[] | undefined>([])
 
 const moveOps = ref<moveOp[]>([])
 
@@ -98,7 +112,7 @@ const getFieldOrder = (field?: TableExplorerColumn) => {
 
 const fields = computed<TableExplorerColumn[]>({
   get: () => {
-    const x = ((meta.value?.columns as ColumnType[]) ?? [])
+    const x = ((localMetaColumns.value as ColumnType[]) ?? [])
       .filter((field) => !field.fk_column_id && !isSystemColumn(field))
       .concat(newFields.value)
       .map((field) => updateDefaultColumnValues(field))
@@ -108,7 +122,7 @@ const fields = computed<TableExplorerColumn[]>({
     return x
   },
   set: (val) => {
-    meta.value!.columns = meta.value?.columns?.map((col) => {
+    localMetaColumns.value = localMetaColumns.value?.map((col) => {
       const field = val.find((f) => compareCols(f, col))
       if (field) {
         return field
@@ -179,7 +193,29 @@ const setFieldMoveHook = (field: TableExplorerColumn, before = false) => {
   }
 }
 
+const { isMetaReadOnly } = useRoles()
+
+const isColumnUpdateAllowed = (column: ColumnType) => {
+  if (
+    isMetaReadOnly.value &&
+    !readonlyMetaAllowedTypes.includes(column?.uidt) &&
+    !partialUpdateAllowedTypes.includes(column?.uidt)
+  )
+    return false
+  return true
+}
+
 const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
+  if (field?.id && field?.uidt && !isColumnUpdateAllowed(field)) {
+    return message.info(t('msg.info.schemaReadOnly'))
+  }
+
+  if (field && field?.pk) {
+    // Editing primary key not supported
+    message.info(t('msg.info.editingPKnotSupported'))
+    return
+  }
+
   if (event) {
     if (event.target instanceof HTMLElement) {
       if (event.target.closest('.no-action')) return
@@ -210,15 +246,15 @@ const addField = (field?: TableExplorerColumn, before = false) => {
 }
 
 const displayColumn = computed(() => {
-  if (!meta.value?.columns) return
-  return meta.value?.columns.find((col) => col.pv)
+  if (!localMetaColumns.value) return
+  return localMetaColumns.value.find((col) => col.pv)
 })
 
 const duplicateField = async (field: TableExplorerColumn) => {
-  if (!meta.value?.columns) return
+  if (!localMetaColumns.value) return
 
   // generate duplicate column name
-  const duplicateColumnName = getUniqueColumnName(`${field.title}_copy`, meta.value?.columns)
+  const duplicateColumnName = getUniqueColumnName(`${field.title} copy`, [...localMetaColumns.value, ...newFields.value])
 
   let fieldPayload = {}
 
@@ -229,6 +265,7 @@ const duplicateField = async (field: TableExplorerColumn) => {
     case UITypes.Lookup:
     case UITypes.Rollup:
     case UITypes.Formula:
+    case UITypes.Button:
       return message.info(t('msg.info.notAvailableAtTheMoment'))
     case UITypes.SingleSelect:
     case UITypes.MultiSelect:
@@ -266,34 +303,51 @@ const duplicateField = async (field: TableExplorerColumn) => {
   duplicateFieldHook.value = fieldPayload as TableExplorerColumn
 }
 
+// Check any filter is changed recursively
+const checkForFilterChange = (filters: (FilterType & { status?: string })[]) => {
+  for (const filter of filters) {
+    if (filter.status) {
+      return true
+    }
+    if (filter.is_group) {
+      if (checkForFilterChange(filter.children || [])) {
+        return true
+      }
+    }
+  }
+}
 // This method is called whenever there is a change in field properties
-const onFieldUpdate = (state: TableExplorerColumn) => {
+const onFieldUpdate = (state: TableExplorerColumn, skipLinkChecks = false) => {
   const col = fields.value.find((col) => compareCols(col, state))
   if (!col) return
 
-  const diffs = diff(col, state) as Partial<TableExplorerColumn>
-
-  // hack to prevent update status `Updated Field` when clicking on field first time
-  let isUpdated = true
-
-  if (
-    [UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt) &&
-    Object.keys(diffs).length === 1 &&
-    diffs?.colOptions?.options &&
-    (diffs?.colOptions?.options?.length === 0 ||
-      (diffs?.colOptions?.options[0]?.index !== undefined && Object.keys(diffs?.colOptions?.options[0] || {}).length === 1))
-  ) {
-    isUpdated = false
-  }
-
-  if (!isUpdated) {
-    let field = fields.value.find((field) => compareCols(field, state))
-    if (field) {
-      field = state
+  if (state.colOptions && [UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt)) {
+    state = {
+      ...state,
+      colOptions: {
+        ...(state.colOptions || {}),
+        options: ((state.colOptions as SelectOptionsType)?.options || []).map((option) => {
+          if (option?.index !== undefined) {
+            delete option.index
+          }
+          return option
+        }),
+      },
     }
   }
 
-  if (Object.keys(diffs).length === 0 || (Object.keys(diffs).length === 1 && 'altered' in diffs) || !isUpdated) {
+  const pdiffs: Record<string, any> = diff(col, state)
+
+  // remove undefined values
+  const diffs = Object.fromEntries(
+    Object.entries(pdiffs).filter(([_, value]) => value !== undefined),
+  ) as Partial<TableExplorerColumn>
+  if (
+    Object.keys(diffs).length === 0 ||
+    // skip custom prop since it's only used for custom LTAR links
+    (Object.keys(diffs).length === 1 && 'custom' in diffs && Object.keys(diffs.custom).length === 0) ||
+    (Object.keys(diffs).length === 1 && 'altered' in diffs)
+  ) {
     ops.value = ops.value.filter((op) => op.op === 'add' || !compareCols(op.column, state))
   } else {
     const field = ops.value.find((op) => compareCols(op.column, state))
@@ -304,10 +358,13 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
       newFields.value = newFields.value.map((op) => {
         if (compareCols(op, state)) {
           ops.value = ops.value.filter((op) => op.op === 'add' && !compareCols(op.column, state))
-          ops.value.push({
-            op: 'add',
-            column: state,
-          })
+          ops.value = [
+            ...ops.value,
+            {
+              op: 'add',
+              column: state,
+            },
+          ]
           return state
         }
         return op
@@ -317,11 +374,37 @@ const onFieldUpdate = (state: TableExplorerColumn) => {
 
     if (field || (field && moveField)) {
       field.column = state
+    } else if (isLinksOrLTAR(state) && !skipLinkChecks) {
+      if (
+        ['title', 'column_name', 'meta'].some((k) => k in diffs) ||
+        ('childViewId' in diffs && diffs.childViewId !== col.colOptions?.fk_target_view_id) ||
+        checkForFilterChange(diffs.filters || [])
+      ) {
+        ops.value = [
+          ...ops.value,
+          {
+            op: 'update',
+            column: state,
+          },
+        ]
+      }
     } else {
-      ops.value.push({
-        op: 'update',
-        column: state,
-      })
+      ops.value = [
+        ...ops.value,
+        {
+          op: 'update',
+          column: state,
+        },
+      ]
+    }
+
+    if (
+      activeField.value &&
+      Object.keys(activeField.value).length &&
+      ((state?.id && activeField.value?.id && state?.id === activeField.value?.id) ||
+        (state?.temp_id && activeField.value?.temp_id && state?.temp_id === activeField.value?.temp_id))
+    ) {
+      activeField.value = state
     }
   }
 }
@@ -342,10 +425,13 @@ const onFieldDelete = (state: TableExplorerColumn) => {
       field.column = state
     }
   } else {
-    ops.value.push({
-      op: 'delete',
-      column: state,
-    })
+    ops.value = [
+      ...ops.value,
+      {
+        op: 'delete',
+        column: state,
+      },
+    ]
   }
 }
 
@@ -357,11 +443,14 @@ const onFieldAdd = (state: TableExplorerColumn) => {
 
   state.temp_id = `temp_${++temporaryAddCount.value}`
   state.view_id = view.value?.id as string
-  ops.value.push({
-    op: 'add',
-    column: state,
-  })
-  newFields.value.push(state)
+  ops.value = [
+    ...ops.value,
+    {
+      op: 'add',
+      column: state,
+    },
+  ]
+  newFields.value = [...newFields.value, state]
 
   if (addFieldMoveHook.value) {
     moveOps.value.push({
@@ -415,21 +504,27 @@ const onMove = (_event: { moved: { newIndex: number; oldIndex: number } }) => {
   }
 
   if (op) {
-    onFieldUpdate({
-      ...op.column,
-      column_order: {
-        order,
-        view_id: view.value?.id as string,
+    onFieldUpdate(
+      {
+        ...op.column,
+        column_order: {
+          order,
+          view_id: view.value?.id as string,
+        },
       },
-    })
+      true,
+    )
   } else {
-    onFieldUpdate({
-      ...field,
-      column_order: {
-        order,
-        view_id: view.value?.id as string,
+    onFieldUpdate(
+      {
+        ...field,
+        column_order: {
+          order,
+          view_id: view.value?.id as string,
+        },
       },
-    })
+      true,
+    )
   }
 }
 
@@ -437,11 +532,14 @@ const isColumnValid = (column: TableExplorerColumn) => {
   const isDeleteOp = ops.value.find((op) => compareCols(column, op.column) && op.op === 'delete')
   const isNew = ops.value.find((op) => compareCols(column, op.column) && op.op === 'add')
   if (isDeleteOp) return true
-  if (!column.title) {
+  if (!column.title && !isNew) {
     return false
   }
   if ((column.uidt === UITypes.Links || column.uidt === UITypes.LinkToAnotherRecord) && isNew) {
-    if (!column.childColumn || !column.childTable || !column.childId) {
+    if (
+      (!column.childColumn || !column.childTable || !column.childId) &&
+      (!column.custom?.ref_model_id || !column.custom?.ref_column_id)
+    ) {
       return false
     }
   }
@@ -460,6 +558,12 @@ const isColumnValid = (column: TableExplorerColumn) => {
       return false
     }
   }
+
+  if (column.uidt === UITypes.Button && isNew) {
+    if (column.type === 'url' && !column.formula_raw) return false
+    if (column.type === 'webhook' && !column.fk_webhook_id) return false
+  }
+
   return true
 }
 
@@ -503,6 +607,17 @@ function updateDefaultColumnValues(column: TableExplorerColumn) {
   }
 
   if (column.uidt === UITypes.Formula && column.colOptions?.formula_raw && !column?.formula_raw) {
+    column.formula_raw = column.colOptions?.formula_raw
+  }
+
+  if (column.uidt === UITypes.Button) {
+    const colOptions = column.colOptions as ButtonType
+    column.type = colOptions?.type
+    column.theme = colOptions?.theme
+    column.label = colOptions?.label
+    column.color = colOptions?.color
+    column.fk_webhook_id = colOptions?.fk_webhook_id
+    column.icon = colOptions?.icon
     column.formula_raw = column.colOptions?.formula_raw
   }
 
@@ -553,6 +668,23 @@ const fieldStatus = (field?: TableExplorerColumn) => {
   return id ? fieldStatuses.value[id] : ''
 }
 
+const fieldErrors = computed<Record<string, string>>(() => {
+  const errors: Record<string, string> = {}
+  for (const op of ops.value) {
+    if (op?.error) {
+      const id = op.column.id || op.column.temp_id
+
+      if (id) errors[id] = op.error
+    }
+  }
+  return errors
+})
+
+const fieldError = (field?: TableExplorerColumn) => {
+  const id = field?.id || field?.temp_id
+  return id ? fieldErrors.value[id] : ''
+}
+
 const clearChanges = () => {
   ops.value = []
   moveOps.value = []
@@ -562,6 +694,21 @@ const clearChanges = () => {
 }
 
 const isColumnsValid = computed(() => fields.value.every((f) => isColumnValid(f)))
+
+const metaToLocal = () => {
+  localMetaColumns.value = meta.value?.columns?.map((c: ColumnType) => {
+    if (c.uidt && c.uidt in columnDefaultMeta) {
+      if (!c.meta) c.meta = {}
+      c.meta = {
+        ...columnDefaultMeta[c.uidt],
+        ...(c.meta || {}),
+      }
+    }
+    return {
+      ...c,
+    }
+  })
+}
 
 const saveChanges = async () => {
   if (!isColumnsValid.value) {
@@ -574,10 +721,23 @@ const saveChanges = async () => {
     if (!meta.value?.id) return
 
     loading.value = true
-
+    const newFieldTitles: string[] = []
     for (const mop of moveOps.value) {
       const op = ops.value.find((op) => compareCols(op.column, mop.column))
       if (op && op.op === 'add') {
+        if (!op.column?.userHasChangedTitle && !op.column.title) {
+          const defaultColumnName = generateUniqueColumnName({
+            formState: op.column,
+            tableExplorerColumns: fields.value || [],
+            metaColumns: meta.value?.columns || [],
+            newFieldTitles,
+          })
+          newFieldTitles.push(defaultColumnName)
+
+          op.column.title = defaultColumnName
+          op.column.column_name = defaultColumnName
+        }
+
         op.column.column_order = {
           order: mop.order,
           view_id: view.value?.id as string,
@@ -590,7 +750,13 @@ const saveChanges = async () => {
           view_id: view.value?.id as string,
         }
       }
+
+      if (op) {
+        op.column.view_id = view.value?.id as string
+      }
     }
+
+    const deletedOrUpdatedColumnIds: Set<string> = new Set()
 
     for (const op of ops.value) {
       if (op.op === 'add') {
@@ -598,8 +764,16 @@ const saveChanges = async () => {
           changeField()
         }
       } else if (op.op === 'delete') {
+        deletedOrUpdatedColumnIds.add(op.column.id as string)
+
         if (activeField.value && compareCols(activeField.value, op.column)) {
           changeField()
+        }
+      } else if (op.op === 'update') {
+        const originalColumn = meta.value?.columns?.find((c) => c.id === op.column.id) as ColumnType
+
+        if (originalColumn?.uidt === UITypes.Attachment && originalColumn?.uidt !== op.column.uidt) {
+          deletedOrUpdatedColumnIds.add(op.column.id as string)
         }
       }
     }
@@ -611,6 +785,10 @@ const saveChanges = async () => {
       })
     }
 
+    ops.value = ops.value.map(({ error: _err, ...rest }) => {
+      return rest
+    })
+
     const res = await $api.dbTableColumn.bulk(meta.value?.id, {
       hash: columnsHash.value,
       ops: ops.value,
@@ -619,10 +797,7 @@ const saveChanges = async () => {
     await loadViewColumns()
 
     if (res) {
-      ops.value =
-        res.failedOps && res.failedOps?.length
-          ? (res.failedOps as (op & { error: unknown })[]).map(({ error: _, ...rest }) => rest)
-          : []
+      ops.value = res.failedOps && res.failedOps?.length ? res.failedOps : []
       newFields.value = newFields.value.filter((col) => {
         if (res.failedOps) {
           const op = res.failedOps.find((fop) => {
@@ -637,7 +812,20 @@ const saveChanges = async () => {
       moveOps.value = []
     }
 
+    for (const op of ops.value) {
+      // remove column id from deletedColumnIds if operation was failed
+      if (deletedOrUpdatedColumnIds.has(op.column.id as string) && (op.op === 'delete' || op.op === 'update')) {
+        deletedOrUpdatedColumnIds.delete(op.column.id as string)
+      }
+    }
+
     await getMeta(meta.value.id, true)
+
+    metaToLocal()
+
+    // Update views if column is used as cover image
+    viewsStore.updateViewCoverImageColumnId({ metaId: meta.value.id as string, columnIds: deletedOrUpdatedColumnIds })
+
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
 
     visibilityOps.value = []
@@ -706,14 +894,9 @@ onKeyDown('ArrowUp', () => {
 })
 
 onKeyDown('Delete', () => {
-  if (isLocked.value) return
+  if (isLocked.value || activeField.value?.pv) return
 
-  if (
-    document.activeElement?.tagName === 'INPUT' ||
-    document.activeElement?.tagName === 'TEXTAREA' ||
-    // A rich text editor is a div with the contenteditable attribute set to true.
-    document.activeElement?.getAttribute('contenteditable')
-  ) {
+  if (isActiveInputElementExist()) {
     return
   }
 
@@ -724,14 +907,9 @@ onKeyDown('Delete', () => {
 })
 
 onKeyDown('Backspace', () => {
-  if (isLocked.value) return
+  if (isLocked.value || activeField.value?.pv) return
 
-  if (
-    document.activeElement?.tagName === 'INPUT' ||
-    document.activeElement?.tagName === 'TEXTAREA' ||
-    // A rich text editor is a div with the contenteditable attribute set to true.
-    document.activeElement?.getAttribute('contenteditable')
-  ) {
+  if (isActiveInputElementExist()) {
     return
   }
 
@@ -784,9 +962,13 @@ watch(
 )
 
 onMounted(async () => {
+  await until(() => !!(meta.value?.id && meta.value?.columns)).toBeTruthy()
+
   if (meta.value && meta.value.id) {
     columnsHash.value = (await $api.dbTableColumn.hash(meta.value.id)).hash
   }
+
+  metaToLocal()
 })
 
 const onFieldOptionUpdate = () => {
@@ -796,13 +978,37 @@ const onFieldOptionUpdate = () => {
 }
 
 watch(
-  fields,
-  () => {
-    if (activeField.value) {
-      activeField.value = fields.value.find((field) => field.id === activeField.value.id) || activeField.value
+  () => activeField.value?.temp_id,
+  (_newValue, oldValue) => {
+    if (!oldValue) return
+
+    const oldField = fields.value.find((field) => field.temp_id === oldValue)
+    if (
+      !oldField ||
+      (oldField &&
+        (oldField.title ||
+          !ops.value.find((op) => op.op === 'add' && op.column.temp_id === oldField.temp_id) ||
+          oldField?.userHasChangedTitle ||
+          !isColumnValid(oldField)))
+    ) {
+      return
     }
+
+    const newFieldTitles = ops.value
+      .filter((op) => op.op === 'add' && op.column.title)
+      .map((op) => op.column.title)
+      .filter((t) => t) as string[]
+
+    const defaultColumnName = generateUniqueColumnName({
+      formState: oldField,
+      tableExplorerColumns: fields.value || [],
+      metaColumns: localMetaColumns.value || [],
+      newFieldTitles,
+    })
+
+    oldField.title = defaultColumnName
+    oldField.column_name = defaultColumnName
   },
-  { deep: true },
 )
 </script>
 
@@ -840,7 +1046,7 @@ watch(
           </a-input>
           <div class="flex gap-2">
             <NcTooltip :disabled="isLocked">
-              <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
+              <template #title> {{ `${renderAltOrOptlKey()} + C` }}</template>
               <NcButton
                 data-testid="nc-field-add-new"
                 type="secondary"
@@ -865,7 +1071,7 @@ watch(
               {{ $t('general.reset') }}
             </NcButton>
             <NcTooltip :disabled="isLocked">
-              <template #title> {{ `${renderCmdOrCtrlKey()} + S` }} </template>
+              <template #title> {{ `${renderCmdOrCtrlKey()} + S` }}</template>
 
               <NcButton
                 data-testid="nc-field-save-changes"
@@ -896,7 +1102,7 @@ watch(
                 <div
                   v-if="field.title.toLowerCase().includes(searchQuery.toLowerCase()) && !field.pv"
                   class="flex px-2 hover:bg-gray-100 first:rounded-t-lg border-b-1 last:rounded-b-none border-gray-200 pl-5 group"
-                  :class="` ${compareCols(field, activeField) ? 'selected' : ''}`"
+                  :class="{ 'selected': compareCols(field, activeField), 'cursor-not-allowed': !isColumnUpdateAllowed(field) }"
                   :data-testid="`nc-field-item-${fieldState(field)?.title || field.title}`"
                   @click="changeField(field, $event)"
                 >
@@ -943,7 +1149,7 @@ watch(
                       class="truncate flex-1"
                       show-on-truncate-only
                     >
-                      <template #title> {{ fieldState(field)?.title || field.title }} </template>
+                      <template #title> {{ fieldState(field)?.title || field.title }}</template>
                       <span data-testid="nc-field-title">
                         {{ fieldState(field)?.title || field.title }}
                       </span>
@@ -961,8 +1167,8 @@ watch(
                         {{ $t('labels.multiField.deletedField') }}
                       </NcBadge>
                       <NcBadge
-                        v-else-if="fieldStatus(field) === 'add'"
-                        color="orange"
+                        v-else-if="isColumnValid(field) && fieldStatus(field) === 'add'"
+                        color="green"
                         :border="false"
                         class="bg-green-50 text-green-700"
                         data-testid="nc-field-status-new-field"
@@ -988,6 +1194,20 @@ watch(
                       >
                         {{ $t('labels.multiField.incompleteConfiguration') }}
                       </NcBadge>
+                      <NcTooltip v-if="!!fieldError(field)" class="cursor-pointer">
+                        <template #title>
+                          {{ fieldError(field) }}
+                        </template>
+
+                        <NcBadge
+                          color="red"
+                          :border="false"
+                          class="ml-1 bg-red-50 text-red-700"
+                          data-testid="nc-field-status-error-configuration"
+                        >
+                          <GeneralIcon icon="info" class="!text-current" />
+                        </NcBadge>
+                      </NcTooltip>
                     </div>
                     <NcButton
                       v-if="fieldStatus(field) === 'delete' || fieldStatus(field) === 'update'"
@@ -1030,15 +1250,19 @@ watch(
                               <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
 
                               <div
-                                class="flex flex-row px-3 py-2 w-46 justify-between items-center group hover:bg-gray-100 cursor-pointer"
+                                class="flex flex-row gap-2 w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md justify-between items-center group hover:bg-gray-100 cursor-pointer"
                                 data-testid="nc-field-item-action-copy-id"
                                 @click="onClickCopyFieldUrl(field)"
                               >
-                                <div class="flex flex-row items-baseline gap-x-1 font-bold text-xs">
-                                  <div class="text-gray-600">{{ $t('labels.idColon') }}</div>
-                                  <div class="flex flex-row text-gray-600 text-xs" data-testid="nc-field-item-id">
-                                    {{ field.id }}
-                                  </div>
+                                <div
+                                  class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold"
+                                  data-testid="nc-field-item-id"
+                                >
+                                  {{
+                                    $t('labels.idColon', {
+                                      id: field.id,
+                                    })
+                                  }}
                                 </div>
                                 <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
                                   <GeneralIcon v-if="isFieldIdCopied" icon="check" />
@@ -1056,7 +1280,7 @@ watch(
                               @click="duplicateField(field)"
                             >
                               <GeneralIcon icon="duplicate" class="text-gray-800" />
-                              <span>{{ $t('general.duplicate') }}</span>
+                              <span>{{ $t('general.duplicate') }} {{ $t('objects.field').toLowerCase() }}</span>
                             </NcMenuItem>
                             <NcMenuItem
                               v-if="!field.pv"
@@ -1086,7 +1310,7 @@ watch(
                             >
                               <div class="text-red-500">
                                 <GeneralIcon icon="delete" class="group-hover:text-accent -ml-0.25 -mt-0.75 mr-0.5" />
-                                {{ $t('general.delete') }}
+                                {{ $t('general.delete') }} {{ $t('objects.field').toLowerCase() }}
                               </div>
                             </NcMenuItem>
                           </template>
@@ -1137,7 +1361,7 @@ watch(
                       }"
                       show-on-truncate-only
                     >
-                      <template #title> {{ fieldState(displayColumn)?.title || displayColumn.title }} </template>
+                      <template #title> {{ fieldState(displayColumn)?.title || displayColumn.title }}</template>
                       <span data-testid="nc-field-title">
                         {{ fieldState(displayColumn)?.title || displayColumn.title }}
                       </span>
@@ -1211,15 +1435,19 @@ watch(
                             <template #title>{{ $t('msg.clickToCopyFieldId') }}</template>
 
                             <div
-                              class="flex flex-row px-3 py-2 w-46 justify-between items-center group hover:bg-gray-100 cursor-pointer"
+                              class="flex flex-row gap-2 w-[calc(100%_-_12px)] p-2 mx-1.5 rounded-md justify-between items-center group hover:bg-gray-100 cursor-pointer"
                               data-testid="nc-field-item-action-copy-id"
                               @click="onClickCopyFieldUrl(displayColumn)"
                             >
-                              <div class="flex flex-row items-baseline gap-x-1 font-bold text-xs">
-                                <div class="text-gray-600">{{ $t('labels.idColon') }}</div>
-                                <div class="flex flex-row text-gray-600 text-xs">
-                                  {{ displayColumn.id }}
-                                </div>
+                              <div
+                                class="flex flex-row text-gray-500 text-xs items-baseline gap-x-1 font-bold"
+                                data-testid="nc-field-item-id"
+                              >
+                                {{
+                                  $t('labels.idColon', {
+                                    id: displayColumn.id,
+                                  })
+                                }}
                               </div>
                               <NcButton size="xsmall" type="secondary" class="!group-hover:bg-gray-100">
                                 <GeneralIcon v-if="isFieldIdCopied" icon="check" />
@@ -1242,16 +1470,23 @@ watch(
             </Draggable>
           </div>
           <Transition name="slide-fade">
-            <div v-if="!changingField" class="border-gray-200 border-l-1 nc-scrollbar-md nc-fields-height !overflow-y-auto">
+            <div
+              v-if="!changingField"
+              class="border-gray-200 border-l-1 nc-scrollbar-md nc-fields-height !overflow-y-auto"
+              @keydown.up.stop
+              @keydown.down.stop
+            >
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
                 class="p-4 w-[25rem]"
                 :column="activeField"
                 :preload="fieldState(activeField)"
                 :table-explorer-columns="fields"
+                :is-column-valid="isColumnValid"
                 embed-mode
                 :readonly="isLocked"
                 from-table-explorer
+                :disable-title-focus="!!activeField?.id || !!activeField?.title"
                 @update="onFieldUpdate"
                 @add="onFieldAdd"
               />
@@ -1274,6 +1509,7 @@ watch(
 .nc-dropdown-table-explorer {
   @apply !overflow-hidden;
 }
+
 .nc-dropdown-table-explorer > div > ul.ant-dropdown-menu.nc-menu {
   @apply !pt-0;
 }
@@ -1281,6 +1517,7 @@ watch(
 .nc-dropdown-table-explorer-display-column {
   @apply !overflow-hidden;
 }
+
 .nc-dropdown-table-explorer-display-column > div > ul.ant-dropdown-menu.nc-menu {
   @apply !py-1.5;
 }
@@ -1290,21 +1527,26 @@ watch(
 :deep(ul.ant-dropdown-menu.nc-menu) {
   @apply !pt-0;
 }
+
 .add {
   background-color: #e6ffed !important;
   border-color: #b7eb8f;
 }
+
 .update {
   background-color: #fffbe6 !important;
   border-color: #ffe58f;
 }
+
 .delete {
   background-color: #fff1f0 !important;
   border-color: #ffa39e;
 }
+
 .selected {
   @apply bg-brand-50;
 }
+
 .slide-fade-enter-active {
   transition: all 0.3s ease-out;
 }
@@ -1321,6 +1563,7 @@ watch(
   transform: translateX(20px);
   opacity: 0;
 }
+
 .slide-fade-leave-to {
   opacity: 0;
 }

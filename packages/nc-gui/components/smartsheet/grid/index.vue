@@ -1,38 +1,14 @@
 <script lang="ts" setup>
 import type { ColumnType, GridType } from 'nocodb-sdk'
+import InfiniteTable from './InfiniteTable.vue'
 import Table from './Table.vue'
 import GroupBy from './GroupBy.vue'
-import {
-  ActiveViewInj,
-  FieldsInj,
-  IsCalendarInj,
-  IsFormInj,
-  IsGalleryInj,
-  IsGridInj,
-  MetaInj,
-  NavigateDir,
-  RowHeightInj,
-  computed,
-  extractPkFromRow,
-  inject,
-  message,
-  provide,
-  ref,
-  useSmartsheetStoreOrThrow,
-  useViewData,
-  useViewGroupBy,
-} from '#imports'
-import type { Row } from '#imports'
 
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
-
-// keep a root fields variable and will get modified from
-// fields menu and get used in grid and gallery
-const _fields = inject(FieldsInj, ref([]))
 
 const router = useRouter()
 
@@ -42,6 +18,8 @@ const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
 const { t } = useI18n()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const bulkUpdateDlg = ref(false)
 
 const routeQuery = computed(() => route.value.query as Record<string, string>)
@@ -50,28 +28,40 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 
-const tableRef = ref<typeof Table>()
+const reloadVisibleDataHook = createEventHook()
+
+provide(ReloadVisibleDataHookInj, reloadVisibleDataHook)
+
+const tableRef = ref<typeof InfiniteTable>()
+
+useProvideViewAggregate(view, meta, xWhere)
 
 const {
   loadData,
-  paginationData,
-  formattedData: data,
+  selectedRows,
   updateOrSaveRow,
-  changePage,
   addEmptyRow: _addEmptyRow,
   deleteRow,
   deleteSelectedRows,
-  selectedAllRecords,
+  cachedRows,
+  clearCache,
   removeRowIfNew,
   navigateToSiblingRow,
-  getExpandedRowIndex,
   deleteRangeOfRows,
   bulkUpdateRows,
-  bulkUpdateView,
+  bulkUpsertRows,
+  syncCount,
+  totalRows,
+  syncVisibleData,
   optimisedQuery,
-  islastRow,
+  isLastRow,
   isFirstRow,
-} = useViewData(meta, view, xWhere)
+  chunkStates,
+  clearInvalidRows,
+  isRowSortRequiredRows,
+  applySorting,
+  isBulkOperationInProgress,
+} = useGridViewData(meta, view, xWhere, reloadVisibleDataHook)
 
 const rowHeight = computed(() => {
   if ((view.value?.view as GridType)?.row_height !== undefined) {
@@ -100,16 +90,17 @@ provide(IsCalendarInj, ref(false))
 
 provide(RowHeightInj, rowHeight)
 
-// reload table data reload hook as fallback to rowdatareload
+const isPublic = inject(IsPublicInj, ref(false))
+
 provide(ReloadRowDataHookInj, reloadViewDataHook)
 
 const skipRowRemovalOnCancel = ref(false)
 
 function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) {
   const rowId = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-
-  if (rowId) {
-    expandedFormRowState.value = state
+  expandedFormRowState.value = state
+  if (rowId && !isPublic.value) {
+    expandedFormRow.value = undefined
 
     router.push({
       query: {
@@ -119,7 +110,6 @@ function expandForm(row: Row, state?: Record<string, any>, fromToolbar = false) 
     })
   } else {
     expandedFormRow.value = row
-    expandedFormRowState.value = state
     expandedFormDlg.value = true
     skipRowRemovalOnCancel.value = !fromToolbar
   }
@@ -165,79 +155,148 @@ const toggleOptimisedQuery = () => {
   }
 }
 
-const { rootGroup, groupBy, isGroupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage, redistributeRows } =
-  useViewGroupBy(view, xWhere)
+const {
+  rootGroup,
+  groupBy,
+  isGroupBy,
+  loadGroups,
+  loadGroupData,
+  loadGroupPage,
+  groupWrapperChangePage,
+  redistributeRows,
+  loadGroupAggregation,
+} = useViewGroupByOrThrow()
 
-const coreWrapperRef = ref<HTMLElement>()
+const sidebarStore = useSidebarStore()
+
+const { windowSize, leftSidebarWidth } = toRefs(sidebarStore)
 
 const viewWidth = ref(0)
 
 eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD) {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
 })
 
-onMounted(() => {
-  until(coreWrapperRef)
-    .toBeTruthy()
-    .then(() => {
-      const resizeObserver = new ResizeObserver(() => {
-        viewWidth.value = coreWrapperRef.value?.clientWidth || 0
-      })
-      if (coreWrapperRef.value) resizeObserver.observe(coreWrapperRef.value)
-    })
-})
-
 const goToNextRow = () => {
-  const currentIndex = getExpandedRowIndex()
-  /* when last index of current page is reached we should move to next page */
-  if (!paginationData.value.isLastPage && currentIndex === paginationData.value.pageSize) {
-    const nextPage = paginationData.value?.page ? paginationData.value?.page + 1 : 1
-    changePage(nextPage)
-  }
-
   navigateToSiblingRow(NavigateDir.NEXT)
 }
 
 const goToPreviousRow = () => {
-  const currentIndex = getExpandedRowIndex()
-  /* when first index of current page is reached and then clicked back 
-    previos page should be loaded
-  */
-  if (!paginationData.value.isFirstPage && currentIndex === 1) {
-    const nextPage = paginationData.value?.page ? paginationData.value?.page - 1 : 1
-    changePage(nextPage)
-  }
-
   navigateToSiblingRow(NavigateDir.PREV)
 }
+
+const updateViewWidth = () => {
+  if (isPublic.value) {
+    viewWidth.value = windowSize.value
+    return
+  }
+  viewWidth.value = windowSize.value - leftSidebarWidth.value
+}
+
+const baseColor = computed(() => {
+  switch (groupBy.value.length) {
+    case 1:
+      return '#F9F9FA'
+    case 2:
+      return '#F4F4F5'
+    case 3:
+      return '#E7E7E9'
+    default:
+      return '#F9F9FA'
+  }
+})
+
+const updateRowCommentCount = (count: number) => {
+  if (!routeQuery.value.rowId) return
+
+  const currentRowIndex = Array.from(cachedRows.value.values()).find(
+    (row) => extractPkFromRow(row.row, meta.value!.columns!) === routeQuery.value.rowId,
+  )?.rowMeta.rowIndex
+
+  if (currentRowIndex === undefined) return
+
+  const currentRow = cachedRows.value.get(currentRowIndex)
+  if (!currentRow) return
+
+  currentRow.rowMeta.commentCount = count
+
+  syncVisibleData?.()
+}
+
+watch([windowSize, leftSidebarWidth], updateViewWidth)
+
+onMounted(() => {
+  updateViewWidth()
+})
+
+const {
+  selectedAllRecords: pSelectedAllRecords,
+  formattedData: pData,
+  paginationData: pPaginationData,
+  loadData: pLoadData,
+  changePage: pChangePage,
+  addEmptyRow: pAddEmptyRow,
+  deleteRow: pDeleteRow,
+  updateOrSaveRow: pUpdateOrSaveRow,
+  deleteSelectedRows: pDeleteSelectedRows,
+  deleteRangeOfRows: pDeleteRangeOfRows,
+  bulkUpdateRows: pBulkUpdateRows,
+  removeRowIfNew: pRemoveRowIfNew,
+} = useViewData(meta, view, xWhere)
 </script>
 
 <template>
   <div
-    ref="coreWrapperRef"
     class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
-    style="background-color: var(--nc-grid-bg)"
+    :style="`background-color: ${isGroupBy ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
   >
     <Table
-      v-if="!isGroupBy"
+      v-if="!isGroupBy && !isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING)"
       ref="tableRef"
-      v-model:selected-all-records="selectedAllRecords"
-      :data="data"
-      :pagination-data="paginationData"
+      v-model:selected-all-records="pSelectedAllRecords"
+      :data="pData"
+      :pagination-data="pPaginationData"
+      :load-data="pLoadData"
+      :change-page="pChangePage"
+      :call-add-empty-row="pAddEmptyRow"
+      :delete-row="pDeleteRow"
+      :update-or-save-row="pUpdateOrSaveRow"
+      :delete-selected-rows="pDeleteSelectedRows"
+      :delete-range-of-rows="pDeleteRangeOfRows"
+      :bulk-update-rows="pBulkUpdateRows"
+      :expand-form="expandForm"
+      :remove-row-if-new="pRemoveRowIfNew"
+      :row-height="rowHeight"
+      @toggle-optimised-query="toggleOptimisedQuery"
+      @bulk-update-dlg="bulkUpdateDlg = true"
+    />
+    <InfiniteTable
+      v-else-if="!isGroupBy"
+      ref="tableRef"
       :load-data="loadData"
-      :change-page="changePage"
       :call-add-empty-row="_addEmptyRow"
       :delete-row="deleteRow"
       :update-or-save-row="updateOrSaveRow"
       :delete-selected-rows="deleteSelectedRows"
       :delete-range-of-rows="deleteRangeOfRows"
+      :apply-sorting="applySorting"
       :bulk-update-rows="bulkUpdateRows"
-      :remove-row-if-new="removeRowIfNew"
+      :bulk-upsert-rows="bulkUpsertRows"
+      :clear-cache="clearCache"
+      :clear-invalid-rows="clearInvalidRows"
+      :data="cachedRows"
+      :total-rows="totalRows"
+      :sync-count="syncCount"
+      :chunk-states="chunkStates"
       :expand-form="expandForm"
-      :row-height="rowHeight"
+      :remove-row-if-new="removeRowIfNew"
+      :row-height-enum="rowHeight"
+      :selected-rows="selectedRows"
+      :row-sort-required-rows="isRowSortRequiredRows"
+      :is-bulk-operation-in-progress="isBulkOperationInProgress"
       @toggle-optimised-query="toggleOptimisedQuery"
       @bulk-update-dlg="bulkUpdateDlg = true"
     />
@@ -250,15 +309,16 @@ const goToPreviousRow = () => {
       :load-group-page="loadGroupPage"
       :group-wrapper-change-page="groupWrapperChangePage"
       :row-height="rowHeight"
+      :load-group-aggregation="loadGroupAggregation"
       :max-depth="groupBy.length"
       :redistribute-rows="redistributeRows"
-      :expand-form="expandForm"
       :view-width="viewWidth"
     />
-    <Suspense>
+    <Suspense v-if="!isGroupBy">
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
+        :load-row="!isPublic"
         :row="expandedFormRow"
         :state="expandedFormRowState"
         :meta="meta"
@@ -267,31 +327,30 @@ const goToPreviousRow = () => {
       />
     </Suspense>
     <SmartsheetExpandedForm
-      v-if="expandedFormOnRowIdDlg && meta?.id"
+      v-if="expandedFormOnRowIdDlg && meta?.id && !isGroupBy"
       v-model="expandedFormOnRowIdDlg"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :row="expandedFormRow ?? { row: {}, oldRow: {}, rowMeta: {} }"
       :meta="meta"
+      :load-row="!isPublic"
       :state="expandedFormRowState"
       :row-id="routeQuery.rowId"
       :view="view"
       show-next-prev-icons
       :first-row="isFirstRow"
-      :last-row="islastRow"
+      :last-row="isLastRow"
+      :expand-form="expandForm"
       @next="goToNextRow()"
       @prev="goToPreviousRow()"
+      @update-row-comment-count="updateRowCommentCount"
     />
-
     <Suspense>
       <LazyDlgBulkUpdate
         v-if="bulkUpdateDlg"
         v-model="bulkUpdateDlg"
-        :pagination-data="paginationData"
         :meta="meta"
         :view="view"
         :bulk-update-rows="bulkUpdateRows"
-        :bulk-update-view="bulkUpdateView"
-        :selected-all-records="selectedAllRecords"
-        :rows="data.filter((r) => r.rowMeta.selected)"
+        :rows="selectedRows"
       />
     </Suspense>
   </div>

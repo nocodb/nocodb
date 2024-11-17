@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { useGlobal, useI18n, useRoute } from '#imports'
 
 const route = useRoute()
 
@@ -34,8 +33,9 @@ watch(hasSidebar, (val) => {
 })
 
 const logout = async () => {
-  await signOut(false)
-  await navigateTo('/signin')
+  await signOut({
+    redirectToSignin: true,
+  })
   await clearWorkspaces()
 }
 </script>

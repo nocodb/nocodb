@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NcButtonSize } from '~/lib'
+import type { NcButtonSize } from '~/lib/types'
 
 const props = defineProps<{
   activeWorkspaceId?: string | undefined

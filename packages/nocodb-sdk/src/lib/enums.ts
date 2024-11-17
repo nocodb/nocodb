@@ -4,6 +4,12 @@ export enum OrgUserRoles {
   VIEWER = 'org-level-viewer',
 }
 
+export enum CloudOrgUserRoles {
+  CREATOR = 'cloud-org-level-creator',
+  VIEWER = 'cloud-org-level-viewer',
+  OWNER = 'cloud-org-level-owner',
+}
+
 export enum ProjectRoles {
   OWNER = 'owner',
   CREATOR = 'creator',
@@ -16,9 +22,9 @@ export enum ProjectRoles {
 export enum WorkspaceUserRoles {
   OWNER = 'workspace-level-owner',
   CREATOR = 'workspace-level-creator',
-  VIEWER = 'workspace-level-viewer',
   EDITOR = 'workspace-level-editor',
   COMMENTER = 'workspace-level-commenter',
+  VIEWER = 'workspace-level-viewer',
   NO_ACCESS = 'workspace-level-no-access',
 }
 
@@ -114,6 +120,7 @@ export enum AppEvents {
   WEBHOOK_UPDATE = 'webhook.update',
   WEBHOOK_DELETE = 'webhook.delete',
   WEBHOOK_TEST = 'webhook.test',
+  WEBHOOK_TRIGGER = 'webhook.trigger',
 
   UI_ACL_UPDATE = 'ui.acl.update',
 
@@ -137,6 +144,19 @@ export enum AppEvents {
   ATTACHMENT_UPLOAD = 'attachment.upload',
 
   APIS_CREATED = 'apis.created',
+
+  EXTENSION_CREATE = 'extension.create',
+  EXTENSION_UPDATE = 'extension.update',
+  EXTENSION_DELETE = 'extension.delete',
+
+  COMMENT_CREATE = 'comment.create',
+  COMMENT_DELETE = 'comment.delete',
+  COMMENT_UPDATE = 'comment.update',
+  INTEGRATION_DELETE = 'integration.delete',
+  INTEGRATION_CREATE = 'integration.create',
+  INTEGRATION_UPDATE = 'integration.update',
+
+  ROW_USER_MENTION = 'row.user.mention',
 }
 
 export enum ClickhouseTables {
@@ -178,6 +198,9 @@ export const RoleLabels = {
   [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
   [OrgUserRoles.CREATOR]: 'creator',
   [OrgUserRoles.VIEWER]: 'viewer',
+  [CloudOrgUserRoles.OWNER]: 'owner',
+  [CloudOrgUserRoles.CREATOR]: 'creator',
+  [CloudOrgUserRoles.VIEWER]: 'viewer',
 };
 
 export const RoleColors = {
@@ -196,6 +219,9 @@ export const RoleColors = {
   [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
   [OrgUserRoles.VIEWER]: 'yellow',
+  [CloudOrgUserRoles.OWNER]: 'purple',
+  [CloudOrgUserRoles.CREATOR]: 'blue',
+  [CloudOrgUserRoles.VIEWER]: 'yellow',
 };
 
 export const RoleDescriptions = {
@@ -236,6 +262,10 @@ export const RoleIcons = {
   [OrgUserRoles.SUPER_ADMIN]: 'role_super',
   [OrgUserRoles.CREATOR]: 'role_creator',
   [OrgUserRoles.VIEWER]: 'role_viewer',
+
+  [CloudOrgUserRoles.OWNER]: 'role_owner',
+  [CloudOrgUserRoles.CREATOR]: 'role_creator',
+  [CloudOrgUserRoles.VIEWER]: 'role_viewer',
 };
 
 export const WorkspaceRolesToProjectRoles = {
@@ -295,4 +325,118 @@ export enum PlanLimitTypes {
   // PER VIEW
   FILTER_LIMIT = 'FILTER_LIMIT',
   SORT_LIMIT = 'SORT_LIMIT',
+}
+
+export enum APIContext {
+  VIEW_COLUMNS = 'fields',
+  FILTERS = 'filters',
+  SORTS = 'sorts',
+}
+
+export enum SourceRestriction {
+  SCHEMA_READONLY = 'is_schema_readonly',
+  DATA_READONLY = 'is_data_readonly',
+}
+
+export enum ClientType {
+  MYSQL = 'mysql2',
+  MSSQL = 'mssql',
+  PG = 'pg',
+  SQLITE = 'sqlite3',
+  VITESS = 'vitess',
+  SNOWFLAKE = 'snowflake',
+  DATABRICKS = 'databricks',
+}
+
+export enum SSLUsage {
+  No = 'No',
+  Allowed = 'Allowed',
+  Preferred = 'Preferred',
+  Required = 'Required',
+  RequiredWithCa = 'Required-CA',
+  RequiredWithIdentity = 'Required-Identity',
+}
+
+export enum SyncDataType {
+  // Database
+  MICROSOFT_ACCESS = 'microsoft-access',
+  TABLEAU = 'tableau',
+  ORACLE = 'oracle',
+  // AI
+  OPENAI = 'openai',
+  CLAUDE = 'claude',
+  OLLAMA = 'ollama',
+  GROQ = 'groq',
+  // Communication
+  SLACK = 'slack',
+  DISCORD = 'discord',
+  TWILLO = 'twillo',
+  MICROSOFT_OUTLOOK = 'microsoft-outlook',
+  MICROSOFT_TEAMS = 'microsoft-teams',
+  TELEGRAM = 'telegram',
+  GMAIL = 'gmail',
+  WHATSAPP = 'whatsapp',
+  // Project Management
+  ASANA = 'asana',
+  JIRA = 'jira',
+  MIRO = 'miro',
+  TRELLO = 'trello',
+  // CRM
+  SALESFORCE = 'salesforce',
+  PIPEDRIVE = 'pipedrive',
+  MICROSOFT_DYNAMICS_365 = 'microsoft-dynamics-365',
+  ZOHO_CRM = 'zoho-crm',
+  // Marketing
+  HUBSPOT = 'hubspot',
+  MAILCHIMP = 'mailchimp',
+  SURVEYMONKEY = 'surveymonkey',
+  TYPEFORM = 'typeform',
+  // ATS
+  WORKDAY = 'workday',
+  GREENHOUSE = 'greenhouse',
+  LEVER = 'lever',
+  // Development
+  GITHUB = 'github',
+  GITLAB = 'gitlab',
+  BITBUCKET = 'bitbucket',
+  // Finance
+  STRIPE = 'stripe',
+  QUICKBOOKS = 'quickbooks',
+  // Ticketing
+  FRESHDESK = 'freshdesk',
+  INTERCOM = 'intercom',
+  ZENDESK = 'zendesk',
+  HUBSPOT_SERVICE_HUB = 'hubspot-service-hub',
+  SALESFORCE_SERVICE_CLOUD = 'salesforce-service-cloud',
+  // Storage
+  BOX = 'box',
+  GOOGLE_DRIVE = 'google-drive',
+  DROPBOX = 'dropbox',
+  // Others
+  APPLE_NUMBERS = 'apple-numbers',
+  GOOGLE_CALENDAR = 'google-calendar',
+  MICROSOFT_EXCEL = 'microsoft-excel',
+  GOOGLE_SHEETS = 'google-sheets',
+}
+
+export enum IntegrationCategoryType {
+  DATABASE = 'database',
+  AI = 'ai',
+  COMMUNICATION = 'communication',
+  SPREAD_SHEET = 'spread-sheet',
+  PROJECT_MANAGEMENT = 'project-management',
+  CRM = 'crm',
+  MARKETING = 'marketing',
+  ATS = 'ats',
+  DEVELOPMENT = 'development',
+  FINANCE = 'finance',
+  TICKETING = 'ticketing',
+  STORAGE = 'storage',
+  OTHERS = 'others',
+}
+
+export enum ViewLockType {
+  Personal = 'personal',
+  Locked = 'locked',
+  Collaborative = 'collaborative',
 }

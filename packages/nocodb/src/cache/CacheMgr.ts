@@ -1,5 +1,6 @@
 import debug from 'debug';
 import { Logger } from '@nestjs/common';
+import type { ChainableCommander } from 'ioredis';
 import type IORedis from 'ioredis';
 import { CacheDelDirection, CacheGetType } from '~/utils/globals';
 
@@ -77,7 +78,7 @@ export default abstract class CacheMgr {
             if (!skipTTL && o.timestamp) {
               const diff = Date.now() - o.timestamp;
               if (diff > NC_REDIS_GRACE_TTL * 1000) {
-                await this.refreshTTL(key);
+                await this.execRefreshTTL(key);
               }
             }
 
@@ -118,7 +119,11 @@ export default abstract class CacheMgr {
     const { skipPrepare, timestamp } = options;
 
     if (typeof value !== 'undefined' && value) {
-      log(`${this.context}::set: setting key ${key} with value ${value}`);
+      log(
+        `${this.context}::set: setting key ${key} with value ${this.stringify(
+          value,
+        )}`,
+      );
 
       // if provided value is an array store it as a set
       if (Array.isArray(value) && value.length) {
@@ -131,7 +136,11 @@ export default abstract class CacheMgr {
             .exec((err) => {
               if (err) {
                 logger.error(
-                  `${this.context}::set: error setting key ${key} with value ${value}`,
+                  `${
+                    this.context
+                  }::set: error setting key ${key} with value ${this.stringify(
+                    value,
+                  )}`,
                 );
               }
               resolve(true);
@@ -158,7 +167,7 @@ export default abstract class CacheMgr {
           NC_REDIS_TTL,
         )
         .then(async () => {
-          await this.refreshTTL(key, timestamp);
+          await this.execRefreshTTL(key, timestamp);
           return true;
         });
     } else {
@@ -185,7 +194,9 @@ export default abstract class CacheMgr {
 
     if (typeof value !== 'undefined' && value) {
       log(
-        `${this.context}::setExpiring: setting key ${key} with value ${value}`,
+        `${
+          this.context
+        }::setExpiring: setting key ${key} with value ${this.stringify(value)}`,
       );
 
       if (Array.isArray(value) && value.length) {
@@ -197,7 +208,11 @@ export default abstract class CacheMgr {
             .exec((err) => {
               if (err) {
                 logger.error(
-                  `${this.context}::set: error setting key ${key} with value ${value}`,
+                  `${
+                    this.context
+                  }::set: error setting key ${key} with value ${this.stringify(
+                    value,
+                  )}`,
                 );
               }
               resolve(true);
@@ -236,6 +251,11 @@ export default abstract class CacheMgr {
   async getList(
     scope: string,
     subKeys: string[],
+    orderBy?: {
+      key: string;
+      dir?: 'asc' | 'desc';
+      isString?: boolean;
+    },
   ): Promise<{
     list: any[];
     isNoneList: boolean;
@@ -276,7 +296,9 @@ export default abstract class CacheMgr {
             }
           } catch (e) {
             logger.error(
-              `${this.context}::getList: Bad value stored for key ${arr[0]} : ${v}`,
+              `${this.context}::getList: Bad value stored for key ${
+                arr[0]
+              } : ${this.stringify(v)}`,
             );
           }
         }
@@ -301,7 +323,7 @@ export default abstract class CacheMgr {
         if (typeof o === 'object') {
           const diff = Date.now() - o.timestamp;
           if (diff > NC_REDIS_GRACE_TTL * 1000) {
-            await this.refreshTTL(key);
+            await this.execRefreshTTL(key);
           }
         }
       } catch (e) {
@@ -310,19 +332,48 @@ export default abstract class CacheMgr {
         );
       }
     }
+    const list = values.map((res) => {
+      try {
+        const o = JSON.parse(res);
+        if (typeof o === 'object') {
+          return o.value;
+        }
+      } catch (e) {
+        return res;
+      }
+      return res;
+    });
+
+    // Check if orderBy parameter is provided and valid
+    if (orderBy?.key) {
+      // Destructure the properties from orderBy object
+      const { key, dir, isString } = orderBy;
+
+      // Determine the multiplier for sorting order: -1 for descending, 1 for ascending
+      const orderMultiplier = dir === 'desc' ? -1 : 1;
+
+      // Sort the values array based on the specified property
+      list.sort((a, b) => {
+        // Get the property values from a and b
+        const aValue = a?.[key];
+        const bValue = b?.[key];
+
+        // If aValue is null or undefined, move it to the end
+        if (aValue === null || aValue === undefined) return 1;
+        // If bValue is null or undefined, move it to the end
+        if (bValue === null || bValue === undefined) return -1;
+
+        if (isString) {
+          // If the property is a string, use localeCompare for comparison
+          return orderMultiplier * String(aValue).localeCompare(String(bValue));
+        }
+        // If the property is a number, subtract the values directly
+        return orderMultiplier * (aValue - bValue);
+      });
+    }
 
     return {
-      list: values.map((res) => {
-        try {
-          const o = JSON.parse(res);
-          if (typeof o === 'object') {
-            return o.value;
-          }
-        } catch (e) {
-          return res;
-        }
-        return res;
-      }),
+      list,
       isNoneList,
     };
   }
@@ -494,10 +545,7 @@ export default abstract class CacheMgr {
     });
 
     list.push(key);
-    return this.set(listKey, list).then(async (res) => {
-      await this.refreshTTL(listKey);
-      return res;
-    });
+    return this.set(listKey, list);
   }
 
   async update(key: string, value: any): Promise<boolean> {
@@ -548,7 +596,16 @@ export default abstract class CacheMgr {
     }
   }
 
-  async refreshTTL(key: string, timestamp?: number): Promise<void> {
+  async execRefreshTTL(keys: string, timestamp?: number): Promise<void> {
+    const p = await this.refreshTTL(this.client.pipeline(), keys, timestamp);
+    await p.exec();
+  }
+
+  async refreshTTL(
+    pipeline: ChainableCommander,
+    key: string,
+    timestamp?: number,
+  ): Promise<ChainableCommander> {
     log(`${this.context}::refreshTTL: refreshing TTL for ${key}`);
     const isParent = /:list$/.test(key);
     timestamp = timestamp || Date.now();
@@ -557,7 +614,6 @@ export default abstract class CacheMgr {
         (await this.getRaw(key, CacheGetType.TYPE_ARRAY, true)) || [];
       if (list && list.length) {
         const listValues = await this.client.mget(list);
-        const pipeline = this.client.pipeline();
         for (const [i, v] of listValues.entries()) {
           const key = list[i];
           if (v) {
@@ -576,25 +632,28 @@ export default abstract class CacheMgr {
               }
             } catch (e) {
               logger.error(
-                `${this.context}::refreshTTL: Bad value stored for key ${key} : ${v}`,
+                `${
+                  this.context
+                }::refreshTTL: Bad value stored for key ${key} : ${this.stringify(
+                  v,
+                )}`,
               );
             }
           }
         }
         pipeline.expire(key, NC_REDIS_TTL - 60);
-        await pipeline.exec();
       }
     } else {
       const rawValue = await this.getRaw(key, null, true);
       if (rawValue) {
         if (rawValue.parentKeys && rawValue.parentKeys.length) {
           for (const parent of rawValue.parentKeys) {
-            await this.refreshTTL(parent, timestamp);
+            pipeline = await this.refreshTTL(pipeline, parent, timestamp);
           }
         } else {
           if (rawValue.timestamp !== timestamp) {
             rawValue.timestamp = timestamp;
-            await this.client.set(
+            pipeline.set(
               key,
               JSON.stringify(rawValue, this.getCircularReplacer()),
               'EX',
@@ -604,6 +663,8 @@ export default abstract class CacheMgr {
         }
       }
     }
+
+    return pipeline;
   }
 
   async destroy(): Promise<boolean> {
@@ -627,5 +688,13 @@ export default abstract class CacheMgr {
     ).then(() => {
       return res;
     });
+  }
+
+  // function to stringify value if having null prototype
+  private stringify(value: any) {
+    if (Object.prototype.hasOwnProperty.call(value, 'toString')) {
+      return value;
+    }
+    return JSON.stringify(value, this.getCircularReplacer());
   }
 }

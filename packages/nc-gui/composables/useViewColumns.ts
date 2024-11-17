@@ -1,17 +1,34 @@
-import type { ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  CommonAggregations,
+  type GridColumnReqType,
+  type GridColumnType,
+  type MapType,
+  type TableType,
+  type ViewType,
+} from 'nocodb-sdk'
 import { ViewTypes, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import type { Field } from '#imports'
-import { computed, ref, storeToRefs, useBase, useNuxtApp, useRoles, useUndoRedo, watch } from '#imports'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
     view: Ref<ViewType | undefined>,
     meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,
-    reloadData?: () => void,
+    reloadData?: (params?: { shouldShowLoading?: boolean }) => void,
     isPublic = false,
   ) => {
+    const rootFields = ref<ColumnType[]>([])
+
     const fields = ref<Field[]>()
+
+    const fieldsMap = computed(() =>
+      (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
+        if (curr.fk_column_id) {
+          acc[curr.fk_column_id] = curr
+        }
+        return acc
+      }, {}),
+    )
 
     const filterQuery = ref('')
 
@@ -25,11 +42,9 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { addUndo, defineViewScope } = useUndoRedo()
 
-    const isLocalMode = computed(
-      () => isPublic || !isUIAllowed('viewFieldEdit') || !isUIAllowed('viewFieldEdit') || isSharedBase.value,
-    )
+    const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
 
-    const localChanges = ref<Field[]>([])
+    const localChanges = ref<Record<string, Field>>({})
 
     const isColumnViewEssential = (column: ColumnType) => {
       // TODO: consider at some point ti delegate this via a cleaner design pattern to view specific check logic
@@ -54,6 +69,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const loadViewColumns = async () => {
       if (!meta || !view) return
+
       let order = 1
 
       if (view.value?.id) {
@@ -71,7 +87,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         fields.value = meta.value?.columns
           ?.filter((column: ColumnType) => {
             // filter created by and last modified by system columns
-            if (isHiddenCol(column)) return false
+            if (isHiddenCol(column, meta.value)) return false
             return true
           })
           .map((column: ColumnType) => {
@@ -83,17 +99,22 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
               ...currentColumnField,
               show: currentColumnField.show || isColumnViewEssential(currentColumnField),
               order: currentColumnField.order || order++,
+              aggregation: currentColumnField?.aggregation ?? CommonAggregations.None,
               system: isSystemColumn(metaColumnById?.value?.[currentColumnField.fk_column_id!]),
               isViewEssentialField: isColumnViewEssential(column),
+              initialShow:
+                currentColumnField.show ||
+                isColumnViewEssential(currentColumnField) ||
+                (currentColumnField as GridColumnType)?.group_by,
             }
           })
           .sort((a: Field, b: Field) => a.order - b.order)
 
         if (isLocalMode.value && fields.value) {
-          for (const field of localChanges.value) {
-            const fieldIndex = fields.value.findIndex((f) => f.fk_column_id === field.fk_column_id)
+          for (const key in localChanges.value) {
+            const fieldIndex = fields.value.findIndex((f) => f.fk_column_id === key)
             if (fieldIndex !== undefined && fieldIndex > -1) {
-              fields.value[fieldIndex] = field
+              fields.value[fieldIndex] = localChanges.value[key]
               fields.value = fields.value.sort((a: Field, b: Field) => a.order - b.order)
             }
           }
@@ -113,10 +134,34 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const showAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
-        fields.value = fields.value?.map((field: Field) => ({
-          ...field,
-          show: true,
-        }))
+        const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
+          if (curr.fk_column_id) {
+            curr.show = !!curr.initialShow
+            acc[curr.fk_column_id] = curr
+          }
+          return acc
+        }, {})
+
+        fields.value = (fields.value || [])?.map((field: Field) => {
+          const updateField = {
+            ...field,
+            show: fieldById[field.fk_column_id!]?.show,
+          }
+          localChanges.value[field.fk_column_id!] = field
+          return updateField
+        })
+
+        meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
+          if (fieldById[column.id!]) {
+            return {
+              ...column,
+              ...fieldById[column.id!],
+              id: fieldById[column.id!].fk_column_id,
+            }
+          }
+          return column
+        })
+
         reloadData?.()
         return
       }
@@ -135,12 +180,37 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       reloadData?.()
       $e('a:fields:show-all')
     }
+
     const hideAll = async (ignoreIds?: any) => {
       if (isLocalMode.value) {
-        fields.value = fields.value?.map((field: Field) => ({
-          ...field,
-          show: !!field.isViewEssentialField,
-        }))
+        const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
+          if (curr.fk_column_id) {
+            curr.show = !!metaColumnById?.value?.[curr.fk_column_id!]?.pv || !!curr.isViewEssentialField
+            acc[curr.fk_column_id] = curr
+          }
+          return acc
+        }, {})
+
+        fields.value = (fields.value || [])?.map((field: Field) => {
+          const updateField = {
+            ...field,
+            show: fieldById[field.fk_column_id!]?.show,
+          }
+          localChanges.value[field.fk_column_id!] = field
+          return updateField
+        })
+
+        meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
+          if (fieldById[column.id!]) {
+            return {
+              ...column,
+              ...fieldById[column.id!],
+              id: fieldById[column.id!].fk_column_id,
+            }
+          }
+          return column
+        })
+
         reloadData?.()
         return
       }
@@ -159,7 +229,33 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
-    const saveOrUpdate = async (field: any, index: number, disableDataReload: boolean = false) => {
+    const updateDefaultViewColumnOrder = (columnId: string, order: number) => {
+      if (!meta.value?.columns) return
+
+      const colIndex = meta.value.columns.findIndex((c) => c.id === columnId)
+      if (colIndex !== -1) {
+        meta.value.columns[colIndex].meta = {
+          ...parseProp((meta.value.columns[colIndex] as ColumnType)?.meta || {}),
+          defaultViewColOrder: order,
+        }
+        meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
+          if (c.id !== columnId) return c
+
+          c.meta = { ...parseProp(c.meta || {}), defaultViewColOrder: order }
+          return c
+        })
+      }
+      if (meta.value?.columnsById?.[columnId]) {
+        meta.value.columnsById[columnId].meta = { ...parseProp(meta.value.columns[colIndex]?.meta), defaultViewColOrder: order }
+      }
+    }
+
+    const saveOrUpdate = async (
+      field: any,
+      index: number,
+      disableDataReload: boolean = false,
+      updateDefaultViewColOrder: boolean = false,
+    ) => {
       if (isLocalMode.value && fields.value) {
         fields.value[index] = field
         meta.value!.columns = meta.value!.columns?.map((column: ColumnType) => {
@@ -173,7 +269,11 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           return column
         })
 
-        localChanges.value.push(field)
+        localChanges.value[field.fk_column_id] = field
+      }
+
+      if (updateDefaultViewColOrder && field?.fk_column_id) {
+        updateDefaultViewColumnOrder(field.fk_column_id, field.order)
       }
 
       if (isUIAllowed('viewFieldEdit')) {
@@ -191,7 +291,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (!disableDataReload) {
         await loadViewColumns()
-        reloadData?.()
+        reloadData?.({ shouldShowLoading: false })
       }
     }
 
@@ -220,7 +320,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const filteredFieldList = computed(() => {
       return (
         fields.value?.filter((field: Field) => {
-          if (metaColumnById?.value?.[field.fk_column_id!]?.pv) return true
+          if (!field.initialShow && isLocalMode.value) {
+            return false
+          }
+
+          if (
+            metaColumnById?.value?.[field.fk_column_id!]?.pv &&
+            (!filterQuery.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase()))
+          ) {
+            return true
+          }
 
           // hide system columns if not enabled
           if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
@@ -234,6 +343,27 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           }
         }) || []
       )
+    })
+
+    const numberOfHiddenFields = computed(() => {
+      return (fields.value || [])
+        ?.filter((field: Field) => {
+          if (!field.initialShow && isLocalMode.value) {
+            return false
+          }
+
+          if (metaColumnById?.value?.[field.fk_column_id!]?.pv) {
+            return true
+          }
+
+          // hide system columns if not enabled
+          if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
+            return false
+          }
+
+          return true
+        })
+        .filter((field) => !field.show)?.length
     })
 
     const sortedAndFilteredFields = computed<ColumnType[]>(() => {
@@ -257,6 +387,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const toggleFieldVisibility = (checked: boolean, field: any) => {
       const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
+
       if (!fieldIndex && fieldIndex !== 0) return
       addUndo({
         undo: {
@@ -275,13 +406,14 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         },
         scope: defineViewScope({ view: view.value }),
       })
-      saveOrUpdate(field, fieldIndex)
+      saveOrUpdate(field, fieldIndex, !checked)
     }
 
     const toggleFieldStyles = (field: any, style: 'underline' | 'bold' | 'italic', status: boolean) => {
       const fieldIndex = fields.value?.findIndex((f) => f.fk_column_id === field.fk_column_id)
       if (!fieldIndex && fieldIndex !== 0) return
       field[style] = status
+      $e('a:fields:style', { style, status })
       saveOrUpdate(field, fieldIndex, true)
     }
 
@@ -304,7 +436,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       { immediate: true },
     )
 
-    const resizingColOldWith = ref('200px')
+    const resizingColOldWith = ref('180px')
 
     const updateGridViewColumn = async (id: string, props: Partial<GridColumnReqType>, undo = false) => {
       if (!undo) {
@@ -327,29 +459,46 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           scope: defineViewScope({ view: view.value }),
         })
       }
+      try {
+        // sync with server if allowed
+        if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
+          await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
+            ...props,
+          })
+        }
 
-      // sync with server if allowed
-      if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
-        await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
-          ...props,
-        })
-      }
-
-      if (gridViewCols.value?.[id]) {
-        Object.assign(gridViewCols.value[id], {
-          ...gridViewCols.value[id],
-          ...props,
-        })
-      } else {
-        // fallback to reload
-        await loadViewColumns()
+        if (gridViewCols.value?.[id]) {
+          Object.assign(gridViewCols.value[id], {
+            ...gridViewCols.value[id],
+            ...props,
+          })
+        } else {
+          // fallback to reload
+          await loadViewColumns()
+        }
+      } catch (e) {
+        // this could happen if user doesn't have permission to update view columns
+        // todo: find out root cause and handle with isUIAllowed
+        console.error(e)
       }
     }
 
+    watch(
+      sortedAndFilteredFields,
+      (v) => {
+        if (rootFields) rootFields.value = v || []
+      },
+      { immediate: true },
+    )
+
+    provide(FieldsInj, rootFields)
+
     return {
       fields,
+      fieldsMap,
       loadViewColumns,
       filteredFieldList,
+      numberOfHiddenFields,
       filterQuery,
       showAll,
       hideAll,
@@ -363,6 +512,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       updateGridViewColumn,
       gridViewCols,
       resizingColOldWith,
+      isLocalMode,
     }
   },
   'useViewColumnsOrThrow',

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { useI18n, useRoute, useSidebar } from '#imports'
 
 const route = useRoute()
 

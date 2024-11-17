@@ -1,17 +1,5 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
-import {
-  definePageMeta,
-  iconMap,
-  navigateTo,
-  reactive,
-  ref,
-  useApi,
-  useGlobal,
-  useI18n,
-  useSidebar,
-  validateEmail,
-} from '#imports'
 
 definePageMeta({
   requiresAuth: false,
@@ -43,7 +31,7 @@ const formRules: Record<string, RuleObject[]> = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (!v?.length || validateEmail(v)) return resolve()
+          if (!v?.length || validateEmail(v.trim())) return resolve()
 
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })

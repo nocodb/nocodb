@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { VisibilityRuleReqType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -11,46 +11,49 @@ import { Base, Model, ModelRoleVisibility, View } from '~/models';
 export class ModelVisibilitiesService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async xcVisibilityMetaSetAll(param: {
-    visibilityRule: VisibilityRuleReqType;
-    baseId: string;
-    req: NcRequest;
-  }) {
+  async xcVisibilityMetaSetAll(
+    context: NcContext,
+    param: {
+      visibilityRule: VisibilityRuleReqType;
+      baseId: string;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/VisibilityRuleReq',
       param.visibilityRule,
     );
 
-    const base = await Base.getWithInfo(param.baseId);
+    const base = await Base.getWithInfo(context, param.baseId);
 
     if (!base) {
-      NcError.badRequest('Base not found');
+      NcError.baseNotFound(param.baseId);
     }
 
     for (const d of param.visibilityRule) {
       for (const role of Object.keys(d.disabled)) {
-        const view = await View.get(d.id);
+        const view = await View.get(context, d.id);
 
         if (view.base_id !== param.baseId) {
           NcError.badRequest('View does not belong to the base');
         }
 
-        const dataInDb = await ModelRoleVisibility.get({
+        const dataInDb = await ModelRoleVisibility.get(context, {
           role,
           fk_view_id: d.id,
         });
         if (dataInDb) {
           if (d.disabled[role]) {
             if (!dataInDb.disabled) {
-              await ModelRoleVisibility.update(d.id, role, {
+              await ModelRoleVisibility.update(context, d.id, role, {
                 disabled: d.disabled[role],
               });
             }
           } else {
-            await dataInDb.delete();
+            await dataInDb.delete(context);
           }
         } else if (d.disabled[role]) {
-          await ModelRoleVisibility.insert({
+          await ModelRoleVisibility.insert(context, {
             fk_view_id: d.id,
             disabled: d.disabled[role],
             role,
@@ -66,11 +69,14 @@ export class ModelVisibilitiesService {
     return true;
   }
 
-  async xcVisibilityMetaGet(param: {
-    baseId: string;
-    includeM2M?: boolean;
-    models?: Model[];
-  }) {
+  async xcVisibilityMetaGet(
+    context: NcContext,
+    param: {
+      baseId: string;
+      includeM2M?: boolean;
+      models?: Model[];
+    },
+  ) {
     const { includeM2M = true, baseId, models: _models } = param ?? {};
 
     // todo: move to
@@ -87,7 +93,7 @@ export class ModelVisibilitiesService {
 
     let models =
       _models ||
-      (await Model.list({
+      (await Model.list(context, {
         base_id: baseId,
         source_id: undefined,
       }));
@@ -97,7 +103,7 @@ export class ModelVisibilitiesService {
     const result = await models.reduce(async (_obj, model) => {
       const obj = await _obj;
 
-      const views = await model.getViews();
+      const views = await model.getViews(context);
       for (const view of views) {
         obj[view.id] = {
           ptn: model.table_name,
@@ -114,7 +120,7 @@ export class ModelVisibilitiesService {
       return obj;
     }, Promise.resolve({}));
 
-    const disabledList = await ModelRoleVisibility.list(baseId);
+    const disabledList = await ModelRoleVisibility.list(context, baseId);
 
     for (const d of disabledList) {
       if (result[d.fk_view_id])

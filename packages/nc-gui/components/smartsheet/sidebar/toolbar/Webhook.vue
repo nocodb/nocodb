@@ -26,11 +26,6 @@ const toBeDeleteHook = computed(() => {
 })
 
 const selectedHookId = ref<string | undefined>(undefined)
-const selectedHook = computed(() => {
-  if (!selectedHookId.value) return undefined
-
-  return hooks.value.find((hook) => hook.id === selectedHookId.value)
-})
 
 const showDeleteModal = ref(false)
 const isDeleting = ref(false)
@@ -193,7 +188,9 @@ watch(
   <GeneralModal v-model:visible="showEditModal" width="48rem" destroy-on-close>
     <div class="py-6">
       <div class="webhook-scroll px-5 nc-drawer-webhook-body">
+        <!--
         <WebhookEditor :key="selectedHookId" :hook="selectedHook" @close="showEditModal = false" />
+-->
       </div>
     </div>
   </GeneralModal>

@@ -1,6 +1,7 @@
 # compiled output
 /dist
 /node_modules
+nc
 
 # Logs
 logs
@@ -45,5 +46,6 @@ test_sakila_?.db
 # nc-gui dir is copied for building local docker.
 /docker/main.js
 /docker/nc-gui/
+/docker/public/
 
 /tests/unit/.env

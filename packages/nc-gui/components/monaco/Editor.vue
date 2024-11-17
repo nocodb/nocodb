@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker&inline'
-import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker&inline'
-
 import type { editor as MonacoEditor } from 'monaco-editor'
-import { deepCompare, initWorker, isDrawerOrModalExist, onMounted, ref, watch } from '#imports'
+import { languages, editor as monacoEditor } from 'monaco-editor'
+
+import PlaceholderContentWidget from './Placeholder'
 
 interface Props {
   modelValue: string | Record<string, any>
@@ -11,8 +10,11 @@ interface Props {
   lang?: string
   validate?: boolean
   disableDeepCompare?: boolean
+  placeholder?: string
   readOnly?: boolean
   autoFocus?: boolean
+  monacoConfig?: Partial<MonacoEditor.IStandaloneEditorConstructionOptions>
+  monacoCustomTheme?: Partial<MonacoEditor.IStandaloneThemeData>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -21,13 +23,16 @@ const props = withDefaults(defineProps<Props>(), {
   validate: true,
   disableDeepCompare: false,
   autoFocus: true,
+  monacoConfig: () => ({} as Partial<MonacoEditor.IStandaloneEditorConstructionOptions>),
+  monacoCustomTheme: () => ({} as Partial<MonacoEditor.IStandaloneThemeData>),
 })
 
 const emits = defineEmits(['update:modelValue'])
 
 const { modelValue } = toRefs(props)
 
-const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus } = props
+const { hideMinimap, lang, validate, disableDeepCompare, readOnly, autoFocus, monacoConfig, monacoCustomTheme, placeholder } =
+  props
 
 const vModel = computed<string>({
   get: () => {
@@ -52,31 +57,17 @@ const vModel = computed<string>({
 
 const isValid = ref(true)
 
-/**
- * Adding monaco editor to Vite
- *
- * @ts-expect-error */
-self.MonacoEnvironment = window.MonacoEnvironment = {
-  async getWorker(_: any, label: string) {
-    switch (label) {
-      case 'json': {
-        const workerBlob = new Blob([JsonWorker], { type: 'text/javascript' })
-        return await initWorker(URL.createObjectURL(workerBlob))
-      }
-      default: {
-        const workerBlob = new Blob([EditorWorker], { type: 'text/javascript' })
-        return await initWorker(URL.createObjectURL(workerBlob))
-      }
-    }
-  },
-}
-
 const root = ref<HTMLDivElement>()
 
 let editor: MonacoEditor.IStandaloneCodeEditor
 
-const format = () => {
-  editor.setValue(JSON.stringify(JSON.parse(editor?.getValue() as string), null, 2))
+const format = (space = monacoConfig.tabSize || 2) => {
+  try {
+    const parsedValue = JSON.parse(editor?.getValue() as string)
+    editor.setValue(JSON.stringify(parsedValue, null, space))
+  } catch (error: unknown) {
+    console.error('Failed to parse and format JSON:', error)
+  }
 }
 
 defineExpose({
@@ -85,8 +76,6 @@ defineExpose({
 })
 
 onMounted(async () => {
-  const { editor: monacoEditor, languages } = await import('monaco-editor')
-
   if (root.value && lang) {
     const model = monacoEditor.createModel(vModel.value, lang)
 
@@ -97,21 +86,37 @@ onMounted(async () => {
       })
     }
 
+    let isCustomTheme = false
+
+    if (Object.keys(monacoCustomTheme).length) {
+      monacoEditor.defineTheme('custom', monacoCustomTheme)
+      isCustomTheme = true
+    }
+
     editor = monacoEditor.create(root.value, {
       model,
-      theme: 'vs',
+      contextmenu: false,
+      theme: isCustomTheme ? 'custom' : 'vs',
       foldingStrategy: 'indentation',
       selectOnLineNumbers: true,
+      language: props.lang,
       scrollbar: {
         verticalScrollbarSize: 1,
         horizontalScrollbarSize: 1,
       },
-      tabSize: 2,
+      lineNumbers: 'off',
+      tabSize: monacoConfig.tabSize || 2,
       automaticLayout: true,
       readOnly,
+      bracketPairColorization: {
+        enabled: true,
+        independentColorPoolPerBracketType: true,
+      },
       minimap: {
         enabled: !hideMinimap,
       },
+      ...(lang === 'json' ? { detectIndentation: false, insertSpaces: true } : {}),
+      ...monacoConfig,
     })
 
     editor.onDidChangeModelContent(async () => {
@@ -131,9 +136,18 @@ onMounted(async () => {
       }
     })
 
+    if (placeholder) {
+      // eslint-disable-next-line no-new
+      new PlaceholderContentWidget(placeholder, editor)
+    }
+
     if (!isDrawerOrModalExist() && autoFocus) {
       // auto focus on json cells only
       editor.focus()
+    }
+
+    if (lang === 'json') {
+      format()
     }
   }
 })
@@ -164,3 +178,14 @@ watch(
 <template>
   <div ref="root"></div>
 </template>
+
+<style scoped lang="scss">
+:deep(.monaco-editor) {
+  background-color: transparent !important;
+  border-radius: 8px !important;
+}
+
+:deep(.overflow-guard) {
+  border-radius: 8px !important;
+}
+</style>

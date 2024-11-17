@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { definePageMeta } from '#imports'
+import { ViewTypes } from 'nocodb-sdk'
 
 definePageMeta({
   public: true,
@@ -27,7 +27,7 @@ try {
 
 <template>
   <div v-if="showPassword">
-    <LazySharedViewAskPassword v-model="showPassword" />
+    <LazySharedViewAskPassword v-model="showPassword" :view-type="ViewTypes.GALLERY" />
   </div>
   <LazySharedViewGallery v-else />
 </template>

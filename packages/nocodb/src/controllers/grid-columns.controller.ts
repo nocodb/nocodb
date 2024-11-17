@@ -12,7 +12,8 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { GridColumnsService } from '~/services/grid-columns.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { NcRequest } from '~/interface/config';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -24,8 +25,11 @@ export class GridColumnsController {
     '/api/v2/meta/grids/:gridViewId/grid-columns',
   ])
   @Acl('columnList')
-  async columnList(@Param('gridViewId') gridViewId: string) {
-    return await this.gridColumnsService.columnList({
+  async columnList(
+    @TenantContext() context: NcContext,
+    @Param('gridViewId') gridViewId: string,
+  ) {
+    return await this.gridColumnsService.columnList(context, {
       gridViewId,
     });
   }
@@ -35,12 +39,13 @@ export class GridColumnsController {
   ])
   @Acl('gridColumnUpdate')
   async gridColumnUpdate(
+    @TenantContext() context: NcContext,
     @Param('gridViewColumnId') gridViewColumnId: string,
     @Body() body: GridColumnReqType,
 
     @Req() req: NcRequest,
   ) {
-    return this.gridColumnsService.gridColumnUpdate({
+    return this.gridColumnsService.gridColumnUpdate(context, {
       gridViewColumnId,
       grid: body,
       req,

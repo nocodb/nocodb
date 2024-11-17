@@ -4,7 +4,6 @@ import {
   AuditOperationSubTypes,
   AuditOperationTypes,
 } from 'nocodb-sdk';
-import { T } from 'nc-help';
 import type { AuditType } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
@@ -21,10 +20,10 @@ import type {
   UserSigninEvent,
   UserSignupEvent,
 } from '~/services/app-hooks/interfaces';
-import { Audit } from '~/models';
+import { T } from '~/utils';
+import { Audit, User } from '~/models';
 import { TelemetryService } from '~/services/telemetry.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { User } from '~/models';
 
 @Injectable()
 export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
@@ -64,6 +63,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
           const param = data as ProjectUserUpdateEvent;
 
           await this.auditInsert({
+            base_id: param.base.id,
             op_type: AuditOperationTypes.AUTHENTICATION,
             op_sub_type: AuditOperationSubTypes.ROLES_MANAGEMENT,
             user: param.updatedBy.email,
@@ -260,6 +260,22 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
             user: param.invitedBy.email,
             description: `${param.user.email} has been re-invited`,
             ip: param.ip,
+          });
+        }
+        break;
+      case AppEvents.ATTACHMENT_UPLOAD:
+        {
+          this.telemetryService.sendEvent({
+            evt_type: 'image:uploaded',
+            type: data?.type,
+          });
+        }
+        break;
+      case AppEvents.WEBHOOK_TRIGGER:
+        {
+          this.telemetryService.sendEvent({
+            evt_type: 'webhook:trigger',
+            type: data?.type,
           });
         }
         break;

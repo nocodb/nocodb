@@ -6,7 +6,7 @@ import SimpleIconsMicrosoftsqlserver from '~icons/simple-icons/microsoftsqlserve
 import LogosSnowflakeIcon from '~icons/logos/snowflake-icon'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 
-const { sourceType } = defineProps<{ sourceType?: string }>()
+const { sourceType } = defineProps<{ sourceType?: string; color?: string }>()
 
 const baseIcon = computed(() => {
   switch (sourceType) {
@@ -27,5 +27,5 @@ const baseIcon = computed(() => {
 </script>
 
 <template>
-  <component :is="baseIcon" />
+  <component :is="baseIcon" :style="color ? { color } : {}" />
 </template>

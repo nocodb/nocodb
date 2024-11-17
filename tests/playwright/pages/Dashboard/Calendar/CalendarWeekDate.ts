@@ -31,14 +31,27 @@ export class CalendarWeekDatePage extends BasePage {
     await this.rootPage.mouse.up();
   }
 
+  async selectHour({ hourIndex, dayIndex }: { hourIndex: number; dayIndex: number }) {
+    const day = this.get().getByTestId('nc-calendar-week-day').nth(dayIndex);
+    const hour = day.getByTestId('nc-calendar-week-hour').nth(hourIndex);
+
+    await hour.click({
+      force: true,
+      position: {
+        x: 10,
+        y: 10,
+      },
+    });
+  }
+
   async selectDay({ dayIndex }: { dayIndex: number }) {
     const day = this.get().getByTestId('nc-calendar-week-day').nth(dayIndex);
 
     await day.click({
       force: true,
       position: {
-        x: 0,
-        y: 1,
+        x: 10,
+        y: 10,
       },
     });
   }

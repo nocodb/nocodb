@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { useNuxtApp } from '#imports'
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg, useApi, useGlobal } from '#imports'
 
 const { api, isLoading } = useApi()
 
@@ -36,7 +34,7 @@ loadLicense()
 </script>
 
 <template>
-  <div class="h-full overflow-y-scroll scrollbar-thin-dull">
+  <div class="h-full overflow-y-auto scrollbar-thin-dull">
     <!--    <div class="text-xl mt-4 mb-8 text-center font-weight-bold">License</div>-->
     <!--    <div class="mx-auto w-150">-->
     <!--      <div>-->

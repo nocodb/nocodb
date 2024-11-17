@@ -1,47 +1,18 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes, getDateFormat, getDateTimeFormat, isSystemColumn, isVirtualCol, parseStringDate } from 'nocodb-sdk'
+import type { ColumnType, OracleUi, TableType } from 'nocodb-sdk'
+import {
+  SqlUiFactory,
+  UITypes,
+  getDateFormat,
+  getDateTimeFormat,
+  isSystemColumn,
+  isVirtualCol,
+  parseStringDate,
+} from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
-import {
-  Empty,
-  Form,
-  ImportWorkerOperations,
-  ImportWorkerResponse,
-  MetaInj,
-  ReloadViewDataHookInj,
-  TabType,
-  computed,
-  createEventHook,
-  extractSdkResponseErrorMsg,
-  fieldLengthValidator,
-  fieldRequiredValidator,
-  getUIDTIcon,
-  iconMap,
-  inject,
-  message,
-  nextTick,
-  onMounted,
-  reactive,
-  ref,
-  storeToRefs,
-  useBase,
-  useI18n,
-  useNuxtApp,
-  useTabs,
-  validateTableName,
-} from '#imports'
-
-const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, sourceId, importWorker } =
-  defineProps<Props>()
-
-const emit = defineEmits(['import', 'error', 'change'])
-
-dayjs.extend(utc)
-
-const { t } = useI18n()
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
@@ -50,6 +21,7 @@ interface Props {
   importColumns: any[]
   importDataOnly: boolean
   maxRowsToParse: number
+  baseId: string
   sourceId: string
   importWorker: Worker
 }
@@ -58,6 +30,24 @@ interface Option {
   label: string
   value: string
 }
+
+const {
+  quickImportType,
+  baseTemplate,
+  importData,
+  importColumns,
+  importDataOnly,
+  maxRowsToParse,
+  baseId,
+  sourceId,
+  importWorker,
+} = defineProps<Props>()
+
+const emit = defineEmits(['import', 'error', 'change'])
+
+dayjs.extend(utc)
+
+const { t } = useI18n()
 
 const meta = inject(MetaInj, ref())
 
@@ -71,13 +61,33 @@ const { $api } = useNuxtApp()
 
 const { addTab } = useTabs()
 
-const baseStrore = useBase()
-const { loadTables } = baseStrore
-const { sqlUis, base } = storeToRefs(baseStrore)
-const { openTable } = useTablesStore()
-const { baseTables } = storeToRefs(useTablesStore())
+const basesStore = useBases()
+const { bases } = storeToRefs(basesStore)
 
-const sqlUi = ref(sqlUis.value[sourceId] || Object.values(sqlUis.value)[0])
+const { base: activeBase } = storeToRefs(useBase())
+
+const base = computed(() => bases.value.get(baseId) || activeBase.value)
+
+const tablesStore = useTablesStore()
+const { openTable, loadProjectTables } = tablesStore
+const { baseTables } = storeToRefs(tablesStore)
+
+const sqlUis = computed(() => {
+  const temp: Record<string, any> = {}
+
+  for (const source of base.value.sources ?? []) {
+    if (source.id) {
+      temp[source.id] = SqlUiFactory.create({ client: source.type }) as Exclude<
+        ReturnType<(typeof SqlUiFactory)['create']>,
+        typeof OracleUi
+      >
+    }
+  }
+
+  return temp
+})
+
+const sqlUi = computed(() => sqlUis.value[sourceId] || Object.values(sqlUis.value)[0])
 
 const hasSelectColumn = ref<boolean[]>([])
 
@@ -91,7 +101,7 @@ const isImporting = ref(false)
 
 const importingTips = ref<Record<string, string>>({})
 
-const checkAllRecord = ref<boolean[]>([])
+const checkAllRecord = ref<Record<string, boolean>>({})
 
 const formError = ref()
 
@@ -135,7 +145,11 @@ const validators = computed(() =>
     hasSelectColumn.value[tableIdx] = false
 
     table.columns?.forEach((column, columnIdx) => {
-      acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [fieldRequiredValidator(), fieldLengthValidator()]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.title`] = [
+        fieldRequiredValidator(),
+        fieldLengthValidator(),
+        reservedFieldNameValidator(),
+      ]
       acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator()]
       if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true
@@ -158,13 +172,19 @@ watch(
     let res = true
     if (importDataOnly) {
       for (const tn of Object.keys(srcDestMapping.value)) {
+        let flag = false
         if (!atLeastOneEnabledValidation(tn)) {
           res = false
         }
         for (const record of srcDestMapping.value[tn]) {
           if (!fieldsValidation(record, tn)) {
-            return false
+            res = false
+            flag = true
+            break
           }
+        }
+        if (flag) {
+          break
         }
       }
     } else {
@@ -221,6 +241,10 @@ function parseTemplate({ tables = [], ...rest }: Props['baseTemplate']) {
       ...rest,
       columns: [
         ...columns.map((c: any, idx: number) => {
+          if (!importDataOnly && c.column_name?.toLowerCase() === 'id') {
+            const cn = populateUniqueColumnName('id', [], columns)
+            c.column_name = cn
+          }
           c.key = idx
           return c
         }),
@@ -248,20 +272,13 @@ function deleteTable(tableIdx: number) {
 function deleteTableColumn(tableIdx: number, columnKey: number) {
   const columnIdx = data.tables[tableIdx].columns.findIndex((c: ColumnType & { key: number }) => c.key === columnKey)
   data.tables[tableIdx].columns.splice(columnIdx, 1)
-}
+  let key = 0
 
-function addNewColumnRow(tableIdx: number, uidt: string) {
-  data.tables[tableIdx].columns.push({
-    key: data.tables[tableIdx].columns.length,
-    title: `title${data.tables[tableIdx].columns.length + 1}`,
-    column_name: `title${data.tables[tableIdx].columns.length + 1}`,
-    uidt,
-  })
-
-  nextTick(() => {
-    const input = inputRefs.value[data.tables[tableIdx].columns.length - 1]
-    input.focus()
-    input.select()
+  data.tables[tableIdx].columns.forEach((_c: ColumnType & { key: number }, i: number) => {
+    if (data.tables[tableIdx].columns[i].key !== undefined) {
+      data.tables[tableIdx].columns[i].key = key
+      key++
+    }
   })
 }
 
@@ -273,6 +290,9 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
   const dateFormatMap: Record<number, string> = {}
   return batchData.map((data) =>
     (columns || []).reduce((aggObj, col: Record<string, any>) => {
+      // we renaming existing id column and using our own auto increment id
+      if (col.uidt === UITypes.ID) return aggObj
+
       // for excel & json, if the column name is changed in TemplateEditor,
       // then only col.column_name exists in data, else col.ref_column_name
       // for csv, col.column_name always exists in data
@@ -306,7 +326,7 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
 function missingRequiredColumnsValidation(tn: string) {
   const missingRequiredColumns = columns.value.filter(
     (c: Record<string, any>) =>
-      (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) &&
+      (c.pk ? !c.ai && !c.cdf && !c.meta?.ag : !c.cdf && c.rqd) &&
       !srcDestMapping.value[tn].some((r: Record<string, any>) => r.destCn === c.title),
   )
 
@@ -561,6 +581,7 @@ async function importTemplate() {
           await $api.dbTableColumn.primaryColumnSet(createdTable.columns[0].id as string)
         }
       }
+
       // bulk insert data
       if (importData) {
         const offset = maxRowsToParse
@@ -588,7 +609,7 @@ async function importTemplate() {
         )
       }
       // reload table list
-      await loadTables()
+      await loadProjectTables(base.value.id, true)
 
       addTab({
         ...tab,
@@ -614,7 +635,7 @@ function mapDefaultColumns() {
   srcDestMapping.value = {}
   for (let i = 0; i < data.tables.length; i++) {
     for (const col of importColumns[i]) {
-      const o = { srcCn: col.column_name, destCn: '', enabled: true }
+      const o = { srcCn: col.column_name, srcTitle: col.title, destCn: '', enabled: true }
       if (columns.value) {
         const tableColumn = columns.value.find((c) => c.column_name === col.column_name)
         if (tableColumn) {
@@ -703,6 +724,20 @@ const setErrorState = (errorsFields: any[]) => {
   formError.value = errorMap
 }
 
+function populateUniqueColumnName(cn: string, draftCn: string[] = [], columns: ColumnType[]) {
+  let c = 2
+  let columnName = `${cn}${1}`
+  while (
+    draftCn.includes(columnName) ||
+    columns?.some((c) => {
+      return c.column_name === columnName || c.title === columnName
+    })
+  ) {
+    columnName = `${cn}${c++}`
+  }
+  return columnName
+}
+
 watch(formRef, () => {
   setTimeout(async () => {
     try {
@@ -753,7 +788,7 @@ watch(modelRef, async () => {
           </template>
 
           <template #extra>
-            <a-tooltip bottom>
+            <NcTooltip bottom class="inline-block">
               <template #title>
                 <span>{{ $t('activity.deleteTable') }}</span>
               </template>
@@ -763,62 +798,74 @@ watch(modelRef, async () => {
                 class="text-lg mr-8"
                 @click.stop="deleteTable(tableIdx)"
               />
-            </a-tooltip>
+            </NcTooltip>
           </template>
 
-          <a-table
-            v-if="srcDestMapping"
-            class="template-form"
-            row-class-name="template-form-row"
-            :data-source="srcDestMapping[table.table_name]"
-            :columns="srcDestMappingColumns"
-            :pagination="false"
-          >
-            <template #emptyText>
-              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-            </template>
-            <template #headerCell="{ column }">
-              <span v-if="column.key === 'source_column' || column.key === 'destination_column'">
-                {{ column.name }}
-              </span>
-              <span v-if="column.key === 'action'">
-                <a-checkbox
-                  v-model:checked="checkAllRecord[table.table_name]"
-                  @change="handleCheckAllRecord($event, table.table_name)"
-                />
-              </span>
-            </template>
-
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'source_column'">
-                <NcTooltip class="truncate"
-                  ><template #title>{{ record.srcCn }}</template
-                  >{{ record.srcCn }}</NcTooltip
-                >
+          <div v-if="srcDestMapping" class="flex w-full max-h-[calc(80vh_-_200px)]">
+            <NcTable
+              class="template-form flex-1"
+              body-row-class-name="template-form-row"
+              :data="srcDestMapping[table.table_name]"
+              :columns="srcDestMappingColumns"
+              :bordered="false"
+            >
+              <template #headerCell="{ column }">
+                <span v-if="column.key !== 'action'">
+                  {{ column.title }}
+                </span>
+                <span v-if="column.key === 'action'">
+                  <a-checkbox
+                    v-model:checked="checkAllRecord[table.table_name]"
+                    @change="handleCheckAllRecord($event, table.table_name)"
+                  />
+                </span>
               </template>
 
-              <template v-else-if="column.key === 'destination_column'">
-                <a-select
-                  v-model:value="record.destCn"
-                  class="w-52"
-                  show-search
-                  :filter-option="filterOption"
-                  dropdown-class-name="nc-dropdown-filter-field"
-                >
-                  <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
-                    <div class="flex items-center">
-                      <component :is="getUIDTIcon(col.uidt)" />
-                      <span class="ml-2">{{ col.title }}</span>
-                    </div>
-                  </a-select-option>
-                </a-select>
-              </template>
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'source_column'">
+                  <NcTooltip class="truncate inline-block">
+                    <template #title>{{ record.srcTitle }}</template>
+                    {{ record.srcTitle }}
+                  </NcTooltip>
+                </template>
 
-              <template v-if="column.key === 'action'">
-                <a-checkbox v-model:checked="record.enabled" />
+                <template v-else-if="column.key === 'destination_column'">
+                  <a-select
+                    v-model:value="record.destCn"
+                    class="w-full"
+                    show-search
+                    :filter-option="filterOption"
+                    dropdown-class-name="nc-dropdown-filter-field"
+                  >
+                    <template #suffixIcon>
+                      <GeneralIcon icon="arrowDown" class="text-current" />
+                    </template>
+                    <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
+                      <div class="flex items-center gap-2 w-full">
+                        <component :is="getUIDTIcon(col.uidt)" class="flex-none w-3.5 h-3.5" />
+                        <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                          <template #title>
+                            {{ col.title }}
+                          </template>
+                          {{ col.title }}
+                        </NcTooltip>
+                        <component
+                          :is="iconMap.check"
+                          v-if="record.destCn === col.title"
+                          id="nc-selected-item-icon"
+                          class="flex-none text-primary w-4 h-4"
+                        />
+                      </div>
+                    </a-select-option>
+                  </a-select>
+                </template>
+
+                <template v-if="column.key === 'action'">
+                  <a-checkbox v-model:checked="record.enabled" />
+                </template>
               </template>
-            </template>
-          </a-table>
+            </NcTable>
+          </div>
         </a-collapse-panel>
       </a-collapse>
     </a-card>
@@ -839,13 +886,13 @@ watch(modelRef, async () => {
           <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
             <template #header>
               <a-form-item v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
-                <div class="flex flex-col w-full">
+                <div class="flex flex-col w-full mr-2">
                   <a-input
                     v-model:value="table.table_name"
-                    class="font-weight-bold text-lg"
+                    class="font-weight-bold text-lg !rounded-md"
                     size="large"
                     hide-details
-                    :bordered="false"
+                    :bordered="true"
                     @click.stop
                     @blur="handleEditableTnChange(tableIdx)"
                     @keydown.enter="handleEditableTnChange(tableIdx)"
@@ -859,163 +906,127 @@ watch(modelRef, async () => {
             </template>
 
             <template #extra>
-              <a-tooltip bottom>
+              <NcTooltip bottom class="inline-block mr-8">
                 <template #title>
                   <span>{{ $t('activity.deleteTable') }}</span>
                 </template>
                 <component
-                  :is="iconMap.delete"
+                  :is="iconMap.deleteListItem"
                   v-if="data.tables.length > 1"
-                  class="text-lg mr-8"
+                  class="text-lg"
                   @click.stop="deleteTable(tableIdx)"
                 />
-              </a-tooltip>
+              </NcTooltip>
             </template>
-            <a-table
-              v-if="table.columns && table.columns.length"
-              class="template-form"
-              row-class-name="template-form-row"
-              :data-source="table.columns"
-              :columns="tableColumns"
-              :pagination="table.columns.length > 50 ? { defaultPageSize: 50, position: ['bottomCenter'] } : false"
-            >
-              <template #emptyText>
-                <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('labels.noData')" />
-              </template>
+            <div v-if="table.columns && table.columns.length" class="flex w-full max-h-[calc(80vh_-_200px)]">
+              <NcTable
+                class="template-form flex-1"
+                body-row-class-name="template-form-row"
+                :data="table.columns"
+                :columns="tableColumns"
+                :bordered="false"
+                :pagination="table.columns.length > 50 ? { defaultPageSize: 50, position: ['bottomCenter'] } : false"
+              >
+                <template #headerCell="{ column }">
+                  <template v-if="column.key === 'column_name'">
+                    <span>
+                      {{ $t('labels.columnName') }}
+                    </span>
+                  </template>
 
-              <template #headerCell="{ column }">
-                <template v-if="column.key === 'column_name'">
-                  <span>
-                    {{ $t('labels.columnName') }}
-                  </span>
+                  <template v-else-if="column.key === 'uidt'">
+                    <span>
+                      {{ $t('labels.columnType') }}
+                    </span>
+                  </template>
+
+                  <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
+                    <span>
+                      {{ $t('general.options') }}
+                    </span>
+                  </template>
                 </template>
 
-                <template v-else-if="column.key === 'uidt'">
-                  <span>
-                    {{ $t('labels.columnType') }}
-                  </span>
-                </template>
-
-                <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
-                  <span>
-                    {{ $t('general.options') }}
-                  </span>
-                </template>
-              </template>
-
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.key === 'column_name'">
-                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-input :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)" v-model:value="record.title" />
-                  </a-form-item>
-                </template>
-
-                <template v-else-if="column.key === 'uidt'">
-                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-select
-                      v-model:value="record.uidt"
-                      class="w-52"
-                      show-search
-                      :filter-option="filterOption"
-                      dropdown-class-name="nc-dropdown-template-uidt"
-                      @change="handleUIDTChange(record, table)"
+                <template #bodyCell="{ column, record }">
+                  <template v-if="column.key === 'column_name'">
+                    <a-form-item
+                      v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.title`]"
+                      class="nc-table-field-name !mb-0 w-full"
                     >
-                      <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
-                        <a-tooltip placement="right">
-                          <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
-                            {{
-                              $t('msg.tooLargeFieldEntity', {
-                                entity: option.label,
-                              })
-                            }}
+                      <a-input
+                        :ref="(el: HTMLInputElement) => (inputRefs[record.key] = el)"
+                        v-model:value="record.title"
+                        class="!rounded-md"
+                      >
+                        <template #suffix>
+                          <NcTooltip v-if="formError?.[`tables.${tableIdx}.columns.${record.key}.title`]" class="flex">
+                            <template #title
+                              >{{ formError?.[`tables.${tableIdx}.columns.${record.key}.title`].join('\n') }}
+                            </template>
+                            <GeneralIcon icon="info" class="h-4 w-4 text-red-500 flex-none" />
+                          </NcTooltip>
+                        </template>
+                      </a-input>
+                    </a-form-item>
+                  </template>
+
+                  <template v-else-if="column.key === 'uidt'">
+                    <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.uidt`]" class="!mb-0 w-full">
+                      <NcTooltip :disabled="importDataOnly">
+                        <template #title>
+                          {{ $t('tooltip.useFieldEditMenuToConfigFieldType') }}
+                        </template>
+                        <a-select
+                          v-model:value="record.uidt"
+                          class="w-52"
+                          show-search
+                          :filter-option="filterOption"
+                          dropdown-class-name="nc-dropdown-template-uidt"
+                          :disabled="!importDataOnly"
+                          @change="handleUIDTChange(record, table)"
+                        >
+                          <template #suffixIcon>
+                            <GeneralIcon icon="arrowDown" class="text-current" />
                           </template>
-                          {{ option.label }}
-                        </a-tooltip>
-                      </a-select-option>
-                    </a-select>
-                  </a-form-item>
+
+                          <a-select-option v-for="(option, i) of uiTypeOptions" :key="i" :value="option.value">
+                            <div class="flex items-center gap-2">
+                              <component :is="getUIDTIcon(UITypes[option.value])" class="h-3.5 w-3.5" />
+                              <NcTooltip placement="right" :disabled="!importDataOnly" show-on-truncate-only>
+                                <template v-if="isSelectDisabled(option.label, table.columns[record.key]?._disableSelect)" #title>
+                                  {{
+                                    $t('msg.tooLargeFieldEntity', {
+                                      entity: option.label,
+                                    })
+                                  }}
+                                </template>
+                                {{ option.label }}
+                              </NcTooltip>
+                            </div>
+                          </a-select-option>
+                        </a-select>
+                      </NcTooltip>
+                    </a-form-item>
+                  </template>
+
+                  <template v-if="column.key === 'action'">
+                    <NcTooltip class="inline-block">
+                      <template #title>
+                        <span>{{ $t('activity.column.delete') }}</span>
+                      </template>
+
+                      <NcButton
+                        type="text"
+                        size="small"
+                        :disabled="table.columns.length === 1"
+                        @click="deleteTableColumn(tableIdx, record.key)"
+                      >
+                        <component :is="iconMap.deleteListItem" />
+                      </NcButton>
+                    </NcTooltip>
+                  </template>
                 </template>
-
-                <template v-else-if="column.key === 'dtxp'">
-                  <a-form-item v-if="isSelect(record)">
-                    <a-input v-model:value="record.dtxp" />
-                  </a-form-item>
-                </template>
-
-                <template v-if="column.key === 'action'">
-                  <a-tooltip v-if="record.key === 0">
-                    <template #title>
-                      <span>{{ $t('general.primaryValue') }}</span>
-                    </template>
-
-                    <div class="flex items-center float-right mr-4">
-                      <mdi-key-star class="text-lg" />
-                    </div>
-                  </a-tooltip>
-
-                  <a-tooltip v-else>
-                    <template #title>
-                      <span>{{ $t('activity.column.delete') }}</span>
-                    </template>
-
-                    <a-button type="text" @click="deleteTableColumn(tableIdx, record.key)">
-                      <div class="flex items-center">
-                        <component :is="iconMap.delete" class="text-lg" />
-                      </div>
-                    </a-button>
-                  </a-tooltip>
-                </template>
-              </template>
-            </a-table>
-
-            <div class="mt-5 flex gap-2 justify-center">
-              <a-tooltip bottom>
-                <template #title>
-                  <span>{{ $t('activity.column.addNumber') }}</span>
-                </template>
-
-                <a-button class="group" @click="addNewColumnRow(tableIdx, 'Number')">
-                  <div class="flex items-center">
-                    <component :is="iconMap.number" class="group-hover:!text-accent flex text-lg" />
-                  </div>
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip bottom>
-                <template #title>
-                  <span>{{ $t('activity.column.addSingleLineText') }}</span>
-                </template>
-
-                <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
-                  <div class="flex items-center">
-                    <component :is="iconMap.text" class="group-hover:!text-accent text-lg" />
-                  </div>
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip bottom>
-                <template #title>
-                  <span>{{ $t('activity.column.addLongText') }}</span>
-                </template>
-
-                <a-button class="group" @click="addNewColumnRow(tableIdx, 'LongText')">
-                  <div class="flex items-center">
-                    <component :is="iconMap.longText" class="group-hover:!text-accent text-lg" />
-                  </div>
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip bottom>
-                <template #title>
-                  <span>{{ $t('activity.column.addOther') }}</span>
-                </template>
-
-                <a-button class="group" @click="addNewColumnRow(tableIdx, 'SingleLineText')">
-                  <div class="flex items-center gap-1">
-                    <component :is="iconMap.plus" class="group-hover:!text-accent text-lg" />
-                  </div>
-                </a-button>
-              </a-tooltip>
+              </NcTable>
             </div>
           </a-collapse-panel>
         </a-collapse>
@@ -1029,16 +1040,15 @@ watch(modelRef, async () => {
   @apply bg-white;
 }
 
-.template-form {
-  :deep(.ant-table-thead) > tr > th {
-    @apply bg-white;
+:deep(.ant-collapse-header) {
+  @apply !items-center;
+  & > div {
+    @apply flex;
   }
-
-  :deep(.template-form-row) > td {
-    @apply p-1 mb-0 truncate max-w-50;
-    .ant-form-item {
-      @apply mb-0;
-    }
+}
+.nc-table-field-name {
+  :deep(.ant-form-item-explain) {
+    @apply hidden;
   }
 }
 </style>

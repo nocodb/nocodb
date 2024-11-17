@@ -154,19 +154,18 @@ export class ViewSidebarPage extends BasePage {
       .locator('.nc-sidebar-view-node-context-btn')
       .click();
 
-    await this.rootPage
-      .locator(`[data-testid="view-sidebar-view-actions-${title}"]`)
-      .locator('.nc-view-copy-icon')
-      .click({
+    const copyViewAction = () =>
+      this.rootPage.locator(`[data-testid="view-sidebar-view-actions-${title}"]`).locator('.nc-view-copy-icon').click({
         force: true,
       });
-    const submitAction = () =>
-      this.rootPage.locator('.ant-modal-content').locator('button:has-text("Create a View"):visible').click();
+
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: '/api/v1/db/meta/tables/',
-      uiAction: submitAction,
+      uiAction: copyViewAction,
     });
+
+    await this.rootPage.locator(`[data-testid="view-sidebar-view-actions-${title}"]`).waitFor({ state: 'hidden' });
     // await this.verifyToast({ message: 'View created successfully' });
   }
 
@@ -205,7 +204,7 @@ export class ViewSidebarPage extends BasePage {
   }
 
   private async createView({ title, type }: { title: string; type: ViewTypes }) {
-    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForTimeout(500);
 
     await this.dashboard.sidebar.createView({ title, type });
   }

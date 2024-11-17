@@ -1,16 +1,5 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import {
-  EditColumnInj,
-  EditModeInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  ReadonlyInj,
-  RowHeightInj,
-  inject,
-  ref,
-  useVModel,
-} from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -41,18 +30,19 @@ const focus: VNodeRef = (el) =>
 </script>
 
 <template>
+  <!-- eslint-disable vue/use-v-on-exact -->
   <input
     v-if="!readOnly && editEnabled"
     :ref="focus"
     v-model="vModel"
     class="nc-cell-field h-full w-full outline-none py-1 bg-transparent"
-    :placeholder="isEditColumn ? $t('labels.optional') : ''"
     @blur="editEnabled = false"
     @keydown.down.stop
     @keydown.left.stop
     @keydown.right.stop
     @keydown.up.stop
     @keydown.delete.stop
+    @keydown.alt.stop
     @selectstart.capture.stop
     @mousedown.stop
   />

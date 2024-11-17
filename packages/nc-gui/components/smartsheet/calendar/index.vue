@@ -1,34 +1,20 @@
 <script lang="ts" setup>
-import dayjs from 'dayjs'
 import { UITypes } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  IsCalendarInj,
-  IsFormInj,
-  IsGalleryInj,
-  IsGridInj,
-  IsKanbanInj,
-  MetaInj,
-  ReloadViewDataHookInj,
-  ReloadViewMetaHookInj,
-  type Row as RowType,
-  computed,
-  extractPkFromRow,
-  inject,
-  provide,
-  ref,
-  rowDefaultData,
-} from '#imports'
+import type { Row as RowType } from '#imports'
+
+const { $e } = useNuxtApp()
 
 const meta = inject(MetaInj, ref())
 
 const view = inject(ActiveViewInj, ref())
 
+const { isMobileMode } = useGlobal()
+
 const reloadViewMetaHook = inject(ReloadViewMetaHookInj)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
-const { isMobileMode } = useGlobal()
+const isPublic = inject(IsPublicInj, ref(false))
 
 provide(IsFormInj, ref(false))
 
@@ -41,23 +27,17 @@ provide(IsKanbanInj, ref(false))
 provide(IsCalendarInj, ref(true))
 
 const {
-  activeCalendarView,
-  calendarRange,
-  calDataType,
-  loadCalendarMeta,
-  loadCalendarData,
-  loadSidebarData,
-  isCalendarDataLoading,
-  selectedDate,
-  selectedMonth,
-  activeDates,
-  pageDate,
-  showSideMenu,
-  selectedDateRange,
-  paginateCalendarView,
+  activeCalendarView, // The active Calendar View - "week" | "day" | "month" | "year"
+  calendarRange, // calendar Ranges
+  calDataType, // Calendar Data Type
+  loadCalendarMeta, // Function to load Calendar Meta
+  loadCalendarData, // Function to load Calendar Data
+  loadSidebarData, // Function to load Sidebar Data
+  isCalendarDataLoading, // Boolean ref to check if Calendar Data is Loading
+  isCalendarMetaLoading, // Boolean ref to check if Calendar Meta is Loading
+  fetchActiveDates, // Function to fetch Active Dates
+  showSideMenu, // Boolean Ref to show Side Menu
 } = useCalendarViewStoreOrThrow()
-
-const calendarRangeDropdown = ref(false)
 
 const router = useRouter()
 
@@ -67,14 +47,15 @@ const expandedFormOnRowIdDlg = computed({
   get() {
     return !!route.query.rowId
   },
-  set(val) {
-    if (!val)
+  set(value) {
+    if (!value) {
       router.push({
         query: {
           ...route.query,
           rowId: undefined,
         },
       })
+    }
   },
 })
 
@@ -86,7 +67,10 @@ const expandedFormRowState = ref<Record<string, any>>()
 
 const expandRecord = (row: RowType, state?: Record<string, any>) => {
   const rowId = extractPkFromRow(row.row, meta.value!.columns!)
-  if (rowId) {
+
+  expandedFormRowState.value = state
+
+  if (rowId && !isPublic.value) {
     router.push({
       query: {
         ...route.query,
@@ -95,14 +79,13 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
     })
   } else {
     expandedFormRow.value = row
-    expandedFormRowState.value = state
     expandedFormDlg.value = true
   }
 }
 
 const newRecord = (row: RowType) => {
-  // TODO: The default values has to be filled based on the active calendar view
-  // and selected sidebar filter option
+  if (isPublic.value) return
+  $e('c:calendar:new-record', activeCalendarView.value)
   expandRecord({
     row: {
       ...rowDefaultData(meta.value?.columns),
@@ -127,217 +110,113 @@ reloadViewMetaHook?.on(async () => {
   await loadCalendarMeta()
 })
 
-reloadViewDataHook?.on(async () => {
-  await Promise.all([loadCalendarData(), loadSidebarData()])
-})
-
-const goToToday = () => {
-  selectedDate.value = dayjs()
-  pageDate.value = dayjs()
-  selectedMonth.value = dayjs()
-  selectedDateRange.value = {
-    start: dayjs().startOf('week'),
-    end: dayjs().endOf('week'),
-  }
-
-  document?.querySelector('.nc-calendar-today')?.scrollIntoView({
-    behavior: 'smooth',
-    block: 'center',
-  })
-}
-
-const headerText = computed(() => {
-  switch (activeCalendarView.value) {
-    case 'day':
-      return dayjs(selectedDate.value).format('D MMMM YYYY')
-    case 'week':
-      if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'month')) {
-        return `${selectedDateRange.value.start.format('D')} - ${selectedDateRange.value.end.format('D MMM YY')}`
-      } else if (selectedDateRange.value.start.isSame(selectedDateRange.value.end, 'year')) {
-        return `${selectedDateRange.value.start.format('D MMM')} - ${selectedDateRange.value.end.format('D MMM YY')}`
-      } else {
-        return `${selectedDateRange.value.start.format('D MMM YY')} - ${selectedDateRange.value.end.format('D MMM YY')}`
-      }
-    case 'month':
-      return dayjs(selectedMonth.value).format('MMMM YYYY')
-    case 'year':
-      return dayjs(selectedDate.value).format('YYYY')
-  }
+reloadViewDataHook?.on(async (params: void | { shouldShowLoading?: boolean }) => {
+  await Promise.all([
+    loadCalendarData(params?.shouldShowLoading ?? false),
+    loadSidebarData(params?.shouldShowLoading ?? false),
+    fetchActiveDates(),
+  ])
 })
 </script>
 
 <template>
-  <div class="flex h-full flex-row" data-testid="nc-calendar-wrapper">
-    <div class="flex flex-col w-full">
-      <div class="flex justify-between p-2 items-center border-b-1 border-gray-200" data-testid="nc-calendar-topbar">
-        <div class="flex justify-start gap-3 items-center">
-          <NcTooltip>
-            <template #title> {{ $t('labels.previous') }}</template>
-            <NcButton
-              v-e="`['c:calendar:calendar-${activeCalendarView}-prev-btn']`"
-              data-testid="nc-calendar-prev-btn"
-              size="small"
-              type="secondary"
-              @click="paginateCalendarView('prev')"
-            >
-              <component :is="iconMap.doubleLeftArrow" class="h-4 w-4" />
-            </NcButton>
-          </NcTooltip>
-
-          <NcDropdown v-model:visible="calendarRangeDropdown" :auto-close="false" :trigger="['click']">
-            <NcButton :class="{ '!w-22': activeCalendarView === 'year' }" class="w-45" full-width size="small" type="secondary">
-              <div class="flex px-2 w-full items-center justify-between">
-                <span class="font-bold text-center text-brand-500" data-testid="nc-calendar-active-date">{{ headerText }}</span>
-                <component :is="iconMap.arrowDown" class="h-4 w-4 text-gray-700" />
-              </div>
-            </NcButton>
-
-            <template #overlay>
-              <div
-                v-if="calendarRangeDropdown"
-                :class="{
-                  'px-4 pt-3 pb-4 ': activeCalendarView === 'week' || activeCalendarView === 'day',
-                }"
-                class="min-w-[22.1rem]"
-                @click.stop
-              >
-                <NcDateWeekSelector
-                  v-if="activeCalendarView === ('day' as const)"
-                  v-model:active-dates="activeDates"
-                  v-model:page-date="pageDate"
-                  v-model:selected-date="selectedDate"
-                />
-                <NcDateWeekSelector
-                  v-else-if="activeCalendarView === ('week' as const)"
-                  v-model:active-dates="activeDates"
-                  v-model:page-date="pageDate"
-                  v-model:selected-week="selectedDateRange"
-                  is-week-picker
-                />
-                <NcMonthYearSelector
-                  v-else-if="activeCalendarView === ('month' as const)"
-                  v-model:page-date="pageDate"
-                  v-model:selected-date="selectedMonth"
-                />
-                <NcMonthYearSelector
-                  v-else-if="activeCalendarView === ('year' as const)"
-                  v-model:page-date="pageDate"
-                  v-model:selected-date="selectedDate"
-                  is-year-picker
-                />
-              </div>
-            </template>
-          </NcDropdown>
-          <NcTooltip>
-            <template #title> {{ $t('labels.next') }}</template>
-            <NcButton
-              v-e="`['c:calendar:calendar-${activeCalendarView}-next-btn']`"
-              data-testid="nc-calendar-next-btn"
-              size="small"
-              type="secondary"
-              @click="paginateCalendarView('next')"
-            >
-              <component :is="iconMap.doubleRightArrow" class="h-4 w-4" />
-            </NcButton>
-          </NcTooltip>
-          <NcButton
-            v-e="`['c:calendar:calendar-${activeCalendarView}-today-btn']`"
-            data-testid="nc-calendar-today-btn"
-            size="small"
-            type="secondary"
-            @click="goToToday"
-          >
-            <span class="text-gray-600 !text-sm">
-              {{ $t('activity.goToToday') }}
-            </span>
-          </NcButton>
-          <span class="opacity-0" data-testid="nc-active-calendar-view">
-            {{ activeCalendarView }}
-          </span>
-        </div>
-        <NcTooltip>
-          <template #title> {{ $t('activity.toggleSidebar') }}</template>
-          <NcButton
-            v-if="!isMobileMode"
-            v-e="`['c:calendar:calendar-${activeCalendarView}-toggle-sidebar']`"
-            data-testid="nc-calendar-side-bar-btn"
-            size="small"
-            type="secondary"
-            @click="showSideMenu = !showSideMenu"
-          >
-            <component :is="iconMap.sidebar" class="h-4 w-4 text-gray-600 transition-all" />
-          </NcButton>
-        </NcTooltip>
+  <template v-if="isMobileMode">
+    <div class="pl-6 pr-[120px] py-6 bg-white flex-col justify-start items-start gap-2.5 inline-flex">
+      <div class="text-gray-500 text-5xl font-semibold leading-16">
+        {{ $t('general.available') }}<br />{{ $t('title.inDesktop') }}
       </div>
-      <template v-if="calendarRange">
-        <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
-        <template v-if="!isCalendarDataLoading">
-          <LazySmartsheetCalendarMonthView
-            v-if="activeCalendarView === 'month'"
-            @expand-record="expandRecord"
-            @new-record="newRecord"
-          />
-          <LazySmartsheetCalendarWeekViewDateField
-            v-else-if="activeCalendarView === 'week' && calDataType === UITypes.Date"
-            @expand-record="expandRecord"
-            @new-record="newRecord"
-          />
-          <LazySmartsheetCalendarWeekViewDateTimeField
-            v-else-if="activeCalendarView === 'week' && calDataType === UITypes.DateTime"
-            @expand-record="expandRecord"
-            @new-record="newRecord"
-          />
-          <LazySmartsheetCalendarDayViewDateField
-            v-else-if="activeCalendarView === 'day' && calDataType === UITypes.Date"
-            @expand-record="expandRecord"
-            @new-record="newRecord"
-          />
-          <LazySmartsheetCalendarDayViewDateTimeField
-            v-else-if="activeCalendarView === 'day' && calDataType === UITypes.DateTime"
-            @expand-record="expandRecord"
-            @new-record="newRecord"
-          />
-        </template>
-
-        <div v-if="isCalendarDataLoading && activeCalendarView !== 'year'" class="flex w-full items-center h-full justify-center">
-          <GeneralLoader size="xlarge" />
-        </div>
-      </template>
-      <template v-else>
-        <div class="flex w-full items-center h-full justify-center">
-          {{ $t('activity.noRange') }}
-        </div>
-      </template>
+      <div class="text-gray-500 text-base font-medium leading-normal">
+        {{ $t('msg.calendarViewNotSupportedOnMobile') }}
+      </div>
     </div>
-    <LazySmartsheetCalendarSideMenu
-      v-if="!isMobileMode"
-      :visible="showSideMenu"
-      @expand-record="expandRecord"
-      @new-record="newRecord"
-    />
-  </div>
+  </template>
+  <template v-else>
+    <div class="flex h-full relative flex-row" data-testid="nc-calendar-wrapper">
+      <div class="flex flex-col w-full">
+        <template v-if="calendarRange?.length && !isCalendarMetaLoading">
+          <LazySmartsheetCalendarYearView v-if="activeCalendarView === 'year'" />
+          <template v-if="!isCalendarDataLoading">
+            <LazySmartsheetCalendarMonthView
+              v-if="activeCalendarView === 'month'"
+              @expand-record="expandRecord"
+              @new-record="newRecord"
+            />
+            <LazySmartsheetCalendarWeekViewDateField
+              v-else-if="activeCalendarView === 'week' && calDataType === UITypes.Date"
+              @expand-record="expandRecord"
+              @new-record="newRecord"
+            />
+            <LazySmartsheetCalendarWeekViewDateTimeField
+              v-else-if="
+                activeCalendarView === 'week' &&
+                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
+              "
+              @expand-record="expandRecord"
+              @new-record="newRecord"
+            />
+            <LazySmartsheetCalendarDayViewDateField
+              v-else-if="activeCalendarView === 'day' && calDataType === UITypes.Date"
+              @expand-record="expandRecord"
+              @new-record="newRecord"
+            />
+            <LazySmartsheetCalendarDayViewDateTimeField
+              v-else-if="
+                activeCalendarView === 'day' &&
+                [UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.Formula].includes(calDataType)
+              "
+              @expand-record="expandRecord"
+              @new-record="newRecord"
+            />
+          </template>
 
-  <Suspense>
-    <LazySmartsheetExpandedForm
-      v-if="expandedFormRow && expandedFormDlg"
-      v-model="expandedFormDlg"
-      close-after-save
-      :meta="meta"
-      :row="expandedFormRow"
-      :state="expandedFormRowState"
-      :view="view"
-    />
-  </Suspense>
+          <div
+            v-if="isCalendarDataLoading && activeCalendarView !== 'year'"
+            class="flex w-full items-center h-full justify-center"
+          >
+            <GeneralLoader size="xlarge" />
+          </div>
+        </template>
+        <template v-else-if="isCalendarMetaLoading">
+          <div class="flex w-full items-center h-full justify-center">
+            <GeneralLoader size="xlarge" />
+          </div>
+        </template>
+        <template v-else>
+          <div class="flex w-full items-center h-full justify-center">
+            {{ $t('activity.noRange') }}
+          </div>
+        </template>
+      </div>
+      <LazySmartsheetCalendarSideMenu :visible="showSideMenu" @expand-record="expandRecord" @new-record="newRecord" />
+    </div>
 
-  <Suspense>
+    <Suspense>
+      <LazySmartsheetExpandedForm
+        v-if="expandedFormRow && expandedFormDlg"
+        v-model="expandedFormDlg"
+        :row="expandedFormRow"
+        :load-row="!isPublic"
+        :state="expandedFormRowState"
+        :meta="meta"
+        :view="view"
+      />
+    </Suspense>
+
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"
       close-after-save
+      :load-row="!isPublic"
       :meta="meta"
-      :row="{ row: {}, oldRow: {}, rowMeta: {} }"
+      :state="expandedFormRowState"
+      :row="{
+        row: {},
+        oldRow: {},
+        rowMeta: {},
+      }"
       :row-id="route.query.rowId"
+      :expand-form="expandRecord"
       :view="view"
     />
-  </Suspense>
+  </template>
 </template>

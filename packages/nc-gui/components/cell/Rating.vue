@@ -1,15 +1,4 @@
 <script setup lang="ts">
-import {
-  ActiveCellInj,
-  ColumnInj,
-  IsExpandedFormOpenInj,
-  ReadonlyInj,
-  computed,
-  inject,
-  parseProp,
-  useSelectedCellKeyupListener,
-} from '#imports'
-
 interface Props {
   modelValue?: number | null | undefined
 }
@@ -22,17 +11,17 @@ const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
+const rowHeight = inject(RowHeightInj, ref(undefined))
+
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const ratingMeta = computed(() => {
+  const icon = extractRatingIcon(column?.value?.meta)
   return {
-    icon: {
-      full: 'mdi-star',
-      empty: 'mdi-star-outline',
-    },
     color: '#fcb401',
     max: 5,
     ...parseProp(column.value?.meta),
+    icon,
   }
 })
 
@@ -73,11 +62,20 @@ watch(rateDomRef, () => {
 <template>
   <a-rate
     ref="rateDomRef"
+    :key="ratingMeta.icon.full"
     v-model:value="vModel"
     :disabled="readOnly"
     :count="ratingMeta.max"
     :class="readOnly ? 'pointer-events-none' : ''"
-    :style="`color: ${ratingMeta.color}; padding: ${isExpandedFormOpen ? '0px 8px' : '0px 5px'};`"
+    :style="{
+      'color': ratingMeta.color,
+      'padding': isExpandedFormOpen ? '0px 8px' : '0px 2px',
+      'display': '-webkit-box',
+      'max-width': '100%',
+      '-webkit-line-clamp': rowHeightTruncateLines(rowHeight),
+      '-webkit-box-orient': 'vertical',
+      'overflow': 'hidden',
+    }"
     @keydown="onKeyPress"
   >
     <template #character>
@@ -89,3 +87,9 @@ watch(rateDomRef, () => {
     </template>
   </a-rate>
 </template>
+
+<style scoped lang="scss">
+:deep(li:not(:last-child)) {
+  @apply mr-[1.5px];
+}
+</style>

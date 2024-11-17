@@ -25,6 +25,7 @@ export class SharedFormPage extends BasePage {
   }
 
   async verifySuccessMessage() {
+    await this.rootPage.locator('.nc-shared-form-success-msg').waitFor({ state: 'visible', timeout: 10000 });
     await expect(
       this.get().locator('.ant-alert-success', {
         hasText: 'Successfully submitted form data',
@@ -39,7 +40,8 @@ export class SharedFormPage extends BasePage {
   }
 
   async closeLinkToChildList() {
-    await this.get().locator('.nc-close-btn').click();
+    // await this.get().locator('.nc-close-btn').click();
+    await this.rootPage.keyboard.press('Escape');
   }
 
   async verifyChildList(cardTitle?: string[]) {
@@ -68,6 +70,51 @@ export class SharedFormPage extends BasePage {
   }
 
   async selectChildList(cardTitle: string) {
-    await this.get().locator(`.ant-card:has-text("${cardTitle}"):visible`).click();
+    await this.get()
+      .locator(`.ant-card:has-text("${cardTitle}"):visible`)
+      .locator('.nc-list-item-link-unlink-btn')
+      .click();
+  }
+
+  fieldLabel({ title }: { title: string }) {
+    return this.get()
+      .getByTestId(`nc-shared-form-item-${title.replace(' ', '')}`)
+      .locator('.nc-form-column-label');
+  }
+
+  async getFormFieldErrors({ title }: { title: string }) {
+    const field = this.get().getByTestId(`nc-shared-form-item-${title.replace(' ', '')}`);
+    await field.scrollIntoViewIfNeeded();
+    const fieldErrorEl = field.locator('.ant-form-item-explain');
+    return {
+      locator: fieldErrorEl,
+      verify: async ({ hasError, hasErrorMsg }: { hasError?: boolean; hasErrorMsg?: string | RegExp }) => {
+        if (hasError !== undefined) {
+          if (hasError) {
+            await fieldErrorEl.waitFor({ state: 'visible' });
+
+            await expect(fieldErrorEl).toBeVisible();
+          } else {
+            await expect(fieldErrorEl).not.toBeVisible();
+          }
+        }
+
+        if (hasErrorMsg !== undefined) {
+          await fieldErrorEl.waitFor({ state: 'visible' });
+
+          await expect(fieldErrorEl.locator('> div').filter({ hasText: hasErrorMsg }).first()).toHaveText(hasErrorMsg);
+        }
+      },
+    };
+  }
+
+  async verifyField({ title, isVisible }: { title: string; isVisible: boolean }) {
+    const field = this.fieldLabel({ title });
+
+    if (isVisible) {
+      await expect(field).toBeVisible();
+    } else {
+      await expect(field).not.toBeVisible();
+    }
   }
 }

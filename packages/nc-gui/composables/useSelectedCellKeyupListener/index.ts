@@ -1,6 +1,5 @@
 import { isClient } from '@vueuse/core'
 import type { ComputedRef, Ref } from 'vue'
-import { cmdKActive } from '#imports'
 
 function useSelectedCellKeyupListener(
   selected: Ref<boolean | undefined> | ComputedRef<boolean | undefined>,

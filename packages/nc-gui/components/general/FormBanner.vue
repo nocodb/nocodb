@@ -7,6 +7,10 @@ interface Props {
 const { bannerImageUrl } = defineProps<Props>()
 
 const { getPossibleAttachmentSrc } = useAttachment()
+
+const getBannerImageSrc = computed(() => {
+  return getPossibleAttachmentSrc(parseProp(bannerImageUrl))
+})
 </script>
 
 <template>
@@ -15,9 +19,9 @@ const { getPossibleAttachmentSrc } = useAttachment()
     :class="!bannerImageUrl ? 'shadow-sm' : ''"
     :style="{ aspectRatio: 4 / 1 }"
   >
-    <LazyCellAttachmentImage
+    <LazyCellAttachmentPreviewImage
       v-if="bannerImageUrl"
-      :srcs="getPossibleAttachmentSrc(parseProp(bannerImageUrl))"
+      :srcs="getBannerImageSrc"
       class="nc-form-banner-image object-cover w-full"
     />
     <div v-else class="h-full flex items-stretch justify-between bg-white">

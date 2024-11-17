@@ -1,13 +1,11 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
 
-import { NcProjectType, baseIconColors } from '#imports'
-
 const props = withDefaults(
   defineProps<{
-    type?: NcProjectType | string
+    type?: typeof NcProjectType | string
     modelValue?: string
-    size?: 'small' | 'medium' | 'large' | 'xlarge'
+    size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge'
     readonly?: boolean
     iconClass?: string
   }>(),
@@ -62,6 +60,7 @@ watch(
         :class="{
           'hover:bg-gray-500 hover:bg-opacity-15 cursor-pointer': !readonly,
           'bg-gray-500 bg-opacity-15': isOpen,
+          'h-5 w-5 text-base': size === 'xsmall',
           'h-6 w-6 text-lg': size === 'small',
           'h-8 w-8 text-xl': size === 'medium',
           'h-10 w-10 text-2xl': size === 'large',

@@ -70,6 +70,11 @@ jobs:
     secrets:
       NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
+  # Create a PR to sync changes back to develop branch from master
+  sync-to-develop:
+    needs: [release-npm, process-input]
+    uses: ./.github/workflows/sync-to-develop.yml
+
   # Draft Release Note
   release-draft-note:
     needs: [release-npm, process-input]
@@ -116,8 +121,3 @@ jobs:
     uses: ./.github/workflows/publish-docs.yml
     secrets:
       GH_TOKEN: "${{ secrets.GH_TOKEN }}"
-
-  # Sync changes to develop
-  sync-to-develop:
-    needs: publish-docs
-    uses: ./.github/workflows/sync-to-develop.yml

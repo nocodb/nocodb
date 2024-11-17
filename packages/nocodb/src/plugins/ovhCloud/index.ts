@@ -1,11 +1,11 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import OvhCloud from './OvhCloudPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: OvhCloud,
-  title: 'OvhCloud Object Storage',
-  version: '0.0.1',
+  title: 'Ovh',
+  version: '0.0.4',
   logo: 'plugins/ovhCloud.png',
   tags: 'Storage',
   description:
@@ -41,6 +41,13 @@ const config: XcPluginConfig = {
         type: XcType.Password,
         required: true,
       },
+      {
+        key: 'acl',
+        label: 'Access Control Lists (ACL)',
+        placeholder: 'Default set to public-read',
+        type: XcType.SingleLineText,
+        required: false,
+      },
     ],
     actions: [
       {
@@ -59,7 +66,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in OvhCloud Object Storage',
+      'Successfully configured! Attachments will now be stored in OvhCloud Object Storage.',
     msgOnUninstall: '',
   },
   category: 'Storage',

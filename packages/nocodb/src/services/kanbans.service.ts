@@ -5,7 +5,7 @@ import type {
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -17,24 +17,29 @@ import { CacheScope } from '~/utils/globals';
 export class KanbansService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async kanbanViewGet(param: { kanbanViewId: string }) {
-    return await KanbanView.get(param.kanbanViewId);
+  async kanbanViewGet(context: NcContext, param: { kanbanViewId: string }) {
+    return await KanbanView.get(context, param.kanbanViewId);
   }
 
-  async kanbanViewCreate(param: {
-    tableId: string;
-    kanban: ViewCreateReqType;
-    user: UserType;
-    req: NcRequest;
-  }) {
+  async kanbanViewCreate(
+    context: NcContext,
+    param: {
+      tableId: string;
+      kanban: ViewCreateReqType;
+      user: UserType;
+      req: NcRequest;
+      ownedBy?: string;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.kanban,
     );
 
-    const model = await Model.get(param.tableId);
+    const model = await Model.get(context, param.tableId);
 
     const { id } = await View.insertMetaOnly(
+      context,
       {
         ...param.kanban,
         // todo: sanitize
@@ -42,12 +47,14 @@ export class KanbansService {
         type: ViewTypes.KANBAN,
         base_id: model.base_id,
         source_id: model.source_id,
+        created_by: param.user?.id,
+        owned_by: param.ownedBy || param.user?.id,
       },
       model,
     );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(id);
+    const view = await View.get(context, id);
     await NocoCache.appendToList(
       CacheScope.VIEW,
       [view.fk_model_id],
@@ -65,23 +72,30 @@ export class KanbansService {
     return view;
   }
 
-  async kanbanViewUpdate(param: {
-    kanbanViewId: string;
-    kanban: KanbanUpdateReqType;
-    req: NcRequest;
-  }) {
+  async kanbanViewUpdate(
+    context: NcContext,
+    param: {
+      kanbanViewId: string;
+      kanban: KanbanUpdateReqType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/KanbanUpdateReq',
       param.kanban,
     );
 
-    const view = await View.get(param.kanbanViewId);
+    const view = await View.get(context, param.kanbanViewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.kanbanViewId);
     }
 
-    const res = await KanbanView.update(param.kanbanViewId, param.kanban);
+    const res = await KanbanView.update(
+      context,
+      param.kanbanViewId,
+      param.kanban,
+    );
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,

@@ -2,21 +2,7 @@ import type { PropType } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import {
-  ColumnInj,
-  MetaInj,
-  defineComponent,
-  h,
-  iconMap,
-  inject,
-  isBt,
-  isHm,
-  isLookup,
-  isMm,
-  isRollup,
-  ref,
-  toRef,
-} from '#imports'
+
 import CountIcon from '~icons/mdi/counter'
 
 const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
@@ -30,12 +16,16 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
           return { icon: iconMap.hm_solid }
         case RelationTypes.BELONGS_TO:
           return { icon: iconMap.bt_solid }
+        case RelationTypes.ONE_TO_ONE:
+          return { icon: iconMap.oneToOneSolid, color: 'text-purple-500' }
       }
       break
     case UITypes.SpecificDBType:
       return { icon: iconMap.cellDb, color: 'text-grey' }
     case UITypes.Formula:
       return { icon: iconMap.cellFormula, color: 'text-grey' }
+    case UITypes.Button:
+      return { icon: iconMap.cellButton, color: 'text-grey' }
     case UITypes.QrCode:
       return { icon: iconMap.cellQrCode, color: 'text-grey' }
     case UITypes.Barcode:
@@ -48,6 +38,8 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
           return { icon: iconMap.cellLookup, color: 'text-orange-500' }
         case RelationTypes.BELONGS_TO:
           return { icon: iconMap.cellLookup, color: 'text-blue-500' }
+        case RelationTypes.ONE_TO_ONE:
+          return { icon: iconMap.cellLookup, color: 'text-purple-500' }
       }
       return { icon: iconMap.cellLookup, color: 'text-grey' }
     case UITypes.Rollup:
@@ -58,6 +50,8 @@ const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
           return { icon: iconMap.cellRollup, color: 'text-orange-500' }
         case RelationTypes.BELONGS_TO:
           return { icon: iconMap.cellRollup, color: 'text-blue-500' }
+        case RelationTypes.ONE_TO_ONE:
+          return { icon: iconMap.cellRollup, color: 'text-purple-500' }
       }
       return { icon: iconMap.cellRollup, color: 'text-grey' }
     case UITypes.Count:
@@ -88,15 +82,16 @@ export default defineComponent({
 
     const column = computed(() => columnMeta.value ?? injectedColumn.value)
 
+    const { metas } = useMetas()
+
     let relationColumn: ColumnType
 
     return () => {
       if (!column.value) return null
 
       if (column && column.value) {
-        if (isMm(column.value) || isHm(column.value) || isBt(column.value) || isLookup(column.value) || isRollup(column.value)) {
-          const meta = inject(MetaInj, ref())
-          relationColumn = meta.value?.columns?.find(
+        if (isLookup(column.value) || isRollup(column.value)) {
+          relationColumn = metas.value?.[column.value.fk_model_id]?.columns?.find(
             (c) => c.id === column.value?.colOptions?.fk_relation_column_id,
           ) as ColumnType
         }
@@ -104,7 +99,7 @@ export default defineComponent({
 
       const { icon: Icon, color } = renderIcon(column.value, relationColumn)
 
-      return h(Icon, { class: `${color} mx-1 nc-virtual-cell-icon` })
+      return h(Icon, { class: `${color || 'text-grey'} mx-1 nc-virtual-cell-icon` })
     }
   },
 })

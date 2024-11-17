@@ -1,21 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import {
-  CellUrlDisableOverlayInj,
-  CellValueInj,
-  ColumnInj,
-  IsUnderLookupInj,
-  MetaInj,
-  computed,
-  inject,
-  isAttachment,
-  provide,
-  ref,
-  useMetas,
-  useShowNotEditableWarning,
-  watch,
-} from '#imports'
 
 const { metas, getMeta } = useMetas()
 
@@ -35,13 +20,12 @@ const rowHeight = inject(RowHeightInj, ref(1) as any)
 
 provide(RowHeightInj, providedHeightRef)
 
-const relationColumn = computed(
-  () =>
-    meta.value?.columns?.find((c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id) as
-      | (ColumnType & {
-          colOptions: LinkToAnotherRecordType | undefined
-        })
-      | undefined,
+const relationColumn = computed(() =>
+  meta.value?.id
+    ? metas.value[meta.value?.id]?.columns?.find(
+        (c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id,
+      )
+    : undefined,
 )
 
 watch(
@@ -77,9 +61,12 @@ watch([lookupColumn, rowHeight], () => {
 const arrValue = computed(() => {
   if (!cellValue.value) return []
 
-  // if lookup column is Attachment and relation type is Belongs to wrap the value in an array
+  // if lookup column is Attachment and relation type is Belongs/OneToOne to wrap the value in an array
   // since the attachment component expects an array or JSON string array
-  if (lookupColumn.value?.uidt === UITypes.Attachment && relationColumn.value?.colOptions?.type === RelationTypes.BELONGS_TO)
+  if (
+    lookupColumn.value?.uidt === UITypes.Attachment &&
+    [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relationColumn.value?.colOptions?.type)
+  )
     return [cellValue.value]
 
   // TODO: We are filtering null as cell value can be null. Find the root cause and fix it
@@ -102,7 +89,14 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
   <div
     class="nc-cell-field h-full w-full nc-lookup-cell"
     tabindex="-1"
-    :style="{ height: isGroupByLabel ? undefined : rowHeight && rowHeight !== 1 ? `${rowHeight * 2}rem` : `2.85rem` }"
+    :style="{
+      height:
+        isGroupByLabel || (lookupColumn && isAttachment(lookupColumn))
+          ? undefined
+          : rowHeight
+          ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 18}px`
+          : `2.85rem`,
+    }"
     @dblclick="activateShowEditNonEditableFieldWarning"
   >
     <div
@@ -113,12 +107,13 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     >
       <template v-if="lookupColumn">
         <!-- Render virtual cell -->
-        <div v-if="isVirtualCol(lookupColumn)" class="flex h-full">
-          <!-- If non-belongs-to LTAR column then pass the array value, else iterate and render -->
+        <div v-if="isVirtualCol(lookupColumn) && lookupColumn.uidt !== UITypes.Rollup" class="flex h-full">
+          <!-- If non-belongs-to and non-one-to-one LTAR column then pass the array value, else iterate and render -->
           <template
             v-if="
               lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
-              (lookupColumn.uidt === UITypes.LinkToAnotherRecord && lookupColumn.colOptions.type === RelationTypes.BELONGS_TO)
+              (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
+                [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
             "
           >
             <LazySmartsheetVirtualCell
@@ -154,16 +149,19 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
               }"
             >
               <div
-                class="flex items-start gap-1.5 w-full h-full py-[3px]"
+                class="flex gap-1.5 w-full h-full py-[3px]"
                 :class="{
                   'flex-wrap': rowHeight !== 1 && !isAttachment(lookupColumn),
                   '!overflow-x-auto nc-cell-lookup-scroll nc-scrollbar-x-md !overflow-y-hidden':
                     rowHeight === 1 || isAttachment(lookupColumn),
+                  'items-center': rowHeight === 1,
+                  'items-start': rowHeight !== 1,
                 }"
               >
                 <div
                   v-for="(v, i) of arrValue"
                   :key="i"
+                  class="flex-none"
                   :class="{
                     'bg-gray-100 rounded-full': !isAttachment(lookupColumn),
                     'border-gray-200 rounded border-1': ![
@@ -177,16 +175,34 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
                     'min-h-0 min-w-0': isAttachment(lookupColumn),
                   }"
                 >
+                  <LazySmartsheetVirtualCell
+                    v-if="lookupColumn.uidt === UITypes.Rollup"
+                    :edit-enabled="false"
+                    :read-only="true"
+                    :model-value="v"
+                    :column="lookupColumn"
+                    class="px-2"
+                  />
                   <LazySmartsheetCell
+                    v-else
                     :model-value="v"
                     :column="lookupColumn"
                     :edit-enabled="false"
                     :virtual="true"
                     :read-only="true"
-                    :class="{
-                      'min-h-0 min-w-0': isAttachment(lookupColumn),
-                      '!min-w-20 !w-auto px-2': !isAttachment(lookupColumn),
-                    }"
+                    :class="[
+                      `${
+                        [UITypes.MultiSelect, UITypes.SingleSelect, UITypes.User].includes(lookupColumn.uidt)
+                          ? 'pl-2'
+                          : !isAttachment(lookupColumn)
+                          ? 'px-2'
+                          : ''
+                      }`,
+                      {
+                        'min-h-0 min-w-0': isAttachment(lookupColumn),
+                        '!w-auto ': !isAttachment(lookupColumn),
+                      },
+                    ]"
                   />
                 </div>
               </div>
@@ -210,6 +226,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
     @apply bg-transparent;
   }
 }
+
 .nc-cell-lookup-scroll:hover {
   &::-webkit-scrollbar-thumb {
     @apply bg-gray-200;
@@ -218,5 +235,11 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 
 .nc-lookup-cell .nc-text-area-clamped-text {
   @apply !mr-1;
+}
+
+.nc-lookup-cell {
+  &:has(.nc-cell-attachment) {
+    height: auto !important;
+  }
 }
 </style>

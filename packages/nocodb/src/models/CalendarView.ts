@@ -1,6 +1,6 @@
 import type { BoolType, MetaType } from 'nocodb-sdk';
 import type { CalendarType } from 'nocodb-sdk';
-import View from '~/models/View';
+import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
@@ -11,6 +11,7 @@ import CalendarRange from '~/models/CalendarRange';
 export default class CalendarView implements CalendarType {
   fk_view_id: string;
   title: string;
+  fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
   meta?: MetaType;
@@ -27,7 +28,11 @@ export default class CalendarView implements CalendarType {
     Object.assign(this, data);
   }
 
-  public static async get(viewId: string, ncMeta = Noco.ncMeta) {
+  public static async get(
+    context: NcContext,
+    viewId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     let view =
       viewId &&
       (await NocoCache.get(
@@ -35,17 +40,22 @@ export default class CalendarView implements CalendarType {
         CacheGetType.TYPE_OBJECT,
       ));
     if (view) {
-      const calendarRange = await CalendarRange.read(viewId, ncMeta);
+      const calendarRange = await CalendarRange.read(context, viewId, ncMeta);
       if (calendarRange) {
         view.calendar_range = calendarRange.ranges;
       } else {
         view.calendar_range = [];
       }
     } else {
-      view = await ncMeta.metaGet2(null, null, MetaTable.CALENDAR_VIEW, {
-        fk_view_id: viewId,
-      });
-      const calendarRange = await CalendarRange.read(viewId);
+      view = await ncMeta.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.CALENDAR_VIEW,
+        {
+          fk_view_id: viewId,
+        },
+      );
+      const calendarRange = await CalendarRange.read(context, viewId, ncMeta);
       if (view && calendarRange) {
         view.calendar_range = calendarRange.ranges;
       }
@@ -55,7 +65,11 @@ export default class CalendarView implements CalendarType {
     return view && new CalendarView(view);
   }
 
-  static async insert(view: Partial<CalendarView>, ncMeta = Noco.ncMeta) {
+  static async insert(
+    context: NcContext,
+    view: Partial<CalendarView>,
+    ncMeta = Noco.ncMeta,
+  ) {
     const insertObj = {
       base_id: view.base_id,
       source_id: view.source_id,
@@ -63,25 +77,19 @@ export default class CalendarView implements CalendarType {
       meta: view.meta,
     };
 
-    const viewRef = await View.get(view.fk_view_id);
-
-    if (!(view.base_id && view.source_id)) {
-      insertObj.base_id = viewRef.base_id;
-      insertObj.source_id = viewRef.source_id;
-    }
-
     await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.CALENDAR_VIEW,
       insertObj,
       true,
     );
 
-    return this.get(view.fk_view_id, ncMeta);
+    return this.get(context, view.fk_view_id, ncMeta);
   }
 
   static async update(
+    context: NcContext,
     calendarId: string,
     body: Partial<CalendarView>,
     ncMeta = Noco.ncMeta,
@@ -90,10 +98,9 @@ export default class CalendarView implements CalendarType {
 
     if (body.calendar_range) {
       await ncMeta.metaDelete(
-        null,
-        null,
+        context.workspace_id,
+        context.base_id,
         MetaTable.CALENDAR_VIEW_RANGE,
-        {},
         {
           fk_view_id: calendarId,
         },
@@ -101,19 +108,21 @@ export default class CalendarView implements CalendarType {
       // if calendar range is updated, delete cache
       await NocoCache.del(`${CacheScope.CALENDAR_VIEW}:${calendarId}`);
       await CalendarRange.bulkInsert(
+        context,
         body.calendar_range.map((range) => {
           return {
             fk_view_id: calendarId,
             ...range,
           };
         }),
+        ncMeta,
       );
     }
 
     // update meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.CALENDAR_VIEW,
       prepareForDb(updateObj),
       {

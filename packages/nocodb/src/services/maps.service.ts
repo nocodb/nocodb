@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -13,24 +13,28 @@ import NocoCache from '~/cache/NocoCache';
 export class MapsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async mapViewGet(param: { mapViewId: string }) {
-    return await MapView.get(param.mapViewId);
+  async mapViewGet(context: NcContext, param: { mapViewId: string }) {
+    return await MapView.get(context, param.mapViewId);
   }
 
-  async mapViewCreate(param: {
-    tableId: string;
-    map: ViewCreateReqType;
-    user: UserType;
-    req: NcRequest;
-  }) {
+  async mapViewCreate(
+    context: NcContext,
+    param: {
+      tableId: string;
+      map: ViewCreateReqType;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.map,
     );
 
-    const model = await Model.get(param.tableId);
+    const model = await Model.get(context, param.tableId);
 
     const { id } = await View.insertMetaOnly(
+      context,
       {
         ...param.map,
         // todo: sanitize
@@ -38,12 +42,14 @@ export class MapsService {
         type: ViewTypes.MAP,
         base_id: model.base_id,
         source_id: model.source_id,
+        created_by: param.user?.id,
+        owned_by: param.user?.id,
       },
       model,
     );
 
     // populate  cache and add to list since the list cache already exist
-    const view = await View.get(id);
+    const view = await View.get(context, id);
     await NocoCache.appendToList(
       CacheScope.VIEW,
       [view.fk_model_id],
@@ -60,20 +66,23 @@ export class MapsService {
     return view;
   }
 
-  async mapViewUpdate(param: {
-    mapViewId: string;
-    map: MapUpdateReqType;
-    req: NcRequest;
-  }) {
+  async mapViewUpdate(
+    context: NcContext,
+    param: {
+      mapViewId: string;
+      map: MapUpdateReqType;
+      req: NcRequest;
+    },
+  ) {
     validatePayload('swagger.json#/components/schemas/MapUpdateReq', param.map);
 
-    const view = await View.get(param.mapViewId);
+    const view = await View.get(context, param.mapViewId);
 
     if (!view) {
-      NcError.badRequest('View not found');
+      NcError.viewNotFound(param.mapViewId);
     }
 
-    const res = await MapView.update(param.mapViewId, param.map);
+    const res = await MapView.update(context, param.mapViewId, param.map);
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view,

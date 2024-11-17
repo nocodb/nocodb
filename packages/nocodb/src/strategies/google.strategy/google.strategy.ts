@@ -35,7 +35,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       if (user) {
         // if base id defined extract base level roles
         if (req.ncBaseId) {
-          BaseUser.get(req.ncBaseId, user.id)
+          BaseUser.get(req.context, req.ncBaseId, user.id)
             .then(async (baseUser) => {
               user.roles = baseUser?.roles || user.roles;
               // + (user.roles ? `,${user.roles}` : '');

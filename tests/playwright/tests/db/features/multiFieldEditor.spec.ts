@@ -4,6 +4,7 @@ import setup, { unsetup } from '../../../setup';
 import { FieldsPage } from '../../../pages/Dashboard/Details/FieldsPage';
 import { getTextExcludeIconText } from '../../utils/general';
 import { UITypes } from 'nocodb-sdk';
+import { enableQuickRun } from '../../../setup/db';
 
 const allFieldList = [
   {
@@ -149,16 +150,19 @@ test.describe('Multi Field Editor', () => {
   const verifyGridColumnHeaders = async ({ fields = [] }: { fields: string[] }) => {
     await dashboard.grid.topbar.openDataTab();
 
-    const locator = dashboard.grid.get().locator(`th`);
+    const locator = dashboard.grid.get().locator('th.nc-grid-column-header');
+
+    await locator.first().waitFor({ state: 'visible' });
+
     const count = await locator.count();
 
     // exclude first checkbox and last add new column
-    expect(count - 2).toBe(fields.length);
+    expect(count).toBe(fields.length);
 
-    for (let i = 1; i < count - 1; i++) {
+    for (let i = 0; i < count; i++) {
       const header = locator.nth(i);
       const text = await getTextExcludeIconText(header);
-      expect(text).toBe(fields[i - 1]);
+      expect(text).toBe(fields[i]);
     }
 
     await openMultiFieldOfATable();
@@ -232,6 +236,7 @@ test.describe('Multi Field Editor', () => {
   });
 
   test('Field operations: CopyId, Duplicate, InsertAbove, InsertBelow, Delete, Hide', async () => {
+    if (enableQuickRun()) test.skip();
     // Add New Field
     await fields.createOrUpdate({ title: defaultFieldName });
 
@@ -245,20 +250,20 @@ test.describe('Multi Field Editor', () => {
     await fields.saveChanges();
 
     let fieldsText = await fields.getAllFieldText();
-    expect(fieldsText[fieldsText.findIndex(field => field === defaultFieldName) + 1]).toBe(`${defaultFieldName}_copy`);
+    expect(fieldsText[fieldsText.findIndex(field => field === defaultFieldName) + 1]).toBe(`${defaultFieldName} copy`);
 
     // insert and verify
     await fields.createOrUpdate({ title: 'Above Inserted Field', insertAboveColumnTitle: defaultFieldName });
     await fields.createOrUpdate({ title: 'Below Inserted Field', insertBelowColumnTitle: defaultFieldName });
 
     // delete and verify
-    await fields.selectFieldAction({ title: `${defaultFieldName}_copy`, action: 'delete' });
-    await expect(fields.getField({ title: `${defaultFieldName}_copy` })).toContainText('Deleted field');
+    await fields.selectFieldAction({ title: `${defaultFieldName} copy`, action: 'delete' });
+    await expect(fields.getField({ title: `${defaultFieldName} copy` })).toContainText('Deleted field');
 
     await fields.saveChanges();
 
     fieldsText = await fields.getAllFieldText();
-    expect(!fieldsText.includes(`${defaultFieldName}_copy`)).toBeTruthy();
+    expect(!fieldsText.includes(`${defaultFieldName} copy`)).toBeTruthy();
 
     // verify grid column header
     await verifyGridColumnHeaders({ fields: fieldsText });

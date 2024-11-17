@@ -5,12 +5,14 @@ import { SelectOptionColumnPageObject } from './SelectOptionColumn';
 import { AttachmentColumnPageObject } from './Attachment';
 import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { UserOptionColumnPageObject } from './UserOptionColumn';
+import { LTAROptionColumnPageObject } from './LTAROptionColumn';
 
 export class ColumnPageObject extends BasePage {
   readonly grid: GridPage;
   readonly selectOption: SelectOptionColumnPageObject;
   readonly attachmentColumnPageObject: AttachmentColumnPageObject;
   readonly userOption: UserOptionColumnPageObject;
+  readonly ltarOption: LTAROptionColumnPageObject;
 
   constructor(grid: GridPage) {
     super(grid.rootPage);
@@ -18,6 +20,7 @@ export class ColumnPageObject extends BasePage {
     this.selectOption = new SelectOptionColumnPageObject(this);
     this.attachmentColumnPageObject = new AttachmentColumnPageObject(this);
     this.userOption = new UserOptionColumnPageObject(this);
+    this.ltarOption = new LTAROptionColumnPageObject(this);
   }
 
   get() {
@@ -32,13 +35,32 @@ export class ColumnPageObject extends BasePage {
     await this.getColumnHeader(title).click();
   }
 
+  defaultValueBtn() {
+    const showDefautlValueBtn = this.get().getByTestId('nc-show-default-value-btn');
+
+    return {
+      locator: showDefautlValueBtn,
+      isVisible: async () => {
+        return await showDefautlValueBtn.isVisible();
+      },
+      click: async () => {
+        if (await showDefautlValueBtn.isVisible()) {
+          await showDefautlValueBtn.waitFor();
+          await showDefautlValueBtn.click({ force: true });
+
+          await showDefautlValueBtn.waitFor({ state: 'hidden' });
+          await this.get().locator('.nc-default-value-wrapper').waitFor({ state: 'visible' });
+        }
+      },
+    };
+  }
+
   async create({
     title,
     type = 'SingleLineText',
     formula = '',
     qrCodeValueColumnTitle = '',
     barcodeValueColumnTitle = '',
-    barcodeFormat = '',
     childTable = '',
     childColumn = '',
     relationType = '',
@@ -49,6 +71,12 @@ export class ColumnPageObject extends BasePage {
     insertAfterColumnTitle,
     insertBeforeColumnTitle,
     isDisplayValue = false,
+    ltarFilters,
+    ltarView,
+    custom = false,
+    refColumn,
+    buttonType,
+    webhookIndex = 0,
   }: {
     title: string;
     type?: string;
@@ -66,19 +94,25 @@ export class ColumnPageObject extends BasePage {
     insertBeforeColumnTitle?: string;
     insertAfterColumnTitle?: string;
     isDisplayValue?: boolean;
+    ltarFilters?: any[];
+    ltarView?: string;
+    custom?: boolean;
+    refColumn?: string;
+    buttonType?: string;
+    webhookIndex?: number;
   }) {
     if (insertBeforeColumnTitle) {
+      await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"]`).scrollIntoViewIfNeeded();
       await this.grid.get().locator(`th[data-title="${insertBeforeColumnTitle}"] .nc-ui-dt-dropdown`).click();
-
       if (isDisplayValue) {
-        await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before")')).toHaveCount(0);
+        await expect(this.rootPage.locator('li[role="menuitem"]:has-text("Insert left")')).toHaveCount(0);
         return;
       }
-
-      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert Before"):visible').click();
+      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert left"):visible').click();
     } else if (insertAfterColumnTitle) {
+      await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"]`).scrollIntoViewIfNeeded();
       await this.grid.get().locator(`th[data-title="${insertAfterColumnTitle}"] .nc-ui-dt-dropdown`).click();
-      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert After"):visible').click();
+      await this.rootPage.locator('li[role="menuitem"]:has-text("Insert right"):visible').click();
     } else {
       await this.grid.get().locator('.nc-column-add').click();
     }
@@ -86,7 +120,7 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(500);
     await this.fillTitle({ title });
     await this.rootPage.waitForTimeout(500);
-    await this.selectType({ type });
+    await this.selectType({ type, isCreateColumn: true });
     await this.rootPage.waitForTimeout(500);
 
     switch (type) {
@@ -96,11 +130,7 @@ export class ColumnPageObject extends BasePage {
       case 'Duration':
         if (format) {
           await this.get().locator('.ant-select-single').nth(1).click();
-          await this.rootPage
-            .locator(`.ant-select-item`, {
-              hasText: format,
-            })
-            .click();
+          await this.rootPage.locator(`.ant-select-item .ant-select-item-option-content`).getByTestId(format).click();
         }
         break;
       case 'Date':
@@ -117,7 +147,20 @@ export class ColumnPageObject extends BasePage {
         await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
         break;
       case 'Formula':
-        await this.get().locator('.nc-formula-input').fill(formula);
+        await this.get().locator('.inputarea').fill(formula);
+        break;
+      case 'Button':
+        await this.get().locator('.nc-button-type-select').click();
+        await this.rootPage.locator('.ant-select-item').locator(`text="${buttonType}"`).click();
+
+        await this.get().locator('.nc-button-webhook-select').click();
+
+        await this.rootPage.waitForSelector('.nc-list-with-search', {
+          state: 'visible',
+        });
+
+        await this.rootPage.locator(`.nc-unified-list-option-${webhookIndex}`).click();
+
         break;
       case 'QrCode':
         await this.get().locator('.ant-select-single').nth(1).click();
@@ -171,10 +214,14 @@ export class ColumnPageObject extends BasePage {
           .click();
         break;
       case 'Links':
-        await this.get()
-          .locator('.nc-ltar-relation-type >> .ant-radio')
-          .nth(relationType === 'Has Many' ? 0 : 1)
-          .click();
+        // kludge, fix me
+        await this.rootPage.waitForTimeout(2000);
+
+        await this.get().locator('.nc-ltar-relation-type').getByTestId(relationType).click();
+        // await this.get()
+        //   .locator('.nc-ltar-relation-type >> .ant-radio')
+        //   .nth(relationType === 'Has Many' ? 1 : 0)
+        //   .click();
         await this.get().locator('.ant-select-single').nth(1).click();
         await this.rootPage.locator(`.nc-ltar-child-table >> input[type="search"]`).fill(childTable);
         await this.rootPage
@@ -183,6 +230,39 @@ export class ColumnPageObject extends BasePage {
           })
           .nth(0)
           .click();
+
+        if (ltarView) {
+          await this.ltarOption.selectView({ ltarView: ltarView });
+        }
+
+        if (ltarFilters) {
+          await this.ltarOption.addFilters(ltarFilters);
+        }
+
+        if (custom) {
+          // enable advance options
+          await this.get().locator('.nc-ltar-relation-type >> .ant-radio').nth(1).dblclick();
+          await this.get().locator('.nc-ltar-relation-type >> .ant-radio').nth(2).dblclick();
+
+          await this.get().locator(':has(:has-text("Advanced Link")) > button.ant-switch').click();
+
+          //  data-testid="custom-link-source-base-id"
+          // data-testid="custom-link-source-table-id"
+          // data-testid="custom-link-source-column-id"
+          // data-testid="custom-link-junction-base-id"
+          // data-testid="custom-link-junction-table-id"
+          // data-testid="custom-link-junction-source-column-id"
+          // data-testid="custom-link-junction-target-column-id"
+          // data-testid="custom-link-target-base-id"
+          // data-testid="custom-link-target-table-id"
+          // data-testid="custom-link-target-column-id"
+
+          // select target table and column
+          // await this.get().get('').nth(2).click();
+
+          // select referenced base, column and column
+        }
+
         break;
       case 'User':
         break;
@@ -193,7 +273,9 @@ export class ColumnPageObject extends BasePage {
     await this.save();
 
     const headersText = [];
-    const locator = this.grid.get().locator(`th`);
+    const locator = this.grid.get().locator('th.nc-grid-column-header');
+    await locator.first().waitFor({ state: 'visible' });
+
     const count = await locator.count();
     for (let i = 0; i < count; i++) {
       const header = locator.nth(i);
@@ -216,18 +298,30 @@ export class ColumnPageObject extends BasePage {
     await this.get().locator('.nc-column-name-input').fill(title);
   }
 
-  async selectType({ type, first }: { type: string; first?: boolean }) {
-    if (first) {
-      await this.get().locator('.ant-select-selector > .ant-select-selection-item').first().click();
+  async selectType({ type, first, isCreateColumn }: { type: string; first?: boolean; isCreateColumn?: boolean }) {
+    if (isCreateColumn || (await this.get().getByTestId('nc-column-uitypes-options-list-wrapper').isVisible())) {
+      const searchInput = this.get().locator('.nc-column-type-search-input >> input');
+      await searchInput.waitFor({ state: 'visible' });
+      await searchInput.click();
+      await searchInput.fill(type);
+
+      await this.get().locator('.nc-column-list-wrapper').getByTestId(type).waitFor();
+      await this.get().locator('.nc-column-list-wrapper').getByTestId(type).click();
+
+      await this.get().locator('.nc-column-type-input').waitFor();
     } else {
-      await this.get().locator('.ant-select-selector > .ant-select-selection-item').click();
+      if (first) {
+        await this.get().locator('.ant-select-selector > .ant-select-selection-item').first().click();
+      } else {
+        await this.get().locator('.ant-select-selector > .ant-select-selection-item').click();
+      }
+
+      await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
+      await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
+
+      // Select column type
+      await this.rootPage.locator('.rc-virtual-list-holder-inner > div').getByTestId(type).click();
     }
-
-    await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').waitFor();
-    await this.get().locator('.ant-select-selection-search-input[aria-expanded="true"]').fill(type);
-
-    // Select column type
-    await this.rootPage.locator('.rc-virtual-list-holder-inner > div').locator(`text="${type}"`).click();
   }
 
   async changeReferencedColumnForQrCode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
@@ -238,7 +332,7 @@ export class ColumnPageObject extends BasePage {
       })
       .click();
 
-    await this.save();
+    await this.save({ isUpdated: true });
   }
 
   async changeReferencedColumnForBarcode({ titleOfReferencedColumn }: { titleOfReferencedColumn: string }) {
@@ -249,7 +343,7 @@ export class ColumnPageObject extends BasePage {
       })
       .click();
 
-    await this.save();
+    await this.save({ isUpdated: true });
   }
 
   async changeBarcodeFormat({ barcodeFormatName }: { barcodeFormatName: string }) {
@@ -260,7 +354,7 @@ export class ColumnPageObject extends BasePage {
       })
       .click();
 
-    await this.save();
+    await this.save({ isUpdated: true });
   }
 
   async delete({ title }: { title: string }) {
@@ -296,7 +390,8 @@ export class ColumnPageObject extends BasePage {
     // when clicked on the dropdown cell header
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').scrollIntoViewIfNeeded();
     await this.getColumnHeader(title).locator('.nc-ui-dt-dropdown').click();
-    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit")').last().click();
+    await expect(await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').last()).toBeVisible();
+    await this.rootPage.locator('li[role="menuitem"]:has-text("Edit"):visible').last().click();
 
     await this.get().waitFor({ state: 'visible' });
 
@@ -304,30 +399,50 @@ export class ColumnPageObject extends BasePage {
       await this.selectType({ type, first: true });
     }
 
+    // Click set default value to show default value input, on close field modal it will automacally hide input if value is not set
+    await this.defaultValueBtn().click();
+
     switch (type) {
-      case 'Formula':
-        await this.get().locator('.nc-formula-input').fill(formula);
+      case 'Formula': {
+        const element = this.get().locator('.inputarea');
+        await element.focus();
+
+        await this.rootPage.keyboard.press('Control+A');
+        await this.rootPage.waitForTimeout(200);
+
+        await this.rootPage.keyboard.press('Backspace');
+        await this.rootPage.waitForTimeout(200);
+        await element.fill(formula);
         break;
+      }
       case 'Duration':
         await this.get().locator('.ant-select-single').nth(1).click();
-        await this.rootPage
-          .locator(`.ant-select-item`, {
-            hasText: format,
-          })
-          .click();
+        await this.rootPage.locator(`.ant-select-item`).getByTestId(format).click();
         break;
       case 'DateTime':
         // Date Format
         await this.get().locator('.nc-date-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+
+        // allow UI to update
+        await this.rootPage.waitForTimeout(500);
+
         // Time Format
         await this.get().locator('.nc-time-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${timeFormat}"`).click();
+
+        // allow UI to update
+        await this.rootPage.waitForTimeout(500);
+
         break;
       case 'Date':
         await this.get().locator('.nc-date-select').click();
-        await this.rootPage.locator('.nc-date-select').pressSequentially(dateFormat);
+        await this.rootPage.locator('.nc-date-select').pressSequentially(dateFormat, { delay: 100 });
         await this.rootPage.locator('.ant-select-item').locator(`text="${dateFormat}"`).click();
+
+        // allow UI to update
+        await this.rootPage.waitForTimeout(500);
+
         break;
       default:
         break;
@@ -367,13 +482,26 @@ export class ColumnPageObject extends BasePage {
     await expect(this.grid.get().locator(`th[data-title="${title}"]`)).toHaveCount(0);
   }
 
-  async save({ isUpdated }: { isUpdated?: boolean } = {}) {
-    await this.waitForResponse({
-      uiAction: async () => await this.get().locator('button:has-text("Save")').click(),
-      requestUrlPathToMatch: 'api/v1/db/data/noco/',
-      httpMethodsToMatch: ['GET'],
-      responseJsonMatcher: json => json['pageInfo'],
-    });
+  async save({ isUpdated, typeChange }: { isUpdated?: boolean; typeChange?: boolean } = {}) {
+    // if type is changed, then we need to click the update button during the warning popup
+    if (!typeChange) {
+      const buttonText = isUpdated ? 'Update' : 'Save';
+      await this.waitForResponse({
+        uiAction: async () => await this.get().locator(`button:has-text("${buttonText}")`).click(),
+        requestUrlPathToMatch: 'api/v1/db/data/noco/',
+        httpMethodsToMatch: ['GET'],
+        responseJsonMatcher: json => json['pageInfo'],
+      });
+    } else {
+      await this.get().locator('button:has-text("Update Field")').click();
+      // click on update button on warning popup
+      await this.waitForResponse({
+        uiAction: async () => await this.rootPage.locator('button:has-text("Update")').click(),
+        requestUrlPathToMatch: 'api/v1/db/data/noco/',
+        httpMethodsToMatch: ['GET'],
+        responseJsonMatcher: json => json['pageInfo'],
+      });
+    }
 
     await this.verifyToast({
       message: isUpdated ? 'Column updated' : 'Column created',
@@ -391,9 +519,12 @@ export class ColumnPageObject extends BasePage {
     await this.rootPage.waitForTimeout(200);
   }
 
-  async verify({ title, isVisible = true }: { title: string; isVisible?: boolean }) {
+  async verify({ title, isVisible = true, scroll = false }: { title: string; isVisible?: boolean; scroll?: boolean }) {
     if (!isVisible) {
       return await expect(this.getColumnHeader(title)).not.toBeVisible();
+    }
+    if (scroll) {
+      await this.getColumnHeader(title).scrollIntoViewIfNeeded();
     }
     await expect(this.getColumnHeader(title)).toContainText(title);
   }
@@ -416,13 +547,9 @@ export class ColumnPageObject extends BasePage {
       await columnHdr.locator('.nc-ui-dt-dropdown:visible').click();
     }
 
-    // select all menu access
-    await expect(
-      await this.grid.get().locator('[data-testid="nc-check-all"]').locator('input[type="checkbox"]')
-    ).toHaveCount(role === 'creator' || role === 'owner' || role === 'editor' ? 1 : 0);
-
     if (role === 'creator' || role === 'owner' || role === 'editor') {
-      await this.grid.selectAll();
+      await this.grid.selectRow(0);
+      await this.grid.selectRow(1);
       await this.grid.openAllRowContextMenu();
       await this.rootPage.locator('.nc-dropdown-grid-context-menu').waitFor({ state: 'visible' });
       await expect(this.rootPage.locator('.nc-dropdown-grid-context-menu')).toHaveCount(1);

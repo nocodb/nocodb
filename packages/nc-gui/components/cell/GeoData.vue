@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { GeoLocationType } from 'nocodb-sdk'
-import { Modal as AModal, iconMap, latLongToJoinedString, useVModel } from '#imports'
+import { Modal as AModal } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -151,25 +151,33 @@ const openInOSM = () => {
               v-if="isLoading"
               :class="{ 'animate-infinite animate-spin text-gray-500': isLoading }"
             />
-            <a-button class="ml-2" @click="onClickSetCurrentLocation"
-              ><component :is="iconMap.currentLocation" class="mr-2" />{{ $t('labels.currentLocation') }}</a-button
-            >
+            <a-button class="ml-2 !rounded-lg" @click="onClickSetCurrentLocation">
+              <div class="flex items-center gap-1">
+                <component :is="iconMap.currentLocation" />{{ $t('labels.currentLocation') }}
+              </div>
+            </a-button>
           </div>
         </a-form-item>
         <a-form-item v-if="vModel">
           <div class="mr-2 flex flex-row items-end gap-1 text-left">
-            <a-button @click="openInOSM"
-              ><component :is="iconMap.openInNew" class="mr-2" />{{ $t('activity.map.openInOpenStreetMap') }}</a-button
-            >
-            <a-button @click="openInGoogleMaps"
-              ><component :is="iconMap.openInNew" class="mr-2" />{{ $t('activity.map.openInGoogleMaps') }}</a-button
-            >
+            <a-button class="!rounded-lg" @click="openInOSM">
+              <div class="flex items-center gap-1">
+                <component :is="iconMap.openInNew" />{{ $t('activity.map.openInOpenStreetMap') }}
+              </div>
+            </a-button>
+            <a-button class="!rounded-lg" @click="openInGoogleMaps">
+              <div class="flex items-center gap-1">
+                <component :is="iconMap.openInNew" />{{ $t('activity.map.openInGoogleMaps') }}
+              </div>
+            </a-button>
           </div>
         </a-form-item>
         <a-form-item>
           <div class="ml-auto mr-2 w-auto">
-            <a-button type="text" @click="clear">{{ $t('general.cancel') }}</a-button>
-            <a-button type="primary" html-type="submit" data-testid="nc-geo-data-save">{{ $t('general.submit') }}</a-button>
+            <a-button type="text" class="!rounded-lg" @click="clear">{{ $t('general.cancel') }}</a-button>
+            <a-button type="primary" html-type="submit" data-testid="nc-geo-data-save" class="!rounded-lg">{{
+              $t('general.submit')
+            }}</a-button>
           </div>
         </a-form-item>
       </a-form>
@@ -179,7 +187,10 @@ const openInOSM = () => {
 
 <style scoped lang="scss">
 input[type='number']:focus {
-  @apply ring-transparent;
+  @apply ring-transparent shadow-selected;
+}
+input[type='number'] {
+  @apply !border-1 !pr-1 rounded-lg;
 }
 
 input[type='number'] {

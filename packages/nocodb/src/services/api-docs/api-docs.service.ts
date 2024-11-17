@@ -1,22 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import getSwaggerJSON from './swagger/getSwaggerJSON';
 import getSwaggerJSONV2 from './swaggerV2/getSwaggerJSONV2';
+import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Base, Model } from '~/models';
 
 @Injectable()
 export class ApiDocsService {
-  async swaggerJson(param: { baseId: string; siteUrl: string }) {
-    const base = await Base.get(param.baseId);
+  async swaggerJson(
+    context: NcContext,
+    param: { baseId: string; siteUrl: string },
+  ) {
+    const base = await Base.get(context, param.baseId);
 
-    if (!base) NcError.notFound();
+    if (!base) NcError.baseNotFound(param.baseId);
 
-    const models = await Model.list({
+    const models = await Model.list(context, {
       base_id: param.baseId,
       source_id: null,
     });
 
-    const swagger = await getSwaggerJSON(base, models);
+    const swagger = await getSwaggerJSON(context, base, models);
 
     swagger.servers = [
       {
@@ -35,17 +39,20 @@ export class ApiDocsService {
 
     return swagger;
   }
-  async swaggerJsonV2(param: { baseId: string; siteUrl: string }) {
-    const base = await Base.get(param.baseId);
+  async swaggerJsonV2(
+    context: NcContext,
+    param: { baseId: string; siteUrl: string },
+  ) {
+    const base = await Base.get(context, param.baseId);
 
-    if (!base) NcError.notFound();
+    if (!base) NcError.baseNotFound(param.baseId);
 
-    const models = await Model.list({
+    const models = await Model.list(context, {
       base_id: param.baseId,
       source_id: null,
     });
 
-    const swagger = await getSwaggerJSONV2(base, models);
+    const swagger = await getSwaggerJSONV2(context, base, models);
 
     swagger.servers = [
       {

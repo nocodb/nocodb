@@ -12,6 +12,10 @@ import 'mocha';
 
 function groupByTests() {
   let context;
+  let ctx: {
+    workspace_id: string;
+    base_id: string;
+  };
   let sakilaProject: Base;
   let filmTable: Model;
   let filmColumns: Array<Column>;
@@ -23,6 +27,11 @@ function groupByTests() {
     context = await init();
 
     sakilaProject = await createSakilaProject(context);
+    ctx = {
+      workspace_id: sakilaProject.fk_workspace_id,
+      base_id: sakilaProject.id,
+    };
+
     await createProject(context);
 
     filmTable = await getTable({
@@ -30,7 +39,7 @@ function groupByTests() {
       name: 'film',
     });
     filmView = await getView(context, { table: filmTable, name: 'Film' });
-    filmColumns = await filmTable.getColumns();
+    filmColumns = await filmTable.getColumns(ctx);
 
     const columns = (
       await request(context.app)

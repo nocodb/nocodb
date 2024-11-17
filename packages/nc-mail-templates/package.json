@@ -1,0 +1,24 @@
+{
+  "name": "nc-mail-templates",
+  "version": "1.0.0",
+  "description": "",
+  "packageManager": "pnpm@9.6.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "generate": "pnpm build && scripts/move_templates.sh",
+    "build": "tsx ./src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "html-entities-decoder": "^1.0.5",
+    "typescript": "^5.3.3",
+    "vue-extensible-mail": "^0.0.3 "
+  },
+  "devDependencies": {
+    "tsx": "^4.10.4",
+    "@types/html-entities-decoder": "^1.0.2"
+  }
+}

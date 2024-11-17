@@ -10,16 +10,30 @@ import MsFormatH3 from '~icons/material-symbols/format-h3'
 import TablerBlockQuote from '~icons/tabler/blockquote'
 import MsCode from '~icons/material-symbols/code'
 import MsFormatQuote from '~icons/material-symbols/format-quote'
+import { RichTextBubbleMenuOptions } from '#imports'
 
 interface Props {
   editor: Editor
   embedMode?: boolean
   isFormField?: boolean
+  hiddenOptions?: RichTextBubbleMenuOptions[]
+  enableCloseButton?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  embedMode: false,
+  isFormField: false,
+  hiddenOptions: () => [],
+  enableCloseButton: false,
+})
 
-const { editor, embedMode } = toRefs(props)
+const emits = defineEmits(['close'])
+
+const { editor, embedMode, isFormField, hiddenOptions, enableCloseButton } = toRefs(props)
+
+const { appInfo } = useGlobal()
+
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const cmdOrCtrlKey = computed(() => {
   return isMac() ? '⌘' : 'CTRL'
@@ -31,6 +45,14 @@ const shiftKey = computed(() => {
 
 const altKey = computed(() => {
   return isMac() ? '⌥' : 'Alt'
+})
+
+const tooltipPlacement = computed(() => {
+  if (isFormField.value) return 'bottom'
+})
+
+const tabIndex = computed(() => {
+  return isFormField.value ? -1 : 0
 })
 
 const onToggleLink = () => {
@@ -74,19 +96,56 @@ const onToggleLink = () => {
     }, 100)
   }
 }
+
+const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
+  if (isFormField.value) return !hiddenOptions.value.includes(option)
+
+  return true
+}
+
+const showDivider = (options: RichTextBubbleMenuOptions[]) => {
+  return !isFormField.value || options.some((o) => !hiddenOptions.value.includes(o))
+}
+
+const newMentionNode = () => {
+  if (!editor.value) return
+
+  const lastCharacter = editor.value.state.doc.textBetween(
+    editor.value.state.selection.$from.pos - 1,
+    editor.value.state.selection.$from.pos,
+  )
+
+  if (lastCharacter === '@') {
+    editor.value
+      .chain()
+      .deleteRange({ from: editor.value.state.selection.$from.pos - 1, to: editor.value.state.selection.$from.pos })
+      .run()
+  } else if (lastCharacter !== ' ') {
+    editor.value?.commands.insertContent(' @')
+    editor.value?.chain().focus().run()
+  } else {
+    editor.value?.commands.insertContent('@')
+    editor.value?.chain().focus().run()
+  }
+}
+
+const closeTextArea = () => {
+  emits('close')
+}
 </script>
 
 <template>
   <div
-    class="bubble-menu flex-row gap-x-1 py-1 rounded-lg"
+    class="bubble-menu flex-row gap-x-1 rounded-lg"
     :class="{
-      'inline-flex !bg-transparent': isFormField,
-      'flex bg-gray-100 px-1': !isFormField,
+      'nc-form-field-bubble-menu inline-flex py-0': isFormField,
+      'flex bg-gray-100 px-1 py-1': !isFormField,
       'embed-mode': embedMode,
       'full-mode': !embedMode,
+      'edit-column-mode': isEditColumn,
     }"
   >
-    <NcTooltip :placement="isFormField ? 'bottom' : undefined" :disabled="editor.isActive('codeBlock')">
+    <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -100,14 +159,14 @@ const onToggleLink = () => {
         type="text"
         :class="{ 'is-active': editor.isActive('bold') }"
         :disabled="editor.isActive('codeBlock')"
-        :tabindex="isFormField ? -1 : 0"
+        :tabindex="tabIndex"
         @click="editor!.chain().focus().toggleBold().run()"
       >
         <MdiFormatBold />
       </NcButton>
     </NcTooltip>
 
-    <NcTooltip :placement="isFormField ? 'bottom' : undefined" :disabled="editor.isActive('codeBlock')">
+    <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -121,13 +180,13 @@ const onToggleLink = () => {
         type="text"
         :disabled="editor.isActive('codeBlock')"
         :class="{ 'is-active': editor.isActive('italic') }"
-        :tabindex="isFormField ? -1 : 0"
+        :tabindex="tabIndex"
         @click=";(editor!.chain().focus() as any).toggleItalic().run()"
       >
         <MdiFormatItalic />
       </NcButton>
     </NcTooltip>
-    <NcTooltip :placement="isFormField ? 'bottom' : undefined" :disabled="editor.isActive('codeBlock')">
+    <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -142,13 +201,13 @@ const onToggleLink = () => {
         type="text"
         :class="{ 'is-active': editor.isActive('underline') }"
         :disabled="editor.isActive('codeBlock')"
-        :tabindex="isFormField ? -1 : 0"
+        :tabindex="tabIndex"
         @click="editor!.chain().focus().toggleUnderline().run()"
       >
         <MdiFormatUnderline />
       </NcButton>
     </NcTooltip>
-    <NcTooltip :placement="isFormField ? 'bottom' : undefined" :disabled="editor.isActive('codeBlock')">
+    <NcTooltip v-if="embedMode && !isEditColumn" :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
       <template #title>
         <div class="flex flex-col items-center">
           <div>
@@ -162,156 +221,202 @@ const onToggleLink = () => {
         type="text"
         :class="{ 'is-active': editor.isActive('strike') }"
         :disabled="editor.isActive('codeBlock')"
-        :tabindex="isFormField ? -1 : 0"
+        :tabindex="tabIndex"
         @click="editor!.chain().focus().toggleStrike().run()"
       >
         <MdiFormatStrikeThrough />
       </NcButton>
     </NcTooltip>
-    <template v-if="!isFormField">
-      <NcTooltip v-if="embedMode">
-        <template #title> {{ $t('general.code') }}</template>
-        <NcButton
-          size="small"
-          type="text"
-          :class="{ 'is-active': editor.isActive('codeBlock') }"
-          @click="editor!.chain().focus().toggleCodeBlock().run()"
-        >
-          <MsCode />
-        </NcButton>
-      </NcTooltip>
-      <NcTooltip v-else :disabled="editor.isActive('codeBlock')">
-        <template #title> {{ $t('general.quote') }}</template>
-        <NcButton
-          size="small"
-          type="text"
-          :class="{ 'is-active': editor.isActive('code') }"
-          :disabled="editor.isActive('codeBlock')"
-          @click="editor!.chain().focus().toggleCode().run()"
-        >
-          <MsFormatQuote />
-        </NcButton>
-      </NcTooltip>
-      <div class="divider"></div>
 
-      <template v-if="embedMode">
-        <NcTooltip>
-          <template #title>
-            <div class="flex flex-col items-center">
-              <div>
-                {{ $t('labels.heading1') }}
-              </div>
-              <div>{{ cmdOrCtrlKey }} {{ altKey }} 1</div>
-            </div>
-          </template>
-          <NcButton
-            size="small"
-            type="text"
-            :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }"
-            @click="editor!.chain().focus().toggleHeading({ level: 1 }).run()"
-          >
-            <MsFormatH1 />
-          </NcButton>
-        </NcTooltip>
-        <NcTooltip>
-          <template #title>
-            <div class="flex flex-col items-center">
-              <div>
-                {{ $t('labels.heading2') }}
-              </div>
-              <div>{{ cmdOrCtrlKey }} {{ altKey }} 2</div>
-            </div>
-          </template>
-          <NcButton
-            size="small"
-            type="text"
-            :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
-            @click="editor!.chain().focus().toggleHeading({ level: 2 }).run()"
-          >
-            <MsFormatH2 />
-          </NcButton>
-        </NcTooltip>
-        <NcTooltip>
-          <template #title>
-            <div class="flex flex-col items-center">
-              <div>
-                {{ $t('labels.heading3') }}
-              </div>
-              <div>{{ cmdOrCtrlKey }} {{ altKey }} 3</div>
-            </div>
-          </template>
-          <NcButton
-            size="small"
-            type="text"
-            :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
-            @click="editor!.chain().focus().toggleHeading({ level: 3 }).run()"
-          >
-            <MsFormatH3 />
-          </NcButton>
-        </NcTooltip>
+    <NcTooltip v-if="embedMode && isOptionVisible(RichTextBubbleMenuOptions.code)" :placement="tooltipPlacement">
+      <template #title> {{ $t('general.code') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :tabindex="tabIndex"
+        :class="{ 'is-active': editor.isActive('codeBlock') }"
+        @click="editor!.chain().focus().toggleCodeBlock().run()"
+      >
+        <MsCode />
+      </NcButton>
+    </NcTooltip>
+    <NcTooltip
+      v-if="isFormField ? isOptionVisible(RichTextBubbleMenuOptions.quote) : !embedMode"
+      :placement="tooltipPlacement"
+      :disabled="editor.isActive('codeBlock')"
+    >
+      <template #title> {{ $t('general.quote') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :tabindex="tabIndex"
+        :class="{ 'is-active': editor.isActive('code') }"
+        :disabled="editor.isActive('codeBlock')"
+        @click="editor!.chain().focus().toggleCode().run()"
+      >
+        <MsFormatQuote />
+      </NcButton>
+    </NcTooltip>
+    <div class="divider"></div>
 
-        <div class="divider"></div>
-      </template>
-
-      <NcTooltip v-if="embedMode">
-        <template #title> {{ $t('labels.blockQuote') }}</template>
-        <NcButton
-          size="small"
-          type="text"
-          :class="{ 'is-active': editor.isActive('blockquote') }"
-          @click="editor!.chain().focus().toggleBlockquote().run()"
-        >
-          <TablerBlockQuote class="-mt-0.25" />
-        </NcButton>
-      </NcTooltip>
-
+    <template v-if="embedMode && !isFormField">
       <NcTooltip>
-        <template #title> {{ $t('labels.bulletList') }}</template>
+        <template #title>
+          <div class="flex flex-col items-center">
+            <div>
+              {{ $t('labels.heading1') }}
+            </div>
+            <div>{{ cmdOrCtrlKey }} {{ altKey }} 1</div>
+          </div>
+        </template>
         <NcButton
           size="small"
           type="text"
-          :class="{ 'is-active': editor.isActive('bulletList') }"
-          @click="editor!.chain().focus().toggleBulletList().run()"
+          :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }"
+          @click="editor!.chain().focus().toggleHeading({ level: 1 }).run()"
         >
-          <MdiFormatBulletList />
+          <MsFormatH1 />
         </NcButton>
       </NcTooltip>
-
       <NcTooltip>
-        <template #title> {{ $t('labels.numberedList') }}</template>
+        <template #title>
+          <div class="flex flex-col items-center">
+            <div>
+              {{ $t('labels.heading2') }}
+            </div>
+            <div>{{ cmdOrCtrlKey }} {{ altKey }} 2</div>
+          </div>
+        </template>
         <NcButton
           size="small"
           type="text"
-          :class="{ 'is-active': editor.isActive('orderedList') }"
-          @click="editor!.chain().focus().toggleOrderedList().run()"
+          :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
+          @click="editor!.chain().focus().toggleHeading({ level: 2 }).run()"
         >
-          <MdiFormatListNumber />
+          <MsFormatH2 />
         </NcButton>
       </NcTooltip>
-
       <NcTooltip>
-        <template #title> {{ $t('labels.taskList') }}</template>
+        <template #title>
+          <div class="flex flex-col items-center">
+            <div>
+              {{ $t('labels.heading3') }}
+            </div>
+            <div>{{ cmdOrCtrlKey }} {{ altKey }} 3</div>
+          </div>
+        </template>
         <NcButton
           size="small"
           type="text"
-          :class="{ 'is-active': editor.isActive('taskList') }"
-          @click="editor!.chain().focus().toggleTaskList().run()"
+          :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
+          @click="editor!.chain().focus().toggleHeading({ level: 3 }).run()"
         >
-          <MdiFormatListCheckbox />
+          <MsFormatH3 />
         </NcButton>
       </NcTooltip>
 
       <div class="divider"></div>
     </template>
 
-    <NcTooltip :placement="isFormField ? 'bottom' : undefined" :disabled="editor.isActive('codeBlock')">
+    <NcTooltip
+      v-if="embedMode && !isEditColumn && isOptionVisible(RichTextBubbleMenuOptions.blockQuote)"
+      :placement="tooltipPlacement"
+    >
+      <template #title> {{ $t('labels.blockQuote') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :tabindex="tabIndex"
+        :class="{ 'is-active': editor.isActive('blockquote') }"
+        @click="editor!.chain().focus().toggleBlockquote().run()"
+      >
+        <TablerBlockQuote class="-mt-0.25" />
+      </NcButton>
+    </NcTooltip>
+
+    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.bulletList)" :placement="tooltipPlacement">
+      <template #title> {{ $t('labels.bulletList') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :tabindex="tabIndex"
+        :class="{ 'is-active': editor.isActive('bulletList') }"
+        @click="editor!.chain().focus().toggleBulletList().run()"
+      >
+        <MdiFormatBulletList />
+      </NcButton>
+    </NcTooltip>
+
+    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.numberedList)" :placement="tooltipPlacement">
+      <template #title> {{ $t('labels.numberedList') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :tabindex="tabIndex"
+        :class="{ 'is-active': editor.isActive('orderedList') }"
+        @click="editor!.chain().focus().toggleOrderedList().run()"
+      >
+        <MdiFormatListNumber />
+      </NcButton>
+    </NcTooltip>
+
+    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.taskList)" :placement="tooltipPlacement">
+      <template #title> {{ $t('labels.taskList') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :tabindex="tabIndex"
+        :class="{ 'is-active': editor.isActive('taskList') }"
+        @click="editor!.chain().focus().toggleTaskList().run()"
+      >
+        <MdiFormatListCheckbox />
+      </NcButton>
+    </NcTooltip>
+
+    <NcTooltip v-if="appInfo.ee">
+      <template #title>
+        <div class="flex flex-col items-center">
+          <div>
+            {{ $t('labels.mention') }}
+          </div>
+          <div>@</div>
+        </div>
+      </template>
+      <NcButton
+        size="small"
+        :class="{ 'is-active': editor?.isActive('suggestions') }"
+        :tabindex="tabIndex"
+        type="text"
+        @click="newMentionNode"
+      >
+        <GeneralIcon icon="atSign" />
+      </NcButton>
+    </NcTooltip>
+
+    <div
+      v-if="
+        showDivider([
+          RichTextBubbleMenuOptions.blockQuote,
+          RichTextBubbleMenuOptions.bulletList,
+          RichTextBubbleMenuOptions.numberedList,
+          RichTextBubbleMenuOptions.taskList,
+        ])
+      "
+      class="divider"
+    ></div>
+
+    <NcTooltip
+      v-if="isOptionVisible(RichTextBubbleMenuOptions.link)"
+      :placement="tooltipPlacement"
+      :disabled="editor.isActive('codeBlock')"
+    >
       <template #title> {{ $t('general.link') }}</template>
       <NcButton
         size="small"
         type="text"
         :class="{ 'is-active': editor.isActive('link') }"
         :disabled="editor.isActive('codeBlock')"
-        :tabindex="isFormField ? -1 : 0"
+        :tabindex="tabIndex"
         @click="onToggleLink"
       >
         <GeneralIcon v-if="isFormField" icon="link2"></GeneralIcon>
@@ -321,6 +426,10 @@ const onToggleLink = () => {
         </div>
       </NcButton>
     </NcTooltip>
+
+    <NcButton v-if="enableCloseButton" class="mr-2" type="text" size="small" @click="closeTextArea">
+      <GeneralIcon icon="close" />
+    </NcButton>
   </div>
 </template>
 
@@ -349,14 +458,14 @@ const onToggleLink = () => {
   box-shadow: 0px 0px 1.2rem 0 rgb(230, 230, 230) !important;
 }
 
-.bubble-menu.embed-mode {
+.bubble-menu.embed-mode:not(.nc-form-field-bubble-menu) {
   @apply border-transparent !shadow-none;
 }
 .bubble-menu.form-field-mode {
   @apply bg-transparent px-0;
 }
 
-.embed-mode.bubble-menu {
+.embed-mode.bubble-menu:not(.nc-form-field-bubble-menu) {
   @apply !py-0 !my-0 !border-0;
 
   .divider {
@@ -373,12 +482,20 @@ const onToggleLink = () => {
   @apply bg-white;
   border-width: 1px;
 
+  &.nc-form-field-bubble-menu {
+    .divider {
+      @apply border-r-1 border-gray-200 my-0;
+    }
+  }
+
   .nc-button.is-active {
     @apply !hover:outline-gray-200 bg-gray-100 text-brand-500;
     outline: 1px;
   }
-  .divider {
-    @apply border-r-1 border-gray-200 !h-6 !mx-0.5 my-1;
+  &:not(.nc-form-field-bubble-menu) {
+    .divider {
+      @apply border-r-1 border-gray-200 !h-6 !mx-0.5 my-1;
+    }
   }
   .ant-select-selector {
     @apply !rounded-md;

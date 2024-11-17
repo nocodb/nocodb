@@ -1,7 +1,7 @@
-import type { ColumnType, FilterType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
-import type { NcProject, PageSidebarNode, Row, TabItem } from '#imports'
+import type { PageSidebarNode } from '#imports'
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
 export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
@@ -19,17 +19,31 @@ export const IsGalleryInj: InjectionKey<Ref<boolean>> = Symbol('is-gallery-injec
 export const IsKanbanInj: InjectionKey<Ref<boolean>> = Symbol('is-kanban-injection')
 export const IsLockedInj: InjectionKey<Ref<boolean>> = Symbol('is-locked-injection')
 export const IsExpandedFormOpenInj: InjectionKey<Ref<boolean>> = Symbol('is-expanded-form-open-injection')
+export const IsExpandedBulkUpdateFormOpenInj: InjectionKey<Ref<boolean>> = Symbol('is-expanded-bulk-update-form-open-injection')
 export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection')
 export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
-export const ReloadViewDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
-  Symbol('reload-view-data-injection')
+export const ReloadViewDataHookInj: InjectionKey<
+  EventHook<{ shouldShowLoading?: boolean; offset?: number; isFormFieldFilters?: boolean } | void>
+> = Symbol('reload-view-data-injection')
 export const ReloadViewMetaHookInj: InjectionKey<EventHook<boolean | void>> = Symbol('reload-view-meta-injection')
+export const ReloadVisibleDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-visible-data-injection')
 export const ReloadRowDataHookInj: InjectionKey<EventHook<{ shouldShowLoading?: boolean; offset?: number } | void>> =
   Symbol('reload-row-data-injection')
+export const ReloadAggregateHookInj: InjectionKey<
+  EventHook<
+    | {
+        fields: {
+          title: string
+          aggregation?: string
+        }[]
+      }
+    | undefined
+  >
+> = Symbol('reload-aggregate-data-injection')
 export const OpenNewRecordFormHookInj: InjectionKey<EventHook<void>> = Symbol('open-new-record-form-injection')
 export const FieldsInj: InjectionKey<Ref<ColumnType[]>> = Symbol('fields-injection')
 export const EditModeInj: InjectionKey<Ref<boolean>> = Symbol('edit-mode-injection')
@@ -52,8 +66,27 @@ export const TreeViewInj: InjectionKey<{
   setMenuContext: (type: 'base' | 'base' | 'table' | 'main' | 'layout', value?: any) => void
   duplicateTable: (table: TableType) => void
   openRenameTableDialog: (table: TableType, rightClick: boolean) => void
+  openViewDescriptionDialog: (view: ViewType) => void
+  openTableDescriptionDialog: (table: TableType) => void
   contextMenuTarget: { type?: 'base' | 'base' | 'table' | 'main' | 'layout'; value?: any }
 }> = Symbol('tree-view-functions-injection')
 export const CalendarViewTypeInj: InjectionKey<Ref<'week' | 'month' | 'day' | 'year'>> = Symbol('calendar-view-type-injection')
 export const JsonExpandInj: InjectionKey<Ref<boolean>> = Symbol('json-expand-injection')
 export const AllFiltersInj: InjectionKey<Ref<Record<string, FilterType[]>>> = Symbol('all-filters-injection')
+
+export const IsAdminPanelInj: InjectionKey<Ref<boolean>> = Symbol('is-admin-panel-injection')
+/**
+ * `ActiveSourceInj` is an injection key for providing the active source context to Vue components.
+ * This is mainly used in useRoles composable to get source level restriction configuration in GUI.
+ */
+export const ActiveSourceInj: InjectionKey<
+  ComputedRef<
+    SourceType & {
+      meta?: Record<string, any>
+    }
+  >
+> = Symbol('active-source-injection')
+
+export const IsToolbarIconMode: InjectionKey<ComputedRef<boolean>> = Symbol('toolbar-icon-mode-injection')
+export const FieldNameAlias: InjectionKey<ComputedRef<Record<string, string>> | Ref<Record<string, string>>> =
+  Symbol('field-name-alias')

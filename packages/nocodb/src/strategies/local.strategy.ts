@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { extractRolesObj } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
-import { AuthService } from '~/services/auth.service';
+import { AuthService } from '~/modules/auth/auth.service';
 import { NcError } from '~/helpers/catchError';
 
 @Injectable()

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { useBase, useCopySharedBase, useRoute } from '#imports'
-
 const route = useRoute()
 
 const { sharedBaseId } = useCopySharedBase()

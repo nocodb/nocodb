@@ -1,30 +1,9 @@
 <script lang="ts" setup>
+import type { Select as AntSelect } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
 import tinycolor from 'tinycolor2'
-import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import type { FormFieldsLimitOptionsType } from '~/lib'
-import {
-  ActiveCellInj,
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsFormInj,
-  IsKanbanInj,
-  ReadonlyInj,
-  computed,
-  enumColor,
-  extractSdkResponseErrorMsg,
-  iconMap,
-  inject,
-  isDrawerOrModalExist,
-  ref,
-  useBase,
-  useEventListener,
-  useRoles,
-  useSelectedCellKeyupListener,
-  watch,
-} from '#imports'
+import type { FormFieldsLimitOptionsType } from '~/lib/types'
 
 interface Props {
   modelValue?: string | undefined
@@ -62,13 +41,15 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
 const { $api } = useNuxtApp()
 
 const searchVal = ref()
 
 const { getMeta } = useMetas()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isMetaReadOnly } = useRoles()
 
 const { isPg, isMysql } = useBase()
 
@@ -78,7 +59,9 @@ const tempSelectedOptState = ref<string>()
 
 const isFocusing = ref(false)
 
-const isNewOptionCreateEnabled = computed(() => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit'))
+const isNewOptionCreateEnabled = computed(
+  () => !isPublic.value && !disableOptionCreation && isUIAllowed('fieldEdit') && !isMetaReadOnly.value,
+)
 
 const options = computed<(SelectOptionType & { value: string })[]>(() => {
   if (column?.value.colOptions) {
@@ -187,11 +170,6 @@ useSelectedCellKeyupListener(activeCell, (e) => {
   }
 })
 
-// close dropdown list on escape
-useSelectedCellKeyupListener(isOpen, (e) => {
-  if (e.key === 'Escape') isOpen.value = false
-})
-
 async function addIfMissingAndSave() {
   if (!tempSelectedOptState.value || isPublic.value) return false
 
@@ -256,10 +234,18 @@ const onKeydown = (e: KeyboardEvent) => {
 
   if (e.key === 'Escape') {
     isOpen.value = false
+  }
+}
 
-    setTimeout(() => {
-      aselect.value?.$el.querySelector('.ant-select-selection-search > input').focus()
-    }, 100)
+const handleKeyDownList = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'ArrowUp':
+    case 'ArrowDown':
+    case 'ArrowRight':
+    case 'ArrowLeft':
+      // skip
+      e.stopPropagation()
+      break
   }
 }
 
@@ -303,6 +289,8 @@ const onFocus = () => {
     isFocusing.value = false
   }, 250)
 
+  if (isSurveyForm.value && vModel.value) return
+
   isOpen.value = true
 }
 </script>
@@ -315,7 +303,13 @@ const onFocus = () => {
     @keydown.enter.stop.prevent="toggleMenu"
   >
     <div v-if="!isEditColumn && isForm && parseProp(column.meta)?.isList" class="w-full max-w-full">
-      <a-radio-group v-model:value="vModel" :disabled="readOnly || !editAllowed" class="nc-field-layout-list">
+      <a-radio-group
+        v-model:value="vModel"
+        :disabled="readOnly || !editAllowed"
+        class="nc-field-layout-list"
+        @keydown="handleKeyDownList"
+        @click.stop
+      >
         <a-radio
           v-for="op of options"
           :key="op.title"
@@ -326,11 +320,11 @@ const onFocus = () => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
+              class="text-small"
             >
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -364,12 +358,11 @@ const onFocus = () => {
         <a-tag v-if="selectedOpt" class="rounded-tag max-w-full" :color="selectedOpt.color">
           <span
             :style="{
-              'color': tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+              color: tinycolor.isReadable(selectedOpt.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                 ? '#fff'
                 : tinycolor.mostReadable(selectedOpt.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-              'font-size': '13px',
             }"
-            :class="{ 'text-sm': isKanban }"
+            :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >
             <NcTooltip class="truncate max-w-full" show-on-truncate-only>
               <template #title>
@@ -394,16 +387,15 @@ const onFocus = () => {
         v-else
         ref="aselect"
         v-model:value="vModel"
-        class="w-full overflow-hidden xs:min-h-12"
+        class="w-full overflow-hidden"
         :class="{ 'caret-transparent': !hasEditRoles }"
-        :placeholder="isEditColumn ? $t('labels.optional') : ''"
         :allow-clear="!column.rqd && editAllowed"
         :bordered="false"
         :open="isOpen && editAllowed"
         :disabled="readOnly || !editAllowed"
         :show-search="!isMobileMode && isOpen && active"
         :show-arrow="hasEditRoles && !readOnly && active && (vModel === null || vModel === undefined)"
-        :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-200px ${isOpen && active ? 'active' : ''}`"
+        :dropdown-class-name="`nc-dropdown-single-select-cell !min-w-156px ${isOpen && active ? 'active' : ''}`"
         :dropdown-match-select-width="true"
         @select="onSelect"
         @keydown="onKeydown($event)"
@@ -415,6 +407,7 @@ const onFocus = () => {
           v-for="op of options"
           :key="op.title"
           :value="op.title"
+          class="gap-2"
           :data-testid="`select-option-${column.title}-${rowIndex}`"
           :class="`nc-select-option-${column.title}-${op.title}`"
           @click.stop
@@ -422,12 +415,11 @@ const onFocus = () => {
           <a-tag class="rounded-tag max-w-full" :color="op.color">
             <span
               :style="{
-                'color': tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
+                color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
                   ? '#fff'
                   : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
-                'font-size': '13px',
               }"
-              :class="{ 'text-sm': isKanban }"
+              :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             >
               <NcTooltip class="truncate max-w-full" show-on-truncate-only>
                 <template #title>
@@ -462,11 +454,11 @@ const onFocus = () => {
 
 <style scoped lang="scss">
 .rounded-tag {
-  @apply py-0 px-[12px] rounded-[12px];
+  @apply py-[1px] px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {
-  @apply "rounded-tag" my-[2px];
+  @apply "rounded-tag";
 }
 
 :deep(.ant-select-clear) {

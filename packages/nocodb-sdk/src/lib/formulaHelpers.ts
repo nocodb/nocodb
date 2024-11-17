@@ -282,6 +282,8 @@ interface FormulaMeta {
 
 export const formulas: Record<string, FormulaMeta> = {
   AVG: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#avg',
     validation: {
       args: {
         min: 1,
@@ -296,10 +298,10 @@ export const formulas: Record<string, FormulaMeta> = {
       'AVG({column1}, {column2}, {column3})',
     ],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#avg',
   },
   ADD: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#add',
     validation: {
       args: {
         min: 1,
@@ -314,8 +316,6 @@ export const formulas: Record<string, FormulaMeta> = {
       'ADD({column1}, {column2}, {column3})',
     ],
     returnType: FormulaDataTypes.NUMERIC,
-    docsUrl:
-      'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#add',
   },
   DATEADD: {
     docsUrl:
@@ -376,6 +376,8 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.DATE,
   },
   DATESTR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#datestr',
     validation: {
       args: {
         rqd: 1,
@@ -387,6 +389,8 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   DAY: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#day',
     validation: {
       args: {
         rqd: 1,
@@ -398,6 +402,8 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   MONTH: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#month',
     validation: {
       args: {
         rqd: 1,
@@ -409,6 +415,8 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.STRING,
   },
   HOUR: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/date-functions#hour',
     validation: {
       args: {
         rqd: 1,
@@ -886,7 +894,7 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 2,
-        type: FormulaDataTypes.STRING,
+        type: [FormulaDataTypes.STRING, FormulaDataTypes.NUMERIC],
       },
     },
     description: 'Retrieve the last n characters from the input string.',
@@ -901,7 +909,7 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 2,
-        type: FormulaDataTypes.STRING,
+        type: [FormulaDataTypes.STRING, FormulaDataTypes.NUMERIC],
       },
     },
     description: 'Retrieve the first n characters from the input string.',
@@ -952,6 +960,34 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'MID(str, position, [count])',
     examples: ['MID("NocoDB", 3, 2) => "co"', 'MID({column1}, 3, 2)'],
     returnType: FormulaDataTypes.STRING,
+  },
+  ISBLANK: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#isblank',
+
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Check if the input parameter is blank.',
+    syntax: 'ISBLANK(value)',
+    examples: ['ISBLANK({column1}) => false', 'ISBLANK("") => true'],
+    returnType: FormulaDataTypes.BOOLEAN,
+  },
+  ISNOTBLANK: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#isnotblank',
+
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Check if the input parameter is not blank.',
+    syntax: 'ISNOTBLANK(value)',
+    examples: ['ISNOTBLANK({column1}) => true', 'ISNOTBLANK("") => false'],
+    returnType: FormulaDataTypes.BOOLEAN,
   },
   IF: {
     docsUrl:
@@ -1046,14 +1082,20 @@ export const formulas: Record<string, FormulaMeta> = {
 
     validation: {
       args: {
-        rqd: 1,
-        type: FormulaDataTypes.STRING,
+        min: 1,
+        max: 2,
+        type: [FormulaDataTypes.STRING, FormulaDataTypes.STRING],
       },
     },
     description:
       'Verify and convert to a hyperlink if the input is a valid URL.',
-    syntax: 'URL(str)',
-    examples: ['URL("https://github.com/nocodb/nocodb")', 'URL({column1})'],
+    syntax: 'URL(string, [label])',
+    examples: [
+      'URL("https://github.com/nocodb/nocodb")',
+      'URL({column1})',
+      'URL("https://github.com/nocodb/nocodb", "NocoDB")',
+      'URL({column1}, {column1})',
+    ],
     returnType: FormulaDataTypes.STRING,
   },
   URLENCODE: {
@@ -1066,10 +1108,12 @@ export const formulas: Record<string, FormulaMeta> = {
         type: FormulaDataTypes.STRING,
       },
     },
-    description:
-      'Percent-encode the input parameter for use in URLs',
+    description: 'Percent-encode the input parameter for use in URLs',
     syntax: 'URLENCODE(str)',
-    examples: ['URLENCODE("Hello, world") => "Hello%2C%20world"', 'URLENCODE({column1})'],
+    examples: [
+      'URLENCODE("Hello, world") => "Hello%2C%20world"',
+      'URLENCODE({column1})',
+    ],
     returnType: FormulaDataTypes.STRING,
   },
   WEEKDAY: {
@@ -1169,6 +1213,8 @@ export const formulas: Record<string, FormulaMeta> = {
     syntax: 'REGEX_MATCH(string, regex)',
     examples: ['REGEX_MATCH({title}, "abc.*")'],
     returnType: FormulaDataTypes.NUMERIC,
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/string-functions#regex_match',
   },
 
   REGEX_EXTRACT: {
@@ -1360,6 +1406,24 @@ export const formulas: Record<string, FormulaMeta> = {
     returnType: FormulaDataTypes.NUMERIC,
     docsUrl:
       'https://docs.nocodb.com/fields/field-types/formula/numeric-functions#value',
+  },
+  JSON_EXTRACT: {
+    docsUrl:
+      'https://docs.nocodb.com/fields/field-types/formula/json-functions#json_extract',
+    validation: {
+      args: {
+        min: 2,
+        max: 2,
+        type: [FormulaDataTypes.STRING, FormulaDataTypes.STRING],
+      },
+    },
+    description: 'Extracts a value from a JSON string using a jq-like syntax',
+    syntax: 'JSON_EXTRACT(json_string, path)',
+    examples: [
+      'JSON_EXTRACT(\'{"a": {"b": "c"}}\', \'.a.b\') => "c"',
+      "JSON_EXTRACT({json_column}, '.key')",
+    ],
+    returnType: FormulaDataTypes.STRING,
   },
   // Disabling these functions for now; these act as alias for CreatedAt & UpdatedAt fields;
   // Issue: Error noticed if CreatedAt & UpdatedAt fields are removed from the table after creating these formulas
@@ -1619,14 +1683,17 @@ export async function validateFormulaAndExtractTreeWithType({
     if (parsedTree.type === JSEPNode.CALL_EXP) {
       const calleeName = parsedTree.callee.name.toUpperCase();
       // validate function name
-      if (
-        !formulas[calleeName] ||
-        sqlUI?.getUnsupportedFnList().includes(calleeName)
-      ) {
+      if (!formulas[calleeName]) {
         throw new FormulaError(
           FormulaErrorType.INVALID_FUNCTION_NAME,
           {},
           `Function ${calleeName} is not available`
+        );
+      } else if (sqlUI?.getUnsupportedFnList().includes(calleeName)) {
+        throw new FormulaError(
+          FormulaErrorType.INVALID_FUNCTION_NAME,
+          {},
+          `Function ${calleeName} is unavailable for your database`
         );
       }
 
@@ -1871,6 +1938,24 @@ export async function validateFormulaAndExtractTreeWithType({
       } else {
         res.dataType = FormulaDataTypes.NUMERIC;
       }
+    } else if (parsedTree.type === JSEPNode.MEMBER_EXP) {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        {},
+        'Bracket notation is not supported'
+      );
+    } else if (parsedTree.type === JSEPNode.ARRAY_EXP) {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        {},
+        'Array is not supported'
+      );
+    } else if (parsedTree.type === JSEPNode.COMPOUND) {
+      throw new FormulaError(
+        FormulaErrorType.NOT_SUPPORTED,
+        {},
+        'Compound statement is not supported'
+      );
     }
 
     return res;

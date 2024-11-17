@@ -10,6 +10,7 @@ import type {
   QrCodeColumn,
   RollupColumn,
 } from '~/models';
+import type { NcContext } from '~/interface/config';
 import { Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -19,13 +20,14 @@ import { NcError } from '~/helpers/catchError';
 const LOOKUP_VAL_SEPARATOR = '___';
 
 export async function getDisplayValueOfRefTable(
+  context: NcContext,
   relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
 ) {
   return await relationCol
-    .getColOptions()
-    .then((colOpt) => colOpt.getRelatedTable())
-    .then((model) => model.getColumns())
-    .then((cols) => cols.find((col) => col.pv));
+    .getColOptions(context)
+    .then((colOpt) => colOpt.getRelatedTable(context))
+    .then((model) => model.getColumns(context))
+    .then((cols) => cols.find((col) => col.pv) || cols[0]);
 }
 
 // this function will generate the query for lookup column
@@ -39,14 +41,18 @@ export default async function generateLookupSelectQuery({
   alias,
   model: _model,
   getAlias = getAliasGenerator('__lk_slt_'),
+  isAggregation = false,
 }: {
   column: Column;
   baseModelSqlv2: BaseModelSqlv2;
   alias: string;
   model: Model;
   getAlias?: ReturnType<typeof getAliasGenerator>;
+  isAggregation?: boolean;
 }): Promise<any> {
   const knex = baseModelSqlv2.dbDriver;
+
+  const context = baseModelSqlv2.context;
 
   const rootAlias = alias;
 
@@ -57,31 +63,43 @@ export default async function generateLookupSelectQuery({
     let isBtLookup = true;
 
     if (column.uidt === UITypes.Lookup) {
-      lookupColOpt = await column.getColOptions<LookupColumn>();
+      lookupColOpt = await column.getColOptions<LookupColumn>(context);
     } else if (column.uidt !== UITypes.LinkToAnotherRecord) {
       NcError.badRequest('Invalid field type');
     }
 
-    await column.getColOptions<LookupColumn>();
+    await column.getColOptions<LookupColumn>(context);
     {
       const relationCol = lookupColOpt
-        ? await lookupColOpt.getRelationColumn()
+        ? await lookupColOpt.getRelationColumn(context)
         : column;
       const relation =
-        await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+        await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
 
-      // if not belongs to then throw error as we don't support
-      if (relation.type === RelationTypes.BELONGS_TO) {
-        const childColumn = await relation.getChildColumn();
-        const parentColumn = await relation.getParentColumn();
-        const childModel = await childColumn.getModel();
-        await childModel.getColumns();
-        const parentModel = await parentColumn.getModel();
-        await parentModel.getColumns();
+      let relationType = relation.type;
+
+      if (relationType === RelationTypes.ONE_TO_ONE) {
+        relationType = relationCol.meta?.bt
+          ? RelationTypes.BELONGS_TO
+          : RelationTypes.HAS_MANY;
+      }
+
+      if (relationType === RelationTypes.BELONGS_TO) {
+        const childColumn = await relation.getChildColumn(context);
+        const parentColumn = await relation.getParentColumn(context);
+        const childModel = await childColumn.getModel(context);
+        await childModel.getColumns(context);
+        const parentModel = await parentColumn.getModel(context);
+        await parentModel.getColumns(context);
+
+        const parentBaseModel = await Model.getBaseModelSQL(context, {
+          model: parentModel,
+          dbDriver: knex,
+        });
 
         selectQb = knex(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(parentModel.table_name),
+            parentBaseModel.getTnPath(parentModel.table_name),
             alias,
           ]),
         ).where(
@@ -92,21 +110,22 @@ export default async function generateLookupSelectQuery({
             }`,
           ]),
         );
-      }
-
-      // if not belongs to then throw error as we don't support
-      else if (relation.type === RelationTypes.HAS_MANY) {
+      } else if (relationType === RelationTypes.HAS_MANY) {
         isBtLookup = false;
-        const childColumn = await relation.getChildColumn();
-        const parentColumn = await relation.getParentColumn();
-        const childModel = await childColumn.getModel();
-        await childModel.getColumns();
-        const parentModel = await parentColumn.getModel();
-        await parentModel.getColumns();
+        const childColumn = await relation.getChildColumn(context);
+        const parentColumn = await relation.getParentColumn(context);
+        const childModel = await childColumn.getModel(context);
+        await childModel.getColumns(context);
+        const parentModel = await parentColumn.getModel(context);
+        await parentModel.getColumns(context);
+        const parentBaseModel = await Model.getBaseModelSQL(context, {
+          model: parentModel,
+          dbDriver: knex,
+        });
 
         selectQb = knex(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(childModel.table_name),
+            parentBaseModel.getTnPath(childModel.table_name),
             alias,
           ]),
         ).where(
@@ -117,34 +136,41 @@ export default async function generateLookupSelectQuery({
             }`,
           ]),
         );
-      }
-
-      // if not belongs to then throw error as we don't support
-      else if (relation.type === RelationTypes.MANY_TO_MANY) {
+      } else if (relationType === RelationTypes.MANY_TO_MANY) {
         isBtLookup = false;
-        const childColumn = await relation.getChildColumn();
-        const parentColumn = await relation.getParentColumn();
-        const childModel = await childColumn.getModel();
-        await childModel.getColumns();
-        const parentModel = await parentColumn.getModel();
-        await parentModel.getColumns();
+        const childColumn = await relation.getChildColumn(context);
+        const parentColumn = await relation.getParentColumn(context);
+        const childModel = await childColumn.getModel(context);
+        await childModel.getColumns(context);
+        const parentModel = await parentColumn.getModel(context);
+        await parentModel.getColumns(context);
+
+        const parentBaseModel = await Model.getBaseModelSQL(context, {
+          model: parentModel,
+          dbDriver: knex,
+        });
 
         selectQb = knex(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(parentModel.table_name),
+            parentBaseModel.getTnPath(parentModel.table_name),
             alias,
           ]),
         );
 
         const mmTableAlias = getAlias();
 
-        const mmModel = await relation.getMMModel();
-        const mmChildCol = await relation.getMMChildColumn();
-        const mmParentCol = await relation.getMMParentColumn();
+        const mmModel = await relation.getMMModel(context);
+        const mmChildCol = await relation.getMMChildColumn(context);
+        const mmParentCol = await relation.getMMParentColumn(context);
+
+        const associatedBaseModel = await Model.getBaseModelSQL(context, {
+          model: mmModel,
+          dbDriver: knex,
+        });
 
         selectQb
           .innerJoin(
-            baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
+            associatedBaseModel.getTnPath(mmModel.table_name, mmTableAlias),
             knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`),
             '=',
             knex.ref(`${alias}.${parentColumn.column_name}`),
@@ -161,14 +187,14 @@ export default async function generateLookupSelectQuery({
       }
     }
     let lookupColumn = lookupColOpt
-      ? await lookupColOpt.getLookupColumn()
-      : await getDisplayValueOfRefTable(column);
+      ? await lookupColOpt.getLookupColumn(context)
+      : await getDisplayValueOfRefTable(context, column);
 
     // if lookup column is qr code or barcode extract the referencing column
     if ([UITypes.QrCode, UITypes.Barcode].includes(lookupColumn.uidt)) {
       lookupColumn = await lookupColumn
-        .getColOptions<BarcodeColumn | QrCodeColumn>()
-        .then((barcode) => barcode.getValueColumn());
+        .getColOptions<BarcodeColumn | QrCodeColumn>(context)
+        .then((barcode) => barcode.getValueColumn(context));
     }
 
     let prevAlias = alias;
@@ -182,75 +208,102 @@ export default async function generateLookupSelectQuery({
       let nestedLookupColOpt: LookupColumn;
 
       if (lookupColumn.uidt === UITypes.Lookup) {
-        nestedLookupColOpt = await lookupColumn.getColOptions<LookupColumn>();
-        relationCol = await nestedLookupColOpt.getRelationColumn();
+        nestedLookupColOpt = await lookupColumn.getColOptions<LookupColumn>(
+          context,
+        );
+        relationCol = await nestedLookupColOpt.getRelationColumn(context);
       } else {
         relationCol = lookupColumn;
       }
 
       const relation =
-        await relationCol.getColOptions<LinkToAnotherRecordColumn>();
+        await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
+
+      let relationType = relation.type;
+
+      if (relationType === RelationTypes.ONE_TO_ONE) {
+        relationType = relationCol.meta?.bt
+          ? RelationTypes.BELONGS_TO
+          : RelationTypes.HAS_MANY;
+      }
 
       // if any of the relation in nested lookupColOpt is
       // not belongs to then throw error as we don't support
-      if (relation.type === RelationTypes.BELONGS_TO) {
-        const childColumn = await relation.getChildColumn();
-        const parentColumn = await relation.getParentColumn();
-        const childModel = await childColumn.getModel();
-        await childModel.getColumns();
-        const parentModel = await parentColumn.getModel();
-        await parentModel.getColumns();
+      if (relationType === RelationTypes.BELONGS_TO) {
+        const childColumn = await relation.getChildColumn(context);
+        const parentColumn = await relation.getParentColumn(context);
+        const childModel = await childColumn.getModel(context);
+        await childModel.getColumns(context);
+        const parentModel = await parentColumn.getModel(context);
+        await parentModel.getColumns(context);
+        const parentBaseModel = await Model.getBaseModelSQL(context, {
+          model: parentModel,
+          dbDriver: knex,
+        });
 
         selectQb.join(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(parentModel.table_name),
+            parentBaseModel.getTnPath(parentModel.table_name),
             nestedAlias,
           ]),
           `${nestedAlias}.${parentColumn.column_name}`,
           `${prevAlias}.${childColumn.column_name}`,
         );
-      } else if (relation.type === RelationTypes.HAS_MANY) {
+      } else if (relationType === RelationTypes.HAS_MANY) {
         isBtLookup = false;
-        const childColumn = await relation.getChildColumn();
-        const parentColumn = await relation.getParentColumn();
-        const childModel = await childColumn.getModel();
-        await childModel.getColumns();
-        const parentModel = await parentColumn.getModel();
-        await parentModel.getColumns();
+        const childColumn = await relation.getChildColumn(context);
+        const parentColumn = await relation.getParentColumn(context);
+        const childModel = await childColumn.getModel(context);
+        await childModel.getColumns(context);
+        const parentModel = await parentColumn.getModel(context);
+        await parentModel.getColumns(context);
+        const childBaseModel = await Model.getBaseModelSQL(context, {
+          model: childModel,
+          dbDriver: knex,
+        });
 
         selectQb.join(
           knex.raw(`?? as ??`, [
-            baseModelSqlv2.getTnPath(childModel.table_name),
+            childBaseModel.getTnPath(childModel.table_name),
             nestedAlias,
           ]),
           `${nestedAlias}.${childColumn.column_name}`,
           `${prevAlias}.${parentColumn.column_name}`,
         );
-      } else if (relation.type === RelationTypes.MANY_TO_MANY) {
+      } else if (relationType === RelationTypes.MANY_TO_MANY) {
         isBtLookup = false;
-        const childColumn = await relation.getChildColumn();
-        const parentColumn = await relation.getParentColumn();
-        const childModel = await childColumn.getModel();
-        await childModel.getColumns();
-        const parentModel = await parentColumn.getModel();
-        await parentModel.getColumns();
+        const childColumn = await relation.getChildColumn(context);
+        const parentColumn = await relation.getParentColumn(context);
+        const childModel = await childColumn.getModel(context);
+        await childModel.getColumns(context);
+        const parentModel = await parentColumn.getModel(context);
+        await parentModel.getColumns(context);
+        const parentBaseModel = await Model.getBaseModelSQL(context, {
+          model: parentModel,
+          dbDriver: knex,
+        });
 
         const mmTableAlias = getAlias();
 
-        const mmModel = await relation.getMMModel();
-        const mmChildCol = await relation.getMMChildColumn();
-        const mmParentCol = await relation.getMMParentColumn();
+        const mmModel = await relation.getMMModel(context);
+        const mmChildCol = await relation.getMMChildColumn(context);
+        const mmParentCol = await relation.getMMParentColumn(context);
+
+        const associatedBaseModel = await Model.getBaseModelSQL(context, {
+          model: mmModel,
+          dbDriver: knex,
+        });
 
         selectQb
           .innerJoin(
-            baseModelSqlv2.getTnPath(mmModel.table_name, mmTableAlias),
+            associatedBaseModel.getTnPath(mmModel.table_name, mmTableAlias),
             knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
             '=',
             knex.ref(`${prevAlias}.${childColumn.column_name}`),
           )
           .innerJoin(
             knex.raw('?? as ??', [
-              baseModelSqlv2.getTnPath(parentModel.table_name),
+              parentBaseModel.getTnPath(parentModel.table_name),
               nestedAlias,
             ]),
             knex.ref(`${mmTableAlias}.${mmParentCol.column_name}`),
@@ -269,25 +322,20 @@ export default async function generateLookupSelectQuery({
       }
 
       if (lookupColumn.uidt === UITypes.Lookup)
-        lookupColumn = await nestedLookupColOpt.getLookupColumn();
-      else lookupColumn = await getDisplayValueOfRefTable(relationCol);
+        lookupColumn = await nestedLookupColOpt.getLookupColumn(context);
+      else lookupColumn = await getDisplayValueOfRefTable(context, relationCol);
       prevAlias = nestedAlias;
     }
 
     {
       // get basemodel and model of lookup column
-      const model = await lookupColumn.getModel();
-      const baseModelSqlv2 = await Model.getBaseModelSQL({
+      const model = await lookupColumn.getModel(context);
+      const baseModelSqlv2 = await Model.getBaseModelSQL(context, {
         model,
         dbDriver: knex,
       });
 
       switch (lookupColumn.uidt) {
-        case UITypes.Attachment:
-          NcError.badRequest(
-            'Group by using attachment column is not supported',
-          );
-          break;
         case UITypes.Links:
         case UITypes.Rollup:
           {
@@ -295,12 +343,15 @@ export default async function generateLookupSelectQuery({
               await genRollupSelectv2({
                 baseModelSqlv2,
                 knex,
-                columnOptions:
-                  (await lookupColumn.getColOptions()) as RollupColumn,
+                columnOptions: (await lookupColumn.getColOptions(
+                  context,
+                )) as RollupColumn,
                 alias: prevAlias,
               })
             ).builder;
-            selectQb.select(builder);
+            selectQb.select({
+              [lookupColumn.id]: knex.raw(builder).wrap('(', ')'),
+            });
           }
           break;
         case UITypes.Formula:
@@ -309,12 +360,12 @@ export default async function generateLookupSelectQuery({
               await formulaQueryBuilderv2(
                 baseModelSqlv2,
                 (
-                  await lookupColumn.getColOptions<FormulaColumn>()
+                  await lookupColumn.getColOptions<FormulaColumn>(context)
                 ).formula,
                 lookupColumn.id,
                 model,
                 lookupColumn,
-                await model.getAliasColMapping(),
+                await model.getAliasColMapping(context),
                 prevAlias,
               )
             ).builder;
@@ -333,6 +384,14 @@ export default async function generateLookupSelectQuery({
             });
           }
           break;
+        case UITypes.Attachment:
+          if (!isAggregation) {
+            NcError.badRequest(
+              'Group by using attachment column is not supported',
+            );
+            break;
+          }
+        // eslint-disable-next-line no-fallthrough
         default:
           {
             selectQb.select(
@@ -425,8 +484,6 @@ export default async function generateLookupSelectQuery({
       };
     }
 
-    NcError.notImplemented(
-      'Database not supported this operation on Lookup/LTAR',
-    );
+    NcError.notImplemented('This operation on Lookup/LTAR for this database');
   }
 }

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
 import type { BaseType } from 'nocodb-sdk'
-import { isEeUI, useVModel } from '#imports'
 
 const props = defineProps<{
   modelValue: boolean
@@ -129,18 +128,17 @@ const isEaster = ref(false)
   <GeneralModal
     v-if="base"
     v-model:visible="dialogShow"
-    :closable="!isLoading"
     :mask-closable="!isLoading"
     :keyboard="!isLoading"
     class="!w-[30rem]"
     wrap-class-name="nc-modal-base-duplicate"
   >
     <div>
-      <div class="prose-xl font-bold self-center" @dblclick="isEaster = !isEaster">
+      <div class="font-medium text-lg text-gray-800 self-center" @dblclick="isEaster = !isEaster">
         {{ $t('general.duplicate') }} {{ $t('objects.project') }}
       </div>
 
-      <div class="mt-4">{{ $t('msg.warning.duplicateProject') }}</div>
+      <div class="mt-5">{{ $t('msg.warning.duplicateProject') }}</div>
 
       <div class="prose-md self-center text-gray-500 mt-4">{{ $t('title.advancedSettings') }}</div>
 
@@ -155,8 +153,10 @@ const isEaster = ref(false)
       </div>
     </div>
     <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-      <NcButton v-if="!isLoading" key="back" type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
-      <NcButton key="submit" v-e="['a:base:duplicate']" :loading="isLoading" @click="_duplicate"
+      <NcButton v-if="!isLoading" key="back" type="secondary" size="small" @click="dialogShow = false">{{
+        $t('general.cancel')
+      }}</NcButton>
+      <NcButton key="submit" v-e="['a:base:duplicate']" size="small" :loading="isLoading" @click="_duplicate"
         >{{ $t('general.confirm') }}
       </NcButton>
     </div>

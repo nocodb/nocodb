@@ -500,6 +500,7 @@ class ModelXcMetaSnowflake extends BaseModelXcMeta {
       case 'smgr':
         return dt;
       case 'text':
+        if (col.dtxp < 1024) return 'string';
         return 'text';
       case 'tid':
         return dt;

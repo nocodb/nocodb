@@ -1,6 +1,5 @@
 import { ref } from 'vue'
 import type { MaybeRef } from '@vueuse/core'
-import { computed, effectScope, theme, tryOnScopeDispose, unref, useNuxtApp, watch, watchEffect } from '#imports'
 
 export function useColors(darkMode?: MaybeRef<boolean>) {
   const scope = effectScope()

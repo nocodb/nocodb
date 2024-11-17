@@ -1,4 +1,3 @@
-import { Language, LanguageAlias, defineNuxtPlugin, isEeUI, useApi, useGlobal } from '#imports'
 import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
 
 /**
@@ -6,7 +5,7 @@ import { loadLocaleMessages, setI18nLanguage } from '~/plugins/a.i18n'
  *
  * @example
  * ```js
- * import { useNuxtApp } from '#imports'
+ *
  *
  * const { $state } = useNuxtApp()
  *

@@ -77,9 +77,9 @@ test.describe('Verify cell selection', () => {
       start: { index: 0, columnHeader: 'Country' },
       end: { index: 2, columnHeader: 'Cities' },
     });
-    expect(await grid.selectedCount()).toBe(9);
+    await grid.verifySelectedCellCount({ count: 9 });
     await grid.cell.get({ index: 0, columnHeader: 'Country' }).click();
-    expect(await grid.selectedCount()).toBe(1);
+    await grid.verifySelectedCellCount({ count: 1 });
     expect(await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'Country' }));
     await dashboard.closeAllTabs();
 
@@ -89,9 +89,9 @@ test.describe('Verify cell selection', () => {
       start: { index: 0, columnHeader: 'Country' },
       end: { index: 2, columnHeader: 'Cities' },
     });
-    expect(await grid.selectedCount()).toBe(9);
+    await grid.verifySelectedCellCount({ count: 9 });
     await grid.cell.get({ index: 5, columnHeader: 'Country' }).click();
-    expect(await grid.selectedCount()).toBe(1);
+    await grid.verifySelectedCellCount({ count: 1 });
     expect(await grid.cell.verifyCellActiveSelected({ index: 5, columnHeader: 'Country' }));
     await dashboard.closeAllTabs();
 
@@ -102,9 +102,9 @@ test.describe('Verify cell selection', () => {
       start: { index: 2, columnHeader: 'Cities' },
       end: { index: 0, columnHeader: 'Country' },
     });
-    expect(await grid.selectedCount()).toBe(12);
+    await grid.verifySelectedCellCount({ count: 12 });
     await grid.cell.get({ index: 1, columnHeader: 'Country' }).click();
-    expect(await grid.selectedCount()).toBe(1);
+    await grid.verifySelectedCellCount({ count: 1 });
     expect(await grid.cell.verifyCellActiveSelected({ index: 1, columnHeader: 'Country' }));
     await dashboard.grid.toolbar.fields.toggleShowSystemFields();
     await dashboard.closeAllTabs();
@@ -115,8 +115,10 @@ test.describe('Verify cell selection', () => {
       start: { index: 0, columnHeader: 'Country' },
       end: { index: 2, columnHeader: 'Cities' },
     });
+    await grid.verifySelectedCellCount({ count: 9 });
+    await grid.rootPage.waitForTimeout(100);
     await page.keyboard.press('ArrowRight');
-    expect(await grid.selectedCount()).toBe(1);
+    await grid.verifySelectedCellCount({ count: 1 });
     expect(await grid.cell.verifyCellActiveSelected({ index: 0, columnHeader: 'LastUpdate' }));
     await dashboard.closeAllTabs();
   });

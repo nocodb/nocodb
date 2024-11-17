@@ -1,23 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
-
 import { isVirtualCol } from 'nocodb-sdk'
-import {
-  ActiveViewInj,
-  IsFormInj,
-  IsGridInj,
-  MetaInj,
-  ReloadRowDataHookInj,
-  ReloadViewDataHookInj,
-  inject,
-  isLTAR,
-  onMounted,
-  provide,
-  ref,
-  useViewData,
-} from '#imports'
-import type { Row } from '#imports'
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -33,13 +15,6 @@ const { loadData } = useViewData(meta, view)
 provide(IsFormInj, ref(false))
 provide(IsGridInj, ref(false))
 
-const isRowEmpty = (record: any, col: any) => {
-  const val = record.row[col.title]
-  if (!val) return true
-
-  return Array.isArray(val) && val.length === 0
-}
-
 reloadViewDataHook?.on(async () => {
   await loadData()
 })
@@ -52,7 +27,7 @@ provide(ReloadRowDataHookInj, reloadViewDataHook!)
 
 const currentRow = toRef(props, 'row')
 
-useProvideSmartsheetRowStore(meta as Ref<TableType>, currentRow)
+useProvideSmartsheetRowStore(currentRow)
 </script>
 
 <template>

@@ -9,6 +9,7 @@ import type { TablesService } from '~/services/tables.service';
 import type { AirtableBase } from 'airtable/lib/airtable_base';
 import type { TableType } from 'nocodb-sdk';
 import type { Source } from '~/models';
+import type { NcContext } from '~/interface/config';
 
 const logger = new Logger('at-import:readAndProcessData');
 
@@ -61,7 +62,7 @@ async function readAllData({
           let tempCounter = 0;
           for (const record of records) {
             dataStream.push(
-              JSON.stringify({ id: record.id, ...record.fields }),
+              JSON.stringify({ _atId: record.id, ...record.fields }),
             );
             counter.streamingCounter++;
             recordCounter++;
@@ -106,43 +107,52 @@ async function readAllData({
   });
 }
 
-export async function importData({
-  baseName,
-  table,
-  atBase,
-  nocoBaseDataProcessing_v2,
-  syncDB,
-  source,
-  logBasic = (_str) => {},
-  logDetailed = (_str) => {},
-  logWarning = (_str) => {},
-  services,
-  // link related props start
-  insertedAssocRef = {},
-  atNcAliasRef,
-  ncLinkMappingTable,
-}: {
-  baseName: string;
-  table: { title?: string; id?: string };
-  fields?;
-  atBase: AirtableBase;
-  source: Source;
-  logBasic: (string) => void;
-  logDetailed: (string) => void;
-  logWarning: (string) => void;
-  nocoBaseDataProcessing_v2;
-  // link related props start
-  insertedAssocRef: { [assocTableId: string]: boolean };
-  atNcAliasRef: {
-    [ncTableId: string]: {
-      [ncTitle: string]: string;
+export async function importData(
+  context: NcContext,
+  {
+    baseName,
+    table,
+    atBase,
+    nocoBaseDataProcessing_v2,
+    syncDB,
+    source,
+    logBasic = (_str) => {},
+    logDetailed = (_str) => {},
+    logWarning = (_str) => {},
+    services,
+    // link related props start
+    insertedAssocRef = {},
+    atNcAliasRef,
+    ncLinkMappingTable,
+    idMap,
+    idCounter,
+    req,
+  }: {
+    baseName: string;
+    table: { title?: string; id?: string };
+    fields?;
+    atBase: AirtableBase;
+    source: Source;
+    logBasic: (string) => void;
+    logDetailed: (string) => void;
+    logWarning: (string) => void;
+    nocoBaseDataProcessing_v2;
+    // link related props start
+    insertedAssocRef: { [assocTableId: string]: boolean };
+    atNcAliasRef: {
+      [ncTableId: string]: {
+        [ncTitle: string]: string;
+      };
     };
-  };
-  ncLinkMappingTable: Record<string, Record<string, any>>[];
-  // link related props end
-  syncDB;
-  services: AirtableImportContext;
-}): Promise<{
+    ncLinkMappingTable: Record<string, Record<string, any>>[];
+    // link related props end
+    syncDB;
+    services: AirtableImportContext;
+    idMap: Map<string, number>;
+    idCounter: Record<string, number>;
+    req: any;
+  },
+): Promise<{
   nestedLinkCount: number;
   importedCount: number;
 }> {
@@ -173,7 +183,7 @@ export async function importData({
     return new Promise(async (resolve) => {
       const queue = new PQueue({ concurrency: BULK_PARALLEL_PROCESS });
 
-      const ltarPromise = importLTARData({
+      const ltarPromise = importLTARData(context, {
         table,
         baseName,
         insertedAssocRef,
@@ -184,6 +194,8 @@ export async function importData({
         source,
         services,
         queue,
+        idMap,
+        idCounter,
         logBasic,
         logDetailed,
         logWarning,
@@ -206,25 +218,37 @@ export async function importData({
           () =>
             new Promise(async (resolve) => {
               try {
-                const { id: rid, ...fields } = record;
+                if (idCounter[table.id] === undefined) {
+                  idCounter[table.id] = 1;
+                }
+
+                const { _atId: rid, ...fields } = record;
+                if (!idMap.has(rid)) {
+                  idMap.set(rid, idCounter[table.id]++);
+                }
                 const r = await nocoBaseDataProcessing_v2(syncDB, table, {
                   id: rid,
                   fields,
                 });
-                tempData.push(r);
+
+                tempData.push({
+                  ...r,
+                  id: idMap.get(rid),
+                });
                 tempCount++;
 
                 if (tempCount >= BULK_DATA_BATCH_COUNT) {
                   if (sizeof(tempData) >= BULK_DATA_BATCH_SIZE) {
                     let insertArray = tempData.splice(0, tempData.length);
 
-                    await services.bulkDataService.bulkDataInsert({
+                    await services.bulkDataService.bulkDataInsert(context, {
                       baseName,
                       tableName: table.id,
                       body: insertArray,
-                      cookie: {},
+                      cookie: req,
                       skip_hooks: true,
                       foreign_key_checks: !!source.isMeta(),
+                      allowSystemColumn: true,
                     });
 
                     logBasic(
@@ -264,13 +288,14 @@ export async function importData({
 
           // insert remaining data
           if (tempData.length > 0) {
-            await services.bulkDataService.bulkDataInsert({
+            await services.bulkDataService.bulkDataInsert(context, {
               baseName,
               tableName: table.id,
               body: tempData,
-              cookie: {},
+              cookie: req,
               skip_hooks: true,
               foreign_key_checks: !!source.isMeta(),
+              allowSystemColumn: true,
             });
 
             logBasic(
@@ -305,47 +330,54 @@ export async function importData({
   }
 }
 
-export async function importLTARData({
-  table,
-  baseName,
-  insertedAssocRef = {},
-  dataStream,
-  atNcAliasRef,
-  ncLinkMappingTable,
-  syncDB,
-  source,
-  services,
-  queue,
-  logBasic = (_str) => {},
-  logWarning = (_str) => {},
-}: {
-  baseName: string;
-  table: { title?: string; id?: string };
-  insertedAssocRef: { [assocTableId: string]: boolean };
-  dataStream?: Readable;
-  atNcAliasRef: {
-    [ncTableId: string]: {
-      [ncTitle: string]: string;
+export async function importLTARData(
+  context: NcContext,
+  {
+    table,
+    baseName,
+    insertedAssocRef = {},
+    dataStream,
+    atNcAliasRef,
+    ncLinkMappingTable,
+    syncDB,
+    source,
+    services,
+    queue,
+    idMap,
+    idCounter,
+    logBasic = (_str) => {},
+    logWarning = (_str) => {},
+  }: {
+    baseName: string;
+    table: { title?: string; id?: string };
+    insertedAssocRef: { [assocTableId: string]: boolean };
+    dataStream?: Readable;
+    atNcAliasRef: {
+      [ncTableId: string]: {
+        [ncTitle: string]: string;
+      };
     };
-  };
-  ncLinkMappingTable: Record<string, Record<string, any>>[];
-  syncDB;
-  source: Source;
-  services: AirtableImportContext;
-  queue: PQueue;
-  logBasic: (string) => void;
-  logDetailed: (string) => void;
-  logWarning: (string) => void;
-}): Promise<number> {
+    ncLinkMappingTable: Record<string, Record<string, any>>[];
+    syncDB;
+    source: Source;
+    services: AirtableImportContext;
+    queue: PQueue;
+    idMap: Map<string, number>;
+    idCounter: Record<string, number>;
+    logBasic: (string) => void;
+    logDetailed: (string) => void;
+    logWarning: (string) => void;
+  },
+): Promise<number> {
   const assocTableMetas: Array<{
     modelMeta: { id?: string; title?: string };
-    colMeta: { title?: string };
+    colMeta: { title?: string; colOptions?: { fk_related_model_id?: string } };
     curCol: { title?: string };
     refCol: { title?: string };
   }> = [];
 
   const modelMeta: any =
-    await services.tableService.getTableWithAccessibleViews({
+    await services.tableService.getTableWithAccessibleViews(context, {
       tableId: table.id,
       user: syncDB.user,
     });
@@ -369,7 +401,7 @@ export async function importLTARData({
     insertedAssocRef[colMeta.colOptions.fk_mm_model_id] = true;
 
     const assocModelMeta: TableType =
-      (await services.tableService.getTableWithAccessibleViews({
+      (await services.tableService.getTableWithAccessibleViews(context, {
         tableId: colMeta.colOptions.fk_mm_model_id,
         user: syncDB.user,
       })) as any;
@@ -403,15 +435,42 @@ export async function importLTARData({
           () =>
             new Promise(async (resolve) => {
               try {
-                const { id: _atId, ...rec } = record;
+                if (
+                  idCounter[
+                    assocMeta.colMeta.colOptions.fk_related_model_id
+                  ] === undefined
+                ) {
+                  idCounter[
+                    assocMeta.colMeta.colOptions.fk_related_model_id
+                  ] = 1;
+                }
+
+                if (idCounter[table.id] === undefined) {
+                  idCounter[table.id] = 1;
+                }
+
+                const { _atId, ...rec } = record;
+
+                if (!idMap.has(_atId)) {
+                  rec.id = idMap.set(_atId, idCounter[table.id]++);
+                }
 
                 // todo: use actual alias instead of sanitized
                 const links =
                   rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || [];
                 for (const id of links) {
+                  if (!idMap.has(id)) {
+                    idMap.set(
+                      id,
+                      idCounter[
+                        assocMeta.colMeta.colOptions.fk_related_model_id
+                      ]++,
+                    );
+                  }
+
                   assocTableData[assocMeta.modelMeta.id].push({
-                    [assocMeta.curCol.title]: record.id,
-                    [assocMeta.refCol.title]: id,
+                    [assocMeta.curCol.title]: idMap.get(_atId),
+                    [assocMeta.refCol.title]: idMap.get(id),
                   });
 
                   // links can be [] & hence assocTableDta[assocMeta.modelMeta.id] can be [].
@@ -434,13 +493,14 @@ export async function importLTARData({
                       }`,
                     );
 
-                    await services.bulkDataService.bulkDataInsert({
+                    await services.bulkDataService.bulkDataInsert(context, {
                       baseName,
                       tableName: assocMeta.modelMeta.id,
                       body: insertArray,
                       cookie: {},
                       skip_hooks: true,
                       foreign_key_checks: !!source.isMeta(),
+                      allowSystemColumn: true,
                     });
 
                     insertArray = [];
@@ -477,13 +537,14 @@ export async function importLTARData({
               }`,
             );
 
-            await services.bulkDataService.bulkDataInsert({
+            await services.bulkDataService.bulkDataInsert(context, {
               baseName,
               tableName: assocMeta.modelMeta.id,
               body: assocTableData[assocMeta.modelMeta.id],
               cookie: {},
               skip_hooks: true,
               foreign_key_checks: !!source.isMeta(),
+              allowSystemColumn: true,
             });
 
             importedCount += assocTableData[assocMeta.modelMeta.id].length;

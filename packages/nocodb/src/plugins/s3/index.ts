@@ -1,11 +1,11 @@
 import { PluginCategory, XcActionType, XcType } from 'nocodb-sdk';
 import S3Plugin from './S3Plugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: S3Plugin,
   title: 'S3',
-  version: '0.0.1',
+  version: '0.0.6',
   logo: 'plugins/s3.png',
   description:
     'Amazon Simple Storage Service (Amazon S3) is an object storage service that offers industry-leading scalability, data availability, security, and performance.',
@@ -27,18 +27,39 @@ const config: XcPluginConfig = {
         required: true,
       },
       {
+        key: 'endpoint',
+        label: 'Endpoint',
+        placeholder: 'Endpoint',
+        type: XcType.SingleLineText,
+        required: false,
+      },
+      {
         key: 'access_key',
         label: 'Access Key',
         placeholder: 'Access Key',
         type: XcType.SingleLineText,
-        required: true,
+        required: false,
       },
       {
         key: 'access_secret',
         label: 'Access Secret',
         placeholder: 'Access Secret',
         type: XcType.Password,
-        required: true,
+        required: false,
+      },
+      {
+        key: 'acl',
+        label: 'Access Control Lists (ACL)',
+        placeholder: '',
+        type: XcType.SingleLineText,
+        required: false,
+      },
+      {
+        key: 'force_path_style',
+        label: 'Force Path Style',
+        placeholder: 'Default set to false',
+        type: XcType.Checkbox,
+        required: false,
       },
     ],
     actions: [
@@ -58,7 +79,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in AWS S3',
+      'Successfully configured! Attachments will now be stored in AWS S3.',
     msgOnUninstall: '',
   },
   category: PluginCategory.STORAGE,

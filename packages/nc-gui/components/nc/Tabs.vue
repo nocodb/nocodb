@@ -13,6 +13,13 @@ const props = defineProps<{
     }"
   >
     <slot />
+
+    <template v-if="$slots.leftExtra" #leftExtra>
+      <slot name="leftExtra" />
+    </template>
+    <template v-if="$slots.rightExtra" #rightExtra>
+      <slot name="rightExtra" />
+    </template>
   </a-tabs>
 </template>
 
@@ -43,7 +50,7 @@ const props = defineProps<{
   }
 
   .ant-tabs-nav {
-    @apply mb-0;
+    @apply pl-2.5 mb-0;
   }
 
   .ant-tabs-ink-bar {

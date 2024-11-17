@@ -11,7 +11,6 @@ import type {
   ViewType,
 } from 'nocodb-sdk'
 import { UITypes, ViewTypes } from 'nocodb-sdk'
-import { computed, parseProp, storeToRefs, useGlobal, useMetas, useNuxtApp, useState } from '#imports'
 
 export function useSharedView() {
   const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
@@ -26,7 +25,7 @@ export function useSharedView() {
 
   const { base } = storeToRefs(baseStore)
 
-  const appInfoDefaultLimit = appInfo.value.defaultLimit || 25
+  const appInfoDefaultLimit = appInfo.value.defaultLimit || 50
 
   const paginationData = useState<PaginatedType>('paginationData', () => ({
     page: 1,
@@ -83,10 +82,25 @@ export function useSharedView() {
 
     let order = 1
 
-    meta.value!.columns = [...viewMeta.model.columns]
-      .filter((c) => c.show)
-      .map((c) => ({ ...c, order: order++ }))
-      .sort((a, b) => a.order - b.order)
+    // Required for Calendar View
+    const rangeFields: Array<string> = []
+    if ((sharedView.value?.view as CalendarType)?.calendar_range?.length) {
+      for (const range of (sharedView.value?.view as CalendarType)?.calendar_range ?? []) {
+        if (range.fk_from_column_id) {
+          rangeFields.push(range.fk_from_column_id)
+        }
+        if ((range as any).fk_to_column_id) {
+          rangeFields.push((range as any).fk_to_column_id)
+        }
+      }
+    }
+
+    if (meta.value) {
+      meta.value.columns = [...viewMeta.model.columns]
+        .filter((c) => c.show || rangeFields.includes(c.id) || (sharedView.value?.type === ViewTypes.GRID && c?.group_by))
+        .map((c) => ({ ...c, order: order++ }))
+        .sort((a, b) => a.order - b.order)
+    }
 
     await setMeta(viewMeta.model)
 
@@ -110,16 +124,23 @@ export function useSharedView() {
     }
   }
 
-  const fetchSharedViewData = async (param: {
-    sortsArr: SortType[]
-    filtersArr: FilterType[]
-    fields?: any[]
-    sort?: any[]
-    where?: string
-    /** Query params for nested data */
-    nested?: any
-    offset?: number
-  }) => {
+  const fetchSharedViewData = async (
+    param: {
+      sortsArr: SortType[]
+      filtersArr: FilterType[]
+      fields?: any[]
+      sort?: any[]
+      where?: string
+      /** Query params for nested data */
+      nested?: any
+      offset?: number
+      limit?: number
+    },
+    opts?: {
+      isGroupBy?: boolean
+      isInfiniteScroll?: boolean
+    },
+  ) => {
     if (!sharedView.value)
       return {
         list: [],
@@ -128,14 +149,18 @@ export function useSharedView() {
 
     if (!param.offset) {
       const page = paginationData.value.page || 1
-      const pageSize = paginationData.value.pageSize || appInfoDefaultLimit
+      const pageSize = opts?.isInfiniteScroll
+        ? param.limit
+        : opts?.isGroupBy
+        ? appInfo.value.defaultGroupByLimit?.limitRecord || 10
+        : paginationData.value.pageSize || appInfoDefaultLimit
       param.offset = (page - 1) * pageSize
+      param.limit = sharedView.value?.type === ViewTypes.MAP ? 1000 : pageSize
     }
 
     return await $api.public.dataList(
       sharedView.value.uuid!,
       {
-        limit: sharedView.value?.type === ViewTypes.MAP ? 1000 : undefined,
         ...param,
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(param.sortsArr ?? sorts.value),
@@ -188,6 +213,104 @@ export function useSharedView() {
     )
   }
 
+  const fetchAggregatedData = async (param: {
+    aggregation?: Array<{
+      field: string
+      type: string
+    }>
+    filtersArr?: FilterType[]
+    where?: string
+  }) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableAggregate(
+      sharedView.value.uuid!,
+      {
+        ...param,
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
+  const fetchBulkAggregatedData = async (
+    param: {
+      aggregation?: Array<{
+        field: string
+        type: string
+      }>
+      filtersArr?: FilterType[]
+      where?: string
+    },
+    bulkFilterList: Array<{
+      where: string
+      alias: string
+    }>,
+  ) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableBulkAggregate(
+      sharedView.value.uuid!,
+      bulkFilterList,
+      {
+        ...param,
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
+  const fetchBulkListData = async (
+    param: {
+      where?: string
+    },
+    bulkFilterList: Array<{
+      where: string
+      alias: string
+    }>,
+  ) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableBulkDataList(sharedView.value.uuid!, bulkFilterList, {
+      ...param,
+    } as any)
+  }
+
+  const fetchBulkGroupData = async (
+    param: {
+      filtersArr?: FilterType[]
+      where?: string
+    },
+    bulkFilterList: Array<{
+      where: string
+      alias: string
+    }>,
+  ) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableBulkGroup(
+      sharedView.value.uuid!,
+      bulkFilterList,
+      {
+        ...param,
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
   const fetchSharedViewActiveDate = async (param: {
     from_date: string
     to_date: string
@@ -217,6 +340,23 @@ export function useSharedView() {
     )
   }
 
+  const fetchCount = async (param: { filtersArr: FilterType[]; where?: string }) => {
+    const data = await $api.public.dbViewRowCount(
+      sharedView.value.uuid!,
+      {
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+        where: param.where,
+      },
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+
+    return data
+  }
+
   const fetchSharedViewGroupedData = async (
     columnId: string,
     { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] },
@@ -233,6 +373,24 @@ export function useSharedView() {
         offset: (page - 1) * pageSize,
         filterArrJson: JSON.stringify(filtersArr ?? nestedFilters.value),
         sortArrJson: JSON.stringify(sortsArr ?? sorts.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
+  const fetchSharedViewAttachment = async (columnId: string, rowId: string, urlOrPath: string) => {
+    if (!sharedView.value) return
+
+    return await $api.public.dataAttachmentDownload(
+      sharedView.value.uuid!,
+      columnId,
+      rowId,
+      {
+        urlOrPath,
       } as any,
       {
         headers: {
@@ -272,10 +430,16 @@ export function useSharedView() {
     fetchSharedViewActiveDate,
     fetchSharedCalendarViewData,
     fetchSharedViewGroupedData,
+    fetchAggregatedData,
+    fetchBulkAggregatedData,
+    fetchSharedViewAttachment,
+    fetchBulkGroupData,
+    fetchBulkListData,
     paginationData,
     sorts,
     exportFile,
     formColumns,
     allowCSVDownload,
+    fetchCount,
   }
 }

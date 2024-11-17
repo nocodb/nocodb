@@ -1,46 +1,55 @@
-import type { ColumnGroupType } from 'ant-design-vue/es/table'
-
-export const tableColumns: (Omit<ColumnGroupType<any>, 'children'> & { dataIndex?: string; name: string })[] = [
+export const tableColumns: NcTableColumnProps[] = [
   {
+    title: 'Column Name',
     name: 'Column Name',
     dataIndex: 'column_name',
     key: 'column_name',
-    width: 250,
+    minWidth: 200,
+    padding: '0px 12px',
   },
   {
+    title: 'Column Type',
     name: 'Column Type',
     dataIndex: 'column_type',
     key: 'uidt',
-    width: 250,
+    minWidth: 200,
+    padding: '0px 12px',
   },
+  // {
+  //   name: 'Select Option',
+  //   key: 'dtxp',
+  // },
   {
-    name: 'Select Option',
-    key: 'dtxp',
-  },
-  {
+    title: '',
     name: 'Action',
     key: 'action',
-    align: 'right',
+    width: 60,
+    minWidth: 60,
+    padding: '0px 12px',
   },
 ]
 
-export const srcDestMappingColumns: (Omit<ColumnGroupType<any>, 'children'> & { dataIndex?: string; name: string })[] = [
+export const srcDestMappingColumns: NcTableColumnProps[] = [
   {
-    name: 'Source column',
+    title: 'Source column',
     dataIndex: 'source_column',
     key: 'source_column',
-    width: 400,
+    minWidth: 200,
+    padding: '0px 12px',
   },
   {
-    name: 'Destination column',
+    title: 'Destination column',
     dataIndex: 'destination_column',
     key: 'destination_column',
-    width: 400,
+    minWidth: 200,
+    padding: '0px 12px',
   },
   {
-    name: 'Action',
+    title: 'Action',
     key: 'action',
-    align: 'center',
-    width: 50,
+    justify: 'justify-center',
+    width: 60,
+    minWidth: 60,
+    padding: '0px 12px',
   },
 ]

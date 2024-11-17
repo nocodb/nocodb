@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
-import type { AppConfig, NcRequest } from '~/interface/config';
+import type { AppConfig, NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -20,29 +20,32 @@ export class SharedBasesService {
     private configService: ConfigService<AppConfig>,
   ) {}
 
-  async createSharedBaseLink(param: {
-    baseId: string;
-    roles: string;
-    password: string;
-    siteUrl: string;
+  async createSharedBaseLink(
+    context: NcContext,
+    param: {
+      baseId: string;
+      roles: string;
+      password: string;
+      siteUrl: string;
 
-    req: NcRequest;
-  }): Promise<any> {
+      req: NcRequest;
+    },
+  ): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
 
-    const base = await Base.get(param.baseId);
+    const base = await Base.get(context, param.baseId);
 
     let roles = param?.roles;
     if (!roles || (roles !== 'editor' && roles !== 'viewer')) {
       roles = 'viewer';
     }
 
-    if (roles === 'editor' && process.env.NC_CLOUD === 'true') {
+    if (roles === 'editor') {
       NcError.badRequest('Only viewer role is supported');
     }
 
     if (!base) {
-      NcError.badRequest('Invalid base id');
+      NcError.baseNotFound(param.baseId);
     }
 
     const data: any = {
@@ -51,7 +54,7 @@ export class SharedBasesService {
       roles,
     };
 
-    await Base.update(base.id, data);
+    await Base.update(context, base.id, data);
 
     data.url = this.getUrl({
       base,
@@ -69,16 +72,19 @@ export class SharedBasesService {
     return data;
   }
 
-  async updateSharedBaseLink(param: {
-    baseId: string;
-    roles: string;
-    password: string;
-    siteUrl: string;
-    req: NcRequest;
-  }): Promise<any> {
+  async updateSharedBaseLink(
+    context: NcContext,
+    param: {
+      baseId: string;
+      roles: string;
+      password: string;
+      siteUrl: string;
+      req: NcRequest;
+    },
+  ): Promise<any> {
     validatePayload('swagger.json#/components/schemas/SharedBaseReq', param);
 
-    const base = await Base.get(param.baseId);
+    const base = await Base.get(context, param.baseId);
 
     let roles = param.roles;
     if (!roles || (roles !== 'editor' && roles !== 'viewer')) {
@@ -86,7 +92,7 @@ export class SharedBasesService {
     }
 
     if (!base) {
-      NcError.badRequest('Invalid base id');
+      NcError.baseNotFound(param.baseId);
     }
 
     if (roles === 'editor' && process.env.NC_CLOUD === 'true') {
@@ -99,7 +105,7 @@ export class SharedBasesService {
       roles,
     };
 
-    await Base.update(base.id, data);
+    await Base.update(context, base.id, data);
 
     data.url = this.getUrl({
       base,
@@ -130,20 +136,23 @@ export class SharedBasesService {
     return `${siteUrl}${config.dashboardPath}#/base/${base.uuid}`;
   }
 
-  async disableSharedBaseLink(param: {
-    baseId: string;
-    req: NcRequest;
-  }): Promise<any> {
-    const base = await Base.get(param.baseId);
+  async disableSharedBaseLink(
+    context: NcContext,
+    param: {
+      baseId: string;
+      req: NcRequest;
+    },
+  ): Promise<any> {
+    const base = await Base.get(context, param.baseId);
 
     if (!base) {
-      NcError.badRequest('Invalid base id');
+      NcError.baseNotFound(param.baseId);
     }
     const data: any = {
       uuid: null,
     };
 
-    await Base.update(base.id, data);
+    await Base.update(context, base.id, data);
 
     this.appHooksService.emit(AppEvents.SHARED_BASE_DELETE_LINK, {
       base,
@@ -152,14 +161,17 @@ export class SharedBasesService {
     return { uuid: null };
   }
 
-  async getSharedBaseLink(param: {
-    baseId: string;
-    siteUrl: string;
-  }): Promise<any> {
-    const base = await Base.get(param.baseId);
+  async getSharedBaseLink(
+    context: NcContext,
+    param: {
+      baseId: string;
+      siteUrl: string;
+    },
+  ): Promise<any> {
+    const base = await Base.get(context, param.baseId);
 
     if (!base) {
-      NcError.badRequest('Invalid base id');
+      NcError.baseNotFound(param.baseId);
     }
     const data: any = {
       uuid: base.uuid,

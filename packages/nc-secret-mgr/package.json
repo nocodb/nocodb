@@ -1,0 +1,60 @@
+{
+  "name": "nc-secret-mgr",
+  "version": "0.0.1",
+  "description": "",
+  "packageManager": "pnpm@9.6.0",
+  "main": "dist/cli.js",
+  "bin": "dist/cli.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "dev": "cross-env NC_DB=\"pg://localhost:5432?u=postgres&p=password&d=meta_2024_09_07\" nodemon --watch 'src/**/*.ts' --exec 'ts-node --project tsconfig.json' src/index.ts -- a b --nc-db abc",
+    "test": "mocha --require ts-node/register src/**/*.spec.ts",
+    "build:pkg": "npx pkg . --out-path dist-pkg --compress GZip",
+    "npm:publish": "npm publish .",
+    "lint": "eslint src/**/*.ts --fix"
+  },
+  "pkg": {
+    "assets": [
+      "node_modules/**/*"
+    ],
+    "targets": [
+      "node16-linux-arm64",
+      "node16-macos-arm64",
+      "node16-win-arm64",
+      "node16-linux-x64",
+      "node16-macos-x64",
+      "node16-win-x64"
+    ]
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "commander": "^12.1.0",
+    "enquirer": "^2.4.1",
+    "figlet": "^1.7.0",
+    "knex": "^3.1.0",
+    "mysql": "^2.18.1",
+    "parse-database-url": "^0.3.0",
+    "pg": "^8.12.0",
+    "sqlite3": "5.1.6"
+  },
+  "devDependencies": {
+    "@types/figlet": "^1.5.8",
+    "chai": "^4.4.1",
+    "class-transformer": "0.3.1",
+    "class-validator": "^0.14.1",
+    "cross-env": "^7.0.3",
+    "mocha": "^10.3.0",
+    "nodemon": "^3.0.3",
+    "pkg": "^5.8.0",
+    "eslint-config-prettier": "^8.10.0",
+    "eslint-plugin-eslint-comments": "^3.2.0",
+    "eslint-plugin-functional": "^5.0.8",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.8",
+    "@mapbox/node-pre-gyp": "^1.0.11"
+  }
+}

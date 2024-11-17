@@ -1,7 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { ColumnType, MapType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { IsPublicInj, ref, storeToRefs, useBase, useInjectionState, useMetas } from '#imports'
-import type { Row } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map(
@@ -86,7 +84,7 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
     }
 
     async function updateMapMeta(updateObj: Partial<MapType>) {
-      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit')) return
+      if (!viewMeta?.value?.id || !isUIAllowed('dataEdit', { skipSourceCheck: true })) return
       await $api.dbView.mapUpdate(viewMeta.value.id, updateObj)
     }
 

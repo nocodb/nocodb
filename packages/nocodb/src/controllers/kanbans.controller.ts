@@ -9,12 +9,13 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { KanbansService } from '~/services/kanbans.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -26,8 +27,11 @@ export class KanbansController {
     '/api/v2/meta/kanbans/:kanbanViewId',
   ])
   @Acl('kanbanViewGet')
-  async kanbanViewGet(@Param('kanbanViewId') kanbanViewId: string) {
-    return await this.kanbansService.kanbanViewGet({
+  async kanbanViewGet(
+    @TenantContext() context: NcContext,
+    @Param('kanbanViewId') kanbanViewId: string,
+  ) {
+    return await this.kanbansService.kanbanViewGet(context, {
       kanbanViewId,
     });
   }
@@ -39,11 +43,12 @@ export class KanbansController {
   @HttpCode(200)
   @Acl('kanbanViewCreate')
   async kanbanViewCreate(
+    @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
     @Body() body: ViewCreateReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.kanbansService.kanbanViewCreate({
+    return await this.kanbansService.kanbanViewCreate(context, {
       tableId,
       kanban: body,
       user: req.user,
@@ -57,12 +62,13 @@ export class KanbansController {
   ])
   @Acl('kanbanViewUpdate')
   async kanbanViewUpdate(
+    @TenantContext() context: NcContext,
     @Param('kanbanViewId') kanbanViewId: string,
     @Body() body,
 
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    return await this.kanbansService.kanbanViewUpdate({
+    return await this.kanbansService.kanbanViewUpdate(context, {
       kanbanViewId,
       kanban: body,
       req,

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { MetaInj, inject, ref, storeToRefs, useBase, useColumnCreateStoreOrThrow, useI18n, useMetas, useVModel } from '#imports'
 
 const props = defineProps<{
   value: any
@@ -16,7 +15,8 @@ const meta = inject(MetaInj, ref())
 
 const { t } = useI18n()
 
-const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit } = useColumnCreateStoreOrThrow()
+const { setAdditionalValidations, validateInfos, onDataTypeChange, isEdit, disableSubmitBtn, updateFieldName } =
+  useColumnCreateStoreOrThrow()
 
 const baseStore = useBase()
 
@@ -42,7 +42,9 @@ const refTables = computed(() => {
     .map((column) => ({
       col: column.colOptions,
       column,
-      ...tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id),
+      ...(tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id) ||
+        metas.value[(column.colOptions as LinkToAnotherRecordType).fk_related_model_id!] ||
+        {}),
     }))
     .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
   return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
@@ -69,79 +71,153 @@ onMounted(() => {
   }
 })
 
+const getNextColumnId = () => {
+  const usedLookupColumnIds = (meta.value?.columns || [])
+    .filter((c) => c.uidt === UITypes.Lookup)
+    .map((c) => (c.colOptions as LookupType)?.fk_lookup_column_id)
+
+  return columns.value.find((c) => !usedLookupColumnIds.includes(c.id))?.id
+}
+
 const onRelationColChange = async () => {
   if (selectedTable.value) {
     await getMeta(selectedTable.value.id)
   }
-  vModel.value.fk_lookup_column_id = columns.value?.[0]?.id
+  vModel.value.fk_lookup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()
 }
+
+watchEffect(() => {
+  if (!refTables.value.length) {
+    disableSubmitBtn.value = true
+  } else if (refTables.value.length && disableSubmitBtn.value) {
+    disableSubmitBtn.value = false
+  }
+})
 
 const cellIcon = (column: ColumnType) =>
   h(isVirtualCol(column) ? resolveComponent('SmartsheetHeaderVirtualCellIcon') : resolveComponent('SmartsheetHeaderCellIcon'), {
     columnMeta: column,
   })
+
+watch(
+  () => vModel.value.fk_relation_column_id,
+  (newValue) => {
+    if (!newValue) return
+
+    const selectedTable = refTables.value.find((t) => t.col.fk_column_id === newValue)
+    if (selectedTable) {
+      vModel.value.lookupTableTitle = selectedTable?.title || selectedTable.table_name
+    }
+  },
+)
+
+watch(
+  () => vModel.value.fk_lookup_column_id,
+  (newValue) => {
+    if (!newValue) return
+
+    const selectedColumn = columns.value.find((c) => c.id === newValue)
+    if (selectedColumn) {
+      vModel.value.lookupColumnTitle = selectedColumn?.title || selectedColumn.column_name
+
+      updateFieldName()
+    }
+  },
+)
 </script>
 
 <template>
-  <div class="p-6 w-full flex flex-col border-2 mb-2 mt-4">
-    <div v-if="refTables.length" class="w-full flex flex-row space-x-2">
-      <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.links')" v-bind="validateInfos.fk_relation_column_id">
-        <a-select
-          v-model:value="vModel.fk_relation_column_id"
-          dropdown-class-name="!w-64 !rounded-md nc-dropdown-relation-table"
-          @change="onRelationColChange"
-        >
-          <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
-            <div class="flex gap-2 w-full justify-between truncate items-center">
-              <NcTooltip class="font-semibold truncate min-w-1/2" show-on-truncate-only>
+  <div v-if="refTables.length" class="w-full flex flex-row space-x-2">
+    <a-form-item
+      class="flex w-1/2 !max-w-[calc(50%_-_4px)]"
+      :label="`${$t('general.link')} ${$t('objects.field')}`"
+      v-bind="validateInfos.fk_relation_column_id"
+    >
+      <a-select
+        v-model:value="vModel.fk_relation_column_id"
+        placeholder="-select-"
+        dropdown-class-name="!w-64 !rounded-md nc-dropdown-relation-table"
+        @change="onRelationColChange"
+      >
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+        </template>
+        <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
+          <div class="flex gap-2 w-full justify-between truncate items-center">
+            <div class="min-w-1/2 flex items-center gap-2">
+              <component :is="cellIcon(table.column)" :column-meta="table.column" class="!mx-0" />
+
+              <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
                 <template #title>{{ table.column.title }}</template>
-                {{ table.column.title }}</NcTooltip
-              >
-              <div class="inline-flex items-center truncate gap-2">
-                <div class="text-[0.65rem] flex-1 truncate text-gray-600 nc-relation-details">
-                  <span class="uppercase">{{ table.col.type }}</span>
-                  <span class="truncate">{{ table.title || table.table_name }}</span>
-                </div>
-
-                <component
-                  :is="iconMap.check"
-                  v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
-                  id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
-                />
-              </div>
+                {{ table.column.title }}
+              </NcTooltip>
             </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-
-      <a-form-item class="flex w-1/2" :label="$t('labels.childField')" v-bind="validateInfos.fk_lookup_column_id">
-        <a-select
-          v-model:value="vModel.fk_lookup_column_id"
-          name="fk_lookup_column_id"
-          dropdown-class-name="nc-dropdown-relation-column !rounded-md"
-          @change="onDataTypeChange"
-        >
-          <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
-            <div class="flex gap-2 truncate items-center">
-              <div class="inline-flex items-center flex-1 truncate font-semibold">
-                <component :is="cellIcon(column)" :column-meta="column" />
-                <div class="truncate flex-1">{{ column.title }}</div>
+            <div class="inline-flex items-center truncate gap-2">
+              <div class="text-[0.65rem] leading-4 flex-1 truncate text-gray-600 nc-relation-details">
+                <NcTooltip class="truncate" show-on-truncate-only>
+                  <template #title>{{ table.title || table.table_name }}</template>
+                  {{ table.title || table.table_name }}
+                </NcTooltip>
               </div>
-
               <component
                 :is="iconMap.check"
-                v-if="vModel.fk_lookup_column_id === column.id"
+                v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
                 id="nc-selected-item-icon"
                 class="text-primary w-4 h-4"
               />
             </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-    </div>
-    <div v-else>{{ $t('msg.linkColumnClearNotSupportedYet') }}</div>
+          </div>
+        </a-select-option>
+      </a-select>
+    </a-form-item>
+
+    <a-form-item
+      class="flex w-1/2"
+      :label="`${$t('datatype.Lookup')} ${$t('objects.field')}`"
+      v-bind="vModel.fk_relation_column_id ? validateInfos.fk_lookup_column_id : undefined"
+    >
+      <a-select
+        v-model:value="vModel.fk_lookup_column_id"
+        name="fk_lookup_column_id"
+        placeholder="-select-"
+        :disabled="!vModel.fk_relation_column_id"
+        dropdown-class-name="nc-dropdown-relation-column !rounded-md"
+        @change="onDataTypeChange"
+      >
+        <template #suffixIcon>
+          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+        </template>
+        <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
+          <div class="w-full flex gap-2 truncate items-center justify-between">
+            <div class="inline-flex items-center gap-2 flex-1 truncate">
+              <component :is="cellIcon(column)" :column-meta="column" class="!mx-0" />
+              <div class="truncate flex-1">{{ column.title }}</div>
+            </div>
+
+            <component
+              :is="iconMap.check"
+              v-if="vModel.fk_lookup_column_id === column.id"
+              id="nc-selected-item-icon"
+              class="text-primary w-4 h-4"
+            />
+          </div>
+        </a-select-option>
+      </a-select>
+    </a-form-item>
+  </div>
+  <div v-else>
+    <a-alert type="warning" show-icon>
+      <template #icon><GeneralIcon icon="alertTriangle" class="h-6 w-6" width="24" height="24" /></template>
+      <template #message> Alert </template>
+      <template #description>
+        {{
+          $t('msg.linkColumnClearNotSupportedYet', {
+            type: 'Lookup',
+          })
+        }}
+      </template>
+    </a-alert>
   </div>
 </template>
 

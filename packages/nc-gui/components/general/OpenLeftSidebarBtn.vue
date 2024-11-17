@@ -11,7 +11,7 @@ const onClick = () => {
 </script>
 
 <template>
-  <div v-e="['c:leftSidebar:hideToggle']">
+  <div v-if="isMobileMode || !isLeftSidebarOpen" v-e="['c:leftSidebar:hideToggle']">
     <NcTooltip
       placement="topLeft"
       hide-on-click
@@ -32,7 +32,7 @@ const onClick = () => {
       >
         <div class="flex items-center text-inherit">
           <GeneralIcon v-if="isMobileMode" icon="menu" class="text-lg -mt-0.25" />
-          <GeneralIcon v-else icon="doubleRightArrow" class="duration-150 transition-all !text-lg -mt-0.25" />
+          <GeneralIcon v-else icon="doubleRightArrow" class="duration-150 transition-all !text-lg -mt-0.25 !text-gray-500/75" />
         </div>
       </NcButton>
     </NcTooltip>

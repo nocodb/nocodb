@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { computed, iconMap, navigateTo, storeToRefs, useBase, useGlobal, useRoute, useSidebar } from '#imports'
-
 const { signOut, signedIn, user, currentVersion } = useGlobal()
 
 const { isOpen } = useSidebar('nc-mini-sidebar', { isOpen: true })
@@ -12,8 +10,9 @@ const route = useRoute()
 const email = computed(() => user.value?.email ?? '---')
 
 const logout = async () => {
-  await signOut(false)
-  await navigateTo('/signin')
+  await signOut({
+    redirectToSignin: true,
+  })
 }
 </script>
 

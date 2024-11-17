@@ -1,10 +1,7 @@
 <script lang="ts" setup>
 import { useMagicKeys, whenever } from '@vueuse/core'
-// import { useNuxtApp } from '#app'
 import { commandScore } from './command-score'
-import type { ComputedRef, VNode } from '#imports'
-import { iconMap, onClickOutside } from '#imports'
-import type { CommandPaletteType } from '~/lib'
+import type { CommandPaletteType } from '~/lib/types'
 
 interface CmdAction {
   id: string
@@ -24,7 +21,6 @@ const props = defineProps<{
   open: boolean
   data: CmdAction[]
   scope?: string
-  placeholder?: string
   hotkey?: string
   loadTemporaryScope?: (scope: { scope: string; data: any }) => void
   setActiveCmdView: (cmd: CommandPaletteType) => void
@@ -44,9 +40,23 @@ const cmdInputEl = ref<HTMLInputElement>()
 
 const cmdInput = ref('')
 
+const debouncedCmdInput = ref('')
+
 const { user } = useGlobal()
 
 const selected = ref<string>()
+
+const cmdkActionsRef = ref<HTMLElement>()
+
+const cmdkActionSelectedRef = ref<HTMLElement>()
+
+const ACTION_HEIGHT = 48
+
+const WRAPPER_HEIGHT = 300
+
+const SCROLL_MARGIN = ACTION_HEIGHT / 2
+
+const { cmdPlaceholder, loadScope, cmdLoading } = useCommandPalette()
 
 const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(() => {
   const rt: (CmdAction & { weight: number })[] = []
@@ -58,7 +68,7 @@ const formattedData: ComputedRef<(CmdAction & { weight: number })[]> = computed(
       parent: el.parent || 'root',
       weight: commandScore(
         `${el.section}${el?.section === 'Views' && el?.is_default ? t('title.defaultView') : el.title}${el.keywords?.join()}`,
-        cmdInput.value,
+        debouncedCmdInput.value,
       ),
     })
   }
@@ -69,11 +79,13 @@ const nestedScope = computed(() => {
   const rt = []
   let parent = activeScope.value
   while (parent !== 'root') {
-    const parentEl = formattedData.value.find((el) => el.id === parent)
+    const parentId = parent.startsWith('ws-') ? `ws-nav-${parent.split('-')[1]}` : parent
+    const parentEl = formattedData.value.find((el) => el.id === parentId)
     rt.push({
       id: parent,
       label: parentEl?.title,
       icon: parentEl?.icon,
+      iconColor: parent.startsWith('ws-') ? parentEl?.iconColor : null,
     })
     parent = parentEl?.parent || 'root'
   }
@@ -117,7 +129,7 @@ const actionList = computed(() => {
     return 0
   })
   return formattedData.value.filter((el) => {
-    if (cmdInput.value === '') {
+    if (debouncedCmdInput.value === '') {
       if (el.parent === activeScope.value) {
         if (!el.handler) {
           return isThereAnyActionInScope(el.id)
@@ -138,7 +150,7 @@ const actionList = computed(() => {
 })
 
 const searchedActionList = computed(() => {
-  if (cmdInput.value === '') return actionList.value
+  if (debouncedCmdInput.value === '') return actionList.value
   actionList.value.sort((a, b) => {
     if (a.weight > b.weight) return -1
     if (a.weight < b.weight) return 1
@@ -149,47 +161,90 @@ const searchedActionList = computed(() => {
     .sort((a, b) => b.section?.toLowerCase().localeCompare(a.section?.toLowerCase() as string) || 0)
 })
 
-const actionListGroupedBySection = computed(() => {
-  const rt: { [key: string]: CmdAction[] } = {}
+const visibleSections = computed(() => {
+  const sections: string[] = []
   searchedActionList.value.forEach((el) => {
-    if (el.section === 'hidden') return
-    if (el.section) {
-      if (!rt[el.section]) rt[el.section] = []
-      rt[el.section].push(el)
-    } else {
-      if (!rt.default) rt.default = []
-      rt.default.push(el)
+    if (el.section && !sections.includes(el.section)) {
+      sections.push(el.section)
     }
+  })
+  return sections
+})
+
+const actionListNormalized = computed(() => {
+  const rt: (CmdAction | { sectionTitle: string })[] = []
+  visibleSections.value.forEach((el) => {
+    rt.push({ sectionTitle: el || 'default' })
+    rt.push(...searchedActionList.value.filter((el2) => el2.section === el))
   })
   return rt
 })
 
+const { list, containerProps, wrapperProps } = useVirtualList(actionListNormalized, {
+  itemHeight: ACTION_HEIGHT,
+})
+
 const keys = useMagicKeys()
 
+const shiftModifier = keys.shift
+
 const setAction = (action: string) => {
+  const oldActionIndex = searchedActionList.value.findIndex((el) => el.id === selected.value)
   selected.value = action
   nextTick(() => {
     const actionIndex = searchedActionList.value.findIndex((el) => el.id === action)
     if (actionIndex === -1) return
+
     if (actionIndex === 0) {
-      document.querySelector('.cmdk-actions')?.scrollTo({ top: 0, behavior: 'smooth' })
+      containerProps.ref.value?.scrollTo({ top: 0, behavior: 'smooth' })
+      return
     } else if (actionIndex === searchedActionList.value.length - 1) {
-      document.querySelector('.cmdk-actions')?.scrollTo({ top: 999999, behavior: 'smooth' })
-    } else {
-      document.querySelector('.cmdk-action.selected')?.scrollIntoView({
+      containerProps.ref.value?.scrollTo({
+        top: actionIndex * ACTION_HEIGHT,
         behavior: 'smooth',
-        block: 'nearest',
       })
+      return
+    }
+
+    // check if selected action rendered
+    const actionEl = Array.isArray(cmdkActionSelectedRef.value) ? cmdkActionSelectedRef.value[0] : cmdkActionSelectedRef.value
+
+    if (!actionEl || !actionEl.classList?.contains('selected')) {
+      // if above the old selected action
+      if (actionIndex < oldActionIndex) {
+        containerProps.ref.value?.scrollTo({ top: (actionIndex + 1) * ACTION_HEIGHT - SCROLL_MARGIN, behavior: 'smooth' })
+      } else {
+        containerProps.ref.value?.scrollTo({
+          top: (actionIndex + 2) * ACTION_HEIGHT - WRAPPER_HEIGHT + SCROLL_MARGIN,
+          behavior: 'smooth',
+        })
+      }
+      return
+    }
+
+    // count sections before the selected action
+    const sectionBefore = visibleSections.value.findIndex((el) => el === searchedActionList.value[actionIndex].section) + 1
+
+    // check if selected action is visible in the list
+    const actionRect = actionEl?.getBoundingClientRect()
+    const listRect = cmdkActionsRef.value?.getBoundingClientRect()
+    if (actionRect && listRect) {
+      if (actionRect.top < listRect.top || actionRect.bottom > listRect.bottom) {
+        // if above the old selected action
+        if (actionIndex < oldActionIndex) {
+          containerProps.ref.value?.scrollTo({
+            top: (actionIndex + sectionBefore) * ACTION_HEIGHT - SCROLL_MARGIN,
+            behavior: 'smooth',
+          })
+        } else {
+          containerProps.ref.value?.scrollTo({
+            top: (actionIndex + 1 + sectionBefore) * ACTION_HEIGHT - WRAPPER_HEIGHT + SCROLL_MARGIN,
+            behavior: 'smooth',
+          })
+        }
+      }
     }
   })
-}
-
-const selectFirstAction = () => {
-  if (searchedActionList.value.length > 0) {
-    setAction(searchedActionList.value[0].id)
-  } else {
-    selected.value = undefined
-  }
 }
 
 const setScope = (scope: string) => {
@@ -199,13 +254,16 @@ const setScope = (scope: string) => {
 
   nextTick(() => {
     cmdInputEl.value?.focus()
-    selectFirstAction()
   })
 }
 
 const show = () => {
   if (!user.value) return
   if (props.scope === 'disabled') return
+  if (!vOpen.value) {
+    loadScope()
+  }
+
   vOpen.value = true
   cmdInput.value = ''
   nextTick(() => {
@@ -234,6 +292,22 @@ const fireAction = (action: CmdAction, preview = false) => {
     setScope(action.id)
   }
 }
+
+const updateDebouncedInput = useDebounceFn(() => {
+  debouncedCmdInput.value = cmdInput.value
+
+  nextTick(() => {
+    cmdInputEl.value?.focus()
+  })
+}, 100)
+
+watch(cmdInput, () => {
+  if (cmdInput.value === '') {
+    debouncedCmdInput.value = ''
+  } else {
+    updateDebouncedInput()
+  }
+})
 
 whenever(keys.ctrl_k, () => {
   show()
@@ -290,7 +364,7 @@ whenever(keys.Enter, () => {
     const selectedEl = formattedData.value.find((el) => el.id === selected.value)
     cmdInput.value = ''
     if (selectedEl) {
-      fireAction(selectedEl, keys.shift.value)
+      fireAction(selectedEl, shiftModifier.value)
     }
   }
 })
@@ -306,6 +380,12 @@ onClickOutside(modalEl, () => {
   if (vOpen.value) hide()
 })
 
+watch(searchedActionList, () => {
+  if (searchedActionList.value.length > 0) {
+    setAction(searchedActionList.value[0].id)
+  }
+})
+
 defineExpose({
   open: show,
   close: hide,
@@ -318,112 +398,164 @@ defineExpose({
     <div ref="modalEl" class="cmdk-modal-content h-[25.25rem]">
       <div class="cmdk-header">
         <div class="cmdk-input-wrapper">
-          <GeneralIcon icon="search" class="h-4 w-4 text-gray-500" />
+          <GeneralIcon class="h-4 w-4 text-gray-500" icon="search" />
           <div
             v-for="el of nestedScope"
             :key="`cmdk-breadcrumb-${el.id}`"
             v-e="['a:cmdk:setScope']"
-            class="text-gray-600 text-sm cursor-pointer flex gap-1 items-center font-medium capitalize"
+            class="flex items-center"
             @click="setScope(el.id)"
           >
-            <component
-              :is="(iconMap as any)[el.icon]"
-              v-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
-              class="cmdk-action-icon"
-              :class="{
-                '!text-blue-500': el.icon === 'grid',
-                '!text-purple-500': el.icon === 'form',
-                '!text-[#FF9052]': el.icon === 'kanban',
-                '!text-pink-500': el.icon === 'gallery',
-              }"
-            />
-            <div v-else-if="el.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
-              <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="el.icon" readonly />
-            </div>
-            <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
-              <template #title>
-                {{ el.label }}
-              </template>
-              <span class="truncate capitalize mr-4">
-                {{ el.label }}
-              </span>
-            </a-tooltip>
+            <div
+              class="text-gray-600 text-sm cursor-pointer flex gap-2 px-2 py-1 items-center justify-center font-medium capitalize"
+            >
+              <GeneralLoader v-if="cmdLoading && !el.label" />
+              <template v-else>
+                <GeneralWorkspaceIcon
+                  v-if="el.icon && el.id.startsWith('ws')"
+                  :workspace="{
+                    id: el.id.split('-')[1],
+                    meta: {
+                      color: el.iconColor,
+                    },
+                  }"
+                  hide-label
+                  size="small"
+                />
 
-            <span class="text-gray-400 text-sm font-medium pl-1">/</span>
+                <component
+                  :is="(iconMap as any)[el.icon]"
+                  v-else-if="el.icon && typeof el.icon === 'string' && (iconMap as any)[el.icon]"
+                  :class="{
+                    '!text-blue-500': el.icon === 'grid',
+                    '!text-purple-500': el.icon === 'form',
+                    '!text-[#FF9052]': el.icon === 'kanban',
+                    '!text-pink-500': el.icon === 'gallery',
+                    '!text-maroon-500': el.icon === 'calendar',
+                  }"
+                  class="cmdk-action-icon"
+                />
+                <div v-else-if="el.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
+                  <LazyGeneralEmojiPicker :emoji="el.icon" class="!text-sm !h-4 !w-4" readonly size="small" />
+                </div>
+                <span
+                  class="text-ellipsis truncate capitalize max-w-16"
+                  style="word-break: keep-all; white-space: nowrap; display: inline"
+                >
+                  <NcTooltip show-on-truncate-only>
+                    <template #title>
+                      {{ el.label }}
+                    </template>
+                    <span class="text-ellipsis max-w-16">
+                      {{ el.label }}
+                    </span>
+                  </NcTooltip>
+                </span>
+              </template>
+            </div>
+
+            <span class="text-gray-700 text-sm pl-1 font-medium">/</span>
           </div>
-          <input
-            ref="cmdInputEl"
-            v-model="cmdInput"
-            class="cmdk-input"
-            type="text"
-            :placeholder="props.placeholder"
-            @input="selectFirstAction"
-          />
+          <input ref="cmdInputEl" v-model="cmdInput" class="cmdk-input" type="text" :placeholder="cmdPlaceholder" />
         </div>
       </div>
       <div class="cmdk-body">
-        <div class="cmdk-actions nc-scrollbar-md">
-          <div v-if="searchedActionList.length === 0">
+        <div ref="cmdkActionsRef" class="cmdk-actions nc-scrollbar-md">
+          <div v-if="searchedActionList.length === 0 && cmdLoading" class="w-full h-[250px] flex justify-center items-center">
+            <GeneralLoader :size="30" />
+          </div>
+          <div v-else-if="searchedActionList.length === 0">
             <div class="cmdk-action">
               <div class="cmdk-action-content">No action found.</div>
             </div>
           </div>
           <template v-else>
-            <div
-              v-for="[title, section] of Object.entries(actionListGroupedBySection)"
-              :key="`cmdk-section-${title}`"
-              class="cmdk-action-section border-t-1 border-gray-200"
-            >
-              <div v-if="title !== 'default'" class="cmdk-action-section-header capitalize">{{ title }}</div>
-              <div class="cmdk-action-section-body">
-                <div
-                  v-for="act of section"
-                  :key="act.id"
-                  v-e="['a:cmdk:action']"
-                  class="cmdk-action group"
-                  :class="{ selected: selected === act.id }"
-                  @mouseenter="setAction(act.id)"
-                  @click="fireAction(act)"
-                >
-                  <div class="cmdk-action-content w-full">
-                    <template v-if="title === 'Bases' || act.icon === 'project'">
-                      <GeneralBaseIconColorPicker :key="act.iconColor" :model-value="act.iconColor" type="database" readonly>
-                      </GeneralBaseIconColorPicker>
+            <div class="cmdk-action-list border-t-1 border-gray-200">
+              <div v-bind="containerProps" :style="`height: ${WRAPPER_HEIGHT}px`">
+                <div v-bind="wrapperProps">
+                  <div v-for="item in list" :key="item.index" :style="`height: ${ACTION_HEIGHT}px`">
+                    <template v-if="'sectionTitle' in item.data">
+                      <div
+                        class="cmdk-action-section-header capitalize"
+                        :style="{
+                          height: `${ACTION_HEIGHT}px`,
+                        }"
+                      >
+                        {{ item.data.sectionTitle }}
+                      </div>
                     </template>
                     <template v-else>
-                      <component
-                        :is="(iconMap as any)[act.icon]"
-                        v-if="act.icon && typeof act.icon === 'string' && (iconMap as any)[act.icon]"
-                        class="cmdk-action-icon"
-                        :class="{
-                          '!text-blue-500': act.icon === 'grid',
-                          '!text-purple-500': act.icon === 'form',
-                          '!text-[#FF9052]': act.icon === 'kanban',
-                          '!text-pink-500': act.icon === 'gallery',
+                      <div
+                        :ref="item.data.id === selected ? 'cmdkActionSelectedRef' : undefined"
+                        :key="`${item.data.id}-${item.data.id === selected}`"
+                        v-e="['a:cmdk:action']"
+                        class="cmdk-action group flex items-center"
+                        :style="{
+                          height: `${ACTION_HEIGHT}px`,
                         }"
-                      />
-                      <div v-else-if="act.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
-                        <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="act.icon" readonly />
+                        :class="{ selected: selected === item.data.id }"
+                        @mouseenter="setAction(item.data.id)"
+                        @click="fireAction(item.data)"
+                      >
+                        <div class="cmdk-action-content w-full">
+                          <GeneralWorkspaceIcon
+                            v-if="item.data.icon && item.data.id.startsWith('ws')"
+                            :workspace="{
+                              id: item.data.id.split('-')[2],
+                              meta: {
+                                color: item.data?.iconColor,
+                              },
+                            }"
+                            class="mr-2"
+                            size="small"
+                          />
+                          <template v-else-if="item.data.section === 'Bases' || item.data.icon === 'project'">
+                            <GeneralBaseIconColorPicker
+                              :key="item.data.iconColor"
+                              :model-value="item.data.iconColor"
+                              type="database"
+                              readonly
+                            >
+                            </GeneralBaseIconColorPicker>
+                          </template>
+                          <template v-else>
+                            <component
+                              :is="(iconMap as any)[item.data.icon]"
+                              v-if="item.data.icon && typeof item.data.icon === 'string' && (iconMap as any)[item.data.icon]"
+                              :class="{
+                                '!text-blue-500': item.data.icon === 'grid',
+                                '!text-purple-500': item.data.icon === 'form',
+                                '!text-[#FF9052]': item.data.icon === 'kanban',
+                                '!text-pink-500': item.data.icon === 'gallery',
+                                '!text-maroon-500 w-4 h-4': item.data.icon === 'calendar',
+                              }"
+                              class="cmdk-action-icon"
+                            />
+                            <div v-else-if="item.data.icon" class="cmdk-action-icon max-w-4 flex items-center justify-center">
+                              <LazyGeneralEmojiPicker class="!text-sm !h-4 !w-4" size="small" :emoji="item.data.icon" readonly />
+                            </div>
+                          </template>
+                          <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
+                            <template #title>
+                              {{ item.data.title }}
+                            </template>
+                            <span class="truncate capitalize mr-4 py-0.5">
+                              {{ item.data.title }}
+                            </span>
+                          </a-tooltip>
+                          <div
+                            class="bg-gray-200 text-gray-600 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
+                          >
+                            Enter
+                            <div
+                              class="bg-white border-1 items-center flex justify-center border-gray-300 text-gray-700 rounded h-5 w-5 px-0.25"
+                            >
+                              ↩
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </template>
-                    <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg">
-                      <template #title>
-                        {{ act.title }}
-                      </template>
-                      <span class="truncate capitalize mr-4 py-0.5">
-                        {{ act.title }}
-                      </span>
-                    </a-tooltip>
-                    <div
-                      class="bg-gray-200 text-gray-600 cmdk-keyboard hidden text-xs gap-2 p-0.5 items-center justify-center rounded-md ml-auto pl-2"
-                    >
-                      Enter
-                      <div
-                        class="bg-white border-1 items-center flex justify-center border-gray-300 text-gray-700 rounded h-5 w-5 px-0.25"
-                      >
-                        ↩
-                      </div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -492,21 +624,21 @@ defineExpose({
   }
 
   .cmdk-input-wrapper {
-    @apply py-2 px-4 flex items-center gap-2;
+    @apply py-2 px-4 gap-1 flex items-center;
   }
 
   .cmdk-input {
-    @apply text-sm;
+    @apply text-sm pl-2;
     flex-grow: 1;
     flex-shrink: 0;
-    margin: 0px;
+    margin: 0;
     border: none;
     appearance: none;
     background: transparent;
     outline: none;
     box-shadow: var(--tw-ring-inset) 0 0 0 calc(0px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
 
-    caret-color: pink;
+    caret-color: #3366ff;
     color: rgb(60, 65, 73);
   }
 
@@ -525,8 +657,8 @@ defineExpose({
 
   .cmdk-actions {
     max-height: 310px;
-    margin: 0px;
-    padding: 0.5em 0px;
+    margin: 0;
+    padding: 0;
     list-style: none;
     scroll-behavior: smooth;
     overflow: auto;
@@ -553,7 +685,7 @@ defineExpose({
       border-left: 4px solid transparent;
 
       .cmdk-keyboard {
-        display: hidden;
+        display: none;
       }
 
       &.selected {
@@ -584,7 +716,7 @@ defineExpose({
       }
     }
 
-    .cmdk-action-section {
+    .cmdk-action-list {
       display: flex;
       flex-direction: column;
       width: 100%;

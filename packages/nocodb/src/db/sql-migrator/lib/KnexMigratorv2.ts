@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { promisify } from 'util';
-import glob from 'glob';
+import { glob } from 'glob';
 import Debug from '../../util/Debug';
 import Emit from '../../util/emit';
 import * as fileHelp from '../../util/file.help';
@@ -9,6 +9,7 @@ import Result from '../../util/Result';
 import type Source from '~/models/Source';
 import type { XKnex } from '~/db/CustomKnex';
 import type { Knex } from 'knex';
+import type { NcContext } from '~/interface/config';
 import SqlClientFactory from '~/db/sql-client/lib/SqlClientFactory';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
@@ -26,6 +27,8 @@ const NC_MIGRATION = 'nc_migrations';
  * @extends {SqlMigrator}
  */
 export default class KnexMigratorv2 {
+  public context: NcContext;
+
   //extends SqlMigrator {
   private baseId: string;
   private toolDir = process.cwd();
@@ -34,8 +37,9 @@ export default class KnexMigratorv2 {
    * Creates an instance of KnexMigrator.
    * @memberof KnexMigrator
    */
-  constructor(base: { id: string }) {
+  constructor(context: NcContext, base: { id: string }) {
     this.baseId = base.id;
+    this.context = context;
   }
 
   protected get metaDb(): XKnex {
@@ -43,7 +47,7 @@ export default class KnexMigratorv2 {
   }
 
   private async getProject(): Promise<Base> {
-    return Base.getWithInfo(this.baseId);
+    return Base.getWithInfo(this.context, this.baseId);
   }
 
   emit(data, _args?) {
@@ -397,6 +401,14 @@ export default class KnexMigratorv2 {
         database: connectionConfig.connection.database,
         schema: source.getConfig()?.schema,
       });
+    } else if (source.type === 'databricks') {
+      this.emit(
+        `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,
+      );
+      await sqlClient.createDatabaseIfNotExists({
+        database: connectionConfig.connection.database,
+        schema: connectionConfig.connection.schema,
+      });
     } else if (connectionConfig.client !== 'sqlite3') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`,
@@ -581,8 +593,8 @@ export default class KnexMigratorv2 {
           })
           .orderBy('id', 'asc');
       } else {
-        files = await promisify(glob)(args.upFilesPattern);
-        filesDown = await promisify(glob)(args.downFilesPattern);
+        files = await glob(args.upFilesPattern);
+        filesDown = await glob(args.downFilesPattern);
       }
 
       // get evolutions from sql
@@ -850,7 +862,7 @@ export default class KnexMigratorv2 {
           .orderBy('title', 'asc');
       } else {
         // get all evolutions from fs
-        files = await promisify(glob)(args.downFilesPattern);
+        files = await glob(args.downFilesPattern);
       }
       // get done evolutions from sql
       // const connection = this._getSqlConnectionFromDbAlias(

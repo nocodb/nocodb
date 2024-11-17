@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { type UserType, ViewTypes } from 'nocodb-sdk';
-import { Base } from '~/models';
-import { TablesService } from '~/services/tables.service';
 import { deserializeJSON } from '~/utils/serialize';
+import { getCommandPaletteForUserWorkspace } from '~/helpers/commandPaletteHelpers';
 
 const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GRID]: 'grid',
@@ -10,106 +9,135 @@ const viewTypeAlias: Record<number, string> = {
   [ViewTypes.GALLERY]: 'gallery',
   [ViewTypes.KANBAN]: 'kanban',
   [ViewTypes.MAP]: 'map',
+  [ViewTypes.CALENDAR]: 'calendar',
 };
 
 @Injectable()
 export class CommandPaletteService {
-  constructor(private tablesService: TablesService) {}
+  logger = new Logger('CommandPaletteService');
 
   async commandPalette(param: { body: any; user: UserType }) {
     const cmdData = [];
     try {
-      const { scope } = param.body;
+      const list: {
+        base_id: string;
+        base_title: string;
+        base_meta: string;
+        base_role: string;
+        table_id: string;
+        table_title: string;
+        table_type: string;
+        table_meta: string;
+        view_id: string;
+        view_title: string;
+        view_is_default: boolean;
+        view_type: string;
+        view_meta: string;
+      }[] = await getCommandPaletteForUserWorkspace(param.user?.id);
 
-      if (scope === 'root') {
-        const bases = await Base.list({ user: param.user });
-
-        for (const base of bases) {
-          cmdData.push({
-            id: `p-${base.id}`,
-            title: base.title,
-            icon: 'project',
-            iconColor: deserializeJSON(base.meta)?.iconColor,
-            section: 'Bases',
-            scopePayload: {
-              scope: `p-${base.id}`,
-              data: {
-                base_id: base.id,
-              },
-            },
-          });
+      const bases = new Map<
+        string,
+        {
+          id: string;
+          title: string;
+          meta: any;
         }
-      } else if (scope.startsWith('p-')) {
-        const allBases = [];
-
-        const bases = await Base.list({ user: param.user });
-
-        allBases.push(...bases);
-
-        const viewList = [];
-
-        for (const base of bases) {
-          viewList.push(
-            ...(
-              (await this.tablesService.xcVisibilityMetaGet(
-                base.id,
-                null,
-                false,
-              )) as any[]
-            ).filter((v) => {
-              return Object.keys(param.user.roles).some(
-                (role) => param.user.roles[role] && !v.disabled[role],
-              );
-            }),
-          );
+      >();
+      const tables = new Map<
+        string,
+        {
+          id: string;
+          title: string;
+          base_id: string;
+          type: string;
+          meta: any;
         }
-
-        const tableList = [];
-        const vwList = [];
-
-        for (const b of allBases) {
-          cmdData.push({
-            id: `p-${b.id}`,
-            title: b.title,
-            icon: 'project',
-            iconColor: deserializeJSON(b.meta)?.iconColor,
-            section: 'Bases',
-          });
+      >();
+      const views = new Map<
+        string,
+        {
+          id: string;
+          title: string;
+          base_id: string;
+          table_id: string;
+          is_default: boolean;
+          type: string;
+          meta: any;
         }
+      >();
 
-        for (const v of viewList) {
-          if (!tableList.find((el) => el.id === `tbl-${v.fk_model_id}`)) {
-            tableList.push({
-              id: `tbl-${v.fk_model_id}`,
-              title: v._ptn,
-              parent: `p-${v.base_id}`,
-              icon: v?.table_meta?.icon || v.ptype,
-              projectName: bases.find((el) => el.id === v.base_id)?.title,
-              section: 'Tables',
-            });
-          }
-          vwList.push({
-            id: `vw-${v.id}`,
-            title: `${v.title}`,
-            parent: `tbl-${v.fk_model_id}`,
-            icon: v?.meta?.icon || viewTypeAlias[v.type] || 'table',
-            projectName: bases.find((el) => el.id === v.base_id)?.title,
-            section: 'Views',
-            is_default: v?.is_default,
-            handler: {
-              type: 'navigate',
-              payload: `/nc/${v.base_id}/${v.fk_model_id}/${encodeURIComponent(
-                v.id,
-              )}`,
-            },
+      for (const item of list) {
+        if (!bases.has(item.base_id)) {
+          bases.set(item.base_id, {
+            id: item.base_id,
+            title: item.base_title,
+            meta: deserializeJSON(item.base_meta),
           });
         }
 
-        cmdData.push(...tableList);
-        cmdData.push(...vwList);
+        if (!tables.has(item.table_id)) {
+          tables.set(item.table_id, {
+            id: item.table_id,
+            title: item.table_title,
+            meta: deserializeJSON(item.table_meta),
+            base_id: item.base_id,
+            type: item.table_type,
+          });
+        }
+
+        if (!views.has(item.view_id)) {
+          views.set(item.view_id, {
+            id: item.view_id,
+            title: item.view_title,
+            meta: deserializeJSON(item.view_meta),
+            base_id: item.base_id,
+            table_id: item.table_id,
+            is_default: item.view_is_default,
+            type: item.view_type,
+          });
+        }
+      }
+
+      for (const [id, base] of bases) {
+        cmdData.push({
+          id: `p-${id}`,
+          title: base.title,
+          icon: 'project',
+          iconColor: deserializeJSON(base.meta)?.iconColor,
+          section: 'Bases',
+        });
+      }
+
+      for (const [id, table] of tables) {
+        cmdData.push({
+          id: `tbl-${id}`,
+          title: table.title,
+          parent: `p-${table.base_id}`,
+          icon: table?.meta?.icon || table.type,
+          projectName: bases.get(table.base_id)?.title,
+          section: 'Tables',
+        });
+      }
+
+      for (const [id, view] of views) {
+        cmdData.push({
+          id: `vw-${id}`,
+          title: `${view.title}`,
+          parent: `tbl-${view.table_id}`,
+          icon: view?.meta?.icon || viewTypeAlias[view.type] || 'table',
+          projectName: bases.get(view.base_id)?.title,
+          section: 'Views',
+          is_default: view.is_default,
+          handler: {
+            type: 'navigate',
+            payload: `/nc/${view.base_id}/${view.table_id}/${encodeURIComponent(
+              id,
+            )}`,
+          },
+        });
       }
     } catch (e) {
-      console.log(e);
+      this.logger.warn(e);
       return [];
     }
     return cmdData;

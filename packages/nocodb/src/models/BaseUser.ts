@@ -1,6 +1,8 @@
 import { ProjectRoles } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type User from '~/models/User';
+import type { NcContext } from '~/interface/config';
 import Base from '~/models/Base';
 import {
   CacheDelDirection,
@@ -12,11 +14,20 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp } from '~/utils/modelUtils';
+import { NcError } from '~/helpers/catchError';
+import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('BaseUser');
 
 export default class BaseUser {
+  fk_workspace_id?: string;
   base_id: string;
   fk_user_id: string;
   roles?: string;
+  invited_by?: string;
+  starred?: boolean;
+  order?: number;
+  hidden?: boolean;
 
   constructor(data: BaseUser) {
     Object.assign(this, data);
@@ -27,16 +38,21 @@ export default class BaseUser {
   }
 
   public static async bulkInsert(
+    context: NcContext,
     baseUsers: Partial<BaseUser>[],
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = baseUsers.map((baseUser) =>
-      extractProps(baseUser, ['fk_user_id', 'base_id', 'roles']),
+      extractProps(baseUser, ['fk_user_id', 'base_id', 'roles', 'invited_by']),
     );
 
+    if (!insertObj.length) {
+      return;
+    }
+
     const bulkData = await ncMeta.bulkMetaInsert(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT_USERS,
       insertObj,
       true,
@@ -64,10 +80,15 @@ export default class BaseUser {
         [d.base_id],
         `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
       );
+
+      cleanCommandPaletteCacheForUser(d.fk_user_id).catch(() => {
+        logger.error('Error cleaning command palette cache');
+      });
     }
   }
 
   public static async insert(
+    context: NcContext,
     baseUser: Partial<BaseUser>,
     ncMeta = Noco.ncMeta,
   ) {
@@ -75,17 +96,21 @@ export default class BaseUser {
       'fk_user_id',
       'base_id',
       'roles',
+      'invited_by',
+      'starred',
+      'order',
+      'hidden',
     ]);
 
     const { base_id, fk_user_id } = await ncMeta.metaInsert2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT_USERS,
       insertObj,
       true,
     );
 
-    const res = await this.get(base_id, fk_user_id, ncMeta);
+    const res = await this.get(context, base_id, fk_user_id, ncMeta);
 
     await NocoCache.appendToList(
       CacheScope.BASE_USER,
@@ -93,13 +118,22 @@ export default class BaseUser {
       `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
     );
 
+    cleanCommandPaletteCacheForUser(fk_user_id).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
+
     return res;
   }
 
   // public static async update(id, user: Partial<BaseUser>, ncMeta = Noco.ncMeta) {
-  //   // return await ncMeta.metaUpdate(null, null, MetaTable.USERS, id, insertObj);
+  //   // return await ncMeta.metaUpdate(context.workspace_id, context.base_id, insertObj);
   // }
-  static async get(baseId: string, userId: string, ncMeta = Noco.ncMeta) {
+  static async get(
+    context: NcContext,
+    baseId: string,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<BaseUser & { is_mapped?: boolean }> {
     let baseUser =
       baseId &&
       userId &&
@@ -144,10 +178,18 @@ export default class BaseUser {
         );
       }
     }
+
+    // decide if user is mapped to base by checking if base_id is present
+    // base_id will be null if base_user entry is not present
+    if (baseUser) {
+      baseUser.is_mapped = !!baseUser.base_id;
+    }
+
     return this.castType(baseUser);
   }
 
   public static async getUsersList(
+    context: NcContext,
     {
       base_id,
       mode = 'full',
@@ -163,6 +205,9 @@ export default class BaseUser {
     const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
+
+    const fullVersionCols = ['invite_token'];
+
     if (!isNoneList && !baseUsers.length) {
       const queryBuilder = ncMeta
         .knex(MetaTable.USERS)
@@ -170,15 +215,11 @@ export default class BaseUser {
           `${MetaTable.USERS}.id`,
           `${MetaTable.USERS}.email`,
           `${MetaTable.USERS}.display_name`,
-          ...(mode === 'full'
-            ? [
-                `${MetaTable.USERS}.invite_token`,
-                `${MetaTable.USERS}.roles as main_roles`,
-                `${MetaTable.USERS}.created_at as created_at`,
-                `${MetaTable.PROJECT_USERS}.base_id`,
-                `${MetaTable.PROJECT_USERS}.roles as roles`,
-              ]
-            : []),
+          `${MetaTable.USERS}.invite_token`,
+          `${MetaTable.USERS}.roles as main_roles`,
+          `${MetaTable.USERS}.created_at as created_at`,
+          `${MetaTable.PROJECT_USERS}.base_id`,
+          `${MetaTable.PROJECT_USERS}.roles as roles`,
         );
 
       queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
@@ -206,10 +247,22 @@ export default class BaseUser {
       ]);
     }
 
+    if (mode === 'full') {
+      return baseUsers;
+    }
+
+    // remove full version props if viewer
+    for (const user of baseUsers) {
+      for (const prop of fullVersionCols) {
+        delete user[prop];
+      }
+    }
+
     return baseUsers;
   }
 
   public static async getUsersCount(
+    context: NcContext,
     {
       base_id,
       query,
@@ -241,6 +294,7 @@ export default class BaseUser {
   }
 
   static async updateRoles(
+    context: NcContext,
     baseId,
     userId,
     roles: string,
@@ -248,8 +302,8 @@ export default class BaseUser {
   ) {
     // set meta
     const res = await ncMeta.metaUpdate(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT_USERS,
       {
         roles,
@@ -264,10 +318,15 @@ export default class BaseUser {
       roles,
     });
 
+    cleanCommandPaletteCacheForUser(userId).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
+
     return res;
   }
 
   static async update(
+    context: NcContext,
     baseId,
     userId,
     baseUser: Partial<BaseUser>,
@@ -276,24 +335,35 @@ export default class BaseUser {
     const updateObj = extractProps(baseUser, ['starred', 'hidden', 'order']);
 
     // set meta
-    await ncMeta.metaUpdate(null, null, MetaTable.PROJECT_USERS, updateObj, {
-      fk_user_id: userId,
-      base_id: baseId,
-    });
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.PROJECT_USERS,
+      updateObj,
+      {
+        fk_user_id: userId,
+        base_id: baseId,
+      },
+    );
 
     await NocoCache.update(
       `${CacheScope.BASE_USER}:${baseId}:${userId}`,
       updateObj,
     );
 
-    return await this.get(baseId, userId, ncMeta);
+    return await this.get(context, baseId, userId, ncMeta);
   }
 
-  static async delete(baseId: string, userId: string, ncMeta = Noco.ncMeta) {
+  static async delete(
+    context: NcContext,
+    baseId: string,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
     // delete meta
     const response = await ncMeta.metaDelete(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PROJECT_USERS,
       {
         fk_user_id: userId,
@@ -307,6 +377,10 @@ export default class BaseUser {
       CacheDelDirection.PARENT_TO_CHILD,
     );
 
+    cleanCommandPaletteCacheForUser(userId).catch(() => {
+      logger.error('Error cleaning command palette cache');
+    });
+
     return response;
   }
 
@@ -314,8 +388,10 @@ export default class BaseUser {
     userId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<BaseUser[]> {
-    return await ncMeta.metaList2(null, null, MetaTable.PROJECT_USERS, {
-      condition: { fk_user_id: userId },
+    if (!userId) NcError.badRequest('User Id is required');
+
+    return await ncMeta.knex(MetaTable.PROJECT_USERS).where({
+      fk_user_id: userId,
     });
   }
 
@@ -405,7 +481,7 @@ export default class BaseUser {
         .map((p) => {
           const base = Base.castType(p);
           base.meta = parseMetaProp(base);
-          promises.push(base.getSources(ncMeta));
+          promises.push(base.getSources(false, ncMeta));
           return base;
         });
 
@@ -418,17 +494,22 @@ export default class BaseUser {
   }
 
   static async updateOrInsert(
+    context: NcContext,
     baseId,
     userId,
     baseUser: Partial<BaseUser>,
     ncMeta = Noco.ncMeta,
   ) {
-    const existingProjectUser = await this.get(baseId, userId, ncMeta);
+    const existingProjectUser = await this.get(context, baseId, userId, ncMeta);
 
     if (existingProjectUser) {
-      return await this.update(baseId, userId, baseUser, ncMeta);
+      return await this.update(context, baseId, userId, baseUser, ncMeta);
     } else {
-      return await this.insert({ base_id: baseId, fk_user_id: userId });
+      return await this.insert(context, {
+        base_id: baseId,
+        fk_user_id: userId,
+        invited_by: baseUser.invited_by,
+      });
     }
   }
 }

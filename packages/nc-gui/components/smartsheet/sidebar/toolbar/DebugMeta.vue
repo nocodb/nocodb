@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { computed, ref, useMetas, useTable } from '#imports'
-
 const editorOpen = ref(false)
 
 const tabKey = ref()

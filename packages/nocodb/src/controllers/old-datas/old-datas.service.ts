@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { nocoExecute } from 'nc-help';
-import type { OldPathParams } from '~/modules/datas/helpers';
+import type { OldPathParams } from '~/helpers/dataHelpers';
+import type { NcContext } from '~/interface/config';
+import { nocoExecute } from '~/utils';
 import getAst from '~/helpers/getAst';
 import { NcError } from '~/helpers/catchError';
 import { Base, Model, Source, View } from '~/models';
@@ -8,17 +9,20 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 @Injectable()
 export class OldDatasService {
-  async dataList(param: OldPathParams & { query: any }) {
-    const { model, view } = await this.getViewAndModelFromRequest(param);
-    const source = await Source.get(model.source_id);
+  async dataList(context: NcContext, param: OldPathParams & { query: any }) {
+    const { model, view } = await this.getViewAndModelFromRequest(
+      context,
+      param,
+    );
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const { ast } = await getAst({
+    const { ast } = await getAst(context, {
       query: param.query,
       model,
       view,
@@ -35,11 +39,14 @@ export class OldDatasService {
     return await nocoExecute(ast, await baseModel.list(listArgs), {}, listArgs);
   }
 
-  async dataCount(param: OldPathParams & { query: any }) {
-    const { model, view } = await this.getViewAndModelFromRequest(param);
-    const source = await Source.get(model.source_id);
+  async dataCount(context: NcContext, param: OldPathParams & { query: any }) {
+    const { model, view } = await this.getViewAndModelFromRequest(
+      context,
+      param,
+    );
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -53,12 +60,18 @@ export class OldDatasService {
     return await baseModel.count(listArgs);
   }
 
-  async dataInsert(param: OldPathParams & { body: unknown; cookie: any }) {
-    const { model, view } = await this.getViewAndModelFromRequest(param);
+  async dataInsert(
+    context: NcContext,
+    param: OldPathParams & { body: unknown; cookie: any },
+  ) {
+    const { model, view } = await this.getViewAndModelFromRequest(
+      context,
+      param,
+    );
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -67,18 +80,24 @@ export class OldDatasService {
     return await baseModel.insert(param.body, null, param.cookie);
   }
 
-  async dataRead(param: OldPathParams & { query: any; rowId: string }) {
-    const { model, view } = await this.getViewAndModelFromRequest(param);
+  async dataRead(
+    context: NcContext,
+    param: OldPathParams & { query: any; rowId: string },
+  ) {
+    const { model, view } = await this.getViewAndModelFromRequest(
+      context,
+      param,
+    );
 
-    const source = await Source.get(model.source_id);
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
-    const { ast } = await getAst({
+    const { ast } = await getAst(context, {
       query: param.query,
       model,
       view,
@@ -93,12 +112,16 @@ export class OldDatasService {
   }
 
   async dataUpdate(
+    context: NcContext,
     param: OldPathParams & { body: unknown; cookie: any; rowId: string },
   ) {
-    const { model, view } = await this.getViewAndModelFromRequest(param);
-    const source = await Source.get(model.source_id);
+    const { model, view } = await this.getViewAndModelFromRequest(
+      context,
+      param,
+    );
+    const source = await Source.get(context, model.source_id);
 
-    const baseModel = await Model.getBaseModelSQL({
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -112,10 +135,16 @@ export class OldDatasService {
     );
   }
 
-  async dataDelete(param: OldPathParams & { rowId: string; cookie: any }) {
-    const { model, view } = await this.getViewAndModelFromRequest(param);
-    const source = await Source.get(model.source_id);
-    const baseModel = await Model.getBaseModelSQL({
+  async dataDelete(
+    context: NcContext,
+    param: OldPathParams & { rowId: string; cookie: any },
+  ) {
+    const { model, view } = await this.getViewAndModelFromRequest(
+      context,
+      param,
+    );
+    const source = await Source.get(context, model.source_id);
+    const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view.id,
       dbDriver: await NcConnectionMgrv2.get(source),
@@ -124,19 +153,19 @@ export class OldDatasService {
     return await baseModel.delByPk(param.rowId, null, param.cookie);
   }
 
-  async getViewAndModelFromRequest(req) {
-    const base = await Base.getWithInfo(req.params.baseId);
-    const model = await Model.getByAliasOrId({
+  async getViewAndModelFromRequest(context: NcContext, req) {
+    const base = await Base.getWithInfo(context, req.params.baseId);
+    const model = await Model.getByAliasOrId(context, {
       base_id: base.id,
       aliasOrId: req.params.tableName,
     });
     const view =
       req.params.viewName &&
-      (await View.getByTitleOrId({
+      (await View.getByTitleOrId(context, {
         titleOrId: req.params.viewName,
         fk_model_id: model.id,
       }));
-    if (!model) NcError.notFound('Table not found');
+    if (!model) NcError.tableNotFound(req.params.tableName);
     return { model, view };
   }
 }

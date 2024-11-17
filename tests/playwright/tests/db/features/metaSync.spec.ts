@@ -39,6 +39,10 @@ test.describe('Meta sync', () => {
     await dashboard.baseView.tab_dataSources.click();
     await dashboard.baseView.dataSources.openMetaSync({ rowIndex: 0 });
 
+    // await dashboard.treeView.baseSettings({ title: context.base.title });
+    // await dashboard.settings.selectTab({ tab: 'dataSources' });
+    // await dashboard.settings.dataSources.openMetaSync({ rowIndex: 0 });
+
     await dbExec(`CREATE TABLE table1 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
     await dbExec(`CREATE TABLE table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
 
@@ -249,6 +253,10 @@ test.describe('Meta sync', () => {
 
     await dashboard.baseView.tab_dataSources.click();
     await dashboard.baseView.dataSources.openMetaSync({ rowIndex: 0 });
+
+    // await dashboard.treeView.baseSettings({ title: context.base.title });
+    // await dashboard.settings.selectTab({ tab: 'dataSources' });
+    // await dashboard.settings.dataSources.openMetaSync({ rowIndex: 0 });
 
     await metaData.clickReload();
     await metaData.sync();

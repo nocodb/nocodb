@@ -43,7 +43,7 @@ test.describe('LTAR create & update', () => {
       title: 'Link1-2mm',
       type: 'Links',
       childTable: 'Sheet2',
-      relationType: 'Many To many',
+      relationType: 'Many to Many',
     });
 
     await dashboard.treeView.openTable({ title: 'Sheet2', networkResponse: false });
@@ -59,8 +59,9 @@ test.describe('LTAR create & update', () => {
     // Verify fields and toggle the visibility
     await dashboard.grid.toolbar.clickFields();
     for (const title of ['Sheet1', 'Sheet1s']) {
-      await dashboard.grid.toolbar.fields.verify({ title, checked: false });
-      await dashboard.grid.toolbar.fields.click({ title, isLocallySaved: false });
+      // verify that fields are enabled
+      await dashboard.grid.toolbar.fields.verify({ title, checked: true });
+      // await dashboard.grid.toolbar.fields.click({ title, isLocallySaved: false });
     }
     await dashboard.grid.toolbar.clickFields();
 
@@ -90,7 +91,7 @@ test.describe('LTAR create & update', () => {
     // In cell insert
     await dashboard.grid.addNewRow({ index: 1, value: '2b' });
     await dashboard.grid.cell.inCellAdd({ index: 1, columnHeader: 'Sheet1' });
-    await dashboard.linkRecord.select('1b');
+    await dashboard.linkRecord.select('1b', false);
     await dashboard.grid.cell.inCellAdd({
       index: 1,
       columnHeader: 'Sheet1s',
@@ -157,8 +158,8 @@ test.describe('LTAR create & update', () => {
 
     // Verify fields and toggle the visibility
     await dashboard.grid.toolbar.clickFields();
-    await dashboard.grid.toolbar.fields.verify({ title: 'Sheet2', checked: false });
-    await dashboard.grid.toolbar.fields.click({ title: 'Sheet2', isLocallySaved: false });
+    await dashboard.grid.toolbar.fields.verify({ title: 'Sheet2', checked: true });
+    // await dashboard.grid.toolbar.fields.click({ title: 'Sheet2', isLocallySaved: false });
     await dashboard.grid.toolbar.clickFields();
 
     const expected2 = [

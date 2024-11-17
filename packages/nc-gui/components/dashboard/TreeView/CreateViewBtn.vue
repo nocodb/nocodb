@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import type { ViewType } from 'nocodb-sdk'
+import { type ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   // Prop used to align the dropdown to the left in sidebar
   alignLeftLevel: number | undefined
+  source: Source
 }>()
 
 const { $e } = useNuxtApp()
@@ -31,12 +32,34 @@ const overlayClassName = computed(() => {
   return 'nc-view-create-dropdown'
 })
 
+/**
+ * Opens a modal for creating or editing a view.
+ *
+ * @param options - The options for opening the modal.
+ * @param options.title - The title of the modal. Default is an empty string.
+ * @param options.type - The type of view to create or edit.
+ * @param options.copyViewId - The ID of the view to copy, if creating a copy.
+ * @param options.groupingFieldColumnId - The ID of the column to use for grouping, if applicable.
+ * @param options.calendarRange - The date range for calendar views.
+ * @param options.coverImageColumnId - The ID of the column to use for cover images, if applicable.
+ *
+ * @returns A Promise that resolves when the modal operation is complete.
+ *
+ * @remarks
+ * This function opens a modal dialog for creating or editing a view.
+ * It handles the dialog state, view creation, and navigation to the newly created view.
+ * After creating a view, it refreshes the command palette and reloads the views.
+ *
+ * @see {@link packages/nc-gui/components/smartsheet/topbar/ViewListDropdown.vue} for a similar implementation of view creation dialog.
+ * If this function is updated, consider updating the other implementations as well.
+ */
 async function onOpenModal({
   title = '',
   type,
   copyViewId,
   groupingFieldColumnId,
   calendarRange,
+  coverImageColumnId,
 }: {
   title?: string
   type: ViewTypes
@@ -46,6 +69,7 @@ async function onOpenModal({
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+  coverImageColumnId?: string
 }) {
   if (isViewListLoading.value) return
 
@@ -69,6 +93,7 @@ async function onOpenModal({
     'selectedViewId': copyViewId,
     calendarRange,
     groupingFieldColumnId,
+    coverImageColumnId,
     'onUpdate:modelValue': closeDialog,
     'onCreated': async (view: ViewType) => {
       closeDialog()
@@ -103,21 +128,13 @@ async function onOpenModal({
     close(1000)
   }
 }
-
-const isEasterEggEnabled = ref(false)
-
-watch(isOpen, (val) => {
-  if (!val) {
-    isEasterEggEnabled.value = false
-  }
-})
 </script>
 
 <template>
   <NcDropdown v-model:visible="isOpen" :overlay-class-name="overlayClassName" destroy-popup-on-hide @click.stop="isOpen = true">
     <slot />
     <template #overlay>
-      <NcMenu class="max-w-48" @dblclick.stop="isEasterEggEnabled = true">
+      <NcMenu class="max-w-48">
         <NcMenuItem @click.stop="onOpenModal({ type: ViewTypes.GRID })">
           <div class="item" data-testid="sidebar-view-create-grid">
             <div class="item-inner">
@@ -130,7 +147,7 @@ watch(isOpen, (val) => {
           </div>
         </NcMenuItem>
 
-        <NcMenuItem @click="onOpenModal({ type: ViewTypes.FORM })">
+        <NcMenuItem v-if="!source.is_data_readonly" @click="onOpenModal({ type: ViewTypes.FORM })">
           <div class="item" data-testid="sidebar-view-create-form">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.FORM }" />
@@ -163,19 +180,15 @@ watch(isOpen, (val) => {
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <NcMenuItem
-          v-if="isEasterEggEnabled"
-          data-testid="sidebar-view-create-calendar"
-          @click="onOpenModal({ type: ViewTypes.CALENDAR })"
-        >
+        <NcMenuItem data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
           <div class="item">
             <div class="item-inner">
-              <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" />
+              <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
               <div>{{ $t('objects.viewType.calendar') }}</div>
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.CALENDAR && isViewListLoading" />
-            <GeneralIcon v-else class="text-brand-400" icon="plus" />
+            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
       </NcMenu>
@@ -193,7 +206,7 @@ watch(isOpen, (val) => {
 }
 
 .plus {
-  @apply text-brand-400;
+  @apply text-gray-500;
 }
 </style>
 

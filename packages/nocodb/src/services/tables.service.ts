@@ -10,7 +10,9 @@ import {
   ProjectRoles,
   RelationTypes,
   UITypes,
+  ViewLockType,
 } from 'nocodb-sdk';
+import { LockType } from 'nc-gui/lib/enums';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
 import type {
@@ -21,7 +23,7 @@ import type {
 } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { Base, Column, Model, ModelRoleVisibility } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
@@ -37,6 +39,7 @@ import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
 } from '~/helpers/getUniqueName';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class TablesService {
@@ -46,34 +49,51 @@ export class TablesService {
     protected readonly columnsService: ColumnsService,
   ) {}
 
-  async tableUpdate(param: {
-    tableId: any;
-    table: TableReqType & { base_id?: string };
-    baseId?: string;
-    user: UserType;
-    req: NcRequest;
-  }) {
-    const model = await Model.get(param.tableId);
+  async tableUpdate(
+    context: NcContext,
+    param: {
+      tableId: any;
+      table: TableReqType & { base_id?: string };
+      baseId?: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    const model = await Model.get(context, param.tableId);
 
-    const base = await Base.getWithInfo(param.table.base_id || param.baseId);
+    const base = await Base.getWithInfo(
+      context,
+      param.table.base_id || param.baseId,
+    );
     const source = base.sources.find((b) => b.id === model.source_id);
 
     if (model.base_id !== base.id) {
       NcError.badRequest('Model does not belong to base');
     }
 
-    // if meta present update meta and return
+    // if meta/description present update and return
     // todo: allow user to update meta  and other prop in single api call
-    if ('meta' in param.table) {
-      await Model.updateMeta(param.tableId, param.table.meta);
+    if ('meta' in param.table || 'description' in param.table) {
+      await Model.updateMeta(context, param.tableId, param.table);
 
       return true;
+    }
+
+    // allow user to only update meta json data when source is restricted changes to schema
+    if (source?.is_schema_readonly) {
+      NcError.sourceMetaReadOnly(source.alias);
     }
 
     if (!param.table.table_name) {
       NcError.badRequest(
         'Missing table name `table_name` property in request body',
       );
+    }
+
+    if (source.type === 'databricks') {
+      param.table.table_name = param.table.table_name
+        .replace(/\s/g, '_')
+        .toLowerCase();
     }
 
     if (source.isMeta(true) && base.prefix && !source.isMeta(true, 1)) {
@@ -92,7 +112,7 @@ export class TablesService {
     }
 
     if (
-      !(await Model.checkTitleAvailable({
+      !(await Model.checkTitleAvailable(context, {
         table_name: param.table.table_name,
         base_id: base.id,
         source_id: source.id,
@@ -110,7 +130,7 @@ export class TablesService {
     }
 
     if (
-      !(await Model.checkAliasAvailable({
+      !(await Model.checkAliasAvailable(context, {
         title: param.table.title,
         base_id: base.id,
         source_id: source.id,
@@ -119,7 +139,7 @@ export class TablesService {
       NcError.badRequest('Duplicate table alias');
     }
 
-    const sqlMgr = await ProjectMgrv2.getSqlMgr(base);
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
 
     let tableNameLengthLimit = 255;
@@ -146,6 +166,7 @@ export class TablesService {
     });
 
     await Model.updateAliasAndTableName(
+      context,
       param.tableId,
       param.table.title,
       param.table.table_name,
@@ -160,21 +181,24 @@ export class TablesService {
     return true;
   }
 
-  reorderTable(param: { tableId: string; order: any }) {
-    return Model.updateOrder(param.tableId, param.order);
+  reorderTable(context: NcContext, param: { tableId: string; order: any }) {
+    return Model.updateOrder(context, param.tableId, param.order);
   }
 
-  async tableDelete(param: {
-    tableId: string;
-    user: User;
-    forceDeleteRelations?: boolean;
-    req?: any;
-  }) {
-    const table = await Model.getByIdOrName({ id: param.tableId });
-    await table.getColumns();
+  async tableDelete(
+    context: NcContext,
+    param: {
+      tableId: string;
+      user: User;
+      forceDeleteRelations?: boolean;
+      req?: any;
+    },
+  ) {
+    const table = await Model.getByIdOrName(context, { id: param.tableId });
+    await table.getColumns(context);
 
     if (table.mm) {
-      const columns = await table.getColumns();
+      const columns = await table.getColumns(context);
 
       // get table names of the relation which uses the current table as junction table
       const tables = await Promise.all(
@@ -186,7 +210,7 @@ export class TablesService {
       // get relation column names
       const relColumns = await Promise.all(
         tables.map((t) => {
-          return t.getColumns().then((cols) => {
+          return t.getColumns(context).then((cols) => {
             return cols.find((c) => {
               return (
                 isLinksOrLTAR(c) &&
@@ -203,9 +227,31 @@ export class TablesService {
       NcError.badRequest(
         `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
       );
+    } else {
+      // if table is using in custom relation as junction table then delete all the relation
+      const relations = await Noco.ncMeta.metaList2(
+        table.fk_workspace_id,
+        table.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          condition: {
+            fk_mm_model_id: table.id,
+          },
+        },
+      );
+
+      if (relations.length) {
+        const relCol = await Column.get(context, {
+          colId: relations[0].fk_column_id,
+        });
+        const relTable = await Model.get(context, relCol.fk_model_id);
+        NcError.tableAssociatedWithLink(table.id, {
+          customMessage: `This is a many to many table for '${relTable?.title}' (${relTable?.title}), please delete the column before deleting the table.`,
+        });
+      }
     }
 
-    const base = await Base.getWithInfo(table.base_id);
+    const base = await Base.getWithInfo(context, table.base_id);
     const source = base.sources.find((b) => b.id === table.source_id);
 
     const relationColumns = table.columns.filter((c) => isLinksOrLTAR(c));
@@ -216,8 +262,8 @@ export class TablesService {
       const referredTables = await Promise.all(
         relationColumns.map(async (c) =>
           c
-            .getColOptions<LinkToAnotherRecordColumn>()
-            .then((opt) => opt.getRelatedTable())
+            .getColOptions<LinkToAnotherRecordColumn>(context)
+            .then((opt) => opt.getRelatedTable(context))
             .then(),
         ),
       );
@@ -240,11 +286,12 @@ export class TablesService {
         }
 
         // verify column exist or not and based on that delete the column
-        if (!(await Column.get({ colId: c.id }, ncMeta))) {
+        if (!(await Column.get(context, { colId: c.id }, ncMeta))) {
           continue;
         }
 
         await this.columnsService.columnDelete(
+          context,
           {
             req: param.req,
             columnId: c.id,
@@ -255,7 +302,7 @@ export class TablesService {
         );
       }
 
-      const sqlMgr = await ProjectMgrv2.getSqlMgr(base, ncMeta);
+      const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base, ncMeta);
       (table as any).tn = table.table_name;
       table.columns = table.columns.filter((c) => !isVirtualCol(c));
       table.columns.forEach((c) => {
@@ -278,7 +325,7 @@ export class TablesService {
         req: param.req,
       });
 
-      result = await table.delete(ncMeta);
+      result = await table.delete(context, ncMeta);
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback();
@@ -287,27 +334,30 @@ export class TablesService {
     return result;
   }
 
-  async getTableWithAccessibleViews(param: {
-    tableId: string;
-    user: User | UserType;
-  }) {
-    const table = await Model.getWithInfo({
+  async getTableWithAccessibleViews(
+    context: NcContext,
+    param: {
+      tableId: string;
+      user: User | UserType;
+    },
+  ) {
+    const table = await Model.getWithInfo(context, {
       id: param.tableId,
     });
 
     if (!table) {
-      NcError.notFound('Table not found');
+      NcError.tableNotFound(param.tableId);
     }
 
     // todo: optimise
     const viewList = <View[]>(
-      await this.xcVisibilityMetaGet(table.base_id, [table])
+      await this.xcVisibilityMetaGet(context, table.base_id, [table])
     );
 
     //await View.list(param.tableId)
-    table.views = viewList.filter((table: any) => {
+    table.views = viewList.filter((view: any) => {
       return Object.keys(param.user?.roles).some(
-        (role) => param.user?.roles[role] && !table.disabled[role],
+        (role) => param.user?.roles[role] && !view.disabled[role],
       );
     });
 
@@ -315,6 +365,7 @@ export class TablesService {
   }
 
   async xcVisibilityMetaGet(
+    context: NcContext,
     baseId,
     _models: Model[] = null,
     includeM2M = true,
@@ -334,7 +385,7 @@ export class TablesService {
 
     let models =
       _models ||
-      (await Model.list({
+      (await Model.list(context, {
         base_id: baseId,
         source_id: undefined,
       }));
@@ -344,7 +395,7 @@ export class TablesService {
     const result = await models.reduce(async (_obj, model) => {
       const obj = await _obj;
 
-      const views = await model.getViews();
+      const views = await model.getViews(context);
       for (const view of views) {
         obj[view.id] = {
           ptn: model.table_name,
@@ -361,7 +412,7 @@ export class TablesService {
       return obj;
     }, Promise.resolve({}));
 
-    const disabledList = await ModelRoleVisibility.list(baseId);
+    const disabledList = await ModelRoleVisibility.list(context, baseId);
 
     for (const d of disabledList) {
       if (result[d.fk_view_id])
@@ -371,13 +422,16 @@ export class TablesService {
     return Object.values(result);
   }
 
-  async getAccessibleTables(param: {
-    baseId: string;
-    sourceId: string;
-    includeM2M?: boolean;
-    roles: Record<string, boolean>;
-  }) {
-    const viewList = await this.xcVisibilityMetaGet(param.baseId);
+  async getAccessibleTables(
+    context: NcContext,
+    param: {
+      baseId: string;
+      sourceId: string;
+      includeM2M?: boolean;
+      roles: Record<string, boolean>;
+    },
+  ) {
+    const viewList = await this.xcVisibilityMetaGet(context, param.baseId);
 
     // todo: optimise
     const tableViewMapping = viewList.reduce((o, view: any) => {
@@ -393,7 +447,7 @@ export class TablesService {
     }, {});
 
     const tableList = (
-      await Model.list({
+      await Model.list(context, {
         base_id: param.baseId,
         source_id: param.sourceId,
       })
@@ -404,13 +458,30 @@ export class TablesService {
       : (tableList.filter((t) => !t.mm) as Model[]);
   }
 
-  async tableCreate(param: {
-    baseId: string;
-    sourceId?: string;
-    table: TableReqType;
-    user: User | UserType;
-    req?: any;
-  }) {
+  async tableCreate(
+    context: NcContext,
+    param: {
+      baseId: string;
+      sourceId?: string;
+      table: TableReqType;
+      user: User | UserType;
+      req?: any;
+    },
+  ) {
+    // before validating add title for columns if only column name is present
+    if (param.table.columns) {
+      param.table.columns.forEach((c) => {
+        if (!c.title && c.column_name) {
+          c.title = c.column_name;
+        }
+      });
+    }
+
+    // before validating add title for table if only table name is present
+    if (!param.table.title && param.table.table_name) {
+      param.table.title = param.table.table_name;
+    }
+
     validatePayload('swagger.json#/components/schemas/TableReq', param.table);
 
     const tableCreatePayLoad: Omit<TableReqType, 'columns'> & {
@@ -419,7 +490,7 @@ export class TablesService {
       ...param.table,
     };
 
-    const base = await Base.getWithInfo(param.baseId);
+    const base = await Base.getWithInfo(context, param.baseId);
     let source = base.sources[0];
 
     if (param.sourceId) {
@@ -503,13 +574,28 @@ export class TablesService {
       }
     }
 
+    if (!tableCreatePayLoad.title) {
+      NcError.badRequest('Missing table `title` property in request body');
+    }
+
+    if (!tableCreatePayLoad.table_name) {
+      tableCreatePayLoad.table_name = tableCreatePayLoad.title;
+    }
+
     if (
-      !tableCreatePayLoad.table_name ||
-      (base.prefix && base.prefix === tableCreatePayLoad.table_name)
+      !(await Model.checkAliasAvailable(context, {
+        title: tableCreatePayLoad.title,
+        base_id: base.id,
+        source_id: source.id,
+      }))
     ) {
-      NcError.badRequest(
-        'Missing table name `table_name` property in request body',
-      );
+      NcError.badRequest('Duplicate table alias');
+    }
+
+    if (source.type === 'databricks') {
+      tableCreatePayLoad.table_name = tableCreatePayLoad.table_name
+        .replace(/\s/g, '_')
+        .toLowerCase();
     }
 
     if (source.is_meta && base.prefix) {
@@ -530,7 +616,7 @@ export class TablesService {
     }
 
     if (
-      !(await Model.checkTitleAvailable({
+      !(await Model.checkTitleAvailable(context, {
         table_name: tableCreatePayLoad.table_name,
         base_id: base.id,
         source_id: source.id,
@@ -547,17 +633,7 @@ export class TablesService {
       );
     }
 
-    if (
-      !(await Model.checkAliasAvailable({
-        title: tableCreatePayLoad.title,
-        base_id: base.id,
-        source_id: source.id,
-      }))
-    ) {
-      NcError.badRequest('Duplicate table alias');
-    }
-
-    const sqlMgr = await ProjectMgrv2.getSqlMgr(base);
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(context, base);
 
     const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
 
@@ -591,9 +667,15 @@ export class TablesService {
       ) {
         const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
+        // set column name using title if not present
+        if (!column.column_name && column.title) {
+          column.column_name = column.title;
+        }
+
         // - 5 is a buffer for suffix
         column.column_name = sanitizeColumnName(
           column.column_name.slice(0, mxColumnLength - 5),
+          source.type,
         );
 
         if (uniqueColumnNameCount[column.column_name]) {
@@ -656,13 +738,13 @@ export class TablesService {
       )?.data?.list;
     }
 
-    const tables = await Model.list({
+    const tables = await Model.list(context, {
       base_id: base.id,
       source_id: source.id,
     });
 
     // todo: type correction
-    const result = await Model.insert(base.id, source.id, {
+    const result = await Model.insert(context, base.id, source.id, {
       ...tableCreatePayLoad,
       columns: tableCreatePayLoad.columns.map((c, i) => {
         const colMetaFromDb = columns?.find((c1) => c.cn === c1.cn);

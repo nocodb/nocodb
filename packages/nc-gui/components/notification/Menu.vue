@@ -1,40 +1,24 @@
 <script lang="ts" setup>
-import { useNotification } from '#imports'
-
 const notificationStore = useNotification()
 
-const { loadNotifications, markAsOpened } = notificationStore
-
-onMounted(async () => {
-  await loadNotifications()
-})
-
-const onOpen = (visible: boolean) => {
-  if (visible) {
-    markAsOpened()
-  }
-}
+const { unreadCount } = toRefs(notificationStore)
 </script>
 
 <template>
   <div class="cursor-pointer flex items-center">
-    <a-dropdown :trigger="['click']" @visible-change="onOpen">
-      <div class="relative leading-none">
+    <NcDropdown overlay-class-name="!shadow-none" placement="bottomRight" :trigger="['click']">
+      <NcButton size="small" class="!border-none !bg-gray-50" type="secondary">
+        <span
+          v-if="unreadCount"
+          :key="unreadCount"
+          class="bg-red-500 w-2 h-2 border-1 border-white rounded-[6px] absolute top-[5px] left-[15px]"
+        ></span>
         <GeneralIcon icon="notification" />
-        <GeneralIcon icon="menuDown" />
-        <span v-if="!notificationStore.isOpened && notificationStore.unreadCount" class="nc-count-badge">{{
-          notificationStore.unreadCount
-        }}</span>
-      </div>
+      </NcButton>
+
       <template #overlay>
         <NotificationCard />
       </template>
-    </a-dropdown>
+    </NcDropdown>
   </div>
 </template>
-
-<style scoped>
-.nc-count-badge {
-  @apply absolute flex items-center top-[-6px] right-[-6px] px-1 min-w-[14px] h-[14px] rounded-full bg-accent bg-opacity-100 text-white !text-[9px] !z-21;
-}
-</style>

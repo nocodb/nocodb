@@ -6,7 +6,7 @@ export function extractProps<T extends Record<string, any>>(
 ): Partial<T> {
   // todo: throw error if no props found
   return props.reduce((o, key) => {
-    if (key in body) o[key] = body[key];
+    if (key in body && body[key] !== undefined) o[key] = body[key];
     return o;
   }, {});
 }

@@ -50,7 +50,7 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@playwright/test": "1.38.0",
+    "@playwright/test": "1.43.1",
     "@typescript-eslint/eslint-plugin": "^6.1.0",
     "@typescript-eslint/parser": "^6.1.0",
     "dotenv": "^16.0.3",

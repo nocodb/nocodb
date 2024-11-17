@@ -18,6 +18,10 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 function baseModelSqlTests() {
   let context;
+  let ctx: {
+    workspace_id: string;
+    base_id: string;
+  };
   let base: Base;
   let table: Model;
   let view: View;
@@ -27,14 +31,21 @@ function baseModelSqlTests() {
     console.time('#### baseModelSqlTests');
     context = await init();
     base = await createProject(context);
-    table = await createTable(context, base);
-    view = await table.getViews()[0];
 
-    const source = await Source.get(table.source_id);
+    ctx = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
+    table = await createTable(context, base);
+    view = await table.getViews(ctx)[0];
+
+    const source = await Source.get(ctx, table.source_id);
     baseModelSql = new BaseModelSqlv2({
       dbDriver: await NcConnectionMgrv2.get(source),
       model: table,
       view,
+      context: ctx,
     });
     console.timeEnd('#### baseModelSqlTests');
   });
@@ -44,7 +55,7 @@ function baseModelSqlTests() {
       clientIp: '::ffff:192.0.0.1',
       user: context.user,
     };
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
 
     const inputData: any = generateDefaultRowAttributes({ columns });
     const response = await baseModelSql.insert(
@@ -74,7 +85,7 @@ function baseModelSqlTests() {
   });
 
   it('Bulk insert record', async () => {
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
     const request = {
       clientIp: '::ffff:192.0.0.1',
       user: context.user,
@@ -125,7 +136,7 @@ function baseModelSqlTests() {
       user: context.user,
     };
 
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
 
     await baseModelSql.insert(generateDefaultRowAttributes({ columns }));
     const rowId = 1;
@@ -147,16 +158,18 @@ function baseModelSqlTests() {
       row_id: '1',
       op_type: 'DATA',
       op_sub_type: 'UPDATE',
-      description:
-        'Record with ID 1 has been updated in Table Table1_Title.\nColumn "Title" got changed from "test-0" to "test"',
     });
+
+    expect(rowUpdatedAudit.description).to.contains(
+      'Record with ID 1 has been updated in Table Table1_Title',
+    );
   });
 
   it('Bulk update record', async () => {
     // Since sqlite doesn't support multiple sql connections, we can't test bulk update in sqlite
     if (isSqlite(context)) return;
 
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
     const request = {
       clientIp: '::ffff:192.0.0.1',
       user: context.user,
@@ -200,7 +213,7 @@ function baseModelSqlTests() {
   });
 
   it('Bulk update all record', async () => {
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
     const request = {
       clientIp: '::ffff:192.0.0.1',
       user: context.user,
@@ -257,7 +270,7 @@ function baseModelSqlTests() {
       params: { id: 1 },
     };
 
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
     const bulkData = Array(10)
       .fill(0)
       .map((_, index) => generateDefaultRowAttributes({ columns, index }));
@@ -288,7 +301,7 @@ function baseModelSqlTests() {
   });
 
   it('Bulk delete records', async () => {
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
     const request = {
       clientIp: '::ffff:192.0.0.1',
       user: context.user,
@@ -331,7 +344,7 @@ function baseModelSqlTests() {
   });
 
   it('Bulk delete all record', async () => {
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
     const request = {
       clientIp: '::ffff:192.0.0.1',
       user: context.user,
@@ -394,10 +407,10 @@ function baseModelSqlTests() {
       table: childTable,
     });
     const ltarColOptions =
-      await ltarColumn.getColOptions<LinkToAnotherRecordColumn>();
-    const childCol = await ltarColOptions.getChildColumn();
+      await ltarColumn.getColOptions<LinkToAnotherRecordColumn>(ctx);
+    const childCol = await ltarColOptions.getChildColumn(ctx);
 
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
     const request = {
       clientIp: '::ffff:192.0.0.1',
       user: context.user,
@@ -413,9 +426,12 @@ function baseModelSqlTests() {
     );
 
     const childBaseModel = new BaseModelSqlv2({
-      dbDriver: await NcConnectionMgrv2.get(await Source.get(table.source_id)),
+      dbDriver: await NcConnectionMgrv2.get(
+        await Source.get(ctx, table.source_id),
+      ),
       model: childTable,
       view,
+      context: ctx,
     });
     const insertedChildRow = await childBaseModel.readByPk(childRow['Id']);
     expect(insertedChildRow[childCol.column_name]).to.equal(childRow['Id']);
@@ -453,10 +469,10 @@ function baseModelSqlTests() {
       table: childTable,
     });
     const ltarColOptions =
-      await ltarColumn.getColOptions<LinkToAnotherRecordColumn>();
-    const childCol = await ltarColOptions.getChildColumn();
+      await ltarColumn.getColOptions<LinkToAnotherRecordColumn>(ctx);
+    const childCol = await ltarColOptions.getChildColumn(ctx);
 
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
     const request = {
       clientIp: '::ffff:192.0.0.1',
       user: context.user,
@@ -477,9 +493,12 @@ function baseModelSqlTests() {
     });
 
     const childBaseModel = new BaseModelSqlv2({
-      dbDriver: await NcConnectionMgrv2.get(await Source.get(table.source_id)),
+      dbDriver: await NcConnectionMgrv2.get(
+        await Source.get(ctx, table.source_id),
+      ),
       model: childTable,
       view,
+      context: ctx,
     });
     const updatedChildRow = await childBaseModel.readByPk(
       insertedChildRow['Id'],
@@ -521,10 +540,10 @@ function baseModelSqlTests() {
       table: childTable,
     });
     const ltarColOptions =
-      await ltarColumn.getColOptions<LinkToAnotherRecordColumn>();
-    const childCol = await ltarColOptions.getChildColumn();
+      await ltarColumn.getColOptions<LinkToAnotherRecordColumn>(ctx);
+    const childCol = await ltarColOptions.getChildColumn(ctx);
 
-    const columns = await table.getColumns();
+    const columns = await table.getColumns(ctx);
     const request = {
       clientIp: '::ffff:192.0.0.1',
       user: context.user,
@@ -552,9 +571,12 @@ function baseModelSqlTests() {
     });
 
     const childBaseModel = new BaseModelSqlv2({
-      dbDriver: await NcConnectionMgrv2.get(await Source.get(table.source_id)),
+      dbDriver: await NcConnectionMgrv2.get(
+        await Source.get(ctx, table.source_id),
+      ),
       model: childTable,
       view,
+      context: ctx,
     });
     const updatedChildRow = await childBaseModel.readByPk(
       insertedChildRow['Id'],

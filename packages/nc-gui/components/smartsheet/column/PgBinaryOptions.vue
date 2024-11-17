@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useColumnCreateStoreOrThrow, useVModel } from '#imports'
-
 const props = defineProps<{
   value: any
 }>()

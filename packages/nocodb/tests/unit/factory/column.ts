@@ -28,7 +28,7 @@ const defaultColumns = function (context) {
       dtxp: '',
       dtxs: '',
       uidt: 'CreatedTime',
-      system:true,
+      system: true,
       dt: isPg(context) ? 'timestamp without time zone' : undefined,
     },
     {
@@ -42,7 +42,7 @@ const defaultColumns = function (context) {
       dtxp: '',
       dtxs: '',
       uidt: 'LastModifiedTime',
-      system:true,
+      system: true,
       dt: isPg(context) ? 'timestamp without time zone' : undefined,
     },
   ];
@@ -53,7 +53,7 @@ const customColumns = function (type: string, options: any = {}) {
     case 'textBased':
       return [
         {
-          column_name: 'Id',
+          column_name: 'id',
           title: 'Id',
           uidt: UITypes.ID,
         },
@@ -86,7 +86,7 @@ const customColumns = function (type: string, options: any = {}) {
     case 'numberBased':
       return [
         {
-          column_name: 'Id',
+          column_name: 'id',
           title: 'Id',
           uidt: UITypes.ID,
         },
@@ -124,7 +124,7 @@ const customColumns = function (type: string, options: any = {}) {
     case 'dateBased':
       return [
         {
-          column_name: 'Id',
+          column_name: 'id',
           title: 'Id',
           uidt: UITypes.ID,
         },
@@ -142,7 +142,7 @@ const customColumns = function (type: string, options: any = {}) {
     case 'selectBased':
       return [
         {
-          column_name: 'Id',
+          column_name: 'id',
           title: 'Id',
           uidt: UITypes.ID,
         },
@@ -162,7 +162,7 @@ const customColumns = function (type: string, options: any = {}) {
     case 'userBased':
       return [
         {
-          column_name: 'Id',
+          column_name: 'id',
           title: 'Id',
           uidt: UITypes.ID,
         },
@@ -178,12 +178,140 @@ const customColumns = function (type: string, options: any = {}) {
           meta: { is_multi: true },
         },
       ];
+    case 'aggregationBased':
+      return [
+        {
+          column_name: 'Id',
+          title: 'Id',
+          uidt: UITypes.ID,
+          ai: 1,
+          pk: 1,
+        },
+        {
+          column_name: 'SingleLineText',
+          title: 'Title',
+          uidt: UITypes.SingleLineText,
+        },
+        {
+          column_name: 'Attachment',
+          title: 'Attachment',
+          uidt: UITypes.Attachment,
+        },
+        {
+          column_name: 'User',
+          title: 'User',
+          uidt: UITypes.User,
+        },
+        {
+          column_name: 'LongText',
+          title: 'LongText',
+          uidt: UITypes.LongText,
+        },
+        {
+          column_name: 'Number',
+          title: 'Number',
+          uidt: UITypes.Number,
+        },
+        {
+          column_name: 'Decimal',
+          title: 'Decimal',
+          uidt: UITypes.Decimal,
+        },
+        {
+          column_name: 'Checkbox',
+          title: 'Checkbox',
+          uidt: UITypes.Checkbox,
+        },
+        {
+          column_name: 'MultiSelect',
+          title: 'MultiSelect',
+          uidt: UITypes.MultiSelect,
+          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+        },
+        {
+          column_name: 'SingleSelect',
+          title: 'SingleSelect',
+          uidt: UITypes.SingleSelect,
+          dtxp: "'jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'",
+        },
+        {
+          column_name: 'Date',
+          title: 'Date',
+          uidt: UITypes.Date,
+        },
+        {
+          column_name: 'DateTime',
+          title: 'DateTime',
+          uidt: UITypes.DateTime,
+        },
+        {
+          column_name: 'Year',
+          title: 'Year',
+          uidt: UITypes.Year,
+        },
+        {
+          column_name: 'Time',
+          title: 'Time',
+          uidt: UITypes.Time,
+        },
+        {
+          column_name: 'PhoneNumber',
+          title: 'PhoneNumber',
+          uidt: UITypes.PhoneNumber,
+        },
+        {
+          column_name: 'Email',
+          title: 'Email',
+          uidt: UITypes.Email,
+        },
+        {
+          column_name: 'Url',
+          title: 'Url',
+          uidt: UITypes.URL,
+        },
+        {
+          column_name: 'Currency',
+          title: 'Currency',
+          uidt: UITypes.Currency,
+        },
+        {
+          column_name: 'Percent',
+          title: 'Percent',
+          uidt: UITypes.Percent,
+        },
+        {
+          column_name: 'Duration',
+          title: 'Duration',
+          uidt: UITypes.Duration,
+        },
+        {
+          column_name: 'Rating',
+          title: 'Rating',
+          uidt: UITypes.Rating,
+        },
+        {
+          column_name: 'Geometry',
+          title: 'Geometry',
+          uidt: UITypes.Geometry,
+        },
+        {
+          column_name: 'JSON',
+          title: 'JSON',
+          uidt: UITypes.JSON,
+        },
+      ];
+
     case 'custom':
-      return [{ title: 'Id', column_name: 'Id', uidt: UITypes.ID }, ...options];
+      return [{ title: 'Id', column_name: 'id', uidt: UITypes.ID }, ...options];
   }
 };
 
 const createColumn = async (context, table, columnAttr) => {
+  const ctx = {
+    workspace_id: table.fk_workspace_id,
+    base_id: table.base_id,
+  };
+
   await request(context.app)
     .post(`/api/v1/db/meta/tables/${table.id}/columns`)
     .set('xc-auth', context.token)
@@ -191,7 +319,7 @@ const createColumn = async (context, table, columnAttr) => {
       ...columnAttr,
     });
 
-  const column: Column = (await table.getColumns()).find(
+  const column: Column = (await table.getColumns(ctx)).find(
     (column) => column.title === columnAttr.title,
   );
   return column;
@@ -215,18 +343,23 @@ const createRollupColumn = async (
     relatedTableColumnTitle: string;
   },
 ) => {
+  const ctx = {
+    workspace_id: base.fk_workspace_id,
+    base_id: base.id,
+  };
+
   const childBases = await base.getSources();
-  const childTable = await Model.getByIdOrName({
+  const childTable = await Model.getByIdOrName(ctx, {
     base_id: base.id,
     source_id: childBases[0].id!,
     table_name: relatedTableName,
   });
-  const childTableColumns = await childTable.getColumns();
+  const childTableColumns = await childTable.getColumns(ctx);
   const childTableColumn = await childTableColumns.find(
     (column) => column.title === relatedTableColumnTitle,
   );
 
-  const ltarColumn = (await table.getColumns()).find(
+  const ltarColumn = (await table.getColumns(ctx)).find(
     (column) =>
       (column.uidt === UITypes.Links ||
         column.uidt === UITypes.LinkToAnotherRecord) &&
@@ -264,13 +397,18 @@ const createLookupColumn = async (
     relationColumnId?: string;
   },
 ) => {
+  const ctx = {
+    workspace_id: base.fk_workspace_id,
+    base_id: base.id,
+  };
+
   const childBases = await base.getSources();
-  const childTable = await Model.getByIdOrName({
+  const childTable = await Model.getByIdOrName(ctx, {
     base_id: base.id,
     source_id: childBases[0].id!,
     table_name: relatedTableName,
   });
-  const childTableColumns = await childTable.getColumns();
+  const childTableColumns = await childTable.getColumns(ctx);
   const childTableColumn = await childTableColumns.find(
     (column) => column.title === relatedTableColumnTitle,
   );
@@ -283,11 +421,11 @@ const createLookupColumn = async (
 
   let ltarColumn;
   if (relationColumnId)
-    ltarColumn = (await table.getColumns()).find(
+    ltarColumn = (await table.getColumns(ctx)).find(
       (column) => column.id === relationColumnId,
     );
   else {
-    ltarColumn = (await table.getColumns()).find(
+    ltarColumn = (await table.getColumns(ctx)).find(
       (column) =>
         (column.uidt === UITypes.Links ||
           column.uidt === UITypes.LinkToAnotherRecord) &&
@@ -319,7 +457,12 @@ const createQrCodeColumn = async (
     referencedQrValueTableColumnTitle: string;
   },
 ) => {
-  const columns = await table.getColumns();
+  const ctx = {
+    workspace_id: table.fk_workspace_id,
+    base_id: table.base_id,
+  };
+
+  const columns = await table.getColumns(ctx);
   const referencedQrValueTableColumnId = columns.find(
     (column) => column.title == referencedQrValueTableColumnTitle,
   )['id'];
@@ -346,7 +489,10 @@ const createBarcodeColumn = async (
   },
 ) => {
   const referencedBarcodeValueTableColumnId = await table
-    .getColumns()
+    .getColumns({
+      workspace_id: table.fk_workspace_id,
+      base_id: table.base_id,
+    })
     .then(
       (cols) =>
         cols.find(
@@ -389,10 +535,45 @@ const createLtarColumn = async (
   return ltarColumn;
 };
 
+const updateGridViewColumn = async (
+  context,
+  {
+    view,
+    column,
+    attr,
+  }: {
+    column: GridViewColumn;
+    view: View;
+    attr: any;
+  },
+) => {
+  const ctx = {
+    workspace_id: view.fk_workspace_id,
+    base_id: view.base_id,
+  };
+
+  const res = await request(context.app)
+    .patch(`/api/v1/db/meta/grid-columns/${column.id}`)
+    .set('xc-auth', context.token)
+    .expect(200)
+    .send(attr);
+
+  const updatedColumn = (await view.getColumns(ctx)).find(
+    (col) => col.id === column.id,
+  );
+
+  return updatedColumn;
+};
+
 const updateViewColumn = async (
   context,
   { view, column, attr }: { column: Column; view: View; attr: any },
 ) => {
+  const ctx = {
+    workspace_id: view.fk_workspace_id,
+    base_id: view.base_id,
+  };
+
   const res = await request(context.app)
     .patch(`/api/v1/db/meta/views/${view.id}/columns/${column.id}`)
     .set('xc-auth', context.token)
@@ -401,7 +582,7 @@ const updateViewColumn = async (
     });
 
   const updatedColumn: FormViewColumn | GridViewColumn | GalleryViewColumn = (
-    await view.getColumns()
+    await view.getColumns(ctx)
   ).find((column) => column.id === column.id)!;
 
   return updatedColumn;
@@ -411,6 +592,11 @@ const updateColumn = async (
   context,
   { table, column, attr }: { column: Column; table: Model; attr: any },
 ) => {
+  const ctx = {
+    workspace_id: table.fk_workspace_id,
+    base_id: table.base_id,
+  };
+
   const res = await request(context.app)
     .patch(`/api/v2/meta/columns/${column.id}`)
     .set('xc-auth', context.token)
@@ -418,7 +604,7 @@ const updateColumn = async (
       ...attr,
     });
 
-  const updatedColumn: Column = (await table.getColumns()).find(
+  const updatedColumn: Column = (await table.getColumns(ctx)).find(
     (column) => column.id === column.id,
   );
   return updatedColumn;
@@ -444,6 +630,7 @@ export {
   createRollupColumn,
   createLookupColumn,
   createLtarColumn,
+  updateGridViewColumn,
   updateViewColumn,
   updateColumn,
   deleteColumn,

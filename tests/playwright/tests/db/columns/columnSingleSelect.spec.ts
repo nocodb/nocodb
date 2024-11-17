@@ -3,15 +3,19 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { GridPage } from '../../../pages/Dashboard/Grid';
 import setup, { unsetup } from '../../../setup';
 import { ToolbarPage } from '../../../pages/Dashboard/common/Toolbar';
+import { Api } from 'nocodb-sdk';
 
 test.describe('Single select', () => {
   let dashboard: DashboardPage, grid: GridPage;
   let context: any;
+  let api: Api<any>;
+  let tableId: string;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true });
     dashboard = new DashboardPage(page, context.base);
     grid = dashboard.grid;
+    api = context.api;
 
     await dashboard.treeView.createTable({ title: 'sheet1', baseTitle: context.base.title });
 
@@ -20,7 +24,11 @@ test.describe('Single select', () => {
       columnTitle: 'SingleSelect',
       options: ['Option 1', 'Option 2'],
     });
-    await grid.addNewRow({ index: 0, value: 'Row 0' });
+
+    const tables = await api.dbTable.list(context.base.id);
+    tableId = tables.list.find((table: any) => table.title === 'sheet1').id;
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [{ Id: 1, Title: `Row 0` }]);
+    await page.reload();
   });
 
   test.afterEach(async () => {
@@ -43,7 +51,7 @@ test.describe('Single select', () => {
       index: 0,
       columnHeader: 'SingleSelect',
       option: 'Option 3',
-      ignoreDblClick: true,
+      ignoreDblClick: false,
     });
     await grid.cell.selectOption.verify({ index: 0, columnHeader: 'SingleSelect', option: 'Option 3' });
 
@@ -120,12 +128,15 @@ test.describe('Single select - filter & sort', () => {
 
   let dashboard: DashboardPage, grid: GridPage, toolbar: ToolbarPage;
   let context: any;
+  let api: Api<any>;
+  let tableId: string;
 
   test.beforeEach(async ({ page }) => {
     context = await setup({ page });
     dashboard = new DashboardPage(page, context.base);
     toolbar = dashboard.grid.toolbar;
     grid = dashboard.grid;
+    api = context.api;
 
     await dashboard.treeView.createTable({ title: 'sheet1', baseTitle: context.base.title });
 
@@ -134,10 +145,16 @@ test.describe('Single select - filter & sort', () => {
       columnTitle: 'SingleSelect',
       options: ['foo', 'bar', 'baz'],
     });
-    await grid.addNewRow({ index: 0, value: '1' });
-    await grid.addNewRow({ index: 1, value: '2' });
-    await grid.addNewRow({ index: 2, value: '3' });
-    await grid.addNewRow({ index: 3, value: '4' });
+
+    const tables = await api.dbTable.list(context.base.id);
+    tableId = tables.list.find((table: any) => table.title === 'sheet1').id;
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Id: 1, Title: '1' },
+      { Id: 2, Title: '2' },
+      { Id: 3, Title: '3' },
+      { Id: 4, Title: '4' },
+    ]);
+    await page.reload();
 
     await grid.cell.selectOption.select({ index: 1, columnHeader: 'SingleSelect', option: 'foo', multiSelect: false });
     await grid.cell.selectOption.select({ index: 2, columnHeader: 'SingleSelect', option: 'bar', multiSelect: false });

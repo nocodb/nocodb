@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { iconMap, useVModel } from '#imports'
-
 const props = defineProps<{
   modelValue: any[]
 }>()
@@ -12,6 +10,7 @@ interface Option {
 }
 
 const vModel = useVModel(props, 'modelValue', emits)
+
 const headerList = ref<Option[]>([
   { value: 'A-IM' },
   { value: 'Accept' },
@@ -55,89 +54,109 @@ const headerList = ref<Option[]>([
 ])
 
 const addHeaderRow = () => vModel.value.push({})
+
 const deleteHeaderRow = (i: number) => vModel.value.splice(i, 1)
+
 const filterOption = (input: string, option: Option) => option.value.toUpperCase().includes(input.toUpperCase())
 </script>
 
 <template>
-  <div class="flex flex-row justify-between w-full">
-    <table class="w-full nc-webhooks-params">
-      <thead class="h-8">
-        <tr>
-          <th></th>
-          <th>
-            <div class="text-left font-normal ml-2" data-rec="true">{{ $t('labels.headerName') }}</div>
-          </th>
-          <th>
-            <div class="text-left font-normal ml-2" data-rec="true">{{ $t('placeholder.value') }}</div>
-          </th>
-          <th class="w-8"></th>
-        </tr>
-      </thead>
+  <div class="flex flex-col py-3 gap-1.5 w-full">
+    <div v-for="(headerRow, idx) in vModel" :key="idx" class="flex relative items-center w-full">
+      <a-form-item class="form-item w-8">
+        <NcCheckbox v-model:checked="headerRow.enabled" size="large" class="nc-hook-header-checkbox" />
+      </a-form-item>
+      <a-form-item class="form-item w-3/6">
+        <a-auto-complete
+          v-model:value="headerRow.name"
+          class="!rounded-l-lg !rounded-r-0 nc-input-hook-header-key hover:!border-x-0 !border-gray-200"
+          :options="headerList"
+          :placeholder="$t('placeholder.key')"
+          :filter-option="filterOption"
+          dropdown-class-name="border-1 border-gray-200"
+        />
+      </a-form-item>
+      <a-form-item class="form-item w-3/6">
+        <a-input
+          v-model:value="headerRow.value"
+          :placeholder="$t('placeholder.value')"
+          class="nc-webhook-header-value-input !border-x-0 hover:!border-x-0 !border-gray-200 !rounded-none"
+        />
+      </a-form-item>
 
-      <tbody>
-        <tr v-for="(headerRow, idx) in vModel" :key="idx" class="!h-2 overflow-hidden">
-          <td class="px-2 nc-hook-header-tab-checkbox">
-            <a-form-item class="form-item">
-              <a-checkbox v-model:checked="headerRow.enabled" />
-            </a-form-item>
-          </td>
+      <NcButton
+        class="!rounded-l-none delete-btn !border-gray-200 !shadow-none"
+        type="secondary"
+        size="small"
+        :disabled="vModel.length === 1"
+        @click="deleteHeaderRow(idx)"
+      >
+        <component :is="iconMap.deleteListItem" />
+      </NcButton>
+    </div>
 
-          <td class="px-2">
-            <a-form-item class="form-item">
-              <a-auto-complete
-                v-model:value="headerRow.name"
-                class="nc-input-hook-header-key"
-                :options="headerList"
-                :placeholder="$t('placeholder.key')"
-                :filter-option="filterOption"
-                dropdown-class-name="border-1 border-gray-200"
-              />
-            </a-form-item>
-          </td>
-
-          <td class="px-2">
-            <a-form-item class="form-item">
-              <a-input
-                v-model:value="headerRow.value"
-                :placeholder="$t('placeholder.value')"
-                class="!rounded-md nc-input-hook-header-value"
-              />
-            </a-form-item>
-          </td>
-
-          <td class="relative">
-            <div
-              v-if="idx !== 0"
-              class="absolute left-0 top-0.25 py-1 px-1.5 rounded-md border-1 border-gray-100"
-              :class="{
-                'text-gray-400 cursor-not-allowed bg-gray-50': vModel.length === 1,
-                'text-gray-600 cursor-pointer hover:bg-gray-50  hover:text-black': vModel.length !== 1,
-              }"
-              @click="deleteHeaderRow(idx)"
-            >
-              <component :is="iconMap.delete" />
-            </div>
-          </td>
-        </tr>
-
-        <tr>
-          <td :colspan="12" class="">
-            <NcButton size="small" type="secondary" @click="addHeaderRow">
-              <div class="flex flex-row items-center gap-x-1">
-                <div data-rec="true">{{ $t('labels.addHeader') }}</div>
-                <component :is="iconMap.plus" class="flex mx-auto" />
-              </div>
-            </NcButton>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="mt-1.5">
+      <NcButton size="small" type="secondary" class="nc-btn-focus" @click="addHeaderRow">
+        <div class="flex flex-row items-center gap-x-2">
+          <component :is="iconMap.plus" class="flex-none" />
+          <div data-rec="true">{{ $t('general.add') }}</div>
+        </div>
+      </NcButton>
+    </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
-.form-item {
-  @apply !mb-3;
+<style scoped lang="scss">
+.ant-input {
+  box-shadow: none !important;
+
+  &:hover {
+    @apply !hover:bg-gray-50;
+  }
+}
+
+.delete-btn:not([disabled]) {
+  @apply !text-gray-500;
+}
+
+:deep(.ant-input) {
+  @apply !placeholder-gray-500;
+}
+
+:deep(.ant-input.nc-webhook-header-value-input) {
+  @apply !border-x-0;
+}
+
+.ant-input-affix-wrapper {
+  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+}
+
+.nc-btn-focus:focus {
+  @apply !text-brand-500 !shadow-none;
+}
+
+:deep(.nc-input-hook-header-key.ant-select.ant-select-auto-complete) {
+  @apply !text-sm;
+
+  &.ant-select-focused {
+    .ant-select-selector {
+      @apply !shadow-none !border-gray-200;
+    }
+  }
+  :deep(.ant-select-selector) {
+    @apply !rounded-l-lg !rounded-r-none !border-gray-200;
+    .ant-select-selection-search .ant-select-selection-search-input::placeholder {
+      @apply !text-gray-500 !text-sm;
+    }
+  }
+  .ant-select-selector {
+    @apply !rounded-l-lg !rounded-r-none !border-gray-200;
+    .ant-select-selection-search-input {
+      @apply !text-sm;
+    }
+    .ant-select-selection-placeholder {
+      @apply !text-gray-500;
+    }
+  }
 }
 </style>

@@ -1,18 +1,18 @@
 import type { TableType } from 'nocodb-sdk'
 import { Api, UITypes } from 'nocodb-sdk'
 import * as xlsx from 'xlsx'
+import type { ImportWorkerPayload } from '../lib/types'
+import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '../lib/enums'
+import type TemplateGenerator from '../helpers/parsers/TemplateGenerator'
+import { extractSdkResponseErrorMsg } from '../utils/errorUtils'
+import { extractSelectOptions } from '../helpers/parsers/parserHelpers'
 import {
   CSVTemplateAdapter,
   ExcelTemplateAdapter,
   ExcelUrlTemplateAdapter,
   JSONTemplateAdapter,
   JSONUrlTemplateAdapter,
-} from '../helpers/parsers/index'
-import type { ImportWorkerPayload } from '../lib'
-import { ImportSource, ImportType, ImportWorkerOperations, ImportWorkerResponse } from '../lib/enums'
-import type TemplateGenerator from '../helpers/parsers/TemplateGenerator'
-import { extractSdkResponseErrorMsg } from '../utils/errorUtils'
-import { extractSelectOptions } from '../helpers/parsers/parserHelpers'
+} from '../helpers/parsers'
 
 const state: {
   tables: TableType[]

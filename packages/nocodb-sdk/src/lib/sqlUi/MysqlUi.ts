@@ -1,5 +1,5 @@
 import UITypes from '../UITypes';
-import { IDType } from './index';
+import { ColumnType, IDType } from '~/lib';
 
 const dbTypes = [
   'int',
@@ -72,9 +72,9 @@ export class MysqlUi {
       {
         column_name: 'title',
         title: 'Title',
-        dt: 'varchar',
+        dt: 'TEXT',
         dtx: 'specificType',
-        ct: 'varchar(45)',
+        ct: null,
         nrqd: true,
         rqd: false,
         ck: false,
@@ -82,10 +82,10 @@ export class MysqlUi {
         un: false,
         ai: false,
         cdf: null,
-        clen: 45,
+        clen: null,
         np: null,
         ns: null,
-        dtxp: '45',
+        dtxp: '',
         dtxs: '',
         altered: 1,
         uidt: 'SingleLineText',
@@ -191,9 +191,9 @@ export class MysqlUi {
   static getNewColumn(suffix) {
     return {
       column_name: 'title' + suffix,
-      dt: 'varchar',
+      dt: 'TEXT',
       dtx: 'specificType',
-      ct: 'varchar(45)',
+      ct: null,
       nrqd: true,
       rqd: false,
       ck: false,
@@ -201,10 +201,10 @@ export class MysqlUi {
       un: false,
       ai: false,
       cdf: null,
-      clen: 45,
+      clen: null,
       np: null,
       ns: null,
-      dtxp: '45',
+      dtxp: '',
       dtxs: '',
       altered: 1,
       uidt: 'SingleLineText',
@@ -630,17 +630,13 @@ export class MysqlUi {
 
   static colPropUNDisabled(col) {
     // console.log(col);
-    if (
+    return !(
       col.dt === 'int' ||
       col.dt === 'tinyint' ||
       col.dt === 'smallint' ||
       col.dt === 'mediumint' ||
       col.dt === 'bigint'
-    ) {
-      return false;
-    } else {
-      return true;
-    }
+    );
   }
 
   static onCheckboxChangeAI(col) {
@@ -1014,7 +1010,7 @@ export class MysqlUi {
         colProp.dt = 'varchar';
         break;
       case 'SingleLineText':
-        colProp.dt = 'varchar';
+        colProp.dt = 'text';
         break;
       case 'LongText':
         colProp.dt = 'text';
@@ -1072,7 +1068,7 @@ export class MysqlUi {
         };
         break;
       case 'URL':
-        colProp.dt = 'varchar';
+        colProp.dt = 'text';
         colProp.validate = {
           func: ['isURL'],
           args: [''],
@@ -1161,13 +1157,13 @@ export class MysqlUi {
       case 'Collaborator':
       case 'GeoData':
         return [
-          'char',
-          'varchar',
-          'nchar',
           'text',
-          'tinytext',
           'mediumtext',
           'longtext',
+          'varchar',
+          'char',
+          'nchar',
+          'tinytext',
         ];
 
       case 'Attachment':
@@ -1285,6 +1281,7 @@ export class MysqlUi {
         ];
 
       case 'Formula':
+      case 'Button':
         return [
           'char',
           'varchar',
@@ -1329,7 +1326,6 @@ export class MysqlUi {
           'multipolygon',
         ];
 
-      case 'Button':
       default:
         return dbTypes;
     }
@@ -1337,5 +1333,39 @@ export class MysqlUi {
 
   static getUnsupportedFnList() {
     return ['COUNTA', 'COUNT', 'DATESTR'];
+  }
+
+  static getCurrentDateDefault(col: Partial<ColumnType>) {
+    // if database datatype timestamp or datetime then return CURRENT_TIMESTAMP
+    if (
+      col.dt &&
+      (col.dt.toLowerCase() === 'timestamp' ||
+        col.dt.toLowerCase() === 'datetime')
+    ) {
+      return 'CURRENT_TIMESTAMP';
+    }
+
+    // database type is not defined(means column create) and ui datatype is datetime then return CURRENT_TIMESTAMP
+    // in this scenario it will create column with datatype timestamp/datetime
+    if (!col.dt && col.uidt === UITypes.DateTime) {
+      return 'CURRENT_TIMESTAMP';
+    }
+    return null;
+  }
+
+  static isEqual(dataType1: string, dataType2: string) {
+    if (dataType1 === dataType2) return true;
+
+    const abstractType1 = this.getAbstractType({ dt: dataType1 });
+    const abstractType2 = this.getAbstractType({ dt: dataType2 });
+
+    if (
+      abstractType1 &&
+      abstractType1 === abstractType2 &&
+      ['integer', 'float'].includes(abstractType1)
+    )
+      return true;
+
+    return false;
   }
 }

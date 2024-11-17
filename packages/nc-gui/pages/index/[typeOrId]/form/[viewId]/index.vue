@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { navigateTo, useDark, useRoute, useRouter, useSharedFormStoreOrThrow } from '#imports'
-
 const { sharedViewMeta, sharedFormView } = useSharedFormStoreOrThrow()
 
 const isDark = useDark()
@@ -28,7 +26,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
 
 <template>
   <div
-    class="scrollbar-thin-dull h-[100vh] overflow-y-auto overflow-x-hidden color-transition p-4 lg:p-10 nc-form-view relative min-h-[600px]"
+    class="scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-200 hover-scrollbar-thumb-gray-300 h-[100vh] overflow-y-auto overflow-x-hidden flex flex-col color-transition p-4 lg:p-6 nc-form-view min-h-[600px]"
     :class="{
       'children:(!h-auto my-auto)': sharedViewMeta?.surveyMode,
     }"
@@ -62,7 +60,8 @@ p {
     }
   }
 
-  .nc-cell {
+  .nc-cell,
+  .nc-virtual-cell {
     @apply bg-white dark:bg-slate-500 appearance-none;
 
     &.nc-cell-checkbox {
@@ -85,7 +84,7 @@ p {
       @apply bg-white dark:bg-slate-500;
 
       &.nc-input {
-        @apply w-full;
+        @apply w-full h-10;
 
         &:not(.layout-list) {
           @apply rounded-lg border-solid border-1 border-gray-200 focus-within:border-brand-500 overflow-hidden;
@@ -120,10 +119,17 @@ p {
         }
 
         &:not(.readonly) {
-          input,
-          textarea,
-          &.nc-virtual-cell {
-            @apply bg-white !disabled:bg-transparent;
+          &:not(.nc-cell-longtext) {
+            input,
+            textarea,
+            &.nc-virtual-cell {
+              @apply bg-white !disabled:bg-transparent;
+            }
+          }
+          &.nc-cell-longtext {
+            textarea {
+              @apply bg-white !disabled:bg-transparent;
+            }
           }
         }
 
@@ -162,8 +168,11 @@ p {
             @apply px-3;
           }
         }
-        &:not(.nc-cell-longtext) {
+        &.nc-cell:not(.nc-cell-longtext) {
           @apply p-2;
+        }
+        &.nc-virtual-cell {
+          @apply px-2 py-1;
         }
 
         &.nc-cell-json {
@@ -176,6 +185,16 @@ p {
         .ant-picker,
         input.nc-cell-field {
           @apply !py-0 !px-1;
+        }
+        &.nc-cell-currency {
+          @apply !py-0 !pl-0 flex items-stretch;
+
+          .nc-currency-code {
+            @apply !bg-gray-100;
+          }
+        }
+        &.nc-cell-attachment {
+          @apply h-auto;
         }
       }
     }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Row } from '~/lib'
+import type { Row } from '~/lib/types'
 
 interface Props {
   color?: string
@@ -42,7 +42,7 @@ const emit = defineEmits(['resize-start'])
       '!border-blue-200 border-1': selected,
       'shadow-md': hover,
     }"
-    class="relative transition-all flex items-center px-1 group border-1 border-transparent"
+    class="relative transition-all flex items-center px-1 gap-2 group border-1 border-transparent"
   >
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
@@ -71,16 +71,22 @@ const emit = defineEmits(['resize-start'])
       </NcButton>
     </div>
 
-    <div class="overflow-hidden items-center justify-center flex w-full ml-2">
-      <span v-if="position === 'rightRounded' || position === 'none'" class="mr-1"> .... </span>
-      <span
+    <div class="overflow-hidden items-center justify-center gap-2 flex w-full">
+      <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2"> .... </span>
+      <slot name="time" />
+      <div
         :class="{
           'pr-7': position === 'leftRounded',
         }"
-        class="text-sm pr-3 mb-0.5 mr-3 break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-gray-800"
+        class="flex mb-0.5 overflow-x-hidden break-word whitespace-nowrap overflow-hidden text-ellipsis w-full truncate text-ellipsis flex-col gap-1"
       >
-        <slot />
-      </span>
+        <NcTooltip :disabled="selected" class="inline-block" show-on-truncate-only wrap-child="span">
+          <slot class="text-sm text-nowrap text-gray-800 leading-7" />
+          <template #title>
+            <slot />
+          </template>
+        </NcTooltip>
+      </div>
       <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 right-5"> .... </span>
     </div>
 

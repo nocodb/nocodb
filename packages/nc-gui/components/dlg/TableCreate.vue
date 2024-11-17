@@ -1,19 +1,4 @@
 <script setup lang="ts">
-import {
-  Form,
-  TabType,
-  computed,
-  nextTick,
-  onMounted,
-  ref,
-  useBase,
-  useTableNew,
-  useTablesStore,
-  useTabs,
-  useVModel,
-  validateTableName,
-} from '#imports'
-
 const props = defineProps<{
   modelValue: boolean
   sourceId: string
@@ -30,7 +15,7 @@ const inputEl = ref<HTMLInputElement>()
 
 const { addTab } = useTabs()
 
-const { isMysql, isMssql, isPg } = useBase()
+const { isMysql, isMssql, isPg, isSnowflake } = useBase()
 
 const { loadProjectTables, addTable } = useTablesStore()
 
@@ -59,6 +44,13 @@ const { table, createTable, generateUniqueTitle, tables, base } = useTableNew({
 })
 
 const useForm = Form.useForm
+
+const enableDescription = ref(false)
+
+const removeDescription = () => {
+  table.description = ''
+  enableDescription.value = false
+}
 
 const validators = computed(() => {
   return {
@@ -126,6 +118,17 @@ const _createTable = async () => {
   }
 }
 
+const toggleDescription = () => {
+  if (enableDescription.value) {
+    enableDescription.value = false
+  } else {
+    enableDescription.value = true
+    setTimeout(() => {
+      inputEl.value?.focus()
+    }, 100)
+  }
+}
+
 onMounted(() => {
   generateUniqueTitle()
   nextTick(() => {
@@ -136,26 +139,74 @@ onMounted(() => {
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" :header="$t('activity.createTable')" size="small" @keydown.esc="dialogShow = false">
+  <NcModal
+    v-model:visible="dialogShow"
+    :show-separator="false"
+    :header="$t('activity.createTable')"
+    size="small"
+    @keydown.esc="dialogShow = false"
+  >
     <template #header>
-      <div class="flex flex-row items-center gap-x-2">
-        <GeneralIcon icon="table" />
-        {{ $t('activity.createTable') }}
+      <div class="flex justify-between w-full items-center">
+        <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-gray-800">
+          <GeneralIcon icon="table" class="!text-gray-600 w-5 h-5" />
+          {{ $t('activity.createTable') }}
+        </div>
+        <a href="https://docs.nocodb.com/tables/create-table" target="_blank" class="text-[13px]">
+          {{ $t('title.docs') }}
+        </a>
       </div>
     </template>
-    <div class="flex flex-col mt-2">
-      <a-form :model="table" name="create-new-table-form" @keydown.enter="_createTable" @keydown.esc="dialogShow = false">
-        <a-form-item v-bind="validateInfos.title">
-          <a-input
-            ref="inputEl"
-            v-model:value="table.title"
-            class="nc-input-md"
-            hide-details
-            data-testid="create-table-title-input"
-            :placeholder="$t('msg.info.enterTableName')"
-          />
-        </a-form-item>
-        <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
+    <div class="flex flex-col mt-1">
+      <a-form
+        layout="vertical"
+        :model="table"
+        name="create-new-table-form"
+        class="flex flex-col gap-5"
+        @keydown.enter="_createTable"
+        @keydown.esc="dialogShow = false"
+      >
+        <div class="flex flex-col gap-5">
+          <a-form-item v-bind="validateInfos.title">
+            <a-input
+              ref="inputEl"
+              v-model:value="table.title"
+              class="nc-input-sm nc-input-shadow"
+              hide-details
+              data-testid="create-table-title-input"
+              :placeholder="$t('msg.info.enterTableName')"
+            />
+          </a-form-item>
+
+          <a-form-item
+            v-if="enableDescription"
+            v-bind="validateInfos.description"
+            :class="{ '!mb-1': isSnowflake(props.sourceId), '!mb-0': !isSnowflake(props.sourceId) }"
+          >
+            <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
+              <span class="text-[13px]">
+                {{ $t('labels.description') }}
+              </span>
+              <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
+                <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
+              </NcButton>
+            </div>
+
+            <a-textarea
+              ref="inputEl"
+              v-model:value="table.description"
+              class="nc-input-sm nc-input-text-area nc-input-shadow px-3 !text-gray-800 max-h-[150px] min-h-[100px]"
+              hide-details
+              data-testid="create-table-title-input"
+              :placeholder="$t('msg.info.enterTableDescription')"
+            />
+          </a-form-item>
+
+          <template v-if="isSnowflake(props.sourceId)">
+            <a-checkbox v-model:checked="table.is_hybrid" class="!flex flex-row items-center"> Hybrid Table </a-checkbox>
+          </template>
+        </div>
+        <div v-if="isAdvanceOptVisible" class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
           <div>
             <div class="mb-1">
               <!-- Add Default Columns -->
@@ -183,19 +234,32 @@ onMounted(() => {
             </a-row>
           </div>
         </div>
-        <div class="flex flex-row justify-end gap-x-2 mt-2">
-          <NcButton type="secondary" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+        <div class="flex flex-row justify-between gap-x-2">
+          <NcButton v-if="!enableDescription" size="small" type="text" @click.stop="toggleDescription">
+            <div class="flex !text-gray-700 items-center gap-2">
+              <GeneralIcon icon="plus" class="h-4 w-4" />
 
-          <NcButton
-            v-e="['a:table:create']"
-            type="primary"
-            :disabled="validateInfos.title.validateStatus === 'error'"
-            :loading="creating"
-            @click="_createTable"
-          >
-            {{ $t('activity.createTable') }}
-            <template #loading> {{ $t('title.creatingTable') }} </template>
+              <span class="first-letter:capitalize">
+                {{ $t('labels.addDescription').toLowerCase() }}
+              </span>
+            </div>
           </NcButton>
+          <div v-else></div>
+          <div class="flex gap-2 items-center">
+            <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+
+            <NcButton
+              v-e="['a:table:create']"
+              type="primary"
+              size="small"
+              :disabled="validateInfos.title.validateStatus === 'error'"
+              :loading="creating"
+              @click="_createTable"
+            >
+              {{ $t('activity.createTable') }}
+              <template #loading> {{ $t('title.creatingTable') }} </template>
+            </NcButton>
+          </div>
         </div>
       </a-form>
     </div>
@@ -203,6 +267,14 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
+.ant-form-item {
+  @apply mb-0;
+}
+
+.nc-input-text-area {
+  padding-block: 8px !important;
+}
+
 .nc-table-advanced-options {
   max-height: 0;
   transition: 0.3s max-height;

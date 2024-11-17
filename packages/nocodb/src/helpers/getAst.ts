@@ -12,51 +12,64 @@ import type {
   LookupColumn,
   Model,
 } from '~/models';
+import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { CalendarRange, GalleryView, KanbanView, View } from '~/models';
+import {
+  CalendarRange,
+  GalleryView,
+  GridViewColumn,
+  KanbanView,
+  KanbanViewColumn,
+  View,
+} from '~/models';
 
-const getAst = async ({
-  query,
-  extractOnlyPrimaries = false,
-  includePkByDefault = true,
-  model,
-  view,
-  dependencyFields = {
-    ...(query || {}),
-    nested: { ...(query?.nested || {}) },
-    fieldsSet: new Set(),
+const getAst = async (
+  context: NcContext,
+  {
+    query,
+    extractOnlyPrimaries = false,
+    includePkByDefault = true,
+    model,
+    view,
+    dependencyFields = {
+      ...(query || {}),
+      nested: { ...(query?.nested || {}) },
+      fieldsSet: new Set(),
+    },
+    getHiddenColumn = query?.['getHiddenColumn'],
+    throwErrorIfInvalidParams = false,
+    extractOnlyRangeFields = false,
+  }: {
+    query?: RequestQuery;
+    extractOnlyPrimaries?: boolean;
+    includePkByDefault?: boolean;
+    model: Model;
+    view?: View;
+    dependencyFields?: DependantFields;
+    getHiddenColumn?: boolean;
+    throwErrorIfInvalidParams?: boolean;
+    // Used for calendar view
+    extractOnlyRangeFields?: boolean;
   },
-  getHiddenColumn = query?.['getHiddenColumn'],
-  throwErrorIfInvalidParams = false,
-  extractOnlyRangeFields = false,
-}: {
-  query?: RequestQuery;
-  extractOnlyPrimaries?: boolean;
-  includePkByDefault?: boolean;
-  model: Model;
-  view?: View;
-  dependencyFields?: DependantFields;
-  getHiddenColumn?: boolean;
-  throwErrorIfInvalidParams?: boolean;
-  // Used for calendar view
-  extractOnlyRangeFields?: boolean;
-}) => {
+) => {
   // set default values of dependencyFields and nested
   dependencyFields.nested = dependencyFields.nested || {};
   dependencyFields.fieldsSet = dependencyFields.fieldsSet || new Set();
 
   let coverImageId;
   let dependencyFieldsForCalenderView;
+  let kanbanGroupColumnId;
   if (view && view.type === ViewTypes.GALLERY) {
-    const gallery = await GalleryView.get(view.id);
+    const gallery = await GalleryView.get(context, view.id);
     coverImageId = gallery.fk_cover_image_col_id;
   } else if (view && view.type === ViewTypes.KANBAN) {
-    const kanban = await KanbanView.get(view.id);
+    const kanban = await KanbanView.get(context, view.id);
     coverImageId = kanban.fk_cover_image_col_id;
+    kanbanGroupColumnId = kanban.fk_grp_col_id;
   } else if (view && view.type === ViewTypes.CALENDAR) {
     // const calendar = await CalendarView.get(view.id);
     // coverImageId = calendar.fk_cover_image_col_id;
-    const calenderRanges = await CalendarRange.read(view.id);
+    const calenderRanges = await CalendarRange.read(context, view.id);
     if (calenderRanges) {
       dependencyFieldsForCalenderView = calenderRanges.ranges
         .flatMap((obj) =>
@@ -66,7 +79,7 @@ const getAst = async ({
     }
   }
 
-  if (!model.columns?.length) await model.getColumns();
+  if (!model.columns?.length) await model.getColumns(context);
 
   // extract only pk and pv
   if (extractOnlyPrimaries) {
@@ -77,10 +90,12 @@ const getAst = async ({
       ...(model.displayValue ? { [model.displayValue.title]: 1 } : {}),
     };
     await Promise.all(
-      model.primaryKeys.map((c) => extractDependencies(c, dependencyFields)),
+      model.primaryKeys.map((c) =>
+        extractDependencies(context, c, dependencyFields),
+      ),
     );
 
-    await extractDependencies(model.displayValue, dependencyFields);
+    await extractDependencies(context, model.displayValue, dependencyFields);
 
     return { ast, dependencyFields, parsedQuery: dependencyFields };
   }
@@ -96,6 +111,7 @@ const getAst = async ({
     await Promise.all(
       (dependencyFieldsForCalenderView || []).map((f) =>
         extractDependencies(
+          context,
           model.columns.find((c) => c.id === f),
           dependencyFields,
         ),
@@ -109,13 +125,13 @@ const getAst = async ({
   if (fields && fields !== '*') {
     fields = Array.isArray(fields) ? fields : fields.split(',');
     if (throwErrorIfInvalidParams) {
-      const colAliasMap = await model.getColAliasMapping();
-      const aliasColMap = await model.getAliasColObjMap();
+      const colAliasMap = await model.getColAliasMapping(context);
+      const aliasColMap = await model.getAliasColObjMap(context);
       const invalidFields = fields.filter(
         (f) => !colAliasMap[f] && !aliasColMap[f],
       );
       if (invalidFields.length) {
-        NcError.unprocessableEntity(`Invalid field: ${invalidFields[0]}`);
+        NcError.fieldNotFound(invalidFields.join(', '));
       }
     }
   } else {
@@ -124,10 +140,14 @@ const getAst = async ({
 
   let allowedCols = null;
   if (view) {
-    allowedCols = (await View.getColumns(view.id)).reduce(
+    allowedCols = (await View.getColumns(context, view.id)).reduce(
       (o, c) => ({
         ...o,
-        [c.fk_column_id]: c.show,
+        [c.fk_column_id]:
+          c.show ||
+          (c instanceof GridViewColumn && c.group_by) ||
+          (c instanceof KanbanViewColumn &&
+            c.fk_column_id === kanbanGroupColumnId),
       }),
       {},
     );
@@ -148,10 +168,10 @@ const getAst = async ({
     if (nestedFields && nestedFields !== '*') {
       if (col.uidt === UITypes.LinkToAnotherRecord) {
         const model = await col
-          .getColOptions<LinkToAnotherRecordColumn>()
-          .then((colOpt) => colOpt.getRelatedTable());
+          .getColOptions<LinkToAnotherRecordColumn>(context)
+          .then((colOpt) => colOpt.getRelatedTable(context));
 
-        const { ast } = await getAst({
+        const { ast } = await getAst(context, {
           model,
           query: query?.nested?.[col.title],
           dependencyFields: (dependencyFields.nested[col.title] =
@@ -174,11 +194,11 @@ const getAst = async ({
       }
     } else if (col.uidt === UITypes.LinkToAnotherRecord) {
       const model = await col
-        .getColOptions<LinkToAnotherRecordColumn>()
-        .then((colOpt) => colOpt.getRelatedTable());
+        .getColOptions<LinkToAnotherRecordColumn>(context)
+        .then((colOpt) => colOpt.getRelatedTable(context));
 
       value = (
-        await getAst({
+        await getAst(context, {
           model,
           query: query?.nested?.[col.title],
           extractOnlyPrimaries: nestedFields !== '*',
@@ -206,6 +226,7 @@ const getAst = async ({
         (!isSystemColumn(col) ||
           (!view && isCreatedOrLastModifiedTimeCol(col)) ||
           view.show_system_fields ||
+          (dependencyFieldsForCalenderView ?? []).includes(col.id) ||
           col.pv) &&
         (!fields?.length || fields.includes(col.title)) &&
         value;
@@ -215,7 +236,8 @@ const getAst = async ({
       isRequested = value;
     }
 
-    if (isRequested || col.pk) await extractDependencies(col, dependencyFields);
+    if (isRequested || col.pk)
+      await extractDependencies(context, col, dependencyFields);
 
     return {
       ...(await obj),
@@ -227,6 +249,7 @@ const getAst = async ({
 };
 
 const extractDependencies = async (
+  context: NcContext,
   column: Column,
   dependencyFields: DependantFields = {
     nested: {},
@@ -235,10 +258,10 @@ const extractDependencies = async (
 ) => {
   switch (column.uidt) {
     case UITypes.Lookup:
-      await extractLookupDependencies(column, dependencyFields);
+      await extractLookupDependencies(context, column, dependencyFields);
       break;
     case UITypes.LinkToAnotherRecord:
-      await extractRelationDependencies(column, dependencyFields);
+      await extractRelationDependencies(context, column, dependencyFields);
       break;
     default:
       dependencyFields.fieldsSet.add(column.title);
@@ -247,17 +270,19 @@ const extractDependencies = async (
 };
 
 const extractLookupDependencies = async (
+  context: NcContext,
   lookUpColumn: Column<LookupColumn>,
   dependencyFields: DependantFields = {
     nested: {},
     fieldsSet: new Set(),
   },
 ) => {
-  const lookupColumnOpts = await lookUpColumn.getColOptions();
-  const relationColumn = await lookupColumnOpts.getRelationColumn();
-  await extractRelationDependencies(relationColumn, dependencyFields);
+  const lookupColumnOpts = await lookUpColumn.getColOptions(context);
+  const relationColumn = await lookupColumnOpts.getRelationColumn(context);
+  await extractRelationDependencies(context, relationColumn, dependencyFields);
   await extractDependencies(
-    await lookupColumnOpts.getLookupColumn(),
+    context,
+    await lookupColumnOpts.getLookupColumn(context),
     (dependencyFields.nested[relationColumn.title] = dependencyFields.nested[
       relationColumn.title
     ] || {
@@ -268,26 +293,45 @@ const extractLookupDependencies = async (
 };
 
 const extractRelationDependencies = async (
+  context: NcContext,
   relationColumn: Column<LinkToAnotherRecordColumn>,
   dependencyFields: DependantFields = {
     nested: {},
     fieldsSet: new Set(),
   },
 ) => {
-  const relationColumnOpts = await relationColumn.getColOptions();
+  const relationColumnOpts = await relationColumn.getColOptions(context);
 
   switch (relationColumnOpts.type) {
     case RelationTypes.HAS_MANY:
       dependencyFields.fieldsSet.add(
-        await relationColumnOpts.getParentColumn().then((col) => col.title),
+        await relationColumnOpts
+          .getParentColumn(context)
+          .then((col) => col.title),
       );
       break;
     case RelationTypes.BELONGS_TO:
     case RelationTypes.MANY_TO_MANY:
       dependencyFields.fieldsSet.add(
-        await relationColumnOpts.getChildColumn().then((col) => col.title),
+        await relationColumnOpts
+          .getChildColumn(context)
+          .then((col) => col.title),
       );
-
+      break;
+    case RelationTypes.ONE_TO_ONE:
+      if (relationColumn.meta?.bt) {
+        dependencyFields.fieldsSet.add(
+          await relationColumnOpts
+            .getChildColumn(context)
+            .then((col) => col.title),
+        );
+      } else {
+        dependencyFields.fieldsSet.add(
+          await relationColumnOpts
+            .getParentColumn(context)
+            .then((col) => col.title),
+        );
+      }
       break;
   }
 };

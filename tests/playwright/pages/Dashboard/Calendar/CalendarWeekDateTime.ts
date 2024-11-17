@@ -29,6 +29,8 @@ export class CalendarWeekDateTimePage extends BasePage {
   }) {
     const recordContainer = this.getRecordContainer();
     const recordCard = recordContainer.getByTestId(`nc-calendar-week-record-${record}`);
+
+    await recordCard.scrollIntoViewIfNeeded();
     const toDay = this.get()
       .getByTestId('nc-calendar-week-day')
       .nth(to.dayIndex)
@@ -40,7 +42,10 @@ export class CalendarWeekDateTimePage extends BasePage {
     await this.rootPage.mouse.down();
     await this.rootPage.waitForTimeout(500);
 
-    await this.rootPage.mouse.move(cord.x + cord.width / 2, cord.y + cord.height / 2);
+    await this.rootPage.mouse.move(cord.x + Math.ceil(cord.width / 2), cord.y + Math.ceil(cord.height / 2));
+    // await toDay.scrollIntoViewIfNeeded();
+    await this.rootPage.waitForTimeout(500);
+
     await this.rootPage.mouse.up();
   }
 
@@ -48,12 +53,18 @@ export class CalendarWeekDateTimePage extends BasePage {
     const day = this.get().getByTestId('nc-calendar-week-day').nth(dayIndex);
 
     const hour = day.getByTestId('nc-calendar-week-hour').nth(hourIndex);
-    await hour.click({
-      force: true,
-      position: {
-        x: -1,
-        y: -1,
-      },
+
+    await this.waitForResponse({
+      uiAction: () =>
+        hour.click({
+          force: true,
+          position: {
+            x: 0,
+            y: 0,
+          },
+        }),
+      requestUrlPathToMatch: '/api/v1/db/data/noco',
+      httpMethodsToMatch: ['GET'],
     });
   }
 }

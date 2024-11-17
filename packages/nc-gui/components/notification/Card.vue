@@ -1,87 +1,129 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia'
 import InfiniteLoading from 'v3-infinite-loading'
-import { useNotification } from '#imports'
 
 const notificationStore = useNotification()
 
-const { notifications, isRead, pageInfo } = storeToRefs(notificationStore)
+const { isMobileMode } = useGlobal()
 
-/*
-const groupType = computed({
-  get() {
-    return isRead.value ? 'read' : 'unread'
-  },
-  set(value) {
-    isRead.value = value === 'read'
-    notificationStore.loadNotifications()
-  },
-})
-*/
+const container = ref()
+
+const { height } = useElementSize(container)
+
+const { loadUnReadNotifications, loadReadNotifications, markAllAsRead } = notificationStore
+
+const { unreadNotifications, readNotifications, readPageInfo, unreadPageInfo, notificationTab } = storeToRefs(notificationStore)
 </script>
 
 <template>
-  <div class="min-w-[350px] max-w-[350px] min-h-[400px] !rounded-2xl bg-white rounded-xl nc-card">
-    <div class="p-3" @click.stop>
-      <div class="flex items-center">
-        <span class="text-md font-medium text-[#212121]">
-          {{ $t('general.notification') }}
-        </span>
-        <div class="flex-grow"></div>
-        <div
-          v-if="!isRead && notifications?.length"
-          class="cursor-pointer text-xs text-gray-500 hover:text-primary"
-          @click.stop="notificationStore.markAllAsRead"
-        >
-          {{ $t('activity.markAllAsRead') }}
-        </div>
+  <div
+    ref="container"
+    style="box-shadow: 0px -12px 16px -4px rgba(0, 0, 0, 0.1), 0px -4px 6px -2px rgba(0, 0, 0, 0.06)"
+    :style="!isMobileMode ? 'width: min(80svw, 520px);' : ''"
+    :class="{
+      'max-h-[70vh] h-[620px]': !isMobileMode,
+      'h-[100svh] w-[100svw]': isMobileMode,
+    }"
+    class="!rounded-lg pt-4"
+  >
+    <div class="space-y-3">
+      <div class="flex px-6 justify-between items-center">
+        <span class="text-md font-bold text-gray-800" @click.stop> {{ $t('general.notification') }}s </span>
+
+        <NcButton v-if="isMobileMode" size="small" type="secondary">
+          <GeneralIcon icon="close" class="text-gray-700" />
+        </NcButton>
       </div>
-    </div>
-    <a-divider class="!my-0" />
-
-    <div
-      class="overflow-y-auto max-h-[max(60vh,500px)] min-h-100"
-      :class="{
-        'flex items-center justify-center': !notifications?.length,
-      }"
-    >
-      <template v-if="!notifications?.length">
-        <div class="flex flex-col gap-2 items-center justify-center">
-          <div class="text-sm text-gray-400">{{ $t('msg.noNewNotifications') }}</div>
-          <GeneralIcon icon="inbox" class="!text-40px text-gray-400" />
-        </div>
-      </template>
-      <template v-else>
-        <template v-for="item in notifications" :key="item.id">
-          <NotificationItem class="" :item="item" />
-          <a-divider class="!my-0" />
-        </template>
-
-        <InfiniteLoading
-          v-if="notifications && pageInfo && pageInfo.totalRows > notifications.length"
-          @infinite="notificationStore.loadNotifications(true)"
-        >
-          <template #spinner>
-            <div class="flex flex-row w-full justify-center mt-2">
-              <a-spin />
-            </div>
+      <div
+        v-if="notificationTab !== 'read'"
+        :class="{
+          'text-gray-400': !unreadNotifications?.length,
+        }"
+        class="cursor-pointer right-5 pointer-events-auto top-12.5 z-2 absolute text-[13px] text-gray-600 font-weight-semibold"
+        @click.stop="markAllAsRead"
+      >
+        {{ $t('activity.markAllAsRead') }}
+      </div>
+      <NcTabs v-model:activeKey="notificationTab">
+        <a-tab-pane key="unread">
+          <template #tab>
+            <span
+              :class="{
+                'font-semibold': notificationTab === 'unread',
+              }"
+              class="text-xs"
+            >
+              Unread
+            </span>
           </template>
-          <template #complete>
-            <span></span>
+          <div
+            class="overflow-y-auto"
+            :style="`height: ${height - 72}px`"
+            :class="{
+              'flex flex-col items-center min-h-[48svh] justify-center': !unreadNotifications?.length,
+            }"
+          >
+            <template v-if="!unreadNotifications?.length">
+              <div class="text-sm !text-gray-500">{{ $t('msg.noNewNotifications') }}</div>
+              <GeneralIcon icon="inbox" class="!text-40px !text-gray-500" />
+            </template>
+            <template v-else>
+              <NotificationItem v-for="item in unreadNotifications" :key="item.id" :item="item" />
+
+              <InfiniteLoading
+                v-if="unreadNotifications && unreadPageInfo && unreadPageInfo.totalRows > unreadNotifications.length"
+                @infinite="loadUnReadNotifications(true)"
+              >
+              </InfiniteLoading>
+            </template>
+          </div>
+        </a-tab-pane>
+        <a-tab-pane key="read">
+          <template #tab>
+            <span
+              :class="{
+                'font-semibold': notificationTab === 'read',
+              }"
+              class="text-xs"
+            >
+              Read
+            </span>
           </template>
-        </InfiniteLoading>
-      </template>
+
+          <div
+            class="overflow-y-auto"
+            :style="!isMobileMode ? `height: ${height - 72}px` : ''"
+            :class="{
+              'flex flex-col items-center min-h-[48svh] justify-center': !readNotifications?.length,
+            }"
+          >
+            <template v-if="!readNotifications?.length">
+              <div class="text-sm text-gray-500">{{ $t('msg.noNewNotifications') }}</div>
+              <GeneralIcon icon="inbox" class="!text-40px text-gray-500" />
+            </template>
+            <template v-else>
+              <NotificationItem v-for="item in readNotifications" :key="item.id" :item="item" />
+
+              <InfiniteLoading
+                v-if="readNotifications && readPageInfo && readPageInfo.totalRows > readNotifications.length"
+                @infinite="loadReadNotifications(true)"
+              >
+              </InfiniteLoading>
+            </template>
+          </div>
+        </a-tab-pane>
+      </NcTabs>
     </div>
   </div>
 </template>
 
 <style scoped>
-.nc-card {
-  border: solid 1px #e1e3e6;
+:deep(.ant-tabs-nav-wrap) {
+  @apply px-3;
 }
 
-:deep(.ant-tabs-nav-wrap) {
-  @apply px-6;
+:deep(.ant-tabs-tab) {
+  @apply pb-1.5 pt-1;
 }
 
 :deep(.ant-tabs-nav) {

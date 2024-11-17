@@ -1,6 +1,7 @@
 import { isLinksOrLTAR, RelationTypes, UITypes } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
+import type { NcContext } from '~/interface/config';
 
 export const rowIdParam = {
   schema: {
@@ -193,6 +194,7 @@ export const nestedOffsetParam = (colName) => ({
 });
 
 export const getNestedParams = async (
+  context: NcContext,
   columns: SwaggerColumn[],
 ): Promise<any[]> => {
   return await columns.reduce(async (paramsArr, { column }) => {
@@ -201,7 +203,9 @@ export const getNestedParams = async (
       if (column.system) {
         return paramsArr;
       }
-      const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
+      const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
+        context,
+      );
       if (colOpt.type !== RelationTypes.BELONGS_TO) {
         return [
           ...(await paramsArr),

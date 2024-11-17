@@ -1,11 +1,11 @@
 import { XcActionType, XcType } from 'nocodb-sdk';
 import S3Plugin from './MinioPlugin';
-import type { XcPluginConfig } from 'nc-plugin';
+import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: S3Plugin,
   title: 'Minio',
-  version: '0.0.1',
+  version: '0.0.4',
   logo: 'plugins/minio.png',
   description:
     'MinIO is a High Performance Object Storage released under Apache License v2.0. It is API compatible with Amazon S3 cloud storage service.',
@@ -51,11 +51,17 @@ const config: XcPluginConfig = {
         required: true,
       },
       {
+        key: 'ca',
+        label: 'Ca',
+        placeholder: 'Ca',
+        type: XcType.LongText,
+      },
+      {
         key: 'useSSL',
         label: 'Use SSL',
         placeholder: 'Use SSL',
         type: XcType.Checkbox,
-        required: true,
+        required: false,
       },
     ],
     actions: [
@@ -75,7 +81,7 @@ const config: XcPluginConfig = {
       },
     ],
     msgOnInstall:
-      'Successfully installed and attachment will be stored in Minio',
+      'Successfully configured! Attachments will now be stored in Minio.',
     msgOnUninstall: '',
   },
 };

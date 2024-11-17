@@ -49,7 +49,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
             <GeneralIcon
               v-else
               icon="doubleLeftArrow"
-              class="duration-150 transition-all !text-lg -mt-0.5"
+              class="duration-150 transition-all !text-lg -mt-0.5 !text-gray-500/75"
               :class="{
                 'transform rotate-180': !isLeftSidebarOpen,
               }"

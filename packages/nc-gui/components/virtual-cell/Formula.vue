@@ -2,18 +2,6 @@
 import { FormulaDataTypes, handleTZ } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import {
-  CellValueInj,
-  ColumnInj,
-  IsExpandedFormOpenInj,
-  computed,
-  inject,
-  ref,
-  renderValue,
-  replaceUrlsWithLink,
-  useBase,
-  useShowNotEditableWarning,
-} from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column = inject(ColumnInj) as Ref<ColumnType & { colOptions: { error: any } }>
@@ -33,13 +21,24 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activ
 
 const isNumber = computed(() => (column.value.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.NUMERIC)
 
+const rowHeight = inject(RowHeightInj, ref(undefined))
+
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 </script>
 
 <template>
-  <div class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
+  <LazySmartsheetFormulaWrapperCell
+    v-if="column.meta?.display_type"
+    v-model="cellValue"
+    :column="{
+      uidt: column.meta?.display_type,
+      ...column.meta?.display_column_meta,
+    }"
+  />
+
+  <div v-else class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
     <a-tooltip v-if="column && column.colOptions && column.colOptions.error" placement="bottom" class="text-orange-700">
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>
@@ -50,7 +49,7 @@ const isGrid = inject(IsGridInj, ref(false))
     <div v-else class="nc-cell-field py-1" @dblclick="activateShowEditNonEditableFieldWarning">
       <div v-if="urls" v-html="urls" />
 
-      <div v-else>{{ result }}</div>
+      <LazyCellClampedText v-else :value="result" :lines="rowHeight" />
 
       <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
         {{ $t('msg.info.computedFieldEditWarning') }}

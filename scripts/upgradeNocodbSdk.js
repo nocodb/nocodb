@@ -5,6 +5,11 @@ const execSync = require('child_process').execSync;
 // extract latest version from package.json
 const nocodbSdkPackage = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'packages', 'nocodb-sdk', 'package.json'), 'utf8'))
 
+
+if (process.env.revertSDK === 'true') {
+  nocodbSdkPackage.version = 'workspace:^';
+}
+
 const replacePackageName = (filePath) => {
     return new Promise((resolve, reject) => {
         return fs.readFile(filePath, 'utf8', function (err, data) {

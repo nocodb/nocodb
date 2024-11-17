@@ -7,31 +7,38 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { FilterReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { FiltersService } from '~/services/filters.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { NcContext, NcRequest } from '~/interface/config';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class FiltersController {
-  constructor(private readonly filtersService: FiltersService) {}
+  constructor(protected readonly filtersService: FiltersService) {}
 
   @Get([
     '/api/v1/db/meta/views/:viewId/filters',
     '/api/v2/meta/views/:viewId/filters',
   ])
   @Acl('filterList')
-  async filterList(@Param('viewId') viewId: string) {
+  async filterList(
+    @TenantContext() context: NcContext,
+    @Param('viewId') viewId: string,
+    @Query('includeAllFilters') includeAllFilters: string,
+  ) {
     return new PagedResponseImpl(
-      await this.filtersService.filterList({
+      await this.filtersService.filterList(context, {
         viewId,
+        includeAllFilters: includeAllFilters === 'true',
       }),
     );
   }
@@ -43,11 +50,12 @@ export class FiltersController {
   @HttpCode(200)
   @Acl('filterCreate')
   async filterCreate(
+    @TenantContext() context: NcContext,
     @Param('viewId') viewId: string,
     @Body() body: FilterReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    const filter = await this.filtersService.filterCreate({
+    const filter = await this.filtersService.filterCreate(context, {
       filter: body,
       viewId: viewId,
       user: req.user,
@@ -63,11 +71,12 @@ export class FiltersController {
   @HttpCode(200)
   @Acl('hookFilterCreate')
   async hookFilterCreate(
+    @TenantContext() context: NcContext,
     @Param('hookId') hookId: string,
     @Body() body: FilterReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    const filter = await this.filtersService.hookFilterCreate({
+    const filter = await this.filtersService.hookFilterCreate(context, {
       filter: body,
       hookId,
       user: req.user,
@@ -78,8 +87,11 @@ export class FiltersController {
 
   @Get(['/api/v1/db/meta/filters/:filterId', '/api/v2/meta/filters/:filterId'])
   @Acl('filterGet')
-  async filterGet(@Param('filterId') filterId: string) {
-    return await this.filtersService.filterGet({ filterId });
+  async filterGet(
+    @TenantContext() context: NcContext,
+    @Param('filterId') filterId: string,
+  ) {
+    return await this.filtersService.filterGet(context, { filterId });
   }
 
   @Get([
@@ -87,9 +99,12 @@ export class FiltersController {
     '/api/v2/meta/filters/:filterParentId/children',
   ])
   @Acl('filterChildrenList')
-  async filterChildrenRead(@Param('filterParentId') filterParentId: string) {
+  async filterChildrenRead(
+    @TenantContext() context: NcContext,
+    @Param('filterParentId') filterParentId: string,
+  ) {
     return new PagedResponseImpl(
-      await this.filtersService.filterChildrenList({
+      await this.filtersService.filterChildrenList(context, {
         filterId: filterParentId,
       }),
     );
@@ -101,11 +116,12 @@ export class FiltersController {
   ])
   @Acl('filterUpdate')
   async filterUpdate(
+    @TenantContext() context: NcContext,
     @Param('filterId') filterId: string,
     @Body() body: FilterReqType,
-    @Req() req: Request,
+    @Req() req: NcRequest,
   ) {
-    const filter = await this.filtersService.filterUpdate({
+    const filter = await this.filtersService.filterUpdate(context, {
       filterId: filterId,
       filter: body,
       user: req.user,
@@ -119,8 +135,12 @@ export class FiltersController {
     '/api/v2/meta/filters/:filterId',
   ])
   @Acl('filterDelete')
-  async filterDelete(@Param('filterId') filterId: string, @Req() req: Request) {
-    const filter = await this.filtersService.filterDelete({
+  async filterDelete(
+    @TenantContext() context: NcContext,
+    @Param('filterId') filterId: string,
+    @Req() req: NcRequest,
+  ) {
+    const filter = await this.filtersService.filterDelete(context, {
       req,
       filterId,
     });
@@ -132,9 +152,12 @@ export class FiltersController {
     '/api/v2/meta/hooks/:hookId/filters',
   ])
   @Acl('hookFilterList')
-  async hookFilterList(@Param('hookId') hookId: string) {
+  async hookFilterList(
+    @TenantContext() context: NcContext,
+    @Param('hookId') hookId: string,
+  ) {
     return new PagedResponseImpl(
-      await this.filtersService.hookFilterList({
+      await this.filtersService.hookFilterList(context, {
         hookId: hookId,
       }),
     );

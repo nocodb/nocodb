@@ -2,7 +2,6 @@
 import { onKeyDown, useEventListener } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { iconMap, isImage, ref, useAttachment, useDropZone, useRoles, watch } from '#imports'
 
 const { isUIAllowed } = useRoles()
 
@@ -17,11 +16,11 @@ const {
   FileIcon,
   removeFile,
   onDrop,
-  downloadFile,
+  downloadAttachment,
   updateModelValue,
-  selectedImage,
+  selectedFile,
   selectedVisibleItems,
-  bulkDownloadFiles,
+  bulkDownloadAttachments,
   renameFile,
 } = useAttachmentCell()!
 
@@ -35,7 +34,7 @@ const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
 const { isSharedForm } = useSmartsheetStoreOrThrow()
 
-const { getPossibleAttachmentSrc, openAttachment } = useAttachment()
+const { getPossibleAttachmentSrc } = useAttachment()
 
 onKeyDown('Escape', () => {
   modalVisible.value = false
@@ -43,10 +42,10 @@ onKeyDown('Escape', () => {
 })
 
 function onClick(item: Record<string, any>) {
-  selectedImage.value = item
+  selectedFile.value = item
   modalVisible.value = false
 
-  const stopHandle = watch(selectedImage, (nextImage) => {
+  const stopHandle = watch(selectedFile, (nextImage) => {
     if (!nextImage) {
       setTimeout(() => {
         modalVisible.value = true
@@ -83,111 +82,135 @@ const handleFileDelete = (i: number) => {
 </script>
 
 <template>
-  <a-modal
+  <NcModal
     v-model:visible="modalVisible"
+    wrap-class-name="nc-modal-attachment-expand-cell"
     class="nc-attachment-modal"
     :class="{ active: modalVisible }"
     width="80%"
-    :footer="null"
-    wrap-class-name="nc-modal-attachment-expand-cell"
   >
-    <template #title>
-      <div class="flex gap-4">
-        <div
+    <div class="flex justify-between pb-6 gap-4">
+      <div class="font-semibold text-xl">{{ column?.title }}</div>
+
+      <div class="flex items-center gap-2">
+        <NcButton v-if="selectedVisibleItems.length > 0" size="small" @click="bulkDownloadAttachments">
+          <div class="flex gap-2 items-center">
+            <GeneralIcon icon="download" />
+            {{ $t('activity.bulkDownload') }}
+          </div>
+        </NcButton>
+
+        <NcButton
           v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)"
           class="nc-attach-file group"
+          size="small"
           data-testid="attachment-expand-file-picker-button"
           @click="open"
         >
-          <MaterialSymbolsAttachFile class="transform group-hover:(text-accent scale-120)" />
-          {{ $t('activity.attachFile') }}
-        </div>
+          <div class="flex gap-2 items-center">
+            <component :is="iconMap.cellAttachment" class="w-4 h-4" />
+            {{ $t('activity.attachFile') }}
+          </div>
+        </NcButton>
 
-        <div class="flex items-center gap-2">
-          <div v-if="readOnly" class="text-gray-400">[{{ $t('labels.readOnly') }}]</div>
-          {{ $t('labels.viewingAttachmentsOf') }}
-          <div class="font-semibold underline">{{ column?.title }}</div>
-        </div>
-
-        <div v-if="selectedVisibleItems.includes(true)" class="flex flex-1 items-center gap-3 justify-end mr-[30px]">
-          <NcButton type="primary" class="nc-attachment-download-all" @click="bulkDownloadFiles">
-            {{ $t('activity.bulkDownload') }}
-          </NcButton>
-        </div>
+        <NcButton type="secondary" size="small" @click="modalVisible = false">
+          <GeneralIcon icon="close" />
+        </NcButton>
       </div>
-    </template>
-    <div ref="dropZoneRef" tabindex="0">
-      <template v-if="isSharedForm || (!readOnly && !dragging)">
-        <general-overlay
-          v-model="isOverDropZone"
-          inline
-          class="text-white ring ring-accent ring-opacity-100 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
-        >
-          <MaterialSymbolsFileCopyOutline class="text-accent" height="35" width="35" />
-          <div class="text-white text-3xl">{{ $t('labels.dropHere') }}</div>
-        </general-overlay>
-      </template>
+    </div>
 
-      <div ref="sortableRef" :class="{ dragging }" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">
-        <div v-for="(item, i) of visibleItems" :key="`${item.title}-${i}`" class="flex flex-col gap-1">
-          <a-card class="nc-attachment-item group">
-            <a-checkbox
-              v-model:checked="selectedVisibleItems[i]"
-              class="nc-attachment-checkbox group-hover:(opacity-100)"
-              :class="{ '!opacity-100': selectedVisibleItems[i] }"
+    <div ref="dropZoneRef" tabindex="0" class="relative">
+      <div
+        v-if="isSharedForm || (!readOnly && !dragging && isOverDropZone)"
+        class="text-white absolute inset-0 bg-white flex flex-col items-center justify-center gap-2 border-dashed border-1 border-gray-700"
+      >
+        <MaterialSymbolsFileCopyOutline class="text-accent" height="35" width="35" />
+        <div class="text-gray-800 text-3xl">{{ $t('labels.dropHere') }}</div>
+      </div>
+
+      <div
+        ref="sortableRef"
+        :class="{ dragging }"
+        class="grid max-h-140 overflow-auto nc-scrollbar-md md:grid-cols-3 xl:grid-cols-5 gap-y-8 gap-x-4 relative"
+      >
+        <div
+          v-for="(item, i) in visibleItems"
+          :key="`${item?.title}-${i}`"
+          class="nc-attachment-item group gap-1 flex border-1 rounded-md border-gray-200 flex-col relative"
+        >
+          <NcCheckbox
+            v-model:checked="selectedVisibleItems[i]"
+            class="nc-attachment-checkbox absolute top-2 left-2 group-hover:(opacity-100)"
+            :class="{ '!opacity-100': selectedVisibleItems[i] }"
+          />
+          <div
+            :class="{
+              'cursor-move': dragging,
+              'cursor-pointer': !dragging,
+            }"
+            class="nc-attachment h-full flex justify-center items-center overflow-hidden"
+          >
+            <LazyCellAttachmentPreviewImage
+              v-if="isImage(item.title, item.mimetype)"
+              :srcs="getPossibleAttachmentSrc(item, 'card_cover')"
+              object-fit="cover"
+              class="!w-full object-cover !m-0 rounded-t-[5px] justify-center"
+              @click.stop="onClick(item)"
             />
 
-            <a-tooltip v-if="!readOnly">
-              <template #title> {{ $t('title.removeFile') }} </template>
-              <component
-                :is="iconMap.closeCircle"
-                v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
-                class="nc-attachment-remove"
-                @click.stop="onRemoveFileClick(item.title, i)"
-              />
-            </a-tooltip>
+            <component :is="FileIcon(item.icon)" v-else-if="item.icon" :height="45" :width="45" @click.stop="onClick(item)" />
 
-            <a-tooltip placement="bottom">
-              <template #title> {{ $t('title.downloadFile') }} </template>
+            <IcOutlineInsertDriveFile v-else :height="45" :width="45" @click.stop="onClick(item)" />
+          </div>
 
-              <div class="nc-attachment-download group-hover:(opacity-100)">
-                <component :is="iconMap.download" @click.stop="downloadFile(item)" />
-              </div>
-            </a-tooltip>
-
-            <a-tooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
-              <template #title> {{ $t('title.renameFile') }} </template>
-
-              <div class="nc-attachment-rename group-hover:(opacity-100) mr-[35px]">
-                <component :is="iconMap.rename" @click.stop="renameFile(item, i)" />
-              </div>
-            </a-tooltip>
-
-            <div
-              :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
-              class="nc-attachment h-full w-full flex items-center justify-center overflow-hidden"
+          <div class="relative px-1 pb-1 items-center flex" :title="item.title">
+            <NcTooltip
+              show-on-truncate-only
+              class="flex-auto truncate w-full text-[12px] items-center text-gray-700 text-sm line-height-4"
             >
-              <LazyCellAttachmentImage
-                v-if="isImage(item.title, item.mimetype)"
-                :srcs="getPossibleAttachmentSrc(item)"
-                class="object-cover h-64 m-auto justify-center"
-                @click.stop="onClick(item)"
-              />
+              {{ item.title }}
 
-              <component
-                :is="FileIcon(item.icon)"
-                v-else-if="item.icon"
-                height="150"
-                width="150"
-                @click.stop="openAttachment(item)"
-              />
+              <template #title>
+                {{ item.title }}
+              </template>
+            </NcTooltip>
+            <div class="flex-none hide-ui transition-all transition-ease-in-out !h-5 gap-0.5 flex items-center bg-white">
+              <NcTooltip placement="bottom">
+                <template #title> {{ $t('title.downloadFile') }} </template>
+                <NcButton
+                  class="!p-0 !w-5 !h-5 text-gray-500 !min-w-[fit-content]"
+                  size="xsmall"
+                  type="text"
+                  @click="downloadAttachment(item)"
+                >
+                  <component :is="iconMap.download" class="!text-xs h-13px w-13px" />
+                </NcButton>
+              </NcTooltip>
 
-              <IcOutlineInsertDriveFile v-else height="150" width="150" @click.stop="openAttachment(item)" />
+              <NcTooltip v-if="!isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
+                <template #title> {{ $t('title.renameFile') }} </template>
+                <NcButton
+                  size="xsmall"
+                  class="!p-0 nc-attachment-rename !h-5 !w-5 !text-gray-500 !min-w-[fit-content] gap-2"
+                  type="text"
+                  @click="renameFile(item, i)"
+                >
+                  <component :is="iconMap.rename" class="text-xs h-13px w-13px" />
+                </NcButton>
+              </NcTooltip>
+
+              <NcTooltip v-if="isSharedForm || (!readOnly && isUIAllowed('dataEdit') && !isPublic)" placement="bottom">
+                <template #title> {{ $t('title.removeFile') }} </template>
+                <NcButton
+                  class="!p-0 !h-4 !w-4 !text-red-500 nc-attachment-remove !min-w-[fit-content]"
+                  size="xsmall"
+                  type="text"
+                  @click="onRemoveFileClick(item.title, i)"
+                >
+                  <component :is="iconMap.delete" class="text-xs h-13px w-13px" />
+                </NcButton>
+              </NcTooltip>
             </div>
-          </a-card>
-
-          <div class="truncate" :title="item.title">
-            {{ item.title }}
           </div>
         </div>
 
@@ -200,6 +223,7 @@ const handleFileDelete = (i: number) => {
         </div>
       </div>
     </div>
+
     <GeneralDeleteModal v-model:visible="isModalOpen" entity-name="File" :on-delete="() => handleFileDelete(filetoDelete.i)">
       <template #entity-preview>
         <span>
@@ -215,81 +239,29 @@ const handleFileDelete = (i: number) => {
         </span>
       </template>
     </GeneralDeleteModal>
-  </a-modal>
+  </NcModal>
 </template>
 
 <style lang="scss">
+.hide-ui {
+  @apply h-0 w-0 overflow-x-hidden whitespace-nowrap;
+  .group:hover & {
+    @apply h-auto w-auto overflow-visible whitespace-normal;
+  }
+}
 .nc-attachment-modal {
-  .nc-attach-file {
-    @apply select-none cursor-pointer color-transition flex items-center gap-1 border-1 p-2 rounded
-    @apply hover:(bg-primary bg-opacity-10 text-primary ring);
-    @apply active:(ring-accent ring-opacity-100 bg-primary bg-opacity-20);
-  }
-
   .nc-attachment-item {
-    @apply !h-2/3 !min-h-[200px] flex items-center justify-center relative;
-
-    @supports (-moz-appearance: none) {
-      @apply hover:border-0;
-    }
-
-    &::after {
-      @apply pointer-events-none rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out;
-      content: '';
-    }
-
-    @supports (-moz-appearance: none) {
-      &:hover::after {
-        @apply ring shadow transform scale-103;
-      }
-
-      &:active::after {
-        @apply ring ring-accent ring-opacity-100 shadow transform scale-103;
-      }
-    }
-  }
-
-  .nc-attachment-download,
-  .nc-attachment-rename {
-    @apply bg-white absolute bottom-2 right-2;
-    @apply transition-opacity duration-150 ease-in opacity-0 hover:ring;
-    @apply cursor-pointer rounded shadow flex items-center p-1 border-1;
-    @apply active:(ring border-0 ring-accent);
-  }
-
-  .nc-attachment-checkbox {
-    @apply absolute top-2 left-2;
-    @apply transition-opacity duration-150 ease-in opacity-0;
-  }
-
-  .nc-attachment-remove {
-    @apply absolute top-2 right-2 bg-white;
-    @apply hover:(ring ring-red-500);
-    @apply cursor-pointer rounded-full border-2;
-    @apply active:(ring border-0 ring-red-500);
-  }
-
-  .ant-card-body {
-    @apply !p-2 w-full h-full;
-  }
-
-  .ant-modal-body {
-    @apply !p-0;
-  }
-
-  .ghost,
-  .ghost > * {
-    @apply !pointer-events-none;
+    @apply h-[200px] max-h-[200px] flex relative;
   }
 
   .dragging {
     .nc-attachment-item {
       @apply !pointer-events-none;
     }
+  }
 
-    .ant-tooltip {
-      @apply !hidden;
-    }
+  .nc-checkbox > .ant-checkbox {
+    box-shadow: none !important;
   }
 }
 </style>

@@ -430,15 +430,15 @@ class ModelXcMetaPg extends BaseModelXcMeta {
         return 'date';
       case 'daterange':
         return 'string';
-      case 'double precision':
-        return 'string';
 
       case 'event_trigger':
       case 'fdw_handler':
         return dt;
 
+      case 'double precision':
       case 'float4':
       case 'float8':
+      case 'numeric':
         return 'float';
 
       case 'gtsvector':
@@ -466,7 +466,6 @@ class ModelXcMetaPg extends BaseModelXcMeta {
       case 'macaddr':
       case 'money':
       case 'name':
-      case 'numeric':
       case 'numrange':
       case 'oid':
       case 'opaque':

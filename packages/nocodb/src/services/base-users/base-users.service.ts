@@ -10,7 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as ejs from 'ejs';
 import validator from 'validator';
 import type { ProjectUserReqType, UserType } from 'nocodb-sdk';
-import type { NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -22,13 +22,17 @@ import { Base, BaseUser, User } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRolePower } from '~/utils/roleHelper';
+import { sanitiseEmailContent } from '~/utils';
 
 @Injectable()
 export class BaseUsersService {
   constructor(protected appHooksService: AppHooksService) {}
 
-  async userList(param: { baseId: string; mode?: 'full' | 'viewer' }) {
-    const baseUsers = await BaseUser.getUsersList({
+  async userList(
+    context: NcContext,
+    param: { baseId: string; mode?: 'full' | 'viewer' },
+  ) {
+    const baseUsers = await BaseUser.getUsersList(context, {
       base_id: param.baseId,
       mode: param.mode,
     });
@@ -38,11 +42,14 @@ export class BaseUsersService {
     });
   }
 
-  async userInvite(param: {
-    baseId: string;
-    baseUser: ProjectUserReqType;
-    req: NcRequest;
-  }): Promise<any> {
+  async userInvite(
+    context: NcContext,
+    param: {
+      baseId: string;
+      baseUser: ProjectUserReqType;
+      req: NcRequest;
+    },
+  ): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',
       param.baseUser,
@@ -58,6 +65,7 @@ export class BaseUsersService {
 
     if (
       ![
+        ProjectRoles.OWNER,
         ProjectRoles.CREATOR,
         ProjectRoles.EDITOR,
         ProjectRoles.COMMENTER,
@@ -89,33 +97,44 @@ export class BaseUsersService {
       // add user to base if user already exist
       const user = await User.getByEmail(email);
 
-      const base = await Base.get(param.baseId);
+      const base = await Base.get(context, param.baseId);
 
       if (!base) {
-        return NcError.badRequest('Invalid base id');
+        return NcError.baseNotFound(param.baseId);
       }
 
       if (user) {
         // check if this user has been added to this base
-        const baseUser = await BaseUser.get(param.baseId, user.id);
+        const baseUser = await BaseUser.get(context, param.baseId, user.id);
 
-        const base = await Base.get(param.baseId);
+        const base = await Base.get(context, param.baseId);
 
         if (!base) {
-          return NcError.badRequest('Invalid base id');
+          return NcError.baseNotFound(param.baseId);
         }
 
-        if (baseUser && baseUser.roles) {
+        // if already exists and has a role then throw error
+        if (baseUser?.is_mapped && baseUser?.roles) {
           NcError.badRequest(
             `${user.email} with role ${baseUser.roles} already exists in this base`,
           );
         }
-
-        await BaseUser.insert({
-          base_id: param.baseId,
-          fk_user_id: user.id,
-          roles: param.baseUser.roles || 'editor',
-        });
+        // if user exist and role is not assigned then assign role by updating base user
+        else if (baseUser?.is_mapped) {
+          await BaseUser.updateRoles(
+            context,
+            param.baseId,
+            user.id,
+            param.baseUser.roles,
+          );
+        } else {
+          await BaseUser.insert(context, {
+            base_id: param.baseId,
+            fk_user_id: user.id,
+            roles: param.baseUser.roles || 'editor',
+            invited_by: param.req?.user?.id,
+          });
+        }
 
         this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
           base,
@@ -136,10 +155,11 @@ export class BaseUsersService {
           });
 
           // add user to base
-          await BaseUser.insert({
+          await BaseUser.insert(context, {
             base_id: param.baseId,
             fk_user_id: user.id,
             roles: param.baseUser.roles,
+            invited_by: param.req?.user?.id,
           });
 
           this.appHooksService.emit(AppEvents.PROJECT_INVITE, {
@@ -180,14 +200,17 @@ export class BaseUsersService {
     }
   }
 
-  async baseUserUpdate(param: {
-    userId: string;
-    // todo: update swagger
-    baseUser: ProjectUserReqType & { base_id: string };
-    // todo: refactor
-    req: any;
-    baseId: string;
-  }): Promise<any> {
+  async baseUserUpdate(
+    context: NcContext,
+    param: {
+      userId: string;
+      // todo: update swagger
+      baseUser: ProjectUserReqType & { base_id: string };
+      // todo: refactor
+      req: any;
+      baseId: string;
+    },
+  ): Promise<any> {
     validatePayload(
       'swagger.json#/components/schemas/ProjectUserReq',
       param.baseUser,
@@ -197,18 +220,15 @@ export class BaseUsersService {
       NcError.badRequest('Missing base id');
     }
 
-    const base = await Base.get(param.baseId);
+    const base = await Base.get(context, param.baseId);
 
     if (!base) {
-      return NcError.badRequest('Invalid base id');
-    }
-
-    if (param.baseUser.roles.includes(ProjectRoles.OWNER)) {
-      NcError.badRequest('Owner cannot be updated');
+      return NcError.baseNotFound(param.baseId);
     }
 
     if (
       ![
+        ProjectRoles.OWNER,
         ProjectRoles.CREATOR,
         ProjectRoles.EDITOR,
         ProjectRoles.COMMENTER,
@@ -225,7 +245,7 @@ export class BaseUsersService {
       NcError.badRequest(`User with id '${param.userId}' doesn't exist`);
     }
 
-    const targetUser = await User.getWithRoles(param.userId, {
+    const targetUser = await User.getWithRoles(context, param.userId, {
       user,
       baseId: param.baseId,
     });
@@ -236,13 +256,24 @@ export class BaseUsersService {
       );
     }
 
-    if (
-      getProjectRolePower(targetUser) >= getProjectRolePower(param.req.user)
-    ) {
+    // if old role is owner and there is only one owner then restrict to update
+    if (extractRolesObj(targetUser.base_roles)?.[ProjectRoles.OWNER]) {
+      const baseUsers = await BaseUser.getUsersList(context, {
+        base_id: param.baseId,
+      });
+      if (
+        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
+          .length === 1
+      )
+        NcError.badRequest('At least one owner is required');
+    }
+
+    if (getProjectRolePower(targetUser) > getProjectRolePower(param.req.user)) {
       NcError.badRequest(`Insufficient privilege to update user`);
     }
 
     await BaseUser.updateRoles(
+      context,
       param.baseId,
       param.userId,
       param.baseUser.roles,
@@ -262,51 +293,90 @@ export class BaseUsersService {
     };
   }
 
-  async baseUserDelete(param: {
-    baseId: string;
-    userId: string;
-    // todo: refactor
-    req: any;
-  }): Promise<any> {
+  async baseUserDelete(
+    context: NcContext,
+    param: {
+      baseId: string;
+      userId: string;
+      // todo: refactor
+      req: any;
+    },
+  ): Promise<any> {
     const base_id = param.baseId;
 
     if (param.req.user?.id === param.userId) {
       NcError.badRequest("Admin can't delete themselves!");
     }
 
+    const user = await User.get(param.userId);
+
+    if (!user) {
+      NcError.userNotFound(param.userId);
+    }
+
     if (!param.req.user?.base_roles?.owner) {
-      const user = await User.get(param.userId);
       if (user.roles?.split(',').includes('super'))
         NcError.forbidden(
           'Insufficient privilege to delete a super admin user.',
         );
-
-      const baseUser = await BaseUser.get(base_id, param.userId);
-      if (baseUser?.roles?.split(',').includes('owner'))
-        NcError.forbidden('Insufficient privilege to delete a owner user.');
     }
 
-    await BaseUser.delete(base_id, param.userId);
+    const baseUser = await User.getWithRoles(context, param.userId, {
+      baseId: base_id,
+    });
+
+    // check if user have access to delete user based on role power
+    if (
+      getProjectRolePower(baseUser.base_roles) >
+      getProjectRolePower(param.req.user)
+    ) {
+      NcError.badRequest('Insufficient privilege to delete user');
+    }
+
+    // if old role is owner and there is only one owner then restrict to delete
+    if (extractRolesObj(baseUser.base_roles)?.[ProjectRoles.OWNER]) {
+      const baseUsers = await BaseUser.getUsersList(context, {
+        base_id: param.baseId,
+      });
+      if (
+        baseUsers.filter((u) => u.roles?.includes(ProjectRoles.OWNER))
+          .length === 1
+      )
+        NcError.badRequest('At least one owner is required');
+    }
+
+    // block self delete if user is owner or super
+    if (
+      param.req.user.id === param.userId &&
+      param.req.user.roles.includes('owner')
+    ) {
+      NcError.badRequest("Admin can't delete themselves!");
+    }
+
+    await BaseUser.delete(context, base_id, param.userId);
     return true;
   }
 
-  async baseUserInviteResend(param: {
-    userId: string;
-    baseUser: ProjectUserReqType;
-    baseId: string;
-    // todo: refactor
-    req: any;
-  }): Promise<any> {
+  async baseUserInviteResend(
+    context: NcContext,
+    param: {
+      userId: string;
+      baseUser: ProjectUserReqType;
+      baseId: string;
+      // todo: refactor
+      req: any;
+    },
+  ): Promise<any> {
     const user = await User.get(param.userId);
 
     if (!user) {
       NcError.badRequest(`User with id '${param.userId}' not found`);
     }
 
-    const base = await Base.get(param.baseId);
+    const base = await Base.get(context, param.baseId);
 
     if (!base) {
-      return NcError.badRequest('Invalid base id');
+      return NcError.baseNotFound(param.baseId);
     }
 
     const invite_token = uuidv4();
@@ -317,8 +387,8 @@ export class BaseUsersService {
     });
 
     const pluginData = await Noco.ncMeta.metaGet2(
-      null,
-      null,
+      context.workspace_id,
+      context.base_id,
       MetaTable.PLUGIN,
       {
         category: PluginCategory.EMAIL,
@@ -349,7 +419,9 @@ export class BaseUsersService {
   // todo: refactor the whole function
   async sendInviteEmail(email: string, token: string, req: any): Promise<any> {
     try {
-      const template = (await import('./ui/emailTemplates/invite')).default;
+      const template = (
+        await import('~/services/base-users/ui/emailTemplates/invite')
+      ).default;
 
       const emailAdapter = await NcPluginMgrv2.emailAdapter();
 
@@ -361,11 +433,13 @@ export class BaseUsersService {
             signupLink: `${req.ncSiteUrl}${
               Noco.getConfig()?.dashboardPath
             }#/signup/${token}`,
-            baseName: req.body?.baseName,
-            roles: (req.body?.roles || '')
-              .split(',')
-              .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
-              .join(', '),
+            baseName: sanitiseEmailContent(req.body?.baseName),
+            roles: sanitiseEmailContent(
+              (req.body?.roles || '')
+                .split(',')
+                .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
+                .join(', '),
+            ),
             adminEmail: req.user?.email,
           }),
         });
@@ -380,11 +454,14 @@ export class BaseUsersService {
     }
   }
 
-  async baseUserMetaUpdate(param: {
-    body: any;
-    baseId: string;
-    user: UserType;
-  }) {
+  async baseUserMetaUpdate(
+    context: NcContext,
+    param: {
+      body: any;
+      baseId: string;
+      user: UserType;
+    },
+  ) {
     // update base user data
     const baseUserData = extractProps(param.body, [
       'starred',
@@ -394,14 +471,21 @@ export class BaseUsersService {
 
     if (Object.keys(baseUserData).length) {
       // create new base user if it doesn't exist
-      if (!(await BaseUser.get(param.baseId, param.user?.id))) {
-        await BaseUser.insert({
+      if (
+        !(await BaseUser.get(context, param.baseId, param.user?.id))?.is_mapped
+      ) {
+        await BaseUser.insert(context, {
           ...baseUserData,
           base_id: param.baseId,
           fk_user_id: param.user?.id,
         });
       } else {
-        await BaseUser.update(param.baseId, param.user?.id, baseUserData);
+        await BaseUser.update(
+          context,
+          param.baseId,
+          param.user?.id,
+          baseUserData,
+        );
       }
     }
 

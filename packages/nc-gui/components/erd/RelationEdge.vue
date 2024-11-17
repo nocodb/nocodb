@@ -3,7 +3,6 @@ import type { EdgeProps, Position } from '@vue-flow/core'
 import { EdgeLabelRenderer, getBezierPath } from '@vue-flow/core'
 import type { CSSProperties } from '@vue/runtime-dom'
 import type { EdgeData } from './utils'
-import { computed, toRef } from '#imports'
 
 interface RelationEdgeProps extends EdgeProps<EdgeData> {
   id: string
@@ -117,7 +116,19 @@ export default {
   </EdgeLabelRenderer>
 
   <template v-if="!showSkeleton">
+    <circle
+      v-if="data.isOneToOne"
+      class="nc-erd-edge-circle"
+      :cx="sourceX"
+      :cy="sourceY"
+      fill="#fff"
+      :r="5"
+      stroke="#898E99"
+      :stroke-width="2"
+    />
+
     <rect
+      v-else
       class="nc-erd-edge-rect"
       :x="sourceX"
       :y="sourceY - 4"

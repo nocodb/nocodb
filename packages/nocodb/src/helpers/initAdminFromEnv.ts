@@ -3,12 +3,12 @@ import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
-import { T } from 'nc-help';
 import isEmail from 'validator/lib/isEmail';
+import { T } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
 import { BaseUser, User } from '~/models';
-import { CacheScope, MetaTable } from '~/utils/globals';
+import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
 import { randomTokenString } from '~/services/users/helpers';
 
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
@@ -91,7 +91,11 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         );
         const email_verification_token = uuidv4();
         // TODO improve this
-        const superUsers = await ncMeta.metaList2(null, null, MetaTable.USERS);
+        const superUsers = await ncMeta.metaList2(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          MetaTable.USERS,
+        );
 
         let superUserPresent = false;
 
@@ -113,14 +117,9 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             if (existingUserWithNewEmail?.id) {
               // get all base access belongs to the existing account
               // and migrate to the admin account
-              const existingUserProjects = await ncMeta.metaList2(
-                null,
-                null,
-                MetaTable.PROJECT_USERS,
-                {
-                  condition: { fk_user_id: existingUserWithNewEmail.id },
-                },
-              );
+              const existingUserProjects = await ncMeta
+                .knexConnection(MetaTable.PROJECT_USERS)
+                .where({ fk_user_id: existingUserWithNewEmail.id });
 
               for (const existingUserProject of existingUserProjects) {
                 const userProject = await BaseUser.get(
@@ -137,6 +136,10 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                     rolesLevel[existingUserProject.roles]
                   ) {
                     await BaseUser.update(
+                      {
+                        workspace_id: existingUserProject.workspace_id,
+                        base_id: existingUserProject.base_id,
+                      },
                       userProject.base_id,
                       user.id,
                       existingUserProject.roles,
@@ -163,8 +166,8 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
 
               // delete existing user
               await ncMeta.metaDelete(
-                null,
-                null,
+                RootScopes.ROOT,
+                RootScopes.ROOT,
                 MetaTable.USERS,
                 existingUserWithNewEmail.id,
               );
@@ -185,7 +188,6 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                   password,
                   email_verification_token,
                   token_version: randomTokenString(),
-                  refresh_token: null,
                 },
                 ncMeta,
               );
@@ -199,7 +201,6 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                   password,
                   email_verification_token,
                   token_version: randomTokenString(),
-                  refresh_token: null,
                 },
                 ncMeta,
               );
@@ -220,7 +221,6 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                   password,
                   email_verification_token,
                   token_version: randomTokenString(),
-                  refresh_token: null,
                 },
                 ncMeta,
               );
@@ -248,7 +248,6 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 password,
                 email_verification_token,
                 token_version: randomTokenString(),
-                refresh_token: null,
                 roles,
               },
               ncMeta,

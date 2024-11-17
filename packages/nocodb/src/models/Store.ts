@@ -2,7 +2,12 @@ import type { SortType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import {
+  CacheGetType,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 
 // Store is used for storing key value pairs
@@ -35,9 +40,14 @@ export default class Store {
       if (storeData) return storeData;
     }
 
-    const storeData = await ncMeta.metaGet(null, null, MetaTable.STORE, {
-      key,
-    });
+    const storeData = await ncMeta.metaGet(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.STORE,
+      {
+        key,
+      },
+    );
 
     if (lookInCache)
       await NocoCache.set(`${CacheScope.STORE}:${key}`, storeData);
@@ -60,11 +70,23 @@ export default class Store {
 
     const existing = await Store.get(store.key, false, ncMeta);
     if (existing) {
-      await ncMeta.metaUpdate(null, null, MetaTable.STORE, insertObj, {
-        key: store.key,
-      });
+      await ncMeta.metaUpdate(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.STORE,
+        insertObj,
+        {
+          key: store.key,
+        },
+      );
     } else {
-      await ncMeta.metaInsert(null, null, MetaTable.STORE, insertObj);
+      await ncMeta.metaInsert2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.STORE,
+        insertObj,
+        true,
+      );
     }
     if (store.key) await NocoCache.del(`${CacheScope.STORE}:${store.key}`);
   }

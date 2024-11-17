@@ -1,6 +1,6 @@
 import { CellPageObject } from '.';
 import BasePage from '../../../Base';
-import { expect } from '@playwright/test';
+import { expect, Locator } from '@playwright/test';
 
 export class TimeCellPageObject extends BasePage {
   readonly cell: CellPageObject;
@@ -17,7 +17,7 @@ export class TimeCellPageObject extends BasePage {
   async verify({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
     const cell = this.get({ index, columnHeader });
     await cell.scrollIntoViewIfNeeded();
-    await cell.locator(`input[title="${value}"]`).waitFor({ state: 'visible' });
+    await cell.locator(`.nc-time-picker[title="${value}"]`).waitFor({ state: 'visible' });
     await expect(cell.locator(`[title="${value}"]`)).toBeVisible();
   }
 
@@ -27,18 +27,36 @@ export class TimeCellPageObject extends BasePage {
     // second: 0 - 59
     hour,
     minute,
+    fillValue,
+    locator,
+    selectFromPicker = false,
   }: {
     hour: number;
     minute: number;
+    fillValue: string;
+    locator: Locator;
+    selectFromPicker?: boolean;
   }) {
-    const timePanel = this.rootPage.locator('.ant-picker-time-panel-column');
-    await timePanel.nth(0).locator('.ant-picker-time-panel-cell').nth(hour).click();
-    await timePanel.nth(1).locator('.ant-picker-time-panel-cell').nth(minute).click();
-    if (hour < 12) {
-      await timePanel.nth(2).locator('.ant-picker-time-panel-cell').nth(0).click();
+    const timeInput = locator.locator('.nc-time-input');
+    await timeInput.click();
+
+    const dropdown = this.rootPage.locator('.nc-picker-time.active');
+    await dropdown.waitFor({ state: 'visible' });
+
+    if (!selectFromPicker) {
+      await timeInput.fill(fillValue);
+
+      await this.rootPage.keyboard.press('Shift+Enter');
+      await this.rootPage.keyboard.press('Escape');
     } else {
-      await timePanel.nth(2).locator('.ant-picker-time-panel-cell').nth(1).click();
+      await dropdown
+        .locator(`[data-testid="time-option-${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}"]`)
+        .scrollIntoViewIfNeeded();
+      await dropdown
+        .locator(`[data-testid="time-option-${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}"]`)
+        .click();
     }
+    await dropdown.waitFor({ state: 'hidden' });
   }
 
   async save() {
@@ -48,8 +66,13 @@ export class TimeCellPageObject extends BasePage {
   async set({ index, columnHeader, value }: { index: number; columnHeader: string; value: string }) {
     const [hour, minute, _second] = value.split(':');
     await this.get({ index, columnHeader }).click();
-    await this.get({ index, columnHeader }).click();
-    await this.selectTime({ hour: +hour, minute: +minute });
-    await this.save();
+    await this.get({ index, columnHeader }).dblclick();
+    await this.selectTime({
+      hour: +hour,
+      minute: +minute,
+      fillValue: value,
+      locator: this.get({ index, columnHeader }),
+      selectFromPicker: +minute === 0 || +minute === 30,
+    });
   }
 }

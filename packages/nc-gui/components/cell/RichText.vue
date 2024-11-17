@@ -7,23 +7,35 @@ import { marked } from 'marked'
 import { generateJSON } from '@tiptap/html'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import { TaskItem } from '@/helpers/dbTiptapExtensions/task-item'
-import { Link } from '@/helpers/dbTiptapExtensions/links'
-import { IsExpandedFormOpenInj, IsFormInj, IsGridInj, ReadonlyInj, RowHeightInj } from '#imports'
+import { TaskItem } from '~/helpers/dbTiptapExtensions/task-item'
+import { Link } from '~/helpers/dbTiptapExtensions/links'
+import { Mention } from '~/helpers/tiptapExtensions/mention'
+import suggestion from '~/helpers/tiptapExtensions/mention/suggestion'
 
-const props = defineProps<{
-  value?: string | null
-  readOnly?: boolean
-  syncValueChange?: boolean
-  showMenu?: boolean
-  fullMode?: boolean
-  isFormField?: boolean
-  autofocus?: boolean
-  placeholder?: string
-  renderAsText?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    value?: string | null
+    readOnly?: boolean
+    syncValueChange?: boolean
+    showMenu?: boolean
+    fullMode?: boolean
+    isFormField?: boolean
+    autofocus?: boolean
+    placeholder?: string
+    renderAsText?: boolean
+    hiddenBubbleMenuOptions?: RichTextBubbleMenuOptions[]
+  }>(),
+  {
+    isFormField: false,
+    hiddenBubbleMenuOptions: () => [],
+  },
+)
 
-const emits = defineEmits(['update:value'])
+const emits = defineEmits(['update:value', 'focus', 'blur', 'close'])
+
+const { fullMode, isFormField, hiddenBubbleMenuOptions } = toRefs(props)
+
+const { appInfo } = useGlobal()
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -31,11 +43,41 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const readOnlyCell = inject(ReadonlyInj, ref(false))
 
+const isEditColumn = inject(EditColumnInj, ref(false))
+
 const isForm = inject(IsFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const isSurveyForm = inject(IsSurveyFormInj, ref(false))
+
+const isGallery = inject(IsGalleryInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
+
 const isFocused = ref(false)
+
+const keys = useMagicKeys()
+
+const meta = inject(MetaInj)!
+
+const { user } = useGlobal()
+
+const basesStore = useBases()
+
+const { basesUser } = storeToRefs(basesStore)
+
+const baseUsers = computed(() => (meta.value.base_id ? basesUser.value.get(meta.value.base_id) || [] : []))
+
+const localRowHeight = computed(() => {
+  if (readOnlyCell.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
+
+  return rowHeight.value
+})
+
+const shouldShowLinkOption = computed(() => {
+  return isFormField.value ? isFocused.value : true
+})
 
 const turndownService = new TurndownService({})
 
@@ -70,6 +112,68 @@ turndownService.addRule('strikethrough', {
 })
 
 turndownService.keep(['u', 'del'])
+
+if (appInfo.value.ee) {
+  const renderer = new marked.Renderer()
+
+  renderer.paragraph = (text: string) => {
+    const regex = /@\(([^)]+)\)/g
+
+    const replacement = (match: string, content: string) => {
+      const id = content.split('|')[0]
+      let bUser = baseUsers.value.find((user) => user.id === id)
+
+      if (!bUser) {
+        bUser = {
+          id,
+          email: content.split('|')[1],
+          display_name: content.split('|')[2],
+        } as any
+      }
+      const processedContent = bUser?.display_name && bUser.display_name.length > 0 ? bUser.display_name : bUser?.email
+
+      const colorStyles = bUser?.id === user.value?.id ? '' : 'bg-[#D4F7E0] text-[#17803D]'
+
+      const span = document.createElement('span')
+      span.setAttribute('data-type', 'mention')
+      span.setAttribute(
+        'data-id',
+        JSON.stringify({
+          id: bUser?.id,
+          email: bUser?.email,
+          name: bUser?.display_name ?? '',
+          isSameUser: bUser?.id === user.value?.id,
+        }),
+      )
+      span.setAttribute('class', `${colorStyles} mention font-semibold  m-0.5 rounded-md px-1`)
+      span.textContent = `@${processedContent}`
+      return span.outerHTML
+    }
+
+    return text.replace(regex, replacement)
+  }
+
+  marked.use({ renderer })
+
+  turndownService.addRule('mention', {
+    filter: (node) => {
+      return node.nodeName === 'SPAN' && node.classList.contains('mention')
+    },
+    replacement: (content) => {
+      content = content.substring(1).split('|')[0]
+      const user = baseUsers.value
+        .map((user) => ({
+          id: user.id,
+          label: user?.display_name && user.display_name.length > 0 ? user.display_name : user.email,
+          name: user.display_name,
+          email: user.email,
+        }))
+        .find((user) => user.label.toLowerCase() === content.toLowerCase()) as any
+
+      return `@(${user.id}|${user.email}|${user.display_name ?? ''})`
+    },
+  })
+}
 
 const checkListItem = {
   name: 'checkListItem',
@@ -111,11 +215,31 @@ marked.use({ extensions: [checkListItem] })
 
 const editorDom = ref<HTMLElement | null>(null)
 
+const richTextLinkOptionRef = ref<HTMLElement | null>(null)
+
 const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 
 const tiptapExtensions = [
+  ...(appInfo.value.ee
+    ? [
+        Mention.configure({
+          suggestion: {
+            ...suggestion,
+            items: ({ query }) =>
+              baseUsers.value
+                .filter((user) => user.deleted !== true)
+                .map((user) => ({
+                  id: user.id,
+                  name: user.display_name,
+                  email: user.email,
+                }))
+                .filter((user) => (user.name ?? user.email).toLowerCase().includes(query.toLowerCase())),
+          },
+        }),
+      ]
+    : []),
   StarterKit.configure({
-    heading: props.isFormField ? false : undefined,
+    heading: isFormField.value ? false : undefined,
   }),
   TaskList,
   TaskItem.configure({
@@ -136,16 +260,22 @@ const editor = useEditor({
       .turndown(editor.getHTML().replaceAll(/<p><\/p>/g, '<br />'))
       .replaceAll(/\n\n<br \/>\n\n/g, '<br>\n\n')
 
-    vModel.value = props.isFormField && markdown === '<br />' ? '' : markdown
+    vModel.value = markdown === '<br />' ? '' : markdown
   },
   editable: !props.readOnly,
   autofocus: props.autofocus,
   onFocus: () => {
     isFocused.value = true
+    emits('focus')
   },
   onBlur: (e) => {
-    if (!(e?.event?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
+    if (
+      !(e?.event?.relatedTarget as HTMLElement)?.closest(
+        '.bubble-menu, .nc-textarea-rich-editor, .nc-rich-text, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+      )
+    ) {
       isFocused.value = false
+      emits('blur')
     }
   },
 })
@@ -176,13 +306,19 @@ const setEditorContent = (contentMd: any, focusEndOfDoc?: boolean) => {
   }, 100)
 }
 
+const onFocusWrapper = () => {
+  if (isForm.value && !isFormField.value && !props.readOnly && !keys.shift.value) {
+    editor.value?.chain().focus().run()
+  }
+}
+
 if (props.syncValueChange) {
   watch([vModel, editor], () => {
-    setEditorContent(vModel.value)
+    setEditorContent(isFormField.value ? (vModel.value || '')?.replace(/(<br \/>)+$/g, '') : vModel.value)
   })
 }
 
-if (props.isFormField) {
+if (isFormField.value) {
   watch([props, editor], () => {
     if (props.readOnly) {
       editor.value?.setEditable(false)
@@ -192,41 +328,87 @@ if (props.isFormField) {
   })
 }
 
-watch(editorDom, () => {
-  if (!editorDom.value) return
+onMounted(() => {
+  if (fullMode.value || isFormField.value || isForm.value || isEditColumn.value) {
+    setEditorContent(vModel.value, true)
 
-  setEditorContent(vModel.value, true)
-
-  if (props.isFormField) return
-  // Focus editor after editor is mounted
-  setTimeout(() => {
-    editor.value?.chain().focus().run()
-  }, 50)
+    if (fullMode.value || isSurveyForm.value) {
+      nextTick(() => {
+        editor.value?.chain().focus().run()
+      })
+    }
+  }
 })
 
 useEventListener(
   editorDom,
   'focusout',
   (e: FocusEvent) => {
-    if (!(e?.relatedTarget as HTMLElement)?.closest('.bubble-menu, .nc-textarea-rich-editor')) {
+    const targetEl = e?.relatedTarget as HTMLElement
+    if (
+      targetEl?.classList?.contains('tiptap') ||
+      !targetEl?.closest(
+        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content',
+      )
+    ) {
       isFocused.value = false
+      emits('blur')
     }
   },
   true,
 )
+useEventListener(
+  richTextLinkOptionRef,
+  'focusout',
+  (e: FocusEvent) => {
+    const targetEl = e?.relatedTarget as HTMLElement
+    if (
+      !targetEl &&
+      (e.target as HTMLElement)?.closest(
+        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+      )
+    )
+      return
+
+    if (
+      !targetEl?.closest(
+        '.bubble-menu, .tippy-content, .nc-textarea-rich-editor,  .tippy-box, .mention, .nc-mention-list, .tippy-content',
+      )
+    ) {
+      isFocused.value = false
+      emits('blur')
+    }
+  },
+  true,
+)
+onClickOutside(editorDom, (e) => {
+  if (!isFocused.value) return
+
+  const targetEl = e?.target as HTMLElement
+
+  if (
+    !targetEl?.closest(
+      '.bubble-menu,.tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+    )
+  ) {
+    isFocused.value = false
+    emits('blur')
+  }
+})
 </script>
 
 <template>
   <div
-    class="h-full focus:outline-none"
+    class="nc-rich-text h-full focus:outline-none"
     :class="{
       'flex flex-col flex-grow nc-rich-text-full': fullMode,
       'nc-rich-text-embed flex flex-col pl-1 w-full': !fullMode,
       'readonly': readOnly,
-      'nc-form-rich-text-field !p-0': isFormField,
+      'nc-form-rich-text-field !p-0 relative': isFormField,
       'nc-rich-text-grid': isGrid,
     }"
     :tabindex="readOnlyCell || isFormField ? -1 : 0"
+    @focus="onFocusWrapper"
   >
     <div v-if="renderAsText" class="truncate">
       <span v-if="editor"> {{ editor?.getText() ?? '' }}</span>
@@ -234,38 +416,66 @@ useEventListener(
     <template v-else>
       <div
         v-if="showMenu && !readOnly && !isFormField"
-        class="absolute top-0 right-0.5 xs:hidden"
+        class="absolute top-0 right-0.5"
         :class="{
-          'max-w-[calc(100%_-_198px)] flex justify-end rounded-tr-2xl overflow-hidden': fullMode,
+          'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
+          'max-w-[calc(100%_-_198px)]': fullMode,
+          'justify-start left-0.5': isForm,
+          'justify-end xs:hidden': !isForm,
         }"
       >
-        <div class="nc-longtext-scrollbar">
-          <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode :is-form-field="isFormField" />
+        <div class="scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent">
+          <CellRichTextSelectedBubbleMenu
+            v-if="editor"
+            :editor="editor"
+            embed-mode
+            :is-form-field="isFormField"
+            :enable-close-button="fullMode"
+            @close="emits('close')"
+          />
         </div>
       </div>
-      <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField" :editor="editor" />
-      <CellRichTextLinkOptions v-if="editor" :editor="editor" />
+      <CellRichTextSelectedBubbleMenuPopup v-if="editor && !isFormField && !isForm" :editor="editor" />
+
+      <template v-if="shouldShowLinkOption">
+        <CellRichTextLinkOptions
+          v-if="editor"
+          ref="richTextLinkOptionRef"
+          :editor="editor"
+          :is-form-field="isFormField"
+          @blur="isFocused = false"
+        />
+      </template>
+
       <EditorContent
         ref="editorDom"
         :editor="editor"
         class="flex flex-col nc-textarea-rich-editor w-full"
         :class="{
           'mt-2.5 flex-grow': fullMode,
-          'nc-scrollbar-md': !fullMode || (!fullMode && isExpandedFormOpen),
+          'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
-          [`!overflow-hidden children:line-clamp-${rowHeight}`]:
-            !fullMode && readOnly && rowHeight && !isExpandedFormOpen && !isForm,
+          [`!overflow-hidden nc-truncate nc-line-clamp-${rowHeightTruncateLines(localRowHeight)}`]:
+            !fullMode && readOnly && localRowHeight && !isExpandedFormOpen && !isForm,
         }"
+        @keydown.alt.stop
+        @keydown.alt.enter.stop
+        @keydown.shift.enter.stop
       />
-      <div v-if="isFormField && !readOnly">
+      <div v-if="isFormField && !readOnly" class="nc-form-field-bubble-menu-wrapper overflow-hidden">
         <div
-          class="overflow-hidden"
           :class="isFocused ? 'max-h-[50px]' : 'max-h-0'"
           :style="{
             transition: 'max-height 0.2s ease-in-out',
           }"
         >
-          <CellRichTextSelectedBubbleMenu v-if="editor" :editor="editor" embed-mode is-form-field />
+          <CellRichTextSelectedBubbleMenu
+            v-if="editor"
+            :editor="editor"
+            embed-mode
+            is-form-field
+            :hidden-options="hiddenBubbleMenuOptions"
+          />
         </div>
       </div>
     </template>
@@ -319,6 +529,17 @@ useEventListener(
       }
     }
   }
+  &.allow-vertical-resize:not(.readonly) {
+    .ProseMirror {
+      @apply nc-scrollbar-thin;
+
+      overflow-y: auto;
+      overflow-x: hidden;
+      resize: vertical;
+      min-width: 100%;
+      max-height: min(800px, calc(100vh - 200px)) !important;
+    }
+  }
 }
 
 .nc-rich-text-full {
@@ -342,8 +563,28 @@ useEventListener(
 }
 
 .nc-textarea-rich-editor {
+  &.nc-truncate {
+    .tiptap.ProseMirror {
+      display: -webkit-box;
+      max-width: 100%;
+      -webkit-box-orient: vertical;
+      word-break: break-word;
+    }
+    &.nc-line-clamp-1 .tiptap.ProseMirror {
+      -webkit-line-clamp: 1;
+    }
+    &.nc-line-clamp-2 .tiptap.ProseMirror {
+      -webkit-line-clamp: 2;
+    }
+    &.nc-line-clamp-3 .tiptap.ProseMirror {
+      -webkit-line-clamp: 3;
+    }
+    &.nc-line-clamp-4 .tiptap.ProseMirror {
+      -webkit-line-clamp: 4;
+    }
+  }
   .tiptap p.is-editor-empty:first-child::before {
-    color: #6a7184;
+    color: #9aa2af;
     content: attr(data-placeholder);
     float: left;
     height: 0;
@@ -429,18 +670,21 @@ useEventListener(
     font-weight: 700;
     font-size: 1.85rem;
     margin-bottom: 0.1rem;
+    line-height: 36px;
   }
 
   h2 {
     font-weight: 600;
     font-size: 1.55rem;
     margin-bottom: 0.1em;
+    line-height: 30px;
   }
 
   h3 {
     font-weight: 600;
     font-size: 1.15rem;
     margin-bottom: 0.1em;
+    line-height: 24px;
   }
 
   blockquote {
@@ -461,5 +705,14 @@ useEventListener(
   pre {
     height: fit-content;
   }
+
+  .mention span {
+    display: none;
+  }
+}
+.nc-form-field-bubble-menu-wrapper {
+  @apply absolute -bottom-9 left-1/2 z-50 rounded-lg;
+  transform: translateX(-50%);
+  box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1);
 }
 </style>

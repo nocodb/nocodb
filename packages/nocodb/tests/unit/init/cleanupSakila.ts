@@ -1,5 +1,6 @@
-import { Audit, Base } from '../../../src/models'
+import { Audit, Base } from '../../../src/models';
 import TestDbMngr from '../TestDbMngr';
+import { RootScopes } from '../../../src/utils/globals';
 
 const dropTablesOfSakila = async () => {
   await TestDbMngr.disableForeignKeyChecks(TestDbMngr.sakilaKnex);
@@ -8,7 +9,7 @@ const dropTablesOfSakila = async () => {
     try {
       if (TestDbMngr.isPg()) {
         await TestDbMngr.sakilaKnex.raw(
-          `DROP TABLE IF EXISTS "${tableName}" CASCADE`
+          `DROP TABLE IF EXISTS "${tableName}" CASCADE`,
         );
       } else {
         await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
@@ -41,7 +42,13 @@ const resetAndSeedSakila = async () => {
 
 const cleanUpSakila = async (forceReset) => {
   try {
-    const sakilaProject = await Base.getByTitle('sakila');
+    const sakilaProject = await Base.getByTitle(
+      {
+        workspace_id: RootScopes.BASE,
+        base_id: RootScopes.BASE,
+      },
+      'sakila',
+    );
 
     const audits =
       sakilaProject && (await Audit.baseAuditList(sakilaProject.id, {}));
@@ -56,7 +63,7 @@ const cleanUpSakila = async (forceReset) => {
     }
 
     const tablesInSakila = await TestDbMngr.showAllTables(
-      TestDbMngr.sakilaKnex
+      TestDbMngr.sakilaKnex,
     );
 
     await Promise.all(
@@ -66,7 +73,7 @@ const cleanUpSakila = async (forceReset) => {
           try {
             if (TestDbMngr.isPg()) {
               await TestDbMngr.sakilaKnex.raw(
-                `DROP TABLE "${tableName}" CASCADE`
+                `DROP TABLE "${tableName}" CASCADE`,
               );
             } else {
               await TestDbMngr.sakilaKnex.raw(`DROP TABLE ${tableName}`);
@@ -74,7 +81,7 @@ const cleanUpSakila = async (forceReset) => {
           } catch (e) {
             console.error(e);
           }
-        })
+        }),
     );
   } catch (e) {
     console.error('cleanUpSakila', e);

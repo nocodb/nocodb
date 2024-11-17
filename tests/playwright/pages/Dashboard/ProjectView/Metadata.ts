@@ -25,7 +25,9 @@ export class MetaDataPage extends BasePage {
     await this.get().click();
     await this.rootPage.keyboard.press('Escape');
     await this.rootPage.keyboard.press('Escape');
-    await this.get().waitFor({ state: 'detached' });
+    await this.rootPage.waitForSelector('div.ant-modal-content', {
+      state: 'hidden',
+    });
   }
 
   async sync() {
@@ -36,11 +38,11 @@ export class MetaDataPage extends BasePage {
   }
 
   async verifyRow({ index, model, state }: { index: number; model: string; state: string }) {
-    const fieldLocator = this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(0);
+    const fieldLocator = this.get().locator(`tr.nc-table-row`).nth(index).locator(`td.nc-table-cell`).nth(0);
     const fieldText = await getTextExcludeIconText(fieldLocator);
     expect(fieldText).toBe(model);
 
-    await expect(this.get().locator(`tr.ant-table-row`).nth(index).locator(`td.ant-table-cell`).nth(1)).toHaveText(
+    await expect(this.get().locator(`tr.nc-table-row`).nth(index).locator(`td.nc-table-cell`).nth(1)).toHaveText(
       state,
       {
         ignoreCase: true,

@@ -1,37 +1,6 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import {
-  ActiveCellInj,
-  ColumnInj,
-  IsFormInj,
-  ReadonlyInj,
-  computed,
-  isBoolean,
-  isCurrency,
-  isDate,
-  isDateTime,
-  isDecimal,
-  isDuration,
-  isFloat,
-  isInt,
-  isMultiSelect,
-  isPercent,
-  isRating,
-  isReadonlyDateTime,
-  isReadonlyUser,
-  isSingleSelect,
-  isTextArea,
-  isTime,
-  isUser,
-  isYear,
-  provide,
-  ref,
-  storeToRefs,
-  toRef,
-  useBase,
-} from '#imports'
-import type { Filter } from '#imports'
 import SingleSelect from '~/components/cell/SingleSelect.vue'
 import MultiSelect from '~/components/cell/MultiSelect.vue'
 import DatePicker from '~/components/cell/DatePicker.vue'
@@ -96,7 +65,11 @@ type FilterType = keyof typeof checkTypeFunctions
 
 const { sqlUis } = storeToRefs(useBase())
 
-const sqlUi = ref(column.value?.source_id ? sqlUis.value[column.value?.source_id] : Object.values(sqlUis.value)[0])
+const sqlUi = ref(
+  column.value?.source_id && sqlUis.value[column.value?.source_id]
+    ? sqlUis.value[column.value?.source_id]
+    : Object.values(sqlUis.value)[0],
+)
 
 const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
 
@@ -191,6 +164,16 @@ const componentProps = computed(() => {
       }
       return {}
     }
+    case 'isCurrency': {
+      return { hidePrefix: true }
+    }
+    case 'isRating': {
+      return {
+        style: {
+          minWidth: `${(column.value?.meta?.max || 5) * 19}px`,
+        },
+      }
+    }
     default: {
       return {}
     }
@@ -214,6 +197,10 @@ const isInputBoxOnFocus = ref(false)
 // provide the following to override the default behavior and enable input fields like in form
 provide(ActiveCellInj, ref(true))
 provide(IsFormInj, ref(true))
+
+const isSingleOrMultiSelect = computed(() => {
+  return filterType.value === 'isSingleSelect' || filterType.value === 'isMultiSelect'
+})
 </script>
 
 <template>
@@ -226,7 +213,7 @@ provide(IsFormInj, ref(true))
   <div
     v-else
     class="bg-white border-1 flex flex-grow min-h-4 h-full px-1 items-center nc-filter-input-wrapper !rounded-lg"
-    :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus }"
+    :class="{ 'px-2': hasExtraPadding, 'border-brand-500': isInputBoxOnFocus, '!max-w-100': isSingleOrMultiSelect }"
     @mouseup.stop
   >
     <component

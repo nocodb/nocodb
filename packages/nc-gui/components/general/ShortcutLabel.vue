@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { isMac } from '#imports'
-
 const props = defineProps<{
   keys: string[]
 }>()

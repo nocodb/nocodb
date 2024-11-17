@@ -1,16 +1,5 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
-import {
-  extractSdkResponseErrorMsg,
-  iconMap,
-  message,
-  onMounted,
-  storeToRefs,
-  useBase,
-  useCopy,
-  useI18n,
-  useNuxtApp,
-} from '#imports'
 
 interface ApiToken extends ApiTokenType {
   show?: boolean
@@ -78,7 +67,7 @@ const deleteToken = async () => {
   try {
     if (!base.value?.id || !selectedTokenData.value.token) return
 
-    await $api.apiToken.delete(base.value.id, selectedTokenData.value.token)
+    await $api.apiToken.delete(base.value.id, selectedTokenData.value.id)
 
     // Token deleted successfully
     message.success(t('msg.success.tokenDeleted'))

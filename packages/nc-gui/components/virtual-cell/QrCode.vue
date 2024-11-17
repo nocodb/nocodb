@@ -1,21 +1,18 @@
 <script setup lang="ts">
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type QRCode from 'qrcode'
-import { IsGalleryInj, RowHeightInj, computed, inject, ref } from '#imports'
 
 const maxNumberOfAllowedCharsForQrValue = 2000
 
 const cellValue = inject(CellValueInj)
 
-const isGallery = inject(IsGalleryInj, ref(false))
-
-const qrValue = computed(() => String(cellValue?.value))
+const qrValue = computed(() => String(cellValue?.value ?? ''))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const tooManyCharsForQrCode = computed(() => qrValue?.value.length > maxNumberOfAllowedCharsForQrValue)
 
-const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value)
+const showQrCode = computed(() => qrValue?.value?.length > 0 && !tooManyCharsForQrCode.value && qrValue?.value !== 'ERR!')
 
 const qrCodeOptions: QRCode.QRCodeToDataURLOptions = {
   errorCorrectionLevel: 'M',
@@ -40,7 +37,6 @@ const qrCodeLarge = useQRCode(qrValue, {
 const modalVisible = ref(false)
 
 const showQrModal = (ev: MouseEvent) => {
-  if (isGallery.value) return
   ev.stopPropagation()
   modalVisible.value = true
 }
@@ -79,7 +75,7 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   </a-modal>
   <div
     v-if="showQrCode"
-    class="w-full flex"
+    class="nc-qrcode-container w-full flex"
     :class="{
       'flex-start pl-2': isExpandedFormOpen,
       'justify-center': !isExpandedFormOpen,
@@ -87,13 +83,15 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   >
     <img
       v-if="rowHeight"
-      :style="{ height: rowHeight ? `${rowHeight * 1.8}rem` : `1.8rem` }"
+      :style="{
+        height: rowHeight ? `${rowHeight === 1 ? rowHeightInPx['1'] - 4 : rowHeightInPx[`${rowHeight}`] - 20}px` : `1.8rem`,
+      }"
       :src="qrCode"
       :alt="$t('title.qrCode')"
       class="min-w-[1.4em]"
       @click="showQrModal"
     />
-    <img v-else class="mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
+    <img v-else class="flex-none mx-auto min-w-[1.4em]" :src="qrCode" :alt="$t('title.qrCode')" @click="showQrModal" />
   </div>
   <div v-if="tooManyCharsForQrCode" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('labels.qrCodeValueTooLong') }}
@@ -104,4 +102,10 @@ const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning } = us
   <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.qrFieldsCannotBeDirectlyChanged') }}
   </div>
+  <a-tooltip v-else-if="!showQrCode && qrValue === 'ERR!'" placement="bottom" class="text-orange-700">
+    <template #title>
+      <span class="font-bold">Please select a target field!</span>
+    </template>
+    <span>ERR!</span>
+  </a-tooltip>
 </template>

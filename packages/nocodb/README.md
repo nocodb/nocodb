@@ -10,7 +10,7 @@
 </h1>
 
 <p align="center">
-Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadsheet.
+NocoDB is the fastest and easiest way to build databases online.
 </p>
 
 <div align="center">
@@ -59,35 +59,9 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart spreadshe
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
 
-<!-- <a href="https://community.nocodb.com/" target="_blank">
-<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
-</a>
- -->
-
 [![Stargazers repo roster for @nocodb/nocodb](https://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
 
 # Quick try
-
-## NPX
-
-You can run the below command if you need an interactive configuration.
-
-```
-npx create-nocodb-app
-```
-
-<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
-
-## Node Application
-
-We provide a simple NodeJS Application for getting started.
-
-```bash
-git clone https://github.com/nocodb/nocodb-seed
-cd nocodb-seed
-pnpm install
-pnpm start
-```
 
 ## Docker
 
@@ -98,27 +72,12 @@ docker run -d --name nocodb \
 -p 8080:8080 \
 nocodb/nocodb:latest
 
-# for MySQL
-docker run -d --name nocodb-mysql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
 
 # for PostgreSQL
 docker run -d --name nocodb-postgres \
 -v "$(pwd)"/nocodb:/usr/app/data/ \
 -p 8080:8080 \
 -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-
-# for MSSQL
-docker run -d --name nocodb-mssql \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
 -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
 nocodb/nocodb:latest
 ```
@@ -173,12 +132,8 @@ We provide different docker-compose.yml files under [this directory](https://git
 
 ```bash
 git clone https://github.com/nocodb/nocodb
-# for MySQL
-cd nocodb/docker-compose/mysql
 # for PostgreSQL
-cd nocodb/docker-compose/pg
-# for MSSQL
-cd nocodb/docker-compose/mssql
+cd nocodb/docker-compose/2_pg
 docker-compose up -d
 ```
 
@@ -208,22 +163,22 @@ Access Dashboard using: [http://localhost:8080/dashboard](http://localhost:8080/
 # Table of Contents
 
 - [Quick try](#quick-try)
-    - [NPX](#npx)
-    - [Node Application](#node-application)
-    - [Docker](#docker)
-    - [Docker Compose](#docker-compose)
+  - [NPX](#npx)
+  - [Node Application](#node-application)
+  - [Docker](#docker)
+  - [Docker Compose](#docker-compose)
 - [GUI](#gui)
 - [Join Our Community](#join-our-community)
 - [Screenshots](#screenshots)
 - [Table of Contents](#table-of-contents)
 - [Features](#features)
-    - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
-    - [App Store for Workflow Automations](#app-store-for-workflow-automations)
-    - [Programmatic Access](#programmatic-access)
-    - [Sync Schema](#sync-schema)
-    - [Audit](#audit)
+  - [Rich Spreadsheet Interface](#rich-spreadsheet-interface)
+  - [App Store for Workflow Automations](#app-store-for-workflow-automations)
+  - [Programmatic Access](#programmatic-access)
+  - [Sync Schema](#sync-schema)
+  - [Audit](#audit)
 - [Production Setup](#production-setup)
-    - [Environment variables](#environment-variables)
+  - [Environment variables](#environment-variables)
 - [Development Setup](#development-setup)
 - [Contributing](#contributing)
 - [Why are we building this?](#why-are-we-building-this)

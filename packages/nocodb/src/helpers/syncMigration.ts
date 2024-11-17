@@ -5,7 +5,10 @@ export default async function syncMigration(base: Base): Promise<void> {
   for (const source of await base.getSources()) {
     try {
       /* create sql-migrator */
-      const migrator = new KnexMigratorv2(base);
+      const migrator = new KnexMigratorv2(
+        { workspace_id: base.fk_workspace_id, base_id: base.id },
+        base,
+      );
 
       await migrator.init(source);
 
@@ -26,7 +29,10 @@ export async function syncBaseMigration(
 ): Promise<void> {
   try {
     /* create sql-migrator */
-    const migrator = new KnexMigratorv2(base);
+    const migrator = new KnexMigratorv2(
+      { workspace_id: base.fk_workspace_id, base_id: base.id },
+      base,
+    );
 
     await migrator.init(source);
 
@@ -35,7 +41,6 @@ export async function syncBaseMigration(
 
     await migrator.migrationsUp({ source });
   } catch (e) {
-    console.log(e);
-    // throw e;
+    throw e;
   }
 }

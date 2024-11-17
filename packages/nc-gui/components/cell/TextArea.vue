@@ -1,22 +1,5 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import {
-  ColumnInj,
-  EditColumnInj,
-  EditModeInj,
-  IsExpandedFormOpenInj,
-  IsFormInj,
-  ReadonlyInj,
-  RowHeightInj,
-  computed,
-  iconMap,
-  inject,
-  onClickOutside,
-  ref,
-  useGlobal,
-  useVModel,
-  watch,
-} from '#imports'
 
 const props = defineProps<{
   modelValue?: string | number
@@ -36,9 +19,19 @@ const rowHeight = inject(RowHeightInj, ref(1 as const))
 
 const isForm = inject(IsFormInj, ref(false))
 
+const isGrid = inject(IsGridInj, ref(false))
+
+const isGallery = inject(IsGalleryInj, ref(false))
+
+const isKanban = inject(IsKanbanInj, ref(false))
+
+const readOnly = inject(ReadonlyInj, ref(false))
+
 const { showNull } = useGlobal()
 
-const vModel = useVModel(props, 'modelValue', emits)
+const vModel = useVModel(props, 'modelValue', emits, {
+  shouldEmit: () => !readOnly.value,
+})
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -71,13 +64,17 @@ const height = computed(() => {
   return rowHeight.value * 36
 })
 
+const localRowHeight = computed(() => {
+  if (readOnly.value && !isExpandedFormOpen.value && (isGallery.value || isKanban.value)) return 6
+
+  return rowHeight.value
+})
+
 const isVisible = ref(false)
 
 const inputWrapperRef = ref<HTMLElement | null>(null)
 
 const inputRef = ref<HTMLTextAreaElement | null>(null)
-
-const readOnly = inject(ReadonlyInj)
 
 watch(isVisible, () => {
   if (isVisible.value) {
@@ -89,6 +86,16 @@ watch(isVisible, () => {
 
 onClickOutside(inputWrapperRef, (e) => {
   if ((e.target as HTMLElement)?.className.includes('nc-long-text-toggle-expand')) return
+
+  const targetEl = e?.target as HTMLElement
+
+  if (
+    targetEl?.closest(
+      '.bubble-menu, .tippy-content, .nc-textarea-rich-editor, .tippy-box, .mention, .nc-mention-list, .tippy-content',
+    )
+  ) {
+    return
+  }
 
   isVisible.value = false
 })
@@ -198,36 +205,122 @@ watch(inputWrapperRef, () => {
     modal.parentElement.removeEventListener('mouseup', stopPropagation)
   }
 })
+
+const handleClose = () => {
+  isVisible.value = false
+}
+
+const STORAGE_KEY = 'nc-long-text-expanded-modal-size'
+
+const { width: widthTextArea, height: heightTextArea } = useElementSize(inputRef)
+
+watch([widthTextArea, heightTextArea], () => {
+  if (isVisible.value) {
+    const size = {
+      width: widthTextArea.value,
+      height: heightTextArea.value,
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(size))
+  }
+})
+
+const updateSize = () => {
+  try {
+    const size = localStorage.getItem(STORAGE_KEY)
+    let elem = document.querySelector('.nc-text-area-expanded') as HTMLElement
+
+    if (isRichMode.value) {
+      elem = document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement
+    }
+
+    const parsedJSON = JSON.parse(size)
+
+    if (parsedJSON && elem) {
+      elem.style.width = `${parsedJSON.width}px`
+      elem.style.height = `${parsedJSON.height}px`
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+watch([isVisible, inputRef], (value) => {
+  const observer = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const { width, height } = entry.contentRect
+
+      if (!isVisible.value) {
+        return
+      }
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ width, height }))
+    }
+  })
+
+  if (value) {
+    if (isRichMode.value) {
+      setTimeout(() => {
+        observer.observe(document.querySelector('.nc-long-text-expanded-modal .nc-textarea-rich-editor .tiptap') as HTMLElement)
+
+        updateSize()
+      }, 50)
+    } else {
+      updateSize()
+    }
+  } else {
+    observer.disconnect()
+  }
+})
 </script>
 
 <template>
   <div>
     <div
-      class="flex flex-row w-full long-text-wrapper"
+      class="flex flex-row w-full long-text-wrapper items-center"
       :class="{
         'min-h-10': rowHeight !== 1 || isExpandedFormOpen,
-        'min-h-9': rowHeight === 1 && !isExpandedFormOpen,
+        'min-h-5.5': rowHeight === 1 && !isExpandedFormOpen,
         'h-full w-full': isForm,
       }"
     >
+      <div v-if="isForm && isRichMode" class="w-full">
+        <div
+          class="w-full relative w-full px-0"
+          :class="{
+            'pt-11': !readOnly,
+          }"
+        >
+          <LazyCellRichText
+            v-model:value="vModel"
+            :class="{
+              'border-t-1 border-gray-100 allow-vertical-resize': !readOnly,
+            }"
+            :autofocus="false"
+            show-menu
+            :read-only="readOnly"
+          />
+        </div>
+      </div>
+
       <div
-        v-if="isRichMode"
+        v-else-if="isRichMode"
         class="w-full cursor-pointer nc-readonly-rich-text-wrapper"
         :class="{
           'nc-readonly-rich-text-grid ': !isExpandedFormOpen && !isForm,
-          'nc-readonly-rich-text-sort-height': rowHeight === 1 && !isExpandedFormOpen && !isForm,
+          'nc-readonly-rich-text-sort-height': localRowHeight === 1 && !isExpandedFormOpen && !isForm,
         }"
         :style="{
-          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
-          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${25 * (rowHeight || 1)}px`,
+          maxHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(localRowHeight)}px`,
+          minHeight: isForm ? undefined : isExpandedFormOpen ? `${height}px` : `${21 * rowHeightTruncateLines(localRowHeight)}px`,
         }"
         @dblclick="onExpand"
         @keydown.enter="onExpand"
       >
         <LazyCellRichText v-model:value="vModel" sync-value-change read-only />
       </div>
+      <!-- eslint-disable vue/use-v-on-exact -->
       <textarea
-        v-else-if="editEnabled && !isVisible"
+        v-else-if="(editEnabled && !isVisible) || isForm"
         :ref="focus"
         v-model="vModel"
         :rows="isForm ? 5 : 4"
@@ -239,10 +332,11 @@ watch(inputWrapperRef, () => {
         }"
         :style="{
           minHeight: isForm ? '117px' : `${height}px`,
+          maxHeight: 'min(800px, calc(100vh - 200px))',
         }"
-        :placeholder="isEditColumn ? $t('labels.optional') : ''"
         :disabled="readOnly"
         @blur="editEnabled = false"
+        @keydown.alt.stop
         @keydown.alt.enter.stop
         @keydown.shift.enter.stop
         @keydown.down.stop
@@ -259,11 +353,12 @@ watch(inputWrapperRef, () => {
       <LazyCellClampedText
         v-else-if="rowHeight"
         :value="vModel"
-        :lines="rowHeight"
-        class="nc-text-area-clamped-text my-auto"
+        :lines="rowHeightTruncateLines(localRowHeight)"
+        class="nc-text-area-clamped-text"
         :style="{
           'word-break': 'break-word',
-          'max-height': `${25 * (rowHeight || 1)}px`,
+          'max-height': `${25 * rowHeightTruncateLines(localRowHeight)}px`,
+          'my-auto': rowHeightTruncateLines(localRowHeight) === 1,
         }"
         @click="onTextClick"
       />
@@ -271,14 +366,30 @@ watch(inputWrapperRef, () => {
       <span v-else>{{ vModel }}</span>
 
       <NcTooltip
-        v-if="!isVisible"
+        v-if="!isVisible && !isForm"
         placement="bottom"
-        class="!absolute top-1 hidden nc-text-area-expand-btn group-hover:block z-3"
-        :class="isForm ? 'right-1' : 'right-0'"
+        class="nc-action-icon !absolute !hidden nc-text-area-expand-btn group-hover:block z-3"
+        :class="{
+          'right-1': isForm,
+          'right-0': !isForm,
+          'top-0': isGrid && !isExpandedFormOpen && !isForm && !(!rowHeight || rowHeight === 1),
+          'top-1': !(isGrid && !isExpandedFormOpen && !isForm),
+        }"
+        :style="
+          isGrid && !isExpandedFormOpen && !isForm && (!rowHeight || rowHeight === 1)
+            ? { top: '50%', transform: 'translateY(-50%)' }
+            : undefined
+        "
       >
         <template #title>{{ $t('title.expand') }}</template>
-        <NcButton type="secondary" size="xsmall" data-testid="attachment-cell-file-picker-button" @click.stop="onExpand">
-          <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800 ) scale-120 text-gray-700 text-xs" />
+        <NcButton
+          type="secondary"
+          size="xsmall"
+          data-testid="attachment-cell-file-picker-button"
+          class="!p-0 !w-5 !h-5 !min-w-[fit-content]"
+          @click.stop="onExpand"
+        >
+          <component :is="iconMap.expand" class="transform group-hover:(!text-grey-800) text-gray-700 text-xs" />
         </NcButton>
       </NcTooltip>
     </div>
@@ -316,20 +427,27 @@ watch(inputWrapperRef, () => {
               {{ column.title }}
             </span>
           </div>
+
+          <div class="flex-1" />
+
+          <NcButton class="mr-2" type="text" size="small" @click="isVisible = false">
+            <GeneralIcon icon="close" />
+          </NcButton>
         </div>
         <div v-if="!isRichMode" class="p-3 pb-0 h-full">
           <a-textarea
             ref="inputRef"
             v-model:value="vModel"
-            class="nc-text-area-expanded !py-1 !px-3 !text-black !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
+            class="nc-text-area-expanded !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
             :placeholder="$t('activity.enterText')"
             :style="{ resize: 'both' }"
             :disabled="readOnly"
             @keydown.escape="isVisible = false"
+            @keydown.alt.stop
           />
         </div>
 
-        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" />
+        <LazyCellRichText v-else v-model:value="vModel" show-menu full-mode :read-only="readOnly" @close="handleClose" />
       </div>
     </a-modal>
   </div>
@@ -359,9 +477,9 @@ textarea:focus {
     :deep(.ProseMirror) {
       @apply !pt-0;
     }
-    &.nc-readonly-rich-text-sort-height {
-      @apply mt-2;
-    }
+    // &.nc-readonly-rich-text-sort-height {
+    //   @apply mt-1;
+    // }
   }
 }
 </style>

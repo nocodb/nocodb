@@ -1,12 +1,9 @@
 const path = require('path');
-const nodeExternals = require('webpack-node-externals');
-const webpack = require('webpack');
-const TerserPlugin = require('terser-webpack-plugin');
+const { rspack } = require('@rspack/core');
 const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
 
 module.exports = {
-  entry: './src/run/local.ts',
-  // devtool: 'inline-source-map',
+  entry: './src/cli.ts',
   module: {
     rules: [
       {
@@ -21,31 +18,34 @@ module.exports = {
       },
     ],
   },
-
   optimization: {
-    minimize: true, //Update this to true or false
+    minimize: true,
     minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          keep_classnames: true,
+      new rspack.SwcJsMinimizerRspackPlugin({
+        minimizerOptions: {
+          format: {
+            comments: false,
+          },
         },
       }),
     ],
     nodeEnv: false,
   },
-  externals: [
-    nodeExternals({
-      allowlist: ['nocodb-sdk'],
-    }),
-  ],
+  externals: {
+    'nocodb-sdk': 'nocodb-sdk',
+    'pg-query-stream': 'pg-query-stream',
+    'better-sqlite3': 'better-sqlite3',
+    oracledb: 'oracledb',
+    'pg-native': 'pg-native',
+  },
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
     alias: resolveTsAliases(path.resolve('tsconfig.json')),
   },
   mode: 'production',
   output: {
-    filename: 'main.js',
-    path: path.resolve(__dirname, 'docker'),
+    filename: 'cli.js',
+    path: path.resolve(__dirname, '..', 'nc-secret-mgr', 'src/nocodb'),
     library: 'libs',
     libraryTarget: 'umd',
     globalObject: "typeof self !== 'undefined' ? self : this",
@@ -53,7 +53,14 @@ module.exports = {
   node: {
     __dirname: false,
   },
-  plugins: [new webpack.EnvironmentPlugin(['EE'])],
-
+  plugins: [
+    new rspack.EnvironmentPlugin({
+      EE: true,
+    }),
+    new rspack.BannerPlugin({
+      banner: 'This is a generated file. Do not edit',
+      entryOnly: true,
+    }),
+  ],
   target: 'node',
 };

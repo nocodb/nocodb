@@ -1,6 +1,7 @@
 const path = require('path');
 const { rspack } = require('@rspack/core');
 const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
+const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   entry: './src/cli.ts',
@@ -31,13 +32,7 @@ module.exports = {
     ],
     nodeEnv: false,
   },
-  externals: {
-    'nocodb-sdk': 'nocodb-sdk',
-    'pg-query-stream': 'pg-query-stream',
-    'better-sqlite3': 'better-sqlite3',
-    oracledb: 'oracledb',
-    'pg-native': 'pg-native',
-  },
+  externals: [nodeExternals()],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
     alias: resolveTsAliases(path.resolve('tsconfig.json')),

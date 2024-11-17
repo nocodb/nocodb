@@ -62,7 +62,9 @@ module.exports = {
         ],
         nodeEnv: false,
     },
-    externals: [nodeExternals()],
+    externals: [nodeExternals({
+        allowlist: ['nocodb-sdk']
+    })],
     plugins: [
         new rspack.EnvironmentPlugin({
             EE: true,

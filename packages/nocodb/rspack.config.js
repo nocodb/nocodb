@@ -53,7 +53,9 @@ module.exports = {
     ],
     nodeEnv: false,
   },
-  externals: [nodeExternals()],
+  externals: [nodeExternals({
+    allowlist: ['nocodb-sdk']
+  })],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
     alias: resolveTsAliases(path.resolve('tsconfig.json')),

@@ -3,7 +3,7 @@ const { rspack } = require('@rspack/core');
 const NodeExternals = require('webpack-node-externals');
 const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
 const {resolveTsAliases} = require("./build-utils/resolveTsAliases");
-// const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const baseDevConfig = {
   mode: 'development',
@@ -87,6 +87,11 @@ const baseDevConfig = {
     }),
     new RunScriptWebpackPlugin({
       name: 'main.js',
+    }),
+    new ForkTsCheckerWebpackPlugin({
+      typescript: {
+        configFile: join('tsconfig.json'),
+      },
     }),
   ],
   output: {

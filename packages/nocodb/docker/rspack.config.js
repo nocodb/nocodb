@@ -1,6 +1,5 @@
 const path = require('path');
 const { rspack } = require('@rspack/core');
-const { resolveTsAliases } = require('../build-utils/resolveTsAliases');
 const nodeExternals = require('webpack-node-externals');
 module.exports = {
     entry: './src/run/dockerEntry.ts',
@@ -40,7 +39,9 @@ module.exports = {
     },
     resolve: {
         extensions: ['.tsx', '.ts', '.js', '.json'],
-        alias: resolveTsAliases(path.resolve('tsconfig.json')),
+        tsConfig: {
+            configFile: path.resolve('tsconfig.json'),
+        },
     },
     output: {
         path: require('path').resolve('./docker'),
@@ -62,9 +63,11 @@ module.exports = {
         ],
         nodeEnv: false,
     },
-    externals: [nodeExternals({
-        allowlist: ['nocodb-sdk']
-    })],
+    externals: [
+        nodeExternals({
+            allowlist: ['nocodb-sdk'],
+        }),
+    ],
     plugins: [
         new rspack.EnvironmentPlugin({
             EE: true,

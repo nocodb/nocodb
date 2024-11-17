@@ -32,7 +32,7 @@
     "test": "jest --runInBand --forceExit",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r @swc-node/register node_modules/.bin/jest --runInBand",
+    "test:debug": "node --inspect-brk -r @swc-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "watch:run": "cross-env NODE_ENV=development NC_DISABLE_TELE=true rspack serve --config rspack.dev.config.js --entry src/run/docker",
     "watch:run:mysql": "cross-env NODE_ENV=development NC_DISABLE_TELE=true rspack serve --config rspack.dev.config.js --entry src/run/dockerRunMysql",
@@ -197,7 +197,6 @@
     "run-script-webpack-plugin": "^0.2.0",
     "supertest": "^6.3.4",
     "ts-jest": "29.1.2",
-    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
   }
 }

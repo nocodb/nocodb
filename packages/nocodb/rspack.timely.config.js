@@ -1,6 +1,5 @@
 const path = require('path');
 const { rspack } = require('@rspack/core');
-const { resolveTsAliases } = require('./build-utils/resolveTsAliases');
 const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
@@ -53,12 +52,16 @@ module.exports = {
     ],
     nodeEnv: false,
   },
-  externals: [nodeExternals({
-    allowlist: ['nocodb-sdk']
-  })],
+  externals: [
+    nodeExternals({
+      allowlist: ['nocodb-sdk'],
+    }),
+  ],
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
-    alias: resolveTsAliases(path.resolve('./tsconfig.json')),
+    tsConfig: {
+      configFile: path.resolve('tsconfig.json'),
+    },
   },
   mode: 'production',
   output: {

@@ -83,14 +83,13 @@ const baseDevConfig = {
     }),
     new RunScriptWebpackPlugin({
       name: 'main.js',
-      autoRestart: true,
     }),
-    new ForkTsCheckerWebpackPlugin({
+    /*new ForkTsCheckerWebpackPlugin({
       typescript: {
         context: join(__dirname),
         configFile: join('tsconfig.ee-cloud.json'),
       },
-    }),
+    }),*/
   ],
   output: {
     path: join(__dirname, 'dist'),

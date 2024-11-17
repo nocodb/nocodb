@@ -99,6 +99,10 @@ const baseDevConfig = {
     },
     port: 9001,
   },
+  watchOptions: {
+    ignored: /node_modules/,
+    poll: true,
+  },
 };
 
 module.exports = baseDevConfig;

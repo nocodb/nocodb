@@ -20,7 +20,7 @@ RUN git clone https://github.com/benbjohnson/litestream.git litestream \
 ###########
 # Builder
 ###########
-FROM --platform=$BUILDPLATFORM node:18.19.1-alpine as builder
+FROM --platform=$BUILDPLATFORM node:18-alpine as builder
 WORKDIR /usr/src/app
 
 # Install node-gyp dependencies

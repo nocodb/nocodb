@@ -116,7 +116,7 @@ onMounted(async () => {
           class="nc-extdb-btn-submit"
           @click="submit"
         >
-          {{ pageMode === IntegrationsPageMode.ADD ? 'Create integration' : 'Modify integration' }}
+          {{ pageMode === IntegrationsPageMode.ADD ? 'Create integration' : 'Update integration' }}
         </NcButton>
         <NcButton size="small" type="text" @click="vOpen = false">
           <GeneralIcon icon="close" class="text-gray-600" />

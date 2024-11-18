@@ -6222,6 +6222,96 @@
           }
         }
       },
+      "ViewUpdateReq": {
+        "description": "Model for View Update Request",
+        "x-stoplight": {
+          "id": "7inf594lhs8mh"
+        },
+        "examples": [
+          {
+            "title": "Grid View 1",
+            "uuid": "e2457bbf-e29c-4fec-866e-fe3b01dba57f",
+            "password": "password123",
+            "lock_type": "collaborative",
+            "meta": "{\"allowCSVDownload\":true}",
+            "order": 1,
+            "show_system_fields": 0,
+            "expanded_record_mode": "attachment",
+            "attachment_mode_column_id": "cl_uu1meolj00tlrq"
+          }
+        ],
+        "title": "View Update Request Model",
+        "type": "object",
+        "properties": {
+          "title": {
+            "maxLength": 255,
+            "type": "string",
+            "description": "View Title",
+            "example": "Grid View 1"
+          },
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Description of the view.",
+            "example": "This is a grid view."
+          },
+          "uuid": {
+            "maxLength": 255,
+            "type": "string",
+            "x-stoplight": {
+              "id": "vlhs7xs644u8l"
+            },
+            "description": "View UUID. Used in Shared View.",
+            "example": "e2457bbf-e29c-4fec-866e-fe3b01dba57f"
+          },
+          "password": {
+            "maxLength": 255,
+            "type": "string",
+            "x-stoplight": {
+              "id": "vlhs7xs644u8l"
+            },
+            "description": "View Password. Used in Shared View.",
+            "example": "password123"
+          },
+          "lock_type": {
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ],
+            "type": "string",
+            "description": "Lock type of View.",
+            "example": "collaborative"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info used in View."
+          },
+          "order": {
+            "type": "number",
+            "description": "The order of the list of views.",
+            "example": 1,
+            "minimum": 0
+          },
+          "show_system_fields": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Should this view show system fields?"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
+          },
+          "expanded_record_mode": {
+            "type" : "string",
+            "enum": ["field", "attachment"],
+            "description": "The expanded record mode of the view",
+            "example": "field"
+          },
+          "attachment_mode_column_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of column used for attachment mode"
+          }
+        }
+      },
       "CalendarColumn": {
         "description": "Model for Calendar Column",
         "examples": [

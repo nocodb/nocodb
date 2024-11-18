@@ -5,7 +5,12 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
-import type { BoolType, ColumnReqType, ViewType } from 'nocodb-sdk';
+import type {
+  BoolType,
+  ColumnReqType,
+  ExpandedFormMode,
+  ViewType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
@@ -41,6 +46,7 @@ import {
 } from '~/utils/modelUtils';
 import { LinkToAnotherRecordColumn } from '~/models';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+import { isEE } from '~/utils';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -1265,6 +1271,8 @@ export default class View implements ViewType {
       meta?: any;
       owned_by?: string;
       created_by?: string;
+      expanded_record_mode?: ExpandedFormMode;
+      attachment_mode_column_id?: string;
     },
     includeCreatedByAndUpdateBy = false,
     ncMeta = Noco.ncMeta,
@@ -1279,6 +1287,7 @@ export default class View implements ViewType {
       'meta',
       'uuid',
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
+      ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
 
     const oldView = await this.get(context, viewId, ncMeta);

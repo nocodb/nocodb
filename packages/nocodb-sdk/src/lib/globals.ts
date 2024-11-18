@@ -44,6 +44,11 @@ export enum RelationTypes {
   ONE_TO_ONE = 'oo',
 }
 
+export enum ExpandedFormMode {
+  FIELD = 'field',
+  ATTACHMENT = 'attachment',
+}
+
 export enum ExportTypes {
   EXCEL = 'excel',
   CSV = 'csv',

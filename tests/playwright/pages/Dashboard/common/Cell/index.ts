@@ -152,6 +152,9 @@ export class CellPageObject extends BasePage {
         columnHeader,
       }).waitFor({ state: 'visible' });
 
+      ////added for low end devices for stability
+      await this.rootPage.waitForTimeout(100);
+
       await this.get({
         index,
         columnHeader,

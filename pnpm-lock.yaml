@@ -179,7 +179,7 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       nocodb-sdk:
-        specifier: link:/home/osboxes/nocodb/packages/nocodb-sdk
+        specifier: workspace:^
         version: link:../nocodb-sdk
       papaparse:
         specifier: ^5.4.1
@@ -558,7 +558,7 @@ importers:
         version: 5.0.8(eslint@8.56.0)(typescript@5.6.2)
       eslint-plugin-import:
         specifier: ^2.29.1
-        version: 2.29.1(@typescript-eslint/parser@5.62.0(eslint@8.56.0)(typescript@5.6.2))(eslint@8.56.0)
+        version: 2.29.1(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)
       eslint-plugin-prettier:
         specifier: ^4.2.1
         version: 4.2.1(eslint-config-prettier@8.10.0(eslint@8.56.0))(eslint@8.56.0)(prettier@2.8.8)

@@ -79,7 +79,7 @@ test.describe('Grid view locked', () => {
     });
   });
 
-  test.only('Download PDF', async () => {
+  test('Download PDF', async () => {
     // close 'Team & Auth' tab
     await dashboard.closeTab({ title: 'Team & Auth' });
     await dashboard.treeView.openTable({ title: 'Country' });
@@ -95,9 +95,8 @@ test.describe('Grid view locked', () => {
       menu: 'Download',
       subMenu: 'Export PDF',
       verificationInfo: {
-        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
+        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPdfPg.txt' : null,
       },
     });
-    ///select orientation
   });
 });

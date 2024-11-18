@@ -5,6 +5,7 @@ import { saveAs } from 'file-saver'
 import * as XLSX from 'xlsx'
 import jsPDF from 'jspdf';
 import logo from '@/assets/img/brand/nocodb.png'; // Adjust the path as needed
+import Json from '~/components/cell/Json.vue';
 
 
 const isPublicView = inject(IsPublicInj, ref(false))
@@ -34,6 +35,7 @@ function checkCellIsAttachment(cell: any): { isAttachment: boolean, link: string
   const attachmentPattern = /([^\s]+\((http[^\)]+)\))/g;
 
 
+if( typeof cell === "string" ){
   const matched = cell.match(attachmentPattern);
 
   if (matched) {
@@ -41,7 +43,7 @@ function checkCellIsAttachment(cell: any): { isAttachment: boolean, link: string
     const links: string[] = [...cell.matchAll(/\((http[^)]+)\)/g)].map(match => match[1]);
 
     return { isAttachment: true, link: links }; // Extract the URL inside the parentheses
-  }
+  } }
   return { isAttachment: false, link: null };
 
 }
@@ -76,7 +78,7 @@ async function makePdf(rowsData: any[]) {
   ///table headers
   headers.push(...Object.keys(rowsData[0]));
 
-
+console.log(rowsData)
 
   const rows = rowsData.map((row) => headers.map((key) => {
 
@@ -153,7 +155,6 @@ const exportFile = async (exportType: ExportTypes) => {
           filtersArr: nestedFilters.value,
         })
       } else {
-        console.log(exportType)
         res = await $api.dbViewRow.export(
           'noco',
           base.value?.id as string,
@@ -185,8 +186,13 @@ const exportFile = async (exportType: ExportTypes) => {
         saveAs(blob, `${meta.value?.title}_exported_${c++}.csv`)
       } else if (exportType === ExportTypes.PDF) {
 
-
-        await makePdf(data)
+        if( isPublicView.value ){
+          const dataToShare = JSON.parse(data)
+          await makePdf(dataToShare)
+          
+        }else{
+          await makePdf(data)
+        }
         closePdfExportDialog()
       }
 

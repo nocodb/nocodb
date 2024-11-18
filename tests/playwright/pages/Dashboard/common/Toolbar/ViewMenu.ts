@@ -87,9 +87,7 @@ export class ToolbarViewMenuPage extends BasePage {
     await expect(modal).toBeVisible();
 
     const landscapeRadio = modal.locator('[value="landscape"]');
-
     await landscapeRadio.click();
-
     expect(await landscapeRadio.isChecked());
 
     const a5Radio = modal.locator('input[value="a5"]');
@@ -99,44 +97,34 @@ export class ToolbarViewMenuPage extends BasePage {
     const exportButton = modal.locator('[data-testId="pdf-export-button"]');
     await expect(exportButton).toBeVisible();
 
-    const [download] = await Promise.all([
-      // Start waiting for the download
-      this.rootPage.waitForEvent('download'),
-      // Perform the action that initiates download
-      exportButton.click(),
-    ]);
+    const [download] = await Promise.all([this.rootPage.waitForEvent('download'), exportButton.click()]);
 
     const filePath: string = './output/test.pdf';
-    // Save downloaded file somewhere
     await download.saveAs(filePath);
 
     const dataBuffer = fs.readFileSync(filePath);
     const data = await pdfParse(dataBuffer);
     const pdfData = data.text.replace(/\r/g, '').split('\n');
 
-    const heading = pdfData[0]; // Assuming heading is the first line
-    const filteredData = pdfData.filter((line, index) => index === 0 || line !== heading);
+    const filteredData = pdfData.filter(line => line.trim() !== '');
+
+    const formattedData = filteredData.map(line => {
+      const columns = line.trim().split(/\s+/); // Split line by whitespace
+      return columns.join(','); // Join with commas
+    });
 
     const tempOutputFile: string = './output/test.txt';
-    fs.writeFileSync(tempOutputFile, filteredData.join('\n'), 'utf8');
+    fs.writeFileSync(tempOutputFile, formattedData.join('\n'), 'utf8');
 
     const expectedData = fs.readFileSync(expectedDataFile, 'utf8');
 
     const file = fs.readFileSync(tempOutputFile, 'utf8');
 
-    expect(file).toEqual('\ufeff' + expectedData);
+    const fileWithoutBOM = file.replace(/^\ufeff/, '');
+    const expectedDataWithoutBOM = expectedData.replace(/^\ufeff/, '');
 
-    // convert xlsx to csv
-    // const wb = XLSX.readFile('./output/test.pdf');
-    // XLSX.writeFile(wb, './output/test.txt', { bookType: 'csv' });
-
-    // // verify downloaded content against expected content
-    // const expectedData = fs.readFileSync(expectedDataFile, 'utf8');
-    // const file = fs.readFileSync('./output/test.txt', 'utf8');
-    // // XLSX writes file with UTF-8 BOM, adds '\ufeff' to cater it
-    // expect(file).toEqual('\ufeff' + expectedData);
+    expect(fileWithoutBOM).toEqual(expectedDataWithoutBOM);
   }
-
   // menu items
   //    Collaborative View
   //    Download
@@ -168,7 +156,7 @@ export class ToolbarViewMenuPage extends BasePage {
       } else if (subMenu === 'Export PDF') {
         await this.verifyDownloadAsPDF({
           downloadLocator: this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last(),
-          expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
+          expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadDataPdf.txt',
         });
       } else {
         await this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last().click();
@@ -181,6 +169,11 @@ export class ToolbarViewMenuPage extends BasePage {
           });
           break;
         case 'Download Excel':
+          await this.verifyToast({
+            message: 'Successfully exported all table data',
+          });
+          break;
+        case 'Export PDF':
           await this.verifyToast({
             message: 'Successfully exported all table data',
           });

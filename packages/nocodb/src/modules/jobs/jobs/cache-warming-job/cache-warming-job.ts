@@ -49,6 +49,7 @@ export class CacheWarmingJob {
     }
 
     let fields = model.columns
+      .filter((c) => c.uidt != UITypes.Links && c.uidt != UITypes.Rollup && c.uidt != UITypes.LinkToAnotherRecord)
       .map((c) => c.title)
       .join(',')
     const source = await Source.get(context, model.source_id);
@@ -56,7 +57,6 @@ export class CacheWarmingJob {
       id: model.id,
       dbDriver: await NcConnectionMgrv2.get(source),
     });
-
     const cachePageSize = 100
     var data = await this.datasService
       .getDataList(context, {

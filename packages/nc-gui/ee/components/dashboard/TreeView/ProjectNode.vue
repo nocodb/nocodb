@@ -632,7 +632,7 @@ const showNodeTooltip = ref(true)
             </div>
 
             <div v-if="currentUserRole">
-              <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('title.myCurrentRole') }}</div>
+              <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('title.yourBaseRole') }}</div>
               <div
                 class="text-xs font-medium flex items-start gap-2 flex items-center gap-1"
                 :class="{

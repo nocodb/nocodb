@@ -264,7 +264,7 @@ watch(isOpen, (newValue) => {
       </div>
       <template #overlay>
         <div class="pt-2 h-[320px]">
-          <NcTabs v-model:activeKey="activeTab" theme="ai" class="nc-workspace-icon-dropdown-tabs h-full">
+          <NcTabs v-model:activeKey="activeTab" class="nc-workspace-icon-dropdown-tabs h-full">
             <template #leftExtra>
               <div class="w-0"></div>
             </template>

@@ -198,7 +198,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
         <template v-if="aiIntegrationAvailable && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
-        <NcDivider />
+          <NcDivider />
           <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
             <div class="item">
               <div class="item-inner">

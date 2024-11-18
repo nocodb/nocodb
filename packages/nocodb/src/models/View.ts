@@ -1,5 +1,6 @@
 import {
   CommonAggregations,
+  ExpandedFormMode,
   isSystemColumn,
   UITypes,
   ViewTypes,
@@ -8,7 +9,7 @@ import { Logger } from '@nestjs/common';
 import type {
   BoolType,
   ColumnReqType,
-  ExpandedFormMode,
+  ExpandedFormModeType,
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -1271,7 +1272,7 @@ export default class View implements ViewType {
       meta?: any;
       owned_by?: string;
       created_by?: string;
-      expanded_record_mode?: ExpandedFormMode;
+      expanded_record_mode?: ExpandedFormModeType;
       attachment_mode_column_id?: string;
     },
     includeCreatedByAndUpdateBy = false,
@@ -1289,6 +1290,14 @@ export default class View implements ViewType {
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
       ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
+
+    if (isEE) {
+      if (!updateObj?.attachment_mode_column_id) {
+        updateObj.expanded_record_mode = ExpandedFormMode.FIELD;
+      } else {
+        updateObj.expanded_record_mode = ExpandedFormMode.ATTACHMENT;
+      }
+    }
 
     const oldView = await this.get(context, viewId, ncMeta);
 
@@ -2432,5 +2441,13 @@ export default class View implements ViewType {
 
   async delete(context: NcContext, ncMeta = Noco.ncMeta) {
     await View.delete(context, this.id, ncMeta);
+  }
+
+  static async updateIfColumnUsedAsExpandedMode(
+    _context: NcContext,
+    _columnId: string,
+    _ncMeta = Noco.ncMeta,
+  ) {
+    return;
   }
 }

@@ -44,10 +44,13 @@ export enum RelationTypes {
   ONE_TO_ONE = 'oo',
 }
 
-export enum ExpandedFormMode {
-  FIELD = 'field',
-  ATTACHMENT = 'attachment',
-}
+export const ExpandedFormMode = {
+  FIELD: 'field',
+  ATTACHMENT: 'attachment',
+} as const;
+
+export type ExpandedFormModeType =
+  (typeof ExpandedFormMode)[keyof typeof ExpandedFormMode];
 
 export enum ExportTypes {
   EXCEL = 'excel',

@@ -1,4 +1,5 @@
 import ViewCE from 'src/models/View';
+import { ExpandedFormMode } from 'nocodb-sdk';
 import CalendarRange from './CalendarRange';
 import type { ViewType } from 'nocodb-sdk';
 import type FormView from '~/models/FormView';
@@ -71,5 +72,32 @@ export default class View extends ViewCE implements ViewType {
       return Array.from(calIds) as Array<string>;
     }
     return [];
+  }
+
+  static async updateIfColumnUsedAsExpandedMode(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const views = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.VIEWS,
+      {
+        condition: {
+          attachment_mode_column_id: columnId,
+        },
+      },
+    );
+
+    if (!views.length) return;
+
+    for (const view of views) {
+      await View.update(context, view.id, {
+        ...view,
+        expanded_record_mode: ExpandedFormMode.FIELD,
+        attachment_mode_column_id: null,
+      });
+    }
   }
 }

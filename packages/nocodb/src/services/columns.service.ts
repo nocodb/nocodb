@@ -2694,6 +2694,8 @@ export class ColumnsService {
       );
     }
 
+    await View.updateIfColumnUsedAsExpandedMode(context, column.id, ncMeta);
+
     this.appHooksService.emit(AppEvents.COLUMN_DELETE, {
       table,
       column,

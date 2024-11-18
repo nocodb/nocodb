@@ -247,7 +247,7 @@ const onDelete = () => {
 }
 
 const viewModeInfo = computed(() => {
-  switch (vModel.value.lock_type) {
+  switch (vModel.value?.lock_type) {
     case ViewLockType.Collaborative:
       return t(viewLockIcons[ViewLockType.Collaborative]?.title)
     case ViewLockType.Personal:

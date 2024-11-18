@@ -26,6 +26,7 @@ export enum RelationTypes {
 export enum ExportTypes {
   EXCEL = 'excel',
   CSV = 'csv',
+  PDF = 'pdf'
 }
 
 export enum AuditOperationTypes {

@@ -1,6 +1,7 @@
 import { expect, Locator } from '@playwright/test';
 import BasePage from '../../../Base';
 import { ToolbarPage } from './index';
+import pdfParse from 'pdf-parse';
 // @ts-ignore
 import fs from 'fs';
 import XLSX from 'xlsx';
@@ -39,7 +40,6 @@ export class ToolbarViewMenuPage extends BasePage {
 
     // Save downloaded file somewhere
     await download.saveAs('./output/test.txt');
-
     // verify downloaded content against expected content
     const expectedData = fs.readFileSync(expectedDataFile, 'utf8').replace(/\r/g, '').split('\n');
     const file = fs.readFileSync('./output/test.txt', 'utf8').replace(/\r/g, '').split('\n');
@@ -74,6 +74,69 @@ export class ToolbarViewMenuPage extends BasePage {
     expect(file).toEqual('\ufeff' + expectedData);
   }
 
+  async verifyDownloadAsPDF({
+    downloadLocator,
+    expectedDataFile,
+  }: {
+    downloadLocator: Locator;
+    expectedDataFile: string;
+  }) {
+    await downloadLocator.click();
+
+    const modal = this.rootPage.locator('[data-testid="pdf-export-modal"]');
+    await expect(modal).toBeVisible();
+
+    const landscapeRadio = modal.locator('[value="landscape"]');
+
+    await landscapeRadio.click();
+
+    expect(await landscapeRadio.isChecked());
+
+    const a5Radio = modal.locator('input[value="a5"]');
+    await a5Radio.click();
+    expect(await a5Radio.isChecked());
+
+    const exportButton = modal.locator('[data-testId="pdf-export-button"]');
+    await expect(exportButton).toBeVisible();
+
+    const [download] = await Promise.all([
+      // Start waiting for the download
+      this.rootPage.waitForEvent('download'),
+      // Perform the action that initiates download
+      exportButton.click(),
+    ]);
+
+    const filePath: string = './output/test.pdf';
+    // Save downloaded file somewhere
+    await download.saveAs(filePath);
+
+    const dataBuffer = fs.readFileSync(filePath);
+    const data = await pdfParse(dataBuffer);
+    const pdfData = data.text.replace(/\r/g, '').split('\n');
+
+    const heading = pdfData[0]; // Assuming heading is the first line
+    const filteredData = pdfData.filter((line, index) => index === 0 || line !== heading);
+
+    const tempOutputFile: string = './output/test.txt';
+    fs.writeFileSync(tempOutputFile, filteredData.join('\n'), 'utf8');
+
+    const expectedData = fs.readFileSync(expectedDataFile, 'utf8');
+
+    const file = fs.readFileSync(tempOutputFile, 'utf8');
+
+    expect(file).toEqual('\ufeff' + expectedData);
+
+    // convert xlsx to csv
+    // const wb = XLSX.readFile('./output/test.pdf');
+    // XLSX.writeFile(wb, './output/test.txt', { bookType: 'csv' });
+
+    // // verify downloaded content against expected content
+    // const expectedData = fs.readFileSync(expectedDataFile, 'utf8');
+    // const file = fs.readFileSync('./output/test.txt', 'utf8');
+    // // XLSX writes file with UTF-8 BOM, adds '\ufeff' to cater it
+    // expect(file).toEqual('\ufeff' + expectedData);
+  }
+
   // menu items
   //    Collaborative View
   //    Download
@@ -99,6 +162,11 @@ export class ToolbarViewMenuPage extends BasePage {
         });
       } else if (subMenu === 'Download Excel') {
         await this.verifyDownloadAsXLSX({
+          downloadLocator: this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last(),
+          expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
+        });
+      } else if (subMenu === 'Export PDF') {
+        await this.verifyDownloadAsPDF({
           downloadLocator: this.rootPage.locator(`.ant-dropdown-menu-title-content:has-text("${subMenu}")`).last(),
           expectedDataFile: verificationInfo?.verificationFile ?? './fixtures/expectedBaseDownloadData.txt',
         });

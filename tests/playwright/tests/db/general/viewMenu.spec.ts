@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { DashboardPage } from '../../../pages/Dashboard';
 import setup, { unsetup } from '../../../setup';
 import { isPg } from '../../../setup/db';
@@ -77,5 +77,27 @@ test.describe('Grid view locked', () => {
         verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
       },
     });
+  });
+
+  test.only('Download PDF', async () => {
+    // close 'Team & Auth' tab
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.openTable({ title: 'Country' });
+
+    await dashboard.grid.toolbar.clickFields();
+    // Hide 'LastUpdate' column
+    await dashboard.grid.toolbar.fields.click({
+      title: 'LastUpdate',
+    });
+
+    // Simulate clicking the PDF export button
+    await dashboard.grid.toolbar.viewsMenu.click({
+      menu: 'Download',
+      subMenu: 'Export PDF',
+      verificationInfo: {
+        verificationFile: isPg(context) ? './fixtures/expectedBaseDownloadDataPg.txt' : null,
+      },
+    });
+    ///select orientation
   });
 });

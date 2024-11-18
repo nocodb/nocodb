@@ -247,4 +247,56 @@ export class PublicDatasExportController {
     }
     return { offset, dbRows, elapsed };
   }
+
+  @Get([
+    '/api/v1/db/public/shared-view/:publicDataUuid/rows/export/pdf',
+    '/api/v2/public/shared-view/:publicDataUuid/rows/export/pdf',
+  ])
+  async exportPDF(
+    @TenantContext() context: NcContext,
+    @Request() req,
+    @Response() res,
+  ) {
+    const view = await View.getByUUID(context, req.params.publicDataUuid);
+    const fields = req.query.fields;
+
+    if (!view) NcError.viewNotFound(req.params.publicDataUuid);
+    if (
+      view.type !== ViewTypes.GRID &&
+      view.type !== ViewTypes.KANBAN &&
+      view.type !== ViewTypes.GALLERY &&
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.MAP
+    )
+      NcError.notFound('Not found');
+
+    if (view.password && view.password !== req.headers?.['xc-password']) {
+      NcError.invalidSharedViewPassword();
+    }
+
+    // check if download is allowed
+    if (!view.meta?.allowCSVDownload) {
+      NcError.forbidden('Download is not allowed for this view');
+    }
+
+    const model = await view.getModelWithInfo(context);
+    await view.getColumns(context);
+
+    const { offset, dbRows, elapsed } = await this.getDbRows(
+      context,
+      model,
+      view,
+      req,
+    );
+
+    res.set({
+      'Access-Control-Expose-Headers': 'nc-export-offset',
+      'nc-export-offset': offset,
+      'nc-export-elapsed-time': elapsed,
+      'Content-Disposition': `attachment; filename="${encodeURI(
+        view.title,
+      )}-export.pdf"`,
+    });
+    res.send(dbRows);
+  }
 }

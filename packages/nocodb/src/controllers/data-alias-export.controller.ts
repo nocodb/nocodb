@@ -3,7 +3,7 @@ import { Response } from 'express';
 import * as XLSX from 'xlsx';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { DatasService } from '~/services/datas.service';
-import { extractCsvData, extractXlsxData } from '~/helpers/dataHelpers';
+import { extractCsvData, extractPDFData, extractXlsxData } from '~/helpers/dataHelpers';
 import { View } from '~/models';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
@@ -88,4 +88,42 @@ export class DataAliasExportController {
     });
     res.send(data);
   }
+
+
+  @Get([
+    '/api/v1/db/data/:orgs/:baseName/:tableName/views/:viewName/export/pdf',
+    '/api/v1/db/data/:orgs/:baseName/:tableName/export/pdf',
+  ])
+  @Acl('exportPDF')
+  async pdfDataExport(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Res() res: Response,
+  ) {
+    const { model, view } =
+      await this.datasService.getViewAndModelFromRequestByAliasOrId(
+        context,
+        req,
+      );
+    let targetView = view;
+    if (!targetView) {
+      targetView = await View.getDefaultView(context, model.id);
+    }
+    const {  dbRows , offset ,elapsed } = await extractPDFData(
+      context,
+      targetView,
+      req,
+    );
+
+    res.set({
+      'Access-Control-Expose-Headers': 'nc-export-offset',
+      'nc-export-offset': offset,
+      'nc-export-elapsed-time': elapsed,
+      'Content-Disposition': `attachment; filename="${encodeURI(
+        targetView.title,
+      )}-export.csv"`,
+    });
+    res.send(dbRows);
+  }
+  
 }

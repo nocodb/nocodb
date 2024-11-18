@@ -17,10 +17,11 @@ const { xWhere, eventBus } = useSmartsheetStoreOrThrow()
 
 const props = defineProps<{
     isOpen: boolean,
+    exportPDF: (orientation: string, pageSize: string) => void
 }>();
 
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close' , 'exportPDF' ]);
 
 const localIsOpen = ref(props.isOpen);
 
@@ -65,109 +66,12 @@ return false
 }
 
 
+
 const generatePDF = async () => {
     
-        var res = await loadDataForPDFExport()
-        const data: Record<string, any>[] = res.list.map((item: Record<string, any>) => {
-            return {
-                ...item, 
-            };
-        });
-        const doc = new jsPDF({
-            orientation: orientation.value === "portrait" ? "p" : "l",
-            unit: 'mm',
-            format: pageSize.value,
-        });
+props.exportPDF(  orientation.value ,   pageSize.value);
 
-        const logoImg = new Image();
-        logoImg.src = logo;
-        doc.addImage(logoImg, 'PNG', 15, 15, 50, 10); 
-        logoImg.onload = () => {
-            doc.addImage(logoImg, 'PNG', 10, 10, 50, 25);
-            doc.setFontSize(12);
-        }
-
-  
-        let currentY = 17; 
-        let currentX = 70; 
-        let marginDown = 4; 
-
-        doc.setFontSize(10); 
-    
-        const allRows: { headers: string[]; rows: string[][] }[] = [];
-
-        const headers: string[] = [];
-
-
-        await headers.push(...Object.keys(data[0]));
-
-
-        const rows = data.map(item => headers.map(key => {
-
-            const value = item[key];
-
-            if (checkCellIsAttachment(value)) {
-                const attachmentLink = [];
-
-                for (let index = 0; index < value.length; index++) {
-
-                    const sources = getPossibleAttachmentSrc(value[index]);
-
-                    if (sources.length > 0) {
-                        attachmentLink.push(sources[0]);
-
-                    }
-
-                }
-
-
-                return attachmentLink; // Adjust to your needs
-            }
-            return item[key] !== undefined ? item[key] : "N/A"
-        }));
-
-
-
-        allRows.push({
-            headers: headers,
-            rows: rows
-        });
-
-        const pageWidth = doc.internal.pageSize.getWidth() - 30;
-        const cellWidth = pageWidth / headers.length;
-        allRows.forEach((tableData, index) => {
-            if (index > 0) {
-                doc.addPage();
-            }
-
-            (doc as any).autoTable({
-                head: [tableData.headers],
-                body: 
-                
-                    tableData.rows.map(row => {
-    return row.map((cell, index) => {
-
-        if (checkCellIsAttachment(cell)) {
-        return { content: cell, styles: { textColor: [0, 0, 255] } }; // Style for the link
-      }
-      return cell; 
-    }) })
-                
-                ,
-                startY: currentY + 15,
-                styles: { overflow: 'linebreak' },
-                columnStyles: headers.reduce((acc, _, index) => {
-                    acc[index] = { cellWidth }; // Apply equal width to all columns
-                    return acc;
-                }, {} as { [key: number]: { cellWidth: number } }),
-            });
-        });
-       
-
-
-   await doc.save('table-data.pdf');
-   emit('close')
-    
+   
 };
 
 const modalWidth = computed(() => {
@@ -177,8 +81,9 @@ const modalWidth = computed(() => {
 
 <!-- :width="isUIAllowed('commentList') ? 'min(80vw,1280px)' : 'min(70vw,768px)'" -->
 <template>
-    <a-modal :footer="null" :closable=true v-model:visible="localIsOpen" :class="{ active: props.isOpen }"
+    <a-modal   :footer="null" :closable=true v-model:visible="localIsOpen" :class="{ active: props.isOpen }"
         :width="modalWidth"  @keydown.esc="closeDialog">
+        <div data-testid="pdf-export-modal" >
         <a-spin :spinning="false" tip="progressMs" size="large">
             <div class="px-5">
                 <div class="prose-xl font-weight-bold my-5">{{ $t('labels.pdfExport') }}</div>
@@ -187,7 +92,7 @@ const modalWidth = computed(() => {
                     'mb-4': true,
                 }"> </div>
                 <div class="flex flex-row">
-                    <div class="orientation-selector  ">
+                    <div class="orientation-selector">
                         <span class="font-semibold">{{ $t('labels.orientation') }}</span>
 
                         <div className="flex flex-row">
@@ -241,11 +146,11 @@ const modalWidth = computed(() => {
 
         <div className="px-5 pt-3">
             <a-button key="pre-import" type="primary" class="nc-btn-import !rounded-md" :loading="false"
-                :disabled="false" @click="generatePDF">
+                :disabled="false" @click="generatePDF"  data-testid="pdf-export-button" >
                 {{ $t('labels.pdfExport') }}
             </a-button>
         </div>
-       
+    </div>
     </a-modal>
 
 </template>

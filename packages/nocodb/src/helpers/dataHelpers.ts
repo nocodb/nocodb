@@ -141,6 +141,39 @@ export async function extractCsvData(context: NcContext, view: View, req) {
   return { offset, dbRows, elapsed, data };
 }
 
+
+export async function extractPDFData(context: NcContext, view: View, req) {
+  const source = await Source.get(context, view.source_id);
+  const fields = req.query.fields;
+
+  await view.getModelWithInfo(context);
+  await view.getColumns(context);
+
+  view.model.columns = view.columns
+    .filter((c) => c.show)
+    .map(
+      (c) =>
+        new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any),
+    )
+    .filter((column) => !isSystemColumn(column) || view.show_system_fields);
+
+  const baseModel = await Model.getBaseModelSQL(context, {
+    id: view.model.id,
+    viewId: view?.id,
+    dbDriver: await NcConnectionMgrv2.get(source),
+  });
+
+  const { offset, dbRows, elapsed } = await getDbRows(context, {
+    baseModel,
+    view,
+    query: req.query,
+    siteUrl: (req as any).ncSiteUrl,
+  });
+
+
+  return {  dbRows , offset , elapsed };
+}
+
 export async function serializeCellValue(
   context: NcContext,
   {

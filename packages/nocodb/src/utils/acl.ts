@@ -72,6 +72,7 @@ const permissionScopes = {
     'dataFindOne',
     'dataGroupBy',
     'exportCsv',
+    'exportPDF',
     'exportExcel',
     'sortList',
     'filterList',
@@ -190,6 +191,7 @@ const rolePermissions:
       dataGroupBy: true,
 
       exportCsv: true,
+      exportPDF: true,
       exportExcel: true,
 
       // sort & filter
@@ -580,6 +582,7 @@ const permissionDescriptions: Record<string, string> = {
   dataFindOne: 'find a single data record',
   dataGroupBy: 'group data by a specific field',
   exportCsv: 'export data to CSV',
+  exportPDF: 'export data to PDF',
   exportExcel: 'export data to Excel',
   sortList: 'view list of sorts',
   filterList: 'view list of filters',

@@ -382,8 +382,8 @@ export function useSharedView() {
   const exportFile = async (
     fields: any[],
     offset: number,
-    type: ExportTypes.EXCEL | ExportTypes.CSV,
-    responseType: 'base64' | 'blob',
+    type: ExportTypes.EXCEL | ExportTypes.CSV | ExportTypes.PDF,
+    responseType: 'base64' | 'blob' | 'raw',
     { sortsArr, filtersArr }: { sortsArr: SortType[]; filtersArr: FilterType[] } = { sortsArr: [], filtersArr: [] },
   ) => {
     return await $api.public.csvExport(sharedView.value!.uuid!, type, {

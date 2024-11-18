@@ -70,10 +70,7 @@ export default class Local implements IStorageAdapterV2 {
   public async fileCreateByStream(
     key: string,
     stream: Readable,
-  ): Promise<{
-    url: string | null;
-    data: any;
-  }> {
+  ): Promise<string | null> {
     return new Promise((resolve, reject) => {
       const destPath = validateAndNormaliseLocalPath(key);
       try {
@@ -81,11 +78,8 @@ export default class Local implements IStorageAdapterV2 {
           const writableStream = fs.createWriteStream(destPath);
           writableStream.on('finish', () => {
             this.fileRead(destPath)
-              .then((data) => {
-                resolve({
-                  url: null,
-                  data,
-                });
+              .then(() => {
+                resolve(null);
               })
               .catch((e) => {
                 reject(e);

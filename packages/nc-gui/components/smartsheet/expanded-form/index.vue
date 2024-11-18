@@ -805,9 +805,23 @@ export default {
           />
         </template>
         <template v-else-if="activeViewMode === 'attachments'">
-          <div class="h-full flex flex-grow items-center justify-center">
-            Attachments
-          </div>
+          <SmartsheetExpandedFormPresentorsAttachments
+            :store="expandedFormStore"
+            :row-id="rowId"
+            :fields="fields"
+            :hidden-fields="hiddenFields"
+            :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"
+            :is-unsaved-form-exist="isUnsavedFormExist"
+            :is-loading="isLoading"
+            :is-saving="isSaving"
+            :new-record-submit-btn-text="newRecordSubmitBtnText"
+            @copy:record-url="copyRecordUrl()"
+            @delete:row="onDeleteRowClick()"
+            @save="save()"
+            @update:modelValue="emits('update:modelValue', $event)"
+            @createdRecord="emits('createdRecord', $event)"
+            @updateRowCommentCount="emits('updateRowCommentCount', $event)"
+          />
         </template>
       </div>
     </div>

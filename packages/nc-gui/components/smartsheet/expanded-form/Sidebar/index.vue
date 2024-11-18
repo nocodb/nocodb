@@ -1,12 +1,26 @@
 <script setup lang="ts">
+const props = defineProps<{
+  showFieldsTab?: boolean,
+}>()
+
 const { appInfo } = useGlobal()
 
-const tab = ref<'comments' | 'audits'>('comments')
+const tab = ref<'fields' |'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')
 </script>
 
 <template>
   <div class="flex flex-col bg-white !h-full w-full rounded-br-2xl overflow-hidden">
     <NcTabs v-model:activeKey="tab" class="h-full">
+      <a-tab-pane v-if="props.showFieldsTab" key="fields" class="w-full h-full">
+        <template #tab>
+          <div v-e="['c:row-expand:fields']" class="flex items-center gap-2">
+            <GeneralIcon icon="fields" class="w-4 h-4" />
+            <span class="<lg:hidden"> Fields </span>
+          </div>
+        </template>
+        <!-- <SmartsheetExpandedFormSidebarComments /> -->
+      </a-tab-pane>
+
       <a-tab-pane key="comments" class="w-full h-full">
         <template #tab>
           <div v-e="['c:row-expand:comment']" class="flex items-center gap-2">

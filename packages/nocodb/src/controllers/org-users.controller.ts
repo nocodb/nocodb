@@ -11,9 +11,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { OrgUserRoles } from 'nocodb-sdk';
+// This service is overwritten entirely in the cloud and does not extend there.
+// As a result, it refers to services from OSS to avoid type mismatches.
+import { OrgUsersService } from 'src/services/org-users.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { OrgUsersService } from '~/services/org-users.service';
 import { User } from '~/models';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';

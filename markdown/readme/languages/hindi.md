@@ -37,24 +37,24 @@ NocoDB ऑनलाइन डेटाबेस बनाने का सबस
 ## SQLite के साथ डॉकर
 
 ```bash
-docker run -d --name noco
-           -v "$(pwd)"/nocodb:/usr/app/data/
-           -p 8080:8080
-           nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+  ```
 
 ## PG के साथ डॉकर
 
 ```bash
-docker run -d --name noco
-           -v "$(pwd)"/nocodb:/usr/app/data/
-           -p 8080:8080
-            # अपने pg कनेक्शन स्ट्रिंग के साथ बदलें
-           -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1"
-           # एक यादृच्छिक गुप्त के साथ बदलें
-           -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010"
-           nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
+  ```
 
 ## ऑटो-अपस्टाल
 

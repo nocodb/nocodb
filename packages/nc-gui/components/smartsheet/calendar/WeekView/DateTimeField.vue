@@ -1079,8 +1079,9 @@ watch(
           >
             <LazySmartsheetRow :row="record">
               <LazySmartsheetCalendarVRecordCard
-                :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === dragRecord?.rowMeta?.id"
+                :hover="hoverRecord === record.rowMeta.id"
                 :position="record.rowMeta!.position"
+                :dragging="record.rowMeta.id === dragRecord?.rowMeta?.id || resizeRecord?.rowMeta.id === record.rowMeta.id"
                 :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
                 :record="record"
                 :selected="record.rowMeta!.id === dragRecord?.rowMeta?.id"

@@ -255,28 +255,40 @@ confirm() {
 	fi
 }
 
+# Function to check if input is IP address
+is_ip() {
+    local input="$1"
+    [[ "$input" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
+}
+
 generate_contact_email() {
-	local domain="$1"
-	local email
+  local primary_domain="$1"
+  local secondary_domain="$2"
+  local email
+  local domain_to_use
 
-	if [ -z "$domain" ] || [ "$domain" = "localhost" ] || [[ "$domain" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-		email="contact@example.com"
-	else
-		domain="${domain#http://}"
-		domain="${domain#https://}"
-		domain="${domain%%/*}"
-		domain="${domain%%\?*}"
+  # Try primary domain first
+  if [ -n "$primary_domain" ] && ! is_ip "$primary_domain" && [ "$primary_domain" != "localhost" ]; then
+    domain_to_use="$primary_domain"
+  # Try secondary domain if primary is not valid
+  elif [ -n "$secondary_domain" ] && ! is_ip "$secondary_domain" && [ "$secondary_domain" != "localhost" ]; then
+    domain_to_use="$secondary_domain"
+  # Fallback if neither domain is valid
+  else
+   echo "Warning: No valid domain found for SSL certificate email, using example.com. This may cause self-signed certificate errors in production."
+   email="contact@example.com"
+   echo "$email"
+   return
+  fi
 
-		if [[ "$domain" =~ [^.]+\.[^.]+$ ]]; then
-			main_domain="${BASH_REMATCH[0]}"
-		else
-			main_domain="$domain"
-		fi
+  # Clean up the chosen domain
+  domain_to_use="${domain_to_use#http://}"
+  domain_to_use="${domain_to_use#https://}"
+  domain_to_use="${domain_to_use%%/*}"
+  domain_to_use="${domain_to_use%%\?*}"
 
-		email="contact@$main_domain"
-	fi
-
-	echo "$email"
+  email="contact@$domain_to_use"
+  echo "$email"
 }
 
 install_package() {
@@ -502,6 +514,7 @@ EOF
     echo -e "${GREEN}✓ Valid domain detected${NC}"
     print_empty_line
     CONFIG_SSL_ENABLED=$(prompt_oneof "Do you want to configure SSL for $CONFIG_DOMAIN_NAME" "Y" "N")
+    print_empty_line
     if [ "$CONFIG_SSL_ENABLED" = "Y" ]; then
       echo -e "${BLUE}→ SSL will be enabled${NC}"
     else
@@ -545,6 +558,7 @@ EOF
       break
     done
 
+    print_empty_line
     echo -e "${BLUE}→ Using MinIO domain:${NC} $CONFIG_MINIO_DOMAIN_NAME"
     print_empty_line
 
@@ -552,11 +566,11 @@ EOF
     if [ "$CONFIG_SSL_ENABLED" = "Y" ]; then
       if ! is_valid_domain "$CONFIG_MINIO_DOMAIN_NAME"; then
         cat << EOF
-⚠️  WARNING: Your MinIO domain name is not valid. File attachments will not work with SSL enabled.${NC}
+⚠️  WARNING: Your MinIO domain name is not valid. File attachments will not work with SSL enabled.
 EOF
         print_empty_line
         if [ "$(prompt_oneof "Would you like to update the MinIO domain name?" "Y" "N")" = "Y" ]; then
-          CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter a valid domain name for MinIO" "")
+          CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter a valid domain name for MinIO" "$(get_public_ip)")
           echo -e "${BLUE}→ Updated MinIO domain to:${NC} $CONFIG_MINIO_DOMAIN_NAME"
           print_empty_line
         fi
@@ -575,11 +589,13 @@ EOF
         if [ "$CONFIG_MINIO_SSL_ENABLED" = "Y" ]; then
           echo -e "${BLUE}→ SSL will be enabled for MinIO${NC}"
         else
+          print_empty_line
           echo -e "${BLUE}→ SSL will not be enabled for MinIO${NC}"
         fi
         print_empty_line
       fi
     else
+      print_empty_line
       echo -e "${YELLOW}! Using IP address for MinIO - SSL will not be enabled${NC}"
       print_empty_line
       CONFIG_MINIO_SSL_ENABLED="N"
@@ -591,7 +607,7 @@ EOF
   fi
 
   # Advanced Configuration
-  if [ "$(prompt_oneof "Show Advanced Options?" "Y" "N")" = "Y" ]; then
+  if [ "$(prompt_oneof "Show Advanced Options?" "N" "Y")" = "Y" ]; then
     print_empty_line
     cat << EOF
 ╔════════════════════════════════════════╗
@@ -764,7 +780,7 @@ EOF
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=$(generate_contact_email $CONFIG_DOMAIN_NAME)"
+      - "--certificatesresolvers.letsencrypt.acme.email=$(generate_contact_email "$CONFIG_DOMAIN_NAME" "$CONFIG_MINIO_DOMAIN_NAME")"
       - "--certificatesresolvers.letsencrypt.acme.storage=/etc/letsencrypt/acme.json"
 EOF
 	fi

@@ -50,7 +50,7 @@ const selectedView = inject(ActiveViewInj)
         </div>
         <div
           v-if="!hideTick"
-          class="nc-subtitle max-w-120 text-xs whitespace-normal ml-6"
+          class="nc-subtitle max-w-120 text-xs whitespace-normal ml-6 pr-6"
           :class="{
             'text-gray-400': disabled,
             'text-gray-500': !disabled,

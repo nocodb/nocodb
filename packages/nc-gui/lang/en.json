@@ -295,7 +295,8 @@
     "extensions": "Extensions",
     "enable": "Enable",
     "poweredBy": "Powered by",
-    "nocoAI": "Noco AI"
+    "nocoAI": "Noco AI",
+    "you": "You"
   },
   "objects": {
     "files": "files",
@@ -635,7 +636,16 @@
     "aiIntegrationMissing": "AI Integration missing",
     "noAiIntegrationsHaveBeenAdded": "No AI Integrations have been added.",
     "generatingBaseTailoredToYourRequirement": "Generating a Base tailored to your requirement...",
-    "hereYourCrmBase": "Here’s your CRM Base"
+    "hereYourCrmBase": "Here’s your CRM Base",
+    "lockThisView": "Lock this view",
+    "lockThisViewSubtle": "Locking this view will prevent anyone from changing the view settings until it is unlocked by a collaborator with creator permissions.",
+    "unlockViewTitle": "Are you sure you want to unlock this view?",
+    "unlockViewTitleSubtitle": "This view was locked by",
+    "thisViewIsLockType": "This view is {type}",
+    "thisFormIsLocked": "This Form is currently locked",
+    "unlockThisVieToMakeChanges": "Unlock this view to make changes",
+    "yourBaseRole": "Your base role",
+    "lockedByUser": "Locked by {user}"
   },
   "labels": {
     "continue": "Continue",
@@ -810,7 +820,7 @@
     "clickToCopyTableID": "Click to copy Table ID",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "View mode",
-    "reAssignView": "Re-Assign View",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
     "allTables": "All Tables",
@@ -1026,6 +1036,8 @@
     "syncData": "Sync data",
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
     "redirectToUrl": "Redirect to URL",
+    "lockView": "Lock view",
+    "unlockView": "Unlock view",
     "aiSuggested": "AI suggested",
     "generateFieldDataUsingAi": "Generate field data using AI",
     "preview": "Preview",
@@ -1405,7 +1417,8 @@
     "noTokenCreatedLabel": "Looks like you haven’t generated any API tokens yet.",
     "inviteYourTeam": "Invite your team",
     "inviteYourTeamLabel": "Fast track your projects by collaborating on them with your team!",
-    "searchOptions": "Search options"
+    "searchOptions": "Search options",
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
     "invalidConfiguration": "Invalid button configuration",
@@ -1617,7 +1630,10 @@
       "showAllViews": "Show all shared views of this table",
       "collabView": "Collaborators with edit permissions or higher can change the view configuration.",
       "lockedView": "No one can edit the view configuration until it is unlocked.",
-      "personalView": "Only you can edit the view configuration. Other collaborators’ personal views are hidden by default.",
+      "personalView": "Only you can edit the view configuration.",
+      "canEditLockedViewConfiguration": "Unlock this view to edit the view configuration.",
+      "cannotEditViewConfiguration": "You connot configure this view",
+      "onlyYouCanConfigureThisView": "Only {user} can edit the view configuration.",
       "ownerDesc": "Can add/remove creators. And full edit database structures & fields.",
       "creatorDesc": "Can fully edit database structure & values.",
       "editorDesc": "Can edit records but cannot change structure of database/fields.",

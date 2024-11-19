@@ -641,8 +641,13 @@ a {
 .nc-toolbar-btn {
   @apply !shadow-none rounded hover:(bg-gray-50 !text-gray-800) focus:(!text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
 }
+
 .nc-toolbar-btn[disabled] {
   @apply !text-gray-400 !cursor-not-allowed !hover:ring-0;
+}
+
+.nc-toolbar-btn.nc-show-as-disabled {
+  @apply !text-gray-400 !hover:ring-0;
 }
 
 .nc-warning-info {
@@ -1040,5 +1045,30 @@ svg.nc-virtual-cell-icon {
 
   &.nc-disabled {
     @apply cursor-not-allowed !text-nc-content-purple-light;
+  }
+}
+
+
+.ant-dropdown {
+  &.nc-dropdown-group-by-menu,
+  &.nc-dropdown-sort-menu {
+    .nc-locked-view {
+      .nc-unified-search-list-wrapper {
+        @apply cursor-not-allowed;
+        & > div {
+          @apply !pointer-events-none select-none !bg-white;
+
+          &.nc-unified-list-option-active {
+            @apply bg-white;
+          }
+        }
+      }
+    }
+  }
+}
+
+.nc-base-node-tooltip .nc-role-badge {
+  & > div {
+    @apply bg-transparent;
   }
 }

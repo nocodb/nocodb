@@ -31,6 +31,15 @@ export const stringToViewTypeMap: Record<string, ViewTypes> = Object.entries(
   return acc;
 }, {});
 
+export const ViewTypesNameMap = {
+  [ViewTypes.FORM]: 'form',
+  [ViewTypes.GALLERY]: 'gallery',
+  [ViewTypes.GRID]: 'grid',
+  [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.MAP]: 'map',
+  [ViewTypes.CALENDAR]: 'calendar',
+} as Record<string, string>;
+
 export enum ProjectTypes {
   DATABASE = 'database',
   DOCUMENTATION = 'documentation',

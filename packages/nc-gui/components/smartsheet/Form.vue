@@ -1378,6 +1378,7 @@ useEventListener(
                 class="nc-form-right-panel h-full flex-grow max-w-full"
                 :class="{
                   'overflow-y-auto nc-form-scrollbar': activeField,
+                  'relative': isLocked,
                 }"
               >
                 <!-- Form Field settings -->
@@ -1890,6 +1891,10 @@ useEventListener(
                     </Pane>
                   </Splitpanes>
                 </template>
+
+                <div v-if="isLocked" class="absolute inset-0 bg-black/12 z-500 grid place-items-center px-6">
+                  <LazyDlgLockView />
+                </div>
               </div>
             </template>
           </SmartsheetFormLayout>

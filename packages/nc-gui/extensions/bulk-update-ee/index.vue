@@ -152,8 +152,6 @@ const bulkUpdatePayload = computedAsync(async () => {
 
       const deletedTableIds = new Set<string>()
 
-      const deletedViewIds = new Set<string>()
-
       const availableTables: string[] = (tableList.value || []).map((t) => t.value) || []
 
       for (const h of saved.history) {
@@ -919,7 +917,7 @@ provide(IsGalleryInj, ref(false))
                     No values will be updated as there are 0 records in Table name/View name.
                   </div>
                 </div>
-                <NcButton size="xs" type="text" @click="showNoRecordToUpdateInlineToast = false" icon-only>
+                <NcButton size="xs" type="text" icon-only @click="showNoRecordToUpdateInlineToast = false">
                   <template #icon>
                     <GeneralIcon icon="close" class="text-gray-600" />
                   </template>
@@ -1059,7 +1057,7 @@ provide(IsGalleryInj, ref(false))
                         @change="saveChanges()"
                       >
                         <a-select-option
-                          v-for="(col, i) of bulkUpdateColumns"
+                          v-for="col of bulkUpdateColumns"
                           :key="col.title"
                           :value="col.id"
                           :disabled="col.disabled || (!!fieldConfigMapByColumnId[col.id!] && fieldConfig.columnId !== col.id)"
@@ -1116,7 +1114,7 @@ provide(IsGalleryInj, ref(false))
                         @update:value="(value) => handleFieldUpdateTypeSelect(fieldConfig, value)"
                         @change="saveChanges()"
                       >
-                        <a-select-option v-for="(action, i) of fieldActionOptions" :key="action.label" :value="action.value">
+                        <a-select-option v-for="action of fieldActionOptions" :key="action.label" :value="action.value">
                           <div class="flex items-center gap-2 w-full">
                             <NcTooltip class="truncate flex-1" show-on-truncate-only>
                               <template #title>

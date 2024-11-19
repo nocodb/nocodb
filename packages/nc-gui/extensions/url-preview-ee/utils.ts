@@ -1,4 +1,4 @@
-const urlMatchers: ([string, (u: string) => string | null])[] = []
+const urlMatchers: [string, (u: string) => string | null][] = []
 
 const YOUTUBE_RE = /^https?:\/\/(www\.|)youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:\?.*)?$/
 const matchYoutube = (url: string) => {
@@ -28,7 +28,7 @@ const matchGoogle = (url: string) => {
     const urlObj = new URL(url)
     let embedUrl = `https://${domain}.google.com/${type}/d/${docId}/preview`
     urlObj.searchParams.set('embed', 'true')
-    embedUrl += '?' + urlObj.searchParams.toString()
+    embedUrl += `?${urlObj.searchParams.toString()}`
 
     return embedUrl
   } catch {
@@ -37,8 +37,7 @@ const matchGoogle = (url: string) => {
 }
 urlMatchers.push(['Google', matchGoogle])
 
-const DRIVE_RE =
-  /^https?:\/\/drive\.google\.com\/drive\/folders\/([a-zA-Z0-9_-]+)(?:\/.*)?(?:\?.*)?$/
+const DRIVE_RE = /^https?:\/\/drive\.google\.com\/drive\/folders\/([a-zA-Z0-9_-]+)(?:\/.*)?(?:\?.*)?$/
 
 const matchDrive = (url: string) => {
   try {
@@ -224,5 +223,5 @@ export const getEmbedURL = (url: string): [string, string] => {
       return [matcher[0], embedURL]
     }
   }
-  return ["unsupported", "unsupported"]
+  return ['unsupported', 'unsupported']
 }

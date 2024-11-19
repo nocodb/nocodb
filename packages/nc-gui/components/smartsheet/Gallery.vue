@@ -467,7 +467,8 @@ reloadViewDataHook?.on(async () => {
                       class="nc-card-display-value-wrapper"
                       :class="{
                         '!children:pointer-events-auto':
-                          isButton(displayField) || (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
+                          isButton(displayField) ||
+                          (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
                       }"
                     >
                       <template v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)">

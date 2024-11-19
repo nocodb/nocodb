@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import type { NotificationType } from 'nocodb-sdk'
 import axios, { type CancelTokenSource } from 'axios'
-import { useStorage } from '@vueuse/core'
 
 const CancelToken = axios.CancelToken
 

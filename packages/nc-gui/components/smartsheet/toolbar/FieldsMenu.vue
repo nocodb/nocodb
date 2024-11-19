@@ -616,13 +616,26 @@ useMenuCloseOnEsc(open)
                   "
                   :key="field.id"
                   :data-testid="`nc-fields-menu-${field.title}`"
-                  class="pl-2 flex flex-row items-center rounded-md hover:bg-gray-100"
+                  class="pl-2 flex flex-row items-center rounded-md"
+                  :class="{
+                    'hover:bg-gray-100': !isLocked,
+                  }"
                   @click.stop
                 >
-                  <component :is="iconMap.drag" class="cursor-move !h-3.75 text-gray-600 mr-1" />
+                  <component
+                    :is="iconMap.drag"
+                    class="!h-3.75 text-gray-600 mr-1"
+                    :class="{
+                      'cursor-not-allowed': isLocked,
+                      'cursor-move': !isLocked,
+                    }"
+                  />
                   <div
                     v-e="['a:fields:show-hide']"
-                    class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2"
+                    class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2"
+                    :class="{
+                      'cursor-pointer': !isLocked,
+                    }"
                     @click="
                       () => {
                         if (isLocked) return

@@ -78,7 +78,6 @@ const changeLockType = async () => {
 watch(dialogShow, (newValue) => {
   if (!newValue) {
     description.value = ''
-  } else if (changeType.value === LockType.Locked) {
   }
 })
 </script>
@@ -166,7 +165,7 @@ watch(dialogShow, (newValue) => {
       </div>
 
       <div class="flex gap-2 items-center justify-end">
-        <NcButton type="secondary" size="small" :disabled="isLoading" @click="dialogShow = false" data-testid="nc-cancel-btn">{{
+        <NcButton type="secondary" size="small" :disabled="isLoading" data-testid="nc-cancel-btn" @click="dialogShow = false">{{
           $t('general.cancel')
         }}</NcButton>
 

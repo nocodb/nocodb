@@ -7,7 +7,7 @@ export NOCO_HOME
 
 setup() {
   cd "${WORKING_DIR}/configure" || exit 1
-  ./setup.sh "setup"
+  TERM=xterm-256color ./setup.sh "setup"
 }
 
 teardown() {

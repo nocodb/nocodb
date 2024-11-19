@@ -251,15 +251,15 @@ const viewModeInfo = computed(() => {
     case ViewLockType.Collaborative:
       return t(viewLockIcons[ViewLockType.Collaborative]?.title)
     case ViewLockType.Personal:
-      return `${t(viewLockIcons[ViewLockType.Personal]?.title)} (${
+      return `${t(viewLockIcons[ViewLockType.Personal]?.title)} ${
         isViewOwner.value
-          ? t('general.you')
-          : vModel.value?.owned_by
-          ? idUserMap.value[vModel.value.owned_by]?.display_name || idUserMap.value[vModel.value.owned_by]?.email
+          ? `(${t('general.you')})`
+          : vModel.value?.owned_by && idUserMap.value[vModel.value.owned_by]
+          ? `(${idUserMap.value[vModel.value.owned_by]?.display_name || idUserMap.value[vModel.value.owned_by]?.email})`
           : ''
-      })`
+      }`
     case ViewLockType.Locked:
-      if (!vModel.value?.meta?.lockedByUserId) {
+      if (!vModel.value?.meta?.lockedByUserId || !idUserMap.value[vModel.value?.meta?.lockedByUserId]) {
         return t(viewLockIcons[ViewLockType.Locked]?.title)
       }
 

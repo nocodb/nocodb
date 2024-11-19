@@ -66,36 +66,40 @@ const canEdit = computed(() =>
 )
 
 
-/* initial focus and scroll fix */
+/* attachments */
 
-const cellWrapperEl = ref()
-const mentionedCell = ref('')
+const attachmentFields = computed(() =>
+  fields.value.filter(field => field.uidt === 'Attachment')
+)
+
+const selectedFieldId = ref(attachmentFields.value[0]?.id);
+
+const selectedField = computed(() =>
+  attachmentFields.value.find(field => field.id === selectedFieldId.value)
+)
+
+const selectedFieldValue = computed(() =>
+  _row.value.row[selectedField.value?.column_name || '']
+)
+
+const activeAttachmentIndex = ref(0);
+
+watch(selectedFieldId, () => {
+  activeAttachmentIndex.value = 0
+})
+
+const activeAttachment = computed(() =>
+  selectedFieldValue.value?.[activeAttachmentIndex.value]
+)
 
 
-/* hidden fields */
+const hasAnyAttachmentFields = computed(() =>
+  attachmentFields.value.length > 0
+)
 
-const showHiddenFields = ref(false)
-
-function toggleHiddenFields() {
-  showHiddenFields.value = !showHiddenFields.value
-}
-
-
-/* utilities */
-
-function isReadOnlyVirtualCell(column: ColumnType) {
-  return (
-    isRollup(column) ||
-    isFormula(column) ||
-    isBarcode(column) ||
-    isLookup(column) ||
-    isQrCode(column) ||
-    isSystemColumn(column) ||
-    isCreatedOrLastModifiedTimeCol(column) ||
-    isCreatedOrLastModifiedByCol(column)
-  )
-}
-
+const hasAnyValueInAttachment = computed(() =>
+  selectedFieldValue.value?.length > 0
+)
 
 </script>
 
@@ -114,68 +118,108 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-      <div class="flex items-center h-[44px] border-b-1 border-gray-200 px-3 gap-3">
-        <NcDropdown>
-          <NcButton type="secondary" size="small">
-            <GeneralIcon icon="cellAttachment" class="w-4" />
-            <span class="min-w-[100px] text-left pl-2 pb-1 inline-block">
-              Resume
-            </span>
-            <GeneralIcon icon="chevronDown" />
-          </NcButton>
-          <template #overlay>
-            asdf
-          </template>
-        </NcDropdown>
-        <div>
-          resume-file.pdf
+      <template v-if="!hasAnyAttachmentFields">
+        <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+          <span class="text-base font-black">
+            No Attachment field
+          </span>
+          <span class="text-xs mt-3 w-[200px] text-center">
+            Create an attachment field to use file mode.
+          </span>
         </div>
-        <div class="flex-1" />
-        <div>
-          <NcButton
-            type="secondary"
-            size="small">
-            <GeneralIcon icon="threeDotVertical" />
-          </NcButton>
-        </div>
-      </div>
-      <div class="w-full flex-1 flex flex-row">
-        <div class="w-[80px] h-full bg-white border-r-1 border-gray-200 flex flex-col">
-          <div class="flex-1 h-0 flex items-center justify-center p-2">
-            <div class="w-full h-[64px] border-1 border-gray-200 rounded-lg overflow-hidden hover:bg-gray-50 cursor-pointer flex flex-col">
-              <div class="h-0 flex-1 flex items-center justify-center">
-                <GeneralIcon icon="pdfFile" class="text-red-500 text-xl" />
-              </div>
-              <div class="font-bold text-center">
-                PDF
-              </div>
-            </div>
-          </div>
+      </template>
+      <template v-else>
+        <div class="flex items-center h-[44px] border-b-1 border-gray-200 px-3 gap-3">
+          <NcDropdownSelect
+            :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
+            v-model="selectedFieldId"
+          >
+            <NcButton type="secondary" size="small">
+              <GeneralIcon icon="cellAttachment" class="w-4" />
+              <span class="min-w-[100px] text-left pl-2 pb-1 inline-block">
+                {{ selectedField?.title }}
+              </span>
+              <GeneralIcon icon="chevronDown" />
+            </NcButton>
+          </NcDropdownSelect>
           <div>
-            <div class="flex items-center border-t-1 border-gray-200 rounded-t-lg overflow-clip">
-              <NcButton type="text" class="w-0 flex-1 !border-r-1 !border-gray-200 !rounded-none">
-                <GeneralIcon icon="chevronUpSmall" />
-              </NcButton>
-              <NcButton type="text" class="w-0 flex-1 !rounded-none">
-                <GeneralIcon icon="chevronDownSmall" />
-              </NcButton>
-            </div>
-            <NcButton type="text" class="w-full !rounded-none !border-t-1 !border-gray-200 !h-16">
-              <div class="flex flex-col items-center">
-                <GeneralIcon icon="plus" />
-                <span class="mt-2">
-                  Add file(s)
-                </span>
-              </div>
+            {{ activeAttachment?.title }}
+          </div>
+          <div class="flex-1" />
+          <div>
+            <NcButton
+              type="secondary"
+              size="small">
+              <GeneralIcon icon="threeDotVertical" />
             </NcButton>
           </div>
         </div>
-        <div class="w-0 flex-1 bg-gray-100 p-4">
-          <CellAttachmentPreviewPdf
-            :src="['https://pdfobject.com/pdf/sample.pdf']"
-          />
+        <div class="w-full h-0 flex-1 flex flex-row">
+          <template v-if="!hasAnyValueInAttachment">
+            <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+              <span class="text-base font-black">
+                No Attachment
+              </span>
+              <span class="text-xs mt-3 w-[210px] text-center">
+                There are no attachments to display in this field
+              </span>
+              <NcButton type="secondary" size="small" class="mt-3">
+                <template #icon>
+                  <GeneralIcon icon="upload" />
+                </template>
+                Upload Attachment
+              </NcButton>
+            </div>
+          </template>
+          <template v-else>
+            <div class="w-[80px] h-full bg-white border-r-1 border-gray-200 flex flex-col">
+              <div class="flex-1 h-0 flex flex-col gap-2 items-center justify-center p-2">
+                <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
+                  v-for="(attachment, index) of selectedFieldValue"
+                  :key="attachment.id"
+                  :attachment="attachment"
+                  :active="activeAttachmentIndex === index"
+                  @click="activeAttachmentIndex = index"
+                />
+              </div>
+              <div>
+                <div class="flex items-center border-t-1 border-gray-200 rounded-t-lg overflow-clip">
+                  <NcButton
+                    type="text"
+                    class="w-0 flex-1 !border-r-1 !border-gray-200 !rounded-none"
+                    :disabled="!selectedFieldValue || activeAttachmentIndex === 0"
+                    @click="activeAttachmentIndex = activeAttachmentIndex - 1"
+                  >
+                    <GeneralIcon icon="chevronUpSmall" />
+                  </NcButton>
+                  <NcButton
+                    type="text"
+                    class="w-0 flex-1 !rounded-none"
+                    :disabled="!selectedFieldValue || activeAttachmentIndex === selectedFieldValue.length - 1"
+                    @click="activeAttachmentIndex = activeAttachmentIndex + 1"
+                  >
+                    <GeneralIcon icon="chevronDownSmall" />
+                  </NcButton>
+                </div>
+                <NcButton type="text" class="w-full !rounded-none !border-t-1 !border-gray-200 !h-16">
+                  <div class="flex flex-col items-center">
+                    <GeneralIcon icon="plus" />
+                    <span class="mt-2">
+                      Add file(s)
+                    </span>
+                  </div>
+                </NcButton>
+              </div>
+            </div>
+            <div class="w-0 flex-1 bg-gray-100">
+              <SmartsheetExpandedFormPresentorsAttachmentsAttachmentView
+                v-if="activeAttachment"
+                :attachment="activeAttachment"
+              />
+            </div>
+          </template>
         </div>
-      </div>
+      </template>
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"

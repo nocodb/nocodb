@@ -30,7 +30,9 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { alias?: string; is_default: boolean }>
+const vModel = useVModel(props, 'view', emits) as WritableComputedRef<
+  ViewType & { alias?: string; is_default: boolean; created_by?: string }
+>
 
 const { $e } = useNuxtApp()
 
@@ -45,6 +47,8 @@ const { activeView } = storeToRefs(useViewsStore())
 const { getMeta } = useMetas()
 
 const { meta: metaKey, control } = useMagicKeys()
+
+const { basesUser } = storeToRefs(useBases())
 
 const table = computed(() => props.table)
 const injectedTable = ref(table.value)
@@ -78,8 +82,18 @@ const isStopped = ref(false)
 /** Original view title when editing the view name */
 const _title = ref<string | undefined>()
 
+const showViewNodeTooltip = ref(true)
+
 const isViewOwner = computed(() => {
   return vModel.value?.owned_by === user.value?.id
+})
+
+const idUserMap = computed(() => {
+  return (basesUser.value.get(base.value?.id) || []).reduce((acc, user) => {
+    acc[user.id] = user
+    acc[user.email] = user
+    return acc
+  }, {} as Record<string, any>)
 })
 
 /** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
@@ -248,105 +262,149 @@ watch(isDropdownOpen, async () => {
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
-    <div v-e="['a:view:open', { view: vModel.type }]" class="text-sm flex items-center w-full gap-1" data-testid="view-item">
-      <div
-        v-e="['c:view:emoji-picker']"
-        class="flex min-w-6"
-        :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`"
-      >
-        <LazyGeneralEmojiPicker
-          class="nc-table-icon"
-          :emoji="props.view?.meta?.icon"
-          size="small"
-          :clearable="true"
-          :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
-          @emoji-selected="emits('selectIcon', $event)"
-        >
-          <template #default>
-            <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 !text-[16px]"></GeneralViewIcon>
-          </template>
-        </LazyGeneralEmojiPicker>
-      </div>
-
-      <a-input
-        v-if="isEditing"
-        ref="input"
-        v-model:value="_title"
-        class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent !pl-0 !flex-1 mr-4"
-        :class="{
-          'font-medium !text-brand-600': activeView?.id === vModel.id,
-        }"
-        @blur="onRename"
-        @keydown.stop="onKeyDown($event)"
-      />
-      <NcTooltip
-        v-else
-        class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none max-w-full"
-        :class="{
-          'w-full': ![ViewLockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type!),
-        }"
-        show-on-truncate-only
-      >
-        <template #title> {{ vModel.alias || vModel.title }}</template>
-        <div
-          data-testid="sidebar-view-title"
-          :class="{
-            'font-medium text-brand-600': activeView?.id === vModel.id,
-          }"
-          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-        >
-          {{ vModel.alias || vModel.title }}
+    <NcTooltip
+      :tooltip-style="{ width: '300px' }"
+      :overlay-inner-style="{ width: '300px' }"
+      trigger="hover"
+      placement="right"
+      :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip"
+    >
+      <template #title>
+        <div class="flex flex-col gap-2">
+          <div class="text-small leading-[18px]">{{ vModel.alias || vModel.title }}</div>
+          <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
+            <div class="text-tiny">{{ $t('labels.createdBy') }}</div>
+            <div class="text-xs">
+              {{
+                idUserMap[vModel?.created_by]?.id === user?.id
+                  ? $t('general.you')
+                  : idUserMap[vModel?.created_by]?.display_name || idUserMap[vModel?.created_by]?.email
+              }}
+            </div>
+          </div>
+          <div>
+            <div class="text-tiny mb-1">Editing</div>
+            <div class="text-xs flex items-start gap-2">
+              <component :is="viewLockIcons[vModel.lock_type]?.icon" class="flex-none w-4 h-4" />
+              {{
+                vModel.lock_type === ViewLockType.Personal && !isViewOwner
+                  ? $t(viewLockIcons[vModel.lock_type]?.cannotEditConfiguration)
+                  : $t(viewLockIcons[vModel.lock_type]?.subtitle)
+              }}
+            </div>
+          </div>
         </div>
-      </NcTooltip>
-      <div v-if="!isEditing && [LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)" class="flex-1 flex">
-        <component
-          :is="viewLockIcons[vModel.lock_type].icon"
-          class="ml-1 flex-none w-3.5 h-3.5"
-          :class="{
-            'text-brand-400': vModel?.lock_type === ViewLockType.Personal && isViewOwner,
-            'text-gray-400': !(vModel?.lock_type === ViewLockType.Personal && isViewOwner),
-          }"
-        />
-      </div>
-
-      <template v-if="!isEditing && !isLocked">
-        <NcTooltip v-if="vModel.description?.length" placement="bottom">
-          <template #title>
-            {{ vModel.description }}
-          </template>
-          <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
-            <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
-          </NcButton>
-        </NcTooltip>
-        <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
-          <NcButton
-            v-e="['c:view:option']"
-            type="text"
-            size="xxsmall"
-            class="nc-sidebar-node-btn invisible !group-hover:(visible opacity-100) nc-sidebar-view-node-context-btn"
-            :class="{
-              '!visible !opacity-100': isDropdownOpen,
-            }"
-            @click.stop="isDropdownOpen = !isDropdownOpen"
-            @dblclick.stop
-          >
-            <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
-          </NcButton>
-
-          <template #overlay>
-            <SmartsheetToolbarViewActionMenu
-              :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`"
-              :view="vModel"
-              :table="table"
-              in-sidebar
-              @close-modal="isDropdownOpen = false"
-              @rename="onRenameMenuClick"
-              @delete="onDelete"
-              @description-update="openViewDescriptionDialog(vModel)"
-            />
-          </template>
-        </NcDropdown>
       </template>
-    </div>
+      <div v-e="['a:view:open', { view: vModel.type }]" class="text-sm flex items-center w-full gap-1" data-testid="view-item">
+        <div
+          v-e="['c:view:emoji-picker']"
+          class="flex min-w-6"
+          :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`"
+          @mouseenter="showViewNodeTooltip = false"
+          @mouseleave="showViewNodeTooltip = true"
+        >
+          <LazyGeneralEmojiPicker
+            class="nc-table-icon"
+            :emoji="props.view?.meta?.icon"
+            size="small"
+            :clearable="true"
+            :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
+            @emoji-selected="emits('selectIcon', $event)"
+          >
+            <template #default>
+              <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 !text-[16px]"></GeneralViewIcon>
+            </template>
+          </LazyGeneralEmojiPicker>
+        </div>
+
+        <a-input
+          v-if="isEditing"
+          ref="input"
+          v-model:value="_title"
+          class="!bg-transparent !border-0 !ring-0 !outline-transparent !border-transparent !pl-0 !flex-1 mr-4"
+          :class="{
+            'font-medium !text-brand-600': activeView?.id === vModel.id,
+          }"
+          @blur="onRename"
+          @keydown.stop="onKeyDown($event)"
+        />
+        <NcTooltip
+          v-else
+          class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none max-w-full"
+          :class="{
+            'w-full': ![ViewLockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type!)
+          }"
+          show-on-truncate-only
+          disabled
+        >
+          <template #title> {{ vModel.alias || vModel.title }}</template>
+          <div
+            data-testid="sidebar-view-title"
+            :class="{
+              'font-medium text-brand-600': activeView?.id === vModel.id,
+            }"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+          >
+            {{ vModel.alias || vModel.title }}
+          </div>
+        </NcTooltip>
+        <div v-if="!isEditing && [LockType.Locked, ViewLockType.Personal].includes(vModel?.lock_type)" class="flex-1 flex">
+          <component
+            :is="viewLockIcons[vModel.lock_type].icon"
+            class="ml-1 flex-none w-3.5 h-3.5"
+            :class="{
+              'text-brand-400': vModel?.lock_type === ViewLockType.Personal && isViewOwner,
+              'text-gray-400': !(vModel?.lock_type === ViewLockType.Personal && isViewOwner),
+            }"
+          />
+        </div>
+
+        <template v-if="!isEditing && !isLocked">
+          <NcTooltip
+            v-if="vModel.description?.length"
+            placement="bottom"
+            @mouseenter="showViewNodeTooltip = false"
+            @mouseleave="showViewNodeTooltip = true"
+          >
+            <template #title>
+              {{ vModel.description }}
+            </template>
+            <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
+              <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
+            </NcButton>
+          </NcTooltip>
+          <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
+            <NcButton
+              v-e="['c:view:option']"
+              type="text"
+              size="xxsmall"
+              class="nc-sidebar-node-btn invisible !group-hover:(visible opacity-100) nc-sidebar-view-node-context-btn"
+              :class="{
+                '!visible !opacity-100': isDropdownOpen,
+              }"
+              @click.stop="isDropdownOpen = !isDropdownOpen"
+              @dblclick.stop
+              @mouseenter="showViewNodeTooltip = false"
+              @mouseleave="showViewNodeTooltip = true"
+            >
+              <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
+            </NcButton>
+
+            <template #overlay>
+              <SmartsheetToolbarViewActionMenu
+                :data-testid="`view-sidebar-view-actions-${vModel.alias || vModel.title}`"
+                :view="vModel"
+                :table="table"
+                in-sidebar
+                @close-modal="isDropdownOpen = false"
+                @rename="onRenameMenuClick"
+                @delete="onDelete"
+                @description-update="openViewDescriptionDialog(vModel)"
+              />
+            </template>
+          </NcDropdown>
+        </template>
+      </div>
+    </NcTooltip>
   </a-menu-item>
 </template>

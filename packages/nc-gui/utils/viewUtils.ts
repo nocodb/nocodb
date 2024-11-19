@@ -52,6 +52,8 @@ export const viewLockIcons = {
     title: 'title.personal',
     icon: PersonalIcon,
     subtitle: 'msg.info.personalView',
+    canEditConfiguration: 'msg.info.onlyYouCanConfigureThisView',
+    cannotEditConfiguration: 'msg.info.cannotEditViewConfiguration',
   },
   [LockType.Collaborative]: {
     title: 'title.collaborative',
@@ -62,5 +64,7 @@ export const viewLockIcons = {
     title: 'title.locked',
     icon: LockIcon,
     subtitle: 'msg.info.lockedView',
+    canEditConfiguration: 'msg.info.canEditLockedViewConfiguration',
+    cannotEditConfiguration: 'msg.info.cannotEditViewConfiguration',
   },
 }

@@ -291,7 +291,11 @@
     "request": "Request",
     "languages": "Languages",
     "extension": "Extension",
-    "extensions": "Extensions"
+    "extensions": "Extensions",
+    "enable": "Enable",
+    "poweredBy": "Powered by",
+    "nocoAI": "Noco AI",
+    "you": "You"
   },
   "objects": {
     "files": "files",
@@ -1608,6 +1612,9 @@
       "collabView": "Collaborators with edit permissions or higher can change the view configuration.",
       "lockedView": "No one can edit the view configuration until it is unlocked.",
       "personalView": "Only you can edit the view configuration.",
+      "canEditLockedViewConfiguration": "Unlock this view to configure it",
+      "cannotEditViewConfiguration": "You connot configure this view",
+      "onlyYouCanConfigureThisView": "You you con configure this view",
       "ownerDesc": "Can add/remove creators. And full edit database structures & fields.",
       "creatorDesc": "Can fully edit database structure & values.",
       "editorDesc": "Can edit records but cannot change structure of database/fields.",

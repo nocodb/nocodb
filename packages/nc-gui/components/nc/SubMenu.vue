@@ -12,8 +12,9 @@ const props = defineProps<{
           <slot name="title" />
         </div>
 
-        <slot v-if="slots.expandIcon" name="expandIcon" />
-        <GeneralIcon v-else icon="arrowRight" class="nc-submenu-arrow text-base" />
+        <slot name="expandIcon">
+          <GeneralIcon icon="arrowRight" class="nc-submenu-arrow text-base" />
+        </slot>
       </div>
     </template>
 

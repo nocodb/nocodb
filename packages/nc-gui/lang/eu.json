@@ -1006,7 +1006,8 @@
     "coverImageArea": "Azal irudia",
     "syncData": "Datuen sinkronizazioa",
     "syncDataModalSubtitle": "Zure intereseko zerbitzuak erregistratu hauek erabilgarri daudenean abisua jasotzeko",
-    "redirectToUrl": "Bideratu URLa"
+    "redirectToUrl": "Bideratu URLa",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Taldea",
     "goToDocs": "Joan Dokumentetara",
     "addCondition": "Gehitu baldintza",
-    "addConditionGroup": "Gehitu baldintza-taldea"
+    "addConditionGroup": "Gehitu baldintza-taldea",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

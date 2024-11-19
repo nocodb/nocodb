@@ -1006,7 +1006,8 @@
     "coverImageArea": "Cover image",
     "syncData": "Gegevens synchroniseren",
     "syncDataModalSubtitle": "Registreer de diensten waarin u geïnteresseerd bent om op de hoogte te blijven wanneer ze beschikbaar komen",
-    "redirectToUrl": "Redirect naar URL"
+    "redirectToUrl": "Redirect naar URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Weergave toewijzen",
@@ -1266,7 +1267,8 @@
     "group": "Groep",
     "goToDocs": "Ga naar Documenten",
     "addCondition": "Voorwaarde toevoegen",
-    "addConditionGroup": "Voorwaardengroep toevoegen"
+    "addConditionGroup": "Voorwaardengroep toevoegen",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

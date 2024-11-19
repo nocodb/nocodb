@@ -1006,7 +1006,8 @@
     "coverImageArea": "কভার চিত্র",
     "syncData": "ডেটা সিঙ্ক করুন",
     "syncDataModalSubtitle": "আপনি যেসব পরিষেবায় আগ্রহী সেগুলি নিবন্ধন করুন যাতে তারা উপলভ্য হলে বিজ্ঞপ্তি পান",
-    "redirectToUrl": "ইউআরএল এ পুনঃনির্দেশনা করুন"
+    "redirectToUrl": "ইউআরএল এ পুনঃনির্দেশনা করুন",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "গ্রুপ",
     "goToDocs": "Docs এ যান",
     "addCondition": "শর্ত যোগ করুন",
-    "addConditionGroup": "শর্ত গোষ্ঠী যোগ করুন"
+    "addConditionGroup": "শর্ত গোষ্ঠী যোগ করুন",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

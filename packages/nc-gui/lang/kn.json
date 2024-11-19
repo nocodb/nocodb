@@ -1006,7 +1006,8 @@
     "coverImageArea": "ಚೆನ್ನಾಗಿ ಛಾಯಾಮಾತ್ರ",
     "syncData": "ಡೇಟಾವನ್ನು ಸಮನ್ವಯಗೊಳಿಸು",
     "syncDataModalSubtitle": "ಅವು ಲಭ್ಯವಾಗುವಾಗ ನೋಟಿಫಿಕೇಷನ್ ಪಡೆಯಲು ನೀವು ಆಸಕ್ತಿ ಇರುವ ಸೇವೆಗಳನ್ನು ನೋಂದಾಯಿಸಿ",
-    "redirectToUrl": "URL ಗೆ ಮಾರ್ಗದರ್ಶಿಸಿ"
+    "redirectToUrl": "URL ಗೆ ಮಾರ್ಗದರ್ಶಿಸಿ",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "ಗುಂಪು",
     "goToDocs": "ಡಾಕ್ಸ್‌ಗೆ ಹೋಗಿ",
     "addCondition": "ಶರತ್ತು ಸೇರಿಸಿ",
-    "addConditionGroup": "ಶರತ್ತು ಗುಂಪು ಸೇರಿಸಿ"
+    "addConditionGroup": "ಶರತ್ತು ಗುಂಪು ಸೇರಿಸಿ",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "ಡೇಟಾ ಮೂಲ ಅಥವಾ ಡೇಟಾ ಪ್ರಕಾರಕ್ಕೆ ಪ್ರಸ್ತುತ ದಿನಾಂಕ ಆಯ್ಕೆ ಲಭ್ಯವಿಲ್ಲ",

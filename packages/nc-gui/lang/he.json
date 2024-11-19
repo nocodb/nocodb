@@ -93,7 +93,7 @@
     "none": "ללא"
   },
   "general": {
-    "featurePreview": "Feature Preview",
+    "featurePreview": "תצוגת תכונה",
     "scripts": "תסריטים",
     "configure": "קבע תצורה",
     "switch": "החלף",
@@ -1006,7 +1006,8 @@
     "coverImageArea": "התאם שטח כיסוי לתמונה",
     "syncData": "סנכרן נתונים",
     "syncDataModalSubtitle": "הרשמו לשירותים שאתם מעוניינים בהם כדי לקבל התראה כשהם זמינים",
-    "redirectToUrl": "הפניה מחדש ל-URL"
+    "redirectToUrl": "הפניה מחדש ל-URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "קבוצה",
     "goToDocs": "לך למדריכים",
     "addCondition": "הוסף תנאי",
-    "addConditionGroup": "הוסף קבוצת תנאים"
+    "addConditionGroup": "הוסף קבוצת תנאים",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

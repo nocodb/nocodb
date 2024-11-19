@@ -1006,7 +1006,8 @@
     "coverImageArea": "Oříznout obrázek",
     "syncData": "Synchronizovat data",
     "syncDataModalSubtitle": "Zaregistrujte služby, které vás zajímají, abyste byli informováni, když budou dostupné",
-    "redirectToUrl": "Přesměrovat na URL"
+    "redirectToUrl": "Přesměrovat na URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Skupina",
     "goToDocs": "Přejít na dokumentaci",
     "addCondition": "Přidat podmínku",
-    "addConditionGroup": "Přidat skupinu podmínek"
+    "addConditionGroup": "Přidat skupinu podmínek",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

@@ -1006,7 +1006,8 @@
     "coverImageArea": "Kapak resmi",
     "syncData": "Veriyi Senkronize Et",
     "syncDataModalSubtitle": "İlgilendiğiniz hizmetleri kayıt edin ve uygun olduklarında bildirim alın",
-    "redirectToUrl": "URL'ye Yönlendir"
+    "redirectToUrl": "URL'ye Yönlendir",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Grup",
     "goToDocs": "Dokümanlara Git",
     "addCondition": "Koşul ekle",
-    "addConditionGroup": "Koşul grubu ekle"
+    "addConditionGroup": "Koşul grubu ekle",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Geçerli tarih seçeneği veri kaynağı veya veri türü için mevcut değil",

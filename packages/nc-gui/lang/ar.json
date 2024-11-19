@@ -1006,7 +1006,8 @@
     "coverImageArea": "تغطية الصورة",
     "syncData": "مزامنة البيانات",
     "syncDataModalSubtitle": "سجل الخدمات التي تهتم بها لتلقي إشعار عندما تصبح متاحة",
-    "redirectToUrl": "إعادة التوجيه إلى URL"
+    "redirectToUrl": "إعادة التوجيه إلى URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "المجموعة",
     "goToDocs": "اذهب إلى المستندات",
     "addCondition": "إضافة شرط",
-    "addConditionGroup": "إضافة مجموعة شروط"
+    "addConditionGroup": "إضافة مجموعة شروط",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

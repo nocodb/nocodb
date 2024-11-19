@@ -289,7 +289,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
         <!--
         <div class="text-[13px] text-gray-500 py-2">Records in this view will be based on the specified date field.</div>
 -->
-        <GeneralLockedViewFooter v-if="isLocked" @on-open="calendarRangeDropdown = false" class="!-mb-4 -mx-4" />
+        <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
       </div>
     </template>
   </NcDropdown>

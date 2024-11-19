@@ -176,9 +176,9 @@ const getIcon = (c: ColumnType) =>
                 class="nc-select-shadow w-full nc-kanban-grouping-field-select !rounded-lg"
                 dropdown-class-name="!rounded-lg"
                 placeholder="Select a Grouping Field"
+                :disabled="isLocked"
                 @change="handleChange"
                 @click.stop
-                :disabled="isLocked"
               >
                 <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
                 <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
@@ -223,7 +223,7 @@ const getIcon = (c: ColumnType) =>
             </div>
           </NcSwitch>
         </div>
-        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" class="-mb-4 -mx-4" />
+        <GeneralLockedViewFooter v-if="isLocked" class="-mb-4 -mx-4" @on-open="open = false" />
       </div>
     </template>
   </NcDropdown>

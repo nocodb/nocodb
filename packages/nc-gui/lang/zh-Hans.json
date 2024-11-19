@@ -1006,7 +1006,8 @@
     "coverImageArea": "封面图片",
     "syncData": "同步数据",
     "syncDataModalSubtitle": "注册您感兴趣的服务，以便在服务可用时收到通知",
-    "redirectToUrl": "跳转到链接"
+    "redirectToUrl": "跳转到链接",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "分组",
     "goToDocs": "转到文档",
     "addCondition": "添加条件",
-    "addConditionGroup": "添加条件组"
+    "addConditionGroup": "添加条件组",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

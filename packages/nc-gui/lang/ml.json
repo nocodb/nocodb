@@ -1006,7 +1006,8 @@
     "coverImageArea": "ചിത്രം മൂടി",
     "syncData": "ഡേറ്റാ സാമ്പത്തരിക്കുക",
     "syncDataModalSubtitle": "അവങ്ങള്‍ ലഭ്യമാകുമ്പോള്‍ അറിയിപ്പ് ലഭിക്കുന്നതിന് നിങ്ങളെ ആകര്‍ഷിക്കുന്ന സേവനങ്ങള്‍ രജിസ്റ്റര്‍ ചെയ്യുക",
-    "redirectToUrl": "URL-ലേക്ക് തിരിച്ചുവിടുക"
+    "redirectToUrl": "URL-ലേക്ക് തിരിച്ചുവിടുക",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "ഗ്രൂപ്പ്",
     "goToDocs": "Docs-ലേക്ക് പോകുക",
     "addCondition": "ആവശ്യം ചേർക്കുക",
-    "addConditionGroup": "ആവശ്യ ഗ്രൂപ്പ് ചേർക്കുക"
+    "addConditionGroup": "ആവശ്യ ഗ്രൂപ്പ് ചേർക്കുക",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "ഡാറ്റാ സ്രോതസ്സിനോ ഡാറ്റാ തരം കൊണ്ടോ നിലവിലെ ശൈലിയ്ക്ക് ഓപ്ഷൻ ലഭ്യമല്ല",

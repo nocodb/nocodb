@@ -627,7 +627,7 @@
     "noConditionsAdded": "Nenhuma condição adicionada"
   },
   "labels": {
-    "continue": "Continue",
+    "continue": "",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Modificado em",
     "configuration": "Configuração",
@@ -1006,7 +1006,8 @@
     "coverImageArea": "Cobrir imagem",
     "syncData": "Sincronizar dados",
     "syncDataModalSubtitle": "Registre os serviços de seu interesse para ser notificado quando estiverem disponíveis",
-    "redirectToUrl": "Redirecionar para URL"
+    "redirectToUrl": "Redirecionar para URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Grupo",
     "goToDocs": "Ir para a Documentação",
     "addCondition": "Adicionar condição",
-    "addConditionGroup": "Adicionar grupo de condições"
+    "addConditionGroup": "Adicionar grupo de condições",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

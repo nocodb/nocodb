@@ -1006,7 +1006,8 @@
     "coverImageArea": "ครอบคลุมภาพ",
     "syncData": "ซิงค์ข้อมูล",
     "syncDataModalSubtitle": "ลงทะเบียนบริการที่คุณสนใจเพื่อรับการแจ้งเตือนเมื่อพร้อมใช้งาน",
-    "redirectToUrl": "เปลี่ยนเส้นทางไปที่ URL"
+    "redirectToUrl": "เปลี่ยนเส้นทางไปที่ URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "กลุ่ม",
     "goToDocs": "ไปที่เอกสาร",
     "addCondition": "เพิ่มเงื่อนไข",
-    "addConditionGroup": "เพิ่มกลุ่มเงื่อนไข"
+    "addConditionGroup": "เพิ่มกลุ่มเงื่อนไข",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

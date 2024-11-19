@@ -1006,7 +1006,8 @@
     "coverImageArea": "Peittävä kuva",
     "syncData": "Synkronoi dataa",
     "syncDataModalSubtitle": "Rekisteröi palvelut, joista olet kiinnostunut saadaksesi ilmoituksen, kun ne tulevat saataville",
-    "redirectToUrl": "Ohjaa URL-osoitteeseen"
+    "redirectToUrl": "Ohjaa URL-osoitteeseen",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Ryhmä",
     "goToDocs": "Siirry asiakirjoihin",
     "addCondition": "Lisää ehto",
-    "addConditionGroup": "Lisää ehtoryhmä"
+    "addConditionGroup": "Lisää ehtoryhmä",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

@@ -179,7 +179,8 @@ export default class Gcs implements IStorageAdapterV2 {
       version: 'v4',
       action: 'read',
       expires: Date.now() + expiresInSeconds * 1000,
-      extensionHeaders: pathParameters,
+      responseDisposition: pathParameters?.ResponseContentDisposition,
+      responseType: pathParameters?.ResponseContentType
     };
 
     const [url] = await this.storageClient

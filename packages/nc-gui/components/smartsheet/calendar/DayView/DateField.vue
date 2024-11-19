@@ -211,6 +211,7 @@ const newRecord = () => {
             <LazySmartsheetCalendarRecordCard
               :record="record"
               :resize="false"
+              :position="record.rowMeta.position"
               size="small"
               @click.prevent="emit('expandRecord', record)"
             >

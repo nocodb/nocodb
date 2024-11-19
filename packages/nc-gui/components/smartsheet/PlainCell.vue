@@ -372,6 +372,7 @@ const parseValue = (value: any, col: ColumnType): string => {
 
 <style lang="scss" scoped>
 .plain-cell {
+  font-synthesis: initial !important;
   &::before {
     content: '•';
     padding: 0 4px;

@@ -374,7 +374,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
   }
 }
 
-:deep(.nc-select:hover) {
+:deep(.nc-select:not(.ant-select-disabled):hover) {
   &,
   .ant-select-selector {
     @apply bg-gray-50;

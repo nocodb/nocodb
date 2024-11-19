@@ -14,6 +14,12 @@ spawn bash ../../noco.sh
 expect "Enter the IP address or domain name for the NocoDB instance (default: localhost):"
 send "${random_number}.ssl.nocodb.dev\r"
 
+expect "Do you want to enable Minio for file storage*"
+send "Y\r"
+
+expect "Enter the MinIO domain name*"
+send "\r"
+
 expect "Show Advanced Options*"
 send "y\r"
 

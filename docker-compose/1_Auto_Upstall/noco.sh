@@ -372,6 +372,13 @@ read_number_range() {
 	done
 }
 
+print_empty_line() {
+  local count=${1:-1}
+  for ((i=0; i<count; i++)); do
+    echo
+  done
+}
+
 check_if_docker_is_running() {
 	if ! $CONFIG_DOCKER_COMMAND ps >/dev/null 2>&1; then
 		print_warning "Docker is not running. Most of the commands will not work without Docker."
@@ -475,23 +482,149 @@ check_system_requirements() {
 }
 
 get_user_inputs() {
-	CONFIG_DOMAIN_NAME=$(prompt "Enter the IP address or domain name for the NocoDB instance" "$(get_public_ip)")
+  clear
+  cat << EOF
+╔════════════════════════════════════════╗
+║     NocoDB Configuration Assistant     ║
+╚════════════════════════════════════════╝
+EOF
+  print_empty_line
+  echo -e "${BOLD}Starting basic configuration...${NC}"
+  print_empty_line
 
-	if is_valid_domain "$CONFIG_DOMAIN_NAME"; then
-		CONFIG_SSL_ENABLED="$(prompt_oneof "Do you want to configure SSL for $CONFIG_DOMAIN_NAME" "Y" "N")"
-	else
-		CONFIG_SSL_ENABLED="N"
-	fi
+  # Domain Configuration
+  CONFIG_DOMAIN_NAME=$(prompt "Enter the IP address or domain name for the NocoDB instance" "$(get_public_ip)")
+  print_empty_line
+  echo -e "${BLUE}→ Using domain:${NC} $CONFIG_DOMAIN_NAME"
 
-	if confirm "Show Advanced Options?"; then
-		get_advanced_options
-	else
-		set_default_options
-	fi
+  if is_valid_domain "$CONFIG_DOMAIN_NAME"; then
+    echo -e "${GREEN}✓ Valid domain detected${NC}"
+    print_empty_line
+    CONFIG_SSL_ENABLED=$(prompt_oneof "Do you want to configure SSL for $CONFIG_DOMAIN_NAME" "Y" "N")
+    if [ "$CONFIG_SSL_ENABLED" = "Y" ]; then
+      echo -e "${BLUE}→ SSL will be enabled${NC}"
+    else
+      echo -e "${BLUE}→ SSL will not be enabled${NC}"
+    fi
+    print_empty_line
+  else
+    echo -e "${YELLOW}! Using IP address - SSL will not be enabled${NC}"
+    print_empty_line
+    CONFIG_SSL_ENABLED="N"
+  fi
+
+  # Storage Configuration
+  echo -e "${BOLD}Configuring storage options...${NC}"
+  print_empty_line
+  CONFIG_MINIO_ENABLED=$(prompt_oneof "Do you want to enable Minio for file storage?" "Y" "N")
+
+  if [ "$CONFIG_MINIO_ENABLED" = "Y" ]; then
+    print_empty_line
+    echo -e "${BLUE}→ Setting up MinIO storage configuration${NC}"
+
+    while true; do
+      CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter the MinIO domain name" "$(get_public_ip)")
+
+      if [ "$CONFIG_MINIO_DOMAIN_NAME" = "$CONFIG_DOMAIN_NAME" ]; then
+        print_empty_line
+        cat << EOF
+⚠️  WARNING: Using the same domain name for both NocoDB and MinIO is not recommended
+   This may cause routing conflicts and service accessibility issues
+EOF
+        print_empty_line
+        if [ "$(prompt_oneof "Would you like to use a different domain for MinIO?" "Y" "N")" = "Y" ]; then
+          continue
+        else
+          echo -e "${YELLOW}! Proceeding with same domain name - please ensure proper routing configuration${NC}"
+          print_empty_line
+        fi
+      fi
+      break
+    done
+
+    echo -e "${BLUE}→ Using MinIO domain:${NC} $CONFIG_MINIO_DOMAIN_NAME"
+    print_empty_line
+
+    # SSL Configuration for MinIO
+    if [ "$CONFIG_SSL_ENABLED" = "Y" ]; then
+      if ! is_valid_domain "$CONFIG_MINIO_DOMAIN_NAME"; then
+        cat << EOF
+⚠️  WARNING: Your MinIO domain name is not valid. File attachments will not work with SSL enabled.${NC}
+EOF
+        print_empty_line
+        if [ "$(prompt_oneof "Would you like to update the MinIO domain name?" "Y" "N")" = "Y" ]; then
+          CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter a valid domain name for MinIO" "")
+          echo -e "${BLUE}→ Updated MinIO domain to:${NC} $CONFIG_MINIO_DOMAIN_NAME"
+          print_empty_line
+        fi
+      fi
+    fi
+
+    if is_valid_domain "$CONFIG_MINIO_DOMAIN_NAME"; then
+      echo -e "${GREEN}✓ Valid MinIO domain detected${NC}"
+      print_empty_line
+      if [ "$CONFIG_SSL_ENABLED" = "Y" ]; then
+        CONFIG_MINIO_SSL_ENABLED="Y"
+        echo -e "${BLUE}→ SSL will be automatically enabled for MinIO${NC}"
+        print_empty_line
+      else
+        CONFIG_MINIO_SSL_ENABLED=$(prompt_oneof "Do you want to configure SSL for $CONFIG_MINIO_DOMAIN_NAME" "Y" "N")
+        if [ "$CONFIG_MINIO_SSL_ENABLED" = "Y" ]; then
+          echo -e "${BLUE}→ SSL will be enabled for MinIO${NC}"
+        else
+          echo -e "${BLUE}→ SSL will not be enabled for MinIO${NC}"
+        fi
+        print_empty_line
+      fi
+    else
+      echo -e "${YELLOW}! Using IP address for MinIO - SSL will not be enabled${NC}"
+      print_empty_line
+      CONFIG_MINIO_SSL_ENABLED="N"
+    fi
+  else
+    print_empty_line
+    echo -e "${BLUE}→ MinIO storage will not be configured${NC}"
+    print_empty_line
+  fi
+
+  # Advanced Configuration
+  if [ "$(prompt_oneof "Show Advanced Options?" "Y" "N")" = "Y" ]; then
+    print_empty_line
+    cat << EOF
+╔════════════════════════════════════════╗
+║        Advanced Configuration          ║
+╚════════════════════════════════════════╝
+EOF
+    print_empty_line
+    get_advanced_options
+  else
+    print_empty_line
+    echo -e "${BLUE}→ Using default options for advanced settings${NC}"
+    print_empty_line
+    set_default_options
+  fi
+
+  # Configuration Summary
+  print_empty_line 2
+  cat << EOF
+╔════════════════════════════════════════╗
+║         Configuration Summary          ║
+╚════════════════════════════════════════╝
+EOF
+  print_empty_line
+  echo -e "${BOLD}NocoDB Domain:${NC} $CONFIG_DOMAIN_NAME"
+  echo -e "${BOLD}NocoDB SSL:${NC} $CONFIG_SSL_ENABLED"
+  if [ "$CONFIG_MINIO_ENABLED" = "Y" ]; then
+    echo -e "${BOLD}MinIO Domain:${NC} $CONFIG_MINIO_DOMAIN_NAME"
+    echo -e "${BOLD}MinIO SSL:${NC} $CONFIG_MINIO_SSL_ENABLED"
+  fi
+  print_empty_line
+  echo -e "${GREEN}✓ Configuration complete!${NC}"
+  print_empty_line
 }
 
 get_advanced_options() {
-	CONFIG_EDITION=$(prompt_oneof "Choose Community or Enterprise Edition" "CE" "EE")
+  CONFIG_EDITION=$(prompt_oneof "Choose Community or Enterprise Edition" "CE" "EE")
 
 	if [ "$CONFIG_EDITION" = "EE" ]; then
 		CONFIG_LICENSE_KEY=$(prompt_required "Enter the NocoDB license key")
@@ -500,19 +633,6 @@ get_advanced_options() {
 	fi
 
 	CONFIG_REDIS_ENABLED=$(prompt_oneof "Do you want to enable Redis for caching?" "Y" "N")
-	CONFIG_MINIO_ENABLED=$(prompt_oneof "Do you want to enable Minio for file storage?" "Y" "N")
-
-	if [ "$CONFIG_MINIO_ENABLED" = "Y" ]; then
-
-		CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter the MinIO domain name" "$(get_public_ip)")
-
-		if is_valid_domain "$CONFIG_MINIO_DOMAIN_NAME"; then
-			CONFIG_MINIO_SSL_ENABLED="$(prompt_oneof "Do you want to configure SSL for $CONFIG_MINIO_DOMAIN_NAME" "Y" "N")"
-		else
-			CONFIG_MINIO_SSL_ENABLED="N"
-		fi
-	fi
-
 	CONFIG_WATCHTOWER_ENABLED=$(prompt_oneof "Do you want to enable Watchtower for automatic updates?" "Y" "N")
 
 	NUM_CORES=$(get_nproc)
@@ -523,9 +643,6 @@ set_default_options() {
 	CONFIG_EDITION="CE"
 	CONFIG_POSTGRES_SQLITE="P"
 	CONFIG_REDIS_ENABLED="Y"
-	CONFIG_MINIO_ENABLED="Y"
-	CONFIG_MINIO_DOMAIN_NAME=$(get_public_ip)
-	CONFIG_MINIO_SSL_ENABLED="N"
 	CONFIG_WATCHTOWER_ENABLED="Y"
 	CONFIG_NUM_INSTANCES=1
 }
@@ -815,8 +932,11 @@ EOF
 start_services() {
 	$CONFIG_DOCKER_COMMAND compose pull
 	$CONFIG_DOCKER_COMMAND compose up -d
-
+  print_empty_line
+  print_empty_line
 	echo 'Waiting for Traefik to start...'
+	print_empty_line
+
 	sleep 5
 }
 
@@ -831,7 +951,9 @@ display_completion_message() {
 		message_arr+=("NocoDB is now available at http://localhost")
 	fi
 
+  print_empty_line
 	print_box_message "${message_arr[@]}"
+	print_empty_line
 }
 
 management_menu() {

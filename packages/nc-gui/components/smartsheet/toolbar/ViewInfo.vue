@@ -159,6 +159,9 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
                 {{ activeView?.is_default ? $t('title.defaultView') : activeView?.title }}
               </span>
             </NcTooltip>
+
+            <GeneralIcon v-if="activeView?.lock_type === LockType.Locked" icon="ncLock" class="w-4 h-4 flex-none mx-0.5" />
+
             <GeneralIcon
               icon="chevronDown"
               class="!text-current opacity-70 flex-none transform transition-transform duration-25 w-3.5 h-3.5"

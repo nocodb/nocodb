@@ -607,7 +607,7 @@ watch(
           class="nc-extdb-btn-submit"
           @click="createOrUpdateIntegration"
         >
-          {{ pageMode === IntegrationsPageMode.ADD ? 'Create connection' : 'Modify connection' }}
+          {{ pageMode === IntegrationsPageMode.ADD ? 'Create connection' : 'Update connection' }}
         </NcButton>
         <NcButton size="small" type="text" @click="vOpen = false">
           <GeneralIcon icon="close" class="text-gray-600" />

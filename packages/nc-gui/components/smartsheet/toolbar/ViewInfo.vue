@@ -167,8 +167,8 @@ const isViewOwner = computed(() => {
             </NcTooltip>
 
             <component
-              v-if="[ViewLockType.Locked, ViewLockType.Personal].includes(activeView?.lock_type)"
               :is="viewLockIcons[activeView.lock_type].icon"
+              v-if="[ViewLockType.Locked, ViewLockType.Personal].includes(activeView?.lock_type)"
               class="flex-none w-3.5 h-3.5 mx-0.5"
               :class="{
                 'text-brand-400': activeView?.lock_type === ViewLockType.Personal && isViewOwner,

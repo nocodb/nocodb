@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { LockType } from '#imports'
-
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()

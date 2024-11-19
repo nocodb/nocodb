@@ -59,7 +59,7 @@ const closeAndShowAgain = () => {
         <GeneralIcon class="icon" icon="gift" size="xlarge" />
         <h4>Gifts Unlocked!</h4>
       </div>
-      <div class="body">We are giving away $50 worth of amazon coupons to our pro open source users!</div>
+      <div class="body">We are giving away $25 worth of amazon coupons to our pro open source users!</div>
     </div>
     <div v-if="!hideImage && !giftBannerDismissedCount" class="img-wrapper">
       <img src="~assets/img/giftCard.svg" />

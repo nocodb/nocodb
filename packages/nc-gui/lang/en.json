@@ -636,7 +636,7 @@
     "lockThisViewSubtle": "Locking this view will prevent anyone from changing the view settings until it is unlocked by a collaborator with creator permissions.",
     "unlockViewTitle": "Are you sure you want to unlock this view?",
     "unlockViewTitleSubtitle": "This view was locked by",
-    "thisViewIsLocked": "This view is locked",
+    "thisViewIsLockType": "This view is {type}",
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes"
   },

@@ -317,11 +317,7 @@ watch(isDropdownOpen, async () => {
         <component
           :is="viewLockIcons[view.lock_type].icon"
           v-if="view.lock_type === ViewLockType.Locked || view.lock_type === ViewLockType.Personal"
-          class="text-gray-400 ml-1 -mt-[2px]"
-          :class="{
-            'w-3.2 h-3.2': view.lock_type === ViewLockType.Locked,
-            'w-3.5 h-3.5': view.lock_type !== ViewLockType.Locked,
-          }"
+          class="text-gray-400 ml-1 h-4 w-4 flex-none"
         />
       </div>
 

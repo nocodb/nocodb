@@ -2,7 +2,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import { iconMap } from './iconUtils'
 import type { Language } from '~/lib/types'
 import UsersIcon from '~icons/nc-icons/users'
-import LockIcon from '~icons/nc-icons/lock'
+import LockIcon from '~icons/nc-icons-v2/lock'
 import PersonalIcon from '~icons/nc-icons/personal'
 
 export const viewIcons: Record<number | string, { icon: any; color: string }> = {

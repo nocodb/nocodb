@@ -799,6 +799,7 @@
     "clickToCopyTableID": "テーブルIDをコピーするにはクリック",
     "clickToCopyViewID": "クリックしてView IDをコピー",
     "viewMode": "ビュー モード",
+    "reAssignView": "Re-assign view",
     "searchUsers": "ユーザーを検索",
     "superAdmin": "スーパ管理者",
     "allTables": "すべてのテーブル",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Redirect to URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "週末を隠す",
     "renameBase": "ベース名を変更",
@@ -1576,7 +1578,7 @@
       "showAllViews": "このテーブルのすべての共有されているビューを表示する",
       "collabView": "編集権限を持つコラボレータは、ビュー構成を変更できます。",
       "lockedView": "ロック解除されるまで誰もビューの設定を変更できません。",
-      "personalView": "あなただけがビューの設定を編集できます。他の共同編集者のパーソナルビューはデフォルトで隠されています。",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "作成者を追加/削除できます。データベースの構造とフィールドを全て変更できます",
       "creatorDesc": "データベースの構造と値を全て変更できます",
       "editorDesc": "レコードを編集できますが、データベース/フィールドの構造を変更することはできません。",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "電子メール通知を有効にするために、App StoreでSMTPプラグインを有効にしてください。",
       "collabView": "共同ビューに正常に切り替わりました",
       "lockedView": "ロックビューに正常に切り替わりました",
-      "futureRelease": "近日公開！"
+      "futureRelease": "近日公開！",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "ライセンスキーが更新されました",

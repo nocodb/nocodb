@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Nhấn để sao chép ID Bảng",
     "clickToCopyViewID": "Nhấp để sao chép ID xem",
     "viewMode": "Chế độ xem",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Tìm kiếm người dùng",
     "superAdmin": "Quản trị viên cấp cao",
     "allTables": "Tất cả các bảng",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Chuyển hướng đến URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Chi tiết Webhook",
     "hideWeekends": "Ẩn cuối tuần",
     "renameBase": "Đổi tên Cơ sở",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Hiển thị tất cả các chế độ xem chung của bảng này",
       "collabView": "Các cộng tác viên có quyền chỉnh sửa hoặc cao hơn có thể thay đổi cấu hình xem.",
       "lockedView": "Không ai có thể chỉnh sửa cấu hình xem cho đến khi nó được mở khóa.",
-      "personalView": "Chỉ có bạn mới có thể chỉnh sửa cấu hình xem. Lượt xem cá nhân của các cộng sự khác được ẩn theo mặc định.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Có thể thêm / xóa người tạo. Và chỉnh sửa toàn bộ cấu trúc & trường cơ sở dữ liệu.",
       "creatorDesc": "Hoàn toàn có thể chỉnh sửa cấu trúc & giá trị cơ sở dữ liệu.",
       "editorDesc": "Có thể chỉnh sửa hồ sơ nhưng không thể thay đổi cấu trúc của cơ sở dữ liệu / trường.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Vui lòng kích hoạt plugin SMTP trong App Store để bật thông báo email",
       "collabView": "Chuyển thành công thành quan điểm cộng tác",
       "lockedView": "Chuyển thành công thành chế độ xem bị khóa",
-      "futureRelease": "Sắp có!"
+      "futureRelease": "Sắp có!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Khóa giấy phép đã được cập nhật",

@@ -95,7 +95,7 @@ const tooltipMsg = computed(() => {
       )
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
     } else if (isBt(column.value)) {
-      const fkColumn = meta.value?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
+      const fkColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
     }
   }
@@ -235,7 +235,7 @@ const onClick = (e: Event) => {
       </template>
       <NcTooltip placement="bottom" class="truncate name pl-1" :show-on-truncate-only="!showTooltipAlways">
         <template #title>
-          <template v-for="msg in tooltipMsg.split('\n')">
+          <template v-for="(msg, i) in tooltipMsg.split('\n')" :key="i">
             <div>{{ msg }}</div>
           </template>
         </template>

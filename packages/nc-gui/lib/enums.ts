@@ -1,3 +1,5 @@
+import { ViewLockType } from 'nocodb-sdk'
+
 export { ClientType, IntegrationCategoryType, SyncDataType } from 'nocodb-sdk'
 
 export enum Language {
@@ -50,11 +52,7 @@ export enum NavigateDir {
   PREV,
 }
 
-export enum LockType {
-  Personal = 'personal',
-  Locked = 'locked',
-  Collaborative = 'collaborative',
-}
+export { ViewLockType as LockType }
 
 export enum TabType {
   TABLE = 'table',

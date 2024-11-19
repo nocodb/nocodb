@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Kliknite za kopiranje ID-a Tabllice",
     "clickToCopyViewID": "Kliknite za kopiranje ID pogleda",
     "viewMode": "Način prikaza",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Pretraga Korisnika",
     "superAdmin": "Super Admin",
     "allTables": "Sve Tablice",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Preusmjeri na URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Detalji o webhooku",
     "hideWeekends": "Sakrij vikende",
     "renameBase": "Preimenuj osnovu",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Prikaži sve zajedničke poglede na ovu tablicu",
       "collabView": "Suradnici s uređivanjem dopuštenja ili više mogu promijeniti konfiguraciju prikaza.",
       "lockedView": "Nitko ne može uređivati ​​konfiguraciju prikaza dok ne bude otključana.",
-      "personalView": "Samo možete urediti konfiguraciju prikaza. Ostali pogledi drugih suradnika skriveni su prema zadanim postavkama.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Može dodati / ukloniti kreatore. I Full uredi baze podataka i polja.",
       "creatorDesc": "Može u potpunosti urediti strukturu i vrijednosti baze podataka.",
       "editorDesc": "Može uređivati ​​zapise, ali ne može promijeniti strukturu baze podataka / polja.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Molimo aktivirajte SMTP dodatak u App Storeu za omogućavanje obavijesti e-poštom",
       "collabView": "Uspješno prebačen na suradnički prikaz",
       "lockedView": "Uspješno prebačen na zaključani prikaz",
-      "futureRelease": "Dolazi uskoro!"
+      "futureRelease": "Dolazi uskoro!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Licenčni ključ ažuriran",

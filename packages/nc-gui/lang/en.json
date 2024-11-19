@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Click to copy Table ID",
     "clickToCopyViewID": "Click to copy View ID",
     "viewMode": "View mode",
+    "reAssignView": "Re-Assign View",
     "searchUsers": "Search Users",
     "superAdmin": "Super Admin",
     "allTables": "All Tables",
@@ -1005,9 +1006,11 @@
     "coverImageArea": "Cover image",
     "syncData": "Sync data",
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
-    "redirectToUrl": "Redirect to URL"
+    "redirectToUrl": "Redirect to URL",
+    "viewHide": "View visibility "
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Webhook Details",
     "hideWeekends": "Hide weekends",
     "renameBase": "Rename Base",
@@ -1264,7 +1267,8 @@
     "group": "Group",
     "goToDocs": "Go to Docs",
     "addCondition": "Add condition",
-    "addConditionGroup": "Add condition group"
+    "addConditionGroup": "Add condition group",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for the data source or the data type",
@@ -1806,7 +1810,8 @@
       "formEmailSMTP": "Please activate SMTP plugin in App store for enabling email notification",
       "collabView": "Successfully Switched to collaborative view",
       "lockedView": "Successfully Switched to locked view",
-      "futureRelease": "Coming soon!"
+      "futureRelease": "Coming soon!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "License Key Updated",

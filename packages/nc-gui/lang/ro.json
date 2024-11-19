@@ -799,6 +799,7 @@
     "clickToCopyTableID": "Dă clic pentru a copia ID-ul tabelului",
     "clickToCopyViewID": "Click pentru a copia ID-ul Vederii",
     "viewMode": "Mod vizualizare",
+    "reAssignView": "Re-assign view",
     "searchUsers": "Caută Utilizatori",
     "superAdmin": "Super Admin",
     "allTables": "Toate Tabelele",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "Redirecționează către URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "Detalii Webhook",
     "hideWeekends": "Ascunde weekendurile",
     "renameBase": "Redenumire Bază",
@@ -1576,7 +1578,7 @@
       "showAllViews": "Afișați toate vizualizările partajate ale acestei tabele",
       "collabView": "Colaboratorii cu permisiuni de editare sau mai mari pot modifica configurarea vizualizării.",
       "lockedView": "Nimeni nu poate edita configurarea vizualizării până când nu este deblocată.",
-      "personalView": "Doar dumneavoastră puteți edita configurarea vizualizării. Alte vizualizări personale ale colaboratorilor sunt ascunse implicit.",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "Pot adăuga/elimina creatori. Și editarea completă a structurilor și câmpurilor bazei de date.",
       "creatorDesc": "Poate edita complet structura și valorile bazei de date.",
       "editorDesc": "Poate edita înregistrările, dar nu poate schimba structura bazei de date/câmpurilor.",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "Vă rugăm să activați pluginul SMTP în Magazinul de aplicații pentru a permite notificarea prin e-mail",
       "collabView": "Comutat cu succes la vizualizarea colaborativă",
       "lockedView": "Comutat cu succes la vizualizarea blocată",
-      "futureRelease": "În curând!"
+      "futureRelease": "În curând!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "Cheia de licență actualizată",

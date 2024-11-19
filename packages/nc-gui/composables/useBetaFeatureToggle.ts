@@ -29,6 +29,13 @@ const FEATURES = [
     enabled: false,
     isEngineering: true,
   },
+  {
+    id: 'attachment_carousel_comments',
+    title: 'Comments in attachment carousel',
+    description: 'Enable comments in attachment carousel.',
+    enabled: false,
+    isEngineering: true,
+  },
 ]
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

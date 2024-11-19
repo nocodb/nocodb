@@ -3,14 +3,7 @@ import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
-
-const NC_REFRESH_TOKEN_EXP_IN_DAYS =
-  parseInt(process.env.NC_REFRESH_TOKEN_EXP_IN_DAYS, 10) || 90;
-
-// throw error if user provided invalid value
-if (NC_REFRESH_TOKEN_EXP_IN_DAYS <= 0) {
-  throw new Error('NC_REFRESH_TOKEN_EXP_IN_DAYS must be a positive number');
-}
+import { NC_REFRESH_TOKEN_EXP_IN_DAYS } from '~/constants';
 
 export default class UserRefreshToken {
   fk_user_id: string;

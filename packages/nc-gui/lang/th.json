@@ -799,6 +799,7 @@
     "clickToCopyTableID": "คลิกเพื่อคัดลอก TABLE ID",
     "clickToCopyViewID": "คลิกเพื่อคัดลอก VIEW ID",
     "viewMode": "โหมดดู",
+    "reAssignView": "Re-assign view",
     "searchUsers": "ค้นหาผู้ใช้",
     "superAdmin": "ซูเปอร์แอดมิน",
     "allTables": "ทุกตาราง",
@@ -1008,6 +1009,7 @@
     "redirectToUrl": "เปลี่ยนเส้นทางไปที่ URL"
   },
   "activity": {
+    "assignView": "Assign view",
     "webhookDetails": "รายละเอียด Webhook",
     "hideWeekends": "ซ่อนวันหยุดสุดสัปดาห์",
     "renameBase": "เปลี่ยนชื่อฐาน",
@@ -1576,7 +1578,7 @@
       "showAllViews": "แสดงมุมมองที่แชร์ทั้งหมดของตารางนี้",
       "collabView": "ผู้ทำงานร่วมกันที่มีสิทธิ์แก้ไขหรือสูงกว่าสามารถเปลี่ยนการกำหนดค่ามุมมอง",
       "lockedView": "ไม่มีใครสามารถแก้ไขการกำหนดค่าการดูจนกว่าจะถูกปลดล็อค",
-      "personalView": "มีเพียงคุณเท่านั้นที่สามารถแก้ไขการกำหนดค่ามุมมอง มุมมองส่วนตัวของผู้ทำงานร่วมกันอื่น ๆ ถูกซ่อนอยู่ตามค่าเริ่มต้น",
+      "personalView": "Only you can edit the view configuration. For other collaborators, this view will be in locked state.",
       "ownerDesc": "สามารถเพิ่ม / ลบผู้สร้าง และโครงสร้างฐานข้อมูลและฟิลด์แก้ไขเต็มรูปแบบ",
       "creatorDesc": "สามารถแก้ไขโครงสร้างและค่าฐานข้อมูลได้อย่างเต็มที่",
       "editorDesc": "สามารถแก้ไขระเบียน แต่ไม่สามารถเปลี่ยนโครงสร้างของฐานข้อมูล / ฟิลด์ได้",
@@ -1806,7 +1808,8 @@
       "formEmailSMTP": "โปรดเปิดใช้งานปลั๊กอิน SMTP ใน App Store เพื่อเปิดใช้งานการแจ้งเตือนทางอีเมล",
       "collabView": "เปลี่ยนไปใช้มุมมองร่วมกันสำเร็จแล้ว",
       "lockedView": "เปลี่ยนเป็นมุมมองที่ล็อคเรียบร้อยแล้ว",
-      "futureRelease": "เร็ว ๆ นี้!"
+      "futureRelease": "เร็ว ๆ นี้!",
+      "notAllowedToChangeDefaultView": "You are not allowed to change the default view"
     },
     "success": {
       "licenseKeyUpdated": "อัปเดตคีย์ใบอนุญาตแล้ว",

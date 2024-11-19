@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import type { TableType, ViewType } from 'nocodb-sdk'
+import { ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
+import { resolveComponent } from '@vue/runtime-core'
 import { LockType } from '#imports'
 
 const props = withDefaults(
@@ -29,6 +30,8 @@ const view = computed(() => props.view)
 const table = computed(() => props.table)
 
 const { loadViews, navigateToView, duplicateView } = useViewsStore()
+
+const { user } = useGlobal()
 
 const { base } = storeToRefs(useBase())
 
@@ -70,9 +73,9 @@ async function changeLockType(type: LockType) {
 
   if (!view.value) return
 
-  if (type === 'personal') {
-    // Coming soon
-    return message.info(t('msg.toast.futureRelease'))
+  // if default view block the change since it's not allowed
+  if (type === 'personal' && view.value.is_default) {
+    return message.info(t('msg.toast.notAllowedToChangeDefaultView'))
   }
   try {
     view.value.lock_type = type
@@ -128,6 +131,27 @@ const onViewIdCopy = async () => {
 const onDelete = async () => {
   emits('delete')
 }
+
+const openReAssignDlg = () => {
+  const { close } = useDialog(resolveComponent('DlgReAssign'), {
+    'modelValue': ref(true),
+    'onUpdate:modelValue': () => {
+      close()
+    },
+    view,
+  })
+  emits('closeModal')
+}
+
+const isViewOwner = computed(() => {
+  return (
+    view.value?.owned_by === user.value?.id ||
+    (!view.value?.owned_by &&
+      (user.value.base_roles?.[ProjectRoles.OWNER] || user.value.workspace_roles?.[WorkspaceUserRoles.OWNER]))
+  )
+})
+
+const isDefaultView = computed(() => view.value?.is_default)
 
 /**
  * ## Known Issue and Fix
@@ -274,8 +298,11 @@ const onDelete = async () => {
 
     <template v-if="isUIAllowed('viewCreateOrEdit')">
       <NcDivider />
-
-      <NcSubMenu key="lock-type" class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0">
+      <NcSubMenu
+        key="lock-type"
+        :disabled="!isViewOwner && !isUIAllowed('reAssignViewOwner') && view.lock_type === LockType.Personal"
+        class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
+      >
         <template #title>
           <div
             v-e="[
@@ -305,11 +332,45 @@ const onDelete = async () => {
         <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
           <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
         </a-menu-item>
-
+        <SmartsheetToolbarNotAllowedTooltip
+          v-if="isEeUI"
+          :enabled="!isViewOwner || isDefaultView"
+          :message="isDefaultView ? 'Default view can\'t be made personal' : 'Only view owner can change to personal view'"
+        >
+          <a-menu-item
+            :disabled="!isViewOwner || isDefaultView"
+            class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
+            @click="changeLockType(LockType.Personal)"
+          >
+            <LazySmartsheetToolbarLockType :type="LockType.Personal" :disabled="!isViewOwner || isDefaultView" />
+          </a-menu-item>
+        </SmartsheetToolbarNotAllowedTooltip>
         <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
           <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
         </a-menu-item>
       </NcSubMenu>
+      <SmartsheetToolbarNotAllowedTooltip
+        v-if="isEeUI && !isDefaultView"
+        :enabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
+        message="Only owner or creator can re-assign"
+      >
+        <NcMenuItem :disabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))" @click="openReAssignDlg">
+          <div
+            v-e="[
+              'c:navdraw:preview-as',
+              {
+                sidebar: props.inSidebar,
+              },
+            ]"
+            class="flex flex-row items-center gap-x-3"
+          >
+            <div>
+              {{ $t('labels.reAssignView') }}
+            </div>
+            <div class="flex flex-grow"></div>
+          </div>
+        </NcMenuItem>
+      </SmartsheetToolbarNotAllowedTooltip>
     </template>
 
     <template v-if="!view.is_default && isUIAllowed('viewCreateOrEdit')">

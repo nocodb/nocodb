@@ -77,8 +77,6 @@ export async function populateSamplePayloadV2(
     data: {
       table_id: model.id,
       table_name: model.title,
-      view_id: model.views[0].id,
-      view_name: model.views[0].title,
     },
   };
 

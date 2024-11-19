@@ -36,6 +36,14 @@ export class ColumnHeaderPageObject extends BasePage {
     expect(await this.get().locator('.nc-ui-dt-dropdown').count()).toBe(0);
   }
 
+  async verifyPersonalMode() {
+    // add column button
+    await expect(this.btn_addColumn).toBeVisible({ visible: false });
+
+    // column header context menu
+    expect(await this.get().locator('.nc-ui-dt-dropdown').count()).toBe(0);
+  }
+
   async verifyCollaborativeMode() {
     // add column button
     await expect(this.btn_addColumn).toBeVisible({ visible: true });

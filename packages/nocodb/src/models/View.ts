@@ -73,6 +73,8 @@ export default class View implements ViewType {
   order: number;
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
+  created_by?: string;
+  owned_by?: string;
 
   fk_model_id: string;
   model?: Model;
@@ -1261,7 +1263,10 @@ export default class View implements ViewType {
       password?: string;
       uuid?: string;
       meta?: any;
+      owned_by?: string;
+      created_by?: string;
     },
+    includeCreatedByAndUpdateBy = false,
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(body, [
@@ -1273,6 +1278,7 @@ export default class View implements ViewType {
       'password',
       'meta',
       'uuid',
+      ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
     ]);
 
     const oldView = await this.get(context, viewId, ncMeta);
@@ -1984,6 +1990,8 @@ export default class View implements ViewType {
         copy_from_id?: string;
         fk_grp_col_id?: string;
         calendar_range?: Partial<CalendarRange>[];
+        created_by: string;
+        owned_by: string;
       },
     model: {
       getColumns: (context: NcContext, ncMeta?) => Promise<Column[]>;
@@ -2000,6 +2008,9 @@ export default class View implements ViewType {
       'base_id',
       'source_id',
       'meta',
+      'created_by',
+      'owned_by',
+      'lock_type',
     ]);
 
     if (!insertObj.order) {

@@ -77,6 +77,16 @@ export class GridPage extends BasePage {
     await this.columnHeader.verifyCollaborativeMode();
   }
 
+  async verifyPersonalMode() {
+    // add new row button
+    expect(await this.btn_addNewRow.count()).toBe(1);
+
+    // the behaviour is same as lock mode
+    await this.toolbar.verifyPersonalMode();
+    await this.footbar.verifyPersonalMode();
+    await this.columnHeader.verifyPersonalMode();
+  }
+
   get() {
     return this.dashboard.get().locator('[data-testid="nc-grid-wrapper"]');
   }

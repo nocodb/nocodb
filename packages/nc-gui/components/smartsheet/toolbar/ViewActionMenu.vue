@@ -348,7 +348,7 @@ const isDefaultView = computed(() => view.value?.is_default)
             <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
               <LazySmartsheetToolbarLockType
                 :type="lockType"
-                class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
+                class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink !cursor-auto"
                 hide-tick
               />
             </div>
@@ -360,25 +360,33 @@ const isDefaultView = computed(() => view.value?.is_default)
         <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
           {{ $t('labels.viewMode') }}
         </div>
-        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
-          <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
-        </a-menu-item>
+        <NcMenuItem
+          class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
+          :disabled="!isUIAllowed('fieldAdd')"
+          @click="changeLockType(LockType.Collaborative)"
+        >
+          <LazySmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="!isUIAllowed('fieldAdd')" />
+        </NcMenuItem>
         <SmartsheetToolbarNotAllowedTooltip
           v-if="isEeUI"
-          :enabled="!isViewOwner || isDefaultView"
+          :enabled="!isViewOwner || !!isDefaultView"
           :message="isDefaultView ? 'Default view can\'t be made personal' : 'Only view owner can change to personal view'"
         >
-          <a-menu-item
-            :disabled="!isViewOwner || isDefaultView"
+          <NcMenuItem
+            :disabled="!isViewOwner || !!isDefaultView"
             class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
             @click="changeLockType(LockType.Personal)"
           >
             <LazySmartsheetToolbarLockType :type="LockType.Personal" :disabled="!isViewOwner || isDefaultView" />
-          </a-menu-item>
+          </NcMenuItem>
         </SmartsheetToolbarNotAllowedTooltip>
-        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
-          <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
-        </a-menu-item>
+        <NcMenuItem
+          class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction"
+          :disabled="!isUIAllowed('fieldAdd')"
+          @click="changeLockType(LockType.Locked)"
+        >
+          <LazySmartsheetToolbarLockType :type="LockType.Locked" :disabled="!isUIAllowed('fieldAdd')" />
+        </NcMenuItem>
       </NcSubMenu>
       <SmartsheetToolbarNotAllowedTooltip
         v-if="isEeUI && !isDefaultView"

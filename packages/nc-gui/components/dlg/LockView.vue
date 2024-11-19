@@ -18,6 +18,8 @@ const isForm = inject(IsFormInj)
 
 const { $api, $e } = useNuxtApp()
 
+const { isUIAllowed } = useRoles()
+
 const { user } = useGlobal()
 
 const { idUserMap } = storeToRefs(useBase())
@@ -131,7 +133,15 @@ watch(
       </div>
     </div>
 
-    <NcButton type="secondary" size="small" class="!w-full" :loading="isLoading" :disabled="isLoading" @click="changeLockType">
+    <NcButton
+      v-if="isUIAllowed('fieldAdd')"
+      type="secondary"
+      size="small"
+      class="!w-full"
+      :loading="isLoading"
+      :disabled="isLoading"
+      @click="changeLockType"
+    >
       <template #icon>
         <GeneralIcon icon="ncUnlock" class="flex-none" />
       </template>

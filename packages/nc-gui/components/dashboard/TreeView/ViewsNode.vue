@@ -244,7 +244,11 @@ watch(isDropdownOpen, async () => {
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
-    <div v-e="['a:view:open', { view: vModel.type }]" class="text-sm flex items-center w-full gap-1" data-testid="view-item">
+    <div
+      v-e="['a:view:open', { view: vModel.type }]"
+      class="text-sm flex items-center w-full gap-1"
+      data-testid="view-item"
+    >
       <div
         v-e="['c:view:emoji-picker']"
         class="flex min-w-6"
@@ -259,7 +263,10 @@ watch(isDropdownOpen, async () => {
           @emoji-selected="emits('selectIcon', $event)"
         >
           <template #default>
-            <GeneralViewIcon :meta="props.view" class="nc-view-icon w-4 !text-[16px]"></GeneralViewIcon>
+            <GeneralViewIcon
+              :meta="props.view"
+              class="nc-view-icon w-4 !text-[16px]"
+            ></GeneralViewIcon>
           </template>
         </LazyGeneralEmojiPicker>
       </div>
@@ -275,7 +282,14 @@ watch(isDropdownOpen, async () => {
         @blur="onRename"
         @keydown.stop="onKeyDown($event)"
       />
-      <NcTooltip v-else class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full" show-on-truncate-only>
+      <NcTooltip
+        v-else
+        class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none max-w-full"
+        :class="{
+          'w-full': vModel?.lock_type !== LockType.Locked,
+        }"
+        show-on-truncate-only
+      >
         <template #title> {{ vModel.alias || vModel.title }}</template>
         <div
           data-testid="sidebar-view-title"
@@ -287,7 +301,10 @@ watch(isDropdownOpen, async () => {
           {{ vModel.alias || vModel.title }}
           <component
             :is="viewLockIcons[view.lock_type].icon"
-            v-if="view.lock_type === ViewLockType.Locked || view.lock_type === ViewLockType.Personal"
+            v-if="
+              view.lock_type === ViewLockType.Locked ||
+              view.lock_type === ViewLockType.Personal
+            "
             class="text-gray-400 ml-1 -mt-[2px]"
             :class="{
               'w-3.2 h-3.2': view.lock_type === ViewLockType.Locked,
@@ -302,7 +319,10 @@ watch(isDropdownOpen, async () => {
             {{ vModel.description }}
           </template>
           <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
-            <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
+            <GeneralIcon
+              icon="info"
+              class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0"
+            />
           </NcButton>
         </NcTooltip>
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">

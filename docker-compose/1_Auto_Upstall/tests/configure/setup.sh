@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export TERM=${TERM:-xterm-256color}
+
 if [ -z "$NOCO_HOME" ]; then
     NOCO_HOME="./nocodb"
 fi

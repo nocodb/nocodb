@@ -462,8 +462,16 @@ reloadViewDataHook?.on(async () => {
                     </div>
                   </template>
                   <div class="flex flex-col gap-3 !children:pointer-events-none">
-                    <h2 v-if="displayField" class="nc-card-display-value-wrapper">
-                      <template v-if="!isRowEmpty(record, displayField)">
+                    <h2
+                      v-if="displayField"
+                      class="nc-card-display-value-wrapper"
+                      :class="{
+                        '!children:pointer-events-auto':
+                          isButton(displayField) ||
+                          (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
+                      }"
+                    >
+                      <template v-if="!isRowEmpty(record, displayField) || isAllowToRenderRowEmptyField(displayField)">
                         <LazySmartsheetVirtualCell
                           v-if="isVirtualCol(displayField)"
                           v-model="record.row[displayField.title]"

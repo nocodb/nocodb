@@ -1045,22 +1045,85 @@ watch(
             </template>
           </a-input>
           <div class="flex gap-2">
-            <NcTooltip :disabled="isLocked">
-              <template #title> {{ `${renderAltOrOptlKey()} + C` }}</template>
-              <NcButton
-                data-testid="nc-field-add-new"
-                type="secondary"
-                size="small"
-                class="mr-1"
-                :disabled="loading || isLocked"
-                @click="addField()"
-              >
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="plus" class="w-3" />
-                  {{ $t('labels.multiField.newField') }}
-                </div>
-              </NcButton>
-            </NcTooltip>
+            <template v-if="isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+              <div class="nc-fields-add-new-field-btn-wrapper shadow-sm">
+                <NcTooltip :disabled="isLocked">
+                  <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
+                  <NcButton
+                    data-testid="nc-field-add-new"
+                    type="secondary"
+                    size="small"
+                    class="nc-field-add-new !rounded-r-none !border-r-transparent"
+                    :disabled="loading || isLocked"
+                    :shadow="false"
+                    @click="addField()"
+                  >
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="plus" class="w-3" />
+                      {{ $t('labels.multiField.newField') }}
+                    </div>
+                  </NcButton>
+                </NcTooltip>
+                <NcTooltip :title="aiMode ? 'Disable AI suggestions' : 'Suggest fields using AI'">
+                  <NcDropdown :trigger="['hover']" placement="bottomRight" overlay-class-name="!border-purple-200">
+                    <NcButton
+                      size="small"
+                      :type="aiMode ? 'primary' : 'secondary'"
+                      theme="ai"
+                      class="nc-field-ai-toggle-btn"
+                      :class="{
+                        '!pointer-events-none !cursor-not-allowed': aiLoading,
+                        'nc-ai-mode': aiMode,
+                      }"
+                      icon-only
+                      :shadow="false"
+                      @click.stop="aiMode ? disableAiMode() : toggleAiMode()"
+                    >
+                      <template #icon>
+                        <GeneralIcon icon="ncAutoAwesome" class="text-xs !text-current w-4 h-4" />
+                      </template>
+                    </NcButton>
+                    <template #overlay>
+                      <NcMenu>
+                        <NcMenuItem class="!children:w-full !text-nc-content-purple-dark" @click="toggleAiMode()">
+                          <component :is="getUIDTIcon(UITypes.SingleLineText)" class="flex-none w-3.5 h-3.5" />
+                          {{ $t('labels.autoSuggestFields') }}
+                        </NcMenuItem>
+                        <NcMenuItem
+                          v-show="!isForm"
+                          class="!children:w-full !text-nc-content-purple-dark"
+                          @click="toggleAiMode(true)"
+                        >
+                          <component :is="getUIDTIcon(UITypes.Formula)" class="flex-none w-3.5 h-3.5" />
+                          {{ $t('labels.autoSuggestFormulas') }}
+                        </NcMenuItem>
+                      </NcMenu>
+                    </template>
+                  </NcDropdown>
+                </NcTooltip>
+              </div>
+            </template>
+            <template v-else>
+              <div class="nc-fields-add-new-field-btn-wrapper shadow-sm">
+                <NcTooltip :disabled="isLocked">
+                  <template #title> {{ `${renderAltOrOptlKey()} + C` }} </template>
+                  <NcButton
+                    data-testid="nc-field-add-new"
+                    type="secondary"
+                    size="small"
+                    class="nc-field-add-new"
+                    :disabled="loading || isLocked"
+                    :shadow="false"
+                    @click="addField()"
+                  >
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="plus" class="w-3" />
+                      {{ $t('labels.multiField.newField') }}
+                    </div>
+                  </NcButton>
+                </NcTooltip>
+              </div>
+            </template>
             <NcButton
               data-testid="nc-field-reset"
               type="secondary"

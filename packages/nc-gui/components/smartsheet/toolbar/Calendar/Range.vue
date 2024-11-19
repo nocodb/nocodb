@@ -147,7 +147,13 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
 </script>
 
 <template>
-  <NcDropdown v-if="!IsPublic" v-model:visible="calendarRangeDropdown" :trigger="['click']" class="!xs:hidden">
+  <NcDropdown
+    v-if="!IsPublic"
+    v-model:visible="calendarRangeDropdown"
+    :trigger="['click']"
+    class="!xs:hidden"
+    overlay-class-name="overflow-hidden"
+  >
     <NcTooltip :disabled="!isToolbarIconMode" class="nc-calendar-btn">
       <template #title>
         {{ $t('activity.settings') }}
@@ -155,7 +161,6 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
 
       <NcButton
         v-e="['c:calendar:change-calendar-range']"
-        :disabled="isLocked"
         class="nc-toolbar-btn !border-0 group !h-6"
         size="small"
         type="secondary"
@@ -171,7 +176,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     </NcTooltip>
 
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-4" data-testid="nc-calendar-range-menu" @click.stop>
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
@@ -185,6 +190,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             v-model:value="range.fk_from_column_id"
             :placeholder="$t('placeholder.notSelected')"
             data-testid="nc-calendar-range-from-field-select"
+            :disabled="isLocked"
             @change="saveCalendarRanges"
           >
             <a-select-option
@@ -273,7 +279,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
         </div>
 
         <div>
-          <NcSwitch v-model:checked="hideWeekends">
+          <NcSwitch v-model:checked="hideWeekends" :disabled="isLocked">
             <span class="text-gray-800">
               {{ $t('activity.hideWeekends') }}
             </span>
@@ -283,6 +289,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
         <!--
         <div class="text-[13px] text-gray-500 py-2">Records in this view will be based on the specified date field.</div>
 -->
+        <GeneralLockedViewFooter v-if="isLocked" @on-open="calendarRangeDropdown = false" class="!-mb-4 -mx-4" />
       </div>
     </template>
   </NcDropdown>

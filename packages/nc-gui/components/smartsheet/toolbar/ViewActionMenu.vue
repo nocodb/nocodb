@@ -91,6 +91,17 @@ async function changeLockType(type: LockType) {
   emits('closeModal')
 }
 
+const isOpenLockViewDlg = ref(false)
+
+const onLockViewClick = () => {
+  $e('a:grid:lockmenu', { lockType: LockType.Locked, sidebar: props.inSidebar })
+
+  if (!view.value || view.value?.lock_type === LockType.Locked) return
+
+  emits('closeModal')
+  isOpenLockViewDlg.value = true
+}
+
 const isOnDuplicateLoading = ref<boolean>(false)
 
 /** Duplicate a view */
@@ -346,7 +357,7 @@ const isDefaultView = computed(() => view.value?.is_default)
           </a-menu-item>
         </SmartsheetToolbarNotAllowedTooltip>
         <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
-          <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
+          <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="onLockViewClick()" />
         </a-menu-item>
       </NcSubMenu>
       <SmartsheetToolbarNotAllowedTooltip
@@ -406,6 +417,7 @@ const isDefaultView = computed(() => view.value?.is_default)
         :source-id="currentSourceId"
       />
     </template>
+    <LazyDlgLockeView v-model="isOpenLockViewDlg" />
   </NcMenu>
   <span v-else></span>
 </template>

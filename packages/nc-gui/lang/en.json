@@ -624,7 +624,16 @@
     "directlyInRealTime": "Directly in real time",
     "categories": "Categories",
     "fieldInaccessible": "Field inaccessible",
-    "noConditionsAdded": "No conditions added"
+    "noConditionsAdded": "No conditions added",
+    "noAiIntegrationAvailable": "No AI Integrations available.",
+    "nocoAiBaseBuilder": "Noco AI Base Builder",
+    "additionalDetails": "Additional Details",
+    "aiIntegrationMissing": "AI Integration missing",
+    "noAiIntegrationsHaveBeenAdded": "No AI Integrations have been added.",
+    "generatingBaseTailoredToYourRequirement": "Generating a Base tailored to your requirement...",
+    "hereYourCrmBase": "Here’s your CRM Base",
+    "lockeThisView": "Lock this view",
+    "lockeThisViewSubtle": "Locking this view will prevent anyone from changing the view settings until it is unlocked by a collaborator with creator permissions."
   },
   "labels": {
     "continue": "Continue",
@@ -1007,6 +1016,17 @@
     "syncData": "Sync data",
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
     "redirectToUrl": "Redirect to URL",
+    "lockView": "Lock view",
+    "aiSuggested": "AI suggested",
+    "generateFieldDataUsingAi": "Generate field data using AI",
+    "preview": "Preview",
+    "autoSuggest": "Auto suggest",
+    "suggesting": "Suggesting...",
+    "autoSuggestFields": "Auto suggest fields",
+    "autoSuggestFormulas": "Auto suggest formulas",
+    "createAiIntegration": "Create AI integration",
+    "suggestTablesViews": "Suggest Tables & Views",
+    "configureAiButton": "Configure AI Button",
     "viewHide": "View visibility "
   },
   "activity": {
@@ -1368,7 +1388,8 @@
     "noTokenCreatedLabel": "Looks like you haven’t generated any API tokens yet.",
     "inviteYourTeam": "Invite your team",
     "inviteYourTeamLabel": "Fast track your projects by collaborating on them with your team!",
-    "searchOptions": "Search options"
+    "searchOptions": "Search options",
+    "lockViewDescription": "Explain why you’re locking this view. This message will be shown when anyone tries to unlock this view (optional)."
   },
   "msg": {
     "invalidConfiguration": "Invalid button configuration",

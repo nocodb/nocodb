@@ -1,26 +1,23 @@
 <script setup lang="ts">
-import type { LockType } from "#imports";
+import type { LockType } from '#imports'
 
 const { type, hideTick } = defineProps<{
-  hideTick?: boolean;
-  type: LockType;
-  disabled?: boolean;
-}>();
+  hideTick?: boolean
+  type: LockType
+  disabled?: boolean
+}>()
 
-const emit = defineEmits(["select"]);
+const emit = defineEmits(['select'])
 
-const types = viewLockIcons;
+const types = viewLockIcons
 
-const selectedView = inject(ActiveViewInj);
+const selectedView = inject(ActiveViewInj)
 </script>
 
 <template>
-  <div
-    class="nc-locked-menu-item !px-1 text-gray-800 max-w-[312px]"
-    @click="emit('select', type)"
-  >
+  <div class="nc-locked-menu-item !px-1 text-gray-800 w-full max-w-[312px]" @click="emit('select', type)">
     <div :class="{ 'show-tick': !hideTick }">
-      <div class="flex flex-col gap-y-1">
+      <div class="w-full flex flex-col gap-y-1">
         <div class="flex items-center gap-2 flex-grow">
           <component
             :is="types[type].icon"

@@ -538,7 +538,7 @@ const showNodeTooltip = ref(true)
       :data-base-id="base.id"
     >
       <NcTooltip
-        :tooltip-style="{ width: '300px' }"
+        :tooltip-style="{ width: '300px', zIndex: '1049' }"
         :overlay-inner-style="{ width: '300px' }"
         trigger="hover"
         placement="right"

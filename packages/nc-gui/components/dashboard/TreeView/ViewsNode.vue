@@ -263,7 +263,7 @@ watch(isDropdownOpen, async () => {
     @click.prevent="handleOnClick"
   >
     <NcTooltip
-      :tooltip-style="{ width: '240px' }"
+      :tooltip-style="{ width: '240px', zIndex: '1049' }"
       :overlay-inner-style="{ width: '240px' }"
       trigger="hover"
       placement="right"

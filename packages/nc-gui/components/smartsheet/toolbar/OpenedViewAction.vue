@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { LockType } from '#imports'
+
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()
@@ -159,6 +161,24 @@ function openDeleteDialog() {
     close(1000)
   }
 }
+
+const onLockTypeChange = (type: LockType) => {
+  isDropdownOpen.value = false
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgLockView'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+    'changeType': type,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
 </script>
 
 <template>
@@ -215,6 +235,7 @@ function openDeleteDialog() {
         @rename="onRenameMenuClick"
         @delete="openDeleteDialog"
         @description-update="updateDescription"
+        @on-lock-type-change="onLockTypeChange"
       />
     </template>
   </NcDropdown>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { isDefaultBase as _isDefaultBase } from '#imports'
+import { isDefaultBase as _isDefaultBase, LockType } from '#imports'
 
 interface Props {
   view: ViewType
@@ -226,6 +226,25 @@ const onDelete = () => {
   emits('delete', vModel.value)
 }
 
+const onLockTypeChange = (type: LockType) => {
+  isDropdownOpen.value = false
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgLockView'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+    'changeType': type,
+    'view': vModel.value,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
+}
+
 watch(isDropdownOpen, async () => {
   if (!isDropdownOpen.value) return
 
@@ -350,6 +369,7 @@ watch(isDropdownOpen, async () => {
               @rename="onRenameMenuClick"
               @delete="onDelete"
               @description-update="openViewDescriptionDialog(vModel)"
+              @on-lock-type-change="onLockTypeChange"
             />
           </template>
         </NcDropdown>

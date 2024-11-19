@@ -16,6 +16,7 @@ import { useSlots } from 'vue'
 interface Props {
   loading?: boolean
   disabled?: boolean
+  showAsDisabled?: boolean
   type?: ButtonType | 'danger' | 'secondary' | undefined
   size?: NcButtonSize
   centered?: boolean
@@ -26,6 +27,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
+  showAsDisabled: false,
   size: 'medium',
   type: 'primary',
   fullWidth: false,
@@ -83,6 +85,11 @@ useEventListener(NcButton, 'mousedown', () => {
       'xxsmall': size === 'xxsmall',
       'size-xs': size === 'xs',
       'focused': isFocused,
+      'theme-default': theme === 'default',
+      'theme-ai': theme === 'ai',
+      'bordered': bordered,
+      'nc-btn-shadow': shadow,
+      'nc-show-as-disabled': props.showAsDisabled,
     }"
     :disabled="props.disabled"
     :loading="loading"
@@ -190,12 +197,52 @@ useEventListener(NcButton, 'mousedown', () => {
   @apply bg-gray-50 border-0 text-gray-300 !cursor-not-allowed md:(hover:bg-gray-50);
 }
 
-.nc-button.ant-btn-text.ant-btn[disabled] {
-  @apply bg-transparent hover:bg-transparent;
+.nc-button.ant-btn.nc-show-as-disabled,
+.ant-btn-text.nc-button.ant-btn.nc-show-as-disabled {
+  box-shadow: none !important;
+
+  @apply border-0;
+
+  &.theme-default {
+    @apply bg-gray-50 text-gray-300 md:(hover:bg-gray-50);
+  }
+
+  &.theme-ai {
+    @apply bg-purple-50 text-purple-300 md:(hover:bg-purple-50);
+  }
 }
 
-.nc-button.ant-btn-secondary[disabled] {
-  @apply bg-white hover:bg-white border-1 border-gray-100 text-gray-300;
+.nc-button.ant-btn-text.ant-btn[disabled],
+.nc-button.ant-btn-text.ant-btn.nc-show-as-disabled {
+  &.theme-default,
+  &.theme-ai {
+    @apply bg-transparent hover:bg-transparent;
+  }
+}
+
+.nc-button.ant-btn-secondary[disabled],
+.nc-button.ant-btn-secondary.nc-show-as-disabled {
+  @apply border-1;
+
+  &:not(.bordered) {
+    @apply border-transparent;
+  }
+
+  &.theme-default {
+    @apply bg-white hover:bg-white border-gray-100 text-gray-300;
+
+    &.bordered {
+      @apply border-gray-100;
+    }
+  }
+
+  &.theme-ai {
+    @apply bg-purple-50 hover:bg-purple-50  text-purple-300;
+
+    &.bordered {
+      @apply border-purple-100;
+    }
+  }
 }
 
 .nc-button.ant-btn-primary {

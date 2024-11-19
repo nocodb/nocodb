@@ -91,6 +91,7 @@ useMenuCloseOnEsc(open)
         class="nc-height-menu-btn nc-toolbar-btn !border-0 !h-7 !px-1.5 !min-w-7"
         size="small"
         type="secondary"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-0.5">
           <component :is="iconMap.rowHeight" class="!h-3.75 !w-3.75" />

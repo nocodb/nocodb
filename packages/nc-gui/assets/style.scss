@@ -629,8 +629,13 @@ a {
 .nc-toolbar-btn {
   @apply !shadow-none rounded hover:(bg-gray-50 !text-gray-800) focus:(!text-gray-800 bg-gray-50) text-gray-600 text-xs font-medium px-2 border-0;
 }
+
 .nc-toolbar-btn[disabled] {
   @apply !text-gray-400 !cursor-not-allowed !hover:ring-0;
+}
+
+.nc-toolbar-btn.nc-show-as-disabled {
+  @apply !text-gray-400 !hover:ring-0;
 }
 
 .nc-warning-info {

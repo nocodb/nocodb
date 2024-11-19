@@ -165,10 +165,11 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
         size="small"
         type="secondary"
         data-testid="nc-calendar-range-btn"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-2">
-          <component :is="iconMap.calendar" class="h-4 w-4 transition-all group-hover:text-brand-500" />
-          <span v-if="!isToolbarIconMode" class="text-capitalize !group-hover:text-brand-500 !text-[13px] font-medium">
+          <component :is="iconMap.calendar" class="h-4 w-4" />
+          <span v-if="!isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
             {{ $t('activity.settings') }}
           </span>
         </div>

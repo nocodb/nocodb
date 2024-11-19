@@ -1006,7 +1006,8 @@
     "coverImageArea": "आवरण चित्र",
     "syncData": "सङ्केत डाटा",
     "syncDataModalSubtitle": "कृपया तपाईंलाई चासो भएका सेवाहरू दर्ता गर्नुहोस् तिनीहरू उपलब्ध हुँदा सूचित गरिनेछ",
-    "redirectToUrl": "URL मा पुनर्निर्देश गर्नुहोस्"
+    "redirectToUrl": "URL मा पुनर्निर्देश गर्नुहोस्",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "समूह",
     "goToDocs": "डक्समा जानुहोस्",
     "addCondition": "अवस्था थप्नुहोस्",
-    "addConditionGroup": "अवस्था समूह थप्नुहोस्"
+    "addConditionGroup": "अवस्था समूह थप्नुहोस्",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "वर्तमान मिति विकल्प डाटा स्रोत वा डाटा प्रकारका लागि उपलब्ध छैन",

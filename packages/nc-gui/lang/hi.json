@@ -1006,7 +1006,8 @@
     "coverImageArea": "कवर छवि",
     "syncData": "डेटा सिंक करें",
     "syncDataModalSubtitle": "उन सेवाओं को पंजीकृत करें जिनमें आप रुचि रखते हैं ताकि जब वे उपलब्ध हों आपको सूचित किया जा सके",
-    "redirectToUrl": "URL पर पुनर्निर्देशित करें"
+    "redirectToUrl": "URL पर पुनर्निर्देशित करें",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "समूह",
     "goToDocs": "डॉक्युमेंटेशन पर जाएं",
     "addCondition": "शर्त जोड़ें",
-    "addConditionGroup": "शर्त समूह जोड़ें"
+    "addConditionGroup": "शर्त समूह जोड़ें",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "डेटा स्रोत या डेटा प्रकार के लिए वर्तमान तिथि विकल्प उपलब्ध नहीं है",

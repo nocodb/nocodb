@@ -1006,7 +1006,8 @@
     "coverImageArea": "Область обкладинки зображення",
     "syncData": "Синхронізувати дані",
     "syncDataModalSubtitle": "Зареєструйте служби, які вас цікавлять, щоб отримувати сповіщення, коли вони стануть доступними",
-    "redirectToUrl": "Перенаправити на URL"
+    "redirectToUrl": "Перенаправити на URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Група",
     "goToDocs": "Перейти до документації",
     "addCondition": "Додати умову",
-    "addConditionGroup": "Додати групу умов"
+    "addConditionGroup": "Додати групу умов",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

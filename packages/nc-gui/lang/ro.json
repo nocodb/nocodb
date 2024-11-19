@@ -1006,7 +1006,8 @@
     "coverImageArea": "Acoperă imaginea",
     "syncData": "Sincronizează date",
     "syncDataModalSubtitle": "Înregistrează serviciile care te interesează pentru a fi notificat când devin disponibile",
-    "redirectToUrl": "Redirecționează către URL"
+    "redirectToUrl": "Redirecționează către URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Grup",
     "goToDocs": "Mergi la Documentație",
     "addCondition": "Adaugă condiție",
-    "addConditionGroup": "Adaugă grup de condiții"
+    "addConditionGroup": "Adaugă grup de condiții",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Opțiunea de dată curentă nu este disponibilă pentru sursa de date sau tipul de date",

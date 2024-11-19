@@ -1006,7 +1006,8 @@
     "coverImageArea": "Vāka attēls",
     "syncData": "Sinhronizēt datus",
     "syncDataModalSubtitle": "Reģistrējiet pakalpojumus, kas jūs interesē, lai saņemtu paziņojumus, kad tie kļūst pieejami",
-    "redirectToUrl": "Pāradresēt uz URL"
+    "redirectToUrl": "Pāradresēt uz URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "Grupa",
     "goToDocs": "Doties uz dokumentiem",
     "addCondition": "Pievienot nosacījumu",
-    "addConditionGroup": "Pievienot nosacījumu grupu"
+    "addConditionGroup": "Pievienot nosacījumu grupu",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "Current date option not available for this data source / data type",

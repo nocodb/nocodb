@@ -1006,7 +1006,8 @@
     "coverImageArea": "បិទខាងក្រោមរូបភាព",
     "syncData": "តវាំងទិន្នន័យ",
     "syncDataModalSubtitle": "ចុះឈ្មោះសេវាកម្មដែលអ្នកមាន ចំណាប់អារម្មណ៍ដើម្បីទទួលបានការជូនដំណឹងនៅពេលពួកយើងអាចប្រើបាន",
-    "redirectToUrl": "ប្តូរទិសទៅ URL"
+    "redirectToUrl": "ប្តូរទិសទៅ URL",
+    "viewHide": "View visibility "
   },
   "activity": {
     "assignView": "Assign view",
@@ -1266,7 +1267,8 @@
     "group": "ក្រុម",
     "goToDocs": "ទៅកាន់ឯកសារ",
     "addCondition": "បន្ថែមលក្ខខណ្ឌ",
-    "addConditionGroup": "បន្ថែមក្រុមលក្ខខណ្ឌ"
+    "addConditionGroup": "បន្ថែមក្រុមលក្ខខណ្ឌ",
+    "pending": "Pending"
   },
   "tooltip": {
     "currentDateNotAvail": "ជម្រើសកាលបរិច្ឆេទបច្ចុប្បន្នមិនមានសម្រាប់ប្រភពទិន្នន័យ ឬប្រភេទទិន្នន័យ",

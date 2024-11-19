@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import type { LockType } from '#imports'
+import type { LockType } from "#imports";
 
-const { type, hideTick } = defineProps<{ hideTick?: boolean; type: LockType; disabled?: boolean }>()
+const { type, hideTick } = defineProps<{
+  hideTick?: boolean;
+  type: LockType;
+  disabled?: boolean;
+}>();
 
-const emit = defineEmits(['select'])
+const emit = defineEmits(["select"]);
 
-const types = viewLockIcons
+const types = viewLockIcons;
 
-const selectedView = inject(ActiveViewInj)
+const selectedView = inject(ActiveViewInj);
 </script>
 
 <template>
-  <div class="nc-locked-menu-item !px-1 text-gray-800 max-w-[312px]" @click="emit('select', type)">
+  <div
+    class="nc-locked-menu-item !px-1 text-gray-800 max-w-[312px]"
+    @click="emit('select', type)"
+  >
     <div :class="{ 'show-tick': !hideTick }">
       <div class="flex flex-col gap-y-1">
         <div class="flex items-center gap-2 flex-grow">
@@ -35,7 +42,12 @@ const selectedView = inject(ActiveViewInj)
           </div>
           <div v-if="!hideTick" class="flex flex-grow"></div>
           <template v-if="!hideTick">
-            <GeneralIcon v-if="selectedView?.lock_type === type" icon="check" :class="{ '!text-brand-5s00': !disabled }" />
+            <GeneralIcon
+              v-if="selectedView?.lock_type === type"
+              icon="circleCheckSolid"
+              class="h-4 w-4 flex-none"
+              :class="{ '!text-brand-500': !disabled }"
+            />
             <span v-else />
           </template>
         </div>

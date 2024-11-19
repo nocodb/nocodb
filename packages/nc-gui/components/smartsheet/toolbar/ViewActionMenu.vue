@@ -187,14 +187,14 @@ const isDefaultView = computed(() => view.value?.is_default)
     data-id="toolbar-actions"
   >
     <NcTooltip>
-      <template #title> {{ $t("labels.clickToCopyViewID") }} </template>
+      <template #title> {{ $t('labels.clickToCopyViewID') }} </template>
       <div
         class="flex items-center justify-between p-2 mx-1.5 rounded-md cursor-pointer hover:bg-gray-100 group"
         @click="onViewIdCopy"
       >
         <div class="flex text-xs font-bold text-gray-500 ml-1">
           {{
-            $t("labels.viewIdColon", {
+            $t('labels.viewIdColon', {
               viewId: view?.id,
             })
           }}
@@ -212,47 +212,36 @@ const isDefaultView = computed(() => view.value?.is_default)
         <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
           <GeneralIcon icon="rename" />
           {{
-            $t("general.renameEntity", {
-              entity:
-                view.type !== ViewTypes.FORM
-                  ? $t("objects.view").toLowerCase()
-                  : $t("objects.viewType.form").toLowerCase(),
+            $t('general.renameEntity', {
+              entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
             })
           }}
         </NcMenuItem>
         <NcTooltip v-else>
-          <template #title> {{ $t("msg.info.disabledAsViewLocked") }} </template>
+          <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
           <NcMenuItem class="!cursor-not-allowed !text-gray-400">
             <GeneralIcon icon="rename" />
             {{
-              $t("general.renameEntity", {
+              $t('general.renameEntity', {
                 entity:
-                  view.type !== ViewTypes.FORM
-                    ? $t("objects.view").toLowerCase()
-                    : $t("objects.viewType.form").toLowerCase(),
+                  view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
               })
             }}
           </NcMenuItem>
         </NcTooltip>
-        <NcMenuItem
-          v-show="lockType !== LockType.Locked"
-          @click="onDescriptionUpdateClick"
-        >
+        <NcMenuItem v-show="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
           <GeneralIcon icon="ncAlignLeft" />
-          {{ $t("general.edit") }}
+          {{ $t('general.edit') }}
 
-          {{ $t("labels.description") }}
+          {{ $t('labels.description') }}
         </NcMenuItem>
       </template>
       <NcMenuItem @click="onDuplicate">
         <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
         <GeneralIcon v-else class="nc-view-copy-icon" icon="duplicate" />
         {{
-          $t("general.duplicateEntity", {
-            entity:
-              view.type !== ViewTypes.FORM
-                ? $t("objects.view").toLowerCase()
-                : $t("objects.viewType.form").toLowerCase(),
+          $t('general.duplicateEntity', {
+            entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
           })
         }}
       </NcMenuItem>
@@ -272,21 +261,17 @@ const isDefaultView = computed(() => view.value?.is_default)
               class="nc-base-menu-item group"
             >
               <GeneralIcon icon="upload" />
-              {{ $t("general.upload") }}
+              {{ $t('general.upload') }}
             </div>
           </template>
 
           <template #expandIcon></template>
           <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
-            {{ $t("activity.uploadData") }}
+            {{ $t('activity.uploadData') }}
           </div>
 
           <template v-for="(dialog, type) in quickImportDialogs">
-            <NcMenuItem
-              v-if="isUIAllowed(`${type}TableImport`) && !isPublicView"
-              :key="type"
-              @click="onImportClick(dialog)"
-            >
+            <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
               <div
                 v-e="[
                   `a:upload:${type}`,
@@ -298,7 +283,7 @@ const isDefaultView = computed(() => view.value?.is_default)
                 class="nc-base-menu-item"
               >
                 <component :is="iconMap.cloudUpload" />
-                {{ `${$t("general.upload")} ${type.toUpperCase()}` }}
+                {{ `${$t('general.upload')} ${type.toUpperCase()}` }}
               </div>
             </NcMenuItem>
           </template>
@@ -316,7 +301,7 @@ const isDefaultView = computed(() => view.value?.is_default)
             class="nc-base-menu-item group nc-view-context-download-option"
           >
             <GeneralIcon icon="download" />
-            {{ $t("general.download") }}
+            {{ $t('general.download') }}
           </div>
         </template>
 
@@ -330,11 +315,7 @@ const isDefaultView = computed(() => view.value?.is_default)
       <NcDivider />
       <NcSubMenu
         key="lock-type"
-        :disabled="
-          !isViewOwner &&
-          !isUIAllowed('reAssignViewOwner') &&
-          view.lock_type === LockType.Personal
-        "
+        :disabled="!isViewOwner && !isUIAllowed('reAssignViewOwner') && view.lock_type === LockType.Personal"
         class="scrollbar-thin-dull max-h-90vh overflow-auto !py-0"
       >
         <template #title>
@@ -348,11 +329,9 @@ const isDefaultView = computed(() => view.value?.is_default)
             class="flex flex-row items-center gap-x-3"
           >
             <div>
-              {{ $t("labels.viewMode") }}
+              {{ $t('labels.viewMode') }}
             </div>
-            <div
-              class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50"
-            >
+            <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
               <LazySmartsheetToolbarLockType
                 :type="lockType"
                 class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
@@ -365,41 +344,26 @@ const isDefaultView = computed(() => view.value?.is_default)
 
         <template #expandIcon></template>
         <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
-          {{ $t("labels.viewMode") }}
+          {{ $t('labels.viewMode') }}
         </div>
-        <a-menu-item
-          class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
-        >
-          <LazySmartsheetToolbarLockType
-            :type="LockType.Collaborative"
-            @click="changeLockType(LockType.Collaborative)"
-          />
+        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
+          <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
         </a-menu-item>
         <SmartsheetToolbarNotAllowedTooltip
           v-if="isEeUI"
           :enabled="!isViewOwner || isDefaultView"
-          :message="
-            isDefaultView
-              ? 'Default view can\'t be made personal'
-              : 'Only view owner can change to personal view'
-          "
+          :message="isDefaultView ? 'Default view can\'t be made personal' : 'Only view owner can change to personal view'"
         >
           <a-menu-item
             :disabled="!isViewOwner || isDefaultView"
             class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
             @click="changeLockType(LockType.Personal)"
           >
-            <LazySmartsheetToolbarLockType
-              :type="LockType.Personal"
-              :disabled="!isViewOwner || isDefaultView"
-            />
+            <LazySmartsheetToolbarLockType :type="LockType.Personal" :disabled="!isViewOwner || isDefaultView" />
           </a-menu-item>
         </SmartsheetToolbarNotAllowedTooltip>
         <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
-          <LazySmartsheetToolbarLockType
-            :type="LockType.Locked"
-            @click="changeLockType(LockType.Locked)"
-          />
+          <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
         </a-menu-item>
       </NcSubMenu>
       <SmartsheetToolbarNotAllowedTooltip
@@ -407,10 +371,7 @@ const isDefaultView = computed(() => view.value?.is_default)
         :enabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
         message="Only owner or creator can re-assign"
       >
-        <NcMenuItem
-          :disabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"
-          @click="openReAssignDlg"
-        >
+        <NcMenuItem :disabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))" @click="openReAssignDlg">
           <div
             v-e="[
               'c:navdraw:preview-as',
@@ -421,7 +382,7 @@ const isDefaultView = computed(() => view.value?.is_default)
             class="flex flex-row items-center gap-x-3"
           >
             <div>
-              {{ $t("labels.reAssignView") }}
+              {{ $t('labels.reAssignView') }}
             </div>
             <div class="flex flex-grow"></div>
           </div>
@@ -432,15 +393,12 @@ const isDefaultView = computed(() => view.value?.is_default)
     <template v-if="!view.is_default && isUIAllowed('viewCreateOrEdit')">
       <NcDivider />
       <NcTooltip v-if="lockType === LockType.Locked">
-        <template #title> {{ $t("msg.info.disabledAsViewLocked") }} </template>
+        <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
         <NcMenuItem class="!cursor-not-allowed !text-gray-400">
           <GeneralIcon class="nc-view-delete-icon" icon="delete" />
           {{
-            $t("general.deleteEntity", {
-              entity:
-                view.type !== ViewTypes.FORM
-                  ? $t("objects.view").toLowerCase()
-                  : $t("objects.viewType.form").toLowerCase(),
+            $t('general.deleteEntity', {
+              entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
             })
           }}
         </NcMenuItem>
@@ -448,11 +406,8 @@ const isDefaultView = computed(() => view.value?.is_default)
       <NcMenuItem v-else class="!hover:bg-red-50 !text-red-500" @click="onDelete">
         <GeneralIcon class="nc-view-delete-icon" icon="delete" />
         {{
-          $t("general.deleteEntity", {
-            entity:
-              view.type !== ViewTypes.FORM
-                ? $t("objects.view").toLowerCase()
-                : $t("objects.viewType.form").toLowerCase(),
+          $t('general.deleteEntity', {
+            entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
           })
         }}
       </NcMenuItem>

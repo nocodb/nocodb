@@ -963,3 +963,75 @@ svg.nc-virtual-cell-icon {
 .nc-breadcrumb-divider {
   @apply flex-none text-gray-500 !stroke-transparent;
 }
+
+.nc-animate-dots {
+  --nc-dot-animation-duration: 1.5s; /* Default value */
+
+  &::after {
+    content: '';
+    animation: nc-animate-dots var(--nc-dot-animation-duration) steps(3, end) infinite;
+  }
+}
+
+@keyframes nc-animate-dots {
+  0%,
+  20% {
+    content: '';
+  }
+  40% {
+    content: '.';
+  }
+  60% {
+    content: '..';
+  }
+  80%,
+  100% {
+    content: '...';
+  }
+}
+
+.nc-ai-selected-tag {
+  @apply cursor-pointer !rounded-md !bg-nc-bg-brand hover:!bg-brand-100 !text-nc-content-brand !border-none font-semibold !mx-0;
+
+  &.nc-selected {
+    @apply !bg-brand-100;
+  }
+}
+
+.nc-ai-suggested-tag {
+  @apply !rounded-md !bg-nc-bg-purple-light !border-none !mx-0;
+
+  &.nc-selected {
+    @apply font-semibold;
+  }
+
+  &:not(.nc-disabled) {
+    @apply cursor-pointer !text-nc-content-purple-dark hover:!bg-nc-bg-purple-dark;
+
+    &.nc-bg-selected {
+      @apply !bg-nc-bg-purple-dark;
+    }
+  }
+
+  &.nc-disabled {
+    @apply cursor-not-allowed !text-nc-content-purple-light;
+  }
+}
+
+.ant-dropdown {
+  &.nc-dropdown-group-by-menu,
+  &.nc-dropdown-sort-menu {
+    .nc-locked-view {
+      .nc-unified-search-list-wrapper {
+        @apply cursor-not-allowed;
+        & > div {
+          @apply !pointer-events-none select-none !bg-white;
+
+          &.nc-unified-list-option-active {
+            @apply bg-white;
+          }
+        }
+      }
+    }
+  }
+}

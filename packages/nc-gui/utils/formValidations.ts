@@ -142,7 +142,8 @@ export const extractFieldValidator = (_validators: Validation[], element: Column
 }
 
 export const getValidFieldName = (title: string, uniqueFieldNames: Set<string>) => {
-  title = title.replace(/\./g, '_')
+  // Replace invalid characters: '.' and '[]' with '_'
+  title = title.replace(/\./g, '_').replace(/\[|\]/g, '_')
   let counter = 1
 
   let newTitle = title

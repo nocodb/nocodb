@@ -273,7 +273,7 @@ watch(isDropdownOpen, async () => {
         <div class="flex flex-col gap-2">
           <div class="text-small leading-[18px]">{{ vModel.alias || vModel.title }}</div>
           <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
-            <div class="text-tiny">{{ $t('labels.createdBy') }}</div>
+            <div class="text-[10px] leading-[14px] mb-0.5">{{ $t('labels.createdBy') }}</div>
             <div class="text-xs">
               {{
                 idUserMap[vModel?.created_by]?.id === user?.id
@@ -283,12 +283,15 @@ watch(isDropdownOpen, async () => {
             </div>
           </div>
           <div>
-            <div class="text-tiny mb-1">Editing</div>
+            <div class="text-[10px] leading-[14px] mb-0.5">{{ $t('activity.editingAccess') }}</div>
             <div class="text-xs flex items-start gap-2">
-              <component :is="viewLockIcons[vModel.lock_type]?.icon" class="flex-none w-4 h-4" />
               {{
                 vModel.lock_type === ViewLockType.Personal && !isViewOwner
-                  ? $t(viewLockIcons[vModel.lock_type]?.cannotEditConfiguration)
+                  ? $t(viewLockIcons[vModel.lock_type]?.canEditConfiguration, {
+                      user: idUserMap[vModel?.owned_by]?.display_name || idUserMap[vModel?.owned_by]?.email,
+                    }).toLowerCase()
+                  : vModel.lock_type === ViewLockType.Locked && isUIAllowed('fieldAdd')
+                  ? $t(viewLockIcons[vModel.lock_type]?.canEditConfiguration)
                   : $t(viewLockIcons[vModel.lock_type]?.subtitle)
               }}
             </div>

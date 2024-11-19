@@ -239,7 +239,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             class="!border-none w-28"
             type="secondary"
             :shadow="false"
-            :disabled="!isEeUI"
+            :disabled="!isEeUI || isLocked"
             @click="range.fk_to_column_id = undefined"
           >
             <div class="flex gap-2 items-center">
@@ -255,7 +255,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
               <a-select
                 v-model:value="range.fk_to_column_id"
                 class="!rounded-r-none nc-select-shadow w-full flex-1 nc-to-select"
-                :disabled="!range.fk_from_column_id"
+                :disabled="!range.fk_from_column_id || isLocked"
                 :placeholder="$t('placeholder.notSelected')"
                 data-testid="nc-calendar-range-to-field-select"
                 dropdown-class-name="!rounded-lg"

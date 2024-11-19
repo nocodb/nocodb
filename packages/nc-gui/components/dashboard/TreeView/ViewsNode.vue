@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { type TableType, ViewLockType, type ViewType, type ViewTypes } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
-import { isDefaultBase as _isDefaultBase, LockType } from '#imports'
+import { LockType, isDefaultBase as _isDefaultBase } from '#imports'
 
 interface Props {
   view: ViewType

@@ -537,7 +537,10 @@ useMenuCloseOnEsc(open)
               :disabled="isLocked"
               placement="bottomRight"
             >
-              <button class="flex items-center px-2 border-l-1 border-gray-200 disabled:(cursor-not-allowed opacity-80)" :disabled="isLocked">
+              <button
+                class="flex items-center px-2 border-l-1 border-gray-200 disabled:(cursor-not-allowed opacity-80)"
+                :disabled="isLocked"
+              >
                 <GeneralIcon
                   icon="settings"
                   class="h-4 w-4"

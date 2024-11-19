@@ -794,7 +794,7 @@ export function useMultiSelect(
         }
         onActiveCellChanged?.()
         break
-      case 'Enter':
+      case 'Enter': {
         selectedRange.clear()
 
         let row
@@ -807,6 +807,7 @@ export function useMultiSelect(
 
         makeEditable(row, unref(fields)[activeCell.col])
         break
+      }
       case 'Delete':
       case 'Backspace':
         if (isDataReadOnly.value) {

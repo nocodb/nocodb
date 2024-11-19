@@ -38,8 +38,6 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
-const changeType = ref<LockType>()
-
 const isViewIdCopied = ref(false)
 
 const currentSourceId = computed(() => table.value?.source_id)
@@ -68,8 +66,6 @@ const onImportClick = (dialog: any) => {
   emits('closeModal')
   dialog.value = true
 }
-
-const isOpenLockViewDlg = ref(false)
 
 async function changeLockType(type: LockType) {
   if (!view.value || view.value?.lock_type === type) return

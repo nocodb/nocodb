@@ -635,7 +635,8 @@
     "lockThisView": "Lock this view",
     "lockThisViewSubtle": "Locking this view will prevent anyone from changing the view settings until it is unlocked by a collaborator with creator permissions.",
     "unlockViewTitle": "Are you sure you want to unlock this view?",
-    "unlockViewTitleSubtitle": "This view was locked by"
+    "unlockViewTitleSubtitle": "This view was locked by",
+    "thisViewIsLocked": "This view is locked"
   },
   "labels": {
     "continue": "Continue",

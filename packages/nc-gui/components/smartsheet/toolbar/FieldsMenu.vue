@@ -434,7 +434,7 @@ useMenuCloseOnEsc(open)
     v-model:visible="open"
     :trigger="['click']"
     class="!xs:hidden"
-    overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown"
+    overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown overflow-hidden"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': numberOfHiddenFields }">
       <template #title>
@@ -445,13 +445,7 @@ useMenuCloseOnEsc(open)
         }}
       </template>
 
-      <NcButton
-        v-e="['c:fields']"
-        :disabled="isLocked"
-        class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0"
-        size="small"
-        type="secondary"
-      >
+      <NcButton v-e="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn !h-7 !border-0" size="small" type="secondary">
         <div class="flex items-center gap-1">
           <div class="flex items-center gap-2 min-h-5">
             <GeneralIcon
@@ -498,6 +492,7 @@ useMenuCloseOnEsc(open)
               class="flex-1 max-w-[calc(100%_-_33px)]"
               dropdown-class-name="nc-dropdown-cover-image !rounded-lg"
               :bordered="false"
+              :disabled="isLocked"
               @click.stop
             >
               <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
@@ -533,8 +528,13 @@ useMenuCloseOnEsc(open)
                 </div>
               </a-select-option>
             </a-select>
-            <NcDropdown v-if="coverImageObjectFit" v-model:visible="coverImageObjectFitDropdown.isOpen" placement="bottomRight">
-              <button class="flex items-center px-2 border-l-1 border-gray-200 cursor-pointer">
+            <NcDropdown
+              v-if="coverImageObjectFit"
+              v-model:visible="coverImageObjectFitDropdown.isOpen"
+              :disabled="isLocked"
+              placement="bottomRight"
+            >
+              <button class="flex items-center px-2 border-l-1 border-gray-200" :disabled="isLocked">
                 <GeneralIcon
                   icon="settings"
                   class="h-4 w-4"
@@ -605,6 +605,7 @@ useMenuCloseOnEsc(open)
               @change="onMove($event)"
               @start="isDragging = true"
               @end="isDragging = false"
+              :disabled="isLocked"
             >
               <template #item="{ element: field }">
                 <div
@@ -624,6 +625,8 @@ useMenuCloseOnEsc(open)
                     class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[5px] pr-2"
                     @click="
                       () => {
+                        if (isLocked) return
+
                         field.show = !field.show
                         toggleFieldVisibility(field.show, field)
                       }
@@ -644,6 +647,7 @@ useMenuCloseOnEsc(open)
                         class="!rounded-r-none !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
+                        :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'bold', !field.bold)"
                       >
                         <component :is="iconMap.bold" class="!w-3 !h-3" />
@@ -655,6 +659,7 @@ useMenuCloseOnEsc(open)
                         class="!rounded-x-none !border-x-0 !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
+                        :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'italic', !field.italic)"
                       >
                         <component :is="iconMap.italic" class="!w-3 !h-3" />
@@ -666,6 +671,7 @@ useMenuCloseOnEsc(open)
                         class="!rounded-l-none !w-5 !h-5"
                         size="xxsmall"
                         type="secondary"
+                        :disabled="isLocked"
                         @click.stop="toggleFieldStyles(field, 'underline', !field.underline)"
                       >
                         <component :is="iconMap.underline" class="!w-3 !h-3" />
@@ -673,7 +679,7 @@ useMenuCloseOnEsc(open)
                     </div>
                     <NcSwitch
                       :checked="field.show"
-                      :disabled="field.isViewEssentialField"
+                      :disabled="field.isViewEssentialField || isLocked"
                       size="xsmall"
                       @change="$e('a:fields:show-hide')"
                     />
@@ -686,7 +692,13 @@ useMenuCloseOnEsc(open)
           </div>
         </div>
         <div v-if="!filterQuery" class="flex px-2 gap-2 py-2">
-          <NcButton class="nc-fields-show-all-fields" size="small" type="ghost" @click="showAllColumns = !showAllColumns">
+          <NcButton
+            class="nc-fields-show-all-fields"
+            size="small"
+            type="ghost"
+            :disabled="isLocked"
+            @click="showAllColumns = !showAllColumns"
+          >
             {{ showAllColumns ? $t('general.hideAll') : $t('general.showAll') }} {{ $t('objects.fields').toLowerCase() }}
           </NcButton>
           <NcButton
@@ -694,11 +706,14 @@ useMenuCloseOnEsc(open)
             class="nc-fields-show-system-fields"
             size="small"
             type="ghost"
+            :disabled="isLocked"
             @click="showSystemField = !showSystemField"
           >
             {{ showSystemField ? $t('title.hideSystemFields') : $t('activity.showSystemFields') }}
           </NcButton>
         </div>
+
+        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
       </div>
     </template>
   </NcDropdown>

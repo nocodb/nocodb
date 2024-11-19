@@ -85,6 +85,7 @@ async function changeLockType(type: LockType) {
 
     changeType.value = type
     isOpenLockViewDlg.value = true
+
     return
   }
 
@@ -428,7 +429,7 @@ const isDefaultView = computed(() => view.value?.is_default)
         :source-id="currentSourceId"
       />
     </template>
-    <LazyDlgLockeView v-model="isOpenLockViewDlg" :change-type="changeType" :view="view" />
+    <LazyDlgLockView v-model="isOpenLockViewDlg" :change-type="changeType" :view="view" />
   </NcMenu>
   <span v-else></span>
 </template>

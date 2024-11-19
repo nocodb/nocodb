@@ -27,13 +27,7 @@ const changeType = computed(() =>
   view.value?.lock_type !== LockType.Locked ? LockType.Locked : props.changeType || LockType.Collaborative,
 )
 
-watchEffect(() => {
-  console.log('props', props.view, view.value?.meta)
-})
-
 const focusInput: VNodeRef = (el) => el && el?.focus?.()
-
-const creating = ref(false)
 
 const description = ref('')
 
@@ -72,6 +66,12 @@ const changeLockType = async () => {
     isLoading.value = false
   }
 }
+
+watch(dialogShow, (newValue) => {
+  if (!newValue) {
+    description.value = ''
+  }
+})
 </script>
 
 <template>
@@ -129,9 +129,11 @@ const changeLockType = async () => {
       </div>
 
       <div class="flex gap-2 items-center justify-end">
-        <NcButton type="secondary" size="small" @click="dialogShow = false">{{ $t('general.cancel') }}</NcButton>
+        <NcButton type="secondary" size="small" :disabled="isLoading" @click="dialogShow = false">{{
+          $t('general.cancel')
+        }}</NcButton>
 
-        <NcButton type="primary" size="small" :loading="creating" @click="changeLockType">
+        <NcButton type="primary" size="small" :loading="isLoading" :disabled="isLoading" @click="changeLockType">
           <template #icon>
             <GeneralIcon :icon="changeType === LockType.Locked ? 'ncLock' : 'ncUnlock'" class="flex-none" />
           </template>

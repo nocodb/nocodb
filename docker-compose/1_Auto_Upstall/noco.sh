@@ -1,8 +1,6 @@
 #!/bin/bash
 
 set -e
-set -x
-
 # Constants
 NOCO_HOME="./nocodb"
 CURRENT_PATH=$(pwd)

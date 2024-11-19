@@ -86,21 +86,6 @@ const fieldStyles = computed(() => {
   }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
 
-const dates = computed(() => {
-  const startOfMonth = selectedMonth.value.startOf('month')
-  const firstDayOffset = isMondayFirst.value ? 0 : -1
-  const firstDayToDisplay = startOfMonth.startOf('week').add(firstDayOffset, 'day')
-
-  const daysInView = Math.max(
-    35,
-    Math.ceil((startOfMonth.daysInMonth() + startOfMonth.day() + (isMondayFirst.value ? 0 : 1)) / 7) * 7,
-  )
-
-  return Array.from({ length: daysInView / 7 }, (_, weekIndex) =>
-    Array.from({ length: 7 }, (_, dayIndex) => firstDayToDisplay.add(weekIndex * 7 + dayIndex, 'day')),
-  )
-})
-
 const calendarData = computed(() => {
   const startOfMonth = selectedMonth.value.startOf('month')
   const firstDayOffset = isMondayFirst.value ? 0 : -1
@@ -241,9 +226,7 @@ const recordsToDisplay = computed<{
         const weekIndex = calendarData.value.weeks.findIndex((week) =>
           week.days.some((day) => dayjs(day.date).isSame(startDate, 'day')),
         )
-        const dayIndex = (calendarData.value.weeks[weekIndex] ?? []).days.findIndex((day) =>
-          dayjs(day.date).isSame(startDate, 'day'),
-        )
+        const dayIndex = calendarData.value.weeks[weekIndex]?.days.findIndex((day) => dayjs(day.date).isSame(startDate, 'day'))
 
         const id = record.rowMeta.id ?? generateRandomNumber()
 
@@ -322,9 +305,17 @@ const recordsToDisplay = computed<{
 
           occupyLane(dateKey, lane, duration)
 
-          const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(recordStart, 'day')))
-          const startDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordStart, 'day'))
-          const endDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordEnd, 'day'))
+          const weekIndex = calendarData.value.weeks.findIndex((week) =>
+            week.days.some((day) => dayjs(day.date).isSame(recordStart, 'day')),
+          )
+
+          const startDayIndex = calendarData.value.weeks[weekIndex]?.days.findIndex((day) =>
+            dayjs(day.date).isSame(recordStart, 'day'),
+          )
+
+          const endDayIndex = calendarData.value.weeks[weekIndex]?.days.findIndex((day) =>
+            dayjs(day.date).isSame(recordEnd, 'day'),
+          )
 
           const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
 
@@ -342,8 +333,9 @@ const recordsToDisplay = computed<{
 
           let position = 'rounded'
           // Here we are checking if the startDay is before all the dates shown in UI rather that the current month
-          const isStartMonthBeforeCurrentWeek = dates.value[weekIndex - 1]
-            ? dayjs(dates.value[weekIndex - 1][0]).isBefore(startDate, 'month')
+
+          const isStartMonthBeforeCurrentWeek = calendarData.value.weeks[weekIndex - 1]
+            ? dayjs(calendarData.value.weeks[weekIndex - 1].days[0].date).isBefore(recordStart, 'month')
             : false
 
           if (
@@ -412,10 +404,11 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
 
   if (!fromCol) return { newRow: null, updateProperty: [] }
 
-  const week = Math.floor(percentY * dates.value.length)
+  const week = Math.floor(percentY * calendarData.value.weeks.length)
   const day = Math.floor(percentX * maxVisibleDays.value)
 
-  let newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
+  let newStartDate = calendarData.value.weeks[week] ? dayjs(calendarData.value.weeks[week].days[day].date) : null
+
   if (!newStartDate) return { newRow: null, updateProperty: [] }
 
   let fromDate = dayjs(dragRecord.value.row[fromCol.title!])
@@ -509,14 +502,14 @@ const onResize = (event: MouseEvent) => {
   const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
   const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
 
-  const week = Math.floor(percentY * dates.value.length)
+  const week = Math.floor(percentY * calendarData.value.weeks.length)
   const day = Math.floor(percentX * maxVisibleDays.value)
 
   let updateProperty: string[] = []
   let newRow: Row
 
   if (resizeDirection.value === 'right') {
-    let newEndDate = dates.value[week] ? dayjs(dates.value[week][day]).endOf('day') : null
+    let newEndDate = calendarData.value.weeks[week] ? dayjs(calendarData.value.weeks[week].days[day].date).endOf('day') : null
     updateProperty = [toCol!.title!]
 
     if (dayjs(newEndDate).isBefore(ogStartDate)) {
@@ -533,7 +526,7 @@ const onResize = (event: MouseEvent) => {
       },
     }
   } else {
-    let newStartDate = dates.value[week] ? dayjs(dates.value[week][day]) : null
+    let newStartDate = calendarData.value.weeks[week] ? dayjs(calendarData.value.weeks[week].days[day].date) : null
     updateProperty = [fromCol!.title!]
 
     if (dayjs(newStartDate).isAfter(ogEndDate)) {

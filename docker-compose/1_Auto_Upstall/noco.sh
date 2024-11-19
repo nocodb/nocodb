@@ -498,6 +498,7 @@ EOF
   echo -e "${BLUE}→ Using domain:${NC} $CONFIG_DOMAIN_NAME"
 
   if is_valid_domain "$CONFIG_DOMAIN_NAME"; then
+    print_empty_line
     echo -e "${GREEN}✓ Valid domain detected${NC}"
     print_empty_line
     CONFIG_SSL_ENABLED=$(prompt_oneof "Do you want to configure SSL for $CONFIG_DOMAIN_NAME" "Y" "N")
@@ -508,6 +509,7 @@ EOF
     fi
     print_empty_line
   else
+    print_empty_line
     echo -e "${YELLOW}! Using IP address - SSL will not be enabled${NC}"
     print_empty_line
     CONFIG_SSL_ENABLED="N"
@@ -523,9 +525,10 @@ EOF
     echo -e "${BLUE}→ Setting up MinIO storage configuration${NC}"
 
     while true; do
+      print_empty_line
       CONFIG_MINIO_DOMAIN_NAME=$(prompt "Enter the MinIO domain name" "$(get_public_ip)")
 
-      if [ "$CONFIG_MINIO_DOMAIN_NAME" = "$CONFIG_DOMAIN_NAME" ]; then
+      if [ "$CONFIG_MINIO_DOMAIN_NAME" = "$CONFIG_DOMAIN_NAME" ] && is_valid_domain "$CONFIG_DOMAIN_NAME"; then
         print_empty_line
         cat << EOF
 ⚠️  WARNING: Using the same domain name for both NocoDB and MinIO is not recommended
@@ -598,8 +601,6 @@ EOF
     print_empty_line
     get_advanced_options
   else
-    print_empty_line
-    echo -e "${BLUE}→ Using default options for advanced settings${NC}"
     print_empty_line
     set_default_options
   fi

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { ViewType } from 'nocodb-sdk'
+import { ViewTypesNameMap } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = defineProps<{
@@ -15,7 +16,7 @@ const dialogShow = useVModel(props, 'modelValue', emits)
 
 const isForm = inject(IsFormInj)
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { user } = useGlobal()
 
@@ -62,6 +63,8 @@ const changeLockType = async () => {
     view.value.lock_type = changeType.value
 
     message.success(`Successfully Switched to ${view.value.lock_type} view`)
+
+    $e(`a:${ViewTypesNameMap[view.value.type] || 'view'}:lock`, { lockType: view.value.lock_type, title: view.value.title })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

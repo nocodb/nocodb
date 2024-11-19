@@ -9,6 +9,37 @@ export enum ViewTypes {
   CALENDAR = 6,
 }
 
+// Central mapping of view types to strings
+const viewTypeStrings: Record<ViewTypes, string> = {
+  [ViewTypes.FORM]: 'form',
+  [ViewTypes.GALLERY]: 'gallery',
+  [ViewTypes.GRID]: 'grid',
+  [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.MAP]: 'map',
+  [ViewTypes.CALENDAR]: 'calendar',
+};
+
+// Generate reverse mapping from the original viewTypeStrings
+export const viewTypeToStringMap: Record<ViewTypes, string> = {
+  ...viewTypeStrings,
+};
+
+export const stringToViewTypeMap: Record<string, ViewTypes> = Object.entries(
+  viewTypeStrings
+).reduce((acc, [key, value]) => {
+  acc[value] = Number(key);
+  return acc;
+}, {});
+
+export const ViewTypesNameMap = {
+  [ViewTypes.FORM]: 'form',
+  [ViewTypes.GALLERY]: 'gallery',
+  [ViewTypes.GRID]: 'grid',
+  [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.MAP]: 'map',
+  [ViewTypes.CALENDAR]: 'calendar',
+};
+
 export enum ProjectTypes {
   DATABASE = 'database',
   DOCUMENTATION = 'documentation',

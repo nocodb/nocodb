@@ -32,6 +32,8 @@ const changeType = computed(() =>
 
 const focusInput: VNodeRef = (el) => el && el?.focus?.()
 
+const focusUnlockBtn: VNodeRef = (el) => changeType.value !== LockType.Locked && el?.$el && el.$el?.focus?.()
+
 const description = ref('')
 
 const isLoading = ref(false)
@@ -76,6 +78,7 @@ const changeLockType = async () => {
 watch(dialogShow, (newValue) => {
   if (!newValue) {
     description.value = ''
+  } else if (changeType.value === LockType.Locked) {
   }
 })
 </script>
@@ -163,16 +166,12 @@ watch(dialogShow, (newValue) => {
       </div>
 
       <div class="flex gap-2 items-center justify-end">
-        <NcButton
-          type="secondary"
-          size="small"
-          :disabled="isLoading"
-          @click="dialogShow = false"
-          data-testid="nc-cancel-btn"
-          >{{ $t('general.cancel') }}</NcButton
-        >
+        <NcButton type="secondary" size="small" :disabled="isLoading" @click="dialogShow = false" data-testid="nc-cancel-btn">{{
+          $t('general.cancel')
+        }}</NcButton>
 
         <NcButton
+          :ref="focusUnlockBtn"
           type="primary"
           size="small"
           :loading="isLoading"

@@ -68,7 +68,14 @@ const onImportClick = (dialog: any) => {
 }
 
 async function changeLockType(type: LockType) {
-  if (!view.value || view.value?.lock_type === type) return
+  if (!view.value) return
+
+  if (view.value?.lock_type === type) {
+    message.success(`Already in ${type} view`)
+    emits('closeModal')
+
+    return
+  }
 
   // if default view block the change since it's not allowed
   if (type === 'personal' && view.value.is_default) {
@@ -79,12 +86,9 @@ async function changeLockType(type: LockType) {
     emits('onLockTypeChange', type)
 
     return
-  } else {
-    $e(`a:${ViewTypesNameMap[view.value.type] || 'view'}:lockmenu`, {
-      lockType: type,
-      sidebar: props.inSidebar,
-    })
   }
+
+  $e(`a:${ViewTypesNameMap[view.value.type] || 'view'}:lockmenu`, { lockType: type, sidebar: props.inSidebar })
 
   try {
     view.value.lock_type = type

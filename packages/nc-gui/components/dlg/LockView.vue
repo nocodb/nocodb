@@ -14,7 +14,7 @@ const emits = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false })
 
-const isForm = inject(IsFormInj)
+const isForm = inject(IsFormInj, ref(false))
 
 const { $api, $e } = useNuxtApp()
 
@@ -33,8 +33,6 @@ const changeType = computed(() =>
 )
 
 const focusInput: VNodeRef = (el) => el && el?.focus?.()
-
-const focusUnlockBtn: VNodeRef = (el) => changeType.value !== LockType.Locked && el?.$el && el.$el?.focus?.()
 
 const formValidator = ref()
 
@@ -92,6 +90,12 @@ const changeLockType = async () => {
     isLoading.value = false
   }
 }
+
+onKeyStroke('Enter', () => {
+  if (isLoading.value || !dialogShow.value || isForm.value || !(changeType.value !== LockType.Locked)) return
+
+  changeLockType()
+})
 
 watch(dialogShow, (newValue) => {
   if (!newValue) {
@@ -211,7 +215,6 @@ watch(
         }}</NcButton>
 
         <NcButton
-          :ref="focusUnlockBtn"
           type="primary"
           html-type="submit"
           size="small"
@@ -222,7 +225,14 @@ watch(
           <template #icon>
             <GeneralIcon :icon="changeType === LockType.Locked ? 'ncLock' : 'ncUnlock'" class="flex-none" />
           </template>
-          {{ changeType === LockType.Locked ? $t('labels.lockView') : $t('labels.unlockView') }}
+          <div
+            class="flex"
+            :class="{
+              '-ml-1': !isLoading,
+            }"
+          >
+            {{ changeType === LockType.Locked ? $t('labels.lockView') : $t('labels.unlockView') }}
+          </div>
         </NcButton>
       </div>
     </a-form>

@@ -36,6 +36,8 @@ const vModel = useVModel(props, 'view', emits) as WritableComputedRef<
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { isMobileMode, user } = useGlobal()
 
 const { isUIAllowed } = useRoles()
@@ -244,6 +246,36 @@ const onDelete = () => {
   emits('delete', vModel.value)
 }
 
+const viewModeInfo = computed(() => {
+  switch (vModel.value.lock_type) {
+    case ViewLockType.Collaborative:
+      return t(viewLockIcons[ViewLockType.Collaborative]?.title)
+    case ViewLockType.Personal:
+      return `${t(viewLockIcons[ViewLockType.Personal]?.title)} (${
+        isViewOwner.value
+          ? t('general.you')
+          : vModel.value?.owned_by
+          ? idUserMap.value[vModel.value.owned_by]?.display_name || idUserMap.value[vModel.value.owned_by]?.email
+          : ''
+      })`
+    case ViewLockType.Locked:
+      if (!vModel.value?.meta?.lockedByUserId) {
+        return t(viewLockIcons[ViewLockType.Locked]?.title)
+      }
+
+      return t('title.lockedByUser', {
+        user:
+          idUserMap.value[vModel.value?.meta?.lockedByUserId]?.id === user.value?.id
+            ? t('general.you')
+            : idUserMap.value[vModel.value?.meta?.lockedByUserId]?.display_name ||
+              idUserMap.value[vModel.value?.meta?.lockedByUserId]?.email,
+      })
+
+    default:
+      return t(viewLockIcons[ViewLockType.Collaborative]?.title)
+  }
+})
+
 watch(isDropdownOpen, async () => {
   if (!isDropdownOpen.value) return
 
@@ -287,17 +319,9 @@ watch(isDropdownOpen, async () => {
             </div>
           </div>
           <div>
-            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('activity.editingAccess') }}</div>
+            <div class="text-[10px] leading-[14px] text-gray-300 uppercase mb-1">{{ $t('labels.viewMode') }}</div>
             <div class="text-xs flex items-start gap-2">
-              {{
-                vModel.lock_type === ViewLockType.Personal && !isViewOwner
-                  ? $t(viewLockIcons[vModel.lock_type]?.canEditConfiguration, {
-                      user: idUserMap[vModel?.owned_by]?.display_name || idUserMap[vModel?.owned_by]?.email,
-                    }).toLowerCase()
-                  : vModel.lock_type === ViewLockType.Locked && isUIAllowed('fieldAdd')
-                  ? $t(viewLockIcons[vModel.lock_type]?.canEditConfiguration)
-                  : $t(viewLockIcons[vModel.lock_type]?.subtitle)
-              }}
+              {{ viewModeInfo }}
             </div>
           </div>
         </div>

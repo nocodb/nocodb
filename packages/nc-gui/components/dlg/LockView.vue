@@ -126,7 +126,7 @@ watch(
       <div class="text-sm text-nc-content-gray">{{ $t('title.unlockThisVieToMakeChanges') }}</div>
       <div class="text-sm text-nc-content-gray">
         {{ $t('title.unlockViewTitleSubtitle') }}
-        <span v-if="idUserMap[view?.meta?.lockedByUserId]?.id === user.id" class="font-bold"> You </span>
+        <span v-if="idUserMap[view?.meta?.lockedByUserId]?.id === user.id" class="font-bold"> {{ t('general.you') }} </span>
         <span v-else class="font-bold">
           {{ idUserMap[view?.meta?.lockedByUserId]?.display_name || idUserMap[view?.meta?.lockedByUserId]?.email }}
         </span>

@@ -643,7 +643,8 @@
     "thisViewIsLockType": "This view is {type}",
     "thisFormIsLocked": "This Form is currently locked",
     "unlockThisVieToMakeChanges": "Unlock this view to make changes",
-    "yourBaseRole": "Your base role"
+    "yourBaseRole": "Your base role",
+    "lockedByUser": "Locked by {user}"
   },
   "labels": {
     "continue": "Continue",

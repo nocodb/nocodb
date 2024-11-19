@@ -225,7 +225,7 @@ const isSingleOrMultiSelect = computed(() => {
       :column="column"
       class="flex !rounded-lg"
       :class="{
-        'text-nc-content-gray-muted': props.disabled,
+        'text-nc-content-gray-muted pointer-events-none': props.disabled,
       }"
       v-bind="componentProps"
       location="filter"

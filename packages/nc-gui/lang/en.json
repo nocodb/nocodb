@@ -632,8 +632,10 @@
     "noAiIntegrationsHaveBeenAdded": "No AI Integrations have been added.",
     "generatingBaseTailoredToYourRequirement": "Generating a Base tailored to your requirement...",
     "hereYourCrmBase": "Here’s your CRM Base",
-    "lockeThisView": "Lock this view",
-    "lockeThisViewSubtle": "Locking this view will prevent anyone from changing the view settings until it is unlocked by a collaborator with creator permissions."
+    "lockThisView": "Lock this view",
+    "lockThisViewSubtle": "Locking this view will prevent anyone from changing the view settings until it is unlocked by a collaborator with creator permissions.",
+    "unlockViewTitle": "Are you sure you want to unlock this view?",
+    "unlockViewTitleSubtitle": "This view was locked by"
   },
   "labels": {
     "continue": "Continue",
@@ -1017,6 +1019,7 @@
     "syncDataModalSubtitle": "Register the services you are interested in to get notified when they become available",
     "redirectToUrl": "Redirect to URL",
     "lockView": "Lock view",
+    "unlockView": "Unlock view",
     "aiSuggested": "AI suggested",
     "generateFieldDataUsingAi": "Generate field data using AI",
     "preview": "Preview",

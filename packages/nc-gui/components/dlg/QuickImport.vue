@@ -184,7 +184,6 @@ async function handlePreImport() {
 
   isParsingData.value = false
   preImportLoading.value = false
-
 }
 
 async function handleImport() {

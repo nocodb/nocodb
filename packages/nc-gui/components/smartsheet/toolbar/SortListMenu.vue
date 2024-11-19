@@ -166,8 +166,8 @@ onMounted(() => {
                 class="shrink grow-0 nc-sort-dir-select"
                 :label="$t('labels.operation')"
                 dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
-                @click.stop
                 :disabled="isLocked"
+                @click.stop
                 @select="saveOrUpdate(sort, i)"
               >
                 <a-select-option
@@ -255,10 +255,10 @@ onMounted(() => {
         </div>
         <GeneralLockedViewFooter
           v-if="isLocked"
-          @on-open="open = false"
           :class="{
             '-mt-2': sorts.length,
           }"
+          @on-open="open = false"
         />
       </div>
     </template>

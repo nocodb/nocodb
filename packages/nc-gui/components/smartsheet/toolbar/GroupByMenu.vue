@@ -221,8 +221,8 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
           v-if="!_groupBy.length"
           :is-parent-open="open"
           :columns="fieldsToGroupBy"
-          @created="addFieldToGroupBy"
           :disabled="isLocked"
+          @created="addFieldToGroupBy"
         />
         <div
           v-else
@@ -234,8 +234,8 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
               :model-value="_groupBy"
               item-key="fk_column_id"
               ghost-class="bg-gray-50"
-              @change="onMove($event)"
               :disabled="isLocked"
+              @change="onMove($event)"
             >
               <template #item="{ element: group }">
                 <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
@@ -248,9 +248,9 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
                     :columns="fieldsToGroupBy"
                     :allow-empty="true"
                     :meta="meta"
+                    :disabled="isLocked"
                     @change="saveGroupBy"
                     @click.stop
-                    :disabled="isLocked"
                   />
                   <NcSelect
                     ref=""
@@ -348,10 +348,10 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number } }) 
         </div>
         <GeneralLockedViewFooter
           v-if="isLocked"
-          @on-open="open = false"
           :class="{
             '-mt-2': _groupBy.length,
           }"
+          @on-open="open = false"
         />
       </div>
     </template>

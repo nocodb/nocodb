@@ -91,10 +91,10 @@ eventBus.on(async (event, column: ColumnType) => {
       <SmartsheetToolbarColumnFilter
         ref="filterComp"
         v-model:draft-filter="draftFilter"
+        v-model:is-open="open"
         class="nc-table-toolbar-menu"
         :auto-save="true"
         data-testid="nc-filter-menu"
-        v-model:is-open="open"
         :is-view-filter="true"
         @update:filters-length="filtersLength = $event"
       >

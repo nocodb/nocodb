@@ -19,7 +19,7 @@ const handleUnlockView = () => {
 
 <template>
   <div
-    class="flex items-center gap-2 bg-nc-bg-gray-light pl-3 pr-2 py-1.5 text-nc-content-gray-subtle2 text-small leading-[18px]"
+    class="nc-locked-view-footer flex items-center gap-2 bg-nc-bg-gray-light pl-3 pr-2 py-1.5 text-nc-content-gray-subtle2 text-small leading-[18px]"
   >
     <GeneralIcon icon="ncLock" class="flex-none" />
 

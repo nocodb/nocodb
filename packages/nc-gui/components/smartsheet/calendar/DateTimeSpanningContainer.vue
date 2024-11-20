@@ -474,7 +474,7 @@ defineExpose({
     <div
       ref="container"
       :style="{
-        width: `calc(100% - 66px)`,
+        width: `calc(100% - ${activeCalendarView === 'week' ? '64' : '66'}px)`,
       }"
       :class="{
         'border-gray-100': activeCalendarView === 'day',
@@ -484,7 +484,14 @@ defineExpose({
       }"
       class="relative border-l-1 transition-all overflow-y-scroll z-30"
     >
-      <div class="pointer-events-none inset-y-0 relative">
+      <div class="pointer-events-none h-full inset-y-0 relative">
+        <div
+          v-if="maxVisibleDays === 7"
+          class="absolute !right-0 h-full bg-gray-100 inset-y-0"
+          :style="{
+            width: `${(containerWidth / 7) * 2}px`,
+          }"
+        ></div>
         <template v-for="(record, id) in calendarData" :key="id">
           <div
             v-if="record.rowMeta.style?.display !== 'none'"

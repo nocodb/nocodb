@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
+import { UseVirtualList } from '@vueuse/components'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
@@ -53,11 +54,6 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
 
         dayRecordCount++
 
-        const style: Partial<CSSStyleDeclaration> = {
-          top: `${(dayRecordCount - 1) * perRecordHeight + dayRecordCount * 8}px`,
-          width: '100%',
-        }
-
         // This property is used to determine which side the record should be rounded. It can be left, right, both or none
         let position = 'none'
         const isSelectedDay = (date: dayjs.Dayjs) => date.isSame(selectedDate.value, 'day')
@@ -81,7 +77,6 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
           rowMeta: {
             ...record.rowMeta,
             position,
-            style,
             range: range as any,
           },
         })
@@ -94,11 +89,6 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
           rowMeta: {
             ...record.rowMeta,
             range: range as any,
-            style: {
-              width: '100%',
-              left: '0',
-              top: `${(dayRecordCount - 1) * perRecordHeight + dayRecordCount * 8}px`,
-            },
             position: 'rounded',
           },
         })
@@ -203,41 +193,43 @@ const newRecord = () => {
   <div
     v-if="recordsAcrossAllRange.length"
     ref="container"
-    class="w-full cursor-pointer relative h-[calc(100vh-10.8rem)] overflow-y-auto nc-scrollbar-md"
+    class="w-full cursor-pointer relative overflow-y-auto nc-scrollbar-md"
     data-testid="nc-calendar-day-view"
     @dblclick="newRecord"
     @drop="dropEvent"
   >
-    <div
-      v-for="(record, rowIndex) in recordsAcrossAllRange"
-      :key="rowIndex"
-      :style="record.rowMeta.style"
-      class="absolute"
-      data-testid="nc-calendar-day-record-card"
-      @mouseleave="hoverRecord = null"
-      @mouseover="hoverRecord = record.rowMeta.id as string"
-    >
-      <LazySmartsheetRow :row="record">
-        <LazySmartsheetCalendarRecordCard
-          :record="record"
-          :resize="false"
-          size="small"
-          @click.prevent="emit('expandRecord', record)"
+    <UseVirtualList height="calc(100vh - 5rem)" :list="recordsAcrossAllRange" :options="{ itemHeight: 36 }">
+      <template #default="{ data: record }">
+        <div
+          :key="record.rowMeta.id"
+          class="mt-2"
+          data-testid="nc-calendar-day-record-card"
+          @mouseleave="hoverRecord = null"
+          @mouseover="hoverRecord = record.rowMeta.id as string"
         >
-          <template v-for="(field, id) in fields" :key="id">
-            <LazySmartsheetPlainCell
-              v-if="!isRowEmpty(record, field!)"
-              v-model="record.row[field!.title!]"
-              class="text-xs"
-              :bold="getFieldStyle(field).bold"
-              :column="field"
-              :italic="getFieldStyle(field).italic"
-              :underline="getFieldStyle(field).underline"
-            />
-          </template>
-        </LazySmartsheetCalendarRecordCard>
-      </LazySmartsheetRow>
-    </div>
+          <LazySmartsheetRow :row="record">
+            <LazySmartsheetCalendarRecordCard
+              :record="record"
+              :resize="false"
+              size="small"
+              @click.prevent="emit('expandRecord', record)"
+            >
+              <template v-for="(field, id) in fields" :key="id">
+                <LazySmartsheetPlainCell
+                  v-if="!isRowEmpty(record, field!)"
+                  v-model="record.row[field!.title!]"
+                  class="text-xs"
+                  :bold="getFieldStyle(field).bold"
+                  :column="field"
+                  :italic="getFieldStyle(field).italic"
+                  :underline="getFieldStyle(field).underline"
+                />
+              </template>
+            </LazySmartsheetCalendarRecordCard>
+          </LazySmartsheetRow>
+        </div>
+      </template>
+    </UseVirtualList>
   </div>
 
   <div

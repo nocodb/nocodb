@@ -11,7 +11,7 @@ const up = async (knex: Knex) => {
     table.string('title', 512);
     table.string('fk_base_id', 20);
 
-    table.string('workspace_id', 20);
+    table.string('fk_workspace_id', 20);
 
     table.string('created_by', 20);
 

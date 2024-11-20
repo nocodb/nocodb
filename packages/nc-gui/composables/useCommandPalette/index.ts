@@ -37,23 +37,30 @@ export const useCommandPalette = createSharedComposable(() => {
   const { workspacesList } = storeToRefs(useWorkspace())
 
   const workspacesCmd = computed(() =>
-    (workspacesList.value || []).map((workspace: { id: string; title: string; meta?: { color: string } }) => ({
-      id: `ws-nav-${workspace.id}`,
-      title: workspace.title,
-      icon: 'workspace',
-      iconColor: workspace.meta?.color,
-      section: 'Workspaces',
-      scopePayload: {
-        scope: `ws-${workspace.id}`,
-        data: {
-          workspace_id: workspace.id,
+    (workspacesList?.value || []).map(
+      (workspace: {
+        id: string
+        title: string
+        meta?: { color: string; icon: string | Record<string, any>; iconType: string }
+      }) => ({
+        id: `ws-nav-${workspace.id}`,
+        title: workspace.title,
+        icon: workspace.meta?.icon || 'workspace',
+        iconType: workspace.meta?.iconType,
+        iconColor: workspace.meta?.color,
+        section: 'Workspaces',
+        scopePayload: {
+          scope: `ws-${workspace.id}`,
+          data: {
+            workspace_id: workspace.id,
+          },
         },
-      },
-      handler: processHandler({
-        type: 'navigate',
-        payload: `/${workspace.id}/settings`,
+        handler: processHandler({
+          type: 'navigate',
+          payload: `/${workspace.id}/settings`,
+        }),
       }),
-    })),
+    ),
   )
 
   const commands = ref({

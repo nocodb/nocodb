@@ -355,17 +355,14 @@ const recordsAcrossAllRange = computed<{
         })
         const dayIndex = getDayIndex(startDate)
 
-        const { startHourIndex, endHourIndex, startMinutes, endMinutes } = calculateHourIndices(dayIndex, startDate, endDate)
-
-        console.log(startHourIndex, endHourIndex)
+        const { startHourIndex, startMinutes } = calculateHourIndices(dayIndex, startDate, endDate)
 
         let style: Partial<CSSStyleDeclaration> = {}
 
-        const spanHours = endHourIndex - startHourIndex + 1
+        const top = (startHourIndex + startMinutes / 60) * perHeight
 
-        const top = startHourIndex * perHeight
-
-        const height = (endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5
+        const totalHours = endDate.diff(startDate, 'minute') / 60
+        const height = totalHours * perHeight
 
         style = {
           ...style,
@@ -616,33 +613,24 @@ const onResize = (event: MouseEvent) => {
   const ogEndDate = dayjs(resizeRecord.value.row[toCol.title])
 
   const day = Math.floor(percentX * maxVisibleDays.value)
+  const hour = Math.floor(percentY * 23)
   const minutes = Math.round((percentY * 24 * 60) / 15) * 15 // Round to nearest 15 minutes
 
-  const baseDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(minutes, 'minute')
+  const baseDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
 
   let newDate: dayjs.Dayjs
   let updateProperty: string
   let isValid = true
 
   if (resizeDirection.value === 'right') {
-    const minEndDate = ogStartDate.add(1, 'hour')
     newDate = baseDate.isBefore(ogStartDate)
       ? ogStartDate.add(Math.ceil(ogStartDate.diff(baseDate, 'minute') / 15) * 15, 'minute')
       : baseDate
-
-    if (newDate.isBefore(minEndDate)) {
-      newDate = minEndDate
-    }
     updateProperty = toCol.title
   } else if (resizeDirection.value === 'left') {
-    const minStartDate = ogEndDate.subtract(1, 'hour')
     newDate = baseDate.isAfter(ogEndDate)
       ? ogEndDate.subtract(Math.ceil(baseDate.diff(ogEndDate, 'minute') / 15) * 15, 'minute')
       : baseDate
-
-    if (newDate.isAfter(minStartDate)) {
-      newDate = minStartDate
-    }
     updateProperty = fromCol.title
   } else {
     isValid = false

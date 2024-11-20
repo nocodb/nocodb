@@ -16,8 +16,8 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div class="border-1 cursor-pointer h-12.5 border-gray-200 flex gap-2 flex-col rounded-lg">
-    <div class="flex relative items-center gap-2">
+  <div class="border-1 cursor-pointer min-h-14 border-gray-200 p-2 flex gap-2 flex-col rounded-lg">
+    <div class="flex items-center gap-2">
       <span
         :class="{
           'bg-maroon-500': props.color === 'maroon',
@@ -53,6 +53,16 @@ const props = withDefaults(defineProps<Props>(), {
         >
       </div>
     </div>
+
+    <NcTooltip v-if="invalid">
+      <div class="gap-3 bg-yellow-50 mt-2 border-gray-200 border-1 rounded-lg p-2 flex">
+        <GeneralIcon icon="warning" class="text-yellow-500 !h-5 !w-5" />
+        <div class="text-gray-700 text-xs">Selected End date is before Start date.</div>
+      </div>
+      <template #title>
+        Record with end date before the start date won't be displayed in the calendar. Update the end date to display the record.
+      </template>
+    </NcTooltip>
   </div>
 </template>
 

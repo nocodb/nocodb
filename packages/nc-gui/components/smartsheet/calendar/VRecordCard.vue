@@ -32,7 +32,7 @@ const emit = defineEmits(['resize-start'])
   >
     <div
       v-if="resize"
-      class="absolute w-full h-2 z-20 top-0 !cursor-row-resize"
+      class="absolute w-full h-1 z-20 top-0 !cursor-row-resize"
       @mousedown.stop="emit('resize-start', 'left', $event, record)"
     ></div>
     <div
@@ -61,10 +61,14 @@ const emit = defineEmits(['resize-start'])
     </div>
     <div
       v-if="resize"
-      class="absolute !cursor-row-resize w-full bottom-0 w-full h-2"
+      class="absolute !cursor-row-resize w-full bottom-0 w-full h-1"
       @mousedown.stop="emit('resize-start', 'right', $event, record)"
     ></div>
   </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.cursor-row-resize {
+  cursor: ew-resize;
+}
+</style>

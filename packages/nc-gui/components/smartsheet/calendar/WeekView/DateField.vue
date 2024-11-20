@@ -538,7 +538,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       ></div>
     </div>
     <div
-      class="absolute nc-scrollbar-md overflow-y-auto z-2 mt-6 pointer-events-none inset-0"
+      class="absolute nc-scrollbar-md overflow-y-auto mt-6 pointer-events-none inset-0"
       data-testid="nc-calendar-week-record-container"
     >
       <template v-for="(record, id) in calendarData" :key="id">

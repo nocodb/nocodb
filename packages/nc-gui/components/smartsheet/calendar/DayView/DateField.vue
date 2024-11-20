@@ -54,11 +54,6 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
 
         dayRecordCount++
 
-        const style: Partial<CSSStyleDeclaration> = {
-          top: `${(dayRecordCount - 1) * perRecordHeight + dayRecordCount * 8}px`,
-          width: '100%',
-        }
-
         // This property is used to determine which side the record should be rounded. It can be left, right, both or none
         let position = 'none'
         const isSelectedDay = (date: dayjs.Dayjs) => date.isSame(selectedDate.value, 'day')
@@ -94,11 +89,6 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
           rowMeta: {
             ...record.rowMeta,
             range: range as any,
-            style: {
-              width: '100%',
-              left: '0',
-              top: `${(dayRecordCount - 1) * perRecordHeight + dayRecordCount * 8}px`,
-            },
             position: 'rounded',
           },
         })
@@ -208,27 +198,19 @@ const newRecord = () => {
     @dblclick="newRecord"
     @drop="dropEvent"
   >
-    <div
-      v-for="(record, rowIndex) in recordsAcrossAllRange"
-      :key="rowIndex"
-      :style="record.rowMeta.style"
-      class="absolute"
-      data-testid="nc-calendar-day-record-card"
-      @mouseleave="hoverRecord = null"
-      @mouseover="hoverRecord = record.rowMeta.id as string"
-    >
-      <LazySmartsheetRow :row="record">
-        <LazySmartsheetCalendarRecordCard
-          :record="record"
-          :resize="false"
-          size="small"
-          @click.prevent="emit('expandRecord', record)"
+    <UseVirtualList height="calc(100vh - 5rem)" :list="recordsAcrossAllRange" :options="{ itemHeight: 36 }">
+      <template #default="{ data: record }">
+        <div
+          :key="record.rowMeta.id"
+          class="mt-2"
+          data-testid="nc-calendar-day-record-card"
+          @mouseleave="hoverRecord = null"
+          @mouseover="hoverRecord = record.rowMeta.id as string"
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
               :record="record"
               :resize="false"
-              :position="record.rowMeta.position"
               size="small"
               @click.prevent="emit('expandRecord', record)"
             >

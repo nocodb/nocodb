@@ -821,8 +821,15 @@ const addRecord = (date: dayjs.Dayjs) => {
           :style="{
             ...record.rowMeta.style,
             zIndex: record.rowMeta.id === draggingId ? 100 : 0,
+            boxShadow:
+              record.rowMeta.id === draggingId
+                ? ' 0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
+                : 'none',
           }"
-          class="absolute group draggable-record transition cursor-pointer pointer-events-auto"
+          :class="{
+            'cursor-pointer': !resizeInProgress,
+          }"
+          class="absolute group draggable-record transition pointer-events-auto"
           @mouseleave="hoverRecord = null"
           @mouseover="hoverRecord = record.rowMeta.id"
           @mousedown.stop="dragStart($event, record)"
@@ -833,7 +840,6 @@ const addRecord = (date: dayjs.Dayjs) => {
               :position="record.rowMeta.position"
               :record="record"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
-              :selected="dragRecord?.rowMeta?.id === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
               @resize-start="onResizeStart"
             >
               <template v-if="[UITypes.DateTime, UITypes.LastModifiedTime, UITypes.CreatedTime].includes(calDataType)" #time>

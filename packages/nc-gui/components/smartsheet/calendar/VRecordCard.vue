@@ -11,7 +11,7 @@ withDefaults(defineProps<Props>(), {
   resize: true,
   selected: false,
   hover: false,
-  color: 'blue',
+  color: 'gray',
 })
 
 const emit = defineEmits(['resize-start'])
@@ -26,9 +26,10 @@ const emit = defineEmits(['resize-start'])
       'bg-yellow-50': color === 'yellow',
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
+      'bg-white border-gray-200': color === 'gray',
       'shadow-md': hover,
     }"
-    class="relative flex gap-2 relative rounded-md h-full"
+    class="relative flex gap-2 border-1 relative rounded-md h-full"
   >
     <div
       v-if="resize"
@@ -43,6 +44,7 @@ const emit = defineEmits(['resize-start'])
         'bg-yellow-500': color === 'yellow',
         'bg-pink-500': color === 'pink',
         'bg-purple-500': color === 'purple',
+        'bg-gray-900': color === 'gray',
       }"
       class="h-full min-h-3 w-1.25 -ml-0.25 rounded-l-md"
     ></div>
@@ -70,5 +72,11 @@ const emit = defineEmits(['resize-start'])
 <style lang="scss" scoped>
 .cursor-row-resize {
   cursor: ns-resize;
+}
+
+.plain-cell {
+  .bold {
+    @apply !text-gray-800 font-semibold;
+  }
 }
 </style>

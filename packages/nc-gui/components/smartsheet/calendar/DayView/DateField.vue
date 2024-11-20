@@ -54,7 +54,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
         dayRecordCount++
 
         const style: Partial<CSSStyleDeclaration> = {
-          top: `${(dayRecordCount - 1) * perRecordHeight}px`,
+          top: `${(dayRecordCount - 1) * perRecordHeight + dayRecordCount * 8}px`,
           width: '100%',
         }
 
@@ -97,7 +97,7 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
             style: {
               width: '100%',
               left: '0',
-              top: `${(dayRecordCount - 1) * perRecordHeight}px`,
+              top: `${(dayRecordCount - 1) * perRecordHeight + dayRecordCount * 8}px`,
             },
             position: 'rounded',
           },
@@ -212,17 +212,15 @@ const newRecord = () => {
       v-for="(record, rowIndex) in recordsAcrossAllRange"
       :key="rowIndex"
       :style="record.rowMeta.style"
-      class="absolute mt-2"
+      class="absolute"
       data-testid="nc-calendar-day-record-card"
       @mouseleave="hoverRecord = null"
       @mouseover="hoverRecord = record.rowMeta.id as string"
     >
       <LazySmartsheetRow :row="record">
         <LazySmartsheetCalendarRecordCard
-          :position="record.rowMeta.position"
           :record="record"
           :resize="false"
-          color="blue"
           size="small"
           @click.prevent="emit('expandRecord', record)"
         >

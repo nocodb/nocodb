@@ -86,13 +86,28 @@ const fieldStyles = computed(() => {
   }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
 
+const dates = computed(() => {
+  const startOfMonth = selectedMonth.value.startOf('month')
+  const firstDayOffset = isMondayFirst.value ? 0 : -1
+  const firstDayToDisplay = startOfMonth.startOf('week').add(firstDayOffset, 'day')
+
+  const daysInView = Math.max(
+    35,
+    Math.ceil((startOfMonth.daysInMonth() + startOfMonth.day() + (isMondayFirst.value ? 0 : 1)) / 7) * 7,
+  )
+
+  return Array.from({ length: daysInView / 7 }, (_, weekIndex) =>
+    Array.from({ length: 7 }, (_, dayIndex) => firstDayToDisplay.add(weekIndex * 7 + dayIndex, 'day')),
+  )
+})
+
 const calendarData = computed(() => {
   const startOfMonth = selectedMonth.value.startOf('month')
   const firstDayOffset = isMondayFirst.value ? 0 : -1
   const firstDayToDisplay = startOfMonth.startOf('week').add(firstDayOffset, 'day')
   const today = dayjs()
 
-  const daysInView = Math.min(
+  const daysInView = Math.max(
     35,
     Math.ceil((startOfMonth.daysInMonth() + startOfMonth.day() + (isMondayFirst.value ? 0 : 1)) / 7) * 7,
   )
@@ -109,7 +124,8 @@ const calendarData = computed(() => {
           isWeekend: day.get('day') === 0 || day.get('day') === 6,
           isToday: day.isSame(today, 'date'),
           isInPagedMonth: day.isSame(startOfMonth, 'month'),
-          isVisible: maxVisibleDays.value === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true,
+          isVisible:
+            maxVisibleDays.value === 7 || (maxVisibleDays.value === 5 && !(day.get('day') !== 0 && day.get('day') !== 6)),
           dayNumber: day.format('DD'),
         }
       }),
@@ -127,11 +143,11 @@ const recordsToDisplay = computed<{
   records: Row[]
   count: { [p: string]: { overflow: boolean; count: number; overflowCount: number } }
 }>(() => {
-  if (!dates.value || !calendarRange.value) return { records: [], count: {} }
+  if (!calendarData.value || !calendarRange.value) return { records: [], count: {} }
 
   const perWidth = gridContainerWidth.value / maxVisibleDays.value
   const perHeight = gridContainerHeight.value / calendarData.value.weeks.length
-  const perRecordHeight = 28
+  const perRecordHeight = 24
 
   const spaceBetweenRecords = 27
   const maxLanes = Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 4))
@@ -223,8 +239,12 @@ const recordsToDisplay = computed<{
 
         occupyLane(dateKey, lane)
 
-        const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(startDate, 'day')))
-        const dayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(startDate, 'day'))
+        const weekIndex = calendarData.value.weeks.findIndex((week) =>
+          week.days.some((day) => dayjs(day.date).isSame(startDate, 'day')),
+        )
+        const dayIndex = (calendarData.value.weeks[weekIndex] ?? []).days.findIndex((day) =>
+          dayjs(day.date).isSame(startDate, 'day'),
+        )
 
         const style: Partial<CSSStyleDeclaration> = {
           left: `${dayIndex * perWidth}px`,
@@ -737,15 +757,15 @@ const addRecord = (date: dayjs.Dayjs) => {
         :class="calendarData.gridClass"
         data-testid="nc-calendar-month-week"
       >
-        <template v-for="(day, i) in week.days">
+        <template v-for="day in week.days">
           <div
             v-if="day.isVisible"
             :key="day.key"
             :class="{
-              'selected-date': isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
-              '!text-gray-400': !isDayInPagedMonth(day),
-              '!bg-gray-50 !hover:bg-gray-100': day.get('day') === 0 || day.get('day') === 6,
-              'border-t-1': weekIndex === 0,
+              'selected-date': isDateSelected(day.date) || (focusedDate && dayjs(day.date).isSame(focusedDate, 'day')),
+              '!text-gray-400': !day.isInPagedMonth,
+              '!bg-gray-50 !hover:bg-gray-100': day.isWeekend,
+              'border-t-1': week.weekIndex === 0,
             }"
             class="text-right relative group last:border-r-0 transition text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
             data-testid="nc-calendar-month-day"
@@ -783,12 +803,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                       () => {
                         const record = {
                           row: {
-                            [range.fk_from_col!.title!]: (day.date).format('YYYY-MM-DD HH:mm:ssZ'),
-                            ...(range.fk_to_col
-                        ? {
-                            [range.fk_to_col!.title!]: (day.date).endOf('day').format('YYYY-MM-DD HH:mm:ssZ'),
-                          }
-                        : {}),
+                            [range.fk_from_col!.title!]: dayjs(day.date).format('YYYY-MM-DD HH:mm:ssZ'),
                           },
                         }
                         emit('newRecord', record)
@@ -817,11 +832,6 @@ const addRecord = (date: dayjs.Dayjs) => {
                   const record = {
                     row: {
                       [calendarRange[0].fk_from_col!.title!]: (day.date).format('YYYY-MM-DD HH:mm:ssZ'),
-                      ...(calendarRange[0].fk_to_col
-                        ? {
-                            [calendarRange[0].fk_to_col!.title!]: (day.date).endOf('day').format('YYYY-MM-DD HH:mm:ssZ'),
-                          }
-                        : {}),
                     },
                   }
                   emit('newRecord', record)
@@ -839,7 +849,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                 {{ day.dayNumber }}
               </span>
             </div>
-            <div v-if="!isUIAllowed('dataEdit')" class="leading-3 text-[13px] p-3">{{ day.dayNumber }}</div>
+            <div v-if="!isUIAllowed('dataEdit')" class="leading-3 p-3">{{ day.dayNumber }}</div>
 
             <NcButton
               v-if="

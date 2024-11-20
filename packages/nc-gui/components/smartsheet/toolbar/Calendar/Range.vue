@@ -22,14 +22,18 @@ const { loadViewColumns } = useViewColumnsOrThrow()
 const { loadCalendarMeta, loadCalendarData, loadSidebarData, fetchActiveDates, updateCalendarMeta, viewMetaProperties } =
   useCalendarViewStoreOrThrow()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isRangeEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CALENDAR_VIEW_RANGE))
+
 const calendarRangeDropdown = ref(false)
 
-const hideWeekends = computed({
-  get: () => viewMetaProperties.value?.hide_weekend ?? false,
+const showWeekends = computed({
+  get: () => !viewMetaProperties.value?.hide_weekend,
   set: (newValue) => {
     updateCalendarMeta({
       meta: {
-        hide_weekend: newValue,
+        hide_weekend: !newValue,
       },
     })
   },
@@ -183,7 +187,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
           class="flex flex-col w-full gap-2 mb-2"
           data-testid="nc-calendar-range-option"
         >
-          <span>
+          <span class="text-gray-800">
             {{ $t('labels.organiseBy') }}
           </span>
           <NcSelect
@@ -223,7 +227,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
           </NcSelect>
 
           <NcButton
-            v-if="range.fk_to_column_id === null"
+            v-if="range.fk_to_column_id === null && isRangeEnabled"
             size="small"
             data-testid="nc-calendar-range-add-end-date"
             class="!border-none w-28"
@@ -231,10 +235,12 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             :disabled="!isEeUI"
             @click="range.fk_to_column_id = undefined"
           >
-            <component :is="iconMap.plus" class="h-4 w-4" />
-            {{ $t('activity.addEndDate') }}
+            <div class="flex gap-2 items-center">
+              <component :is="iconMap.plus" class="h-4 w-4" />
+              {{ $t('activity.endDate') }}
+            </div>
           </NcButton>
-          <template v-else-if="isEeUI">
+          <template v-else-if="isEeUI && isRangeEnabled">
             <span>
               {{ $t('activity.withEndDate') }}
             </span>
@@ -281,9 +287,9 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
         </div>
 
         <div>
-          <NcSwitch v-model:checked="hideWeekends" :disabled="isLocked">
-            <span class="text-gray-800">
-              {{ $t('activity.hideWeekends') }}
+          <NcSwitch v-model:checked="showWeekends" :disabled="isLocked">
+            <span class="text-gray-800 font-semibold">
+              {{ $t('activity.showSaturdaysAndSundays') }}
             </span>
           </NcSwitch>
         </div>

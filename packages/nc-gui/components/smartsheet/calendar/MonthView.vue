@@ -59,7 +59,7 @@ const resizeInProgress = ref(false)
 
 const isDragging = ref(false)
 
-const dragRecord = ref<Row>()
+const dragRecord = ref<Row | null>(null)
 
 const hoverRecord = ref<string | null>()
 
@@ -69,7 +69,7 @@ const focusedDate = ref<dayjs.Dayjs | null>(null)
 
 const resizeDirection = ref<'right' | 'left'>()
 
-const resizeRecord = ref<Row>()
+const resizeRecord = ref<Row | null>(null)
 
 const fields = inject(FieldsInj, ref())
 
@@ -245,17 +245,26 @@ const recordsToDisplay = computed<{
           dayjs(day.date).isSame(startDate, 'day'),
         )
 
+        const id = record.rowMeta.id ?? generateRandomNumber()
+
+        const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
+
         const style: Partial<CSSStyleDeclaration> = {
           left: `${dayIndex * perWidth}px`,
           width: `${perWidth}px`,
-          top: `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
+          top: isRecordDraggingOrResizeState
+            ? `${weekIndex * perHeight}px`
+            : `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
         }
 
-        if (maxVisibleDays.value === 5 && (dayIndex === 5 || dayIndex === 6)) {
+        if (isRecordDraggingOrResizeState) {
+          style.zIndex = '100'
+          style.display = 'block'
+        }
+
+        if (maxVisibleDays.value === 5 && (dayIndex === 5 || dayIndex === 6) && !isRecordDraggingOrResizeState) {
           style.display = 'none'
         }
-
-        const id = record.rowMeta.id ?? Math.random().toString(36).substr(2, 9)
 
         recordsToDisplay.push({
           ...record,
@@ -317,10 +326,18 @@ const recordsToDisplay = computed<{
           const startDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordStart, 'day'))
           const endDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordEnd, 'day'))
 
+          const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
+
           const style: Partial<CSSStyleDeclaration> = {
             left: `${startDayIndex * perWidth}px`,
             width: `${(endDayIndex - startDayIndex + 1) * perWidth}px`,
-            top: `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
+            top: isRecordDraggingOrResizeState
+              ? `${weekIndex * perHeight + perRecordHeight}px`
+              : `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
+          }
+
+          if (isRecordDraggingOrResizeState) {
+            style.zIndex = '100'
           }
 
           let position = 'rounded'
@@ -447,7 +464,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
 
   const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
 
-  newRow.rowMeta.id = draggingId
+  newRow.rowMeta.id = draggingId?.value
 
   if (updateSideBar) {
     formattedData.value = [...(formattedData.value as Row[]), newRow as Row]
@@ -550,7 +567,7 @@ const onResize = (event: MouseEvent) => {
 const onResizeEnd = () => {
   resizeInProgress.value = false
   resizeDirection.value = undefined
-  resizeRecord.value = undefined
+  resizeRecord.value = null
 
   document.removeEventListener('mousemove', onResize)
   document.removeEventListener('mouseup', onResizeEnd)
@@ -587,7 +604,7 @@ const stopDrag = (event: MouseEvent) => {
     dragElement.value = null
   }
 
-  dragRecord.value = undefined
+  dragRecord.value = null
   updateRowProperty(newRow, updateProperty, false)
   focusedDate.value = null
 
@@ -675,9 +692,9 @@ const dropEvent = (event: DragEvent) => {
 }
 
 const selectDate = (date: dayjs.Dayjs) => {
-  dragRecord.value = undefined
+  dragRecord.value = null
   draggingId.value = null
-  resizeRecord.value = undefined
+  resizeRecord.value = null
   resizeInProgress.value = false
   resizeDirection.value = undefined
   focusedDate.value = null
@@ -874,7 +891,7 @@ const addRecord = (date: dayjs.Dayjs) => {
 
             opacity:
               (draggingId === null || record.rowMeta.id === draggingId) &&
-              (resizeRecord === undefined || record.rowMeta.id === resizeRecord?.rowMeta.id)
+              (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)
                 ? 1
                 : 0.3,
           }"

@@ -260,6 +260,20 @@ const getMaxOverlaps = ({
   return { maxOverlaps, dayIndex, overlapIndex }
 }
 
+const resizeInProgress = ref(false)
+
+const dragTimeout = ref<ReturnType<typeof setTimeout>>()
+
+const hoverRecord = ref<string | null>()
+
+const resizeDirection = ref<'right' | 'left' | null>()
+
+const resizeRecord = ref<Row | null>(null)
+
+const isDragging = ref(false)
+
+const dragRecord = ref<Row | null>(null)
+
 const recordsAcrossAllRange = computed<{
   records: Array<Row>
   gridTimeMap: Map<
@@ -526,20 +540,28 @@ const recordsAcrossAllRange = computed<{
 
       const majorLeft = dayIndex * perWidth
 
-      if (record.rowMeta.overLapIteration! - 1 > 2) {
-        display = 'none'
-      } else {
-        width = 100 / Math.min(maxOverlaps, 3) / maxVisibleDays.value
+      const isRecordDraggingOrResizeState =
+        record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id
 
-        left = width * (overlapIndex - 1)
+      if (!isRecordDraggingOrResizeState) {
+        if (record.rowMeta.overLapIteration! - 1 > 2) {
+          display = 'none'
+        } else {
+          width = 100 / Math.min(maxOverlaps, 3) / maxVisibleDays.value
 
-        width = Math.max((width / 100) * containerWidth.value - 8, 72)
+          left = width * (overlapIndex - 1)
 
-        left = majorLeft + (left / 100) * containerWidth.value + 4
+          width = Math.max((width / 100) * containerWidth.value - 8, 72)
 
-        if (majorLeft + perWidth < left + width) {
-          left = majorLeft + (perWidth - width - 4)
+          left = majorLeft + (left / 100) * containerWidth.value + 4
+
+          if (majorLeft + perWidth < left + width) {
+            left = majorLeft + (perWidth - width - 4)
+          }
         }
+      } else {
+        left = majorLeft + 4
+        width = perWidth - 8
       }
 
       record.rowMeta.style = {
@@ -558,20 +580,6 @@ const recordsAcrossAllRange = computed<{
     spanningRecords: recordSpanningDays,
   }
 })
-
-const resizeInProgress = ref(false)
-
-const dragTimeout = ref<ReturnType<typeof setTimeout>>()
-
-const hoverRecord = ref<string | null>()
-
-const resizeDirection = ref<'right' | 'left' | null>()
-
-const resizeRecord = ref<Row | null>(null)
-
-const isDragging = ref(false)
-
-const dragRecord = ref<Row | null>(null)
 
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)

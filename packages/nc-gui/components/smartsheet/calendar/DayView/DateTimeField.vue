@@ -219,6 +219,20 @@ const getMaxOverlaps = ({
   return Math.max(...overlapIterations)
 }
 
+const dragRecord = ref<Row | null>(null)
+
+const isDragging = ref(false)
+
+const dragElement = ref<HTMLElement | null>(null)
+
+const resizeDirection = ref<'right' | 'left' | null>()
+
+const resizeRecord = ref<Row | null>(null)
+
+const dragTimeout = ref<ReturnType<typeof setTimeout>>()
+
+const hoverRecord = ref<string | null>(null)
+
 const recordsAcrossAllRange = computed<{
   record: Row[]
   spanningRecords: Row[]
@@ -432,7 +446,17 @@ const recordsAcrossAllRange = computed<{
     let left = 100
     let display = 'block'
 
-    if (numberOfOverlaps && numberOfOverlaps > 0) {
+    const isRecordDraggingOrResizeState =
+      record.rowMeta.id === dragRecord.value?.rowMeta.id || record.rowMeta.id === resizeRecord.value?.rowMeta.id
+
+    if (isRecordDraggingOrResizeState) {
+      record.rowMeta.style = {
+        ...record.rowMeta.style,
+        zIndex: 10,
+      }
+    }
+
+    if (numberOfOverlaps && numberOfOverlaps > 0 && !isRecordDraggingOrResizeState) {
       width = 100 / Math.min(numberOfOverlaps, 8)
 
       if (record.rowMeta.overLapIteration! - 1 > 7) {
@@ -460,20 +484,6 @@ const recordsAcrossAllRange = computed<{
     spanningRecords: recordSpanningDays,
   }
 })
-
-const dragRecord = ref<Row | null>(null)
-
-const isDragging = ref(false)
-
-const dragElement = ref<HTMLElement | null>(null)
-
-const resizeDirection = ref<'right' | 'left' | null>()
-
-const resizeRecord = ref<Row | null>(null)
-
-const dragTimeout = ref<ReturnType<typeof setTimeout>>()
-
-const hoverRecord = ref<string | null>(null)
 
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)

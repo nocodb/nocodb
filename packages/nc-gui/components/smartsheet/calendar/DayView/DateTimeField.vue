@@ -281,7 +281,6 @@ const recordsAcrossAllRange = computed<{
 
           if (fromDate?.isValid() && toDate?.isValid()) {
             if (!fromDate.isSame(toDate, 'day')) {
-              // TODO: If multiple range is introduced, we have to make sure no duplicate records are inserted
               recordSpanningDays.push(record)
               return false
             }

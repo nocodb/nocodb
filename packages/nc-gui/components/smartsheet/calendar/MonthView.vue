@@ -453,7 +453,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
 
   const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
 
-  newRow.rowMeta.id = draggingId?.value
+  newRow.rowMeta.id = draggingId
 
   if (updateSideBar) {
     formattedData.value = [...(formattedData.value as Row[]), newRow as Row]
@@ -629,13 +629,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
       x: event.clientX - target.getBoundingClientRect().left,
       y: event.clientY - target.getBoundingClientRect().top,
     }
-
-    const allRecords = document.querySelectorAll('.draggable-record')
-    allRecords.forEach((el) => {
-      if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
-        el.style.opacity = '30%'
-      }
-    })
 
     // selectedDate.value = null
 
@@ -871,7 +864,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       </div>
     </div>
     <div class="absolute inset-0 z-2 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
-      <template v-for="(record, recordId) in recordsToDisplay.records" :key="recordId">
+      <template v-for="record in recordsToDisplay.records">
         <div
           v-if="record.rowMeta.style?.display !== 'none'"
           :key="record.rowMeta.id"
@@ -884,6 +877,8 @@ const addRecord = (date: dayjs.Dayjs) => {
               record.rowMeta.id === draggingId
                 ? ' 0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
                 : 'none',
+
+            opacity: draggingId === null || record.rowMeta.id === draggingId ? 1 : 0.3,
           }"
           :class="{
             'cursor-pointer': !resizeInProgress,

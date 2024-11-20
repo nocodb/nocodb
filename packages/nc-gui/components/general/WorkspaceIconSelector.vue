@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
-import { WorkspaceIconType } from '#imports'
 import data from 'emoji-mart-vue-fast/data/apple.json'
 import { EmojiIndex, Picker } from 'emoji-mart-vue-fast/src'
+import { WorkspaceIconType } from '#imports'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 
 interface Props {
@@ -479,10 +479,10 @@ watch(isOpen, (newValue) => {
   .emoji-mart-search {
     @apply px-2 mt-2;
     input {
-      @apply text-sm pl-[11px] rounded-lg !h-8 transition-all duration-300 !outline-none ring-0;
+      @apply text-sm pl-[11px] rounded-lg !py-5px transition-all duration-300 !outline-none ring-0;
 
       &:focus {
-        @apply !outline-none ring-0 !h-8 shadow-selected border-primary;
+        @apply !outline-none ring-0 shadow-selected border-primary;
       }
     }
   }

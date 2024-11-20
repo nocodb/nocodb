@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import type { WorkspaceType } from 'nocodb-sdk'
-import { isColorDark, stringToColor } from '~/utils/colorsUtils'
-import { WorkspaceIconType } from '#imports'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
+import { WorkspaceIconType, isColorDark, stringToColor } from '#imports'
 
 const props = defineProps<{
   workspace: WorkspaceType | undefined
@@ -38,7 +37,7 @@ const workspaceIcon = computed(() => {
 
   return {
     icon: iconType === WorkspaceIconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : icon,
-    iconType: iconType,
+    iconType,
   }
 })
 

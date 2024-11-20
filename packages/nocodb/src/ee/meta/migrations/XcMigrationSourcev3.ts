@@ -28,7 +28,7 @@ import * as nc_027_invited_by from './v3/nc_027_invited_by';
 import * as nc_028_integration_is_default from './v3/nc_028_integration_is_default';
 import * as nc_029_encrypt_flag from './v3/nc_029_encrypt_flag';
 import * as nc_030_integration_is_global from './v3/nc_030_integration_is_global';
-
+import * as nc_031_snapshot from './v3/nc_031_snapshot';
 // Create a custom migration source class
 export default class XcMigrationSourcev3 {
   // Must return a Promise containing a list of migrations.
@@ -67,6 +67,7 @@ export default class XcMigrationSourcev3 {
       'nc_028_integration_is_default',
       'nc_029_encrypt_flag',
       'nc_030_integration_is_global',
+      'nc_031_snapshot',
     ]);
   }
 
@@ -136,6 +137,8 @@ export default class XcMigrationSourcev3 {
         return nc_029_encrypt_flag;
       case 'nc_030_integration_is_global':
         return nc_030_integration_is_global;
+      case 'nc_031_snapshot':
+        return nc_031_snapshot;
     }
   }
 }

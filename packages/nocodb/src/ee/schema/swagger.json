@@ -3824,7 +3824,7 @@
         }
       ]
     },
-    "/api/v2/meta/bases/:baseId/snapshots": {
+    "/api/v2/meta/bases/{baseId}/snapshots": {
       "get": {
         "summary": "List snapshots",
         "description": "List snapshots for a given base",
@@ -3869,7 +3869,7 @@
         ]
       }
     },
-    "/api/v2/meta/bases/:baseId/snapshots/:snapshotId/restore": {
+    "/api/v2/meta/bases/{baseId}/snapshots/{snapshotId}/restore": {
       "post": {
         "summary": "Restore snapshot",
         "description": "Restore snapshot for a given base",
@@ -3884,7 +3884,7 @@
         ]
       }
     },
-    "/api/v2/meta/bases/:baseId/snapshots/:snapshotId": {
+    "/api/v2/meta/bases/{baseId}/snapshots/{snapshotId}": {
       "delete": {
         "summary": "Delete snapshot",
         "description": "Delete snapshot for a given base",

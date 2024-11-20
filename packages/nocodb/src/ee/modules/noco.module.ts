@@ -49,6 +49,10 @@ import { WorkspaceUsersController } from '~/controllers/workspace-users.controll
 /* Mail Service */
 import { MailService } from '~/services/mail/mail.service';
 
+/* Snapshot */
+import { SnapshotController } from '~/controllers/snapshot.controller';
+import { SnapshotService } from '~/services/snapshot.service';
+
 export const nocoModuleEeMetadata = {
   imports: [...nocoModuleMetadata.imports, NocoAiModule],
   providers: [
@@ -86,6 +90,9 @@ export const nocoModuleEeMetadata = {
 
     /* Mail Service */
     MailService,
+
+    /* Snapshot */
+    SnapshotService,
   ],
   controllers: [
     ...nocoModuleMetadata.controllers,
@@ -109,6 +116,9 @@ export const nocoModuleEeMetadata = {
     /* Workspaces */
     WorkspacesController,
     WorkspaceUsersController,
+
+    /* Snapshot */
+    SnapshotController,
   ],
   exports: [...nocoModuleMetadata.exports, Producer, WorkspacesService],
 };

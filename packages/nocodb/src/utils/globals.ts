@@ -57,6 +57,7 @@ export enum MetaTable {
   INTEGRATIONS_STORE = 'nc_integrations_store_v2',
   FILE_REFERENCES = 'nc_file_references',
   COL_BUTTON = 'nc_col_button_v2',
+  SNAPSHOT = 'nc_snapshots',
 }
 
 export enum MetaTableOldV2 {
@@ -190,6 +191,7 @@ export enum CacheScope {
   COL_BUTTON = 'colButton',
   CMD_PALETTE = 'cmdPalette',
   PRODUCT_FEED = 'productFeed',
+  SNAPSHOT = 'snapshot',
 }
 
 export enum CacheGetType {

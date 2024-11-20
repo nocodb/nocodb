@@ -183,7 +183,7 @@ const openDropDown = (e: Event) => {
 
 const onVisibleChange = () => {
   editColumnDropdown.value = true
-  if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
+  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
     editColumnDropdown.value = false
     enableDescription.value = false
   }
@@ -222,7 +222,8 @@ const onClick = (e: Event) => {
     <div
       class="nc-virtual-cell-name-wrapper flex-1 flex items-center"
       :class="{
-        'max-w-[calc(100%_-_23px)]': !isExpandedForm,
+        'max-w-[calc(100%_-_23px)]': !isExpandedForm && !column.description?.length,
+        'max-w-[calc(100%_-_44px)]': !isExpandedForm && column.description?.length,
         'max-w-full': isExpandedForm && !isExpandedBulkUpdateForm,
       }"
     >

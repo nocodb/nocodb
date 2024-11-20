@@ -10,6 +10,8 @@ const props = withDefaults(
     showSeparator?: boolean
     wrapClassName?: string
     closable?: boolean
+    ncModalClassName?: string
+    stopEventPropogation?: boolean
   }>(),
   {
     size: 'medium',
@@ -18,6 +20,8 @@ const props = withDefaults(
     showSeparator: true,
     wrapClassName: '',
     closable: false,
+    ncModalClassName: '',
+    stopEventPropogation: false,
   },
 )
 
@@ -25,9 +29,11 @@ const emits = defineEmits(['update:visible'])
 
 const { width: propWidth, height: propHeight, destroyOnClose, wrapClassName: _wrapClassName, showSeparator } = props
 
-const { maskClosable } = toRefs(props)
+const { maskClosable, ncModalClassName, stopEventPropogation } = toRefs(props)
 
 const { isMobileMode } = useGlobal()
+
+const ncModalRef = ref<HTMLDivElement | null>(null)
 
 const width = computed(() => {
   if (isMobileMode.value) {
@@ -96,6 +102,27 @@ const newWrapClassName = computed(() => {
 const visible = useVModel(props, 'visible', emits)
 
 const slots = useSlots()
+
+const stopPropagation = (event: MouseEvent) => {
+  event.stopPropagation()
+}
+
+if (stopEventPropogation.value) {
+  watch(ncModalRef, () => {
+    // stop event propogation in edit column
+    const modal = document.querySelector('.nc-modal-wrapper') as HTMLElement
+
+    if (visible.value && modal?.parentElement) {
+      // modal.parentElement.addEventListener('click', stopPropagation)
+      modal.parentElement.addEventListener('mousedown', stopPropagation)
+      // modal.parentElement.addEventListener('mouseup', stopPropagation)
+    } else if (modal?.parentElement) {
+      // modal.parentElement.removeEventListener('click', stopPropagation)
+      modal.parentElement.removeEventListener('mousedown', stopPropagation)
+      // modal.parentElement.removeEventListener('mouseup', stopPropagation)
+    }
+  })
+}
 </script>
 
 <template>
@@ -112,7 +139,9 @@ const slots = useSlots()
     @keydown.esc="visible = false"
   >
     <div
+      ref="ncModalRef"
       class="flex flex-col nc-modal p-6 h-full"
+      :class="[`${ncModalClassName}`]"
       :style="{
         maxHeight: height,
         ...(modalSizes[size] ? { height } : {}),
@@ -136,7 +165,7 @@ const slots = useSlots()
 <style lang="scss">
 .nc-modal-wrapper {
   .ant-modal-content {
-    @apply !p-0;
+    @apply !p-0 overflow-hidden;
   }
 }
 </style>

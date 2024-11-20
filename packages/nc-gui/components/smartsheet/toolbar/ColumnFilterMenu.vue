@@ -67,7 +67,7 @@ eventBus.on(async (event, column: ColumnType) => {
   <NcDropdown
     v-model:visible="open"
     :trigger="['click']"
-    overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown"
+    overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown overflow-hidden"
     class="!xs:hidden"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
@@ -77,10 +77,10 @@ eventBus.on(async (event, column: ColumnType) => {
 
       <NcButton
         v-e="['c:filter']"
-        :disabled="isLocked"
         class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7"
         size="small"
         type="secondary"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
@@ -99,10 +99,11 @@ eventBus.on(async (event, column: ColumnType) => {
       <SmartsheetToolbarColumnFilter
         ref="filterComp"
         v-model:draft-filter="draftFilter"
+        v-model:is-open="open"
         class="nc-table-toolbar-menu"
         :auto-save="true"
         data-testid="nc-filter-menu"
-        :is-open="open"
+        :is-view-filter="true"
         @update:filters-length="filtersLength = $event"
       >
       </SmartsheetToolbarColumnFilter>

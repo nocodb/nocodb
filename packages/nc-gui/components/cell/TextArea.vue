@@ -1,13 +1,18 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import type { AIRecordType } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue?: string | number
   isFocus?: boolean
   virtual?: boolean
+  isAi?: boolean
+  aiMeta?: AIRecordType
+  isAiEdited?: boolean
+  isFieldAiIntegrationAvailable?: boolean
 }>()
 
-const emits = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue', 'update:isAiEdited', 'generate', 'close'])
 
 const column = inject(ColumnInj)
 
@@ -27,11 +32,19 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
-const { showNull } = useGlobal()
+const { showNull, user } = useGlobal()
+
+const { aiLoading, aiIntegrations } = useNocoAi()
+
+const baseStore = useBase()
+
+const { idUserMap } = storeToRefs(baseStore)
 
 const vModel = useVModel(props, 'modelValue', emits, {
   shouldEmit: () => !readOnly.value,
 })
+
+const isAiEdited = useVModel(props, 'isAiEdited', emits)
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
@@ -76,6 +89,10 @@ const inputWrapperRef = ref<HTMLElement | null>(null)
 
 const inputRef = ref<HTMLTextAreaElement | null>(null)
 
+const aiWarningRef = ref<HTMLDivElement>()
+
+const { height: aiWarningRefHeight } = useElementSize(aiWarningRef)
+
 watch(isVisible, () => {
   if (isVisible.value) {
     setTimeout(() => {
@@ -97,6 +114,7 @@ onClickOutside(inputWrapperRef, (e) => {
     return
   }
 
+  emits('close')
   isVisible.value = false
 })
 
@@ -179,8 +197,18 @@ const dragStart = (e: MouseEvent) => {
   isDragging.value = true
 }
 
+const generate = () => {
+  emits('generate')
+}
+
+if (props.isAi) {
+  watch(vModel, (_o, _n) => {
+    isAiEdited.value = true
+  })
+}
+
 watch(editEnabled, () => {
-  if (editEnabled.value && isRichMode.value) {
+  if (editEnabled.value && (isRichMode.value || props.isAi)) {
     isVisible.value = true
   }
 })
@@ -274,7 +302,11 @@ watch([isVisible, inputRef], (value) => {
 </script>
 
 <template>
-  <div>
+  <div
+    :class="{
+      'nc-expanded-form-open': isExpandedFormOpen,
+    }"
+  >
     <div
       class="flex flex-row w-full long-text-wrapper items-center"
       :class="{
@@ -319,34 +351,107 @@ watch([isVisible, inputRef], (value) => {
         <LazyCellRichText v-model:value="vModel" sync-value-change read-only />
       </div>
       <!-- eslint-disable vue/use-v-on-exact -->
-      <textarea
+      <div
         v-else-if="(editEnabled && !isVisible) || isForm"
-        :ref="focus"
-        v-model="vModel"
-        :rows="isForm ? 5 : 4"
-        class="h-full w-full outline-none border-none nc-longtext-scrollbar"
+        class="h-full w-full"
         :class="{
-          'p-2': editEnabled,
-          'py-1 h-full': isForm,
-          'px-2': isExpandedFormOpen,
+          'my-1 bg-nc-bg-purple-light rounded-lg': props.isAi && isExpandedFormOpen && !readOnly,
         }"
-        :style="{
-          minHeight: isForm ? '117px' : `${height}px`,
-          maxHeight: 'min(800px, calc(100vh - 200px))',
-        }"
-        :disabled="readOnly"
-        @blur="editEnabled = false"
-        @keydown.alt.stop
-        @keydown.alt.enter.stop
-        @keydown.shift.enter.stop
-        @keydown.down.stop
-        @keydown.left.stop
-        @keydown.right.stop
-        @keydown.up.stop
-        @keydown.delete.stop
-        @selectstart.capture.stop
-        @mousedown.stop
-      />
+      >
+        <textarea
+          :ref="focus"
+          v-model="vModel"
+          :rows="isForm ? 5 : 4"
+          class="h-full w-full !outline-none nc-scrollbar-thin"
+          :class="{
+            'p-2': editEnabled,
+            'py-1 h-full': isForm,
+            'px-2': isExpandedFormOpen,
+            'border-none': !(props.isAi && isExpandedFormOpen),
+            'border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected border-primary ring-0) transition-shadow duration-300':
+              props.isAi && isExpandedFormOpen,
+          }"
+          :style="{
+            minHeight: isForm ? '117px' : `${height}px`,
+            maxHeight: 'min(800px, calc(100vh - 200px))',
+          }"
+          :disabled="readOnly || (props.isAi && isEditColumn)"
+          @blur="editEnabled = false"
+          @keydown.alt.stop
+          @keydown.alt.enter.stop
+          @keydown.shift.enter.stop
+          @keydown.down.stop
+          @keydown.left.stop
+          @keydown.right.stop
+          @keydown.up.stop
+          @keydown.delete.stop
+          @selectstart.capture.stop
+          @mousedown.stop
+        />
+        <div v-if="!readOnly" class="-mt-1">
+          <div v-if="props.isAi && props.aiMeta?.isStale" ref="aiWarningRef">
+            <div class="flex items-start p-3 bg-nc-bg-purple-light gap-4">
+              <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-4 w-4 flex-none" />
+              <div class="flex flex-col">
+                <div class="font-bold text-small leading-[18px] text-nc-content-gray">Record Data Updated</div>
+                <div class="text-small leading-[18px] text-nc-content-gray-muted">
+                  Cell values in this record have been updated. Regenerate to get more accurate content.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="props.isAi && !isEditColumn" class="flex items-center gap-2 px-3 py-0.5 !text-small leading-[18px]">
+            <span class="text-nc-content-purple-dark truncate">Generated by AI</span>
+            <NcTooltip v-if="isAiEdited" class="text-nc-content-green-dark flex-1 truncate" show-on-truncate-only>
+              <template #title> Edited by you </template>
+              Edited by you
+            </NcTooltip>
+            <NcTooltip
+              v-else-if="props.aiMeta?.lastModifiedBy && idUserMap[props.aiMeta?.lastModifiedBy]"
+              class="text-nc-content-green-dark flex-1 truncate"
+              show-on-truncate-only
+            >
+              <template #title>
+                Edited by
+                {{
+                  user?.id === props.aiMeta?.lastModifiedBy
+                    ? 'you'
+                    : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
+                }}
+              </template>
+              Edited by
+              {{
+                user?.id === props.aiMeta?.lastModifiedBy
+                  ? 'you'
+                  : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
+              }}
+            </NcTooltip>
+            <div v-else class="flex-1"></div>
+
+            <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
+              <template #title>
+                {{
+                  aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                }}
+              </template>
+              <NcButton
+                type="text"
+                theme="ai"
+                size="xs"
+                :disabled="!isFieldAiIntegrationAvailable"
+                :loading="aiLoading"
+                @click.stop="generate"
+              >
+                <template #icon>
+                  <GeneralIcon icon="ncAutoAwesome" />
+                </template>
+                Re-generate
+              </NcButton>
+            </NcTooltip>
+          </div>
+        </div>
+      </div>
 
       <span v-else-if="vModel === null && showNull" class="nc-null uppercase">{{ $t('general.null') }}</span>
 
@@ -406,33 +511,96 @@ watch([isVisible, inputRef], (value) => {
     >
       <div
         ref="inputWrapperRef"
-        class="flex flex-col py-3 w-full expanded-cell-input relative"
+        class="flex flex-col pb-3 w-full expanded-cell-input relative"
         :class="{
           'cursor-move': isDragging,
+          'expanded-cell-input-ai': props.isAi,
         }"
         @keydown.enter.stop
       >
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 border-b-1 border-gray-100 overflow-hidden"
+          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-gray-100 overflow-hidden"
           :class="{
             'select-none': isDragging,
             'cursor-move': !isEditColumn,
           }"
           @mousedown="dragStart"
         >
-          <SmartsheetHeaderCellIcon class="flex" />
-          <div class="flex max-w-38">
+          <SmartsheetHeaderCellIcon
+            class="flex"
+            :class="{
+              '!w-6 !h-6': props.isAi,
+            }"
+          />
+          <div
+            class="flex max-w-38"
+            :class="{
+              'text-xl': props.isAi,
+            }"
+          >
             <span class="truncate">
               {{ column.title }}
             </span>
           </div>
+          <template v-if="!props.isAi">
+            <div class="flex-1" />
 
-          <div class="flex-1" />
-
-          <NcButton class="mr-2" type="text" size="small" @click="isVisible = false">
-            <GeneralIcon icon="close" />
-          </NcButton>
+            <NcButton class="mr-2" type="text" size="small" @click="isVisible = false">
+              <GeneralIcon icon="close" />
+            </NcButton>
+          </template>
+          <template v-if="props.isAi && !isEditColumn">
+            <div class="flex items-center text-small leading-[18px] gap-3 ml-2">
+              <span class="text-nc-content-purple-dark truncate">Generated by AI</span>
+              <template v-if="!readOnly">
+                <span v-if="isAiEdited" class="text-nc-content-green-dark truncate"> Edited by you </span>
+                <span v-else-if="props.aiMeta?.lastModifiedBy && idUserMap[props.aiMeta?.lastModifiedBy]" class="text-green-600">
+                  Edited by
+                  {{
+                    user?.id === props.aiMeta?.lastModifiedBy
+                      ? 'you'
+                      : idUserMap[props.aiMeta?.lastModifiedBy]?.display_name || idUserMap[props.aiMeta?.lastModifiedBy]?.email
+                  }}
+                </span>
+              </template>
+            </div>
+            <div class="flex-1"></div>
+            <div v-if="!readOnly" class="flex items-center gap-1 mr-4">
+              <NcTooltip :disabled="isFieldAiIntegrationAvailable" class="flex">
+                <template #title>
+                  {{
+                    aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                  }}
+                </template>
+                <NcButton
+                  type="secondary"
+                  :bordered="false"
+                  theme="ai"
+                  size="small"
+                  :disabled="!isFieldAiIntegrationAvailable"
+                  @click.stop="generate"
+                >
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="refresh" :class="{ 'animate-infinite animate-spin': aiLoading }" />
+                    <span class="text-sm font-bold">Re-generate</span>
+                  </div>
+                </NcButton>
+              </NcTooltip>
+            </div>
+          </template>
+        </div>
+        <div v-if="props.isAi && props.aiMeta?.isStale && !readOnly" ref="aiWarningRef">
+          <div class="flex items-center p-4 bg-nc-bg-purple-light gap-4">
+            <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-6 w-6 flex-none" />
+            <div class="flex flex-col">
+              <div class="font-bold text-base text-nc-content-gray">Record Data Updated</div>
+              <div class="text-nc-content-gray-muted text-sm">
+                Cell values in this record have been updated since the last time this content was generated. Regenerate to get
+                more accurate content.
+              </div>
+            </div>
+          </div>
         </div>
         <div v-if="!isRichMode" class="p-3 pb-0 h-full">
           <a-textarea
@@ -440,8 +608,13 @@ watch([isVisible, inputRef], (value) => {
             v-model:value="vModel"
             class="nc-text-area-expanded !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
             :placeholder="$t('activity.enterText')"
-            :style="{ resize: 'both' }"
-            :disabled="readOnly"
+            :style="{
+              resize: 'both',
+              maxHeight: props.isAi
+                ? `min(795px - ${aiWarningRefHeight + 8}px, 100vh - 170px - ${aiWarningRefHeight + 8}px)`
+                : 'min(795px, 100vh - 170px)',
+            }"
+            :disabled="readOnly || (props.isAi && aiLoading) || (props.isAi && isEditColumn)"
             @keydown.escape="isVisible = false"
             @keydown.alt.stop
           />
@@ -458,11 +631,12 @@ textarea:focus {
   box-shadow: none;
 }
 .nc-text-area-expanded {
-  @apply h-[min(795px,100vh_-_170px)] w-[min(1256px,100vw_-_124px)];
+  @apply h-[min(795px,100vh_-_300px)] w-[min(1256px,100vw_-_124px)];
 
   max-height: min(795px, 100vh - 170px);
-  min-width: 256px;
+  min-width: -webkit-fill-available;
   max-width: min(1256px, 100vw - 126px);
+  transition-property: shadow, colors, border;
   scrollbar-width: thin !important;
   &::-webkit-scrollbar-thumb {
     @apply rounded-lg;
@@ -490,6 +664,21 @@ textarea:focus {
   @apply !block cursor-pointer;
 }
 
+.nc-data-cell {
+  &:has(.nc-cell-ai .nc-expanded-form-open) {
+    @apply !border-none -mx-1 -my-1;
+    box-shadow: none !important;
+
+    &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+      box-shadow: none !important;
+    }
+
+    .nc-text-area-expand-btn {
+      @apply top-2 right-1;
+    }
+  }
+}
+
 .nc-long-text-expanded-modal {
   .ant-modal {
     @apply !w-full h-full !top-0 !mx-auto !my-0;
@@ -506,7 +695,15 @@ textarea:focus {
       .nc-longtext-scrollbar {
         @apply scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent;
       }
+
+      .expanded-cell-input-ai {
+        .nc-text-area-expanded {
+          max-height: min(783px - 76px, 100vh - 180px);
+        }
+      }
     }
   }
 }
 </style>
+
+<style lang="scss"></style>

@@ -25,20 +25,6 @@ provide(IsGalleryInj, ref(false))
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
 
-const hiddenColTypes = [
-  UITypes.Rollup,
-  UITypes.Lookup,
-  UITypes.Formula,
-  UITypes.QrCode,
-  UITypes.Barcode,
-  UITypes.Button,
-  UITypes.SpecificDBType,
-  UITypes.CreatedTime,
-  UITypes.LastModifiedTime,
-  UITypes.CreatedBy,
-  UITypes.LastModifiedBy,
-]
-
 const hiddenBubbleMenuOptions = [
   RichTextBubbleMenuOptions.code,
   RichTextBubbleMenuOptions.blockQuote,
@@ -192,7 +178,7 @@ const editOrAddProviderRef = ref()
 const onVisibilityChange = (state: 'showAddColumn' | 'showEditColumn') => {
   dropdownStates.value[state] = true
 
-  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.isWebHookModalOpen()) {
+  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen()) {
     dropdownStates.value[state] = false
   }
 }
@@ -536,7 +522,7 @@ function setFormData() {
   emailMe.value = data[user.value?.email as string]
 
   localColumns.value = col
-    .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
+    .filter((f) => !formViewHiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
@@ -1392,6 +1378,7 @@ useEventListener(
                 class="nc-form-right-panel h-full flex-grow max-w-full"
                 :class="{
                   'overflow-y-auto nc-form-scrollbar': activeField,
+                  'relative': isLocked,
                 }"
               >
                 <!-- Form Field settings -->
@@ -1904,6 +1891,10 @@ useEventListener(
                     </Pane>
                   </Splitpanes>
                 </template>
+
+                <div v-if="isLocked" class="absolute inset-0 bg-black/12 z-500 grid place-items-center px-6">
+                  <LazyDlgLockView />
+                </div>
               </div>
             </template>
           </SmartsheetFormLayout>

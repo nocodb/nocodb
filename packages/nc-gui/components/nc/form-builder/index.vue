@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { FormBuilderElement } from 'nocodb-sdk'
+
 const { form, formState, formElementsCategorized, isLoading, validateInfos } = useFormBuilderHelperOrThrow()
 
 const deepReference = (path: string): any => {
@@ -19,6 +21,10 @@ const setFormState = (path: string, value: any) => {
     return acc[key]
   }, formState.value)
   target[lastKey] = value
+}
+
+const selectMode = (field: FormBuilderElement) => {
+  return field.selectMode === 'multipleWithInput' ? 'tags' : field.selectMode === 'multiple' ? 'multiple' : undefined
 }
 </script>
 
@@ -80,6 +86,7 @@ const setFormState = (path: string, value: any) => {
                     <NcSelect
                       :value="deepReference(field.model)"
                       :options="field.options"
+                      :mode="selectMode(field)"
                       @update:value="setFormState(field.model, $event)"
                     />
                   </template>

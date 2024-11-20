@@ -6,11 +6,13 @@ const props = withDefaults(
     size?: 'default' | 'small' | 'xsmall'
     placement?: 'left' | 'right'
     loading?: boolean
+    contentWrapperClass?: string
   }>(),
   {
     size: 'small',
     placement: 'left',
     loading: false,
+    contentWrapperClass: '',
   },
 )
 
@@ -18,12 +20,12 @@ const emit = defineEmits(['change', 'update:checked'])
 
 const checked = useVModel(props, 'checked', emit)
 
-const { loading } = toRefs(props)
+const { loading, disabled } = toRefs(props)
 
 const switchSize = computed(() => (['default', 'small'].includes(props.size) ? props.size : undefined))
 
 const onChange = (e: boolean, updateValue = false) => {
-  if (loading.value) return
+  if (loading.value || disabled.value) return
 
   if (updateValue) {
     checked.value = e
@@ -37,10 +39,13 @@ const onChange = (e: boolean, updateValue = false) => {
   <span
     v-if="placement === 'right' && $slots.default"
     class="pr-2"
-    :class="{
-      'cursor-not-allowed': disabled,
-      'cursor-pointer': !disabled,
-    }"
+    :class="[
+      contentWrapperClass,
+      {
+        'cursor-not-allowed': disabled,
+        'cursor-pointer': !disabled,
+      },
+    ]"
     @click="onChange(!checked, true)"
   >
     <slot />
@@ -61,10 +66,13 @@ const onChange = (e: boolean, updateValue = false) => {
   <span
     v-if="placement === 'left' && $slots.default"
     class="pl-2"
-    :class="{
-      'cursor-not-allowed': disabled,
-      'cursor-pointer': !disabled,
-    }"
+    :class="[
+      contentWrapperClass,
+      {
+        'cursor-not-allowed': disabled,
+        'cursor-pointer': !disabled,
+      },
+    ]"
     @click="onChange(!checked, true)"
   >
     <slot />

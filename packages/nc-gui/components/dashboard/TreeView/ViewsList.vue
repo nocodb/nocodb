@@ -365,8 +365,9 @@ function onOpenModal({
     'views': views,
     calendarRange,
     coverImageColumnId,
+    'baseId': base.value.id,
     'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view: ViewType) => {
+    'onCreated': async (view?: ViewType) => {
       closeDialog()
 
       refreshCommandPalette()
@@ -376,14 +377,16 @@ function onOpenModal({
         tableId: table.value.id!,
       })
 
-      navigateToView({
-        view,
-        tableId: table.value.id!,
-        baseId: base.value.id!,
-        hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
-      })
+      if (view) {
+        navigateToView({
+          view,
+          tableId: table.value.id!,
+          baseId: base.value.id!,
+          hardReload: view.type === ViewTypes.FORM && selected.value[0] === view.id,
+        })
+      }
 
-      $e('a:view:create', { view: view.type })
+      $e('a:view:create', { view: view?.type || type })
     },
   })
 

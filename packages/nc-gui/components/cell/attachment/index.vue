@@ -498,8 +498,12 @@ const attachmentSize = computed(() => {
 <style lang="scss">
 .nc-data-cell {
   &:has(.form-attachment-cell) {
-    @apply !border-none;
+    @apply !border-none pt-1 -mt-1;
     box-shadow: none !important;
+
+    &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+      box-shadow: none !important;
+    }
   }
 
   .nc-cell-attachment {

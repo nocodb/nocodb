@@ -345,9 +345,11 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
         } else {
           switch (filter.comparison_op) {
             case 'eq':
+              // eslint-disable-next-line eqeqeq
               res = val == filter.value
               break
             case 'neq':
+              // eslint-disable-next-line eqeqeq
               res = val != filter.value
               break
             case 'like':
@@ -429,4 +431,18 @@ export function validateRowFilters(_filters: FilterType[], data: any, columns: C
     }
   }
   return isValid
+}
+
+export const isAllowToRenderRowEmptyField = (col: ColumnType) => {
+  if (!col) return false
+
+  if (isAI(col)) {
+    return true
+  }
+
+  if (isAiButton(col)) {
+    return true
+  }
+
+  return false
 }

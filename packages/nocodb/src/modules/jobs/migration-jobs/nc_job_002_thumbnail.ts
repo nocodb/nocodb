@@ -2,9 +2,9 @@ import path from 'path';
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
 import PQueue from 'p-queue';
+import mime from 'mime/lite';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import Noco from '~/Noco';
-import mimetypes from '~/utils/mimeTypes';
 import { RootScopes } from '~/utils/globals';
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
@@ -70,7 +70,7 @@ export class ThumbnailMigration {
         fileScanStream.on('data', async (file) => {
           const fileNameWithExt = path.basename(file);
 
-          const mimetype = mimetypes[path.extname(fileNameWithExt).slice(1)];
+          const mimetype = mime.getType(path.extname(fileNameWithExt).slice(1));
 
           fileReferenceBuffer.push({
             file_path: file,

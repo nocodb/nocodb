@@ -20,6 +20,7 @@ import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export
 import { DataExportController } from '~/modules/jobs/jobs/data-export/data-export.controller';
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
+import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
 
 // Job Processor
 import { JobsProcessor } from '~/modules/jobs/jobs.processor';
@@ -98,6 +99,7 @@ export const JobsModuleMetadata = {
     DataExportProcessor,
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
+    UseWorkerProcessor,
 
     // Migration Jobs
     InitMigrationJobs,

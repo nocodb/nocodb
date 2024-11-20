@@ -1,6 +1,7 @@
 import UITypes, { isNumericCol } from './UITypes';
 import { RolesObj, RolesType } from './globals';
 import { ClientType } from './enums';
+import { IntegrationsType } from './Api';
 
 // import {RelationTypes} from "./globals";
 
@@ -222,3 +223,7 @@ export const getTestDatabaseName = (db: {
     return db.connection?.database;
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames];
 };
+
+export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
+  return [IntegrationsType.Ai].includes(category);
+}

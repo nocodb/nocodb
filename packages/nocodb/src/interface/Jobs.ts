@@ -27,7 +27,19 @@ export enum JobTypes {
   ThumbnailGenerator = 'thumbnail-generator',
   AttachmentCleanUp = 'attachment-clean-up',
   InitMigrationJobs = 'init-migration-jobs',
+  UseWorker = 'use-worker',
 }
+
+export const SKIP_STORING_JOB_META = [
+  JobTypes.HealthCheck,
+  JobTypes.ThumbnailGenerator,
+  JobTypes.UseWorker,
+  JobTypes.HandleWebhook,
+  JobTypes.InitMigrationJobs,
+  JobTypes.UpdateModelStat,
+  JobTypes.UpdateWsStat,
+  JobTypes.UpdateSrcStat,
+];
 
 export enum JobStatus {
   COMPLETED = 'completed',

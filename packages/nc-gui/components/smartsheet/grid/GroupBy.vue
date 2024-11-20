@@ -422,7 +422,7 @@ const bgColor = computed(() => {
           @change="findAndLoadSubGroup"
         >
           <a-collapse-panel
-            v-for="[_, grp] of Object.entries(vGroup?.children ?? [])"
+            v-for="grp of vGroup?.children ?? []"
             :key="`group-panel-${grp.key}`"
             class="!border-1 border-gray-300 nc-group rounded-[8px] mb-2"
             :style="`background: ${bgColor};`"

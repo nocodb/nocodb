@@ -92,7 +92,7 @@ const onChange = (value: string) => {
   }
 
   .ant-select-selection-item {
-    @apply font-medium pr-3 rounded-md;
+    @apply font-medium pr-3 rounded-md flex items-center;
   }
 
   .ant-select-selection-placeholder {

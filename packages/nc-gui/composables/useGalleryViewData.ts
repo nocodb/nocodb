@@ -1,6 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { GalleryType, TableType, ViewType } from 'nocodb-sdk'
-import type { EventHook } from '@vueuse/core'
 
 export function useGalleryViewData(
   _meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>,

@@ -25,7 +25,7 @@ export const createThumbnail = async (file: File): Promise<string | null> => {
         }
         img.onerror = function () {
           console.error('Error loading image')
-          reject(null)
+          reject(new Error('Error loading image'))
         }
         img.src = thumbnailURL
       } else if (file.type.startsWith('video/')) {
@@ -52,7 +52,7 @@ export const createThumbnail = async (file: File): Promise<string | null> => {
         }
         video.onerror = function () {
           console.error('Error loading video')
-          reject(null)
+          reject(new Error('Error loading video'))
         }
         video.src = thumbnailURL
       } else {
@@ -62,7 +62,7 @@ export const createThumbnail = async (file: File): Promise<string | null> => {
 
     reader.onerror = function () {
       console.error('Error reading file')
-      reject(null)
+      reject(new Error('Error reading file'))
     }
 
     reader.readAsDataURL(file)

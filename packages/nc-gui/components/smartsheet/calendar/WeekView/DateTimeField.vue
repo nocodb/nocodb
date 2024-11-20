@@ -993,7 +993,7 @@ watch(
       </div>
 
       <div class="absolute pointer-events-none inset-0 overflow-hidden !mt-5.95" data-testid="nc-calendar-week-record-container">
-        <template v-for="(record, rowIndex) in recordsAcrossAllRange.records" :key="rowIndex">
+        <template v-for="record in recordsAcrossAllRange.records" :key="record.rowMeta.id">
           <div
             v-if="record.rowMeta.style?.display !== 'none'"
             :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"

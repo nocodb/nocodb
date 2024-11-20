@@ -261,10 +261,14 @@ const recordsToDisplay = computed<{
         })
       } else if (startCol && endCol) {
         // Multi-day event logic
-        const startDate = dayjs(record.row[startCol.title!])
+        let startDate = dayjs(record.row[startCol.title!])
         const endDate = dayjs(record.row[endCol.title!])
 
         let currentWeekStart = startDate.startOf('week')
+
+        if (startDate.isBefore(currentWeekStart)) {
+          startDate = calendarData.value.weeks[0].days[0].date
+        }
 
         const id = record.rowMeta.id ?? generateRandomNumber()
         // Since the records can span multiple weeks, to display, we render multiple elements
@@ -286,6 +290,12 @@ const recordsToDisplay = computed<{
 
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
+
+          if (recordEnd.isBefore(calendarData.value.weeks[0].days[0].date)) {
+            currentWeekStart = currentWeekStart.add(1, 'week')
+            continue
+          }
+
           const duration = recordEnd.diff(recordStart, 'day') + 1
 
           const dateKey = recordStart.format('YYYY-MM-DD')

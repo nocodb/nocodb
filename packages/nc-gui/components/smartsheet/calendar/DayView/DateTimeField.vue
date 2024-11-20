@@ -444,7 +444,7 @@ const recordsAcrossAllRange = computed<{
     record.rowMeta.style = {
       ...record.rowMeta.style,
       display,
-      width: `calc(max(${width.toFixed(2)}%, 180px))`,
+      width: `calc(max(calc(${width.toFixed(2)}% - 4px), 180px))`,
       left: `min(calc(${left.toFixed(2)}% + 4px), calc(100% - max(${width.toFixed(2)}%, 180px) + 4px))`,
       minWidth: '180px',
     }

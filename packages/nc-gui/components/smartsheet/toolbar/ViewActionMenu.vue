@@ -279,7 +279,6 @@ const isDefaultView = computed(() => view.value?.is_default)
             </div>
           </template>
 
-          <template #expandIcon></template>
           <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
             {{ $t('activity.uploadData') }}
           </div>
@@ -319,8 +318,6 @@ const isDefaultView = computed(() => view.value?.is_default)
           </div>
         </template>
 
-        <template #expandIcon></template>
-
         <LazySmartsheetToolbarExportSubActions />
       </NcSubMenu>
     </template>
@@ -355,8 +352,6 @@ const isDefaultView = computed(() => view.value?.is_default)
             <div class="flex flex-grow"></div>
           </div>
         </template>
-
-        <template #expandIcon></template>
         <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
           {{ $t('labels.viewMode') }}
         </div>

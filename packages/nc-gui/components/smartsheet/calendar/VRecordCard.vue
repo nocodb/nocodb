@@ -44,7 +44,7 @@ const emit = defineEmits(['resize-start'])
         'bg-pink-500': color === 'pink',
         'bg-purple-500': color === 'purple',
       }"
-      class="h-full min-h-9 w-1.25 -ml-0.25 rounded-l-md"
+      class="h-full min-h-3 w-1.25 -ml-0.25 rounded-l-md"
     ></div>
 
     <div class="flex overflow-x-hidden whitespace-nowrap text-ellipsis pt-1 w-full truncate text-ellipsis flex-col gap-1">

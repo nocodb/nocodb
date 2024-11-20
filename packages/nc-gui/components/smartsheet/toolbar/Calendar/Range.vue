@@ -238,6 +238,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             data-testid="nc-calendar-range-add-end-date"
             class="!border-none w-28"
             type="secondary"
+            :shadow="false"
             :disabled="!isEeUI"
             @click="range.fk_to_column_id = undefined"
           >

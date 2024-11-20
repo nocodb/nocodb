@@ -92,6 +92,7 @@ const imageCropperData = ref({
   cropperConfig: {
     stencilProps: {
       aspectRatio: 1,
+      fillDefault: true,
     },
     minHeight: 150,
     minWidth: 150,

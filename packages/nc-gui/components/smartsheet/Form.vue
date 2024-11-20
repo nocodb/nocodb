@@ -17,7 +17,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
-import type { ImageCropperConfig } from '~/lib/types'
+import type { ImageCropperConfig } from '#imports'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))

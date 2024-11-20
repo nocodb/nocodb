@@ -3,7 +3,7 @@ import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
 import type { AttachmentReqType } from 'nocodb-sdk'
-import type { ImageCropperConfig } from '~/lib/types'
+import type { ImageCropperConfig } from '#imports'
 
 interface Props {
   imageConfig: {
@@ -17,10 +17,12 @@ interface Props {
   }
   showCropper: boolean
 }
-const { imageConfig, cropperConfig, uploadConfig, ...props } = defineProps<Props>()
+const { imageConfig, uploadConfig, ...props } = defineProps<Props>()
 const emit = defineEmits(['update:showCropper', 'submit'])
 
 const showCropper = useVModel(props, 'showCropper', emit)
+
+const { cropperConfig } = toRefs(props)
 
 const { api, isLoading } = useApi()
 
@@ -84,6 +86,13 @@ const handleSaveImage = async () => {
   }
 }
 
+const defaultSize = ({ imageSize, visibleArea }: { imageSize: Record<string, any>; visibleArea: Record<string, any> }) => {
+  return {
+    width: (visibleArea || imageSize).width,
+    height: (visibleArea || imageSize).height,
+  }
+}
+
 watch(showCropper, () => {
   if (!showCropper.value) {
     previewImage.value = {
@@ -106,6 +115,9 @@ watch(showCropper, () => {
         :min-height="cropperConfig?.minHeight"
         :min-width="cropperConfig?.minWidth"
         :image-restriction="cropperConfig?.imageRestriction"
+        v-bind="
+          cropperConfig.stencilProps?.fillDefault || cropperConfig.stencilProps?.fillDefault === undefined ? { defaultSize } : {}
+        "
       />
       <div v-if="previewImage.src" class="result_preview">
         <img :src="previewImage.src" alt="Preview Image" />

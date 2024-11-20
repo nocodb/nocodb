@@ -5,15 +5,13 @@ interface Props {
   resize?: boolean
   selected?: boolean
   hover?: boolean
-  dragging?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   resize: true,
   selected: false,
   hover: false,
-  color: 'gray',
-  dragging: false,
+  color: 'blue',
 })
 
 const emit = defineEmits(['resize-start'])
@@ -21,12 +19,6 @@ const emit = defineEmits(['resize-start'])
 
 <template>
   <div
-    :style="{
-      boxShadow:
-        hover || dragging
-          ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
-          : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
-    }"
     :class="{
       'bg-maroon-50': color === 'maroon',
       'bg-blue-50': color === 'blue',
@@ -34,14 +26,13 @@ const emit = defineEmits(['resize-start'])
       'bg-yellow-50': color === 'yellow',
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
-      'bg-white border-gray-300': color === 'gray',
-      'z-90': hover,
+      'shadow-md': hover,
     }"
-    class="relative flex gap-2 border-1 relative rounded-md h-full"
+    class="relative flex gap-2 relative rounded-md h-full"
   >
     <div
       v-if="resize"
-      class="absolute w-full h-1 z-20 top-0 cursor-row-resize"
+      class="absolute w-full h-2 z-20 top-0 !cursor-row-resize"
       @mousedown.stop="emit('resize-start', 'left', $event, record)"
     ></div>
     <div
@@ -52,9 +43,8 @@ const emit = defineEmits(['resize-start'])
         'bg-yellow-500': color === 'yellow',
         'bg-pink-500': color === 'pink',
         'bg-purple-500': color === 'purple',
-        'bg-gray-900': color === 'gray',
       }"
-      class="h-full min-h-3 w-1.25 -ml-0.25 rounded-l-md"
+      class="h-full min-h-9 w-1.25 -ml-0.25 rounded-l-md"
     ></div>
 
     <div class="flex overflow-x-hidden whitespace-nowrap text-ellipsis pt-1 w-full truncate text-ellipsis flex-col gap-1">
@@ -71,7 +61,7 @@ const emit = defineEmits(['resize-start'])
     </div>
     <div
       v-if="resize"
-      class="absolute cursor-row-resize w-full bottom-0 w-full h-1"
+      class="absolute !cursor-row-resize w-full bottom-0 w-full h-2"
       @mousedown.stop="emit('resize-start', 'right', $event, record)"
     ></div>
   </div>

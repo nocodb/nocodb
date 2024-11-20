@@ -355,14 +355,17 @@ const recordsAcrossAllRange = computed<{
         })
         const dayIndex = getDayIndex(startDate)
 
-        const { startHourIndex, startMinutes } = calculateHourIndices(dayIndex, startDate, endDate)
+        const { startHourIndex, endHourIndex, startMinutes, endMinutes } = calculateHourIndices(dayIndex, startDate, endDate)
+
+        console.log(startHourIndex, endHourIndex)
 
         let style: Partial<CSSStyleDeclaration> = {}
 
-        const top = (startHourIndex + startMinutes / 60) * perHeight
+        const spanHours = endHourIndex - startHourIndex + 1
 
-        const totalHours = endDate.diff(startDate, 'minute') / 60
-        const height = totalHours * perHeight
+        const top = startHourIndex * perHeight
+
+        const height = (endHourIndex - startHourIndex + 1) * perHeight - spanHours - 5
 
         style = {
           ...style,
@@ -560,8 +563,9 @@ const recordsAcrossAllRange = computed<{
           }
         }
       } else {
-        left = majorLeft + 4
-        width = perWidth - 8
+        width = 100 / Math.min(maxOverlaps, 3) / maxVisibleDays.value
+
+        left = width * (overlapIndex - 1)
       }
 
       record.rowMeta.style = {

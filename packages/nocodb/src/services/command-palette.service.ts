@@ -1,16 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type UserType, ViewTypes } from 'nocodb-sdk';
+import { viewTypeAlias, type UserType } from 'nocodb-sdk';
 import { deserializeJSON } from '~/utils/serialize';
 import { getCommandPaletteForUserWorkspace } from '~/helpers/commandPaletteHelpers';
-
-const viewTypeAlias: Record<number, string> = {
-  [ViewTypes.GRID]: 'grid',
-  [ViewTypes.FORM]: 'form',
-  [ViewTypes.GALLERY]: 'gallery',
-  [ViewTypes.KANBAN]: 'kanban',
-  [ViewTypes.MAP]: 'map',
-  [ViewTypes.CALENDAR]: 'calendar',
-};
 
 @Injectable()
 export class CommandPaletteService {

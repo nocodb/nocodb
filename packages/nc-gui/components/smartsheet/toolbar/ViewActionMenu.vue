@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
-import { ViewTypes, ViewTypesNameMap } from 'nocodb-sdk'
+import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = withDefaults(
@@ -101,7 +101,7 @@ async function changeLockType(type: LockType) {
     return
   }
 
-  $e(`a:${ViewTypesNameMap[view.value.type] || 'view'}:lockmenu`, { lockType: type, sidebar: props.inSidebar })
+  $e(`a:${viewTypeAlias[view.value.type] || 'view'}:lockmenu`, { lockType: type, sidebar: props.inSidebar })
 
   try {
     view.value.lock_type = type

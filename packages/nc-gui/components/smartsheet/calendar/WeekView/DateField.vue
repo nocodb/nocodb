@@ -561,6 +561,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               :position="record.rowMeta.position"
               :record="record"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
+              color="blue"
               @dblclick.stop="emits('expandRecord', record)"
               @resize-start="onResizeStart"
             >

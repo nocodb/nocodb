@@ -6,7 +6,6 @@ interface Props {
   resize?: boolean
   hover?: boolean
   record?: Row
-  selected?: boolean
   size?: 'small' | 'medium' | 'large' | 'auto'
   position?: 'leftRounded' | 'rightRounded' | 'rounded' | 'none'
   dragging?: boolean
@@ -39,15 +38,9 @@ const emit = defineEmits(['resize-start'])
       'bg-yellow-50': color === 'yellow',
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
-      'bg-white border-gray-300': color === 'gray',
+      'shadow-md': hover,
     }"
-    :style="{
-      boxShadow:
-        hover || dragging
-          ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
-          : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
-    }"
-    class="relative transition-all border-1 flex items-center gap-2 group"
+    class="relative transition-all flex items-center gap-2 group"
   >
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
@@ -60,7 +53,7 @@ const emit = defineEmits(['resize-start'])
         'bg-purple-500': color === 'purple',
         'bg-gray-900': color === 'gray',
       }"
-      class="w-1 min-h-6.5 rounded-l-[4px] bg-blue-500"
+      class="w-1 min-h-6 bg-blue-500 rounded-x rounded-l-md"
     ></div>
 
     <div
@@ -90,7 +83,7 @@ const emit = defineEmits(['resize-start'])
 
     <div
       v-if="(position === 'rightRounded' || position === 'rounded') && resize"
-      class="absolute mt-0.3 h-7.1 w-2 right-0 resize"
+      class="absolute mt-0.3 h-7.1 w-2 right-1 resize"
       @mousedown.stop="emit('resize-start', 'right', $event, record)"
     ></div>
   </div>

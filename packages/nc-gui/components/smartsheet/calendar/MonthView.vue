@@ -878,7 +878,11 @@ const addRecord = (date: dayjs.Dayjs) => {
                 ? ' 0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
                 : 'none',
 
-            opacity: draggingId === null || record.rowMeta.id === draggingId ? 1 : 0.3,
+            opacity:
+              (draggingId === null || record.rowMeta.id === draggingId) &&
+              (resizeRecord === undefined || record.rowMeta.id === resizeRecord?.rowMeta.id)
+                ? 1
+                : 0.3,
           }"
           :class="{
             'cursor-pointer': !resizeInProgress,
@@ -890,7 +894,11 @@ const addRecord = (date: dayjs.Dayjs) => {
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
-              :hover="hoverRecord === record.rowMeta.id"
+              :hover="
+                hoverRecord === record.rowMeta.id ||
+                record.rowMeta.id === draggingId ||
+                record.rowMeta.id === resizeRecord?.rowMeta.id
+              "
               :position="record.rowMeta.position"
               :record="record"
               :dragging="draggingId === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"

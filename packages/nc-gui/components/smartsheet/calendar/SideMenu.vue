@@ -546,7 +546,6 @@ onClickOutside(searchRef, toggleSearch)
                     : dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A')
                   : null
               "
-                color="blue"
                 data-testid="nc-sidebar-record-card"
                 @click="emit('expandRecord', record)"
                 @dragstart="dragStart($event, record)"

@@ -595,7 +595,7 @@ const addRecord = (date: dayjs.Dayjs) => {
   &:after {
     @apply rounded-b-sm pointer-events-none absolute inset-0 w-full h-full;
     content: '';
-    z-index: 1;
+    z-index: 3;
     box-shadow: 2px 0 0 #3366ff, -2px 0 0 #3366ff, 0 2px 0 #3366ff !important;
   }
 }

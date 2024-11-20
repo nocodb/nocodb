@@ -138,7 +138,7 @@ const calendarData = computed(() => {
       const style: Partial<CSSStyleDeclaration> = {
         top: `${row * 28 + row * 8}px`,
         left: `${startDayIndex * perDayWidth}px`,
-        width: `${spanDays * perDayWidth + 8}px`,
+        width: `${spanDays * perDayWidth}px`,
       }
 
       recordsInRange.push({
@@ -244,7 +244,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
       ref="container"
       :style="{
         height: `min(64px)`,
-        width: 'calc(100% - 67px)',
+        width: `calc(100% - ${activeCalendarView === 'week' ? '64px' : '66px'})`,
       }"
       :class="{
         'border-gray-100': activeCalendarView === 'day',

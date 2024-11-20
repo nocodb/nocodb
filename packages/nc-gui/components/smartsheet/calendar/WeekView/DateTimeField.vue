@@ -553,11 +553,11 @@ const hoverRecord = ref<string | null>()
 
 const resizeDirection = ref<'right' | 'left' | null>()
 
-const resizeRecord = ref<Row | null>()
+const resizeRecord = ref<Row | null>(null)
 
 const isDragging = ref(false)
 
-const dragRecord = ref<Row>()
+const dragRecord = ref<Row | null>(null)
 
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)
@@ -771,16 +771,12 @@ const stopDrag = (event: MouseEvent) => {
 
   const { newRow, updatedProperty } = calculateNewRow(event, false, true)
 
-  // We set the visibility and opacity of the records back to normal
-  const allRecords = document.querySelectorAll('.draggable-record')
-  allRecords.forEach((el) => {
-    el.style.visibility = ''
-    el.style.opacity = '100%'
-  })
-
   if (newRow) {
     updateRowProperty(newRow, updatedProperty, false)
   }
+
+  dragRecord.value = null
+
   $e('c:calendar:week:drag-record')
 
   document.removeEventListener('mousemove', onDrag)
@@ -801,14 +797,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
     }
-
-    const allRecords = document.querySelectorAll('.draggable-record')
-    allRecords.forEach((el) => {
-      if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
-        // el.style.visibility = 'hidden'
-        el.style.opacity = '30%'
-      }
-    })
 
     isDragging.value = true
     dragRecord.value = record
@@ -1016,7 +1004,7 @@ watch(
             () => {
               selectedDate = hour
               selectedTime = hour
-              dragRecord = undefined
+              dragRecord = null
             }
           "
         >
@@ -1043,7 +1031,14 @@ watch(
             v-if="record.rowMeta.style?.display !== 'none'"
             :data-testid="`nc-calendar-week-record-${record.row[displayField!.title!]}`"
             :data-unique-id="record.rowMeta!.id"
-            :style="record.rowMeta!.style "
+            :style="{
+              ...record.rowMeta.style,
+              opacity:
+                (dragRecord === null || record.rowMeta.id === dragRecord?.rowMeta.id) &&
+                (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)
+                  ? 1
+                  : 0.3,
+            }"
             :class="{
               'w-1/5': maxVisibleDays === 5,
               'w-1/7': maxVisibleDays === 7,

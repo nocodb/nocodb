@@ -13,6 +13,7 @@ const setActiveCalendarMode = (mode: 'day' | 'week' | 'month' | 'year', event: M
   changeCalendarView(mode)
   const tabElement = event.target as HTMLElement
   highlightStyle.value.left = `${tabElement.offsetLeft}px`
+  highlightStyle.value.width = `${tabElement.offsetWidth}px`
 }
 
 const updateHighlightPosition = () => {
@@ -20,6 +21,7 @@ const updateHighlightPosition = () => {
     const activeTab = document.querySelector('.nc-calendar-mode-tab .tab.active') as HTMLElement
     if (activeTab) {
       highlightStyle.value.left = `${activeTab.offsetLeft}px`
+      highlightStyle.value.width = `${activeTab.offsetWidth}px`
     }
   })
 }
@@ -37,19 +39,21 @@ watch(activeCalendarView, () => {
 <template>
   <div
     v-if="isTab"
-    class="flex flex-row px-1 pointer-events-auto mx-3 mt-3 rounded-lg gap-x-0.5 nc-calendar-mode-tab"
+    class="px-1 pointer-events-auto relative mx-3 mt-1 mb-2.5 rounded-lg gap-x-0.5 relative nc-calendar-mode-tab"
     data-testid="nc-calendar-view-mode"
   >
-    <div :style="highlightStyle" class="highlight"></div>
-    <div
-      v-for="mode in ['day', 'week', 'month', 'year']"
-      :key="mode"
-      :class="{ active: activeCalendarView === mode }"
-      :data-testid="`nc-calendar-view-mode-${mode}`"
-      class="tab"
-      @click="setActiveCalendarMode(mode, $event)"
-    >
-      <div class="tab-title !text-xs nc-tab">{{ $t(`objects.${mode}`) }}</div>
+    <div class="flex flex-row">
+      <div :style="highlightStyle" class="highlight h-0.5 rounded-t-md absolute transition-all -bottom-2.5 bg-brand-500"></div>
+      <div
+        v-for="mode in ['day', 'week', 'month', 'year']"
+        :key="mode"
+        :class="{ '!text-brand-500 !font-bold  bg-transparent active': activeCalendarView === mode }"
+        :data-testid="`nc-calendar-view-mode-${mode}`"
+        class="tab flex items-center h-7 w-14 z-10 justify-center px-2 py-1 rounded-lg gap-x-1.5 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none"
+        @click="setActiveCalendarMode(mode, $event)"
+      >
+        <div class="min-w-0 pointer-events-none !text-[13px]]">{{ $t(`objects.${mode}`) }}</div>
+      </div>
     </div>
   </div>
 
@@ -79,11 +83,6 @@ watch(activeCalendarView, () => {
 </template>
 
 <style lang="scss" scoped>
-.highlight {
-  @apply absolute h-6.5 w-14 transition-all border-b-2 border-brand-500 duration-200;
-  z-index: 0;
-}
-
 .nc-calendar-mode-menu {
   :deep(.nc-menu-item-inner) {
     @apply !text-[13px];
@@ -93,26 +92,6 @@ watch(activeCalendarView, () => {
   .ant-select-selector {
     @apply !px-3;
   }
-}
-
-.tab {
-  @apply flex items-center h-7 w-14 z-10 justify-center px-2 py-1 rounded-lg gap-x-1.5 text-gray-500 hover:text-black cursor-pointer transition-all duration-300 select-none;
-}
-
-.tab .tab-title {
-  @apply min-w-0 mb-3  pointer-events-none;
-  word-break: keep-all;
-  white-space: 'nowrap';
-  display: 'inline';
-  line-height: 0.95;
-}
-
-.active {
-  @apply !text-brand-500 !font-bold  bg-transparent;
-}
-
-.nc-calendar-mode-tab {
-  @apply relative;
 }
 
 :deep(.ant-select-selector) {

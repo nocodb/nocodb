@@ -98,170 +98,81 @@ const findFirstSuitableRow = (recordsInDay: any, startDayIndex: number, spanDays
 }
 
 const isInRange = (date: dayjs.Dayjs) => {
+  const rangeEndDate =
+    maxVisibleDays.value === 5 ? dayjs(selectedDateRange.value.end).subtract(2, 'day') : dayjs(selectedDateRange.value.end)
+
   return (
-    date &&
-    date.isBetween(
-      dayjs(selectedDateRange.value.start).startOf('day'),
-      dayjs(selectedDateRange.value.end).endOf('day'),
-      'day',
-      '[]',
-    )
+    date && date.isBetween(dayjs(selectedDateRange.value.start).startOf('day'), dayjs(rangeEndDate).endOf('day'), 'day', '[]')
   )
 }
 
 const calendarData = computed(() => {
   if (!formattedData.value || !calendarRange.value) return []
 
-  // We use the recordsInDay object to keep track of which columns are occupied for each day
-  // This is used to calculate the position of the records in the calendar
-  // The key is the day index (0-6) and the value is an object with the row index as the key and a boolean as the value
-  // Since no hours are considered, the rowIndex will be sufficient to calculate the position
-  const recordsInDay: {
-    [key: number]: {
-      [key: number]: boolean
-    }
-  } = {
-    0: {},
-    1: {},
-    2: {},
-    3: {},
-    4: {},
-    5: {},
-    6: {},
-  }
-
-  const recordsInRange: Array<Row> = []
+  const recordsInDay = Array.from({ length: 7 }, () => ({})) as Record<number, Record<number, boolean>>
+  const recordsInRange = [] as Row[]
   const perDayWidth = containerWidth.value / maxVisibleDays.value
 
-  calendarRange.value.forEach((range) => {
-    const fromCol = range.fk_from_col
-    const toCol = range.fk_to_col
-    if (fromCol && toCol) {
-      // Filter out records that have an invalid date range
-      // i.e. the end date is before the start date
+  calendarRange.value.forEach(({ fk_from_col, fk_to_col }) => {
+    if (!fk_from_col) return
 
-      for (const record of [...formattedData.value].filter((r) => {
-        const startDate = dayjs(r.row[fromCol.title!])
-        const endDate = dayjs(r.row[toCol.title!])
-        if (!startDate.isValid() || !endDate.isValid()) return false
-        return !endDate.isBefore(startDate)
-      })) {
-        // Generate a unique id for the record if it doesn't have one
-        const id = record.rowMeta.id ?? generateRandomNumber()
-        let startDate = dayjs(record.row[fromCol.title!])
-        const ogStartDate = startDate.clone()
-        const endDate = dayjs(record.row[toCol.title!])
+    const processRecord = (record: Row) => {
+      const id = record.rowMeta.id ?? generateRandomNumber()
+      let startDate = dayjs(record.row[fk_from_col.title!])
+      const ogStartDate = startDate.clone()
+      const endDate = fk_to_col ? dayjs(record.row[fk_to_col.title!]) : startDate
 
-        // If the start date is before the selected date range, we need to adjust the start date
-        if (startDate.isBefore(selectedDateRange.value.start)) {
-          startDate = dayjs(selectedDateRange.value.start)
-        }
-
-        const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
-
-        // Calculate the span of the record in days
-        let spanDays = Math.max(Math.min(endDate.diff(startDate, 'day'), 6) + 1, 1)
-
-        // If the end date is after the month of the selected date range, we need to adjust the span
-        if (endDate.isAfter(startDate, 'month')) {
-          spanDays = 7 - startDaysDiff
-        }
-
-        if (startDaysDiff > 0) {
-          spanDays = Math.min(spanDays, 7 - startDaysDiff)
-        }
-        const widthStyle = `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`
-
-        let suitableRow = -1
-        // Find the first suitable row for the entire span
-        for (let i = 0; i < spanDays; i++) {
-          const dayIndex = startDaysDiff + i
-
-          if (!recordsInDay[dayIndex]) {
-            recordsInDay[dayIndex] = {}
-          }
-
-          if (suitableRow === -1) {
-            suitableRow = findFirstSuitableRow(recordsInDay, dayIndex, spanDays)
-          }
-        }
-
-        // Mark the suitable column as occupied for the entire span
-        for (let i = 0; i < spanDays; i++) {
-          const dayIndex = startDaysDiff + i
-          recordsInDay[dayIndex][suitableRow] = true
-        }
-
-        let position = 'none'
-
-        const isStartInRange = isInRange(ogStartDate)
-        const isEndInRange = isInRange(endDate)
-
-        // Calculate the position of the record in the calendar based on the start and end date
-        // The position can be 'none', 'leftRounded', 'rightRounded', 'rounded'
-        // This is used to assign the rounded corners to the records
-        if (isStartInRange && isEndInRange) {
-          position = 'rounded'
-        } else if (
-          startDate &&
-          endDate &&
-          startDate.isBefore(selectedDateRange.value.start) &&
-          endDate.isAfter(selectedDateRange.value.end)
-        ) {
-          position = 'none'
-        } else if (
-          startDate &&
-          endDate &&
-          (startDate.isAfter(selectedDateRange.value.end) || endDate.isBefore(selectedDateRange.value.start))
-        ) {
-          position = 'none'
-        } else if (isStartInRange) {
-          position = 'leftRounded'
-        } else if (isEndInRange) {
-          position = 'rightRounded'
-        }
-
-        recordsInRange.push({
-          ...record,
-          rowMeta: {
-            ...record.rowMeta,
-            range: range as any,
-            position,
-            id,
-            style: {
-              width: widthStyle,
-              left: `${startDaysDiff * perDayWidth}px`,
-              top: `${suitableRow * 28}px`,
-            },
-          },
-        })
+      if (startDate.isBefore(selectedDateRange.value.start)) {
+        startDate = dayjs(selectedDateRange.value.start)
       }
-    } else if (fromCol) {
-      for (const record of formattedData.value) {
-        const id = record.rowMeta.id ?? generateRandomNumber()
 
-        const startDate = dayjs(record.row[fromCol.title!])
-        const startDaysDiff = Math.max(startDate.diff(selectedDateRange.value.start, 'day'), 0)
+      const startDaysDiff = startDate.diff(selectedDateRange.value.start, 'day')
+      const spanDays = fk_to_col
+        ? Math.min(Math.max(endDate.diff(startDate, 'day') + 1, 1), maxVisibleDays.value - startDaysDiff)
+        : 1
 
-        // Find the first suitable row for record. Here since the span is 1, we can use the findFirstSuitableRow function
-        const suitableRow = findFirstSuitableRow(recordsInDay, startDaysDiff, 1)
-        recordsInDay[startDaysDiff][suitableRow] = true
+      const suitableRow = findFirstSuitableRow(recordsInDay, startDaysDiff, spanDays)
 
-        recordsInRange.push({
-          ...record,
-          rowMeta: {
-            ...record.rowMeta,
-            range: range as any,
-            id,
-            position: 'rounded',
-            style: {
-              width: `calc(${perDayWidth}px)`,
-              left: `${startDaysDiff * perDayWidth}px`,
-              top: `${suitableRow * 28}px`,
-            },
-          },
-        })
+      for (let i = 0; i < spanDays; i++) {
+        const dayIndex = startDaysDiff + i
+        if (!recordsInDay[dayIndex]) recordsInDay[dayIndex] = {}
+        recordsInDay[dayIndex][suitableRow] = true
       }
+
+      const isStartInRange = isInRange(ogStartDate)
+      const isEndInRange = isInRange(endDate)
+
+      let position = 'none'
+      if (isStartInRange && isEndInRange) position = 'rounded'
+      else if (isStartInRange) position = 'leftRounded'
+      else if (isEndInRange) position = 'rightRounded'
+
+      recordsInRange.push({
+        ...record,
+        rowMeta: {
+          ...record.rowMeta,
+          range: { fk_from_col, fk_to_col },
+          position,
+          id,
+          style: {
+            width: `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`,
+            left: `${startDaysDiff * perDayWidth}px`,
+            top: `${suitableRow * 28}px`,
+          },
+        },
+      })
+    }
+
+    if (fk_to_col) {
+      formattedData.value
+        .filter((r) => {
+          const startDate = dayjs(r.row[fk_from_col.title!])
+          const endDate = dayjs(r.row[fk_to_col.title!])
+          return startDate.isValid() && endDate.isValid() && !endDate.isBefore(startDate)
+        })
+        .forEach(processRecord)
+    } else {
+      formattedData.value.forEach(processRecord)
     }
   })
 

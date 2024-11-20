@@ -901,7 +901,7 @@ const addRecord = (date: dayjs.Dayjs) => {
               "
               :position="record.rowMeta.position"
               :record="record"
-              :dragging="draggingId === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
+              :dragging="isDragging || resizeInProgress"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
               @resize-start="onResizeStart"
             >

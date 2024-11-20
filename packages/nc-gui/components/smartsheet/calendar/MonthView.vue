@@ -857,7 +857,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       </div>
     </div>
     <div class="absolute inset-0 z-2 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
-      <template v-for="record in recordsToDisplay.records" :key="record.rowMeta.id">
+      <template v-for="(record, recordId) in recordsToDisplay.records" :key="recordId">
         <div
           v-if="record.rowMeta.style?.display !== 'none'"
           :data-testid="`nc-calendar-month-record-${record.row[displayField!.title!]}`"

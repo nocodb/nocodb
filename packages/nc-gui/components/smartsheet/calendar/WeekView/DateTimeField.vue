@@ -139,8 +139,8 @@ const calculateNewDates = useMemoize(
       endDate = startDate.clone().add(15, 'minutes')
     }
 
-    if (endDate.diff(startDate, 'minute') <= 60) {
-      endDate = startDate.clone().add(59, 'minutes')
+    if (endDate.diff(startDate, 'minute') < 60) {
+      endDate = startDate.clone().add(60, 'minutes')
     }
 
     // If the start date is before the start of the schedule, we set it to the start of the schedule
@@ -566,7 +566,7 @@ const recordsAcrossAllRange = computed<{
 
         width = Math.max((width / 100) * containerWidth.value - 8, 72)
 
-        left = majorLeft + (left / 100) * containerWidth.value + 8
+        left = majorLeft + (left / 100) * containerWidth.value + 4
 
         if (majorLeft + perWidth < left + width) {
           left = majorLeft + (perWidth - width - 4)

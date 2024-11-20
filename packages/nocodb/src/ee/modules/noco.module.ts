@@ -4,6 +4,10 @@ import { Module } from '@nestjs/common';
 /* Generic */
 import { Producer } from '~/services/producer/producer';
 import { ProducerProvider } from '~/services/producer';
+import { ActionsController } from '~/controllers/actions.controller';
+
+/* Integrations */
+import { NocoAiModule } from '~/integrations/ai/module/ai.module';
 
 /* Metas */
 import { OrgWorkspacesService } from '~/services/org-workspaces.service';
@@ -46,7 +50,7 @@ import { WorkspaceUsersController } from '~/controllers/workspace-users.controll
 import { MailService } from '~/services/mail/mail.service';
 
 export const nocoModuleEeMetadata = {
-  imports: [...nocoModuleMetadata.imports],
+  imports: [...nocoModuleMetadata.imports, NocoAiModule],
   providers: [
     ...nocoModuleMetadata.providers,
 
@@ -85,6 +89,8 @@ export const nocoModuleEeMetadata = {
   ],
   controllers: [
     ...nocoModuleMetadata.controllers,
+
+    ActionsController,
 
     /* Metas */
     // DocsPagesHistoryController,

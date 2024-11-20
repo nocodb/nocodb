@@ -8,16 +8,22 @@ const camelize = (s) => s.replace(/-./g, (x) => x[1].toUpperCase());
 
 const prepareComponentName = (name) => capitalize(camelize(name));
 
-async function registerIntegrations() {
-  const files = await glob('src/integrations/**/*', {
+async function registerIntegrations(EE = false) {
+  const integrationRoot = EE ? 'src/ee/integrations' : 'src/integrations';
+
+  const files = await glob(`${integrationRoot}/**/*`, {
     ignore: [
-      'src/integrations/*',
-      'src/integrations/*/*',
-      'src/integrations/ai/module/**/*',
+      `${integrationRoot}/*`,
+      `${integrationRoot}/*/*`,
+      `${integrationRoot}/ai/module/**/*`,
     ],
     cwd: `${__dirname}/../`,
     absolute: true,
   });
+
+  if (!files || !files.length) {
+    return;
+  }
 
   files.sort((a, b) => a.localeCompare(b));
 
@@ -109,35 +115,36 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
     }
   }
 
-  integrationsEntry += `\nexport default [\n`;
+  if (availableIntegrations.length) {
+    integrationsEntry += `\nexport default [\n`;
 
-  // Generate integration objects
-  for (const integration of availableIntegrations) {
-    integrationsEntry += `  {\n`;
-    integrationsEntry += `    type: '${integration.type}',\n`;
-    integrationsEntry += `    subType: '${integration.subType}',\n`;
-    if (integration.entry) {
-      integrationsEntry += `    wrapper: ${prepareComponentName(
-        integration.type,
-      )}${prepareComponentName(integration.subType)}Entry,\n`;
-    }
-    if (integration.form) {
-      integrationsEntry += `    form: ${prepareComponentName(
-        integration.type,
-      )}${prepareComponentName(integration.subType)}Form,\n`;
-    }
-    if (integration.manifest) {
-      integrationsEntry += `    meta: {
+    // Generate integration objects
+    for (const integration of availableIntegrations) {
+      integrationsEntry += `  {\n`;
+      integrationsEntry += `    type: '${integration.type}',\n`;
+      integrationsEntry += `    subType: '${integration.subType}',\n`;
+      if (integration.entry) {
+        integrationsEntry += `    wrapper: ${prepareComponentName(
+          integration.type,
+        )}${prepareComponentName(integration.subType)}Entry,\n`;
+      }
+      if (integration.form) {
+        integrationsEntry += `    form: ${prepareComponentName(
+          integration.type,
+        )}${prepareComponentName(integration.subType)}Form,\n`;
+      }
+      if (integration.manifest) {
+        integrationsEntry += `    meta: {
       ...${prepareComponentName(integration.type)}CommonManifest,
       ...${prepareComponentName(integration.type)}${prepareComponentName(
-        integration.subType,
-      )}Manifest,
+          integration.subType,
+        )}Manifest,
     },\n`;
+      }
+      integrationsEntry += `  },\n`;
     }
-    integrationsEntry += `  },\n`;
-  }
 
-  integrationsEntry += `] as {
+    integrationsEntry += `] as {
   type: IntegrationsType;
   subType: string;
   form?: FormDefinition;
@@ -150,10 +157,25 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
     exposedEndpoints?: string[];
   };
 }[];\n`;
+  } else {
+    integrationsEntry += `export default [] as {
+  type: IntegrationsType;
+  subType: string;
+  form?: FormDefinition;
+  wrapper?: typeof IntegrationWrapper;
+  meta?: {
+    title?: string;
+    value?: string;
+    icon?: string;
+    description?: string;
+    exposedEndpoints?: string[];
+  };
+}[];\n`;
+  }
 
   // Write the generated content to integrations.ts
   await fs.writeFile(
-    path.join(__dirname, '..', 'src/integrations/integrations.ts'),
+    path.join(__dirname, '..', `${integrationRoot}/integrations.ts`),
     integrationsEntry,
   );
 
@@ -161,3 +183,4 @@ import type IntegrationWrapper from '~/integrations/integration.wrapper';
 }
 
 registerIntegrations();
+registerIntegrations(true);

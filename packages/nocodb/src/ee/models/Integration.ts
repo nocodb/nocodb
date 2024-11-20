@@ -51,6 +51,18 @@ export default class Integration extends IntegrationCE {
     return integration && new Integration(integration);
   }
 
+  public static async init() {
+    // we use dynamic import to avoid circular reference
+    const ceIntegrations = (await import('src/integrations/integrations'))
+      .default;
+
+    const eeIntegrations = (await import('src/ee/integrations/integrations'))
+      .default;
+
+    // we use dynamic import to avoid circular reference
+    Integration.availableIntegrations = [...ceIntegrations, ...eeIntegrations];
+  }
+
   public static async createIntegration(
     integration: IntegrationType & {
       workspaceId: string;

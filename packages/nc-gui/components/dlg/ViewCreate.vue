@@ -1017,71 +1017,77 @@ const getPluralName = (name: string) => {
                   </div>
                 </a-select-option>
               </NcSelect>
-              <!--            <div
-              v-if="range.fk_to_column_id === null && isEeUI"
-              class="cursor-pointer flex items-center text-gray-800 gap-1"
-              @click="range.fk_to_column_id = undefined"
-            >
-              <component :is="iconMap.plus" class="h-4 w-4" />
-              {{ $t('activity.addEndDate') }}
-            </div>
-            <template v-else-if="isEeUI">
-              <span>
-                {{ $t('activity.withEndDate') }}
-              </span>
-
-              <div class="flex">
-                <NcSelect
-                  v-model:value="range.fk_to_column_id"
-                  :disabled="isMetaLoading"
-                  :loading="isMetaLoading"
-                  :placeholder="$t('placenc-to-seleholder.notSelected')"
-                  class="!rounded-r-none ct"
-                >
-                  <a-select-option
-                    v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
-                      // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
-                      // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
-
-                      const firstRange = viewSelectFieldOptions.find((f) => f.value === form.calendar_range[0].fk_from_column_id)
-                      return firstRange?.uidt === f.uidt
-                    })"
-                    :key="id"
-                    :value="option.value"
-                  >
-                    <div class="flex items-center">
-                      <SmartsheetHeaderIcon :column="option" />
-                      <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
-                        <template #title>{{ option.label }}</template>
-                        {{ option.label }}
-                      </NcTooltip>
-                    </div>
-                  </a-select-option>
-                </NcSelect>
-                <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary" @click="range.fk_to_column_id = null">
-                  <component :is="iconMap.delete" class="h-4 w-4" />
-                </NcButton>
-              </div>
-              <NcButton
-                v-if="index !== 0"
-                size="small"
-                type="secondary"
-                @click="
-                  () => {
-                    form.calendar_range = form.calendar_range.filter((_, i) => i !== index)
-                  }
-                "
+              <div
+                v-if="range.fk_to_column_id === null && isEeUI"
+                class="cursor-pointer flex items-center text-gray-800 gap-1"
+                @click="range.fk_to_column_id = undefined"
               >
-                <component :is="iconMap.close" />
-              </NcButton>
-            </template>
-          </div> -->
+                <component :is="iconMap.plus" class="h-4 w-4" />
+                {{ $t('activity.addEndDate') }}
+              </div>
+              <template v-else-if="isEeUI">
+                <span>
+                  {{ $t('activity.withEndDate') }}
+                </span>
 
-              <!--          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
+                <div class="flex">
+                  <NcSelect
+                    v-model:value="range.fk_to_column_id"
+                    :disabled="isMetaLoading"
+                    :loading="isMetaLoading"
+                    :placeholder="$t('placeholder.notSelected')"
+                    class="!rounded-r-none ct"
+                  >
+                    <a-select-option
+                      v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
+                        // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                        // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+
+                        const firstRange = viewSelectFieldOptions.find(
+                          (f) => f.value === form.calendar_range[0].fk_from_column_id,
+                        )
+                        return firstRange?.uidt === f.uidt
+                      })"
+                      :key="id"
+                      :value="option.value"
+                    >
+                      <div class="flex items-center">
+                        <SmartsheetHeaderIcon :column="option" />
+                        <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
+                          <template #title>{{ option.label }}</template>
+                          {{ option.label }}
+                        </NcTooltip>
+                      </div>
+                    </a-select-option>
+                  </NcSelect>
+                  <NcButton
+                    class="!rounded-l-none !border-l-0"
+                    size="small"
+                    type="secondary"
+                    @click="range.fk_to_column_id = null"
+                  >
+                    <component :is="iconMap.delete" class="h-4 w-4" />
+                  </NcButton>
+                </div>
+                <NcButton
+                  v-if="index !== 0"
+                  size="small"
+                  type="secondary"
+                  @click="
+                    () => {
+                      form.calendar_range = form.calendar_range.filter((_, i) => i !== index)
+                    }
+                  "
+                >
+                  <component :is="iconMap.close" />
+                </NcButton>
+              </template>
+            </div>
+
+            <!--          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
             <component :is="iconMap.plus" />
             Add another date field
           </NcButton> -->
-            </div>
 
             <div
               v-if="isCalendarReadonly(form.calendar_range)"

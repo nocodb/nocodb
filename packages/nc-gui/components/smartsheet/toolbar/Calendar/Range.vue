@@ -134,12 +134,11 @@ const saveCalendarRanges = async () => {
   }
 }
 
-/*
 const removeRange = async (id: number) => {
   _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
   await saveCalendarRanges()
 }
-
+/*
 const saveCalendarRange = async (range: CalendarRangeType, value?) => {
   range.fk_to_column_id = value
   await saveCalendarRanges()
@@ -177,7 +176,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     </NcTooltip>
 
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-98 space-y-6 rounded-2xl p-4" data-testid="nc-calendar-range-menu" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-138 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
@@ -223,7 +222,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             </a-select-option>
           </NcSelect>
 
-          <!--          <div
+          <div
             v-if="range.fk_to_column_id === null && isEeUI"
             class="flex cursor-pointer flex text-gray-800 items-center gap-1"
             data-testid="nc-calendar-range-add-end-date"
@@ -271,7 +270,6 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
           <NcButton v-if="id !== 0" size="small" type="secondary" @click="removeRange(id)">
             <component :is="iconMap.close" />
           </NcButton>
-            -->
         </div>
 
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">

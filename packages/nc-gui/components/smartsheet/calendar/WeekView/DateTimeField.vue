@@ -587,10 +587,9 @@ const onResize = (event: MouseEvent) => {
   const ogEndDate = dayjs(resizeRecord.value.row[toCol.title])
 
   const day = Math.floor(percentX * maxVisibleDays.value)
-  const hour = Math.floor(percentY * 23)
   const minutes = Math.round((percentY * 24 * 60) / 15) * 15 // Round to nearest 15 minutes
 
-  const baseDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(hour, 'hour').add(minutes, 'minute')
+  const baseDate = dayjs(selectedDateRange.value.start).add(day, 'day').add(minutes, 'minute')
 
   let newDate: dayjs.Dayjs
   let updateProperty: string

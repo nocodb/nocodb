@@ -32,8 +32,8 @@ const emit = defineEmits(['resize-start'])
     :style="{
       boxShadow: `${
         hover
-          ? 'box-0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
-          : ' 0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)'
+          ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
+          : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)'
       }`,
     }"
     class="relative flex gap-2 border-1 relative rounded-md h-full"

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
-import type { ColumnType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 
 const emit = defineEmits(['newRecord', 'expandRecord'])
@@ -52,10 +51,6 @@ const calendarGridContainer = ref()
 
 const { width: gridContainerWidth, height: gridContainerHeight } = useElementSize(calendarGridContainer)
 
-const isDayInPagedMonth = (date: dayjs.Dayjs) => {
-  return date.month() === selectedMonth.value.month()
-}
-
 const dragElement = ref<HTMLElement | null>(null)
 
 const draggingId = ref<string | null>(null)
@@ -81,56 +76,77 @@ const fields = inject(FieldsInj, ref())
 const { fields: _fields } = useViewColumnsOrThrow()
 
 const fieldStyles = computed(() => {
-  if (!_fields.value) return new Map()
-  return new Map(
-    _fields.value.map((field) => [
-      field.fk_column_id,
-      {
-        underline: field.underline,
-        bold: field.bold,
-        italic: field.italic,
-      },
-    ]),
-  )
+  return (_fields.value ?? []).reduce((acc, field) => {
+    acc[field.fk_column_id!] = {
+      bold: !!field.bold,
+      italic: !!field.italic,
+      underline: !!field.underline,
+    }
+    return acc
+  }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
-
-const getFieldStyle = (field: ColumnType) => {
-  return fieldStyles.value.get(field.id)
-}
 
 const dates = computed(() => {
   const startOfMonth = selectedMonth.value.startOf('month')
-  const endOfMonth = selectedMonth.value.endOf('month')
+  const firstDayOffset = isMondayFirst.value ? 0 : -1
+  const firstDayToDisplay = startOfMonth.startOf('week').add(firstDayOffset, 'day')
 
-  const firstDayToDisplay = startOfMonth.startOf('week').add(isMondayFirst.value ? 0 : -1, 'day')
-  const lastDayToDisplay = endOfMonth.endOf('week').add(isMondayFirst.value ? 0 : -1, 'day')
+  const daysInView = Math.max(
+    35,
+    Math.ceil((startOfMonth.daysInMonth() + startOfMonth.day() + (isMondayFirst.value ? 0 : 1)) / 7) * 7,
+  )
 
-  const daysToDisplay = lastDayToDisplay.diff(firstDayToDisplay, 'day') + 1
-  let numberOfRows = Math.ceil(daysToDisplay / 7)
-  numberOfRows = Math.max(numberOfRows, 5)
+  return Array.from({ length: daysInView / 7 }, (_, weekIndex) =>
+    Array.from({ length: 7 }, (_, dayIndex) => firstDayToDisplay.add(weekIndex * 7 + dayIndex, 'day')),
+  )
+})
 
-  const weeksArray: Array<Array<dayjs.Dayjs>> = []
-  let currentDay = firstDayToDisplay
-  for (let week = 0; week < numberOfRows; week++) {
-    const weekArray = []
-    for (let day = 0; day < 7; day++) {
-      weekArray.push(currentDay)
-      currentDay = currentDay.add(1, 'day')
-    }
-    weeksArray.push(weekArray)
+const calendarData = computed(() => {
+  const startOfMonth = selectedMonth.value.startOf('month')
+  const firstDayOffset = isMondayFirst.value ? 0 : -1
+  const firstDayToDisplay = startOfMonth.startOf('week').add(firstDayOffset, 'day')
+  const today = dayjs()
+
+  const daysInView = Math.max(
+    35,
+    Math.ceil((startOfMonth.daysInMonth() + startOfMonth.day() + (isMondayFirst.value ? 0 : 1)) / 7) * 7,
+  )
+
+  return {
+    weeks: Array.from({ length: daysInView / 7 }, (_, weekIndex) => ({
+      weekIndex,
+      days: Array.from({ length: 7 }, (_, dayIndex) => {
+        const day = firstDayToDisplay.add(weekIndex * 7 + dayIndex, 'day')
+
+        return {
+          date: day,
+          key: `${weekIndex}-${dayIndex}`,
+          isWeekend: day.get('day') === 0 || day.get('day') === 6,
+          isToday: day.isSame(today, 'date'),
+          isInPagedMonth: day.isSame(startOfMonth, 'month'),
+          isVisible:
+            maxVisibleDays.value === 7 || (maxVisibleDays.value === 5 && !(day.get('day') !== 0 && day.get('day') !== 6)),
+          dayNumber: day.format('DD'),
+        }
+      }),
+    })),
+    gridClass: {
+      'grid-cols-7': maxVisibleDays.value === 7,
+      'grid-cols-5': maxVisibleDays.value === 5,
+      'grid': true,
+      'grow': true,
+    },
   }
-
-  return weeksArray
 })
 
 const recordsToDisplay = computed<{
   records: Row[]
   count: { [p: string]: { overflow: boolean; count: number; overflowCount: number } }
 }>(() => {
-  if (!dates.value || !calendarRange.value) return { records: [], count: {} }
+  if (!calendarData.value || !calendarRange.value) return { records: [], count: {} }
 
   const perWidth = gridContainerWidth.value / maxVisibleDays.value
-  const perHeight = gridContainerHeight.value / dates.value.length
+  const perHeight = gridContainerHeight.value / calendarData.value.weeks.length
   const perRecordHeight = 24
 
   const spaceBetweenRecords = 27
@@ -214,8 +230,12 @@ const recordsToDisplay = computed<{
 
         occupyLane(dateKey, lane)
 
-        const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(startDate, 'day')))
-        const dayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(startDate, 'day'))
+        const weekIndex = calendarData.value.weeks.findIndex((week) =>
+          week.days.some((day) => dayjs(day.date).isSame(startDate, 'day')),
+        )
+        const dayIndex = (calendarData.value.weeks[weekIndex] ?? []).days.findIndex((day) =>
+          dayjs(day.date).isSame(startDate, 'day'),
+        )
 
         const style: Partial<CSSStyleDeclaration> = {
           left: `${dayIndex * perWidth}px`,
@@ -253,7 +273,7 @@ const recordsToDisplay = computed<{
         while (
           currentWeekStart.isSameOrBefore(endDate, 'day') &&
           // If the current week start is before the last day of the last week
-          currentWeekStart.isBefore(dates.value[dates.value.length - 1][6])
+          currentWeekStart.isBefore(calendarData.value.weeks[calendarData.value.weeks.length - 1].days[6].date)
         ) {
           // We update the record start to currentWeekStart if it is before the start date
           // and record end to currentWeekEnd if it is after the end date
@@ -709,52 +729,48 @@ const addRecord = (date: dayjs.Dayjs) => {
     <div
       ref="calendarGridContainer"
       :class="{
-        'grid-rows-5': dates.length === 5,
-        'grid-rows-6': dates.length === 6,
-        'grid-rows-7': dates.length === 7,
+        'grid-rows-5': calendarData.weeks.length === 5,
+        'grid-rows-6': calendarData.weeks.length === 6,
+        'grid-rows-7': calendarData.weeks.length === 7,
       }"
       class="grid"
       style="height: calc(100% - 1.59rem)"
       @drop="dropEvent"
     >
       <div
-        v-for="(week, weekIndex) in dates"
-        :key="weekIndex"
-        :class="{
-          'grid-cols-7': maxVisibleDays === 7,
-          'grid-cols-5': maxVisibleDays === 5,
-        }"
-        class="grid grow"
+        v-for="week in calendarData.weeks"
+        :key="week.weekIndex"
+        :class="calendarData.gridClass"
         data-testid="nc-calendar-month-week"
       >
-        <template v-for="(day, dateIndex) in week">
+        <template v-for="day in week.days">
           <div
-            v-if="maxVisibleDays === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true"
-            :key="`${weekIndex}-${dateIndex}`"
+            v-if="day.isVisible"
+            :key="day.key"
             :class="{
-              'selected-date': isDateSelected(day) || (focusedDate && dayjs(day).isSame(focusedDate, 'day')),
-              '!text-gray-400': !isDayInPagedMonth(day),
-              '!bg-gray-50 !hover:bg-gray-100': day.get('day') === 0 || day.get('day') === 6,
-              'border-t-1': weekIndex === 0,
+              'selected-date': isDateSelected(day.date) || (focusedDate && dayjs(day.date).isSame(focusedDate, 'day')),
+              '!text-gray-400': !day.isInPagedMonth,
+              '!bg-gray-50 !hover:bg-gray-100': day.isWeekend,
+              'border-t-1': week.weekIndex === 0,
             }"
             class="text-right relative group last:border-r-0 transition text-sm h-full border-r-1 border-b-1 border-gray-200 font-medium hover:bg-gray-50 text-gray-800 bg-white"
             data-testid="nc-calendar-month-day"
-            @click="selectDate(day)"
-            @dblclick="addRecord(day)"
+            @click="selectDate(day.date)"
+            @dblclick="addRecord(day.date)"
           >
             <div v-if="isUIAllowed('dataEdit')" class="flex justify-between p-1">
               <span
                 :class="{
-                  'block group-hover:hidden': !isDateSelected(day) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
-                  'hidden': isDateSelected(day) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                  'block group-hover:hidden': !isDateSelected(day.date) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
+                  'hidden': isDateSelected(day.date) && [UITypes.DateTime, UITypes.Date].includes(calDataType),
                 }"
               ></span>
 
               <NcDropdown v-if="calendarRange.length > 1" auto-close>
                 <NcButton
                   :class="{
-                    '!block': isDateSelected(day),
-                    '!hidden': !isDateSelected(day),
+                    '!block': isDateSelected(day.date),
+                    '!hidden': !isDateSelected(day.date),
                   }"
                   class="!group-hover:block rounded"
                   size="small"
@@ -773,7 +789,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                       () => {
                         const record = {
                           row: {
-                            [range.fk_from_col!.title!]: dayjs(day).format('YYYY-MM-DD HH:mm:ssZ'),
+                            [range.fk_from_col!.title!]: dayjs(day.date).format('YYYY-MM-DD HH:mm:ssZ'),
                           },
                         }
                         emit('newRecord', record)
@@ -791,8 +807,8 @@ const addRecord = (date: dayjs.Dayjs) => {
               <NcButton
                 v-else-if="[UITypes.DateTime, UITypes.Date].includes(calDataType)"
                 :class="{
-                  '!block': isDateSelected(day),
-                  '!hidden': !isDateSelected(day),
+                  '!block': isDateSelected(day.date),
+                  '!hidden': !isDateSelected(day.date),
                 }"
                 class="!group-hover:block !w-6 !h-6 !rounded"
                 size="xsmall"
@@ -801,7 +817,7 @@ const addRecord = (date: dayjs.Dayjs) => {
                 () => {
                   const record = {
                     row: {
-                      [calendarRange[0].fk_from_col!.title!]: (day).format('YYYY-MM-DD HH:mm:ssZ'),
+                      [calendarRange[0].fk_from_col!.title!]: (day.date).format('YYYY-MM-DD HH:mm:ssZ'),
                     },
                   }
                   emit('newRecord', record)
@@ -812,28 +828,30 @@ const addRecord = (date: dayjs.Dayjs) => {
               </NcButton>
               <span
                 :class="{
-                  'bg-brand-50 text-brand-500 !font-bold': day.isSame(dayjs(), 'date'),
+                  'bg-brand-50 text-brand-500 !font-bold': day.isToday,
                 }"
                 class="px-1.3 py-1 text-sm leading-3 font-medium rounded-lg"
               >
-                {{ day.format('DD') }}
+                {{ day.dayNumber }}
               </span>
             </div>
-            <div v-if="!isUIAllowed('dataEdit')" class="leading-3 p-3">{{ dayjs(day).format('DD') }}</div>
+            <div v-if="!isUIAllowed('dataEdit')" class="leading-3 p-3">{{ day.dayNumber }}</div>
 
             <NcButton
               v-if="
-                recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')] &&
-                recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflow &&
+                recordsToDisplay.count[dayjs(day.date).format('YYYY-MM-DD')] &&
+                recordsToDisplay.count[dayjs(day.date).format('YYYY-MM-DD')]?.overflow &&
                 !draggingId
               "
               v-e="`['c:calendar:month-view-more']`"
               class="!absolute bottom-1 right-1 text-center min-w-4.5 mx-auto z-3 text-gray-500"
               size="xxsmall"
               type="secondary"
-              @click="viewMore(day)"
+              @click="viewMore(day.date)"
             >
-              <span class="text-xs px-1"> + {{ recordsToDisplay.count[dayjs(day).format('YYYY-MM-DD')]?.overflowCount }} </span>
+              <span class="text-xs px-1">
+                + {{ recordsToDisplay.count[dayjs(day.date).format('YYYY-MM-DD')]?.overflowCount }}
+              </span>
             </NcButton>
           </div>
         </template>
@@ -879,10 +897,10 @@ const addRecord = (date: dayjs.Dayjs) => {
                   v-if="!isRowEmpty(record, field!)"
                   v-model="record.row[field!.title!]"
                   class="text-xs"
-                  :bold="getFieldStyle(field).bold"
+                  :bold="fieldStyles[field.id].bold"
                   :column="field"
-                  :italic="getFieldStyle(field).italic"
-                  :underline="getFieldStyle(field).underline"
+                  :italic="fieldStyles[field.id].italic"
+                  :underline="fieldStyles[field.id].underline"
                 />
               </template>
             </LazySmartsheetCalendarRecordCard>

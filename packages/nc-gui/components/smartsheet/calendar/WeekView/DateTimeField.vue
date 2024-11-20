@@ -664,18 +664,18 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
 const calculateNewRow = (
   event: MouseEvent,
   updateSideBar?: boolean,
-  skipChangeCheck?: boolean,
 ): {
   newRow: Row | null
   updatedProperty: string[]
   skipChangeCheck?: boolean
 } => {
+  if (!container.value) return { newRow: null, updatedProperty: [] }
   const { width, left, top } = container.value.getBoundingClientRect()
 
-  const { scrollHeight } = container.value
+  const { scrollHeight, scrollTop } = container.value
 
   const percentX = (event.clientX - left - window.scrollX) / width
-  const percentY = (event.clientY - top + container.value.scrollTop - 36.8) / scrollHeight
+  const percentY = (event.clientY - top + scrollTop - 36.8) / scrollHeight
 
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
@@ -945,7 +945,7 @@ watch(
         <div class="flex-1 border-b-1 border-brand-500"></div>
       </div>
     </div>
-    <div class="flex sticky h-6 z-2 top-0 pl-16 bg-gray-50 w-full">
+    <div class="flex sticky h-6 z-3 top-0 pl-16 bg-gray-50 w-full">
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
@@ -1100,7 +1100,7 @@ watch(
   &:after {
     @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
     content: '';
-    z-index: 3;
+    z-index: 2;
     box-shadow: 0 0 0 2px #3366ff !important;
   }
 }

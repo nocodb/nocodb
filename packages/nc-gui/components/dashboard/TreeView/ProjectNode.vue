@@ -95,8 +95,6 @@ const { activeProjectId } = storeToRefs(useBases())
 
 const { baseUrl } = useBase()
 
-const toggleDialog = inject(ToggleDialogInj, () => {})
-
 const { $e } = useNuxtApp()
 
 const isOptionsOpen = ref(false)
@@ -525,6 +523,17 @@ watch(
   },
 )
 
+const { navigateToProject } = useGlobal()
+
+const openBaseSettings = async (baseId: string) => {
+  navigateToProject({
+    baseId,
+    query: {
+      page: 'base-settings',
+    },
+  })
+}
+
 const showNodeTooltip = ref(true)
 </script>
 
@@ -745,7 +754,7 @@ const showNodeTooltip = ref(true)
                       key="teamAndSettings"
                       data-testid="nc-sidebar-base-settings"
                       class="nc-sidebar-base-base-settings"
-                      @click="toggleDialog(true, 'teamAndAuth', undefined, base.id)"
+                      @click="openBaseSettings(base.id)"
                     >
                       <div v-e="['c:base:settings']" class="flex gap-2 items-center">
                         <GeneralIcon icon="settings" class="group-hover:text-black" />

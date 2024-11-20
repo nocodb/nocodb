@@ -10,8 +10,6 @@ const emit = defineEmits(['expandRecord', 'newRecord'])
 
 const container = ref<null | HTMLElement>(null)
 
-const { $e } = useNuxtApp()
-
 const { width: containerWidth } = useElementSize(container)
 
 const meta = inject(MetaInj, ref())
@@ -343,6 +341,14 @@ const onResize = (event: MouseEvent) => {
   useDebouncedRowUpdate(updateRecord, updateProperty, false)
 }
 
+const onResizeEnd = () => {
+  resizeInProgress.value = false
+  resizeDirection.value = null
+  resizeRecord.value = null
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', onResizeEnd)
+}
+
 const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   resizeInProgress.value = true
@@ -350,14 +356,6 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
   resizeRecord.value = record
   document.addEventListener('mousemove', onResize)
   document.addEventListener('mouseup', onResizeEnd)
-}
-
-const onResizeEnd = () => {
-  resizeInProgress.value = false
-  resizeDirection.value = null
-  resizeRecord.value = null
-  document.removeEventListener('mousemove', onResize)
-  document.removeEventListener('mouseup', onResizeEnd)
 }
 
 const onDrag = (event: MouseEvent) => {
@@ -454,7 +452,7 @@ defineExpose({
 </script>
 
 <template>
-  <div style="z-index: 100" class="sticky flex top-0 bg-white border-b-1 border-gray-100 prevent-select">
+  <div style="z-index: 100" class="sticky flex top-0 bg-white border-b-1 border-gray-200 shadow-sm prevent-select">
     <div
       :style="{
         maxWidth: `${activeCalendarView === 'week' ? '64px' : '66px'}`,
@@ -476,13 +474,13 @@ defineExpose({
     <div
       ref="container"
       :style="{
-        width: `calc(100% - ${activeCalendarView === 'week' ? '74px' : '66px'})`,
+        width: `calc(100% - 66px)`,
       }"
       :class="{
         'border-gray-100': activeCalendarView === 'day',
         'border-gray-200': activeCalendarView === 'week',
         'min-h-32 max-h-32 ': isExpanded,
-        'h-14': !isExpanded,
+        'h-16': !isExpanded,
       }"
       class="relative border-l-1 transition-all overflow-y-scroll z-30"
     >

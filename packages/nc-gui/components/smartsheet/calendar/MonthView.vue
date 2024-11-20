@@ -291,7 +291,15 @@ const recordsToDisplay = computed<{
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
 
-          if (recordEnd.isBefore(calendarData.value.weeks[0].days[0].date)) {
+          const dayIndex = recordStart.day()
+
+          // If the record spans multiple weeks and the maxVisibleDays is 5 and startDate is weekedend, we skip the weekends
+          if (maxVisibleDays.value === 5 && (dayIndex === 0 || dayIndex === 6)) {
+            currentWeekStart = currentWeekStart.add(1, 'week')
+            continue
+          }
+
+          if (recordEnd.isBefore(dates.value[0][0])) {
             currentWeekStart = currentWeekStart.add(1, 'week')
             continue
           }

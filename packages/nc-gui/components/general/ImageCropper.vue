@@ -43,7 +43,7 @@ const previewImage = ref({
 const fileSize = ref<number>(0)
 
 const isValidFileSize = computed(() => {
-  return uploadConfig?.maxFileSize ? fileSize.value && fileSize.value <= uploadConfig?.maxFileSize : true
+  return uploadConfig?.maxFileSize ? !!fileSize.value && fileSize.value <= uploadConfig?.maxFileSize : true
 })
 
 const handleCropImage = () => {
@@ -149,7 +149,7 @@ watch(showCropper, () => {
         </NcButton>
 
         <NcTooltip :disabled="isValidFileSize">
-          <template #title> Cropped file size is greter than max file size </template>
+          <template #title> Cropped file size is greater than max file size </template>
 
           <NcButton size="small" :loading="isLoading" :disabled="!previewImage.src || !isValidFileSize" @click="handleSaveImage">
             Save

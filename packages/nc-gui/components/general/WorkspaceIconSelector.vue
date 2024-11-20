@@ -151,7 +151,7 @@ const handleChange = (info: UploadChangeParam) => {
     return
   }
 
-  if (status && status !== 'removed' && status === 'done' && info.file.originFileObj instanceof File) {
+  if (status === 'done' && info.file.originFileObj instanceof File) {
     // 1. Revoke the object URL, to allow the garbage collector to destroy the uploaded before file
     if (imageCropperData.value.imageConfig.src) {
       URL.revokeObjectURL(imageCropperData.value.imageConfig.src)

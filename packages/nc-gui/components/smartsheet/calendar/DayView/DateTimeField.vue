@@ -488,6 +488,20 @@ const recordsAcrossAllRange = computed<{
   }
 })
 
+const dragRecord = ref<Row | null>(null)
+
+const isDragging = ref(false)
+
+const dragElement = ref<HTMLElement | null>(null)
+
+const resizeDirection = ref<'right' | 'left' | null>()
+
+const resizeRecord = ref<Row | null>(null)
+
+const dragTimeout = ref<ReturnType<typeof setTimeout>>()
+
+const hoverRecord = ref<string | null>(null)
+
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)
 }, 500)
@@ -1052,7 +1066,14 @@ const expandRecord = (record: Row) => {
               v-if="record.rowMeta.style?.display !== 'none'"
               :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
               :data-unique-id="record.rowMeta.id"
-              :style="record.rowMeta.style"
+              :style="{
+                ...record.rowMeta.style,
+                opacity:
+                  (dragRecord === null || record.rowMeta.id === dragRecord?.rowMeta.id) &&
+                  (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)
+                    ? 1
+                    : 0.3,
+              }"
               class="absolute draggable-record transition group cursor-pointer pointer-events-auto"
               @mousedown="dragStart($event, record)"
               @mouseleave="hoverRecord = null"

@@ -581,6 +581,20 @@ const recordsAcrossAllRange = computed<{
   }
 })
 
+const resizeInProgress = ref(false)
+
+const dragTimeout = ref<ReturnType<typeof setTimeout>>()
+
+const hoverRecord = ref<string | null>()
+
+const resizeDirection = ref<'right' | 'left' | null>()
+
+const resizeRecord = ref<Row | null>(null)
+
+const isDragging = ref(false)
+
+const dragRecord = ref<Row | null>(null)
+
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)
 }, 500)

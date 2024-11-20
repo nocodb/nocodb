@@ -47,7 +47,7 @@ export class AttachmentsSecureController {
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
   async upload(
     @UploadedFiles() files: Array<FileType>,
-    @Query('scope') scope?: PublicAttachmentScope,
+    @Query('scope') scope: PublicAttachmentScope,
     @Req() req: NcRequest & { user: { id: string } },
   ) {
     const attachments = await this.attachmentsService.upload({
@@ -65,7 +65,7 @@ export class AttachmentsSecureController {
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   async uploadViaURL(
     @Body() body: Array<AttachmentReqType>,
-    @Query('scope') scope?: PublicAttachmentScope,
+    @Query('scope') scope: PublicAttachmentScope,
     @Req() req: NcRequest & { user: { id: string } },
   ) {
     const attachments = await this.attachmentsService.uploadViaURL({

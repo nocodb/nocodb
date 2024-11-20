@@ -48,7 +48,7 @@ export class AttachmentsController {
   @UseInterceptors(UploadAllowedInterceptor, AnyFilesInterceptor())
   async upload(
     @UploadedFiles() files: Array<FileType>,
-    @Query('scope') scope?: PublicAttachmentScope,
+    @Query('scope') scope: PublicAttachmentScope,
     @Req() req: NcRequest,
   ) {
     const attachments = await this.attachmentsService.upload({
@@ -68,7 +68,7 @@ export class AttachmentsController {
   async uploadViaURL(
     @Body() body: Array<AttachmentReqType>,
     @Query('path') path: string,
-    @Query('scope') scope?: PublicAttachmentScope,
+    @Query('scope') scope: PublicAttachmentScope,
     @Req() req: NcRequest,
   ) {
     const attachments = await this.attachmentsService.uploadViaURL({

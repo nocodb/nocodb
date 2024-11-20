@@ -86,21 +86,6 @@ const fieldStyles = computed(() => {
   }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
 
-const dates = computed(() => {
-  const startOfMonth = selectedMonth.value.startOf('month')
-  const firstDayOffset = isMondayFirst.value ? 0 : -1
-  const firstDayToDisplay = startOfMonth.startOf('week').add(firstDayOffset, 'day')
-
-  const daysInView = Math.max(
-    35,
-    Math.ceil((startOfMonth.daysInMonth() + startOfMonth.day() + (isMondayFirst.value ? 0 : 1)) / 7) * 7,
-  )
-
-  return Array.from({ length: daysInView / 7 }, (_, weekIndex) =>
-    Array.from({ length: 7 }, (_, dayIndex) => firstDayToDisplay.add(weekIndex * 7 + dayIndex, 'day')),
-  )
-})
-
 const calendarData = computed(() => {
   const startOfMonth = selectedMonth.value.startOf('month')
   const firstDayOffset = isMondayFirst.value ? 0 : -1
@@ -241,9 +226,7 @@ const recordsToDisplay = computed<{
         const weekIndex = calendarData.value.weeks.findIndex((week) =>
           week.days.some((day) => dayjs(day.date).isSame(startDate, 'day')),
         )
-        const dayIndex = (calendarData.value.weeks[weekIndex] ?? []).days.findIndex((day) =>
-          dayjs(day.date).isSame(startDate, 'day'),
-        )
+        const dayIndex = calendarData.value.weeks[weekIndex]?.days.findIndex((day) => dayjs(day.date).isSame(startDate, 'day'))
 
         const id = record.rowMeta.id ?? generateRandomNumber()
 
@@ -326,9 +309,17 @@ const recordsToDisplay = computed<{
 
           occupyLane(dateKey, lane, duration)
 
-          const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(recordStart, 'day')))
-          const startDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordStart, 'day'))
-          const endDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordEnd, 'day'))
+          const weekIndex = calendarData.value.weeks.findIndex((week) =>
+            week.days.some((day) => dayjs(day.date).isSame(recordStart, 'day')),
+          )
+
+          const startDayIndex = calendarData.value.weeks[weekIndex]?.days.findIndex((day) =>
+            dayjs(day.date).isSame(recordStart, 'day'),
+          )
+
+          const endDayIndex = calendarData.value.weeks[weekIndex]?.days.findIndex((day) =>
+            dayjs(day.date).isSame(recordEnd, 'day'),
+          )
 
           const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
 

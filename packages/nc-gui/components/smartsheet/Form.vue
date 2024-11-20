@@ -1562,7 +1562,7 @@ useEventListener(
                         <template v-if="localColumns.length">
                           <div
                             key="nc-form-show-all-fields"
-                            class="w-full flex items-center border-b-1 rounded-t-lg border-gray-200 bg-gray-50 sticky top-0 z-100"
+                            class="w-full flex items-center border-b-1 rounded-t-lg border-gray-200 bg-gray-50 sticky top-0 z-49"
                             data-testid="nc-form-show-all-fields"
                             @click.stop
                           >
@@ -2033,7 +2033,7 @@ useEventListener(
   @apply !border-t-1 !border-gray-200 relative;
 
   &::before {
-    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-gray-800 border-1 border-gray-200 rounded bg-white absolute -top-2.5 z-100 left-[calc(50%_-_16px)];
+    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-gray-800 border-1 border-gray-200 rounded bg-white absolute -top-2.5 z-49 left-[calc(50%_-_16px)];
   }
 }
 

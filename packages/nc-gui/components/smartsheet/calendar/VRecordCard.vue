@@ -5,6 +5,7 @@ interface Props {
   resize?: boolean
   selected?: boolean
   hover?: boolean
+  dragging?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -12,6 +13,7 @@ withDefaults(defineProps<Props>(), {
   selected: false,
   hover: false,
   color: 'gray',
+  dragging: false,
 })
 
 const emit = defineEmits(['resize-start'])
@@ -19,6 +21,12 @@ const emit = defineEmits(['resize-start'])
 
 <template>
   <div
+    :style="{
+      boxShadow:
+        hover || dragging
+          ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
+          : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
+    }"
     :class="{
       'bg-maroon-50': color === 'maroon',
       'bg-blue-50': color === 'blue',
@@ -28,13 +36,6 @@ const emit = defineEmits(['resize-start'])
       'bg-purple-50': color === 'purple',
       'bg-white border-gray-300': color === 'gray',
       'z-90': hover,
-    }"
-    :style="{
-      boxShadow: `${
-        hover
-          ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
-          : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)'
-      }`,
     }"
     class="relative flex gap-2 border-1 relative rounded-md h-full"
   >

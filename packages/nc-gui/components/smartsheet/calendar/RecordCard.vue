@@ -40,9 +40,13 @@ const emit = defineEmits(['resize-start'])
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
       'bg-white border-gray-300': color === 'gray',
-      'shadow-md': hover,
     }"
-    style="box-shadow: 0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06);)"
+    :style="{
+      boxShadow:
+        hover || dragging
+          ? '0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
+          : '0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)',
+    }"
     class="relative transition-all border-1 flex items-center gap-2 group"
   >
     <div

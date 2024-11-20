@@ -766,14 +766,15 @@ const addRecord = (date: dayjs.Dayjs) => {
         :class="calendarData.gridClass"
         data-testid="nc-calendar-month-week"
       >
-        <template v-for="day in week.days">
+        <template v-for="(day, i) in week.days">
           <div
             v-if="day.isVisible"
             :key="day.key"
             :class="{
               'selected-date': isDateSelected(day.date) || (focusedDate && dayjs(day.date).isSame(focusedDate, 'day')),
               '!text-gray-400': !day.isInPagedMonth,
-              '!bg-gray-50 !hover:bg-gray-100': day.isWeekend,
+              '!bg-gray-50 !hover:bg-gray-100 !border-gray-200': day.isWeekend,
+              '!border-r-gray-200': week.days[i + 1]?.isWeekend,
               'border-t-1': week.weekIndex === 0,
             }"
             class="text-right relative group last:border-r-0 transition text-sm h-full border-r-1 border-b-1 border-gray-100 font-medium hover:bg-gray-50 text-gray-800 bg-white"
@@ -900,11 +901,6 @@ const addRecord = (date: dayjs.Dayjs) => {
           :style="{
             ...record.rowMeta.style,
             zIndex: record.rowMeta.id === draggingId ? 100 : 0,
-            boxShadow:
-              record.rowMeta.id === draggingId
-                ? ' 0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06)'
-                : 'none',
-
             opacity:
               (draggingId === null || record.rowMeta.id === draggingId) &&
               (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)
@@ -921,14 +917,10 @@ const addRecord = (date: dayjs.Dayjs) => {
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
-              :hover="
-                hoverRecord === record.rowMeta.id ||
-                record.rowMeta.id === draggingId ||
-                record.rowMeta.id === resizeRecord?.rowMeta.id
-              "
+              :hover="hoverRecord === record.rowMeta.id"
               :position="record.rowMeta.position"
               :record="record"
-              :dragging="isDragging || resizeInProgress"
+              :dragging="draggingId === record.rowMeta.id || resizeRecord?.rowMeta?.id === record.rowMeta.id"
               :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
               @resize-start="onResizeStart"
             >
@@ -972,7 +964,7 @@ const addRecord = (date: dayjs.Dayjs) => {
   &:after {
     @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
     content: '';
-    z-index: 3;
+    z-index: 2;
     box-shadow: 0 0 0 2px #3366ff !important;
   }
 }

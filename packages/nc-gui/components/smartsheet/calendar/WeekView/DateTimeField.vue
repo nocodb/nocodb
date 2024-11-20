@@ -1054,10 +1054,7 @@ watch(
         </div>
       </div>
 
-      <div
-        class="absolute pointer-events-none z-2 inset-0 overflow-hidden !mt-5.95"
-        data-testid="nc-calendar-week-record-container"
-      >
+      <div class="absolute pointer-events-none inset-0 overflow-hidden !mt-5.95" data-testid="nc-calendar-week-record-container">
         <template v-for="record in recordsAcrossAllRange.records" :key="record.rowMeta.id">
           <div
             v-if="record.rowMeta.style?.display !== 'none'"

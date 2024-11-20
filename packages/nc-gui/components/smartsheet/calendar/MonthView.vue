@@ -871,12 +871,12 @@ const addRecord = (date: dayjs.Dayjs) => {
       </div>
     </div>
     <div class="absolute inset-0 z-2 pointer-events-none mt-8 pb-7.5" data-testid="nc-calendar-month-record-container">
-      <template v-for="(record, recordIndex) in recordsToDisplay.records" :key="recordIndex">
+      <template v-for="record in recordsToDisplay.records" :key="record.rowMeta.id">
         <div
           v-if="record.rowMeta.style?.display !== 'none'"
           :key="record.rowMeta.id"
           :data-testid="`nc-calendar-month-record-${record.row[displayField!.title!]}`"
-          :data-unique-id="`${record.rowMeta.id}-${record.rowMeta.recordIndex}`"
+          :data-unique-id="`${record.rowMeta.id}`"
           :style="{
             ...record.rowMeta.style,
             zIndex: record.rowMeta.id === draggingId ? 100 : 0,

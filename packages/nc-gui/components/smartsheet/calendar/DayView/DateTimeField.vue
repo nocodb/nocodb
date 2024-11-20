@@ -1029,6 +1029,39 @@ const expandRecord = (record: Row) => {
             emit('newRecord', record)
           }
         "
+        >
+          <component :is="iconMap.plus" class="h-4 w-4" />
+        </NcButton>
+
+        <NcButton
+          v-if="isOverflowAcrossHourRange(hour).isOverflow"
+          v-e="`['c:calendar:week-view-more']`"
+          class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
+          size="xxsmall"
+          type="secondary"
+          @click="viewMore(hour)"
+        >
+          <span class="text-xs">
+            +
+            {{ isOverflowAcrossHourRange(hour).overflowCount }}
+            more
+          </span>
+        </NcButton>
+      </div>
+    </div>
+    <div class="absolute inset-0 pointer-events-none">
+      <div class="relative !ml-[68px] !mr-1 nc-calendar-day-record-container" data-testid="nc-calendar-day-record-container">
+        <template v-for="record in recordsAcrossAllRange.record" :key="record.rowMeta.id">
+          <div
+            v-if="record.rowMeta.style?.display !== 'none'"
+            :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
+            :data-unique-id="record.rowMeta.id"
+            :style="record.rowMeta.style"
+            class="absolute draggable-record transition group cursor-pointer pointer-events-auto"
+            @mousedown="dragStart($event, record)"
+            @mouseleave="hoverRecord = null"
+            @mouseover="hoverRecord = record.rowMeta.id as string"
+            @dragover.prevent
           >
             <component :is="iconMap.plus" class="h-4 w-4" />
           </NcButton>

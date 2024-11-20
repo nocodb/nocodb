@@ -95,7 +95,7 @@ watch(showCropper, () => {
 </script>
 
 <template>
-  <NcModal v-model:visible="showCropper" :mask-closable="false">
+  <NcModal v-model:visible="showCropper" :mask-closable="false" wrap-class-name="!z-1050">
     <div class="nc-image-cropper-wrapper relative">
       <Cropper
         ref="cropperRef"

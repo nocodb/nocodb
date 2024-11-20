@@ -661,6 +661,10 @@ const errorHelpers: {
     message: 'Permission denied',
     code: 403,
   },
+  [NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE]: {
+    message: 'Invalid attachment upload scope',
+    code: 400,
+  },
 };
 
 function generateError(
@@ -1018,5 +1022,9 @@ export class NcError {
       },
       ...(args || {}),
     });
+  }
+
+  static invalidAttachmentUploadScope(args?: NcErrorArgs) {
+    throw new NcBaseErrorv2(NcErrorType.INVALID_ATTACHMENT_UPLOAD_SCOPE, args);
   }
 }

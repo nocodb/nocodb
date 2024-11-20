@@ -16,8 +16,8 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <div class="border-1 cursor-pointer min-h-14 border-gray-200 p-2 flex gap-2 flex-col rounded-lg">
-    <div class="flex items-center gap-2">
+  <div class="border-1 cursor-pointer h-12.5 border-gray-200 flex gap-2 flex-col rounded-lg">
+    <div class="flex relative items-center gap-2">
       <span
         :class="{
           'bg-maroon-500': props.color === 'maroon',
@@ -28,28 +28,31 @@ const props = withDefaults(defineProps<Props>(), {
           'bg-purple-500': props.color === 'purple',
           'bg-gray-900': color === 'gray',
         }"
-        class="block h-10 w-1 rounded"
+        class="block h-12 w-1 rounded-l-lg"
       ></span>
       <slot name="image" />
-      <div class="flex gap-1 flex-col">
+      <div class="flex gap-1 py-1 flex-col">
         <span class="text-[13px] leading-4 max-w-56 font-medium truncate text-gray-800">
           <slot />
         </span>
+        <NcTooltip v-if="invalid" placement="left" class="top-1 absolute right-2">
+          <NcBadge color="red" :border="false" class="!h-5">
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="warning" class="text-red-500 !h-4 !w-4" />
+
+              <span class="font-normal text-xs"> Date Error </span>
+            </div>
+          </NcBadge>
+          <template #title>
+            Record with end date before the start date won't be displayed in the calendar. Update the end date to display the
+            record.
+          </template>
+        </NcTooltip>
         <span v-if="showDate" class="text-xs font-medium leading-4 text-gray-600"
           >{{ fromDate }} {{ toDate ? ` - ${toDate}` : '' }}</span
         >
       </div>
     </div>
-
-    <NcTooltip v-if="invalid">
-      <div class="gap-3 bg-yellow-50 mt-2 border-gray-200 border-1 rounded-lg p-2 flex">
-        <GeneralIcon icon="warning" class="text-yellow-500 !h-5 !w-5" />
-        <div class="text-gray-700 text-xs">Selected End date is before Start date.</div>
-      </div>
-      <template #title>
-        Record with end date before the start date won't be displayed in the calendar. Update the end date to display the record.
-      </template>
-    </NcTooltip>
   </div>
 </template>
 

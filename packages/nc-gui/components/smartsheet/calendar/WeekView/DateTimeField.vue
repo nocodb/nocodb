@@ -902,6 +902,17 @@ watch(
 const expandRecord = (record: Row) => {
   emits('expandRecord', record)
 }
+
+const spanningRecordsContainer = ref<HTMLElement | null>(null)
+
+const isExpanded = ref(false)
+
+watch(
+  () => spanningRecordsContainer.value?.isSpanningRecordExpanded(),
+  () => {
+    isExpanded.value = spanningRecordsContainer.value?.isSpanningRecordExpanded()
+  },
+)
 </script>
 
 <template>
@@ -911,11 +922,13 @@ const expandRecord = (record: Row) => {
     data-testid="nc-calendar-week-view"
     @drop="dropEvent"
   >
-    <!-- mt-23 should be dynamic TODO: @DarkPhoenix2704 -->
-
     <div
       v-if="!isPublic && dayjs().isBetween(selectedDateRange.start, selectedDateRange.end)"
-      class="absolute top-16 ml-16 mt-23 pointer-events-none z-2"
+      class="absolute top-16 ml-16 pointer-events-none z-2"
+      :class="{
+        'mt-38.5': isExpanded,
+        'mt-23': !isExpanded,
+      }"
       :style="overlayStyle"
     >
       <div class="flex w-full items-center">
@@ -942,8 +955,13 @@ const expandRecord = (record: Row) => {
         {{ dayjs(date[0]).format('DD ddd') }}
       </div>
     </div>
-    <!-- top-16 should be dynamic TODO: @DarkPhoenix2704 -->
-    <div class="absolute top-16 bg-white w-16 z-1">
+    <div
+      :class="{
+        'top-16': !isExpanded,
+        'top-32': isExpanded,
+      }"
+      class="absolute bg-white w-16 z-1"
+    >
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
@@ -954,13 +972,19 @@ const expandRecord = (record: Row) => {
     </div>
     <div class="sticky top-6 bg-white z-3 inset-x-0 w-full">
       <SmartsheetCalendarDateTimeSpanningContainer
+        ref="spanningRecordsContainer"
         :records="recordsAcrossAllRange.spanningRecords"
         @expand-record="expandRecord"
       />
     </div>
-    <!-- mt-16 should be dynamic TODO: @DarkPhoenix2704 -->
-
-    <div ref="container" class="absolute !mt-16 ml-16 flex w-[calc(100%-64px)]">
+    <div
+      ref="container"
+      :class="{
+        '!mt-16 ': !isExpanded,
+        'mt-32': isExpanded,
+      }"
+      class="absolute ml-16 flex w-[calc(100%-64px)]"
+    >
       <div
         v-for="(date, index) in datesHours"
         :key="index"

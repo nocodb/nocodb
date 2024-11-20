@@ -174,6 +174,8 @@ const resizeRecord = ref<Row | null>(null)
 
 const hoverRecord = ref<string | null>()
 
+const isExpanded = ref(false)
+
 // This method is used to calculate the new start and end date of a record when dragging and dropping
 const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   if (!container.value || !dragRecord.value) return { updatedProperty: [], newRow: null }
@@ -443,6 +445,12 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   document.addEventListener('mouseup', onMouseUp)
 }
+
+const isSpanningRecordExpanded = () => isExpanded.value
+
+defineExpose({
+  isSpanningRecordExpanded,
+})
 </script>
 
 <template>
@@ -459,18 +467,24 @@ const dragStart = (event: MouseEvent, record: Row) => {
       class="text-xs top-0 text-right z-50 !sticky h-full left-0 text-[#6A7184]"
     >
       All day
+
+      <NcButton size="xsmall" class="mt-2" type="text" @click="isExpanded = !isExpanded">
+        <GeneralIcon v-if="!isExpanded" icon="maximize" />
+        <GeneralIcon v-else-if="isExpanded" icon="minimize" />
+      </NcButton>
     </div>
     <div
       ref="container"
       :style="{
-        height: `min(64px)`,
         width: `calc(100% - ${activeCalendarView === 'week' ? '74px' : '66px'})`,
       }"
       :class="{
         'border-gray-100': activeCalendarView === 'day',
         'border-gray-200': activeCalendarView === 'week',
+        'min-h-32 max-h-32 ': isExpanded,
+        'h-14': !isExpanded,
       }"
-      class="relative border-l-1 z-30 py-1"
+      class="relative border-l-1 transition-all overflow-y-scroll z-30"
     >
       <div class="pointer-events-none inset-y-0 relative">
         <template v-for="(record, id) in calendarData" :key="id">

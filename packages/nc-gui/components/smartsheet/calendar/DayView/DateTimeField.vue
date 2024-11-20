@@ -504,7 +504,6 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
   // We calculate the hour based on the percentage of the mouse position in the scroll container
   // It can be between 0 and 23 (inclusive)
   const hour = Math.max(Math.floor(percentY * 23), 0)
-
   const minutes = Math.min(Math.max(Math.round(Math.floor((percentY * 23 - hour) * 60) / 15) * 15, 0), 60)
   // We calculate the new startDate by adding the hour to the start of the selected date
   const newStartDate = dayjs(selectedDate.value).startOf('day').add(hour, 'hour').add(minutes, 'minute')
@@ -601,15 +600,14 @@ const onResize = (event: MouseEvent) => {
   const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
   const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
 
-  const hour = Math.floor(percentY * 24) // Round down to the nearest hour
-  const minutes = Math.round((percentY * 24 * 60) % 60)
+  const minutes = Math.round((percentY * 24 * 60) / 15) * 15 // Round to nearest 15 minutes
 
   let newRow: Row | null = null
   let updateProperty: string[] = []
 
   if (resizeDirection.value === 'right') {
     // If the user is resizing the record to the right, we calculate the new end date based on the mouse position
-    let newEndDate = dayjs(selectedDate.value).add(hour, 'hour').add(minutes, 'minute')
+    let newEndDate = dayjs(selectedDate.value).startOf('day').add(minutes, 'minute')
 
     updateProperty = [toCol.title!]
 
@@ -629,7 +627,7 @@ const onResize = (event: MouseEvent) => {
       },
     }
   } else if (resizeDirection.value === 'left') {
-    let newStartDate = dayjs(selectedDate.value).add(hour, 'hour').add(minutes, 'minute')
+    let newStartDate = dayjs(selectedDate.value).startOf('day').add(minutes, 'minute')
 
     updateProperty = [fromCol.title!]
 

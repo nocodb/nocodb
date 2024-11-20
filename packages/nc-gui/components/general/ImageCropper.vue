@@ -2,7 +2,7 @@
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
-import type { AttachmentReqType } from 'nocodb-sdk'
+import type { AttachmentReqType, PublicAttachmentScope } from 'nocodb-sdk'
 import type { ImageCropperConfig } from '#imports'
 
 interface Props {
@@ -14,6 +14,7 @@ interface Props {
   cropperConfig: ImageCropperConfig
   uploadConfig?: {
     path?: string
+    scope?: PublicAttachmentScope
   }
   showCropper: boolean
 }
@@ -47,6 +48,7 @@ const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
       const uploadResult = await api.storage.uploadByUrl(
         {
           path: uploadConfig?.path as string,
+          scope: uploadConfig?.scope,
         },
         fileToUpload,
       )

@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common';
 import slash from 'slash';
 import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import type { Job } from 'bull';
-import type { AttachmentResType } from 'nocodb-sdk';
+import type { AttachmentResType, PublicAttachmentScope } from 'nocodb-sdk';
 import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { getPathFromUrl } from '~/helpers/attachmentHelpers';
@@ -14,12 +14,12 @@ export class ThumbnailGeneratorProcessor {
   private logger = new Logger(ThumbnailGeneratorProcessor.name);
 
   async job(job: Job<ThumbnailGeneratorJobData>) {
-    const { attachments } = job.data;
+    const { attachments, scope } = job.data;
 
     const results = [];
 
     for (const attachment of attachments) {
-      const thumbnail = await this.generateThumbnail(attachment);
+      const thumbnail = await this.generateThumbnail(attachment, scope);
 
       if (!thumbnail) {
         continue;
@@ -38,6 +38,7 @@ export class ThumbnailGeneratorProcessor {
 
   private async generateThumbnail(
     attachment: AttachmentResType,
+    scope?: PublicAttachmentScope,
   ): Promise<{ [key: string]: string }> {
     const sharp = Noco.sharp;
 
@@ -53,6 +54,7 @@ export class ThumbnailGeneratorProcessor {
       const { file, relativePath } = await this.getFileData(
         attachment,
         storageAdapter,
+        scope,
       );
 
       const thumbnailPaths = {
@@ -119,13 +121,14 @@ export class ThumbnailGeneratorProcessor {
   private async getFileData(
     attachment: AttachmentResType,
     storageAdapter: IStorageAdapterV2,
+    scope?: PublicAttachmentScope,
   ): Promise<{ file: Buffer; relativePath: string }> {
     let relativePath;
 
     if (attachment.path) {
       relativePath = path.join(
         'nc',
-        'uploads',
+        scope ? scope : 'uploads',
         attachment.path.replace(/^download[/\\]/i, ''),
       );
     } else if (attachment.url) {

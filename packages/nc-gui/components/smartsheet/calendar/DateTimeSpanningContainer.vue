@@ -467,8 +467,8 @@ defineExpose({
       All day
 
       <NcButton size="xsmall" class="mt-2" type="text" @click="isExpanded = !isExpanded">
-        <GeneralIcon v-if="!isExpanded" icon="maximize" />
-        <GeneralIcon v-else-if="isExpanded" icon="minimize" />
+        <GeneralIcon v-if="!isExpanded" class="w-4 h-4 text-gray-800" icon="maximize" />
+        <GeneralIcon v-else-if="isExpanded" class="w-4 h-4 text-gray-800" icon="minimize" />
       </NcButton>
     </div>
     <div
@@ -480,7 +480,7 @@ defineExpose({
         'border-gray-100': activeCalendarView === 'day',
         'border-gray-200': activeCalendarView === 'week',
         'min-h-32 max-h-32 ': isExpanded,
-        'h-16': !isExpanded,
+        'h-20': !isExpanded,
       }"
       class="relative border-l-1 transition-all overflow-y-scroll z-30"
     >

@@ -806,7 +806,12 @@ const addRecord = (date: dayjs.Dayjs) => {
                       () => {
                         const record = {
                           row: {
-                            [range.fk_from_col!.title!]: dayjs(day.date).format('YYYY-MM-DD HH:mm:ssZ'),
+                            [range.fk_from_col!.title!]: (day.date).format('YYYY-MM-DD HH:mm:ssZ'),
+                            ...(range.fk_to_col
+                        ? {
+                            [range.fk_to_col!.title!]: (day.date).endOf('day').format('YYYY-MM-DD HH:mm:ssZ'),
+                          }
+                        : {}),
                           },
                         }
                         emit('newRecord', record)
@@ -835,6 +840,11 @@ const addRecord = (date: dayjs.Dayjs) => {
                   const record = {
                     row: {
                       [calendarRange[0].fk_from_col!.title!]: (day.date).format('YYYY-MM-DD HH:mm:ssZ'),
+                      ...(calendarRange[0].fk_to_col
+                        ? {
+                            [calendarRange[0].fk_to_col!.title!]: (day.date).endOf('day').format('YYYY-MM-DD HH:mm:ssZ'),
+                          }
+                        : {}),
                     },
                   }
                   emit('newRecord', record)
@@ -847,12 +857,12 @@ const addRecord = (date: dayjs.Dayjs) => {
                 :class="{
                   'bg-brand-50 text-brand-500 !font-bold': day.isToday,
                 }"
-                class="px-1.3 py-1 text-sm leading-3 font-medium rounded-lg"
+                class="px-1.3 py-1 text-[13px] text-sm leading-3 font-medium rounded-lg"
               >
                 {{ day.dayNumber }}
               </span>
             </div>
-            <div v-if="!isUIAllowed('dataEdit')" class="leading-3 p-3">{{ day.dayNumber }}</div>
+            <div v-if="!isUIAllowed('dataEdit')" class="leading-3 text-[13px] p-3">{{ day.dayNumber }}</div>
 
             <NcButton
               v-if="

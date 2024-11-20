@@ -30,7 +30,13 @@ export default interface IStorageAdapterV2<
     url: string,
     options?: FileCreateByUrlOptions,
   ): Promise<any>;
-  fileCreateByStream(destPath: string, readStream: Readable): Promise<void>;
+  fileCreateByStream(
+    destPath: string,
+    readStream: Readable,
+  ): Promise<{
+    url: string | null;
+    data: any;
+  }>;
   fileReadByStream(
     key: string,
     options?: { encoding?: string },

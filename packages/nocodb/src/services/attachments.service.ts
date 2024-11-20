@@ -1,5 +1,6 @@
 import path from 'path';
 import Url from 'url';
+import { Readable } from 'stream';
 import { AppEvents, PublicAttachmentScope } from 'nocodb-sdk';
 import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
@@ -280,11 +281,23 @@ export class AttachmentsService {
             size,
             finalUrl = url;
 
+          let base64TempStream: Readable;
+
           if (!url.startsWith('data:')) {
             response = await axios.head(url, { maxRedirects: 5 });
             mimeType = response.headers['content-type']?.split(';')[0];
             size = response.headers['content-length'];
             finalUrl = response.request.res.responseUrl;
+          } else {
+            const matches = url.match(/^data:(.+);base64,(.+)$/);
+            if (!matches) throw new Error('Invalid data URL format.');
+
+            // Extract MIME type and base64 data
+            const [, _mimeType, base64Data] = matches;
+
+            mimeType = _mimeType;
+            size = Buffer.byteLength(base64Data, 'base64');
+            base64TempStream = Readable.from(Buffer.from(base64Data, 'base64'));
           }
 
           const parsedUrl = Url.parse(finalUrl, true);
@@ -303,17 +316,33 @@ export class AttachmentsService {
             mimeType = mime.getType(path.extname(fileNameWithExt).slice(1));
           }
 
-          const { url: attachmentUrl, data: file } =
-            await storageAdapter.fileCreateByUrl(
-              slash(path.join(fileDestPath, fileName)),
-              finalUrl,
-              {
-                fetchOptions: {
-                  // The sharp requires image to be passed as buffer.);
-                  buffer: mimeType.includes('image'),
+          let attachmentUrl, file;
+
+          if (!base64TempStream) {
+            const { url: _attachmentUrl, data: _file } =
+              await storageAdapter.fileCreateByUrl(
+                slash(path.join(fileDestPath, fileName)),
+                finalUrl,
+                {
+                  fetchOptions: {
+                    // The sharp requires image to be passed as buffer.);
+                    buffer: mimeType.includes('image'),
+                  },
                 },
-              },
-            );
+              );
+
+            attachmentUrl = _attachmentUrl;
+            file = _file;
+          } else {
+            const { url: _attachmentUrl, data: _file } =
+              (await storageAdapter.fileCreateByStream(
+                slash(path.join(fileDestPath, fileName)),
+                base64TempStream,
+              )) as any;
+
+            attachmentUrl = _attachmentUrl;
+            file = _file;
+          }
 
           const tempMetadata: {
             width?: number;

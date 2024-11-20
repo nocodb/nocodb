@@ -21,6 +21,7 @@ interface Props {
   filterOption?: (column: ColumnType) => boolean
   visibilityError?: Record<string, string>
   disableAddNewFilter?: boolean
+  isViewFilter?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -36,9 +37,10 @@ const props = withDefaults(defineProps<Props>(), {
   actionBtnType: 'text',
   visibilityError: () => ({}),
   disableAddNewFilter: false,
+  isViewFilter: false,
 })
 
-const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue'])
+const emit = defineEmits(['update:filtersLength', 'update:draftFilter', 'update:modelValue', 'update:isOpen'])
 
 const initialModelValue = props.modelValue
 
@@ -47,6 +49,8 @@ const excludedFilterColUidt = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 const draftFilter = useVModel(props, 'draftFilter', emit)
 
 const modelValue = useVModel(props, 'modelValue', emit)
+
+const isOpen = useVModel(props, 'isOpen', emit)
 
 const {
   nestedLevel,
@@ -60,6 +64,7 @@ const {
   parentColId,
   visibilityError,
   disableAddNewFilter,
+  isViewFilter,
 } = toRefs(props)
 
 const nested = computed(() => nestedLevel.value > 0)
@@ -80,6 +85,10 @@ const reloadDataHook = inject(ReloadViewDataHookInj)!
 const reloadAggregate = inject(ReloadAggregateHookInj)
 
 const isPublic = inject(IsPublicInj, ref(false))
+
+const isLocked = inject(IsLockedInj, ref(false))
+
+const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
@@ -564,8 +573,12 @@ const changeToDynamic = async (filter, i) => {
         <slot name="start"></slot>
       </div>
       <div class="flex-grow"></div>
-      <NcDropdown :trigger="['hover']" overlay-class-name="nc-dropdown-filter-group-sub-menu" :disabled="disableAddNewFilter">
-        <NcButton size="xs" type="text" :disabled="disableAddNewFilter">
+      <NcDropdown
+        :trigger="['hover']"
+        overlay-class-name="nc-dropdown-filter-group-sub-menu"
+        :disabled="disableAddNewFilter || isLockedView"
+      >
+        <NcButton size="xs" type="text" :disabled="disableAddNewFilter || isLockedView">
           <GeneralIcon icon="plus" class="cursor-pointer" />
         </NcButton>
 
@@ -643,6 +656,7 @@ const changeToDynamic = async (filter, i) => {
                   :filter-option="filterOption"
                   :visibility-error="visibilityError"
                   :disable-add-new-filter="disableAddNewFilter"
+                  :is-view-filter="isViewFilter"
                 >
                   <template #start>
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
@@ -656,7 +670,7 @@ const changeToDynamic = async (filter, i) => {
                         class="min-w-18 capitalize"
                         placeholder="Group op"
                         dropdown-class-name="nc-dropdown-filter-logical-op-group"
-                        :disabled="i > 1 && !isLogicalOpChangeAllowed"
+                        :disabled="(i > 1 && !isLogicalOpChangeAllowed) || isLockedView"
                         :class="{
                           'nc-disabled-logical-op': filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed),
                           '!max-w-18': !webHook,
@@ -686,6 +700,7 @@ const changeToDynamic = async (filter, i) => {
                       v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
                       type="text"
                       size="small"
+                      :disabled="isLockedView"
                       class="nc-filter-item-remove-btn cursor-pointer"
                       @click.stop="deleteFilter(filter, i)"
                     >
@@ -709,7 +724,7 @@ const changeToDynamic = async (filter, i) => {
               :dropdown-match-select-width="false"
               class="h-full !max-w-18 !min-w-18 capitalize"
               hide-details
-              :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
+              :disabled="filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || isLockedView"
               dropdown-class-name="nc-dropdown-filter-logical-op"
               :class="{
                 'nc-disabled-logical-op': filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed),
@@ -750,7 +765,7 @@ const changeToDynamic = async (filter, i) => {
                 }"
                 class="nc-filter-field-select min-w-32 max-h-8"
                 :columns="fieldsToFilter"
-                :disabled="filter.readOnly"
+                :disabled="filter.readOnly || isLockedView"
                 :meta="meta"
                 @click.stop
                 @change="selectFilterField(filter, i)"
@@ -768,7 +783,7 @@ const changeToDynamic = async (filter, i) => {
                 }"
                 density="compact"
                 variant="solo"
-                :disabled="filter.readOnly"
+                :disabled="filter.readOnly || isLockedView"
                 hide-details
                 dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
                 @change="filterUpdateCondition(filter, i)"
@@ -806,7 +821,7 @@ const changeToDynamic = async (filter, i) => {
                 :placeholder="$t('labels.operationSub')"
                 density="compact"
                 variant="solo"
-                :disabled="filter.readOnly"
+                :disabled="filter.readOnly || isLockedView"
                 hide-details
                 dropdown-class-name="nc-dropdown-filter-comp-sub-op"
                 @change="filterUpdateCondition(filter, i)"
@@ -848,7 +863,7 @@ const changeToDynamic = async (filter, i) => {
                     v-if="filter.field && types[filter.field] === 'boolean'"
                     v-model:checked="filter.value"
                     dense
-                    :disabled="filter.readOnly"
+                    :disabled="filter.readOnly || isLockedView"
                     @change="saveOrUpdate(filter, i)"
                   />
 
@@ -860,6 +875,7 @@ const changeToDynamic = async (filter, i) => {
                     }"
                     :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
                     :filter="filter"
+                    :disabled="isLockedView"
                     @update-filter-value="(value) => updateFilterValue(value, filter, i)"
                     @click.stop
                   />
@@ -871,6 +887,7 @@ const changeToDynamic = async (filter, i) => {
                     class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
                     :trigger="['click']"
                     placement="bottom"
+                    :disabled="isLockedView"
                   >
                     <NcButton type="text" size="small">
                       <GeneralIcon icon="settings" />
@@ -926,6 +943,7 @@ const changeToDynamic = async (filter, i) => {
               v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
               type="text"
               size="small"
+              :disabled="isLockedView"
               class="nc-filter-item-remove-btn self-center"
               @click.stop="deleteFilter(filter, i)"
             >
@@ -948,7 +966,7 @@ const changeToDynamic = async (filter, i) => {
           <NcButton
             size="small"
             :type="actionBtnType"
-            :disabled="disableAddNewFilter"
+            :disabled="disableAddNewFilter || isLockedView"
             class="nc-btn-focus"
             data-testid="add-filter"
             @click.stop="addFilter()"
@@ -963,7 +981,7 @@ const changeToDynamic = async (filter, i) => {
           <NcButton
             v-if="nestedLevel < 5"
             class="nc-btn-focus"
-            :disabled="disableAddNewFilter"
+            :disabled="disableAddNewFilter || isLockedView"
             :type="actionBtnType"
             size="small"
             data-testid="add-filter-group"
@@ -986,7 +1004,14 @@ const changeToDynamic = async (filter, i) => {
             'mt-1 mb-2': filters.length,
           }"
         >
-          <NcButton class="nc-btn-focus" size="small" :type="actionBtnType" data-testid="add-filter" @click.stop="addFilter()">
+          <NcButton
+            class="nc-btn-focus"
+            size="small"
+            :type="actionBtnType"
+            data-testid="add-filter"
+            :disabled="isLockedView"
+            @click.stop="addFilter()"
+          >
             <div class="flex items-center gap-1">
               <component :is="iconMap.plus" />
               <!-- Add Filter -->
@@ -999,6 +1024,7 @@ const changeToDynamic = async (filter, i) => {
             class="nc-btn-focus"
             :type="actionBtnType"
             size="small"
+            :disabled="isLockedView"
             data-testid="add-filter-group"
             @click.stop="addFilterGroup()"
           >
@@ -1023,6 +1049,15 @@ const changeToDynamic = async (filter, i) => {
     </div>
 
     <slot />
+
+    <GeneralLockedViewFooter
+      v-if="isLockedView && !nested"
+      class="-mb-2 -ml-4"
+      :class="{
+        'mt-2': !visibleFilters || !visibleFilters.length,
+      }"
+      @on-open="isOpen = false"
+    />
   </div>
 </template>
 
@@ -1097,7 +1132,7 @@ const changeToDynamic = async (filter, i) => {
     @apply text-sm;
   }
 
-  :deep(.nc-select:not(.nc-disabled-logical-op):hover) {
+  :deep(.nc-select:not(.nc-disabled-logical-op):not(.ant-select-disabled):hover) {
     &,
     .ant-select-selector {
       @apply bg-gray-50;

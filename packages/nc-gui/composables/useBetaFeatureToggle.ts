@@ -9,6 +9,13 @@ const FEATURES = [
     enabled: true,
   },
   {
+    id: 'ai_features',
+    title: 'AI features',
+    description: 'Unlock AI features to enhance your NocoDB experience.',
+    enabled: false,
+    isEngineering: true,
+  },
+  {
     id: 'geodata_column',
     title: 'Geodata column',
     description: 'Enable the geodata column.',

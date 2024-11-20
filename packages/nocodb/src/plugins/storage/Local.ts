@@ -86,9 +86,16 @@ export default class Local implements IStorageAdapterV2 {
     });
   }
 
-  public async fileReadByStream(key: string): Promise<Readable> {
+  public async fileReadByStream(
+    key: string,
+    options: { encoding?: string },
+  ): Promise<Readable> {
     const srcPath = validateAndNormaliseLocalPath(key);
-    return fs.createReadStream(srcPath, { encoding: 'utf8' });
+    return fs.createReadStream(srcPath, {
+      ...(options?.encoding && {
+        encoding: options.encoding as BufferEncoding,
+      }),
+    });
   }
 
   public async getDirectoryList(key: string): Promise<string[]> {

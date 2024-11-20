@@ -1,9 +1,10 @@
 import { Form } from 'ant-design-vue'
 import { diff } from 'deep-object-diff'
+import type { FormDefinition } from 'nocodb-sdk'
 
 const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
   (props: { formSchema: FormDefinition; onSubmit?: () => Promise<any>; initialState?: Ref<Record<string, any>> }) => {
-    const { formSchema, onSubmit, initialState } = props
+    const { formSchema, onSubmit, initialState = ref({}) } = props
 
     const useForm = Form.useForm
 
@@ -71,25 +72,23 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       for (const field of formSchema) {
         if (!field.model) continue
 
-        if (field.required) {
-          validatorsObject[field.model] = [
-            {
-              required: true,
-              message: `${field.label} is required`,
-            },
-          ]
+        if (field.validators) {
+          validatorsObject[field.model] = field.validators
+            .map((validator: { type: 'required'; message?: string }) => {
+              if (validator.type === 'required') {
+                return {
+                  required: true,
+                  message: validator.message,
+                }
+              }
+
+              return null
+            })
+            .filter((v: any) => v !== null)
         }
       }
 
-      return {
-        title: [
-          {
-            required: true,
-            message: 'Integration title is required',
-          },
-        ],
-        ...validatorsObject,
-      }
+      return validatorsObject
     })
 
     const { validate, validateInfos } = useForm(formState, validators)

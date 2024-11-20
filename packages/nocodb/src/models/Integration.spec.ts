@@ -22,6 +22,7 @@ describe('Integration Model', () => {
       id: 'test-id',
       title: 'Test Integration',
       base_id: 'project-1',
+      ...(isEE ? { fk_workspace_id: 'workspace-1' } : {}),
     });
   });
 
@@ -58,7 +59,7 @@ describe('Integration Model', () => {
       const result = await Integration.list(
         {
           userId: 'user-id',
-          workspaceId: 'workspace-id',
+          ...(isEE ? { workspaceId: 'workspace-id' } : {}),
         },
         mockNcMeta,
       );
@@ -97,12 +98,36 @@ describe('Integration Model', () => {
       expect(result).toBeInstanceOf(Integration);
       expect(result).toEqual(expect.objectContaining(mockIntegration));
       expect(mockNcMeta.metaGet2).toBeCalledWith(
-        null,
-        'workspace',
+        'bypass',
+        'bypass',
         MetaTable.INTEGRATIONS,
-        isEE ? { fk_workspace_id: null, id: 'test-id' } : 'test-id',
+        isEE ? null : 'test-id',
         null,
-        { _or: [{ deleted: { neq: true } }, { deleted: { eq: null } }] },
+        isEE
+          ? {
+              _and: [
+                {
+                  id: {
+                    eq: 'test-id',
+                  },
+                },
+                {
+                  _or: [
+                    {
+                      deleted: {
+                        neq: true,
+                      },
+                    },
+                    {
+                      deleted: {
+                        eq: null,
+                      },
+                    },
+                  ],
+                },
+              ],
+            }
+          : { _or: [{ deleted: { neq: true } }, { deleted: { eq: null } }] },
       );
     });
   });
@@ -224,16 +249,18 @@ describe('Integration Model', () => {
       });
 
       await Integration.updateIntegration(
-        {
-          workspace_id: null,
-        },
+        isEE
+          ? { workspace_id: 'workspace-1' }
+          : {
+              workspace_id: null,
+            },
         'test-id',
         updateData,
         mockNcMeta,
       );
 
       expect(mockNcMeta.metaUpdate).toHaveBeenCalledWith(
-        null,
+        isEE ? 'workspace-1' : 'workspace',
         'workspace',
         MetaTable.INTEGRATIONS,
         updateData,
@@ -247,7 +274,7 @@ describe('Integration Model', () => {
       await integration.delete(mockNcMeta);
 
       expect(mockNcMeta.metaDelete).toHaveBeenCalledWith(
-        undefined,
+        isEE ? 'workspace-1' : 'workspace',
         'workspace',
         MetaTable.INTEGRATIONS,
         integration.id,

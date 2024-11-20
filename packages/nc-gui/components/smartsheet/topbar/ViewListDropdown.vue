@@ -21,6 +21,8 @@ const { loadViews, navigateToView } = viewsStore
 
 const { refreshCommandPalette } = useCommandPalette()
 
+const { aiIntegrationAvailable } = useNocoAi()
+
 const isOpen = ref<boolean>(false)
 
 const activeSource = computed(() => {
@@ -100,7 +102,7 @@ async function onOpenModal({
   coverImageColumnId,
 }: {
   title?: string
-  type: ViewTypes
+  type: ViewTypes | 'AI'
   copyViewId?: string
   groupingFieldColumnId?: string
   calendarRange?: Array<{
@@ -123,7 +125,8 @@ async function onOpenModal({
     groupingFieldColumnId,
     coverImageColumnId,
     'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view: ViewType) => {
+    'baseId': base.value.id,
+    'onCreated': async (view?: ViewType) => {
       closeDialog()
 
       refreshCommandPalette()
@@ -138,14 +141,16 @@ async function onOpenModal({
         hasNonDefaultViews: true,
       }
 
-      navigateToView({
-        view,
-        tableId: activeTable.value.id!,
-        baseId: base.value.id!,
-        doNotSwitchTab: true,
-      })
+      if (view) {
+        navigateToView({
+          view,
+          tableId: activeTable.value.id!,
+          baseId: base.value.id!,
+          doNotSwitchTab: true,
+        })
+      }
 
-      $e('a:view:create', { view: view.type })
+      $e('a:view:create', { view: view?.type || type })
     },
   })
 
@@ -246,6 +251,18 @@ async function onOpenModal({
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                     {{ $t('objects.viewType.calendar') }}
+                  </div>
+                </a-menu-item>
+
+                <NcDivider />
+                <a-menu-item
+                  v-if="aiIntegrationAvailable"
+                  data-testid="sidebar-view-create-ai"
+                  @click="onOpenModal({ type: 'AI' })"
+                >
+                  <div class="nc-viewlist-submenu-popup-item">
+                    <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+                    <div>{{ $t('labels.aiSuggested') }}</div>
                   </div>
                 </a-menu-item>
               </a-sub-menu>

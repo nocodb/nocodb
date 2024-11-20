@@ -361,6 +361,9 @@ export default class Column<T = any> implements ColumnType {
           color: column.color,
           fk_webhook_id: column?.fk_webhook_id,
           label: column.label,
+          fk_integration_id: column.fk_integration_id,
+          model: column.model,
+          output_column_ids: column.output_column_ids,
         });
 
         break;

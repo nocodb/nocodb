@@ -102,7 +102,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
     >
       <div class="flex">
         <NcTooltip hide-on-click>
-          <NcButton class="nc-prev-page-btn !border-0" size="small" type="secondary" @click="paginate('prev')">
+          <NcButton class="nc-prev-page-btn !border-0" size="small" type="text" @click="paginate('prev')">
             <component :is="iconMap.arrowLeft" class="h-4 w-4" />
           </NcButton>
           <template #title>
@@ -127,7 +127,7 @@ const compareYear = (date1: dayjs.Dayjs, date2: dayjs.Dayjs) => {
       >
       <div class="flex">
         <NcTooltip hide-on-click>
-          <NcButton class="nc-next-page-btn !border-0" size="small" type="secondary" @click="paginate('next')">
+          <NcButton class="nc-next-page-btn !border-0" size="small" type="text" @click="paginate('next')">
             <component :is="iconMap.arrowRight" class="h-4 w-4" />
           </NcButton>
           <template #title>

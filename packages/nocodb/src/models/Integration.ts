@@ -1,6 +1,13 @@
-import type { IntegrationsType, SourceType } from 'nocodb-sdk';
-import type { BoolType, IntegrationType } from 'nocodb-sdk';
+import {
+  type BoolType,
+  type FormDefinition,
+  integrationCategoryNeedDefault,
+  type IntegrationsType,
+  type IntegrationType,
+  type SourceType,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type IntegrationWrapper from '~/integrations/integration.wrapper';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -17,8 +24,23 @@ import {
   partialExtract,
 } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { IntegrationStore } from '~/models';
 
 export default class Integration implements IntegrationType {
+  public static availableIntegrations: {
+    type: IntegrationsType;
+    subType: string;
+    form?: FormDefinition;
+    wrapper?: typeof IntegrationWrapper;
+    meta?: {
+      title?: string;
+      value?: string;
+      icon?: string;
+      description?: string;
+      exposedEndpoints?: string[];
+    };
+  }[];
+
   id?: string;
   fk_workspace_id?: string;
   title?: string;
@@ -28,6 +50,7 @@ export default class Integration implements IntegrationType {
   order?: number;
   enabled?: BoolType;
   is_private?: BoolType;
+  is_default?: BoolType;
   meta?: any;
   created_by?: string;
   sources?: Partial<SourceType>[];
@@ -46,12 +69,20 @@ export default class Integration implements IntegrationType {
     obj.is_encrypted = isEncryptionRequired();
   }
 
+  public static async init() {
+    // we use dynamic import to avoid circular reference
+    Integration.availableIntegrations = (
+      await import('src/integrations/integrations')
+    ).default;
+  }
+
   public static async createIntegration(
     integration: IntegrationType & {
       workspaceId?: string;
       created_at?;
       updated_at?;
       meta?: any;
+      is_default?: BoolType;
       is_encrypted?: BoolType;
     },
     ncMeta = Noco.ncMeta,
@@ -65,6 +96,7 @@ export default class Integration implements IntegrationType {
       'meta',
       'created_by',
       'is_private',
+      'is_default',
       'is_encrypted',
     ]);
 
@@ -87,8 +119,28 @@ export default class Integration implements IntegrationType {
         : {},
     );
 
+    if (integrationCategoryNeedDefault(insertObj.type)) {
+      // get if default integration exists for the type
+      const defaultIntegration = await this.getCategoryDefault(
+        {
+          workspace_id: insertObj.fk_workspace_id,
+        },
+        insertObj.type,
+        ncMeta,
+      );
+
+      // if default integration already exists then set is_default to false
+      if (defaultIntegration) {
+        insertObj.is_default = false;
+      } else {
+        insertObj.is_default = true;
+      }
+    }
+
     const { id } = await ncMeta.metaInsert2(
-      insertObj.fk_workspace_id,
+      insertObj.fk_workspace_id
+        ? insertObj.fk_workspace_id
+        : RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
       insertObj,
@@ -131,6 +183,7 @@ export default class Integration implements IntegrationType {
       'deleted',
       'config',
       'is_private',
+      'is_default',
       'is_encrypted',
     ]);
 
@@ -160,7 +213,7 @@ export default class Integration implements IntegrationType {
     }
 
     await ncMeta.metaUpdate(
-      context.workspace_id,
+      context.workspace_id ? context.workspace_id : RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
       prepareForDb(updateObj),
@@ -178,9 +231,59 @@ export default class Integration implements IntegrationType {
     return returnBase;
   }
 
+  public static async setDefault(
+    context: Omit<NcContext, 'base_id'>,
+    integrationId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const integration = await this.get(context, integrationId, false, ncMeta);
+
+    if (!integration) {
+      NcError.integrationNotFound(integrationId);
+    }
+
+    // return if integration is already default
+    if (integration.is_default) {
+      return integration;
+    }
+
+    // get if default integration exists for the type
+    const defaultIntegration = await this.getCategoryDefault(
+      {
+        workspace_id: context.workspace_id,
+      },
+      integration.type,
+      ncMeta,
+    );
+
+    // if default integration already exists then set is_default to false
+    if (defaultIntegration) {
+      await ncMeta.metaUpdate(
+        context.workspace_id ? context.workspace_id : RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
+        MetaTable.INTEGRATIONS,
+        {
+          is_default: false,
+        },
+        defaultIntegration.id,
+      );
+    }
+
+    await ncMeta.metaUpdate(
+      context.workspace_id ? context.workspace_id : RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.INTEGRATIONS,
+      {
+        is_default: true,
+      },
+      integrationId,
+    );
+
+    return await this.get(context, integrationId, false, ncMeta);
+  }
+
   static async list(
     args: {
-      workspaceId?: string;
       userId: string;
       includeDatabaseInfo?: boolean;
       type?: IntegrationsType;
@@ -301,14 +404,10 @@ export default class Integration implements IntegrationType {
     ncMeta = Noco.ncMeta,
   ): Promise<Integration> {
     const integrationData = await ncMeta.metaGet2(
-      context.workspace_id,
-      context.workspace_id === RootScopes.BYPASS
-        ? RootScopes.BYPASS
-        : RootScopes.WORKSPACE,
+      context.workspace_id ? context.workspace_id : RootScopes.BYPASS,
+      context.workspace_id ? RootScopes.WORKSPACE : RootScopes.BYPASS,
       MetaTable.INTEGRATIONS,
-      !context.workspace_id || context.workspace_id === RootScopes.BYPASS
-        ? id
-        : { id, fk_workspace_id: context.workspace_id },
+      id,
       null,
       force
         ? {}
@@ -357,7 +456,7 @@ export default class Integration implements IntegrationType {
 
   async delete(ncMeta = Noco.ncMeta) {
     const res = await ncMeta.metaDelete(
-      this.fk_workspace_id,
+      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
       this.id,
@@ -368,7 +467,7 @@ export default class Integration implements IntegrationType {
 
   async softDelete(ncMeta = Noco.ncMeta) {
     await ncMeta.metaUpdate(
-      this.fk_workspace_id,
+      this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
       {
@@ -404,5 +503,129 @@ export default class Integration implements IntegrationType {
       });
 
     return (this.sources = sources);
+  }
+
+  static async getCategoryDefault(
+    context: Omit<NcContext, 'base_id'>,
+    type: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Integration> {
+    const integrationData = await ncMeta.metaGet2(
+      context.workspace_id ? context.workspace_id : RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.INTEGRATIONS,
+      { type },
+      null,
+      {
+        _and: [
+          {
+            is_default: {
+              eq: true,
+            },
+          },
+          {
+            _or: [
+              {
+                deleted: {
+                  neq: true,
+                },
+              },
+              {
+                deleted: {
+                  eq: null,
+                },
+              },
+            ],
+          },
+        ],
+      },
+    );
+
+    if (integrationData) {
+      integrationData.meta = parseMetaProp(integrationData, 'meta');
+    }
+
+    return this.castType(integrationData);
+  }
+
+  public wrapper: IntegrationWrapper;
+
+  getIntegrationWrapper<T extends IntegrationWrapper>() {
+    if (!this.wrapper) {
+      const integrationWrapper = Integration.availableIntegrations.find(
+        (el) => el.type === this.type && el.subType === this.sub_type,
+      );
+
+      if (!integrationWrapper) {
+        throw new Error('Integration not found');
+      }
+
+      this.wrapper = new integrationWrapper.wrapper(this);
+    }
+
+    return this.wrapper as T;
+  }
+
+  getIntegrationMeta() {
+    const integrationMeta = Integration.availableIntegrations.find(
+      (el) => el.type === this.type && el.subType === this.sub_type,
+    );
+
+    if (!integrationMeta) {
+      throw new Error('Integration meta not found');
+    }
+
+    return integrationMeta?.meta;
+  }
+
+  async storeInsert(
+    context: Omit<NcContext, 'base_id'>,
+    fk_user_id: string | null,
+    data: Record<string, any>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await IntegrationStore.insert(
+      context,
+      this,
+      fk_user_id,
+      data,
+      ncMeta,
+    );
+  }
+
+  async storeList(
+    context: Omit<NcContext, 'base_id'>,
+    limit: number,
+    offset: number,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await IntegrationStore.list(
+      context,
+      this,
+      {
+        limit,
+        offset,
+      },
+      ncMeta,
+    );
+  }
+
+  async storeSum(
+    context: Omit<NcContext, 'base_id'>,
+    fields: string | string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!Array.isArray(fields)) {
+      fields = [fields];
+    }
+
+    return await IntegrationStore.sum(context, this, fields, ncMeta);
+  }
+
+  async storeGetLatest(
+    context: Omit<NcContext, 'base_id'>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return await IntegrationStore.getLatest(context, this, ncMeta);
   }
 }

@@ -335,6 +335,8 @@ test.describe('Calendar View', () => {
       action: 'prev',
     });
 
+    await calendar.dashboard.rootPage.waitForTimeout(1000);
+
     await calendar.calendarWeekDateTime.dragAndDrop({
       record: 'Team Catchup',
       to: {

@@ -346,7 +346,8 @@ onClickOutside(searchRef, toggleSearch)
       'right-2': !showSideMenu,
       'right-74': showSideMenu,
     }"
-    class="absolute transition-all ease-in-out z-9 top-2"
+    style="z-index: 100"
+    class="absolute transition-all ease-in-out top-2"
     hide-on-click
   >
     <template #title> {{ $t('activity.toggleSidebar') }}</template>
@@ -546,7 +547,6 @@ onClickOutside(searchRef, toggleSearch)
                     : dayjs(record.row[record.rowMeta.range!.fk_to_col.title!]).format('DD MMM • HH:mm A')
                   : null
               "
-                color="blue"
                 data-testid="nc-sidebar-record-card"
                 @click="emit('expandRecord', record)"
                 @dragstart="dragStart($event, record)"

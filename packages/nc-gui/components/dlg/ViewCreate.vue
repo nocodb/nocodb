@@ -323,6 +323,8 @@ const addCalendarRange = async () => {
 }
 */
 
+const isRangeEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CALENDAR_VIEW_RANGE))
+
 const enableDescription = ref(false)
 
 const removeDescription = () => {
@@ -977,111 +979,153 @@ const getPluralName = (name: string) => {
             />
           </a-form-item>
           <template v-if="form.type === ViewTypes.CALENDAR && !form.copy_from_id">
-            <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex w-full items-center gap-2">
-              <span class="text-gray-800">
-                {{ $t('labels.organiseBy') }}
-              </span>
-              <NcSelect
-                v-model:value="range.fk_from_column_id"
-                :disabled="isMetaLoading"
-                :loading="isMetaLoading"
-                class="nc-select-shadow nc-from-select"
-              >
-                <a-select-option
-                  v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
+            <div
+              v-for="(range, index) in form.calendar_range"
+              :key="`range-${index}`"
+              :class="{
+                '!gap-2': range.fk_to_column_id === null,
+              }"
+              class="flex flex-col w-full gap-6"
+            >
+              <div class="w-full space-y-2">
+                <div class="text-gray-800">
+                  {{ $t('labels.organiseBy') }}
+                </div>
+
+                <a-select
+                  v-model:value="range.fk_from_column_id"
+                  class="nc-select-shadow w-full nc-from-select !rounded-lg"
+                  dropdown-class-name="!rounded-lg"
+                  :placeholder="$t('placeholder.notSelected')"
+                  data-testid="nc-calendar-range-from-field-select"
+                  @click.stop
+                >
+                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+                  <a-select-option
+                    v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
                   // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
                   // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
                   if (index === 0) return true
                   const firstRange = viewSelectFieldOptions!.find((f) => f.value === form.calendar_range[0].fk_from_column_id)
                   return firstRange?.uidt === f.uidt
                 })"
-                  :key="id"
-                  class="w-40"
-                  :value="option.value"
-                >
-                  <div class="flex w-full gap-2 justify-between items-center">
-                    <div class="flex gap-2 items-center">
-                      <SmartsheetHeaderIcon :column="option" class="!ml-0" />
-                      <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
-                        <template #title>{{ option.label }}</template>
-                        {{ option.label }}
-                      </NcTooltip>
-                    </div>
-                    <div class="flex-1" />
-                    <component
-                      :is="iconMap.check"
-                      v-if="option.value === range.fk_from_column_id"
-                      id="nc-selected-item-icon"
-                      class="text-primary min-w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
-              <!--            <div
-              v-if="range.fk_to_column_id === null && isEeUI"
-              class="cursor-pointer flex items-center text-gray-800 gap-1"
-              @click="range.fk_to_column_id = undefined"
-            >
-              <component :is="iconMap.plus" class="h-4 w-4" />
-              {{ $t('activity.addEndDate') }}
-            </div>
-            <template v-else-if="isEeUI">
-              <span>
-                {{ $t('activity.withEndDate') }}
-              </span>
-
-              <div class="flex">
-                <NcSelect
-                  v-model:value="range.fk_to_column_id"
-                  :disabled="isMetaLoading"
-                  :loading="isMetaLoading"
-                  :placeholder="$t('placenc-to-seleholder.notSelected')"
-                  class="!rounded-r-none ct"
-                >
-                  <a-select-option
-                    v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
-                      // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
-                      // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
-
-                      const firstRange = viewSelectFieldOptions.find((f) => f.value === form.calendar_range[0].fk_from_column_id)
-                      return firstRange?.uidt === f.uidt
-                    })"
                     :key="id"
                     :value="option.value"
                   >
-                    <div class="flex items-center">
-                      <SmartsheetHeaderIcon :column="option" />
-                      <NcTooltip class="truncate flex-1 max-w-18" placement="top" show-on-truncate-only>
-                        <template #title>{{ option.label }}</template>
-                        {{ option.label }}
-                      </NcTooltip>
+                    <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                      <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                        <SmartsheetHeaderIcon :column="option" />
+
+                        <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                          <template #title>
+                            {{ option.label }}
+                          </template>
+                          <template #default>{{ option.label }}</template>
+                        </NcTooltip>
+                      </div>
+                      <GeneralIcon
+                        v-if="option.value === range.fk_from_column_id"
+                        id="nc-selected-item-icon"
+                        icon="check"
+                        class="flex-none text-primary w-4 h-4"
+                      />
                     </div>
                   </a-select-option>
-                </NcSelect>
-                <NcButton class="!rounded-l-none !border-l-0" size="small" type="secondary" @click="range.fk_to_column_id = null">
-                  <component :is="iconMap.delete" class="h-4 w-4" />
-                </NcButton>
+                </a-select>
               </div>
-              <NcButton
-                v-if="index !== 0"
-                size="small"
-                type="secondary"
-                @click="
-                  () => {
-                    form.calendar_range = form.calendar_range.filter((_, i) => i !== index)
-                  }
-                "
-              >
-                <component :is="iconMap.close" />
-              </NcButton>
-            </template>
-          </div> -->
+              <div class="w-full space-y-2">
+                <NcButton
+                  v-if="range.fk_to_column_id === null && isRangeEnabled"
+                  size="small"
+                  class="w-28"
+                  type="text"
+                  :disabled="!isEeUI"
+                  @click="range.fk_to_column_id = undefined"
+                >
+                  <component :is="iconMap.plus" class="h-4 w-4" />
+                  {{ $t('activity.endDate') }}
+                </NcButton>
 
-              <!--          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
+                <template v-else-if="isEeUI && isRangeEnabled">
+                  <span class="text-gray-700">
+                    {{ $t('activity.withEndDate') }}
+                  </span>
+
+                  <div class="flex">
+                    <a-select
+                      v-model:value="range.fk_to_column_id"
+                      class="!rounded-r-none nc-select-shadow w-full flex-1 nc-to-select"
+                      :disabled="isMetaLoading"
+                      :loading="isMetaLoading"
+                      :placeholder="$t('placeholder.notSelected')"
+                      data-testid="nc-calendar-range-to-field-select"
+                      dropdown-class-name="!rounded-lg"
+                      @click.stop
+                    >
+                      <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+
+                      <a-select-option
+                        v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
+                          // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                          // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+
+                          const firstRange = viewSelectFieldOptions.find(
+                            (f) => f.value === form.calendar_range[0].fk_from_column_id,
+                          )
+                          return firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
+                        })"
+                        :key="id"
+                        :value="option.value"
+                      >
+                        <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                          <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                            <SmartsheetHeaderIcon :column="option" />
+
+                            <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                              <template #title>
+                                {{ option.label }}
+                              </template>
+                              <template #default>{{ option.label }}</template>
+                            </NcTooltip>
+                          </div>
+                          <GeneralIcon
+                            v-if="option.value === range.fk_from_column_id"
+                            id="nc-selected-item-icon"
+                            icon="check"
+                            class="flex-none text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
+                    </a-select>
+                    <NcButton
+                      class="!rounded-l-none !border-l-0"
+                      size="small"
+                      type="secondary"
+                      @click="range.fk_to_column_id = null"
+                    >
+                      <component :is="iconMap.delete" class="h-4 w-4" />
+                    </NcButton>
+                  </div>
+                  <NcButton
+                    v-if="index !== 0"
+                    size="small"
+                    type="secondary"
+                    @click="
+                      () => {
+                        form.calendar_range = form.calendar_range.filter((_, i) => i !== index)
+                      }
+                    "
+                  >
+                    <component :is="iconMap.close" />
+                  </NcButton>
+                </template>
+              </div>
+            </div>
+
+            <!--          <NcButton class="mt-2" size="small" type="secondary" @click="addCalendarRange">
             <component :is="iconMap.plus" />
             Add another date field
           </NcButton> -->
-            </div>
 
             <div
               v-if="isCalendarReadonly(form.calendar_range)"
@@ -1429,20 +1473,11 @@ const getPluralName = (name: string) => {
 .nc-input-text-area {
   padding-block: 8px !important;
 }
-
 .ant-form-item-required {
   @apply !text-gray-800 font-medium;
   &:before {
     @apply !content-[''];
   }
-}
-
-.nc-from-select .ant-select-selector {
-  @apply !mr-2;
-}
-
-.nc-to-select .ant-select-selector {
-  @apply !rounded-r-none;
 }
 
 .ant-form-item {
@@ -1463,11 +1498,6 @@ const getPluralName = (name: string) => {
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;
-  }
-}
-:deep(.ant-select) {
-  .ant-select-selector {
-    @apply !rounded-lg;
   }
 }
 
@@ -1502,6 +1532,20 @@ const getPluralName = (name: string) => {
 .nc-modal-wrapper.nc-modal-view-create-wrapper {
   .ant-modal-content {
     @apply !rounded-5;
+  }
+}
+:deep(.ant-select) {
+  .ant-select-selector {
+    @apply !rounded-lg;
+  }
+}
+
+.nc-to-select {
+  :deep(.ant-select) {
+    .ant-select-selector {
+      border-top-right-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
   }
 }
 </style>

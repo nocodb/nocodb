@@ -55,3 +55,19 @@ export const ncArrayFrom = <T>(
 ): T[] => {
   return Array.from({ length }, (_, i) => contentCallback(i))
 }
+
+/**
+ * Checks if a string contains Unicode emojis.
+ *
+ * @param emoji - The string to check.
+ * @returns A boolean indicating if the string contains Unicode emojis.
+ *
+ * @example
+ * ```ts
+ * const hasEmoji = isUnicodeEmoji('Hello World 😊');
+ * console.log(hasEmoji); // Output: true
+ * ```
+ */
+export const isUnicodeEmoji = (emoji: string) => {
+  return !!emoji?.match(/(\p{Emoji}|\p{Extended_Pictographic})/gu)
+}

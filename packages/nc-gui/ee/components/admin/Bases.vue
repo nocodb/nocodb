@@ -197,9 +197,8 @@ onMounted(() => {
                 :workspace="{
                   id: base.workspace_id,
                   title: base.workspace_title,
-                  meta: JSON.parse(base?.workspace_meta),
+                  meta: parseProp(base?.workspace_meta),
                 }"
-                hide-label
               />
               <NcTooltip class="max-w-full" show-on-truncate-only>
                 <template #title>

@@ -11649,6 +11649,20 @@
           },
           {
             "$ref": "#/components/parameters/xc-token"
+          },
+          {
+            "schema": {
+              "enum": [
+                "workspacePics",
+                "profilePics",
+                "organizationPics"
+              ],
+              "type": "string",
+              "example": "workspacePics"
+            },
+            "name": "scope",
+            "in": "query",
+            "description": "The scope of the attachment"
           }
         ],
         "description": "Upload attachment"
@@ -11688,6 +11702,20 @@
           },
           {
             "$ref": "#/components/parameters/xc-token"
+          },
+          {
+            "schema": {
+              "enum": [
+                "workspacePics",
+                "profilePics",
+                "organizationPics"
+              ],
+              "type": "string",
+              "example": "workspacePics"
+            },
+            "name": "scope",
+            "in": "query",
+            "description": "The scope of the attachment"
           }
         ],
         "description": "Upload attachment by URL. Used in Airtable Migration."

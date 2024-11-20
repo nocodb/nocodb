@@ -124,8 +124,7 @@ const calendarData = computed(() => {
           isWeekend: day.get('day') === 0 || day.get('day') === 6,
           isToday: day.isSame(today, 'date'),
           isInPagedMonth: day.isSame(startOfMonth, 'month'),
-          isVisible:
-            maxVisibleDays.value === 7 || (maxVisibleDays.value === 5 && !(day.get('day') !== 0 && day.get('day') !== 6)),
+          isVisible: maxVisibleDays.value === 5 ? day.get('day') !== 0 && day.get('day') !== 6 : true,
           dayNumber: day.format('DD'),
         }
       }),

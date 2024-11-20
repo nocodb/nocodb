@@ -3823,6 +3823,66 @@
           "required": false
         }
       ]
+    },
+    "/api/v2/meta/bases/:baseId/snapshots": {
+      "get": {
+        "summary": "List snapshots",
+        "description": "List snapshots for a given base",
+        "operationId": "snapshot-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Snapshot"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Snapshot"
+        ]
+      },
+      "post": {
+        "summary": "Create snapshot",
+        "description": "Create snapshot for a given base",
+        "operationId": "snapshot-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Snapshot"
+        ]
+      }
+    },
+    "/api/v2/meta/bases/:baseId/snapshots/:snapshotId/restore": {
+      "post": {
+        "summary": "Restore snapshot",
+        "description": "Restore snapshot for a given base",
+        "operationId": "snapshot-restore",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Snapshot"
+        ]
+      }
     }
   },
   "components": {
@@ -5420,6 +5480,37 @@
           "title",
           "type"
         ]
+      },
+      "Snapshot": {
+        "description": "Model for Snapshot",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the Snapshot"
+          },
+          "fk_base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Base"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Workspace"
+          },
+          "created_at": {
+            "format": "date",
+            "type": "string",
+            "description": "Date of creation"
+          },
+          "created_by" : {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          }
+        }
       },
       "SSOClient": {
         "description": "Model for SSO Client",

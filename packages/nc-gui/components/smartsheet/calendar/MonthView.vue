@@ -344,7 +344,7 @@ const recordsToDisplay = computed<{
               recordIndex,
             },
           })
-
+          recordIndex++
           currentWeekStart = currentWeekStart.add(1, 'week')
         }
       }
@@ -371,7 +371,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
     relativeX -= dragOffset.value.x
   }
 
-  const relativeY = event.clientY - top
+  const relativeY = event.clientY - dragOffset.value.y
 
   const percentX = Math.max(0, Math.min(1, relativeX / width))
   const percentY = Math.max(0, Math.min(1, relativeY / height))
@@ -608,8 +608,16 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
     dragOffset.value = {
       x: event.clientX - target.getBoundingClientRect().left,
-      y: event.clientY - target.getBoundingClientRect().top,
+      y: event.clientY - target.getBoundingClientRect().top,,
     }
+
+    console.log(initialDragElement?.getBoundingClientRect().top)
+    const allRecords = document.querySelectorAll('.draggable-record')
+    allRecords.forEach((el) => {
+      if (!el.getAttribute('data-unique-id').includes(record.rowMeta.id!)) {
+        el.style.opacity = '30%'
+      }
+    })
 
     // selectedDate.value = null
 
@@ -860,7 +868,7 @@ const addRecord = (date: dayjs.Dayjs) => {
           v-if="record.rowMeta.style?.display !== 'none'"
           :key="record.rowMeta.id"
           :data-testid="`nc-calendar-month-record-${record.row[displayField!.title!]}`"
-          :data-unique-id="`${record.rowMeta.id}`"
+          :data-unique-id="`${record.rowMeta.id}-${record.rowMeta.recordIndex}`"
           :style="{
             ...record.rowMeta.style,
             zIndex: record.rowMeta.id === draggingId ? 100 : 0,

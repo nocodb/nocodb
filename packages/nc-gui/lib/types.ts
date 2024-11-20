@@ -102,6 +102,7 @@ interface Row {
     overLapIteration?: number
     numberOfOverlaps?: number
     minutes?: number
+    recordIndex?: number // For week spanning records in month view
   }
 }
 

@@ -25,6 +25,10 @@ const showCropper = useVModel(props, 'showCropper', emit)
 
 const { cropperConfig } = toRefs(props)
 
+const imageRestriction = computed(() => {
+  return cropperConfig.value.imageRestriction || 'fit-area'
+})
+
 const { api, isLoading } = useApi()
 
 const cropperRef = ref()
@@ -38,7 +42,7 @@ const handleCropImage = () => {
   const { canvas } = cropperRef.value.getResult()
   previewImage.value = {
     canvas,
-    src: canvas.toDataURL(),
+    src: canvas.toDataURL(imageConfig.type),
   }
 }
 
@@ -116,7 +120,7 @@ watch(showCropper, () => {
         :stencil-props="cropperConfig?.stencilProps || {}"
         :min-height="cropperConfig?.minHeight"
         :min-width="cropperConfig?.minWidth"
-        :image-restriction="cropperConfig?.imageRestriction"
+        :image-restriction="imageRestriction"
         v-bind="
           cropperConfig.stencilProps?.fillDefault || cropperConfig.stencilProps?.fillDefault === undefined ? { defaultSize } : {}
         "

@@ -155,9 +155,9 @@ const calendarData = computed(() => {
           position,
           id,
           style: {
-            width: `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`,
-            left: `${startDaysDiff * perDayWidth}px`,
-            top: `${suitableRow * 28 + suitableRow * 8}px`,
+            width: `calc(max(${spanDays * perDayWidth - 10}px, ${perDayWidth - 10}px))`,
+            left: `${startDaysDiff * perDayWidth + 4}px`,
+            top: `${suitableRow * 28 + Math.max(suitableRow + 1, 1) * 8}px`,
           },
         },
       })
@@ -538,7 +538,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       ></div>
     </div>
     <div
-      class="absolute nc-scrollbar-md overflow-y-auto mt-6 pointer-events-none inset-0"
+      class="absolute nc-scrollbar-md overflow-y-auto z-2 mt-6 pointer-events-none inset-0"
       data-testid="nc-calendar-week-record-container"
     >
       <template v-for="(record, id) in calendarData" :key="id">
@@ -595,7 +595,7 @@ const addRecord = (date: dayjs.Dayjs) => {
   &:after {
     @apply rounded-b-sm pointer-events-none absolute inset-0 w-full h-full;
     content: '';
-    z-index: 3;
+    z-index: 1;
     box-shadow: 2px 0 0 #3366ff, -2px 0 0 #3366ff, 0 2px 0 #3366ff !important;
   }
 }

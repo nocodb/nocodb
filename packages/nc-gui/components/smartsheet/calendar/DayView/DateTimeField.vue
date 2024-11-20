@@ -1046,7 +1046,10 @@ const expandRecord = (record: Row) => {
         </div>
       </div>
       <div class="absolute inset-0 pointer-events-none">
-        <div class="relative !ml-[68px] !mr-1 nc-calendar-day-record-container" data-testid="nc-calendar-day-record-container">
+        <div
+          class="relative !ml-[68px] !mr-1 z-2 nc-calendar-day-record-container"
+          data-testid="nc-calendar-day-record-container"
+        >
           <template v-for="record in recordsAcrossAllRange.record" :key="record.rowMeta.id">
             <div
               v-if="record.rowMeta.style?.display !== 'none'"
@@ -1115,7 +1118,7 @@ const expandRecord = (record: Row) => {
   &:after {
     @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
     content: '';
-    z-index: 3;
+    z-index: 1;
     box-shadow: 0 0 0 2px #3366ff !important;
   }
 }

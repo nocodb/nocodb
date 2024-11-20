@@ -90,7 +90,7 @@ const emit = defineEmits(['resize-start'])
 
     <div
       v-if="(position === 'rightRounded' || position === 'rounded') && resize"
-      class="absolute mt-0.3 h-7.1 w-2 right-1 resize"
+      class="absolute mt-0.3 h-7.1 w-2 right-0 resize"
       @mousedown.stop="emit('resize-start', 'right', $event, record)"
     ></div>
   </div>

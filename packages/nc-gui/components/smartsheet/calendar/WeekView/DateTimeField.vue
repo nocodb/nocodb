@@ -1053,7 +1053,10 @@ watch(
         </div>
       </div>
 
-      <div class="absolute pointer-events-none inset-0 overflow-hidden !mt-5.95" data-testid="nc-calendar-week-record-container">
+      <div
+        class="absolute pointer-events-none z-2 inset-0 overflow-hidden !mt-5.95"
+        data-testid="nc-calendar-week-record-container"
+      >
         <template v-for="record in recordsAcrossAllRange.records" :key="record.rowMeta.id">
           <div
             v-if="record.rowMeta.style?.display !== 'none'"
@@ -1124,7 +1127,7 @@ watch(
   &:after {
     @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
     content: '';
-    z-index: 2;
+    z-index: 1;
     box-shadow: 0 0 0 2px #3366ff !important;
   }
 }

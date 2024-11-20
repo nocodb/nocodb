@@ -86,7 +86,7 @@ export class DataExportProcessor {
           error = e;
         });
 
-      url = (await uploadFilePromise)?.url;
+      url = await uploadFilePromise;
 
       // if url is not defined, it is local attachment
       if (!url) {

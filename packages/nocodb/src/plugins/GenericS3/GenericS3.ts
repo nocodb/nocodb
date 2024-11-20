@@ -104,10 +104,7 @@ export default class GenericS3 implements IStorageAdapterV2 {
     options?: {
       mimetype?: string;
     },
-  ): Promise<{
-    url: string | null;
-    data: any;
-  }> {
+  ): Promise<string | null> {
     try {
       const streamError = new Promise<void>((_, reject) => {
         stream.on('error', (err) => {

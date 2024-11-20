@@ -282,6 +282,7 @@ export class AttachmentsService {
             finalUrl = url;
 
           let base64TempStream: Readable;
+          let base64Buffer: Buffer;
 
           if (!url.startsWith('data:')) {
             response = await axios.head(url, { maxRedirects: 5 });
@@ -305,7 +306,8 @@ export class AttachmentsService {
 
             mimeType = mimetypeHelper[0];
             size = Buffer.byteLength(base64Data, 'base64');
-            base64TempStream = Readable.from(Buffer.from(base64Data, 'base64'));
+            base64Buffer = Buffer.from(base64Data, 'base64');
+            base64TempStream = Readable.from(base64Buffer);
           }
 
           const parsedUrl = Url.parse(finalUrl, true);
@@ -342,14 +344,12 @@ export class AttachmentsService {
             attachmentUrl = _attachmentUrl;
             file = _file;
           } else {
-            const { url: _attachmentUrl, data: _file } =
-              (await storageAdapter.fileCreateByStream(
-                slash(path.join(fileDestPath, fileName)),
-                base64TempStream,
-              )) as any;
+            attachmentUrl = await storageAdapter.fileCreateByStream(
+              slash(path.join(fileDestPath, fileName)),
+              base64TempStream,
+            );
 
-            attachmentUrl = _attachmentUrl;
-            file = _file;
+            file = base64Buffer;
           }
 
           const tempMetadata: {

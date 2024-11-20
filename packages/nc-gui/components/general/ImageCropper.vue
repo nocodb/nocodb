@@ -2,8 +2,8 @@
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 import 'vue-advanced-cropper/dist/theme.classic.css'
-import type { AttachmentReqType } from 'nocodb-sdk'
-import type { ImageCropperConfig } from '~/lib/types'
+import type { AttachmentReqType, PublicAttachmentScope } from 'nocodb-sdk'
+import type { ImageCropperConfig } from '#imports'
 
 interface Props {
   imageConfig: {
@@ -14,13 +14,22 @@ interface Props {
   cropperConfig: ImageCropperConfig
   uploadConfig?: {
     path?: string
+    scope?: PublicAttachmentScope
+    // filesize in bytes
+    maxFileSize?: number
   }
   showCropper: boolean
 }
-const { imageConfig, cropperConfig, uploadConfig, ...props } = defineProps<Props>()
+const { imageConfig, uploadConfig, ...props } = defineProps<Props>()
 const emit = defineEmits(['update:showCropper', 'submit'])
 
 const showCropper = useVModel(props, 'showCropper', emit)
+
+const { cropperConfig } = toRefs(props)
+
+const imageRestriction = computed(() => {
+  return cropperConfig.value.imageRestriction || 'fit-area'
+})
 
 const { api, isLoading } = useApi()
 
@@ -31,12 +40,21 @@ const previewImage = ref({
   src: '',
 })
 
+const fileSize = ref<number>(0)
+
+const isValidFileSize = computed(() => {
+  return uploadConfig?.maxFileSize ? !!fileSize.value && fileSize.value <= uploadConfig?.maxFileSize : true
+})
+
 const handleCropImage = () => {
   const { canvas } = cropperRef.value.getResult()
   previewImage.value = {
     canvas,
-    src: canvas.toDataURL(),
+    src: canvas.toDataURL(imageConfig.type),
   }
+  ;(canvas as any).toBlob((blob: Blob) => {
+    fileSize.value = blob.size
+  }, imageConfig.type)
 }
 
 const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
@@ -45,6 +63,7 @@ const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
       const uploadResult = await api.storage.uploadByUrl(
         {
           path: uploadConfig?.path as string,
+          scope: uploadConfig?.scope,
         },
         fileToUpload,
       )
@@ -69,18 +88,23 @@ const handleUploadImage = async (fileToUpload: AttachmentReqType[]) => {
 
 const handleSaveImage = async () => {
   if (previewImage.value.canvas) {
-    ;(previewImage.value.canvas as any).toBlob(async (blob: Blob) => {
-      await handleUploadImage([
-        {
-          title: imageConfig.name,
-          fileName: imageConfig.name,
-          mimetype: imageConfig.type,
-          size: blob.size,
-          url: previewImage.value.src,
-          data: previewImage.value.src,
-        },
-      ])
-    }, imageConfig.type)
+    await handleUploadImage([
+      {
+        title: imageConfig.name,
+        fileName: imageConfig.name,
+        mimetype: imageConfig.type,
+        size: fileSize.value,
+        url: previewImage.value.src,
+        data: previewImage.value.src,
+      },
+    ])
+  }
+}
+
+const defaultSize = ({ imageSize, visibleArea }: { imageSize: Record<string, any>; visibleArea: Record<string, any> }) => {
+  return {
+    width: (visibleArea || imageSize).width,
+    height: (visibleArea || imageSize).height,
   }
 }
 
@@ -95,7 +119,7 @@ watch(showCropper, () => {
 </script>
 
 <template>
-  <NcModal v-model:visible="showCropper" :mask-closable="false">
+  <NcModal v-model:visible="showCropper" :mask-closable="false" wrap-class-name="!z-1050">
     <div class="nc-image-cropper-wrapper relative">
       <Cropper
         ref="cropperRef"
@@ -105,7 +129,10 @@ watch(showCropper, () => {
         :stencil-props="cropperConfig?.stencilProps || {}"
         :min-height="cropperConfig?.minHeight"
         :min-width="cropperConfig?.minWidth"
-        :image-restriction="cropperConfig?.imageRestriction"
+        :image-restriction="imageRestriction"
+        v-bind="
+          cropperConfig.stencilProps?.fillDefault || cropperConfig.stencilProps?.fillDefault === undefined ? { defaultSize } : {}
+        "
       />
       <div v-if="previewImage.src" class="result_preview">
         <img :src="previewImage.src" alt="Preview Image" />
@@ -121,7 +148,13 @@ watch(showCropper, () => {
           <span class="ml-2">Crop</span>
         </NcButton>
 
-        <NcButton size="small" :loading="isLoading" :disabled="!previewImage.src" @click="handleSaveImage"> Save </NcButton>
+        <NcTooltip :disabled="isValidFileSize">
+          <template #title> Cropped file size is greater than max file size </template>
+
+          <NcButton size="small" :loading="isLoading" :disabled="!previewImage.src || !isValidFileSize" @click="handleSaveImage">
+            Save
+          </NcButton>
+        </NcTooltip>
       </div>
     </div>
   </NcModal>

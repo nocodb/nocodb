@@ -440,3 +440,9 @@ export enum ViewLockType {
   Locked = 'locked',
   Collaborative = 'collaborative',
 }
+
+export enum PublicAttachmentScope {
+  WORKSPACEPICS = 'workspacePics',
+  PROFILEPICS = 'profilePics',
+  ORGANIZATIONPICS = 'organizationPics',
+}

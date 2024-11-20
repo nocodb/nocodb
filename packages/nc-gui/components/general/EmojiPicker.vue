@@ -117,6 +117,7 @@ const showClearButton = computed(() => {
           :show-preview="false"
           color="#40444D"
           :auto-focus="true"
+          class="nc-emoji-picker"
           @select="selectEmoji"
           @click.stop="() => {}"
         >
@@ -141,7 +142,7 @@ const showClearButton = computed(() => {
     @apply pr-22;
   }
 }
-.emoji-mart {
+.nc-emoji-picker.emoji-mart {
   @apply !w-90;
 
   span.emoji-type-native {

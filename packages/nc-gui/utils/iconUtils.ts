@@ -574,6 +574,19 @@ import NcPlusAi from '~icons/nc-icons/plus-ai'
 import NcPlusMultiple from '~icons/nc-icons/plus-multiple'
 import NcPlusSquareSolid from '~icons/nc-icons/plus-square-solid'
 
+/* file types */
+
+import NcFileTypeExcel from '~icons/nc-icons-v2/file-type-excel'
+import NcFileTypePdf from '~icons/nc-icons-v2/file-type-pdf'
+import NcFileTypeWord from '~icons/nc-icons-v2/file-type-word'
+import NcFileTypePresentation from '~icons/nc-icons-v2/file-type-presentation'
+import NcFileTypeVideo from '~icons/nc-icons-v2/file-type-video'
+import NcFileTypeAudio from '~icons/nc-icons-v2/file-type-audio'
+import NcFileTypeZip from '~icons/nc-icons-v2/file-type-zip'
+import NcFileTypeUnknown from '~icons/nc-icons-v2/file-type-unknown'
+
+
+
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {
@@ -1364,6 +1377,14 @@ export const iconMap = {
   ncPlusAi: h(NcPlusAi, { stroke: 'transparent' }),
   ncPlusMultiple: NcPlusMultiple,
   ncPlusSquareSolid: h(NcPlusSquareSolid, { stroke: 'transparent' }),
+  ncFileTypeExcel: NcFileTypeExcel,
+  ncFileTypePdf: NcFileTypePdf,
+  ncFileTypeWord: NcFileTypeWord,
+  ncFileTypePresentation: NcFileTypePresentation,
+  ncFileTypeVideo: NcFileTypeVideo,
+  ncFileTypeAudio: NcFileTypeAudio,
+  ncFileTypeZip: NcFileTypeZip,
+  ncFileTypeUnknown: NcFileTypeUnknown,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -3714,6 +3735,34 @@ export const searchableMap = {
   ncAutoAwesome: {
     icon: h(NcAutoAwesome, { stroke: 'transparent' }),
     keywords: ['Magic', 'ai', 'autoAwesome', 'awesome'],
+  },
+  ncFileTypePdf: {
+    icon: NcFileTypePdf,
+    keywords: ['pdf', 'document', 'file', 'adobe', 'reader'],
+  },
+  ncFileTypeWord: {
+    icon: NcFileTypeWord,
+    keywords: ['word', 'document', 'file', 'microsoft', 'writer'],
+  },
+  ncFileTypePresentation: {
+    icon: NcFileTypePresentation,
+    keywords: ['powerpoint', 'presentation', 'file', 'microsoft', 'office'],
+  },
+  ncFileTypeVideo: {
+    icon: NcFileTypeVideo,
+    keywords: ['video', 'movie', 'file', 'media', 'player'],
+  },
+  ncFileTypeAudio: {
+    icon: NcFileTypeAudio,
+    keywords: ['audio', 'music', 'file', 'media', 'player'],
+  },
+  ncFileTypeZip: {
+    icon: NcFileTypeZip,
+    keywords: ['zip', 'archive', 'file', 'compression', 'zipper'],
+  },
+  ncFileTypeUnknown: {
+    icon: NcFileTypeUnknown,
+    keywords: ['unknown', 'file', 'type', 'extension', 'unknown'],
   },
 }
 

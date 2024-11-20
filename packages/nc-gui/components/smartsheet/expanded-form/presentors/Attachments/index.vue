@@ -101,6 +101,15 @@ const hasAnyValueInAttachment = computed(() =>
   selectedFieldValue.value?.length > 0
 )
 
+/* file picker */
+
+const smartsheetCell = ref()
+
+function openFilePicker() {
+  console.log('openFilePicker', smartsheetCell.value)
+  smartsheetCell.value?.openAttachmentCellPicker()
+}
+
 </script>
 
 <script lang="ts">
@@ -130,6 +139,19 @@ export default {
       </template>
       <template v-else>
         <div class="flex items-center h-[44px] border-b-1 border-gray-200 px-3 gap-3">
+
+          <LazySmartsheetCell
+            v-if="selectedField"
+            ref="smartsheetCell"
+            :active="true"
+            :column="selectedField"
+            :edit-enabled="true"
+            :read-only="readOnly"
+            class="hidden"
+            v-model="_row.row[selectedField!.title!]"
+            @update:model-value="changedColumns.add(selectedField!.title!)"
+          />
+
           <NcDropdownSelect
             :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
             v-model="selectedFieldId"
@@ -142,17 +164,36 @@ export default {
               <GeneralIcon icon="chevronDown" />
             </NcButton>
           </NcDropdownSelect>
-          <div>
-            {{ activeAttachment?.title }}
-          </div>
+
+          <NcEditableText
+            v-if="activeAttachment"
+            :model-value="activeAttachment.title"
+            @update:model-value="activeAttachment.title = $event"
+          />
+
           <div class="flex-1" />
-          <div>
+
+          <NcDropdown>
             <NcButton
               type="secondary"
               size="small">
               <GeneralIcon icon="threeDotVertical" />
             </NcButton>
-          </div>
+            <template #overlay>
+              <NcMenu>
+                <NcMenuItem>
+                  <GeneralIcon icon="download" />
+                  Download current file
+                </NcMenuItem>
+                <NcDivider />
+                <NcMenuItem class="!text-red-500">
+                  <GeneralIcon icon="delete" />
+                  Delete current file
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
+
         </div>
         <div class="w-full h-0 flex-1 flex flex-row">
           <template v-if="!hasAnyValueInAttachment">
@@ -163,7 +204,7 @@ export default {
               <span class="text-xs mt-3 w-[210px] text-center">
                 There are no attachments to display in this field
               </span>
-              <NcButton type="secondary" size="small" class="mt-3">
+              <NcButton type="secondary" size="small" class="mt-3" @click="openFilePicker()">
                 <template #icon>
                   <GeneralIcon icon="upload" />
                 </template>
@@ -173,14 +214,16 @@ export default {
           </template>
           <template v-else>
             <div class="w-[80px] h-full bg-white border-r-1 border-gray-200 flex flex-col">
-              <div class="flex-1 h-0 flex flex-col gap-2 items-center justify-center p-2">
-                <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
-                  v-for="(attachment, index) of selectedFieldValue"
-                  :key="attachment.id"
-                  :attachment="attachment"
-                  :active="activeAttachmentIndex === index"
-                  @click="activeAttachmentIndex = index"
-                />
+              <div class="flex-1 h-0 flex flex-col items-center justify-center">
+                <div class="w-full max-h-full overflow-y-auto scrollbar-thin-dull p-2 pb-6 space-y-2">
+                  <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
+                    v-for="(attachment, index) of selectedFieldValue"
+                    :key="attachment.id"
+                    :attachment="attachment"
+                    :active="activeAttachmentIndex === index"
+                    @click="activeAttachmentIndex = index"
+                  />
+                </div>
               </div>
               <div>
                 <div class="flex items-center border-t-1 border-gray-200 rounded-t-lg overflow-clip">
@@ -201,7 +244,7 @@ export default {
                     <GeneralIcon icon="chevronDownSmall" />
                   </NcButton>
                 </div>
-                <NcButton type="text" class="w-full !rounded-none !border-t-1 !border-gray-200 !h-16">
+                <NcButton type="text" class="w-full !rounded-none !border-t-1 !border-gray-200 !h-16" @click="openFilePicker()">
                   <div class="flex flex-col items-center">
                     <GeneralIcon icon="plus" />
                     <span class="mt-2">

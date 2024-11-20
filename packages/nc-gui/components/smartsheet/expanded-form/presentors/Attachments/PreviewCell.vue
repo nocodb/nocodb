@@ -15,13 +15,69 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 /* file detection */
 
-const fileType = computed(() => {
-  return props.attachment.mimetype?.split('/')?.at(-1);
-});
+const fileEntry: ComputedRef<{ icon: keyof typeof iconMap, title: string | undefined }> = computed(() => {
 
-const fileIcon = computed((): keyof typeof iconMap => {
-  if (fileType.value === 'pdf') return 'pdfFile';
-  return 'file';
+  if (isImage(props.attachment.title || '', props.attachment.mimetype)) {
+    return {
+      icon: 'image',
+      title: props.attachment.mimetype?.split('/')?.at(-1) || 'Image',
+    };
+  }
+
+  if (isPdf(props.attachment.title || '', props.attachment.mimetype)) {
+    return {
+      icon: 'ncFileTypePdf',
+      title: 'PDF',
+    };
+  }
+
+  if (isVideo(props.attachment.title || '', props.attachment.mimetype)) {
+    return {
+      icon: 'ncFileTypeVideo',
+      title: props.attachment.mimetype?.split('/')?.at(-1) || 'Video',
+    };
+  }
+
+  if (isAudio(props.attachment.title || '', props.attachment.mimetype)) {
+    return {
+      icon: 'ncFileTypeAudio',
+      title: props.attachment.mimetype?.split('/')?.at(-1) || 'Audio',
+    };
+  }
+
+  if (isWord(props.attachment.title || '', props.attachment.mimetype)) {
+    return {
+      icon: 'ncFileTypeWord',
+      title: 'Word',
+    };
+  }
+
+  if (isExcel(props.attachment.title || '', props.attachment.mimetype)) {
+    return {
+      icon: 'ncFileTypeExcel',
+      title: 'Excel',
+    };
+  }
+
+  if (isPresentation(props.attachment.title || '', props.attachment.mimetype)) {
+    return {
+      icon: 'ncFileTypePresentation',
+      title: 'PPT',
+    };
+  }
+
+  if (isZip(props.attachment.title || '', props.attachment.mimetype)) {
+    return {
+      icon: 'ncFileTypeZip',
+      title: 'Zip',
+    };
+  }
+
+  return {
+    icon: 'ncFileTypeUnknown',
+    title: props.attachment.mimetype?.split('/')?.at(-1) || 'File',
+  };
+
 });
 
 </script>
@@ -42,12 +98,12 @@ const fileIcon = computed((): keyof typeof iconMap => {
       />
       <GeneralIcon
         v-else
-        :icon="fileIcon"
-        class="text-red-500 text-xl mt-1"
+        :icon="fileEntry.icon"
+        class="text-white h-[36px] w-[36px] text-xl mt-1"
       />
     </div>
     <div class="font-bold text-center uppercase truncate px-1 pb-1">
-      {{ fileType }}
+      {{ fileEntry.title }}
     </div>
   </div>
 </template>

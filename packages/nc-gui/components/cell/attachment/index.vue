@@ -150,7 +150,7 @@ const openAttachmentModal = () => {
 }
 
 const open = (e: Event) => {
-  e.stopPropagation()
+  e?.stopPropagation()
 
   openAttachmentModal()
 }
@@ -220,6 +220,11 @@ const attachmentSize = computed(() => {
       return 'tiny'
   }
 })
+
+defineExpose({
+  openFilePicker: open,
+})
+
 </script>
 
 <template>

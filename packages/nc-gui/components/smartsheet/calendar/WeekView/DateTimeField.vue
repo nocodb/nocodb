@@ -567,9 +567,8 @@ const recordsAcrossAllRange = computed<{
 
       record.rowMeta.style = {
         ...record.rowMeta.style,
-        left: `${left}px`,
-        width: `${width}px`,
-        minWidth: '72px',
+        left: `calc(${majorLeft}px + ${left}% + 4px)`,
+        width: `calc(${width}% - 8px)`,
         display,
       }
     }
@@ -913,21 +912,6 @@ watch(
 const expandRecord = (record: Row) => {
   emits('expandRecord', record)
 }
-
-const spanningRecordsContainer = ref<HTMLElement | null>(null)
-
-const isExpanded = ref(false)
-
-const isRangeEnabled = computed(() =>
-  calendarRange.value.some((range) => range.fk_to_col !== null && range.fk_to_col !== undefined),
-)
-
-watch(
-  () => spanningRecordsContainer.value?.isSpanningRecordExpanded(),
-  () => {
-    isExpanded.value = spanningRecordsContainer.value?.isSpanningRecordExpanded()
-  },
-)
 </script>
 
 <template>
@@ -937,14 +921,11 @@ watch(
     data-testid="nc-calendar-week-view"
     @drop="dropEvent"
   >
+    <!-- mt-23 should be dynamic TODO: @DarkPhoenix2704 -->
+
     <div
       v-if="!isPublic && dayjs().isBetween(selectedDateRange.start, selectedDateRange.end)"
-      class="absolute top-16 ml-16 pointer-events-none z-2"
-      :class="{
-        '!mt-38.5': isExpanded && isRangeEnabled,
-        'mt-27': !isExpanded && isRangeEnabled,
-        '!mt-6': !recordsAcrossAllRange.spanningRecords?.length,
-      }"
+      class="absolute top-16 ml-16 mt-23 pointer-events-none z-2"
       :style="overlayStyle"
     >
       <div class="flex w-full items-center">
@@ -957,7 +938,7 @@ watch(
         <div class="flex-1 border-b-1 border-brand-500"></div>
       </div>
     </div>
-    <div class="flex sticky h-6 z-3 top-0 pl-16 bg-gray-50 w-full">
+    <div class="flex sticky h-6 z-2 top-0 pl-16 bg-gray-50 w-full">
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
@@ -971,14 +952,8 @@ watch(
         {{ dayjs(date[0]).format('DD ddd') }}
       </div>
     </div>
-    <div
-      :class="{
-        'top-20.5': !isExpanded && isRangeEnabled,
-        'top-32': isExpanded && isRangeEnabled,
-        '!top-0': !recordsAcrossAllRange.spanningRecords?.length,
-      }"
-      class="absolute bg-white w-16 z-1"
-    >
+    <!-- top-16 should be dynamic TODO: @DarkPhoenix2704 -->
+    <div class="absolute top-16 bg-white w-16 z-1">
       <div
         v-for="(hour, index) in datesHours[0]"
         :key="index"
@@ -987,25 +962,15 @@ watch(
         {{ hour.format('hh a') }}
       </div>
     </div>
-    <div
-      v-if="isRangeEnabled && recordsAcrossAllRange.spanningRecords?.length"
-      class="sticky top-6 bg-white z-3 inset-x-0 w-full"
-    >
+    <div class="sticky top-6 bg-white z-3 inset-x-0 w-full">
       <SmartsheetCalendarDateTimeSpanningContainer
-        ref="spanningRecordsContainer"
         :records="recordsAcrossAllRange.spanningRecords"
         @expand-record="expandRecord"
       />
     </div>
-    <div
-      ref="container"
-      :class="{
-        'mt-20.5 ': !isExpanded && isRangeEnabled,
-        'mt-32': isExpanded && isRangeEnabled,
-        '!mt-0': !recordsAcrossAllRange.spanningRecords?.length,
-      }"
-      class="absolute ml-16 flex w-[calc(100%-64px)]"
-    >
+    <!-- mt-16 should be dynamic TODO: @DarkPhoenix2704 -->
+
+    <div ref="container" class="absolute !mt-16 ml-16 flex w-[calc(100%-64px)]">
       <div
         v-for="(date, index) in datesHours"
         :key="index"
@@ -1125,7 +1090,7 @@ watch(
   &:after {
     @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
     content: '';
-    z-index: 1;
+    z-index: 3;
     box-shadow: 0 0 0 2px #3366ff !important;
   }
 }

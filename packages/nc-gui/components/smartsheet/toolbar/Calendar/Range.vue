@@ -254,9 +254,8 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
               <a-select
                 v-model:value="range.fk_to_column_id"
                 class="!rounded-r-none nc-select-shadow w-full flex-1 nc-to-select"
-                :disabled="!range.fk_from_column_id || isLocked"
+                :disabled="!range.fk_from_column_id"
                 :placeholder="$t('placeholder.notSelected')"
-                class="!rounded-r-none flex-1 nc-to-select"
                 data-testid="nc-calendar-range-to-field-select"
                 dropdown-class-name="!rounded-lg"
                 @change="saveCalendarRanges"

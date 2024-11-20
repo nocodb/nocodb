@@ -39,9 +39,10 @@ const emit = defineEmits(['resize-start'])
       'bg-yellow-50': color === 'yellow',
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
+      'bg-white border-gray-200': color === 'gray',
       'shadow-md': hover,
     }"
-    class="relative transition-all flex items-center gap-2 group"
+    class="relative transition-all border-1 flex items-center gap-2 group"
   >
     <div
       v-if="position === 'leftRounded' || position === 'rounded'"
@@ -54,7 +55,7 @@ const emit = defineEmits(['resize-start'])
         'bg-purple-500': color === 'purple',
         'bg-gray-900': color === 'gray',
       }"
-      class="w-1 min-h-6 bg-blue-500 rounded-x rounded-l-md"
+      class="w-1 min-h-6.5 rounded-l-[4px] bg-blue-500"
     ></div>
 
     <div

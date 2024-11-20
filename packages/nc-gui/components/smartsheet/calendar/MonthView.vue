@@ -146,10 +146,10 @@ const recordsToDisplay = computed<{
 
   const perWidth = gridContainerWidth.value / maxVisibleDays.value
   const perHeight = gridContainerHeight.value / calendarData.value.weeks.length
-  const perRecordHeight = 24
+  const perRecordHeight = 28
 
   const spaceBetweenRecords = 27
-  const maxLanes = Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 4))
+  const maxLanes = Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 8))
 
   // Track records and lanes for each day
   const recordsInDay: {
@@ -938,7 +938,12 @@ const addRecord = (date: dayjs.Dayjs) => {
 }
 
 .selected-date {
-  z-index: 2;
-  box-shadow: 0 0 0 2px #3366ff !important;
+  @apply relative;
+  &:after {
+    @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
+    content: '';
+    z-index: 3;
+    box-shadow: 0 0 0 2px #3366ff !important;
+  }
 }
 </style>

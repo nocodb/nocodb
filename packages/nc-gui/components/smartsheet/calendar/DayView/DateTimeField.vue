@@ -281,6 +281,7 @@ const recordsAcrossAllRange = computed<{
 
           if (fromDate?.isValid() && toDate?.isValid()) {
             if (!fromDate.isSame(toDate, 'day')) {
+              // TODO: If multiple range is introduced, we have to make sure no duplicate records are inserted
               recordSpanningDays.push(record)
               return false
             }
@@ -475,9 +476,8 @@ const recordsAcrossAllRange = computed<{
     record.rowMeta.style = {
       ...record.rowMeta.style,
       display,
-      width: `calc(max(calc(${width.toFixed(2)}% - 4px), 180px))`,
-      left: `min(calc(${left.toFixed(2)}% + 4px), calc(100% - max(${width.toFixed(2)}%, 180px) + 4px))`,
-      minWidth: '180px',
+      width: `calc(${width.toFixed(2)}% - 8px)`,
+      left: `calc(${left.toFixed(2)}% + 4px)`,
     }
   }
 
@@ -897,14 +897,7 @@ const expandRecord = (record: Row) => {
 
 <template>
   <div class="h-[calc(100vh-5.3rem)] overflow-y-auto nc-scrollbar-md">
-    <SmartsheetCalendarDateTimeSpanningContainer
-      v-if="
-        calendarRange.some((range) => range.fk_to_col !== null && range.fk_to_col !== undefined) &&
-        recordsAcrossAllRange.spanningRecords?.length
-      "
-      :records="recordsAcrossAllRange.spanningRecords"
-      @expand-record="expandRecord"
-    />
+    <SmartsheetCalendarDateTimeSpanningContainer :records="recordsAcrossAllRange.spanningRecords" @expand-record="expandRecord" />
     <div ref="container" class="w-full flex relative no-selection" data-testid="nc-calendar-day-view" @drop="dropEvent">
       <div
         v-if="shouldEnableOverlay"
@@ -1028,39 +1021,6 @@ const expandRecord = (record: Row) => {
             emit('newRecord', record)
           }
         "
-        >
-          <component :is="iconMap.plus" class="h-4 w-4" />
-        </NcButton>
-
-        <NcButton
-          v-if="isOverflowAcrossHourRange(hour).isOverflow"
-          v-e="`['c:calendar:week-view-more']`"
-          class="!absolute bottom-2 text-center w-15 mx-auto inset-x-0 z-3 text-gray-500"
-          size="xxsmall"
-          type="secondary"
-          @click="viewMore(hour)"
-        >
-          <span class="text-xs">
-            +
-            {{ isOverflowAcrossHourRange(hour).overflowCount }}
-            more
-          </span>
-        </NcButton>
-      </div>
-    </div>
-    <div class="absolute inset-0 pointer-events-none">
-      <div class="relative !ml-[68px] !mr-1 nc-calendar-day-record-container" data-testid="nc-calendar-day-record-container">
-        <template v-for="record in recordsAcrossAllRange.record" :key="record.rowMeta.id">
-          <div
-            v-if="record.rowMeta.style?.display !== 'none'"
-            :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
-            :data-unique-id="record.rowMeta.id"
-            :style="record.rowMeta.style"
-            class="absolute draggable-record transition group cursor-pointer pointer-events-auto"
-            @mousedown="dragStart($event, record)"
-            @mouseleave="hoverRecord = null"
-            @mouseover="hoverRecord = record.rowMeta.id as string"
-            @dragover.prevent
           >
             <component :is="iconMap.plus" class="h-4 w-4" />
           </NcButton>
@@ -1082,23 +1042,13 @@ const expandRecord = (record: Row) => {
         </div>
       </div>
       <div class="absolute inset-0 pointer-events-none">
-        <div
-          class="relative !ml-[68px] !mr-1 z-2 nc-calendar-day-record-container"
-          data-testid="nc-calendar-day-record-container"
-        >
+        <div class="relative !ml-[68px] !mr-1 nc-calendar-day-record-container" data-testid="nc-calendar-day-record-container">
           <template v-for="record in recordsAcrossAllRange.record" :key="record.rowMeta.id">
             <div
               v-if="record.rowMeta.style?.display !== 'none'"
               :data-testid="`nc-calendar-day-record-${record.row[displayField!.title!]}`"
               :data-unique-id="record.rowMeta.id"
-              :style="{
-                ...record.rowMeta.style,
-                opacity:
-                  (dragRecord === null || record.rowMeta.id === dragRecord?.rowMeta.id) &&
-                  (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)
-                    ? 1
-                    : 0.3,
-              }"
+              :style="record.rowMeta.style"
               class="absolute draggable-record transition group cursor-pointer pointer-events-auto"
               @mousedown="dragStart($event, record)"
               @mouseleave="hoverRecord = null"
@@ -1107,10 +1057,9 @@ const expandRecord = (record: Row) => {
             >
               <LazySmartsheetRow :row="record">
                 <LazySmartsheetCalendarVRecordCard
-                  :hover="hoverRecord === record.rowMeta.id"
+                  :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === dragRecord?.rowMeta?.id"
                   :selected="record.rowMeta.id === dragRecord?.rowMeta?.id"
                   :record="record"
-                  :dragging="record.rowMeta.id === dragRecord?.rowMeta?.id || record.rowMeta.id === resizeRecord?.rowMeta?.id"
                   :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
                   @resize-start="onResizeStart"
                 >
@@ -1154,7 +1103,7 @@ const expandRecord = (record: Row) => {
   &:after {
     @apply rounded-sm pointer-events-none absolute inset-0 w-full h-full;
     content: '';
-    z-index: 1;
+    z-index: 3;
     box-shadow: 0 0 0 2px #3366ff !important;
   }
 }

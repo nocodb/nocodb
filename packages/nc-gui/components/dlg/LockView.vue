@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
 import type { ViewType } from 'nocodb-sdk'
-import { ViewTypesNameMap } from 'nocodb-sdk'
+import { viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = defineProps<{
@@ -82,7 +82,7 @@ const changeLockType = async () => {
 
     message.success(`Successfully Switched to ${view.value.lock_type} view`)
 
-    $e(`a:${ViewTypesNameMap[view.value.type] || 'view'}:lock`, { lockType: view.value.lock_type, title: view.value.title })
+    $e(`a:${viewTypeAlias[view.value.type] || 'view'}:lock`, { lockType: view.value.lock_type, title: view.value.title })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

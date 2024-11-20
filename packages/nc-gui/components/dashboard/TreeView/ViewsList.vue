@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ViewType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
+import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'

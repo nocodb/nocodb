@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
-import { ViewTypes, ViewTypesNameMap } from 'nocodb-sdk'
+import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = withDefaults(
@@ -101,7 +101,7 @@ async function changeLockType(type: LockType) {
     return
   }
 
-  $e(`a:${ViewTypesNameMap[view.value.type] || 'view'}:lockmenu`, { lockType: type, sidebar: props.inSidebar })
+  $e(`a:${viewTypeAlias[view.value.type] || 'view'}:lockmenu`, { lockType: type, sidebar: props.inSidebar })
 
   try {
     view.value.lock_type = type
@@ -279,7 +279,6 @@ const isDefaultView = computed(() => view.value?.is_default)
             </div>
           </template>
 
-          <template #expandIcon></template>
           <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
             {{ $t('activity.uploadData') }}
           </div>
@@ -319,8 +318,6 @@ const isDefaultView = computed(() => view.value?.is_default)
           </div>
         </template>
 
-        <template #expandIcon></template>
-
         <LazySmartsheetToolbarExportSubActions />
       </NcSubMenu>
     </template>
@@ -355,8 +352,6 @@ const isDefaultView = computed(() => view.value?.is_default)
             <div class="flex flex-grow"></div>
           </div>
         </template>
-
-        <template #expandIcon></template>
         <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
           {{ $t('labels.viewMode') }}
         </div>

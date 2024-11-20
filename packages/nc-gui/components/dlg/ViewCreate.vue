@@ -979,30 +979,18 @@ const getPluralName = (name: string) => {
             />
           </a-form-item>
           <template v-if="form.type === ViewTypes.CALENDAR && !form.copy_from_id">
-            <div
-              v-for="(range, index) in form.calendar_range"
-              :key="`range-${index}`"
-              :class="{
-                '!gap-2': range.fk_to_column_id === null,
-              }"
-              class="flex flex-col w-full gap-6"
-            >
-              <div class="w-full space-y-2">
-                <div class="text-gray-800">
-                  {{ $t('labels.organiseBy') }}
-                </div>
-
-                <a-select
-                  v-model:value="range.fk_from_column_id"
-                  class="nc-select-shadow w-full nc-from-select !rounded-lg"
-                  dropdown-class-name="!rounded-lg"
-                  :placeholder="$t('placeholder.notSelected')"
-                  data-testid="nc-calendar-range-from-field-select"
-                  @click.stop
-                >
-                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
-                  <a-select-option
-                    v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
+            <div v-for="(range, index) in form.calendar_range" :key="`range-${index}`" class="flex flex-col w-full gap-2">
+              <div class="text-gray-800">
+                {{ $t('labels.organiseBy') }}
+              </div>
+              <NcSelect
+                v-model:value="range.fk_from_column_id"
+                :disabled="isMetaLoading"
+                :loading="isMetaLoading"
+                class="nc-select-shadow nc-from-select"
+              >
+                <a-select-option
+                  v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
                   // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
                   // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
                   if (index === 0) return true
@@ -1031,14 +1019,19 @@ const getPluralName = (name: string) => {
                   </div>
                 </a-select-option>
               </NcSelect>
-              <div
-                v-if="range.fk_to_column_id === null && isEeUI"
-                class="cursor-pointer flex items-center text-gray-800 gap-1"
+
+              <NcButton
+                v-if="range.fk_to_column_id === null"
+                size="small"
+                class="!border-none w-28"
+                type="secondary"
+                :disabled="!isEeUI"
                 @click="range.fk_to_column_id = undefined"
               >
                 <component :is="iconMap.plus" class="h-4 w-4" />
                 {{ $t('activity.addEndDate') }}
-              </div>
+              </NcButton>
+
               <template v-else-if="isEeUI">
                 <span>
                   {{ $t('activity.withEndDate') }}
@@ -1050,7 +1043,7 @@ const getPluralName = (name: string) => {
                     :disabled="isMetaLoading"
                     :loading="isMetaLoading"
                     :placeholder="$t('placeholder.notSelected')"
-                    class="!rounded-r-none ct"
+                    class="nc-to-select flex-1"
                   >
                     <a-select-option
                       v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
@@ -1060,7 +1053,7 @@ const getPluralName = (name: string) => {
                         const firstRange = viewSelectFieldOptions.find(
                           (f) => f.value === form.calendar_range[0].fk_from_column_id,
                         )
-                        return firstRange?.uidt === f.uidt
+                        return firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
                       })"
                       :key="id"
                       :value="option.value"
@@ -1476,6 +1469,13 @@ const getPluralName = (name: string) => {
     @apply content-[''] m-0;
   }
 }
+:not(.nc-to-select) {
+  :deep(.ant-select) {
+    .ant-select-selector {
+      @apply !rounded-lg;
+    }
+  }
+}
 
 .nc-nocoai-footer {
   @apply px-6 py-1 flex items-center gap-2 text-nc-content-purple-dark border-t-1 border-purple-100;
@@ -1510,18 +1510,11 @@ const getPluralName = (name: string) => {
     @apply !rounded-5;
   }
 }
-:deep(.ant-select) {
-  .ant-select-selector {
-    @apply !rounded-lg;
-  }
-}
 
-.nc-to-select {
-  :deep(.ant-select) {
-    .ant-select-selector {
-      border-top-right-radius: 0 !important;
-      border-bottom-right-radius: 0 !important;
-    }
+:deep(.nc-to-select) {
+  .ant-select-selector {
+    @apply !rounded-r-none;
+    border-radius-right: 0rem !important;
   }
 }
 </style>

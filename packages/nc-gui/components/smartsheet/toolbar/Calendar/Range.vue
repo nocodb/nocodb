@@ -142,7 +142,7 @@ const removeRange = async (id: number) => {
   _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
   await saveCalendarRanges()
 }
-/*
+
 const saveCalendarRange = async (range: CalendarRangeType, value?) => {
   range.fk_to_column_id = value
   await saveCalendarRanges()
@@ -180,7 +180,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     </NcTooltip>
 
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-138 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-108 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
@@ -232,22 +232,19 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             </a-select-option>
           </a-select>
 
-          <div
-            v-if="range.fk_to_column_id === null && isEeUI"
-            class="flex cursor-pointer flex text-gray-800 items-center gap-1"
+          <NcButton
+            v-if="range.fk_to_column_id === null"
+            size="small"
             data-testid="nc-calendar-range-add-end-date"
             class="!border-none w-28"
             type="secondary"
-            :shadow="false"
-            :disabled="!isEeUI || isLocked"
+            :disabled="!isEeUI"
             @click="range.fk_to_column_id = undefined"
           >
-            <div class="flex gap-2 items-center">
-              <component :is="iconMap.plus" class="h-4 w-4" />
-              {{ $t('activity.endDate') }}
-            </div>
+            <component :is="iconMap.plus" class="h-4 w-4" />
+            {{ $t('activity.addEndDate') }}
           </NcButton>
-          <template v-else-if="isEeUI && isRangeEnabled">
+          <template v-else-if="isEeUI">
             <span>
               {{ $t('activity.withEndDate') }}
             </span>
@@ -257,6 +254,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
                 class="!rounded-r-none nc-select-shadow w-full flex-1 nc-to-select"
                 :disabled="!range.fk_from_column_id || isLocked"
                 :placeholder="$t('placeholder.notSelected')"
+                class="!rounded-r-none flex-1 nc-to-select"
                 data-testid="nc-calendar-range-to-field-select"
                 dropdown-class-name="!rounded-lg"
                 @change="saveCalendarRanges"

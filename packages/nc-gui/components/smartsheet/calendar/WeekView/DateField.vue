@@ -155,9 +155,9 @@ const calendarData = computed(() => {
           position,
           id,
           style: {
-            width: `calc(max(${spanDays * perDayWidth - 10}px, ${perDayWidth - 10}px))`,
-            left: `${startDaysDiff * perDayWidth + 4}px`,
-            top: `${suitableRow * 28 + Math.max(suitableRow + 1, 1) * 8}px`,
+            width: `calc(max(${spanDays} * ${perDayWidth}px, ${perDayWidth}px))`,
+            left: `${startDaysDiff * perDayWidth}px`,
+            top: `${suitableRow * 28}px`,
           },
         },
       })

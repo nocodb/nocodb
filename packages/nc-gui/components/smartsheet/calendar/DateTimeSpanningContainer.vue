@@ -508,6 +508,7 @@ defineExpose({
             <LazySmartsheetRow :row="record">
               <LazySmartsheetCalendarRecordCard
                 :hover="hoverRecord === record.rowMeta.id"
+                :dragging="resizeRecord?.rowMeta.id === record.rowMeta.id || dragRecord?.rowMeta.id === record.rowMeta.id"
                 :position="record.rowMeta.position"
                 :record="record"
                 :resize="activeCalendarView === 'week'"

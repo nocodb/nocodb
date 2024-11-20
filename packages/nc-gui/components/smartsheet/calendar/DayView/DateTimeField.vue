@@ -1068,9 +1068,10 @@ const expandRecord = (record: Row) => {
             >
               <LazySmartsheetRow :row="record">
                 <LazySmartsheetCalendarVRecordCard
-                  :hover="hoverRecord === record.rowMeta.id || record.rowMeta.id === dragRecord?.rowMeta?.id"
+                  :hover="hoverRecord === record.rowMeta.id"
                   :selected="record.rowMeta.id === dragRecord?.rowMeta?.id"
                   :record="record"
+                  :dragging="record.rowMeta.id === dragRecord?.rowMeta?.id || record.rowMeta.id === resizeRecord?.rowMeta?.id"
                   :resize="!!record.rowMeta.range?.fk_to_col && isUIAllowed('dataEdit')"
                   @resize-start="onResizeStart"
                 >

@@ -137,8 +137,17 @@ export class ThumbnailGeneratorProcessor {
 
     const file = await storageAdapter.fileRead(relativePath);
 
-    // remove everything before 'nc/uploads/' (including nc/uploads/) in relativePath
-    relativePath = relativePath.replace(/^.*?nc[/\\]uploads[/\\]/, '');
+    const scopePath = scope ? scope : 'uploads';
+
+    // remove everything before 'nc/${scopePath}/' (including nc/${scopePath}/) in relativePath
+    relativePath = relativePath.replace(
+      new RegExp(`^.*?nc[/\\\\]${scopePath}[/\\\\]`),
+      '',
+    );
+
+    if (scope) {
+      relativePath = `${scopePath}/${relativePath}`;
+    }
 
     return { file, relativePath };
   }

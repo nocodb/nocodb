@@ -138,11 +138,11 @@ const removeRange = async (id: number) => {
   _calendar_ranges.value = _calendar_ranges.value.filter((_, i) => i !== id)
   await saveCalendarRanges()
 }
-/*
+
 const saveCalendarRange = async (range: CalendarRangeType, value?) => {
   range.fk_to_column_id = value
   await saveCalendarRanges()
-} */
+}
 </script>
 
 <template>
@@ -176,11 +176,11 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
     </NcTooltip>
 
     <template #overlay>
-      <div v-if="calendarRangeDropdown" class="w-138 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
+      <div v-if="calendarRangeDropdown" class="w-108 space-y-6 rounded-2xl p-6" data-testid="nc-calendar-range-menu" @click.stop>
         <div
           v-for="(range, id) in _calendar_ranges"
           :key="id"
-          class="flex w-full gap-2 mb-2 items-center"
+          class="flex flex-col w-full gap-2 mb-2"
           data-testid="nc-calendar-range-option"
         >
           <span>
@@ -222,15 +222,18 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             </a-select-option>
           </NcSelect>
 
-          <div
-            v-if="range.fk_to_column_id === null && isEeUI"
-            class="flex cursor-pointer flex text-gray-800 items-center gap-1"
+          <NcButton
+            v-if="range.fk_to_column_id === null"
+            size="small"
             data-testid="nc-calendar-range-add-end-date"
-            @click="saveCalendarRange(range, undefined)"
+            class="!border-none w-28"
+            type="secondary"
+            :disabled="!isEeUI"
+            @click="range.fk_to_column_id = undefined"
           >
             <component :is="iconMap.plus" class="h-4 w-4" />
             {{ $t('activity.addEndDate') }}
-          </div>
+          </NcButton>
           <template v-else-if="isEeUI">
             <span>
               {{ $t('activity.withEndDate') }}
@@ -240,14 +243,14 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
                 v-model:value="range.fk_to_column_id"
                 :disabled="!range.fk_from_column_id"
                 :placeholder="$t('placeholder.notSelected')"
-                class="!rounded-r-none nc-to-select"
+                class="!rounded-r-none flex-1 nc-to-select"
                 data-testid="nc-calendar-range-to-field-select"
                 @change="saveCalendarRanges"
               >
                 <a-select-option
                   v-for="(option, opId) in [...dateFieldOptions].filter((f) => {
                     const firstRange = dateFieldOptions.find((f) => f.value === calendarRange[0].fk_from_column_id)
-                    return firstRange?.uidt === f.uidt
+                    return firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
                   })"
                   :key="opId"
                   :value="option.value"
@@ -294,7 +297,7 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
   </NcDropdown>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .nc-to-select .ant-select-selector {
   @apply !rounded-r-none;
 }

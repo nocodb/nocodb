@@ -3883,6 +3883,43 @@
           "Snapshot"
         ]
       }
+    },
+    "/api/v2/meta/bases/:baseId/snapshots/:snapshotId": {
+      "delete": {
+        "summary": "Delete snapshot",
+        "description": "Delete snapshot for a given base",
+        "operationId": "snapshot-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Snapshot"
+        ]
+      },
+      "patch": {
+        "summary": "Update snapshot",
+        "description": "Update snapshot for a given base",
+        "operationId": "snapshot-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Snapshot"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Snapshot"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

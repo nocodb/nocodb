@@ -26,7 +26,7 @@ const emit = defineEmits(['resize-start'])
       'bg-yellow-50': color === 'yellow',
       'bg-pink-50': color === 'pink',
       'bg-purple-50': color === 'purple',
-      'bg-white border-gray-200': color === 'gray',
+      'bg-white border-gray-300': color === 'gray',
       'z-90': hover,
     }"
     :style="{

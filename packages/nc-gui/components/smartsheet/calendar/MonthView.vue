@@ -245,17 +245,26 @@ const recordsToDisplay = computed<{
           dayjs(day.date).isSame(startDate, 'day'),
         )
 
+        const id = record.rowMeta.id ?? generateRandomNumber()
+
+        const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
+
         const style: Partial<CSSStyleDeclaration> = {
           left: `${dayIndex * perWidth}px`,
           width: `${perWidth}px`,
-          top: `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
+          top: isRecordDraggingOrResizeState
+            ? `${weekIndex * perHeight}px`
+            : `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
         }
 
-        if (maxVisibleDays.value === 5 && (dayIndex === 5 || dayIndex === 6)) {
+        if (isRecordDraggingOrResizeState) {
+          style.zIndex = '100'
+          style.display = 'block'
+        }
+
+        if (maxVisibleDays.value === 5 && (dayIndex === 5 || dayIndex === 6) && !isRecordDraggingOrResizeState) {
           style.display = 'none'
         }
-
-        const id = record.rowMeta.id ?? Math.random().toString(36).substr(2, 9)
 
         recordsToDisplay.push({
           ...record,
@@ -321,10 +330,18 @@ const recordsToDisplay = computed<{
           const startDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordStart, 'day'))
           const endDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordEnd, 'day'))
 
+          const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
+
           const style: Partial<CSSStyleDeclaration> = {
             left: `${startDayIndex * perWidth}px`,
             width: `${(endDayIndex - startDayIndex + 1) * perWidth}px`,
-            top: `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
+            top: isRecordDraggingOrResizeState
+              ? `${weekIndex * perHeight + perRecordHeight}px`
+              : `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
+          }
+
+          if (isRecordDraggingOrResizeState) {
+            style.zIndex = '100'
           }
 
           let position = 'rounded'
@@ -453,7 +470,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
 
   const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
 
-  newRow.rowMeta.id = draggingId
+  newRow.rowMeta.id = draggingId?.value
 
   if (updateSideBar) {
     formattedData.value = [...(formattedData.value as Row[]), newRow as Row]
@@ -880,7 +897,7 @@ const addRecord = (date: dayjs.Dayjs) => {
 
             opacity:
               (draggingId === null || record.rowMeta.id === draggingId) &&
-              (resizeRecord === undefined || record.rowMeta.id === resizeRecord?.rowMeta.id)
+              (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)
                 ? 1
                 : 0.3,
           }"

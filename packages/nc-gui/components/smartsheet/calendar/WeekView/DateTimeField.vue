@@ -560,17 +560,8 @@ const recordsAcrossAllRange = computed<{
           }
         }
       } else {
-        width = 100 / Math.min(maxOverlaps, 3) / maxVisibleDays.value
-
-        left = width * (overlapIndex - 1)
-
-        width = Math.max((width / 100) * containerWidth.value - 8, 72)
-
-        left = majorLeft + (left / 100) * containerWidth.value + 4
-
-        if (majorLeft + perWidth < left + width) {
-          left = majorLeft + (perWidth - width - 4)
-        }
+        left = majorLeft + 4
+        width = perWidth - 8
       }
 
       record.rowMeta.style = {
@@ -589,20 +580,6 @@ const recordsAcrossAllRange = computed<{
     spanningRecords: recordSpanningDays,
   }
 })
-
-const resizeInProgress = ref(false)
-
-const dragTimeout = ref<ReturnType<typeof setTimeout>>()
-
-const hoverRecord = ref<string | null>()
-
-const resizeDirection = ref<'right' | 'left' | null>()
-
-const resizeRecord = ref<Row | null>(null)
-
-const isDragging = ref(false)
-
-const dragRecord = ref<Row | null>(null)
 
 const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
   updateRowProperty(row, updateProperty, isDelete)

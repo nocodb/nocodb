@@ -127,14 +127,14 @@ const recordsToDisplay = computed<{
   records: Row[]
   count: { [p: string]: { overflow: boolean; count: number; overflowCount: number } }
 }>(() => {
-  if (!calendarData.value || !calendarRange.value) return { records: [], count: {} }
+  if (!dates.value || !calendarRange.value) return { records: [], count: {} }
 
   const perWidth = gridContainerWidth.value / maxVisibleDays.value
   const perHeight = gridContainerHeight.value / calendarData.value.weeks.length
   const perRecordHeight = 28
 
   const spaceBetweenRecords = 27
-  const maxLanes = Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 8))
+  const maxLanes = Math.floor((perHeight - spaceBetweenRecords) / (perRecordHeight + 4))
 
   // Track records and lanes for each day
   const recordsInDay: {
@@ -223,31 +223,20 @@ const recordsToDisplay = computed<{
 
         occupyLane(dateKey, lane)
 
-        const weekIndex = calendarData.value.weeks.findIndex((week) =>
-          week.days.some((day) => dayjs(day.date).isSame(startDate, 'day')),
-        )
-        const dayIndex = calendarData.value.weeks[weekIndex]?.days.findIndex((day) => dayjs(day.date).isSame(startDate, 'day'))
-
-        const id = record.rowMeta.id ?? generateRandomNumber()
-
-        const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
+        const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(startDate, 'day')))
+        const dayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(startDate, 'day'))
 
         const style: Partial<CSSStyleDeclaration> = {
           left: `${dayIndex * perWidth}px`,
           width: `${perWidth}px`,
-          top: isRecordDraggingOrResizeState
-            ? `${weekIndex * perHeight}px`
-            : `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
+          top: `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
         }
 
-        if (isRecordDraggingOrResizeState) {
-          style.zIndex = '100'
-          style.display = 'block'
-        }
-
-        if (maxVisibleDays.value === 5 && (dayIndex === 5 || dayIndex === 6) && !isRecordDraggingOrResizeState) {
+        if (maxVisibleDays.value === 5 && (dayIndex === 5 || dayIndex === 6)) {
           style.display = 'none'
         }
+
+        const id = record.rowMeta.id ?? Math.random().toString(36).substr(2, 9)
 
         recordsToDisplay.push({
           ...record,
@@ -261,7 +250,7 @@ const recordsToDisplay = computed<{
         })
       } else if (startCol && endCol) {
         // Multi-day event logic
-        let startDate = dayjs(record.row[startCol.title!])
+        const startDate = dayjs(record.row[startCol.title!])
         const endDate = dayjs(record.row[endCol.title!])
 
         let currentWeekStart = startDate.startOf('week')
@@ -290,20 +279,6 @@ const recordsToDisplay = computed<{
 
           const recordStart = currentWeekStart.isBefore(startDate) ? startDate : currentWeekStart
           const recordEnd = currentWeekEnd.isAfter(endDate) ? endDate : currentWeekEnd
-
-          const dayIndex = recordStart.day()
-
-          // If the record spans multiple weeks and the maxVisibleDays is 5 and startDate is weekedend, we skip the weekends
-          if (maxVisibleDays.value === 5 && (dayIndex === 0 || dayIndex === 6)) {
-            currentWeekStart = currentWeekStart.add(1, 'week')
-            continue
-          }
-
-          if (recordEnd.isBefore(dates.value[0][0])) {
-            currentWeekStart = currentWeekStart.add(1, 'week')
-            continue
-          }
-
           const duration = recordEnd.diff(recordStart, 'day') + 1
 
           const dateKey = recordStart.format('YYYY-MM-DD')
@@ -323,30 +298,14 @@ const recordsToDisplay = computed<{
 
           occupyLane(dateKey, lane, duration)
 
-          const weekIndex = calendarData.value.weeks.findIndex((week) =>
-            week.days.some((day) => dayjs(day.date).isSame(recordStart, 'day')),
-          )
-
-          const startDayIndex = calendarData.value.weeks[weekIndex]?.days.findIndex((day) =>
-            dayjs(day.date).isSame(recordStart, 'day'),
-          )
-
-          const endDayIndex = calendarData.value.weeks[weekIndex]?.days.findIndex((day) =>
-            dayjs(day.date).isSame(recordEnd, 'day'),
-          )
-
-          const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
+          const weekIndex = dates.value.findIndex((week) => week.some((day) => dayjs(day).isSame(recordStart, 'day')))
+          const startDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordStart, 'day'))
+          const endDayIndex = (dates.value[weekIndex] ?? []).findIndex((day) => dayjs(day).isSame(recordEnd, 'day'))
 
           const style: Partial<CSSStyleDeclaration> = {
             left: `${startDayIndex * perWidth}px`,
             width: `${(endDayIndex - startDayIndex + 1) * perWidth}px`,
-            top: isRecordDraggingOrResizeState
-              ? `${weekIndex * perHeight + perRecordHeight}px`
-              : `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
-          }
-
-          if (isRecordDraggingOrResizeState) {
-            style.zIndex = '100'
+            top: `${weekIndex * perHeight + (spaceBetweenRecords + lane * (perRecordHeight + 4))}px`,
           }
 
           let position = 'rounded'
@@ -385,7 +344,7 @@ const recordsToDisplay = computed<{
               recordIndex,
             },
           })
-          recordIndex++
+
           currentWeekStart = currentWeekStart.add(1, 'week')
         }
       }

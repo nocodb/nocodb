@@ -55,3 +55,7 @@ export const ncArrayFrom = <T>(
 ): T[] => {
   return Array.from({ length }, (_, i) => contentCallback(i))
 }
+
+export const isUnicodeEmoji = (emoji: string) => {
+  return !!emoji?.match(/(\p{Emoji}|\p{Extended_Pictographic})/gu)
+}

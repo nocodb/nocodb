@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
-import type { ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { ButtonType, ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
+  ButtonActionsType,
   UITypes,
   ViewTypes,
   isCreatedOrLastModifiedByCol,
@@ -185,6 +186,8 @@ const { onLeft, onRight, onUp, onDown } = usePaginationShortcuts({
   changePage: changePage as any,
   isViewDataLoading,
 })
+
+const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
 // #Variables
 const addColumnDropdown = ref(false)
@@ -844,6 +847,71 @@ const deleteSelectedRangeOfRows = () => {
   })
 }
 
+const isSelectedOnlyAI = computed(() => {
+  // selectedRange
+  if (selectedRange.start.col === selectedRange.end.col) {
+    const field = fields.value[selectedRange.start.col]
+    return {
+      enabled: field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai,
+      disabled: !ncIsArrayIncludes(aiIntegrations.value, (field?.colOptions as ButtonType)?.fk_integration_id, 'id'),
+    }
+  }
+
+  return {
+    enabled: false,
+    disabled: false,
+  }
+})
+
+const generateAIBulk = async () => {
+  if (!isSelectedOnlyAI.value.enabled || !meta?.value?.id || !meta.value.columns) return
+
+  const field = fields.value[selectedRange.start.col]
+
+  if (!field.id) return
+
+  const rows = dataRef.value.slice(selectedRange.start.row, selectedRange.end.row + 1)
+
+  if (!rows || rows.length === 0) return
+
+  let outputColumnIds = [field.id]
+
+  const isAiButton = field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai
+
+  if (isAiButton) {
+    outputColumnIds =
+      ncIsString(field.colOptions?.output_column_ids) && field.colOptions.output_column_ids.split(',').length > 0
+        ? field.colOptions.output_column_ids.split(',')
+        : []
+  }
+
+  const pks = rows.map((row) => extractPkFromRow(row.row, meta.value!.columns!)).filter((pk) => pk !== null)
+
+  generatingRows.value.push(...pks)
+  generatingColumnRows.value.push(field.id)
+
+  generatingColumns.value.push(...outputColumnIds)
+
+  const res = await generateRows(meta.value.id, field.id, pks)
+
+  if (res) {
+    // find rows using pk and update with generated rows
+    for (const row of res) {
+      const oldRow = dataRef.value.find(
+        (r) => extractPkFromRow(r.row, meta.value!.columns!) === extractPkFromRow(row, meta.value!.columns!),
+      )
+
+      if (oldRow) {
+        oldRow.row = { ...oldRow.row, ...row }
+      }
+    }
+  }
+
+  generatingRows.value = generatingRows.value.filter((pk) => !pks.includes(pk))
+  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== field.id)
+  generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
+}
+
 const selectColumn = (columnId: string) => {
   // this is triggered with click event, so do nothing & clear resizingColumn flag if it's true
   if (resizingColumn.value) {
@@ -1160,7 +1228,7 @@ const loadColumn = (title: string, tp: string, colOptions?: any) => {
   preloadColumn.value = {
     title,
     uidt: tp,
-    colOptions,
+    ...colOptions,
   }
   persistMenu.value = false
 }
@@ -1169,9 +1237,9 @@ const editOrAddProviderRef = ref()
 
 const onVisibilityChange = () => {
   addColumnDropdown.value = true
-  if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
+  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
     addColumnDropdown.value = false
-    // persistMenu.value = altModifier
+    persistMenu.value = altModifier.value
   }
 }
 
@@ -1862,84 +1930,77 @@ onKeyStroke('ArrowDown', onDown)
                         <component :is="iconMap.plus" class="text-base nc-column-add text-gray-500 !group-hover:text-black" />
                       </div>
 
-                      <template v-if="isEeUI && persistMenu" #overlay>
-                        <NcMenu>
-                          <a-sub-menu v-if="predictedNextColumn?.length" key="predict-column">
+                      <template v-if="isEeUI && persistMenu && meta?.id" #overlay>
+                        <NcMenu class="predict-menu">
+                          <NcSubMenu v-if="predictedNextColumn?.length" key="predict-column" class="py-0 px-0 w-full">
                             <template #title>
-                              <div class="flex flex-row items-center py-3">
+                              <div class="flex flex-row items-center px-1 py-0.5 gap-1 w-full">
                                 <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">
+                                <div class="text-xs flex-1">
                                   {{ $t('activity.predictColumns') }}
                                 </div>
-                                <MdiChevronRight class="text-gray-500 ml-2" />
+                                <MdiChevronRight class="text-gray-500" />
                               </div>
                             </template>
                             <template #expandIcon></template>
-                            <NcMenu>
-                              <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
-                                <NcMenuItem>
-                                  <div class="flex flex-row items-center py-3" @click="loadColumn(col.title, col.type)">
-                                    <div class="text-xs pl-2">{{ col.title }}</div>
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-
-                              <NcMenuItem>
-                                <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                                  <div class="text-red-500 text-xs pl-2">
-                                    <MdiReload />
-                                    Generate Again
-                                  </div>
-                                </div>
+                            <template v-for="col in predictedNextColumn" :key="`predict-${col.title}-${col.type}`">
+                              <NcMenuItem class="w-full flex items-center" @click="loadColumn(col.title, col.type)">
+                                <div class="text-xs">{{ col.title }}</div>
                               </NcMenuItem>
-                            </NcMenu>
-                          </a-sub-menu>
-                          <NcMenuItem v-else>
-                            <!-- Predict Columns -->
-                            <div class="flex flex-row items-center py-3" @click="predictNextColumn">
-                              <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
-                              <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">
-                                {{ $t('activity.predictColumns') }}
+                            </template>
+
+                            <NcMenuItem class="flex flex-row items-center" @click="predictNextColumn(meta.id)">
+                              <div class="text-red-500 text-xs">
+                                <MdiReload />
+                                Generate Again
                               </div>
+                            </NcMenuItem>
+                          </NcSubMenu>
+                          <NcMenuItem v-else class="flex flex-row items-center py-3" @click="predictNextColumn(meta.id)">
+                            <!-- Predict Columns -->
+                            <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
+                            <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs">
+                              {{ $t('activity.predictColumns') }}
                             </div>
                           </NcMenuItem>
-                          <a-sub-menu v-if="predictedNextFormulas" key="predict-formula">
+                          <NcSubMenu v-if="predictedNextFormulas?.length" key="predict-formula" class="py-0 px-0 w-full">
                             <template #title>
-                              <div class="flex flex-row items-center py-3">
+                              <div class="flex flex-row items-center px-1 py-0.5 gap-1 w-full">
                                 <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
-                                <div class="text-xs pl-2">
+                                <div class="text-xs flex-1">
                                   {{ $t('activity.predictFormulas') }}
                                 </div>
-                                <MdiChevronRight class="text-gray-500 ml-2" />
+                                <MdiChevronRight class="text-gray-500" />
                               </div>
                             </template>
                             <template #expandIcon></template>
-                            <NcMenu>
-                              <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
-                                <NcMenuItem>
-                                  <div
-                                    class="flex flex-row items-center py-3"
-                                    @click="
-                                      loadColumn(col.title, 'Formula', {
-                                        formula_raw: col.formula,
-                                      })
-                                    "
-                                  >
-                                    <div class="text-xs pl-2">{{ col.title }}</div>
-                                  </div>
-                                </NcMenuItem>
-                              </template>
-                            </NcMenu>
-                          </a-sub-menu>
-                          <NcMenuItem v-else>
-                            <!-- Predict Formulas -->
-                            <div class="flex flex-row items-center py-3" @click="predictNextFormulas">
-                              <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
-                              <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
-                              <div class="text-xs pl-2">
-                                {{ $t('activity.predictFormulas') }}
+                            <template v-for="col in predictedNextFormulas" :key="`predict-${col.title}-formula`">
+                              <NcMenuItem
+                                class="flex flex-row items-center"
+                                @click="
+                                  loadColumn(col.title, 'Formula', {
+                                    formula_raw: col.formula,
+                                  })
+                                "
+                              >
+                                <div class="text-xs">{{ col.title }}</div>
+                              </NcMenuItem>
+                            </template>
+
+                            <NcMenuItem class="flex flex-row items-center" @click="predictNextFormulas(meta.id)">
+                              <div class="text-red-500 text-xs">
+                                <MdiReload />
+                                Generate Again
                               </div>
+                            </NcMenuItem>
+                          </NcSubMenu>
+                          <NcMenuItem v-else class="flex flex-row items-center py-3" @click="predictNextFormulas(meta.id)">
+                            <!-- Predict Formulas -->
+                            <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
+                            <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
+                            <div class="text-xs">
+                              {{ $t('activity.predictFormulas') }}
                             </div>
                           </NcMenuItem>
                         </NcMenu>
@@ -2319,6 +2380,29 @@ onKeyStroke('ArrowDown', onDown)
             <!--              </div> -->
             <!--            </NcMenuItem> -->
 
+            <NcTooltip
+              v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && isSelectedOnlyAI.enabled"
+              :disabled="!isSelectedOnlyAI.disabled"
+            >
+              <template #title>
+                {{
+                  aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                }}
+              </template>
+              <NcMenuItem
+                class="nc-base-menu-item"
+                data-testid="context-menu-item-bulk"
+                :disabled="isSelectedOnlyAI.disabled"
+                @click="generateAIBulk"
+              >
+                <div class="flex gap-2 items-center">
+                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+                  <!-- Generate All -->
+                  Generate {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
+
             <NcMenuItem
               v-if="contextMenuTarget"
               class="nc-base-menu-item"
@@ -2602,6 +2686,12 @@ onKeyStroke('ArrowDown', onDown)
   }
 
   @apply !rounded-lg;
+}
+
+.predict-menu {
+  .ant-dropdown-menu-title-content > div > div {
+    @apply !w-full;
+  }
 }
 </style>
 

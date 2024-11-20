@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import { useVirtualList } from '@vueuse/core'
 
-export type RawValueType = string | number
+export type MultiSelectRawValueType = Array<string | number>
+
+export type RawValueType = string | number | MultiSelectRawValueType
 
 interface ListItem {
   value?: RawValueType
@@ -45,6 +47,14 @@ interface Props {
   itemHeight?: number
   /** Custom filter function for list items */
   filterOption?: (input: string, option: ListItem, index: Number) => boolean
+  /**
+   * Indicates whether the component allows multiple selections.
+   */
+  isMultiSelect?: boolean
+  /**
+   * The minimum number of items required in the list to enable search functionality.
+   */
+  minItemsForSearch?: number
 }
 
 interface Emits {
@@ -61,11 +71,15 @@ const props = withDefaults(defineProps<Props>(), {
   optionValueKey: 'value',
   optionLabelKey: 'label',
   itemHeight: 38,
+  isMultiSelect: false,
+  minItemsForSearch: 4,
 })
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'value', emits)
+const vModel = useVModel(props, 'value', emits, {
+  defaultValue: props.isMultiSelect ? ([] as MultiSelectRawValueType) : undefined,
+})
 
 const vOpen = useVModel(props, 'open', emits)
 
@@ -83,7 +97,9 @@ const activeOptionIndex = ref(-1)
 
 const showHoverEffectOnSelectedOption = ref(true)
 
-const isSearchEnabled = computed(() => props.list.length > 4)
+const isSearchEnabled = computed(() => props.list.length > props.minItemsForSearch)
+
+const keyDown = ref(false)
 
 /**
  * Computed property that filters the list of options based on the search query.
@@ -115,10 +131,30 @@ const {
 })
 
 /**
+ * Compares the given value with the current vModel value.
+ * If the component is in multi-select mode, it checks if the value is included in the vModel array.
+ * Otherwise, it performs a direct equality check.
+ *
+ * @param value - The value to compare with the vModel value.
+ * @returns {boolean} - True if the value matches the vModel value, false otherwise.
+ */
+function compareVModel(value: string | number): boolean {
+  if (props.isMultiSelect) {
+    return (vModel.value as MultiSelectRawValueType).includes(value)
+  }
+
+  return vModel.value === value
+}
+
+/**
  * Resets the hover effect on the selected option
  * @param clearActiveOption - Whether to clear the active option index
  */
 const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: number) => {
+  if ((clearActiveOption && keyDown.value) || (clearActiveOption && activeOptionIndex.value === newActiveIndex)) {
+    return
+  }
+
   if (clearActiveOption && showHoverEffectOnSelectedOption.value) {
     activeOptionIndex.value = -1
   }
@@ -140,10 +176,23 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * This function is responsible for handling the selection of an option from the list.
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
-const handleSelectOption = (option: ListItem) => {
+const handleSelectOption = (option: ListItem, index?: number) => {
   if (!option?.[optionValueKey]) return
 
-  vModel.value = option[optionValueKey] as RawValueType
+  if (index !== undefined) {
+    activeOptionIndex.value = index
+  }
+
+  if (props.isMultiSelect) {
+    if ((vModel.value as MultiSelectRawValueType).includes(option?.[optionValueKey])) {
+      vModel.value = (vModel.value as MultiSelectRawValueType).filter((op) => op !== option?.[optionValueKey])
+    } else {
+      vModel.value = [...(vModel.value as MultiSelectRawValueType), option?.[optionValueKey]]
+    }
+  } else {
+    vModel.value = option[optionValueKey] as RawValueType
+  }
+
   emits('change', option)
   if (closeOnSelect.value) {
     vOpen.value = false
@@ -167,21 +216,31 @@ const handleAutoScrollOption = (useDelay = false) => {
 }
 
 const onArrowDown = () => {
+  keyDown.value = true
   handleResetHoverEffect()
 
   if (activeOptionIndex.value === list.value.length - 1) return
 
   activeOptionIndex.value = Math.min(activeOptionIndex.value + 1, list.value.length - 1)
   handleAutoScrollOption()
+
+  ncDelay(100).then(() => {
+    keyDown.value = false
+  })
 }
 
 const onArrowUp = () => {
+  keyDown.value = true
   handleResetHoverEffect()
 
   if (activeOptionIndex.value === 0) return
 
   activeOptionIndex.value = Math.max(activeOptionIndex.value - 1, 0)
   handleAutoScrollOption()
+
+  ncDelay(100).then(() => {
+    keyDown.value = false
+  })
 }
 
 const handleKeydownEnter = () => {
@@ -224,10 +283,15 @@ watch(
     if (!vOpen.value) return
 
     searchQuery.value = ''
-    showHoverEffectOnSelectedOption.value = true
 
-    if (vModel.value) {
-      activeOptionIndex.value = list.value.findIndex((o) => o?.[optionValueKey] === vModel.value)
+    if (props.isMultiSelect) {
+      showHoverEffectOnSelectedOption.value = false
+    } else {
+      showHoverEffectOnSelectedOption.value = true
+    }
+
+    if (vModel.value && !props.isMultiSelect) {
+      activeOptionIndex.value = list.value.findIndex((o) => compareVModel(o?.[optionValueKey]))
 
       nextTick(() => {
         handleAutoScrollOption(true)
@@ -294,15 +358,15 @@ watch(
                 :class="[
                   `nc-list-option-${idx}`,
                   {
-                    'nc-list-option-selected': option[optionValueKey] === vModel,
-                    'bg-gray-100 ': showHoverEffectOnSelectedOption && option[optionValueKey] === vModel,
+                    'nc-list-option-selected': compareVModel(option[optionValueKey]),
+                    'bg-gray-100 ': showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
                     'bg-gray-100 nc-list-option-active': activeOptionIndex === idx,
                   },
                 ]"
-                @mouseover="handleResetHoverEffect(true)"
-                @click="handleSelectOption(option)"
+                @mouseover="handleResetHoverEffect(true, idx)"
+                @click="handleSelectOption(option, idx)"
               >
-                <slot name="listItem" :option="option" :index="idx">
+                <slot name="listItem" :option="option" :is-selected="() => compareVModel(option[optionValueKey])" :index="idx">
                   <NcTooltip class="truncate flex-1" show-on-truncate-only>
                     <template #title>
                       {{ option[optionLabelKey] }}
@@ -310,7 +374,7 @@ watch(
                     {{ option[optionLabelKey] }}
                   </NcTooltip>
                   <GeneralIcon
-                    v-if="showSelectedOption && option[optionValueKey] === vModel"
+                    v-if="showSelectedOption && compareVModel(option[optionValueKey])"
                     id="nc-selected-item-icon"
                     icon="check"
                     class="flex-none text-primary w-4 h-4"

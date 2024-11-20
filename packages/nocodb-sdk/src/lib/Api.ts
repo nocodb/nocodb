@@ -331,6 +331,10 @@ export interface IntegrationType {
   base_id?: string;
   /** Model for Bool */
   is_private?: BoolType;
+  /** Model for Bool */
+  is_default?: BoolType;
+  /** Model for Bool */
+  is_global?: BoolType;
   /** Integration Type */
   type?: IntegrationsType;
   /**
@@ -402,6 +406,18 @@ export interface BaseReqType {
  */
 export enum IntegrationsType {
   Database = 'database',
+  Ai = 'ai',
+  Communication = 'communication',
+  SpreadSheet = 'spread-sheet',
+  ProjectManagement = 'project-management',
+  Crm = 'crm',
+  Marketing = 'marketing',
+  Ats = 'ats',
+  Development = 'development',
+  Finance = 'finance',
+  Ticketing = 'ticketing',
+  Storage = 'storage',
+  Others = 'others',
 }
 
 /**
@@ -568,7 +584,8 @@ export interface ColumnType {
     | 'Links'
     | 'User'
     | 'CreatedBy'
-    | 'LastModifiedBy';
+    | 'LastModifiedBy'
+    | 'AI';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -1119,7 +1136,7 @@ export interface ButtonType {
   /** Unique ID */
   id?: IdType;
   /** Whether button is webhook or url */
-  type?: 'webhook' | 'url';
+  type?: ButtonActionsType;
   /** Label of Button */
   label?: string;
   /** Button Theme */
@@ -1156,6 +1173,12 @@ export interface ButtonType {
   fk_webhook_id?: IdType;
   /** Foreign Key to Column */
   fk_column_id?: IdType;
+  /** Comma separated column ids to be updated with the generated value */
+  output_column_ids?: string;
+  /** Foreign key to AI integration */
+  fk_integration_id?: string;
+  /** AI model */
+  model?: string;
 }
 
 /**
@@ -1167,7 +1190,7 @@ export interface ButtonColumnReqType {
   /** UI Data Type */
   uidt?: 'Formula';
   /** Whether button is webhook or url */
-  type?: 'webhook' | 'url';
+  type?: ButtonActionsType;
   /** Button Theme */
   theme?: 'solid' | 'text' | 'light';
   /** Button color */
@@ -2095,7 +2118,8 @@ export interface NormalColumnRequestType {
     | 'Links'
     | 'User'
     | 'CreatedBy'
-    | 'LastModifiedBy';
+    | 'LastModifiedBy'
+    | 'AI';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
@@ -2671,7 +2695,7 @@ export interface TableType {
   /** The columns included in this table */
   columns?: ColumnType[];
   /** Column Models grouped by IDs */
-  columnsById?: object;
+  columnsById?: Record<string, any>;
   /** Model for Bool */
   deleted?: BoolType;
   /** Is this table enabled? */
@@ -3282,6 +3306,23 @@ export interface ExtensionReqType {
   meta?: MetaType;
   /** Order of the extension */
   order?: number;
+}
+
+export interface AIRecordType {
+  /** Value */
+  value?: string;
+  /** Last Modified By User ID */
+  lastModifiedBy?: IdType;
+  /** Last Modified Time */
+  lastModifiedTime?: string;
+  /** Is any referenced value updated? */
+  isStale?: boolean;
+}
+
+export enum ButtonActionsType {
+  Webhook = 'webhook',
+  Url = 'url',
+  Ai = 'ai',
 }
 
 import type {
@@ -12654,6 +12695,146 @@ export class Api<
         ...params,
       }),
   };
+  ai = {
+    /**
+     * @description AI Utils
+     *
+     * @tags Ai
+     * @name Utils
+     * @summary AI Utils
+     * @request POST:/api/v2/ai/bases/{baseId}/utils
+     * @response `200` `any` OK
+     */
+    utils: (
+      baseId: IdType,
+      data: {
+        operation?: string;
+        input: any;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v2/ai/bases/${baseId}/utils`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description AI Schema
+     *
+     * @tags Ai
+     * @name Schema
+     * @summary AI Schema
+     * @request POST:/api/v2/ai/bases/{baseId}/schema
+     * @response `200` `any` OK
+     */
+    schema: (
+      baseId: IdType,
+      data: {
+        operation?: string;
+        input: any;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v2/ai/bases/${baseId}/schema`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description AI Schema
+     *
+     * @tags Ai
+     * @name SchemaCreate
+     * @summary AI Schema
+     * @request POST:/api/v2/ai/workspaces/{workspaceId}/bases
+     * @response `200` `any` OK
+     */
+    schemaCreate: (
+      workspaceId: IdType,
+      data: {
+        operation?: string;
+        input: any;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v2/ai/workspaces/${workspaceId}/bases`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Generate AI data for specified rows
+     *
+     * @tags Ai
+     * @name DataGenerate
+     * @summary Generate AI Data
+     * @request POST:/api/v2/ai/tables/{modelId}/rows/generate
+     * @response `200` `(any)[]` OK
+     */
+    dataGenerate: (
+      modelId: string,
+      data: {
+        rowIds: string[];
+        column?:
+          | string
+          | {
+              title: string;
+              prompt_raw: string;
+              fk_integration_id: string;
+              uidt: string;
+              model?: string;
+              output_column_ids?: string;
+            };
+        preview?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any[], any>({
+        path: `/api/v2/ai/tables/${modelId}/rows/generate`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Extract AI data from the input
+     *
+     * @tags Ai
+     * @name DataExtract
+     * @summary Extract Data using AI
+     * @request POST:/api/v2/ai/tables/{modelId}/extract
+     * @response `200` `(any)[]` OK
+     */
+    dataExtract: (
+      modelId: string,
+      data: {
+        input: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any[], any>({
+        path: `/api/v2/ai/tables/${modelId}/extract`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
   integration = {
     /**
      * @description List integrations
@@ -12763,6 +12944,149 @@ export class Api<
       this.request<void, any>({
         path: `/api/v2/meta/integrations/${integrationId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Set integration as category default
+     *
+     * @tags Integration
+     * @name SetDefault
+     * @summary Set integration as category default
+     * @request PATCH:/api/v2/meta/integrations/{integrationId}/default
+     * @response `200` `void` OK
+     */
+    setDefault: (integrationId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v2/meta/integrations/${integrationId}/default`,
+        method: 'PATCH',
+        ...params,
+      }),
+
+    /**
+     * @description Store integration
+     *
+     * @tags Integration
+     * @name Store
+     * @summary Store integration
+     * @request POST:/api/v2/integrations/:integrationId/store
+     * @response `200` `void` OK
+     */
+    store: (
+      integrationId: string,
+      data:
+        | {
+            op: 'list';
+            limit: number;
+            offset: number;
+          }
+        | {
+            op: 'get';
+          }
+        | {
+            op: 'sum';
+            fields: string[];
+          },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v2/integrations/${integrationId}/store`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  integrations = {
+    /**
+     * @description List available integrations
+     *
+     * @tags Integrations
+     * @name List
+     * @summary Integration List
+     * @request GET:/api/v2/integrations
+     * @response `200` `object` OK
+     */
+    list: (params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v2/integrations`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Get info for integration
+     *
+     * @tags Integrations
+     * @name Info
+     * @summary Get Integration Info
+     * @request GET:/api/v2/integrations/:type/:subType
+     * @response `200` `object` OK
+     */
+    info: (type: string, subType: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v2/integrations/${type}/${subType}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Call exposed integration endpoint
+     *
+     * @tags Integrations
+     * @name Endpoint
+     * @summary Call exposed integration endpoint
+     * @request POST:/api/v2/integrations/:integrationId/:endpoint
+     * @response `200` `object` OK
+     */
+    endpoint: (
+      integrationId: string,
+      endpoint: string,
+      data: object,
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v2/integrations/${integrationId}/${endpoint}`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  action = {
+    /**
+     * @description Trigger a button action
+     *
+     * @tags Action
+     * @name TriggerButton
+     * @summary Trigger a button action
+     * @request POST:/api/v2/tables/:tableId/button/:fieldId
+     * @response `200` `object` OK
+     */
+    triggerButton: (
+      tableId: string,
+      fieldId: string,
+      data: {
+        customRows?: any[];
+        rowIds?: string[];
+        customField?: object;
+      },
+      query?: {
+        /** Trigger AI action with custom record data provided in request body as rows */
+        passThrough?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<object, any>({
+        path: `/api/v2/tables/${tableId}/button/${fieldId}`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };

@@ -2,6 +2,8 @@
 const props = defineProps<{
   popupOffset?: number[]
 }>()
+
+const slots = useSlots()
 </script>
 
 <template>
@@ -12,9 +14,8 @@ const props = defineProps<{
           <slot name="title" />
         </div>
 
-        <slot name="expandIcon">
-          <GeneralIcon icon="arrowRight" class="nc-submenu-arrow text-base" />
-        </slot>
+        <slot v-if="slots.expandIcon" name="expandIcon" />
+        <GeneralIcon v-else icon="arrowRight" class="nc-submenu-arrow text-base" />
       </div>
     </template>
 

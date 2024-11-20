@@ -494,7 +494,8 @@ reloadViewDataHook?.on(async () => {
                       v-for="col in fieldsWithoutDisplay"
                       :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
                       :class="{
-                        '!children:pointer-events-auto': isButton(col),
+                        '!children:pointer-events-auto':
+                          isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
                       }"
                       @click="handleClick(col, $event)"
                     >
@@ -506,7 +507,7 @@ reloadViewDataHook?.on(async () => {
                           </div>
                         </div>
                         <div
-                          v-if="!isRowEmpty(record, col)"
+                          v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
                           class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
                         >
                           <LazySmartsheetVirtualCell

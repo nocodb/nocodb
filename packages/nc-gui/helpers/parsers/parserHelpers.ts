@@ -1,4 +1,4 @@
-import { type ColumnType, FieldNameFromUITypes, UITypes } from 'nocodb-sdk'
+import { ButtonActionsType, type ColumnType, FieldNameFromUITypes, UITypes } from 'nocodb-sdk'
 import isURL from 'validator/lib/isURL'
 import { pluralize } from 'inflection'
 
@@ -474,6 +474,12 @@ export const generateUniqueColumnName = ({
       // Replace placeholders
       defaultColumnName = defaultColumnName.replace('{TableName}', rollupTableTitle).replace('{FieldName}', rollupColumnTitle)
       break
+    }
+
+    case UITypes.Button: {
+      if (formState?.type === ButtonActionsType.Ai) {
+        defaultColumnName = `AI ${defaultColumnName}`
+      }
     }
   }
 

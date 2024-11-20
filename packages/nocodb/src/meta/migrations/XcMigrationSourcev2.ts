@@ -54,6 +54,7 @@ import * as nc_064_pg_minimal_dbs from '~/meta/migrations/v2/nc_064_pg_minimal_d
 import * as nc_065_encrypt_flag from '~/meta/migrations/v2/nc_065_encrypt_flag';
 import * as nc_066_ai_button from '~/meta/migrations/v2/nc_066_ai_button';
 import * as nc_067_personal_view from '~/meta/migrations/v2/nc_067_personal_view';
+import * as nc_068_user_delete from '~/meta/migrations/v2/nc_068_user_delete';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -119,6 +120,7 @@ export default class XcMigrationSourcev2 {
       'nc_065_encrypt_flag',
       'nc_066_ai_button',
       'nc_067_personal_view',
+      'nc_068_user_delete',
     ]);
   }
 
@@ -240,6 +242,8 @@ export default class XcMigrationSourcev2 {
         return nc_066_ai_button;
       case 'nc_067_personal_view':
         return nc_067_personal_view;
+      case 'nc_068_user_delete':
+        return nc_068_user_delete;
     }
   }
 }

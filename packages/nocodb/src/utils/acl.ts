@@ -61,6 +61,9 @@ const permissionScopes = {
     'integrationDelete',
     'integrationUpdate',
     'integrationList',
+
+    // AI
+    'aiSchema',
   ],
   base: [
     'formViewGet',
@@ -163,6 +166,11 @@ const permissionScopes = {
     'hookTrigger',
 
     'userInvite',
+
+    // AI
+    'aiUtils',
+    'aiData',
+    'aiBaseSchema',
   ],
 };
 
@@ -283,6 +291,10 @@ const rolePermissions:
       // upload: true,
       // uploadViaURL: true,
       hookTrigger: true,
+
+      // AI
+      aiUtils: true,
+      aiData: true,
     },
   },
   [ProjectRoles.CREATOR]: {

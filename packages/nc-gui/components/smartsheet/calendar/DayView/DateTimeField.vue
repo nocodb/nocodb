@@ -895,7 +895,11 @@ const expandRecord = (record: Row) => {
 
 <template>
   <div class="h-[calc(100vh-5.3rem)] overflow-y-auto nc-scrollbar-md">
-    <SmartsheetCalendarDateTimeSpanningContainer :records="recordsAcrossAllRange.spanningRecords" @expand-record="expandRecord" />
+    <SmartsheetCalendarDateTimeSpanningContainer
+      v-if="calendarRange.some((range) => range.fk_to_col !== null && range.fk_to_col !== undefined)"
+      :records="recordsAcrossAllRange.spanningRecords"
+      @expand-record="expandRecord"
+    />
     <div ref="container" class="w-full flex relative no-selection" data-testid="nc-calendar-day-view" @drop="dropEvent">
       <div
         v-if="shouldEnableOverlay"

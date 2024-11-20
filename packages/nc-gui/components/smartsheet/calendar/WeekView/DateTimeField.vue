@@ -907,6 +907,10 @@ const spanningRecordsContainer = ref<HTMLElement | null>(null)
 
 const isExpanded = ref(false)
 
+const isRangeEnabled = computed(() =>
+  calendarRange.value.some((range) => range.fk_to_col !== null && range.fk_to_col !== undefined),
+)
+
 watch(
   () => spanningRecordsContainer.value?.isSpanningRecordExpanded(),
   () => {
@@ -926,8 +930,8 @@ watch(
       v-if="!isPublic && dayjs().isBetween(selectedDateRange.start, selectedDateRange.end)"
       class="absolute top-16 ml-16 pointer-events-none z-2"
       :class="{
-        'mt-38.5': isExpanded,
-        'mt-23': !isExpanded,
+        'mt-38.5': isExpanded && isRangeEnabled,
+        'mt-23': !isExpanded && isRangeEnabled,
       }"
       :style="overlayStyle"
     >
@@ -957,8 +961,8 @@ watch(
     </div>
     <div
       :class="{
-        'top-16': !isExpanded,
-        'top-32': isExpanded,
+        'top-16': !isExpanded && isRangeEnabled,
+        'top-32': isExpanded && isRangeEnabled,
       }"
       class="absolute bg-white w-16 z-1"
     >
@@ -970,7 +974,7 @@ watch(
         {{ hour.format('hh a') }}
       </div>
     </div>
-    <div class="sticky top-6 bg-white z-3 inset-x-0 w-full">
+    <div v-if="isRangeEnabled" class="sticky top-6 bg-white z-3 inset-x-0 w-full">
       <SmartsheetCalendarDateTimeSpanningContainer
         ref="spanningRecordsContainer"
         :records="recordsAcrossAllRange.spanningRecords"
@@ -980,8 +984,8 @@ watch(
     <div
       ref="container"
       :class="{
-        '!mt-16 ': !isExpanded,
-        'mt-32': isExpanded,
+        '!mt-16 ': !isExpanded && isRangeEnabled,
+        'mt-32': isExpanded && isRangeEnabled,
       }"
       class="absolute ml-16 flex w-[calc(100%-64px)]"
     >

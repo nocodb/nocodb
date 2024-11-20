@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import { type ColumnType, UITypes } from 'nocodb-sdk'
+import type { Row } from '~/lib/types'
 
 const emit = defineEmits(['expandRecord', 'newRecord'])
 
@@ -237,32 +238,33 @@ const recordsAcrossAllRange = computed<{
   >()
 
   const recordsByRange: Array<Row> = []
+  const recordSpanningDays: Array<Row> = []
 
   calendarRange.value.forEach((range) => {
-    const fromCol = range.fk_from_col
-    const endCol = range.fk_to_col
+    const { fk_from_col: fromCol, fk_to_col: endCol } = range
 
     // We fetch all the records that match the calendar ranges in a single time.
     // But not all fetched records are valid for the certain range, so we filter them out & sort them
     const sortedFormattedData = [...formattedData.value]
       .filter((record) => {
-        const fromDate = record.row[fromCol!.title!] ? dayjs(record.row[fromCol!.title!]) : null
+        const fromDate = record.row[fromCol?.title] ? dayjs(record.row[fromCol?.title!]) : null
 
         if (fromCol && endCol) {
-          const fromDate = record.row[fromCol.title!] ? dayjs(record.row[fromCol.title!]) : null
           const toDate = record.row[endCol.title!] ? dayjs(record.row[endCol.title!]) : null
 
-          return fromDate && toDate?.isValid() ? fromDate.isSameOrBefore(toDate) : true
-        } else if (fromCol && !endCol) {
-          return !!fromDate
+          if (fromDate?.isValid() && toDate?.isValid()) {
+            if (!fromDate.isSame(toDate, 'day')) {
+              recordSpanningDays.push(record)
+              return false
+            }
+            return fromDate.isSameOrBefore(toDate)
+          }
+          return true
         }
-        return false
+
+        return fromCol ? !!fromDate : false
       })
-      .sort((a, b) => {
-        const aDate = dayjs(a.row[fromCol!.title!])
-        const bDate = dayjs(b.row[fromCol!.title!])
-        return aDate.isBefore(bDate) ? 1 : -1
-      })
+      .sort((a, b) => (dayjs(a.row[fromCol!.title!]).isBefore(dayjs(b.row[fromCol!.title!])) ? 1 : -1))
 
     for (const record of sortedFormattedData) {
       const id = record.rowMeta.id ?? generateRandomNumber()

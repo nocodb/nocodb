@@ -45,6 +45,7 @@ const {
   viewMetaProperties,
   displayField,
   activeCalendarView,
+  updateFormat,
 } = useCalendarViewStoreOrThrow()
 
 const maxVisibleDays = computed(() => {
@@ -173,9 +174,224 @@ const resizeRecord = ref<Row | null>(null)
 
 const hoverRecord = ref<string | null>()
 
-const onResizeStart = (record: Row, direction: 'right' | 'left') => {
+// This method is used to calculate the new start and end date of a record when dragging and dropping
+const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
+  if (!container.value || !dragRecord.value) return { updatedProperty: [], newRow: null }
+  const { width, left } = container.value.getBoundingClientRect()
+
+  // Calculate the percentage of the width based on the mouse position
+  // This is used to calculate the day index
+
+  const relativeX = event.clientX - left
+
+  // TODO: @DarkPhoenix2704 handle offset
+  // if (dragOffset.value.x) {
+  //  relativeX -= dragOffset.value.x
+  // }
+
+  const percentX = Math.max(0, Math.min(1, relativeX / width))
+
+  const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
+  const toCol = dragRecord.value.rowMeta.range?.fk_to_col
+
+  if (!fromCol) return { updatedProperty: [], newRow: null }
+
+  // Calculate the day index based on the percentage of the width
+  // The day index is a number between 0 and 6
+  const day = Math.floor(percentX * maxVisibleDays.value)
+
+  // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
+  const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+  if (!newStartDate) return { updatedProperty: [], newRow: null }
+
+  let endDate
+
+  const newRow = {
+    ...dragRecord.value,
+    row: {
+      ...dragRecord.value.row,
+      [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
+    },
+  }
+
+  const updateProperty = [fromCol.title!]
+
+  if (toCol) {
+    const fromDate = dragRecord.value.row[fromCol.title!] ? dayjs(dragRecord.value.row[fromCol.title!]) : null
+    const toDate = dragRecord.value.row[toCol.title!] ? dayjs(dragRecord.value.row[toCol.title!]) : null
+
+    // Calculate the new end date based on the day index by adding the day index to the start date of the selected date range
+    // If the record has an end date, we need to calculate the new end date based on the difference between the start and end date
+    // If the record doesn't have an end date, we need to calculate the new end date based on the start date
+    // If the record has an end date and no start Date, we set the end date to the start date
+    if (fromDate && toDate) {
+      endDate = dayjs(newStartDate).add(toDate.diff(fromDate, 'day'), 'day')
+    } else if (fromDate && !toDate) {
+      endDate = dayjs(newStartDate).endOf('day')
+    } else if (!fromDate && toDate) {
+      endDate = dayjs(newStartDate).endOf('day')
+    } else {
+      endDate = newStartDate.clone()
+    }
+
+    newRow.row[toCol.title!] = dayjs(endDate).format(updateFormat.value)
+    updateProperty.push(toCol.title!)
+  }
+
+  const newPk = extractPkFromRow(newRow.row, meta.value!.columns!)
+  if (updateSideBarData) {
+    // If the record is being dragged from the sidebar, we need to remove the record from the sidebar data
+    // and add the new record to the calendar data
+    formattedData.value = [...formattedData.value, newRow]
+    formattedSideBarData.value = formattedSideBarData.value.filter((r) => {
+      const pk = extractPkFromRow(r.row, meta.value!.columns!)
+      return pk !== newPk
+    })
+  } else {
+    // If the record is being dragged within the calendar, we need to update the record in the calendar data
+    formattedData.value = formattedData.value.map((r) => {
+      const pk = extractPkFromRow(r.row, meta.value!.columns!)
+      return pk === newPk ? newRow : r
+    })
+  }
+
+  return { updateProperty, newRow }
+}
+
+const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[], isDelete: boolean) => {
+  updateRowProperty(row, updateProperty, isDelete)
+}, 500)
+
+// This function is used to calculate the new start and end date of a record when resizing
+const onResize = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
+
+  const { width, left } = container.value.getBoundingClientRect()
+
+  // Calculate the percentage of the width based on the mouse position
+  const percentX = (event.clientX - left - window.scrollX) / width
+
+  const fromCol = resizeRecord.value.rowMeta.range?.fk_from_col
+  const toCol = resizeRecord.value.rowMeta.range?.fk_to_col
+  if (!fromCol || !toCol) return
+
+  const ogEndDate = dayjs(resizeRecord.value.row[toCol.title!])
+  const ogStartDate = dayjs(resizeRecord.value.row[fromCol.title!])
+
+  const day = Math.floor(percentX * maxVisibleDays.value)
+
+  let updateProperty: string[] = []
+  let updateRecord: Row
+
+  if (resizeDirection.value === 'right') {
+    // Calculate the new end date based on the day index by adding the day index to the start date of the selected date range
+    let newEndDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+    let newStartDate = ogStartDate.clone()
+
+    updateProperty = [toCol.title!]
+
+    // If the new end date is before the start date, we need to adjust the end date to the start date
+    if (dayjs(newEndDate).isSameOrBefore(ogStartDate, 'day')) {
+      newEndDate = ogStartDate.clone().add(1, 'hour')
+      newStartDate = ogStartDate.clone().subtract(1, 'hour')
+      updateProperty.push(fromCol.title!)
+    }
+
+    if (!newEndDate.isValid()) return
+
+    updateRecord = {
+      ...resizeRecord.value,
+      row: {
+        ...resizeRecord.value.row,
+        [toCol.title!]: newEndDate.format(updateFormat.value),
+        [fromCol.title!]: newStartDate.format(updateFormat.value),
+      },
+    }
+  } else if (resizeDirection.value === 'left') {
+    // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
+    let newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
+    let newEndDate = ogEndDate.clone()
+    updateProperty = [fromCol.title!]
+
+    // If the new start date is after the end date, we need to adjust the start date to the end date
+    if (dayjs(newStartDate).isSameOrAfter(ogEndDate)) {
+      newStartDate = dayjs(dayjs(ogEndDate)).clone()
+      newEndDate = dayjs(newStartDate).clone().add(1, 'hour')
+      updateProperty.push(toCol.title!)
+    }
+    if (!newStartDate) return
+
+    updateRecord = {
+      ...resizeRecord.value,
+      row: {
+        ...resizeRecord.value.row,
+        [fromCol.title!]: dayjs(newStartDate).format(updateFormat.value),
+        [toCol.title!]: dayjs(newEndDate).format(updateFormat.value),
+      },
+    }
+  }
+
+  // Update the record in the store
+  const newPk = extractPkFromRow(updateRecord.row, meta.value!.columns!)
+  formattedData.value = formattedData.value.map((r) => {
+    const pk = extractPkFromRow(r.row, meta.value!.columns!)
+
+    return pk === newPk ? updateRecord : r
+  })
+  useDebouncedRowUpdate(updateRecord, updateProperty, false)
+}
+
+const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+  if (!isUIAllowed('dataEdit')) return
+  resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
+  document.addEventListener('mousemove', onResize)
+  document.addEventListener('mouseup', onResizeEnd)
+}
+
+const onResizeEnd = () => {
+  resizeInProgress.value = false
+  resizeDirection.value = null
+  resizeRecord.value = null
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', onResizeEnd)
+}
+
+const onDrag = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+  if (!container.value || !dragRecord.value) return
+  calculateNewRow(event, false)
+}
+
+const stopDrag = (event: MouseEvent) => {
+  event.preventDefault()
+  clearTimeout(dragTimeout.value!)
+
+  if (!isUIAllowed('dataEdit')) return
+  if (!isDragging.value || !container.value || !dragRecord.value) return
+
+  const { updateProperty, newRow } = calculateNewRow(event)
+
+  if (!newRow) return
+
+  // Open drop the record, we reset the opacity of the other records
+  const allRecords = document.querySelectorAll('.draggable-record')
+  allRecords.forEach((el) => {
+    el.style.visibility = ''
+    el.style.opacity = '100%'
+  })
+
+  if (dragElement.value) {
+    dragElement.value.style.boxShadow = 'none'
+    dragElement.value = null
+  }
+  dragRecord.value = undefined
+
+  updateRowProperty(newRow, updateProperty, false)
+
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', stopDrag)
 }
 
 const dragStart = (event: MouseEvent, record: Row) => {
@@ -213,8 +429,8 @@ const dragStart = (event: MouseEvent, record: Row) => {
     dragElement.value = target
     dragRecord.value = record
 
-    // document.addEventListener('mousemove', onDrag)
-    // document.addEventListener('mouseup', stopDrag)
+    document.addEventListener('mousemove', onDrag)
+    document.addEventListener('mouseup', stopDrag)
   }, 200)
 
   const onMouseUp = () => {

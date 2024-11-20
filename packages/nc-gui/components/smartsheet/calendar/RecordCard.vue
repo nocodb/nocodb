@@ -40,6 +40,7 @@ const emit = defineEmits(['resize-start'])
       'bg-white border-gray-200': color === 'gray',
       'shadow-md': hover,
     }"
+    style="box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02)"
     class="relative transition-all border-1 flex items-center gap-2 group"
   >
     <div

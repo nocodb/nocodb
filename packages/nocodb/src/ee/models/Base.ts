@@ -68,6 +68,11 @@ export default class Base extends BaseCE {
                       eq: null,
                     },
                   },
+                  {
+                    is_snapshot: {
+                      neq: true,
+                    },
+                  },
                 ],
               },
             ],
@@ -108,6 +113,7 @@ export default class Base extends BaseCE {
       'meta',
       'color',
       'order',
+      'is_snapshot',
     ]);
 
     if (!insertObj.order) {
@@ -182,6 +188,7 @@ export default class Base extends BaseCE {
       'password',
       'roles',
       'fk_workspace_id',
+      'is_snapshot',
     ]);
     // get existing cache
     const key = `${CacheScope.PROJECT}:${baseId}`;
@@ -436,6 +443,7 @@ export default class Base extends BaseCE {
       })
       .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
       .whereNot(`${MetaTable.PROJECT}.deleted`, true)
+      .whereNot(`${MetaTable.PROJECT}.is_snapshot`, true)
       .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
       .andWhere(function () {
         this.where(function () {
@@ -496,7 +504,8 @@ export default class Base extends BaseCE {
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
       .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)
-      .where(`${MetaTable.PROJECT}.deleted`, false);
+      .where(`${MetaTable.PROJECT}.deleted`, false)
+      .whereNot(`${MetaTable.PROJECT}.is_snapshot`, true);
 
     const bases = await baseListQb;
 
@@ -533,6 +542,15 @@ export default class Base extends BaseCE {
         condition: {
           fk_workspace_id,
           deleted: false,
+        },
+        xcCondition: {
+          _and: [
+            {
+              is_snapshot: {
+                neq: true,
+              },
+            },
+          ],
         },
       },
     );

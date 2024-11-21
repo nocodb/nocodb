@@ -8,6 +8,7 @@ import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processo
 import { CleanUpController } from '~/modules/jobs/jobs/clean-up/clean-up.controller';
 import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor';
+import { SnapshotController } from '~/modules/jobs/jobs/snapshot/snapshot.controller';
 
 @Module({
   ...JobsModuleMetadata,
@@ -16,6 +17,7 @@ import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor
     ...JobsModuleMetadata.controllers,
     WorkerController,
     CleanUpController,
+    SnapshotController,
   ],
   providers: [
     ...JobsModuleMetadata.providers,

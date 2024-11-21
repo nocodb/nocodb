@@ -229,6 +229,10 @@ const fieldConfigMapByColumnId = computed(() => {
   )
 })
 
+const isAllFieldSelected = computed(() => {
+  return bulkUpdateColumns.value.every((column) => !!fieldConfigMapByColumnId.value[column?.id])
+})
+
 const selectedFieldConfigForBulkUpdate = computed(() => {
   return (bulkUpdatePayload.value?.config || []).filter((config) => config.selected)
 })
@@ -1195,7 +1199,7 @@ provide(IsGalleryInj, ref(false))
                 }"
               >
                 <div>No fields set</div>
-                <NcButton v-if="!fullscreen" size="small" @click="addNewAction">
+                <NcButton v-if="!fullscreen" size="small" :disabled="isAllFieldSelected" @click="addNewAction">
                   <template #icon>
                     <GeneralIcon icon="ncPlus" />
                   </template>
@@ -1212,7 +1216,13 @@ provide(IsGalleryInj, ref(false))
                 'border-t-1 border-nc-border-gray-medium': !isScrolledToBottom,
               }"
             >
-              <NcButton type="secondary" size="medium" class="w-full max-w-[520px] !mx-auto" @click="addNewAction">
+              <NcButton
+                type="secondary"
+                size="medium"
+                class="w-full max-w-[520px] !mx-auto"
+                :disabled="isAllFieldSelected"
+                @click="addNewAction"
+              >
                 <template #icon>
                   <GeneralIcon icon="ncPlus" />
                 </template>
@@ -1229,7 +1239,7 @@ provide(IsGalleryInj, ref(false))
             'p-3 border-t-1 border-t-nc-border-gray-medium bg-white': !fullscreen,
           }"
         >
-          <NcButton size="small" type="secondary" @click="addNewAction">
+          <NcButton size="small" type="secondary" :disabled="isAllFieldSelected" @click="addNewAction">
             <template #icon>
               <GeneralIcon icon="ncPlus" />
             </template>

@@ -45,6 +45,7 @@ export class UsersService extends UsersServiceEE {
       email_verification_token,
       meta,
       req,
+      workspace_invite = false,
     }: {
       avatar;
       display_name;
@@ -55,8 +56,9 @@ export class UsersService extends UsersServiceEE {
       email_verification_token;
       meta?: MetaType;
       req: NcRequest;
+      workspace_invite?: boolean;
     },
-    _ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncMeta,
   ) {
     if (this.licenseService.isTrial()) {
       const userCount = await User.count();
@@ -73,16 +75,20 @@ export class UsersService extends UsersServiceEE {
           );
       }
     }
-    return super.registerNewUserIfAllowed({
-      avatar,
-      display_name,
-      user_name,
-      email,
-      salt,
-      password,
-      email_verification_token,
-      meta,
-      req,
-    });
+    return super.registerNewUserIfAllowed(
+      {
+        avatar,
+        display_name,
+        user_name,
+        email,
+        salt,
+        password,
+        email_verification_token,
+        meta,
+        req,
+        workspace_invite,
+      },
+      ncMeta,
+    );
   }
 }

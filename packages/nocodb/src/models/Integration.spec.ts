@@ -101,16 +101,11 @@ describe('Integration Model', () => {
         'bypass',
         'bypass',
         MetaTable.INTEGRATIONS,
-        isEE ? null : 'test-id',
+        'test-id',
         null,
         isEE
           ? {
               _and: [
-                {
-                  id: {
-                    eq: 'test-id',
-                  },
-                },
                 {
                   _or: [
                     {

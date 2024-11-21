@@ -360,17 +360,34 @@ export default class Integration extends IntegrationCE {
       RootScopes.BYPASS,
       RootScopes.BYPASS,
       MetaTable.INTEGRATIONS,
-      null,
+      id,
       null,
       force
-        ? {}
+        ? {
+            _and: [
+              ...(context.workspace_id &&
+              context.workspace_id !== RootScopes.BYPASS
+                ? [
+                    {
+                      _or: [
+                        {
+                          fk_workspace_id: {
+                            eq: context.workspace_id,
+                          },
+                        },
+                        {
+                          is_global: {
+                            eq: true,
+                          },
+                        },
+                      ],
+                    },
+                  ]
+                : []),
+            ],
+          }
         : {
             _and: [
-              {
-                id: {
-                  eq: id,
-                },
-              },
               ...(context.workspace_id &&
               context.workspace_id !== RootScopes.BYPASS
                 ? [

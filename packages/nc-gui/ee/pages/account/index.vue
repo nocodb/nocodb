@@ -95,7 +95,7 @@ const logout = async () => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isUIAllowed('appStore') && !appInfo.isCloud"
+                v-if="isUIAllowed('appStore') && !appInfo.isCloud && !isEeUI"
                 key="apps"
                 :class="{
                   active: $route.params.page === 'apps',
@@ -167,7 +167,7 @@ const logout = async () => {
                   <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
                 </NcMenuItem>
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI"
+                  v-if="isUIAllowed('superAdminAppSettings')"
                   key="settings"
                   :class="{
                     active: $route.params.nestedPage === 'settings',
@@ -182,7 +182,6 @@ const logout = async () => {
           </div>
 
           <!-- Sub Tabs -->
-
           <div class="h-full flex-1 flex flex-col overflow-y-auto nc-scrollbar-thin">
             <div class="flex flex-row pt-2 px-2 items-center">
               <div class="flex-1">

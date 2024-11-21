@@ -105,6 +105,15 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     await Noco.loadEEState();
 
+    if (process.env.NC_CLOUD === 'true' || process.env.NC_LICENSE_KEY) {
+      try {
+        await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+      } catch (e) {
+        if (process.env.NC_CLOUD === 'true') throw e;
+        console.error('Plugin init failed', e);
+      }
+    }
+
     // run upgrader
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
 

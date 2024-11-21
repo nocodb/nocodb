@@ -11,11 +11,6 @@ export class SnapshotService {
     return await Snapshot.list(context, baseId);
   }
 
-  async createSnapshot() {
-    // TODO: Implement restoreSnapshot
-    return {};
-  }
-
   async updateSnapshot(
     context: NcContext,
     snapshotId: string,
@@ -28,11 +23,6 @@ export class SnapshotService {
     }
 
     return await Snapshot.update(context, snapshotId, body);
-  }
-
-  async restoreSnapshot(_context: NcContext, _snapshotId: string) {
-    // TODO: Implement restoreSnapshot
-    return {};
   }
 
   async deleteSnapshot(context: NcContext, baseId: string, snapshotId: string) {

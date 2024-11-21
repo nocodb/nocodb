@@ -767,7 +767,7 @@ onMounted(async () => {
                   show-search
                   @change="updateImportConfig"
                 >
-                  <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
+                  <a-select-option v-for="delimiter of delimiters" :key="delimiter.label" :value="delimiter.value">
                     <div class="w-full flex items-center gap-2">
                       <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                         <template #title>{{ delimiter.label }}</template>

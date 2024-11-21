@@ -837,7 +837,6 @@ provide(IsGalleryInj, ref(false))
               :filter-option="filterOption"
               dropdown-class-name="w-[250px]"
               show-search
-              size="large"
               @change="onTableSelect"
             >
               <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
@@ -869,7 +868,6 @@ provide(IsGalleryInj, ref(false))
               dropdown-class-name="w-[250px]"
               :filter-option="filterOption"
               show-search
-              size="large"
               placement="bottomRight"
               @change="onViewSelect"
             >

@@ -84,13 +84,17 @@ const selectedFieldValue = computed(() =>
 
 const activeAttachmentIndex = ref(0);
 
+const activeAttachment = computed(() =>
+  selectedFieldValue.value?.[activeAttachmentIndex.value]
+)
+
 watch(selectedFieldId, () => {
   activeAttachmentIndex.value = 0
 })
 
-const activeAttachment = computed(() =>
-  selectedFieldValue.value?.[activeAttachmentIndex.value]
-)
+watch(selectedFieldValue, () => {
+  activeAttachmentIndex.value = Math.min(activeAttachmentIndex.value, Math.max(0, selectedFieldValue.value?.length - 1))
+})
 
 
 const hasAnyAttachmentFields = computed(() =>
@@ -101,13 +105,21 @@ const hasAnyValueInAttachment = computed(() =>
   selectedFieldValue.value?.length > 0
 )
 
-/* file picker */
+
+/* attachment actions */
 
 const smartsheetCell = ref()
 
 function openFilePicker() {
-  console.log('openFilePicker', smartsheetCell.value)
   smartsheetCell.value?.openAttachmentCellPicker()
+}
+
+function downloadCurrentFile() {
+  smartsheetCell.value?.downloadAttachment(activeAttachment.value)
+}
+
+function deleteCurrentFile() {
+  smartsheetCell.value?.removeAttachment(activeAttachment.value.title, activeAttachmentIndex.value)
 }
 
 </script>
@@ -181,12 +193,12 @@ export default {
             </NcButton>
             <template #overlay>
               <NcMenu>
-                <NcMenuItem>
+                <NcMenuItem @click="downloadCurrentFile()">
                   <GeneralIcon icon="download" />
                   Download current file
                 </NcMenuItem>
                 <NcDivider />
-                <NcMenuItem class="!text-red-500">
+                <NcMenuItem class="!text-red-500" @click="deleteCurrentFile()">
                   <GeneralIcon icon="delete" />
                   Delete current file
                 </NcMenuItem>

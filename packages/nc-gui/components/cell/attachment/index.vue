@@ -223,6 +223,9 @@ const attachmentSize = computed(() => {
 
 defineExpose({
   openFilePicker: open,
+  downloadAttachment,
+  renameAttachment: renameFile,
+  removeAttachment: onRemoveFileClick,
 })
 
 </script>

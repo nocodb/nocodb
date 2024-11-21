@@ -105,7 +105,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         attachments.value.splice(i, 1)
         selectedVisibleItems.value.splice(i, 1)
 
-        updateModelValue(JSON.stringify(attachments.value))
+        updateModelValue(attachments.value)
       }
     }
 
@@ -248,7 +248,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
         if (!data) return
         newAttachments.push(...data)
       }
-      if (newAttachments?.length) updateModelValue(JSON.stringify([...attachments.value, ...newAttachments]))
+      if (newAttachments?.length) updateModelValue([...attachments.value, ...newAttachments])
     }
 
     async function uploadViaUrl(url: AttachmentReqType | AttachmentReqType[], returnError = false) {
@@ -278,7 +278,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           title: attachment.title,
           onRename: (newTitle: string) => {
             attachments.value[idx].title = newTitle
-            updateModelValue(JSON.stringify(attachments.value))
+            updateModelValue(attachments.value)
             close()
 
             if (updateSelectedFile) {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
+import type { AttachmentType, ColumnType } from 'nocodb-sdk'
 import { isSystemColumn } from 'nocodb-sdk'
 import { NavigateDir } from '#imports'
 
@@ -158,6 +158,15 @@ const attachmentCell = ref()
 defineExpose({
   openAttachmentCellPicker: () => {
     attachmentCell.value?.openFilePicker()
+  },
+  downloadAttachment: (attachment: AttachmentType) => {
+    attachmentCell.value?.downloadAttachment(attachment)
+  },
+  renameAttachment: (attachment: AttachmentType, index: number) => {
+    attachmentCell.value?.renameAttachment(attachment, index)
+  },
+  removeAttachment: (attachmentTitle: string, index: number) => {
+    attachmentCell.value?.removeAttachment(attachmentTitle, index)
   },
 })
 

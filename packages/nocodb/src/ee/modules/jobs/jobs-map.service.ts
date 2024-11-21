@@ -14,6 +14,7 @@ import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor
 import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-stats.processor';
 import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processor';
 import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
+import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.processor';
 import { JobTypes } from '~/interface/Jobs';
 
 @Injectable()
@@ -69,6 +70,14 @@ export class JobsMap extends JobsMapCE {
     },
     [JobTypes.CleanUp]: {
       this: this.cleanUpProcessor,
+    },
+    [JobTypes.CreateSnapshot]: {
+      this: SnapshotProcessor,
+      fn: 'createSnapshot',
+    },
+    [JobTypes.RestoreSnapshot]: {
+      this: SnapshotProcessor,
+      fn: 'restoreSnapshot',
     },
   };
 }

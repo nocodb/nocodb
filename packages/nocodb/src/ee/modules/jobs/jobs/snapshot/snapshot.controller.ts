@@ -138,11 +138,11 @@ export class SnapshotController {
 
     const job = await this.jobsService.add(JobTypes.RestoreSnapshot, {
       context: {
-        workspace_id: base.fk_workspace_id,
-        base_id: base.id,
+        workspace_id: snapshot.fk_workspace_id,
+        base_id: snapshot.fk_base_id,
       },
       user: req.user,
-      baseId: base.id,
+      baseId: snapshot.fk_base_id,
       sourceId: source.id,
       targetBaseId: targetBase.id,
       snapshot,

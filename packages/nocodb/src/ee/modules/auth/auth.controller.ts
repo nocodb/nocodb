@@ -264,7 +264,7 @@ export class AuthController extends AuthControllerCE {
     // check if any sso clients are present
     if (process.env.NC_CLOUD !== 'true') {
       const ssoClients = await SSOClient.getPublicList({
-        ncSiteUrl: param.req.ncSiteUrl,
+        ncSiteUrl: req.ncSiteUrl,
       });
       if (ssoClients.length > 0) {
         NcError.forbidden('Email-password authentication is disabled');

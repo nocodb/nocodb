@@ -3,6 +3,7 @@ import { UsersService as UsersServiceCE } from 'src/services/users/users.service
 import { Injectable, Logger } from '@nestjs/common';
 import {
   AdminDeleteUserCommand,
+  AdminDisableUserCommand,
   CognitoIdentityProviderClient,
 } from '@aws-sdk/client-cognito-identity-provider';
 import {
@@ -657,6 +658,16 @@ export class UsersService extends UsersServiceCE {
             infer: true,
           }),
         });
+
+        await client.send(
+          new AdminDisableUserCommand({
+            UserPoolId: this.configService.get('cognito.aws_user_pools_id', {
+              infer: true,
+            }),
+            Username: user.email,
+          }),
+        );
+
         await client.send(
           new AdminDeleteUserCommand({
             UserPoolId: this.configService.get('cognito.aws_user_pools_id', {

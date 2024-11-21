@@ -18,6 +18,7 @@ export default class Snapshot implements SnapshotType {
   fk_base_id?: string;
   fk_workspace_id?: string;
   created_by?: string;
+  status?: string;
 
   constructor(snapshot: Snapshot | SnapshotType) {
     Object.assign(this, snapshot);
@@ -88,6 +89,7 @@ export default class Snapshot implements SnapshotType {
       'fk_base_id',
       'fk_workspace_id',
       'created_by',
+      'status',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
@@ -113,7 +115,7 @@ export default class Snapshot implements SnapshotType {
     snapshot: Partial<Snapshot>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(snapshot, ['title']);
+    const updateObj = extractProps(snapshot, ['title', 'status']);
 
     await ncMeta.metaUpdate(
       context.workspace_id,
@@ -146,5 +148,22 @@ export default class Snapshot implements SnapshotType {
     );
 
     return res;
+  }
+
+  static async countSnapshotsInBase(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    return ncMeta.metaCount(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.SNAPSHOT,
+      {
+        condition: {
+          fk_base_id: baseId,
+        },
+      },
+    );
   }
 }

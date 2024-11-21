@@ -15,6 +15,8 @@ const up = async (knex: Knex) => {
 
     table.string('created_by', 20);
 
+    table.string('status', 20);
+
     table.timestamps(true, true);
   });
 };

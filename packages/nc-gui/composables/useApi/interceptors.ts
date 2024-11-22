@@ -85,10 +85,13 @@ export function addAxiosInterceptors(api: Api<any>) {
           return Promise.reject(refreshTokenError)
         }
 
-        await state.signOut({
-          redirectToSignin: !isSharedPage,
-          skipApiCall: true,
-        })
+        // if shared execution error, don't sign out
+        if (!(refreshTokenError instanceof SharedExecutionError)) {
+          await state.signOut({
+            redirectToSignin: !isSharedPage,
+            skipApiCall: true,
+          })
+        }
 
         return Promise.reject(error)
       }

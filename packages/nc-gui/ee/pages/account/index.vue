@@ -146,7 +146,7 @@ const logout = async () => {
                 </template>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
+                  v-if="isUIAllowed('superAdminUserManagement')"
                   key="list"
                   :class="{
                     active: $route.params.nestedPage === 'list',

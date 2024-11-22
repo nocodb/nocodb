@@ -17,7 +17,6 @@ import { NcContext, NcRequest } from '~/interface/config';
 import Snapshot from '~/models/Snapshot';
 import { NcError } from '~/helpers/catchError';
 import { Base } from '~/models';
-import { RootScopes } from '~/utils/globals';
 import { BasesService } from '~/services/bases.service';
 import { JobTypes } from '~/interface/Jobs';
 
@@ -57,9 +56,11 @@ export class SnapshotController {
 
     const snapshotBase = await this.basesService.baseCreate({
       base: {
-        ...base,
         title: base.title,
         status: ProjectStatus.JOB,
+        meta: base.meta,
+        color: base.color ?? '',
+        type: 'database',
         ...(base.fk_workspace_id
           ? { fk_workspace_id: base.fk_workspace_id }
           : {}),
@@ -70,8 +71,9 @@ export class SnapshotController {
     });
 
     const snapshot = await Snapshot.insert(context, {
-      fk_base_id: base.id,
+      base_id: base.id,
       fk_workspace_id: base.fk_workspace_id,
+      snapshot_base_id: snapshotBase.id,
       created_by: req.user.id,
       status: ProjectStatus.JOB,
       title: body?.title ?? dayjs().format('Snapshot YYYY-MM-DD HH:mm:ss'),
@@ -125,9 +127,11 @@ export class SnapshotController {
 
     const targetBase = await this.basesService.baseCreate({
       base: {
-        ...base,
         title: base.title,
         status: ProjectStatus.JOB,
+        meta: base.meta,
+        color: base.color,
+        type: 'database',
         ...(base.fk_workspace_id
           ? { fk_workspace_id: base.fk_workspace_id }
           : {}),
@@ -139,10 +143,10 @@ export class SnapshotController {
     const job = await this.jobsService.add(JobTypes.RestoreSnapshot, {
       context: {
         workspace_id: snapshot.fk_workspace_id,
-        base_id: snapshot.fk_base_id,
+        base_id: snapshot.snapshot_base_id,
       },
       user: req.user,
-      baseId: snapshot.fk_base_id,
+      baseId: snapshot.snapshot_base_id,
       sourceId: source.id,
       targetBaseId: targetBase.id,
       snapshot,

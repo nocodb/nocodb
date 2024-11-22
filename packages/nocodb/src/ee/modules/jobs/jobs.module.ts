@@ -9,6 +9,7 @@ import { CleanUpController } from '~/modules/jobs/jobs/clean-up/clean-up.control
 import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor';
 import { SnapshotController } from '~/modules/jobs/jobs/snapshot/snapshot.controller';
+import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.processor';
 
 @Module({
   ...JobsModuleMetadata,
@@ -24,6 +25,7 @@ import { SnapshotController } from '~/modules/jobs/jobs/snapshot/snapshot.contro
     UpdateStatsProcessor,
     HealthCheckProcessor,
     CleanUpProcessor,
+    SnapshotProcessor,
   ],
 })
 export class JobsModule extends JobsModuleCE {}

@@ -35,6 +35,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly healthCheckProcessor: HealthCheckProcessor,
     protected readonly updateStatsProcessor: UpdateStatsProcessor,
     protected readonly cleanUpProcessor: CleanUpProcessor,
+    protected readonly snapshotProcessor: SnapshotProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -72,11 +73,11 @@ export class JobsMap extends JobsMapCE {
       this: this.cleanUpProcessor,
     },
     [JobTypes.CreateSnapshot]: {
-      this: SnapshotProcessor,
+      this: this.snapshotProcessor,
       fn: 'createSnapshot',
     },
     [JobTypes.RestoreSnapshot]: {
-      this: SnapshotProcessor,
+      this: this.snapshotProcessor,
       fn: 'restoreSnapshot',
     },
   };

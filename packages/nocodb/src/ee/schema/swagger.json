@@ -3852,6 +3852,21 @@
         "summary": "Create snapshot",
         "description": "Create snapshot for a given base",
         "operationId": "snapshot-create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Name of the snapshot"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "OK",
@@ -5530,9 +5545,13 @@
             "type": "string",
             "description": "Title of the Snapshot"
           },
-          "fk_base_id": {
+          "base_id": {
             "$ref": "#/components/schemas/Id",
             "description": "Foreign Key to Base"
+          },
+          "snapshot_base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Snapshot Base"
           },
           "fk_workspace_id": {
             "$ref": "#/components/schemas/Id",

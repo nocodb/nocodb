@@ -14,8 +14,9 @@ import {
 export default class Snapshot implements SnapshotType {
   id?: string;
   title?: string;
+  base_id?: string;
 
-  fk_base_id?: string;
+  snapshot_base_id?: string;
   fk_workspace_id?: string;
   created_by?: string;
   status?: string;
@@ -66,7 +67,7 @@ export default class Snapshot implements SnapshotType {
         MetaTable.SNAPSHOT,
         {
           condition: {
-            fk_base_id: baseId,
+            base_id: baseId,
           },
           orderBy: {
             created_at: 'asc',
@@ -86,10 +87,11 @@ export default class Snapshot implements SnapshotType {
   ) {
     const insertObj = extractProps(snapshot, [
       'title',
-      'fk_base_id',
+      'base_id',
       'fk_workspace_id',
       'created_by',
       'status',
+      'snapshot_base_id',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
@@ -102,7 +104,7 @@ export default class Snapshot implements SnapshotType {
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
         CacheScope.SNAPSHOT,
-        [snapshot.fk_base_id],
+        [snapshot.base_id],
         `${CacheScope.SNAPSHOT}:${id}`,
       );
       return res;
@@ -155,15 +157,14 @@ export default class Snapshot implements SnapshotType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    return ncMeta.metaCount(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.SNAPSHOT,
-      {
-        condition: {
-          fk_base_id: baseId,
-        },
-      },
-    );
+    const query = await ncMeta
+      .knex(MetaTable.SNAPSHOT)
+      .where({
+        base_id: baseId,
+      })
+      .count('id', { as: 'count' })
+      .first();
+
+    return +(await query)?.['count'] || 0;
   }
 }

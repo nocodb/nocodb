@@ -134,7 +134,11 @@ const onDeleteConfirm = async () => {
               </span>
               <div class="rounded-lg border-1">
                 <div class="flex flex-col">
-                  <div v-for="entity in toBeDeleted[ent.key]" :key="entity.id" class="px-4 py-2 border-b-1 last:border-b-0">
+                  <div
+                    v-for="entity in toBeDeleted[ent.key]"
+                    :key="entity.id"
+                    class="px-4 py-2 border-b-1 bg-gray-50 first:rounded-t-lg last:rounded-b-lg last:border-b-0"
+                  >
                     <div class="flex items-center gap-2">
                       <div class="icon">
                         <GeneralWorkspaceIcon v-if="ent.key === 'workspaces'" :workspace="entity" size="medium" />
@@ -162,7 +166,7 @@ const onDeleteConfirm = async () => {
                   <div
                     v-for="entity in toBeDeleted.access[ent.key]"
                     :key="entity.id"
-                    class="px-4 py-2 border-b-1 last:border-b-0"
+                    class="px-4 py-2 border-b-1 bg-gray-50 first:rounded-t-lg last:rounded-b-lg border-b-1 last:border-b-0"
                   >
                     <div class="flex items-center gap-2">
                       <div class="icon">

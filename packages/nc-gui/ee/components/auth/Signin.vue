@@ -231,7 +231,7 @@ const toggleLoginForm = ref(false)
             </a>
           </div>
 
-          <div class="text-end prose-sm">
+          <div class="text-end prose-sm" v-if="((!appInfo.isCloud && !appInfo.ssoClients?.length) || toggleLoginForm)">
             {{ $t('msg.info.signUp.dontHaveAccount') }}
             <nuxt-link @click="navigateSignUp">{{ $t('general.signUp') }}</nuxt-link>
           </div>

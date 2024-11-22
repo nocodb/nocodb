@@ -1,5 +1,11 @@
 import { useStorage, useTimeoutFn } from '@vueuse/core'
 
+export class SharedExecutionError extends Error {
+  constructor(message?: string) {
+    super(message)
+  }
+}
+
 interface SharedExecutionOptions {
   timeout?: number // Maximum time a lock can be held before it's considered stale - default 5000ms
   storageDelay?: number // Delay before reading from storage to allow for changes to propagate - default 50ms
@@ -102,7 +108,7 @@ export function useSharedExecutionFn<T>(key: string, fn: () => Promise<T> | T, o
           () => {
             timedOut = true
             localStorage.removeItem(storageLockKey)
-            reject(new Error(`Timeout waiting for result on key ${key}`))
+            reject(new SharedExecutionError(`Timeout waiting for result on key ${key}`))
           },
           currentLock?.timestamp ? timeout - (Date.now() - currentLock.timestamp) : timeout,
         )

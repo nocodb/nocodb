@@ -146,23 +146,6 @@ export class WorkspacesService implements OnApplicationBootstrap {
       });
     }
 
-    workspaces = await Promise.all(
-      workspaces.map(async (workspace) => {
-        if (
-          (workspace.meta as Record<string, any>)?.icon &&
-          (workspace.meta as Record<string, any>)?.iconType === 'IMAGE'
-        ) {
-          await PresignedUrl.signAttachment(
-            {
-              attachment: (workspace.meta as Record<string, any>)?.icon,
-            },
-            Noco.ncMeta,
-          );
-        }
-        return workspace;
-      }),
-    );
-
     return new PagedResponseImpl<WorkspaceType>(workspaces, {
       count: workspaces.length,
     });

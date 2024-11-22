@@ -371,12 +371,20 @@ export class UsersService extends UsersServiceCE {
       integrations: Integration[];
       sources: Source[];
       apiTokens: ApiToken[];
+      access: {
+        workspaces: Workspace[];
+        bases: BaseType[];
+      };
     } = {
       workspaces: [],
       bases: [],
       integrations: [],
       sources: [],
       apiTokens: [],
+      access: {
+        workspaces: [],
+        bases: [],
+      },
     };
 
     const user = await User.get(param.id, ncMeta);
@@ -403,6 +411,8 @@ export class UsersService extends UsersServiceCE {
         // Delete workspace if user is sole owner
         if (owners.length === 1) {
           toBeDeleted.workspaces.push(workspace);
+        } else {
+          toBeDeleted.access.workspaces.push(workspace);
         }
       }
     }
@@ -425,6 +435,8 @@ export class UsersService extends UsersServiceCE {
         // Delete base if user is sole owner
         if (owners.length === 1) {
           toBeDeleted.bases.push(base);
+        } else {
+          toBeDeleted.access.bases.push(base);
         }
       }
     }

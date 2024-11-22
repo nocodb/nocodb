@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import type { SnapshotType } from 'nocodb-sdk'
 
 const { t } = useI18n()
 
@@ -33,6 +32,7 @@ const {
   createSnapshot,
   listSnapshots,
   updateSnapshot,
+  restoreSnapshot,
   deleteSnapshot,
   cancelNewSnapshot,
   isUnsavedSnapshotsPending,
@@ -115,18 +115,31 @@ onMounted(async () => {
     >
       <template #bodyCell="{ column, record: snapshot }">
         <template v-if="column.key === 'name'">
-          <NcTooltip v-if="!snapshot.isNew" class="truncate max-w-full text-gray-800 font-semibold text-sm" show-on-truncate-only>
+          <NcTooltip v-if="!snapshot.isNew" class="truncate max-w-full text-gray-800 font-semibold text-sm">
             {{ snapshot.title }}
 
             <template #title>
-              {{ snapshot.title }}
+              <div class="text-xs font-semibold text-nc-gray-300">Created On</div>
+              <div class="mt-1 text-[13px]">
+                {{ dayjs(snapshot.created_at).format('D MMMM YYYY, hh:mm A') }}
+              </div>
+              <div class="text-xs font-semibold mt-2 text-nc-gray-300">Created By</div>
+              <div class="mt-1 text-[13px]">
+                {{ snapshot.created_display_name }}
+              </div>
             </template>
           </NcTooltip>
           <a-input v-else v-model:value="snapshot.title" class="new-snapshot-title" />
         </template>
         <template v-if="column.key === 'action'">
           <div v-if="!snapshot?.isNew" class="flex row-action items-center">
-            <NcButton size="small" type="secondary" class="!text-xs !rounded-r-none !border-r-0" :shadow="false">
+            <NcButton
+              size="small"
+              type="secondary"
+              class="!text-xs !rounded-r-none !border-r-0"
+              :shadow="false"
+              @click="restoreSnapshot(snapshot)"
+            >
               <div class="text-nc-content-gray-subtle font-semibold">
                 {{ $t('general.restore') }}
               </div>

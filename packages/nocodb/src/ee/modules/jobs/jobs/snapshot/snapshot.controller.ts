@@ -127,10 +127,10 @@ export class SnapshotController {
 
     const targetBase = await this.basesService.baseCreate({
       base: {
-        title: base.title,
+        title: snapshot.title ?? base.title,
         status: ProjectStatus.JOB,
         meta: base.meta,
-        color: base.color,
+        color: base.color ?? '',
         type: 'database',
         ...(base.fk_workspace_id
           ? { fk_workspace_id: base.fk_workspace_id }
@@ -147,7 +147,6 @@ export class SnapshotController {
       },
       user: req.user,
       baseId: snapshot.snapshot_base_id,
-      sourceId: source.id,
       targetBaseId: targetBase.id,
       snapshot,
       options: {},

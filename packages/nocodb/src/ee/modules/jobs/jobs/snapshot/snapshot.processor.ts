@@ -136,15 +136,17 @@ export class SnapshotProcessor {
     this.debugLog(`Job started for ${job.id} (${JobTypes.RestoreSnapshot})`);
     const hrTime = initTime();
 
-    const { context, snapshot, targetBaseId, sourceId, req, user } = job.data;
+    const { context, snapshot, targetBaseId, req, user } = job.data;
 
     const baseId = context.base_id;
 
     const sourceBase = await Base.get(context, baseId);
 
+    await sourceBase.getSources(true)
+
     const targetBase = await Base.get(context, targetBaseId);
 
-    const source = await Source.get(context, sourceId);
+    const source = await Source.get(context, sourceBase.sources[0].id);
 
     const targetContext = {
       workspace_id: targetBase.fk_workspace_id,
@@ -236,5 +238,6 @@ export class SnapshotProcessor {
     }
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.RestoreSnapshot})`);
+    return { id: targetBaseId };
   }
 }

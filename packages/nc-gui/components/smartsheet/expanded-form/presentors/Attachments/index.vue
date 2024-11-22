@@ -207,7 +207,7 @@ export default {
           </NcDropdown>
 
         </div>
-        <div class="w-full h-0 flex-1 flex flex-row">
+        <div class="w-full h-0 flex-1 flex flex-row relative">
           <template v-if="!hasAnyValueInAttachment">
             <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100">
               <span class="text-base font-black">
@@ -225,48 +225,12 @@ export default {
             </div>
           </template>
           <template v-else>
-            <div class="w-[80px] h-full bg-white border-r-1 border-gray-200 flex flex-col">
-              <div class="flex-1 h-0 flex flex-col items-center justify-center">
-                <div class="w-full max-h-full overflow-y-auto scrollbar-thin-dull p-2 pb-6 space-y-2">
-                  <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
-                    v-for="(attachment, index) of selectedFieldValue"
-                    :key="attachment.id"
-                    :attachment="attachment"
-                    :active="activeAttachmentIndex === index"
-                    @click="activeAttachmentIndex = index"
-                  />
-                </div>
-              </div>
-              <div>
-                <div class="flex items-center border-t-1 border-gray-200 rounded-t-lg overflow-clip">
-                  <NcButton
-                    type="text"
-                    class="w-0 flex-1 !border-r-1 !border-gray-200 !rounded-none"
-                    :disabled="!selectedFieldValue || activeAttachmentIndex === 0"
-                    @click="activeAttachmentIndex = activeAttachmentIndex - 1"
-                  >
-                    <GeneralIcon icon="chevronUpSmall" />
-                  </NcButton>
-                  <NcButton
-                    type="text"
-                    class="w-0 flex-1 !rounded-none"
-                    :disabled="!selectedFieldValue || activeAttachmentIndex === selectedFieldValue.length - 1"
-                    @click="activeAttachmentIndex = activeAttachmentIndex + 1"
-                  >
-                    <GeneralIcon icon="chevronDownSmall" />
-                  </NcButton>
-                </div>
-                <NcButton type="text" class="w-full !rounded-none !border-t-1 !border-gray-200 !h-16" @click="openFilePicker()">
-                  <div class="flex flex-col items-center">
-                    <GeneralIcon icon="plus" />
-                    <span class="mt-2">
-                      Add file(s)
-                    </span>
-                  </div>
-                </NcButton>
-              </div>
-            </div>
-            <div class="w-0 flex-1 bg-gray-100">
+            <SmartsheetExpandedFormPresentorsAttachmentsPreviewBar
+              :attachments="selectedFieldValue"
+              v-model:active-attachment-index="activeAttachmentIndex"
+              @open:file-picker="openFilePicker()"
+            />
+            <div class="w-0 flex-1 bg-gray-100 pl-[80px]">
               <SmartsheetExpandedFormPresentorsAttachmentsAttachmentView
                 v-if="activeAttachment"
                 :attachment="activeAttachment"

@@ -24,12 +24,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex p-4 justify-center overflow-auto gap-8">
+  <div class="flex p-4 nc-base-settings justify-center overflow-auto gap-8">
     <!-- Left Pane -->
     <div class="flex flex-col">
       <div class="h-full w-60">
         <div
           v-if="isEeUI && hasPermissionForSnapshots"
+          data-testid="snapshots-tab"
           :class="{
             'active-menu': activeMenu === 'snapshots',
           }"
@@ -48,6 +49,7 @@ onMounted(() => {
             'active-menu': activeMenu === 'visibility',
           }"
           class="gap-3 !hover:bg-gray-50 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          data-testid="visibility-tab"
           @click="selectMenu('visibility')"
         >
           <GeneralIcon icon="ncEye" />

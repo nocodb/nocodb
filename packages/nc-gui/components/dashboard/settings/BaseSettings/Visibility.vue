@@ -48,7 +48,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
 </script>
 
 <template>
-  <div class="item-card flex flex-col w-full">
+  <div data-testid="nc-settings-subtab-visibility" class="item-card flex flex-col w-full">
     <div class="text-nc-content-gray-emphasis font-semibold text-lg">
       {{ $t('labels.visibilityAndDataHandling') }}
     </div>
@@ -63,7 +63,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
           <span class="text-nc-content-gray font-semibold flex-1">
             {{ $t('msg.info.showM2mTables') }}
           </span>
-          <NcSwitch v-model:checked="includeM2M" v-e="['c:themes:show-m2m-tables']" class="ml-2" />
+          <NcSwitch v-model:checked="includeM2M" v-e="['c:themes:show-m2m-tables']" class="nc-settings-meta-misc-m2m ml-2" />
         </div>
         <span class="text-gray-500">{{ $t('msg.info.showM2mTablesDesc') }}</span>
       </div>
@@ -73,7 +73,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
           <span class="text-nc-content-gray font-semibold flex-1">
             {{ $t('msg.info.showNullInCells') }}
           </span>
-          <NcSwitch v-model:checked="showNull" v-e="['c:settings:show-null']" class="ml-2" />
+          <NcSwitch v-model:checked="showNull" v-e="['c:settings:show-null']" class="ml-2 nc-settings-show-null" />
         </div>
         <span class="text-gray-500">{{ $t('msg.info.showNullInCellsDesc') }}</span>
       </div>
@@ -86,7 +86,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
           <NcSwitch
             v-model:checked="showNullAndEmptyInFilter"
             v-e="['c:settings:show-null-and-empty-in-filter']"
-            class="ml-2"
+            class="ml-2 nc-settings-show-null-and-empty-in-filter"
             @change="showNullAndEmptyInFilterOnChange"
           />
         </div>

@@ -14,13 +14,14 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { SnapshotService } from '~/services/snapshot.service';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
 export class SnapshotController {
   constructor(private readonly snapshotService: SnapshotService) {}
 
-  // TODO: @DarkPhoenix2704 Add ACL
+  @Acl('manageSnapshots')
   @Get('/api/v2/meta/bases/:baseId/snapshots')
   async getSnapshots(
     @TenantContext() context: NcContext,
@@ -29,7 +30,7 @@ export class SnapshotController {
     return await this.snapshotService.getSnapshots(context, baseId);
   }
 
-  // TODO: @DarkPhoenix2704 Add ACL
+  @Acl('manageSnapshots')
   @Patch('/api/v2/meta/bases/:baseId/snapshots/:snapshotId')
   async updateSnapshot(
     @TenantContext() context: NcContext,
@@ -39,7 +40,7 @@ export class SnapshotController {
     return await this.snapshotService.updateSnapshot(context, snapshotId, body);
   }
 
-  // TODO: @DarkPhoenix2704 Add ACL
+  @Acl('manageSnapshots')
   @Delete('/api/v2/meta/bases/:baseId/snapshots/:snapshotId')
   async deleteSnapshot(
     @TenantContext() context: NcContext,

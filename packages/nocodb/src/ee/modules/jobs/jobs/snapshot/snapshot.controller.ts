@@ -19,6 +19,7 @@ import { NcError } from '~/helpers/catchError';
 import { Base } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import { JobTypes } from '~/interface/Jobs';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -28,7 +29,7 @@ export class SnapshotController {
     protected readonly basesService: BasesService,
   ) {}
 
-  // TODO: @DarkPhoenix2704 Add ACL
+  @Acl('manageSnapshots')
   @Post('/api/v2/meta/bases/:baseId/snapshots')
   async createSnapshot(
     @TenantContext() context: NcContext,
@@ -99,7 +100,7 @@ export class SnapshotController {
     return { id: job.id };
   }
 
-  // TODO: @DarkPhoenix2704 Add ACL
+  @Acl('manageSnapshots')
   @Post('/api/v2/meta/bases/:baseId/snapshots/:snapshotId/restore')
   async restoreSnapshot(
     @TenantContext() context: NcContext,

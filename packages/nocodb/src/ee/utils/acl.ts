@@ -238,6 +238,11 @@ const permissionScopes = {
     'aiUtils',
     'aiData',
     'aiBaseSchema',
+
+
+    // Snapshots
+
+    'manageSnapshots',
   ],
 };
 
@@ -484,6 +489,7 @@ const rolePermissions:
   [ProjectRoles.CREATOR]: {
     exclude: {
       createBase: true,
+      manageSnapshots: true,
     },
   },
   [ProjectRoles.OWNER]: {

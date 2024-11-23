@@ -34,6 +34,8 @@ const {
   addNewSnapshot,
   isCreatingSnapshot,
   newSnapshotTitle,
+  isCooldownPeriodReached,
+  isSnapshotLimitReached,
 } = useBaseSettings()
 
 const sortedSnapshots = computed(() => handleGetSortedData(snapshots.value, sorts.value))
@@ -122,7 +124,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
     </div>
   </div>
 
-  <div class="item-card flex flex-col w-full">
+  <div class="flex flex-col w-full">
     <div class="text-nc-content-gray-emphasis font-semibold text-lg">
       {{ $t('general.baseSnapshots') }}
     </div>
@@ -132,9 +134,45 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
     </div>
 
     <div class="flex items-center mt-6 gap-5">
-      <NcButton :disabled="isUnsavedSnapshotsPending" class="!w-36" size="small" type="secondary" @click="addNewSnapshot">
+      <NcButton
+        :disabled="isUnsavedSnapshotsPending || isCooldownPeriodReached || isSnapshotLimitReached"
+        class="!w-36"
+        size="small"
+        type="secondary"
+        @click="addNewSnapshot"
+      >
         {{ $t('labels.newSnapshot') }}
       </NcButton>
+    </div>
+
+    <div
+      v-if="isSnapshotLimitReached"
+      class="mt-5 p-4 flex gap-4 border-1 rounded-lg border-nc-border-gray-extra-light justify-between"
+    >
+      <div class="flex gap-4">
+        <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium mt-1" />
+
+        <div class="flex flex-col gap-1">
+          <div class="text-lg leading-6 font-semibold">Snapshot limit reached</div>
+          <div class="leading-5 text-nc-content-gray-muted">
+            You can only maintain 2 base snapshots at a time. Upgrade your plan for additional snapshots.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      v-else-if="isCooldownPeriodReached"
+      class="mt-5 p-4 flex gap-4 border-1 rounded-lg border-nc-border-gray-extra-light justify-between"
+    >
+      <div class="flex gap-4">
+        <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium mt-1" />
+
+        <div class="flex flex-col gap-1">
+          <div class="text-lg leading-6 font-semibold">Snapshot cooldown remaining</div>
+          <div class="leading-5 text-nc-content-gray-muted">Snapshots can only be taken three hours apart.</div>
+        </div>
+      </div>
     </div>
 
     <NcTable

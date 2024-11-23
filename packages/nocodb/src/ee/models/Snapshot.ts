@@ -21,6 +21,9 @@ export default class Snapshot implements SnapshotType {
   created_by?: string;
   status?: string;
 
+  created_at?: string;
+  updated_at?: string;
+
   constructor(snapshot: Snapshot | SnapshotType) {
     Object.assign(this, snapshot);
   }

@@ -49,6 +49,16 @@ export class SnapshotController {
       NcError.badRequest('You can only have 2 snapshots in a base');
     }
 
+    if (count === 1) {
+      const snapshots = await Snapshot.list(context, baseId);
+
+      const lastCreatedSnapshot = snapshots?.sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())[0]
+
+      if (dayjs().diff(dayjs(lastCreatedSnapshot.created_at), 'hour') < 3) {
+        NcError.badRequest('You can only create a snapshot every 3 hours');
+      }
+    }
+
     const source = (await base.getSources())[0];
 
     if (!source) {

@@ -8,13 +8,13 @@ const { $api } = useNuxtApp()
 const toBeDeleted = ref<
   {
     workspaces: WorkspaceType[]
-    bases: BaseType[]
+    bases: BaseType & { base_role: string; workspace_title: string }[]
     integrations: IntegrationType[]
     sources: SourceType[]
     apiTokens: ApiTokenType[]
     access: {
       workspaces: WorkspaceType[]
-      bases: BaseType[]
+      bases: BaseType & { base_role: string; workspace_title: string }[]
     }
   } & any
 >()
@@ -139,17 +139,7 @@ const onDeleteConfirm = async () => {
                     :key="entity.id"
                     class="px-4 py-2 border-b-1 bg-gray-50 first:rounded-t-lg last:rounded-b-lg last:border-b-0"
                   >
-                    <div class="flex items-center gap-2">
-                      <div class="icon">
-                        <GeneralWorkspaceIcon v-if="ent.key === 'workspaces'" :workspace="entity" size="medium" />
-                        <GeneralProjectIcon v-else-if="ent.key === 'bases'" :color="parseProp(entity.meta).iconColor" />
-                        <GeneralBaseLogo v-else-if="ent.key === 'sources'" />
-                        <GeneralIcon v-else-if="ent.key === 'apiTokens'" class="text-yellow-500 mt-1" icon="key" />
-                      </div>
-                      <div class="flex flex-col">
-                        <div class="font-semibold">{{ entity[ent.titleKey] }}</div>
-                      </div>
-                    </div>
+                    <AccountDeleteCard :entity="entity" :entity-def="ent" />
                   </div>
                 </div>
               </div>
@@ -168,15 +158,7 @@ const onDeleteConfirm = async () => {
                     :key="entity.id"
                     class="px-4 py-2 border-b-1 bg-gray-50 first:rounded-t-lg last:rounded-b-lg border-b-1 last:border-b-0"
                   >
-                    <div class="flex items-center gap-2">
-                      <div class="icon">
-                        <GeneralWorkspaceIcon v-if="ent.key === 'workspaces'" :workspace="entity" size="medium" />
-                        <GeneralProjectIcon v-else-if="ent.key === 'bases'" :color="parseProp(entity.meta).iconColor" />
-                      </div>
-                      <div class="flex flex-col">
-                        <div class="font-semibold">{{ entity[ent.titleKey] }}</div>
-                      </div>
-                    </div>
+                    <AccountDeleteCard :entity="entity" :entity-def="ent" />
                   </div>
                 </div>
               </div>

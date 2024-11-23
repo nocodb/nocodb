@@ -367,13 +367,13 @@ export class UsersService extends UsersServiceCE {
 
     const toBeDeleted: {
       workspaces: Workspace[];
-      bases: BaseType[];
+      bases: BaseType & { base_role: string; workspace_title: string }[];
       integrations: Integration[];
       sources: Source[];
       apiTokens: ApiToken[];
       access: {
         workspaces: Workspace[];
-        bases: BaseType[];
+        bases: BaseType & { base_role: string; workspace_title: string }[];
       };
     } = {
       workspaces: [],
@@ -422,7 +422,14 @@ export class UsersService extends UsersServiceCE {
     // find user bases
     const bases = await listUserBases(user.id, ncMeta);
 
-    for (const base of bases) {
+    for (const bs of bases) {
+      const workspace = await Workspace.get(bs.fk_workspace_id, false, ncMeta);
+
+      const base = {
+        ...bs,
+        workspace_title: workspace.title,
+      } as BaseType & { base_role: string; workspace_title: string };
+
       // if user is sole owner of workspace, all bases of that workspace will be deleted
       if (toBeDeleted.workspaces.find((w) => w.id === base.fk_workspace_id)) {
         toBeDeleted.bases.push(base);

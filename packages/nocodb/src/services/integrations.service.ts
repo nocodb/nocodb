@@ -152,20 +152,6 @@ export class IntegrationsService {
         NcError.integrationLinkedWithMultiple(bases, sources);
       }
 
-      for (const source of sources) {
-        await this.sourcesService.baseDelete(
-          {
-            workspace_id: integration.fk_workspace_id,
-            base_id: source.base_id,
-          },
-          {
-            sourceId: source.id,
-            req: param.req,
-          },
-          ncMeta,
-        );
-      }
-
       await integration.delete(ncMeta);
       this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
         integration,
@@ -179,6 +165,7 @@ export class IntegrationsService {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       NcError.badRequest(e);
     }
+
     return true;
   }
 

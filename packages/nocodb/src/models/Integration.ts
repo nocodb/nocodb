@@ -24,7 +24,7 @@ import {
   partialExtract,
 } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { IntegrationStore } from '~/models';
+import { IntegrationStore, Source } from '~/models';
 
 export default class Integration implements IntegrationType {
   public static availableIntegrations: {
@@ -455,17 +455,39 @@ export default class Integration implements IntegrationType {
   }
 
   async delete(ncMeta = Noco.ncMeta) {
-    const res = await ncMeta.metaDelete(
+    const sources = await this.getSources(ncMeta, true);
+
+    for (const source of sources) {
+      await source.delete(
+        {
+          workspace_id: this.fk_workspace_id,
+          base_id: source.base_id,
+        },
+        ncMeta,
+      );
+    }
+
+    return await ncMeta.metaDelete(
       this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
       this.id,
     );
-
-    return res;
   }
 
   async softDelete(ncMeta = Noco.ncMeta) {
+    const sources = await this.getSources(ncMeta, true);
+
+    for (const source of sources) {
+      await source.softDelete(
+        {
+          workspace_id: this.fk_workspace_id,
+          base_id: source.base_id,
+        },
+        ncMeta,
+      );
+    }
+
     await ncMeta.metaUpdate(
       this.fk_workspace_id ? this.fk_workspace_id : RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
@@ -477,11 +499,10 @@ export default class Integration implements IntegrationType {
     );
   }
 
-  async getSources(ncMeta = Noco.ncMeta): Promise<any> {
+  async getSources(ncMeta = Noco.ncMeta, force = false): Promise<Source[]> {
     const qb = ncMeta.knex(MetaTable.SOURCES);
 
-    const sources = await qb
-      .select(`${MetaTable.SOURCES}.id`)
+    qb.select(`${MetaTable.SOURCES}.id`)
       .select(`${MetaTable.SOURCES}.alias`)
       .select(`${MetaTable.PROJECT}.title as project_title`)
       .select(`${MetaTable.SOURCES}.base_id`)
@@ -490,19 +511,23 @@ export default class Integration implements IntegrationType {
         `${MetaTable.SOURCES}.base_id`,
         `${MetaTable.PROJECT}.id`,
       )
-      .where(`${MetaTable.SOURCES}.fk_integration_id`, this.id)
-      .where((whereQb) => {
+      .where(`${MetaTable.SOURCES}.fk_integration_id`, this.id);
+
+    if (!force) {
+      qb.where((whereQb) => {
         whereQb
           .where(`${MetaTable.SOURCES}.deleted`, false)
           .orWhereNull(`${MetaTable.SOURCES}.deleted`);
-      })
-      .where((whereQb) => {
+      }).where((whereQb) => {
         whereQb
           .where(`${MetaTable.PROJECT}.deleted`, false)
           .orWhereNull(`${MetaTable.PROJECT}.deleted`);
       });
+    }
 
-    return (this.sources = sources);
+    const sources = await qb;
+
+    return (this.sources = sources.map((src) => new Source(src)));
   }
 
   static async getCategoryDefault(

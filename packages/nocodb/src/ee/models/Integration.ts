@@ -24,7 +24,7 @@ import {
 } from '~/utils/modelUtils';
 import { decryptPropIfRequired, partialExtract } from '~/utils';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { User } from '~/models';
+import { Source, User } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 
 export default class Integration extends IntegrationCE {
@@ -565,33 +565,13 @@ export default class Integration extends IntegrationCE {
       );
     }
 
-    const res = await ncMeta.metaDelete(
-      this.fk_workspace_id,
-      RootScopes.WORKSPACE,
-      MetaTable.INTEGRATIONS,
-      this.id,
-    );
-
-    return res;
+    return await super.delete(ncMeta);
   }
 
-  async softDelete(ncMeta = Noco.ncMeta) {
-    await ncMeta.metaUpdate(
-      this.fk_workspace_id,
-      RootScopes.WORKSPACE,
-      MetaTable.INTEGRATIONS,
-      {
-        deleted: true,
-      },
-      this.id,
-    );
-  }
-
-  async getSources(ncMeta = Noco.ncMeta): Promise<any> {
+  async getSources(ncMeta = Noco.ncMeta, force = false): Promise<Source[]> {
     const qb = ncMeta.knex(MetaTable.SOURCES);
 
-    const sources = await qb
-      .select(`${MetaTable.SOURCES}.id`)
+    qb.select(`${MetaTable.SOURCES}.id`)
       .select(`${MetaTable.SOURCES}.alias`)
       .select(`${MetaTable.PROJECT}.title as project_title`)
       .select(`${MetaTable.SOURCES}.base_id`)
@@ -601,18 +581,22 @@ export default class Integration extends IntegrationCE {
         `${MetaTable.PROJECT}.id`,
       )
       .where(`${MetaTable.SOURCES}.fk_integration_id`, this.id)
-      .where((whereQb) => {
+      .where(`${MetaTable.SOURCES}.fk_workspace_id`, this.fk_workspace_id);
+
+    if (!force) {
+      qb.where((whereQb) => {
         whereQb
           .where(`${MetaTable.SOURCES}.deleted`, false)
           .orWhereNull(`${MetaTable.SOURCES}.deleted`);
-      })
-      .where((whereQb) => {
+      }).where((whereQb) => {
         whereQb
           .where(`${MetaTable.PROJECT}.deleted`, false)
           .orWhereNull(`${MetaTable.PROJECT}.deleted`);
-      })
-      .where(`${MetaTable.SOURCES}.fk_workspace_id`, this.fk_workspace_id);
+      });
+    }
 
-    return (this.sources = sources);
+    const sources = await qb;
+
+    return (this.sources = sources.map((src) => new Source(src)));
   }
 }

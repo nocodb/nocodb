@@ -414,6 +414,8 @@ export class UsersService extends UsersServiceCE {
         } else {
           toBeDeleted.access.workspaces.push(workspace);
         }
+      } else if (workspace.roles !== WorkspaceUserRoles.NO_ACCESS) {
+        toBeDeleted.access.workspaces.push(workspace);
       }
     }
 
@@ -438,6 +440,8 @@ export class UsersService extends UsersServiceCE {
         } else {
           toBeDeleted.access.bases.push(base);
         }
+      } else if (base.base_role !== ProjectRoles.NO_ACCESS) {
+        toBeDeleted.access.bases.push(base);
       }
     }
 
@@ -515,7 +519,7 @@ export class UsersService extends UsersServiceCE {
         Delete steps:
         1. Delete all workspaces solely owned by user
         2. Delete all bases solely owned by user
-        3. Delete all integrations created by user
+        3. Delete all integrations created by user -> disabled until we introduce transfer ownership of integrations
         4. Delete user from all bases
         5. Delete user from all workspaces
         6. Delete all refresh tokens of user
@@ -594,6 +598,8 @@ export class UsersService extends UsersServiceCE {
         }
       }
 
+      /* TODO: We don't have a way to transfer integrations to another user yet - hence we are skipping this for now
+
       // find user integrations
       const integrationsData = await transaction.metaList2(
         RootScopes.WORKSPACE,
@@ -606,26 +612,16 @@ export class UsersService extends UsersServiceCE {
         },
       );
 
+      
       for (const data of integrationsData) {
         const integration = new Integration(data);
 
         // avoid exposing config
         delete integration.config;
 
-        const sources: Source[] = await integration.getSources(transaction);
-
-        for (const source of sources) {
-          await source.softDelete(
-            {
-              workspace_id: source.fk_workspace_id,
-              base_id: source.base_id,
-            },
-            transaction,
-          );
-        }
-
         await integration.softDelete(transaction);
       }
+      */
 
       // delete all user refresh tokens
       await UserRefreshToken.deleteAllUserToken(user.id, transaction);

@@ -604,7 +604,7 @@ watch(
 )
 
 const openBaseSettings = async (baseId: string) => {
-  await navigateTo(`/${route.value.params.typeOrId}/${baseId}?page=base-settings`)
+  await navigateTo(`/${route.value.params.typeOrId}/${baseId}?page=base-settings&tab=visibility`)
 }
 
 const showNodeTooltip = ref(true)

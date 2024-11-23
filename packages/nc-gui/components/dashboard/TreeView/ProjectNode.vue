@@ -530,6 +530,7 @@ const openBaseSettings = async (baseId: string) => {
     baseId,
     query: {
       page: 'base-settings',
+      tab: 'visibility',
     },
   })
 }

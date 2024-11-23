@@ -1,24 +1,17 @@
 <script setup lang="ts">
-const { t } = useI18n()
+const { isUIAllowed } = useRoles()
 
-const activeMenu = ref('snapshots')
+const hasPermissionForSnapshots = computed(() => isUIAllowed('manageSnapshot'))
+
+const activeMenu = ref(isEeUI && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility')
 
 const selectMenu = (option: string) => {
+  if (!hasPermissionForSnapshots.value && option === 'snapshots') {
+    return
+  }
+
   activeMenu.value = option
 }
-
-const options: { key: string; label: string; icon: keyof typeof iconMap }[] = [
-  {
-    key: 'snapshots',
-    label: t('general.snapshots'),
-    icon: 'camera',
-  },
-  {
-    key: 'visibility',
-    label: t('labels.visibilityAndDataHandling'),
-    icon: 'ncEye',
-  },
-]
 </script>
 
 <template>
@@ -27,18 +20,30 @@ const options: { key: string; label: string; icon: keyof typeof iconMap }[] = [
     <div class="flex flex-col">
       <div class="h-full w-60">
         <div
-          v-for="option in options"
-          :key="option.key"
+          v-if="isEeUI && hasPermissionForSnapshots"
           :class="{
-            'active-menu': activeMenu === option.key,
+            'active-menu': activeMenu === 'snapshots',
           }"
           class="gap-3 !hover:bg-gray-50 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
-          @click="selectMenu(option.key)"
+          @click="selectMenu('snapshots')"
         >
-          <GeneralIcon :icon="option.icon" />
+          <GeneralIcon icon="camera" />
 
           <span>
-            {{ option.label }}
+            {{ $t('general.snapshots') }}
+          </span>
+        </div>
+
+        <div
+          :class="{
+            'active-menu': activeMenu === 'visibility',
+          }"
+          class="gap-3 !hover:bg-gray-50 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          @click="selectMenu('visibility')"
+        >
+          <GeneralIcon icon="ncEye" />
+          <span>
+            {{ $t('labels.visibilityAndDataHandling') }}
           </span>
         </div>
       </div>

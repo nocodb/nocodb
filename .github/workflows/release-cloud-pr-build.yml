@@ -1,0 +1,208 @@
+name: "Cloud : PR Build"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      services_to_deploy:
+        type: choice
+        description: services to deploy
+        default: 'all'
+        options:
+          - all
+          - main_only
+          - mux_service_only
+
+
+jobs:
+  cloud-docker-build:
+    runs-on: [self-hosted, docker-build]
+    env:
+      working-directory: ./packages/nocodb
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-2
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.19.1
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Get pnpm store directory
+        shell: bash
+        timeout-minutes: 1
+        run: |
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: set-tag
+        id: tag-step
+        run: |
+          # Get current date
+          CURRENT_DATE=$(date +"%Y%m%d")
+          CURRENT_TIME=$(date +"%H%M")
+          # Get current PR number
+          PR_NUMBER=${{github.event.number}}
+          # Get current version
+          CURRENT_VERSION=$(cat ./packages/nocodb/package.json | jq -r ".version")
+          # Construct tag name
+          TAG_NAME=pr-${PR_NUMBER}-${CURRENT_DATE}-${CURRENT_TIME}
+          echo "TARGET_TAG=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_OUTPUT
+          echo "PR_NUMBER=${PR_NUMBER}" >> $GITHUB_OUTPUT
+
+      - name: Checkout2
+        uses: actions/checkout@v3
+        with:
+          repository: nocodb/ee-private
+          token: ${{ secrets.GH_TOKEN_PRIVATE_REPO }}
+          fetch-depth: 0
+          path: ./ee-private
+
+      - name: Copy files
+        run: |
+          rm -rf ./ee-private/.git
+          rsync -rvzhP ./ee-private/packages/nocodb/ ./packages/nocodb/
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+      - name: install dependencies
+        run: pnpm bootstrap
+      - name: Set outputs
+        id: vars
+        run: echo "release_version=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Create nc.txt version identifier file
+        run: |
+          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+          echo "User: ${{ github.actor }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Commit: ${{ github.sha }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Branch: ${{ github.ref }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          echo "Action ID: ${{ github.run_id }}" >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          date >> packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nocodb/src/public/
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nc-sql-executor/src/public/nc.txt
+
+      - name: Configure AWS and Api admin credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      ### main build and deploy starts here ###
+      - name: build nc-gui and copy to nocodb
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        env:
+          NC_CDN_URL: "${{ secrets.CDN_URL }}/${{ steps.vars.outputs.release_version }}"
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          NUXT_NC_CONFIG_ENDPOINT: ${{ secrets.NUXT_NC_CONFIG_ENDPOINT }}
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=16384"
+          # generate static build of nc-gui
+          cd packages/nc-gui &&
+          pnpm run generate:ee &&
+
+          # delete sourcemaps
+          find ./ee/dist/ -type f -name '*.js.map' -delete &&
+          find ./ee/dist/ -type f -name '*.css.map' -delete &&
+
+          # # delete sourcemaps refs - enable if needed
+          # find ./ee/dist/ -type f -name '*.js' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.js\.map//g' {} +
+          # find ./ee/dist/ -type f -name '*.css' -exec sed -i -E 's/sourceMappingURL=[^ ]*\.css\.map//g' {} +
+
+          # copy build to nocodb
+          rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
+
+      - name: build nocodb
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        run: |
+          # build nocodb ( pack nocodb-sdk and nc-gui )
+          cd packages/nocodb &&
+          EE=true pnpm exec webpack --config webpack.ee-cloud.config.js &&
+          # remove bundled libraries (nocodb-sdk, knex-snowflake)
+          pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
+
+      - name: Move files to release version folder
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        run: |
+          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+          mv packages/nc-gui/ee/dist/* packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+
+      - name: Deploy UI assets to CDN
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        uses: pranavxc/s3-deploy@2cdf96df65b6c97ee09a5771958582b77f22b738
+        with:
+          folder: packages/nc-gui/build/
+          bucket: ${{ secrets.CDN_BUCKET }}
+          dist-id: ${{ secrets.CDN_DIST_ID }}
+          invalidation: /${{ steps.vars.outputs.release_version }}/*
+
+      - name: Build, tag, and push image to Amazon ECR
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nocohub-pr
+          STAGING_IMAGE_TAG_ARG: ${{ format('-t {0}/nocohub-pr:{1}', steps.login-ecr.outputs.registry, steps.tag-step.outputs.TARGET_TAG) || '' }}
+          COMMIT_HASH: ${{ github.sha }}
+        run: |
+          cd packages/nocodb &&
+          docker build -f src/ee-cloud/Dockerfile-cloud $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+          # perform only when staging = "true" and main_only or all
+      - name: Push main image to ECR
+        if: ${{  (github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nocohub-pr
+          API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.tag-step.outputs.TARGET_TAG }}
+
+      - name: Publish main to staging
+        if: ${{ (github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' ) }}
+        env:
+          API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
+        run: |
+          ./scripts/release/staging.sh
+      ### mux build and deploy starts here ###
+      - name: Build, tag, and push mux service image (nc-sql-executor) to Amazon ECR
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all') }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nc-sql-executor-pr
+          STAGING_IMAGE_TAG_ARG: ${{ format('-t {0}/nc-sql-executor-pr:{1}', steps.login-ecr.outputs.registry, steps.tag-step.outputs.TARGET_TAG) || '' }}
+          COMMIT_HASH: ${{ github.sha }}
+        run: |
+          cd packages/nc-sql-executor
+          npm run build
+          docker build . $CUSTOM_IMAGE_TAG_ARG $STAGING_IMAGE_TAG_ARG  -t $ECR_REGISTRY/$ECR_REPOSITORY:latest -t $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$COMMIT_HASH
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Push staging image to ECR
+        if: ${{ (github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all') }}
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: nc-sql-executor-pr
+        run: |
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ steps.tag-step.outputs.TARGET_TAG }}

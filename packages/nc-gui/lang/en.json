@@ -293,6 +293,8 @@
     "languages": "Languages",
     "extension": "Extension",
     "extensions": "Extensions",
+    "triggerOnLinkedTablesUpdates": "Trigger on Link Column update"
+,
     "enable": "Enable",
     "poweredBy": "Powered by",
     "nocoAI": "Noco AI",

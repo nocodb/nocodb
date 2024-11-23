@@ -44,7 +44,7 @@ const testConnectionError = ref('')
 const useForm = Form.useForm
 
 let hookRef = reactive<
-  Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean }
+  Omit<HookType, 'notification'> & { notification: Record<string, any>; eventOperation?: string; condition: boolean;   }
 >({
   id: '',
   title: defaultHookName,
@@ -64,6 +64,8 @@ let hookRef = reactive<
   condition: false,
   active: true,
   version: 'v2',
+  triggerOnLinkColumnUpdate: false,
+
 })
 
 const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
@@ -376,6 +378,10 @@ async function saveHooks() {
   }
 
   try {
+    ///dont enable triggerOnLinkedTable for events other than update
+    if(hookRef.eventOperation !== 'after update'){
+hookRef.triggerOnLinkColumnUpdate = false;
+    }
     let res
     if (hookRef.id) {
       res = await api.dbTableWebhook.update(hookRef.id, {
@@ -864,6 +870,9 @@ onMounted(async () => {
                 </NcSwitch>
               </div>
 
+
+              
+
               <LazySmartsheetToolbarColumnFilter
                 v-if="hookRef.condition"
                 ref="filterRef"
@@ -876,7 +885,12 @@ onMounted(async () => {
                 @update:filters-length="hookRef.condition = $event > 0"
               />
             </div>
-
+            <div >
+              <div class="w-full cursor-pointer flex items-center" @click.prevent="hookRef.triggerOnLinkColumnUpdate = !hookRef.triggerOnLinkColumnUpdate">
+                <NcSwitch  v-if="hookRef.eventOperation == 'after update'"   :checked="Boolean(hookRef.triggerOnLinkColumnUpdate)" class="nc-check-box-hook-trigger-on-link">
+                  <span class="!text-gray-700 font-semibold"> {{ $t('general.triggerOnLinkedTablesUpdates') }} </span>
+                </NcSwitch>
+              </div> </div>
             <a-form-item v-if="formInput[hookRef.notification.type] && hookRef.notification.payload">
               <div class="flex flex-col gap-4">
                 <div v-for="(input, i) in formInput[hookRef.notification.type]" :key="i">

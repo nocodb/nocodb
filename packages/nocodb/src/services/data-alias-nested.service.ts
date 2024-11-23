@@ -309,7 +309,18 @@ export class DataAliasNestedService {
       source,
     });
 
+
     const column = await getColumnByIdOrName(context, param.columnName, model);
+
+
+    const prevData = await  baseModel.readByPk(
+      param.rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+
+    await baseModel.beforeUpdate(prevData , null , param.cookie , true)
 
     await baseModel.removeChild({
       colId: column.id,
@@ -317,6 +328,13 @@ export class DataAliasNestedService {
       rowId: param.rowId,
       cookie: param.cookie,
     });
+    const newData = await  baseModel.readByPk(
+      param.rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+    await baseModel.afterUpdate(prevData , newData , null, param.cookie , null , true)
 
     return true;
   }
@@ -342,13 +360,29 @@ export class DataAliasNestedService {
       dbDriver: await NcConnectionMgrv2.get(source),
     });
 
+    const prevData = await  baseModel.readByPk(
+      param.rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+
+    await baseModel.beforeUpdate(prevData , null , param.cookie , true)
     const column = await getColumnByIdOrName(context, param.columnName, model);
+  
     await baseModel.addChild({
       colId: column.id,
       childId: param.refRowId,
       rowId: param.rowId,
       cookie: param.cookie,
     });
+    const newData = await  baseModel.readByPk(
+      param.rowId,
+      false,
+      {},
+      { ignoreView: true, getHiddenColumn: true },
+    );
+    await baseModel.afterUpdate(prevData , newData , null, param.cookie , null ,true)
 
     return true;
   }

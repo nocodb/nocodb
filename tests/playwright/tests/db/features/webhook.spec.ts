@@ -844,4 +844,120 @@ test.describe.serial('Webhook', () => {
 
     await verifyDeleteOperation(rsp, 'records.after.bulkDelete', 2);
   });
+
+  test.only('Trigger on linked column', async ({ request, page }) => {
+    // Waiting for the server to start
+    await page.waitForTimeout(1000);
+    // close 'Team & Auth' tab
+    await clearServerData({ request });
+    await dashboard.closeTab({ title: 'Team & Auth' });
+    await dashboard.treeView.createTable({ title: 'Test', baseTitle: context.base.title });
+
+    await clearServerData({ request });
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: 'Title',
+      value: 'Poole',
+    });
+
+    await dashboard.treeView.createTable({
+      title: 'Sheet1',
+      baseTitle: context.base.title,
+    });
+
+    await dashboard.grid.addNewRow({
+      index: 0,
+      columnHeader: 'Title',
+      value: 'Sheet 1 Row 1',
+    });
+    await dashboard.grid.addNewRow({
+      index: 1,
+      columnHeader: 'Title',
+      value: 'Sheet 1 Row 2',
+    });
+    await dashboard.treeView.openTable({ title: 'Test' });
+
+    //////
+    ////// has  many
+    await dashboard.grid.column.create({
+      title: 'testHM',
+      type: 'Links',
+      childTable: 'Sheet1',
+      relationType: 'Has Many',
+    });
+
+    await webhook.create({
+      title: 'hook-1',
+      event: 'On Record Update',
+    });
+
+    await webhook.enableTriggerOnLinkUpdate(0);
+
+    await dashboard.rootPage.waitForTimeout(200);
+
+    await dashboard.grid.cell.inCellAdd({ index: 0, columnHeader: 'testHM' });
+    await dashboard.linkRecord.select('Sheet 1 Row 1');
+    await dashboard.rootPage.waitForTimeout(200);
+
+    await verifyHookTrigger(1, 'Poole', request, buildExpectedResponseData('records.after.update', null));
+    await webhook.disableTriggerOnLinkUpdate(0);
+    await dashboard.rootPage.waitForTimeout(200);
+
+    await dashboard.grid.cell.inCellAdd({ index: 0, columnHeader: 'testHM' });
+    await dashboard.linkRecord.select('Sheet 1 Row 2');
+
+    ///count should be one as no webhook triggered
+    await verifyHookTrigger(1, 'Poole', request, buildExpectedResponseData('records.after.update', null));
+
+    ///// one to one
+    await dashboard.grid.column.create({
+      title: 'testOo',
+      type: 'Links',
+      childTable: 'Sheet1',
+      relationType: 'One to One',
+    });
+
+    await webhook.enableTriggerOnLinkUpdate(0);
+
+    await dashboard.grid.cell.inCellAdd({ index: 0, columnHeader: 'testOo' });
+    await dashboard.linkRecord.select('Sheet 1 Row 1');
+    await dashboard.rootPage.waitForTimeout(200);
+
+    await verifyHookTrigger(2, 'Poole', request, buildExpectedResponseData('records.after.update', null));
+
+    await webhook.disableTriggerOnLinkUpdate(0);
+    await dashboard.rootPage.waitForTimeout(200);
+
+    await dashboard.grid.cell.inCellAdd({ index: 0, columnHeader: 'testOo' });
+    await dashboard.linkRecord.select('Sheet 1 Row 2');
+
+    ///count should be one as no webhook triggered
+    await verifyHookTrigger(2, 'Poole', request, buildExpectedResponseData('records.after.update', null));
+
+    //// many to many
+    await dashboard.grid.column.create({
+      title: 'testMm',
+      type: 'Links',
+      childTable: 'Sheet1',
+      relationType: 'Many to Many',
+    });
+
+    await webhook.enableTriggerOnLinkUpdate(0);
+
+    await dashboard.grid.cell.inCellAdd({ index: 0, columnHeader: 'testMm' });
+    await dashboard.linkRecord.select('Sheet 1 Row 1');
+    await dashboard.rootPage.waitForTimeout(200);
+
+    await verifyHookTrigger(3, 'Poole', request, buildExpectedResponseData('records.after.update', null));
+
+    await webhook.disableTriggerOnLinkUpdate(0);
+    await dashboard.rootPage.waitForTimeout(200);
+
+    await dashboard.grid.cell.inCellAdd({ index: 0, columnHeader: 'testMm' });
+    await dashboard.linkRecord.select('Sheet 1 Row 2');
+    await dashboard.rootPage.waitForTimeout(200);
+
+    ///count should be one as no webhook triggered
+    await verifyHookTrigger(3, 'Poole', request, buildExpectedResponseData('records.after.update', null));
+  });
 });

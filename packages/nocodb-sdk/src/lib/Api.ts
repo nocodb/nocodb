@@ -11839,6 +11839,11 @@ export class Api<
          * @example download/noco/jango_fett/Table1/attachment/uVbjPVQxC_SSfs8Ctx.jpg
          */
         path: string;
+        /**
+         * The scope of the attachment
+         * @example workspacePics
+         */
+        scope?: 'workspacePics' | 'profilePics' | 'organizationPics';
       },
       data: {
         files: FileReqType[];
@@ -11869,6 +11874,11 @@ export class Api<
          * @example download/noco/jango_fett/Table1/attachment/c7z_UF8sZBgJUxMjpN.jpg
          */
         path: string;
+        /**
+         * The scope of the attachment
+         * @example workspacePics
+         */
+        scope?: 'workspacePics' | 'profilePics' | 'organizationPics';
       },
       data: AttachmentReqType[],
       params: RequestParams = {}

@@ -27,7 +27,7 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
 
   public async handleHooks(
     context: NcContext,
-    { hookName, prevData, newData, user, viewId, modelId, tnPath },
+    { hookName, prevData, newData, user, viewId, modelId, tnPath , fromLinkColUpdate },
   ): Promise<void> {
     const view = await View.get(context, viewId);
     const model = await Model.get(context, modelId);
@@ -117,6 +117,11 @@ export class HookHandlerService implements OnModuleInit, OnModuleDestroy {
     });
     for (const hook of hooks) {
       if (hook.active) {
+        if( fromLinkColUpdate === true ){
+          if(  Boolean(hook.triggerOnLinkColumnUpdate) !== true ){
+            continue;
+          }
+        }
         try {
           await this.jobsService.add(JobTypes.HandleWebhook, {
             context,

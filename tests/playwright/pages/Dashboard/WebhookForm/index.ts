@@ -40,6 +40,7 @@ export class WebhookFormPage extends BasePage {
       value: 'application/json',
     });
     await this.configureWebhook({ title, event, url });
+
     await this.save();
     await this.close();
   }
@@ -221,5 +222,28 @@ export class WebhookFormPage extends BasePage {
 
   async goBackFromForm() {
     await this.get().locator('svg.nc-icon-hook-navigate-left').click();
+  }
+
+  async toggleTriggerOnLinkUpdate(index: number, enable: boolean) {
+    await this.open({ index });
+
+    const checkBox = this.get().locator(`.nc-check-box-hook-trigger-on-link`);
+    const isChecked = await checkBox.isChecked();
+
+    if (isChecked !== enable) {
+      await checkBox.click();
+    }
+
+    await this.save();
+    await this.close();
+  }
+
+  // Usage
+  async enableTriggerOnLinkUpdate(index: number) {
+    await this.toggleTriggerOnLinkUpdate(index, true);
+  }
+
+  async disableTriggerOnLinkUpdate(index: number) {
+    await this.toggleTriggerOnLinkUpdate(index, false);
   }
 }

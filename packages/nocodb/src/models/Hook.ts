@@ -33,11 +33,11 @@ export default class Hook implements HookType {
   retry_interval?: number;
   timeout?: number;
   active?: BoolType;
-
   fk_workspace_id?: string;
   base_id?: string;
   source_id?: string;
   version?: 'v1' | 'v2';
+  triggerOnLinkColumnUpdate?: BoolType;
 
   constructor(hook: Partial<Hook | HookReqType>) {
     Object.assign(this, hook);
@@ -86,6 +86,7 @@ export default class Hook implements HookType {
     const cachedList = await NocoCache.getList(CacheScope.HOOK, [
       param.fk_model_id,
     ]);
+    
     let { list: hooks } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !hooks.length) {
@@ -106,6 +107,7 @@ export default class Hook implements HookType {
           },
         },
       );
+
       await NocoCache.setList(CacheScope.HOOK, [param.fk_model_id], hooks);
     }
     // filter event & operation
@@ -146,6 +148,7 @@ export default class Hook implements HookType {
       'active',
       'base_id',
       'source_id',
+      'triggerOnLinkColumnUpdate'
     ]);
 
     if (insertObj.notification && typeof insertObj.notification === 'object') {
@@ -206,6 +209,7 @@ export default class Hook implements HookType {
       'timeout',
       'active',
       'version',
+      'triggerOnLinkColumnUpdate'
     ]);
 
     if (

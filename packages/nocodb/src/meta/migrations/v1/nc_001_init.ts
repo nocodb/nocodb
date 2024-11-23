@@ -95,6 +95,7 @@ const up = async (knex) => {
     table.integer('retry_interval').defaultTo(60000);
     table.integer('timeout').defaultTo(60000);
     table.boolean('active').defaultTo(true);
+    table.boolean('triggerOnLinkColumnUpdate').defaultTo(false);
 
     table.timestamps();
   });

@@ -38,6 +38,8 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const snapshots = ref<SnapshotExtendedType[]>([] as SnapshotExtendedType[])
 
+  const newSnapshotTitle = ref('')
+
   const updateSnapshot = async (snapshot: SnapshotExtendedType) => {
     try {
       snapshot.loading = true
@@ -89,7 +91,10 @@ export const useBaseSettings = createSharedComposable(() => {
   const createSnapshot = async (snapshot: Partial<SnapshotExtendedType>) => {
     if (!baseId.value) return
     try {
-      const response = await $api.snapshot.create(baseId.value, snapshot)
+      const response = await $api.snapshot.create(baseId.value, {
+        ...snapshot,
+        title: newSnapshotTitle.value,
+      })
       isCreatingSnapshot.value = true
 
       $poller.subscribe(
@@ -181,9 +186,10 @@ export const useBaseSettings = createSharedComposable(() => {
   }
 
   const addNewSnapshot = () => {
+    newSnapshotTitle.value = dayjs().format('D MMMM YYYY, h:mm A')
     snapshots.value = [
       {
-        title: dayjs().format('D MMMM YYYY, h:mm A'),
+        title: newSnapshotTitle,
         isNew: true,
       },
       ...snapshots.value,
@@ -202,5 +208,6 @@ export const useBaseSettings = createSharedComposable(() => {
     isCreatingSnapshot,
     isRestoringSnapshot,
     restoreSnapshot,
+    newSnapshotTitle,
   }
 })

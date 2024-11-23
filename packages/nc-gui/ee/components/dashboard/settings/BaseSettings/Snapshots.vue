@@ -29,12 +29,14 @@ const {
   snapshots,
   createSnapshot,
   listSnapshots,
-  updateSnapshot,
   cancelNewSnapshot,
   isUnsavedSnapshotsPending,
   addNewSnapshot,
   isCreatingSnapshot,
+  newSnapshotTitle,
 } = useBaseSettings()
+
+const sortedSnapshots = computed(() => handleGetSortedData(snapshots.value, sorts.value))
 
 const columns = [
   {
@@ -56,6 +58,7 @@ const columns = [
 ] as NcTableColumnProps[]
 
 onMounted(async () => {
+  loadSorts()
   await listSnapshots()
 })
 const deleteSnapshot = (s: SnapshotExtendedType) => {
@@ -137,7 +140,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
     <NcTable
       v-model:order-by="orderBy"
       :columns="columns"
-      :data="snapshots"
+      :data="sortedSnapshots"
       class="h-full mt-5"
       body-row-class-name="nc-base-settings-snapshot-item"
     >
@@ -157,7 +160,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
               </div>
             </template>
           </NcTooltip>
-          <a-input v-else v-model:value="snapshot.title" class="new-snapshot-title" />
+          <a-input v-else v-model:value="newSnapshotTitle" class="new-snapshot-title" />
         </template>
         <template v-if="column.key === 'action'">
           <div v-if="!snapshot?.isNew" class="flex row-action items-center">

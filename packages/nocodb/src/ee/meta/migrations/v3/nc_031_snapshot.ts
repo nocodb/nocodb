@@ -9,7 +9,8 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.SNAPSHOT, (table) => {
     table.string('id', 20).primary();
     table.string('title', 512);
-    table.string('fk_base_id', 20);
+    table.string('base_id', 20);
+    table.string('snapshot_base_id', 20);
 
     table.string('fk_workspace_id', 20);
 

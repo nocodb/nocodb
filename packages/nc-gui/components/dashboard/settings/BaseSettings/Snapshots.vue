@@ -3,8 +3,6 @@ import dayjs from 'dayjs'
 
 const { t } = useI18n()
 
-const { $api } = useNuxtApp()
-
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook')
 
 const orderBy = computed<Record<string, SordDirectionType>>({
@@ -32,13 +30,10 @@ const {
   createSnapshot,
   listSnapshots,
   updateSnapshot,
-  restoreSnapshot,
-  deleteSnapshot,
   cancelNewSnapshot,
   isUnsavedSnapshotsPending,
   addNewSnapshot,
   isCreatingSnapshot,
-  isRestoringSnapshot,
 } = useBaseSettings()
 
 const columns = [
@@ -63,13 +58,46 @@ const columns = [
 onMounted(async () => {
   await listSnapshots()
 })
+const deleteSnapshot = (s: SnapshotExtendedType) => {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgSnapshotDelete'), {
+    'modelValue': isOpen,
+    'snapshot': s,
+    'onUpdate:modelValue': closeDialog,
+    'onDeleted': async () => {
+      closeDialog()
+      await listSnapshots()
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+const restoreSnapshot = (s: SnapshotExtendedType) => {
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgSnapshotRestore'), {
+    'modelValue': isOpen,
+    'snapshot': s,
+    'onUpdate:modelValue': closeDialog,
+    'onRestored': async () => {
+      closeDialog()
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
 </script>
 
 <template>
-  <div
-    v-if="isCreatingSnapshot || isRestoringSnapshot"
-    class="absolute w-full h-full inset-0 flex items-center justify-center z-90 bg-black/12"
-  >
+  <div v-if="isCreatingSnapshot" class="absolute w-full h-full inset-0 flex items-center justify-center z-90 bg-black/12">
     <div
       v-if="isCreatingSnapshot"
       style="box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1)"

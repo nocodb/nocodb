@@ -49,7 +49,6 @@ export class CacheWarmingJob {
     }
 
     let fields = model.columns
-      .filter((c) => c.uidt != UITypes.Links && c.uidt != UITypes.Rollup && c.uidt != UITypes.LinkToAnotherRecord)
       .map((c) => c.title)
       .join(',')
     const source = await Source.get(context, model.source_id);
@@ -70,7 +69,7 @@ export class CacheWarmingJob {
     while (true) {
       this.logger.log("Starting cache warming")
       var offset = 0
-      while (!data.pageInfo.isLastPage && offset < 30000) {
+      while (!data.pageInfo.isLastPage) {
         data = await this.datasService
           .getDataList(context, {
             model,

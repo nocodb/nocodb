@@ -4,7 +4,7 @@ import debug from 'debug';
 import { isLinksOrLTAR, isVirtualCol, RelationTypes } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import type { Job } from 'bull';
-import type { NcContext } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import type {
   DuplicateBaseJobData,
   DuplicateColumnJobData,
@@ -35,10 +35,118 @@ export class DuplicateProcessor {
     private readonly columnsService: ColumnsService,
   ) {}
 
+
+  async duplicateBaseJob(
+    {
+      sourceBase,
+      targetBase,
+      dataSource,
+      req,
+      context,
+      options,
+      operation
+    }: {
+      sourceBase: Base; // Base to duplicate
+      targetBase: Base; // Base to duplicate to
+      dataSource: Source; // Data source to duplicate from
+      req: NcRequest;
+      context: NcContext // Context of the base to duplicate
+
+      options: {
+        excludeData?: boolean;
+        excludeHooks?: boolean;
+        excludeViews?: boolean;
+        excludeComments?: boolean;
+      }
+      operation: string
+    }) {
+    const hrTime = initTime();
+
+    const targetContext = {
+      workspace_id: targetBase.fk_workspace_id,
+      base_id: targetBase.id,
+    }
+
+    try {
+
+      if(!sourceBase || !targetBase || !dataSource) {
+        throw new Error(`Base or source not found!`);
+      }
+
+      const user = (req as any).user;
+
+      const models = (await dataSource.getModels(context)).filter(
+        (m) => m.source_id === dataSource.id && !m.mm && m.type === 'table',
+      );
+
+      const exportedModels = await this.exportService.serializeModels(context, {
+        modelIds: models.map((m) => m.id),
+        ...options
+      });
+
+      elapsedTime(
+        hrTime,
+        `serialize models schema for ${dataSource.base_id}::${dataSource.id}`,
+        operation,
+      );
+
+      if (!exportedModels) {
+        throw new Error(`Export failed for source '${dataSource.id}'`);
+      }
+
+      await targetBase.getSources();
+
+      const targetBaseSource = targetBase.sources[0];
+
+      const idMap = await this.importService.importModels(targetContext, {
+        user,
+        baseId: targetBase.id,
+        sourceId: targetBaseSource.id,
+        data: exportedModels,
+        req: req,
+      });
+
+      elapsedTime(hrTime, `import models schema`, operation);
+
+      if (!idMap) {
+        throw new Error(`Import failed for source '${dataSource.id}'`);
+      }
+
+      if (!options?.excludeData) {
+        await this.importModelsData(targetContext, context, {
+          idMap,
+          sourceProject: sourceBase,
+          sourceModels: models,
+          destProject: targetBase,
+          destBase: targetBaseSource,
+          hrTime,
+          req,
+        });
+      }
+
+      await this.projectsService.baseUpdate(targetContext, {
+        baseId: targetBase.id,
+        base: {
+          status: null,
+        },
+        user: req.user,
+        req,
+      });
+
+    } catch(err) {
+      if (targetBase?.id) {
+        await this.projectsService.baseSoftDelete(targetContext, {
+          baseId: targetBase.id,
+          user: req.user,
+          req,
+        });
+      }
+      throw err;
+    }
+  }
+
   async duplicateBase(job: Job<DuplicateBaseJobData>) {
     this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateBase})`);
-
-    const hrTime = initTime();
 
     const { context, sourceId, dupProjectId, req, options } = job.data;
 
@@ -58,91 +166,20 @@ export class DuplicateProcessor {
     const dupProject = await Base.get(context, dupProjectId);
     const source = await Source.get(context, sourceId);
 
-    const targetContext = {
-      workspace_id: dupProject.fk_workspace_id,
-      base_id: dupProject.id,
-    };
-
-    try {
-      if (!base || !dupProject || !source) {
-        throw new Error(`Base or source not found!`);
-      }
-
-      const user = (req as any).user;
-
-      const models = (await source.getModels(context)).filter(
-        // TODO revert this when issue with cache is fixed
-        (m) => m.source_id === source.id && !m.mm && m.type === 'table',
-      );
-
-      const exportedModels = await this.exportService.serializeModels(context, {
-        modelIds: models.map((m) => m.id),
-        excludeViews,
-        excludeHooks,
+    await this.duplicateBaseJob({
+      sourceBase: base,
+      targetBase: dupProject,
+      dataSource: source,
+      req,
+      context,
+      options: {
         excludeData,
-        excludeComments,
-      });
-
-      elapsedTime(
-        hrTime,
-        `serialize models schema for ${source.base_id}::${source.id}`,
-        'duplicateBase',
-      );
-
-      if (!exportedModels) {
-        throw new Error(`Export failed for source '${source.id}'`);
-      }
-
-      await dupProject.getSources();
-
-      const dupBase = dupProject.sources[0];
-
-      const idMap = await this.importService.importModels(targetContext, {
-        user,
-        baseId: dupProject.id,
-        sourceId: dupBase.id,
-        data: exportedModels,
-        req: req,
-      });
-
-      elapsedTime(hrTime, `import models schema`, 'duplicateBase');
-
-      if (!idMap) {
-        throw new Error(`Import failed for source '${source.id}'`);
-      }
-
-      if (!excludeData) {
-        await this.importModelsData(targetContext, context, {
-          idMap,
-          sourceProject: base,
-          sourceModels: models,
-          destProject: dupProject,
-          destBase: dupBase,
-          hrTime,
-          req,
-        });
-      }
-
-      await this.projectsService.baseUpdate(targetContext, {
-        baseId: dupProject.id,
-        base: {
-          status: null,
-        },
-        user: req.user,
-        req,
-      });
-    } catch (e) {
-      if (dupProject?.id) {
-        await this.projectsService.baseSoftDelete(targetContext, {
-          baseId: dupProject.id,
-          user: req.user,
-          req,
-        });
-      }
-      throw e;
-    }
-
-    this.debugLog(`job completed for ${job.id} (${JobTypes.DuplicateBase})`);
+        excludeHooks,
+        excludeViews,
+        excludeComments
+      },
+      operation: JobTypes.DuplicateBase
+    })
 
     return { id: dupProject.id };
   }

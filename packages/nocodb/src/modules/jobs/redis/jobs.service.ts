@@ -101,7 +101,7 @@ export class JobsService implements OnModuleInit {
     if (!jobData) {
       if (SKIP_STORING_JOB_META.includes(name as JobTypes)) {
         jobData = {
-          id: Noco.ncMeta.genNanoid(MetaTable.JOBS),
+          id: await Noco.ncMeta.genNanoid(MetaTable.JOBS),
         };
       } else {
         jobData = await Job.insert(context, {

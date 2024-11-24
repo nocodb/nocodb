@@ -1,6 +1,8 @@
 import RedisCacheMgr from './RedisCacheMgr';
 import RedisMockCacheMgr from './RedisMockCacheMgr';
 import type CacheMgr from './CacheMgr';
+import { trace } from '~/tracing/decorator'
+
 import { CACHE_PREFIX, CacheGetType } from '~/utils/globals';
 import { getRedisURL } from '~/helpers/redisHelpers';
 
@@ -53,6 +55,7 @@ export default class NocoCache {
     return this.client.incrby(`${this.prefix}:${key}`, value);
   }
 
+  @trace()
   public static async get(key, type): Promise<any> {
     if (this.cacheDisabled) {
       if (type === CacheGetType.TYPE_ARRAY) return Promise.resolve([]);

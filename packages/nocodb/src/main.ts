@@ -1,3 +1,4 @@
+import { otelSDK } from './tracing/tracing'
 import cors from 'cors';
 import express from 'express';
 import Noco from '~/Noco';
@@ -15,6 +16,7 @@ server.use(
 server.set('view engine', 'ejs');
 
 async function bootstrap() {
+  await otelSDK.start();
   const httpServer = server.listen(process.env.PORT || 8080, async () => {
     server.use(await Noco.init({}, httpServer, server));
   });

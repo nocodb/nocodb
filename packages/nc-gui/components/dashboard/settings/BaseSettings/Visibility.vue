@@ -59,37 +59,39 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
 
     <div class="flex flex-col border-1 rounded-lg mt-6 border-nc-border-gray-medium">
       <div class="flex w-full px-3 py-2 gap-2 flex-col">
-        <div class="flex w-full gap-3 items-center">
-          <NcSwitch v-model:checked="includeM2M" v-e="['c:themes:show-m2m-tables']" class="nc-settings-meta-misc-m2m ml-2" />
-
-          <span class="text-nc-content-gray font-semibold flex-1">
-            {{ $t('msg.info.showM2mTables') }}
-          </span>
+        <div class="flex w-full gap-1 items-center">
+          <NcSwitch v-model:checked="includeM2M" v-e="['c:themes:show-m2m-tables']" class="nc-settings-meta-misc-m2m">
+            <span class="text-nc-content-gray font-semibold flex-1">
+              {{ $t('msg.info.showM2mTables') }}
+            </span>
+          </NcSwitch>
         </div>
         <span class="text-gray-500 pl-10">{{ $t('msg.info.showM2mTablesDesc') }}</span>
       </div>
 
       <div class="flex w-full px-3 border-t-1 border-nc-border-gray-medium py-2 gap-2 flex-col">
-        <div class="flex w-full gap-3 items-center">
-          <NcSwitch v-model:checked="showNull" v-e="['c:settings:show-null']" class="ml-2 nc-settings-show-null" />
-          <span class="text-nc-content-gray font-semibold flex-1">
-            {{ $t('msg.info.showNullInCells') }}
-          </span>
+        <div class="flex w-full gap-1 items-center">
+          <NcSwitch v-model:checked="showNull" v-e="['c:settings:show-null']" class="nc-settings-show-null">
+            <span class="text-nc-content-gray font-semibold flex-1">
+              {{ $t('msg.info.showNullInCells') }}
+            </span>
+          </NcSwitch>
         </div>
         <span class="text-gray-500 pl-10">{{ $t('msg.info.showNullInCellsDesc') }}</span>
       </div>
 
       <div class="flex w-full px-3 py-2 border-t-1 border-nc-border-gray-medium gap-2 flex-col">
-        <div class="flex w-full gap-3 items-center">
+        <div class="flex w-full gap-1 items-center">
           <NcSwitch
             v-model:checked="showNullAndEmptyInFilter"
             v-e="['c:settings:show-null-and-empty-in-filter']"
-            class="ml-2 nc-settings-show-null-and-empty-in-filter"
+            class="nc-settings-show-null-and-empty-in-filter"
             @change="showNullAndEmptyInFilterOnChange"
-          />
-          <span class="text-nc-content-gray font-semibold flex-1">
-            {{ $t('msg.info.showNullAndEmptyInFilter') }}
-          </span>
+          >
+            <span class="text-nc-content-gray font-semibold flex-1">
+              {{ $t('msg.info.showNullAndEmptyInFilter') }}
+            </span>
+          </NcSwitch>
         </div>
         <span class="text-gray-500 pl-10">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
       </div>

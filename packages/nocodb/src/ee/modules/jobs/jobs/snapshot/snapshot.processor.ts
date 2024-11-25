@@ -45,9 +45,8 @@ export class SnapshotProcessor {
         status: 'success',
       });
     } catch (err) {
-      await Snapshot.update(context, snapshot.id, {
-        status: 'failed',
-      });
+
+      await Snapshot.delete(context, snapshot.id)
       throw err
     }
 

@@ -208,18 +208,32 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
             </template>
           </NcTooltip>
           <a-input v-else v-model:value="newSnapshotTitle" class="new-snapshot-title" />
+          <div class="flex-1"></div>
+          <NcBadge v-if="snapshot.status !== 'success'" :border="false" color="red">
+            <div class="flex text-nc-content-red-dark items-center gap-1">
+              <GeneralIcon icon="ncAlertTriangle" />
+              Snapshot failed
+            </div>
+          </NcBadge>
         </template>
         <template v-if="column.key === 'action'">
           <div v-if="!snapshot?.isNew" :data-testid="`snapshot-${snapshot.title}`" class="flex row-action items-center">
             <NcButton
               size="small"
+              :disabled="snapshot.status !== 'success'"
               data-testid="restore-snapshot-btn"
               type="secondary"
               class="!text-xs !rounded-r-none !border-r-0"
               :shadow="false"
               @click="restoreSnapshot(snapshot)"
             >
-              <div class="text-nc-content-gray-subtle font-semibold">
+              <div
+                :class="{
+                  'text-nc-content-inverted-primary-disabled': snapshot.status !== 'success',
+                  'text-nc-content-gray-subtle': snapshot.status === 'success',
+                }"
+                class="font-semibold"
+              >
                 {{ $t('general.restore') }}
               </div>
             </NcButton>

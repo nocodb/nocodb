@@ -130,6 +130,10 @@ export class SnapshotController {
       NcError.notFound('Snapshot not found');
     }
 
+    if (snapshot.status !== 'success') {
+      NcError.badRequest('Snapshot is not ready to restore or has failed');
+    }
+
     const source = (await base.getSources())[0];
 
     if (!source) {

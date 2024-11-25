@@ -27,7 +27,7 @@
     "registerIntegrations": "node build-utils/registerIntegrations.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "pnpm run watch:run",
-    "start:prod": "node --max-old-space-size=4096 --max-semi-space-size=128 -- node_modules/ts-node/dist/bin --project tsconfig.json src/main.ts src/run/docker --log-error ",
+    "start:prod": "node --max-old-space-size=2048 --max-semi-space-size=128 -- node_modules/ts-node/dist/bin --project tsconfig.json src/main.ts src/run/docker --log-error ",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest --runInBand --forceExit --passWithNoTests",
     "test:watch": "jest --watch",

@@ -61,6 +61,7 @@ export default class Integration extends IntegrationCE {
 
     // we use dynamic import to avoid circular reference
     Integration.availableIntegrations = [...ceIntegrations, ...eeIntegrations];
+    IntegrationCE.availableIntegrations = Integration.availableIntegrations;
   }
 
   public static async createIntegration(

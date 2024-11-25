@@ -56,7 +56,8 @@ const columns = [
     title: t('general.action'),
     width: 162,
     minWidth: 162,
-    padding: '12px 24px',
+    justify: 'justify-end',
+    align: 'center',
   },
 ] as NcTableColumnProps[]
 
@@ -133,10 +134,14 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
     <div class="flex items-center mt-6 gap-5">
       <NcButton
         :disabled="isUnsavedSnapshotsPending || isCooldownPeriodReached || isSnapshotLimitReached"
-        class="!w-36"
+        type="ghost"
+        class="!text-primary"
         data-testid="add-new-snapshot"
         size="small"
-        type="secondary"
+        :class="{
+          '!text-nc-content-inverted-primary-disabled':
+            isUnsavedSnapshotsPending || isCooldownPeriodReached || isSnapshotLimitReached,
+        }"
         @click="addNewSnapshot"
       >
         {{ $t('labels.newSnapshot') }}
@@ -151,7 +156,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
         <GeneralIcon icon="ncInfoSolid" class="text-nc-content-red-dark mt-1" />
 
         <div class="flex flex-col flex-1 w-full gap-1">
-          <div class="text-lg leading-6 font-semibold">{{ $t('labels.snapshotCreationFailed') }}</div>
+          <div class="text-[16px] leading-6 font-semibold">{{ $t('labels.snapshotCreationFailed') }}</div>
           <div class="leading-5 text-nc-content-gray-muted">
             {{ $t('labels.snapshotCreationFailedDescription') }}
           </div>
@@ -171,7 +176,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
         <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium mt-1" />
 
         <div class="flex flex-col gap-1">
-          <div class="text-lg leading-6 font-semibold">{{ $t('labels.snapshotLimitReached') }}</div>
+          <div class="text-[16px] leading-6 font-semibold">{{ $t('labels.snapshotLimitReached') }}</div>
           <div class="leading-5 text-nc-content-gray-muted">
             {{ $t('labels.snapshotLimitDescription') }}
           </div>
@@ -187,7 +192,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
         <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium mt-1" />
 
         <div class="flex flex-col gap-1">
-          <div class="text-lg leading-6 font-semibold">
+          <div class="text-[16px] leading-6 font-semibold">
             {{ $t('labels.snapshotCooldownWarning') }}
           </div>
           <div class="leading-5 text-nc-content-gray-muted">
@@ -240,7 +245,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
               :disabled="snapshot.status !== 'success'"
               data-testid="restore-snapshot-btn"
               type="secondary"
-              class="!text-xs !rounded-r-none !border-r-0"
+              class="!text-sm !rounded-r-none !border-r-0"
               :shadow="false"
               @click="restoreSnapshot(snapshot)"
             >

@@ -42,20 +42,13 @@ const restoreSnapshot = async (snapshot: SnapshotExtendedType) => {
   >
     <div class="text-nc-content-gray-emphasis font-semibold text-lg">Confirm Snapshot Restore</div>
 
-    <div class="text-nc-content-gray-subtle2 my-2 leading-5">Are you sure you want to restore this base snapshot.</div>
+    <div class="text-nc-content-gray-subtle my-2 leading-5">Are you sure you want to restore this base snapshot.</div>
 
-    <div class="leading-5 text-nc-content-gray-subtle">Note:</div>
+    <div class="leading-5 text-nc-content-gray-subtle2">Note:</div>
 
-    <ul class="list-disc leading-5 text-nc-content-gray-subtle pl-4 !mb-0">
+    <ul class="list-disc leading-5 text-nc-content-gray-subtle2 pl-4 !mb-0">
       <li>Restoring this snapshot will not affect the existing base.</li>
-      <li>
-        On restore, a new base
-
-        <span class="font-semibold">
-          {{ snapshot.title }}
-        </span>
-        will be created in the same workspace.
-      </li>
+      <li>On restore, a new base will be created in the same workspace.</li>
     </ul>
 
     <div class="my-5 px-4 py-2 bg-nc-bg-gray-light rounded-lg">

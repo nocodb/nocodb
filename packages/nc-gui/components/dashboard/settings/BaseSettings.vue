@@ -24,7 +24,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex p-4 nc-base-settings justify-center overflow-auto gap-8">
+  <div class="flex p-5 nc-base-settings justify-center overflow-auto gap-8">
     <!-- Left Pane -->
     <div class="flex flex-col">
       <div class="h-full w-60">
@@ -61,7 +61,7 @@ onMounted(() => {
     </div>
     <!-- Data Pane -->
 
-    <div class="flex flex-col py-4 w-[800px]">
+    <div class="flex flex-col w-[760px]">
       <DashboardSettingsBaseSettingsSnapshots v-if="activeMenu === 'snapshots'" />
       <DashboardSettingsBaseSettingsVisibility v-if="activeMenu === 'visibility'" />
     </div>
@@ -70,6 +70,6 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .active-menu {
-  @apply !bg-brand-50 font-semibold !text-brand-500;
+  @apply !bg-brand-50 font-semibold !text-nc-content-brand-disabled;
 }
 </style>

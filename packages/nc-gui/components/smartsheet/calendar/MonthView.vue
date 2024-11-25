@@ -898,6 +898,8 @@ const addRecord = (date: dayjs.Dayjs) => {
           :style="{
             ...record.rowMeta.style,
             zIndex: record.rowMeta.id === draggingId ? 100 : 0,
+            lineHeight: '18px',
+
             opacity:
               (draggingId === null || record.rowMeta.id === draggingId) &&
               (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)

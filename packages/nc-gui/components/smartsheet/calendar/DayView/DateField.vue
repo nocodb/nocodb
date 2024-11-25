@@ -203,6 +203,7 @@ const newRecord = () => {
         <div
           :key="record.rowMeta.id"
           class="mt-2"
+          style="line-height: 18px"
           data-testid="nc-calendar-day-record-card"
           @mouseleave="hoverRecord = null"
           @mouseover="hoverRecord = record.rowMeta.id as string"

@@ -88,8 +88,9 @@ const emit = defineEmits(['resize-start'])
 }
 
 .plain-cell {
+  line-height: 18px;
   .bold {
-    @apply !text-gray-800 font-semibold;
+    @apply !text-gray-800 font-bold;
   }
 }
 </style>

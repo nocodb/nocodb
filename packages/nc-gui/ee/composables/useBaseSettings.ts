@@ -42,15 +42,17 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const isSnapshotCreationFailed = ref(false)
 
-  const isCooldownPeriodReached = computed(() => {
+  const isCooldownPeriodReached = ref(false)
+
+  const checkIfCooldownPeriodReached = () => {
     const lastSnapshot = [...snapshots.value]
       .filter((s) => !s.isNew)
       .sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())[0]
 
-    if (!lastSnapshot) return false
+    if (!lastSnapshot) isCooldownPeriodReached.value = false
 
-    return dayjs().diff(dayjs(lastSnapshot.created_at), 'hour') < 3
-  })
+    isCooldownPeriodReached.value = dayjs().diff(dayjs(lastSnapshot.created_at), 'hour') < 3
+  }
 
   const isSnapshotLimitReached = computed(() => snapshots.value.length >= 2)
 
@@ -201,6 +203,7 @@ export const useBaseSettings = createSharedComposable(() => {
   }
 
   const addNewSnapshot = () => {
+    checkIfCooldownPeriodReached()
     if (isSnapshotLimitReached.value) {
       message.error('Maximum 2 snapshots allowed per base at a time in the free plan')
       return

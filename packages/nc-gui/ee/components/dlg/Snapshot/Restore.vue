@@ -70,6 +70,7 @@ const restoreSnapshot = async (snapshot: SnapshotExtendedType) => {
       <NcButton
         :disabled="isRestoringSnapshot"
         type="primary"
+        data-testid="confirm-restore-snapshot-btn"
         size="small"
         :loading="isRestoringSnapshot"
         @click="restoreSnapshot(snapshot)"

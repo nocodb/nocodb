@@ -137,6 +137,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
       <NcButton
         :disabled="isUnsavedSnapshotsPending || isCooldownPeriodReached || isSnapshotLimitReached"
         class="!w-36"
+        data-testid="add-new-snapshot"
         size="small"
         type="secondary"
         @click="addNewSnapshot"
@@ -209,9 +210,10 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
           <a-input v-else v-model:value="newSnapshotTitle" class="new-snapshot-title" />
         </template>
         <template v-if="column.key === 'action'">
-          <div v-if="!snapshot?.isNew" class="flex row-action items-center">
+          <div v-if="!snapshot?.isNew" :data-testid="`snapshot-${snapshot.title}`" class="flex row-action items-center">
             <NcButton
               size="small"
+              data-testid="restore-snapshot-btn"
               type="secondary"
               class="!text-xs !rounded-r-none !border-r-0"
               :shadow="false"
@@ -224,6 +226,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
             <NcButton
               size="small"
               type="secondary"
+              data-testid="delete-snapshot-btn"
               class="!text-xs !rounded-l-none"
               :shadow="false"
               @click="deleteSnapshot(snapshot)"
@@ -234,11 +237,11 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
 
           <div v-else>
             <div class="flex gap-2">
-              <NcButton type="secondary" size="small" @click="cancelNewSnapshot()">
+              <NcButton data-testid="cancel-snapshot-btn" type="secondary" size="small" @click="cancelNewSnapshot()">
                 {{ $t('general.cancel') }}
               </NcButton>
 
-              <NcButton type="primary" size="small" @click="createSnapshot(snapshot)">
+              <NcButton data-testid="create-snapshot-btn" type="primary" size="small" @click="createSnapshot(snapshot)">
                 {{ $t('general.save') }}
               </NcButton>
             </div>

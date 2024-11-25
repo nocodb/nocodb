@@ -187,7 +187,7 @@ watch(
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="data-source">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
-              <GeneralIcon icon="database" />
+              <GeneralIcon icon="ncDatabase" />
               <div>{{ $t('labels.dataSources') }}</div>
               <div
                 v-if="base.sources?.length"

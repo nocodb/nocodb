@@ -41,7 +41,9 @@ export const useBaseSettings = createSharedComposable(() => {
   const newSnapshotTitle = ref('')
 
   const isCooldownPeriodReached = computed(() => {
-    const lastSnapshot = [...snapshots.value].sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())[0]
+    const lastSnapshot = [...snapshots.value]
+      .filter((s) => !s.isNew)
+      .sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())[0]
 
     if (!lastSnapshot) return false
 

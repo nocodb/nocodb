@@ -209,6 +209,8 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
     <NcTable
       v-model:order-by="orderBy"
       :columns="columns"
+      header-row-height="44px"
+      row-height="44px"
       :data="sortedSnapshots"
       class="h-full mt-5"
       body-row-class-name="nc-base-settings-snapshot-item"

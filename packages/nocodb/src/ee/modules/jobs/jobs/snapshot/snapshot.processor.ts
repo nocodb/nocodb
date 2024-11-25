@@ -58,7 +58,7 @@ export class SnapshotProcessor {
     this.debugLog(`Job started for ${job.id} (${JobTypes.RestoreSnapshot})`);
     const hrTime = initTime();
 
-    const { context, snapshot, targetBaseId, req, user } = job.data;
+    const { context, snapshot, targetBaseId, req, user, targetContext } = job.data;
 
     const baseId = context.base_id;
 
@@ -77,7 +77,8 @@ export class SnapshotProcessor {
       req,
       context,
       options: {},
-      operation: JobTypes.RestoreSnapshot
+      operation: JobTypes.RestoreSnapshot,
+      targetContext
     })
 
     this.debugLog(`job completed for ${job.id} (${JobTypes.RestoreSnapshot})`);

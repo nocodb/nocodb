@@ -1,5 +1,5 @@
 import { createSharedComposable } from '@vueuse/core'
-import type { SnapshotType } from 'nocodb-sdk'
+import type { SnapshotType, WorkspaceType } from 'nocodb-sdk'
 import { computed, ref } from 'vue'
 import dayjs from 'dayjs'
 
@@ -153,11 +153,15 @@ export const useBaseSettings = createSharedComposable(() => {
     }
   }
 
-  const restoreSnapshot = async (snapshot: SnapshotExtendedType, onRestoreSuccess?: () => void | Promise<void>) => {
+  const restoreSnapshot = async (
+    snapshot: SnapshotExtendedType,
+    workspace?: WorkspaceType,
+    onRestoreSuccess?: () => void | Promise<void>,
+  ) => {
     if (!baseId.value) return
     try {
       isRestoringSnapshot.value = true
-      const response = await $api.snapshot.restore(baseId.value, snapshot.id!)
+      const response = await $api.snapshot.restore(baseId.value, snapshot.id!, { workspaceId: workspace?.id ?? '' })
 
       $poller.subscribe(
         { id: response.id! },
@@ -202,6 +206,7 @@ export const useBaseSettings = createSharedComposable(() => {
         },
       )
     } catch (error) {
+      isRestoringSnapshot.value = false
       message.error(await extractSdkResponseErrorMsg(error))
       console.error(error)
     }

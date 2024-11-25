@@ -44,14 +44,15 @@ export class DuplicateProcessor {
       req,
       context,
       options,
-      operation
+      operation,
+      targetContext: _targetContext
     }: {
       sourceBase: Base; // Base to duplicate
       targetBase: Base; // Base to duplicate to
       dataSource: Source; // Data source to duplicate from
       req: NcRequest;
       context: NcContext // Context of the base to duplicate
-
+      targetContext?: NcContext // Context of the base to duplicate to
       options: {
         excludeData?: boolean;
         excludeHooks?: boolean;
@@ -62,7 +63,7 @@ export class DuplicateProcessor {
     }) {
     const hrTime = initTime();
 
-    const targetContext = {
+    const targetContext = _targetContext ??  {
       workspace_id: targetBase.fk_workspace_id,
       base_id: targetBase.id,
     }

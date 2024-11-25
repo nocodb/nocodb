@@ -117,7 +117,22 @@ export class SnapshotController {
     @Param('snapshotId') snapshotId: string,
     @Req() req: NcRequest,
     @Param('baseId') baseId: string,
+    @Body() {workspaceId: _ws}: {
+      workspaceId: string
+    },
   ) {
+
+    // TODO: Followup
+  /*  if (!workspaceId) {
+      NcError.badRequest('Workspace id is required');
+    }
+
+    const roles = await WorkspaceUser.get(workspaceId, req.user.id)
+
+    if (![WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(roles.roles as WorkspaceUserRoles)) {
+      NcError.forbidden(`You don't have permission to restore snapshot in this workspace`);
+    }*/
+
     const base = await Base.get(context, baseId);
 
     if (!base) {
@@ -142,13 +157,13 @@ export class SnapshotController {
 
     const targetBase = await this.basesService.baseCreate({
       base: {
-        title: `${base.title} - ${snapshot.title}`.substring(0, 255),
+        title: `${base.title} - ${snapshot.title}`.substring(0, 49),
         status: ProjectStatus.JOB,
         meta: base.meta,
         color: base.color ?? '',
         type: 'database',
-        ...(base.fk_workspace_id
-          ? { fk_workspace_id: base.fk_workspace_id }
+        ...(base.fk_workspace_id // workspaceId
+          ? { fk_workspace_id: base.fk_workspace_id } // workspaceId
           : {}),
       } as any,
       user: { id: req.user.id },
@@ -159,6 +174,10 @@ export class SnapshotController {
       context: {
         workspace_id: snapshot.fk_workspace_id,
         base_id: snapshot.snapshot_base_id,
+      },
+      targetContext: {
+        workspace_id: base.fk_workspace_id, // workspaceId
+        base_id: targetBase.id,
       },
       user: req.user,
       baseId: snapshot.snapshot_base_id,

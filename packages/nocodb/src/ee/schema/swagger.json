@@ -3894,6 +3894,21 @@
             "description": "OK"
           }
         },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string",
+                    "description": "ID of the workspace where to restore"
+                  }
+                }
+              }
+            }
+          }
+        },
         "tags": [
           "Snapshot"
         ]

@@ -24470,7 +24470,7 @@
           "title": {
             "description": "Base Title",
             "example": "My Base",
-            "maxLength": 128,
+            "maxLength": 50,
             "minLength": 1,
             "type": "string"
           },

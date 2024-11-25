@@ -36,6 +36,7 @@ const {
   newSnapshotTitle,
   isCooldownPeriodReached,
   isSnapshotLimitReached,
+  isSnapshotCreationFailed,
 } = useBaseSettings()
 
 const sortedSnapshots = computed(() => handleGetSortedData(snapshots.value, sorts.value))
@@ -116,10 +117,6 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
 
       <div class="w-full flex justify-between items-center gap-3 mt-5">
         <GeneralLoader size="xlarge" />
-
-        <NcButton size="small" type="secondary">
-          {{ $t('general.cancel') }}
-        </NcButton>
       </div>
     </div>
   </div>
@@ -147,7 +144,27 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
     </div>
 
     <div
-      v-if="isSnapshotLimitReached"
+      v-if="isSnapshotCreationFailed"
+      class="mt-5 p-4 flex gap-4 border-1 relative rounded-lg border-nc-border-gray-extra-light justify-between"
+    >
+      <div class="flex w-full gap-4">
+        <GeneralIcon icon="ncInfoSolid" class="text-nc-content-red-dark mt-1" />
+
+        <div class="flex flex-col flex-1 w-full gap-1">
+          <div class="text-lg leading-6 font-semibold">{{ $t('labels.snapshotCreationFailed') }}</div>
+          <div class="leading-5 text-nc-content-gray-muted">
+            {{ $t('labels.snapshotCreationFailedDescription') }}
+          </div>
+        </div>
+
+        <NcButton type="text" class="right-0 top-0" size="small" @click="isSnapshotCreationFailed = false">
+          <GeneralIcon icon="close" />
+        </NcButton>
+      </div>
+    </div>
+
+    <div
+      v-else-if="isSnapshotLimitReached"
       class="mt-5 p-4 flex gap-4 border-1 rounded-lg border-nc-border-gray-extra-light justify-between"
     >
       <div class="flex gap-4">
@@ -209,7 +226,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
           </NcTooltip>
           <a-input v-else v-model:value="newSnapshotTitle" class="new-snapshot-title" />
           <div class="flex-1"></div>
-          <NcBadge v-if="snapshot.status !== 'success'" :border="false" color="red">
+          <NcBadge v-if="snapshot.status && snapshot.status !== 'success'" :border="false" color="red">
             <div class="flex text-nc-content-red-dark items-center gap-1">
               <GeneralIcon icon="ncAlertTriangle" />
               Snapshot failed

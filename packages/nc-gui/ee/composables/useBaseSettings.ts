@@ -40,6 +40,8 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const newSnapshotTitle = ref('')
 
+  const isSnapshotCreationFailed = ref(false)
+
   const isCooldownPeriodReached = computed(() => {
     const lastSnapshot = [...snapshots.value]
       .filter((s) => !s.isNew)
@@ -128,9 +130,10 @@ export const useBaseSettings = createSharedComposable(() => {
               message.info('Snapshot created successfully')
               await listSnapshots()
               isCreatingSnapshot.value = false
-            } else if (status === JobStatus.FAILED) {
+            } else if (data.status === JobStatus.FAILED) {
               message.error('Failed to create snapshot')
               isCreatingSnapshot.value = false
+              isSnapshotCreationFailed.value = true
             }
           }
         },
@@ -233,5 +236,6 @@ export const useBaseSettings = createSharedComposable(() => {
     newSnapshotTitle,
     isSnapshotLimitReached,
     isCooldownPeriodReached,
+    isSnapshotCreationFailed,
   }
 })

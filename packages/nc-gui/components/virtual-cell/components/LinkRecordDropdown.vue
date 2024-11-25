@@ -63,7 +63,7 @@ watch([ncLinksDropdownRef, isOpen], () => {
   <NcDropdown
     :visible="isOpen"
     placement="bottom"
-    overlay-class-name="nc-links-dropdown !min-w-[540px] xs:(!min-w-[90vw])"
+    :overlay-class-name="`nc-links-dropdown !min-w-[540px] xs:(!min-w-[90vw]) ${isOpen ? 'active' : ''}`"
     :class="`.nc-${randomClass}`"
   >
     <slot />

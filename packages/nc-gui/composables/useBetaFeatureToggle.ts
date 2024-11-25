@@ -53,7 +53,7 @@ const FEATURES = [
   {
     id: 'base_snapshots',
     title: 'Enable Base Snapshots',
-    description: 'Snapshots are complete backups of your database at the time of creation.',
+    description: 'Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation.',
     enabled: false,
     isEngineering: true,
   },

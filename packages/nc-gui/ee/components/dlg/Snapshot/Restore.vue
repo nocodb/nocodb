@@ -52,7 +52,12 @@ const restoreSnapshot = async (snapshot: SnapshotExtendedType) => {
     </ul>
 
     <div class="my-5 px-4 py-2 bg-nc-bg-gray-light rounded-lg">
-      {{ snapshot.title }}
+      <NcTooltip show-on-truncate-only class="truncate">
+        {{ snapshot.title }}
+        <template #title>
+          {{ snapshot.title }}
+        </template>
+      </NcTooltip>
     </div>
 
     <div class="flex items-center gap-2 justify-end">

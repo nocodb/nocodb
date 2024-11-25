@@ -5533,45 +5533,6 @@
           "type"
         ]
       },
-      "Snapshot": {
-        "description": "Model for Snapshot",
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "title": {
-            "type": "string",
-            "description": "Title of the Snapshot"
-          },
-          "base_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Base"
-          },
-          "snapshot_base_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Snapshot Base"
-          },
-          "fk_workspace_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Workspace"
-          },
-          "created_at": {
-            "format": "date",
-            "type": "string",
-            "description": "Date of creation"
-          },
-          "created_by" : {
-            "$ref": "#/components/schemas/Id",
-            "description": "User ID of the creator"
-          },
-          "status": {
-            "type": "string",
-            "description": "Status of the Snapshot"
-          }
-        }
-      },
       "SSOClient": {
         "description": "Model for SSO Client",
         "type": "object",

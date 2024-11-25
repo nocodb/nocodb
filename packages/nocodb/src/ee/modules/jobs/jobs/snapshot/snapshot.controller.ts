@@ -142,7 +142,7 @@ export class SnapshotController {
 
     const targetBase = await this.basesService.baseCreate({
       base: {
-        title: `${base.title} - ${snapshot.title}`,
+        title: `${base.title} - ${snapshot.title}`.substring(0, 255),
         status: ProjectStatus.JOB,
         meta: base.meta,
         color: base.color ?? '',

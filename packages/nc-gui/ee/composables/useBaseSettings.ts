@@ -49,7 +49,10 @@ export const useBaseSettings = createSharedComposable(() => {
       .filter((s) => !s.isNew)
       .sort((a, b) => dayjs(b.created_at).unix() - dayjs(a.created_at).unix())[0]
 
-    if (!lastSnapshot) isCooldownPeriodReached.value = false
+    if (!lastSnapshot) {
+      isCooldownPeriodReached.value = false
+      return
+    }
 
     isCooldownPeriodReached.value = dayjs().diff(dayjs(lastSnapshot.created_at), 'hour') < 3
   }
@@ -75,6 +78,8 @@ export const useBaseSettings = createSharedComposable(() => {
     try {
       await $api.snapshot.delete(baseId.value, snapshot.id!)
       snapshots.value = snapshots.value.filter((s) => s.id !== snapshot.id)
+
+      checkIfCooldownPeriodReached()
     } catch (error) {
       message.error(await extractSdkResponseErrorMsg(error))
       console.error(error)

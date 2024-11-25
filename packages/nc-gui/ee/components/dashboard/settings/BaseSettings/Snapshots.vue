@@ -221,16 +221,16 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
             {{ snapshot.title }}
 
             <template #title>
-              <div class="text-xs font-semibold text-nc-gray-300">
+              <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-gray-300">
                 {{ $t('labels.createdOn') }}
               </div>
               <div class="mt-1 text-[13px]">
                 {{ dayjs(snapshot.created_at).format('D MMMM YYYY, hh:mm A') }}
               </div>
-              <div class="text-xs font-semibold mt-2 text-nc-gray-300">
+              <div class="text-[10px] leading-[14px] uppercase font-semibold mt-2 text-gray-300">
                 {{ $t('labels.createdBy') }}
               </div>
-              <div class="mt-1 text-[13px]">
+              <div class="mt-1 pb-1 text-[13px]">
                 {{ snapshot.created_display_name }}
               </div>
             </template>

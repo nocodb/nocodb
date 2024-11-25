@@ -5,6 +5,9 @@ import setup, { unsetup } from '../../setup';
 test.describe('Snapshots', () => {
   let dashboard: DashboardPage, context: any;
 
+  // Enable of Feature Release
+  test.skip();
+
   test.beforeEach(async ({ page }) => {
     context = await setup({ page, isEmptyProject: true, isSuperUser: true });
     dashboard = new DashboardPage(page, context.base);

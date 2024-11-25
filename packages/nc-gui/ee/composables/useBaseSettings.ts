@@ -94,7 +94,7 @@ export const useBaseSettings = createSharedComposable(() => {
         return {
           ...snapshot,
           isNew: false,
-          created_display_name: user?.display_name ?? (user?.email ?? '').split('@')[0],
+          created_display_name: user?.display_name ?? user?.email ?? '',
         }
       })
     } catch (error) {

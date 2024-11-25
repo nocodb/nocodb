@@ -1,5 +1,7 @@
 <script setup lang="ts">
+
 const props = defineProps<{
+  store: ReturnType<typeof useProvideExpandedFormStore>,
   showFieldsTab?: boolean,
 }>()
 
@@ -18,7 +20,9 @@ const tab = ref<'fields' |'comments' | 'audits'>(props.showFieldsTab ? 'fields' 
             <span class="<lg:hidden"> Fields </span>
           </div>
         </template>
-        <!-- <SmartsheetExpandedFormSidebarComments /> -->
+        <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper
+          :store="props.store"
+        />
       </a-tab-pane>
 
       <a-tab-pane key="comments" class="w-full h-full">

@@ -247,7 +247,10 @@ export default {
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormSidebar show-fields-tab />
+      <SmartsheetExpandedFormSidebar
+        :store="props.store"
+        show-fields-tab
+      />
     </div>
   </div>
 </template>

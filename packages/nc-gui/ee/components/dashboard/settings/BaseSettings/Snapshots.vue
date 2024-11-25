@@ -153,9 +153,9 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
         <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium mt-1" />
 
         <div class="flex flex-col gap-1">
-          <div class="text-lg leading-6 font-semibold">Snapshot limit reached</div>
+          <div class="text-lg leading-6 font-semibold">{{ $t('labels.snapshotLimitReached') }}</div>
           <div class="leading-5 text-nc-content-gray-muted">
-            You can only maintain 2 base snapshots at a time. Upgrade your plan for additional snapshots.
+            {{ $t('labels.snapshotLimitDescription') }}
           </div>
         </div>
       </div>
@@ -169,8 +169,12 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
         <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-orange-medium mt-1" />
 
         <div class="flex flex-col gap-1">
-          <div class="text-lg leading-6 font-semibold">Snapshot cooldown remaining</div>
-          <div class="leading-5 text-nc-content-gray-muted">Snapshots can only be taken three hours apart.</div>
+          <div class="text-lg leading-6 font-semibold">
+            {{ $t('labels.snapshotCooldownWarning') }}
+          </div>
+          <div class="leading-5 text-nc-content-gray-muted">
+            {{ $t('labels.snapshotCooldownDescription') }}
+          </div>
         </div>
       </div>
     </div>
@@ -188,11 +192,15 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
             {{ snapshot.title }}
 
             <template #title>
-              <div class="text-xs font-semibold text-nc-gray-300">Created On</div>
+              <div class="text-xs font-semibold text-nc-gray-300">
+                {{ $t('labels.createdOn') }}
+              </div>
               <div class="mt-1 text-[13px]">
                 {{ dayjs(snapshot.created_at).format('D MMMM YYYY, hh:mm A') }}
               </div>
-              <div class="text-xs font-semibold mt-2 text-nc-gray-300">Created By</div>
+              <div class="text-xs font-semibold mt-2 text-nc-gray-300">
+                {{ $t('labels.createdBy') }}
+              </div>
               <div class="mt-1 text-[13px]">
                 {{ snapshot.created_display_name }}
               </div>

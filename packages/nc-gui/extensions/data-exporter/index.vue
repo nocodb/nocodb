@@ -1,30 +1,11 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { SupportedExportCharset, type ViewType, ViewTypes, charsetOptions } from 'nocodb-sdk'
+import { SupportedExportCharset, type ViewType, ViewTypes, charsetOptions, csvColumnSeparatorOptions } from 'nocodb-sdk'
 
 const jobStatusTooltip = {
   [JobStatus.COMPLETED]: 'Export successful',
   [JobStatus.FAILED]: 'Export failed',
 } as Record<string, string>
-
-const delimiters = [
-  {
-    label: ',',
-    value: ',',
-  },
-  {
-    label: ';',
-    value: ';',
-  },
-  {
-    label: '|',
-    value: '|',
-  },
-  {
-    label: '<Tab>',
-    value: '\\t',
-  },
-]
 
 const { $api, $poller } = useNuxtApp()
 
@@ -308,7 +289,7 @@ onMounted(async () => {
                 dropdown-class-name="w-[180px]"
                 @change="saveChanges"
               >
-                <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
+                <a-select-option v-for="delimiter of csvColumnSeparatorOptions" :key="delimiter.value" :value="delimiter.value">
                   <div class="w-full flex items-center gap-2">
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>{{ delimiter.label }}</template>

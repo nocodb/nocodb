@@ -16,6 +16,7 @@ const toBeDeleted = ref<
       workspaces: WorkspaceType[]
       bases: BaseType & { base_role: string; workspace_title: string }[]
     }
+    isAccepted?: boolean
   } & any
 >()
 
@@ -61,7 +62,7 @@ const isDeleteModalVisible = ref(false)
 
 const toBeDeletedUserEmail = ref('')
 
-let loadingToBeDeletedTimeout: number
+let loadingToBeDeletedTimeout: unknown
 
 const onInitDelete = async () => {
   if (loadingToBeDeleted.value) return
@@ -73,7 +74,7 @@ const onInitDelete = async () => {
       dry: true,
     })) as any
 
-    toBeDeleted.value = res
+    toBeDeleted.value = { ...res, isAccepted: true }
 
     loadingToBeDeletedTimeout = setTimeout(() => {
       toBeDeleted.value = undefined
@@ -117,16 +118,23 @@ const onDeleteConfirm = async () => {
 </script>
 
 <template>
-  <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
-    <div class="flex font-medium text-base" data-rec="true">Delete Account</div>
-    <div class="flex text-gray-500" data-rec="true">Delete your account permanently (This action is irreversible)</div>
+  <div class="mt-10 flex flex-col border-1 rounded-2xl border-red-500 p-6">
+    <div class="text-base font-bold text-nc-content-red-dark" data-rec="true">Danger Zone</div>
+    <div class="text-sm text-nc-content-gray-muted mt-2" data-rec="true">Delete your account permanently</div>
+
+    <div class="flex p-4 border-1 rounded-lg mt-6 items-center" data-rec="true">
+      <component :is="iconMap.alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
+      <div class="text-base font-bold ml-3">This action is irreversible</div>
+    </div>
     <Transition>
-      <div v-if="toBeDeleted" class="flex flex-col">
+      <div v-if="toBeDeleted" class="flex flex-col mt-5">
         <div class="flex flex-col gap-2">
-          <p v-if="Object.values(toBeDeleted).every((el) => !(el as any)?.length)" class="text-gray-500 p-2">
-            <GeneralIcon icon="info" class="text-primary" />
-            No entities found where you are the sole owner. Deleting your account will not affect any entities.
-          </p>
+          <div v-if="Object.values(toBeDeleted).every((el) => !(el as any)?.length)" class="text-gray-500 flex gap-2 mb-3">
+            <div class="h-[21px] flex items-center">
+              <GeneralIcon icon="info" class="text-primary flex-none" />
+            </div>
+            <div>No entities found where you are the sole owner. Deleting your account will not affect any entities.</div>
+          </div>
           <template v-for="ent of entitiesToRemove" :key="ent.key">
             <template v-if="toBeDeleted[ent.key].length">
               <span>
@@ -164,21 +172,39 @@ const onDeleteConfirm = async () => {
               </div>
             </template>
           </template>
+
+          <div class="flex items-center gap-2 mt-3">
+            <NcCheckbox v-model:checked="toBeDeleted.isAccepted"> I understand the consequences </NcCheckbox>
+          </div>
         </div>
       </div>
     </Transition>
-    <div class="flex flex-row w-full justify-end">
+    <div class="flex flex-row gap-x-2 w-full justify-end mt-8">
+      <template v-if="toBeDeleted">
+        <NcButton html-type="back" type="secondary" size="small" @click="toBeDeleted = undefined"
+          >{{ $t('general.cancel') }}
+        </NcButton>
+
+        <NcButton
+          type="danger"
+          size="small"
+          data-testid="nc-account-settings-delete"
+          :loading="loadingToBeDeleted"
+          :disabled="toBeDeleted && !toBeDeleted.isAccepted"
+          @click="onDelete"
+        >
+          Delete Account
+        </NcButton>
+      </template>
       <NcButton
-        v-if="toBeDeleted"
+        v-else
         type="danger"
         data-testid="nc-account-settings-delete"
         :loading="loadingToBeDeleted"
-        @click="onDelete"
+        @click="onInitDelete"
+        size="small"
       >
-        I understand the consequences, delete my account
-      </NcButton>
-      <NcButton v-else type="danger" data-testid="nc-account-settings-delete" :loading="loadingToBeDeleted" @click="onInitDelete">
-        Delete my account
+        Delete Account
       </NcButton>
     </div>
     <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-user-delete-modal" size="small" centered>

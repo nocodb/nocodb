@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { charsetOptions, SupportedExportCharset, type ViewType, ViewTypes } from 'nocodb-sdk'
+import { SupportedExportCharset, type ViewType, ViewTypes, charsetOptions } from 'nocodb-sdk'
 
 const jobStatusTooltip = {
   [JobStatus.COMPLETED]: 'Export successful',
@@ -334,8 +334,8 @@ onMounted(async () => {
                 class="nc-data-exporter-encoding nc-select-shadow"
                 dropdown-class-name="w-[190px]"
                 :filter-option="filterOption"
-                @change="saveChanges"
                 show-search
+                @change="saveChanges"
               >
                 <a-select-option v-for="encoding of charsetOptions" :key="encoding.label" :value="encoding.value">
                   <div class="w-full flex items-center gap-2">

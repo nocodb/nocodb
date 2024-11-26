@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { type ViewType, ViewTypes } from 'nocodb-sdk'
+import { charsetOptions, SupportedExportCharset, type ViewType, ViewTypes } from 'nocodb-sdk'
 
 const jobStatusTooltip = {
   [JobStatus.COMPLETED]: 'Export successful',
@@ -24,20 +24,6 @@ const delimiters = [
     label: '<Tab>',
     value: '\\t',
   },
-]
-
-const encodings = [
-  { label: 'ASCII', value: 'ascii' },
-  { label: 'UTF-8', value: 'utf8' },
-  { label: 'UTF-8 with hyphen', value: 'utf-8' },
-  { label: 'UTF-16 LE', value: 'utf16le' },
-  { label: 'UCS-2', value: 'ucs2' },
-  { label: 'UCS-2 with hyphen', value: 'ucs-2' },
-  { label: 'Base64', value: 'base64' },
-  { label: 'Base64 URL', value: 'base64url' },
-  { label: 'Latin-1', value: 'latin1' },
-  { label: 'Binary', value: 'binary' },
-  { label: 'Hexadecimal', value: 'hex' },
 ]
 
 const { $api, $poller } = useNuxtApp()
@@ -94,10 +80,10 @@ const exportPayload = ref<{
   tableId?: string
   viewId?: string
   delimiter?: string
-  encoding?: BufferEncoding
+  encoding?: SupportedExportCharset
 }>({
   delimiter: ',',
-  encoding: 'utf8',
+  encoding: SupportedExportCharset['utf-8'],
 })
 
 const tableList = computed(() => {
@@ -282,7 +268,7 @@ eventBus.on(async (event, payload) => {
 onMounted(async () => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
   exportPayload.value.delimiter = exportPayload.value.delimiter || ','
-  exportPayload.value.encoding = exportPayload.value.encoding || 'utf-8'
+  exportPayload.value.encoding = exportPayload.value.encoding || SupportedExportCharset['utf-8']
 
   deletedExports.value = extension.value.kvStore.get('deletedExports') || []
 
@@ -460,7 +446,7 @@ onMounted(async () => {
                 dropdown-class-name="w-[190px]"
                 @change="saveChanges"
               >
-                <a-select-option v-for="encoding of encodings" :key="encoding.value" :value="encoding.value">
+                <a-select-option v-for="encoding of charsetOptions" :key="encoding.value" :value="encoding.value">
                   <div class="w-full flex items-center gap-2">
                     <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                       <template #title>{{ encoding.label }}</template>

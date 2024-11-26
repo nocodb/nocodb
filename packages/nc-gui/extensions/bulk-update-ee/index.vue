@@ -1351,7 +1351,7 @@ provide(IsGalleryInj, ref(false))
     .ant-collapse-header {
       @apply !p-0 flex items-center !cursor-default children:first:flex;
     }
-    .nc-bulk-update-field-config-section .ant-collapse-header {
+    &.nc-bulk-update-field-config-section .ant-collapse-header {
       @apply !cursor-pointer;
     }
     .ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow {
@@ -1375,7 +1375,7 @@ provide(IsGalleryInj, ref(false))
         @apply last:(border-b-1 !rounded-b-none);
       }
       .nc-bulk-update-field-config-section.ant-collapse {
-        @apply rounded-none;
+        @apply !rounded-none;
       }
     }
   }

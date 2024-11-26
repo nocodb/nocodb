@@ -147,11 +147,9 @@ const currentDate = () => {
   vModel.value = sqlUi.value?.getCurrentDateDefault?.(column.value)
 }
 
-
 /* attachment cell interface */
 
 const attachmentCell = ref()
-
 
 /* expose */
 
@@ -169,7 +167,6 @@ defineExpose({
     attachmentCell.value?.removeAttachment(attachmentTitle, index)
   },
 })
-
 </script>
 
 <template>

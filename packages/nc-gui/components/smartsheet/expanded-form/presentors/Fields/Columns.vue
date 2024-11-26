@@ -1,48 +1,42 @@
 <script lang="ts" setup>
-
-import { type ColumnType, isVirtualCol, isLinksOrLTAR, isSystemColumn, isCreatedOrLastModifiedTimeCol, isCreatedOrLastModifiedByCol } from 'nocodb-sdk';
-
+import {
+  type ColumnType,
+  isCreatedOrLastModifiedByCol,
+  isCreatedOrLastModifiedTimeCol,
+  isLinksOrLTAR,
+  isSystemColumn,
+  isVirtualCol,
+} from 'nocodb-sdk'
 
 /* interface */
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>,
+  store: ReturnType<typeof useProvideExpandedFormStore>
   fields: ColumnType[]
   hiddenFields: ColumnType[]
-  isLoading: boolean,
-  forceVerticalMode?: boolean,
+  isLoading: boolean
+  forceVerticalMode?: boolean
 }>()
 
 const isLoading = toRef(props, 'isLoading')
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-
 /* stores */
 
-const {
-  changedColumns,
-  isNew,
-  loadRow: _loadRow,
-  row: _row,
-} = props.store
+const { changedColumns, isNew, loadRow: _loadRow, row: _row } = props.store
 
 const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
 
-
 /* flags */
 
-const readOnly = computed(() =>
-  !isUIAllowed('dataEdit') || isPublic.value
-)
-
+const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
 /* initial focus and scroll fix */
 
 const cellWrapperEl = ref()
 const mentionedCell = ref('')
-
 
 /* hidden fields */
 
@@ -51,7 +45,6 @@ const showHiddenFields = ref(false)
 function toggleHiddenFields() {
   showHiddenFields.value = !showHiddenFields.value
 }
-
 
 /* utilities */
 
@@ -67,20 +60,17 @@ function isReadOnlyVirtualCell(column: ColumnType) {
     isCreatedOrLastModifiedByCol(column)
   )
 }
-
 </script>
-
 
 <template>
   <div
     ref="expandedFormScrollWrapper"
     class="flex flex-col flex-grow gap-6 h-full max-h-full nc-scrollbar-thin items-center w-full p-4 xs:(px-4 pt-4 pb-2 gap-6) children:max-w-[588px] <lg:(children:max-w-[450px])"
   >
-
     <div
       v-for="(col, i) of fields"
-      :key="col.title"
       v-show="!isVirtualCol(col) || !isNew || isLinksOrLTAR(col)"
+      :key="col.title"
       :class="`nc-expand-col-${col.title}`"
       :col-id="col.id"
       :data-testid="`nc-expand-col-${col.title}`"
@@ -93,31 +83,23 @@ function isReadOnlyVirtualCell(column: ColumnType) {
           'flex-col w-full': props.forceVerticalMode,
         }"
       >
-
-        <div 
+        <div
           class="flex items-center rounded-lg overflow-hidden"
           :class="{
             'w-45 <lg:(w-full px-0 mb-1) h-[37px] xs:(h-auto)': !props.forceVerticalMode,
             'w-full px-0 mb-1 h-auto': props.forceVerticalMode,
-          }">
+          }"
+        >
           <LazySmartsheetHeaderVirtualCell
             v-if="isVirtualCol(col)"
             :column="col"
             class="nc-expanded-cell-header h-full flex-none"
           />
-          <LazySmartsheetHeaderCell
-            v-else
-            :column="col"
-            class="nc-expanded-cell-header flex-none"
-          />
+          <LazySmartsheetHeaderCell v-else :column="col" class="nc-expanded-cell-header flex-none" />
         </div>
 
         <template v-if="isLoading">
-          <a-skeleton-input
-            active
-            class="h-[37px] flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
-            size="small"
-          />
+          <a-skeleton-input active class="h-[37px] flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden" size="small" />
         </template>
         <template v-else>
           <SmartsheetDivDataCell
@@ -131,7 +113,6 @@ function isReadOnlyVirtualCell(column: ColumnType) {
               'nc-mentioned-cell': col.id === mentionedCell,
             }"
           >
-
             <LazySmartsheetVirtualCell
               v-if="isVirtualCol(col)"
               v-model="_row.row[col.title]"
@@ -152,10 +133,8 @@ function isReadOnlyVirtualCell(column: ColumnType) {
               :read-only="readOnly"
               @update:model-value="changedColumns.add(col.title)"
             />
-
           </SmartsheetDivDataCell>
         </template>
-
       </div>
     </div>
 
@@ -169,11 +148,7 @@ function isReadOnlyVirtualCell(column: ColumnType) {
       >
         {{ showHiddenFields ? `Hide ${hiddenFields.length} hidden` : `Show ${hiddenFields.length} hidden` }}
         {{ hiddenFields.length > 1 ? `fields` : `field` }}
-        <GeneralIcon
-          icon="chevronDown"
-          :class="showHiddenFields ? 'transform rotate-180' : ''"
-          class="ml-1"
-        />
+        <GeneralIcon icon="chevronDown" :class="showHiddenFields ? 'transform rotate-180' : ''" class="ml-1" />
       </NcButton>
       <div class="flex-grow h-px ml-1 bg-gray-100" />
     </div>
@@ -200,11 +175,7 @@ function isReadOnlyVirtualCell(column: ColumnType) {
           </div>
 
           <template v-if="isLoading">
-            <a-skeleton-input
-              active
-              class="h-[37px] flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
-              size="small"
-            />
+            <a-skeleton-input active class="h-[37px] flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden" size="small" />
           </template>
           <template v-else>
             <LazySmartsheetDivDataCell
@@ -239,6 +210,5 @@ function isReadOnlyVirtualCell(column: ColumnType) {
         </div>
       </div>
     </template>
-
   </div>
 </template>

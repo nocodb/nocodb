@@ -1,88 +1,81 @@
 <script lang="ts" setup>
-
-import type { AttachmentType } from 'nocodb-sdk';
-
+import type { AttachmentType } from 'nocodb-sdk'
 
 /* interface */
 
 const props = defineProps<{
-  attachment: AttachmentType,
-  active?: boolean,
-  isExpanded?: boolean,
-}>();
+  attachment: AttachmentType
+  active?: boolean
+  isExpanded?: boolean
+}>()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
-
 /* file detection */
 
-const fileEntry: ComputedRef<{ icon: keyof typeof iconMap, title: string | undefined }> = computed(() => {
-
+const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undefined }> = computed(() => {
   if (isImage(props.attachment.title || '', props.attachment.mimetype)) {
     return {
       icon: 'image',
       title: props.attachment.mimetype?.split('/')?.at(-1) || 'Image',
-    };
+    }
   }
 
   if (isPdf(props.attachment.title || '', props.attachment.mimetype)) {
     return {
       icon: 'ncFileTypePdf',
       title: 'PDF',
-    };
+    }
   }
 
   if (isVideo(props.attachment.title || '', props.attachment.mimetype)) {
     return {
       icon: 'ncFileTypeVideo',
       title: props.attachment.mimetype?.split('/')?.at(-1) || 'Video',
-    };
+    }
   }
 
   if (isAudio(props.attachment.title || '', props.attachment.mimetype)) {
     return {
       icon: 'ncFileTypeAudio',
       title: props.attachment.mimetype?.split('/')?.at(-1) || 'Audio',
-    };
+    }
   }
 
   if (isWord(props.attachment.title || '', props.attachment.mimetype)) {
     return {
       icon: 'ncFileTypeWord',
       title: 'Word',
-    };
+    }
   }
 
   if (isExcel(props.attachment.title || '', props.attachment.mimetype)) {
     return {
       icon: 'ncFileTypeExcel',
       title: 'Excel',
-    };
+    }
   }
 
   if (isPresentation(props.attachment.title || '', props.attachment.mimetype)) {
     return {
       icon: 'ncFileTypePresentation',
       title: 'PPT',
-    };
+    }
   }
 
   if (isZip(props.attachment.title || '', props.attachment.mimetype)) {
     return {
       icon: 'ncFileTypeZip',
       title: 'Zip',
-    };
+    }
   }
 
   return {
     icon: 'ncFileTypeUnknown',
     title: props.attachment.mimetype?.split('/')?.at(-1) || 'File',
-  };
-
-});
-
+  }
+})
 </script>
-
 
 <template>
   <div
@@ -119,7 +112,8 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap, title: string | undef
         :class="{
           'left-0 right-0 bottom-0': !props.isExpanded,
           'left-0 right-0 bottom-0 transform translate-y-full': props.isExpanded,
-        }">
+        }"
+      >
         {{ fileEntry.title }}
       </div>
     </div>
@@ -127,9 +121,7 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap, title: string | undef
       <div>
         {{ props.attachment.title }}
       </div>
-      <div>
-        {{ (props.attachment.size! / 1000).toFixed(2) }} KB
-      </div>
+      <div>{{ (props.attachment.size! / 1000).toFixed(2) }} KB</div>
     </div>
   </div>
 </template>

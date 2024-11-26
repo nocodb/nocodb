@@ -1,28 +1,21 @@
 <script setup lang="ts">
-
-import { type ColumnType } from 'nocodb-sdk';
-
+import { type ColumnType } from 'nocodb-sdk'
 
 /* interface */
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>,
-  rowId?: string,
-  fields: ColumnType[],
-  hiddenFields: ColumnType[],
-  isUnsavedDuplicatedRecordExist: boolean,
-  isUnsavedFormExist: boolean,
-  isLoading: boolean,
-  isSaving: boolean,
-  newRecordSubmitBtnText?: string,
+  store: ReturnType<typeof useProvideExpandedFormStore>
+  rowId?: string
+  fields: ColumnType[]
+  hiddenFields: ColumnType[]
+  isUnsavedDuplicatedRecordExist: boolean
+  isUnsavedFormExist: boolean
+  isLoading: boolean
+  isSaving: boolean
+  newRecordSubmitBtnText?: string
 }>()
 
-const emits = defineEmits([
-  'copy:record-url',
-  'delete:row',
-  'save',
-])
-
+const emits = defineEmits(['copy:record-url', 'delete:row', 'save'])
 
 const rowId = toRef(props, 'rowId')
 const fields = toRef(props, 'fields')
@@ -33,31 +26,18 @@ const isLoading = toRef(props, 'isLoading')
 const isSaving = toRef(props, 'isSaving')
 const newRecordSubmitBtnText = toRef(props, 'newRecordSubmitBtnText')
 
-
 /* stores */
 
-const {
-  commentsDrawer,
-  changedColumns,
-  isNew,
-  loadRow: _loadRow,
-  row: _row,
-} = props.store
+const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = props.store
 
 const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
 
-
 /* flags */
 
-const showRightSections = computed(() =>
-  !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
-)
+const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
-const canEdit = computed(() =>
-  isUIAllowed('dataEdit')
-)
-
+const canEdit = computed(() => isUIAllowed('dataEdit'))
 </script>
 
 <script lang="ts">
@@ -75,7 +55,6 @@ export default {
         'flex-1': showRightSections,
       }"
     >
-
       <SmartsheetExpandedFormPresentorsFieldsColumns
         :store="props.store"
         :fields="fields"
@@ -105,11 +84,7 @@ export default {
                   </div>
                 </NcMenuItem>
                 <NcMenuItem v-if="rowId" class="text-gray-700" @click="!isNew ? emits('copy:record-url') : () => {}">
-                  <div
-                    v-e="['c:row-expand:copy-url']"
-                    class="flex gap-2 items-center"
-                    data-testid="nc-expanded-form-copy-url"
-                  >
+                  <div v-e="['c:row-expand:copy-url']" class="flex gap-2 items-center" data-testid="nc-expanded-form-copy-url">
                     <component :is="iconMap.copy" class="cursor-pointer nc-duplicate-row" />
                     {{ $t('labels.copyRecordURL') }}
                   </div>
@@ -148,11 +123,7 @@ export default {
           </NcButton>
         </div>
       </div>
-      <div
-        v-else
-        class="p-2"
-      />
-
+      <div v-else class="p-2" />
     </div>
     <div
       v-if="showRightSections && !isUnsavedDuplicatedRecordExist"
@@ -161,9 +132,7 @@ export default {
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormSidebar
-        :store="store"
-      />
+      <SmartsheetExpandedFormSidebar :store="store" />
     </div>
   </div>
 </template>

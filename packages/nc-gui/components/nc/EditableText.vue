@@ -1,18 +1,19 @@
 <script lang="ts" setup>
-
 /* interface */
 
 const modelValue = defineModel<string>()
-
 
 /* internal text */
 
 const internalText = ref('')
 
-watch(modelValue, (value) => {
-  internalText.value = value || ''
-}, { immediate: true })
-
+watch(
+  modelValue,
+  (value) => {
+    internalText.value = value || ''
+  },
+  { immediate: true },
+)
 
 /* edit mode */
 
@@ -34,22 +35,20 @@ function cancelEdit() {
   isInEditMode.value = false
   internalText.value = modelValue.value || ''
 }
-
 </script>
-
 
 <template>
   <div class="inline-block">
     <template v-if="!isInEditMode">
-      <span @click="goToEditMode()" class="cursor-pointer">
+      <span class="cursor-pointer" @click="goToEditMode()">
         {{ internalText }}
       </span>
     </template>
     <template v-else>
       <a-input
         ref="inputRef"
-        class="!rounded-lg !w-72"
         v-model:value="internalText"
+        class="!rounded-lg !w-72"
         @blur="finishEdit()"
         @keyup.enter="finishEdit()"
         @keyup.esc="cancelEdit()"

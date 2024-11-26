@@ -1,27 +1,20 @@
 <script lang="ts" setup>
-
 /* interface */
 
 const props = defineProps<{
-  attachments?: any[],
-}>();
+  attachments?: any[]
+}>()
 
-const emit = defineEmits([
-  'open:file-picker',
-]);
-
+const emit = defineEmits(['open:file-picker'])
 
 const activeAttachmentIndex = defineModel<number>('activeAttachmentIndex', {
   required: true,
-});
-
+})
 
 /* expansion */
 
-const isExpanded = ref(false);
-
+const isExpanded = ref(false)
 </script>
-
 
 <template>
   <div
@@ -30,8 +23,9 @@ const isExpanded = ref(false);
       'w-[80px]': !isExpanded,
       'w-[320px]': isExpanded,
     }"
-    @mouseenter="isExpanded = true;"
-    @mouseleave="isExpanded = false;">
+    @mouseenter="isExpanded = true"
+    @mouseleave="isExpanded = false"
+  >
     <div class="flex-1 h-0 flex flex-col items-center justify-center">
       <div class="w-full max-h-full overflow-y-auto scrollbar-thin-dull p-2 pb-6 space-y-2">
         <SmartsheetExpandedFormPresentorsAttachmentsPreviewCell
@@ -58,7 +52,8 @@ const isExpanded = ref(false);
             :class="{
               'invisible absolute opacity-0': !isExpanded,
               'opacity-100': isExpanded,
-            }">
+            }"
+          >
             Previous
           </span>
         </NcButton>
@@ -74,7 +69,8 @@ const isExpanded = ref(false);
             :class="{
               'invisible absolute opacity-0': !isExpanded,
               'opacity-100': isExpanded,
-            }">
+            }"
+          >
             Next
           </span>
         </NcButton>
@@ -82,9 +78,7 @@ const isExpanded = ref(false);
       <NcButton type="text" class="w-full !rounded-none !border-t-1 !border-gray-200 !h-16" @click="emit('open:file-picker')">
         <div class="flex flex-col items-center">
           <MaterialSymbolsAttachFile class="text-gray-500 text-sm" />
-          <span class="mt-2">
-            Add file(s)
-          </span>
+          <span class="mt-2"> Add file(s) </span>
         </div>
       </NcButton>
     </div>

@@ -227,7 +227,6 @@ defineExpose({
   renameAttachment: renameFile,
   removeAttachment: onRemoveFileClick,
 })
-
 </script>
 
 <template>

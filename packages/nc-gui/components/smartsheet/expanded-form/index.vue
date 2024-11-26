@@ -674,11 +674,11 @@ export default {
         </div>
         <div class="ml-auto md:mx-auto">
           <NcSelectTab
+            v-model="activeViewMode"
             :items="[
               { icon: 'fields', value: 'fields' },
               { icon: 'file', value: 'attachments' },
             ]"
-            v-model="activeViewMode"
           />
         </div>
         <div class="flex gap-2">

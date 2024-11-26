@@ -1,13 +1,12 @@
 <script setup lang="ts">
-
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>,
-  showFieldsTab?: boolean,
+  store: ReturnType<typeof useProvideExpandedFormStore>
+  showFieldsTab?: boolean
 }>()
 
 const { appInfo } = useGlobal()
 
-const tab = ref<'fields' |'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')
+const tab = ref<'fields' | 'comments' | 'audits'>(props.showFieldsTab ? 'fields' : 'comments')
 </script>
 
 <template>
@@ -20,9 +19,7 @@ const tab = ref<'fields' |'comments' | 'audits'>(props.showFieldsTab ? 'fields' 
             <span class="<lg:hidden"> Fields </span>
           </div>
         </template>
-        <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper
-          :store="props.store"
-        />
+        <SmartsheetExpandedFormPresentorsFieldsMiniColumnsWrapper :store="props.store" />
       </a-tab-pane>
 
       <a-tab-pane key="comments" class="w-full h-full">

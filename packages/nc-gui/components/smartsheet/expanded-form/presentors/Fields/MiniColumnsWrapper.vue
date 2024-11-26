@@ -1,24 +1,20 @@
 <script setup lang="ts">
-
 import { isSystemColumn } from 'nocodb-sdk'
-
 
 /* interface */
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>,
+  store: ReturnType<typeof useProvideExpandedFormStore>
 }>()
 
 const meta = inject(MetaInj, ref())
 
-
 /* flags */
 
-const maintainDefaultViewOrder = ref(false);
-const useMetaFields = ref(false);
+const maintainDefaultViewOrder = ref(false)
+const useMetaFields = ref(false)
 
 const { fieldsMap, isLocalMode } = useViewColumnsOrThrow()
-
 
 /* fields */
 
@@ -49,7 +45,6 @@ const hiddenFields = computed(() => {
     )
     .filter((col) => !isSystemColumn(col))
 })
-
 </script>
 
 <template>

@@ -1,92 +1,44 @@
 <script setup lang="ts">
-
-import { type ColumnType, isVirtualCol, isLinksOrLTAR, isSystemColumn, isCreatedOrLastModifiedTimeCol, isCreatedOrLastModifiedByCol } from 'nocodb-sdk';
-
+import { type ColumnType } from 'nocodb-sdk'
 
 /* interface */
 
 const props = defineProps<{
-  store: ReturnType<typeof useProvideExpandedFormStore>,
-  rowId?: string,
-  fields: ColumnType[],
-  hiddenFields: ColumnType[],
-  isUnsavedDuplicatedRecordExist: boolean,
-  isUnsavedFormExist: boolean,
-  isLoading: boolean,
-  isSaving: boolean,
-  newRecordSubmitBtnText?: string,
+  store: ReturnType<typeof useProvideExpandedFormStore>
+  fields: ColumnType[]
+  isUnsavedDuplicatedRecordExist: boolean
 }>()
 
-const emits = defineEmits([
-  'copy:record-url',
-  'delete:row',
-  'save',
-])
-
-
-const rowId = toRef(props, 'rowId')
 const fields = toRef(props, 'fields')
-const hiddenFields = toRef(props, 'hiddenFields')
 const isUnsavedDuplicatedRecordExist = toRef(props, 'isUnsavedDuplicatedRecordExist')
-const isUnsavedFormExist = toRef(props, 'isUnsavedFormExist')
-const isLoading = toRef(props, 'isLoading')
-const isSaving = toRef(props, 'isSaving')
-const newRecordSubmitBtnText = toRef(props, 'newRecordSubmitBtnText')
-
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-
 /* stores */
 
-const {
-  commentsDrawer,
-  changedColumns,
-  isNew,
-  loadRow: _loadRow,
-  row: _row,
-} = props.store
+const { commentsDrawer, changedColumns, isNew, loadRow: _loadRow, row: _row } = props.store
 
 const { isUIAllowed } = useRoles()
-const { isMobileMode } = useGlobal()
-
 
 /* flags */
 
-const showRightSections = computed(() =>
-  !isNew.value && commentsDrawer.value && isUIAllowed('commentList')
-)
+const showRightSections = computed(() => !isNew.value && commentsDrawer.value && isUIAllowed('commentList'))
 
-const readOnly = computed(() =>
-  !isUIAllowed('dataEdit') || isPublic.value
-)
-
-const canEdit = computed(() =>
-  isUIAllowed('dataEdit')
-)
-
+const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
 /* attachments */
 
-const attachmentFields = computed(() =>
-  fields.value.filter(field => field.uidt === 'Attachment')
-)
+const attachmentFields = computed(() => fields.value.filter((field) => field.uidt === 'Attachment'))
 
-const selectedFieldId = ref(attachmentFields.value[0]?.id);
+const selectedFieldId = ref(attachmentFields.value[0]?.id)
 
-const selectedField = computed(() =>
-  attachmentFields.value.find(field => field.id === selectedFieldId.value)
-)
+const selectedField = computed(() => attachmentFields.value.find((field) => field.id === selectedFieldId.value))
 
-const selectedFieldValue = computed(() =>
-  _row.value.row[selectedField.value?.column_name || '']
-)
+const selectedFieldValue = computed(() => _row.value.row[selectedField.value?.column_name || ''])
 
-const activeAttachmentIndex = ref(0);
+const activeAttachmentIndex = ref(0)
 
-const activeAttachment = computed(() =>
-  selectedFieldValue.value?.[activeAttachmentIndex.value]
-)
+const activeAttachment = computed(() => selectedFieldValue.value?.[activeAttachmentIndex.value])
 
 watch(selectedFieldId, () => {
   activeAttachmentIndex.value = 0
@@ -96,15 +48,9 @@ watch(selectedFieldValue, () => {
   activeAttachmentIndex.value = Math.min(activeAttachmentIndex.value, Math.max(0, selectedFieldValue.value?.length - 1))
 })
 
+const hasAnyAttachmentFields = computed(() => attachmentFields.value.length > 0)
 
-const hasAnyAttachmentFields = computed(() =>
-  attachmentFields.value.length > 0
-)
-
-const hasAnyValueInAttachment = computed(() =>
-  selectedFieldValue.value?.length > 0
-)
-
+const hasAnyValueInAttachment = computed(() => selectedFieldValue.value?.length > 0)
 
 /* attachment actions */
 
@@ -121,7 +67,6 @@ function downloadCurrentFile() {
 function deleteCurrentFile() {
   smartsheetCell.value?.removeAttachment(activeAttachment.value.title, activeAttachmentIndex.value)
 }
-
 </script>
 
 <script lang="ts">
@@ -141,32 +86,27 @@ export default {
     >
       <template v-if="!hasAnyAttachmentFields">
         <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100">
-          <span class="text-base font-black">
-            No Attachment field
-          </span>
-          <span class="text-xs mt-3 w-[200px] text-center">
-            Create an attachment field to use file mode.
-          </span>
+          <span class="text-base font-black"> No Attachment field </span>
+          <span class="text-xs mt-3 w-[200px] text-center"> Create an attachment field to use file mode. </span>
         </div>
       </template>
       <template v-else>
         <div class="flex items-center h-[44px] border-b-1 border-gray-200 px-3 gap-3">
-
           <LazySmartsheetCell
             v-if="selectedField"
             ref="smartsheetCell"
+            v-model="_row.row[selectedField!.title!]"
             :active="true"
             :column="selectedField"
             :edit-enabled="true"
             :read-only="readOnly"
             class="hidden"
-            v-model="_row.row[selectedField!.title!]"
             @update:model-value="changedColumns.add(selectedField!.title!)"
           />
 
           <NcDropdownSelect
-            :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
             v-model="selectedFieldId"
+            :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
           >
             <NcButton type="secondary" size="small">
               <GeneralIcon icon="cellAttachment" class="w-4" />
@@ -186,9 +126,7 @@ export default {
           <div class="flex-1" />
 
           <NcDropdown>
-            <NcButton
-              type="secondary"
-              size="small">
+            <NcButton type="secondary" size="small">
               <GeneralIcon icon="threeDotVertical" />
             </NcButton>
             <template #overlay>
@@ -205,17 +143,12 @@ export default {
               </NcMenu>
             </template>
           </NcDropdown>
-
         </div>
         <div class="w-full h-0 flex-1 flex flex-row relative">
           <template v-if="!hasAnyValueInAttachment">
             <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100">
-              <span class="text-base font-black">
-                No Attachment
-              </span>
-              <span class="text-xs mt-3 w-[210px] text-center">
-                There are no attachments to display in this field
-              </span>
+              <span class="text-base font-black"> No Attachment </span>
+              <span class="text-xs mt-3 w-[210px] text-center"> There are no attachments to display in this field </span>
               <NcButton type="secondary" size="small" class="mt-3" @click="openFilePicker()">
                 <template #icon>
                   <GeneralIcon icon="upload" />
@@ -226,15 +159,12 @@ export default {
           </template>
           <template v-else>
             <SmartsheetExpandedFormPresentorsAttachmentsPreviewBar
-              :attachments="selectedFieldValue"
               v-model:active-attachment-index="activeAttachmentIndex"
+              :attachments="selectedFieldValue"
               @open:file-picker="openFilePicker()"
             />
             <div class="w-0 flex-1 bg-gray-100 pl-[80px]">
-              <SmartsheetExpandedFormPresentorsAttachmentsAttachmentView
-                v-if="activeAttachment"
-                :attachment="activeAttachment"
-              />
+              <SmartsheetExpandedFormPresentorsAttachmentsAttachmentView v-if="activeAttachment" :attachment="activeAttachment" />
             </div>
           </template>
         </div>
@@ -247,10 +177,7 @@ export default {
         active: commentsDrawer && isUIAllowed('commentList'),
       }"
     >
-      <SmartsheetExpandedFormSidebar
-        :store="props.store"
-        show-fields-tab
-      />
+      <SmartsheetExpandedFormSidebar :store="props.store" show-fields-tab />
     </div>
   </div>
 </template>

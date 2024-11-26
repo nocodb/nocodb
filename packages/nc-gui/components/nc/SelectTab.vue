@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-
 /**
  * @description
  * Tabbed select component
@@ -19,13 +18,13 @@ interface Props {
 const props = defineProps<Props>()
 
 const modelValue = defineModel<string>()
-
 </script>
 
 <template>
   <div class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5">
     <div
-      v-for="item of props.items" :key="item.value"
+      v-for="item of props.items"
+      :key="item.value"
       v-e="[`c:project:mode:${item.value}`]"
       class="tab"
       :class="{

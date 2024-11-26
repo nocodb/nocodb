@@ -36,27 +36,13 @@ const videoExt = [
   'ts',
 ]
 
-const wordExt = [
-  'txt',
-  'doc',
-  'docx',
-]
+const wordExt = ['txt', 'doc', 'docx']
 
-const excelExt = [
-  'xls',
-  'xlsx',
-  'csv',
-]
+const excelExt = ['xls', 'xlsx', 'csv']
 
-const presentationExt = [
-  'ppt',
-  'pptx',
-]
+const presentationExt = ['ppt', 'pptx']
 
-const zipExt = [
-  'zip',
-  'rar',
-]
+const zipExt = ['zip', 'rar']
 
 const officeExt = [
   ...wordExt,

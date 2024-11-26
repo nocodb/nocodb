@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-
 /* interface */
 
 const props = defineProps<{
@@ -10,9 +9,7 @@ const props = defineProps<{
 }>()
 
 const modelValue = defineModel<string>()
-
 </script>
-
 
 <template>
   <NcDropdown>

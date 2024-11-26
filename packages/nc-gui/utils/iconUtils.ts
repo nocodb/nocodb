@@ -585,8 +585,6 @@ import NcFileTypeAudio from '~icons/nc-icons-v2/file-type-audio'
 import NcFileTypeZip from '~icons/nc-icons-v2/file-type-zip'
 import NcFileTypeUnknown from '~icons/nc-icons-v2/file-type-unknown'
 
-
-
 // keep it for reference
 // todo: remove it after all icons are migrated
 /* export const iconMapOld = {

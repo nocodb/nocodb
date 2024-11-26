@@ -138,12 +138,13 @@ const onDeleteConfirm = async () => {
       <component :is="iconMap.alertTriangleSolid" class="text-nc-content-orange-medium h-6 w-6 flex-none" />
       <div class="text-base font-bold ml-3">This action is irreversible</div>
     </div>
+    <div class="mt-5">
+      Deleting your account will permanently remove any Workspaces and Bases where you are the sole owner. For all other cases,
+      your access permissions will be revoked.
+    </div>
     <Transition>
       <div v-if="toBeDeleted" class="flex flex-col mt-5">
         <div class="flex flex-col gap-2">
-          <div v-if="Object.values(toBeDeleted).every((el) => !(el as any)?.length)" class="flex gap-2 mb-3">
-            <div>No entities found where you are the sole owner. Deleting your account will not affect any entities.</div>
-          </div>
           <template v-for="ent of entitiesToRemove" :key="ent.key">
             <template v-if="toBeDeleted[ent.key].length">
               <span>
@@ -198,7 +199,7 @@ const onDeleteConfirm = async () => {
           type="danger"
           size="small"
           data-testid="nc-account-settings-delete"
-          :loading="loadingToBeDeleted"
+          :loading="loadingToBeDeleted && !isDeleteModalVisible"
           :disabled="toBeDeleted && !toBeDeleted.isAccepted"
           @click="onDelete"
         >

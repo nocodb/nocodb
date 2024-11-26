@@ -411,6 +411,7 @@ async function handleRemoveFieldConfig(configId: string) {
 
   await saveChanges()
   validateAll()
+
   handleScroll()
 }
 
@@ -605,6 +606,10 @@ async function validateAll() {
   await v$.value?.$validate()
 }
 
+function clearValidate() {
+  v$.value?.$reset()
+}
+
 async function bulkUpdateView(data: Record<string, any>) {
   if (!meta.value || !bulkUpdatePayload.value?.viewId) return
 
@@ -695,6 +700,14 @@ const focusInput = async (initQuery: string) => {
 
 const handleOpenDropdown = async (query: string, eventName: 'mousedown' | 'click' = 'mousedown') => {
   await ncDelay(300)
+
+  if (eventName === 'mousedown') {
+    const inputEl = formRef.value?.$el?.querySelector(`${query} input`)
+
+    if (inputEl) {
+      inputEl.dispatchEvent(new Event('focus'))
+    }
+  }
 
   const el = formRef.value?.$el?.querySelector(query)
 
@@ -836,6 +849,7 @@ provide(IsGalleryInj, ref(false))
           class="flex-1 flex"
           :class="{
             'h-full': fullscreen,
+            'nc-scrollbar-thin': !fullscreen,
           }"
         >
           <div
@@ -912,9 +926,9 @@ provide(IsGalleryInj, ref(false))
           </div>
           <div
             ref="fieldConfigRef"
-            class="nc-field-config-ref h-full flex-1 flex flex-col nc-scrollbar-thin"
+            class="nc-field-config-ref h-full flex-1 flex flex-col"
             :class="{
-              'pt-5 px-4 relative': fullscreen,
+              'pt-5 px-4 relative nc-scrollbar-thin': fullscreen,
               'max-h-[calc(100%_-_25px)]': !fullscreen,
             }"
             @scroll="handleScroll(false)"

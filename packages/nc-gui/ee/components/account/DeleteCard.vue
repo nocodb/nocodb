@@ -27,16 +27,16 @@ const _props = defineProps<{
       <GeneralBaseLogo v-else-if="entityDef.key === 'sources'" />
       <GeneralIcon v-else-if="entityDef.key === 'apiTokens'" class="text-yellow-500 mt-1" icon="key" />
     </div>
-    <div class="flex flex-col">
+    <div class="flex flex-col truncate">
       <template v-if="entityDef.key === 'bases'">
         <div class="flex gap-1 items-center">
-          <div class="font-semibold">{{ entity.workspace_title }}</div>
+          <div class="font-semibold truncate max-w-1/2">{{ entity.workspace_title }}</div>
           <GeneralIcon icon="arrowRight" class="text-gray-500 mt-0.5" />
-          <div class="font-semibold">{{ entity[entityDef.titleKey] }}</div>
+          <div class="font-semibold truncate">{{ entity[entityDef.titleKey] }}</div>
         </div>
       </template>
       <template v-else>
-        <div class="font-semibold">{{ entity[entityDef.titleKey] }}</div>
+        <div class="font-semibold truncate">{{ entity[entityDef.titleKey] }}</div>
       </template>
     </div>
   </div>

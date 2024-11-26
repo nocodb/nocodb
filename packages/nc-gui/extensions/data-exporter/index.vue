@@ -330,8 +330,8 @@ onMounted(async () => {
             <a-form-item class="!my-0 flex-1">
               <NcSelect
                 v-model:value="exportPayload.encoding"
-                placeholder="-select separator-"
-                class="nc-csv-import-separator nc-select-shadow"
+                placeholder="-select encoding-"
+                class="nc-data-exporter-encoding nc-select-shadow"
                 dropdown-class-name="w-[190px]"
                 :filter-option="filterOption"
                 @change="saveChanges"
@@ -619,7 +619,8 @@ onMounted(async () => {
     }
   }
 
-  :deep(.nc-data-exporter-separator.ant-select) {
+  :deep(.nc-data-exporter-separator.ant-select),
+  :deep(.nc-data-exporter-encoding.ant-select) {
     .ant-select-selector {
       @apply !rounded-lg h-8;
     }

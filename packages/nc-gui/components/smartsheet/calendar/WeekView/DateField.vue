@@ -154,9 +154,10 @@ const calendarData = computed(() => {
           range: { fk_from_col, fk_to_col },
           position,
           id,
+          spanningDays: Math.abs(ogStartDate.diff(endDate, 'day')) - Math.abs(startDate.diff(endDate, 'day')),
           style: {
-            width: `calc(max(${spanDays * perDayWidth - 10}px, ${perDayWidth - 10}px))`,
-            left: `${startDaysDiff * perDayWidth + 4}px`,
+            width: `calc(max(${spanDays * perDayWidth + 0.5}px, ${perDayWidth + 0.5}px))`,
+            left: `${startDaysDiff * perDayWidth - 1}px`,
             top: `${suitableRow * 28 + Math.max(suitableRow + 1, 1) * 8}px`,
           },
         },
@@ -304,7 +305,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
     relativeX -= dragOffset.value.x
   }
 
-  const percentX = Math.max(0, Math.min(1, relativeX / width))
+  const percentX = relativeX / width
 
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
@@ -312,8 +313,8 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   if (!fromCol) return { updatedProperty: [], newRow: null }
 
   // Calculate the day index based on the percentage of the width
-  // The day index is a number between 0 and 6
-  const day = Math.floor(percentX * maxVisibleDays.value)
+
+  const day = Math.floor(percentX * maxVisibleDays.value) - dragRecord.value.rowMeta.spanningDays
 
   // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')

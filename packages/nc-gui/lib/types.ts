@@ -103,6 +103,7 @@ interface Row {
     numberOfOverlaps?: number
     minutes?: number
     recordIndex?: number // For week spanning records in month view
+    maxSpanning?: number
   }
 }
 

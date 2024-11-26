@@ -236,13 +236,13 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             v-if="range.fk_to_column_id === null && isRangeEnabled"
             size="small"
             data-testid="nc-calendar-range-add-end-date"
-            class="!border-none w-28"
-            type="secondary"
+            class="w-23"
+            type="text"
             :shadow="false"
             :disabled="!isEeUI || isLocked"
             @click="range.fk_to_column_id = undefined"
           >
-            <div class="flex gap-2 items-center">
+            <div class="flex gap-1 items-center">
               <component :is="iconMap.plus" class="h-4 w-4" />
               {{ $t('activity.endDate') }}
             </div>
@@ -254,7 +254,8 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             <div class="flex">
               <a-select
                 v-model:value="range.fk_to_column_id"
-                class="!rounded-r-none nc-select-shadow w-full flex-1 nc-to-select"
+                class="!rounded-r-none nc-select-shadow w-full flex-1"
+                allow-clear
                 :disabled="!range.fk_from_column_id || isLocked"
                 :placeholder="$t('placeholder.notSelected')"
                 data-testid="nc-calendar-range-to-field-select"
@@ -292,15 +293,6 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
                   </div>
                 </a-select-option>
               </a-select>
-
-              <NcButton
-                class="!rounded-l-none nc-select-shadow !border-l-0"
-                size="small"
-                type="secondary"
-                @click="saveCalendarRange(range, null)"
-              >
-                <component :is="iconMap.delete" class="h-4 w-4" />
-              </NcButton>
             </div>
           </template>
 

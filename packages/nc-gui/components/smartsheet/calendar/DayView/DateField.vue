@@ -211,6 +211,7 @@ const newRecord = () => {
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
               :record="record"
+              :hover="hoverRecord === record.rowMeta.id"
               :resize="false"
               :position="record.rowMeta.position"
               size="small"

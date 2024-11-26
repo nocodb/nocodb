@@ -340,17 +340,17 @@ onMounted(async () => {
           <div
             class="nc-data-exporter-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default"
             :class="{
-              'max-w-[min(400px,calc(100%-131px))]': isExporting && !fullscreen && width > 425,
-              'max-w-[min(400px,calc(100%_-_87px))]': !isExporting && !fullscreen && width > 425,
-              'max-w-full': width <= 425,
-              'max-w-[474px]': fullscreen,
+              'max-w-[min(350px,calc(100%-124px))]': isExporting && !fullscreen && width > 325,
+              'max-w-[min(350px,calc(100%_-_76px))]': !isExporting && !fullscreen && width > 325,
+              'max-w-full': width <= 325,
+              'max-w-[480px]': fullscreen,
             }"
           >
             <a-form-item
               class="!my-0"
               :class="{
-                'flex-1 max-w-[237px]': fullscreen,
-                'min-w-1/2 max-w-[200px]': !fullscreen,
+                'flex-1 max-w-[240px]': fullscreen,
+                'min-w-1/2 max-w-[175px]': !fullscreen,
               }"
             >
               <NcSelect
@@ -361,7 +361,6 @@ onMounted(async () => {
                 :filter-option="filterOption"
                 dropdown-class-name="w-[250px]"
                 show-search
-                size="large"
                 @change="onTableSelect"
               >
                 <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
@@ -387,8 +386,8 @@ onMounted(async () => {
             <a-form-item
               class="!my-0"
               :class="{
-                'flex-1 max-w-[237px]': fullscreen,
-                'min-w-1/2 max-w-[200px]': !fullscreen,
+                'flex-1 max-w-[240px]': fullscreen,
+                'min-w-1/2 max-w-[175px]': !fullscreen,
               }"
             >
               <NcSelect
@@ -399,7 +398,6 @@ onMounted(async () => {
                 dropdown-class-name="w-[250px]"
                 :filter-option="filterOption"
                 show-search
-                size="large"
                 placement="bottomRight"
                 @change="onViewSelect"
               >
@@ -428,7 +426,7 @@ onMounted(async () => {
               <NcButton
                 :disabled="!exportPayload?.viewId || isExporting"
                 :loading="isExporting"
-                size="medium"
+                size="small"
                 @click="exportDataAsync"
                 >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
               >

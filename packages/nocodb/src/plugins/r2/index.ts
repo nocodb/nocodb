@@ -6,7 +6,7 @@ const config: XcPluginConfig = {
   builder: R2Plugin,
   id: 'cloudflare-r2',
   title: 'Cloudflare R2',
-  fallbackTitles: ['Cloudflare R2 Storage'],
+  fallbackTitle: 'Cloudflare R2 Storage',
   version: '0.0.3',
   logo: 'plugins/r2.png',
   description:

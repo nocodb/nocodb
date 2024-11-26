@@ -550,17 +550,17 @@ const recordsAcrossAllRange = computed<{
 
           left = width * (overlapIndex - 1)
 
-          width = Math.max((width / 100) * containerWidth.value, 72) - 8
+          width = Math.max((width / 100) * containerWidth.value + 1, 72) - 3
 
-          left = majorLeft + (left / 100) * containerWidth.value + 4.5
+          left = majorLeft + (left / 100) * containerWidth.value + 1.5
 
           if (majorLeft + perWidth < left + width) {
-            left = majorLeft + (perWidth - width) + 4
+            left = majorLeft + (perWidth - width) - 1.5
           }
         }
       } else {
-        left = majorLeft + 4
-        width = perWidth - 8
+        left = majorLeft + 1.5
+        width = perWidth - 3
       }
 
       record.rowMeta.style = {

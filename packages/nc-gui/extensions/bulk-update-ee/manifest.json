@@ -1,7 +1,7 @@
 {
   "id": "nc-bulk-update",
   "title": "Bulk Update",
-  "subTitle": "Upload multiple records values in a field with a single click",
+  "subTitle": "Update multiple records values in a field with a single click",
   "description": "bulk-update-ee/description.md",
   "entry": "bulk-update-ee",
   "version": "0.1",

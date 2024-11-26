@@ -25,7 +25,7 @@ const isExpanded = ref(false);
 
 <template>
   <div
-    class="absolute left-0 top-0 bottom-0 bg-white border-r-1 border-gray-200 flex flex-col transition-all duration-500"
+    class="absolute left-0 top-0 bottom-0 bg-white border-r-1 border-gray-200 flex flex-col transition-all duration-300"
     :class="{
       'w-[80px]': !isExpanded,
       'w-[320px]': isExpanded,
@@ -54,7 +54,7 @@ const isExpanded = ref(false);
         >
           <GeneralIcon icon="chevronUpSmall" />
           <span
-            class="ml-2 transition duration-500"
+            class="ml-2 transition duration-300"
             :class="{
               'invisible absolute opacity-0': !isExpanded,
               'opacity-100': isExpanded,
@@ -70,7 +70,7 @@ const isExpanded = ref(false);
         >
           <GeneralIcon icon="chevronDownSmall" />
           <span
-            class="ml-2 transition duration-500"
+            class="ml-2 transition duration-300"
             :class="{
               'invisible absolute opacity-0': !isExpanded,
               'opacity-100': isExpanded,
@@ -81,7 +81,7 @@ const isExpanded = ref(false);
       </div>
       <NcButton type="text" class="w-full !rounded-none !border-t-1 !border-gray-200 !h-16" @click="emit('open:file-picker')">
         <div class="flex flex-col items-center">
-          <GeneralIcon icon="plus" />
+          <MaterialSymbolsAttachFile class="text-gray-500 text-sm" />
           <span class="mt-2">
             Add file(s)
           </span>

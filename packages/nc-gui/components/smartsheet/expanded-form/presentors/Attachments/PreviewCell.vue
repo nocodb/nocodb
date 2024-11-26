@@ -93,28 +93,33 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap, title: string | undef
       '!border-2 !border-primary ring-3 ring-[#3069fe44]': props.active,
     }"
   >
-    <div class="flex flex-col shrink-0">
-      <div class="h-0 w-[60px] flex-1 flex items-center justify-center">
+    <div class="flex flex-col shrink-0 relative">
+      <div class="h-0 w-[60px] flex-1 relative">
         <img
           v-if="isImage(props.attachment.title || '', props.attachment.mimetype)"
           :src="getPossibleAttachmentSrc(props.attachment, 'tiny')?.[0]"
-          class="object-cover transition-all duration-500"
+          class="object-cover transition-all duration-300 absolute overflow-hidden"
           :class="{
-            'w-full h-full': !props.isExpanded,
-            'w-full h-full p-2 rounded-lg': props.isExpanded,
+            'top-0 left-0 right-0 w-full h-[calc(100%-20px)] rounded-none': !props.isExpanded,
+            'top-1 left-1 right-1 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] rounded-lg': props.isExpanded,
           }"
         />
         <GeneralIcon
           v-else
           :icon="fileEntry.icon"
-          class="text-white transition-all duration-500"
+          class="text-white !transition-all !duration-300 absolute w-full h-full"
           :class="{
-            'h-[36px] w-[36px] mt-1': !props.isExpanded,
-            'h-[52px] w-[52px]': props.isExpanded,
+            'top-0 left-0 right-0 h-[calc(100%-16px)]': !props.isExpanded,
+            'top-0 left-0 right-0 h-full': props.isExpanded,
           }"
         />
       </div>
-      <div v-if="!props.isExpanded" class="font-bold text-center uppercase truncate px-1 pb-1">
+      <div
+        class="font-bold text-center uppercase truncate px-1 transition-all duration-300 absolute"
+        :class="{
+          'left-0 right-0 bottom-0': !props.isExpanded,
+          'left-0 right-0 bottom-0 transform translate-y-full': props.isExpanded,
+        }">
         {{ fileEntry.title }}
       </div>
     </div>

@@ -619,9 +619,9 @@ export default {
         </div>
       </div>
       <div
-        class="flex min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header relative p-4 xs:(px-2 py-0 min-h-[48px]) justify-between border-b-1 border-gray-200 relative"
+        class="flex gap-2 min-h-7 flex-shrink-0 w-full items-center nc-expanded-form-header p-4 xs:(px-2 py-0 min-h-[48px]) border-b-1 border-gray-200"
       >
-        <div class="flex-1 flex gap-4 lg:w-100 <lg:max-w-[calc(100%_-_178px)] xs:(max-w-[calc(100%_-_44px)])">
+        <div class="flex gap-2">
           <div class="flex gap-2">
             <NcTooltip v-if="props.showNextPrevIcons">
               <template #title> {{ renderAltOrOptlKey() }} + ← </template>
@@ -651,14 +651,7 @@ export default {
           <div v-if="isLoading" class="flex items-center">
             <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
           </div>
-          <div
-            v-else
-            class="flex-1 flex items-center gap-3 max-w-[calc(100%_-_108px)] xs:(flex-row-reverse justify-end)"
-            :class="{
-              'xs:max-w-[calc(100%_-_52px)]': isNew,
-              'xs:max-w-[calc(100%_-_82px)]': !isNew,
-            }"
-          >
+          <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end)">
             <div class="hidden md:flex items-center rounded-lg bg-gray-100 px-2 py-1 gap-2">
               <GeneralIcon icon="table" />
               {{ tableTitle }}
@@ -671,15 +664,15 @@ export default {
             </div>
             <div
               v-else-if="displayValue && !row?.rowMeta?.new"
-              class="flex items-center font-bold text-gray-800 text-base max-w-[300px] xs:(w-auto max-w-[calc(100%_-_82px)]) overflow-hidden"
+              class="flex items-center font-bold text-gray-800 text-base overflow-hidden"
             >
-              <span class="truncate">
+              <span class="truncate w-[128px]">
                 <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" />
               </span>
             </div>
           </div>
         </div>
-        <div class="absolute right-12 lg:(left-1/2 -translate-x-1/2 right-auto)">
+        <div class="ml-auto md:mx-auto">
           <NcSelectTab
             :items="[
               { icon: 'fields', value: 'fields' },

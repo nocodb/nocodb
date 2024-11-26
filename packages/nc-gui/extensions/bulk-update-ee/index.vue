@@ -349,11 +349,11 @@ async function saveChanges() {
   await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
 }
 
-const handleUpdateFieldConfigExpansionPanel = (key: string) => {
+const handleUpdateFieldConfigExpansionPanel = (key: string, expand = false) => {
   if (!fullscreen.value) {
     fullscreen.value = true
   }
-  if (fieldConfigExpansionPanel.value.includes(key)) {
+  if (!expand && fieldConfigExpansionPanel.value.includes(key)) {
     fieldConfigExpansionPanel.value = []
   } else {
     fieldConfigExpansionPanel.value = [key]
@@ -364,13 +364,19 @@ const handleUpdateFieldConfigExpansionPanel = (key: string) => {
   handleScroll()
 }
 
+const usedFieldConfigIds = ref<string[]>([])
+
 const getNewFieldConfigId = (initId = 'fieldConfig') => {
   let id = initId
   let i = 1
-  while ((bulkUpdatePayload.value?.config || []).find((c) => c.id === id)) {
+
+  while ((bulkUpdatePayload.value?.config || []).find((c) => c.id === id) || usedFieldConfigIds.value.includes(id)) {
     id = `${initId}_${i}`
     i++
   }
+
+  usedFieldConfigIds.value.push(id)
+
   return id
 }
 
@@ -388,7 +394,7 @@ function addNewAction() {
     fullscreen.value = true
   }
 
-  handleUpdateFieldConfigExpansionPanel(configId)
+  handleUpdateFieldConfigExpansionPanel(configId, true)
   validateAll()
 
   nextTick(() => {

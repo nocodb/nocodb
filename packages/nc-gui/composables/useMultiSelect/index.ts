@@ -911,7 +911,7 @@ export function useMultiSelect(
       return
     }
 
-    if (isDrawerOrModalExist() || isExpandedCellInputExist()) {
+    if (isDrawerOrModalExist() || isExpandedCellInputExist() || isLinkDropdownExist()) {
       return
     }
 

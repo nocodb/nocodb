@@ -141,10 +141,7 @@ const onDeleteConfirm = async () => {
     <Transition>
       <div v-if="toBeDeleted" class="flex flex-col mt-5">
         <div class="flex flex-col gap-2">
-          <div v-if="Object.values(toBeDeleted).every((el) => !(el as any)?.length)" class="text-gray-500 flex gap-2 mb-3">
-            <div class="h-[21px] flex items-center">
-              <GeneralIcon icon="info" class="text-primary flex-none" />
-            </div>
+          <div v-if="Object.values(toBeDeleted).every((el) => !(el as any)?.length)" class="flex gap-2 mb-3">
             <div>No entities found where you are the sole owner. Deleting your account will not affect any entities.</div>
           </div>
           <template v-for="ent of entitiesToRemove" :key="ent.key">

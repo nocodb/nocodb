@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { UploadFile } from 'ant-design-vue'
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, SupportedExportCharset, UITypes, charsetOptions, csvColumnSeparatorOptions } from 'nocodb-sdk'
 import papaparse from 'papaparse'
 import dayjs from 'dayjs'
 
@@ -21,6 +21,16 @@ const GENERATED_COLUMN_TYPES = [
   UITypes.Formula,
   UITypes.Lookup,
   UITypes.Rollup,
+]
+
+const autoDetect = 'autoDetect'
+
+const delimiters = [
+  {
+    label: 'Auto detect',
+    value: autoDetect,
+  },
+  ...csvColumnSeparatorOptions,
 ]
 
 interface ImportType {
@@ -53,6 +63,11 @@ interface ImportPayloadType {
   stats: { inserted: number | null; updated: number | null; error?: { title?: string; message: string } }
   status?: 'initial' | 'inprogress' | 'completed' | 'failed'
   order: number
+}
+
+interface ImportConfigPayloadType {
+  delimiter?: string
+  encoding?: SupportedExportCharset
 }
 
 const importTypeOptions = [
@@ -131,6 +146,11 @@ const importPayloadPlaceholder: ImportPayloadType = {
 
 const savedPayloads = ref<ImportPayloadType[]>([])
 
+const importConfig = ref<ImportConfigPayloadType>({
+  delimiter: autoDetect,
+  encoding: SupportedExportCharset['utf-8'],
+})
+
 const importHistory = computed(() => {
   return savedPayloads.value.filter((payload) => payload.step > 1).sort((a, b) => b.order - a.order)
 })
@@ -177,6 +197,10 @@ const updateHistory = async () => {
   savedPayloads.value = savedPayloads.value.sort((a, b) => b.order - a.order).slice(0, 5)
 
   await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
+}
+
+const updateImportConfig = async () => {
+  await extension.value.kvStore.set('importConfig', importConfig.value)
 }
 
 function getNextOrder(data: ImportPayloadType[]) {
@@ -273,8 +297,8 @@ const handleChange = (info: { file: UploadFile }) => {
 
   const reader = new FileReader()
   reader.onload = (e) => {
-    const text = e.target?.result
-    if (!text || typeof text !== 'string') {
+    const arrayBuffer = e.target?.result
+    if (!arrayBuffer || !(arrayBuffer instanceof ArrayBuffer)) {
       fileList.value = []
       fileInfo.value = {
         ...fileInfo.value,
@@ -283,8 +307,14 @@ const handleChange = (info: { file: UploadFile }) => {
       return
     }
 
+    // Use TextDecoder to handle more encodings
+    const encoding = importConfig.value.encoding || SupportedExportCharset['utf-8'] // Default to UTF8 if no encoding is specified
+    const decoder = new TextDecoder(encoding)
+    const text = decoder.decode(arrayBuffer)
+
     papaparse.parse(text.trim(), {
       worker: true,
+      delimiter: importConfig.value.delimiter === autoDetect ? undefined : importConfig.value.delimiter,
       complete: (results) => {
         parsedData.value = results
         step.value = 1
@@ -329,7 +359,8 @@ const handleChange = (info: { file: UploadFile }) => {
   }
 
   if (info.file.originFileObj instanceof File) {
-    reader.readAsText(info.file.originFileObj)
+    // Read as ArrayBuffer to allow TextDecoder to interpret encoding
+    reader.readAsArrayBuffer(info.file.originFileObj)
   }
 }
 
@@ -345,7 +376,7 @@ const onUpsertColumnChange = (columnId: string) => {
   updateHistory()
 }
 
-const filterTableOption = (input: string = '', params: { key: string }) => {
+const filterOption = (input: string = '', params: { key: string }) => {
   return params.key?.toLowerCase().includes(input?.toLowerCase())
 }
 
@@ -593,6 +624,12 @@ watch(
     immediate: true,
   },
 )
+
+onMounted(async () => {
+  importConfig.value = (await extension.value.kvStore.get('importConfig')) || {}
+  importConfig.value.delimiter = importConfig.value.delimiter || autoDetect
+  importConfig.value.encoding = importConfig.value.encoding || SupportedExportCharset['utf-8']
+})
 </script>
 
 <template>
@@ -704,19 +741,84 @@ watch(
         </div>
         <div
           v-else
+          class="nc-csv-upload-wrapper flex flex-col gap-3"
           :class="{
             'p-4': fullscreen,
             'p-3': !fullscreen,
           }"
         >
+          <div
+            v-if="fullscreen"
+            class="flex items-center gap-3"
+            :class="{
+              '-mx-4 px-4 -mt-4 py-4 bg-white': fullscreen,
+              'max-w-full': !fullscreen,
+            }"
+          >
+            <div class="flex flex-col gap-2 w-[calc(50%_-_6px)]">
+              <div>Separator</div>
+              <a-form-item class="!my-0 flex-1">
+                <NcSelect
+                  v-model:value="importConfig.delimiter"
+                  placeholder="-select separator-"
+                  class="nc-csv-import-separator nc-select-shadow"
+                  dropdown-class-name="w-[160px]"
+                  :filter-option="filterOption"
+                  show-search
+                  @change="updateImportConfig"
+                >
+                  <a-select-option v-for="delimiter of delimiters" :key="delimiter.label" :value="delimiter.value">
+                    <div class="w-full flex items-center gap-2">
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ delimiter.label }}</template>
+                        <span>{{ delimiter.label }}</span>
+                      </NcTooltip>
+                      <component
+                        :is="iconMap.check"
+                        v-if="importConfig.delimiter === delimiter.value"
+                        id="nc-selected-item-icon"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
+              </a-form-item>
+            </div>
+            <div class="flex flex-col gap-2 w-[calc(50%_-_6px)]">
+              <div>Encoding</div>
+              <a-form-item class="!my-0 flex-1">
+                <NcSelect
+                  v-model:value="importConfig.encoding"
+                  placeholder="-select encoding-"
+                  class="nc-csv-import-encoding nc-select-shadow"
+                  dropdown-class-name="w-[190px]"
+                  :filter-option="filterOption"
+                  show-search
+                  @change="updateImportConfig"
+                >
+                  <a-select-option v-for="encoding of charsetOptions" :key="encoding.label" :value="encoding.value">
+                    <div class="w-full flex items-center gap-2">
+                      <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                        <template #title>{{ encoding.label }}</template>
+                        <span>{{ encoding.label }}</span>
+                      </NcTooltip>
+                      <component
+                        :is="iconMap.check"
+                        v-if="importConfig.encoding === encoding.value"
+                        id="nc-selected-item-icon"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </NcSelect>
+              </a-form-item>
+            </div>
+          </div>
           <a-upload-dragger
             v-model:fileList="fileList"
             name="file"
             accept=".csv"
-            class="nc-csv-file-uploader"
-            :class="{
-              'max-h-[calc(100%_-_40px)]': importHistory.length,
-            }"
+            class="nc-csv-file-uploader !flex-1"
             :multiple="false"
             @change="handleChange"
           >
@@ -727,7 +829,7 @@ watch(
               Drop your CSV here or <span class="text-nc-content-brand hover:underline">browse file</span>
             </p>
           </a-upload-dragger>
-          <div v-if="importHistory.length" class="mt-2 flex items-center justify-end">
+          <div v-if="importHistory.length" class="flex items-center justify-end">
             <NcButton size="small" type="secondary" @click="viewImportHistory = true">View import history</NcButton>
           </div>
         </div>
@@ -743,7 +845,7 @@ watch(
                     v-model:value="importPayload.tableId"
                     class="w-full nc-select-shadow"
                     placeholder="-select table-"
-                    :filter-option="filterTableOption"
+                    :filter-option="filterOption"
                     :show-search="tables?.length > 6"
                     @change="onTableSelect(true)"
                   >
@@ -1091,15 +1193,30 @@ watch(
 :deep(.ant-select-selection-item) {
   @apply font-weight-400 text-sm !text-nc-content-gray;
 }
+
+:deep(.nc-csv-import-separator.ant-select),
+:deep(.nc-csv-import-encoding.ant-select) {
+  .ant-select-selector {
+    @apply !rounded-lg h-8;
+  }
+}
 </style>
 
 <style lang="scss">
-.nc-csv-file-uploader {
-  &.ant-upload.ant-upload-drag {
-    @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
+.nc-nc-csv-import {
+  .nc-csv-file-uploader {
+    &.ant-upload.ant-upload-drag {
+      @apply !rounded-lg !bg-white !hover:bg-nc-bg-gray-light !transition-colors duration-300;
+    }
+    .ant-upload-btn {
+      @apply !flex flex-col items-center justify-center;
+    }
   }
-  .ant-upload-btn {
-    @apply !flex flex-col items-center justify-center;
+
+  .nc-csv-upload-wrapper {
+    & > span {
+      @apply flex-1;
+    }
   }
 }
 </style>

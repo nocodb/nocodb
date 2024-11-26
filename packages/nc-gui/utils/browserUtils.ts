@@ -1,6 +1,7 @@
 // refer - https://stackoverflow.com/a/11752084
 export const isMac = () => /Mac/i.test(navigator.platform)
 export const isDrawerExist = () => document.querySelector('.ant-drawer-open')
+export const isLinkDropdownExist = () => document.querySelector('.nc-links-dropdown.active')
 export const isDrawerOrModalExist = () => document.querySelector('.ant-modal.active, .ant-drawer-open')
 export const isExpandedFormOpenExist = () => document.querySelector('.nc-drawer-expanded-form.active')
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')

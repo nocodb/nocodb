@@ -5,6 +5,8 @@ const { user, signOut } = useGlobal()
 
 const { $api } = useNuxtApp()
 
+const deleteAccountRef = ref<HTMLDivElement>()
+
 const toBeDeleted = ref<
   {
     workspaces: WorkspaceType[]
@@ -79,6 +81,10 @@ const onInitDelete = async () => {
     loadingToBeDeletedTimeout = setTimeout(() => {
       toBeDeleted.value = undefined
     }, 10 * 60 * 1000)
+
+    nextTick(() => {
+      deleteAccountRef.value?.scrollIntoView({ behavior: 'smooth' })
+    })
   } catch (e: any) {
     console.error(e)
   } finally {
@@ -118,7 +124,7 @@ const onDeleteConfirm = async () => {
 </script>
 
 <template>
-  <div class="mt-10 flex flex-col border-1 rounded-2xl border-red-500 p-6">
+  <div ref="deleteAccountRef" class="mt-10 flex flex-col border-1 rounded-2xl border-red-500 p-6">
     <div class="text-base font-bold text-nc-content-red-dark" data-rec="true">Danger Zone</div>
     <div class="text-sm text-nc-content-gray-muted mt-2" data-rec="true">Delete your account permanently</div>
 

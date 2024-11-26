@@ -770,7 +770,7 @@ provide(IsGalleryInj, ref(false))
         :loading="isLoadingViewInfo"
         @click="handleConfirmUpdate"
       >
-        Update Records
+        Update records
       </NcButton>
     </template>
 
@@ -1287,7 +1287,7 @@ provide(IsGalleryInj, ref(false))
             :loading="isLoadingViewInfo"
             @click="handleConfirmUpdate"
           >
-            Update Records
+            Update records
           </NcButton>
         </div>
       </div>

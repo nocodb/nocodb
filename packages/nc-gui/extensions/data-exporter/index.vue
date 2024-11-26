@@ -282,7 +282,7 @@ eventBus.on(async (event, payload) => {
 onMounted(async () => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
   exportPayload.value.delimiter = exportPayload.value.delimiter || ','
-  exportPayload.value.encoding = exportPayload.value.encoding || 'utf8'
+  exportPayload.value.encoding = exportPayload.value.encoding || 'utf-8'
 
   deletedExports.value = extension.value.kvStore.get('deletedExports') || []
 

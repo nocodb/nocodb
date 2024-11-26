@@ -538,7 +538,7 @@ export class ExportService {
 
     const hasLink = !dataExportMode && mmColumns.length > 0;
 
-    dataStream.setEncoding(param.encoding || 'utf8');
+    dataStream.setEncoding('utf8');
 
     const formatData = (data: any) => {
       for (const row of data) {
@@ -641,7 +641,7 @@ export class ExportService {
     }
 
     if (hasLink) {
-      linkStream.setEncoding(param.encoding || 'utf8');
+      linkStream.setEncoding('utf8');
 
       let streamedHeaders = false;
 

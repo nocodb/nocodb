@@ -657,6 +657,12 @@ async function handleBulkUpdate() {
 }
 
 const handleConfirmUpdate = async () => {
+  await validateAll()
+
+  if (v$.value.$error) {
+    return
+  }
+
   await loadViewData()
 }
 

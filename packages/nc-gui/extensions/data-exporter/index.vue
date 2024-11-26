@@ -296,12 +296,66 @@ onMounted(async () => {
           'bg-white': fullscreen,
         }"
       >
-        <div
-          class="flex items-center justify-between gap-2.5 flex-wrap"
-          :class="{
-            'bg-white': fullscreen,
-          }"
-        >
+        <div v-if="fullscreen" class="flex items-center gap-3 max-w-full">
+          <div class="flex flex-col gap-2 w-[calc(50%_-_6px)]">
+            <div>Separator</div>
+            <a-form-item class="!my-0 flex-1">
+              <NcSelect
+                v-model:value="exportPayload.delimiter"
+                placeholder="-select separator-"
+                :disabled="isExporting"
+                class="nc-data-exporter-separator nc-select-shadow"
+                dropdown-class-name="w-[180px]"
+                @change="saveChanges"
+              >
+                <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
+                  <div class="w-full flex items-center gap-2">
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ delimiter.label }}</template>
+                      <span>{{ delimiter.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="exportPayload.delimiter === delimiter.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
+          </div>
+          <div class="flex flex-col gap-2 w-[calc(50%_-_6px)]">
+            <div class="min-w-[65px]">Encoding</div>
+            <a-form-item class="!my-0 flex-1">
+              <NcSelect
+                v-model:value="exportPayload.encoding"
+                placeholder="-select separator-"
+                class="nc-csv-import-separator nc-select-shadow"
+                dropdown-class-name="w-[190px]"
+                :filter-option="filterOption"
+                @change="saveChanges"
+                show-search
+              >
+                <a-select-option v-for="encoding of charsetOptions" :key="encoding.label" :value="encoding.value">
+                  <div class="w-full flex items-center gap-2">
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ encoding.label }}</template>
+                      <span>{{ encoding.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="exportPayload.encoding === encoding.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
+          </div>
+        </div>
+        <div class="flex items-center justify-between gap-2.5 flex-wrap">
           <div
             class="nc-data-exporter-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default"
             :class="{
@@ -398,70 +452,6 @@ onMounted(async () => {
                 >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
               >
             </NcTooltip>
-          </div>
-        </div>
-
-        <div
-          v-if="fullscreen"
-          class="flex items-center gap-3 flex-wrap"
-          :class="{
-            'max-w-[474px]': fullscreen,
-          }"
-        >
-          <div class="flex items-center gap-2 flex-1">
-            <div class="min-w-[65px]">Separator</div>
-            <a-form-item class="!my-0 flex-1">
-              <NcSelect
-                v-model:value="exportPayload.delimiter"
-                placeholder="-select separator-"
-                :disabled="isExporting"
-                class="nc-data-exporter-separator nc-select-shadow"
-                dropdown-class-name="w-[180px]"
-                @change="saveChanges"
-              >
-                <a-select-option v-for="delimiter of delimiters" :key="delimiter.value" :value="delimiter.value">
-                  <div class="w-full flex items-center gap-2">
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ delimiter.label }}</template>
-                      <span>{{ delimiter.label }}</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="exportPayload.delimiter === delimiter.value"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
-            </a-form-item>
-          </div>
-          <div class="flex items-center gap-2 flex-1">
-            <div class="min-w-[65px]">Encoding</div>
-            <a-form-item class="!my-0 flex-1">
-              <NcSelect
-                v-model:value="exportPayload.encoding"
-                placeholder="-select separator-"
-                class="nc-csv-import-separator nc-select-shadow"
-                dropdown-class-name="w-[190px]"
-                @change="saveChanges"
-              >
-                <a-select-option v-for="encoding of charsetOptions" :key="encoding.value" :value="encoding.value">
-                  <div class="w-full flex items-center gap-2">
-                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                      <template #title>{{ encoding.label }}</template>
-                      <span>{{ encoding.label }}</span>
-                    </NcTooltip>
-                    <component
-                      :is="iconMap.check"
-                      v-if="exportPayload.encoding === encoding.value"
-                      id="nc-selected-item-icon"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </NcSelect>
-            </a-form-item>
           </div>
         </div>
       </div>
@@ -648,11 +638,5 @@ onMounted(async () => {
 <style lang="scss">
 .nc-nc-data-exporter .extension-content {
   @apply !p-0;
-
-  &.fullscreen {
-    .extension-header {
-      @apply !border-b-transparent;
-    }
-  }
 }
 </style>

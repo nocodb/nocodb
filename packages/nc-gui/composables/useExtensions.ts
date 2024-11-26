@@ -24,7 +24,6 @@ export interface ExtensionManifest {
       height?: number
     }
   }
-  disabled?: boolean
   links: {
     title: string
     href: string
@@ -33,6 +32,8 @@ export interface ExtensionManifest {
     modalSize?: 'xs' | 'sm' | 'md' | 'lg'
     contentMinHeight?: string
   }
+  order: number
+  disabled?: boolean
 }
 
 abstract class ExtensionType {
@@ -447,7 +448,7 @@ export const useExtensions = createSharedComposable(() => {
 
       if (availableExtensions.value.length + disabledCount === extensionCount) {
         // Sort extensions
-        availableExtensions.value.sort((a, b) => a.title.localeCompare(b.title))
+        availableExtensions.value.sort((a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity))
         extensionsLoaded.value = true
       }
     } catch (error) {

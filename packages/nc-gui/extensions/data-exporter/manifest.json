@@ -25,5 +25,6 @@
   "config": {
     "modalSize": "sm",
     "contentMinHeight": "310px"
-  }
+  },
+  "order": 2
 }

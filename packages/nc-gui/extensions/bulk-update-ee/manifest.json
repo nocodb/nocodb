@@ -19,5 +19,6 @@
   "links": [],
   "config": {
     "contentMinHeight": "310px"
-  }
+  },
+  "order": 4
 }

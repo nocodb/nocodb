@@ -555,7 +555,7 @@ const recordsAcrossAllRange = computed<{
           left = majorLeft + (left / 100) * containerWidth.value + 1.5
 
           if (majorLeft + perWidth < left + width) {
-            left = majorLeft + (perWidth - width) - 1.5
+            left = majorLeft + (perWidth - width) - 4.5 * overlapIndex
           }
         }
       } else {

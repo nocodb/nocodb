@@ -109,7 +109,18 @@ const fields = computed(() => injectedFields.value ?? [])
 
 const tableTitle = computed(() => meta.value?.title)
 
-const activeViewMode = ref('fields')
+const { setCurrentViewExpandedFormMode } = useSharedView()
+
+const activeViewMode = ref(props.view?.expanded_record_mode ?? 'field')
+
+watch(activeViewMode, async (v) => {
+  if (v === 'field') {
+    await setCurrentViewExpandedFormMode(props.view?.id!, v)
+  } else if (v === 'attachment') {
+    const firstAttachmentField = fields.value?.find((f) => f.uidt === 'Attachment')
+    await setCurrentViewExpandedFormMode(props.view?.id!, v, props.view?.attachment_mode_column_id ?? firstAttachmentField?.id)
+  }
+})
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
 
@@ -676,8 +687,8 @@ export default {
           <NcSelectTab
             v-model="activeViewMode"
             :items="[
-              { icon: 'fields', value: 'fields' },
-              { icon: 'file', value: 'attachments' },
+              { icon: 'fields', value: 'field' },
+              { icon: 'file', value: 'attachment' },
             ]"
           />
         </div>
@@ -778,7 +789,7 @@ export default {
         </div>
       </div>
       <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
-        <template v-if="activeViewMode === 'fields'">
+        <template v-if="activeViewMode === 'field'">
           <SmartsheetExpandedFormPresentorsFields
             :store="expandedFormStore"
             :row-id="rowId"
@@ -797,10 +808,11 @@ export default {
             @updateRowCommentCount="emits('updateRowCommentCount', $event)"
           />
         </template>
-        <template v-else-if="activeViewMode === 'attachments'">
+        <template v-else-if="activeViewMode === 'attachment'">
           <SmartsheetExpandedFormPresentorsAttachments
             :store="expandedFormStore"
             :row-id="rowId"
+            :view="props.view"
             :fields="fields"
             :hidden-fields="hiddenFields"
             :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist"

@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { type ColumnType } from 'nocodb-sdk'
+import { type ColumnType, type ViewType } from 'nocodb-sdk'
 
 /* interface */
 
 const props = defineProps<{
   store: ReturnType<typeof useProvideExpandedFormStore>
   fields: ColumnType[]
+  view?: ViewType
   isUnsavedDuplicatedRecordExist: boolean
 }>()
 
@@ -28,9 +29,11 @@ const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value)
 
 /* attachments */
 
+const { setCurrentViewExpandedFormAttachmentColumn } = useSharedView()
+
 const attachmentFields = computed(() => fields.value.filter((field) => field.uidt === 'Attachment'))
 
-const selectedFieldId = ref(attachmentFields.value[0]?.id)
+const selectedFieldId = ref(props.view?.attachment_mode_column_id ?? attachmentFields.value[0]?.id)
 
 const selectedField = computed(() => attachmentFields.value.find((field) => field.id === selectedFieldId.value))
 
@@ -42,6 +45,7 @@ const activeAttachment = computed(() => selectedFieldValue.value?.[activeAttachm
 
 watch(selectedFieldId, () => {
   activeAttachmentIndex.value = 0
+  setCurrentViewExpandedFormAttachmentColumn(props.view?.id!, selectedFieldId.value)
 })
 
 watch(selectedFieldValue, () => {

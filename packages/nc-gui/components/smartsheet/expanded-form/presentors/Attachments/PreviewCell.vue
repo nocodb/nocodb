@@ -94,7 +94,7 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
           class="object-cover transition-all duration-300 absolute overflow-hidden"
           :class="{
             'top-0 left-0 right-0 w-full h-[calc(100%-20px)] rounded-none': !props.isExpanded,
-            'top-1 left-1 right-1 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] rounded-lg': props.isExpanded,
+            'top-1 left-1 right-1 w-[calc(100%-0.5rem)] h-[calc(100%-0.5rem)] rounded-lg ring-1 ring-gray-300': props.isExpanded,
           }"
         />
         <GeneralIcon
@@ -117,11 +117,11 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
         {{ fileEntry.title }}
       </div>
     </div>
-    <div class="whitespace-nowrap flex flex-col justify-center">
+    <div class="whitespace-nowrap flex flex-col justify-center pl-2">
       <div>
         {{ props.attachment.title }}
       </div>
-      <div>{{ (props.attachment.size! / 1000).toFixed(2) }} KB</div>
+      <div class="text-xs text-gray-500 -mt-1">{{ (props.attachment.size! / 1000).toFixed(2) }} KB</div>
     </div>
   </div>
 </template>

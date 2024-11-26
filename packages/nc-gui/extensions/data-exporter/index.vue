@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { type ViewType, ViewTypes } from 'nocodb-sdk'
+import { SupportedExportCharset, type ViewType, ViewTypes, charsetOptions, csvColumnSeparatorOptions } from 'nocodb-sdk'
 
 const jobStatusTooltip = {
   [JobStatus.COMPLETED]: 'Export successful',
@@ -60,7 +60,12 @@ const exportedFiles = computed(() => {
 const exportPayload = ref<{
   tableId?: string
   viewId?: string
-}>({})
+  delimiter?: string
+  encoding?: SupportedExportCharset
+}>({
+  delimiter: ',',
+  encoding: SupportedExportCharset['utf-8'],
+})
 
 const tableList = computed(() => {
   return tables.value.map((table) => {
@@ -94,6 +99,10 @@ const reloadViews = async () => {
   }
 }
 
+const saveChanges = async () => {
+  await extension.value.kvStore.set('exportPayload', exportPayload.value)
+}
+
 const onTableSelect = async (tableId?: string) => {
   if (!tableId) {
     exportPayload.value.tableId = activeTableId.value
@@ -107,12 +116,12 @@ const onTableSelect = async (tableId?: string) => {
     exportPayload.value.viewId = views.value.find((view) => view.is_default)?.id
   }
 
-  await extension.value.kvStore.set('exportPayload', exportPayload.value)
+  await saveChanges()
 }
 
 const onViewSelect = async (viewId: string) => {
   exportPayload.value.viewId = viewId
-  await extension.value.kvStore.set('exportPayload', exportPayload.value)
+  await saveChanges()
 }
 
 const isExporting = ref(false)
@@ -123,7 +132,11 @@ async function exportDataAsync() {
 
     isExporting.value = true
 
-    const jobData = await $api.export.data(exportPayload.value.viewId, 'csv', { extension_id: extension.value.id })
+    const jobData = await $api.export.data(exportPayload.value.viewId, 'csv', {
+      extension_id: extension.value.id,
+      delimiter: exportPayload.value.delimiter,
+      encoding: exportPayload.value.encoding,
+    })
     jobList.value.unshift(jobData)
 
     $poller.subscribe(
@@ -235,6 +248,9 @@ eventBus.on(async (event, payload) => {
 
 onMounted(async () => {
   exportPayload.value = extension.value.kvStore.get('exportPayload') || {}
+  exportPayload.value.delimiter = exportPayload.value.delimiter || ','
+  exportPayload.value.encoding = exportPayload.value.encoding || SupportedExportCharset['utf-8']
+
   deletedExports.value = extension.value.kvStore.get('deletedExports') || []
 
   await reloadViews()
@@ -256,107 +272,166 @@ onMounted(async () => {
       }"
     >
       <div
-        class="p-3 flex items-center justify-between gap-2.5 flex-wrap"
+        class="p-3 flex flex-col gap-3"
         :class="{
           'bg-white': fullscreen,
         }"
       >
-        <div
-          class="nc-data-exporter-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default"
-          :class="{
-            'max-w-[min(400px,calc(100%-131px))]': isExporting && !fullscreen && width > 425,
-            'max-w-[min(400px,calc(100%_-_87px))]': !isExporting && !fullscreen && width > 425,
-            'max-w-full': width <= 425,
-            'max-w-[474px]': fullscreen,
-          }"
-        >
-          <a-form-item
-            class="!my-0"
-            :class="{
-              'flex-1 max-w-[237px]': fullscreen,
-              'min-w-1/2 max-w-[200px]': !fullscreen,
-            }"
-          >
-            <NcSelect
-              v-model:value="exportPayload.tableId"
-              placeholder="-select table-"
-              :disabled="isExporting"
-              class="nc-data-exporter-table-select nc-select-shadow"
-              :filter-option="filterOption"
-              dropdown-class-name="w-[250px]"
-              show-search
-              size="large"
-              @change="onTableSelect"
-            >
-              <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
-                <div class="w-full flex items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
-                    <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+        <div v-if="fullscreen" class="flex items-center gap-3 max-w-full">
+          <div class="flex flex-col gap-2 w-[calc(50%_-_6px)]">
+            <div>Separator</div>
+            <a-form-item class="!my-0 flex-1">
+              <NcSelect
+                v-model:value="exportPayload.delimiter"
+                placeholder="-select separator-"
+                :disabled="isExporting"
+                class="nc-data-exporter-separator nc-select-shadow"
+                dropdown-class-name="w-[180px]"
+                @change="saveChanges"
+              >
+                <a-select-option v-for="delimiter of csvColumnSeparatorOptions" :key="delimiter.value" :value="delimiter.value">
+                  <div class="w-full flex items-center gap-2">
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ delimiter.label }}</template>
+                      <span>{{ delimiter.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="exportPayload.delimiter === delimiter.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
                   </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ table.label }}</template>
-                    <span>{{ table.label }}</span>
-                  </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="exportPayload.tableId === table.value"
-                    id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
-          </a-form-item>
-
-          <a-form-item
-            class="!my-0"
-            :class="{
-              'flex-1 max-w-[237px]': fullscreen,
-              'min-w-1/2 max-w-[200px]': !fullscreen,
-            }"
-          >
-            <NcSelect
-              v-model:value="exportPayload.viewId"
-              placeholder="-select view-"
-              :disabled="isExporting"
-              class="nc-data-exporter-view-select nc-select-shadow"
-              dropdown-class-name="w-[250px]"
-              :filter-option="filterOption"
-              show-search
-              size="large"
-              placement="bottomRight"
-              @change="onViewSelect"
-            >
-              <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
-                <div class="w-full flex items-center gap-2">
-                  <div class="min-w-5 flex items-center justify-center">
-                    <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
+          </div>
+          <div class="flex flex-col gap-2 w-[calc(50%_-_6px)]">
+            <div class="min-w-[65px]">Encoding</div>
+            <a-form-item class="!my-0 flex-1">
+              <NcSelect
+                v-model:value="exportPayload.encoding"
+                placeholder="-select encoding-"
+                class="nc-data-exporter-encoding nc-select-shadow"
+                dropdown-class-name="w-[190px]"
+                :filter-option="filterOption"
+                show-search
+                @change="saveChanges"
+              >
+                <a-select-option v-for="encoding of charsetOptions" :key="encoding.label" :value="encoding.value">
+                  <div class="w-full flex items-center gap-2">
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ encoding.label }}</template>
+                      <span>{{ encoding.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="exportPayload.encoding === encoding.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
                   </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                    <template #title>{{ view.label }}</template>
-                    <span>{{ view.label }}</span>
-                  </NcTooltip>
-                  <component
-                    :is="iconMap.check"
-                    v-if="exportPayload.viewId === view.value"
-                    id="nc-selected-item-icon"
-                    class="flex-none text-primary w-4 h-4"
-                  />
-                </div> </a-select-option
-            ></NcSelect>
-          </a-form-item>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
+          </div>
         </div>
-        <div class="flex-none flex justify-end">
-          <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
-            <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
-            <NcButton
-              :disabled="!exportPayload?.viewId || isExporting"
-              :loading="isExporting"
-              size="medium"
-              @click="exportDataAsync"
-              >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
+        <div class="flex items-center justify-between gap-2.5 flex-wrap">
+          <div
+            class="nc-data-exporter-select-wrapper flex-1 flex items-center border-1 border-nc-border-gray-medium rounded-lg relative shadow-default"
+            :class="{
+              'max-w-[min(350px,calc(100%-124px))]': isExporting && !fullscreen && width > 325,
+              'max-w-[min(350px,calc(100%_-_76px))]': !isExporting && !fullscreen && width > 325,
+              'max-w-full': width <= 325,
+              'max-w-[480px]': fullscreen,
+            }"
+          >
+            <a-form-item
+              class="!my-0"
+              :class="{
+                'flex-1 max-w-[240px]': fullscreen,
+                'min-w-1/2 max-w-[175px]': !fullscreen,
+              }"
             >
-          </NcTooltip>
+              <NcSelect
+                v-model:value="exportPayload.tableId"
+                placeholder="-select table-"
+                :disabled="isExporting"
+                class="nc-data-exporter-table-select nc-select-shadow"
+                :filter-option="filterOption"
+                dropdown-class-name="w-[250px]"
+                show-search
+                @change="onTableSelect"
+              >
+                <a-select-option v-for="table of tableList" :key="table.label" :value="table.value">
+                  <div class="w-full flex items-center gap-2">
+                    <div class="min-w-5 flex items-center justify-center">
+                      <GeneralTableIcon :meta="{ meta: table.meta }" class="text-gray-500" />
+                    </div>
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ table.label }}</template>
+                      <span>{{ table.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="exportPayload.tableId === table.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+            </a-form-item>
+
+            <a-form-item
+              class="!my-0"
+              :class="{
+                'flex-1 max-w-[240px]': fullscreen,
+                'min-w-1/2 max-w-[175px]': !fullscreen,
+              }"
+            >
+              <NcSelect
+                v-model:value="exportPayload.viewId"
+                placeholder="-select view-"
+                :disabled="isExporting"
+                class="nc-data-exporter-view-select nc-select-shadow"
+                dropdown-class-name="w-[250px]"
+                :filter-option="filterOption"
+                show-search
+                placement="bottomRight"
+                @change="onViewSelect"
+              >
+                <a-select-option v-for="view of viewList" :key="view.label" :value="view.value">
+                  <div class="w-full flex items-center gap-2">
+                    <div class="min-w-5 flex items-center justify-center">
+                      <GeneralViewIcon :meta="{ meta: view.meta, type: view.type }" class="flex-none text-gray-500" />
+                    </div>
+                    <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                      <template #title>{{ view.label }}</template>
+                      <span>{{ view.label }}</span>
+                    </NcTooltip>
+                    <component
+                      :is="iconMap.check"
+                      v-if="exportPayload.viewId === view.value"
+                      id="nc-selected-item-icon"
+                      class="flex-none text-primary w-4 h-4"
+                    />
+                  </div> </a-select-option
+              ></NcSelect>
+            </a-form-item>
+          </div>
+          <div class="flex-none flex justify-end">
+            <NcTooltip class="flex" placement="topRight" :disabled="!isExporting">
+              <template #title> The CSV file is being prepared in the background. You'll be notified once it's ready. </template>
+              <NcButton
+                :disabled="!exportPayload?.viewId || isExporting"
+                :loading="isExporting"
+                size="small"
+                @click="exportDataAsync"
+                >{{ isExporting ? 'Generating' : 'Export' }}</NcButton
+              >
+            </NcTooltip>
+          </div>
         </div>
       </div>
       <div
@@ -523,6 +598,13 @@ onMounted(async () => {
     }
   }
 
+  :deep(.nc-data-exporter-separator.ant-select),
+  :deep(.nc-data-exporter-encoding.ant-select) {
+    .ant-select-selector {
+      @apply !rounded-lg h-8;
+    }
+  }
+
   .data-exporter-body {
     @apply flex-1 overflow-hidden;
   }
@@ -536,11 +618,5 @@ onMounted(async () => {
 <style lang="scss">
 .nc-nc-data-exporter .extension-content {
   @apply !p-0;
-
-  &.fullscreen {
-    .extension-header {
-      @apply !border-b-transparent;
-    }
-  }
 }
 </style>

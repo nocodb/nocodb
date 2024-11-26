@@ -7,6 +7,8 @@ const { $api } = useNuxtApp()
 
 const deleteAccountRef = ref<HTMLDivElement>()
 
+const deleteAcInputRef = ref<HTMLInputElement>()
+
 const toBeDeleted = ref<
   {
     workspaces: WorkspaceType[]
@@ -96,6 +98,10 @@ const onDelete = async () => {
   if (loadingToBeDeleted.value) return
 
   isDeleteModalVisible.value = true
+
+  setTimeout(() => {
+    deleteAcInputRef.value?.focus()
+  }, 250)
 }
 
 const onDeleteConfirm = async () => {
@@ -215,35 +221,35 @@ const onDeleteConfirm = async () => {
     </div>
     <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-user-delete-modal" size="small" centered>
       <div class="flex flex-col gap-2 items-center justify-center h-full !p-6">
-        <div class="flex flex-row justify-between w-full">
-          <div class="flex flex-row items-center gap-2">
-            <GeneralIcon icon="warning" class="text-red-500 text-xl" />
-            <div class="text-lg font-bold self-start">Delete Account</div>
-          </div>
-          <GeneralIcon icon="close" class="cursor-pointer" @click="isDeleteModalVisible = false" />
-        </div>
+        <div class="text-lg font-semibold self-start mb-5">Delete Account</div>
         <span class="self-start mb-2">
           Enter your email to delete your account <span class="text-red-500">permanently</span>&nbsp;<b class="select-none">
             ‘{{ user?.email }}’
           </b>
         </span>
+
         <a-input
+          ref="deleteAcInputRef"
           v-model:value="toBeDeletedUserEmail"
-          class="w-full !rounded-md !py-1.5"
+          class="w-full nc-input-sm nc-input-shadow"
           :placeholder="$t('labels.email')"
+          autocomplete="off"
           data-testid="nc-account-settings-email-input"
         />
-        <div class="flex flex-row w-full justify-end mt-4">
+        <div class="w-full flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+          <NcButton html-type="back" type="secondary" size="small" @click="isDeleteModalVisible = false">
+            {{ $t('general.cancel') }}
+          </NcButton>
           <NcButton
-            type="danger"
             html-type="submit"
-            :disabled="loadingToBeDeleted"
+            type="danger"
+            size="small"
+            :disabled="loadingToBeDeleted || toBeDeletedUserEmail !== user?.email"
             :loading="loadingToBeDeleted"
             data-testid="nc-account-settings-delete-confirm"
             @click="onDeleteConfirm"
           >
-            <template #loading> {{ $t('general.deleting') }} </template>
-            {{ $t('general.confirm') }}
+            Delete Account
           </NcButton>
         </div>
       </div>

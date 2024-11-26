@@ -701,14 +701,6 @@ const focusInput = async (initQuery: string) => {
 const handleOpenDropdown = async (query: string, eventName: 'mousedown' | 'click' = 'mousedown') => {
   await ncDelay(300)
 
-  if (eventName === 'mousedown') {
-    const inputEl = formRef.value?.$el?.querySelector(`${query} input`)
-
-    if (inputEl) {
-      inputEl.dispatchEvent(new Event('focus'))
-    }
-  }
-
   const el = formRef.value?.$el?.querySelector(query)
 
   if (!el) return
@@ -1243,18 +1235,14 @@ provide(IsGalleryInj, ref(false))
                   'border-t-1 border-nc-border-gray-medium': !isScrolledToBottom,
                 }"
               >
-                <NcButton
-                  type="secondary"
-                  size="medium"
-                  class="w-full max-w-[520px] !mx-auto"
-                  :disabled="isAllFieldSelected"
-                  @click="addNewAction"
-                >
-                  <template #icon>
-                    <GeneralIcon icon="ncPlus" />
-                  </template>
-                  New action
-                </NcButton>
+                <NcTooltip :disabled="!isAllFieldSelected" title="No more fields to add" class="w-full max-w-[520px] !mx-auto">
+                  <NcButton type="secondary" size="medium" class="w-full" :disabled="isAllFieldSelected" @click="addNewAction">
+                    <template #icon>
+                      <GeneralIcon icon="ncPlus" />
+                    </template>
+                    New action
+                  </NcButton>
+                </NcTooltip>
               </div>
             </div>
           </div>
@@ -1267,12 +1255,14 @@ provide(IsGalleryInj, ref(false))
             'p-3 border-t-1 border-t-nc-border-gray-medium bg-white': !fullscreen,
           }"
         >
-          <NcButton size="small" type="secondary" :disabled="isAllFieldSelected" @click="addNewAction">
-            <template #icon>
-              <GeneralIcon icon="ncPlus" />
-            </template>
-            New action
-          </NcButton>
+          <NcTooltip :disabled="!isAllFieldSelected" title="No more fields to add">
+            <NcButton size="small" type="secondary" :disabled="isAllFieldSelected" @click="addNewAction">
+              <template #icon>
+                <GeneralIcon icon="ncPlus" />
+              </template>
+              New action
+            </NcButton>
+          </NcTooltip>
           <NcButton
             size="small"
             :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo"

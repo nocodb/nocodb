@@ -359,6 +359,7 @@ const handleUpdateFieldConfigExpansionPanel = (key: string, expand = false) => {
     fieldConfigExpansionPanel.value = [key]
     handleAutoScrollField(key)
   }
+
   validateAll()
 
   handleScroll()
@@ -395,7 +396,6 @@ function addNewAction() {
   }
 
   handleUpdateFieldConfigExpansionPanel(configId, true)
-  validateAll()
 
   nextTick(() => {
     setTimeout(() => {
@@ -661,7 +661,7 @@ const handleConfirmUpdate = async () => {
 }
 
 onClickOutside(formRef, (e) => {
-  if (!fullscreen.value || (e.target as HTMLElement)?.closest(`.nc-bulk-update-add-action-section`)) return
+  if (!fullscreen.value || (e.target as HTMLElement)?.closest(`.nc-bulk-update-add-action-section, .nc-select-dropdown`)) return
   if ((e.target as HTMLElement) === fieldConfigRef.value?.children?.[0]) {
     fieldConfigExpansionPanel.value = []
 
@@ -1203,8 +1203,14 @@ provide(IsGalleryInj, ref(false))
                         </LazySmartsheetDivDataCell>
                       </a-form-item>
 
-                      <div>
-                        <NcButton type="text" size="xs" @click="handleRemoveFieldConfig(fieldConfig.id)">
+                      <div class="w-full flex justify-end">
+                        <NcButton
+                          type="text"
+                          size="xs"
+                          class="flex-none"
+                          iconPosition="right"
+                          @click="handleRemoveFieldConfig(fieldConfig.id)"
+                        >
                           <template #icon>
                             <GeneralIcon icon="delete" />
                           </template>

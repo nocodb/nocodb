@@ -1,4 +1,4 @@
-import type { AttachmentResType, PublicAttachmentScope, SupportedExportCharset, UserType, SnapshotType} from 'nocodb-sdk';
+import type { AttachmentResType, PublicAttachmentScope, SupportedExportCharset, UserType, SnapshotType } from 'nocodb-sdk';
 
 import type { NcContext, NcRequest } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';

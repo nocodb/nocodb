@@ -7,6 +7,9 @@ export NOCO_HOME
 
 setup() {
   cd "${WORKING_DIR}/configure" || exit 1
+
+  ls
+  cat setup.sh
   ./setup.sh setup
 }
 
@@ -21,6 +24,8 @@ teardown() {
 
 @test "Check all containers are down" {
     ../expects/configure/stop.sh
+
+    ls
 
     cd "${NOCO_HOME}" || exit 1
 

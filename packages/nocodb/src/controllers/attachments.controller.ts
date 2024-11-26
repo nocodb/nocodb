@@ -168,6 +168,7 @@ export class AttachmentsController {
 
       let queryResponseContentType = null;
       let queryResponseContentDisposition = null;
+      let queryResponseContentEncoding = null;
 
       if (queryHelper.length > 1) {
         const query = new URLSearchParams(queryHelper[1]);
@@ -175,6 +176,7 @@ export class AttachmentsController {
         queryResponseContentDisposition = query.get(
           'ResponseContentDisposition',
         );
+        queryResponseContentEncoding = query.get('ResponseContentEncoding');
       }
 
       const targetParam = param.split('/')[2];
@@ -191,10 +193,21 @@ export class AttachmentsController {
 
       if (queryResponseContentType) {
         res.setHeader('Content-Type', queryResponseContentType);
+
+        if (queryResponseContentEncoding) {
+          res.setHeader(
+            'Content-Type',
+            `${queryResponseContentType}; charset=${queryResponseContentEncoding}`,
+          );
+        }
       }
 
       if (queryResponseContentDisposition) {
         res.setHeader('Content-Disposition', queryResponseContentDisposition);
+      }
+
+      if (queryResponseContentEncoding) {
+        res.setHeader('Content-Encoding', queryResponseContentEncoding);
       }
 
       res.sendFile(file.path);

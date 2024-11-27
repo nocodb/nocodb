@@ -549,10 +549,13 @@ export class UsersService extends UsersServiceCE {
         let soleOwner = false;
 
         if (workspace.roles === WorkspaceUserRoles.OWNER) {
-          const owners = await WorkspaceUser.userList({
-            fk_workspace_id: workspace.id,
-            roles: WorkspaceUserRoles.OWNER,
-          });
+          const owners = await WorkspaceUser.userList(
+            {
+              fk_workspace_id: workspace.id,
+              roles: WorkspaceUserRoles.OWNER,
+            },
+            transaction,
+          );
 
           // Delete workspace if user is sole owner
           if (owners.length === 1) {

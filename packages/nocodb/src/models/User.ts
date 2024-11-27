@@ -37,6 +37,9 @@ export default class User implements UserType {
   blocked?: boolean;
   blocked_reason?: string;
 
+  deleted_at?: Date;
+  is_deleted?: boolean;
+
   constructor(data: User) {
     Object.assign(this, data);
   }
@@ -155,6 +158,11 @@ export default class User implements UserType {
       );
       await NocoCache.set(`${CacheScope.USER}:${email}`, user);
     }
+
+    if (user.is_deleted) {
+      return null;
+    }
+
     return this.castType(user);
   }
 
@@ -200,6 +208,11 @@ export default class User implements UserType {
       );
       await NocoCache.set(`${CacheScope.USER}:${userId}`, user);
     }
+
+    if (user.is_deleted) {
+      return null;
+    }
+
     return this.castType(user);
   }
 
@@ -213,12 +226,18 @@ export default class User implements UserType {
       return null;
     }
 
-    return await ncMeta.metaGet2(
+    const user = await ncMeta.metaGet2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.USERS,
       userRefreshToken.fk_user_id,
     );
+
+    if (user.is_deleted) {
+      return null;
+    }
+
+    return this.castType(user);
   }
 
   public static async list(

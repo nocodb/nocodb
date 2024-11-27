@@ -71,7 +71,7 @@ const emit = defineEmits(['resize-start'])
     ></div>
 
     <div class="overflow-hidden items-center justify-center gap-2 flex w-full">
-      <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2"> .... </span>
+      <span v-if="position === 'rightRounded' || position === 'none'" class="ml-2 mb-0.6"> .... </span>
       <slot name="time" />
       <div
         :class="{
@@ -91,7 +91,7 @@ const emit = defineEmits(['resize-start'])
           </template>
         </NcTooltip>
       </div>
-      <span v-if="position === 'leftRounded' || position === 'none'" class="absolute my-0 z-10 right-5"> .... </span>
+      <span v-if="position === 'leftRounded' || position === 'none'" class="absolute mb-0.6 z-10 right-5"> .... </span>
     </div>
 
     <div

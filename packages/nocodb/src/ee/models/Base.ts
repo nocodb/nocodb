@@ -386,9 +386,14 @@ export default class Base extends BaseCE {
         // clear connection pool for this instance
         await NcConnectionMgrv2.deleteAwait(source);
         // remove sql executor binding & clear connection pool for other instances
-        await Source.update(context, source.id, {
-          fk_sql_executor_id: null,
-        });
+        await Source.update(
+          context,
+          source.id,
+          {
+            fk_sql_executor_id: null,
+          },
+          ncMeta,
+        );
       }
     }
   }

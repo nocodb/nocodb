@@ -577,7 +577,7 @@ export class UsersService extends UsersServiceCE {
         let soleOwner = false;
         if (base.base_role === ProjectRoles.OWNER) {
           const owners = (
-            await listBaseUsers(base.fk_workspace_id, base.id, ncMeta)
+            await listBaseUsers(base.fk_workspace_id, base.id, transaction)
           ).filter((u) => u.base_role === ProjectRoles.OWNER);
 
           // Delete base if user is sole owner

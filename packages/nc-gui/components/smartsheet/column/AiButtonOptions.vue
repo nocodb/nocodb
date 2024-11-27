@@ -389,7 +389,7 @@ onBeforeUnmount(() => {
                     <AiPromptWithFields
                       v-model="vModel.formula_raw"
                       :options="availableFields"
-                      placeholder="Enter prompt here..."
+                      :placeholder="`Enter prompt here...\n\n eg : Categorise this {Notes}`"
                       prompt-field-tag-class-name="!bg-nc-bg-gray-medium !text-nc-content-gray"
                     />
                     <div class="rounded-b-lg flex items-center gap-2 p-1">

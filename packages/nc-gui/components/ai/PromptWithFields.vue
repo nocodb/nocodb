@@ -21,6 +21,10 @@ const props = withDefaults(
     autoFocus: true,
     promptFieldTagClassName: '',
     suggestionIconClassName: '',
+    /**
+     * Use \n to show placeholder as preline 
+     * @example: :placeholder="`Enter prompt here...\n\neg : Categorise this {Notes}`"
+     */
     placeholder: 'Write your prompt here...',
   },
 )
@@ -177,6 +181,7 @@ onMounted(async () => {
   .tiptap p.is-editor-empty:first-child::before {
     @apply text-gray-500;
     content: attr(data-placeholder);
+    white-space: pre-line; /* Preserve line breaks */
     float: left;
     height: 0;
     pointer-events: none;

@@ -488,115 +488,116 @@ onBeforeUnmount(() => {
                 <div class="nc-ai-button-config-right-section">
                   <a-form-item class="!mb-0 !mt-2">
                     <div class="mb-2 text-sm text-nc-content-gray-subtle2">Select sample record</div>
-                    <div class="flex items-center relative rounded-lg border-1 border-purple-200 bg-purple-50 h-8">
-                      <NcDropdown
-                        v-model:visible="isOpenSelectRecordDropdown"
-                        placement="bottomLeft"
-                        overlay-class-name="!min-w-64"
-                      >
-                        <div
-                          class="absolute left-0 top-0 flex-1 flex items-center gap-2 px-2 cursor-pointer h-8 rounded-lg rounded-r-none bg-white border-1 border-purple-200 transition-all -mt-[1px] -ml-[1px]"
-                          :class="{
-                            'w-[calc(100%_-_132.5px)]': !(aiLoading && generatingPreview),
-                            'w-[calc(100%_-_145.5px)]': aiLoading && generatingPreview,
-                            '!rounded-r-lg shadow-selected-ai border-nc-border-purple z-11': isOpenSelectRecordDropdown,
-                            'shadow-default hover:shadow-hover': !isOpenSelectRecordDropdown,
-                          }"
-                        >
-                          <NcTooltip
-                            v-if="selectedRecord?.label"
-                            class="truncate flex-1 text-nc-content-purple-dark font-semibold"
-                            show-on-truncate-only
-                            :disabled="isOpenSelectRecordDropdown"
-                          >
-                            <template #title>
-                              <LazySmartsheetPlainCell v-model="selectedRecord.label" :column="displayField" />
-                            </template>
-                            <LazySmartsheetPlainCell v-model="selectedRecord.label" :column="displayField" />
-                          </NcTooltip>
+                    <div class="flex items-center relative rounded-lg border-1 border-purple-200 bg-purple-50 h-8"></div>
+                  </a-form-item>
 
-                          <div v-else class="flex-1 text-nc-content-gray-muted">- Select record -</div>
-                          <GeneralIcon
-                            icon="chevronDown"
-                            class="flex-none opacity-60"
-                            :class="{
-                              'transform rotate-180': isOpenSelectRecordDropdown,
-                            }"
-                          />
-                        </div>
-
-                        <template #overlay>
-                          <div
-                            v-if="isLoadingViewData"
-                            class="w-full relative flex flex-col items-center justify-center gap-2 min-h-25 text-nc-content-brand"
-                          >
-                            <GeneralLoader size="large" class="flex-none" />
-                            Loading records
-                          </div>
-                          <NcList
-                            v-else
-                            v-model:value="selectedRecordPk"
-                            v-model:open="isOpenSelectRecordDropdown"
-                            :list="sampleRecords"
-                          >
-                            <template #listItem="{ option, isSelected }">
-                              <div class="inline-flex items-center gap-2 flex-1 truncate">
-                                <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                                  <template #title>
-                                    <div>
-                                      <LazySmartsheetPlainCell v-model="option.label" :column="displayField" />
-                                    </div>
-                                  </template>
-                                  <LazySmartsheetPlainCell v-model="option.label" :column="displayField" />
-                                </NcTooltip>
-
-                                <GeneralIcon
-                                  v-if="isSelected()"
-                                  id="nc-selected-item-icon"
-                                  icon="check"
-                                  class="flex-none text-primary w-4 h-4"
-                                />
-                              </div>
-                            </template>
-                          </NcList>
-                        </template>
-                      </NcDropdown>
+                  <NcDropdown
+                    v-if="false"
+                    v-model:visible="isOpenSelectRecordDropdown"
+                    placement="bottomLeft"
+                    overlay-class-name="!min-w-64"
+                  >
+                    <div
+                      class="absolute left-0 top-0 flex-1 flex items-center gap-2 px-2 cursor-pointer h-8 rounded-lg rounded-r-none bg-white border-1 border-purple-200 transition-all -mt-[1px] -ml-[1px]"
+                      :class="{
+                        'w-[calc(100%_-_132.5px)]': !(aiLoading && generatingPreview),
+                        'w-[calc(100%_-_145.5px)]': aiLoading && generatingPreview,
+                        '!rounded-r-lg shadow-selected-ai border-nc-border-purple z-11': isOpenSelectRecordDropdown,
+                        'shadow-default hover:shadow-hover': !isOpenSelectRecordDropdown,
+                      }"
+                    >
                       <NcTooltip
-                        :disabled="!!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw)"
-                        class="absolute right-0 top-0"
+                        v-if="selectedRecord?.label"
+                        class="truncate flex-1 text-nc-content-purple-dark font-semibold"
+                        show-on-truncate-only
+                        :disabled="isOpenSelectRecordDropdown"
                       >
                         <template #title>
-                          {{
-                            !vModel.formula_raw
-                              ? 'Prompt required for AI Button'
-                              : !outputColumnIds.length
-                              ? 'At least one output field is required for preview'
-                              : !selectedRecordPk
-                              ? 'Select sample record first'
-                              : ''
-                          }}
+                          <LazySmartsheetPlainCell v-model="selectedRecord.label" :column="displayField" />
                         </template>
-                        <NcButton
-                          size="small"
-                          type="secondary"
-                          class="nc-ai-button-test-generate"
-                          :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length || !vModel.formula_raw"
-                          :loading="aiLoading && generatingPreview"
-                          @click.stop="generate"
-                        >
-                          <template #icon>
-                            <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
-                          </template>
-                          <template #loadingIcon>
-                            <GeneralLoader class="!text-current" size="regular" />
-                          </template>
-                          <div class="flex items-center gap-2">
-                            {{ aiLoading && generatingPreview ? 'Test Generating' : 'Test Generate' }}
-                          </div>
-                        </NcButton>
+                        <LazySmartsheetPlainCell v-model="selectedRecord.label" :column="displayField" />
                       </NcTooltip>
+
+                      <div v-else class="flex-1 text-nc-content-gray-muted">- Select record -</div>
+                      <GeneralIcon
+                        icon="chevronDown"
+                        class="flex-none opacity-60"
+                        :class="{
+                          'transform rotate-180': isOpenSelectRecordDropdown,
+                        }"
+                      />
                     </div>
-                  </a-form-item>
+
+                    <template #overlay>
+                      <div
+                        v-if="isLoadingViewData"
+                        class="w-full relative flex flex-col items-center justify-center gap-2 min-h-25 text-nc-content-brand"
+                      >
+                        <GeneralLoader size="large" class="flex-none" />
+                        Loading records
+                      </div>
+                      <NcList
+                        v-else
+                        v-model:value="selectedRecordPk"
+                        v-model:open="isOpenSelectRecordDropdown"
+                        :list="sampleRecords"
+                      >
+                        <template #listItem="{ option, isSelected }">
+                          <div class="inline-flex items-center gap-2 flex-1 truncate">
+                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                              <template #title>
+                                <div>
+                                  <LazySmartsheetPlainCell v-model="option.label" :column="displayField" />
+                                </div>
+                              </template>
+                              <LazySmartsheetPlainCell v-model="option.label" :column="displayField" />
+                            </NcTooltip>
+
+                            <GeneralIcon
+                              v-if="isSelected()"
+                              id="nc-selected-item-icon"
+                              icon="check"
+                              class="flex-none text-primary w-4 h-4"
+                            />
+                          </div>
+                        </template>
+                      </NcList>
+                    </template>
+                  </NcDropdown>
+                  <NcTooltip
+                    :disabled="!!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw)"
+                    class="absolute right-0 top-0"
+                  >
+                    <template #title>
+                      {{
+                        !vModel.formula_raw
+                          ? 'Prompt required for AI Button'
+                          : !outputColumnIds.length
+                          ? 'At least one output field is required for preview'
+                          : !selectedRecordPk
+                          ? 'Select sample record first'
+                          : ''
+                      }}
+                    </template>
+                    <NcButton
+                      size="small"
+                      type="secondary"
+                      class="nc-ai-button-test-generate"
+                      :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length || !vModel.formula_raw"
+                      :loading="aiLoading && generatingPreview"
+                      @click.stop="generate"
+                    >
+                      <template #icon>
+                        <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+                      </template>
+                      <template #loadingIcon>
+                        <GeneralLoader class="!text-current" size="regular" />
+                      </template>
+                      <div class="flex items-center gap-2">
+                        {{ aiLoading && generatingPreview ? 'Test Generating' : 'Test Generate' }}
+                      </div>
+                    </NcButton>
+                  </NcTooltip>
 
                   <div v-if="aiError" class="py-3 pl-3 pr-2 flex items-center gap-3 bg-nc-bg-red-light rounded-lg">
                     <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
@@ -612,6 +613,7 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
 
+                Input fields
                 <a-collapse v-model:active-key="expansionPanel" ghost class="flex-1 flex flex-col">
                   <template #expandIcon> </template>
                   <a-collapse-panel
@@ -620,12 +622,64 @@ onBeforeUnmount(() => {
                     class="nc-ai-button-config-right-section"
                   >
                     <template #header>
-                      <div class="flex">
-                        <div
-                          class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5 min-h-7"
-                          @click="handleUpdateExpansionPanel(ExpansionPanelKeys.input)"
-                        >
-                          Input fields
+                      <div class="flex w-full">
+                        <div class="w-full text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5 min-h-7">
+                          <NcButton
+                            icon-only
+                            type="text"
+                            size="xs"
+                            @click.stop="handleUpdateExpansionPanel(ExpansionPanelKeys.input)"
+                          >
+                            <template #icon>
+                              <GeneralIcon :icon="expansionPanel.includes(ExpansionPanelKeys.input) ? 'eye' : 'eyeSlash'" />
+                            </template>
+                          </NcButton>
+                          <NcDropdown
+                            v-model:visible="isOpenSelectRecordDropdown"
+                            placement="bottom"
+                            overlay-class-name="overflow-hidden"
+                          >
+                            <NcButton size="small" type="text" @click.stop class="flex-1">
+                              <div class="w-full flex items-center gap-2">- Select Record -</div>
+                              <GeneralIcon
+                                icon="arrowRight"
+                                class="transform rotate-90"
+                                :class="{
+                                  'rotate-180': isOpenSelectRecordDropdown,
+                                }"
+                              />
+                            </NcButton>
+
+                            <template #overlay>
+                              <div
+                                v-if="isLoadingViewData"
+                                class="min-w-[500px] relative flex flex-col items-center justify-center gap-2 min-h-25 text-nc-content-brand"
+                              >
+                                <GeneralLoader size="large" class="flex-none" />
+                                Loading records
+                              </div>
+                              <NcList
+                                v-else
+                                v-model:value="selectedRecordPk"
+                                v-model:open="isOpenSelectRecordDropdown"
+                                :list="sampleRecords"
+                                show-search-always
+                                :item-height="60"
+                                class="!w-auto min-w-[500px]"
+                                container-class-name="!px-0 !pb-0"
+                                item-class-name="!rounded-none !p-0 !bg-none !hover:bg-none"
+                              >
+                                <template #listItem="{ option, isSelected }">
+                                  <NcListRecordItem
+                                    :row="option.row || {}"
+                                    :columns="meta?.columns || []"
+                                    :is-selected="isSelected()"
+                                    class="!cursor-pointer"
+                                  />
+                                </template>
+                              </NcList>
+                            </template>
+                          </NcDropdown>
 
                           <template v-if="inputColumns.length">
                             <a-tag class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0">

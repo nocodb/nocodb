@@ -5,7 +5,7 @@ export type MultiSelectRawValueType = Array<string | number>
 
 export type RawValueType = string | number | MultiSelectRawValueType
 
-interface ListItem {
+export interface NcListItemType {
   value?: RawValueType
   label?: string
   [key: string]: any
@@ -14,11 +14,11 @@ interface ListItem {
 /**
  * Props interface for the List component
  */
-interface Props {
+export interface NcListProps {
   /** The currently selected value */
   value: RawValueType
   /** The list of items to display */
-  list: ListItem[]
+  list: NcListItemType[]
   /**
    * The key to use for accessing the value from a list item
    * @default 'value'
@@ -48,7 +48,7 @@ interface Props {
    */
   itemHeight?: number
   /** Custom filter function for list items */
-  filterOption?: (input: string, option: ListItem, index: Number) => boolean
+  filterOption?: (input: string, option: NcListItemType, index: Number) => boolean
   /**
    * Indicates whether the component allows multiple selections.
    */
@@ -57,15 +57,19 @@ interface Props {
    * The minimum number of items required in the list to enable search functionality.
    */
   minItemsForSearch?: number
+
+  containerClassName?: string
+
+  itemClassName?: string
 }
 
 interface Emits {
   (e: 'update:value', value: RawValueType): void
   (e: 'update:open', open: boolean): void
-  (e: 'change', option: ListItem): void
+  (e: 'change', option: NcListItemType): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<NcListProps>(), {
   open: false,
   closeOnSelect: true,
   searchInputPlaceholder: '',
@@ -76,6 +80,8 @@ const props = withDefaults(defineProps<Props>(), {
   itemHeight: 38,
   isMultiSelect: false,
   minItemsForSearch: 4,
+  containerClassName: '',
+  itemClassName: '',
 })
 
 const emits = defineEmits<Emits>()
@@ -88,7 +94,7 @@ const vOpen = useVModel(props, 'open', emits)
 
 const { optionValueKey, optionLabelKey } = props
 
-const { closeOnSelect, showSelectedOption } = toRefs(props)
+const { closeOnSelect, showSelectedOption, containerClassName, itemClassName } = toRefs(props)
 
 const slots = useSlots()
 
@@ -114,7 +120,7 @@ const keyDown = ref(false)
  *
  * @returns Filtered list of options
  *
- * @typeparam ListItem - The type of items in the list
+ * @typeparam NcListItemType - The type of items in the list
  */
 const list = computed(() => {
   const query = searchQuery.value.toLowerCase()
@@ -183,7 +189,7 @@ const handleResetHoverEffect = (clearActiveOption = false, newActiveIndex?: numb
  * This function is responsible for handling the selection of an option from the list.
  * It updates the model value, emits a change event, and optionally closes the dropdown.
  */
-const handleSelectOption = (option: ListItem, index?: number) => {
+const handleSelectOption = (option: NcListItemType, index?: number) => {
   if (!option?.[optionValueKey]) return
 
   if (index !== undefined) {
@@ -355,6 +361,7 @@ watch(
           <div
             v-bind="containerProps"
             class="nc-list !h-auto w-full nc-scrollbar-thin px-2 pb-2"
+            :class="containerClassName"
             :style="{
               maxHeight: '247px !important',
             }"
@@ -371,6 +378,7 @@ watch(
                     'bg-gray-100 ': showHoverEffectOnSelectedOption && compareVModel(option[optionValueKey]),
                     'bg-gray-100 nc-list-option-active': activeOptionIndex === idx,
                   },
+                  `${itemClassName}`,
                 ]"
                 @mouseover="handleResetHoverEffect(true, idx)"
                 @click="handleSelectOption(option, idx)"

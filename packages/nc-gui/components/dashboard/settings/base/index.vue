@@ -71,8 +71,8 @@ onMounted(() => {
     <!-- Data Pane -->
 
     <div class="flex flex-col w-[760px]">
-      <DashboardSettingsBaseSettingsSnapshots v-if="activeMenu === 'snapshots'" />
-      <DashboardSettingsBaseSettingsVisibility v-if="activeMenu === 'visibility'" />
+      <DashboardSettingsBaseSnapshots v-if="activeMenu === 'snapshots'" />
+      <DashboardSettingsBaseVisibility v-if="activeMenu === 'visibility'" />
     </div>
   </div>
 </template>

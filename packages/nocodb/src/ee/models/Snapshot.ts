@@ -160,14 +160,11 @@ export default class Snapshot implements SnapshotType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const query = await ncMeta
-      .knex(MetaTable.SNAPSHOT)
-      .where({
-        base_id: baseId,
-      })
-      .count('id', { as: 'count' })
-      .first();
-
-    return +(await query)?.['count'] || 0;
+    const count = await ncMeta.metaCount(context.workspace_id, context.base_id, MetaTable.SNAPSHOT, {
+      condition: {
+        base_id: baseId
+      }
+    })
+    return count
   }
 }

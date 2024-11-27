@@ -46,16 +46,45 @@ export default class Comment implements CommentType {
     fk_model_id: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Comment[]> {
-    const commentList = await ncMeta
-      .knex(MetaTable.COMMENTS)
-      .select(`${MetaTable.COMMENTS}.*`)
-      .where('fk_model_id', fk_model_id)
-      .where(function () {
-        this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
-      })
-      .orderBy('created_at', 'asc');
+    const READ_BATCH_SIZE = 1000;
+    const allComments: Comment[] = [];
+    let fetchNextBatch = true;
 
-    return commentList.map((comment) => new Comment(comment));
+    for (let offset = 0; fetchNextBatch; offset += READ_BATCH_SIZE) {
+      const comments = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COMMENTS,
+        {
+          condition: {
+            fk_model_id,
+          },
+          orderBy: {
+            created_at: 'asc'
+          },
+          limit: READ_BATCH_SIZE + 1,
+          offset,
+          xcCondition: [
+            {
+              _or: [
+                { is_deleted: null },
+                { is_deleted: false },
+              ]
+            }
+          ]
+        }
+      );
+
+      const batchComments = comments
+        .slice(0, READ_BATCH_SIZE)
+        .map(comment => new Comment(comment));
+
+      allComments.push(...batchComments);
+
+      fetchNextBatch = comments.length > READ_BATCH_SIZE;
+    }
+
+    return allComments;
   }
 
   public static async list(

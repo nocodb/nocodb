@@ -121,7 +121,7 @@ const selectWorkspace = (workspace: WorkspaceType) => {
               @click="selectWorkspace(workspace)"
             >
               <div class="flex flex-row w-full truncate items-center gap-2">
-                <GeneralWorkspaceIcon :workspace="workspace" size="middle" />
+                <GeneralWorkspaceIcon class="restore-snapshot" :workspace="workspace" size="middle" />
 
                 <NcTooltip show-on-truncate-only class="text-nc-content-gray flex-1 truncate font-semibold leading-5">
                   {{ workspace?.title }}
@@ -163,3 +163,11 @@ const selectWorkspace = (workspace: WorkspaceType) => {
     </div>
   </NcModal>
 </template>
+
+<style lang="scss">
+.restore-snapshot {
+  .nc-workspace-avatar {
+    @apply min-w-8 w-6 h-8 rounded-md;
+  }
+}
+</style>

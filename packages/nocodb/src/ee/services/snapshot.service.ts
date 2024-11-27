@@ -34,7 +34,7 @@ export class SnapshotService {
 
     await Snapshot.delete(context, snapshotId);
 
-    await Base.softDelete(context, snapshot.snapshot_base_id);
+    await Base.delete(context, snapshot.snapshot_base_id);
 
     return true;
   }

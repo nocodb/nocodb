@@ -6,7 +6,7 @@ const config: XcPluginConfig = {
   builder: VultrPlugin,
   title: 'Vultr',
   id: 'vultr',
-  fallbackTitle: 'Vultr Object Storage',
+  recoveryTitle: 'Vultr Object Storage',
   version: '0.0.4',
   logo: 'plugins/vultr.png',
   description:

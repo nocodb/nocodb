@@ -16,6 +16,7 @@ import type CalendarView from '~/models/CalendarView';
 import type Column from '~/models/Column';
 import type { NcContext } from '~/interface/config';
 import type AiIntegration from '~/integrations/ai/ai.interface';
+import type { View } from '~/models';
 import Base from '~/models/Base';
 import Model from '~/models/Model';
 
@@ -31,7 +32,7 @@ import { CalendarsService } from '~/services/calendars.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { DataTableService } from '~/services/data-table.service';
-import { Integration, View } from '~/models';
+import { Integration } from '~/models';
 import {
   generateDummyDataPrompt,
   generateDummyDataSystemMessage,

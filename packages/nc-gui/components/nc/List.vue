@@ -38,6 +38,8 @@ interface Props {
   closeOnSelect?: boolean
   /** Placeholder text for the search input */
   searchInputPlaceholder?: string
+  /** Show search input box always */
+  showSearchAlways?: boolean
   /** Whether to show the currently selected option */
   showSelectedOption?: boolean
   /**
@@ -67,6 +69,7 @@ const props = withDefaults(defineProps<Props>(), {
   open: false,
   closeOnSelect: true,
   searchInputPlaceholder: '',
+  showSearchAlways: false,
   showSelectedOption: true,
   optionValueKey: 'value',
   optionLabelKey: 'label',
@@ -87,6 +90,8 @@ const { optionValueKey, optionLabelKey } = props
 
 const { closeOnSelect, showSelectedOption } = toRefs(props)
 
+const slots = useSlots()
+
 const listRef = ref<HTMLDivElement>()
 
 const searchQuery = ref('')
@@ -97,7 +102,9 @@ const activeOptionIndex = ref(-1)
 
 const showHoverEffectOnSelectedOption = ref(true)
 
-const isSearchEnabled = computed(() => props.list.length > props.minItemsForSearch)
+const isSearchEnabled = computed(
+  () => props.showSearchAlways || slots.headerExtraLeft || slots.headerExtraRight || props.list.length > props.minItemsForSearch,
+)
 
 const keyDown = ref(false)
 
@@ -322,12 +329,13 @@ watch(
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex])"
   >
     <template v-if="isSearchEnabled">
-      <div class="w-full px-2" @click.stop>
+      <div class="w-full px-2 flex items-center gap-2" @click.stop>
+        <slot name="headerExtraLeft"> </slot>
         <a-input
           ref="inputRef"
           v-model:value="searchQuery"
           :placeholder="searchInputPlaceholder"
-          class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5"
+          class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5 flex-1"
           allow-clear
           :bordered="false"
           @keydown.enter.stop="handleKeydownEnter"
@@ -335,6 +343,7 @@ watch(
         >
           <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
         ></a-input>
+        <slot name="headerExtraRight"> </slot>
       </div>
       <NcDivider />
     </template>

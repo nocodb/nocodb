@@ -268,14 +268,8 @@ export default class Workspace implements WorkspaceType {
       RootScopes.WORKSPACE,
       MetaTable.INTEGRATIONS,
       {
-        xcCondition: {
-          _and: [
-            {
-              fk_workspace_id: {
-                eq: workspace.id,
-              },
-            },
-          ],
+        condition: {
+          fk_workspace_id: workspace.id,
         },
       },
     );

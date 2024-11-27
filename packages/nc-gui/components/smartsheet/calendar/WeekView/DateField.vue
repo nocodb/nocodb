@@ -169,7 +169,12 @@ const calendarData = computed(() => {
         .filter((r) => {
           const startDate = dayjs(r.row[fk_from_col.title!])
           const endDate = dayjs(r.row[fk_to_col.title!])
-          return startDate.isValid() && endDate.isValid() && !endDate.isBefore(startDate)
+          return (
+            startDate.isValid() &&
+            endDate.isValid() &&
+            !endDate.isBefore(startDate) &&
+            !endDate.isBefore(selectedDateRange.value.start, 'day')
+          )
         })
         .forEach(processRecord)
     } else {
@@ -294,16 +299,16 @@ const dragOffset = ref<{
 
 // This method is used to calculate the new start and end date of a record when dragging and dropping
 const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
-  const { width, left } = container.value.getBoundingClientRect()
+  const { width, left } = container.value?.getBoundingClientRect()
 
   // Calculate the percentage of the width based on the mouse position
   // This is used to calculate the day index
 
-  let relativeX = event.clientX - left
+  const relativeX = event.clientX - left
 
-  if (dragOffset.value.x) {
+  /* if (dragOffset.value.x && dragRecord.value?.rowMeta.spanningDays === 1) {
     relativeX -= dragOffset.value.x
-  }
+  } */
 
   const percentX = relativeX / width
 
@@ -377,6 +382,8 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
 const onDrag = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit')) return
   if (!container.value || !dragRecord.value) return
+  event.preventDefault()
+
   calculateNewRow(event, false)
 }
 
@@ -402,9 +409,15 @@ const stopDrag = (event: MouseEvent) => {
     dragElement.value.style.boxShadow = 'none'
     dragElement.value = null
   }
+
   dragRecord.value = undefined
 
   updateRowProperty(newRow, updateProperty, false)
+
+  dragOffset.value = {
+    x: null,
+    y: null,
+  }
 
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
@@ -481,11 +494,6 @@ const dropEvent = (event: DragEvent) => {
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
-
-    dragOffset.value = {
-      x: null,
-      y: null,
-    }
 
     $e('c:calendar:day:drag-record')
   }

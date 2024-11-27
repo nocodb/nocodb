@@ -45,7 +45,14 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
     const fromCol = range.fk_from_col
     const endCol = range.fk_to_col
     if (fromCol && endCol) {
-      for (const record of formattedData.value) {
+      const filteredData = formattedData.value.filter((record) => {
+        const startDate = dayjs(record.row[fromCol.title!])
+        const endDate = dayjs(record.row[endCol.title!])
+
+        return startDate.isSameOrBefore(endDate, 'day')
+      })
+
+      for (const record of filteredData) {
         const startDate = dayjs(record.row[fromCol.title!])
         const endDate = dayjs(record.row[endCol.title!])
 

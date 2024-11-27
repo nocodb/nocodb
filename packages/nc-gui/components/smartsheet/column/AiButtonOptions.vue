@@ -230,6 +230,9 @@ watch(isOpenConfigModal, (newValue) => {
     setTimeout(() => {
       isAiButtonConfigModalOpen.value = false
     }, 500)
+
+    isOpenSelectOutputFieldDropdown.value = false
+    isOpenSelectRecordDropdown.value = false
   }
 })
 
@@ -415,7 +418,11 @@ onBeforeUnmount(() => {
                     <div class="text-small leading-[18px] text-nc-content-gray-subtle2">
                       Choose the fields where the AI-generated data will be applied.
                     </div>
-                    <NcDropdown v-model:visible="isOpenSelectOutputFieldDropdown" placement="bottomRight" overlay-class-name="overflow-hidden">
+                    <NcDropdown
+                      v-model:visible="isOpenSelectOutputFieldDropdown"
+                      placement="bottomRight"
+                      overlay-class-name="overflow-hidden"
+                    >
                       <NcButton size="small" type="secondary" @click.stop>
                         <div class="flex items-center gap-2">
                           <GeneralIcon icon="plus" class="!text-current" />
@@ -608,7 +615,7 @@ onBeforeUnmount(() => {
                         </template>
 
                         <div class="flex flex-col gap-4">
-                          <LazySmartsheetRow :row="selectedRecord.row">
+                          <LazySmartsheetRow :key="selectedRecordPk" :row="selectedRecord.row">
                             <template v-for="field in inputColumns">
                               <a-form-item
                                 v-if="field.title"

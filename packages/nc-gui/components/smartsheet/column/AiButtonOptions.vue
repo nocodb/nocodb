@@ -199,16 +199,23 @@ enum ExpansionPanelKeys {
   output = 'output',
 }
 
-const expansionPanel = ref<ExpansionPanelKeys[]>([ExpansionPanelKeys.output])
+const expansionInputPanel = ref<ExpansionPanelKeys[]>([])
 
-const handleUpdateExpansionPanel = (key: ExpansionPanelKeys) => {
-  if (expansionPanel.value.includes(key)) {
-    expansionPanel.value = expansionPanel.value.filter((k) => k !== key)
+const handleUpdateExpansionInputPanel = () => {
+  if (expansionInputPanel.value.includes(ExpansionPanelKeys.input)) {
+    expansionInputPanel.value = []
   } else {
-    if (key === ExpansionPanelKeys.input && !inputColumns.value.length) {
-      return
-    }
-    expansionPanel.value.push(key)
+    expansionInputPanel.value = [ExpansionPanelKeys.input]
+  }
+}
+
+const expansionOutputPanel = ref<ExpansionPanelKeys[]>([ExpansionPanelKeys.output])
+
+const handleUpdateExpansionOutputPanel = () => {
+  if (expansionOutputPanel.value.includes(ExpansionPanelKeys.output)) {
+    expansionOutputPanel.value = []
+  } else {
+    expansionOutputPanel.value = [ExpansionPanelKeys.output]
   }
 }
 
@@ -329,7 +336,6 @@ onBeforeUnmount(() => {
           <NcButton
             size="small"
             type="primary"
-            theme="ai"
             :disabled="disableSubmitBtn || saving"
             :label="submitBtnLabel.label"
             :loading-label="submitBtnLabel.loadingLabel"
@@ -476,7 +482,7 @@ onBeforeUnmount(() => {
             <!-- Right side -->
             <div
               ref="previewPanelDom"
-              class="h-full w-1/2 bg-[#FCF8FF] nc-scrollbar-thin flex flex-col relative"
+              class="h-full w-1/2 bg-[#FCF8FF] flex flex-col relative"
               @scroll.passive="checkScrollTopMoreThanZero"
             >
               <div class="border-b-1 border-b-nc-border-gray-medium py-2.5 w-full">
@@ -484,122 +490,9 @@ onBeforeUnmount(() => {
                   <div class="text-base text-nc-content-gray font-bold flex-1">Test Data Generation</div>
                 </div>
               </div>
-              <div class="flex flex-col h-[calc(100%_-_45px)] nc-scrollbar-thin">
-                <div class="nc-ai-button-config-right-section">
-                  <a-form-item class="!mb-0 !mt-2">
-                    <div class="mb-2 text-sm text-nc-content-gray-subtle2">Select sample record</div>
-                    <div class="flex items-center relative rounded-lg border-1 border-purple-200 bg-purple-50 h-8"></div>
-                  </a-form-item>
-
-                  <NcDropdown
-                    v-if="false"
-                    v-model:visible="isOpenSelectRecordDropdown"
-                    placement="bottomLeft"
-                    overlay-class-name="!min-w-64"
-                  >
-                    <div
-                      class="absolute left-0 top-0 flex-1 flex items-center gap-2 px-2 cursor-pointer h-8 rounded-lg rounded-r-none bg-white border-1 border-purple-200 transition-all -mt-[1px] -ml-[1px]"
-                      :class="{
-                        'w-[calc(100%_-_132.5px)]': !(aiLoading && generatingPreview),
-                        'w-[calc(100%_-_145.5px)]': aiLoading && generatingPreview,
-                        '!rounded-r-lg shadow-selected-ai border-nc-border-purple z-11': isOpenSelectRecordDropdown,
-                        'shadow-default hover:shadow-hover': !isOpenSelectRecordDropdown,
-                      }"
-                    >
-                      <NcTooltip
-                        v-if="selectedRecord?.label"
-                        class="truncate flex-1 text-nc-content-purple-dark font-semibold"
-                        show-on-truncate-only
-                        :disabled="isOpenSelectRecordDropdown"
-                      >
-                        <template #title>
-                          <LazySmartsheetPlainCell v-model="selectedRecord.label" :column="displayField" />
-                        </template>
-                        <LazySmartsheetPlainCell v-model="selectedRecord.label" :column="displayField" />
-                      </NcTooltip>
-
-                      <div v-else class="flex-1 text-nc-content-gray-muted">- Select record -</div>
-                      <GeneralIcon
-                        icon="chevronDown"
-                        class="flex-none opacity-60"
-                        :class="{
-                          'transform rotate-180': isOpenSelectRecordDropdown,
-                        }"
-                      />
-                    </div>
-
-                    <template #overlay>
-                      <div
-                        v-if="isLoadingViewData"
-                        class="w-full relative flex flex-col items-center justify-center gap-2 min-h-25 text-nc-content-brand"
-                      >
-                        <GeneralLoader size="large" class="flex-none" />
-                        Loading records
-                      </div>
-                      <NcList
-                        v-else
-                        v-model:value="selectedRecordPk"
-                        v-model:open="isOpenSelectRecordDropdown"
-                        :list="sampleRecords"
-                      >
-                        <template #listItem="{ option, isSelected }">
-                          <div class="inline-flex items-center gap-2 flex-1 truncate">
-                            <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                              <template #title>
-                                <div>
-                                  <LazySmartsheetPlainCell v-model="option.label" :column="displayField" />
-                                </div>
-                              </template>
-                              <LazySmartsheetPlainCell v-model="option.label" :column="displayField" />
-                            </NcTooltip>
-
-                            <GeneralIcon
-                              v-if="isSelected()"
-                              id="nc-selected-item-icon"
-                              icon="check"
-                              class="flex-none text-primary w-4 h-4"
-                            />
-                          </div>
-                        </template>
-                      </NcList>
-                    </template>
-                  </NcDropdown>
-                  <NcTooltip
-                    :disabled="!!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw)"
-                    class="absolute right-0 top-0"
-                  >
-                    <template #title>
-                      {{
-                        !vModel.formula_raw
-                          ? 'Prompt required for AI Button'
-                          : !outputColumnIds.length
-                          ? 'At least one output field is required for preview'
-                          : !selectedRecordPk
-                          ? 'Select sample record first'
-                          : ''
-                      }}
-                    </template>
-                    <NcButton
-                      size="small"
-                      type="secondary"
-                      class="nc-ai-button-test-generate"
-                      :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length || !vModel.formula_raw"
-                      :loading="aiLoading && generatingPreview"
-                      @click.stop="generate"
-                    >
-                      <template #icon>
-                        <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
-                      </template>
-                      <template #loadingIcon>
-                        <GeneralLoader class="!text-current" size="regular" />
-                      </template>
-                      <div class="flex items-center gap-2">
-                        {{ aiLoading && generatingPreview ? 'Test Generating' : 'Test Generate' }}
-                      </div>
-                    </NcButton>
-                  </NcTooltip>
-
-                  <div v-if="aiError" class="py-3 pl-3 pr-2 flex items-center gap-3 bg-nc-bg-red-light rounded-lg">
+              <div class="flex flex-col gap-6 h-[calc(100%_-_45px)] nc-scrollbar-thin py-6">
+                <div v-if="aiError" class="nc-ai-button-config-right-section">
+                  <div class="py-3 pl-3 pr-2 flex items-center gap-3 bg-nc-bg-red-light rounded-lg">
                     <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
 
                     <div class="text-sm text-nc-content-gray-subtle flex-1 max-w-[calc(100%_-_24px)]">
@@ -613,228 +506,265 @@ onBeforeUnmount(() => {
                   </div>
                 </div>
 
-                Input fields
-                <a-collapse v-model:active-key="expansionPanel" ghost class="flex-1 flex flex-col">
-                  <template #expandIcon> </template>
-                  <a-collapse-panel
-                    :key="ExpansionPanelKeys.input"
-                    collapsible="disabled"
-                    class="nc-ai-button-config-right-section"
-                  >
-                    <template #header>
-                      <div class="flex w-full">
-                        <div class="w-full text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5 min-h-7">
-                          <NcButton
-                            icon-only
-                            type="text"
-                            size="xs"
-                            @click.stop="handleUpdateExpansionPanel(ExpansionPanelKeys.input)"
+                <div class="nc-ai-button-config-right-section">
+                  <div class="px-3 py-1 text-nc-content-gray-subtle2 text-xs">Input fields</div>
+                  <div class="flex-1 flex border-1 bg-white border-nc-border-gray-medium rounded-xl">
+                    <a-collapse
+                      v-model:active-key="expansionInputPanel"
+                      ghost
+                      class="flex-1 nc-ai-button-config-right-collapse nc-collapse-input"
+                    >
+                      <template #expandIcon> </template>
+                      <a-collapse-panel :key="ExpansionPanelKeys.input" collapsible="disabled">
+                        <template #header>
+                          <div
+                            class="flex w-full p-2"
+                            :class="{
+                              'border-b-1 border-nc-border-gray-medium': expansionInputPanel.includes(ExpansionPanelKeys.input),
+                            }"
                           >
-                            <template #icon>
-                              <GeneralIcon :icon="expansionPanel.includes(ExpansionPanelKeys.input) ? 'eye' : 'eyeSlash'" />
-                            </template>
-                          </NcButton>
-                          <NcDropdown
-                            v-model:visible="isOpenSelectRecordDropdown"
-                            placement="bottom"
-                            overlay-class-name="overflow-hidden"
-                          >
-                            <NcButton size="small" type="text" @click.stop class="flex-1">
-                              <div class="w-full flex items-center gap-2">- Select Record -</div>
-                              <GeneralIcon
-                                icon="arrowRight"
-                                class="transform rotate-90"
-                                :class="{
-                                  'rotate-180': isOpenSelectRecordDropdown,
-                                }"
-                              />
-                            </NcButton>
-
-                            <template #overlay>
-                              <div
-                                v-if="isLoadingViewData"
-                                class="min-w-[500px] relative flex flex-col items-center justify-center gap-2 min-h-25 text-nc-content-brand"
+                            <div class="w-full text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5 min-h-7">
+                              <NcButton
+                                icon-only
+                                type="text"
+                                size="xs"
+                                class="!px-1"
+                                @click.stop="handleUpdateExpansionInputPanel()"
                               >
-                                <GeneralLoader size="large" class="flex-none" />
-                                Loading records
-                              </div>
-                              <NcList
-                                v-else
-                                v-model:value="selectedRecordPk"
-                                v-model:open="isOpenSelectRecordDropdown"
-                                :list="sampleRecords"
-                                show-search-always
-                                :item-height="60"
-                                class="!w-auto min-w-[500px]"
-                                container-class-name="!px-0 !pb-0"
-                                item-class-name="!rounded-none !p-0 !bg-none !hover:bg-none"
-                              >
-                                <template #listItem="{ option, isSelected }">
-                                  <NcListRecordItem
-                                    :row="option.row || {}"
-                                    :columns="meta?.columns || []"
-                                    :is-selected="isSelected()"
-                                    class="!cursor-pointer"
+                                <template #icon>
+                                  <GeneralIcon
+                                    :icon="expansionInputPanel.includes(ExpansionPanelKeys.input) ? 'eye' : 'eyeSlash'"
                                   />
                                 </template>
-                              </NcList>
+                              </NcButton>
+                              <NcDropdown
+                                v-model:visible="isOpenSelectRecordDropdown"
+                                placement="bottom"
+                                overlay-class-name="overflow-hidden"
+                              >
+                                <NcButton size="xs" type="text" @click.stop class="flex-1 children:children:w-full">
+                                  <div class="w-full flex items-center gap-2">- Select Record -</div>
+
+                                  <GeneralIcon
+                                    icon="chevronDown"
+                                    class="!text-current opacity-70 flex-none transform transition-transform duration-250 w-3.5 h-3.5"
+                                    :class="{ '!rotate-180': isOpenSelectRecordDropdown }"
+                                  />
+                                </NcButton>
+
+                                <template #overlay>
+                                  <div
+                                    v-if="isLoadingViewData"
+                                    class="min-w-[500px] min-h-[296px] relative flex flex-col items-center justify-center gap-2 min-h-25 text-nc-content-brand"
+                                  >
+                                    <GeneralLoader size="large" class="flex-none" />
+                                    Loading records
+                                  </div>
+                                  <NcList
+                                    v-else
+                                    v-model:value="selectedRecordPk"
+                                    v-model:open="isOpenSelectRecordDropdown"
+                                    :list="sampleRecords"
+                                    show-search-always
+                                    search-input-placeholder="Search records"
+                                    :item-height="60"
+                                    class="!w-auto min-w-[500px]"
+                                    container-class-name="!px-0 !pb-0"
+                                    item-class-name="!rounded-none !p-0 !bg-none !hover:bg-none"
+                                  >
+                                    <template #listItem="{ option, isSelected }">
+                                      <NcListRecordItem
+                                        :row="option.row || {}"
+                                        :columns="meta?.columns || []"
+                                        :is-selected="isSelected()"
+                                        class="!cursor-pointer"
+                                      />
+                                    </template>
+                                  </NcList>
+                                </template>
+                              </NcDropdown>
+                            </div>
+                          </div>
+                        </template>
+
+                        <div class="flex flex-col gap-4">
+                          <LazySmartsheetRow :row="selectedRecord.row">
+                            <template v-for="field in inputColumns">
+                              <a-form-item
+                                v-if="field.title"
+                                :key="`${field.id}-${generatingPreview}`"
+                                :name="field.title"
+                                class="!my-0 nc-input-required-error"
+                              >
+                                <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
+                                  <component :is="cellIcon(field)" class="!mx-0" />
+                                  <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                                    <template #title>
+                                      {{ field?.title }}
+                                    </template>
+                                    {{ field?.title }}
+                                  </NcTooltip>
+                                </div>
+
+                                <LazySmartsheetDivDataCell
+                                  class="relative flex items-center min-h-8 children:h-full"
+                                  :class="{
+                                    '!select-text nc-system-field': isReadOnlyVirtualCell(field),
+                                    '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
+                                  }"
+                                >
+                                  <LazySmartsheetVirtualCell
+                                    v-if="isVirtualCol(field)"
+                                    :model-value="selectedRecord?.row?.row?.[field.title]"
+                                    class="mt-0 nc-input nc-cell"
+                                    :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                                    :column="field"
+                                    :read-only="true"
+                                  />
+
+                                  <LazySmartsheetCell
+                                    v-else
+                                    :model-value="selectedRecord?.row?.row?.[field.title]"
+                                    class="nc-input truncate"
+                                    :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                                    :column="field"
+                                    :edit-enabled="true"
+                                    :read-only="true"
+                                  />
+                                </LazySmartsheetDivDataCell>
+                              </a-form-item>
                             </template>
-                          </NcDropdown>
-
-                          <template v-if="inputColumns.length">
-                            <a-tag class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0">
-                              {{ inputColumns.length }}</a-tag
-                            >
-
-                            <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-dark !px-1">
-                              <GeneralIcon
-                                icon="arrowRight"
-                                class="transform"
-                                :class="{
-                                  'rotate-270': expansionPanel.includes(ExpansionPanelKeys.input),
-                                }"
-                              />
-                            </NcButton>
-                          </template>
+                          </LazySmartsheetRow>
                         </div>
-                      </div>
+                      </a-collapse-panel>
+                    </a-collapse>
+                  </div>
+                </div>
+                <div
+                  class="flex justify-center nc-ai-button-test-generate-wrapper"
+                  :class="{
+                    'text-nc-border-gray-dark': !(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
+                    'text-nc-content-purple-medium': !!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
+                  }"
+                >
+                <div class="h-2.5 w-2.5 flex-none absolute -top-[30px] border-1 border-current rounded-full bg-current">
+
+                </div>
+                  <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw)">
+                    <template #title>
+                      {{
+                        !vModel.formula_raw
+                          ? 'Prompt required for AI Button'
+                          : !outputColumnIds.length
+                          ? 'At least one output field is required for preview'
+                          : !selectedRecordPk
+                          ? 'Select sample record first'
+                          : ''
+                      }}
                     </template>
-
-                    <div class="flex flex-col gap-4">
-                      <LazySmartsheetRow :row="selectedRecord.row">
-                        <template v-for="field in inputColumns">
-                          <a-form-item
-                            v-if="field.title"
-                            :key="`${field.id}-${generatingPreview}`"
-                            :name="field.title"
-                            class="!my-0 nc-input-required-error"
-                          >
-                            <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                              <component :is="cellIcon(field)" class="!mx-0" />
-                              <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                                <template #title>
-                                  {{ field?.title }}
-                                </template>
-                                {{ field?.title }}
-                              </NcTooltip>
-                            </div>
-
-                            <LazySmartsheetDivDataCell
-                              class="relative flex items-center min-h-8 children:h-full"
-                              :class="{
-                                '!select-text nc-system-field': isReadOnlyVirtualCell(field),
-                                '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
-                              }"
-                            >
-                              <LazySmartsheetVirtualCell
-                                v-if="isVirtualCol(field)"
-                                :model-value="selectedRecord?.row?.row?.[field.title]"
-                                class="mt-0 nc-input nc-cell"
-                                :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                                :column="field"
-                                :read-only="true"
-                              />
-
-                              <LazySmartsheetCell
-                                v-else
-                                :model-value="selectedRecord?.row?.row?.[field.title]"
-                                class="nc-input truncate"
-                                :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                                :column="field"
-                                :edit-enabled="true"
-                                :read-only="true"
-                              />
-                            </LazySmartsheetDivDataCell>
-                          </a-form-item>
-                        </template>
-                      </LazySmartsheetRow>
-                    </div>
-                  </a-collapse-panel>
-                  <a-collapse-panel
-                    :key="ExpansionPanelKeys.output"
-                    collapsible="disabled"
-                    class="nc-ai-button-config-right-section nc-output-field-collapse-panel flex-1"
+                    <NcButton
+                      size="small"
+                      theme="ai"
+                      type="primary"
+                      class="nc-ai-button-test-generate"
+                      :disabled="aiLoading || !selectedRecordPk || !outputColumnIds.length || !vModel.formula_raw"
+                      :loading="aiLoading && generatingPreview"
+                      @click.stop="generate"
+                    >
+                      <template #icon>
+                        <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+                      </template>
+                      <template #loadingIcon>
+                        <GeneralLoader class="!text-current" size="regular" />
+                      </template>
+                      <div class="flex items-center gap-2">
+                        {{ aiLoading && generatingPreview ? 'Test Generating data' : 'Test Generate data' }}
+                      </div>
+                    </NcButton>
+                  </NcTooltip>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="10"
+                    height="8"
+                    viewBox="0 0 10 8"
+                    fill="none"
+                    class="absolute -bottom-[24px] z-10"
                   >
-                    <template #header>
-                      <div class="flex">
+                    <path
+                      d="M5.86603 7.5C5.48113 8.16667 4.51887 8.16667 4.13397 7.5L0.669873 1.5C0.284973 0.833334 0.766099 0 1.5359 0H8.4641C9.2339 0 9.71503 0.833333 9.33013 1.5L5.86603 7.5Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                </div>
+                <div class="nc-ai-button-config-right-section">
+                  <div class="flex-1 flex border-1 bg-white border-nc-border-gray-medium rounded-xl">
+                    <a-collapse
+                      v-model:active-key="expansionOutputPanel"
+                      ghost
+                      class="flex-1 nc-ai-button-config-right-collapse nc-collapse-output"
+                    >
+                      <template #expandIcon> </template>
+                      <a-collapse-panel :key="ExpansionPanelKeys.output" collapsible="disabled">
+                        <template #header> </template>
                         <div
-                          class="text-sm text-nc-content-gray-subtle2 font-bold flex items-center gap-2.5 min-h-7"
-                          @click="handleUpdateExpansionPanel(ExpansionPanelKeys.output)"
+                          v-if="!outputColumnIds.length"
+                          class="flex-1 flex text-nc-content-gray-muted text-small leading-[18px]"
                         >
-                          Output fields
-
-                          <a-tag
-                            v-if="outputColumnIds.length"
-                            class="!rounded-md !bg-nc-bg-brand !text-nc-content-brand !border-none !mx-0"
-                          >
-                            {{ outputColumnIds.length }}</a-tag
-                          >
-                          <NcButton size="xs" type="text" class="hover:!bg-nc-bg-gray-dark !px-1">
-                            <GeneralIcon
-                              icon="arrowRight"
-                              class="transform"
-                              :class="{
-                                'rotate-270': expansionPanel.includes(ExpansionPanelKeys.output),
-                              }"
-                            />
-                          </NcButton>
+                          No output fields selected
                         </div>
-                      </div>
-                    </template>
-                    <div v-if="!outputColumnIds.length" class="flex-1 flex items-center justify-center">
-                      <GeneralIcon icon="ncAutoAwesome" class="h-[177px] w-[177px] !text-purple-100" />
-                    </div>
-                    <div v-else class="flex flex-col gap-4">
-                      <LazySmartsheetRow :row="previewOutputRow">
-                        <template v-for="field in outputFieldOptions">
-                          <a-form-item
-                            v-if="field.title && outputColumnIds.includes(field.id)"
-                            :key="field.id"
-                            :name="field.title"
-                            class="!my-0 nc-input-required-error"
-                          >
-                            <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
-                              <component :is="cellIcon(field)" class="!mx-0" />
-                              <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                                <template #title>
-                                  {{ field?.title }}
-                                </template>
-                                {{ field?.title }}
-                              </NcTooltip>
-                            </div>
+                        <div v-else class="flex flex-col gap-4 px-4 pb-4">
+                          <LazySmartsheetRow :row="previewOutputRow">
+                            <template v-for="field in outputFieldOptions">
+                              <a-form-item
+                                v-if="field.title && outputColumnIds.includes(field.id)"
+                                :key="field.id"
+                                :name="field.title"
+                                class="!my-0 nc-input-required-error"
+                              >
+                                <div class="flex items-center gap-2 text-nc-content-gray-subtle2 mb-2">
+                                  <component :is="cellIcon(field)" class="!mx-0" />
+                                  <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                                    <template #title>
+                                      {{ field?.title }}
+                                    </template>
+                                    {{ field?.title }}
+                                  </NcTooltip>
+                                </div>
 
-                            <LazySmartsheetDivDataCell
-                              class="relative min-h-8 flex items-center children:h-full"
-                              :class="{
-                                '!select-text nc-system-field': isReadOnlyVirtualCell(field),
-                                '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
-                              }"
-                            >
-                              <LazySmartsheetVirtualCell
-                                v-if="isVirtualCol(field)"
-                                :model-value="previewOutputRow.row[field.title]"
-                                class="mt-0 nc-input nc-cell"
-                                :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                                :column="field"
-                                :read-only="true"
-                              />
+                                <LazySmartsheetDivDataCell
+                                  class="relative min-h-8 flex items-center children:h-full"
+                                  :class="{
+                                    '!select-text nc-system-field': isReadOnlyVirtualCell(field),
+                                    '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
+                                  }"
+                                >
+                                  <LazySmartsheetVirtualCell
+                                    v-if="isVirtualCol(field)"
+                                    :model-value="previewOutputRow.row[field.title]"
+                                    class="mt-0 nc-input nc-cell"
+                                    :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                                    :column="field"
+                                    :read-only="true"
+                                  />
 
-                              <LazySmartsheetCell
-                                v-else
-                                v-model="previewOutputRow.row[field.title]"
-                                class="nc-input truncate"
-                                :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
-                                :column="field"
-                                :edit-enabled="true"
-                                :read-only="true"
-                              />
-                            </LazySmartsheetDivDataCell>
-                          </a-form-item>
-                        </template>
-                      </LazySmartsheetRow>
-                    </div>
-                  </a-collapse-panel>
-                </a-collapse>
+                                  <LazySmartsheetCell
+                                    v-else
+                                    v-model="previewOutputRow.row[field.title]"
+                                    class="nc-input truncate"
+                                    :class="[`nc-form-input-${field.title?.replaceAll(' ', '')}`, { readonly: field?.read_only }]"
+                                    :column="field"
+                                    :edit-enabled="true"
+                                    :read-only="true"
+                                  />
+                                </LazySmartsheetDivDataCell>
+                              </a-form-item>
+                            </template>
+                          </LazySmartsheetRow>
+                        </div>
+                      </a-collapse-panel>
+                    </a-collapse>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -877,18 +807,21 @@ onBeforeUnmount(() => {
   @apply mx-auto p-6 w-full max-w-[568px];
 }
 .nc-ai-button-config-right-section {
-  @apply mx-auto px-6 w-full max-w-[576px] flex flex-col gap-4;
+  @apply mx-auto px-6 w-full max-w-[576px] flex flex-col;
 }
 
 .nc-ai-button-output-field {
   @apply cursor-pointer !rounded-md !bg-nc-bg-gray-medium !text-nc-content-gray hover:!bg-nc-bg-gray-dark !border-none !mx-0;
 }
 
-.nc-ai-button-test-generate {
-  @apply !rounded-l-none -m-[1px] border-l-0 border-purple-200 !bg-nc-bg-purple-light !text-nc-content-purple-dark hover:(!bg-nc-bg-purple-dark);
+.nc-ai-button-test-generate-wrapper {
+  @apply relative;
 
-  &:disabled {
-    @apply !text-nc-content-purple-light !hover:(text-nc-content-purple-light bg-nc-bg-purple-light);
+  &:before {
+    @apply content-[''] h-[24px] block border-r-1 absolute -top-[24px] border-current;
+  }
+  &:after {
+    @apply content-[''] h-[24px] block border-r-1 absolute -bottom-[24px] border-current;
   }
 }
 
@@ -900,7 +833,7 @@ onBeforeUnmount(() => {
 }
 
 :deep(.ant-collapse-content-box) {
-  @apply !px-0 !pb-0 !pt-3;
+  @apply !p-4;
 }
 
 :deep(.ant-collapse-item) {

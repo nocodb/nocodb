@@ -1070,7 +1070,7 @@
     "toggleSidebar": "사이드바 토글",
     "addEndDate": "종료 날짜 추가",
     "endDate": "종료일",
-    "withEndDate": "종료 날짜 포함",
+    "withEndDate": "With end date",
     "calendar": "캘린더",
     "viewSettings": "뷰 설정",
     "googleOAuth": "구글 OAuth",

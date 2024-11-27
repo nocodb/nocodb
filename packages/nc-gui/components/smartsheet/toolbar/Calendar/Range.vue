@@ -128,7 +128,7 @@ const saveCalendarRanges = async () => {
 
       await loadCalendarMeta()
       await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
-      calendarRangeDropdown.value = false
+      // calendarRangeDropdown.value = false
     } catch (e) {
       console.log(e)
       message.error('There was an error while updating view!')
@@ -143,9 +143,23 @@ const removeRange = async (id: number) => {
   await saveCalendarRanges()
 }
 
-const saveCalendarRange = async (range: CalendarRangeType, value?) => {
-  range.fk_to_column_id = value
-  await saveCalendarRanges()
+const isDisabled = computed(() => {
+  return (
+    dateFieldOptions.value.find((f) => f.value === calendarRange.value[0]?.fk_from_column_id)?.uidt === UITypes.DateTime &&
+    !isRangeEnabled.value
+  )
+})
+
+const onValueChange = async () => {
+  _calendar_ranges.value = _calendar_ranges.value.map((range, i) => {
+    if (i === 0) {
+      return {
+        fk_from_column_id: range.fk_from_column_id,
+        fk_to_column_id: undefined,
+      }
+    }
+    return range
+  })
 }
 </script>
 
@@ -198,7 +212,12 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
             :placeholder="$t('placeholder.notSelected')"
             data-testid="nc-calendar-range-from-field-select"
             :disabled="isLocked"
-            @change="saveCalendarRanges"
+            @change="
+              () => {
+                onValueChange()
+                saveCalendarRanges()
+              }
+            "
             @click.stop
           >
             <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
@@ -231,31 +250,34 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
               </div>
             </a-select-option>
           </a-select>
+          <NcTooltip v-if="range.fk_to_column_id === null && isRangeEnabled" placement="left" :disabled="!isDisabled">
+            <NcButton
+              size="small"
+              data-testid="nc-calendar-range-add-end-date"
+              class="w-23"
+              type="text"
+              :shadow="false"
+              :disabled="!isEeUI || isLocked || isDisabled"
+              @click="range.fk_to_column_id = undefined"
+            >
+              <div class="flex gap-1 items-center">
+                <component :is="iconMap.plus" class="h-4 w-4" />
+                {{ $t('activity.endDate') }}
+              </div>
+            </NcButton>
+            <template #title> Coming Soon!! Currently, range support is only available for Date field. </template>
+          </NcTooltip>
 
-          <NcButton
-            v-if="range.fk_to_column_id === null && isRangeEnabled"
-            size="small"
-            data-testid="nc-calendar-range-add-end-date"
-            class="!border-none w-28"
-            type="secondary"
-            :shadow="false"
-            :disabled="!isEeUI || isLocked"
-            @click="range.fk_to_column_id = undefined"
-          >
-            <div class="flex gap-2 items-center">
-              <component :is="iconMap.plus" class="h-4 w-4" />
-              {{ $t('activity.endDate') }}
-            </div>
-          </NcButton>
-          <template v-else-if="isEeUI && isRangeEnabled">
+          <template v-else-if="isEeUI">
             <span>
               {{ $t('activity.withEndDate') }}
             </span>
             <div class="flex">
               <a-select
                 v-model:value="range.fk_to_column_id"
-                class="!rounded-r-none nc-select-shadow w-full flex-1 nc-to-select"
-                :disabled="!range.fk_from_column_id || isLocked"
+                class="!rounded-r-none nc-select-shadow w-full flex-1"
+                allow-clear
+                :disabled="!range.fk_from_column_id || isLocked || isDisabled"
                 :placeholder="$t('placeholder.notSelected')"
                 data-testid="nc-calendar-range-to-field-select"
                 dropdown-class-name="!rounded-lg"
@@ -292,15 +314,6 @@ const saveCalendarRange = async (range: CalendarRangeType, value?) => {
                   </div>
                 </a-select-option>
               </a-select>
-
-              <NcButton
-                class="!rounded-l-none nc-select-shadow !border-l-0"
-                size="small"
-                type="secondary"
-                @click="saveCalendarRange(range, null)"
-              >
-                <component :is="iconMap.delete" class="h-4 w-4" />
-              </NcButton>
             </div>
           </template>
 

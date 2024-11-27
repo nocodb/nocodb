@@ -116,7 +116,6 @@ const calculateHourIndices = (dayIndex: number, startDate: dayjs.Dayjs, endDate:
   return {
     startHourIndex,
     endHourIndex,
-    // You might also want these for more precise calculations
     startMinutes: startDate.minute(),
     endMinutes: endDate.minute(),
   }
@@ -551,17 +550,17 @@ const recordsAcrossAllRange = computed<{
 
           left = width * (overlapIndex - 1)
 
-          width = Math.max((width / 100) * containerWidth.value - 8, 72)
+          width = Math.max((width / 100) * containerWidth.value + 1, 72) - 3
 
-          left = majorLeft + (left / 100) * containerWidth.value + 4
+          left = majorLeft + (left / 100) * containerWidth.value + 1.5
 
           if (majorLeft + perWidth < left + width) {
-            left = majorLeft + (perWidth - width - 4)
+            left = majorLeft + (perWidth - width) - 4.5 * overlapIndex
           }
         }
       } else {
-        left = majorLeft + 4
-        width = perWidth - 8
+        left = majorLeft + 1.5
+        width = perWidth - 3
       }
 
       record.rowMeta.style = {
@@ -956,7 +955,7 @@ watch(
         <div class="flex-1 border-b-1 border-brand-500"></div>
       </div>
     </div>
-    <div class="flex sticky h-6 z-3 top-0 pl-16 bg-gray-50 w-full">
+    <div class="flex sticky h-6 z-4 top-0 pl-16 bg-gray-50 w-full">
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
@@ -988,7 +987,7 @@ watch(
     </div>
     <div
       v-if="isRangeEnabled && recordsAcrossAllRange.spanningRecords?.length"
-      class="sticky top-6 bg-white z-3 inset-x-0 w-full"
+      class="sticky top-6 bg-white z-4 inset-x-0 w-full"
     >
       <SmartsheetCalendarDateTimeSpanningContainer
         ref="spanningRecordsContainer"
@@ -1039,7 +1038,7 @@ watch(
           <NcButton
             v-if="isOverflowAcrossHourRange(hour).isOverflow"
             v-e="`['c:calendar:week-view-more']`"
-            class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-2 text-gray-500"
+            class="!absolute bottom-1 text-center w-15 ml-auto inset-x-0 z-3 text-gray-500"
             size="xxsmall"
             type="secondary"
             @click="viewMore(hour)"
@@ -1064,6 +1063,7 @@ watch(
             :data-unique-id="record.rowMeta!.id"
             :style="{
               ...record.rowMeta.style,
+              lineHeight: '18px',
               opacity:
                 (dragRecord === null || record.rowMeta.id === dragRecord?.rowMeta.id) &&
                 (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)

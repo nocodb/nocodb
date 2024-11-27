@@ -37,9 +37,6 @@ const getFieldStyle = (field: ColumnType) => {
 // We loop through all the records and calculate the position of each record based on the range
 // We only need to calculate the top, of the record since there is no overlap in the day view of date Field
 const recordsAcrossAllRange = computed<Row[]>(() => {
-  let dayRecordCount = 0
-  const perRecordHeight = 28
-
   if (!calendarRange.value) return []
 
   const recordsByRange: Array<Row> = []
@@ -48,11 +45,18 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
     const fromCol = range.fk_from_col
     const endCol = range.fk_to_col
     if (fromCol && endCol) {
-      for (const record of formattedData.value) {
+      const filteredData = formattedData.value.filter((record) => {
         const startDate = dayjs(record.row[fromCol.title!])
         const endDate = dayjs(record.row[endCol.title!])
 
-        dayRecordCount++
+        return startDate.isSameOrBefore(endDate, 'day')
+      })
+
+      for (const record of filteredData) {
+        const startDate = dayjs(record.row[fromCol.title!])
+        const endDate = dayjs(record.row[endCol.title!])
+
+        const id = record.rowMeta.id ?? generateRandomNumber()
 
         // This property is used to determine which side the record should be rounded. It can be left, right, both or none
         let position = 'none'
@@ -77,17 +81,20 @@ const recordsAcrossAllRange = computed<Row[]>(() => {
           rowMeta: {
             ...record.rowMeta,
             position,
+            id,
             range: range as any,
           },
         })
       }
     } else if (fromCol) {
       for (const record of formattedData.value) {
-        dayRecordCount++
+        const id = record.rowMeta.id ?? generateRandomNumber()
+
         recordsByRange.push({
           ...record,
           rowMeta: {
             ...record.rowMeta,
+            id,
             range: range as any,
             position: 'rounded',
           },
@@ -203,13 +210,16 @@ const newRecord = () => {
         <div
           :key="record.rowMeta.id"
           class="mt-2"
+          style="line-height: 18px"
           data-testid="nc-calendar-day-record-card"
           @mouseleave="hoverRecord = null"
+          @click.prevent="emit('expandRecord', record)"
           @mouseover="hoverRecord = record.rowMeta.id as string"
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard
               :record="record"
+              :hover="hoverRecord === record.rowMeta.id"
               :resize="false"
               :position="record.rowMeta.position"
               size="small"

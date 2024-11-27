@@ -416,16 +416,16 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   isDragging.value = false
 
+  dragOffset.value = {
+    x: event.clientX - target.getBoundingClientRect().left,
+    y: event.clientY - target.getBoundingClientRect().top,
+  }
+
   dragTimeout.value = setTimeout(() => {
     if (!isUIAllowed('dataEdit')) return
     isDragging.value = true
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
-    }
-
-    dragOffset.value = {
-      x: event.clientX - target.getBoundingClientRect().left,
-      y: event.clientY - target.getBoundingClientRect().top,
     }
 
     const allRecords = document.querySelectorAll('.draggable-record')
@@ -445,6 +445,12 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   const onMouseUp = () => {
     clearTimeout(dragTimeout.value!)
+
+    dragOffset.value = {
+      x: null,
+      y: null,
+    }
+
     document.removeEventListener('mouseup', onMouseUp)
     if (!isDragging.value) {
       emits('expandRecord', record)

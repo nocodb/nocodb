@@ -355,7 +355,7 @@ onBeforeUnmount(() => {
         <div class="h-[calc(100%_-_58px)]">
           <div class="h-full flex">
             <!-- Left side -->
-            <div class="h-full w-1/2">
+            <div class="h-full w-1/2 border-r-1 border-r-nc-border-gray-medium">
               <div class="border-b-1 border-b-nc-border-gray-medium py-2.5 w-full">
                 <div class="flex items-center mx-auto px-6 w-full max-w-[568px]">
                   <div class="text-base text-nc-content-gray font-bold flex-1">
@@ -663,7 +663,7 @@ onBeforeUnmount(() => {
                   class="flex justify-center nc-ai-button-test-generate-wrapper"
                   :class="{
                     'text-nc-border-gray-dark': !(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
-                    'text-nc-content-purple-medium': !!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
+                    'text-nc-content-purple-dark': !!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
                   }"
                 >
                   <div class="h-2.5 w-2.5 flex-none absolute -top-[30px] border-1 border-current rounded-full bg-current"></div>

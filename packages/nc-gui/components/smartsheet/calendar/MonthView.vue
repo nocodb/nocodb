@@ -653,7 +653,7 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
     document.addEventListener('mousemove', onDrag)
     document.addEventListener('mouseup', stopDrag)
-  }, 200)
+  }, 500)
 
   const onMouseUp = () => {
     clearTimeout(dragTimeout.value)

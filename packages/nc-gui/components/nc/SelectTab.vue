@@ -8,6 +8,8 @@
  */
 
 interface Props {
+  disabled?: boolean
+  tooltip?: string
   items: {
     icon: keyof typeof iconMap
     title?: string
@@ -21,23 +23,34 @@ const modelValue = defineModel<string>()
 </script>
 
 <template>
-  <div class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5">
+  <NcTooltip :disabled="!props.tooltip">
+    <template #title>
+      {{ props.tooltip }}
+    </template>
     <div
-      v-for="item of props.items"
-      :key="item.value"
-      v-e="[`c:project:mode:${item.value}`]"
-      class="tab"
+      class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5"
       :class="{
-        active: modelValue === item.value,
+        '!cursor-not-allowed opacity-50': props.disabled,
       }"
-      @click="modelValue = item.value"
     >
-      <GeneralIcon :icon="item.icon" class="tab-icon" />
-      <div v-if="item.title" class="tab-title nc-tab">
-        {{ $t(item.title) }}
+      <div
+        v-for="item of props.items"
+        :key="item.value"
+        v-e="[`c:project:mode:${item.value}`]"
+        class="tab"
+        :class="{
+          'pointer-events-none': props.disabled,
+          active: modelValue === item.value,
+        }"
+        @click="modelValue = item.value"
+      >
+        <GeneralIcon :icon="item.icon" class="tab-icon" />
+        <div v-if="item.title" class="tab-title nc-tab">
+          {{ $t(item.title) }}
+        </div>
       </div>
     </div>
-  </div>
+  </NcTooltip>
 </template>
 
 <style scoped>

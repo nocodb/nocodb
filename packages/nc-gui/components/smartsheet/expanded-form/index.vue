@@ -685,6 +685,8 @@ export default {
         </div>
         <div class="ml-auto md:mx-auto">
           <NcSelectTab
+            :disabled="!isUIAllowed('expandedFormModeEdit')"
+            :tooltip="!isUIAllowed('expandedFormModeEdit') ? 'You do not have permission to change view mode.' : undefined"
             v-model="activeViewMode"
             :items="[
               { icon: 'fields', value: 'field' },

@@ -159,7 +159,7 @@ export default class User implements UserType {
       await NocoCache.set(`${CacheScope.USER}:${email}`, user);
     }
 
-    if (user.is_deleted) {
+    if (user?.is_deleted) {
       return null;
     }
 
@@ -209,7 +209,7 @@ export default class User implements UserType {
       await NocoCache.set(`${CacheScope.USER}:${userId}`, user);
     }
 
-    if (user.is_deleted) {
+    if (user?.is_deleted) {
       return null;
     }
 
@@ -233,7 +233,7 @@ export default class User implements UserType {
       userRefreshToken.fk_user_id,
     );
 
-    if (user.is_deleted) {
+    if (user?.is_deleted) {
       return null;
     }
 

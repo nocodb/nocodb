@@ -72,7 +72,7 @@ interface Emits {
 const props = withDefaults(defineProps<NcListProps>(), {
   open: false,
   closeOnSelect: true,
-  searchInputPlaceholder: '',
+  searchInputPlaceholder: 'Search',
   showSearchAlways: false,
   showSelectedOption: true,
   optionValueKey: 'value',

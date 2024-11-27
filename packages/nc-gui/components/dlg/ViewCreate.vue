@@ -533,6 +533,25 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
   })
 }
 
+const isDisabled = computed(() => {
+  return (
+    viewSelectFieldOptions.value.find((f) => f.value === form.calendar_range[0]?.fk_from_column_id)?.uidt === UITypes.DateTime &&
+    !isRangeEnabled.value
+  )
+})
+
+const onValueChange = async () => {
+  form.calendar_range = form.calendar_range.map((range, i) => {
+    if (i === 0) {
+      return {
+        fk_from_column_id: range.fk_from_column_id,
+        fk_to_column_id: null,
+      }
+    }
+    return range
+  })
+}
+
 const predictViews = async (): Promise<AiSuggestedViewType[]> => {
   const viewType =
     !isAIViewCreateMode.value && form.type && viewTypeToStringMap[form.type] ? viewTypeToStringMap[form.type] : undefined
@@ -999,6 +1018,7 @@ const getPluralName = (name: string) => {
                   :placeholder="$t('placeholder.notSelected')"
                   data-testid="nc-calendar-range-from-field-select"
                   @click.stop
+                  @change="onValueChange"
                 >
                   <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
                   <a-select-option
@@ -1034,20 +1054,17 @@ const getPluralName = (name: string) => {
                 </a-select>
               </div>
               <div class="w-full space-y-2">
-                <NcButton
-                  v-if="range.fk_to_column_id === null && isRangeEnabled"
-                  size="small"
-                  type="text"
-                  :disabled="!isEeUI"
-                  @click="range.fk_to_column_id = undefined"
-                >
-                  <div class="flex items-center gap-1">
-                    <component :is="iconMap.plus" class="h-4 w-4" />
-                    {{ $t('activity.endDate') }}
-                  </div>
-                </NcButton>
+                <NcTooltip v-if="range.fk_to_column_id === null" placement="left" :disabled="!isDisabled">
+                  <NcButton size="small" type="text" :disabled="!isEeUI || isDisabled" @click="range.fk_to_column_id = undefined">
+                    <div class="flex items-center gap-1">
+                      <component :is="iconMap.plus" class="h-4 w-4" />
+                      {{ $t('activity.endDate') }}
+                    </div>
+                  </NcButton>
+                  <template #title> Coming Soon!! Currently, range support is only available for Date field. </template>
+                </NcTooltip>
 
-                <template v-else-if="isEeUI && isRangeEnabled">
+                <template v-else-if="isEeUI">
                   <span class="text-gray-700">
                     {{ $t('activity.withEndDate') }}
                   </span>
@@ -1057,7 +1074,7 @@ const getPluralName = (name: string) => {
                       v-model:value="range.fk_to_column_id"
                       class="nc-select-shadow w-full flex-1"
                       allow-clear
-                      :disabled="isMetaLoading"
+                      :disabled="isMetaLoading || isDisabled"
                       :loading="isMetaLoading"
                       :placeholder="$t('placeholder.notSelected')"
                       data-testid="nc-calendar-range-to-field-select"

@@ -1070,7 +1070,7 @@
     "toggleSidebar": "Vaihda sivupalkki",
     "addEndDate": "Lisää päättymispäivä",
     "endDate": "End Date",
-    "withEndDate": "päättymispäivän kanssa",
+    "withEndDate": "With end date",
     "calendar": "Kalenteri",
     "viewSettings": "Näytä asetukset",
     "googleOAuth": "Google OAuth",

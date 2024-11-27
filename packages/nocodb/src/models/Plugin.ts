@@ -93,8 +93,11 @@ export default class Plugin implements PluginType {
     return this.get(pluginId);
   }
 
-  public static async isPluginActive(id: string) {
-    return !!(await this.getPlugin(id))?.active;
+  public static async isPluginActive(id: string, ncMeta = Noco.ncMeta) {
+    return !!(
+      (await this.getPlugin(id, ncMeta)) ||
+      (await this.getPluginByTitle(id, ncMeta))
+    )?.active;
   }
 
   /**

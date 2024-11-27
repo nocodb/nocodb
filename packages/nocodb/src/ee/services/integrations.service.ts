@@ -145,7 +145,7 @@ export class IntegrationsService extends IntegrationsServiceCE {
         MetaTable.SOURCES,
         {
           condition: {
-            fk_workspace_id: integration.fk_workspace_id,
+            fk_workspace_id: context.workspace_id,
             fk_integration_id: integration.id,
           },
           xcCondition: {
@@ -170,7 +170,7 @@ export class IntegrationsService extends IntegrationsServiceCE {
           sources.map(async (source) => {
             return await Base.get(
               {
-                workspace_id: integration.fk_workspace_id,
+                workspace_id: context.workspace_id,
                 base_id: source.base_id,
               },
               source.base_id,
@@ -180,20 +180,6 @@ export class IntegrationsService extends IntegrationsServiceCE {
         );
 
         NcError.integrationLinkedWithMultiple(bases, sources);
-      }
-
-      for (const source of sources) {
-        await this.sourcesService.baseDelete(
-          {
-            workspace_id: integration.fk_workspace_id,
-            base_id: source.base_id,
-          },
-          {
-            sourceId: source.id,
-            req: param.req,
-          },
-          ncMeta,
-        );
       }
 
       await integration.delete(ncMeta);
@@ -208,6 +194,7 @@ export class IntegrationsService extends IntegrationsServiceCE {
       await ncMeta.rollback(e);
       NcError.badRequest(e);
     }
+
     return true;
   }
 

@@ -14,6 +14,7 @@ import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import Base from '~/models/Base';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
+import { PresignedUrl } from '~/models';
 
 const logger = new Logger('WorkspaceUser');
 
@@ -248,7 +249,7 @@ export default class WorkspaceUser {
 
     queryBuilder.orderBy(`${MetaTable.WORKSPACE_USER}.order`, 'asc');
 
-    const workspaceList = await queryBuilder;
+    let workspaceList = await queryBuilder;
 
     // parse meta json
     for (const workspace of workspaceList) {
@@ -261,6 +262,23 @@ export default class WorkspaceUser {
         workspace.meta = {};
       }
     }
+
+    workspaceList = await Promise.all(
+      workspaceList.map(async (workspace) => {
+        if (
+          (workspace.meta as Record<string, any>)?.icon &&
+          (workspace.meta as Record<string, any>)?.iconType === 'IMAGE'
+        ) {
+          await PresignedUrl.signAttachment(
+            {
+              attachment: (workspace.meta as Record<string, any>)?.icon,
+            },
+            Noco.ncMeta,
+          );
+        }
+        return workspace;
+      }),
+    );
 
     return workspaceList;
   }
@@ -459,6 +477,18 @@ export default class WorkspaceUser {
     });
 
     return res;
+  }
+
+  static async clearCache(
+    workspaceId: any,
+    userId: any,
+    _ncMeta = Noco.ncMeta,
+  ) {
+    await NocoCache.deepDel(
+      `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+    await NocoCache.del(`${CacheScope.WORKSPACE}:${workspaceId}:userCount`);
   }
 
   static async getByToken(

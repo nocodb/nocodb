@@ -93,6 +93,7 @@ const permissionScopes = {
     'uploadViaURL',
 
     'notification',
+    'deleteAccount',
   ],
   workspace: [
     'workspaceBaseList',
@@ -268,6 +269,7 @@ const rolePermissions:
       // allow only in cloud
       testConnection: true,
       notification: true,
+      deleteAccount: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {

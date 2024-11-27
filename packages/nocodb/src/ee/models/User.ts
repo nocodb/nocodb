@@ -520,4 +520,25 @@ export default class User extends UserCE implements UserType {
       CacheDelDirection.CHILD_TO_PARENT,
     );
   }
+
+  public static async softDelete(userId: string, ncMeta = Noco.ncMeta) {
+    const user = await this.get(userId, ncMeta);
+
+    if (!user) NcError.userNotFound(userId);
+
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.USERS,
+      {
+        email: `deleted_${user.id}`,
+        display_name: `Anonymous`,
+        deleted_at: ncMeta.knex.fn.now(),
+        is_deleted: true,
+      },
+      userId,
+    );
+
+    await this.clearCache(userId, ncMeta);
+  }
 }

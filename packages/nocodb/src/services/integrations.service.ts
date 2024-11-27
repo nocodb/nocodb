@@ -152,20 +152,6 @@ export class IntegrationsService {
         NcError.integrationLinkedWithMultiple(bases, sources);
       }
 
-      for (const source of sources) {
-        await this.sourcesService.baseDelete(
-          {
-            workspace_id: integration.fk_workspace_id,
-            base_id: source.base_id,
-          },
-          {
-            sourceId: source.id,
-            req: param.req,
-          },
-          ncMeta,
-        );
-      }
-
       await integration.delete(ncMeta);
       this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
         integration,
@@ -179,19 +165,65 @@ export class IntegrationsService {
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
       NcError.badRequest(e);
     }
+
     return true;
   }
 
   async integrationSoftDelete(
     context: Omit<NcContext, 'base_id'>,
-    param: { integrationId: string },
+    param: { integrationId: string; req: any },
   ) {
     try {
       const integration = await Integration.get(context, param.integrationId);
       if (!integration) {
         NcError.integrationNotFound(param.integrationId);
       }
-      await integration.softDelete();
+
+      const ncMeta = await Noco.ncMeta.startTransaction();
+      try {
+        // get linked sources
+        const sourceListQb = ncMeta
+          .knex(MetaTable.SOURCES)
+          .where({
+            fk_integration_id: integration.id,
+          })
+          .where((qb) => {
+            qb.where('deleted', false).orWhere('deleted', null);
+          });
+
+        if (integration.fk_workspace_id) {
+          sourceListQb.where('fk_workspace_id', integration.fk_workspace_id);
+        }
+
+        const sources: Pick<Source, 'id' | 'base_id'>[] =
+          await sourceListQb.select('id', 'base_id');
+
+        for (const source of sources) {
+          await this.sourcesService.baseSoftDelete(
+            {
+              workspace_id: integration.fk_workspace_id,
+              base_id: source.base_id,
+            },
+            {
+              sourceId: source.id,
+            },
+            ncMeta,
+          );
+        }
+
+        await integration.softDelete(ncMeta);
+        this.appHooksService.emit(AppEvents.INTEGRATION_DELETE, {
+          integration,
+          req: param.req,
+          user: param.req?.user,
+        });
+
+        await ncMeta.commit();
+      } catch (e) {
+        await ncMeta.rollback(e);
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        NcError.badRequest(e);
+      }
     } catch (e) {
       NcError.badRequest(e);
     }

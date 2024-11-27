@@ -3363,13 +3363,21 @@ class BaseModelSqlv2 {
       await this.shuffle({ qb });
     }
 
+    // pre-load columns for later user
+    await parentTable.getColumns(this.context);
+    await childTable.getColumns(this.context);
+
     await (isBt ? parentModel : childModel).selectObject({
       qb,
       fieldsSet: listArgs.fieldsSet,
       viewId: childView?.id,
     });
 
-    const aliasColObjMap = await parentTable.getAliasColObjMap(this.context);
+    // extract col-alias map based on the correct relation table
+    const aliasColObjMap = await (relColumn.meta?.bt
+      ? parentTable
+      : childTable
+    ).getAliasColObjMap(this.context);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await this.getCustomConditionsAndApply({
@@ -3506,7 +3514,10 @@ class BaseModelSqlv2 {
 
     const rtn = parentTn;
     const tn = childTn;
+
+    // pre-load columns for later user
     await childTable.getColumns(this.context);
+    await parentTable.getColumns(this.context);
 
     // one-to-one relation is combination of both hm and bt to identify table which have
     // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
@@ -3524,7 +3535,12 @@ class BaseModelSqlv2 {
       })
       .count(`*`, { as: 'count' });
 
-    const aliasColObjMap = await parentTable.getAliasColObjMap(this.context);
+    // extract col-alias map based on the correct relation table
+    const aliasColObjMap = await (relColumn.meta?.bt
+      ? parentTable
+      : childTable
+    ).getAliasColObjMap(this.context);
+
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await this.getCustomConditionsAndApply({

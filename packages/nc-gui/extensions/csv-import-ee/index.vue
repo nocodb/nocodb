@@ -634,10 +634,22 @@ onMounted(async () => {
 
 <template>
   <ExtensionsExtensionWrapper>
-    <template v-if="importPayload.step === 1" #headerExtra>
-      <NcButton :disabled="isImportingRecords" size="small" type="secondary" @click="clearImport()">Cancel</NcButton>
+    <template #headerExtra>
+      <template v-if="importPayload.step === 2 || importPayload.step === 3 || viewImportHistory">
+        <div class="flex justify-end">
+          <NcButton size="small" @click="newImport">New import</NcButton>
+        </div>
+      </template>
+      <template v-else-if="importPayload.step === 0 && !fileInfo.processingFile && importHistory.length">
+        <div class="flex items-center justify-end">
+          <NcButton size="small" type="secondary" @click="viewImportHistory = true">View import history</NcButton>
+        </div>
+      </template>
+      <template v-else-if="importPayload.step === 1">
+        <NcButton :disabled="isImportingRecords" size="small" type="secondary" @click="clearImport()">Cancel</NcButton>
 
-      <NcButton size="small" :disabled="!readyForImport" :loading="isImportingRecords" @click="onImport">Import</NcButton>
+        <NcButton size="small" :disabled="!readyForImport" :loading="isImportingRecords" @click="onImport">Import</NcButton>
+      </template>
     </template>
 
     <div
@@ -649,14 +661,11 @@ onMounted(async () => {
       <div
         v-if="importPayload.step === 2 || importPayload.step === 3 || viewImportHistory"
         class="h-full flex flex-col justify-between"
-        :class="{
-          'p-4': fullscreen,
-        }"
       >
         <div
-          class="flex flex-col h-[calc(100%_-_40px)] overflow-hidden"
+          class="flex h-full flex-col overflow-hidden"
           :class="{
-            'border-1 border-nc-border-gray-medium rounded-lg': fullscreen,
+            'h-[calc(100%_-_40px)]': !fullscreen,
           }"
         >
           <div class="border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-light text-tiny py-1 px-3 text-gray-600">
@@ -694,13 +703,7 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div
-          class="flex justify-end"
-          :class="{
-            'pt-3': fullscreen,
-            'p-3 border-t-1 border-t-nc-border-gray-medium bg-white': !fullscreen,
-          }"
-        >
+        <div v-if="!fullscreen" class="flex justify-end p-3 border-t-1 border-t-nc-border-gray-medium bg-white">
           <NcButton size="small" @click="newImport">New import</NcButton>
         </div>
       </div>
@@ -829,7 +832,7 @@ onMounted(async () => {
               Drop your CSV here or <span class="text-nc-content-brand hover:underline">browse file</span>
             </p>
           </a-upload-dragger>
-          <div v-if="importHistory.length" class="flex items-center justify-end">
+          <div v-if="importHistory.length && !fullscreen" class="flex items-center justify-end">
             <NcButton size="small" type="secondary" @click="viewImportHistory = true">View import history</NcButton>
           </div>
         </div>

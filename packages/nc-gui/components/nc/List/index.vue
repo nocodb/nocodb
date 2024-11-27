@@ -360,11 +360,8 @@ watch(
         <div class="h-auto !max-h-[247px]">
           <div
             v-bind="containerProps"
-            class="nc-list !h-auto w-full nc-scrollbar-thin px-2 pb-2"
+            class="nc-list !h-auto w-full nc-scrollbar-thin px-2 pb-2 !max-h-[247px]"
             :class="containerClassName"
-            :style="{
-              maxHeight: '247px !important',
-            }"
           >
             <div v-bind="wrapperProps">
               <div

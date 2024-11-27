@@ -415,7 +415,7 @@ onBeforeUnmount(() => {
                     <div class="text-small leading-[18px] text-nc-content-gray-subtle2">
                       Choose the fields where the AI-generated data will be applied.
                     </div>
-                    <NcDropdown v-model:visible="isOpenSelectOutputFieldDropdown" placement="bottomRight" overlay-class-name="">
+                    <NcDropdown v-model:visible="isOpenSelectOutputFieldDropdown" placement="bottomRight" overlay-class-name="overflow-hidden">
                       <NcButton size="small" type="secondary" @click.stop>
                         <div class="flex items-center gap-2">
                           <GeneralIcon icon="plus" class="!text-current" />
@@ -435,6 +435,7 @@ onBeforeUnmount(() => {
                           class="!w-auto"
                           is-multi-select
                           show-search-always
+                          container-class-name="!max-h-[171px]"
                         >
                           <template #listItem="{ option, isSelected }">
                             <NcCheckbox :checked="isSelected()" />
@@ -626,7 +627,7 @@ onBeforeUnmount(() => {
                                 </div>
 
                                 <LazySmartsheetDivDataCell
-                                  class="relative flex items-center min-h-8 children:h-full"
+                                  class="relative flex items-center min-h-8 children:h-full bg-nc-bg-gray-extralight"
                                   :class="{
                                     '!select-text nc-system-field': isReadOnlyVirtualCell(field),
                                     '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
@@ -714,7 +715,12 @@ onBeforeUnmount(() => {
                   </svg>
                 </div>
                 <div class="nc-ai-button-config-right-section">
-                  <div class="flex-1 flex border-1 bg-white border-nc-border-gray-medium rounded-xl">
+                  <div
+                    class="flex-1 flex border-1 bg-white border-nc-border-gray-medium rounded-xl"
+                    :class="{
+                      'nc-is-already-generated': isAlreadyGenerated,
+                    }"
+                  >
                     <a-collapse
                       v-model:active-key="expansionOutputPanel"
                       ghost
@@ -753,6 +759,8 @@ onBeforeUnmount(() => {
                                   :class="{
                                     '!select-text nc-system-field': isReadOnlyVirtualCell(field),
                                     '!select-text nc-readonly-div-data-cell': !isReadOnlyVirtualCell(field),
+                                    'bg-nc-bg-gray-extralight': !isAlreadyGenerated,
+                                    'bg-nc-bg-purple-light': isAlreadyGenerated,
                                   }"
                                 >
                                   <LazySmartsheetVirtualCell
@@ -825,6 +833,10 @@ onBeforeUnmount(() => {
 }
 .nc-ai-button-config-right-section {
   @apply mx-auto px-6 w-full max-w-[576px] flex flex-col;
+
+  .nc-is-already-generated {
+    box-shadow: 0px 12px 16px -4px rgba(75, 23, 123, 0.12), 0px 4px 6px -2px rgba(75, 23, 123, 0.08);
+  }
 }
 
 .nc-ai-button-output-field {

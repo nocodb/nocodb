@@ -173,7 +173,7 @@ const columnsToRender = computed(() => {
         <slot name="extraRight">
           <div class="min-w-5 flex-none">
             <Transition>
-              <GeneralIcon v-if="isSelected" icon="ncCheckCircle" class="flex-none text-primary w-4 h-4" />
+              <GeneralIcon v-if="isSelected" icon="circleCheckSolid" class="flex-none text-primary w-4 h-4" />
             </Transition>
           </div>
         </slot>

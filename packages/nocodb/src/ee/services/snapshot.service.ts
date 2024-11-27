@@ -4,6 +4,7 @@ import type { NcContext } from '~/interface/config';
 import Snapshot from '~/models/Snapshot';
 import { NcError } from '~/helpers/catchError';
 import { Base } from '~/models';
+import Noco from '~/Noco';
 
 @Injectable()
 export class SnapshotService {
@@ -26,15 +27,20 @@ export class SnapshotService {
   }
 
   async deleteSnapshot(context: NcContext, baseId: string, snapshotId: string) {
-    const snapshot = await Snapshot.get(context, snapshotId);
+
+    const ncMeta = await Noco.ncMeta.startTransaction()
+
+    const snapshot = await Snapshot.get(context, snapshotId, ncMeta);
 
     if (!snapshot) {
       return NcError.notFound('Snapshot not found');
     }
 
-    await Snapshot.delete(context, snapshotId);
+    await Snapshot.delete(context, snapshotId, ncMeta);
 
-    await Base.delete(context, snapshot.snapshot_base_id);
+    await Base.delete(context, snapshot.snapshot_base_id, ncMeta);
+
+    await ncMeta.commit()
 
     return true;
   }

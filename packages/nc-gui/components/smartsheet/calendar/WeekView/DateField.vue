@@ -301,9 +301,6 @@ const dragOffset = ref<{
 const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   const { width, left } = container.value?.getBoundingClientRect()
 
-  // Calculate the percentage of the width based on the mouse position
-  // This is used to calculate the day index
-
   const relativeX = event.clientX - left
 
   /* if (dragOffset.value.x && dragRecord.value?.rowMeta.spanningDays === 1) {
@@ -318,8 +315,9 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   if (!fromCol) return { updatedProperty: [], newRow: null }
 
   // Calculate the day index based on the percentage of the width
-
-  const day = Math.floor(percentX * maxVisibleDays.value) - dragRecord.value.rowMeta.spanningDays
+  const day = Math.floor(
+    percentX * maxVisibleDays.value - dragRecord.value.rowMeta.spanningDays - Math.max(0, Math.min(1, relativeX / width)),
+  )
 
   // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')

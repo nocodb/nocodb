@@ -376,6 +376,8 @@ const parseValue = (value: any, col: ColumnType): string => {
   &::before {
     content: '•';
     padding: 0 4px;
+    display: inline-block;
+    text-decoration: none !important;
   }
   &:first-child::before {
     content: '';

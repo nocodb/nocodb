@@ -154,9 +154,10 @@ const calendarData = computed(() => {
           range: { fk_from_col, fk_to_col },
           position,
           id,
+          spanningDays: Math.abs(ogStartDate.diff(endDate, 'day')) - Math.abs(startDate.diff(endDate, 'day')),
           style: {
-            width: `calc(max(${spanDays * perDayWidth - 10}px, ${perDayWidth - 10}px))`,
-            left: `${startDaysDiff * perDayWidth + 4}px`,
+            width: `calc(max(${spanDays * perDayWidth + 0.5}px, ${perDayWidth + 0.5}px))`,
+            left: `${startDaysDiff * perDayWidth - 1}px`,
             top: `${suitableRow * 28 + Math.max(suitableRow + 1, 1) * 8}px`,
           },
         },
@@ -168,7 +169,12 @@ const calendarData = computed(() => {
         .filter((r) => {
           const startDate = dayjs(r.row[fk_from_col.title!])
           const endDate = dayjs(r.row[fk_to_col.title!])
-          return startDate.isValid() && endDate.isValid() && !endDate.isBefore(startDate)
+          return (
+            startDate.isValid() &&
+            endDate.isValid() &&
+            !endDate.isBefore(startDate) &&
+            !endDate.isBefore(selectedDateRange.value.start, 'day')
+          )
         })
         .forEach(processRecord)
     } else {
@@ -293,18 +299,15 @@ const dragOffset = ref<{
 
 // This method is used to calculate the new start and end date of a record when dragging and dropping
 const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
-  const { width, left } = container.value.getBoundingClientRect()
+  const { width, left } = container.value?.getBoundingClientRect()
 
-  // Calculate the percentage of the width based on the mouse position
-  // This is used to calculate the day index
+  const relativeX = event.clientX - left
 
-  let relativeX = event.clientX - left
-
-  if (dragOffset.value.x) {
+  /* if (dragOffset.value.x && dragRecord.value?.rowMeta.spanningDays === 1) {
     relativeX -= dragOffset.value.x
-  }
+  } */
 
-  const percentX = Math.max(0, Math.min(1, relativeX / width))
+  const percentX = relativeX / width
 
   const fromCol = dragRecord.value.rowMeta.range?.fk_from_col
   const toCol = dragRecord.value.rowMeta.range?.fk_to_col
@@ -312,8 +315,9 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   if (!fromCol) return { updatedProperty: [], newRow: null }
 
   // Calculate the day index based on the percentage of the width
-  // The day index is a number between 0 and 6
-  const day = Math.floor(percentX * maxVisibleDays.value)
+  const day = Math.floor(
+    percentX * maxVisibleDays.value - dragRecord.value.rowMeta.spanningDays - Math.max(0, Math.min(1, relativeX / width)),
+  )
 
   // Calculate the new start date based on the day index by adding the day index to the start date of the selected date range
   const newStartDate = dayjs(selectedDateRange.value.start).add(day, 'day')
@@ -376,6 +380,8 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
 const onDrag = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit')) return
   if (!container.value || !dragRecord.value) return
+  event.preventDefault()
+
   calculateNewRow(event, false)
 }
 
@@ -401,9 +407,15 @@ const stopDrag = (event: MouseEvent) => {
     dragElement.value.style.boxShadow = 'none'
     dragElement.value = null
   }
+
   dragRecord.value = undefined
 
   updateRowProperty(newRow, updateProperty, false)
+
+  dragOffset.value = {
+    x: null,
+    y: null,
+  }
 
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', stopDrag)
@@ -415,16 +427,16 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   isDragging.value = false
 
+  dragOffset.value = {
+    x: event.clientX - target.getBoundingClientRect().left,
+    y: event.clientY - target.getBoundingClientRect().top,
+  }
+
   dragTimeout.value = setTimeout(() => {
     if (!isUIAllowed('dataEdit')) return
     isDragging.value = true
     while (!target.classList.contains('draggable-record')) {
       target = target.parentElement as HTMLElement
-    }
-
-    dragOffset.value = {
-      x: event.clientX - target.getBoundingClientRect().left,
-      y: event.clientY - target.getBoundingClientRect().top,
     }
 
     const allRecords = document.querySelectorAll('.draggable-record')
@@ -444,6 +456,12 @@ const dragStart = (event: MouseEvent, record: Row) => {
 
   const onMouseUp = () => {
     clearTimeout(dragTimeout.value!)
+
+    dragOffset.value = {
+      x: null,
+      y: null,
+    }
+
     document.removeEventListener('mouseup', onMouseUp)
     if (!isDragging.value) {
       emits('expandRecord', record)
@@ -474,11 +492,6 @@ const dropEvent = (event: DragEvent) => {
       dragElement.value = null
     }
     updateRowProperty(newRow, updateProperty, false)
-
-    dragOffset.value = {
-      x: null,
-      y: null,
-    }
 
     $e('c:calendar:day:drag-record')
   }
@@ -548,6 +561,7 @@ const addRecord = (date: dayjs.Dayjs) => {
           :data-unique-id="record.rowMeta.id"
           :style="{
             ...record.rowMeta.style,
+            lineHeight: '18px',
           }"
           class="absolute group draggable-record pointer-events-auto nc-calendar-week-record-card"
           @mouseleave="hoverRecord = null"

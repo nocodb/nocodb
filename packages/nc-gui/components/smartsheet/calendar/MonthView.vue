@@ -254,6 +254,7 @@ const recordsToDisplay = computed<{
           rowMeta: {
             ...record.rowMeta,
             style,
+            maxSpanning: 1,
             position: 'rounded',
             range,
             id,
@@ -330,7 +331,7 @@ const recordsToDisplay = computed<{
           const isRecordDraggingOrResizeState = id === draggingId.value || id === resizeRecord.value?.rowMeta.id
 
           const style: Partial<CSSStyleDeclaration> = {
-            left: `${startDayIndex * perWidth}px`,
+            left: `${startDayIndex * perWidth - 0.5}px`,
             width: `${(endDayIndex - startDayIndex + 1) * perWidth}px`,
             top: isRecordDraggingOrResizeState
               ? `${weekIndex * perHeight + perRecordHeight}px`
@@ -373,6 +374,7 @@ const recordsToDisplay = computed<{
               position,
               style,
               range,
+              maxSpanning: endDayIndex - startDayIndex + 1,
               id,
               recordIndex,
             },
@@ -639,11 +641,6 @@ const dragStart = (event: MouseEvent, record: Row) => {
     // TODO: @DarkPhoenix2704
     // const initialDragElement = document.querySelector(`[data-unique-id="${record.rowMeta.id}-0"]`)
 
-    dragOffset.value = {
-      x: event.clientX - target.getBoundingClientRect().left,
-      y: event.clientY - target.getBoundingClientRect().top,
-    }
-
     // selectedDate.value = null
 
     isDragging.value = true
@@ -651,9 +648,14 @@ const dragStart = (event: MouseEvent, record: Row) => {
     draggingId.value = record.rowMeta!.id!
     dragRecord.value = record
 
+    dragOffset.value = {
+      x: dragRecord.value?.rowMeta.maxSpanning > 1 ? event.clientX - target.getBoundingClientRect().left : 0,
+      y: event.clientY,
+    }
+
     document.addEventListener('mousemove', onDrag)
     document.addEventListener('mouseup', stopDrag)
-  }, 200)
+  }, 500)
 
   const onMouseUp = () => {
     clearTimeout(dragTimeout.value)
@@ -898,6 +900,8 @@ const addRecord = (date: dayjs.Dayjs) => {
           :style="{
             ...record.rowMeta.style,
             zIndex: record.rowMeta.id === draggingId ? 100 : 0,
+            lineHeight: '18px',
+
             opacity:
               (draggingId === null || record.rowMeta.id === draggingId) &&
               (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)

@@ -53,11 +53,13 @@ const fieldTitle = computed(() => {
   )
 })
 
-const previewOutputRow = ref<Row>({
+const defaultRow = {
   row: {},
   oldRow: {},
   rowMeta: {},
-})
+}
+
+const previewOutputRow = ref<Row>(defaultRow)
 
 const generatingPreview = ref(false)
 
@@ -242,18 +244,6 @@ watch(isOpenSelectRecordDropdown, (newValue) => {
   }
 })
 
-watch(
-  () => inputColumns.value.length,
-  (newValue) => {
-    if (newValue) return
-
-    handleUpdateExpansionPanel(ExpansionPanelKeys.input)
-  },
-  {
-    immediate: true,
-  },
-)
-
 const previewPanelDom = ref<HTMLElement>()
 
 const isPreviewPanelOnScrollTop = ref(false)
@@ -267,6 +257,12 @@ const checkScrollTopMoreThanZero = () => {
     }
   }
   return false
+}
+
+const handleResetOutput = () => {
+  isAlreadyGenerated.value = false
+
+  previewOutputRow.value = { ...defaultRow }
 }
 
 watch(
@@ -589,6 +585,7 @@ onBeforeUnmount(() => {
                                   <NcList
                                     v-else
                                     v-model:value="selectedRecordPk"
+                                    @update:value="handleResetOutput"
                                     v-model:open="isOpenSelectRecordDropdown"
                                     :list="sampleRecords"
                                     show-search-always
@@ -614,7 +611,10 @@ onBeforeUnmount(() => {
                           </div>
                         </template>
 
-                        <div class="flex flex-col gap-4">
+                        <div v-if="!inputColumns.length" class="flex-1 flex text-nc-content-gray-muted text-small leading-[18px]">
+                          No input fields selected
+                        </div>
+                        <div v-else class="flex flex-col gap-4">
                           <LazySmartsheetRow :key="selectedRecordPk" :row="selectedRecord.row">
                             <template v-for="field in inputColumns">
                               <a-form-item
@@ -703,7 +703,15 @@ onBeforeUnmount(() => {
                         <GeneralLoader class="!text-current" size="regular" />
                       </template>
                       <div class="flex items-center gap-2">
-                        {{ aiLoading && generatingPreview ? 'Test Generating data' : 'Test Generate data' }}
+                        {{
+                          aiLoading && generatingPreview
+                            ? isAlreadyGenerated
+                              ? 'Re-generating data'
+                              : 'Generating data'
+                            : isAlreadyGenerated
+                            ? 'Re-generate data'
+                            : 'Generate data'
+                        }}
                       </div>
                     </NcButton>
                   </NcTooltip>

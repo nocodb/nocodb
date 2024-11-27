@@ -1037,13 +1037,14 @@ const getPluralName = (name: string) => {
                 <NcButton
                   v-if="range.fk_to_column_id === null && isRangeEnabled"
                   size="small"
-                  class="w-28"
                   type="text"
                   :disabled="!isEeUI"
                   @click="range.fk_to_column_id = undefined"
                 >
-                  <component :is="iconMap.plus" class="h-4 w-4" />
-                  {{ $t('activity.endDate') }}
+                  <div class="flex items-center gap-1">
+                    <component :is="iconMap.plus" class="h-4 w-4" />
+                    {{ $t('activity.endDate') }}
+                  </div>
                 </NcButton>
 
                 <template v-else-if="isEeUI && isRangeEnabled">
@@ -1054,7 +1055,8 @@ const getPluralName = (name: string) => {
                   <div class="flex">
                     <a-select
                       v-model:value="range.fk_to_column_id"
-                      class="!rounded-r-none nc-select-shadow w-full flex-1 nc-to-select"
+                      class="nc-select-shadow w-full flex-1"
+                      allow-clear
                       :disabled="isMetaLoading"
                       :loading="isMetaLoading"
                       :placeholder="$t('placeholder.notSelected')"
@@ -1097,14 +1099,6 @@ const getPluralName = (name: string) => {
                         </div>
                       </a-select-option>
                     </a-select>
-                    <NcButton
-                      class="!rounded-l-none !border-l-0"
-                      size="small"
-                      type="secondary"
-                      @click="range.fk_to_column_id = null"
-                    >
-                      <component :is="iconMap.delete" class="h-4 w-4" />
-                    </NcButton>
                   </div>
                   <NcButton
                     v-if="index !== 0"
@@ -1537,15 +1531,6 @@ const getPluralName = (name: string) => {
 :deep(.ant-select) {
   .ant-select-selector {
     @apply !rounded-lg;
-  }
-}
-
-.nc-to-select {
-  :deep(.ant-select) {
-    .ant-select-selector {
-      border-top-right-radius: 0 !important;
-      border-bottom-right-radius: 0 !important;
-    }
   }
 }
 </style>

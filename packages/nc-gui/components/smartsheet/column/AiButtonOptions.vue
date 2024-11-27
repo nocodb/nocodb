@@ -77,7 +77,7 @@ const loadViewData = async () => {
   }
 }
 
-const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) ?? null)
+const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) || meta.value?.columns?.[0] || null)
 
 const sampleRecords = computed<
   {
@@ -543,11 +543,29 @@ onBeforeUnmount(() => {
                                 overlay-class-name="overflow-hidden"
                               >
                                 <NcButton size="xs" type="text" @click.stop class="flex-1 children:children:w-full">
-                                  <div class="w-full flex items-center gap-2">- Select Record -</div>
+                                  <NcTooltip
+                                    v-if="selectedRecordPk && displayField"
+                                    class="w-full text-left truncate !leading-6"
+                                    show-on-truncate-only
+                                  >
+                                    <template #title>
+                                      <LazySmartsheetPlainCell
+                                        v-model="selectedRecord.row.row[displayField.title]"
+                                        :column="displayField"
+                                        class="!leading-6"
+                                      />
+                                    </template>
 
+                                    <LazySmartsheetPlainCell
+                                      v-model="selectedRecord.row.row[displayField.title]"
+                                      :column="displayField"
+                                      class="!leading-6"
+                                    />
+                                  </NcTooltip>
+                                  <div v-else class="flex-1 flex items-center gap-2">- Select Record -</div>
                                   <GeneralIcon
                                     icon="chevronDown"
-                                    class="!text-current opacity-70 flex-none transform transition-transform duration-250 w-3.5 h-3.5"
+                                    class="!text-current opacity-70 flex-none transform transition-transform duration-250 w-3.5 h-3.5 ml-1"
                                     :class="{ '!rotate-180': isOpenSelectRecordDropdown }"
                                   />
                                 </NcButton>
@@ -578,6 +596,7 @@ onBeforeUnmount(() => {
                                         :columns="meta?.columns || []"
                                         :is-selected="isSelected()"
                                         class="!cursor-pointer"
+                                        display-value-class-name="!text-nc-content-gray"
                                       />
                                     </template>
                                   </NcList>
@@ -647,9 +666,7 @@ onBeforeUnmount(() => {
                     'text-nc-content-purple-medium': !!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw),
                   }"
                 >
-                <div class="h-2.5 w-2.5 flex-none absolute -top-[30px] border-1 border-current rounded-full bg-current">
-
-                </div>
+                  <div class="h-2.5 w-2.5 flex-none absolute -top-[30px] border-1 border-current rounded-full bg-current"></div>
                   <NcTooltip :disabled="!!(selectedRecordPk && outputColumnIds.length && vModel.formula_raw)">
                     <template #title>
                       {{

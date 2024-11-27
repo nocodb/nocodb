@@ -36,8 +36,9 @@ const emit = defineEmits(['resize-start'])
       'bg-purple-50': color === 'purple',
       'bg-white border-gray-300': color === 'gray',
       'z-90': hover,
+      '!bg-nc-bg-gray-light': hover || dragging,
     }"
-    class="relative flex gap-2 border-1 relative rounded-md h-full"
+    class="relative flex gap-1 border-1 relative rounded-md h-full"
   >
     <div
       v-if="resize"
@@ -59,7 +60,11 @@ const emit = defineEmits(['resize-start'])
 
     <div class="flex overflow-x-hidden whitespace-nowrap text-ellipsis pt-1 w-full truncate text-ellipsis flex-col gap-1">
       <div class="truncate">
-        <NcTooltip show-on-truncate-only :disabled="selected">
+        <NcTooltip
+          class="break-word whitespace-nowrap overflow-hidden text-ellipsis pr-1"
+          show-on-truncate-only
+          :disabled="selected"
+        >
           <template #title>
             <slot />
           </template>

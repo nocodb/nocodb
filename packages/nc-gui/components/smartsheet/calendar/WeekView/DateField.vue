@@ -548,6 +548,7 @@ const addRecord = (date: dayjs.Dayjs) => {
           :data-unique-id="record.rowMeta.id"
           :style="{
             ...record.rowMeta.style,
+            lineHeight: '18px',
           }"
           class="absolute group draggable-record pointer-events-auto nc-calendar-week-record-card"
           @mouseleave="hoverRecord = null"

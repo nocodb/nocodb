@@ -106,4 +106,11 @@ const emit = defineEmits(['resize-start'])
 .resize {
   cursor: ew-resize;
 }
+
+.plain-cell {
+  line-height: 18px;
+  .bold {
+    @apply !text-gray-800 font-bold;
+  }
+}
 </style>

@@ -550,12 +550,12 @@ const recordsAcrossAllRange = computed<{
 
           left = width * (overlapIndex - 1)
 
-          width = Math.max((width / 100) * containerWidth.value - 8, 72)
+          width = Math.max((width / 100) * containerWidth.value, 72) - 8
 
-          left = majorLeft + (left / 100) * containerWidth.value + 4
+          left = majorLeft + (left / 100) * containerWidth.value + 4.5
 
           if (majorLeft + perWidth < left + width) {
-            left = majorLeft + (perWidth - width - 4)
+            left = majorLeft + (perWidth - width) + 4
           }
         }
       } else {
@@ -1063,6 +1063,7 @@ watch(
             :data-unique-id="record.rowMeta!.id"
             :style="{
               ...record.rowMeta.style,
+              lineHeight: '18px',
               opacity:
                 (dragRecord === null || record.rowMeta.id === dragRecord?.rowMeta.id) &&
                 (resizeRecord === null || record.rowMeta.id === resizeRecord?.rowMeta.id)

@@ -729,7 +729,7 @@ onBeforeUnmount(() => {
                         >
                           No output fields selected
                         </div>
-                        <div v-else class="flex flex-col gap-4 px-4 pb-4">
+                        <div v-else class="flex flex-col gap-4">
                           <LazySmartsheetRow :row="previewOutputRow">
                             <template v-for="field in outputFieldOptions">
                               <a-form-item

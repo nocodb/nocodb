@@ -168,6 +168,7 @@ export class OrgUsersService {
                 token: invite_token,
                 useOrgTemplate: true,
                 req: param.req,
+                roles: param.user.roles || OrgUserRoles.VIEWER,
               }))
             )
               return { invite_token, email };
@@ -177,6 +178,7 @@ export class OrgUsersService {
               token: invite_token,
               req: param.req,
               useOrgTemplate: true,
+              roles: param.user.roles || OrgUserRoles.VIEWER,
             });
           }
         } catch (e) {
@@ -241,6 +243,7 @@ export class OrgUsersService {
       token: invite_token,
       req: param.req,
       useOrgTemplate: true,
+      roles: user.roles,
     });
 
     this.appHooksService.emit(AppEvents.ORG_USER_RESEND_INVITE, {

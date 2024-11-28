@@ -181,6 +181,7 @@ export class BaseUsersService {
               token: invite_token,
               req: param.req,
               baseName: base.title,
+              roles: param.baseUser.roles || 'editor',
             });
 
             if (!mailSendStatus) {
@@ -192,6 +193,7 @@ export class BaseUsersService {
               token: invite_token,
               req: param.req,
               baseName: base.title,
+              roles: param.baseUser.roles || 'editor',
             });
           }
         } catch (e) {
@@ -400,6 +402,8 @@ export class BaseUsersService {
       invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
 
+    const baseUser = await BaseUser.get(context, param.baseId, user.id);
+
     const pluginData = await Noco.ncMeta.metaGet2(
       context.workspace_id,
       context.base_id,
@@ -421,6 +425,7 @@ export class BaseUsersService {
       token: invite_token,
       req: param.req,
       baseName: base.title,
+      roles: baseUser?.roles || 'editor',
     });
 
     this.appHooksService.emit(AppEvents.PROJECT_USER_RESEND_INVITE, {
@@ -440,12 +445,14 @@ export class BaseUsersService {
     token,
     req,
     baseName,
+    roles,
     useOrgTemplate,
   }: {
     email: string;
     token: string;
     req: NcRequest;
     baseName?: string;
+    roles: string;
     useOrgTemplate?: boolean;
   }): Promise<any> {
     try {
@@ -473,7 +480,7 @@ export class BaseUsersService {
             }#/signup/${token}`,
             baseName: sanitiseEmailContent(baseName || req.body?.baseName),
             roles: sanitiseEmailContent(
-              (req.body?.roles || '')
+              (roles || req.body?.roles || '')
                 .split(',')
                 .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
                 .join(', '),

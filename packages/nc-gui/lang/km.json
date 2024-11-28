@@ -93,6 +93,9 @@
     "none": "គ្មាន"
   },
   "general": {
+    "snapshot": "Snapshot",
+    "snapshots": "Snapshots",
+    "baseSnapshots": "Base Snapshots",
     "featurePreview": "ការមើលមុខងារជាមុន",
     "scripts": "Scripts",
     "configure": "កំណត់រចនាសម្ព័ន្ធ",
@@ -648,6 +651,18 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "snapshotCreationFailed": "Snapshot creation failed",
+    "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
+    "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
+    "snapshotCooldownWarning": "Snapshot cooldown remaining",
+    "snapshotLimitDescription": "You can only maintain 2 base snapshots at a time. Upgrade your plan for additional snapshots.",
+    "snapshotLimitReached": "Snapshot limit reached",
+    "confirmRestore": "Confirm Restore",
+    "visibilityAndDataHandling": "Visibility & Data Handling",
+    "visibilityConfigLabel": "Base specific additional configurations to customise data display & default behaviours.",
+    "snapShotSubText": "Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation. Restoring a snapshot creates a new instance of the base in the designated workspace.",
+    "newSnapshot": "New Snapshot",
+    "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
     "toggleExperimentalFeature": "បើក ឬបិទមុខងារពិសោធន៍ដោយភាពងាយស្រួល ដែលអនុញ្ញាតឱ្យអ្នករុករក និងវាយតម្លៃមុខងារដែលនឹងមកដល់នាពេលខាងមុខ។",
     "modifiedOn": "បានផ្លាស់ប្តូរកាលបរិច្ឆេទ",
@@ -1070,7 +1085,7 @@
     "toggleSidebar": "បើកបន្ទាត់នាវា",
     "addEndDate": "បញ្ចូលកាលបរិច្ឆេទបញ្ចប់",
     "endDate": "End Date",
-    "withEndDate": "With end date",
+    "withEndDate": "ឬធ្វើដំណើរកាលបរិច្ឆេទបញ្ចប់",
     "calendar": "កាលបរិច្ឆេទ",
     "viewSettings": "ការកំណត់ទិដ្ឋភាព",
     "googleOAuth": "Google OAuth",

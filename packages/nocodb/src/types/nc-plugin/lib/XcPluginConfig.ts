@@ -6,7 +6,7 @@ import type XcPluginMigration from './XcPluginMigration';
 export default interface XcPluginConfig {
   id: string;
   title: string;
-  fallbackTitles?: string[];
+  fallbackTitle?: string;
   logo?: string;
   tags?: string;
   description?: string;

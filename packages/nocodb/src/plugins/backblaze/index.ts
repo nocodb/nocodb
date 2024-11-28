@@ -6,7 +6,7 @@ const config: XcPluginConfig = {
   builder: BackblazePlugin,
   id: 'backblaze',
   title: 'Backblaze',
-  fallbackTitles: ['Backblaze B2'],
+  fallbackTitle: 'Backblaze B2',
   version: '0.0.5',
   logo: 'plugins/backblaze.jpeg',
   tags: 'Storage',

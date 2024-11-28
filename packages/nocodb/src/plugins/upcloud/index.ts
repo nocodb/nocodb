@@ -6,7 +6,7 @@ const config: XcPluginConfig = {
   builder: UpCloudPlugin,
   id: 'upcloud',
   title: 'UpCloud',
-  fallbackTitles: ['UpCloud Object Storage'],
+  fallbackTitle: 'UpCloud Object Storage',
   version: '0.0.4',
   logo: 'plugins/upcloud.png',
   description:

@@ -6,7 +6,7 @@ const config: XcPluginConfig = {
   builder: OvhCloud,
   id: 'ovh',
   title: 'Ovh',
-  fallbackTitles: ['OvhCloud Object Storage'],
+  fallbackTitle: 'OvhCloud Object Storage',
   version: '0.0.4',
   logo: 'plugins/ovhCloud.png',
   tags: 'Storage',

@@ -4,6 +4,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: S3Plugin,
+  id: 'minio',
   title: 'Minio',
   version: '0.0.4',
   logo: 'plugins/minio.png',

@@ -1536,6 +1536,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           dataWithPks.push({ pk: pkValues, data });
         } else {
           // const insertObj = this.handleValidateBulkInsert(data, columns);
+          await this.prepareNocoData(data, true, cookie)
           dataWithoutPks.push(data);
         }
       }
@@ -1554,6 +1555,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       for (const { pk, data } of dataWithPks) {
         if (existingPkSet.has(pk)) {
+          await this.prepareNocoData(data, false, cookie)
           toUpdate.push(data);
 
           updatePkValues.push(
@@ -1562,14 +1564,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }),
           );
         } else {
+          await this.prepareNocoData(data, true, cookie)
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }
       }
-
-      await Promise.all(toInsert.map((d) => this.prepareNocoData(d, true, cookie)))
-      await Promise.all(toUpdate.map((d) => this.prepareNocoData(d, false, cookie)))
-
 
       const chunkSize = this.isSqlite ? 10 : 100;
       let trimLeading = 0;

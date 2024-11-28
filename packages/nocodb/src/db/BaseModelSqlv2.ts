@@ -5336,6 +5336,7 @@ class BaseModelSqlv2 {
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
         } else {
+          await this.prepareNocoData(data, true, cookie)
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           dataWithoutPks.push(data);
         }
@@ -5355,15 +5356,14 @@ class BaseModelSqlv2 {
 
       for (const { pk, data } of dataWithPks) {
         if (existingPkSet.has(pk)) {
+          await this.prepareNocoData(data, false, cookie)
           toUpdate.push(data);
         } else {
+          await this.prepareNocoData(data, true, cookie)
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }
       }
-
-      await Promise.all(toInsert.map((d) => this.prepareNocoData(d, true, cookie)))
-      await Promise.all(toUpdate.map((d) => this.prepareNocoData(d, false, cookie)))
 
       trx = await this.dbDriver.transaction();
 

@@ -93,6 +93,9 @@
     "none": "空"
   },
   "general": {
+    "snapshot": "Snapshot",
+    "snapshots": "Snapshots",
+    "baseSnapshots": "Base Snapshots",
     "featurePreview": "功能预览",
     "scripts": "脚本",
     "configure": "配置",
@@ -648,6 +651,18 @@
     "lockedByUser": "被{user} 锁定"
   },
   "labels": {
+    "snapshotCreationFailed": "Snapshot creation failed",
+    "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
+    "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
+    "snapshotCooldownWarning": "Snapshot cooldown remaining",
+    "snapshotLimitDescription": "You can only maintain 2 base snapshots at a time. Upgrade your plan for additional snapshots.",
+    "snapshotLimitReached": "Snapshot limit reached",
+    "confirmRestore": "Confirm Restore",
+    "visibilityAndDataHandling": "Visibility & Data Handling",
+    "visibilityConfigLabel": "Base specific additional configurations to customise data display & default behaviours.",
+    "snapShotSubText": "Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation. Restoring a snapshot creates a new instance of the base in the designated workspace.",
+    "newSnapshot": "New Snapshot",
+    "searchASnapshot": "Search a snapshot",
     "continue": "继续",
     "toggleExperimentalFeature": "轻松启用或禁用实验功能，允许您探索和评估即将推出的功能。",
     "modifiedOn": "修改于",
@@ -1070,7 +1085,7 @@
     "toggleSidebar": "切换侧边栏",
     "addEndDate": "添加结束日期",
     "endDate": "结束日期",
-    "withEndDate": "With end date",
+    "withEndDate": "结束日期",
     "calendar": "日历",
     "viewSettings": "视图设置",
     "googleOAuth": "Google OAuth",

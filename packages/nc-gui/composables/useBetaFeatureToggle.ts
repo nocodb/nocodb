@@ -50,6 +50,13 @@ const FEATURES = [
     enabled: false,
     isEngineering: true,
   },
+  {
+    id: 'base_snapshots',
+    title: 'Enable Base Snapshots',
+    description: 'Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation.',
+    enabled: false,
+    isEngineering: true,
+  },
 ]
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

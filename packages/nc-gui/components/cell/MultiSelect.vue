@@ -63,17 +63,19 @@ const { isPg, isMysql } = useBase()
 // temporary until it's add the option to column meta
 const tempSelectedOptsState = reactive<string[]>([])
 
+const tempColumn = ref<ColumnType>(column.value)
+
 const options = computed<(SelectOptionType & { value?: string })[]>(() => {
   if (column?.value.colOptions) {
-    const opts = column.value.colOptions
-      ? (column.value.colOptions as SelectOptionsType).options.filter((el: SelectOptionType) => el.title !== '') || []
+    const opts = tempColumn.value.colOptions
+      ? (tempColumn.value.colOptions as SelectOptionsType).options.filter((el: SelectOptionType) => el.title !== '') || []
       : []
     for (const op of opts.filter((el: SelectOptionType) => el.order === null)) {
       op.title = op.title?.replace(/^'/, '').replace(/'$/, '')
     }
     let order = 1
     const limitOptionsById =
-      ((parseProp(column.value.meta)?.limitOptions || []).reduce(
+      ((parseProp(tempColumn.value.meta)?.limitOptions || []).reduce(
         (o: Record<string, FormFieldsLimitOptionsType>, f: FormFieldsLimitOptionsType) => {
           if (order < (f?.order ?? 0)) {
             order = f.order
@@ -89,8 +91,8 @@ const options = computed<(SelectOptionType & { value?: string })[]>(() => {
     if (
       !isEditColumn.value &&
       isForm.value &&
-      parseProp(column.value.meta)?.isLimitOption &&
-      (parseProp(column.value.meta)?.limitOptions || []).length
+      parseProp(tempColumn.value.meta)?.isLimitOption &&
+      (parseProp(tempColumn.value.meta)?.limitOptions || []).length
     ) {
       return opts
         .filter((o: SelectOptionType) => {
@@ -146,7 +148,7 @@ const selectedTitles = computed(() =>
   modelValue
     ? Array.isArray(modelValue)
       ? modelValue
-      : isMysql(column.value.source_id)
+      : isMysql(tempColumn.value.source_id)
       ? modelValue
           .toString()
           .split(',')
@@ -275,15 +277,16 @@ async function addIfMissingAndSave() {
         }
       }
 
-      await $api.dbTableColumn.update(
+      const data = await $api.dbTableColumn.update(
         (column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string),
         updatedColMeta,
       )
 
+      tempColumn.value = data.columns.find((c) => c.id === column.value.id)
+
       activeOptCreateInProgress.value--
       if (!activeOptCreateInProgress.value) {
         vModel.value = [...vModel.value]
-        // await getMeta(column.value.fk_model_id!, true)
         tempSelectedOptsState.splice(0, tempSelectedOptsState.length)
       }
     } else {
@@ -489,8 +492,8 @@ const onFocus = () => {
           :key="op.id || op.title"
           :value="op.title"
           class="gap-2"
-          :data-testid="`select-option-${column.title}-${location === 'filter' ? 'filter' : rowIndex}`"
-          :class="`nc-select-option-${column.title}-${op.title}`"
+          :data-testid="`select-option-${tempColumn.title}-${location === 'filter' ? 'filter' : rowIndex}`"
+          :class="`nc-select-option-${tempColumn.title}-${op.title}`"
           @click.stop
         >
           <a-tag class="rounded-tag max-w-full" :color="op.color">

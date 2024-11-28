@@ -44,15 +44,14 @@ export class DuplicateProcessor {
       req,
       context,
       options,
-      operation,
-      targetContext: _targetContext
+      operation
     }: {
       sourceBase: Base; // Base to duplicate
       targetBase: Base; // Base to duplicate to
       dataSource: Source; // Data source to duplicate from
       req: NcRequest;
       context: NcContext // Context of the base to duplicate
-      targetContext?: NcContext // Context of the base to duplicate to
+
       options: {
         excludeData?: boolean;
         excludeHooks?: boolean;
@@ -63,24 +62,10 @@ export class DuplicateProcessor {
     }) {
     const hrTime = initTime();
 
-    const targetContext = _targetContext ??  {
+    const targetContext = {
       workspace_id: targetBase.fk_workspace_id,
       base_id: targetBase.id,
     }
-
-    const excludeData = options?.excludeData || false;
-    const excludeHooks = options?.excludeHooks || false;
-    const excludeViews = options?.excludeViews || false;
-    const excludeComments = options?.excludeComments || excludeData || false;
-
-    const base = await Base.get(context, baseId);
-    const dupProject = await Base.get(context, dupProjectId);
-    const source = await Source.get(context, sourceId);
-
-    const targetContext = {
-      workspace_id: dupProject.fk_workspace_id,
-      base_id: dupProject.id,
-    };
 
     try {
 
@@ -96,10 +81,7 @@ export class DuplicateProcessor {
 
       const exportedModels = await this.exportService.serializeModels(context, {
         modelIds: models.map((m) => m.id),
-        excludeViews,
-        excludeHooks,
-        excludeData,
-        excludeComments,
+        ...options
       });
 
       elapsedTime(
@@ -174,6 +156,10 @@ export class DuplicateProcessor {
     if (req.user?.id === '1') {
       delete req.user;
     }
+  }
+
+  async duplicateBase(job: Job<DuplicateBaseJobData>) {
+    this.debugLog(`job started for ${job.id} (${JobTypes.DuplicateBase})`);
 
     const excludeData = options?.excludeData || false;
     const excludeHooks = options?.excludeHooks || false;

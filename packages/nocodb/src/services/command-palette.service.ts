@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { viewTypeAlias, type UserType } from 'nocodb-sdk';
+import { type UserType, viewTypeAlias } from 'nocodb-sdk';
 import { deserializeJSON } from '~/utils/serialize';
 import { getCommandPaletteForUserWorkspace } from '~/helpers/commandPaletteHelpers';
 

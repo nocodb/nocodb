@@ -15069,13 +15069,13 @@
         "tags": ["Plugin"]
       }
     },
-    "/api/v1/db/meta/plugins/{pluginTitle}/status": {
+    "/api/v1/db/meta/plugins/{pluginId}/status": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "pluginTitle",
+          "name": "pluginId",
           "in": "path",
           "required": true,
           "description": "Plugin Title"

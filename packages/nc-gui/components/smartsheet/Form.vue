@@ -484,7 +484,7 @@ async function handleAddOrRemoveAllColumns<T>(value: T) {
 
 async function checkSMTPStatus() {
   if (emailMe.value && !isEeUI) {
-    const emailPluginActive = await $api.plugin.status('SMTP')
+    const emailPluginActive = await $api.plugin.status('smtp')
     if (!emailPluginActive) {
       emailMe.value = false
       // Please activate SMTP plugin in App store for enabling email notification

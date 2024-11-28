@@ -4,6 +4,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: SpacesPlugin,
+  id: 'spaces',
   title: 'Spaces',
   version: '0.0.2',
   logo: 'plugins/spaces.png',

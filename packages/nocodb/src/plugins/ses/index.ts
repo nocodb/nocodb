@@ -4,6 +4,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: SESPlugin,
+  id: 'ses',
   title: 'SES',
   version: '0.0.2',
   logo: 'plugins/aws.png',

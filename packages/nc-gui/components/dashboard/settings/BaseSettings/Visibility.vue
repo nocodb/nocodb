@@ -54,7 +54,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
     </div>
 
     <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
-      {{ $t('labels.miscBaseSettingsLabel') }}
+      {{ $t('labels.visibilityConfigLabel') }}
     </div>
 
     <div class="flex flex-col border-1 rounded-lg mt-6 border-nc-border-gray-medium">

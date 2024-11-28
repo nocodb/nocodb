@@ -522,7 +522,9 @@ onMounted(async () => {
             </a-form-item>
           </div>
         </div>
-        <div class="flex flex-col flex-1 nc-scrollbar-thin">
+        <div class="flex flex-col flex-1 nc-scrollbar-thin" :class="{
+          'm-3 rounded-lg border-1 border-nc-border-gray-medium': fullscreen
+        }">
           <div class="data-exporter-header sticky top-0 z-100">Recent Exports</div>
           <div v-if="exportedFiles.length" class="flex-1 flex flex-col max-h-[calc(100%_-_25px)]">
             <template v-for="exp of exportedFiles">

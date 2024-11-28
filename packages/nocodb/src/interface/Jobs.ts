@@ -172,18 +172,12 @@ export interface ThumbnailGeneratorJobData extends JobData {
 
 export interface CreateSnapshotJobData extends JobData {
   sourceId: string;
-  snapshotBaseId: string;
+  dupProjectId: string;
   req: NcRequest;
-  snapshot: SnapshotType;
 }
 
 export interface RestoreSnapshotJobData extends JobData {
   sourceId: string;
-  targetBaseId: string;
-  targetContext: {
-    workspace_id: string;
-    base_id: string;
-  }
-  snapshot: SnapshotType;
+  dupProjectId: string;
   req: NcRequest;
 }

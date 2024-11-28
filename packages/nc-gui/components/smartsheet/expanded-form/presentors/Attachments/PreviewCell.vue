@@ -108,9 +108,9 @@ const fileEntry: ComputedRef<{ icon: keyof typeof iconMap; title: string | undef
         />
       </div>
       <div
-        class="font-bold text-center uppercase truncate px-1 transition-all duration-300 absolute"
+        class="font-bold text-[12px] text-center uppercase truncate px-1 transition-all duration-300 absolute"
         :class="{
-          'left-0 right-0 bottom-0': !props.isExpanded,
+          'left-0 right-0 bottom-1': !props.isExpanded,
           'left-0 right-0 bottom-0 transform translate-y-full': props.isExpanded,
         }"
       >

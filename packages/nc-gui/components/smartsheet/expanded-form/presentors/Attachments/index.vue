@@ -119,11 +119,11 @@ export default {
             :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
           >
             <NcButton type="secondary" size="small">
-              <GeneralIcon icon="cellAttachment" class="w-4" />
-              <span class="min-w-[100px] text-left pl-2 pb-1 inline-block">
+              <GeneralIcon icon="cellAttachment" class="w-4 aspect-square flex items-center justify-center" />
+              <span class="min-w-[100px] max-w-[200px] truncate text-left pl-2 inline-block">
                 {{ selectedField?.title }}
               </span>
-              <GeneralIcon icon="chevronDown" />
+              <GeneralIcon icon="chevronDown" class="ms-2 text-gray-500 aspect-square flex items-center justify-center" />
             </NcButton>
           </NcDropdownSelect>
 

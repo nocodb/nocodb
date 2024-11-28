@@ -52,6 +52,18 @@ watch(selectedFieldValue, () => {
   activeAttachmentIndex.value = Math.min(activeAttachmentIndex.value, Math.max(0, selectedFieldValue.value?.length - 1))
 })
 
+watch(activeAttachmentIndex, () => {
+  if (activeAttachmentIndex.value === null || isNaN(activeAttachmentIndex.value)) {
+    activeAttachmentIndex.value = 0
+  }
+})
+
+watch(attachmentFields, () => {
+  if (!attachmentFields.value.find((field) => field.id === selectedFieldId.value)) {
+    selectedFieldId.value = attachmentFields.value[0]?.id
+  }
+})
+
 const hasAnyAttachmentFields = computed(() => attachmentFields.value.length > 0)
 
 const hasAnyValueInAttachment = computed(() => selectedFieldValue.value?.length > 0)

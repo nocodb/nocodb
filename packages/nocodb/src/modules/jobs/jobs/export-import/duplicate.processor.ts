@@ -68,6 +68,20 @@ export class DuplicateProcessor {
       base_id: targetBase.id,
     }
 
+    const excludeData = options?.excludeData || false;
+    const excludeHooks = options?.excludeHooks || false;
+    const excludeViews = options?.excludeViews || false;
+    const excludeComments = options?.excludeComments || excludeData || false;
+
+    const base = await Base.get(context, baseId);
+    const dupProject = await Base.get(context, dupProjectId);
+    const source = await Source.get(context, sourceId);
+
+    const targetContext = {
+      workspace_id: dupProject.fk_workspace_id,
+      base_id: dupProject.id,
+    };
+
     try {
 
       if(!sourceBase || !targetBase || !dataSource) {
@@ -82,7 +96,10 @@ export class DuplicateProcessor {
 
       const exportedModels = await this.exportService.serializeModels(context, {
         modelIds: models.map((m) => m.id),
-        ...options
+        excludeViews,
+        excludeHooks,
+        excludeData,
+        excludeComments,
       });
 
       elapsedTime(

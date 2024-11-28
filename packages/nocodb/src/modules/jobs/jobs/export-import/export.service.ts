@@ -380,29 +380,15 @@ export class ExportService {
         }
       }
 
-      const serializedComments = [];
+      const searializedComments = [];
 
       if (!excludeComments) {
-        const READ_BATCH_SIZE = 100;
-        let comments: Comment[] = [];
-        let offset = 0;
-
-        while (true) {
-          const batchComments = await Comment.listByModel(context, model.id, {
-            limit: READ_BATCH_SIZE + 1,
-            offset
-          });
-
-          comments.push(...batchComments.slice(0, READ_BATCH_SIZE));
-
-          if (batchComments.length <= READ_BATCH_SIZE) break;
-          offset += READ_BATCH_SIZE;
-        }
+        const comments = await Comment.listByModel(context, model.id);
 
         for (const comment of comments) {
           idMap.set(comment.id, `${idMap.get(model.id)}::${comment.id}`);
 
-          serializedComments.push({
+          searializedComments.push({
             id: idMap.get(comment.id),
             fk_model_id: idMap.get(comment.fk_model_id),
             row_id: comment.row_id,
@@ -484,7 +470,7 @@ export class ExportService {
           view: view.view,
         })),
         hooks: serializedHooks,
-        comments: serializedComments,
+        comments: searializedComments,
       });
     }
 

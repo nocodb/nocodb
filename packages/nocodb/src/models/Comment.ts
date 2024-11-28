@@ -44,32 +44,18 @@ export default class Comment implements CommentType {
   public static async listByModel(
     context: NcContext,
     fk_model_id: string,
-    pagination?: { limit: number; offset: number },
     ncMeta = Noco.ncMeta,
   ): Promise<Comment[]> {
-    const comments = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.COMMENTS,
-      {
-        condition: {
-          fk_model_id,
-        },
-        orderBy: {
-          id: 'asc'
-        },
-        limit: pagination?.limit,
-        offset: pagination?.offset,
-        xcCondition: {
-          _or: [
-            { is_deleted: { eq: null } },
-            { is_deleted: { eq: true } },
-          ]
-        }
-      }
-    );
+    const commentList = await ncMeta
+      .knex(MetaTable.COMMENTS)
+      .select(`${MetaTable.COMMENTS}.*`)
+      .where('fk_model_id', fk_model_id)
+      .where(function () {
+        this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
+      })
+      .orderBy('created_at', 'asc');
 
-    return comments.map(comment => new Comment(comment));
+    return commentList.map((comment) => new Comment(comment));
   }
 
   public static async list(

@@ -1531,15 +1531,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const updatePkValues = [];
 
       for (const data of preparedDatas) {
-        if (!raw) {
-          await this.prepareNocoData(data, true, cookie);
-        }
-
         const pkValues = this.extractPksValues(data);
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
         } else {
           // const insertObj = this.handleValidateBulkInsert(data, columns);
+          await this.prepareNocoData(data, true, cookie)
           dataWithoutPks.push(data);
         }
       }
@@ -1558,6 +1555,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       for (const { pk, data } of dataWithPks) {
         if (existingPkSet.has(pk)) {
+          await this.prepareNocoData(data, false, cookie)
           toUpdate.push(data);
 
           updatePkValues.push(
@@ -1566,6 +1564,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }),
           );
         } else {
+          await this.prepareNocoData(data, true, cookie)
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }

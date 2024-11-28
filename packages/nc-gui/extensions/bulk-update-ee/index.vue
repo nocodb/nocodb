@@ -770,7 +770,7 @@ provide(IsGalleryInj, ref(false))
         :loading="isLoadingViewInfo"
         @click="handleConfirmUpdate"
       >
-        Update records
+        Update Records
       </NcButton>
     </template>
 
@@ -1258,7 +1258,7 @@ provide(IsGalleryInj, ref(false))
                     <template #icon>
                       <GeneralIcon icon="ncPlus" />
                     </template>
-                    New action
+                    New Action
                   </NcButton>
                 </NcTooltip>
               </div>
@@ -1278,7 +1278,7 @@ provide(IsGalleryInj, ref(false))
               <template #icon>
                 <GeneralIcon icon="ncPlus" />
               </template>
-              New action
+              New Action
             </NcButton>
           </NcTooltip>
           <NcButton
@@ -1287,7 +1287,7 @@ provide(IsGalleryInj, ref(false))
             :loading="isLoadingViewInfo"
             @click="handleConfirmUpdate"
           >
-            Update records
+            Update Records
           </NcButton>
         </div>
       </div>

@@ -93,6 +93,9 @@
     "none": "없음"
   },
   "general": {
+    "snapshot": "Snapshot",
+    "snapshots": "Snapshots",
+    "baseSnapshots": "Base Snapshots",
     "featurePreview": "기능 미리보기",
     "scripts": "스크립트",
     "configure": "구성",
@@ -648,6 +651,18 @@
     "lockedByUser": "{user}에 의해 잠김"
   },
   "labels": {
+    "snapshotCreationFailed": "Snapshot creation failed",
+    "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
+    "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
+    "snapshotCooldownWarning": "Snapshot cooldown remaining",
+    "snapshotLimitDescription": "You can only maintain 2 base snapshots at a time. Upgrade your plan for additional snapshots.",
+    "snapshotLimitReached": "Snapshot limit reached",
+    "confirmRestore": "Confirm Restore",
+    "visibilityAndDataHandling": "Visibility & Data Handling",
+    "visibilityConfigLabel": "Base specific additional configurations to customise data display & default behaviours.",
+    "snapShotSubText": "Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation. Restoring a snapshot creates a new instance of the base in the designated workspace.",
+    "newSnapshot": "New Snapshot",
+    "searchASnapshot": "Search a snapshot",
     "continue": "계속",
     "toggleExperimentalFeature": "실험 기능을 쉽게 활성화 또는 비활성화하여 향후 출시될 기능들을 탐색하고 평가할 수 있습니다.",
     "modifiedOn": "수정된 날짜",
@@ -1070,7 +1085,7 @@
     "toggleSidebar": "사이드바 토글",
     "addEndDate": "종료 날짜 추가",
     "endDate": "종료일",
-    "withEndDate": "With end date",
+    "withEndDate": "종료 날짜 포함",
     "calendar": "캘린더",
     "viewSettings": "뷰 설정",
     "googleOAuth": "구글 OAuth",

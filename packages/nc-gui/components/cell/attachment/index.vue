@@ -57,6 +57,7 @@ const {
   isReadonly,
   storedFiles,
   removeFile,
+  updateAttachmentTitle,
 } = useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
@@ -226,6 +227,7 @@ defineExpose({
   downloadAttachment,
   renameAttachment: renameFile,
   removeAttachment: onRemoveFileClick,
+  updateAttachmentTitle,
 })
 </script>
 

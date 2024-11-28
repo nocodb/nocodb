@@ -71,6 +71,10 @@ function downloadCurrentFile() {
 function deleteCurrentFile() {
   smartsheetCell.value?.removeAttachment(activeAttachment.value.title, activeAttachmentIndex.value)
 }
+
+function updateAttachmentTitle(index: number, title: string) {
+  smartsheetCell.value?.updateAttachmentTitle(index, title)
+}
 </script>
 
 <script lang="ts">
@@ -126,7 +130,7 @@ export default {
           <NcEditableText
             v-if="activeAttachment"
             :model-value="activeAttachment.title"
-            @update:model-value="activeAttachment.title = $event"
+            @update:model-value="updateAttachmentTitle(activeAttachmentIndex, $event)"
           />
 
           <div class="flex-1" />

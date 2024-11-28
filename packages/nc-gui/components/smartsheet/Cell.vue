@@ -166,6 +166,9 @@ defineExpose({
   removeAttachment: (attachmentTitle: string, index: number) => {
     attachmentCell.value?.removeAttachment(attachmentTitle, index)
   },
+  updateAttachmentTitle: (index: number, title: string) => {
+    attachmentCell.value?.updateAttachmentTitle(index, title)
+  },
 })
 </script>
 

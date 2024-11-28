@@ -29,6 +29,7 @@ function goToEditMode() {
 
 function finishEdit() {
   isInEditMode.value = false
+  modelValue.value = internalText.value
 }
 
 function cancelEdit() {

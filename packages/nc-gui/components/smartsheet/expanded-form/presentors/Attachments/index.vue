@@ -37,7 +37,7 @@ const selectedFieldId = ref(props.view?.attachment_mode_column_id ?? attachmentF
 
 const selectedField = computed(() => attachmentFields.value.find((field) => field.id === selectedFieldId.value))
 
-const selectedFieldValue = computed(() => _row.value.row[selectedField.value?.column_name || ''])
+const selectedFieldValue = computed(() => _row.value.row[selectedField.value?.title || ''])
 
 const activeAttachmentIndex = ref(0)
 
@@ -130,13 +130,16 @@ export default {
             v-model="selectedFieldId"
             :items="attachmentFields.map(field => ({ label: field.title || field.id!, value: field.id! }))"
           >
-            <NcButton type="secondary" size="small">
-              <GeneralIcon icon="cellAttachment" class="w-4 aspect-square flex items-center justify-center" />
-              <span class="min-w-[100px] max-w-[200px] truncate text-left pl-2 inline-block">
-                {{ selectedField?.title }}
-              </span>
-              <GeneralIcon icon="chevronDown" class="ms-2 text-gray-500 aspect-square flex items-center justify-center" />
-            </NcButton>
+            <NcTooltip>
+              <template #title>{{ selectedField?.title }}</template>
+              <NcButton type="secondary" size="small">
+                <GeneralIcon icon="cellAttachment" class="w-4 h-4 aspect-square flex items-center justify-center" />
+                <span class="w-[200px] truncate text-left pl-2 inline-block">
+                  {{ selectedField?.title }}
+                </span>
+                <GeneralIcon icon="chevronDown" class="h-4 w-4 ml-1 text-gray-500 aspect-square flex items-center justify-center" />
+              </NcButton>
+            </NcTooltip>
           </NcDropdownSelect>
 
           <NcEditableText

@@ -1531,10 +1531,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const updatePkValues = [];
 
       for (const data of preparedDatas) {
-        if (!raw) {
-          await this.prepareNocoData(data, true, cookie);
-        }
-
         const pkValues = this.extractPksValues(data);
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
@@ -1570,6 +1566,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           toInsert.push(data);
         }
       }
+
+      await Promise.all(toInsert.map((d) => this.prepareNocoData(d, true, cookie)))
+      await Promise.all(toUpdate.map((d) => this.prepareNocoData(d, false, cookie)))
+
 
       const chunkSize = this.isSqlite ? 10 : 100;
       let trimLeading = 0;

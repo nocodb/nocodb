@@ -5332,10 +5332,6 @@ class BaseModelSqlv2 {
       const dataWithoutPks = [];
 
       for (const data of preparedDatas) {
-        if (!raw) {
-          await this.prepareNocoData(data, true, cookie);
-        }
-
         const pkValues = this.extractPksValues(data);
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
@@ -5365,6 +5361,9 @@ class BaseModelSqlv2 {
           toInsert.push(data);
         }
       }
+
+      await Promise.all(toInsert.map((d) => this.prepareNocoData(d, true, cookie)))
+      await Promise.all(toUpdate.map((d) => this.prepareNocoData(d, false, cookie)))
 
       trx = await this.dbDriver.transaction();
 

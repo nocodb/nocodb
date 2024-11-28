@@ -156,7 +156,7 @@ class NcPluginMgrv2 {
       process.env.NC_SMTP_HOST &&
       process.env.NC_SMTP_PORT
     ) {
-      const smtpPlugin = await Plugin.getPlugin(SMTPPluginConfig.title);
+      const smtpPlugin = await Plugin.getPlugin(SMTPPluginConfig.id);
       await Plugin.update(smtpPlugin.id, {
         active: true,
         input: JSON.stringify({

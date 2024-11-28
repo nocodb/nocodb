@@ -44,24 +44,35 @@ const defaultPlugins = [
   R2PluginConfig,
 ];
 
+const logger = {
+  log: (message: string) => {
+    console.log(`[0258003_ncDuplicatePluginMerge ${Date.now()}] ` + message);
+  },
+  error: (message: string) => {
+    console.error(`[0258003_ncDuplicatePluginMerge ${Date.now()}] ` + message);
+  },
+};
+
 // This upgrader helps to merge the duplicate plugins and recover the broken plugins
 // and also adds a unique id to the plugin to avoid the duplicate plugins in the future
 export default async function ({ ncMeta }: NcUpgraderCtx) {
+  logger.log('Merging duplicate plugins and updating the plugin id');
   // get the plugins which are valid and matches the plugin title
   // update the plugin with the new id
   for (const pluginConfig of defaultPlugins) {
     // get the valid plugin
-    const plugin = await ncMeta
+    const currentPlugin = await ncMeta
       .knex(MetaTable.PLUGIN)
       .where('title', pluginConfig.title)
       .first();
 
-    if (plugin) {
+    if (currentPlugin) {
       // update the plugin with the new id
       await ncMeta
         .knex(MetaTable.PLUGIN)
-        .where('id', plugin.id)
+        .where('id', currentPlugin.id)
         .update({ id: pluginConfig.id });
+      currentPlugin.id = pluginConfig.id;
     }
 
     if (pluginConfig.fallbackTitle) {
@@ -71,21 +82,36 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
         .where('title', pluginConfig.fallbackTitle)
         .first();
 
-      if (plugin) {
+      // if the old plugin is not present then continue
+      if (!oldPlugin) continue;
+
+      if (currentPlugin) {
         // if the old plugin is present then update the new plugin with the old plugin configuration
-        // and only if new plugin is not configured and active
-        if (!plugin.active && oldPlugin.active) {
+        // and only if new plugin is not configured or active
+        if (
+          (!currentPlugin.active && oldPlugin?.active) ||
+          (!currentPlugin.input && oldPlugin?.input)
+        ) {
           await ncMeta
             .knex(MetaTable.PLUGIN)
             .update({
               input: oldPlugin.input,
-              active: true,
+              active: currentPlugin.active || oldPlugin.active,
             })
-            .where('id', plugin.id);
+            // use the new plugin id since it's already updated at the start
+            .where('id', pluginConfig.id);
+          logger.log(
+            `Merged the old plugin with the new plugin: ${pluginConfig.id}`,
+          );
         }
-
-        // delete the old plugin
-        await ncMeta.knex(MetaTable.PLUGIN).where('id', oldPlugin.id).delete();
+        if (oldPlugin) {
+          // delete the old plugin
+          await ncMeta
+            .knex(MetaTable.PLUGIN)
+            .where('id', oldPlugin.id)
+            .delete();
+          logger.log(`Deleted the old duplicate plugin: ${oldPlugin.title}`);
+        }
       } else {
         // if new plugin is not present then update the old plugin with the new id
         // we can skip rest of the props since it will get updated from the existing plugin initialization
@@ -93,7 +119,9 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
           .knex(MetaTable.PLUGIN)
           .where('id', oldPlugin.id)
           .update({ id: pluginConfig.id });
+        logger.log(`Updated the old plugin id: ${pluginConfig.id}`);
       }
     }
   }
+  logger.log('Merging duplicate plugins and updating the plugin id completed');
 }

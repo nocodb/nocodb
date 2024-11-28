@@ -161,21 +161,25 @@ export class OrgUsersService {
 
           // in case of single user check for smtp failure
           // and send back token if failed
-          if (
-            emails.length === 1 &&
-            !(await this.baseUsersService.sendInviteEmail(
-              email,
-              invite_token,
-              param.req,
-            ))
-          ) {
-            return { invite_token, email };
+          if (emails.length === 1) {
+            if (
+              !(await this.baseUsersService.sendInviteEmail({
+                email,
+                token: invite_token,
+                useOrgTemplate: true,
+                req: param.req,
+                roles: param.user.roles || OrgUserRoles.VIEWER,
+              }))
+            )
+              return { invite_token, email };
           } else {
-            this.baseUsersService.sendInviteEmail(
+            await this.baseUsersService.sendInviteEmail({
               email,
-              invite_token,
-              param.req,
-            );
+              token: invite_token,
+              req: param.req,
+              useOrgTemplate: true,
+              roles: param.user.roles || OrgUserRoles.VIEWER,
+            });
           }
         } catch (e) {
           console.log(e);
@@ -234,11 +238,13 @@ export class OrgUsersService {
       );
     }
 
-    await this.baseUsersService.sendInviteEmail(
-      user.email,
-      invite_token,
-      param.req,
-    );
+    await this.baseUsersService.sendInviteEmail({
+      email: user.email,
+      token: invite_token,
+      req: param.req,
+      useOrgTemplate: true,
+      roles: user.roles,
+    });
 
     this.appHooksService.emit(AppEvents.ORG_USER_RESEND_INVITE, {
       invitedBy: param.req.user,

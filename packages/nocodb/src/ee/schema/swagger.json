@@ -3823,6 +3823,133 @@
           "required": false
         }
       ]
+    },
+    "/api/v2/meta/bases/{baseId}/snapshots": {
+      "get": {
+        "summary": "List snapshots",
+        "description": "List snapshots for a given base",
+        "operationId": "snapshot-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Snapshot"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Snapshot"
+        ]
+      },
+      "post": {
+        "summary": "Create snapshot",
+        "description": "Create snapshot for a given base",
+        "operationId": "snapshot-create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Name of the snapshot"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Snapshot"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Snapshot"
+        ]
+      }
+    },
+    "/api/v2/meta/bases/{baseId}/snapshots/{snapshotId}/restore": {
+      "post": {
+        "summary": "Restore snapshot",
+        "description": "Restore snapshot for a given base",
+        "operationId": "snapshot-restore",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string",
+                    "description": "ID of the workspace where to restore"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Snapshot"
+        ]
+      }
+    },
+    "/api/v2/meta/bases/{baseId}/snapshots/{snapshotId}": {
+      "delete": {
+        "summary": "Delete snapshot",
+        "description": "Delete snapshot for a given base",
+        "operationId": "snapshot-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Snapshot"
+        ]
+      },
+      "patch": {
+        "summary": "Update snapshot",
+        "description": "Update snapshot for a given base",
+        "operationId": "snapshot-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Snapshot"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Snapshot"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

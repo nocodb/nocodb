@@ -93,8 +93,6 @@ const input = ref<HTMLInputElement>()
 
 const { isUIAllowed } = useRoles()
 
-const toggleDialog = inject(ToggleDialogInj, () => {})
-
 const { refreshCommandPalette } = useCommandPalette()
 
 const { addNewLayout, getDashboardProjectUrl: dashboardProjectUrl, populateLayouts } = useDashboardStore()
@@ -605,6 +603,10 @@ watch(
   },
 )
 
+const openBaseSettings = async (baseId: string) => {
+  await navigateTo(`/${route.value.params.typeOrId}/${baseId}?page=base-settings`)
+}
+
 const showNodeTooltip = ref(true)
 </script>
 
@@ -812,7 +814,7 @@ const showNodeTooltip = ref(true)
                       v-e="['c:navdraw:base-settings']"
                       data-testid="nc-sidebar-base-settings"
                       class="nc-sidebar-base-base-settings"
-                      @click="toggleDialog(true, 'teamAndAuth', undefined, base.id)"
+                      @click="openBaseSettings(base.id)"
                     >
                       <GeneralIcon icon="settings" class="group-hover:text-black" />
                       {{ $t('activity.settings') }}

@@ -224,6 +224,7 @@ export class BasesService extends BasesServiceCE {
       baseBody.is_meta = false;
     }
 
+    // Limited for consistent behaviour across identifier names for table, view, columns
     if (baseBody?.title.length > 50) {
       NcError.badRequest('Base title exceeds 50 characters');
     }

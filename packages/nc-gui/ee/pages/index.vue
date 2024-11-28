@@ -12,23 +12,6 @@ const route = router.currentRoute
 
 const { ncNavigateTo } = useGlobal()
 
-const dialogOpen = ref(false)
-
-const openDialogKey = ref<string>('')
-
-const dataSourcesState = ref<string>('')
-
-const dialogProjectId = ref<string>('')
-
-function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
-  dialogOpen.value = value ?? !dialogOpen.value
-  openDialogKey.value = key || ''
-  dataSourcesState.value = dsState || ''
-  dialogProjectId.value = pId || ''
-}
-
-provide(ToggleDialogInj, toggleDialog)
-
 const workspaceStore = useWorkspace()
 const { populateWorkspace } = workspaceStore
 const { collaborators, lastPopulatedWorkspaceId, activeWorkspaceId } = storeToRefs(workspaceStore)
@@ -155,12 +138,6 @@ onMounted(async () => {
         <NuxtPage :transition="false" />
       </template>
     </NuxtLayout>
-    <LazyDashboardSettingsModal
-      v-model:model-value="dialogOpen"
-      v-model:open-key="openDialogKey"
-      v-model:data-sources-state="dataSourcesState"
-      :base-id="dialogProjectId"
-    />
     <DlgSharedBaseDuplicate v-model="isDuplicateDlgOpen" />
   </div>
 </template>

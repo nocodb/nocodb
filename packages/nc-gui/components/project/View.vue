@@ -58,8 +58,10 @@ watch(
         projectPageTab.value = 'collaborator'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
-      } else {
+      } else if (newVal === 'allTable') {
         projectPageTab.value = 'allTable'
+      } else {
+        projectPageTab.value = 'base-settings'
       }
       return
     }
@@ -166,7 +168,7 @@ watch(
         <a-tab-pane v-if="isUIAllowed('newUser', { roles: baseRoles }) && !isSharedBase" key="collaborator">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
-              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
+              <GeneralIcon icon="users" />
               <div>{{ $t('labels.members') }}</div>
               <div
                 v-if="userCount"
@@ -185,7 +187,7 @@ watch(
         <a-tab-pane v-if="isUIAllowed('sourceCreate') && base.id" key="data-source">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__data-sources">
-              <GeneralIcon icon="database" />
+              <GeneralIcon icon="ncDatabase" />
               <div>{{ $t('labels.dataSources') }}</div>
               <div
                 v-if="base.sources?.length"
@@ -200,6 +202,15 @@ watch(
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isUIAllowed('baseMiscSettings')" key="base-settings">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__base-settings">
+              <GeneralIcon icon="ncSettings" />
+              <div>{{ $t('activity.settings') }}</div>
+            </div>
+          </template>
+          <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
         </a-tab-pane>
       </a-tabs>
     </div>

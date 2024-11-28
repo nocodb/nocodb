@@ -3,37 +3,7 @@
   hideHeader: true,
   hasSidebar: true,
 })
-
-const dialogOpen = ref(false)
-
-const openDialogKey = ref<string>('')
-
-const dataSourcesState = ref<string>('')
-
-const baseId = ref<string>()
-
-function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
-  dialogOpen.value = value ?? !dialogOpen.value
-  openDialogKey.value = key || ''
-  dataSourcesState.value = dsState || ''
-  baseId.value = pId || ''
-}
-
-provide(ToggleDialogInj, toggleDialog) */
-
-// onMounted(async () => {
-//   isLoading.value = true
-//   try {
-//     await loadWorkspace(route.params.typeOrId as string)
-//     await loadProjects()
-//   } finally {
-//     isLoading.value = false
-//   }
-// })
-
-// TODO
-// const isSharedBase = ref(false)
-// const currentVersion = ref('')
+ */
 </script>
 
 <template>

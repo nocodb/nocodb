@@ -120,6 +120,7 @@ const rolePermissions = {
   [ProjectRoles.OWNER]: {
     include: {
       baseDelete: true,
+      manageSnapshot: true,
     },
   },
   [ProjectRoles.CREATOR]: {

@@ -77,6 +77,7 @@ export enum MetaTable {
   INTEGRATIONS = 'nc_integrations_v2',
   INTEGRATIONS_STORE = 'nc_integrations_store_v2',
   FILE_REFERENCES = 'nc_file_references',
+  SNAPSHOT = 'nc_snapshots',
 }
 
 export const orderedMetaTables = [
@@ -206,6 +207,7 @@ export enum CacheScope {
   COL_BUTTON = 'colButton',
   CMD_PALETTE = 'cmdPalette',
   PRODUCT_FEED = 'productFeed',
+  SNAPSHOT = 'snapshot',
 }
 
 export const RootScopeTables = {

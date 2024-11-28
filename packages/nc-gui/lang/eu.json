@@ -93,6 +93,9 @@
     "none": "Ezer ez"
   },
   "general": {
+    "snapshot": "Snapshot",
+    "snapshots": "Snapshots",
+    "baseSnapshots": "Base Snapshots",
     "featurePreview": "Feature Preview",
     "scripts": "Script-ak",
     "configure": "Konfiguratu",
@@ -648,6 +651,18 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "snapshotCreationFailed": "Snapshot creation failed",
+    "snapshotCreationFailedDescription": "Failed to create your base snapshot. Try again later.",
+    "snapshotCooldownDescription": "Snapshots can only be taken three hours apart.",
+    "snapshotCooldownWarning": "Snapshot cooldown remaining",
+    "snapshotLimitDescription": "You can only maintain 2 base snapshots at a time. Upgrade your plan for additional snapshots.",
+    "snapshotLimitReached": "Snapshot limit reached",
+    "confirmRestore": "Confirm Restore",
+    "visibilityAndDataHandling": "Visibility & Data Handling",
+    "visibilityConfigLabel": "Base specific additional configurations to customise data display & default behaviours.",
+    "snapShotSubText": "Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation. Restoring a snapshot creates a new instance of the base in the designated workspace.",
+    "newSnapshot": "New Snapshot",
+    "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",
     "modifiedOn": "Aldatze data",
@@ -1070,7 +1085,7 @@
     "toggleSidebar": "Aldatu albo-barra",
     "addEndDate": "Gehitu amaiera data",
     "endDate": "End Date",
-    "withEndDate": "With end date",
+    "withEndDate": "amaiera datarekin",
     "calendar": "Egutegia",
     "viewSettings": "Ikuspegi ezarpenak",
     "googleOAuth": "Google OAuth",

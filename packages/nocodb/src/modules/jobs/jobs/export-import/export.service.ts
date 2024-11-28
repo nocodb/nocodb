@@ -380,7 +380,7 @@ export class ExportService {
         }
       }
 
-      const searializedComments = [];
+      const serializedComments = [];
 
       if (!excludeComments) {
         const comments = await Comment.listByModel(context, model.id);
@@ -388,7 +388,7 @@ export class ExportService {
         for (const comment of comments) {
           idMap.set(comment.id, `${idMap.get(model.id)}::${comment.id}`);
 
-          searializedComments.push({
+          serializedComments.push({
             id: idMap.get(comment.id),
             fk_model_id: idMap.get(comment.fk_model_id),
             row_id: comment.row_id,
@@ -470,7 +470,7 @@ export class ExportService {
           view: view.view,
         })),
         hooks: serializedHooks,
-        comments: searializedComments,
+        comments: serializedComments,
       });
     }
 

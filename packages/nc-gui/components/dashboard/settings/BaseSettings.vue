@@ -3,17 +3,22 @@ const { isUIAllowed } = useRoles()
 
 const hasPermissionForSnapshots = computed(() => isUIAllowed('manageSnapshot'))
 
+const router = useRouter()
+
 const activeMenu = ref(isEeUI && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility')
 
 const selectMenu = (option: string) => {
   if (!hasPermissionForSnapshots.value && option === 'snapshots') {
     return
   }
-
+  router.push({
+    query: {
+      ...router.currentRoute.value.query,
+      tab: option,
+    },
+  })
   activeMenu.value = option
 }
-
-const router = useRouter()
 
 onMounted(() => {
   const query = router.currentRoute.value.query

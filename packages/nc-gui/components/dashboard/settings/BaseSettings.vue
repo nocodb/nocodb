@@ -3,9 +3,13 @@ const { isUIAllowed } = useRoles()
 
 const hasPermissionForSnapshots = computed(() => isUIAllowed('manageSnapshot'))
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const router = useRouter()
 
-const activeMenu = ref(isEeUI && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility')
+const activeMenu = ref(
+  isEeUI && isFeatureEnabled(FEATURE_FLAG.BASE_SNAPSHOTS) && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility',
+)
 
 const selectMenu = (option: string) => {
   if (!hasPermissionForSnapshots.value && option === 'snapshots') {
@@ -34,7 +38,7 @@ onMounted(() => {
     <div class="flex flex-col">
       <div class="h-full w-60">
         <div
-          v-if="isEeUI && hasPermissionForSnapshots"
+          v-if="isEeUI && hasPermissionForSnapshots && isFeatureEnabled(FEATURE_FLAG.BASE_SNAPSHOTS)"
           data-testid="snapshots-tab"
           :class="{
             'active-menu': activeMenu === 'snapshots',

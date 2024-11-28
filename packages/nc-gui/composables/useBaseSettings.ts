@@ -18,14 +18,21 @@ export const useBaseSettings = createSharedComposable(() => {
 
   const basesStore = useBases()
 
+  const { loadProjects } = basesStore
+
+  const { navigateToProject } = useGlobal()
+
+  const { refreshCommandPalette } = useCommandPalette()
+
   const _projectId = inject(ProjectIdInj, undefined)
 
   const isCreatingSnapshot = ref(false)
+
   const isRestoringSnapshot = ref(false)
 
   const baseId = computed(() => _projectId?.value ?? base.value?.id)
 
-  const { basesUser } = storeToRefs(basesStore)
+  const { basesUser, bases } = storeToRefs(basesStore)
 
   const baseUsers = computed(() => (baseId.value ? basesUser.value.get(baseId.value) || [] : []))
 
@@ -46,14 +53,12 @@ export const useBaseSettings = createSharedComposable(() => {
   }
 
   const deleteSnapshot = async (snapshot: SnapshotExtendedType) => {
+    if (!baseId.value) return
     try {
-      snapshot.loading = true
       await $api.snapshot.delete(baseId.value, snapshot.id!)
       snapshots.value = snapshots.value.filter((s) => s.id !== snapshot.id)
     } catch (error) {
       message.error(await extractSdkResponseErrorMsg(error))
-      snapshot.loading = false
-      snapshot.error = true
       console.error(error)
     }
   }
@@ -124,8 +129,8 @@ export const useBaseSettings = createSharedComposable(() => {
   const restoreSnapshot = async (snapshot: SnapshotExtendedType) => {
     if (!baseId.value) return
     try {
-      await $api.snapshot.restore(baseId.value, snapshot.id!)
       isRestoringSnapshot.value = true
+      await $api.snapshot.restore(baseId.value, snapshot.id!)
 
       $poller.subscribe(
         { id: snapshot.id! },
@@ -140,15 +145,29 @@ export const useBaseSettings = createSharedComposable(() => {
             result?: any
           }
         }) => {
-          if (data.status !== 'close') {
-            if (data.status === JobStatus.COMPLETED) {
-              // Table metadata recreated successfully
-              message.info('Snapshot restored successfully')
-              isRestoringSnapshot.value = false
-            } else if (status === JobStatus.FAILED) {
-              message.error('Failed to restore snapshot')
-              isRestoringSnapshot.value = false
+          if (data.status === JobStatus.COMPLETED) {
+            await loadProjects('workspace')
+            const base = bases.value.get(data.id)
+
+            isRestoringSnapshot.value = false
+
+            // open project after snapshot success
+            if (base) {
+              await navigateToProject({
+                workspaceId: isEeUI ? base.fk_workspace_id : undefined,
+                baseId: base.id,
+                type: base.type,
+              })
             }
+            message.info('Snapshot restored successfully')
+
+            refreshCommandPalette()
+          } else if (data.status === JobStatus.FAILED) {
+            message.error('Failed to restore snapshot')
+            await loadProjects('workspace')
+            isRestoringSnapshot.value = false
+
+            refreshCommandPalette()
           }
         },
       )

@@ -383,7 +383,21 @@ export class ExportService {
       const serializedComments = [];
 
       if (!excludeComments) {
-        const comments = await Comment.listByModel(context, model.id);
+        const READ_BATCH_SIZE = 100;
+        let comments: Comment[] = [];
+        let offset = 0;
+
+        while (true) {
+          const batchComments = await Comment.listByModel(context, model.id, {
+            limit: READ_BATCH_SIZE + 1,
+            offset
+          });
+
+          comments.push(...batchComments.slice(0, READ_BATCH_SIZE));
+
+          if (batchComments.length <= READ_BATCH_SIZE) break;
+          offset += READ_BATCH_SIZE;
+        }
 
         for (const comment of comments) {
           idMap.set(comment.id, `${idMap.get(model.id)}::${comment.id}`);

@@ -14,7 +14,7 @@ import DiscordPluginConfig from '~/plugins/discord';
 import GcsPluginConfig from '~/plugins/gcs';
 import LinodePluginConfig from '~/plugins/linode';
 import MattermostPluginConfig from '~/plugins/mattermost';
-import MinioPluginConfig from '~/plugins/mino';
+import MinioPluginConfig from '~/plugins/minio';
 import OvhCloudPluginConfig from '~/plugins/ovhCloud';
 import S3PluginConfig from '~/plugins/s3';
 import ScalewayPluginConfig from '~/plugins/scaleway';

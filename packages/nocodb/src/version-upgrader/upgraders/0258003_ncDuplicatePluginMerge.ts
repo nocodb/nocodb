@@ -5,7 +5,7 @@ import DiscordPluginConfig from '~/plugins/discord';
 import TwilioWhatsappPluginConfig from '~/plugins/twilioWhatsapp';
 import TwilioPluginConfig from '~/plugins/twilio';
 import S3PluginConfig from '~/plugins/s3';
-import MinioPluginConfig from '~/plugins/mino';
+import MinioPluginConfig from '~/plugins/minio';
 import GcsPluginConfig from '~/plugins/gcs';
 import MattermostPluginConfig from '~/plugins/mattermost';
 import SpacesPluginConfig from '~/plugins/spaces';
@@ -75,11 +75,11 @@ export default async function ({ ncMeta }: NcUpgraderCtx) {
       currentPlugin.id = pluginConfig.id;
     }
 
-    if (pluginConfig.fallbackTitle) {
+    if (pluginConfig.recoveryTitle) {
       // get the plugin with old title
       const oldPlugin = await ncMeta
         .knex(MetaTable.PLUGIN)
-        .where('title', pluginConfig.fallbackTitle)
+        .where('title', pluginConfig.recoveryTitle)
         .first();
 
       // if the old plugin is not present then continue

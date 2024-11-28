@@ -348,9 +348,17 @@ export const useNocoAi = createSharedComposable(() => {
     }
   }
 
-  onMounted(() => {
-    loadAiIntegrations()
-  })
+  const { signedIn } = useGlobal()
+
+  watch(
+    signedIn,
+    (val) => {
+      if (val) {
+        loadAiIntegrations()
+      }
+    },
+    { immediate: true },
+  )
 
   return {
     aiIntegrationAvailable,

@@ -349,28 +349,35 @@ async function saveChanges() {
   await extension.value.kvStore.set('savedPayloads', savedPayloads.value)
 }
 
-const handleUpdateFieldConfigExpansionPanel = (key: string) => {
+const handleUpdateFieldConfigExpansionPanel = (key: string, expand = false) => {
   if (!fullscreen.value) {
     fullscreen.value = true
   }
-  if (fieldConfigExpansionPanel.value.includes(key)) {
+  if (!expand && fieldConfigExpansionPanel.value.includes(key)) {
     fieldConfigExpansionPanel.value = []
   } else {
     fieldConfigExpansionPanel.value = [key]
     handleAutoScrollField(key)
   }
+
   validateAll()
 
   handleScroll()
 }
 
+const usedFieldConfigIds = ref<string[]>([])
+
 const getNewFieldConfigId = (initId = 'fieldConfig') => {
   let id = initId
   let i = 1
-  while ((bulkUpdatePayload.value?.config || []).find((c) => c.id === id)) {
+
+  while ((bulkUpdatePayload.value?.config || []).find((c) => c.id === id) || usedFieldConfigIds.value.includes(id)) {
     id = `${initId}_${i}`
     i++
   }
+
+  usedFieldConfigIds.value.push(id)
+
   return id
 }
 
@@ -388,8 +395,7 @@ function addNewAction() {
     fullscreen.value = true
   }
 
-  handleUpdateFieldConfigExpansionPanel(configId)
-  validateAll()
+  handleUpdateFieldConfigExpansionPanel(configId, true)
 
   nextTick(() => {
     setTimeout(() => {
@@ -411,6 +417,7 @@ async function handleRemoveFieldConfig(configId: string) {
 
   await saveChanges()
   validateAll()
+
   handleScroll()
 }
 
@@ -605,6 +612,10 @@ async function validateAll() {
   await v$.value?.$validate()
 }
 
+function clearValidate() {
+  v$.value?.$reset()
+}
+
 async function bulkUpdateView(data: Record<string, any>) {
   if (!meta.value || !bulkUpdatePayload.value?.viewId) return
 
@@ -646,11 +657,17 @@ async function handleBulkUpdate() {
 }
 
 const handleConfirmUpdate = async () => {
+  await validateAll()
+
+  if (v$.value.$error) {
+    return
+  }
+
   await loadViewData()
 }
 
 onClickOutside(formRef, (e) => {
-  if (!fullscreen.value || (e.target as HTMLElement)?.closest(`.nc-bulk-update-add-action-section`)) return
+  if (!fullscreen.value || (e.target as HTMLElement)?.closest(`.nc-bulk-update-add-action-section, .nc-select-dropdown`)) return
   if ((e.target as HTMLElement) === fieldConfigRef.value?.children?.[0]) {
     fieldConfigExpansionPanel.value = []
 
@@ -753,7 +770,7 @@ provide(IsGalleryInj, ref(false))
         :loading="isLoadingViewInfo"
         @click="handleConfirmUpdate"
       >
-        Update Records
+        Update records
       </NcButton>
     </template>
 
@@ -836,6 +853,7 @@ provide(IsGalleryInj, ref(false))
           class="flex-1 flex"
           :class="{
             'h-full': fullscreen,
+            'nc-scrollbar-thin': !fullscreen,
           }"
         >
           <div
@@ -912,9 +930,9 @@ provide(IsGalleryInj, ref(false))
           </div>
           <div
             ref="fieldConfigRef"
-            class="nc-field-config-ref h-full flex-1 flex flex-col nc-scrollbar-thin"
+            class="nc-field-config-ref h-full flex-1 flex flex-col"
             :class="{
-              'pt-5 px-4 relative': fullscreen,
+              'pt-5 px-4 relative nc-scrollbar-thin': fullscreen,
               'max-h-[calc(100%_-_25px)]': !fullscreen,
             }"
             @scroll="handleScroll(false)"
@@ -1191,8 +1209,14 @@ provide(IsGalleryInj, ref(false))
                         </LazySmartsheetDivDataCell>
                       </a-form-item>
 
-                      <div>
-                        <NcButton type="text" size="xs" @click="handleRemoveFieldConfig(fieldConfig.id)">
+                      <div class="w-full flex justify-end">
+                        <NcButton
+                          type="text"
+                          size="xs"
+                          class="flex-none"
+                          iconPosition="right"
+                          @click="handleRemoveFieldConfig(fieldConfig.id)"
+                        >
                           <template #icon>
                             <GeneralIcon icon="delete" />
                           </template>
@@ -1229,18 +1253,14 @@ provide(IsGalleryInj, ref(false))
                   'border-t-1 border-nc-border-gray-medium': !isScrolledToBottom,
                 }"
               >
-                <NcButton
-                  type="secondary"
-                  size="medium"
-                  class="w-full max-w-[520px] !mx-auto"
-                  :disabled="isAllFieldSelected"
-                  @click="addNewAction"
-                >
-                  <template #icon>
-                    <GeneralIcon icon="ncPlus" />
-                  </template>
-                  New action
-                </NcButton>
+                <NcTooltip :disabled="!isAllFieldSelected" title="No more fields to add" class="w-full max-w-[520px] !mx-auto">
+                  <NcButton type="secondary" size="medium" class="w-full" :disabled="isAllFieldSelected" @click="addNewAction">
+                    <template #icon>
+                      <GeneralIcon icon="ncPlus" />
+                    </template>
+                    New action
+                  </NcButton>
+                </NcTooltip>
               </div>
             </div>
           </div>
@@ -1253,19 +1273,21 @@ provide(IsGalleryInj, ref(false))
             'p-3 border-t-1 border-t-nc-border-gray-medium bg-white': !fullscreen,
           }"
         >
-          <NcButton size="small" type="secondary" :disabled="isAllFieldSelected" @click="addNewAction">
-            <template #icon>
-              <GeneralIcon icon="ncPlus" />
-            </template>
-            New action
-          </NcButton>
+          <NcTooltip :disabled="!isAllFieldSelected" title="No more fields to add">
+            <NcButton size="small" type="secondary" :disabled="isAllFieldSelected" @click="addNewAction">
+              <template #icon>
+                <GeneralIcon icon="ncPlus" />
+              </template>
+              New action
+            </NcButton>
+          </NcTooltip>
           <NcButton
             size="small"
             :disabled="v$.$error || !selectedFieldConfigForBulkUpdate.length || isLoadingViewInfo"
             :loading="isLoadingViewInfo"
             @click="handleConfirmUpdate"
           >
-            Update Records
+            Update records
           </NcButton>
         </div>
       </div>
@@ -1347,7 +1369,7 @@ provide(IsGalleryInj, ref(false))
     .ant-collapse-header {
       @apply !p-0 flex items-center !cursor-default children:first:flex;
     }
-    .nc-bulk-update-field-config-section .ant-collapse-header {
+    &.nc-bulk-update-field-config-section .ant-collapse-header {
       @apply !cursor-pointer;
     }
     .ant-collapse-icon-position-right > .ant-collapse-item > .ant-collapse-header .ant-collapse-arrow {
@@ -1371,7 +1393,7 @@ provide(IsGalleryInj, ref(false))
         @apply last:(border-b-1 !rounded-b-none);
       }
       .nc-bulk-update-field-config-section.ant-collapse {
-        @apply rounded-none;
+        @apply !rounded-none;
       }
     }
   }

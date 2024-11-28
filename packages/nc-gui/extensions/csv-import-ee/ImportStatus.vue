@@ -56,18 +56,21 @@ const handleScroll = () => {
       >
         <div class="flex flex-col gap-2.5">
           <slot name="subtitle">
-            <div class="text-sm text-nc-content-gray-subtle">
-              <div class="inline-flex gap-1 bg-nc-bg-gray-medium rounded-md px-1">
-                <span class="inline-flex items-center h-5">
-                  <GeneralIcon icon="file" class="flex-none text-gray-600/80 h-3.5 w-3.5" />
-                </span>
+            <div class="text-sm text-nc-content-gray-subtle leading-6">
+              <NcBadge
+                color="grey"
+                :border="false"
+                class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium leading-5 align-middle"
+              >
+                <GeneralIcon icon="file" class="flex-none text-gray-600/80 h-3.5 w-3.5" />
+
                 <NcTooltip class="truncate max-w-[120px]" show-on-truncate-only>
                   <template #title>
                     {{ filename }}
                   </template>
                   {{ filename }}
                 </NcTooltip>
-              </div>
+              </NcBadge>
 
               {{
                 status === 'inprogress'
@@ -77,21 +80,24 @@ const handleScroll = () => {
                   : 'has fail to import into'
               }}
 
-              <div class="inline-flex gap-1 bg-nc-bg-gray-medium rounded-md px-1">
-                <div class="inline-flex items-center">
-                  <LazyGeneralEmojiPicker :emoji="tableicon" readonly size="xsmall" class="flex-none">
-                    <template #default>
-                      <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
-                    </template>
-                  </LazyGeneralEmojiPicker>
-                </div>
+              <NcBadge
+                color="grey"
+                :border="false"
+                class="inline-flex items-center gap-1 !bg-nc-bg-gray-medium leading-5 align-middle"
+              >
+                <LazyGeneralEmojiPicker :emoji="tableicon" readonly size="xsmall" class="flex-none">
+                  <template #default>
+                    <GeneralIcon icon="table" class="min-w-4 !text-gray-500" />
+                  </template>
+                </LazyGeneralEmojiPicker>
                 <NcTooltip class="truncate max-w-[120px]" show-on-truncate-only>
                   <template #title>
                     {{ tablename }}
                   </template>
                   {{ tablename }}
                 </NcTooltip>
-              </div>
+              </NcBadge>
+
               table.
             </div>
           </slot>

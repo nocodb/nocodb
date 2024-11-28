@@ -13,6 +13,10 @@ const { getPossibleAttachmentSrc } = useAttachment()
 
 const isImageAttachment = computed(() => isImage(props.attachment.title ?? '', props.attachment.mimetype ?? ''))
 
+const isVideoAttachment = computed(() => isVideo(props.attachment.title ?? '', props.attachment.mimetype ?? ''))
+
+const isAudioAttachment = computed(() => isAudio(props.attachment.title ?? '', props.attachment.mimetype ?? ''))
+
 const isPdfAttachment = computed(() => isPdf(props.attachment.title ?? '', props.attachment.mimetype ?? ''))
 </script>
 
@@ -21,6 +25,20 @@ const isPdfAttachment = computed(() => isPdf(props.attachment.title ?? '', props
     <template v-if="isImageAttachment">
       <div class="w-full h-full p-6">
         <img :src="getPossibleAttachmentSrc(props.attachment)?.[0]" class="w-full h-full object-contain" />
+      </div>
+    </template>
+    <template v-else-if="isVideoAttachment">
+      <div class="w-full h-full p-6">
+        <video class="w-full h-full object-contain" controls>
+          <source :src="getPossibleAttachmentSrc(props.attachment)?.[0]" :type="props.attachment.mimetype" />
+        </video>
+      </div>
+    </template>
+    <template v-else-if="isAudioAttachment">
+      <div class="w-full h-full flex items-center justify-center p-6">
+        <audio class="w-full" controls>
+          <source :src="getPossibleAttachmentSrc(props.attachment)?.[0]" :type="props.attachment.mimetype" />
+        </audio>
       </div>
     </template>
     <template v-else-if="isPdfAttachment">

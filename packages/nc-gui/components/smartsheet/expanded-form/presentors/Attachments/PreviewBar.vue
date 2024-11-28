@@ -18,7 +18,7 @@ const isExpanded = ref(false)
 
 <template>
   <div
-    class="absolute left-0 top-0 bottom-0 bg-white border-r-1 border-gray-200 flex flex-col transition-all duration-300"
+    class="absolute left-0 top-0 bottom-0 bg-white border-r-1 border-gray-200 flex flex-col transition-all duration-300 z-10"
     :class="{
       'w-[80px]': !isExpanded,
       'w-[320px]': isExpanded,

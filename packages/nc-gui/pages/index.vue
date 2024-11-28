@@ -4,14 +4,6 @@ definePageMeta({
   hasSidebar: true,
 })
 
-const dialogOpen = ref(false)
-
-const openDialogKey = ref<string>('')
-
-const dataSourcesState = ref<string>('')
-
-const baseId = ref<string>()
-
 const basesStore = useBases()
 
 const { populateWorkspace } = useWorkspace()
@@ -101,15 +93,6 @@ onMounted(() => {
     }
   })
 })
-
-function toggleDialog(value?: boolean, key?: string, dsState?: string, pId?: string) {
-  dialogOpen.value = value ?? !dialogOpen.value
-  openDialogKey.value = key || ''
-  dataSourcesState.value = dsState || ''
-  baseId.value = pId || ''
-}
-
-provide(ToggleDialogInj, toggleDialog)
 </script>
 
 <template>
@@ -128,12 +111,6 @@ provide(ToggleDialogInj, toggleDialog)
         <NuxtPage />
       </template>
     </NuxtLayout>
-    <LazyDashboardSettingsModal
-      v-model:model-value="dialogOpen"
-      v-model:open-key="openDialogKey"
-      v-model:data-sources-state="dataSourcesState"
-      :base-id="baseId"
-    />
     <DlgSharedBaseDuplicate v-if="isUIAllowed('baseDuplicate')" v-model="isDuplicateDlgOpen" />
   </div>
 </template>

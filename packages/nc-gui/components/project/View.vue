@@ -58,8 +58,10 @@ watch(
         projectPageTab.value = 'collaborator'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
-      } else {
+      } else if (newVal === 'allTable') {
         projectPageTab.value = 'allTable'
+      } else {
+        projectPageTab.value = 'base-settings'
       }
       return
     }
@@ -200,6 +202,15 @@ watch(
             </div>
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isUIAllowed('baseMiscSettings')" key="base-settings">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__base-settings">
+              <GeneralIcon icon="ncSettings" />
+              <div>{{ $t('activity.settings') }}</div>
+            </div>
+          </template>
+          <DashboardSettingsBaseSettings :base-id="base.id!" class="max-h-full" />
         </a-tab-pane>
       </a-tabs>
     </div>

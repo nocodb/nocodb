@@ -168,7 +168,7 @@ watch(
         <a-tab-pane v-if="isUIAllowed('newUser', { roles: baseRoles }) && !isSharedBase" key="collaborator">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
-              <GeneralIcon icon="users" class="!h-3.5 !w-3.5" />
+              <GeneralIcon icon="users" />
               <div>{{ $t('labels.members') }}</div>
               <div
                 v-if="userCount"

@@ -5332,14 +5332,11 @@ class BaseModelSqlv2 {
       const dataWithoutPks = [];
 
       for (const data of preparedDatas) {
-        if (!raw) {
-          await this.prepareNocoData(data, true, cookie);
-        }
-
         const pkValues = this.extractPksValues(data);
         if (pkValues !== 'N/A' && pkValues !== undefined) {
           dataWithPks.push({ pk: pkValues, data });
         } else {
+          await this.prepareNocoData(data, true, cookie)
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           dataWithoutPks.push(data);
         }
@@ -5359,8 +5356,10 @@ class BaseModelSqlv2 {
 
       for (const { pk, data } of dataWithPks) {
         if (existingPkSet.has(pk)) {
+          await this.prepareNocoData(data, false, cookie)
           toUpdate.push(data);
         } else {
+          await this.prepareNocoData(data, true, cookie)
           // const insertObj = this.handleValidateBulkInsert(data, columns);
           toInsert.push(data);
         }

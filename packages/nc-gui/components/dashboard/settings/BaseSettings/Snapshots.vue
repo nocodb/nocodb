@@ -1,5 +1,10 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
+import type { SnapshotType } from 'nocodb-sdk'
+
 const { t } = useI18n()
+
+const { $api } = useNuxtApp()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook')
 
@@ -23,7 +28,18 @@ const orderBy = computed<Record<string, SordDirectionType>>({
   },
 })
 
-const snapshots = ref([])
+const {
+  snapshots,
+  createSnapshot,
+  listSnapshots,
+  updateSnapshot,
+  deleteSnapshot,
+  cancelNewSnapshot,
+  isUnsavedSnapshotsPending,
+  addNewSnapshot,
+  isCreatingSnapshot,
+  isRestoringSnapshot,
+} = useBaseSettings()
 
 const columns = [
   {
@@ -43,9 +59,38 @@ const columns = [
     padding: '12px 24px',
   },
 ] as NcTableColumnProps[]
+
+onMounted(async () => {
+  await listSnapshots()
+})
 </script>
 
 <template>
+  <div
+    v-if="isCreatingSnapshot || isRestoringSnapshot"
+    class="absolute w-full h-full inset-0 flex items-center justify-center z-90 bg-black/12"
+  >
+    <div
+      v-if="isCreatingSnapshot"
+      style="box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1)"
+      class="bg-white p-6 flex flex-col w-[488px] rounded-2xl"
+    >
+      <div class="text-nc-content-gray-emphasis text-lg font-bold">Creating base snapshot</div>
+      <div class="text-nc-gray-subtle2 mt-2">
+        Your database snapshot is being created. This process may take some time to complete. Please do not close this window
+        until the snapshot has finished.
+      </div>
+
+      <div class="w-full flex justify-between items-center gap-3 mt-5">
+        <GeneralLoader size="xlarge" />
+
+        <NcButton size="small" type="secondary">
+          {{ $t('general.cancel') }}
+        </NcButton>
+      </div>
+    </div>
+  </div>
+
   <div class="item-card flex flex-col w-full">
     <div class="text-nc-content-gray-emphasis font-semibold text-lg">
       {{ $t('general.baseSnapshots') }}
@@ -56,7 +101,7 @@ const columns = [
     </div>
 
     <div class="flex items-center mt-6 gap-5">
-      <NcButton class="!w-36" size="small" type="secondary">
+      <NcButton :disabled="isUnsavedSnapshotsPending" class="!w-36" size="small" type="secondary" @click="addNewSnapshot">
         {{ $t('labels.newSnapshot') }}
       </NcButton>
     </div>
@@ -68,24 +113,45 @@ const columns = [
       class="h-full mt-5"
       body-row-class-name="nc-base-settings-snapshot-item"
     >
-      <template #bodyCell="{ column, record: hook }">
+      <template #bodyCell="{ column, record: snapshot }">
         <template v-if="column.key === 'name'">
-          <NcTooltip class="truncate max-w-full text-gray-800 font-semibold text-sm" show-on-truncate-only>
-            {{ hook.title }}
+          <NcTooltip v-if="!snapshot.isNew" class="truncate max-w-full text-gray-800 font-semibold text-sm" show-on-truncate-only>
+            {{ snapshot.title }}
 
             <template #title>
-              {{ hook.title }}
+              {{ snapshot.title }}
             </template>
           </NcTooltip>
+          <a-input v-else v-model:value="snapshot.title" class="new-snapshot-title" />
         </template>
         <template v-if="column.key === 'action'">
-          <div class="flex items-center gap-2">
-            <NcButton size="small" type="text" class="!text-xs">
-              {{ $t('labels.edit') }}
+          <div v-if="!snapshot?.isNew" class="flex row-action items-center">
+            <NcButton size="small" type="secondary" class="!text-xs !rounded-r-none !border-r-0" :shadow="false">
+              <div class="text-nc-content-gray-subtle font-semibold">
+                {{ $t('general.restore') }}
+              </div>
             </NcButton>
-            <NcButton size="small" type="text" class="!text-xs">
-              {{ $t('labels.delete') }}
+            <NcButton
+              size="small"
+              type="secondary"
+              class="!text-xs !rounded-l-none"
+              :shadow="false"
+              @click="deleteSnapshot(snapshot)"
+            >
+              <GeneralIcon icon="delete" />
             </NcButton>
+          </div>
+
+          <div v-else>
+            <div class="flex gap-2">
+              <NcButton type="secondary" size="small" @click="cancelNewSnapshot()">
+                {{ $t('general.cancel') }}
+              </NcButton>
+
+              <NcButton type="primary" size="small" @click="createSnapshot(snapshot)">
+                {{ $t('general.save') }}
+              </NcButton>
+            </div>
           </div>
         </template>
       </template>
@@ -93,4 +159,8 @@ const columns = [
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.ant-input {
+  @apply rounded-lg py-1 px-3 w-398 h-8 border-1 focus:border-brand-500 border-gray-200;
+}
+</style>

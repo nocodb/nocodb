@@ -12,6 +12,15 @@ const selectMenu = (option: string) => {
 
   activeMenu.value = option
 }
+
+const router = useRouter()
+
+onMounted(() => {
+  const query = router.currentRoute.value.query
+  if (query && query.tab && ['snapshots', 'visibility'].includes(query.tab as string)) {
+    selectMenu(query.tab as string)
+  }
+})
 </script>
 
 <template>

@@ -3,6 +3,7 @@ import { UITypes, UITypesName, readonlyMetaAllowedTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   options: typeof uiTypes
+  extraIcons?: Record<string, string>
 }>()
 
 const emits = defineEmits<{ selected: [UITypes] }>()
@@ -13,12 +14,15 @@ const searchQuery = ref('')
 
 const { isMetaReadOnly } = useRoles()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const filteredOptions = computed(
   () =>
     options.value?.filter(
       (c) =>
-        c.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        (UITypesName[c.name] && UITypesName[c.name].toLowerCase().includes(searchQuery.value.toLowerCase())),
+        !(c.name === 'AIButton' && !isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)) &&
+        (c.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
+          (UITypesName[c.name] && UITypesName[c.name].toLowerCase().includes(searchQuery.value.toLowerCase()))),
     ) ?? [],
 )
 
@@ -68,6 +72,14 @@ onMounted(() => {
   searchQuery.value = ''
   activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
 })
+
+watch(
+  () => options.value,
+  () => {
+    searchQuery.value = ''
+    activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
+  },
+)
 </script>
 
 <template>
@@ -114,12 +126,13 @@ onMounted(() => {
               'hover:bg-gray-100 cursor-pointer': !isDisabledUIType(option.name),
               'bg-gray-100 nc-column-list-option-active': activeFieldIndex === index && !isDisabledUIType(option.name),
               '!text-gray-400 cursor-not-allowed': isDisabledUIType(option.name),
+              '!text-nc-content-purple-dark': option.name === 'AIButton',
             },
           ]"
           :data-testid="option.name"
           @click="onClick(option.name)"
         >
-          <div class="flex gap-2 items-center">
+          <div class="flex flex-1 gap-2 items-center">
             <component
               :is="option.icon"
               class="w-4 h-4"
@@ -127,7 +140,11 @@ onMounted(() => {
             />
             <div class="flex-1 text-sm">{{ UITypesName[option.name] }}</div>
             <span v-if="option.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+            <span v-if="option.isNew" class="text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md">{{
+              $t('general.new')
+            }}</span>
           </div>
+          <GeneralIcon v-if="extraIcons && extraIcons[option.name]" class="!text-gray-500" :icon="extraIcons[option.name]" />
         </div>
       </GeneralSourceRestrictionTooltip>
     </div>

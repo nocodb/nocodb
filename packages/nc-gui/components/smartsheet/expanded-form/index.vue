@@ -69,6 +69,8 @@ const maintainDefaultViewOrder = toRef(props, 'maintainDefaultViewOrder')
 
 const route = useRoute()
 
+const router = useRouter()
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 // to check if a expanded form which is not yet saved exist or not
@@ -548,6 +550,8 @@ const isReadOnlyVirtualCell = (column: ColumnType) => {
   )
 }
 
+const mentionedCell = ref('')
+
 // Small hack. We need to scroll to the bottom of the form after its mounted and back to top.
 // So that tab to next row works properly, as otherwise browser will focus to save button
 // when we reach to the bottom of the visual scrollable area, not the actual bottom of the form
@@ -560,7 +564,25 @@ watch([expandedFormScrollWrapper, isLoading], () => {
     expandedFormScrollWrapperEl.scrollTop = expandedFormScrollWrapperEl.scrollHeight
 
     setTimeout(() => {
-      expandedFormScrollWrapperEl.scrollTop = 0
+      nextTick(() => {
+        const query = router.currentRoute.value.query
+        const columnId = query.columnId
+
+        if (columnId) {
+          router.push({
+            query: {
+              rowId: query.rowId,
+            },
+          })
+          mentionedCell.value = columnId as string
+          scrollToColumn(columnId as string)
+          onClickOutside(document.querySelector(`[col-id="${columnId}"]`)! as HTMLDivElement, () => {
+            mentionedCell.value = null
+          })
+        } else {
+          expandedFormScrollWrapperEl.scrollTop = 0
+        }
+      })
     }, 125)
   }
 })
@@ -584,6 +606,16 @@ watch(
     emits('updateRowCommentCount', commentCount)
   },
 )
+
+function scrollToColumn(columnId: string) {
+  const columnEl = document.querySelector(`.${columnId}`)
+  if (columnEl) {
+    columnEl.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    })
+  }
+}
 </script>
 
 <script lang="ts">
@@ -812,6 +844,7 @@ export default {
                     :class="{
                       '!select-text nc-system-field': isReadOnlyVirtualCell(col),
                       '!select-text nc-readonly-div-data-cell': readOnly,
+                      'nc-mentioned-cell': col.id === mentionedCell,
                     }"
                   >
                     <LazySmartsheetVirtualCell
@@ -888,6 +921,7 @@ export default {
                       :class="{
                         '!select-text nc-system-field': isReadOnlyVirtualCell(col),
                         '!bg-gray-50 !select-text nc-readonly-div-data-cell': readOnly,
+                        'nc-mentioned-cell': col.id === mentionedCell,
                       }"
                     >
                       <LazySmartsheetVirtualCell
@@ -1070,12 +1104,16 @@ export default {
   @apply !rounded-lg;
   transition: all 0.3s;
 
-  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
+  &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell):not(.nc-virtual-cell-button):not(
+      :has(.nc-cell-ai-button)
+    ) {
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
   }
-  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button) {
+  &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button):not(
+      :has(.nc-cell-ai-button)
+    ) {
     @apply !border-1;
-    &:not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
+    &:not(.nc-attachment-cell):not(.nc-virtual-cell-button):not(:has(.nc-cell-ai-button)) {
       box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
     }
   }
@@ -1126,6 +1164,12 @@ export default {
     }
   }
 }
+
+.nc-mentioned-cell {
+  box-shadow: 0px 0px 0px 2px var(--ant-primary-color-outline) !important;
+  @apply !border-brand-500 !border-1;
+}
+
 .nc-data-cell:focus-within {
   @apply !border-1 !border-brand-500;
 }

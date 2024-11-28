@@ -44,12 +44,12 @@ const tabs: Array<{
     title: 'Youtube',
     container: FeedYoutube,
   },
-  {
+  /*  {
     key: 'twitter',
     icon: 'ncTwitter',
     title: 'Twitter',
     container: FeedTwitter,
-  },
+  }, */
 ]
 
 const router = useRouter()

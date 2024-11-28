@@ -275,15 +275,17 @@ async function addIfMissingAndSave() {
         }
       }
 
-      await $api.dbTableColumn.update(
+      const data = await $api.dbTableColumn.update(
         (column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string),
         updatedColMeta,
       )
 
+
+      column.value.colOptions = data.columns.find((c) => c.id === column.value.id).colOptions
+
       activeOptCreateInProgress.value--
       if (!activeOptCreateInProgress.value) {
         vModel.value = [...vModel.value]
-        // await getMeta(column.value.fk_model_id!, true)
         tempSelectedOptsState.splice(0, tempSelectedOptsState.length)
       }
     } else {

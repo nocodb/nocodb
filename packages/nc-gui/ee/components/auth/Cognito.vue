@@ -2,6 +2,7 @@
 import '@aws-amplify/ui-vue/styles.css'
 import { Authenticator } from '@aws-amplify/ui-vue'
 import isEmail from 'validator/es/lib/isEmail'
+import { Auth } from 'aws-amplify'
 
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
 
@@ -71,6 +72,41 @@ const formFields = {
     },
   },
 }
+
+const email = ref('')
+const confirmCode = ref('')
+const emailVerifyDlg = ref(false)
+const confirmCodeForm = ref(false)
+const loading = ref(false)
+
+const emailVerify = async () => {
+  loading.value = true
+  if (confirmCodeForm.value) {
+    try {
+      await Auth.confirmSignUp(email.value, confirmCode.value)
+      confirmCodeForm.value = false
+      await message.success('Email verified successfully, Now you can try resetting password.')
+    } catch (e) {
+      await message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  } else {
+    try {
+      await Auth.resendSignUp(email.value)
+      confirmCodeForm.value = true
+    } catch (e) {
+      await message.error(await extractSdkResponseErrorMsg(e as any))
+    }
+  }
+  loading.value = false
+}
+
+watch(emailVerifyDlg, (val) => {
+  if (val) return
+  confirmCodeForm.value = false
+  email.value = ''
+  confirmCode.value = ''
+  emailVerifyDlg.value = false
+})
 </script>
 
 <template>
@@ -97,7 +133,77 @@ const formFields = {
           </a>
         </div>
       </template>
+
+      <template #reset-password-footer>
+        <div class="text-center flex gap-1 justify-center">
+          Verify your email if not done already:
+          <span class="cursor-pointer underline" @click="emailVerifyDlg = true">Click here</span>
+          <NcTooltip>
+            <template #title>
+              <div class="text-center">
+                If your email wasn’t verified during sign-up, please verify it now before proceeding with the reset; otherwise,
+                you won’t receive the reset code.
+              </div>
+            </template>
+            <GeneralIcon icon="info" />
+          </NcTooltip>
+        </div>
+      </template>
+      <template #confirm-reset-password-footer>
+        <div class="text-center flex gap-1 justify-center">
+          Verify your email if not done already:
+          <span class="cursor-pointer underline" @click="emailVerifyDlg = true">Click here</span>
+          <NcTooltip>
+            <template #title>
+              <div class="text-center">
+                If your email wasn’t verified during sign-up, please verify it now before proceeding with the reset; otherwise,
+                you won’t receive the reset code.
+              </div>
+            </template>
+            <GeneralIcon icon="info" />
+          </NcTooltip>
+        </div>
+      </template>
     </Authenticator>
+
+    <!-- Modal for email verification -->
+    <NcModal v-model:visible="emailVerifyDlg" size="small" title="Email Verification" wrap-class-name="rounded-lg">
+      <div v-if="!confirmCodeForm" class="amplify-flex amplify-field amplify-textfield">
+        <label class="amplify-label" for="amplify-email">Email</label>
+        <div class="amplify-flex amplify-field-group">
+          <div class="amplify-field-group__field-wrapper">
+            <input
+              id="amplify-email"
+              v-model="email"
+              class="amplify-input amplify-field-group__control"
+              placeholder="Email"
+              type="email"
+            />
+          </div>
+        </div>
+      </div>
+      <div v-else class="amplify-flex amplify-field amplify-textfield">
+        <label class="amplify-label" for="amplify-confirm-code">Verification Code</label>
+        <div class="amplify-flex amplify-field-group">
+          <div class="amplify-field-group__field-wrapper">
+            <input
+              id="amplify-confirm-code"
+              v-model="confirmCode"
+              class="amplify-input amplify-field-group__control"
+              placeholder="Verification Code"
+              type="password"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-4 mt-4">
+        <NcButton type="secondary" @click="emailVerifyDlg = false"> Close </NcButton>
+        <NcButton type="primary" :loading="loading" @click="emailVerify">
+          {{ confirmCodeForm ? 'Verify' : 'Get Verification Code' }}
+        </NcButton>
+      </div>
+    </NcModal>
   </div>
 </template>
 

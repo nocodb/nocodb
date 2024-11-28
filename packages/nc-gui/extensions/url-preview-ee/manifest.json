@@ -1,0 +1,26 @@
+{
+  "id": "nc-url-preview",
+  "title": "URL Preview",
+  "subTitle": "Generates visual previews of links within your database.",
+  "description": "url-preview-ee/description.md",
+  "entry": "url-preview-ee",
+  "version": "0.1",
+  "iconUrl": "url-preview-ee/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "url-preview-ee/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "disabled": false,
+  "config": {
+    "modalSize": "md",
+    "contentMinHeight": "340px"
+  },
+  "order": 5
+}

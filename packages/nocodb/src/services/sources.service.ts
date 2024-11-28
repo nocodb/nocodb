@@ -82,10 +82,14 @@ export class SourcesService {
     return true;
   }
 
-  async baseSoftDelete(context: NcContext, param: { sourceId: string }) {
+  async baseSoftDelete(
+    context: NcContext,
+    param: { sourceId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
     try {
-      const source = await Source.get(context, param.sourceId);
-      await source.softDelete(context);
+      const source = await Source.get(context, param.sourceId, false, ncMeta);
+      await source.softDelete(context, ncMeta);
     } catch (e) {
       NcError.badRequest(e);
     }
@@ -173,7 +177,12 @@ export class SourcesService {
 
       param.logger?.('Populating meta');
 
-      const info = await populateMeta(context, source, base, param.logger);
+      const info = await populateMeta(context, {
+        source,
+        base,
+        logger: param.logger,
+        user: param.req.user,
+      });
 
       await populateRollupColumnAndHideLTAR(context, source, base);
 

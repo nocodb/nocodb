@@ -70,13 +70,21 @@ export default class Local implements IStorageAdapterV2 {
   public async fileCreateByStream(
     key: string,
     stream: Readable,
-  ): Promise<void> {
+  ): Promise<string | null> {
     return new Promise((resolve, reject) => {
       const destPath = validateAndNormaliseLocalPath(key);
       try {
         mkdirp(path.dirname(destPath)).then(() => {
           const writableStream = fs.createWriteStream(destPath);
-          writableStream.on('finish', () => resolve());
+          writableStream.on('finish', () => {
+            this.fileRead(destPath)
+              .then(() => {
+                resolve(null);
+              })
+              .catch((e) => {
+                reject(e);
+              });
+          });
           writableStream.on('error', (err) => reject(err));
           stream.pipe(writableStream);
         });
@@ -86,9 +94,16 @@ export default class Local implements IStorageAdapterV2 {
     });
   }
 
-  public async fileReadByStream(key: string): Promise<Readable> {
+  public async fileReadByStream(
+    key: string,
+    options: { encoding?: string },
+  ): Promise<Readable> {
     const srcPath = validateAndNormaliseLocalPath(key);
-    return fs.createReadStream(srcPath, { encoding: 'utf8' });
+    return fs.createReadStream(srcPath, {
+      ...(options?.encoding && {
+        encoding: options.encoding as BufferEncoding,
+      }),
+    });
   }
 
   public async getDirectoryList(key: string): Promise<string[]> {

@@ -101,7 +101,7 @@ test.describe('LTAR with filter create & update', () => {
     // In cell insert
     await dashboard.grid.addNewRow({ index: 4, value: '2b' });
     await dashboard.grid.cell.inCellAdd({ index: 4, columnHeader: 'Link1-hm' });
-    await dashboard.linkRecord.select('2a', true);
+    await dashboard.linkRecord.select('2a', false);
     await dashboard.grid.cell.inCellAdd({
       index: 1,
       columnHeader: 'Link1-mm',
@@ -191,7 +191,7 @@ test.describe('LTAR with filter create & update', () => {
     // In cell insert
     await dashboard.grid.addNewRow({ index: 4, value: '2c' });
     await dashboard.grid.cell.inCellAdd({ index: 4, columnHeader: 'Link1-hm' });
-    await dashboard.linkRecord.select('2c', true);
+    await dashboard.linkRecord.select('2c', false);
     await dashboard.grid.cell.inCellAdd({
       index: 1,
       columnHeader: 'Link1-mm',

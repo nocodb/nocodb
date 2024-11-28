@@ -4,7 +4,9 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: ScalewayObjectStoragePlugin,
+  id: 'scaleway',
   title: 'Scaleway',
+  recoveryTitle: 'Scaleway Object Storage',
   version: '0.0.4',
   logo: 'plugins/scaleway.png',
   tags: 'Storage',

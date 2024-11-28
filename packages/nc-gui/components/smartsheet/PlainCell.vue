@@ -94,7 +94,7 @@ const getDateTimeValue = (modelValue: string | null, col: ColumnType) => {
   const isXcDB = isXcdbBase(col.source_id)
 
   if (!isXcDB) {
-    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue, dateTimeFormat).format(dateTimeFormat)
+    return dayjs(/^\d+$/.test(modelValue) ? +modelValue : modelValue).format(dateTimeFormat)
   }
 
   if (isMssql(col.source_id)) {
@@ -361,7 +361,7 @@ const parseValue = (value: any, col: ColumnType): string => {
     class="plain-cell before:px-1"
     :class="{
       '!font-bold': bold,
-      'italic': italic,
+      '!italic': italic,
       'underline': underline,
     }"
     data-testid="nc-plain-cell"
@@ -372,9 +372,12 @@ const parseValue = (value: any, col: ColumnType): string => {
 
 <style lang="scss" scoped>
 .plain-cell {
+  font-synthesis: initial !important;
   &::before {
     content: '•';
     padding: 0 4px;
+    display: inline-block;
+    text-decoration: none !important;
   }
   &:first-child::before {
     content: '';

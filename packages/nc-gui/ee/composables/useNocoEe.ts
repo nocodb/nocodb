@@ -6,6 +6,8 @@ export const useNocoEe = () => {
 
   const { refreshCommandPalette } = useCommandPalette()
 
+  const { predictNextFields, predictNextFormulas: _predictNextFormulas } = useNocoAi()
+
   const loadMagic = ref(false)
 
   const predictColumnType = async (formState: Ref<Record<string, any>>, onUidtOrIdTypeChange: () => void) => {
@@ -101,50 +103,28 @@ export const useNocoEe = () => {
 
   const predictedNextFormulas = ref<Array<{ title: string; formula: string }>>()
 
-  const predictNextColumn = async (meta: Ref<TableType>) => {
+  const predictNextColumn = async (tableId: string) => {
     if (predictingNextColumn.value) return
     predictedNextColumn.value = []
     predictingNextColumn.value = true
     try {
-      if (meta.value && meta.value.columns) {
-        const res: { data: Array<{ title: string; type: string }> } = await $api.utils.magic({
-          operation: 'predictNextColumn',
-          data: {
-            table: meta.value.title,
-            columns: meta.value.columns.map((col) => col.title),
-          },
-        })
+      const res = await predictNextFields(tableId)
 
-        predictedNextColumn.value = res.data
-      }
+      predictedNextColumn.value = res
     } catch (e) {
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }
     predictingNextColumn.value = false
   }
 
-  const predictNextFormulas = async (meta: Ref<TableType>) => {
+  const predictNextFormulas = async (tableId: string) => {
     if (predictingNextFormulas.value) return
+    predictedNextFormulas.value = []
     predictingNextFormulas.value = true
     try {
-      if (meta.value && meta.value.columns) {
-        const res: { data: Array<{ title: string; formula: string }> } = await $api.utils.magic({
-          operation: 'predictNextFormulas',
-          data: {
-            table: meta.value.title,
-            columns: meta.value.columns
-              .filter((c) => {
-                // skip system LTAR columns
-                if (c.uidt === UITypes.LinkToAnotherRecord && c.system) return false
-                if ([UITypes.QrCode, UITypes.Barcode].includes(c.uidt as UITypes)) return false
-                return true
-              })
-              .map((col) => col.title),
-          },
-        })
+      const res = await _predictNextFormulas(tableId)
 
-        predictedNextFormulas.value = res.data
-      }
+      predictedNextFormulas.value = res
     } catch (e) {
       message.warning('NocoAI: Underlying GPT API are busy. Please try after sometime.')
     }

@@ -28,8 +28,15 @@ const vOpen = useVModel(props, 'open', emit)
 
 const connectionType = computed(() => props.connectionType ?? ClientType.MYSQL)
 
-const { isFromIntegrationPage, pageMode, IntegrationsPageMode, activeIntegration, saveIntegration, updateIntegration } =
-  useIntegrationStore()
+const {
+  isFromIntegrationPage,
+  pageMode,
+  IntegrationsPageMode,
+  activeIntegration,
+  saveIntegration,
+  updateIntegration,
+  integrationsIconMap,
+} = useIntegrationStore()
 
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 
@@ -482,7 +489,7 @@ const activeIntegrationIcon = computed(() => {
     ? activeIntegration.value?.sub_type || activeIntegration.value?.config?.client
     : activeIntegration.value?.type
 
-  return allIntegrationsMapByValue[activeIntegrationType]?.icon
+  return integrationsIconMap[activeIntegrationType]
 })
 
 // reset test status on config change
@@ -561,7 +568,6 @@ watch(
         >
           <GeneralIcon icon="arrowLeft" />
         </NcButton>
-
         <div
           v-if="activeIntegrationIcon"
           class="h-8 w-8 flex items-center justify-center children:flex-none bg-gray-200 rounded-lg"
@@ -607,7 +613,7 @@ watch(
           class="nc-extdb-btn-submit"
           @click="createOrUpdateIntegration"
         >
-          {{ pageMode === IntegrationsPageMode.ADD ? 'Create connection' : 'Modify connection' }}
+          {{ pageMode === IntegrationsPageMode.ADD ? 'Create connection' : 'Update connection' }}
         </NcButton>
         <NcButton size="small" type="text" @click="vOpen = false">
           <GeneralIcon icon="close" class="text-gray-600" />

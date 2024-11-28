@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, ProjectRoles } from 'nocodb-sdk';
+import { AppEvents, ProjectRoles, ViewLockType } from 'nocodb-sdk';
 import type {
   SharedViewReqType,
   UserType,
@@ -9,7 +9,7 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { Model, ModelRoleVisibility, View } from '~/models';
+import { BaseUser, Model, ModelRoleVisibility, View } from '~/models';
 
 // todo: move
 async function xcVisibilityMetaGet(
@@ -77,6 +77,7 @@ export class ViewsService {
       user: {
         roles?: Record<string, boolean> | string;
         base_roles?: Record<string, boolean>;
+        id: string;
       };
     },
   ) {
@@ -94,6 +95,14 @@ export class ViewsService {
     // todo: user roles
     //await View.list(param.tableId)
     const filteredViewList = viewList.filter((view: any) => {
+      // if (
+      //   view.lock_type === ViewLockType.Personal &&
+      //   view.owned_by !== param.user.id &&
+      //   !(!view.owned_by && !param.user.base_roles?.[ProjectRoles.OWNER])
+      // ) {
+      //   return false;
+      // }
+
       return Object.values(ProjectRoles).some(
         (role) => param?.user?.['base_roles']?.[role] && !view.disabled[role],
       );
@@ -136,18 +145,83 @@ export class ViewsService {
       'swagger.json#/components/schemas/ViewUpdateReq',
       param.view,
     );
+    const oldView = await View.get(context, param.viewId);
 
-    const view = await View.get(context, param.viewId);
-
-    if (!view) {
+    if (!oldView) {
       NcError.viewNotFound(param.viewId);
     }
 
-    const result = await View.update(context, param.viewId, param.view);
+    let ownedBy = oldView.owned_by;
+    let createdBy = oldView.created_by;
+    let includeCreatedByAndUpdateBy = false;
+
+    // check if the lock_type changing to `personal` and only allow if user is the owner
+    // if the owned_by is not the same as the user, then throw error
+    // if owned_by is empty, then only allow owner of project to change
+    if (
+      param.view.lock_type === 'personal' &&
+      param.view.lock_type !== oldView.lock_type
+    ) {
+      // if owned_by is not empty then check if the user is the owner of the project
+      if (ownedBy && ownedBy !== param.user.id) {
+        NcError.unauthorized('Only owner/creator can change to personal view');
+      }
+
+      // if empty then check if current user is the owner of the project then allow and update the owned_by
+      if (!ownedBy && (param.user as any).base_roles?.[ProjectRoles.OWNER]) {
+        includeCreatedByAndUpdateBy = true;
+        ownedBy = param.user.id;
+        if (!createdBy) {
+          createdBy = param.user.id;
+        }
+      } else if (!ownedBy) {
+        // todo: move to catchError
+        NcError.unauthorized('Only owner can change to personal view');
+      }
+    }
+
+    // handle view ownership transfer
+    if (ownedBy && param.view.owned_by && ownedBy !== param.view.owned_by) {
+      // extract user roles and allow creator and owner to change to personal view
+      if (
+        param.user.id !== ownedBy &&
+        !(param.user as any).base_roles?.[ProjectRoles.OWNER] &&
+        !(param.user as any).base_roles?.[ProjectRoles.CREATOR]
+      ) {
+        NcError.unauthorized('Only owner/creator can transfer view ownership');
+      }
+
+      ownedBy = param.view.owned_by;
+
+      // verify if the new owned_by is a valid user who have access to the base/workspace
+      // if not then throw error
+      const baseUser = await BaseUser.get(
+        context,
+        context.base_id,
+        param.view.owned_by,
+      );
+
+      if (!baseUser) {
+        NcError.badRequest('Invalid user');
+      }
+
+      includeCreatedByAndUpdateBy = true;
+    }
+
+    const result = await View.update(
+      context,
+      param.viewId,
+      {
+        ...param.view,
+        owned_by: ownedBy,
+        created_by: createdBy,
+      },
+      includeCreatedByAndUpdateBy,
+    );
 
     this.appHooksService.emit(AppEvents.VIEW_UPDATE, {
       view: {
-        ...view,
+        ...oldView,
         ...param.view,
       },
       user: param.user,

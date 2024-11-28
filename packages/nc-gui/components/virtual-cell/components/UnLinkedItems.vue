@@ -66,7 +66,7 @@ const relation = computed(() => {
 
 const linkRow = async (row: Record<string, any>, id: number) => {
   if (isNew.value) {
-    addLTARRef(row, injectedColumn?.value as ColumnType)
+    await addLTARRef(row, injectedColumn?.value as ColumnType)
     if (relation.value === 'oo' || relation.value === 'bt') {
       isChildrenExcludedListLinked.value.forEach((isLinked, idx) => {
         if (isLinked) {

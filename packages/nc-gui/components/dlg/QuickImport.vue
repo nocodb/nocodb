@@ -181,6 +181,9 @@ async function handlePreImport() {
   } else if (activeKey.value === 'jsonEditorTab') {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor))
   }
+
+  isParsingData.value = false
+  preImportLoading.value = false
 }
 
 async function handleImport() {
@@ -504,9 +507,6 @@ async function parseAndExtractData(val: UploadFile[] | ArrayBuffer | string) {
   } catch (e: any) {
     console.log(e)
     message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isParsingData.value = false
-    preImportLoading.value = false
   }
 }
 

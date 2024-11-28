@@ -75,8 +75,12 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
       })
     }
 
-    /** try generating access token using refresh token */
-    await state.refreshToken()
+    try {
+      /** try generating access token using refresh token */
+      await state.refreshToken({})
+    } catch (e) {
+      console.info('Refresh token failed', (e as Error)?.message)
+    }
 
     /** if user is still not signed in, redirect to signin page */
     if (!state.signedIn.value) {

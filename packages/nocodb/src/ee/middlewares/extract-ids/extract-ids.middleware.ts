@@ -11,6 +11,7 @@ import {
   OrgUserRoles,
   ProjectRoles,
   SourceRestriction,
+  ViewLockType,
   WorkspacePlan,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
@@ -70,6 +71,8 @@ export const rolesLabel = {
   [ProjectRoles.COMMENTER]: 'Base Commenter',
 };
 
+const VIEW_KEY = Symbol('view');
+
 export function getRolesLabels(
   roles: (OrgUserRoles | WorkspaceUserRoles | ProjectRoles | string)[],
 ) {
@@ -94,6 +97,7 @@ const workspacesOnThisServer: string[] = !process.env.NC_WORKSPACE_ID
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   async use(req, res, next): Promise<any> {
     const { params } = req;
+    let view;
 
     const context = {
       workspace_id: RootScopes.BYPASS,
@@ -122,7 +126,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
     } else if (params.viewId) {
-      const view =
+      view =
         (await View.get(context, params.viewId)) ||
         (await Model.get(context, params.viewId));
 
@@ -139,7 +143,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       params.galleryViewId ||
       params.calendarViewId
     ) {
-      const view = await View.get(
+      view = await View.get(
         context,
         params.formViewId ||
           params.gridViewId ||
@@ -205,6 +209,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.fieldNotFound(params.gridViewColumnId);
       }
 
+      if (gridViewColumn.fk_view_id) {
+        view = await View.get(context, gridViewColumn.fk_view_id);
+      }
+
       req.ncBaseId = gridViewColumn?.base_id;
       req.ncSourceId = gridViewColumn?.source_id;
     } else if (params.formViewColumnId) {
@@ -217,6 +225,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.fieldNotFound(params.formViewColumnId);
       }
 
+      if (formViewColumn.fk_view_id) {
+        view = await View.get(context, formViewColumn.fk_view_id);
+      }
+
       req.ncBaseId = formViewColumn.base_id;
       req.ncSourceId = formViewColumn.source_id;
     } else if (params.galleryViewColumnId) {
@@ -227,6 +239,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       if (!galleryViewColumn) {
         NcError.fieldNotFound(params.galleryViewColumnId);
+      }
+
+      if (galleryViewColumn.fk_view_id) {
+        view = await View.get(context, galleryViewColumn.fk_view_id);
       }
 
       req.ncBaseId = galleryViewColumn.base_id;
@@ -247,6 +263,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Filter', params.filterId);
       }
 
+      if (filter.fk_view_id) {
+        view = await View.get(context, filter.fk_view_id);
+      }
+
       req.ncBaseId = filter.base_id;
       req.ncSourceId = filter.source_id;
     } else if (params.filterParentId) {
@@ -256,6 +276,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Filter', params.filterParentId);
       }
 
+      if (filter.fk_view_id) {
+        view = await View.get(context, filter.fk_view_id);
+      }
+
       req.ncBaseId = filter.base_id;
       req.ncSourceId = filter.source_id;
     } else if (params.sortId) {
@@ -263,6 +287,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       if (!sort) {
         NcError.genericNotFound('Sort', params.sortId);
+      }
+
+      if (sort.fk_view_id) {
+        view = await View.get(context, sort.fk_view_id);
       }
 
       req.ncBaseId = sort.base_id;
@@ -463,6 +491,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
     }
 
+    // if view API and view is pesonal view then check if user has access to view
+    if (view && view.lock_type === ViewLockType.Personal) {
+      req[VIEW_KEY] = view;
+    }
+
     if (req.ncWorkspaceId) {
       const workspace = await Workspace.get(req.ncWorkspaceId);
 
@@ -568,6 +601,18 @@ export class AclMiddleware implements NestInterceptor {
 
     if (!req.user?.isAuthorized) {
       NcError.unauthorized('Invalid token');
+    }
+
+    // if view API and view is pesonal view then check if user has access to view
+    // if user is not owner of view then restrict write operations
+    if (
+      req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
+      req[VIEW_KEY].owned_by !== req.user?.id &&
+      ['POST', 'PATCH', 'DELETE', 'PUT'].includes(req.method) &&
+      permissionName !== 'viewUpdate' &&
+      permissionName !== 'viewDelete'
+    ) {
+      NcError.forbidden('Unauthorized access');
     }
 
     await beforeAclValidationHook({

@@ -11,6 +11,8 @@ import {
   setMigrationJobsStallInterval,
   updateMigrationJobsState,
 } from '~/helpers/migrationJobs';
+import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
+import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
 
 @Injectable()
 export class InitMigrationJobs {
@@ -25,6 +27,16 @@ export class InitMigrationJobs {
       job: MigrationJobTypes.Thumbnail,
       service: this.thumbnailMigration,
     },
+    {
+      version: '3',
+      job: MigrationJobTypes.RecoverLinks,
+      service: this.recoverLinksMigration,
+    },
+    {
+      version: '4',
+      job: MigrationJobTypes.CleanupDuplicateColumns,
+      service: this.cleanupDuplicateColumnMigration,
+    },
   ];
 
   private readonly debugLog = debug('nc:migration-jobs:init');
@@ -34,6 +46,8 @@ export class InitMigrationJobs {
     private readonly jobsService: IJobsService,
     private readonly attachmentMigration: AttachmentMigration,
     private readonly thumbnailMigration: ThumbnailMigration,
+    private readonly recoverLinksMigration: RecoverLinksMigration,
+    private readonly cleanupDuplicateColumnMigration: CleanupDuplicateColumnMigration,
   ) {}
 
   log = (...msgs: string[]) => {

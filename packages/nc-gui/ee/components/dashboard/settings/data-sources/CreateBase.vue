@@ -299,8 +299,8 @@ function loadWorkspacesWithInterval() {
           await loadProjectTables(baseId.value, true)
         }
         pushProgress('Done!', 'progress')
-        goToDashboard.value = true
         creatingSource.value = false
+        onDashboard()
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -382,8 +382,8 @@ const createSource = async () => {
                 await loadProjectTables(baseId.value, true)
               }
               pushProgress('Done!', 'progress')
-              goToDashboard.value = true
               creatingSource.value = false
+              onDashboard()
             }
           } else if (data.status === JobStatus.FAILED) {
             pushProgress('Failed to create source!', 'progress')
@@ -520,7 +520,7 @@ const onBack = () => {
   refreshState(true)
 }
 
-const onDashboard = () => {
+function onDashboard() {
   refreshState()
   vOpen.value = false
 }

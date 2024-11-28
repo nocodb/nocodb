@@ -7,6 +7,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import dayjs from 'dayjs';
+import type { FilterType } from 'nocodb-sdk';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
@@ -31,7 +32,7 @@ import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
 
 export default async function conditionV2(
   baseModelSqlv2: BaseModelSqlv2,
-  conditionObj: Filter | Filter[],
+  conditionObj: Filter | FilterType | FilterType[] | Filter[],
   qb: Knex.QueryBuilder,
   alias?: string,
   throwErrorIfInvalid = false,
@@ -66,7 +67,7 @@ function getLogicalOpMethod(filter: Filter) {
 
 const parseConditionV2 = async (
   baseModelSqlv2: BaseModelSqlv2,
-  _filter: Filter | Filter[],
+  _filter: Filter | FilterType | FilterType[] | Filter[],
   aliasCount = { count: 0 },
   alias?,
   customWhereClause?,
@@ -212,30 +213,18 @@ const parseConditionV2 = async (
             filter.comparison_op,
           )
         ) {
-          // handle self reference
-          if (parentModel.id === childModel.id) {
-            if (filter.comparison_op === 'blank') {
-              return (qb) => {
-                qb.whereNull(childColumn.column_name);
-              };
-            } else {
-              return (qb) => {
-                qb.whereNotNull(childColumn.column_name);
-              };
-            }
-          }
+          const childTableAlias = getAlias(aliasCount);
 
           const selectHmCount = knex(
-            baseModelSqlv2.getTnPath(childModel.table_name),
+            baseModelSqlv2.getTnPath(childModel.table_name, childTableAlias),
           )
             .count(childColumn.column_name)
-            .where(
+            .whereRaw('??.?? = ??.??', [
+              childTableAlias,
               childColumn.column_name,
-              knex.raw('??.??', [
-                alias || baseModelSqlv2.getTnPath(parentModel.table_name),
-                parentColumn.column_name,
-              ]),
-            );
+              alias || baseModelSqlv2.getTnPath(parentModel.table_name),
+              parentColumn.column_name,
+            ]);
 
           return (qb) => {
             if (filter.comparison_op === 'blank') {
@@ -1200,6 +1189,14 @@ const parseConditionV2 = async (
                 .whereNull(customWhereClause || field)
                 .orWhere(field, '[]')
                 .orWhere(field, 'null');
+            } else if (column.uidt === UITypes.Formula) {
+              qb = qb.whereNull(customWhereClause || field);
+              if (
+                (column?.colOptions as any).parsed_tree?.dataType ===
+                FormulaDataTypes.STRING
+              ) {
+                qb = qb.orWhere(field, '');
+              }
             } else {
               qb = qb.whereNull(customWhereClause || field);
               if (
@@ -1222,6 +1219,14 @@ const parseConditionV2 = async (
                 .whereNotNull(customWhereClause || field)
                 .whereNot(field, '[]')
                 .whereNot(field, 'null');
+            } else if (column.uidt === UITypes.Formula) {
+              qb = qb.whereNotNull(customWhereClause || field);
+              if (
+                (column?.colOptions as any).parsed_tree?.dataType ===
+                FormulaDataTypes.STRING
+              ) {
+                qb = qb.whereNot(customWhereClause || field, '');
+              }
             } else {
               qb = qb.whereNotNull(customWhereClause || field);
               if (

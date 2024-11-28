@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
-
 interface Prop {
   modelValue?: boolean
 }
@@ -73,7 +71,7 @@ const handleSetActiveTab = (tab: TabItem) => {
   handleShowSearchInput()
 }
 
-onClickOutside(searchWrapperRef, (e) => {
+onClickOutside(searchWrapperRef, () => {
   if (searchQuery.value) {
     return
   }
@@ -134,7 +132,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="flex-1 flex gap-3 justify-end">
-          <div ref="searchWrapperRef" v-if="activeTab !== 'build-an-extension'" class="flex-1 flex max-w-[290px] justify-end">
+          <div v-if="activeTab !== 'build-an-extension'" ref="searchWrapperRef" class="flex-1 flex max-w-[290px] justify-end">
             <NcButton v-if="!searchQuery && !showSearchBox" class="!px-1" type="text" size="small" @click="handleShowSearchInput">
               <GeneralIcon icon="search" class="h-4 w-4 text-current" />
             </NcButton>

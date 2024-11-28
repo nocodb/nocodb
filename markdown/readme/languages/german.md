@@ -37,16 +37,26 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & MariaDB in eine Smart-T
 ### Verwenden von Docker
 
 ```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+  ```
 
 - NocoDB benötigt eine Datenbank zur Eingabe: Siehe [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
 - Fehlt diese Eingabe, wird auf SQLite zurückgegriffen. Um SQLite beständig zu machen, kann `/usr/app/data/` gemountet werden. 
 
   Beispiel:
 
-  ```
-  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
+```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
   ```
 
 ### Verwenden von NPM 

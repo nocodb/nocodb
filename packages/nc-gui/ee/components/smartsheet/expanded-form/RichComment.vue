@@ -8,6 +8,7 @@ import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import tippy from 'tippy.js'
 import { Mention } from '~/helpers/tiptapExtensions/mention'
+import UserMentionList from '~/helpers/tiptapExtensions/mention/UserMentionList'
 import suggestion from '~/helpers/tiptapExtensions/mention/suggestion.ts'
 import { Link } from '~/helpers/dbTiptapExtensions/links'
 
@@ -84,12 +85,20 @@ renderer.paragraph = (text: string) => {
 
     const colorStyles = bUser?.id === user.value?.id ? '' : 'bg-[#D4F7E0] text-[#17803D]'
 
-    return `<span data-type="mention" data-id='{
-    "id": "${bUser?.id}",
-    "email": "${bUser?.email}",
-    "name": "${bUser?.display_name ?? ''}",
-    "isSameUser": "${bUser?.id === user.value?.id}"
-}' class="${colorStyles} mention font-semibold  m-0.5 rounded-md px-1">@${processedContent}</span>`
+    const span = document.createElement('span')
+    span.setAttribute('data-type', 'mention')
+    span.setAttribute(
+      'data-id',
+      JSON.stringify({
+        id: bUser?.id,
+        email: bUser?.email,
+        name: bUser?.display_name ?? '',
+        isSameUser: bUser?.id === user.value?.id,
+      }),
+    )
+    span.setAttribute('class', `${colorStyles} mention font-semibold  m-0.5 rounded-md px-1`)
+    span.textContent = `@${processedContent}`
+    return span.outerHTML
   }
 
   return text.replace(regex, replacement)
@@ -110,7 +119,7 @@ turndownService.addRule('mention', {
         name: user.display_name,
         email: user.email,
       }))
-      .filter((user) => user.label.toLowerCase() === content.toLowerCase())[0]
+      .find((user) => user.label.toLowerCase() === content.toLowerCase()) as any
 
     return `@(${user.id}|${user.email}|${user.display_name ?? ''})`
   },
@@ -125,7 +134,7 @@ const vModel = useVModel(props, 'value', emits, { defaultValue: '' })
 const tiptapExtensions = [
   Mention.configure({
     suggestion: {
-      ...suggestion,
+      ...suggestion(UserMentionList),
       items: ({ query }) =>
         baseUsers.value
           .filter((user) => user.deleted !== true)

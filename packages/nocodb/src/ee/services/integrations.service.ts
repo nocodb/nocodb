@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
+import { IntegrationsService as IntegrationsServiceCE } from 'src/services/integrations.service';
 import type { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Base, Integration } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -13,16 +13,10 @@ import NocoCache from '~/cache/NocoCache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { InstanceCommands } from '~/interface/Jobs';
-import { SourcesService } from '~/services/sources.service';
 import { generateUniqueName } from '~/helpers/exportImportHelpers';
 
 @Injectable()
-export class IntegrationsService {
-  constructor(
-    protected readonly appHooksService: AppHooksService,
-    protected readonly sourcesService: SourcesService,
-  ) {}
-
+export class IntegrationsService extends IntegrationsServiceCE {
   async integrationGetWithConfig(
     context: NcContext,
     param: { integrationId: any; includeSources?: boolean },
@@ -63,6 +57,29 @@ export class IntegrationsService {
 
     // update the cache for the sources which are using this integration
     await this.updateIntegrationSourceConfig({ integration });
+
+    integration.config = undefined;
+
+    this.appHooksService.emit(AppEvents.INTEGRATION_UPDATE, {
+      integration,
+      req: param.req,
+      user: param.req?.user,
+    });
+
+    return integration;
+  }
+
+  async integrationSetDefault(
+    context: NcContext,
+    param: {
+      integrationId: string;
+      req: NcRequest;
+    },
+  ) {
+    const integration = await Integration.setDefault(
+      context,
+      param.integrationId,
+    );
 
     integration.config = undefined;
 
@@ -128,7 +145,7 @@ export class IntegrationsService {
         MetaTable.SOURCES,
         {
           condition: {
-            fk_workspace_id: integration.fk_workspace_id,
+            fk_workspace_id: context.workspace_id,
             fk_integration_id: integration.id,
           },
           xcCondition: {
@@ -153,7 +170,7 @@ export class IntegrationsService {
           sources.map(async (source) => {
             return await Base.get(
               {
-                workspace_id: integration.fk_workspace_id,
+                workspace_id: context.workspace_id,
                 base_id: source.base_id,
               },
               source.base_id,
@@ -163,20 +180,6 @@ export class IntegrationsService {
         );
 
         NcError.integrationLinkedWithMultiple(bases, sources);
-      }
-
-      for (const source of sources) {
-        await this.sourcesService.baseDelete(
-          {
-            workspace_id: integration.fk_workspace_id,
-            base_id: source.base_id,
-          },
-          {
-            sourceId: source.id,
-            req: param.req,
-          },
-          ncMeta,
-        );
       }
 
       await integration.delete(ncMeta);
@@ -191,6 +194,7 @@ export class IntegrationsService {
       await ncMeta.rollback(e);
       NcError.badRequest(e);
     }
+
     return true;
   }
 
@@ -278,7 +282,7 @@ export class IntegrationsService {
 
   // function to update all the integration source config which are using this integration
   // we are overwriting the source config with the new integration config excluding database name and schema name
-  private async updateIntegrationSourceConfig(
+  protected async updateIntegrationSourceConfig(
     {
       integration,
     }: {

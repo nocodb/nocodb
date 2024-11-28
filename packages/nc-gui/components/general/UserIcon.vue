@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isColorDark, stringToColor } from '~/utils/colorsUtils'
+import { isColorDark, stringToColor } from '#imports'
 
 const props = withDefaults(
   defineProps<{

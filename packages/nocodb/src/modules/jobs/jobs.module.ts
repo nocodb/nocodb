@@ -20,6 +20,7 @@ import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export
 import { DataExportController } from '~/modules/jobs/jobs/data-export/data-export.controller';
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
 import { AttachmentCleanUpProcessor } from '~/modules/jobs/jobs/attachment-clean-up/attachment-clean-up';
+import { UseWorkerProcessor } from '~/modules/jobs/jobs/use-worker/use-worker.processor';
 
 // Job Processor
 import { JobsProcessor } from '~/modules/jobs/jobs.processor';
@@ -41,6 +42,8 @@ import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobsService as FallbackJobsService } from '~/modules/jobs/fallback/jobs.service';
 import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { JOBS_QUEUE } from '~/interface/Jobs';
+import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
+import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
 
 export const JobsModuleMetadata = {
   imports: [
@@ -96,11 +99,14 @@ export const JobsModuleMetadata = {
     DataExportProcessor,
     ThumbnailGeneratorProcessor,
     AttachmentCleanUpProcessor,
+    UseWorkerProcessor,
 
     // Migration Jobs
     InitMigrationJobs,
     AttachmentMigration,
     ThumbnailMigration,
+    RecoverLinksMigration,
+    CleanupDuplicateColumnMigration,
   ],
   exports: ['JobsService'],
 };

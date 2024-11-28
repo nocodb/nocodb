@@ -188,7 +188,7 @@ onMounted(() => {
         >
           <template #bodyCell="{ column, record: ws }">
             <div v-if="column.key === 'title'" class="w-full gap-3 flex items-center">
-              <GeneralWorkspaceIcon :workspace="ws" hide-label />
+              <GeneralWorkspaceIcon :workspace="ws" size="medium" />
               <NcTooltip class="truncate max-w-[calc(100%_-_28px)]" show-on-truncate-only>
                 <template #title>
                   {{ ws.title }}

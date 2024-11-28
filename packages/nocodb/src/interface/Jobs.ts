@@ -1,10 +1,12 @@
-import type { AttachmentResType, UserType } from 'nocodb-sdk';
+import type { AttachmentResType, PublicAttachmentScope, SupportedExportCharset, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 export const JOBS_QUEUE = 'jobs';
 
 export enum MigrationJobTypes {
   Attachment = 'attachment',
   Thumbnail = 'thumbnail',
+  RecoverLinks = 'recover-links',
+  CleanupDuplicateColumns = 'cleanup-duplicate-columns',
 }
 
 export enum JobTypes {
@@ -25,7 +27,19 @@ export enum JobTypes {
   ThumbnailGenerator = 'thumbnail-generator',
   AttachmentCleanUp = 'attachment-clean-up',
   InitMigrationJobs = 'init-migration-jobs',
+  UseWorker = 'use-worker',
 }
+
+export const SKIP_STORING_JOB_META = [
+  JobTypes.HealthCheck,
+  JobTypes.ThumbnailGenerator,
+  JobTypes.UseWorker,
+  JobTypes.HandleWebhook,
+  JobTypes.InitMigrationJobs,
+  JobTypes.UpdateModelStat,
+  JobTypes.UpdateWsStat,
+  JobTypes.UpdateSrcStat,
+];
 
 export enum JobStatus {
   COMPLETED = 'completed',
@@ -138,6 +152,7 @@ export interface DataExportJobData extends JobData {
   options?: {
     delimiter?: string;
     extension_id?: string;
+    encoding?: SupportedExportCharset;
   };
   modelId: string;
   viewId: string;
@@ -147,4 +162,5 @@ export interface DataExportJobData extends JobData {
 
 export interface ThumbnailGeneratorJobData extends JobData {
   attachments: AttachmentResType[];
+  scope?: PublicAttachmentScope;
 }

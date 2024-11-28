@@ -1,5 +1,11 @@
 // eslint-disable-file no-fallthrough
-import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  ButtonActionsType,
+  extractFilterFromXwhere,
+  NcDataErrorCodes,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import {
   checkForStaticDateValFilters,
@@ -22,7 +28,6 @@ import type {
 import { Column, Filter, Model, Sort } from '~/models';
 import {
   _wherePk,
-  extractFilterFromXwhere,
   extractSortsObject,
   getAs,
   getColumnName,
@@ -876,7 +881,7 @@ export async function extractColumn({
       {
         const model: Model = await column.getModel(context);
         const buttonColumn = await column.getColOptions<ButtonColumn>(context);
-        if (buttonColumn.type === 'url') {
+        if (buttonColumn.type === ButtonActionsType.Url) {
           if (buttonColumn.error) return result;
           const selectQb = await formulaQueryBuilderv2(
             baseModel,
@@ -899,7 +904,7 @@ export async function extractColumn({
               ],
             ),
           );
-        } else if (buttonColumn.type === 'webhook') {
+        } else if (buttonColumn.type === ButtonActionsType.Webhook) {
           qb.select(
             knex.raw(
               `json_build_object('type', ?, 'label', ?, 'fk_webhook_id', ?) as ??`,

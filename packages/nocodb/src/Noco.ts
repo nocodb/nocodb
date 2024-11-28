@@ -16,6 +16,7 @@ import type Sharp from 'sharp';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
+import { Integration } from '~/models';
 
 dotenv.config();
 
@@ -140,6 +141,8 @@ export default class Noco {
     if (dashboardPath !== '/' && dashboardPath !== '') {
       server.get('/', (_req, res) => res.redirect(dashboardPath));
     }
+
+    await Integration.init();
 
     return nestApp.getHttpAdapter().getInstance();
   }

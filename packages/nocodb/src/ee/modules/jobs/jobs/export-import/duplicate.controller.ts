@@ -79,7 +79,7 @@ export class DuplicateController extends DuplicateControllerCE {
         ...(workspaceId ? { fk_workspace_id: workspaceId } : {}),
       },
       user: { id: req.user.id },
-      req: {} as any,
+      req: { user: { id: req.user.id } } as any,
     });
 
     const job = await this.jobsService.add(JobTypes.DuplicateBase, {

@@ -1,5 +1,5 @@
 {
-  "extends": "./ee/.nuxt/tsconfig.json",
+  "extends": ["./.nuxt/tsconfig.json", "./ee/.nuxt/tsconfig.json"],
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,
@@ -17,7 +17,7 @@
       "nuxt-windicss",
       "vite/client",
       "@nuxt/image"
-    ],
+    ]
   },
-  "exclude": ["node_modules", "dist", ".output"]
+  "exclude": ["node_modules", "dist", ".output", "**/node_modules/*", "**/dist/*", "**/.output/*"]
 }

@@ -17,11 +17,12 @@ import { IntegrationsService } from '~/services/integrations.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { Integration } from '~/models';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class IntegrationsController {
-  constructor(private readonly integrationsService: IntegrationsService) {}
+  constructor(protected readonly integrationsService: IntegrationsService) {}
 
   @Get(['/api/v2/meta/integrations/:integrationId'])
   @Acl('integrationGet', {
@@ -135,5 +136,84 @@ export class IntegrationsController {
     }
 
     return integrations;
+  }
+
+  @Get(['/api/v2/integrations'])
+  async availableIntegrations() {
+    return Integration.availableIntegrations
+      .sort((a, b) => a.type.localeCompare(b.type))
+      .sort((a, b) => a.subType.localeCompare(b.subType))
+      .map((i) => ({
+        type: i.type,
+        subType: i.subType,
+        meta: i.meta,
+      }));
+  }
+
+  @Get(['/api/v2/integrations/:type/:subType'])
+  async getIntegrationMeta(
+    @Param('type') type: IntegrationsType,
+    @Param('subType') subType: string,
+  ) {
+    const integration = Integration.availableIntegrations.find(
+      (i) => i.type === type && i.subType === subType,
+    );
+
+    if (!integration) {
+      throw new Error('Integration not found!');
+    }
+
+    return {
+      integrationType: integration.type,
+      integrationSubType: integration.subType,
+      form: integration.form,
+      meta: integration.meta,
+    };
+  }
+
+  @Post(['/api/v2/integrations/:integrationId/store'])
+  async storeIntegration(
+    @TenantContext() context: NcContext,
+    @Param('integrationId') integrationId: string,
+    @Body()
+    payload?:
+      | {
+          op: 'list';
+          limit: number;
+          offset: number;
+        }
+      | {
+          op: 'get';
+        }
+      | {
+          op: 'sum';
+          fields: string[];
+        },
+  ) {
+    const integration = await Integration.get(context, integrationId);
+
+    if (!integration) {
+      throw new Error('Integration not found!');
+    }
+
+    return await this.integrationsService.integrationStore(
+      context,
+      integration,
+      payload,
+    );
+  }
+
+  @Post(['/api/v2/integrations/:integrationId/:endpoint'])
+  async integrationEndpointGet(
+    @TenantContext() context: NcContext,
+    @Param('integrationId') integrationId: string,
+    @Param('endpoint') endpoint: string,
+    @Body() body: any,
+  ) {
+    return await this.integrationsService.callIntegrationEndpoint(context, {
+      integrationId,
+      endpoint,
+      payload: body,
+    });
   }
 }

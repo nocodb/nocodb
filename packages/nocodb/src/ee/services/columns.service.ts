@@ -176,6 +176,7 @@ export class ColumnsService extends ColumnsServiceCE {
       base: Base;
       reuse?: ReusableParams;
       colExtra?: any;
+      user: UserType;
     },
   ) {
     if ((param.column as any).is_custom_link) {

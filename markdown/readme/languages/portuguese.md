@@ -37,15 +37,25 @@ Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma plani
 ### Usando o Docker.
 
 ```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+  ```
 - NocoDB precisa de um banco de dados como entrada : Veja [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
 - Se a entrada não existir, nós voltamos para o SQLite. Para que SQLite também persista, você pode monta-lo em `/usr/app/data/`. 
 
   Exemplo:
 
-  ```
-  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
+```
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
   ```
 
 

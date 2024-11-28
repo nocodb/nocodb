@@ -1,0 +1,24 @@
+{
+  "id": "nc-bulk-update",
+  "title": "Bulk Update",
+  "subTitle": "Update multiple records values in a field with a single click",
+  "description": "bulk-update-ee/description.md",
+  "entry": "bulk-update-ee",
+  "version": "0.1",
+  "iconUrl": "bulk-update-ee/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "bulk-update-ee/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "config": {
+    "contentMinHeight": "310px"
+  },
+  "order": 4
+}

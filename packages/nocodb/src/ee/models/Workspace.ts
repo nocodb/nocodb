@@ -16,7 +16,7 @@ import {
   prepareForDb,
   prepareForResponse,
 } from '~/utils/modelUtils';
-import { Base } from '~/models';
+import { Base, Integration } from '~/models';
 
 export default class Workspace implements WorkspaceType {
   id?: string;
@@ -262,6 +262,22 @@ export default class Workspace implements WorkspaceType {
         fk_workspace_id: id,
       },
     );
+
+    const integrations = await ncMeta.metaList2(
+      workspace.id,
+      RootScopes.WORKSPACE,
+      MetaTable.INTEGRATIONS,
+      {
+        condition: {
+          fk_workspace_id: workspace.id,
+        },
+      },
+    );
+
+    for (const int of integrations) {
+      const integration = new Integration(int);
+      await integration.delete(ncMeta);
+    }
 
     await NocoCache.del(`${CacheScope.WORKSPACE}:${id}`);
 

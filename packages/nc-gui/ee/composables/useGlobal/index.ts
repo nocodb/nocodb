@@ -40,7 +40,7 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
 
   const getters = useGlobalGetters(state)
 
-  const actions = useGlobalActions(state)
+  const actions = useGlobalActions(state, getters)
 
   watch(
     state.jwtPayload,

@@ -86,6 +86,12 @@ export default class Model implements TableType {
       },
       ncMeta,
     );
+
+    this.columnsById = this.columns.reduce((agg, c) => {
+      agg[c.id] = c;
+      return agg;
+    }, {});
+
     return this.columns;
   }
 
@@ -140,6 +146,7 @@ export default class Model implements TableType {
       mm?: BoolType;
       type?: ModelTypes;
       source_id?: string;
+      user_id: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -199,6 +206,8 @@ export default class Model implements TableType {
         type: ViewTypes.GRID,
         base_id: baseId,
         source_id: sourceId,
+        created_by: model.user_id,
+        owned_by: model.user_id,
       },
       {
         getColumns: async () => insertedColumns,
@@ -456,9 +465,8 @@ export default class Model implements TableType {
 
       const defaultViewId = m.views.find((view) => view.is_default).id;
 
-      const columns = await m.getColumns(context, ncMeta, defaultViewId);
+      await m.getColumns(context, ncMeta, defaultViewId);
 
-      m.columnsById = columns.reduce((agg, c) => ({ ...agg, [c.id]: c }), {});
       return m;
     }
     return null;
@@ -908,7 +916,7 @@ export default class Model implements TableType {
     ncMeta = Noco.ncMeta,
   ) {
     const model = await this.getWithInfo(context, { id: tableId }, ncMeta);
-    const newPvCol = model.columns.find((c) => c.id === columnId);
+    const newPvCol = model.columnsById[columnId];
 
     if (!newPvCol) NcError.fieldNotFound(columnId);
 
@@ -1154,8 +1162,10 @@ export default class Model implements TableType {
     context: NcContext,
     {
       modelId,
+      userId,
     }: {
       modelId: string;
+      userId?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {

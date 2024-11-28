@@ -93,6 +93,7 @@ const permissionScopes = {
     'uploadViaURL',
 
     'notification',
+    'deleteAccount',
   ],
   workspace: [
     'workspaceBaseList',
@@ -118,6 +119,7 @@ const permissionScopes = {
     'integrationDelete',
     'integrationUpdate',
     'integrationList',
+    'aiSchema',
   ],
   base: [
     'formViewGet',
@@ -231,6 +233,11 @@ const permissionScopes = {
 
     // Webhooks
     'hookTrigger',
+
+    // AI
+    'aiUtils',
+    'aiData',
+    'aiBaseSchema',
   ],
 };
 
@@ -262,6 +269,7 @@ const rolePermissions:
       // allow only in cloud
       testConnection: true,
       notification: true,
+      deleteAccount: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {
@@ -467,6 +475,10 @@ const rolePermissions:
       widgetUpdate: true,
       widgetDelete: true,
       widgetFilterCreate: true,
+
+      // AI
+      aiUtils: true,
+      aiData: true,
     },
   },
   [ProjectRoles.CREATOR]: {

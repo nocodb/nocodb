@@ -3,12 +3,7 @@ import { ExtensionsEvents } from '#imports'
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
 
-  // Egg
-  const extensionsEgg = ref(false)
-
-  const extensionsEggCounter = ref(0)
-
-  return { baseExtensions, extensionsEgg, extensionsEggCounter }
+  return { baseExtensions }
 })
 
 export interface ExtensionManifest {
@@ -29,7 +24,6 @@ export interface ExtensionManifest {
       height?: number
     }
   }
-  disabled?: boolean
   links: {
     title: string
     href: string
@@ -38,6 +32,8 @@ export interface ExtensionManifest {
     modalSize?: 'xs' | 'sm' | 'md' | 'lg'
     contentMinHeight?: string
   }
+  order: number
+  disabled?: boolean
 }
 
 abstract class ExtensionType {
@@ -61,7 +57,7 @@ abstract class ExtensionType {
 export { ExtensionType }
 
 export const useExtensions = createSharedComposable(() => {
-  const { baseExtensions, extensionsEgg, extensionsEggCounter } = extensionsState()
+  const { baseExtensions } = extensionsState()
 
   const { $api } = useNuxtApp()
 
@@ -72,6 +68,10 @@ export const useExtensions = createSharedComposable(() => {
   const extensionsLoaded = ref(false)
 
   const availableExtensions = ref<ExtensionManifest[]>([])
+
+  const availableExtensionIds = computed(() => {
+    return availableExtensions.value.map((e) => e.id)
+  })
 
   // Object to store description content for each extension
   const descriptionContent = ref<Record<string, string>>({})
@@ -90,11 +90,11 @@ export const useExtensions = createSharedComposable(() => {
   })
 
   const extensionList = computed<ExtensionType[]>(() => {
-    return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : []).sort(
-      (a: ExtensionType, b: ExtensionType) => {
+    return (activeBaseExtensions.value ? activeBaseExtensions.value.extensions : [])
+      .filter((e: ExtensionType) => availableExtensionIds.value.includes(e.extensionId))
+      .sort((a: ExtensionType, b: ExtensionType) => {
         return (a?.order ?? Infinity) - (b?.order ?? Infinity)
-      },
-    )
+      })
   })
 
   const toggleExtensionPanel = () => {
@@ -448,16 +448,12 @@ export const useExtensions = createSharedComposable(() => {
 
       if (availableExtensions.value.length + disabledCount === extensionCount) {
         // Sort extensions
-        availableExtensions.value.sort((a, b) => a.title.localeCompare(b.title))
+        availableExtensions.value.sort((a, b) =>  (a.order ?? Infinity) - (b.order ?? Infinity))
         extensionsLoaded.value = true
       }
     } catch (error) {
       console.error('Error loading extensions:', error)
     }
-
-    // if (isEeUI) {
-    //   extensionsEgg.value = true
-    // }
   })
 
   watch(
@@ -488,13 +484,6 @@ export const useExtensions = createSharedComposable(() => {
   // Extension market modal
   const isMarketVisible = ref(false)
 
-  const onEggClick = () => {
-    extensionsEggCounter.value++
-    if (extensionsEggCounter.value >= 2) {
-      extensionsEgg.value = true
-    }
-  }
-
   return {
     extensionsLoaded,
     availableExtensions,
@@ -514,8 +503,6 @@ export const useExtensions = createSharedComposable(() => {
     detailsFrom,
     showExtensionDetails,
     isMarketVisible,
-    onEggClick,
-    extensionsEgg,
     extensionPanelSize,
     eventBus,
   }

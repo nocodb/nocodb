@@ -43,7 +43,11 @@ const onAddExtension = (ext: any) => {
         class="pb-2 grid gap-4"
         :class="{
           'h-full': searchQuery && !filteredAvailableExtensions.length && availableExtensions.length,
-          'grid-cols-1 md:grid-cols-2 xl:grid-cols-3': !(searchQuery && !filteredAvailableExtensions.length && availableExtensions.length),
+          'grid-cols-1 md:grid-cols-2 xl:grid-cols-3': !(
+            searchQuery &&
+            !filteredAvailableExtensions.length &&
+            availableExtensions.length
+          ),
         }"
       >
         <template v-for="ext of filteredAvailableExtensions" :key="ext.id">

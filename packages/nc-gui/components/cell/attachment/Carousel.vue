@@ -137,7 +137,8 @@ function onKeyDown(event: KeyboardEvent) {
   }
 }
 
-/*
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const openComments = ref(false)
 
 const toggleComment = () => {
@@ -145,12 +146,16 @@ const toggleComment = () => {
 }
 
 onMounted(() => {
-  if (!isPublic.value && !isExpandedFormOpen.value && isUIAllowed('commentList')) {
+  if (
+    !isPublic.value &&
+    !isExpandedFormOpen.value &&
+    isUIAllowed('commentList') &&
+    isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)
+  ) {
     const { loadComments } = useRowCommentsOrThrow()
     loadComments()
   }
 })
-*/
 
 const initEmblaApi = (val: any) => {
   emblaMainApi.value = val
@@ -246,14 +251,17 @@ const initEmblaApi = (val: any) => {
           <component :is="iconMap.arrowRight" class="text-7xl" />
         </div>
 
-        <!--        <div v-if="isUIAllowed('commentList') && !isExpandedFormOpen" class="absolute top-2 right-2">
+        <div
+          v-if="isUIAllowed('commentList') && !isExpandedFormOpen && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)"
+          class="absolute top-2 right-2"
+        >
           <NcButton class="!hover:bg-transparent" type="text" size="small" @click="toggleComment">
             <div class="flex gap-1 text-white justify-center items-center">
               Comments
               <GeneralIcon icon="messageCircle" />
             </div>
           </NcButton>
-        </div> -->
+        </div>
 
         <div class="text-white absolute right-2 top-2 cursor-pointer"></div>
 
@@ -365,8 +373,8 @@ const initEmblaApi = (val: any) => {
           </template>
         </GeneralDeleteModal>
       </div>
-      <!--      <div
-        v-if="isUIAllowed('commentList') && !isExpandedFormOpen"
+      <div
+        v-if="isUIAllowed('commentList') && !isExpandedFormOpen && isFeatureEnabled(FEATURE_FLAG.ATTACHMENT_CAROUSEL_COMMENTS)"
         :class="{
           'w-0': !openComments,
           '!w-88': openComments,
@@ -374,7 +382,7 @@ const initEmblaApi = (val: any) => {
         class="bg-white max-w-88 transition-all"
       >
         <LazySmartsheetExpandedFormSidebarComments />
-      </div> -->
+      </div>
     </div>
   </GeneralOverlay>
 </template>

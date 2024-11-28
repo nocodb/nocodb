@@ -95,7 +95,7 @@ const tooltipMsg = computed(() => {
       )
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
     } else if (isBt(column.value)) {
-      const fkColumn = meta.value?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
+      const fkColumn = meta.value?.columns?.find((c) => c.id === column.value?.colOptions?.fk_child_column_id)
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
     }
   }
@@ -183,7 +183,7 @@ const openDropDown = (e: Event) => {
 
 const onVisibleChange = () => {
   editColumnDropdown.value = true
-  if (!editOrAddProviderRef.value?.isWebHookModalOpen()) {
+  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
     editColumnDropdown.value = false
     enableDescription.value = false
   }
@@ -222,7 +222,8 @@ const onClick = (e: Event) => {
     <div
       class="nc-virtual-cell-name-wrapper flex-1 flex items-center"
       :class="{
-        'max-w-[calc(100%_-_23px)]': !isExpandedForm,
+        'max-w-[calc(100%_-_23px)]': !isExpandedForm && !column.description?.length,
+        'max-w-[calc(100%_-_44px)]': !isExpandedForm && column.description?.length,
         'max-w-full': isExpandedForm && !isExpandedBulkUpdateForm,
       }"
     >
@@ -235,7 +236,7 @@ const onClick = (e: Event) => {
       </template>
       <NcTooltip placement="bottom" class="truncate name pl-1" :show-on-truncate-only="!showTooltipAlways">
         <template #title>
-          <template v-for="msg in tooltipMsg.split('\n')">
+          <template v-for="(msg, i) in tooltipMsg.split('\n')" :key="i">
             <div>{{ msg }}</div>
           </template>
         </template>

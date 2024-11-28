@@ -9,7 +9,7 @@ const sqlUi = ref(activeField.value?.source_id ? sqlUis.value[activeField.value?
 
 const abstractType = computed(() => activeField.value && sqlUi.value.getAbstractType(activeField.value))
 
-const { betaFeatureToggleState } = useBetaFeatureToggle()
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const updateSelectFieldLayout = (value: boolean) => {
   if (!activeField.value) return
@@ -19,7 +19,7 @@ const updateSelectFieldLayout = (value: boolean) => {
 }
 
 const columnSupportsScanning = (elementType: UITypes) =>
-  betaFeatureToggleState.show &&
+  isFeatureEnabled(FEATURE_FLAG.FORM_SUPPORT_COLUMN_SCANNING) &&
   [UITypes.SingleLineText, UITypes.Number, UITypes.Email, UITypes.URL, UITypes.LongText].includes(elementType)
 </script>
 

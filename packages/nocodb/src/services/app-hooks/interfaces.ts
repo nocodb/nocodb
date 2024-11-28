@@ -39,6 +39,14 @@ export interface RowCommentEvent extends NcBaseEvent {
   ip?: string;
 }
 
+export interface RowMentionEvent extends NcBaseEvent {
+  model: TableType;
+  rowId: string;
+  user: UserType;
+  column: ColumnType;
+  mentions: string[];
+}
+
 export interface ProjectUserUpdateEvent extends NcBaseEvent {
   base: BaseType;
   user: UserType;
@@ -229,6 +237,7 @@ export type AppEventPayload =
   | FilterEvent
   | SortEvent
   | RowCommentEvent
+  | RowMentionEvent
   | WebhookTriggerEvent
   | ColumnEvent;
 

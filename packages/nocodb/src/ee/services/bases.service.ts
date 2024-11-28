@@ -95,7 +95,7 @@ export class BasesService extends BasesServiceCE {
     validatePayload('swagger.json#/components/schemas/ProjectReq', param.base);
 
     if (process.env.TEST !== 'true') {
-      const fk_workspace_id = (param.base as any)?.fk_workspace_id;
+      const fk_workspace_id = (param.base as any).fk_workspace_id;
 
       if (!fk_workspace_id) {
         NcError.badRequest('fk_workspace_id is required');
@@ -275,7 +275,11 @@ export class BasesService extends BasesServiceCE {
     // populate metadata if existing table
     for (const source of await base.getSources()) {
       if (process.env.NC_CLOUD !== 'true' && !base.is_meta) {
-        const info = await populateMeta(context, source, base);
+        const info = await populateMeta(context, {
+          source,
+          base,
+          user: param.user,
+        });
 
         this.appHooksService.emit(AppEvents.APIS_CREATED, {
           info,

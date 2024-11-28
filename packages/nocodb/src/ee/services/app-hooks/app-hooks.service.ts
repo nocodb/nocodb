@@ -17,6 +17,7 @@ import type {
   ProjectUserUpdateEvent,
   RelationEvent,
   RowCommentEvent,
+  RowMentionEvent,
   SharedBaseEvent,
   SyncSourceEvent,
   UIAclEvent,
@@ -137,6 +138,11 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.COMMENT_UPDATE
       | AppEvents.COMMENT_DELETE,
     listener: (data: RowCommentEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.ROW_USER_MENTION,
+    listener: (data: RowMentionEvent) => void,
   ): () => void;
 
   on(
@@ -293,6 +299,8 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.COMMENT_DELETE,
     data: RowCommentEvent,
   ): void;
+  emit(event: AppEvents.ROW_USER_MENTION, data: RowMentionEvent): void;
+
   emit(
     event:
       | AppEvents.INTEGRATION_CREATE

@@ -48,13 +48,13 @@ export class SourceCreateProcessor {
         baseId,
         source,
         logger: logBasic,
-        req: {},
+        req: { user: user || {} },
       });
 
     if (error) {
       await this.sourcesService.baseDelete(context, {
         sourceId: createdSource.id,
-        req: {},
+        req: { user: {} },
       });
       throw error;
     }

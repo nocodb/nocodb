@@ -8,6 +8,7 @@ Supported Translations:
     <li><a href="chinese.md">Chinese</a></li>
     <li><a href="french.md">French</a></li>
     <li><a href="german.md">German</a></li>
+    <li><a href="hindi.md">Hindi</a></li>
     <li><a href="spanish.md">Spanish</a></li>
     <li><a href="portuguese.md">Portugese</a></li>
     <li><a href="italian.md">Italian</a></li>

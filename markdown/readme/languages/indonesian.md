@@ -56,20 +56,20 @@ Mengubah MySQL, PostgreSQL, SQL Server, SQLite & MariaDB apapun menjadi spreadsh
 
 ```bash
 # for SQLite
-docker run -d --name nocodb \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
-nocodb/nocodb:latest
-
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
 
 # for PostgreSQL
-docker run -d --name nocodb-postgres \
--v "$(pwd)"/nocodb:/usr/app/data/ \
--p 8080:8080 \
--e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
--e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-nocodb/nocodb:latest
-
+docker run -d \
+  --name noco \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest````
 
 > Untuk menyimpan data di dalam Docker, Anda dapat melakukan mount volume di direktori /usr/app/data/ mulai dari versi 0.10.6. Jika tidak, data Anda akan hilang setelah mengulang pembuatan kontainer.
 

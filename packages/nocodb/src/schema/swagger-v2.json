@@ -10877,13 +10877,13 @@
         ]
       }
     },
-    "/api/v2/meta/plugins/{pluginTitle}/status": {
+    "/api/v2/meta/plugins/{pluginId}/status": {
       "parameters": [
         {
           "schema": {
             "type": "string"
           },
-          "name": "pluginTitle",
+          "name": "pluginId",
           "in": "path",
           "required": true,
           "description": "Plugin Title"
@@ -11649,6 +11649,20 @@
           },
           {
             "$ref": "#/components/parameters/xc-token"
+          },
+          {
+            "schema": {
+              "enum": [
+                "workspacePics",
+                "profilePics",
+                "organizationPics"
+              ],
+              "type": "string",
+              "example": "workspacePics"
+            },
+            "name": "scope",
+            "in": "query",
+            "description": "The scope of the attachment"
           }
         ],
         "description": "Upload attachment"
@@ -11688,6 +11702,20 @@
           },
           {
             "$ref": "#/components/parameters/xc-token"
+          },
+          {
+            "schema": {
+              "enum": [
+                "workspacePics",
+                "profilePics",
+                "organizationPics"
+              ],
+              "type": "string",
+              "example": "workspacePics"
+            },
+            "name": "scope",
+            "in": "query",
+            "description": "The scope of the attachment"
           }
         ],
         "description": "Upload attachment by URL. Used in Airtable Migration."
@@ -21438,6 +21466,10 @@
           "show_system_fields": {
             "$ref": "#/components/schemas/Bool",
             "description": "Should this view show system fields?"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
           }
         }
       },

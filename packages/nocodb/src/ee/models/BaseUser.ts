@@ -309,7 +309,7 @@ export default class BaseUser extends BaseUserCE {
     userId: string,
     params: any,
     ncMeta = Noco.ncMeta,
-  ): Promise<BaseType[]> {
+  ): Promise<(BaseType & { project_role: ProjectRoles })[]> {
     // TODO implement CacheScope.USER_BASE
     const qb = ncMeta
       .knex(MetaTable.PROJECT)

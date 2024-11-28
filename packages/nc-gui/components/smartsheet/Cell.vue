@@ -53,6 +53,18 @@ const { currentRow } = useSmartsheetRowStoreOrThrow()
 
 const { sqlUis } = storeToRefs(useBase())
 
+const { generatingRows, generatingColumns } = useNocoAi()
+
+const pk = computed(() => {
+  if (!meta.value?.columns) return
+  return extractPkFromRow(currentRow.value?.row, meta.value.columns)
+})
+
+const isGenerating = computed(
+  () =>
+    pk.value && column.value.id && generatingRows.value.includes(pk.value) && generatingColumns.value.includes(column.value.id),
+)
+
 const sourceId = meta.value?.source_id || column.value?.source_id
 
 const sqlUi = ref(sourceId && sqlUis.value[sourceId] ? sqlUis.value[sourceId] : Object.values(sqlUis.value)[0])
@@ -161,7 +173,8 @@ const currentDate = () => {
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
   >
     <template v-if="column">
-      <LazyCellTextArea v-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
+      <GeneralLoader v-if="isGenerating" />
+      <LazyCellTextArea v-else-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
       <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
       <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
       <LazyCellAttachment v-else-if="isAttachment(column)" v-model="vModel" :row-index="props.rowIndex" />
@@ -202,6 +215,7 @@ const currentDate = () => {
       <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
       <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
       <LazyCellUser v-else-if="isUser(column)" v-model="vModel" :row-index="props.rowIndex" />
+      <LazyCellAI v-else-if="isAI(column)" v-model="vModel" @save="emit('save')" />
       <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
       <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
       <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
@@ -209,7 +223,12 @@ const currentDate = () => {
       <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
       <LazyCellText v-else v-model="vModel" />
       <div
-        v-if="((isPublic && readOnly && !isForm) || isSystemColumn(column)) && !isAttachment(column) && !isTextArea(column)"
+        v-if="
+          ((isPublic && readOnly && !isForm) || isSystemColumn(column)) &&
+          !isAttachment(column) &&
+          !isTextArea(column) &&
+          !isAI(column)
+        "
         class="nc-locked-overlay"
       />
     </template>

@@ -1,9 +1,10 @@
 const urlMatchers: [string, (u: string) => string | null][] = []
 
 const YOUTUBE_RE = /^https?:\/\/(www\.|)youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(.*)?$/
+const YOUTUBE_SHORTEN_RE = /^https?:\/\/(www\.|)youtu\.be\/([a-zA-Z0-9_-]{11})(.*)?$/
 const matchYoutube = (url: string) => {
   try {
-    const match = url.match(YOUTUBE_RE)
+    const match = url.match(YOUTUBE_RE) || url.match(YOUTUBE_SHORTEN_RE)
     if (!match) {
       return null
     }

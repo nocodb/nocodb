@@ -64,14 +64,16 @@ export default class Comment implements CommentType {
           },
           limit: READ_BATCH_SIZE + 1,
           offset,
-          xcCondition: [
+          xcCondition:
             {
               _or: [
-                { is_deleted: null },
-                { is_deleted: false },
+                { is_deleted: { eq: null } },
+                { is_deleted: {
+                  eq: true
+                  } },
               ]
             }
-          ]
+
         }
       );
 

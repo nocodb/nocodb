@@ -41,7 +41,7 @@ function cancelEdit() {
 <template>
   <div class="inline-block">
     <template v-if="!isInEditMode">
-      <span class="cursor-pointer" @click="goToEditMode()">
+      <span class="cursor-pointer" @dblclick="goToEditMode()">
         {{ internalText }}
       </span>
     </template>

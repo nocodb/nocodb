@@ -637,12 +637,12 @@ onMounted(async () => {
     <template #headerExtra>
       <template v-if="importPayload.step === 2 || importPayload.step === 3 || viewImportHistory">
         <div class="flex justify-end">
-          <NcButton size="small" @click="newImport">New import</NcButton>
+          <NcButton size="small" @click="newImport">New Import</NcButton>
         </div>
       </template>
       <template v-else-if="importPayload.step === 0 && !fileInfo.processingFile && importHistory.length">
         <div class="flex items-center justify-end">
-          <NcButton size="small" type="secondary" @click="viewImportHistory = true">View import history</NcButton>
+          <NcButton size="small" type="secondary" @click="viewImportHistory = true">View Import History</NcButton>
         </div>
       </template>
       <template v-else-if="importPayload.step === 1">
@@ -704,7 +704,7 @@ onMounted(async () => {
         </div>
 
         <div v-if="!fullscreen" class="flex justify-end p-3 border-t-1 border-t-nc-border-gray-medium bg-white">
-          <NcButton size="small" @click="newImport">New import</NcButton>
+          <NcButton size="small" @click="newImport">New Import</NcButton>
         </div>
       </div>
       <template v-else-if="importPayload.step === 0">
@@ -833,7 +833,7 @@ onMounted(async () => {
             </p>
           </a-upload-dragger>
           <div v-if="importHistory.length && !fullscreen" class="flex items-center justify-end">
-            <NcButton size="small" type="secondary" @click="viewImportHistory = true">View import history</NcButton>
+            <NcButton size="small" type="secondary" @click="viewImportHistory = true">View Import History</NcButton>
           </div>
         </div>
       </template>

@@ -44,8 +44,7 @@ export class JobsService extends JobsServiceCE implements OnModuleInit {
 
     if (process.env.NC_WORKER_CONTAINER === 'true') {
       JobsRedis.workerCallbacks[InstanceCommands.RESET] = async () => {
-        this.logger.log('Pausing local queue and stopping worker');
-        await this.jobsQueue.pause(true, true);
+        this.logger.log('Finishing local queue and stopping worker');
 
         let runningFor = 0;
 

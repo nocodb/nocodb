@@ -1,6 +1,6 @@
 const urlMatchers: [string, (u: string) => string | null][] = []
 
-const YOUTUBE_RE = /^https?:\/\/(www\.|)youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:\?.*)?$/
+const YOUTUBE_RE = /^https?:\/\/(www\.|)youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(.*)?$/
 const matchYoutube = (url: string) => {
   try {
     const match = url.match(YOUTUBE_RE)
@@ -13,6 +13,20 @@ const matchYoutube = (url: string) => {
   }
 }
 urlMatchers.push(['Youtube', matchYoutube])
+
+const YOUTUBE_SHORTS_RE = /^https?:\/\/(www\.|)youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})(?:\?.*)?$/
+const matchYoutubeShorts = (url: string) => {
+  try {
+    const match = url.match(YOUTUBE_SHORTS_RE)
+    if (!match) {
+      return null
+    }
+    return `https://www.youtube.com/embed/${match[2]}`
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['Youtube Shorts', matchYoutubeShorts])
 
 const GOOGLE_RE =
   /^https?:\/\/(docs|drive)\.google\.com\/(document|spreadsheets|presentation|file)\/d\/([a-zA-Z0-9_-]+)(?:\/.*)?(?:\?.*)?$/

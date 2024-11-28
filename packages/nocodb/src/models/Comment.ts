@@ -44,49 +44,32 @@ export default class Comment implements CommentType {
   public static async listByModel(
     context: NcContext,
     fk_model_id: string,
+    pagination?: { limit: number; offset: number },
     ncMeta = Noco.ncMeta,
   ): Promise<Comment[]> {
-    const READ_BATCH_SIZE = 1000;
-    const allComments: Comment[] = [];
-    let fetchNextBatch = true;
-
-    for (let offset = 0; fetchNextBatch; offset += READ_BATCH_SIZE) {
-      const comments = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COMMENTS,
-        {
-          condition: {
-            fk_model_id,
-          },
-          orderBy: {
-            created_at: 'asc'
-          },
-          limit: READ_BATCH_SIZE + 1,
-          offset,
-          xcCondition:
-            {
-              _or: [
-                { is_deleted: { eq: null } },
-                { is_deleted: {
-                  eq: true
-                  } },
-              ]
-            }
-
+    const comments = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.COMMENTS,
+      {
+        condition: {
+          fk_model_id,
+        },
+        orderBy: {
+          id: 'asc'
+        },
+        limit: pagination?.limit,
+        offset: pagination?.offset,
+        xcCondition: {
+          _or: [
+            { is_deleted: { eq: null } },
+            { is_deleted: { eq: true } },
+          ]
         }
-      );
+      }
+    );
 
-      const batchComments = comments
-        .slice(0, READ_BATCH_SIZE)
-        .map(comment => new Comment(comment));
-
-      allComments.push(...batchComments);
-
-      fetchNextBatch = comments.length > READ_BATCH_SIZE;
-    }
-
-    return allComments;
+    return comments.map(comment => new Comment(comment));
   }
 
   public static async list(

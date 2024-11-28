@@ -523,8 +523,15 @@ watch(
   },
 )
 
+const { navigateToProject } = useGlobal()
+
 const openBaseSettings = async (baseId: string) => {
-  await navigateTo(`/nc/${baseId}?page=base-settings`)
+  navigateToProject({
+    baseId,
+    query: {
+      page: 'base-settings',
+    },
+  })
 }
 
 const showNodeTooltip = ref(true)

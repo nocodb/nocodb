@@ -210,7 +210,7 @@ watch(
               <div>{{ $t('activity.settings') }}</div>
             </div>
           </template>
-          <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
+          <DashboardSettingsBaseSettings :base-id="base.id!" class="max-h-full" />
         </a-tab-pane>
       </a-tabs>
     </div>

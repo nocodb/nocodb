@@ -180,6 +180,10 @@ export interface CreateSnapshotJobData extends JobData {
 export interface RestoreSnapshotJobData extends JobData {
   sourceId: string;
   targetBaseId: string;
+  targetContext: {
+    workspace_id: string;
+    base_id: string;
+  }
   snapshot: SnapshotType;
   req: NcRequest;
 }

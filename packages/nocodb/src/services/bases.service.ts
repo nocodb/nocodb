@@ -262,6 +262,7 @@ export class BasesService {
     }
 
     if (baseBody?.title.length > 50) {
+      // Limited for consistent behaviour across identifier names for table, view, columns
       NcError.badRequest('Base title exceeds 50 characters');
     }
 

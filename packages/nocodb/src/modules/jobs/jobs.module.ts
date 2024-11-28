@@ -44,7 +44,6 @@ import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fa
 import { JOBS_QUEUE } from '~/interface/Jobs';
 import { RecoverLinksMigration } from '~/modules/jobs/migration-jobs/nc_job_003_recover_links';
 import { CleanupDuplicateColumnMigration } from '~/modules/jobs/migration-jobs/nc_job_004_cleanup_duplicate_column';
-import { SnapshotController } from '~/modules/jobs/jobs/snapshot/snapshot.controller';
 
 export const JobsModuleMetadata = {
   imports: [
@@ -74,7 +73,6 @@ export const JobsModuleMetadata = {
           SourceCreateController,
           SourceDeleteController,
           DataExportController,
-          SnapshotController,
         ]
       : []),
   ],

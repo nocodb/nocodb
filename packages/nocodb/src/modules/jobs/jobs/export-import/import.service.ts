@@ -19,7 +19,7 @@ import type {
   View,
 } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { Hook } from '~/models';
+import { Comment, Hook } from '~/models';
 import { Base, Column, Model, Source } from '~/models';
 import {
   findWithIdentifier,
@@ -80,8 +80,15 @@ export class ImportService {
       baseId: string;
       sourceId: string;
       data:
-        | { models: { model: any; views: any[]; hooks?: any[] }[] }
-        | { model: any; views: any[]; hooks?: any[] }[];
+        | {
+            models: {
+              model: any;
+              views: any[];
+              hooks?: any[];
+              comments?: any[];
+            }[];
+          }
+        | { model: any; views: any[]; hooks?: any[]; comments?: any[] }[];
       req: NcRequest;
       externalModels?: Model[];
       existingModel?: Model;
@@ -279,6 +286,29 @@ export class ImportService {
         if (!hk) continue;
 
         idMap.set(hook.id, hk.id);
+      }
+    }
+
+    // create comments
+    for (const data of param.data) {
+      if (param.existingModel) break;
+      if (!data?.comments) break;
+      const modelData = data.model;
+      const commentsData = data.comments;
+
+      const table = tableReferences.get(modelData.id);
+
+      for (const commentD of commentsData) {
+        const comment = await Comment.insert(
+          context,
+          withoutId({
+            ...commentD,
+            fk_model_id: table.id,
+            parent_comment_id: idMap.get(commentD.parent_comment_id),
+          }),
+        );
+
+        idMap.set(commentD.id, comment.id);
       }
     }
 

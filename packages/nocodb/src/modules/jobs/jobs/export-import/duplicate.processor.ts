@@ -52,6 +52,7 @@ export class DuplicateProcessor {
     const excludeData = options?.excludeData || false;
     const excludeHooks = options?.excludeHooks || false;
     const excludeViews = options?.excludeViews || false;
+    const excludeComments = options?.excludeComments || excludeData || false;
 
     const base = await Base.get(context, baseId);
     const dupProject = await Base.get(context, dupProjectId);
@@ -79,6 +80,7 @@ export class DuplicateProcessor {
         excludeViews,
         excludeHooks,
         excludeData,
+        excludeComments,
       });
 
       elapsedTime(
@@ -157,6 +159,7 @@ export class DuplicateProcessor {
     const excludeData = options?.excludeData || false;
     const excludeHooks = options?.excludeHooks || false;
     const excludeViews = options?.excludeViews || false;
+    const excludeComments = options?.excludeComments || excludeData || false;
 
     const base = await Base.get(context, baseId);
     const source = await Source.get(context, sourceId);
@@ -184,6 +187,7 @@ export class DuplicateProcessor {
         excludeViews,
         excludeHooks,
         excludeData,
+        excludeComments,
       })
     )[0];
 

@@ -286,7 +286,7 @@ export function useData(args: {
                 col.uidt === UITypes.Lookup ||
                 col.uidt === UITypes.Button ||
                 col.uidt === UITypes.Attachment ||
-                (col.uidt === UITypes.LongText && col.meta?.[LongTextAiMetaProp] === true) ||
+                (col.uidt === UITypes.LongText && parseProp(col.meta)?.[LongTextAiMetaProp] === true) ||
                 col.au ||
                 (isValidValue(col?.cdf) && / on update /i.test(col.cdf)))
             )

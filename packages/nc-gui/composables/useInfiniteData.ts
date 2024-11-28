@@ -916,6 +916,7 @@ export function useInfiniteData(args: {
           col.title &&
           col.title in updatedRowData &&
           (columnsToUpdate.has(col.uidt as UITypes) ||
+            (col.uidt === UITypes.LongText && parseProp(col.meta)?.[LongTextAiMetaProp] === true) ||
             col.au ||
             (isValidValue(col?.cdf) && / on update /i.test(col.cdf as string)))
         ) {

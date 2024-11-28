@@ -17,7 +17,18 @@ const { snapshot } = props
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const { restoreSnapshot, isRestoringSnapshot } = useBaseSettings()
+const { restoreSnapshot: _restoreSnapshot, isRestoringSnapshot } = useBaseSettings()
+
+const restoreSnapshot = async (snapshot: SnapshotExtendedType) => {
+  try {
+    await _restoreSnapshot(snapshot, () => {
+      vModel.value = false
+      emits('update:modelValue', false)
+    })
+  } catch (error) {
+    console.error(error)
+  }
+}
 </script>
 
 <template>

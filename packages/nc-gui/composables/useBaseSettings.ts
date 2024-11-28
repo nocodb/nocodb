@@ -126,14 +126,14 @@ export const useBaseSettings = createSharedComposable(() => {
     }
   }
 
-  const restoreSnapshot = async (snapshot: SnapshotExtendedType) => {
+  const restoreSnapshot = async (snapshot: SnapshotExtendedType, onRestoreSuccess?: () => void | Promise<void>) => {
     if (!baseId.value) return
     try {
       isRestoringSnapshot.value = true
-      await $api.snapshot.restore(baseId.value, snapshot.id!)
+      const response = await $api.snapshot.restore(baseId.value, snapshot.id!)
 
       $poller.subscribe(
-        { id: snapshot.id! },
+        { id: response.id! },
         async (data: {
           id: string
           status?: string
@@ -147,7 +147,8 @@ export const useBaseSettings = createSharedComposable(() => {
         }) => {
           if (data.status === JobStatus.COMPLETED) {
             await loadProjects('workspace')
-            const base = bases.value.get(data.id)
+
+            const base = bases.value.get(data.data?.result.id)
 
             isRestoringSnapshot.value = false
 
@@ -160,6 +161,8 @@ export const useBaseSettings = createSharedComposable(() => {
               })
             }
             message.info('Snapshot restored successfully')
+
+            onRestoreSuccess?.()
 
             refreshCommandPalette()
           } else if (data.status === JobStatus.FAILED) {

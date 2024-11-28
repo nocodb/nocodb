@@ -94,6 +94,7 @@
   },
   "general": {
     "snapshot": "Snapshot",
+    "snapshots": "Snapshots",
     "baseSnapshots": "Base Snapshots",
     "featurePreview": "Feature Preview",
     "scripts": "Scripts",
@@ -650,6 +651,8 @@
     "lockedByUser": "Locked by {user}"
   },
   "labels": {
+    "visibilityAndDataHandling": "Visibility & Data Handling",
+    "visibilityConfigLabel": "Base specific additional configurations to customise data display & default behaviours.",
     "miscBaseSettingsLabel": "Snapshots are complete backups of your database at the time of creation. Restoring a snapshot duplicates the data.",
     "snapShotSubText": "Snapshots are complete backups of your database at the time of creation. Restoring a snapshot duplicates the data.",
     "newSnapshot": "New Snapshot",

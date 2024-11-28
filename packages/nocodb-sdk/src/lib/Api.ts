@@ -11618,7 +11618,7 @@ export class Api<
  * @tags Plugin
  * @name Status
  * @summary Get Plugin Status
- * @request GET:/api/v1/db/meta/plugins/{pluginTitle}/status
+ * @request GET:/api/v1/db/meta/plugins/{pluginId}/status
  * @response `200` `boolean` OK
  * @response `400` `{
   \** @example BadRequest [Error]: <ERROR MESSAGE> *\
@@ -11626,7 +11626,7 @@ export class Api<
 
 }`
  */
-    status: (pluginTitle: string, params: RequestParams = {}) =>
+    status: (pluginId: string, params: RequestParams = {}) =>
       this.request<
         boolean,
         {
@@ -11634,7 +11634,7 @@ export class Api<
           msg: string;
         }
       >({
-        path: `/api/v1/db/meta/plugins/${pluginTitle}/status`,
+        path: `/api/v1/db/meta/plugins/${pluginId}/status`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -11839,6 +11839,11 @@ export class Api<
          * @example download/noco/jango_fett/Table1/attachment/uVbjPVQxC_SSfs8Ctx.jpg
          */
         path: string;
+        /**
+         * The scope of the attachment
+         * @example workspacePics
+         */
+        scope?: 'workspacePics' | 'profilePics' | 'organizationPics';
       },
       data: {
         files: FileReqType[];
@@ -11869,6 +11874,11 @@ export class Api<
          * @example download/noco/jango_fett/Table1/attachment/c7z_UF8sZBgJUxMjpN.jpg
          */
         path: string;
+        /**
+         * The scope of the attachment
+         * @example workspacePics
+         */
+        scope?: 'workspacePics' | 'profilePics' | 'organizationPics';
       },
       data: AttachmentReqType[],
       params: RequestParams = {}

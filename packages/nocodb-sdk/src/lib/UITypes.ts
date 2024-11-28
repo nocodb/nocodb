@@ -90,6 +90,7 @@ export const UITypesName = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   AIButton: 'AI Button',
+  AIPrompt: 'AI Prompt',
 };
 
 export const FieldNameFromUITypes: Record<UITypes, string> = {

@@ -40,7 +40,10 @@ export const isUser = (column: ColumnType) => column.uidt === UITypes.User
 export const isButton = (column: ColumnType) => column.uidt === UITypes.Button
 export const isAiButton = (column: ColumnType) =>
   column.uidt === UITypes.Button && (column?.colOptions as any)?.type === ButtonActionsType.Ai
-export const isAI = (_column: ColumnType) => false
+export const isAI = (column: ColumnType) => {
+  console.log('isAI', column)
+  return column.uidt === UITypes.LongText && (column?.meta as any)?.[LongTextAiMetaProp] === true
+}
 export const isAutoSaved = (column: ColumnType) =>
   [
     UITypes.SingleLineText,

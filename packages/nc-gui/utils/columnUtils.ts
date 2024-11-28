@@ -1,6 +1,6 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { ButtonType, ColumnType, FormulaType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk'
+import { ButtonActionsType, RelationTypes, UITypes, LongTextAiMetaProp as _LongTextAiMetaProp } from 'nocodb-sdk'
 
 export interface UiTypesType {
   name: UITypes | string
@@ -12,11 +12,21 @@ export interface UiTypesType {
 
 export const AIButton = 'AIButton'
 
+export const AIPrompt = 'AIPrompt'
+
+export const LongTextAiMetaProp = _LongTextAiMetaProp
+
 const uiTypes: UiTypesType[] = [
   {
     name: AIButton,
     icon: iconMap.cellAiButton,
     virtual: 1,
+    isNew: 1,
+    deprecated: 0,
+  },
+  {
+    name: AIPrompt,
+    icon: iconMap.cellAi,
     isNew: 1,
     deprecated: 0,
   },

@@ -15,6 +15,7 @@ import {
   isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
+  LongTextAiMetaProp,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -88,7 +89,7 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 const isPrimitiveType = (val) =>
   typeof val === 'string' || typeof val === 'number';
 
-const JSON_COLUMN_TYPES = [UITypes.Button];
+const JSON_COLUMN_TYPES = [UITypes.Button, UITypes.LongText];
 
 export async function populatePk(
   context: NcContext,
@@ -9777,7 +9778,10 @@ class BaseModelSqlv2 {
           UITypes.LastModifiedTime,
           UITypes.CreatedBy,
           UITypes.LastModifiedBy,
-        ].includes(column.uidt)
+          UITypes.LongText,
+        ].includes(column.uidt) ||
+        (column.uidt === UITypes.LongText &&
+          column.meta?.[LongTextAiMetaProp] !== true)
       )
         continue;
 
@@ -10046,6 +10050,86 @@ class BaseModelSqlv2 {
         ) {
           data[column.column_name] = JSON.stringify(data[column.column_name]);
         }
+      } else if (
+        UITypes.LongText === column.uidt &&
+        column.meta?.[LongTextAiMetaProp] === true
+      ) {
+        if (data[column.column_name]) {
+          let value = data[column.column_name];
+
+          if (typeof value === 'object') {
+            value = value.value;
+          }
+
+          const obj: {
+            value?: string;
+            lastModifiedBy?: string;
+            lastModifiedTime?: string;
+            isStale?: string;
+          } = {};
+
+          if (cookie?.system === true) {
+            Object.assign(obj, {
+              value,
+              lastModifiedBy: null,
+              lastModifiedTime: null,
+              isStale: false,
+            });
+          } else {
+            const oldObj = oldData?.[column.title];
+            const isStale = oldObj ? oldObj.isStale : false;
+
+            const isModified = oldObj?.value !== value;
+
+            Object.assign(obj, {
+              value,
+              lastModifiedBy: isModified
+                ? cookie?.user?.id
+                : oldObj?.lastModifiedBy,
+              lastModifiedTime: isModified
+                ? this.now()
+                : oldObj?.lastModifiedTime,
+              isStale,
+            });
+          }
+
+          data[column.column_name] = JSON.stringify(obj);
+        }
+      }
+    }
+
+    // AI column isStale handling
+    const aiColumns = this.model.columns.filter(
+      (c) =>
+        c.uidt === UITypes.LongText && c.meta?.[LongTextAiMetaProp] === true,
+    );
+
+    for (const aiColumn of aiColumns) {
+      if (
+        !oldData ||
+        !oldData[aiColumn.title] ||
+        oldData[aiColumn.title]?.isStale === true
+      ) {
+        continue;
+      }
+
+      const oldAiData = data[aiColumn.column_name]
+        ? JSON.parse(data[aiColumn.column_name])
+        : oldData[aiColumn.title];
+
+      const referencedColumnIds = aiColumn.colOptions.prompt
+        .match(/{(.*?)}/g)
+        .map((id) => id.replace(/{|}/g, ''));
+
+      const referencedColumns = referencedColumnIds.map(
+        (id) => this.model.columnsById[id],
+      );
+
+      if (referencedColumns.some((c) => c.column_name in data)) {
+        data[aiColumn.column_name] = JSON.stringify({
+          ...oldAiData,
+          isStale: true,
+        });
       }
     }
   }

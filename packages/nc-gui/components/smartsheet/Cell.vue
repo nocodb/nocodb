@@ -146,6 +146,34 @@ const showCurrentDateOption = computed(() => {
 const currentDate = () => {
   vModel.value = sqlUi.value?.getCurrentDateDefault?.(column.value)
 }
+
+const cellType = computed(() => {
+  if (isAI(column.value)) return 'ai'
+  if (isTextArea(column.value)) return 'textarea'
+  if (isGeoData(column.value)) return 'geoData'
+  if (isBoolean(column.value, abstractType.value)) return 'checkbox'
+  if (isAttachment(column.value)) return 'attachment'
+  if (isSingleSelect(column.value)) return 'singleSelect'
+  if (isMultiSelect(column.value)) return 'multiSelect'
+  if (isDate(column.value, abstractType.value)) return 'datePicker'
+  if (isYear(column.value, abstractType.value)) return 'yearPicker'
+  if (isDateTime(column.value, abstractType.value)) return 'dateTimePicker'
+  if (isTime(column.value, abstractType.value)) return 'timePicker'
+  if (isRating(column.value)) return 'rating'
+  if (isDuration(column.value)) return 'duration'
+  if (isEmail(column.value)) return 'email'
+  if (isURL(column.value)) return 'url'
+  if (isPhoneNumber(column.value)) return 'phoneNumber'
+  if (isPercent(column.value)) return 'percent'
+  if (isCurrency(column.value)) return 'currency'
+  if (isUser(column.value)) return 'user'
+  if (isDecimal(column.value)) return 'decimal'
+  if (isFloat(column.value, abstractType.value)) return 'float'
+  if (isString(column.value, abstractType.value)) return 'text'
+  if (isInt(column.value, abstractType.value)) return 'integer'
+  if (isJSON(column.value)) return 'json'
+  return 'text'
+})
 </script>
 
 <template>
@@ -180,53 +208,53 @@ const currentDate = () => {
           {{ $t('general.generating') }}
         </NcTooltip>
       </div>
-      <LazyCellTextArea v-else-if="isTextArea(column)" v-model="vModel" :virtual="props.virtual" />
-      <LazyCellGeoData v-else-if="isGeoData(column)" v-model="vModel" />
-      <LazyCellCheckbox v-else-if="isBoolean(column, abstractType)" v-model="vModel" />
-      <LazyCellAttachment v-else-if="isAttachment(column)" ref="attachmentCell" v-model="vModel" :row-index="props.rowIndex" />
+      <LazyCellAI v-else-if="cellType === 'ai'" v-model="vModel" @save="emit('save')" />
+      <LazyCellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
+      <LazyCellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
+      <LazyCellCheckbox v-else-if="cellType === 'checkbox'" v-model="vModel" />
+      <LazyCellAttachment v-else-if="cellType === 'attachment'" ref="attachmentCell" v-model="vModel" :row-index="props.rowIndex" />
       <LazyCellSingleSelect
-        v-else-if="isSingleSelect(column)"
+        v-else-if="cellType === 'singleSelect'"
         v-model="vModel"
         :disable-option-creation="!!isEditColumnMenu"
         :row-index="props.rowIndex"
       />
       <LazyCellMultiSelect
-        v-else-if="isMultiSelect(column)"
+        v-else-if="cellType === 'multiSelect'"
         v-model="vModel"
         :disable-option-creation="!!isEditColumnMenu"
         :row-index="props.rowIndex"
       />
       <LazyCellDatePicker
-        v-else-if="isDate(column, abstractType)"
+        v-else-if="cellType === 'datePicker'"
         v-model="vModel"
         :is-pk="isPrimaryKey(column)"
         :show-current-date-option="showCurrentDateOption"
         @current-date="currentDate"
       />
-      <LazyCellYearPicker v-else-if="isYear(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+      <LazyCellYearPicker v-else-if="cellType === 'yearPicker'" v-model="vModel" :is-pk="isPrimaryKey(column)" />
       <LazyCellDateTimePicker
-        v-else-if="isDateTime(column, abstractType)"
+        v-else-if="cellType === 'dateTimePicker'"
         v-model="vModel"
         :is-pk="isPrimaryKey(column)"
         :is-updated-from-copy-n-paste="currentRow.rowMeta.isUpdatedFromCopyNPaste"
         :show-current-date-option="showCurrentDateOption"
         @current-date="currentDate"
       />
-      <LazyCellTimePicker v-else-if="isTime(column, abstractType)" v-model="vModel" :is-pk="isPrimaryKey(column)" />
-      <LazyCellRating v-else-if="isRating(column)" v-model="vModel" />
-      <LazyCellDuration v-else-if="isDuration(column)" v-model="vModel" />
-      <LazyCellEmail v-else-if="isEmail(column)" v-model="vModel" />
-      <LazyCellUrl v-else-if="isURL(column)" v-model="vModel" />
-      <LazyCellPhoneNumber v-else-if="isPhoneNumber(column)" v-model="vModel" />
-      <LazyCellPercent v-else-if="isPercent(column)" v-model="vModel" />
-      <LazyCellCurrency v-else-if="isCurrency(column)" v-model="vModel" @save="emit('save')" />
-      <LazyCellUser v-else-if="isUser(column)" v-model="vModel" :row-index="props.rowIndex" />
-      <LazyCellAI v-else-if="isAI(column)" v-model="vModel" @save="emit('save')" />
-      <LazyCellDecimal v-else-if="isDecimal(column)" v-model="vModel" />
-      <LazyCellFloat v-else-if="isFloat(column, abstractType)" v-model="vModel" />
-      <LazyCellText v-else-if="isString(column, abstractType)" v-model="vModel" />
-      <LazyCellInteger v-else-if="isInt(column, abstractType)" v-model="vModel" />
-      <LazyCellJson v-else-if="isJSON(column)" v-model="vModel" />
+      <LazyCellTimePicker v-else-if="cellType === 'timePicker'" v-model="vModel" :is-pk="isPrimaryKey(column)" />
+      <LazyCellRating v-else-if="cellType === 'rating'" v-model="vModel" />
+      <LazyCellDuration v-else-if="cellType === 'duration'" v-model="vModel" />
+      <LazyCellEmail v-else-if="cellType === 'email'" v-model="vModel" />
+      <LazyCellUrl v-else-if="cellType === 'url'" v-model="vModel" />
+      <LazyCellPhoneNumber v-else-if="cellType === 'phoneNumber'" v-model="vModel" />
+      <LazyCellPercent v-else-if="cellType === 'percent'" v-model="vModel" />
+      <LazyCellCurrency v-else-if="cellType === 'currency'" v-model="vModel" @save="emit('save')" />
+      <LazyCellUser v-else-if="cellType === 'user'" v-model="vModel" :row-index="props.rowIndex" />
+      <LazyCellDecimal v-else-if="cellType === 'decimal'" v-model="vModel" />
+      <LazyCellFloat v-else-if="cellType === 'float'" v-model="vModel" />
+      <LazyCellText v-else-if="cellType === 'text'" v-model="vModel" />
+      <LazyCellInteger v-else-if="cellType === 'integer'" v-model="vModel" />
+      <LazyCellJson v-else-if="cellType === 'json'" v-model="vModel" />
       <LazyCellText v-else v-model="vModel" />
       <div
         v-if="

@@ -110,6 +110,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         return true
       }
 
+      if (formState.value.uidt === UITypes.LongText && formState.value.meta?.[LongTextAiMetaProp] === true) {
+        return true
+      }
+
       return false
     })
 

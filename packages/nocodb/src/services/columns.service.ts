@@ -1603,9 +1603,7 @@ export class ColumnsService {
         });
       } else if (
         colBody.uidt === UITypes.LongText &&
-        colBody.meta?.[LongTextAiMetaProp] === true &&
-        (column.uidt !== UITypes.LongText ||
-          column.meta?.[LongTextAiMetaProp] !== true)
+        colBody.meta?.[LongTextAiMetaProp] === true
       ) {
         if (!colBody.fk_integration_id) {
           NcError.badRequest('AI Integration not found');
@@ -1645,23 +1643,29 @@ export class ColumnsService {
           },
         });
 
-        const baseModel = await reuseOrSave('baseModel', reuse, async () =>
-          Model.getBaseModelSQL(context, {
-            id: table.id,
-            dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
-              NcConnectionMgrv2.get(source),
-            ),
-          }),
-        );
+        // If column wasn't AI before, convert the data to AIRecordType format
+        if (
+          column.uidt !== UITypes.LongText ||
+          column.meta?.[LongTextAiMetaProp] !== true
+        ) {
+          const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+            Model.getBaseModelSQL(context, {
+              id: table.id,
+              dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+                NcConnectionMgrv2.get(source),
+              ),
+            }),
+          );
 
-        await convertValueToAIRecordType({
-          source,
-          table,
-          column: colBody,
-          baseModel,
-          sqlClient,
-          user: param.user,
-        });
+          await convertValueToAIRecordType({
+            source,
+            table,
+            column: colBody,
+            baseModel,
+            sqlClient,
+            user: param.user,
+          });
+        }
       }
 
       colBody = await getColumnPropsFromUIDT(colBody, source);

@@ -50,6 +50,7 @@ export const convertAIRecordTypeToValue = async (args: {
         column.column_name,
         column.column_name,
         column.column_name,
+        column.column_name,
       ],
     );
   } else if (source.type === 'mssql') {
@@ -59,6 +60,7 @@ export const convertAIRecordTypeToValue = async (args: {
         WHERE ISJSON(??) = 1 AND JSON_VALUE(??, '$.value') IS NOT NULL;`,
       [
         baseModel.getTnPath(table.table_name),
+        column.column_name,
         column.column_name,
         column.column_name,
         column.column_name,

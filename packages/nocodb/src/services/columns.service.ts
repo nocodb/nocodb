@@ -67,6 +67,10 @@ import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { MetaTable } from '~/utils/globals';
 import { MetaService } from '~/meta/meta.service';
+import {
+  convertAIRecordTypeToValue,
+  convertValueToAIRecordType,
+} from '~/utils/dataConversion';
 
 // todo: move
 export enum Altered {
@@ -1535,51 +1539,6 @@ export class ColumnsService {
           },
         });
       }
-    } else if (
-      colBody.uidt === UITypes.LongText &&
-      colBody.meta?.[LongTextAiMetaProp] === true
-    ) {
-      if (column.uidt === UITypes.LongText) {
-        if (!colBody.fk_integration_id) {
-          NcError.badRequest('AI Integration not found');
-        }
-
-        let prompt = '';
-
-        /*
-          Substitute column alias with id in prompt
-        */
-        if (colBody.prompt_raw) {
-          await table.getColumns(context);
-
-          prompt = colBody.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
-            const column = table.columns.find((c) => c.title === p1);
-
-            if (!column) {
-              NcError.badRequest(`Field '${p1}' not found`);
-            }
-
-            return `{${column.id}}`;
-          });
-        }
-
-        colBody.prompt = prompt;
-
-        await this.updateMetaAndDatabase(context, {
-          table,
-          column: colBody,
-          source,
-          reuse,
-          processColumn: async () => {
-            await this.updateFormulas(context, {
-              oldColumn: column,
-              colBody,
-            });
-          },
-        });
-      } else {
-        NcError.badRequest('A non-AI column cannot be converted to AI');
-      }
     } else {
       if (column.uidt === UITypes.User) {
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
@@ -1617,6 +1576,92 @@ export class ColumnsService {
         NcError.badRequest(
           `The column '${column.column_name}' is being used in Kanban View. Please update stack by field or delete Kanban View first.`,
         );
+      }
+
+      if (
+        column.uidt === UITypes.LongText &&
+        column.meta?.[LongTextAiMetaProp] === true &&
+        (colBody.uidt !== UITypes.LongText ||
+          (colBody.uidt === UITypes.LongText &&
+            colBody.meta?.[LongTextAiMetaProp] !== true))
+      ) {
+        const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+          Model.getBaseModelSQL(context, {
+            id: table.id,
+            dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+              NcConnectionMgrv2.get(source),
+            ),
+          }),
+        );
+
+        await convertAIRecordTypeToValue({
+          source,
+          table,
+          column,
+          baseModel,
+          sqlClient,
+        });
+      } else if (
+        colBody.uidt === UITypes.LongText &&
+        colBody.meta?.[LongTextAiMetaProp] === true &&
+        (column.uidt !== UITypes.LongText ||
+          column.meta?.[LongTextAiMetaProp] !== true)
+      ) {
+        if (!colBody.fk_integration_id) {
+          NcError.badRequest('AI Integration not found');
+        }
+
+        let prompt = '';
+
+        /*
+          Substitute column alias with id in prompt
+        */
+        if (colBody.prompt_raw) {
+          await table.getColumns(context);
+
+          prompt = colBody.prompt_raw.replace(/{(.*?)}/g, (match, p1) => {
+            const column = table.columns.find((c) => c.title === p1);
+
+            if (!column) {
+              NcError.badRequest(`Field '${p1}' not found`);
+            }
+
+            return `{${column.id}}`;
+          });
+        }
+
+        colBody.prompt = prompt;
+
+        await this.updateMetaAndDatabase(context, {
+          table,
+          column: colBody,
+          source,
+          reuse,
+          processColumn: async () => {
+            await this.updateFormulas(context, {
+              oldColumn: column,
+              colBody,
+            });
+          },
+        });
+
+        const baseModel = await reuseOrSave('baseModel', reuse, async () =>
+          Model.getBaseModelSQL(context, {
+            id: table.id,
+            dbDriver: await reuseOrSave('dbDriver', reuse, async () =>
+              NcConnectionMgrv2.get(source),
+            ),
+          }),
+        );
+
+        await convertValueToAIRecordType({
+          source,
+          table,
+          column: colBody,
+          baseModel,
+          sqlClient,
+          user: param.user,
+        });
       }
 
       colBody = await getColumnPropsFromUIDT(colBody, source);

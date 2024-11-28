@@ -10118,8 +10118,10 @@ class BaseModelSqlv2 {
         : oldData[aiColumn.title];
 
       const referencedColumnIds = aiColumn.colOptions.prompt
-        .match(/{(.*?)}/g)
-        .map((id) => id.replace(/{|}/g, ''));
+        ?.match(/{(.*?)}/g)
+        ?.map((id) => id.replace(/{|}/g, ''));
+
+      if (!referencedColumnIds) continue;
 
       const referencedColumns = referencedColumnIds.map(
         (id) => this.model.columnsById[id],

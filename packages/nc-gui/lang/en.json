@@ -661,7 +661,7 @@
     "visibilityAndDataHandling": "Visibility & Data Handling",
     "visibilityConfigLabel": "Base specific additional configurations to customise data display & default behaviours.",
     "snapShotSubText": "Snapshots serve as comprehensive backups of your base, capturing its state at the time of creation. Restoring a snapshot creates a new instance of the base in the designated workspace.",
-    "newSnapshot": "New snapshot",
+    "newSnapshot": "New Snapshot",
     "searchASnapshot": "Search a snapshot",
     "continue": "Continue",
     "toggleExperimentalFeature": "Enable or disable experimental features with ease, allowing you to explore and evaluate upcoming functionalities.",

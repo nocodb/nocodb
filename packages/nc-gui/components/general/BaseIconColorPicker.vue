@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import tinycolor from 'tinycolor2'
+import { NcProjectType } from '#imports'
 
 const props = withDefaults(
   defineProps<{

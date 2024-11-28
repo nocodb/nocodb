@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { ProjectRoles, type TableType, type ViewType, WorkspaceUserRoles } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
-import { resolveComponent } from '@vue/runtime-core'
+import { ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 import { LockType } from '#imports'
 
 const props = withDefaults(
@@ -68,15 +67,42 @@ const onImportClick = (dialog: any) => {
   dialog.value = true
 }
 
-async function changeLockType(type: LockType) {
-  $e('a:grid:lockmenu', { lockType: type, sidebar: props.inSidebar })
+const onLockTypeChange = (type: LockType) => {
+  const { close } = useDialog(resolveComponent('DlgLockView'), {
+    'modelValue': ref(true),
+    'onUpdate:modelValue': () => {
+      close()
+    },
+    'changeType': type,
+    view,
+  })
 
+  emits('closeModal')
+}
+
+async function changeLockType(type: LockType) {
   if (!view.value) return
+
+  if (view.value?.lock_type === type) {
+    message.success(`Already in ${type} view`)
+    emits('closeModal')
+
+    return
+  }
 
   // if default view block the change since it's not allowed
   if (type === 'personal' && view.value.is_default) {
     return message.info(t('msg.toast.notAllowedToChangeDefaultView'))
   }
+
+  if (type === LockType.Locked || view.value.lock_type === LockType.Locked) {
+    onLockTypeChange(type)
+
+    return
+  }
+
+  $e(`a:${viewTypeAlias[view.value.type] || 'view'}:lockmenu`, { lockType: type, sidebar: props.inSidebar })
+
   try {
     view.value.lock_type = type
     await $api.dbView.update(view.value.id as string, {
@@ -140,6 +166,7 @@ const openReAssignDlg = () => {
     },
     view,
   })
+
   emits('closeModal')
 }
 
@@ -252,8 +279,9 @@ const isDefaultView = computed(() => view.value?.is_default)
             </div>
           </template>
 
-          <template #expandIcon></template>
-          <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('activity.uploadData') }}</div>
+          <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
+            {{ $t('activity.uploadData') }}
+          </div>
 
           <template v-for="(dialog, type) in quickImportDialogs">
             <NcMenuItem v-if="isUIAllowed(`${type}TableImport`) && !isPublicView" :key="type" @click="onImportClick(dialog)">
@@ -290,8 +318,6 @@ const isDefaultView = computed(() => view.value?.is_default)
           </div>
         </template>
 
-        <template #expandIcon></template>
-
         <LazySmartsheetToolbarExportSubActions />
       </NcSubMenu>
     </template>
@@ -319,34 +345,42 @@ const isDefaultView = computed(() => view.value?.is_default)
             <div class="nc-base-menu-item flex !flex-shrink group !py-1 !px-1 rounded-md bg-brand-50">
               <LazySmartsheetToolbarLockType
                 :type="lockType"
-                class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink"
+                class="flex nc-view-actions-lock-type !text-brand-500 !flex-shrink !cursor-auto"
                 hide-tick
               />
             </div>
             <div class="flex flex-grow"></div>
           </div>
         </template>
-
-        <template #expandIcon></template>
-        <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">{{ $t('labels.viewMode') }}</div>
-        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]">
-          <LazySmartsheetToolbarLockType :type="LockType.Collaborative" @click="changeLockType(LockType.Collaborative)" />
+        <div class="flex py-3 px-4 font-bold uppercase text-xs text-gray-500">
+          {{ $t('labels.viewMode') }}
+        </div>
+        <a-menu-item
+          class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
+          :disabled="!isUIAllowed('fieldAdd')"
+          @click="changeLockType(LockType.Collaborative)"
+        >
+          <LazySmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="!isUIAllowed('fieldAdd')" />
         </a-menu-item>
         <SmartsheetToolbarNotAllowedTooltip
           v-if="isEeUI"
-          :enabled="!isViewOwner || isDefaultView"
+          :enabled="!isViewOwner || !!isDefaultView"
           :message="isDefaultView ? 'Default view can\'t be made personal' : 'Only view owner can change to personal view'"
         >
           <a-menu-item
-            :disabled="!isViewOwner || isDefaultView"
+            :disabled="!isViewOwner || !!isDefaultView"
             class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction max-w-[100px]"
             @click="changeLockType(LockType.Personal)"
           >
             <LazySmartsheetToolbarLockType :type="LockType.Personal" :disabled="!isViewOwner || isDefaultView" />
           </a-menu-item>
         </SmartsheetToolbarNotAllowedTooltip>
-        <a-menu-item class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction">
-          <LazySmartsheetToolbarLockType :type="LockType.Locked" @click="changeLockType(LockType.Locked)" />
+        <a-menu-item
+          class="!mx-1 !py-2 !rounded-md nc-view-action-lock-subaction"
+          :disabled="!isUIAllowed('fieldAdd')"
+          @click="changeLockType(LockType.Locked)"
+        >
+          <LazySmartsheetToolbarLockType :type="LockType.Locked" :disabled="!isUIAllowed('fieldAdd')" />
         </a-menu-item>
       </NcSubMenu>
       <SmartsheetToolbarNotAllowedTooltip

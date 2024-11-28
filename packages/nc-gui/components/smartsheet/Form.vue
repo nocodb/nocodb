@@ -17,27 +17,13 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import type { ValidateInfo } from 'ant-design-vue/es/form/useForm'
-import type { ImageCropperConfig } from '~/lib/types'
+import type { ImageCropperConfig } from '#imports'
 
 provide(IsFormInj, ref(true))
 provide(IsGalleryInj, ref(false))
 
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
-
-const hiddenColTypes = [
-  UITypes.Rollup,
-  UITypes.Lookup,
-  UITypes.Formula,
-  UITypes.QrCode,
-  UITypes.Barcode,
-  UITypes.Button,
-  UITypes.SpecificDBType,
-  UITypes.CreatedTime,
-  UITypes.LastModifiedTime,
-  UITypes.CreatedBy,
-  UITypes.LastModifiedBy,
-]
 
 const hiddenBubbleMenuOptions = [
   RichTextBubbleMenuOptions.code,
@@ -192,7 +178,7 @@ const editOrAddProviderRef = ref()
 const onVisibilityChange = (state: 'showAddColumn' | 'showEditColumn') => {
   dropdownStates.value[state] = true
 
-  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.isWebHookModalOpen()) {
+  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen()) {
     dropdownStates.value[state] = false
   }
 }
@@ -498,7 +484,7 @@ async function handleAddOrRemoveAllColumns<T>(value: T) {
 
 async function checkSMTPStatus() {
   if (emailMe.value && !isEeUI) {
-    const emailPluginActive = await $api.plugin.status('SMTP')
+    const emailPluginActive = await $api.plugin.status('smtp')
     if (!emailPluginActive) {
       emailMe.value = false
       // Please activate SMTP plugin in App store for enabling email notification
@@ -536,7 +522,7 @@ function setFormData() {
   emailMe.value = data[user.value?.email as string]
 
   localColumns.value = col
-    .filter((f) => !hiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
+    .filter((f) => !formViewHiddenColTypes.includes(f.uidt) && !systemFieldsIds.value.includes(f.fk_column_id))
     .sort((a, b) => a.order - b.order)
     .map((c) => ({ ...c, required: !!c.required }))
 
@@ -1392,6 +1378,7 @@ useEventListener(
                 class="nc-form-right-panel h-full flex-grow max-w-full"
                 :class="{
                   'overflow-y-auto nc-form-scrollbar': activeField,
+                  'relative': isLocked,
                 }"
               >
                 <!-- Form Field settings -->
@@ -1575,7 +1562,7 @@ useEventListener(
                         <template v-if="localColumns.length">
                           <div
                             key="nc-form-show-all-fields"
-                            class="w-full flex items-center border-b-1 rounded-t-lg border-gray-200 bg-gray-50 sticky top-0 z-100"
+                            class="w-full flex items-center border-b-1 rounded-t-lg border-gray-200 bg-gray-50 sticky top-0 z-49"
                             data-testid="nc-form-show-all-fields"
                             @click.stop
                           >
@@ -1904,6 +1891,10 @@ useEventListener(
                     </Pane>
                   </Splitpanes>
                 </template>
+
+                <div v-if="isLocked" class="absolute inset-0 bg-black/12 z-500 grid place-items-center px-6">
+                  <LazyDlgLockView />
+                </div>
               </div>
             </template>
           </SmartsheetFormLayout>
@@ -2042,7 +2033,7 @@ useEventListener(
   @apply !border-t-1 !border-gray-200 relative;
 
   &::before {
-    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-gray-800 border-1 border-gray-200 rounded bg-white absolute -top-2.5 z-100 left-[calc(50%_-_16px)];
+    @apply content-[':::'] block h-4 leading-12px px-2 font-bold text-gray-800 border-1 border-gray-200 rounded bg-white absolute -top-2.5 z-49 left-[calc(50%_-_16px)];
   }
 }
 

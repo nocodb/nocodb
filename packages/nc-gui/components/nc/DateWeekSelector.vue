@@ -163,7 +163,7 @@ const paginate = (action: 'next' | 'prev') => {
       }"
     >
       <NcTooltip hide-on-click>
-        <NcButton class="!border-0" size="small" type="secondary" @click="paginate('prev')">
+        <NcButton class="!border-0" size="small" type="text" @click="paginate('prev')">
           <component :is="iconMap.arrowLeft" class="h-4 w-4" />
         </NcButton>
         <template #title>
@@ -181,7 +181,7 @@ const paginate = (action: 'next' | 'prev') => {
       <span v-else class="text-gray-700 text-sm font-semibold">{{ currentMonthYear }}</span>
 
       <NcTooltip hide-on-click>
-        <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="secondary" @click="paginate('next')">
+        <NcButton class="!border-0" data-testid="nc-calendar-next-btn" size="small" type="text" @click="paginate('next')">
           <component :is="iconMap.arrowRight" class="h-4 w-4" />
         </NcButton>
         <template #title>

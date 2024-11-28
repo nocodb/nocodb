@@ -100,15 +100,17 @@ const inputEl = (el: HTMLInputElement) => {
   <NcModal v-model:visible="vModel" wrap-class-name="nc-modal-re-assign" width="448px">
     <div class="mb-5">
       <div class="flex text-base font-bold mb-2">Re-assign this view</div>
-      <div class="flex">Once reassigned, current owner will no longer be able to edit the view configuration.</div>
+      <div class="flex text-nc-content-gray-subtle">
+        Once reassigned, current owner will no longer be able to edit the view configuration.
+      </div>
     </div>
 
     <div class="mb-5">
-      <div class="mb-1">Current owner</div>
-      <UserItem :user="currentOwner" class="bg-gray-100 rounded-lg" />
+      <div class="mb-2">Current owner</div>
+      <UserItem :user="currentOwner" class="bg-nc-bg-gray-light rounded-lg" />
     </div>
     <div class="mb-5">
-      <div class="mb-1">New owner</div>
+      <div class="mb-2">New owner</div>
       <div
         class="rounded-lg border-1"
         :class="{
@@ -136,7 +138,7 @@ const inputEl = (el: HTMLInputElement) => {
           />
         </div>
 
-        <div v-if="!selectedUser || userSelectMenu" class="max-h-65 overflow-auto">
+        <div v-if="!selectedUser || userSelectMenu" class="max-h-65 overflow-auto nc-scrollbar-thin">
           <UserItem
             v-for="user of filterdBaseUsers"
             :key="user.id"
@@ -148,7 +150,7 @@ const inputEl = (el: HTMLInputElement) => {
           </UserItem>
         </div>
 
-        <div v-if="!filterdBaseUsers?.length" class="h-12.5 p-2 text-gray-400 text-sm flex items-center justify-center">
+        <div v-if="!filterdBaseUsers?.length" class="h-25 p-2 text-gray-400 text-sm flex items-center justify-center">
           No base users found
         </div>
       </div>

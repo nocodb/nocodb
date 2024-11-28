@@ -16,11 +16,14 @@ const { refreshCommandPalette } = useCommandPalette()
 const viewsStore = useViewsStore()
 const { loadViews, navigateToView } = viewsStore
 
+const { aiIntegrationAvailable } = useNocoAi()
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
 
 const isViewListLoading = ref(false)
-const toBeCreateType = ref<ViewTypes>()
+const toBeCreateType = ref<ViewTypes | 'AI'>()
 
 const isOpen = ref(false)
 
@@ -62,7 +65,7 @@ async function onOpenModal({
   coverImageColumnId,
 }: {
   title?: string
-  type: ViewTypes
+  type: ViewTypes | 'AI'
   copyViewId?: string
   groupingFieldColumnId?: string
   calendarRange?: Array<{
@@ -94,8 +97,9 @@ async function onOpenModal({
     calendarRange,
     groupingFieldColumnId,
     coverImageColumnId,
+    'baseId': base.value.id,
     'onUpdate:modelValue': closeDialog,
-    'onCreated': async (view: ViewType) => {
+    'onCreated': async (view?: ViewType) => {
       closeDialog()
 
       refreshCommandPalette()
@@ -110,14 +114,16 @@ async function onOpenModal({
         hasNonDefaultViews: true,
       }
 
-      navigateToView({
-        view,
-        tableId: table.value.id!,
-        baseId: base.value.id!,
-        doNotSwitchTab: true,
-      })
+      if (view) {
+        navigateToView({
+          view,
+          tableId: table.value.id!,
+          baseId: base.value.id!,
+          doNotSwitchTab: true,
+        })
+      }
 
-      $e('a:view:create', { view: view.type })
+      $e('a:view:create', { view: view?.type || type })
     },
   })
 
@@ -191,6 +197,17 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
+        <template v-if="aiIntegrationAvailable && isFeatureEnabled(FEATURE_FLAG.AI_FEATURES)">
+          <NcDivider />
+          <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
+            <div class="item">
+              <div class="item-inner">
+                <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
+                <div>{{ $t('labels.aiSuggested') }}</div>
+              </div>
+            </div>
+          </NcMenuItem>
+        </template>
       </NcMenu>
     </template>
   </NcDropdown>

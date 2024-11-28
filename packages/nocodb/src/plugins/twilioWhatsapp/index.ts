@@ -4,6 +4,7 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 
 const config: XcPluginConfig = {
   builder: TwilioWhatsappPlugin,
+  id: 'twilio-whatsapp',
   title: 'Whatsapp Twilio',
   version: '0.0.1',
   logo: 'plugins/whatsapp.png',

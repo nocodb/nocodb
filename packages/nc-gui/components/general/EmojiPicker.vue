@@ -39,10 +39,6 @@ function selectEmoji(_emoji: any) {
   isOpen.value = false
 }
 
-const isUnicodeEmoji = computed(() => {
-  return emojiRef.value?.match(/\p{Extended_Pictographic}/gu)
-})
-
 const onClick = (e: Event) => {
   if (readonly) return
 
@@ -95,7 +91,7 @@ const showClearButton = computed(() => {
       <template v-if="!emojiRef">
         <slot name="default" />
       </template>
-      <template v-else-if="isUnicodeEmoji">
+      <template v-else-if="isUnicodeEmoji(emojiRef)">
         {{ emojiRef }}
       </template>
       <template v-else>
@@ -117,6 +113,7 @@ const showClearButton = computed(() => {
           :show-preview="false"
           color="#40444D"
           :auto-focus="true"
+          class="nc-emoji-picker"
           @select="selectEmoji"
           @click.stop="() => {}"
         >
@@ -141,7 +138,7 @@ const showClearButton = computed(() => {
     @apply pr-22;
   }
 }
-.emoji-mart {
+.nc-emoji-picker.emoji-mart {
   @apply !w-90;
 
   span.emoji-type-native {

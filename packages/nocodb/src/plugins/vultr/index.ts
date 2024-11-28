@@ -5,6 +5,8 @@ import type { XcPluginConfig } from '~/types/nc-plugin';
 const config: XcPluginConfig = {
   builder: VultrPlugin,
   title: 'Vultr',
+  id: 'vultr',
+  recoveryTitle: 'Vultr Object Storage',
   version: '0.0.4',
   logo: 'plugins/vultr.png',
   description:

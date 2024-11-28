@@ -73,7 +73,7 @@ onBeforeMount(() => {
             </div>
           </template>
           <div class="h-[calc(100vh-92px)]">
-            <WorkspaceIntegrationsTab />
+            <WorkspaceIntegrationsTab show-filter />
           </div>
         </a-tab-pane>
       </template>

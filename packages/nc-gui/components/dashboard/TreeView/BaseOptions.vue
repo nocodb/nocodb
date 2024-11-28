@@ -68,8 +68,6 @@ function openQuickImportDialog(type: string) {
       {{ $t('labels.importData') }}
     </template>
 
-    <template #expandIcon></template>
-
     <NcMenuItem
       v-if="isUIAllowed('airtableImport', { roles: baseRole, source })"
       key="quick-import-airtable"

@@ -9,6 +9,27 @@ export enum ViewTypes {
   CALENDAR = 6,
 }
 
+export const viewTypeAlias: Record<ViewTypes, string> = {
+  [ViewTypes.FORM]: 'form',
+  [ViewTypes.GALLERY]: 'gallery',
+  [ViewTypes.GRID]: 'grid',
+  [ViewTypes.KANBAN]: 'kanban',
+  [ViewTypes.MAP]: 'map',
+  [ViewTypes.CALENDAR]: 'calendar',
+};
+
+export const viewTypeToStringMap: Record<ViewTypes, string> = {
+  ...viewTypeAlias,
+};
+
+// Generate reverse mapping from the original viewTypeAlias
+export const stringToViewTypeMap: Record<string, ViewTypes> = Object.entries(
+  viewTypeAlias
+).reduce((acc, [key, value]) => {
+  acc[value] = Number(key);
+  return acc;
+}, {});
+
 export enum ProjectTypes {
   DATABASE = 'database',
   DOCUMENTATION = 'documentation',
@@ -197,6 +218,7 @@ export enum NcErrorType {
   INTEGRATION_LINKED_WITH_BASES = 'INTEGRATION_LINKED_WITH_BASES',
   FORMULA_ERROR = 'FORMULA_ERROR',
   PERMISSION_DENIED = 'PERMISSION_DENIED',
+  INVALID_ATTACHMENT_UPLOAD_SCOPE = 'INVALID_ATTACHMENT_UPLOAD_SCOPE',
 }
 
 type Roles = OrgUserRoles | ProjectRoles | WorkspaceUserRoles;

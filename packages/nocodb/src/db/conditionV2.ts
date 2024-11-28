@@ -213,30 +213,18 @@ const parseConditionV2 = async (
             filter.comparison_op,
           )
         ) {
-          // handle self reference
-          if (parentModel.id === childModel.id) {
-            if (filter.comparison_op === 'blank') {
-              return (qb) => {
-                qb.whereNull(childColumn.column_name);
-              };
-            } else {
-              return (qb) => {
-                qb.whereNotNull(childColumn.column_name);
-              };
-            }
-          }
+          const childTableAlias = getAlias(aliasCount);
 
           const selectHmCount = knex(
-            baseModelSqlv2.getTnPath(childModel.table_name),
+            baseModelSqlv2.getTnPath(childModel.table_name, childTableAlias),
           )
             .count(childColumn.column_name)
-            .where(
+            .whereRaw('??.?? = ??.??', [
+              childTableAlias,
               childColumn.column_name,
-              knex.raw('??.??', [
-                alias || baseModelSqlv2.getTnPath(parentModel.table_name),
-                parentColumn.column_name,
-              ]),
-            );
+              alias || baseModelSqlv2.getTnPath(parentModel.table_name),
+              parentColumn.column_name,
+            ]);
 
           return (qb) => {
             if (filter.comparison_op === 'blank') {

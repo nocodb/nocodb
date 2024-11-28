@@ -12,6 +12,7 @@ export enum MetaTable {
   COL_FORMULA = 'nc_col_formula_v2',
   COL_QRCODE = 'nc_col_qrcode_v2',
   COL_BARCODE = 'nc_col_barcode_v2',
+  COL_AI = 'nc_col_ai_v2',
   FILTER_EXP = 'nc_filter_exp_v2',
   // HOOK_FILTER_EXP = 'nc_hook_filter_exp_v2',
   SORT = 'nc_sort_v2',
@@ -143,6 +144,7 @@ export enum CacheScope {
   COL_FORMULA = 'colFormula',
   COL_QRCODE = 'colQRCode',
   COL_BARCODE = 'colBarcode',
+  COL_AI = 'colAi',
   FILTER_EXP = 'filterExp',
   SORT = 'sort',
   SHARED_VIEW = 'sharedView',
@@ -236,5 +238,8 @@ export const RootScopeTables = {
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
   // It's a special case and Workspace is equivalent to org in oss
-  [RootScopes.WORKSPACE]: [MetaTable.INTEGRATIONS],
+  [RootScopes.WORKSPACE]: [
+    MetaTable.INTEGRATIONS,
+    MetaTable.INTEGRATIONS_STORE,
+  ],
 };

@@ -461,7 +461,10 @@ async function importTemplate() {
                     let input = row[col.srcCn]
                     // parse potential boolean values
                     if (v.uidt === UITypes.Checkbox) {
-                      input = input ? input.replace(/["']/g, '').toLowerCase().trim() : 'false'
+                      if (typeof input === 'string') {
+                        input = input ? input.replace(/["']/g, '').toLowerCase().trim() : 'false'
+                      }
+                      input = input ?? 'false'
                       if (input === 'false' || input === 'no' || input === 'n') {
                         input = '0'
                       } else if (input === 'true' || input === 'yes' || input === 'y') {

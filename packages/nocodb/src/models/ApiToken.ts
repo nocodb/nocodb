@@ -11,6 +11,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 
 export default class ApiToken implements ApiTokenType {
+  id?: string;
   fk_workspace_id?: string;
   base_id?: string;
   fk_user_id?: string;

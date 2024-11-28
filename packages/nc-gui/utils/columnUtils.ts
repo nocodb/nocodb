@@ -1,7 +1,25 @@
+import type { FunctionalComponent, SVGAttributes } from 'vue'
 import type { ButtonType, ColumnType, FormulaType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { ButtonActionsType, RelationTypes, UITypes } from 'nocodb-sdk'
 
-const uiTypes = [
+export interface UiTypesType {
+  name: UITypes | string
+  icon: FunctionalComponent<SVGAttributes, {}, any, {}> | VNode
+  virtual?: number | boolean
+  deprecated?: number | boolean
+  isNew?: number | boolean
+}
+
+export const AIButton = 'AIButton'
+
+const uiTypes: UiTypesType[] = [
+  {
+    name: AIButton,
+    icon: iconMap.cellAiButton,
+    virtual: 1,
+    isNew: 1,
+    deprecated: 0,
+  },
   {
     name: UITypes.Links,
     icon: iconMap.cellLinks,
@@ -244,9 +262,9 @@ const isColumnInvalid = (col: ColumnType) => {
       return !!(col.colOptions as FormulaType).error
     case UITypes.Button: {
       const colOptions = col.colOptions as ButtonType
-      if (colOptions.type === 'webhook') {
+      if (colOptions.type === ButtonActionsType.Webhook) {
         return !colOptions.fk_webhook_id
-      } else if (colOptions.type === 'url') {
+      } else if (colOptions.type === ButtonActionsType.Url) {
         return !!colOptions.error
       }
     }
@@ -348,6 +366,21 @@ function extractRatingIcon(meta: string | Record<string, any> = null) {
   return icon
 }
 
+const formViewHiddenColTypes = [
+  UITypes.Rollup,
+  UITypes.Lookup,
+  UITypes.Formula,
+  UITypes.QrCode,
+  UITypes.Barcode,
+  UITypes.Button,
+  UITypes.SpecificDBType,
+  UITypes.CreatedTime,
+  UITypes.LastModifiedTime,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+  AIButton,
+]
+
 export {
   uiTypes,
   isTypableInputColumn,
@@ -362,4 +395,5 @@ export {
   ratingIconList,
   extractCheckboxIcon,
   extractRatingIcon,
+  formViewHiddenColTypes,
 }

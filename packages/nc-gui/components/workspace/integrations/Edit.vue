@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-const { pageMode, IntegrationsPageMode, activeIntegration, categories, activeCategory } = useIntegrationStore()
+const { pageMode, IntegrationsPageMode, activeIntegration, activeIntegrationItem, categories, activeCategory } =
+  useIntegrationStore()
 </script>
 
 <template>
@@ -10,7 +11,7 @@ const { pageMode, IntegrationsPageMode, activeIntegration, categories, activeCat
           <GeneralIcon icon="arrowLeft" />
           Back
         </div>
-        <WorkspaceIntegrationsIcon :integration-type="activeIntegration.type" size="sm" />
+        <WorkspaceIntegrationsIcon :integration-item="activeIntegrationItem" size="sm" />
         <div class="text-md font-bold">New {{ activeIntegration.title }}</div>
       </div>
       <div class="border-b-1 border-gray-200 mx-4"></div>

@@ -89,23 +89,25 @@ export default class Plugin implements PluginType {
     );
 
     await NocoCache.update(`${CacheScope.PLUGIN}:${pluginId}`, updateObj);
-    await NocoCache.update(`${CacheScope.PLUGIN}:${plugin.title}`, updateObj);
 
     return this.get(pluginId);
   }
 
-  public static async isPluginActive(title: string) {
-    return !!(await this.getPluginByTitle(title))?.active;
+  public static async isPluginActive(id: string, ncMeta = Noco.ncMeta) {
+    return !!(
+      (await this.getPlugin(id, ncMeta)) ||
+      (await this.getPluginByTitle(id, ncMeta))
+    )?.active;
   }
 
   /**
-   * get plugin by title
+   * get plugin by id
    */
-  public static async getPluginByTitle(title: string, ncMeta = Noco.ncMeta) {
+  public static async getPlugin(id: string, ncMeta = Noco.ncMeta) {
     let plugin =
-      title &&
+      id &&
       (await NocoCache.get(
-        `${CacheScope.PLUGIN}:${title}`,
+        `${CacheScope.PLUGIN}:${id}`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!plugin) {
@@ -113,12 +115,20 @@ export default class Plugin implements PluginType {
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.PLUGIN,
-        {
-          title,
-        },
+        id,
       );
-      await NocoCache.set(`${CacheScope.PLUGIN}:${title}`, plugin);
+      await NocoCache.set(`${CacheScope.PLUGIN}:${id}`, plugin);
     }
     return plugin;
+  }
+
+  // keeping it for backward compatibility, if someone configured google auth via plugin it still relies on this
+  static async getPluginByTitle(title: string, ncMeta = Noco.ncMeta) {
+    return await ncMeta.metaGet2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.PLUGIN,
+      { title },
+    );
   }
 }

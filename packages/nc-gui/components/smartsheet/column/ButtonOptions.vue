@@ -6,7 +6,7 @@ import {
   substituteColumnIdWithAliasInFormula,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk'
-import { type ButtonType, type ColumnType, type HookType } from 'nocodb-sdk'
+import { ButtonActionsType, type ButtonType, type ColumnType, type HookType } from 'nocodb-sdk'
 import { searchIcons } from '../../../utils/iconUtils'
 
 const props = defineProps<{
@@ -15,6 +15,10 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits(['update:value'])
+
+const buttonActionsType = {
+  ...ButtonActionsType,
+}
 
 const { t } = useI18n()
 
@@ -26,7 +30,7 @@ const vModel = useVModel(props, 'value', emit)
 
 const meta = inject(MetaInj, ref())
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen, validate } =
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isWebhookCreateModalOpen, isAiMode } =
   useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
@@ -48,11 +52,16 @@ const manualHooks = computed(() => {
 const buttonTypes = [
   {
     label: t('labels.openUrl'),
-    value: 'url',
+    value: ButtonActionsType.Url,
   },
   {
     label: t('labels.runWebHook'),
-    value: 'webhook',
+    value: ButtonActionsType.Webhook,
+  },
+  {
+    label: t('labels.generateFieldDataUsingAi'),
+    value: ButtonActionsType.Ai,
+    tooltip: t('tooltip.generateFieldDataUsingAiButtonOption'),
   },
 ]
 
@@ -74,10 +83,10 @@ const supportedColumns = computed(
 const validators = {
   formula_raw: [
     {
-      required: vModel.value.type === 'url',
+      required: vModel.value.type === ButtonActionsType.Url,
       validator: (_: any, formula: any) => {
         return (async () => {
-          if (vModel.value.type === 'url') {
+          if (vModel.value.type === ButtonActionsType.Url) {
             if (!formula?.trim()) throw new Error('Formula is required for URL Button')
 
             try {
@@ -102,10 +111,10 @@ const validators = {
   ],
   fk_webhook_id: [
     {
-      required: vModel.value.type === 'webhook',
+      required: vModel.value.type === ButtonActionsType.Webhook,
       validator: (_: any, fk_webhook_id: any) => {
         return new Promise<void>((resolve, reject) => {
-          if (vModel.value.type === 'webhook' && !fk_webhook_id) {
+          if (vModel.value.type === ButtonActionsType.Webhook && !fk_webhook_id) {
             reject(new Error(t('general.required')))
           }
           resolve()
@@ -141,7 +150,7 @@ const validators = {
     {
       validator: (_: any, type: any) => {
         return new Promise<void>((resolve, reject) => {
-          if (!['url', 'webhook'].includes(type)) {
+          if (!Object.values(ButtonActionsType).includes(type)) {
             reject(new Error(t('msg.invalidType')))
           }
           resolve()
@@ -161,6 +170,24 @@ const validators = {
       },
     },
   ],
+
+  ...((isEdit.value ? vModel.value.colOptions : vModel.value.type) === ButtonActionsType.Ai
+    ? {
+        output_column_ids: [
+          {
+            required: true,
+            message: 'At least one output field is required for AI Button',
+          },
+        ],
+        formula_raw: [
+          {
+            required: true,
+            message: 'Prompt required for AI Button',
+          },
+        ],
+        fk_integration_id: [{ required: true, message: t('general.required') }],
+      }
+    : {}),
 }
 
 if (isEdit.value) {
@@ -172,11 +199,27 @@ if (isEdit.value) {
   vModel.value.fk_webhook_id = colOptions?.fk_webhook_id
   vModel.value.icon = colOptions?.icon
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
+
+  if (vModel.value.type === ButtonActionsType.Ai) {
+    vModel.value.formula_raw = colOptions?.formula_raw || ''
+    vModel.value.output_column_ids = colOptions?.output_column_ids || ''
+    vModel.value.fk_integration_id = colOptions?.fk_integration_id
+  }
 } else {
-  vModel.value.type = buttonTypes[0].value
-  vModel.value.theme = 'solid'
-  vModel.value.label = 'Button'
-  vModel.value.color = 'brand'
+  vModel.value.type = vModel.value?.type || buttonTypes[0].value
+
+  if (vModel.value.type === ButtonActionsType.Ai) {
+    vModel.value.theme = 'text'
+    vModel.value.label = 'Generate data'
+    vModel.value.color = 'purple'
+    vModel.value.icon = 'ncAutoAwesome'
+    vModel.value.output_column_ids = ''
+  } else {
+    vModel.value.theme = 'solid'
+    vModel.value.label = 'Button'
+    vModel.value.color = 'brand'
+  }
+
   vModel.value.formula_raw = ''
 }
 
@@ -185,15 +228,17 @@ setAdditionalValidations({
 })
 
 // set default value
-if ((column.value?.colOptions as any)?.formula_raw) {
-  vModel.value.formula_raw =
-    substituteColumnIdWithAliasInFormula(
-      (column.value?.colOptions as ButtonType)?.formula,
-      meta?.value?.columns as ColumnType[],
-      (column.value?.colOptions as any)?.formula_raw,
-    ) || ''
-} else {
-  vModel.value.formula_raw = ''
+if (vModel.value?.type === ButtonActionsType.Url || (column.value?.colOptions as any)?.type === ButtonActionsType.Url) {
+  if ((column.value?.colOptions as any)?.formula_raw) {
+    vModel.value.formula_raw =
+      substituteColumnIdWithAliasInFormula(
+        (column.value?.colOptions as ButtonType)?.formula,
+        meta?.value?.columns as ColumnType[],
+        (column.value?.colOptions as any)?.formula_raw,
+      ) || ''
+  } else {
+    vModel.value.formula_raw = ''
+  }
 }
 
 const colorClass = {
@@ -293,6 +338,22 @@ const editWebhook = () => {
   }
 }
 
+const selectIcon = (icon: string) => {
+  vModel.value.icon = icon
+  isButtonIconDropdownOpen.value = false
+}
+
+const handleUpdateActionType = (type: ButtonActionsType) => {
+  // We are using `formula_raw` in both type url & ai, so it's imp to reset it
+  if (type !== ButtonActionsType.Ai) {
+    setAdditionalValidations({
+      formula_raw: validators.formula_raw,
+    })
+  }
+
+  vModel.value.formula_raw = ''
+}
+
 watch(isWebhookModal, (newVal) => {
   if (!newVal) {
     setTimeout(() => {
@@ -300,19 +361,21 @@ watch(isWebhookModal, (newVal) => {
     }, 500)
   }
 })
-
-const selectIcon = (icon: string) => {
-  vModel.value.icon = icon
-  isButtonIconDropdownOpen.value = false
-}
 </script>
 
 <template>
-  <div class="relative">
+  <div class="relative flex flex-col gap-4">
     <a-row :gutter="8">
       <a-col :span="12">
         <a-form-item v-bind="validateInfos.label" class="mt-4" :label="$t('general.label')">
-          <a-input v-model:value="vModel.label" class="nc-column-label-input !rounded-lg" placeholder="Button" />
+          <a-input
+            v-model:value="vModel.label"
+            class="nc-column-label-input nc-input-shadow !rounded-lg"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
+            placeholder="Button"
+          />
         </a-form-item>
       </a-col>
       <a-col :span="6">
@@ -320,7 +383,9 @@ const selectIcon = (icon: string) => {
           <NcDropdown v-model:visible="isDropdownOpen" class="nc-color-picker-dropdown-trigger">
             <div
               :class="{
-                '!border-brand-500 shadow-selected nc-button-style-dropdown ': isDropdownOpen,
+                'nc-button-style-dropdown': isDropdownOpen,
+                '!border-nc-border-purple !shadow-selected-ai': isDropdownOpen && isAiMode,
+                '!border-brand-500 !shadow-selected': isDropdownOpen && !isAiMode,
               }"
               class="flex items-center justify-between border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
             >
@@ -358,7 +423,9 @@ const selectIcon = (icon: string) => {
           <NcDropdown v-model:visible="isButtonIconDropdownOpen" class="nc-color-picker-dropdown-trigger">
             <div
               :class="{
-                '!border-brand-500 shadow-selected nc-button-style-dropdown ': isButtonIconDropdownOpen,
+                'nc-button-style-dropdown ': isButtonIconDropdownOpen,
+                '!border-nc-border-purple !shadow-selected-ai': isButtonIconDropdownOpen && isAiMode,
+                '!border-brand-500 !shadow-selected': isButtonIconDropdownOpen && !isAiMode,
               }"
               class="flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
             >
@@ -377,7 +444,10 @@ const selectIcon = (icon: string) => {
                     ref="inputRef"
                     v-model:value="iconSearchQuery"
                     :placeholder="$t('placeholder.searchIcons')"
-                    class="nc-dropdown-search-unified-input z-10"
+                    class="nc-dropdown-search-unified-input z-10 nc-input-shadow"
+                    :class="{
+                      'nc-ai-input': isAiMode,
+                    }"
                   >
                     <template #prefix> <GeneralIcon icon="search" class="nc-search-icon h-3.5 w-3.5 mr-1" /> </template
                   ></a-input>
@@ -404,33 +474,40 @@ const selectIcon = (icon: string) => {
         </a-form-item>
       </a-col>
     </a-row>
-    <a-row class="mt-4" :gutter="8">
+    <a-row :gutter="8">
       <a-col :span="24">
         <a-form-item :label="$t('labels.onClick')" v-bind="validateInfos.type">
           <a-select
             v-model:value="vModel.type"
-            class="w-52 nc-button-type-select"
+            class="w-52 nc-button-type-select nc-select-shadow"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
             dropdown-class-name="nc-dropdown-button-cell-type"
+            @change="handleUpdateActionType"
           >
             <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-500" /> </template>
 
             <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
-              <div class="flex gap-2 w-full capitalize text-gray-800 truncate items-center">
-                {{ type.label }}
-
-                <component
-                  :is="iconMap.check"
-                  v-if="vModel.type === type.value"
-                  id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
-                />
-              </div>
+              <NcTooltip :disabled="!type.tooltip" placement="right" class="w-full" :title="type.tooltip">
+                <div class="flex gap-2 w-full capitalize text-gray-800 truncate items-center">
+                  <div class="flex-1">
+                    {{ type.label }}
+                  </div>
+                  <component
+                    :is="iconMap.check"
+                    v-if="vModel.type === type.value"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
+                </div>
+              </NcTooltip>
             </a-select-option>
           </a-select>
         </a-form-item>
       </a-col>
     </a-row>
-    <div v-if="vModel?.type === 'url'" class="!mt-4">
+    <div v-if="vModel?.type === buttonActionsType.Url">
       <SmartsheetColumnFormulaInputHelper
         v-model:value="vModel.formula_raw"
         suggestion-height="medium"
@@ -441,7 +518,7 @@ const selectIcon = (icon: string) => {
       />
     </div>
 
-    <a-form-item v-if="vModel?.type === 'webhook'" class="!mt-4">
+    <a-form-item v-if="vModel?.type === buttonActionsType.Webhook">
       <div class="mb-2 text-gray-800 text-[13px] flex justify-between">
         {{ $t('labels.webhook') }}
         <a

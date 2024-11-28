@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { integrationCategoryNeedDefault } from 'nocodb-sdk'
 import type { IntegrationType, UserType, WorkspaceUserType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 
@@ -16,7 +17,10 @@ const {
   editIntegration,
   duplicateIntegration,
   getIntegration,
+  setDefaultIntegration,
 } = useIntegrationStore()
+
+const { loadAiIntegrations } = useNocoAi()
 
 const { $api, $e } = useNuxtApp()
 
@@ -159,6 +163,10 @@ const onDeleteConfirm = async () => {
         ...(base || {}),
         sources: [...base.sources.filter((s) => s.id !== source.id)],
       })
+    }
+
+    if (toBeDeletedIntegration.value?.type && toBeDeletedIntegration.value.type === IntegrationCategoryType.AI) {
+      loadAiIntegrations()
     }
   }
 }
@@ -518,6 +526,13 @@ onKeyStroke('ArrowDown', onDown)
                       </NcButton>
                       <template #overlay>
                         <NcMenu>
+                          <NcMenuItem
+                            v-if="integration.type && integrationCategoryNeedDefault(integration.type) && !integration.is_default"
+                            @click="setDefaultIntegration(integration)"
+                          >
+                            <GeneralIcon class="text-gray-800" icon="star" />
+                            <span>Set as default</span>
+                          </NcMenuItem>
                           <NcMenuItem @click="editIntegration(integration)">
                             <GeneralIcon class="text-gray-800" icon="edit" />
                             <span>{{ $t('general.edit') }}</span>

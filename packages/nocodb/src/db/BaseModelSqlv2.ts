@@ -9,6 +9,7 @@ import {
   AppEvents,
   AuditOperationSubTypes,
   AuditOperationTypes,
+  ButtonActionsType,
   extractFilterFromXwhere,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
@@ -88,6 +89,8 @@ const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
 const isPrimitiveType = (val) =>
   typeof val === 'string' || typeof val === 'number';
+
+const JSON_COLUMN_TYPES = [UITypes.Button];
 
 export async function populatePk(
   context: NcContext,
@@ -1484,7 +1487,7 @@ class BaseModelSqlv2 {
       let viewColumns = (
         await GridViewColumn.list(this.context, this.viewId)
       ).filter((c) => {
-        const col = columns.find((col) => col.id === c.fk_column_id);
+        const col = this.model.columnsById[c.fk_column_id];
         return c.show && (view.show_system_fields || !isSystemColumn(col));
       });
 
@@ -1515,7 +1518,7 @@ class BaseModelSqlv2 {
 
       // Construct aggregate expressions for each view column
       for (const viewColumn of viewColumns) {
-        const col = columns.find((c) => c.id === viewColumn.fk_column_id);
+        const col = this.model.columnsById[viewColumn.fk_column_id];
         if (
           !col ||
           !viewColumn.aggregation ||
@@ -1665,7 +1668,7 @@ class BaseModelSqlv2 {
       let viewColumns = (
         await GridViewColumn.list(this.context, this.viewId)
       ).filter((c) => {
-        const col = columns.find((col) => col.id === c.fk_column_id);
+        const col = this.model.columnsById[c.fk_column_id];
         return c.show && (view.show_system_fields || !isSystemColumn(col));
       });
 
@@ -3360,13 +3363,21 @@ class BaseModelSqlv2 {
       await this.shuffle({ qb });
     }
 
+    // pre-load columns for later user
+    await parentTable.getColumns(this.context);
+    await childTable.getColumns(this.context);
+
     await (isBt ? parentModel : childModel).selectObject({
       qb,
       fieldsSet: listArgs.fieldsSet,
       viewId: childView?.id,
     });
 
-    const aliasColObjMap = await parentTable.getAliasColObjMap(this.context);
+    // extract col-alias map based on the correct relation table
+    const aliasColObjMap = await (relColumn.meta?.bt
+      ? parentTable
+      : childTable
+    ).getAliasColObjMap(this.context);
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await this.getCustomConditionsAndApply({
@@ -3503,7 +3514,10 @@ class BaseModelSqlv2 {
 
     const rtn = parentTn;
     const tn = childTn;
+
+    // pre-load columns for later user
     await childTable.getColumns(this.context);
+    await parentTable.getColumns(this.context);
 
     // one-to-one relation is combination of both hm and bt to identify table which have
     // foreign key column(similar to bt) we are adding a boolean flag `bt` under meta
@@ -3521,7 +3535,12 @@ class BaseModelSqlv2 {
       })
       .count(`*`, { as: 'count' });
 
-    const aliasColObjMap = await parentTable.getAliasColObjMap(this.context);
+    // extract col-alias map based on the correct relation table
+    const aliasColObjMap = await (relColumn.meta?.bt
+      ? parentTable
+      : childTable
+    ).getAliasColObjMap(this.context);
+
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await this.getCustomConditionsAndApply({
@@ -4319,7 +4338,7 @@ class BaseModelSqlv2 {
         case UITypes.Button: {
           try {
             const colOption = column.colOptions as ButtonColumn;
-            if (colOption.type === 'url') {
+            if (colOption.type === ButtonActionsType.Url) {
               const selectQb = await this.getSelectQueryBuilderForFormula(
                 column,
                 alias,
@@ -4369,7 +4388,7 @@ class BaseModelSqlv2 {
                 default:
                   qb.select(this.dbDriver.raw(`'ERR' as ??`, [getAs(column)]));
               }
-            } else if (colOption.type === 'webhook') {
+            } else if (colOption.type === ButtonActionsType.Webhook) {
               switch (this.dbDriver.client.config.client) {
                 case 'mysql2':
                   qb.select(
@@ -4687,7 +4706,7 @@ class BaseModelSqlv2 {
       if (!_trx) await trx.commit();
 
       await this.clearFileReferences({
-        oldData: data,
+        oldData: [data],
         columns: this.model.columns,
       });
 
@@ -6907,8 +6926,8 @@ class BaseModelSqlv2 {
     onlyUpdateAuditLogs?: boolean;
     prevData?: Record<string, any>;
   }) {
-    const columns = await this.model.getColumns(this.context);
-    const column = columns.find((c) => c.id === colId);
+    await this.model.getColumns(this.context);
+    const column = this.model.columnsById[colId];
 
     if (
       !column ||
@@ -7610,8 +7629,8 @@ class BaseModelSqlv2 {
     childId: string;
     cookie?: any;
   }) {
-    const columns = await this.model.getColumns(this.context);
-    const column = columns.find((c) => c.id === colId);
+    await this.model.getColumns(this.context);
+    const column = this.model.columnsById[colId];
     if (
       !column ||
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
@@ -8145,7 +8164,7 @@ class BaseModelSqlv2 {
       skipAttachmentConversion?: boolean;
       skipSubstitutingColumnIds?: boolean;
       skipUserConversion?: boolean;
-      skipButtonConversion?: boolean;
+      skipJsonConversion?: boolean;
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
       bulkAggregate?: boolean;
@@ -8154,7 +8173,7 @@ class BaseModelSqlv2 {
       skipAttachmentConversion: false,
       skipSubstitutingColumnIds: false,
       skipUserConversion: false,
-      skipButtonConversion: false,
+      skipJsonConversion: false,
       raw: false,
       first: false,
       bulkAggregate: false,
@@ -8165,7 +8184,7 @@ class BaseModelSqlv2 {
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
       options.skipUserConversion = true;
-      options.skipButtonConversion = true;
+      options.skipJsonConversion = true;
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -8195,8 +8214,8 @@ class BaseModelSqlv2 {
       data = await this.convertUserFormat(data, dependencyColumns);
     }
 
-    if (!options.skipButtonConversion) {
-      data = await this.convertButtonType(data, dependencyColumns);
+    if (!options.skipJsonConversion) {
+      data = await this.convertJsonTypes(data, dependencyColumns);
     }
 
     if (!options.skipSubstitutingColumnIds) {
@@ -8608,13 +8627,13 @@ class BaseModelSqlv2 {
     return d;
   }
 
-  protected async _convertButtonType(
-    buttonColumns: Record<string, any>[],
+  protected async _convertJsonType(
+    jsonColumns: Record<string, any>[],
     d: Record<string, any>,
   ) {
     try {
       if (d) {
-        for (const col of buttonColumns) {
+        for (const col of jsonColumns) {
           if (d[col.id] && typeof d[col.id] === 'string') {
             d[col.id] = JSON.parse(d[col.id]);
           }
@@ -8642,36 +8661,38 @@ class BaseModelSqlv2 {
     );
   }
 
-  public async convertButtonType(
+  public async convertJsonTypes(
     data: Record<string, any>,
     dependencyColumns?: Column[],
   ) {
-    // buttons result are stringified json in Sqlite and need to be parsed
-    // convertButtonType is used to convert the response in string to array of object in API response
+    // buttons & AI result are stringified json in Sqlite and need to be parsed
+    // converJsonTypes is used to convert the response in string to object in API response
     if (data) {
-      const buttonCols = [];
+      const jsonCols = [];
 
       const columns = this.model?.columns.concat(dependencyColumns ?? []);
 
       for (const col of columns) {
         if (col.uidt === UITypes.Lookup) {
-          if ((await this.getNestedColumn(col))?.uidt === UITypes.Button) {
-            buttonCols.push(col);
+          if (
+            JSON_COLUMN_TYPES.includes((await this.getNestedColumn(col))?.uidt)
+          ) {
+            jsonCols.push(col);
           }
         } else {
-          if (col.uidt === UITypes.Button) {
-            buttonCols.push(col);
+          if (JSON_COLUMN_TYPES.includes(col.uidt)) {
+            jsonCols.push(col);
           }
         }
       }
 
-      if (buttonCols.length) {
+      if (jsonCols.length) {
         if (Array.isArray(data)) {
           data = await Promise.all(
-            data.map((d) => this._convertButtonType(buttonCols, d)),
+            data.map((d) => this._convertJsonType(jsonCols, d)),
           );
         } else {
-          data = await this._convertButtonType(buttonCols, data);
+          data = await this._convertJsonType(jsonCols, data);
         }
       }
     }
@@ -8881,8 +8902,8 @@ class BaseModelSqlv2 {
     colId: string;
     rowId: string;
   }) {
-    const columns = await this.model.getColumns(this.context);
-    const column = columns.find((c) => c.id === colId);
+    await this.model.getColumns(this.context);
+    const column = this.model.columnsById[colId];
 
     if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
 
@@ -9271,8 +9292,8 @@ class BaseModelSqlv2 {
     colId: string;
     rowId: string;
   }) {
-    const columns = await this.model.getColumns(this.context);
-    const column = columns.find((c) => c.id === colId);
+    await this.model.getColumns(this.context);
+    const column = this.model.columnsById[colId];
 
     if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
 
@@ -9627,12 +9648,12 @@ class BaseModelSqlv2 {
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
     try {
-      const columns = await this.model.getColumns(this.context);
+      await this.model.getColumns(this.context);
 
       const { where, sort } = this._getListArgs(args as any);
       // todo: get only required fields
 
-      const relColumn = columns.find((c) => c.id === colId);
+      const relColumn = this.model.columnsById[colId];
 
       const row = await this.execAndParse(
         this.dbDriver(this.tnPath).where(await this._wherePk(id)),
@@ -9745,7 +9766,8 @@ class BaseModelSqlv2 {
   async prepareNocoData(
     data,
     isInsertData = false,
-    cookie?: { user?: any },
+    cookie?: { user?: any; system?: boolean },
+    // oldData uses title as key where as data uses column_name as key
     oldData?,
   ) {
     for (const column of this.model.columns) {

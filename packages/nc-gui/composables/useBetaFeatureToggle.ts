@@ -9,6 +9,13 @@ const FEATURES = [
     enabled: true,
   },
   {
+    id: 'ai_features',
+    title: 'AI features',
+    description: 'Unlock AI features to enhance your NocoDB experience.',
+    enabled: false,
+    isEngineering: true,
+  },
+  {
     id: 'geodata_column',
     title: 'Geodata column',
     description: 'Enable the geodata column.',
@@ -33,6 +40,13 @@ const FEATURES = [
     id: 'attachment_carousel_comments',
     title: 'Comments in attachment carousel',
     description: 'Enable comments in attachment carousel.',
+    enabled: false,
+    isEngineering: true,
+  },
+  {
+    id: 'calendar_view_range',
+    title: 'Allow configuring Date Time Field as End Date for Calendar View',
+    description: 'Enables the calendar to display items as date ranges by allowing configuration of both start and end dates. ',
     enabled: false,
     isEngineering: true,
   },

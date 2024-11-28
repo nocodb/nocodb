@@ -4,6 +4,7 @@ import BasePage from '../../Base';
 import { DataSourcePage } from './DataSourcePage';
 import { TablesViewPage } from './TablesViewPage';
 import { AccessSettingsPage } from './AccessSettingsPage';
+import { BaseSettingsPage } from './Settings';
 
 export class ProjectViewPage extends BasePage {
   readonly dashboard: DashboardPage;
@@ -12,6 +13,7 @@ export class ProjectViewPage extends BasePage {
   readonly dataSources: DataSourcePage;
   readonly tables: TablesViewPage;
   readonly accessSettings: AccessSettingsPage;
+  readonly settings: BaseSettingsPage;
 
   // assets
   readonly tab_allTables: Locator;
@@ -30,6 +32,7 @@ export class ProjectViewPage extends BasePage {
     this.tables = new TablesViewPage(this);
     this.dataSources = new DataSourcePage(this);
     this.accessSettings = new AccessSettingsPage(this);
+    this.settings = new BaseSettingsPage(this);
 
     this.tab_allTables = this.get().locator('[data-testid="proj-view-tab__all-tables"]');
     this.tab_dataSources = this.get().locator('[data-testid="proj-view-tab__data-sources"]');

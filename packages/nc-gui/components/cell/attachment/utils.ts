@@ -363,9 +363,9 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
         await apiPromise().then((res) => {
           if (res?.path) {
-            window.open(`${baseURL}/${res.path}`, '_blank')
+            window.open(`${baseURL}/${res.path}`, '_self')
           } else if (res?.url) {
-            window.open(res.url, '_blank')
+            window.open(res.url, '_self')
           } else {
             message.error('Failed to download file')
           }

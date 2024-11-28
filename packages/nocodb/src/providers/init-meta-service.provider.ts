@@ -98,17 +98,17 @@ export const InitMetaServiceProvider: FactoryProvider = {
     // load super admin user from env if env is set
     await initAdminFromEnv(metaService);
 
-    // init plugin manager
-    await NcPluginMgrv2.init(Noco.ncMeta);
     await Noco.loadEEState();
-
-    if (process.env.NC_CLOUD === 'true') {
-      await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
-    }
 
     // run upgrader
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
 
+    // init plugin manager
+    await NcPluginMgrv2.init(Noco.ncMeta);
+
+    if (process.env.NC_CLOUD === 'true') {
+      await populatePluginsForCloud({ ncMeta: Noco.ncMeta });
+    }
     T.init({
       instance: getInstance,
     });

@@ -8,7 +8,7 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 const router = useRouter()
 
 const activeMenu = ref(
-  isEeUI && isFeatureEnabled(FEATURE_FLAG.BASE_SNAPSHOTS) && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility',
+  isEeUI && hasPermissionForSnapshots.value ? 'snapshots' : 'visibility',
 )
 
 const selectMenu = (option: string) => {
@@ -38,7 +38,7 @@ onMounted(() => {
     <div class="flex flex-col">
       <div class="h-full w-60">
         <div
-          v-if="isEeUI && hasPermissionForSnapshots && isFeatureEnabled(FEATURE_FLAG.BASE_SNAPSHOTS)"
+          v-if="isEeUI && hasPermissionForSnapshots"
           data-testid="snapshots-tab"
           :class="{
             'active-menu': activeMenu === 'snapshots',

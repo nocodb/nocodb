@@ -535,8 +535,9 @@ const isCalendarReadonly = (calendarRange?: Array<{ fk_from_column_id: string; f
 
 const isDisabled = computed(() => {
   return (
-    viewSelectFieldOptions.value.find((f) => f.value === form.calendar_range[0]?.fk_from_column_id)?.uidt === UITypes.DateTime &&
-    !isRangeEnabled.value
+    [UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.Formula].includes(
+      viewSelectFieldOptions.value.find((f) => f.value === form.calendar_range[0]?.fk_from_column_id)?.uidt,
+    ) && !isRangeEnabled.value
   )
 })
 
@@ -1053,9 +1054,9 @@ const getPluralName = (name: string) => {
                   </a-select-option>
                 </a-select>
               </div>
-              <div class="w-full space-y-2">
+              <div v-if="isEeUI" class="w-full space-y-2">
                 <NcTooltip v-if="range.fk_to_column_id === null" placement="left" :disabled="!isDisabled">
-                  <NcButton size="small" type="text" :disabled="!isEeUI || isDisabled" @click="range.fk_to_column_id = undefined">
+                  <NcButton size="small" type="text" :disabled="isDisabled" @click="range.fk_to_column_id = undefined">
                     <div class="flex items-center gap-1">
                       <component :is="iconMap.plus" class="h-4 w-4" />
                       {{ $t('activity.endDate') }}

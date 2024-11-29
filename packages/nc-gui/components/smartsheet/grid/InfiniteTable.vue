@@ -2521,7 +2521,7 @@ watch(
     @apply text-black !bg-gray-50;
   }
 
-  td,
+  td:not(.nc-grid-add-new-cell-item),
   th {
     @apply border-gray-100 border-solid border-r bg-gray-100 p-0;
     min-height: 32px !important;
@@ -2546,11 +2546,11 @@ watch(
     @apply !border-b-1;
   }
 
-  td {
+  td:not(.nc-grid-add-new-cell-item) {
     @apply bg-white border-b;
   }
 
-  td:not(:first-child) {
+  td:not(:first-child):not(.nc-grid-add-new-cell-item) {
     @apply px-3;
 
     &.align-top {
@@ -2668,7 +2668,7 @@ watch(
     border-spacing: 0;
   }
 
-  td {
+  td:not(.nc-grid-add-new-cell-item) {
     text-overflow: ellipsis;
   }
 
@@ -2731,7 +2731,7 @@ watch(
     z-index: 5;
   }
 
-  tbody td:not(.placeholder-column):nth-child(1) {
+  tbody td:not(.placeholder-column):not(.nc-grid-add-new-cell-item):nth-child(1) {
     position: sticky !important;
     left: 0;
     z-index: 4;
@@ -2760,7 +2760,7 @@ watch(
       @apply border-r-1 !border-r-gray-50;
     }
 
-    tbody td:not(.placeholder-column):nth-child(2) {
+    tbody td:not(.placeholder-column):not(.nc-grid-add-new-cell-item):nth-child(2) {
       @apply border-r-1 !border-r-gray-50;
     }
   }
@@ -2820,7 +2820,7 @@ watch(
 
   &:not(.selected-row):has(+ .selected-row) {
     td.nc-grid-cell:not(.active),
-    td:nth-child(2):not(.active) {
+    td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
       @apply border-b-gray-200;
     }
   }
@@ -2829,7 +2829,7 @@ watch(
   &:not(.mouse-down):has(+ :hover) {
     &:not(.selected-row) {
       td.nc-grid-cell:not(.active),
-      td:nth-child(2):not(.active) {
+      td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
         @apply border-b-gray-200;
       }
     }

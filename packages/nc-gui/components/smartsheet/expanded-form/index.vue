@@ -239,12 +239,12 @@ const save = async () => {
       await _save(undefined, undefined, {
         kanbanClbk,
       })
-      _loadRow()
+      await _loadRow()
     }
 
     if (!props.skipReload) {
-      reloadTrigger?.trigger()
-      reloadViewDataTrigger?.trigger()
+      await reloadTrigger?.trigger()
+      await reloadViewDataTrigger?.trigger()
     }
 
     isUnsavedFormExist.value = false
@@ -278,6 +278,7 @@ const save = async () => {
 
 const isPreventChangeModalOpen = ref(false)
 const isCloseModalOpen = ref(false)
+const interruptedDirectionToGo = ref<'next' | 'prev' | undefined>(undefined)
 
 const discardPreventModal = () => {
   // when user click on next or previous button
@@ -299,9 +300,19 @@ const discardPreventModal = () => {
 const onNext = async () => {
   if (changedColumns.value.size > 0) {
     isPreventChangeModalOpen.value = true
+    interruptedDirectionToGo.value = 'next'
     return
   }
   loadingEmit('next')
+}
+
+const onPrev = async () => {
+  if (changedColumns.value.size > 0) {
+    isPreventChangeModalOpen.value = true
+    interruptedDirectionToGo.value = 'prev'
+    return
+  }
+  loadingEmit('prev')
 }
 
 const copyRecordUrl = async () => {
@@ -320,8 +331,13 @@ const saveChanges = async () => {
   if (isPreventChangeModalOpen.value) {
     isUnsavedFormExist.value = false
     await save()
-    loadingEmit('next')
+    if (interruptedDirectionToGo.value) {
+      loadingEmit(interruptedDirectionToGo.value)
+    } else {
+      loadingEmit('next')
+    }
     isPreventChangeModalOpen.value = false
+    interruptedDirectionToGo.value = undefined
   }
   if (isCloseModalOpen.value) {
     isCloseModalOpen.value = false
@@ -641,7 +657,7 @@ export default {
                 class="nc-prev-arrow !w-7 !h-7 !text-gray-500 !disabled:text-gray-300"
                 type="text"
                 size="xsmall"
-                @click="loadingEmit('prev')"
+                @click="onPrev"
               >
                 <GeneralIcon icon="chevronDown" class="transform rotate-180" />
               </NcButton>

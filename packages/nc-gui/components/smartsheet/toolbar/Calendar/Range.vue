@@ -145,8 +145,9 @@ const removeRange = async (id: number) => {
 
 const isDisabled = computed(() => {
   return (
-    dateFieldOptions.value.find((f) => f.value === calendarRange.value[0]?.fk_from_column_id)?.uidt === UITypes.DateTime &&
-    !isRangeEnabled.value
+    [UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.Formula].includes(
+      dateFieldOptions.value.find((f) => f.value === calendarRange.value[0]?.fk_from_column_id)?.uidt,
+    ) && !isRangeEnabled.value
   )
 })
 
@@ -250,76 +251,74 @@ const onValueChange = async () => {
               </div>
             </a-select-option>
           </a-select>
-          <NcTooltip v-if="range.fk_to_column_id === null && isRangeEnabled" placement="left" :disabled="!isDisabled">
-            <NcButton
-              size="small"
-              data-testid="nc-calendar-range-add-end-date"
-              class="w-23"
-              type="text"
-              :shadow="false"
-              :disabled="!isEeUI || isLocked || isDisabled"
-              @click="range.fk_to_column_id = undefined"
-            >
-              <div class="flex gap-1 items-center">
-                <component :is="iconMap.plus" class="h-4 w-4" />
-                {{ $t('activity.endDate') }}
-              </div>
-            </NcButton>
-            <template #title> Coming Soon!! Currently, range support is only available for Date field. </template>
-          </NcTooltip>
-
-          <template v-else-if="isEeUI">
-            <span>
-              {{ $t('activity.withEndDate') }}
-            </span>
-            <div class="flex">
-              <a-select
-                v-model:value="range.fk_to_column_id"
-                class="!rounded-r-none nc-select-shadow w-full flex-1"
-                allow-clear
-                :disabled="!range.fk_from_column_id || isLocked || isDisabled"
-                :placeholder="$t('placeholder.notSelected')"
-                data-testid="nc-calendar-range-to-field-select"
-                dropdown-class-name="!rounded-lg"
-                @change="saveCalendarRanges"
-                @click.stop
+          <div v-if="!isEeUI" class="w-full space-y-2">
+            <NcTooltip v-if="range.fk_to_column_id === null && isRangeEnabled" placement="left" :disabled="!isDisabled">
+              <NcButton
+                size="small"
+                data-testid="nc-calendar-range-add-end-date"
+                class="w-23"
+                type="text"
+                :shadow="false"
+                :disabled="isLocked || isDisabled"
+                @click="range.fk_to_column_id = undefined"
               >
-                <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+                <div class="flex gap-1 items-center">
+                  <component :is="iconMap.plus" class="h-4 w-4" />
+                  {{ $t('activity.endDate') }}
+                </div>
+              </NcButton>
+              <template #title> Coming Soon!! Currently, range support is only available for Date field. </template>
+            </NcTooltip>
 
-                <a-select-option
-                  v-for="(option, opId) in [...dateFieldOptions].filter((f) => {
-                    const firstRange = dateFieldOptions.find((f) => f.value === calendarRange[0].fk_from_column_id)
-                    return firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
-                  })"
-                  :key="opId"
-                  :value="option.value"
+            <template v-else-if="isEeUI">
+              <span>
+                {{ $t('activity.withEndDate') }}
+              </span>
+              <div class="flex">
+                <a-select
+                  v-model:value="range.fk_to_column_id"
+                  class="!rounded-r-none nc-select-shadow w-full flex-1"
+                  allow-clear
+                  :disabled="!range.fk_from_column_id || isLocked || isDisabled"
+                  :placeholder="$t('placeholder.notSelected')"
+                  data-testid="nc-calendar-range-to-field-select"
+                  dropdown-class-name="!rounded-lg"
+                  @change="saveCalendarRanges"
+                  @click.stop
                 >
-                  <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                    <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                      <SmartsheetHeaderIcon :column="option" />
+                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
 
-                      <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
-                        <template #title>
-                          {{ option.label }}
-                        </template>
-                        <template #default>{{ option.label }}</template>
-                      </NcTooltip>
+                  <a-select-option
+                    v-for="(option, opId) in [...dateFieldOptions].filter((f) => {
+                      const firstRange = dateFieldOptions.find((f) => f.value === calendarRange[0].fk_from_column_id)
+                      return firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
+                    })"
+                    :key="opId"
+                    :value="option.value"
+                  >
+                    <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                      <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                        <SmartsheetHeaderIcon :column="option" />
+
+                        <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                          <template #title>
+                            {{ option.label }}
+                          </template>
+                          <template #default>{{ option.label }}</template>
+                        </NcTooltip>
+                      </div>
+                      <GeneralIcon
+                        v-if="option.value === range.fk_from_column_id"
+                        id="nc-selected-item-icon"
+                        icon="check"
+                        class="flex-none text-primary w-4 h-4"
+                      />
                     </div>
-                    <GeneralIcon
-                      v-if="option.value === range.fk_from_column_id"
-                      id="nc-selected-item-icon"
-                      icon="check"
-                      class="flex-none text-primary w-4 h-4"
-                    />
-                  </div>
-                </a-select-option>
-              </a-select>
-            </div>
-          </template>
-
-          <NcButton v-if="id !== 0" size="small" type="secondary" @click="removeRange(id)">
-            <component :is="iconMap.close" />
-          </NcButton>
+                  </a-select-option>
+                </a-select>
+              </div>
+            </template>
+          </div>
         </div>
 
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">

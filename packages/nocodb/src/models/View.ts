@@ -2010,6 +2010,8 @@ export default class View implements ViewType {
         calendar_range?: Partial<CalendarRange>[];
         created_by: string;
         owned_by: string;
+        expanded_record_mode?: ExpandedFormModeType;
+        attachment_mode_column_id?: string;
       },
     model: {
       getColumns: (context: NcContext, ncMeta?) => Promise<Column[]>;
@@ -2029,7 +2031,16 @@ export default class View implements ViewType {
       'created_by',
       'owned_by',
       'lock_type',
+      ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
+
+    if (isEE) {
+      if (!insertObj?.attachment_mode_column_id) {
+        insertObj.expanded_record_mode = ExpandedFormMode.FIELD;
+      } else {
+        insertObj.expanded_record_mode = ExpandedFormMode.ATTACHMENT;
+      }
+    }
 
     if (!insertObj.order) {
       // get order value
@@ -2446,6 +2457,7 @@ export default class View implements ViewType {
   static async updateIfColumnUsedAsExpandedMode(
     _context: NcContext,
     _columnId: string,
+    _modelId: string,
     _ncMeta = Noco.ncMeta,
   ) {
     return;

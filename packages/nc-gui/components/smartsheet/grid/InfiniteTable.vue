@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import {
+  ButtonActionsType,
+  type ButtonType,
   type ColumnReqType,
   type ColumnType,
   type TableType,
@@ -134,6 +136,8 @@ const { paste } = usePaste()
 const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
 const { loadViewAggregate } = useViewAggregateOrThrow()
+
+const { generateRows, generatingRows, generatingColumnRows, generatingColumns, aiIntegrations } = useNocoAi()
 
 // Element refs
 const smartTable = ref(null)
@@ -983,6 +987,71 @@ const deleteSelectedRangeOfRows = () => {
     activeCell.row = null
     activeCell.col = null
   })
+}
+
+const isSelectedOnlyAI = computed(() => {
+  // selectedRange
+  if (selectedRange.start.col === selectedRange.end.col) {
+    const field = fields.value[selectedRange.start.col]
+    return {
+      enabled: field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai,
+      disabled: !ncIsArrayIncludes(aiIntegrations.value, (field?.colOptions as ButtonType)?.fk_integration_id, 'id'),
+    }
+  }
+
+  return {
+    enabled: false,
+    disabled: false,
+  }
+})
+
+const generateAIBulk = async () => {
+  if (!isSelectedOnlyAI.value.enabled || !meta?.value?.id || !meta.value.columns) return
+
+  const field = fields.value[selectedRange.start.col]
+
+  if (!field.id) return
+
+  const rows = Array.from(cachedRows.value.values()).slice(selectedRange.start.row, selectedRange.end.row + 1)
+
+  if (!rows || rows.length === 0) return
+
+  let outputColumnIds = [field.id]
+
+  const isAiButton = field.uidt === UITypes.Button && (field?.colOptions as ButtonType)?.type === ButtonActionsType.Ai
+
+  if (isAiButton) {
+    outputColumnIds =
+      ncIsString(field.colOptions?.output_column_ids) && field.colOptions.output_column_ids.split(',').length > 0
+        ? field.colOptions.output_column_ids.split(',')
+        : []
+  }
+
+  const pks = rows.map((row) => extractPkFromRow(row.row, meta.value!.columns!)).filter((pk) => pk !== null)
+
+  generatingRows.value.push(...pks)
+  generatingColumnRows.value.push(field.id)
+
+  generatingColumns.value.push(...outputColumnIds)
+
+  const res = await generateRows(meta.value.id, field.id, pks)
+
+  if (res) {
+    // find rows using pk and update with generated rows
+    for (const row of res) {
+      const oldRow = Array.from(cachedRows.value.values()).find(
+        (r) => extractPkFromRow(r.row, meta.value!.columns!) === extractPkFromRow(row, meta.value!.columns!),
+      )
+
+      if (oldRow) {
+        oldRow.row = { ...oldRow.row, ...row }
+      }
+    }
+  }
+
+  generatingRows.value = generatingRows.value.filter((pk) => !pks.includes(pk))
+  generatingColumnRows.value = generatingColumnRows.value.filter((v) => v !== field.id)
+  generatingColumns.value = generatingColumns.value.filter((v) => !outputColumnIds?.includes(v))
 }
 
 onClickOutside(tableBodyEl, (e) => {
@@ -2344,6 +2413,29 @@ watch(
                 {{ $t('activity.deleteSelectedRow') }}
               </div>
             </NcMenuItem>
+            <NcTooltip
+              v-if="contextMenuTarget && hasEditPermission && !isDataReadOnly && isSelectedOnlyAI.enabled"
+              :disabled="!isSelectedOnlyAI.disabled"
+            >
+              <template #title>
+                {{
+                  aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure')
+                }}
+              </template>
+              <NcMenuItem
+                class="nc-base-menu-item"
+                data-testid="context-menu-item-bulk"
+                :disabled="isSelectedOnlyAI.disabled"
+                @click="generateAIBulk"
+              >
+                <div class="flex gap-2 items-center">
+                  <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
+                  <!-- Generate All -->
+                  Generate {{ selectedRange.isSingleCell() ? 'Cell' : 'All' }}
+                </div>
+              </NcMenuItem>
+            </NcTooltip>
+
             <NcMenuItem
               v-if="contextMenuTarget"
               class="nc-base-menu-item"

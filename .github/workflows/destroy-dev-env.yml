@@ -14,6 +14,29 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
     steps:
+      - name: Wait for running workflows to finish
+        id: wait
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          echo "Checking for running workflows on branch: $BRANCH"
+          while :; do
+            # Fetch workflow runs for the same branch
+            RESPONSE=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?branch=$BRANCH&status=in_progress")
+            
+            # Parse the number of running workflows
+            RUNNING=$(echo "$RESPONSE" | jq '.workflow_runs | length')
+
+            if [[ "$RUNNING" -eq "0" ]]; then
+              echo "No running workflows found. Proceeding with destroy."
+              break
+            else
+              echo "Found $RUNNING running workflows. Waiting..."
+              sleep 10
+            fi
+          done
       - name: Trigger dev environment creation
         id: dev-env
         run: |
